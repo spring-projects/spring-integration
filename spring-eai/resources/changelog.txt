@@ -1,0 +1,6 @@
+SPRING EAI CHANGELOG
+====================
+
+Changes in version 1.0 M1 (2007)
+--------------------------------
+

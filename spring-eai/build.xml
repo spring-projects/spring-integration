@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="spring-eai">
+
+	<import file="../spring-build/ant/common.xml"/>
+	<import file="../spring-build/ant/artifact.xml"/>
+
+</project>
