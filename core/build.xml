@@ -3,5 +3,7 @@
 
 	<import file="../spring-build/ant/common.xml"/>
 	<import file="../spring-build/ant/artifact.xml"/>
+	<import file="../spring-build/ant/documentation.xml"/>
+	<import file="../spring-build/ant/quality.xml"/>
 
 </project>
