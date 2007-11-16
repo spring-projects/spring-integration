@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src/main/java"/>
+	<classpathentry kind="src" path="src/test/java"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.junit/junit/junit-4.4.jar" sourcepath="/IVY_CACHE/org.junit/junit/junit-4.4.jar"/>
+	<classpathentry kind="output" path="target/classes"/>
+</classpath>
