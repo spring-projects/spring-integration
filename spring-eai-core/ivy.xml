@@ -11,7 +11,7 @@
 	</info>
 
 	<configurations>
-		<include file="${spring.build.dir}/default-ivy-configurations.xml"/>
+		<include file="${spring.build.dir}/common/default-ivy-configurations.xml"/>
 	</configurations>
 
 	<dependencies>

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="spring-eai">
+<project name="spring-eai-core">
 
-	<import file="../spring-build/ant/common.xml"/>
-	<import file="../spring-build/ant/artifact.xml"/>
-	<import file="../spring-build/ant/documentation.xml"/>
-	<import file="../spring-build/ant/quality.xml"/>
+	<property name="version" value="0.5-SNAPSHOT"/>
+	<property name="integration.repo.dir" value="${basedir}/../integration-repo"/>
+
+	<import file="../spring-build/standard/default.xml"/>
 
 </project>
