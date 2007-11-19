@@ -17,6 +17,8 @@
 package org.springframework.eai;
 
 /**
+ * Exception that indicates an error during message handling.
+ * 
  * @author Mark Fisher
  */
 @SuppressWarnings("serial")

@@ -17,6 +17,8 @@
 package org.springframework.eai;
 
 /**
+ * The base exception for any failures within the messaging system.
+ * 
  * @author Mark Fisher
  */
 @SuppressWarnings("serial")
