@@ -17,6 +17,9 @@
 package org.springframework.eai.message;
 
 /**
+ * A simple Message implementation that encapsulates
+ * a single Object as its payload.
+ *
  * @author Mark Fisher
  */
 public class DocumentMessage implements Message {

@@ -17,6 +17,8 @@
 package org.springframework.eai.message;
 
 /**
+ * The central interface that any Message type must implement.
+ * 
  * @author Mark Fisher
  */
 public interface Message {

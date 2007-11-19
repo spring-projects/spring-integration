@@ -21,6 +21,13 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * A holder for Message metadata. This includes information
+ * that is used by the messaging system (such as <i>id</i>
+ * and <i>correlationId</i>) as well as information that
+ * is relevant for specific messaging endpoints. For the
+ * latter, String values may be stored as <i>properties</i>
+ * and Object values may be stored as <i>attributes</i>.
+ * 
  * @author Mark Fisher
  */
 public class MessageHeader {
