@@ -16,6 +16,7 @@
 
 package org.springframework.eai.message;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,6 +38,8 @@ public class MessageHeader {
 	private Object correlationId;
 
 	private String replyChannelName;
+
+	private Date expiration;
 
 	private int sequenceNumber = 1;
 
@@ -74,6 +77,22 @@ public class MessageHeader {
 
 	public int getSequenceNumber() {
 		return this.sequenceNumber;
+	}
+
+	/**
+	 * Set the expiration date for this message or <code>null</code>
+	 * to indicate 'never expire'. The default is <code>null</code>.
+	 */
+	public void setExpiration(Date expiration) {
+		this.expiration = expiration;
+	}
+
+	/**
+	 * Return the expiration date for this message or
+	 * <code>null</code> to indicate 'never expire'.
+	 */
+	public Date getExpiration() {
+		return this.expiration;
 	}
 
 	public void setSequenceNumber(int sequenceNumber) {
