@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.eai.message;
+package org.springframework.integration.message;
 
 /**
  * A simple Message implementation that encapsulates

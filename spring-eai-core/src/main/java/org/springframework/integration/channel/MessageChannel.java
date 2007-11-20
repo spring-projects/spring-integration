@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.eai;
+package org.springframework.integration.channel;
+
+import org.springframework.integration.message.Message;
 
 /**
- * The base exception for any failures within the messaging system.
+ * The base channel interface defining the common behavior
+ * of sending and receiving messages.   
  * 
  * @author Mark Fisher
  */
-@SuppressWarnings("serial")
-public class MessagingException extends RuntimeException {
+public interface MessageChannel {
 
-	public MessagingException(String message) {
-		super(message);
-	}
+	void send(Message message);
 
-	public MessagingException(String message, Throwable cause) {
-		super(message, cause);
-	}
+	Message receive();
 
 }

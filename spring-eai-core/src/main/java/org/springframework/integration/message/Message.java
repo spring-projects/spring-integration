@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.eai.channel;
-
-import org.springframework.eai.message.Message;
+package org.springframework.integration.message;
 
 /**
- * The base channel interface defining the common behavior
- * of sending and receiving messages.   
+ * The central interface that any Message type must implement.
  * 
  * @author Mark Fisher
  */
-public interface MessageChannel {
+public interface Message {
 
-	void send(Message message);
+	MessageHeader getHeader();
 
-	Message receive();
+	Object getPayload();
 
 }

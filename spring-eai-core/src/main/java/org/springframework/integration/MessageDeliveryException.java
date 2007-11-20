@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.eai;
+package org.springframework.integration;
 
 /**
  * Exception that indicates an error during message delivery.

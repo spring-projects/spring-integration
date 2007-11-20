@@ -14,17 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.eai.message;
+package org.springframework.integration;
 
 /**
- * The central interface that any Message type must implement.
+ * The base exception for any failures within the messaging system.
  * 
  * @author Mark Fisher
  */
-public interface Message {
+@SuppressWarnings("serial")
+public class MessagingException extends RuntimeException {
 
-	MessageHeader getHeader();
+	public MessagingException(String message) {
+		super(message);
+	}
 
-	Object getPayload();
+	public MessagingException(String message, Throwable cause) {
+		super(message, cause);
+	}
 
 }

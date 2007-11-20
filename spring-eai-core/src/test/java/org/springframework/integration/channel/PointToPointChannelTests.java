@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.eai.channel;
+package org.springframework.integration.channel;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -25,7 +25,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 
-import org.springframework.eai.message.DocumentMessage;
+import org.springframework.integration.channel.PointToPointChannel;
+import org.springframework.integration.message.DocumentMessage;
 
 /**
  * @author Mark Fisher

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.eai.channel;
+package org.springframework.integration.channel;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import org.springframework.eai.message.Message;
+import org.springframework.integration.message.Message;
 
 /**
  * Simple implementation of a point-to-point message channel.

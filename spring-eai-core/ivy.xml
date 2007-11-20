@@ -16,7 +16,7 @@
 
 	<dependencies>
 		<dependency org="org.junit" name="junit" rev="4.4" conf="test->default"/>
-		<dependency org="org.springframework" name="spring-context" rev="2.1-m4" conf="compile"/>
+		<dependency org="org.springframework" name="spring-context" rev="2.5.0" conf="compile->default"/>
 	</dependencies>
 
 </ivy-module>
