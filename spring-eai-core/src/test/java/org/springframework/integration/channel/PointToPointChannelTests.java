@@ -94,13 +94,33 @@ public class PointToPointChannelTests {
 	}
 
 	@Test
-	public void testBlockingReceive() throws Exception{
+	public void testBlockingReceiveWithNoTimeout() throws Exception{
 		final PointToPointChannel channel = new PointToPointChannel();
 		final AtomicBoolean receiveInterrupted = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				Message message = channel.receive();
+				receiveInterrupted.set(true);
+				assertTrue(message == null);
+				latch.countDown();
+			}
+		});
+		t.start();
+		assertFalse(receiveInterrupted.get());
+		t.interrupt();
+		latch.await();
+		assertTrue(receiveInterrupted.get());
+	}
+
+	@Test
+	public void testBlockingReceiveWithTimeout() throws Exception{
+		final PointToPointChannel channel = new PointToPointChannel();
+		final AtomicBoolean receiveInterrupted = new AtomicBoolean(false);
+		final CountDownLatch latch = new CountDownLatch(1);
+		Thread t = new Thread(new Runnable() {
+			public void run() {
+				Message message = channel.receive(10000);
 				receiveInterrupted.set(true);
 				assertTrue(message == null);
 				latch.countDown();
@@ -127,7 +147,7 @@ public class PointToPointChannelTests {
 	}
 
 	@Test
-	public void testBlockingSend() throws Exception{
+	public void testBlockingSendWithNoTimeout() throws Exception{
 		final PointToPointChannel channel = new PointToPointChannel(1);
 		boolean result1 = channel.send(new DocumentMessage(1, "test-1"));
 		assertTrue(result1);
@@ -136,6 +156,27 @@ public class PointToPointChannelTests {
 		Thread t = new Thread(new Runnable() {
 			public void run() {
 				channel.send(new DocumentMessage(2, "test-2"));
+				sendInterrupted.set(true);
+				latch.countDown();
+			}
+		});
+		t.start();
+		assertFalse(sendInterrupted.get());
+		t.interrupt();
+		latch.await();
+		assertTrue(sendInterrupted.get());
+	}
+
+	@Test
+	public void testBlockingSendWithTimeout() throws Exception{
+		final PointToPointChannel channel = new PointToPointChannel(1);
+		boolean result1 = channel.send(new DocumentMessage(1, "test-1"));
+		assertTrue(result1);
+		final AtomicBoolean sendInterrupted = new AtomicBoolean(false);
+		final CountDownLatch latch = new CountDownLatch(1);
+		Thread t = new Thread(new Runnable() {
+			public void run() {
+				channel.send(new DocumentMessage(2, "test-2"), 10000);
 				sendInterrupted.set(true);
 				latch.countDown();
 			}
