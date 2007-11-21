@@ -19,15 +19,19 @@ package org.springframework.integration.channel;
 import org.springframework.integration.message.Message;
 
 /**
- * The base channel interface defining the common behavior
+ * Base channel interface defining the common behavior
  * of sending and receiving messages.   
  * 
  * @author Mark Fisher
  */
 public interface MessageChannel {
 
-	void send(Message message);
+	boolean send(Message message);
+
+	boolean send(Message message, long timeout);
 
 	Message receive();
+
+	Message receive(long timeout);
 
 }
