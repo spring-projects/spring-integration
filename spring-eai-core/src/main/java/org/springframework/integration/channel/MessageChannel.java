@@ -16,22 +16,17 @@
 
 package org.springframework.integration.channel;
 
-import org.springframework.integration.message.Message;
+import org.springframework.integration.MessageSource;
+import org.springframework.integration.MessageTarget;
 
 /**
- * Base channel interface defining the common behavior
- * of sending and receiving messages.   
+ * Base channel interface to combine the definitions of {@link MessageSource}
+ * for message reception and and {@link MessageTarget} for message sending.
  * 
  * @author Mark Fisher
+ * @see MessageSource
+ * @see MessageTarget
  */
-public interface MessageChannel {
-
-	boolean send(Message message);
-
-	boolean send(Message message, long timeout);
-
-	Message receive();
-
-	Message receive(long timeout);
+public interface MessageChannel extends MessageSource, MessageTarget {
 
 }
