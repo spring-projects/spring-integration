@@ -20,8 +20,8 @@ import org.springframework.integration.MessageSource;
 import org.springframework.integration.MessageTarget;
 
 /**
- * Base channel interface to combine the definitions of {@link MessageSource}
- * for message reception and and {@link MessageTarget} for message sending.
+ * Base channel interface that combines the definitions of {@link MessageSource}
+ * for message reception and {@link MessageTarget} for message sending.
  * 
  * @author Mark Fisher
  * @see MessageSource
