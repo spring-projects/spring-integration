@@ -23,8 +23,14 @@ package org.springframework.integration.message;
  */
 public interface Message {
 
+	Object getId();
+
 	MessageHeader getHeader();
 
 	Object getPayload();
+
+	void lock();
+
+	void unlock();
 
 }

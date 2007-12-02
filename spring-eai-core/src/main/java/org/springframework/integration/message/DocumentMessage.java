@@ -17,26 +17,18 @@
 package org.springframework.integration.message;
 
 /**
- * A simple Message implementation that encapsulates
- * a single Object as its payload.
- *
+ * A simple Message implementation that encapsulates a single Object payload.
+ * 
  * @author Mark Fisher
  */
-public class DocumentMessage implements Message {
-
-	private MessageHeader header;
+public class DocumentMessage extends AbstractMessage {
 
 	private Object payload;
 
 
 	public DocumentMessage(Object id, Object payload) {
-		this.header = new MessageHeader(id);
+		super(id);
 		this.payload = payload;
-	}
-
-
-	public MessageHeader getHeader() {
-		return this.header;
 	}
 
 	public Object getPayload() {

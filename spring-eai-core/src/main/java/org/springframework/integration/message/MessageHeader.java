@@ -22,18 +22,15 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * A holder for Message metadata. This includes information
- * that is used by the messaging system (such as <i>id</i>
- * and <i>correlationId</i>) as well as information that
- * is relevant for specific messaging endpoints. For the
- * latter, String values may be stored as <i>properties</i>
- * and Object values may be stored as <i>attributes</i>.
+ * A holder for Message metadata. This includes information that is used by the
+ * messaging system (such <i>correlationId</i>) as well as information that is
+ * relevant for specific messaging endpoints. For the latter, String values may
+ * be stored as <i>properties</i> and Object values may be stored as
+ * <i>attributes</i>.
  * 
  * @author Mark Fisher
  */
 public class MessageHeader {
-
-	private Object id;
 
 	private Object correlationId;
 
@@ -49,15 +46,6 @@ public class MessageHeader {
 
 	private Map<String, Object> attributes = new ConcurrentHashMap<String, Object>();
 
-
-	public MessageHeader(Object id) {
-		this.id = id;
-	}
-
-
-	public Object getId() {
-		return this.id;
-	}
 
 	public Object getCorrelationId() {
 		return this.correlationId;
@@ -80,16 +68,16 @@ public class MessageHeader {
 	}
 
 	/**
-	 * Set the expiration date for this message or <code>null</code>
-	 * to indicate 'never expire'. The default is <code>null</code>.
+	 * Set the expiration date for this message or <code>null</code> to
+	 * indicate 'never expire'. The default is <code>null</code>.
 	 */
 	public void setExpiration(Date expiration) {
 		this.expiration = expiration;
 	}
 
 	/**
-	 * Return the expiration date for this message or
-	 * <code>null</code> to indicate 'never expire'.
+	 * Return the expiration date for this message or <code>null</code> to
+	 * indicate 'never expire'.
 	 */
 	public Date getExpiration() {
 		return this.expiration;
