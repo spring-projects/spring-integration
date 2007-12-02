@@ -41,7 +41,7 @@ import org.springframework.integration.message.Message;
  * 
  * @author Mark Fisher
  */
-public class DefaultMessageEndpoint {
+public class GenericMessageEndpoint {
 
 	private MessageSource source;
 
@@ -60,27 +60,48 @@ public class DefaultMessageEndpoint {
 	private Object lifecycleMonitor = new Object();
 
 
-	public DefaultMessageEndpoint(MessageSource source) {
+	/**
+	 * Create an endpoint to consume messages from the given source.
+	 */
+	public GenericMessageEndpoint(MessageSource source) {
 		this.source = source;
 	}
 
+
+	/**
+	 * Set the target to which this endpoint can send messages.
+	 */
 	public void setTarget(MessageTarget target) {
 		this.target = target;
 	}
 
+	/**
+	 * Set a handler to be invoked for each consumed message.
+	 */
 	public void setHandler(MessageHandler handler) {
 		this.handler = handler;
 	}
 
+	/**
+	 * Set the consumer type to use for this endpoint's source. 
+	 * @see ConsumerType
+	 */
 	public void setConsumerType(ConsumerType consumerType) {
 		this.consumerType = consumerType;
 	}
 
+	/**
+	 * Set the channel resolver strategy to use when a message
+	 * provides a '<i>replyChannelName</i>'.
+	 */
 	public void setChannelResolver(ChannelResolver channelResolver) {
 		this.channelResolver = channelResolver;
 	}
 
 
+	/**
+	 * Create a consumer based upon the specified consumer type.
+	 */
 	protected AbstractConsumer createDefaultConsumer() {
 		MessageHandler handlerAdapter = new MessageHandlerAdapter();
 		if (this.consumerType.equals(ConsumerType.EVENT_DRIVEN)) {
@@ -98,6 +119,9 @@ public class DefaultMessageEndpoint {
 		}
 	}
 
+	/**
+	 * Start the consumer.
+	 */
 	public final void start() {
 		synchronized (this.lifecycleMonitor) {
 			if (this.source != null && this.consumer == null) {
@@ -108,6 +132,9 @@ public class DefaultMessageEndpoint {
 		}
 	}
 
+	/**
+	 * Stop the consumer.
+	 */
 	public final void stop() {
 		synchronized (this.lifecycleMonitor) {
 			if (this.running) {
@@ -119,6 +146,9 @@ public class DefaultMessageEndpoint {
 		}
 	}
 
+	/**
+	 * Return whether this endpoint is running (and hence its consumer).
+	 */
 	public final boolean isRunning() {
 		synchronized (this.lifecycleMonitor) {
 			return this.running;
@@ -138,7 +168,7 @@ public class DefaultMessageEndpoint {
 				MessageTarget replyTarget = resolveReplyTarget(message);
 				if (replyTarget == null) {
 					throw new MessageHandlingException("Unable to determine reply target for message. "
-							+ "Provide a 'replyChannelName' in the message header or a 'defaultReplyChannel' "
+							+ "Provide a 'replyChannelName' in the message header or a 'target' "
 							+ "on the message endpoint.");
 				}
 				replyTarget.send(replyMessage);
