@@ -23,6 +23,8 @@ import static org.junit.Assert.assertNull;
 import org.junit.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.integration.annotation.Publisher;
+import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PointToPointChannel;
 import org.springframework.integration.message.Message;
@@ -30,53 +32,58 @@ import org.springframework.integration.message.Message;
 /**
  * @author Mark Fisher
  */
-public class MessagePublishingInterceptorTests {
+public class PublisherAnnotationAdvisorTests {
 
 	@Test
-	public void testNonNullReturnValuePublishedWithDefaultChannel() {
-		MessageChannel channel = new PointToPointChannel();
-		MessagePublishingInterceptor interceptor = new MessagePublishingInterceptor();
-		interceptor.setDefaultChannel(channel);
-		TestService proxy = (TestService) this.createProxy(new TestServiceImpl("hello world"), interceptor);
-		proxy.messageTest();
+	public void testPublisherAnnotation() {
+		final MessageChannel channel = new PointToPointChannel();
+		ChannelResolver channelResolver = new ChannelResolver() {
+			public MessageChannel resolve(String channelName) {
+				if (channelName.equals("testChannel")) {
+					return channel;
+				}
+				return null;
+			}
+		};
+		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor(channelResolver);
+		TestService proxy = (TestService) this.createProxy(new TestServiceImpl("hello world"), advisor);
+		proxy.publisherTest();
 		Message message = channel.receive(0);
 		assertNotNull(message);
 		assertEquals("hello world", message.getPayload());
 	}
 
 	@Test
-	public void testNullReturnValueNotPublished() {
-		MessageChannel channel = new PointToPointChannel();
-		MessagePublishingInterceptor interceptor = new MessagePublishingInterceptor();
-		interceptor.setDefaultChannel(channel);
-		TestService proxy = (TestService) this.createProxy(new TestServiceImpl(null), interceptor);
-		proxy.messageTest();
+	public void testNoPublisherAnnotation() {
+		final MessageChannel channel = new PointToPointChannel();
+		ChannelResolver channelResolver = new ChannelResolver() {
+			public MessageChannel resolve(String channelName) {
+				if (channelName.equals("testChannel")) {
+					return channel;
+				}
+				return null;
+			}
+		};
+		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor(channelResolver);
+		TestService proxy = (TestService) this.createProxy(new TestServiceImpl("hello world"), advisor);
+		proxy.noPublisherTest();
 		Message message = channel.receive(0);
 		assertNull(message);
 	}
 
-	@Test
-	public void testVoidReturnValueNotPublished() {
-		MessageChannel channel = new PointToPointChannel();
-		MessagePublishingInterceptor interceptor = new MessagePublishingInterceptor();
-		interceptor.setDefaultChannel(channel);
-		TestService proxy = (TestService) this.createProxy(new TestServiceImpl(null), interceptor);
-		proxy.voidTest();
-		Message message = channel.receive(0);
-		assertNull(message);
-	}
 
-
-	private Object createProxy(Object target, MessagePublishingInterceptor interceptor) {
+	private Object createProxy(Object target, PublisherAnnotationAdvisor advisor) {
 		ProxyFactory factory = new ProxyFactory(target);
-		factory.addAdvice(interceptor);
+		factory.addAdvisor(advisor);
 		return factory.getProxy();
 	}
 
 
 	private static interface TestService {
-		String messageTest();
-		void voidTest();
+
+		String publisherTest();
+
+		String noPublisherTest();
 	}
 
 
@@ -88,12 +95,13 @@ public class MessagePublishingInterceptorTests {
 			this.message = message;
 		}
 
-		public String messageTest() {
+		@Publisher(channel="testChannel")
+		public String publisherTest() {
 			return this.message;
 		}
 
-		public void voidTest() {
-			return;
+		public String noPublisherTest() {
+			return this.message;
 		}
 
 	}

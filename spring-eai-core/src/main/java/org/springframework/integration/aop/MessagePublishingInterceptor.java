@@ -19,6 +19,9 @@ package org.springframework.integration.aop;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.MessageMapper;
 import org.springframework.integration.message.SimplePayloadMessageMapper;
@@ -31,17 +34,15 @@ import org.springframework.util.Assert;
  */
 public class MessagePublishingInterceptor implements MethodInterceptor {
 
+	protected Log logger = LogFactory.getLog(getClass());
+
 	private MessageMapper mapper = new SimplePayloadMessageMapper();
 
-	private MessageChannel channel;
+	private MessageChannel defaultChannel;
 
 
-	/**
-	 * Create a publishing interceptor for the given channel. 
-	 */
-	public MessagePublishingInterceptor(MessageChannel channel) {
-		Assert.notNull(channel, "channel must not be null");
-		this.channel = channel;
+	public void setDefaultChannel(MessageChannel defaultChannel) {
+		this.defaultChannel = defaultChannel;
 	}
 
 	/**
@@ -61,9 +62,25 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 	public Object invoke(MethodInvocation invocation) throws Throwable {
 		Object retval = invocation.proceed();
 		if (retval != null) {
-			this.channel.send(mapper.toMessage(retval));
+			MessageChannel channel = this.resolveChannel(invocation);
+			if (channel == null) {
+				if (logger.isWarnEnabled()) {
+					logger.warn("unable to resolve channel for intercepted method '" +
+							invocation.getMethod().getName() + "'");
+				}
+			}
+			else {
+				channel.send(mapper.toMessage(retval));
+			}
 		}
 		return retval;
+	}
+
+	/**
+	 * Subclasses may override this method to provide custom behavior.
+	 */
+	protected MessageChannel resolveChannel(MethodInvocation invocation) {
+		return this.defaultChannel;
 	}
 
 }
