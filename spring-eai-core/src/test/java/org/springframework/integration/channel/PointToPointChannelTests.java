@@ -16,7 +16,9 @@
 
 package org.springframework.integration.channel;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
@@ -24,10 +26,12 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
 import org.springframework.integration.message.DocumentMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageSelector;
 
 /**
  * @author Mark Fisher
@@ -186,6 +190,70 @@ public class PointToPointChannelTests {
 		t.interrupt();
 		latch.await();
 		assertTrue(sendInterrupted.get());
+	}
+
+	@Test
+	public void testSelectorMatchesWithinTimeout() throws Exception {
+		final PointToPointChannel channel = new PointToPointChannel();
+		final CountDownLatch latch = new CountDownLatch(1);
+		final AtomicReference<Message> messageRef = new AtomicReference<Message>();
+		Thread receiver = new Thread(new Runnable() {
+			public void run() {
+				Message message = channel.receive(new MessageSelector() {
+					public boolean accept(Message message) {
+						return (((Integer)message.getId()).intValue() == 3);
+					}
+				}, 50);
+				messageRef.set(message);
+				latch.countDown();
+			}
+		});
+		receiver.start();
+		Thread sender = new Thread(new Runnable() {
+			public void run() {
+				channel.send(new DocumentMessage(1, "test-1"));
+				try { Thread.sleep(5); } catch (Exception e) {}
+				channel.send(new DocumentMessage(2, "test-2"));
+				try { Thread.sleep(5); } catch (Exception e) {}
+				channel.send(new DocumentMessage(3, "test-3"));
+				try { Thread.sleep(100); } catch (Exception e) {}
+				channel.send(new DocumentMessage(4, "test-4"));
+			}
+		});
+		sender.start();
+		latch.await();
+		assertEquals("test-3", messageRef.get().getPayload());
+	}
+
+	@Test
+	public void testSelectorDoesNotMatchWithinTimeout() throws Exception {
+		final PointToPointChannel channel = new PointToPointChannel();
+		final CountDownLatch latch = new CountDownLatch(1);
+		final AtomicReference<Message> messageRef = new AtomicReference<Message>();
+		Thread receiver = new Thread(new Runnable() {
+			public void run() {
+				Message message = channel.receive(new MessageSelector() {
+					public boolean accept(Message message) {
+						return (((Integer)message.getId()).intValue() == 3);
+					}
+				}, 7);
+				messageRef.set(message);
+				latch.countDown();
+			}
+		});
+		receiver.start();
+		Thread sender = new Thread(new Runnable() {
+			public void run() {
+				channel.send(new DocumentMessage(1, "test-1"));
+				try { Thread.sleep(5); } catch (Exception e) {}
+				channel.send(new DocumentMessage(2, "test-2"));
+				try { Thread.sleep(5); } catch (Exception e) {}
+				channel.send(new DocumentMessage(3, "test-3"));
+			}
+		});
+		sender.start();
+		latch.await();
+		assertNull(messageRef.get());
 	}
 
 }
