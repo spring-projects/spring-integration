@@ -16,6 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageSource;
 import org.springframework.integration.MessageTarget;
@@ -41,7 +42,7 @@ import org.springframework.integration.message.Message;
  * 
  * @author Mark Fisher
  */
-public class GenericMessageEndpoint {
+public class GenericMessageEndpoint implements MessageEndpoint, Lifecycle {
 
 	private MessageSource source;
 
