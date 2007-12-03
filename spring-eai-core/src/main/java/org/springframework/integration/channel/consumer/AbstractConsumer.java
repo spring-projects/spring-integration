@@ -103,11 +103,13 @@ public abstract class AbstractConsumer implements Lifecycle {
 		synchronized (this.lifecycleMonitor) {
 			this.active = true;
 			this.lifecycleMonitor.notifyAll();
-			if (this.autoStartup) {
+		}
+		doInitialize();
+		if (this.autoStartup) {
+			synchronized (this.lifecycleMonitor) {
 				this.start();
 			}
 		}
-		doInitialize();
 	}
 
 	/**
