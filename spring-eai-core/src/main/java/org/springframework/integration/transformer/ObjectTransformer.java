@@ -14,27 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
-
-import org.springframework.integration.transformer.ObjectTransformer;
+package org.springframework.integration.transformer;
 
 /**
- * The central interface that any Message type must implement.
- * 
  * @author Mark Fisher
  */
-public interface Message {
+public interface ObjectTransformer {
 
-	Object getId();
-
-	MessageHeader getHeader();
-
-	Object getPayload();
-
-	void transformPayload(ObjectTransformer transformer);
-
-	void lock();
-
-	void unlock();
+	public Object transform(Object source);
 
 }

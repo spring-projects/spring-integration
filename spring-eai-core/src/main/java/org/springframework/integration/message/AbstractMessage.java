@@ -19,6 +19,8 @@ package org.springframework.integration.message;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.integration.SystemInterruptedException;
+import org.springframework.integration.transformer.ObjectTransformer;
+import org.springframework.util.Assert;
 
 /**
  * Base Message class defining common properties such as id, header, and lock.
@@ -31,14 +33,16 @@ public abstract class AbstractMessage implements Message {
 
 	private MessageHeader header = new MessageHeader();
 
+	private Object payload;
+
 	private ReentrantLock lock;
 
 
-	protected AbstractMessage(Object id) {
-		if (id == null) {
-			throw new IllegalArgumentException("id must not be null");
-		}
+	protected AbstractMessage(Object id, Object payload) {
+		Assert.notNull(id, "id must not be null");
+		Assert.notNull(payload, "payload must not be null");
 		this.id = id;
+		this.payload = payload;
 	}
 
 	public Object getId() {
@@ -51,6 +55,14 @@ public abstract class AbstractMessage implements Message {
 
 	protected void setHeader(MessageHeader header) {
 		this.header = header;
+	}
+
+	public Object getPayload() {
+		return this.payload;
+	}
+
+	protected void setPayload(Object newPayload) {
+		this.payload = newPayload;
 	}
 
 	public void lock() {
@@ -68,6 +80,16 @@ public abstract class AbstractMessage implements Message {
 
 	public void unlock() {
 		lock.unlock();
+	}
+
+	public void transformPayload(ObjectTransformer transformer) {
+		this.lock();
+		try {
+			this.setPayload(transformer.transform(this.getPayload()));
+		}
+		finally {
+			this.unlock();
+		}
 	}
 
 }

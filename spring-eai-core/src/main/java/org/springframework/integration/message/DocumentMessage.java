@@ -23,16 +23,8 @@ package org.springframework.integration.message;
  */
 public class DocumentMessage extends AbstractMessage {
 
-	private Object payload;
-
-
 	public DocumentMessage(Object id, Object payload) {
-		super(id);
-		this.payload = payload;
-	}
-
-	public Object getPayload() {
-		return this.payload;
+		super(id, payload);
 	}
 
 }
