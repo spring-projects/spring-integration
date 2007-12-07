@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
 import org.springframework.integration.channel.PointToPointChannel;
-import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.DocumentMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -50,16 +50,19 @@ public class EventDrivenConsumerTests {
 		executor.setMaxPoolSize(maxConcurrency);
 		executor.setQueueCapacity(0);
 		PointToPointChannel channel = new PointToPointChannel();
-		MessageHandler handler = new MessageHandler() {
-			public Message handle(Message message) {
+		MessageEndpoint endpoint = new MessageEndpoint() {
+			public void messageReceived(Message message) {
 				counter.incrementAndGet();
 				latch.countDown();
 				activeSum.set(activeSum.addAndGet(executor.getActiveCount()));
 				maxActive.set(Math.max(executor.getActiveCount(), maxActive.get()));
-				return null;
+			}
+
+			public ConsumerType getConsumerType() {
+				return ConsumerType.EVENT_DRIVEN;
 			}
 		};
-		EventDrivenConsumer consumer = new EventDrivenConsumer(channel, handler);
+		EventDrivenConsumer consumer = new EventDrivenConsumer(channel, endpoint);
 		consumer.setExecutor(executor);
 		consumer.setConcurrency(concurrency);
 		consumer.setMaxConcurrency(maxConcurrency);

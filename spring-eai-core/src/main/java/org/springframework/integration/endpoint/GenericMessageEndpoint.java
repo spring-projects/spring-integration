@@ -61,6 +61,8 @@ public class GenericMessageEndpoint implements MessageEndpoint, Lifecycle {
 	private Object lifecycleMonitor = new Object();
 
 
+	public GenericMessageEndpoint() {}
+
 	/**
 	 * Create an endpoint to consume messages from the given source.
 	 */
@@ -68,6 +70,12 @@ public class GenericMessageEndpoint implements MessageEndpoint, Lifecycle {
 		this.source = source;
 	}
 
+	/**
+	 * Set the source from which this endpoint receives messages.
+	 */
+	public void setSource(MessageSource source) {
+		this.source = source;
+	}
 
 	/**
 	 * Set the target to which this endpoint can send messages.
@@ -92,6 +100,13 @@ public class GenericMessageEndpoint implements MessageEndpoint, Lifecycle {
 	}
 
 	/**
+	 * Return the consumer type to use for this endpoint's source.
+	 */
+	public ConsumerType getConsumerType() {
+		return this.consumerType;
+	}
+
+	/**
 	 * Set the channel resolver strategy to use when a message
 	 * provides a '<i>replyChannelName</i>'.
 	 */
@@ -104,15 +119,14 @@ public class GenericMessageEndpoint implements MessageEndpoint, Lifecycle {
 	 * Create a consumer based upon the specified consumer type.
 	 */
 	protected AbstractConsumer createDefaultConsumer() {
-		MessageHandler handlerAdapter = new MessageHandlerAdapter();
 		if (this.consumerType.equals(ConsumerType.EVENT_DRIVEN)) {
-			return new EventDrivenConsumer(this.source, handlerAdapter);
+			return new EventDrivenConsumer(this.source, this);
 		}
 		else if (this.consumerType.equals(ConsumerType.FIXED_RATE)) {
-			return new FixedRateConsumer(this.source, handlerAdapter);
+			return new FixedRateConsumer(this.source, this);
 		}
 		else if (this.consumerType.equals(ConsumerType.FIXED_DELAY)) {
-			return new FixedDelayConsumer(this.source, handlerAdapter);
+			return new FixedDelayConsumer(this.source, this);
 		}
 		else {
 			throw new UnsupportedOperationException("the consumerType '"
@@ -156,37 +170,31 @@ public class GenericMessageEndpoint implements MessageEndpoint, Lifecycle {
 		}
 	}
 
-
-	private class MessageHandlerAdapter implements MessageHandler {
-
-		public Message handle(Message message) {
-			if (handler == null) {
-				target.send(message);
-				return null;
-			}
-			Message replyMessage = handler.handle(message);
-			if (replyMessage != null) {
-				MessageTarget replyTarget = resolveReplyTarget(message);
-				if (replyTarget == null) {
-					throw new MessageHandlingException("Unable to determine reply target for message. "
-							+ "Provide a 'replyChannelName' in the message header or a 'target' "
-							+ "on the message endpoint.");
-				}
-				replyTarget.send(replyMessage);
-			}
-			return null;
+	public void messageReceived(Message message) {
+		if (this.handler == null) {
+			target.send(message);
 		}
-
-		private MessageTarget resolveReplyTarget(Message message) {
-			MessageTarget replyTo = null;
-			if (channelResolver != null) {
-				String replyChannelName = message.getHeader().getReplyChannelName();
-				if (replyChannelName != null && replyChannelName.trim().length() > 0) {
-					replyTo = channelResolver.resolve(replyChannelName);
-				}
+		Message replyMessage = handler.handle(message);
+		if (replyMessage != null) {
+			MessageTarget replyTarget = resolveReplyTarget(message);
+			if (replyTarget == null) {
+				throw new MessageHandlingException("Unable to determine reply target for message. "
+						+ "Provide a 'replyChannelName' in the message header or a 'target' "
+						+ "on the message endpoint.");
 			}
-			return (replyTo != null ? replyTo : target);
+			replyTarget.send(replyMessage);
 		}
+	}
+
+	private MessageTarget resolveReplyTarget(Message message) {
+		MessageTarget replyTo = null;
+		if (this.channelResolver != null) {
+			String replyChannelName = message.getHeader().getReplyChannelName();
+			if (replyChannelName != null && replyChannelName.trim().length() > 0) {
+				replyTo = this.channelResolver.resolve(replyChannelName);
+			}
+		}
+		return (replyTo != null ? replyTo : target);
 	}
 
 }

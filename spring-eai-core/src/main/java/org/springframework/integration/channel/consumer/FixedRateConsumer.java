@@ -19,7 +19,7 @@ package org.springframework.integration.channel.consumer;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.integration.MessageSource;
-import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.endpoint.MessageEndpoint;
 
 /**
  * A consumer that measures the <code>pollInterval</code> between each
@@ -29,8 +29,8 @@ import org.springframework.integration.handler.MessageHandler;
  */
 public class FixedRateConsumer extends AbstractPollingConsumer {
 
-	public FixedRateConsumer(MessageSource source, MessageHandler handler) {
-		super(source, handler);
+	public FixedRateConsumer(MessageSource source, MessageEndpoint endpoint) {
+		super(source, endpoint);
 	}
 
 

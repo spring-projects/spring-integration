@@ -21,7 +21,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.MessageSource;
-import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
 
@@ -44,7 +44,7 @@ public abstract class AbstractConsumer implements Lifecycle {
 
 	private MessageSource source;
 
-	private MessageHandler handler;
+	private MessageEndpoint endpoint;
 
 	private boolean active = false;
 
@@ -55,11 +55,11 @@ public abstract class AbstractConsumer implements Lifecycle {
 	protected final Object lifecycleMonitor = new Object();
 
 
-	public AbstractConsumer(MessageSource source, MessageHandler handler) {
+	public AbstractConsumer(MessageSource source, MessageEndpoint endpoint) {
 		Assert.notNull(source, "source must not be null");
-		Assert.notNull(handler, "handler must not be null");
+		Assert.notNull(endpoint, "endpoint must not be null");
 		this.source = source;
-		this.handler = handler;
+		this.endpoint = endpoint;
 	}
 
 
@@ -128,7 +128,7 @@ public abstract class AbstractConsumer implements Lifecycle {
 		}
 	}
 
-	protected boolean receiveAndHandle() {
+	protected boolean receiveAndPassToEndpoint() {
 		boolean messageReceived = false;
 		Message message = null;
 		if (this.receiveTimeout < 0) { // indefinite timeout
@@ -140,10 +140,7 @@ public abstract class AbstractConsumer implements Lifecycle {
 		if (message != null) {
 			messageReceived = true;
 			messageReceived(message);
-			Message replyMessage = this.handler.handle(message);
-			if (replyMessage != null) {
-				handlerReplied(replyMessage);
-			}
+			this.endpoint.messageReceived(message);
 		}
 		return messageReceived;
 	}
@@ -156,7 +153,5 @@ public abstract class AbstractConsumer implements Lifecycle {
 	protected abstract void doStop();
 
 	protected abstract void messageReceived(Message message);
-
-	protected abstract void handlerReplied(Message message);
 
 }

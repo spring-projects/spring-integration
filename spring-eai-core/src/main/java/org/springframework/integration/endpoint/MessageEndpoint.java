@@ -16,11 +16,18 @@
 
 package org.springframework.integration.endpoint;
 
+import org.springframework.integration.channel.consumer.ConsumerType;
+import org.springframework.integration.message.Message;
+
 /**
  * Base interface for message endpoints.
  * 
  * @author Mark Fisher
  */
 public interface MessageEndpoint {
+
+	ConsumerType getConsumerType();
+
+	void messageReceived(Message message);
 
 }

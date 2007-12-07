@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
 import org.springframework.integration.channel.PointToPointChannel;
-import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.DocumentMessage;
 import org.springframework.integration.message.Message;
 
@@ -41,14 +41,17 @@ public class FixedRateConsumerTests {
 		final AtomicInteger counter = new AtomicInteger(0);
 		final CountDownLatch latch = new CountDownLatch(messagesToSend);
 		PointToPointChannel channel = new PointToPointChannel();
-		MessageHandler handler = new MessageHandler() {
-			public Message handle(Message message) {
+		MessageEndpoint endpoint = new MessageEndpoint() {
+			public void messageReceived(Message message) {
 				counter.incrementAndGet();
 				latch.countDown();
-				return null;
+			}
+
+			public ConsumerType getConsumerType() {
+				return ConsumerType.FIXED_RATE;
 			}
 		};
-		FixedRateConsumer consumer = new FixedRateConsumer(channel, handler);
+		FixedRateConsumer consumer = new FixedRateConsumer(channel, endpoint);
 		consumer.setPollInterval(10);
 		consumer.initialize();
 		for (int i = 0; i < messagesToSend; i++) {
@@ -64,14 +67,17 @@ public class FixedRateConsumerTests {
 		final AtomicInteger counter = new AtomicInteger(0);
 		final CountDownLatch latch = new CountDownLatch(messagesToSend);
 		PointToPointChannel channel = new PointToPointChannel();
-		MessageHandler handler = new MessageHandler() {
-			public Message handle(Message message) {
+		MessageEndpoint endpoint = new MessageEndpoint() {
+			public void messageReceived(Message message) {
 				counter.incrementAndGet();
 				latch.countDown();
-				return null;
+			}
+
+			public ConsumerType getConsumerType() {
+				return ConsumerType.FIXED_RATE;
 			}
 		};
-		FixedRateConsumer consumer = new FixedRateConsumer(channel, handler);
+		FixedRateConsumer consumer = new FixedRateConsumer(channel, endpoint);
 		consumer.setPollInterval(10);
 		consumer.initialize();
 		for (int i = 0; i < messagesToSend; i++) {

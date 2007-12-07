@@ -26,7 +26,7 @@ import java.util.Set;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.MessageSource;
-import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.scheduling.SchedulingAwareRunnable;
 import org.springframework.scheduling.SchedulingTaskExecutor;
@@ -34,8 +34,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.Assert;
 
 /**
- * A consumer that runs tasks repeatedly in order to invoke the handler as soon
- * as a message is received by one of those tasks.
+ * A consumer that runs tasks repeatedly in order to pass to the endpoint as
+ * soon as a message is received by one of those tasks.
  * 
  * @author Mark Fisher
  * @author Juergen Hoeller
@@ -61,17 +61,17 @@ public class EventDrivenConsumer extends AbstractConsumer implements Lifecycle {
 
 	private int idleTaskExecutionLimit = DEFAULT_IDLE_TASK_EXECUTION_LIMIT;
 
-	private final Set<MessageHandlerInvoker> scheduledInvokers = new HashSet<MessageHandlerInvoker>();
+	private final Set<MessageEndpointInvoker> scheduledInvokers = new HashSet<MessageEndpointInvoker>();
 
 	private int activeInvokerCount = 0;
 
 	private final Object activeInvokerMonitor = new Object();
 
-	private final List<MessageHandlerInvoker> pausedInvokers = new LinkedList<MessageHandlerInvoker>();
+	private final List<MessageEndpointInvoker> pausedInvokers = new LinkedList<MessageEndpointInvoker>();
 
 
-	public EventDrivenConsumer(MessageSource source, MessageHandler handler) {
-		super(source, handler);
+	public EventDrivenConsumer(MessageSource source, MessageEndpoint endpoint) {
+		super(source, endpoint);
 	}
 
 
@@ -194,22 +194,18 @@ public class EventDrivenConsumer extends AbstractConsumer implements Lifecycle {
 		scheduleNewInvokerIfAppropriate();
 	}
 
-	@Override
-	protected void handlerReplied(Message message) {
-	}
-
 	/**
 	 * Schedule a new invoker, increasing the total number of scheduled
 	 * invokers for this consumer.
 	 */
 	private void scheduleNewInvoker() {
-		MessageHandlerInvoker invoker = new MessageHandlerInvoker();
+		MessageEndpointInvoker invoker = new MessageEndpointInvoker();
 		if (rescheduleInvokerIfNecessary(invoker)) {
 			this.scheduledInvokers.add(invoker);
 		}
 	}
 
-	private boolean rescheduleInvokerIfNecessary(MessageHandlerInvoker invoker) {
+	private boolean rescheduleInvokerIfNecessary(MessageEndpointInvoker invoker) {
 		synchronized (this.lifecycleMonitor) {
 			if (this.isRunning()) {
 				try {
@@ -231,7 +227,7 @@ public class EventDrivenConsumer extends AbstractConsumer implements Lifecycle {
 		}
 	}
 
-	protected void doRescheduleInvoker(final MessageHandlerInvoker invoker) {
+	protected void doRescheduleInvoker(final MessageEndpointInvoker invoker) {
 		this.executor.execute(invoker);
 	}
 
@@ -243,7 +239,7 @@ public class EventDrivenConsumer extends AbstractConsumer implements Lifecycle {
 	}
 
 	private boolean hasIdleInvokers() {
-		for (MessageHandlerInvoker invoker : this.scheduledInvokers) {
+		for (MessageEndpointInvoker invoker : this.scheduledInvokers) {
 			if (invoker.isIdle()) {
 				return true;
 			}
@@ -258,8 +254,8 @@ public class EventDrivenConsumer extends AbstractConsumer implements Lifecycle {
 	protected void resumePausedTasks() {
 		synchronized (this.lifecycleMonitor) {
 			if (!this.pausedInvokers.isEmpty()) {
-				for (Iterator<MessageHandlerInvoker> it = this.pausedInvokers.iterator(); it.hasNext();) {
-					MessageHandlerInvoker invoker = it.next();
+				for (Iterator<MessageEndpointInvoker> it = this.pausedInvokers.iterator(); it.hasNext();) {
+					MessageEndpointInvoker invoker = it.next();
 					try {
 						doRescheduleInvoker(invoker);
 						it.remove();
@@ -322,7 +318,7 @@ public class EventDrivenConsumer extends AbstractConsumer implements Lifecycle {
 	}
 
 
-	private class MessageHandlerInvoker implements SchedulingAwareRunnable {
+	private class MessageEndpointInvoker implements SchedulingAwareRunnable {
 
 		private int idleTaskExecutionCount = 0;
 
@@ -340,14 +336,15 @@ public class EventDrivenConsumer extends AbstractConsumer implements Lifecycle {
 					while (isActive()) {
 						waitWhileNotRunning();
 						if (isActive()) {
-							messageReceived = invokeHandler();
+							messageReceived = receiveAndPassToEndpoint();
+							this.idle = !messageReceived;
 						}
 					}
 				}
 				else {
 					int messageCount = 0;
 					while (isRunning() && messageCount < maxMessagesPerTask) {
-						boolean messageHandled = invokeHandler();
+						boolean messageHandled = receiveAndPassToEndpoint();
 						this.idle = !messageHandled;
 						messageReceived = (messageHandled || messageReceived);
 						messageCount++;
@@ -389,12 +386,6 @@ public class EventDrivenConsumer extends AbstractConsumer implements Lifecycle {
 				}
 				activeInvokerMonitor.notifyAll();
 			}			
-		}
-
-		private boolean invokeHandler() {
-			boolean messageReceived = receiveAndHandle();
-			this.idle = !messageReceived;
-			return messageReceived;
 		}
 
 		public boolean isLongLived() {

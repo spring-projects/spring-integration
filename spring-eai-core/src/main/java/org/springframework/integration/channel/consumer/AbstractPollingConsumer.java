@@ -20,7 +20,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.integration.MessageSource;
-import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
 
 /**
@@ -42,8 +42,8 @@ public abstract class AbstractPollingConsumer extends AbstractConsumer {
 	private TimeUnit timeUnit = TimeUnit.MILLISECONDS;
 
 
-	public AbstractPollingConsumer(MessageSource source, MessageHandler handler) {
-		super(source, handler);
+	public AbstractPollingConsumer(MessageSource source, MessageEndpoint endpoint) {
+		super(source, endpoint);
 		this.setReceiveTimeout(0);
 	}
 
@@ -89,15 +89,11 @@ public abstract class AbstractPollingConsumer extends AbstractConsumer {
 	protected void messageReceived(Message message) {
 	}
 
-	@Override
-	protected void handlerReplied(Message message) {
-	}
-
 
 	private class PollingInvoker implements Runnable {
 
 		public void run() {
-			receiveAndHandle();
+			receiveAndPassToEndpoint();
 		}
 
 	}
