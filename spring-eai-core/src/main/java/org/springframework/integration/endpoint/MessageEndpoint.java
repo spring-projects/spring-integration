@@ -16,6 +16,8 @@
 
 package org.springframework.integration.endpoint;
 
+import org.springframework.integration.MessageSource;
+import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.consumer.ConsumerType;
 import org.springframework.integration.message.Message;
 
@@ -27,6 +29,10 @@ import org.springframework.integration.message.Message;
 public interface MessageEndpoint {
 
 	ConsumerType getConsumerType();
+
+	MessageSource getSource();
+
+	void setChannelResolver(ChannelResolver channelResolver);
 
 	void messageReceived(Message message);
 

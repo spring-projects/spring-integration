@@ -11,7 +11,7 @@
 	<bean id="targetChannel" class="org.springframework.integration.channel.PointToPointChannel"/>
 
 	<bean id="endpoint" class="org.springframework.integration.endpoint.GenericMessageEndpoint">
-		<constructor-arg ref="sourceChannel"/>
+		<property name="source" ref="sourceChannel"/>
 		<property name="target" ref="targetChannel"/>
 	</bean>
 

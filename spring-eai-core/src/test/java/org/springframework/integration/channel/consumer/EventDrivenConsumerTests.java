@@ -24,8 +24,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
-
 import org.springframework.integration.channel.PointToPointChannel;
+import org.springframework.integration.endpoint.GenericMessageEndpoint;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.DocumentMessage;
 import org.springframework.integration.message.Message;
@@ -50,16 +50,12 @@ public class EventDrivenConsumerTests {
 		executor.setMaxPoolSize(maxConcurrency);
 		executor.setQueueCapacity(0);
 		PointToPointChannel channel = new PointToPointChannel();
-		MessageEndpoint endpoint = new MessageEndpoint() {
+		MessageEndpoint endpoint = new GenericMessageEndpoint() {
 			public void messageReceived(Message message) {
 				counter.incrementAndGet();
 				latch.countDown();
 				activeSum.set(activeSum.addAndGet(executor.getActiveCount()));
 				maxActive.set(Math.max(executor.getActiveCount(), maxActive.get()));
-			}
-
-			public ConsumerType getConsumerType() {
-				return ConsumerType.EVENT_DRIVEN;
 			}
 		};
 		EventDrivenConsumer consumer = new EventDrivenConsumer(channel, endpoint);
@@ -70,6 +66,7 @@ public class EventDrivenConsumerTests {
 		consumer.setMaxMessagesPerTask(1);
 		consumer.setReceiveTimeout(100);
 		consumer.initialize();
+		consumer.start();
 		for (int i = 0; i < messagesToSend - 110; i++) {
 			channel.send(new DocumentMessage(1, "fast-1." + (i+1)));
 		}

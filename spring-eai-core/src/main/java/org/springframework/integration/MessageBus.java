@@ -16,7 +16,10 @@
 
 package org.springframework.integration;
 
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -25,9 +28,13 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.endpoint.EndpointRegistry;
+import org.springframework.integration.channel.consumer.AbstractConsumer;
+import org.springframework.integration.channel.consumer.ConsumerType;
+import org.springframework.integration.channel.consumer.EventDrivenConsumer;
+import org.springframework.integration.channel.consumer.FixedDelayConsumer;
+import org.springframework.integration.channel.consumer.FixedRateConsumer;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.util.Assert;
 
@@ -37,15 +44,21 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class MessageBus implements ApplicationContextAware {
+public class MessageBus implements ChannelResolver, ApplicationContextAware, Lifecycle {
 
 	private final Log logger = LogFactory.getLog(getClass());
 
-	private ChannelRegistry channelRegistry = new ChannelRegistry();
+	private Map<String, MessageChannel> channels = new ConcurrentHashMap<String, MessageChannel>();
 
-	private EndpointRegistry endpointRegistry = new EndpointRegistry();
+	private Map<String, MessageEndpoint> endpoints = new ConcurrentHashMap<String, MessageEndpoint>();
+
+	private List<AbstractConsumer> consumers = new CopyOnWriteArrayList<AbstractConsumer>();
 
 	private ApplicationContext applicationContext;
+
+	private boolean running;
+
+	private Object lifecycleMonitor = new Object();
 
 
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -60,7 +73,10 @@ public class MessageBus implements ApplicationContextAware {
 		Map<String, MessageChannel> channelBeans = (Map<String, MessageChannel>) this.applicationContext
 				.getBeansOfType(MessageChannel.class);
 		for (Map.Entry<String, MessageChannel> entry : channelBeans.entrySet()) {
-			this.registerChannel(entry.getKey(), entry.getValue());
+			this.channels.put(entry.getKey(), entry.getValue());
+			if (logger.isInfoEnabled()) {
+				logger.info("registered channel '" + entry.getKey() + "'");
+			}
 		}
 	}
 
@@ -69,24 +85,74 @@ public class MessageBus implements ApplicationContextAware {
 		Map<String, MessageEndpoint> endpointBeans = (Map<String, MessageEndpoint>) this.applicationContext
 				.getBeansOfType(MessageEndpoint.class);
 		for (Map.Entry<String, MessageEndpoint> entry : endpointBeans.entrySet()) {
-			this.registerEndpoint(entry.getKey(), entry.getValue());
+			this.endpoints.put(entry.getKey(), entry.getValue());
+			if (logger.isInfoEnabled()) {
+				logger.info("registered endpoint '" + entry.getKey() + "'");
+			}
 		}
 	}
 
-	public void registerChannel(String name, MessageChannel channel) {
-		this.channelRegistry.register(name, channel);
-		if (logger.isInfoEnabled()) {
-			logger.info("registering channel '" + name + "'");
+	public MessageChannel resolve(String channelName) {
+		return this.channels.get(channelName);
+	}
+
+	public boolean isRunning() {
+		synchronized (this.lifecycleMonitor) {
+			return this.running;
 		}
 	}
 
-	public void registerEndpoint(String name, MessageEndpoint endpoint) {
-		if (endpoint instanceof Lifecycle) {
-			((Lifecycle) endpoint).start();
+	public void start() {
+		synchronized (this.lifecycleMonitor) {
+			if (!this.isRunning()) {
+				this.running = true;
+				this.activateEndpoints();
+			}
 		}
-		this.endpointRegistry.register(name, endpoint);
-		if (logger.isInfoEnabled()) {
-			logger.info("registering endpoint '" + name + "'");
+	}
+
+	public void stop() {
+		synchronized (this.lifecycleMonitor) {
+			if (this.isRunning()) {
+				this.running = false;
+				this.deactivateEndpoints();
+			}
+		}
+	}
+
+	private void activateEndpoints() {
+		for (MessageEndpoint endpoint : this.endpoints.values()) {
+			MessageSource source = endpoint.getSource();
+			ConsumerType consumerType = endpoint.getConsumerType();
+			AbstractConsumer consumer = createConsumer(consumerType, source, endpoint);
+			consumer.initialize();
+			consumer.start();
+		}
+	}
+
+	private void deactivateEndpoints() {
+		for (AbstractConsumer consumer : this.consumers) {
+			consumer.stop();
+		}
+	}
+
+
+	/**
+	 * Create a consumer based upon the specified consumer type.
+	 */
+	private AbstractConsumer createConsumer(ConsumerType type, MessageSource source, MessageEndpoint endpoint) {
+		if (type.equals(ConsumerType.EVENT_DRIVEN)) {
+			return new EventDrivenConsumer(source, endpoint);
+		}
+		else if (type.equals(ConsumerType.FIXED_RATE)) {
+			return new FixedRateConsumer(source, endpoint);
+		}
+		else if (type.equals(ConsumerType.FIXED_DELAY)) {
+			return new FixedDelayConsumer(source, endpoint);
+		}
+		else {
+			throw new UnsupportedOperationException("the consumerType '"
+					+ type.name() + "' is not supported.");
 		}
 	}
 

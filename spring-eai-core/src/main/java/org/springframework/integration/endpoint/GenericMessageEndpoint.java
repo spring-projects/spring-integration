@@ -16,16 +16,11 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.context.Lifecycle;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageSource;
 import org.springframework.integration.MessageTarget;
 import org.springframework.integration.channel.ChannelResolver;
-import org.springframework.integration.channel.consumer.AbstractConsumer;
 import org.springframework.integration.channel.consumer.ConsumerType;
-import org.springframework.integration.channel.consumer.EventDrivenConsumer;
-import org.springframework.integration.channel.consumer.FixedDelayConsumer;
-import org.springframework.integration.channel.consumer.FixedRateConsumer;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 
@@ -42,7 +37,7 @@ import org.springframework.integration.message.Message;
  * 
  * @author Mark Fisher
  */
-public class GenericMessageEndpoint implements MessageEndpoint, Lifecycle {
+public class GenericMessageEndpoint implements MessageEndpoint {
 
 	private MessageSource source;
 
@@ -50,31 +45,23 @@ public class GenericMessageEndpoint implements MessageEndpoint, Lifecycle {
 
 	private MessageHandler handler;
 
-	private ConsumerType consumerType = ConsumerType.EVENT_DRIVEN;
-
-	private AbstractConsumer consumer;
-
 	private ChannelResolver channelResolver;
 
-	private boolean running;
+	private ConsumerType consumerType = ConsumerType.EVENT_DRIVEN;
 
-	private Object lifecycleMonitor = new Object();
-
-
-	public GenericMessageEndpoint() {}
-
-	/**
-	 * Create an endpoint to consume messages from the given source.
-	 */
-	public GenericMessageEndpoint(MessageSource source) {
-		this.source = source;
-	}
 
 	/**
 	 * Set the source from which this endpoint receives messages.
 	 */
 	public void setSource(MessageSource source) {
 		this.source = source;
+	}
+
+	/**
+	 * Return the source from which this endpoint receives messages.
+	 */
+	public MessageSource getSource() {
+		return this.source;
 	}
 
 	/**
@@ -92,15 +79,14 @@ public class GenericMessageEndpoint implements MessageEndpoint, Lifecycle {
 	}
 
 	/**
-	 * Set the consumer type to use for this endpoint's source. 
-	 * @see ConsumerType
+	 * Set the type of consumer to use for this endpoint.
 	 */
 	public void setConsumerType(ConsumerType consumerType) {
 		this.consumerType = consumerType;
 	}
 
 	/**
-	 * Return the consumer type to use for this endpoint's source.
+	 * Return the type of consumer to use for this endpoint.
 	 */
 	public ConsumerType getConsumerType() {
 		return this.consumerType;
@@ -110,65 +96,10 @@ public class GenericMessageEndpoint implements MessageEndpoint, Lifecycle {
 	 * Set the channel resolver strategy to use when a message
 	 * provides a '<i>replyChannelName</i>'.
 	 */
-	public void setChannelResolver(ChannelResolver channelResolver) {
+	public void setChannelResolver(final ChannelResolver channelResolver) {
 		this.channelResolver = channelResolver;
 	}
 
-
-	/**
-	 * Create a consumer based upon the specified consumer type.
-	 */
-	protected AbstractConsumer createDefaultConsumer() {
-		if (this.consumerType.equals(ConsumerType.EVENT_DRIVEN)) {
-			return new EventDrivenConsumer(this.source, this);
-		}
-		else if (this.consumerType.equals(ConsumerType.FIXED_RATE)) {
-			return new FixedRateConsumer(this.source, this);
-		}
-		else if (this.consumerType.equals(ConsumerType.FIXED_DELAY)) {
-			return new FixedDelayConsumer(this.source, this);
-		}
-		else {
-			throw new UnsupportedOperationException("the consumerType '"
-					+ this.consumerType.name() + "' is not supported.");
-		}
-	}
-
-	/**
-	 * Start the consumer.
-	 */
-	public final void start() {
-		synchronized (this.lifecycleMonitor) {
-			if (this.source != null && this.consumer == null) {
-				this.consumer = createDefaultConsumer();
-			}
-			this.consumer.initialize();
-			this.running = true;
-		}
-	}
-
-	/**
-	 * Stop the consumer.
-	 */
-	public final void stop() {
-		synchronized (this.lifecycleMonitor) {
-			if (this.running) {
-				if (this.consumer != null) {
-					this.consumer.stop();
-				}
-				this.running = false;
-			}
-		}
-	}
-
-	/**
-	 * Return whether this endpoint is running (and hence its consumer).
-	 */
-	public final boolean isRunning() {
-		synchronized (this.lifecycleMonitor) {
-			return this.running;
-		}
-	}
 
 	public void messageReceived(Message message) {
 		if (this.handler == null) {

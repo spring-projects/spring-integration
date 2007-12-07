@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PointToPointChannel;
+import org.springframework.integration.channel.consumer.EventDrivenConsumer;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.DocumentMessage;
 import org.springframework.integration.message.Message;
@@ -42,10 +43,13 @@ public class GenericMessageEndpointTests {
 				return new DocumentMessage("123", "hello " + message.getPayload());
 			}
 		};
-		GenericMessageEndpoint endpoint = new GenericMessageEndpoint(channel);
+		GenericMessageEndpoint endpoint = new GenericMessageEndpoint();
+		endpoint.setSource(channel);
 		endpoint.setHandler(handler);
 		endpoint.setTarget(replyChannel);
-		endpoint.start();
+		EventDrivenConsumer consumer = new EventDrivenConsumer(channel, endpoint);
+		consumer.initialize();
+		consumer.start();
 		DocumentMessage testMessage = new DocumentMessage(1, "test");
 		channel.send(testMessage);
 		Message reply = replyChannel.receive(10);
@@ -70,10 +74,13 @@ public class GenericMessageEndpointTests {
 				return null;
 			}
 		};
-		GenericMessageEndpoint endpoint = new GenericMessageEndpoint(channel);
+		GenericMessageEndpoint endpoint = new GenericMessageEndpoint();
+		endpoint.setSource(channel);
 		endpoint.setHandler(handler);
 		endpoint.setChannelResolver(channelResolver);
-		endpoint.start();
+		EventDrivenConsumer consumer = new EventDrivenConsumer(channel, endpoint);
+		consumer.initialize();
+		consumer.start();
 		DocumentMessage testMessage = new DocumentMessage(1, "test");
 		testMessage.getHeader().setReplyChannelName("replyChannel");
 		channel.send(testMessage);

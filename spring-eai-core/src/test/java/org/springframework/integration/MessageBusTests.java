@@ -33,7 +33,7 @@ import org.springframework.integration.message.Message;
  * @author Mark Fisher
  */
 public class MessageBusTests {
-
+/*
 	@Test
 	public void testStandaloneWithEndpoint() {
 		MessageBus bus = new MessageBus();
@@ -60,10 +60,12 @@ public class MessageBusTests {
 		Message result = targetChannel.receive(10);
 		assertNull(result);
 	}
+*/
 
 	@Test
 	public void testAutodetectionWithApplicationContext() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("messageBusTests.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("messageBusTests.xml", this.getClass());
+		context.start();
 		MessageChannel sourceChannel = (MessageChannel) context.getBean("sourceChannel");
 		sourceChannel.send(new DocumentMessage("123", "test"));		
 		MessageChannel targetChannel = (MessageChannel) context.getBean("targetChannel");
