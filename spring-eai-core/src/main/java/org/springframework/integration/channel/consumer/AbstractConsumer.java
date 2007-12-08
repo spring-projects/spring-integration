@@ -50,8 +50,6 @@ public abstract class AbstractConsumer implements Lifecycle {
 
 	private boolean running = false;
 
-	private boolean autoStartup = true;
-
 	protected final Object lifecycleMonitor = new Object();
 
 
@@ -65,10 +63,6 @@ public abstract class AbstractConsumer implements Lifecycle {
 
 	public void setReceiveTimeout(long receiveTimeout) {
 		this.receiveTimeout = receiveTimeout;
-	}
-
-	public void setAutoStartup(boolean autoStartup) {
-		this.autoStartup = autoStartup;
 	}
 
 	public final boolean isRunning() {
@@ -105,11 +99,6 @@ public abstract class AbstractConsumer implements Lifecycle {
 			this.lifecycleMonitor.notifyAll();
 		}
 		doInitialize();
-		if (this.autoStartup) {
-			synchronized (this.lifecycleMonitor) {
-				this.start();
-			}
-		}
 	}
 
 	/**
