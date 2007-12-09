@@ -23,7 +23,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.integration.channel.consumer.ConsumerType;
 import org.springframework.stereotype.Component;
 
 /**
@@ -41,7 +40,5 @@ public @interface MessageEndpoint {
 	String source();
 
 	String target();
-
-	ConsumerType consumerType() default ConsumerType.EVENT_DRIVEN;
 
 }

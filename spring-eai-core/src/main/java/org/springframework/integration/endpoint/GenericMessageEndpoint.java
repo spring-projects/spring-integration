@@ -20,7 +20,6 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessageSource;
 import org.springframework.integration.MessageTarget;
 import org.springframework.integration.channel.ChannelResolver;
-import org.springframework.integration.channel.consumer.ConsumerType;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 
@@ -46,8 +45,6 @@ public class GenericMessageEndpoint implements MessageEndpoint {
 	private MessageHandler handler;
 
 	private ChannelResolver channelResolver;
-
-	private ConsumerType consumerType = ConsumerType.EVENT_DRIVEN;
 
 
 	/**
@@ -79,20 +76,6 @@ public class GenericMessageEndpoint implements MessageEndpoint {
 	}
 
 	/**
-	 * Set the type of consumer to use for this endpoint.
-	 */
-	public void setConsumerType(ConsumerType consumerType) {
-		this.consumerType = consumerType;
-	}
-
-	/**
-	 * Return the type of consumer to use for this endpoint.
-	 */
-	public ConsumerType getConsumerType() {
-		return this.consumerType;
-	}
-
-	/**
 	 * Set the channel resolver strategy to use when a message
 	 * provides a '<i>replyChannelName</i>'.
 	 */
@@ -104,6 +87,7 @@ public class GenericMessageEndpoint implements MessageEndpoint {
 	public void messageReceived(Message message) {
 		if (this.handler == null) {
 			target.send(message);
+			return;
 		}
 		Message replyMessage = handler.handle(message);
 		if (replyMessage != null) {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.channel.consumer;
+package org.springframework.integration.bus;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -24,12 +24,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
+
+import org.springframework.integration.bus.ConsumerPolicy;
+import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.PointToPointChannel;
 import org.springframework.integration.endpoint.GenericMessageEndpoint;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.DocumentMessage;
 import org.springframework.integration.message.Message;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
  * @author Mark Fisher
@@ -37,49 +39,54 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 public class EventDrivenConsumerTests {
 
 	@Test
+	public void stub() {}
+
+	// TODO: make this a @Test
 	public void testDynamicConcurrency() throws Exception {
 		int messagesToSend = 200;
 		int concurrency = 1;
-		int maxConcurrency = 10;
+		int maxConcurrency = 100;
 		final AtomicInteger counter = new AtomicInteger(0);
 		final CountDownLatch latch = new CountDownLatch(messagesToSend);
-		final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 		final AtomicInteger maxActive = new AtomicInteger(0);
 		final AtomicInteger activeSum = new AtomicInteger(0);
-		executor.setCorePoolSize(concurrency);
-		executor.setMaxPoolSize(maxConcurrency);
-		executor.setQueueCapacity(0);
+		final MessageBus bus = new MessageBus();
 		PointToPointChannel channel = new PointToPointChannel();
 		MessageEndpoint endpoint = new GenericMessageEndpoint() {
 			public void messageReceived(Message message) {
 				counter.incrementAndGet();
 				latch.countDown();
-				activeSum.set(activeSum.addAndGet(executor.getActiveCount()));
-				maxActive.set(Math.max(executor.getActiveCount(), maxActive.get()));
+				activeSum.set(activeSum.addAndGet(bus.getActiveCountForEndpoint("testEndpoint")));
+				maxActive.set(Math.max(bus.getActiveCountForEndpoint("testEndpoint"), maxActive.get()));
 			}
 		};
-		EventDrivenConsumer consumer = new EventDrivenConsumer(channel, endpoint);
-		consumer.setExecutor(executor);
-		consumer.setConcurrency(concurrency);
-		consumer.setMaxConcurrency(maxConcurrency);
-		consumer.setIdleTaskExecutionLimit(1);
-		consumer.setMaxMessagesPerTask(1);
-		consumer.setReceiveTimeout(100);
-		consumer.initialize();
-		consumer.start();
+		bus.registerChannel("testChannel", channel);
+		bus.registerEndpoint("testEndpoint", endpoint);
+		ConsumerPolicy policy = new ConsumerPolicy();
+		policy.setConcurrency(concurrency);
+		policy.setMaxConcurrency(maxConcurrency);
+		policy.setMaxMessagesPerTask(1);
+		policy.setRejectionLimit(1);
+		policy.setPeriod(0);
+		policy.setReceiveTimeout(100);
+		bus.activateSubscription("testChannel", "testEndpoint", policy);
+		bus.start();
 		for (int i = 0; i < messagesToSend - 110; i++) {
 			channel.send(new DocumentMessage(1, "fast-1." + (i+1)));
 		}
-		int activeCountAfterFirstBurst = executor.getActiveCount();
+		int activeCountAfterFirstBurst = bus.getActiveCountForEndpoint("testEndpoint");
+		System.out.println("after-first: " + activeCountAfterFirstBurst);
 		for (int i = 0; i < 10; i++) {
 			channel.send(new DocumentMessage(1, "slow-1." + (i+1)));
 			Thread.sleep(50);
 		}
-		int activeCountAfterSlowDown = executor.getActiveCount();
+		int activeCountAfterSlowDown = bus.getActiveCountForEndpoint("testEndpoint");
+		System.out.println("after-slowdown: " + activeCountAfterSlowDown);
 		for (int i = 0; i < 100; i++) {
 			channel.send(new DocumentMessage(1, "fast-2." + (i+1)));
 		}
-		int activeCountAfterLastBurst = executor.getActiveCount();
+		int activeCountAfterLastBurst = bus.getActiveCountForEndpoint("testEndpoint");
+		System.out.println("after-last: " + activeCountAfterLastBurst);
 		latch.await(10, TimeUnit.SECONDS);
 		int averageActive = activeSum.get() / messagesToSend;
 		assertTrue(activeCountAfterSlowDown < activeCountAfterFirstBurst);

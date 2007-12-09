@@ -21,10 +21,11 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
+import org.springframework.integration.bus.ConsumerPolicy;
+import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PointToPointChannel;
-import org.springframework.integration.channel.consumer.EventDrivenConsumer;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.DocumentMessage;
 import org.springframework.integration.message.Message;
@@ -47,9 +48,13 @@ public class GenericMessageEndpointTests {
 		endpoint.setSource(channel);
 		endpoint.setHandler(handler);
 		endpoint.setTarget(replyChannel);
-		EventDrivenConsumer consumer = new EventDrivenConsumer(channel, endpoint);
-		consumer.initialize();
-		consumer.start();
+		MessageBus bus = new MessageBus();
+		bus.registerChannel("testChannel", channel);
+		bus.registerEndpoint("testEndpoint", endpoint);
+		ConsumerPolicy policy = new ConsumerPolicy();
+		policy.setPeriod(0);
+		bus.activateSubscription("testChannel", "testEndpoint", policy);
+		bus.start();
 		DocumentMessage testMessage = new DocumentMessage(1, "test");
 		channel.send(testMessage);
 		Message reply = replyChannel.receive(10);
@@ -78,9 +83,13 @@ public class GenericMessageEndpointTests {
 		endpoint.setSource(channel);
 		endpoint.setHandler(handler);
 		endpoint.setChannelResolver(channelResolver);
-		EventDrivenConsumer consumer = new EventDrivenConsumer(channel, endpoint);
-		consumer.initialize();
-		consumer.start();
+		MessageBus bus = new MessageBus();
+		bus.registerChannel("testChannel", channel);
+		bus.registerEndpoint("testEndpoint", endpoint);
+		ConsumerPolicy policy = new ConsumerPolicy();
+		policy.setPeriod(0);
+		bus.activateSubscription("testChannel", "testEndpoint", policy);
+		bus.start();
 		DocumentMessage testMessage = new DocumentMessage(1, "test");
 		testMessage.getHeader().setReplyChannelName("replyChannel");
 		channel.send(testMessage);

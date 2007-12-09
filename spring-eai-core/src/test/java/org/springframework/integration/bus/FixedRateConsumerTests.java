@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.channel.consumer;
+package org.springframework.integration.bus;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -24,6 +24,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
+
+import org.springframework.integration.bus.ConsumerPolicy;
+import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.PointToPointChannel;
 import org.springframework.integration.endpoint.GenericMessageEndpoint;
 import org.springframework.integration.endpoint.MessageEndpoint;
@@ -47,10 +50,14 @@ public class FixedRateConsumerTests {
 				latch.countDown();
 			}
 		};
-		FixedRateConsumer consumer = new FixedRateConsumer(channel, endpoint);
-		consumer.setPollInterval(10);
-		consumer.initialize();
-		consumer.start();
+		MessageBus bus = new MessageBus();
+		bus.registerChannel("testChannel", channel);
+		bus.registerEndpoint("testEndpoint", endpoint);
+		ConsumerPolicy policy = new ConsumerPolicy();
+		policy.setFixedRate(true);
+		policy.setPeriod(10);
+		bus.activateSubscription("testChannel", "testEndpoint", policy);
+		bus.start();
 		for (int i = 0; i < messagesToSend; i++) {
 			channel.send(new DocumentMessage(1, "test " + (i+1)));
 		}
@@ -70,10 +77,17 @@ public class FixedRateConsumerTests {
 				latch.countDown();
 			}
 		};
-		FixedRateConsumer consumer = new FixedRateConsumer(channel, endpoint);
-		consumer.setPollInterval(10);
-		consumer.initialize();
-		consumer.start();
+		MessageBus bus = new MessageBus();
+		bus.registerChannel("testChannel", channel);
+		bus.registerEndpoint("testEndpoint", endpoint);
+		ConsumerPolicy policy = new ConsumerPolicy();
+		policy.setConcurrency(1);
+		policy.setMaxConcurrency(1);
+		policy.setMaxMessagesPerTask(1);
+		policy.setFixedRate(true);
+		policy.setPeriod(10);
+		bus.activateSubscription("testChannel", "testEndpoint", policy);
+		bus.start();
 		for (int i = 0; i < messagesToSend; i++) {
 			channel.send(new DocumentMessage(1, "test " + (i+1)));
 		}

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.channel.consumer;
+package org.springframework.integration.channel;
 
 /**
  * Enumeration of the different types of message consumer.

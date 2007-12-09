@@ -23,6 +23,8 @@ import org.junit.Test;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.bus.ConsumerPolicy;
+import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PointToPointChannel;
 import org.springframework.integration.endpoint.GenericMessageEndpoint;
@@ -69,6 +71,10 @@ public class MessageBusTests {
 		MessageChannel sourceChannel = (MessageChannel) context.getBean("sourceChannel");
 		sourceChannel.send(new DocumentMessage("123", "test"));		
 		MessageChannel targetChannel = (MessageChannel) context.getBean("targetChannel");
+		// TODO: add metadata for this
+		MessageBus bus = (MessageBus) context.getBean("bus");
+		ConsumerPolicy policy = new ConsumerPolicy();
+		bus.activateSubscription("sourceChannel", "endpoint", policy);
 		Message result = targetChannel.receive(10);
 		assertEquals("test", result.getPayload());
 	}
