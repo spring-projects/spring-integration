@@ -56,7 +56,11 @@ public class FixedRateConsumerTests {
 		ConsumerPolicy policy = new ConsumerPolicy();
 		policy.setFixedRate(true);
 		policy.setPeriod(10);
-		bus.activateSubscription("testChannel", "testEndpoint", policy);
+		Subscription subscription = new Subscription();
+		subscription.setChannel("testChannel");
+		subscription.setEndpoint("testEndpoint");
+		subscription.setPolicy(policy);
+		bus.activateSubscription(subscription);
 		bus.start();
 		for (int i = 0; i < messagesToSend; i++) {
 			channel.send(new DocumentMessage(1, "test " + (i+1)));
@@ -86,14 +90,18 @@ public class FixedRateConsumerTests {
 		policy.setMaxMessagesPerTask(1);
 		policy.setFixedRate(true);
 		policy.setPeriod(10);
-		bus.activateSubscription("testChannel", "testEndpoint", policy);
+		Subscription subscription = new Subscription();
+		subscription.setChannel("testChannel");
+		subscription.setEndpoint("testEndpoint");
+		subscription.setPolicy(policy);
+		bus.activateSubscription(subscription);
 		bus.start();
 		for (int i = 0; i < messagesToSend; i++) {
 			channel.send(new DocumentMessage(1, "test " + (i+1)));
 		}
 		latch.await(80, TimeUnit.MILLISECONDS);
 		assertTrue(counter.get() < 10);
-		assertTrue(counter.get() > 7);
+		assertTrue("only " + counter.get() + " messages received", counter.get() > 7);
 	}
 
 }

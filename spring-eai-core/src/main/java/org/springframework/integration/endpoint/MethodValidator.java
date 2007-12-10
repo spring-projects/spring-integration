@@ -16,22 +16,18 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.integration.channel.ChannelResolver;
-import org.springframework.integration.message.Message;
+import java.lang.reflect.Method;
+
+import org.springframework.integration.MessagingConfigurationException;
 
 /**
- * Base interface for message endpoints.
+ * Interface for method validation. Implementations should throw an exception if
+ * the method is invalid for its purpose.
  * 
  * @author Mark Fisher
  */
-public interface MessageEndpoint {
+public interface MethodValidator {
 
-	void setInputChannelName(String inputChannelName);
-
-	void setDefaultOutputChannelName(String defaultOutputChannelName);
-
-	void setChannelResolver(ChannelResolver channelResolver);
-
-	void messageReceived(Message message);
+	void validate(Method method) throws MessagingConfigurationException;
 
 }

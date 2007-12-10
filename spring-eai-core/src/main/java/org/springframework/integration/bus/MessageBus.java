@@ -40,7 +40,7 @@ import org.springframework.util.Assert;
 
 /**
  * The messaging bus. Serves as a registry for channels and endpoints, manages their lifecycle,
- * and all subscriptions.
+ * and activates subscriptions.
  * 
  * @author Mark Fisher
  */
@@ -60,8 +60,6 @@ public class MessageBus implements ChannelResolver, ApplicationContextAware, Lif
 
 	private boolean autoCreateChannels;
 
-	private ApplicationContext applicationContext;
-
 	private boolean running;
 
 	private Object lifecycleMonitor = new Object();
@@ -69,15 +67,15 @@ public class MessageBus implements ChannelResolver, ApplicationContextAware, Lif
 
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		Assert.notNull(applicationContext, "applicationContext must not be null");
-		this.applicationContext = applicationContext;
-		this.registerChannelsFromContext();
-		this.registerEndpointsFromContext();
+		this.registerChannels(applicationContext);
+		this.registerEndpoints(applicationContext);
+		this.activateSubscriptions(applicationContext);
 	}
 
 	@SuppressWarnings("unchecked")
-	private void registerChannelsFromContext() {
-		Map<String, MessageChannel> channelBeans = (Map<String, MessageChannel>) this.applicationContext
-				.getBeansOfType(MessageChannel.class);
+	private void registerChannels(ApplicationContext context) {
+		Map<String, MessageChannel> channelBeans =
+				(Map<String, MessageChannel>) context.getBeansOfType(MessageChannel.class);
 		for (Map.Entry<String, MessageChannel> entry : channelBeans.entrySet()) {
 			this.registerChannel(entry.getKey(), entry.getValue());
 			if (logger.isInfoEnabled()) {
@@ -87,13 +85,26 @@ public class MessageBus implements ChannelResolver, ApplicationContextAware, Lif
 	}
 
 	@SuppressWarnings("unchecked")
-	private void registerEndpointsFromContext() {
-		Map<String, MessageEndpoint> endpointBeans = (Map<String, MessageEndpoint>) this.applicationContext
-				.getBeansOfType(MessageEndpoint.class);
+	private void registerEndpoints(ApplicationContext context) {
+		Map<String, MessageEndpoint> endpointBeans =
+				(Map<String, MessageEndpoint>) context.getBeansOfType(MessageEndpoint.class);
 		for (Map.Entry<String, MessageEndpoint> entry : endpointBeans.entrySet()) {
 			this.registerEndpoint(entry.getKey(), entry.getValue());
 			if (logger.isInfoEnabled()) {
 				logger.info("registered endpoint '" + entry.getKey() + "'");
+			}
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private void activateSubscriptions(ApplicationContext context) {
+		Map<String, Subscription> subscriptionBeans =
+				(Map<String, Subscription>) context.getBeansOfType(Subscription.class);
+		for (Subscription subscription : subscriptionBeans.values()) {
+			this.activateSubscription(subscription);
+			if (logger.isInfoEnabled()) {
+				logger.info("activated subscription to channel '" + subscription.getChannel() + 
+						"' for endpoint '" + subscription.getEndpoint() + "'");
 			}
 		}
 	}
@@ -112,9 +123,13 @@ public class MessageBus implements ChannelResolver, ApplicationContextAware, Lif
 
 	public void registerEndpoint(String name, MessageEndpoint endpoint) {
 		this.endpoints.put(name, endpoint);
+		endpoint.setChannelResolver(this);
 	}
 
-	public void activateSubscription(String channelName, String endpointName, ConsumerPolicy policy) {
+	public void activateSubscription(Subscription subscription) {
+		String channelName = subscription.getChannel();
+		String endpointName = subscription.getEndpoint();
+		ConsumerPolicy policy = subscription.getPolicy();
 		MessageChannel channel = this.channels.get(channelName);
 		if (channel == null) {
 			if (this.autoCreateChannels == false) {

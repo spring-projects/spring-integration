@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.integration;
+package org.springframework.integration.bus;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.bus.ConsumerPolicy;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.PointToPointChannel;
-import org.springframework.integration.endpoint.GenericMessageEndpoint;
 import org.springframework.integration.message.DocumentMessage;
 import org.springframework.integration.message.Message;
 
@@ -74,7 +70,11 @@ public class MessageBusTests {
 		// TODO: add metadata for this
 		MessageBus bus = (MessageBus) context.getBean("bus");
 		ConsumerPolicy policy = new ConsumerPolicy();
-		bus.activateSubscription("sourceChannel", "endpoint", policy);
+		Subscription subscription = new Subscription();
+		subscription.setChannel("sourceChannel");
+		subscription.setEndpoint("endpoint");
+		subscription.setPolicy(policy);
+		bus.activateSubscription(subscription);
 		Message result = targetChannel.receive(10);
 		assertEquals("test", result.getPayload());
 	}

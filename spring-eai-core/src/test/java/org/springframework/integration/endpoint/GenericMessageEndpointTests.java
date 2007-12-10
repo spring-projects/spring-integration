@@ -23,6 +23,7 @@ import org.junit.Test;
 
 import org.springframework.integration.bus.ConsumerPolicy;
 import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.bus.Subscription;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PointToPointChannel;
@@ -45,15 +46,20 @@ public class GenericMessageEndpointTests {
 			}
 		};
 		GenericMessageEndpoint endpoint = new GenericMessageEndpoint();
-		endpoint.setSource(channel);
+		endpoint.setInputChannelName("testChannel");
 		endpoint.setHandler(handler);
-		endpoint.setTarget(replyChannel);
+		endpoint.setDefaultOutputChannelName("replyChannel");
 		MessageBus bus = new MessageBus();
 		bus.registerChannel("testChannel", channel);
 		bus.registerEndpoint("testEndpoint", endpoint);
+		bus.registerChannel("replyChannel", replyChannel);
 		ConsumerPolicy policy = new ConsumerPolicy();
 		policy.setPeriod(0);
-		bus.activateSubscription("testChannel", "testEndpoint", policy);
+		Subscription subscription = new Subscription();
+		subscription.setChannel("testChannel");
+		subscription.setEndpoint("testEndpoint");
+		subscription.setPolicy(policy);
+		bus.activateSubscription(subscription);
 		bus.start();
 		DocumentMessage testMessage = new DocumentMessage(1, "test");
 		channel.send(testMessage);
@@ -80,15 +86,20 @@ public class GenericMessageEndpointTests {
 			}
 		};
 		GenericMessageEndpoint endpoint = new GenericMessageEndpoint();
-		endpoint.setSource(channel);
+		endpoint.setInputChannelName("testChannel");
 		endpoint.setHandler(handler);
 		endpoint.setChannelResolver(channelResolver);
 		MessageBus bus = new MessageBus();
 		bus.registerChannel("testChannel", channel);
 		bus.registerEndpoint("testEndpoint", endpoint);
+		bus.registerChannel("replyChannel", replyChannel);
 		ConsumerPolicy policy = new ConsumerPolicy();
 		policy.setPeriod(0);
-		bus.activateSubscription("testChannel", "testEndpoint", policy);
+		Subscription subscription = new Subscription();
+		subscription.setChannel("testChannel");
+		subscription.setEndpoint("testEndpoint");
+		subscription.setPolicy(policy);
+		bus.activateSubscription(subscription);
 		bus.start();
 		DocumentMessage testMessage = new DocumentMessage(1, "test");
 		testMessage.getHeader().setReplyChannelName("replyChannel");

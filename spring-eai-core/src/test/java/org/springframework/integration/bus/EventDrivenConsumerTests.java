@@ -39,13 +39,10 @@ import org.springframework.integration.message.Message;
 public class EventDrivenConsumerTests {
 
 	@Test
-	public void stub() {}
-
-	// TODO: make this a @Test
 	public void testDynamicConcurrency() throws Exception {
 		int messagesToSend = 200;
 		int concurrency = 1;
-		int maxConcurrency = 100;
+		int maxConcurrency = 40;
 		final AtomicInteger counter = new AtomicInteger(0);
 		final CountDownLatch latch = new CountDownLatch(messagesToSend);
 		final AtomicInteger maxActive = new AtomicInteger(0);
@@ -54,8 +51,10 @@ public class EventDrivenConsumerTests {
 		PointToPointChannel channel = new PointToPointChannel();
 		MessageEndpoint endpoint = new GenericMessageEndpoint() {
 			public void messageReceived(Message message) {
+				System.out.println("[count:" + latch.getCount() + "] received: " + message.getPayload());
 				counter.incrementAndGet();
 				latch.countDown();
+				try { Thread.sleep(3); } catch (InterruptedException e) {}
 				activeSum.set(activeSum.addAndGet(bus.getActiveCountForEndpoint("testEndpoint")));
 				maxActive.set(Math.max(bus.getActiveCountForEndpoint("testEndpoint"), maxActive.get()));
 			}
@@ -69,30 +68,35 @@ public class EventDrivenConsumerTests {
 		policy.setRejectionLimit(1);
 		policy.setPeriod(0);
 		policy.setReceiveTimeout(100);
-		bus.activateSubscription("testChannel", "testEndpoint", policy);
+		Subscription subscription = new Subscription();
+		subscription.setChannel("testChannel");
+		subscription.setEndpoint("testEndpoint");
+		subscription.setPolicy(policy);
+		bus.activateSubscription(subscription);
 		bus.start();
 		for (int i = 0; i < messagesToSend - 110; i++) {
 			channel.send(new DocumentMessage(1, "fast-1." + (i+1)));
 		}
 		int activeCountAfterFirstBurst = bus.getActiveCountForEndpoint("testEndpoint");
-		System.out.println("after-first: " + activeCountAfterFirstBurst);
+		//System.out.println("after-first: " + activeCountAfterFirstBurst);
 		for (int i = 0; i < 10; i++) {
 			channel.send(new DocumentMessage(1, "slow-1." + (i+1)));
-			Thread.sleep(50);
+			Thread.sleep(10);
 		}
 		int activeCountAfterSlowDown = bus.getActiveCountForEndpoint("testEndpoint");
-		System.out.println("after-slowdown: " + activeCountAfterSlowDown);
+		//System.out.println("after-slowdown: " + activeCountAfterSlowDown);
 		for (int i = 0; i < 100; i++) {
 			channel.send(new DocumentMessage(1, "fast-2." + (i+1)));
 		}
 		int activeCountAfterLastBurst = bus.getActiveCountForEndpoint("testEndpoint");
-		System.out.println("after-last: " + activeCountAfterLastBurst);
-		latch.await(10, TimeUnit.SECONDS);
+		//System.out.println("after-last: " + activeCountAfterLastBurst);
+		latch.await(100, TimeUnit.SECONDS);
 		int averageActive = activeSum.get() / messagesToSend;
 		assertTrue(activeCountAfterSlowDown < activeCountAfterFirstBurst);
 		assertTrue(activeCountAfterLastBurst > activeCountAfterSlowDown);
 		assertEquals(messagesToSend, counter.get());
-		assertEquals(maxConcurrency, maxActive.get());
+		assertTrue(maxActive.get() > concurrency);
+		assertTrue(maxActive.get() <= maxConcurrency);
 		assertTrue(averageActive > concurrency);
 		assertTrue(averageActive < maxActive.get());
 	}

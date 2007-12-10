@@ -14,24 +14,44 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint;
-
-import org.springframework.integration.channel.ChannelResolver;
-import org.springframework.integration.message.Message;
+package org.springframework.integration.bus;
 
 /**
- * Base interface for message endpoints.
+ * Configuration metadata for activating a subscription.
  * 
  * @author Mark Fisher
  */
-public interface MessageEndpoint {
+public class Subscription {
 
-	void setInputChannelName(String inputChannelName);
+	private String channel;
 
-	void setDefaultOutputChannelName(String defaultOutputChannelName);
+	private String endpoint;
 
-	void setChannelResolver(ChannelResolver channelResolver);
+	private ConsumerPolicy policy = new ConsumerPolicy();
 
-	void messageReceived(Message message);
+
+	public String getChannel() {
+		return this.channel;
+	}
+
+	public void setChannel(String channel) {
+		this.channel = channel;
+	}
+
+	public String getEndpoint() {
+		return this.endpoint;
+	}
+
+	public void setEndpoint(String endpoint) {
+		this.endpoint = endpoint;
+	}
+
+	public ConsumerPolicy getPolicy() {
+		return this.policy;
+	}
+
+	public void setPolicy(ConsumerPolicy policy) {
+		this.policy = policy;
+	}
 
 }

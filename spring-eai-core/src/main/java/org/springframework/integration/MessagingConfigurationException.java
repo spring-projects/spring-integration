@@ -14,24 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint;
-
-import org.springframework.integration.channel.ChannelResolver;
-import org.springframework.integration.message.Message;
+package org.springframework.integration;
 
 /**
- * Base interface for message endpoints.
+ * Exception that indicates an incorrectly configured messaging component.
  * 
  * @author Mark Fisher
  */
-public interface MessageEndpoint {
+@SuppressWarnings("serial")
+public class MessagingConfigurationException extends MessagingException {
 
-	void setInputChannelName(String inputChannelName);
+	public MessagingConfigurationException(String message) {
+		super(message);
+	}
 
-	void setDefaultOutputChannelName(String defaultOutputChannelName);
-
-	void setChannelResolver(ChannelResolver channelResolver);
-
-	void messageReceived(Message message);
+	public MessagingConfigurationException(String message, Throwable cause) {
+		super(message, cause);
+	}
 
 }

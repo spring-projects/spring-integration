@@ -16,17 +16,56 @@
 
 package org.springframework.integration.channel;
 
-import org.springframework.integration.MessageSource;
-import org.springframework.integration.MessageTarget;
+import org.springframework.integration.message.Message;
 
 /**
- * Base channel interface that combines the definitions of {@link MessageSource}
- * for message reception and {@link MessageTarget} for message sending.
+ * Base channel interface defining common behavior for message reception and sending.
  * 
  * @author Mark Fisher
- * @see MessageSource
- * @see MessageTarget
  */
-public interface MessageChannel extends MessageSource, MessageTarget {
+public interface MessageChannel {
+
+	/**
+	 * Send a message, blocking indefinitely if necessary.
+	 * 
+	 * @param message the {@link Message} to send
+	 * 
+	 * @return <code>true</code> if the message is sent
+	 * successfully, <code>false</false> if interrupted
+	 */
+	boolean send(Message message);
+
+	/**
+	 * Send a message, blocking until either the message is
+	 * accepted or the specified timeout period elapses.
+	 * 
+	 * @param message the {@link Message} to send
+	 * @param timeout the timeout in milliseconds
+	 * 
+	 * @return <code>true</code> if the message is sent
+	 * successfully, <code>false</false> if the specified
+	 * timeout period elapses or the send is interrupted
+	 */
+	boolean send(Message message, long timeout);
+
+	/**
+	 * Receive a message, blocking indefinitely if necessary.
+	 * 
+	 * @return the next available {@link Message} or
+	 * <code>null</code> if interrupted
+	 */
+	Message receive();
+
+	/**
+	 * Receive a message, blocking until either a message is
+	 * available or the specified timeout period elapses.
+	 * 
+	 * @param timeout the timeout in milliseconds
+	 * 
+	 * @return the next available {@link Message} or
+	 * <code>null</code> if the specified timeout period
+	 * elapses or the message reception is interrupted
+	 */
+	Message receive(long timeout);
 
 }

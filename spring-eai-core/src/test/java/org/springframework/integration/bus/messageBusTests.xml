@@ -11,8 +11,8 @@
 	<bean id="targetChannel" class="org.springframework.integration.channel.PointToPointChannel"/>
 
 	<bean id="endpoint" class="org.springframework.integration.endpoint.GenericMessageEndpoint">
-		<property name="source" ref="sourceChannel"/>
-		<property name="target" ref="targetChannel"/>
+		<property name="inputChannelName" value="sourceChannel"/>
+		<property name="defaultOutputChannelName" value="targetChannel"/>
 	</bean>
 
 </beans>

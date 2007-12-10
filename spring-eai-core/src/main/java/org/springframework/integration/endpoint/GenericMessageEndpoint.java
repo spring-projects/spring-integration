@@ -17,9 +17,10 @@
 package org.springframework.integration.endpoint;
 
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.MessageSource;
-import org.springframework.integration.MessageTarget;
+import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.bus.ConsumerPolicy;
 import org.springframework.integration.channel.ChannelResolver;
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 
@@ -38,34 +39,44 @@ import org.springframework.integration.message.Message;
  */
 public class GenericMessageEndpoint implements MessageEndpoint {
 
-	private MessageSource source;
+	private String inputChannelName;
 
-	private MessageTarget target;
+	private String defaultOutputChannelName;
 
 	private MessageHandler handler;
 
 	private ChannelResolver channelResolver;
 
+	private ConsumerPolicy consumerPolicy;
+
 
 	/**
-	 * Set the source from which this endpoint receives messages.
+	 * Set the name of the channel from which this endpoint receives messages.
 	 */
-	public void setSource(MessageSource source) {
-		this.source = source;
+	public void setInputChannelName(String inputChannelName) {
+		this.inputChannelName = inputChannelName;
 	}
 
 	/**
-	 * Return the source from which this endpoint receives messages.
+	 * Return the name of the channel from which this endpoint receives messages.
 	 */
-	public MessageSource getSource() {
-		return this.source;
+	public String getInputChannelName() {
+		return this.inputChannelName;
+	}
+
+	public void setConsumerPolicy(ConsumerPolicy consumerPolicy) {
+		this.consumerPolicy = consumerPolicy;
+	}
+
+	public ConsumerPolicy getConsumerPolicy() {
+		return this.consumerPolicy;
 	}
 
 	/**
-	 * Set the target to which this endpoint can send messages.
+	 * Set the name of the channel to which this endpoint can send reply messages by default.
 	 */
-	public void setTarget(MessageTarget target) {
-		this.target = target;
+	public void setDefaultOutputChannelName(String defaultOutputChannelName) {
+		this.defaultOutputChannelName = defaultOutputChannelName;
 	}
 
 	/**
@@ -76,40 +87,44 @@ public class GenericMessageEndpoint implements MessageEndpoint {
 	}
 
 	/**
-	 * Set the channel resolver strategy to use when a message
-	 * provides a '<i>replyChannelName</i>'.
+	 * Set the channel resolver to use for resolving channels by name.
 	 */
-	public void setChannelResolver(final ChannelResolver channelResolver) {
+	public void setChannelResolver(ChannelResolver channelResolver) {
 		this.channelResolver = channelResolver;
 	}
 
 
 	public void messageReceived(Message message) {
 		if (this.handler == null) {
-			target.send(message);
+			if (this.defaultOutputChannelName == null) {
+				throw new MessagingConfigurationException(
+						"endpoint must have either a 'handler' or 'defaultOutputChannelName'");
+			}
+			MessageChannel replyChannel = this.channelResolver.resolve(this.defaultOutputChannelName);
+			replyChannel.send(message);
 			return;
 		}
 		Message replyMessage = handler.handle(message);
 		if (replyMessage != null) {
-			MessageTarget replyTarget = resolveReplyTarget(message);
-			if (replyTarget == null) {
-				throw new MessageHandlingException("Unable to determine reply target for message. "
-						+ "Provide a 'replyChannelName' in the message header or a 'target' "
+			MessageChannel replyChannel = this.resolveReplyChannel(message);
+			if (replyChannel == null) {
+				throw new MessageHandlingException("Unable to determine reply channel for message. "
+						+ "Provide a 'replyChannelName' in the message header or a 'defaultReplyChannelName' "
 						+ "on the message endpoint.");
 			}
-			replyTarget.send(replyMessage);
+			replyChannel.send(replyMessage);
 		}
 	}
 
-	private MessageTarget resolveReplyTarget(Message message) {
-		MessageTarget replyTo = null;
-		if (this.channelResolver != null) {
-			String replyChannelName = message.getHeader().getReplyChannelName();
-			if (replyChannelName != null && replyChannelName.trim().length() > 0) {
-				replyTo = this.channelResolver.resolve(replyChannelName);
-			}
+	private MessageChannel resolveReplyChannel(Message message) {
+		if (this.channelResolver == null) {
+			return null;
 		}
-		return (replyTo != null ? replyTo : target);
+		String replyChannelName = message.getHeader().getReplyChannelName();
+		if (replyChannelName != null && replyChannelName.trim().length() > 0) {
+			return this.channelResolver.resolve(replyChannelName);
+		}
+		return this.channelResolver.resolve(this.defaultOutputChannelName);
 	}
 
 }

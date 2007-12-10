@@ -16,22 +16,21 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.integration.channel.ChannelResolver;
-import org.springframework.integration.message.Message;
-
 /**
- * Base interface for message endpoints.
+ * Convenience base class for inbound channel adapters.
  * 
  * @author Mark Fisher
  */
-public interface MessageEndpoint {
+public abstract class AbstractInboundChannelAdapter extends AbstractChannelAdapter {
 
-	void setInputChannelName(String inputChannelName);
+	protected boolean sendObject(Object object) throws Exception {
+		return false;
+	}
 
-	void setDefaultOutputChannelName(String defaultOutputChannelName);
+	protected Object receiveObject() throws Exception {
+		return this.doReceiveObject();
+	}
 
-	void setChannelResolver(ChannelResolver channelResolver);
-
-	void messageReceived(Message message);
+	protected abstract Object doReceiveObject() throws Exception;
 
 }

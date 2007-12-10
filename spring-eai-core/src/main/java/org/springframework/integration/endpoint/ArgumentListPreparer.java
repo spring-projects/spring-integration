@@ -16,22 +16,13 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.integration.channel.ChannelResolver;
-import org.springframework.integration.message.Message;
-
 /**
- * Base interface for message endpoints.
+ * A strategy for preparing an argument list from a single source object.
  * 
  * @author Mark Fisher
  */
-public interface MessageEndpoint {
+public interface ArgumentListPreparer {
 
-	void setInputChannelName(String inputChannelName);
-
-	void setDefaultOutputChannelName(String defaultOutputChannelName);
-
-	void setChannelResolver(ChannelResolver channelResolver);
-
-	void messageReceived(Message message);
+	Object[] prepare(Object source);
 
 }

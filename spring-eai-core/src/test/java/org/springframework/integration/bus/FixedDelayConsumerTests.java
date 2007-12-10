@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
+
 import org.springframework.integration.bus.ConsumerPolicy;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.PointToPointChannel;
@@ -58,7 +59,11 @@ public class FixedDelayConsumerTests {
 		policy.setMaxMessagesPerTask(1);
 		policy.setFixedRate(true);
 		policy.setPeriod(10);
-		bus.activateSubscription("testChannel", "testEndpoint", policy);
+		Subscription subscription = new Subscription();
+		subscription.setChannel("testChannel");
+		subscription.setEndpoint("testEndpoint");
+		subscription.setPolicy(policy);
+		bus.activateSubscription(subscription);
 		bus.start();
 		for (int i = 0; i < messagesToSend; i++) {
 			channel.send(new DocumentMessage(1, "test " + (i+1)));
@@ -88,7 +93,11 @@ public class FixedDelayConsumerTests {
 		policy.setMaxMessagesPerTask(1);
 		policy.setFixedRate(true);
 		policy.setPeriod(10);
-		bus.activateSubscription("testChannel", "testEndpoint", policy);
+		Subscription subscription = new Subscription();
+		subscription.setChannel("testChannel");
+		subscription.setEndpoint("testEndpoint");
+		subscription.setPolicy(policy);
+		bus.activateSubscription(subscription);
 		bus.start();
 		for (int i = 0; i < messagesToSend; i++) {
 			channel.send(new DocumentMessage(1, "test " + (i+1)));
