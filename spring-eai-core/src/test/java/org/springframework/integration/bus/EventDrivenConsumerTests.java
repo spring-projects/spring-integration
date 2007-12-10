@@ -51,7 +51,6 @@ public class EventDrivenConsumerTests {
 		PointToPointChannel channel = new PointToPointChannel();
 		MessageEndpoint endpoint = new GenericMessageEndpoint() {
 			public void messageReceived(Message message) {
-				System.out.println("[count:" + latch.getCount() + "] received: " + message.getPayload());
 				counter.incrementAndGet();
 				latch.countDown();
 				try { Thread.sleep(3); } catch (InterruptedException e) {}
@@ -78,18 +77,15 @@ public class EventDrivenConsumerTests {
 			channel.send(new DocumentMessage(1, "fast-1." + (i+1)));
 		}
 		int activeCountAfterFirstBurst = bus.getActiveCountForEndpoint("testEndpoint");
-		//System.out.println("after-first: " + activeCountAfterFirstBurst);
 		for (int i = 0; i < 10; i++) {
 			channel.send(new DocumentMessage(1, "slow-1." + (i+1)));
 			Thread.sleep(10);
 		}
 		int activeCountAfterSlowDown = bus.getActiveCountForEndpoint("testEndpoint");
-		//System.out.println("after-slowdown: " + activeCountAfterSlowDown);
 		for (int i = 0; i < 100; i++) {
 			channel.send(new DocumentMessage(1, "fast-2." + (i+1)));
 		}
 		int activeCountAfterLastBurst = bus.getActiveCountForEndpoint("testEndpoint");
-		//System.out.println("after-last: " + activeCountAfterLastBurst);
 		latch.await(100, TimeUnit.SECONDS);
 		int averageActive = activeSum.get() / messagesToSend;
 		assertTrue(activeCountAfterSlowDown < activeCountAfterFirstBurst);
