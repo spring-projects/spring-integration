@@ -21,9 +21,16 @@
 	<bean id="sink" class="org.springframework.integration.endpoint.TestSink"/>
 
 	<bean id="endpoint" class="org.springframework.integration.endpoint.GenericMessageEndpoint">
+		<property name="inputChannelName" value="inboundAdapter"/>
 		<property name="defaultOutputChannelName" value="outboundAdapter"/>
+		<property name="consumerPolicy">
+			<bean class="org.springframework.integration.bus.ConsumerPolicy">
+				<property name="receiveTimeout" value="100"/>
+			</bean>
+		</property>
 	</bean>
 
+<!-- 
 	<bean class="org.springframework.integration.bus.Subscription">
 		<property name="channel" value="inboundAdapter"/>
 		<property name="endpoint" value="endpoint"/>
@@ -33,5 +40,6 @@
 			</bean>
 		</property>
 	</bean>
+-->
 
 </beans>

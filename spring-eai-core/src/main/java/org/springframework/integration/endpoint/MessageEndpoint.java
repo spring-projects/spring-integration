@@ -16,6 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
+import org.springframework.integration.bus.ConsumerPolicy;
 import org.springframework.integration.channel.ChannelMapping;
 import org.springframework.integration.message.Message;
 
@@ -28,7 +29,11 @@ public interface MessageEndpoint {
 
 	void setInputChannelName(String inputChannelName);
 
+	String getInputChannelName();
+
 	void setDefaultOutputChannelName(String defaultOutputChannelName);
+
+	ConsumerPolicy getConsumerPolicy();
 
 	void setChannelMapping(ChannelMapping channelMapping);
 

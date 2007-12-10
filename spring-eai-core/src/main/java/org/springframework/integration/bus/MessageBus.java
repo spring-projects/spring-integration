@@ -124,6 +124,13 @@ public class MessageBus implements ChannelMapping, ApplicationContextAware, Life
 	public void registerEndpoint(String name, MessageEndpoint endpoint) {
 		this.endpoints.put(name, endpoint);
 		endpoint.setChannelMapping(this);
+		if (endpoint.getInputChannelName() != null && endpoint.getConsumerPolicy() != null) {
+			Subscription subscription = new Subscription();
+			subscription.setChannel(endpoint.getInputChannelName());
+			subscription.setEndpoint(name);
+			subscription.setPolicy(endpoint.getConsumerPolicy());
+			this.activateSubscription(subscription);
+		}
 	}
 
 	public void activateSubscription(Subscription subscription) {
