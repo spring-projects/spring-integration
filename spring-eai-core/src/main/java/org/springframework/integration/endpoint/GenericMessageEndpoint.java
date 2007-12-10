@@ -109,7 +109,7 @@ public class GenericMessageEndpoint implements MessageEndpoint {
 			MessageChannel replyChannel = this.resolveReplyChannel(message);
 			if (replyChannel == null) {
 				throw new MessageHandlingException("Unable to determine reply channel for message. "
-						+ "Provide a 'replyChannelName' in the message header or a 'defaultReplyChannelName' "
+						+ "Provide a 'replyChannelName' in the message header or a 'defaultOutputChannelName' "
 						+ "on the message endpoint.");
 			}
 			replyChannel.send(replyMessage);
