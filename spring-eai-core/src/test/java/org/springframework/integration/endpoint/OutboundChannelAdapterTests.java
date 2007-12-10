@@ -67,6 +67,7 @@ public class OutboundChannelAdapterTests {
 				new OutboundMethodInvokingChannelAdapter<TestSink>();
 		adapter.setObject(new TestSink());
 		adapter.setMethod("noSuchMethod");
+		adapter.afterPropertiesSet();
 		adapter.send(new DocumentMessage(1, "test"));
 	}
 

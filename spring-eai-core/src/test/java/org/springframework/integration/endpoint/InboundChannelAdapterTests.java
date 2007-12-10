@@ -46,6 +46,7 @@ public class InboundChannelAdapterTests {
 				new InboundMethodInvokingChannelAdapter<TestSource>();
 		adapter.setObject(new TestSource());
 		adapter.setMethod("invalidMethodWithArg");
+		adapter.afterPropertiesSet();
 		adapter.receive();
 	}
 
@@ -55,6 +56,7 @@ public class InboundChannelAdapterTests {
 				new InboundMethodInvokingChannelAdapter<TestSource>();
 		adapter.setObject(new TestSource());
 		adapter.setMethod("invalidMethodWithNoReturnValue");
+		adapter.afterPropertiesSet();
 		adapter.receive();
 	}
 
@@ -64,6 +66,7 @@ public class InboundChannelAdapterTests {
 				new InboundMethodInvokingChannelAdapter<TestSource>();
 		adapter.setObject(new TestSource());
 		adapter.setMethod("noSuchMethod");
+		adapter.afterPropertiesSet();
 		adapter.receive();		
 	}
 
