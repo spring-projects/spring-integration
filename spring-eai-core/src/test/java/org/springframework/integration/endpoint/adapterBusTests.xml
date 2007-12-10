@@ -8,7 +8,7 @@
 
 	<bean id="inboundAdapter" class="org.springframework.integration.endpoint.InboundMethodInvokingChannelAdapter">
 		<property name="object">
-			<bean class="org.springframework.integration.adapter.TestSource"/>
+			<bean class="org.springframework.integration.endpoint.TestSource"/>
 		</property>
 		<property name="method" value="foo"/>
 	</bean>
@@ -18,7 +18,7 @@
 		<property name="method" value="store"/>
 	</bean>
 
-	<bean id="sink" class="org.springframework.integration.adapter.TestSink"/>
+	<bean id="sink" class="org.springframework.integration.endpoint.TestSink"/>
 
 	<bean id="endpoint" class="org.springframework.integration.endpoint.GenericMessageEndpoint">
 		<property name="defaultOutputChannelName" value="outboundAdapter"/>
