@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+	<bean id="bus" class="org.springframework.integration.bus.MessageBus"/>
+
+	<bean id="inboundAdapter" class="org.springframework.integration.endpoint.InboundMethodInvokingChannelAdapter">
+		<property name="object">
+			<bean class="org.springframework.integration.adapter.TestSource"/>
+		</property>
+		<property name="method" value="foo"/>
+	</bean>
+
+	<bean id="outboundAdapter" class="org.springframework.integration.endpoint.OutboundMethodInvokingChannelAdapter">
+		<property name="object" ref="sink"/>
+		<property name="method" value="store"/>
+	</bean>
+
+	<bean id="sink" class="org.springframework.integration.adapter.TestSink"/>
+
+	<bean id="endpoint" class="org.springframework.integration.endpoint.GenericMessageEndpoint">
+		<property name="defaultOutputChannelName" value="outboundAdapter"/>
+	</bean>
+
+	<bean class="org.springframework.integration.bus.Subscription">
+		<property name="channel" value="inboundAdapter"/>
+		<property name="endpoint" value="endpoint"/>
+		<property name="policy">
+			<bean class="org.springframework.integration.bus.ConsumerPolicy">
+				<property name="receiveTimeout" value="100"/>
+			</bean>
+		</property>
+	</bean>
+
+</beans>
