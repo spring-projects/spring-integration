@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns="http://www.springframework.org/schema/integration"
+		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+		xmlns:beans="http://www.springframework.org/schema/beans"
+		xmlns:tool="http://www.springframework.org/schema/tool"
+		targetNamespace="http://www.springframework.org/schema/integration"
+		elementFormDefault="qualified"
+		attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
+	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
+
+	<xsd:annotation>
+		<xsd:documentation><![CDATA[
+	Defines the configuration elements for Spring Integration.
+		]]></xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:element name="channel">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a message channel.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="beans:identifiedType">
+					<xsd:attribute name="capacity" type="xsd:integer"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="endpoint">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a message endpoint.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="beans:identifiedType">
+					<xsd:sequence>
+						<xsd:element ref="consumer" minOccurs="0" maxOccurs="1"/>
+					</xsd:sequence>
+					<xsd:attribute name="input-channel" type="xsd:string"/>
+					<xsd:attribute name="default-output-channel" type="xsd:string"/>
+					<xsd:attribute name="handler" type="xsd:string"/>
+					<xsd:attribute name="handler-method" type="xsd:string"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="consumer">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a consumer policy.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="period" type="xsd:int"/>
+		</xsd:complexType>
+	</xsd:element>
+
+</xsd:schema>
