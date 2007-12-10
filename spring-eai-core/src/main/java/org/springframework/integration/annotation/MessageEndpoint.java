@@ -37,8 +37,8 @@ import org.springframework.stereotype.Component;
 @Component
 public @interface MessageEndpoint {
 
-	String source();
+	String input();
 
-	String target();
+	String output();
 
 }
