@@ -24,7 +24,7 @@ import org.springframework.aop.Pointcut;
 import org.springframework.aop.support.AbstractPointcutAdvisor;
 import org.springframework.aop.support.annotation.AnnotationMatchingPointcut;
 import org.springframework.integration.annotation.Publisher;
-import org.springframework.integration.channel.ChannelResolver;
+import org.springframework.integration.channel.ChannelMapping;
 import org.springframework.util.Assert;
 
 /**
@@ -43,18 +43,18 @@ public class PublisherAnnotationAdvisor extends AbstractPointcutAdvisor {
 	private AnnotationMatchingPointcut pointcut;
 
 
-	public PublisherAnnotationAdvisor(ChannelResolver channelResolver) {
-		this(Publisher.class, "channel", channelResolver);
+	public PublisherAnnotationAdvisor(ChannelMapping channelMapping) {
+		this(Publisher.class, "channel", channelMapping);
 	}
 
 	public PublisherAnnotationAdvisor(Class<? extends Annotation> publisherAnnotationType, String channelNameAttribute,
-			ChannelResolver channelResolver) {
+			ChannelMapping channelMapping) {
 		Assert.notNull(publisherAnnotationType, "publisherAnnotationType must not be null");
 		Assert.notNull(channelNameAttribute, "channelNameAttribute must not be null");
-		Assert.notNull(channelResolver, "channelResolver must not be null");
+		Assert.notNull(channelMapping, "channelMapping must not be null");
 		this.pointcut = AnnotationMatchingPointcut.forMethodAnnotation(publisherAnnotationType);
 		this.advice = new AnnotationAwareMessagePublishingInterceptor(publisherAnnotationType, channelNameAttribute,
-				channelResolver);
+				channelMapping);
 	}
 
 

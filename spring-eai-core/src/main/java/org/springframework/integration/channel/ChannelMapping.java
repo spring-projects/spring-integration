@@ -21,8 +21,8 @@ package org.springframework.integration.channel;
  * 
  * @author Mark Fisher
  */
-public interface ChannelResolver {
+public interface ChannelMapping {
 
-	MessageChannel resolve(String channelName);
+	MessageChannel getChannel(String channelName);
 
 }

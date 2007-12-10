@@ -26,7 +26,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.integration.annotation.Publisher;
-import org.springframework.integration.channel.ChannelResolver;
+import org.springframework.integration.channel.ChannelMapping;
 import org.springframework.util.Assert;
 
 /**
@@ -41,7 +41,7 @@ public class PublisherAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 	private String channelNameAttribute = "channel";
 
-	private ChannelResolver channelResolver;
+	private ChannelMapping channelMapping;
 
 	private Advisor advisor;
 
@@ -62,17 +62,17 @@ public class PublisherAnnotationPostProcessor implements BeanPostProcessor, Bean
 		this.channelNameAttribute = channelNameAttribute;
 	}
 
-	public void setChannelResolver(ChannelResolver channelResolver) {
-		Assert.notNull(channelResolver, "channelResolver must not be null");
-		this.channelResolver = channelResolver;
+	public void setChannelMapping(ChannelMapping channelMapping) {
+		Assert.notNull(channelMapping, "channelMapping must not be null");
+		this.channelMapping = channelMapping;
 	}
 
 	private void createAdvisor() {
-		if (this.channelResolver == null) {
-			throw new IllegalStateException("channelResolver is required");
+		if (this.channelMapping == null) {
+			throw new IllegalStateException("channelMapping is required");
 		}
 		this.advisor = new PublisherAnnotationAdvisor(this.publisherAnnotationType, this.channelNameAttribute,
-				this.channelResolver);
+				this.channelMapping);
 	}
 
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {

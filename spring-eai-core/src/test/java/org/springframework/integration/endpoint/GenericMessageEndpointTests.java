@@ -24,7 +24,6 @@ import org.junit.Test;
 import org.springframework.integration.bus.ConsumerPolicy;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.bus.Subscription;
-import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PointToPointChannel;
 import org.springframework.integration.handler.MessageHandler;
@@ -77,18 +76,9 @@ public class GenericMessageEndpointTests {
 				return new DocumentMessage("123", "hello " + message.getPayload());
 			}
 		};
-		ChannelResolver channelResolver = new ChannelResolver() {
-			public MessageChannel resolve(String channelName) {
-				if (channelName.equals("replyChannel")) {
-					return replyChannel;
-				}
-				return null;
-			}
-		};
 		GenericMessageEndpoint endpoint = new GenericMessageEndpoint();
 		endpoint.setInputChannelName("testChannel");
 		endpoint.setHandler(handler);
-		endpoint.setChannelResolver(channelResolver);
 		MessageBus bus = new MessageBus();
 		bus.registerChannel("testChannel", channel);
 		bus.registerEndpoint("testEndpoint", endpoint);

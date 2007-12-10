@@ -11,7 +11,7 @@
 	<bean id="testBean" class="org.springframework.integration.aop.PublisherAnnotationTestBean"/>
 
 	<bean class="org.springframework.integration.aop.PublisherAnnotationPostProcessor">
-		<property name="channelResolver" ref="messageBus"/>
+		<property name="channelMapping" ref="messageBus"/>
 	</bean>
 
 </beans>

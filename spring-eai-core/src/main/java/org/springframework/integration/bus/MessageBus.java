@@ -31,7 +31,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.channel.ChannelResolver;
+import org.springframework.integration.channel.ChannelMapping;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PointToPointChannel;
 import org.springframework.integration.endpoint.MessageEndpoint;
@@ -44,7 +44,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class MessageBus implements ChannelResolver, ApplicationContextAware, Lifecycle {
+public class MessageBus implements ChannelMapping, ApplicationContextAware, Lifecycle {
 
 	private Log logger = LogFactory.getLog(this.getClass());
 
@@ -113,7 +113,7 @@ public class MessageBus implements ChannelResolver, ApplicationContextAware, Lif
 		this.dispatcherExecutor = new ScheduledThreadPoolExecutor(this.dispatcherTasks.size() > 0 ? this.dispatcherTasks.size() : 1);
 	}
 
-	public MessageChannel resolve(String channelName) {
+	public MessageChannel getChannel(String channelName) {
 		return this.channels.get(channelName);
 	}
 
@@ -123,7 +123,7 @@ public class MessageBus implements ChannelResolver, ApplicationContextAware, Lif
 
 	public void registerEndpoint(String name, MessageEndpoint endpoint) {
 		this.endpoints.put(name, endpoint);
-		endpoint.setChannelResolver(this);
+		endpoint.setChannelMapping(this);
 	}
 
 	public void activateSubscription(Subscription subscription) {

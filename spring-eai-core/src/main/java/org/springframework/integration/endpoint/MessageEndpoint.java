@@ -16,7 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.integration.channel.ChannelResolver;
+import org.springframework.integration.channel.ChannelMapping;
 import org.springframework.integration.message.Message;
 
 /**
@@ -30,7 +30,7 @@ public interface MessageEndpoint {
 
 	void setDefaultOutputChannelName(String defaultOutputChannelName);
 
-	void setChannelResolver(ChannelResolver channelResolver);
+	void setChannelMapping(ChannelMapping channelMapping);
 
 	void messageReceived(Message message);
 

@@ -23,7 +23,7 @@ import org.aopalliance.intercept.MethodInvocation;
 
 import org.springframework.aop.support.AopUtils;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.integration.channel.ChannelResolver;
+import org.springframework.integration.channel.ChannelMapping;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.util.Assert;
 
@@ -39,17 +39,17 @@ public class AnnotationAwareMessagePublishingInterceptor extends MessagePublishi
 
 	private String channelAttributeName;
 
-	private ChannelResolver channelResolver;
+	private ChannelMapping channelMapping;
 
 
 	public AnnotationAwareMessagePublishingInterceptor(Class<? extends Annotation> publisherAnnotationType,
-			String channelAttributeName, ChannelResolver channelResolver) {
+			String channelAttributeName, ChannelMapping channelMapping) {
 		Assert.notNull(publisherAnnotationType, "publisherAnnotationType must not be null");
 		Assert.notNull(channelAttributeName, "channelAttributeName must not be null");
-		Assert.notNull(channelResolver, "channelResolver must not be null");
+		Assert.notNull(channelMapping, "channelMapping must not be null");
 		this.publisherAnnotationType = publisherAnnotationType;
 		this.channelAttributeName = channelAttributeName;
-		this.channelResolver = channelResolver;
+		this.channelMapping = channelMapping;
 	}
 
 
@@ -61,7 +61,7 @@ public class AnnotationAwareMessagePublishingInterceptor extends MessagePublishi
 		if (annotation != null) {
 			String channelName = (String) AnnotationUtils.getValue(annotation, this.channelAttributeName);
 			if (channelName != null) {
-				MessageChannel channel = this.channelResolver.resolve(channelName);
+				MessageChannel channel = this.channelMapping.getChannel(channelName);
 				if (channel != null) {
 					return channel;
 				}

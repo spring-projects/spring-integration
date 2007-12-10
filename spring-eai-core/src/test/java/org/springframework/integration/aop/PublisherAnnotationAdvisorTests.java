@@ -24,7 +24,7 @@ import org.junit.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.integration.annotation.Publisher;
-import org.springframework.integration.channel.ChannelResolver;
+import org.springframework.integration.channel.ChannelMapping;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PointToPointChannel;
 import org.springframework.integration.message.Message;
@@ -37,15 +37,15 @@ public class PublisherAnnotationAdvisorTests {
 	@Test
 	public void testPublisherAnnotation() {
 		final MessageChannel channel = new PointToPointChannel();
-		ChannelResolver channelResolver = new ChannelResolver() {
-			public MessageChannel resolve(String channelName) {
+		ChannelMapping channelMapping = new ChannelMapping() {
+			public MessageChannel getChannel(String channelName) {
 				if (channelName.equals("testChannel")) {
 					return channel;
 				}
 				return null;
 			}
 		};
-		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor(channelResolver);
+		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor(channelMapping);
 		TestService proxy = (TestService) this.createProxy(new TestServiceImpl("hello world"), advisor);
 		proxy.publisherTest();
 		Message message = channel.receive(0);
@@ -56,15 +56,15 @@ public class PublisherAnnotationAdvisorTests {
 	@Test
 	public void testNoPublisherAnnotation() {
 		final MessageChannel channel = new PointToPointChannel();
-		ChannelResolver channelResolver = new ChannelResolver() {
-			public MessageChannel resolve(String channelName) {
+		ChannelMapping channelMapping = new ChannelMapping() {
+			public MessageChannel getChannel(String channelName) {
 				if (channelName.equals("testChannel")) {
 					return channel;
 				}
 				return null;
 			}
 		};
-		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor(channelResolver);
+		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor(channelMapping);
 		TestService proxy = (TestService) this.createProxy(new TestServiceImpl("hello world"), advisor);
 		proxy.noPublisherTest();
 		Message message = channel.receive(0);

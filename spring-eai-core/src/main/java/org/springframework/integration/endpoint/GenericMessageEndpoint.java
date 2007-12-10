@@ -19,7 +19,7 @@ package org.springframework.integration.endpoint;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.bus.ConsumerPolicy;
-import org.springframework.integration.channel.ChannelResolver;
+import org.springframework.integration.channel.ChannelMapping;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
@@ -45,7 +45,7 @@ public class GenericMessageEndpoint implements MessageEndpoint {
 
 	private MessageHandler handler;
 
-	private ChannelResolver channelResolver;
+	private ChannelMapping channelMapping;
 
 	private ConsumerPolicy consumerPolicy;
 
@@ -87,10 +87,10 @@ public class GenericMessageEndpoint implements MessageEndpoint {
 	}
 
 	/**
-	 * Set the channel resolver to use for resolving channels by name.
+	 * Set the channel mapping to use for looking up channels by name.
 	 */
-	public void setChannelResolver(ChannelResolver channelResolver) {
-		this.channelResolver = channelResolver;
+	public void setChannelMapping(ChannelMapping channelMapping) {
+		this.channelMapping = channelMapping;
 	}
 
 
@@ -100,7 +100,7 @@ public class GenericMessageEndpoint implements MessageEndpoint {
 				throw new MessagingConfigurationException(
 						"endpoint must have either a 'handler' or 'defaultOutputChannelName'");
 			}
-			MessageChannel replyChannel = this.channelResolver.resolve(this.defaultOutputChannelName);
+			MessageChannel replyChannel = this.channelMapping.getChannel(this.defaultOutputChannelName);
 			replyChannel.send(message);
 			return;
 		}
@@ -117,14 +117,14 @@ public class GenericMessageEndpoint implements MessageEndpoint {
 	}
 
 	private MessageChannel resolveReplyChannel(Message message) {
-		if (this.channelResolver == null) {
+		if (this.channelMapping == null) {
 			return null;
 		}
 		String replyChannelName = message.getHeader().getReplyChannelName();
 		if (replyChannelName != null && replyChannelName.trim().length() > 0) {
-			return this.channelResolver.resolve(replyChannelName);
+			return this.channelMapping.getChannel(replyChannelName);
 		}
-		return this.channelResolver.resolve(this.defaultOutputChannelName);
+		return this.channelMapping.getChannel(this.defaultOutputChannelName);
 	}
 
 }
