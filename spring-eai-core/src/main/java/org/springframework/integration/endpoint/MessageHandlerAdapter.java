@@ -20,6 +20,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageMapper;
+import org.springframework.integration.message.SimplePayloadMessageMapper;
 import org.springframework.util.Assert;
 
 /**
@@ -36,7 +37,7 @@ public class MessageHandlerAdapter<T> implements MessageHandler, InitializingBea
 
 	private String method;
 
-	private MessageMapper mapper;
+	private MessageMapper mapper = new SimplePayloadMessageMapper();
 
 	private SimpleMethodInvoker<T> invoker;
 
