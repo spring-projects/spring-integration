@@ -72,6 +72,10 @@ public class MessageBus implements ChannelMapping, ApplicationContextAware, Life
 		this.activateSubscriptions(applicationContext);
 	}
 
+	public void setAutoCreateChannels(boolean autoCreateChannels) {
+		this.autoCreateChannels = autoCreateChannels;
+	}
+
 	@SuppressWarnings("unchecked")
 	private void registerChannels(ApplicationContext context) {
 		Map<String, MessageChannel> channelBeans =

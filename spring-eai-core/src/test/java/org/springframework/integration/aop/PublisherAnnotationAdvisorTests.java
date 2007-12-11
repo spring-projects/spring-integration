@@ -23,7 +23,6 @@ import static org.junit.Assert.assertNull;
 import org.junit.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
-import org.springframework.integration.annotation.Publisher;
 import org.springframework.integration.channel.ChannelMapping;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PointToPointChannel;

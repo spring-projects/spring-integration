@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.annotation;
+package org.springframework.integration.aop;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -24,10 +24,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that a method is capable of providing messages. The method must not
- * accept any parameters but can return either a single object or collection.
- * The enclosing class should be annotated with
- * {@link MessageEndpoint @MessageEndpoint}.
+ * Indicates that the method's return value should be published to the specified
+ * channel. The value will only be published if non-null.
  * 
  * @author Mark Fisher
  */
@@ -35,6 +33,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-public @interface Source {
+public @interface Publisher {
+
+	String channel();
 
 }

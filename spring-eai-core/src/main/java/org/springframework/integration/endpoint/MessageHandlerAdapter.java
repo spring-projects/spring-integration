@@ -17,6 +17,7 @@
 package org.springframework.integration.endpoint;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.Ordered;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageMapper;
@@ -31,7 +32,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class MessageHandlerAdapter<T> implements MessageHandler, InitializingBean {
+public class MessageHandlerAdapter<T> implements MessageHandler, Ordered, InitializingBean {
 
 	private T object;
 
@@ -40,6 +41,8 @@ public class MessageHandlerAdapter<T> implements MessageHandler, InitializingBea
 	private MessageMapper mapper = new SimplePayloadMessageMapper();
 
 	private SimpleMethodInvoker<T> invoker;
+
+	private int order = Integer.MAX_VALUE;
 
 
 	public void setObject(T object) {
@@ -50,6 +53,14 @@ public class MessageHandlerAdapter<T> implements MessageHandler, InitializingBea
 	public void setMethod(String method) {
 		Assert.notNull(method, "'method' must not be null");
 		this.method = method;
+	}
+
+	public void setOrder(int order) {
+		this.order = order;
+	}
+
+	public int getOrder() {
+		return this.order;
 	}
 
 	public void afterPropertiesSet() {

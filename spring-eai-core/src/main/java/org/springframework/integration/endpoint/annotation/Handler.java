@@ -14,28 +14,26 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.annotation;
+package org.springframework.integration.endpoint.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-
-import org.springframework.integration.message.Message;
+import java.lang.annotation.Target;
 
 /**
- * Indicates that a method is capable of sending messages. The method must
- * accept a single parameter that is either a {@link Message} or an Object to
- * be passed as a message payload. The enclosing class should be annotated with
- * {@link MessageEndpoint @MessageEndpoint}.
+ * Indicates that a method is capable of handling a message or message payload.
+ * The method may only accept a single parameter, and the enclosing class should
+ * be annotated with {@link MessageEndpoint @MessageEndpoint}.
  * 
  * @author Mark Fisher
  */
-@java.lang.annotation.Target(ElementType.METHOD)
+@Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-public @interface Target {
+public @interface Handler {
 
 }
