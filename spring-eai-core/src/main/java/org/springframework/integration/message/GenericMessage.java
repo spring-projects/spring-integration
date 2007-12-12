@@ -27,18 +27,18 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractMessage implements Message {
+public class GenericMessage<T> implements Message<T> {
 
 	private Object id;
 
 	private MessageHeader header = new MessageHeader();
 
-	private Object payload;
+	private T payload;
 
 	private ReentrantLock lock;
 
 
-	protected AbstractMessage(Object id, Object payload) {
+	public GenericMessage(Object id, T payload) {
 		Assert.notNull(id, "id must not be null");
 		Assert.notNull(payload, "payload must not be null");
 		this.id = id;
@@ -57,11 +57,11 @@ public abstract class AbstractMessage implements Message {
 		this.header = header;
 	}
 
-	public Object getPayload() {
+	public T getPayload() {
 		return this.payload;
 	}
 
-	protected void setPayload(Object newPayload) {
+	protected void setPayload(T newPayload) {
 		this.payload = newPayload;
 	}
 
@@ -85,7 +85,8 @@ public abstract class AbstractMessage implements Message {
 	public void transformPayload(ObjectTransformer transformer) {
 		this.lock();
 		try {
-			this.setPayload(transformer.transform(this.getPayload()));
+			// TODO: remove this method (probably) or parameterize transformer
+			this.setPayload((T) transformer.transform(this.getPayload()));
 		}
 		finally {
 			this.unlock();

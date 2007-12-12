@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler;
-
-import org.springframework.integration.message.Message;
+package org.springframework.integration.endpoint.annotation;
 
 /**
- * Generic message handler interface. Typical implementations will translate
- * between the generic Messages of the integration framework and the domain
- * objects that are passed-to and returned-from business components.
- * 
  * @author Mark Fisher
  */
-public interface MessageHandler {
+@MessageEndpoint(input="inputChannel", defaultOutput="outputChannel", pollPeriod=10)
+public class SimpleAnnotatedEndpoint {
 
-	Message<?> handle(Message<?> message);
+	@Handler
+	public String sayHello(String name) {
+		return "hello " + name;
+	}
 
 }

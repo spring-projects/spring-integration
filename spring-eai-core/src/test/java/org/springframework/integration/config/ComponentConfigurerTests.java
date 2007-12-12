@@ -28,8 +28,8 @@ import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PointToPointChannel;
 import org.springframework.integration.endpoint.MessageEndpoint;
-import org.springframework.integration.message.DocumentMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Mark Fisher
@@ -43,10 +43,10 @@ public class ComponentConfigurerTests {
 		context.registerBeanDefinition("tester", new RootBeanDefinition(Tester.class));
 		context.registerBeanDefinition("out", new RootBeanDefinition(PointToPointChannel.class));
 		context.registerBeanDefinition("bus", new RootBeanDefinition(MessageBus.class));
-		String name = cr.serviceActivator("in", "out", "tester", "test");
+		String name = cr.serviceActivator(null, "out", "tester", "test");
 		context.refresh();
 		MessageEndpoint endpoint = (MessageEndpoint) context.getBean(name);
-		endpoint.messageReceived(new DocumentMessage(1, "world"));
+		endpoint.messageReceived(new GenericMessage<String>(1, "world"));
 		MessageChannel channel = (MessageChannel) context.getBean("out");
 		assertEquals("hello world", channel.receive().getPayload());
 	}
@@ -58,7 +58,7 @@ public class ComponentConfigurerTests {
 		context.registerBeanDefinition("tester", new RootBeanDefinition(Tester.class));
 		String adapter = cr.inboundChannelAdapter("tester", "foo");
 		MessageChannel channel = (MessageChannel) context.getBean(adapter);
-		Message message = channel.receive();
+		Message<String> message = channel.receive();
 		assertEquals("bar", message.getPayload());
 	}
 
@@ -71,7 +71,7 @@ public class ComponentConfigurerTests {
 		Tester tester = (Tester) context.getBean("tester");
 		assertNull(tester.getStoredValue());
 		MessageChannel channel = (MessageChannel) context.getBean(adapter);
-		boolean result = channel.send(new DocumentMessage(1, "foo"));
+		boolean result = channel.send(new GenericMessage<String>(1, "foo"));
 		assertTrue(result);
 		assertEquals("foo", tester.getStoredValue());
 	}

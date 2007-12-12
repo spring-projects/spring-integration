@@ -58,6 +58,8 @@ public class MessageBus implements ChannelMapping, ApplicationContextAware, Life
 
 	private ScheduledThreadPoolExecutor dispatcherExecutor;
 
+	private MessageChannel invalidMessageChannel;
+
 	private boolean autoCreateChannels;
 
 	private boolean running;
@@ -74,6 +76,10 @@ public class MessageBus implements ChannelMapping, ApplicationContextAware, Life
 
 	public void setAutoCreateChannels(boolean autoCreateChannels) {
 		this.autoCreateChannels = autoCreateChannels;
+	}
+
+	public void setInvalidMessageChannel(MessageChannel invalidMessageChannel) {
+		this.invalidMessageChannel = invalidMessageChannel;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -121,6 +127,10 @@ public class MessageBus implements ChannelMapping, ApplicationContextAware, Life
 		return this.channels.get(channelName);
 	}
 
+	public MessageChannel getInvalidMessageChannel() {
+		return this.invalidMessageChannel;
+	}
+
 	public void registerChannel(String name, MessageChannel channel) {
 		this.channels.put(name, channel);
 	}
@@ -162,6 +172,10 @@ public class MessageBus implements ChannelMapping, ApplicationContextAware, Life
 		this.dispatcherTasks.add(dispatcherTask);
 		if (this.isRunning()) {
 			scheduleDispatcherTask(dispatcherTask);
+			if (this.logger.isInfoEnabled()) {
+				logger.info("scheduled dispatcher task: channel='" +
+						channelName + "' endpoint='" + endpointName + "'");
+			}
 		}
 	}
 

@@ -47,7 +47,7 @@ public class GenericMessageEndpoint implements MessageEndpoint {
 
 	private ChannelMapping channelMapping;
 
-	private ConsumerPolicy consumerPolicy;
+	private ConsumerPolicy consumerPolicy = new ConsumerPolicy();
 
 
 	/**
@@ -94,7 +94,7 @@ public class GenericMessageEndpoint implements MessageEndpoint {
 	}
 
 
-	public void messageReceived(Message message) {
+	public void messageReceived(Message<?> message) {
 		if (this.handler == null) {
 			if (this.defaultOutputChannelName == null) {
 				throw new MessagingConfigurationException(
@@ -104,7 +104,7 @@ public class GenericMessageEndpoint implements MessageEndpoint {
 			replyChannel.send(message);
 			return;
 		}
-		Message replyMessage = handler.handle(message);
+		Message<?> replyMessage = handler.handle(message);
 		if (replyMessage != null) {
 			MessageChannel replyChannel = this.resolveReplyChannel(message);
 			if (replyChannel == null) {
@@ -116,7 +116,7 @@ public class GenericMessageEndpoint implements MessageEndpoint {
 		}
 	}
 
-	private MessageChannel resolveReplyChannel(Message message) {
+	private MessageChannel resolveReplyChannel(Message<?> message) {
 		if (this.channelMapping == null) {
 			return null;
 		}

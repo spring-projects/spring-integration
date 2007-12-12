@@ -20,8 +20,8 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import org.springframework.integration.message.DocumentMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -35,7 +35,7 @@ public class MessageHandlerChainTests {
 		chain.add(new TestHandler("b"));
 		chain.add(new TestHandler("c"));
 		chain.add(new TestHandler("d"));
-		Message result = chain.handle(new DocumentMessage(1, "!"));
+		Message result = chain.handle(new StringMessage(1, "!"));
 		assertEquals("!abcd", result.getPayload());
 	}
 
@@ -49,7 +49,7 @@ public class MessageHandlerChainTests {
 		chain.add(new TestHandler("a"));
 		chain.add(handler4);
 		chain.add(new TestHandler("b"));		
-		Message result = chain.handle(new DocumentMessage(1, "!"));
+		Message result = chain.handle(new StringMessage(1, "!"));
 		assertEquals("234!a*234b", result.getPayload());
 	}
 
@@ -63,7 +63,7 @@ public class MessageHandlerChainTests {
 		}
 
 		public Message handle(Message message) {
-			return new DocumentMessage(1, message.getPayload() + text);
+			return new StringMessage(1, message.getPayload() + text);
 		}
 	}
 
@@ -78,8 +78,8 @@ public class MessageHandlerChainTests {
 		}
 
 		public Message handle(Message message, MessageHandler target) {
-			message = target.handle(new DocumentMessage(1, text + message.getPayload()));
-			return new DocumentMessage(1, message.getPayload() + text);
+			message = target.handle(new StringMessage(1, text + message.getPayload()));
+			return new StringMessage(1, message.getPayload() + text);
 		}
 	}
 

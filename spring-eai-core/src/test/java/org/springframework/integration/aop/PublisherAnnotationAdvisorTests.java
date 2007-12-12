@@ -43,6 +43,9 @@ public class PublisherAnnotationAdvisorTests {
 				}
 				return null;
 			}
+			public MessageChannel getInvalidMessageChannel() {
+				return null;
+			}
 		};
 		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor(channelMapping);
 		TestService proxy = (TestService) this.createProxy(new TestServiceImpl("hello world"), advisor);
@@ -60,6 +63,9 @@ public class PublisherAnnotationAdvisorTests {
 				if (channelName.equals("testChannel")) {
 					return channel;
 				}
+				return null;
+			}
+			public MessageChannel getInvalidMessageChannel() {
 				return null;
 			}
 		};

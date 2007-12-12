@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration.config;
 
 /**
- * A simple Message implementation that encapsulates a single Object payload.
- * 
  * @author Mark Fisher
  */
-public class DocumentMessage extends AbstractMessage {
+public class OutboundChannelAdapterParser extends AbstractChannelAdapterParser {
 
-	public DocumentMessage(Object id, Object payload) {
-		super(id, payload);
+	@Override
+	protected boolean isInbound() {
+		return false;
 	}
 
 }

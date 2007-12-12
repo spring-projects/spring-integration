@@ -17,6 +17,28 @@
 		]]></xsd:documentation>
 	</xsd:annotation>
 
+	<xsd:element name="message-bus">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a message bus.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="auto-create-channels" type="xsd:boolean"/>
+			<xsd:attribute name="invalid-message-channel" type="xsd:string"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="annotation-driven">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Enables the publisher annotation post-processor.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:element name="channel">
 		<xsd:complexType>
 			<xsd:annotation>
@@ -27,6 +49,38 @@
 			<xsd:complexContent>
 				<xsd:extension base="beans:identifiedType">
 					<xsd:attribute name="capacity" type="xsd:integer"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="inbound-channel-adapter">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines an inbound channel adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="beans:identifiedType">
+					<xsd:attribute name="ref" type="xsd:string" use="required"/>
+					<xsd:attribute name="method" type="xsd:string" use="required"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-channel-adapter">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines an outbound channel adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="beans:identifiedType">
+					<xsd:attribute name="ref" type="xsd:string" use="required"/>
+					<xsd:attribute name="method" type="xsd:string" use="required"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

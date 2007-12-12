@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler;
+package org.springframework.integration.samples;
 
-import org.springframework.integration.message.Message;
+import org.springframework.integration.endpoint.annotation.Subscriber;
 
 /**
- * Generic message handler interface. Typical implementations will translate
- * between the generic Messages of the integration framework and the domain
- * objects that are passed-to and returned-from business components.
- * 
  * @author Mark Fisher
  */
-public interface MessageHandler {
+public class Logger {
 
-	Message<?> handle(Message<?> message);
+	//@Subscriber(channel="quotes")
+	public void log(Object o) {
+		System.out.println(o);
+	}
 
 }

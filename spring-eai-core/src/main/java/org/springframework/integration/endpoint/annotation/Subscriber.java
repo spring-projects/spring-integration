@@ -14,19 +14,27 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler;
+package org.springframework.integration.endpoint.annotation;
 
-import org.springframework.integration.message.Message;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Generic message handler interface. Typical implementations will translate
- * between the generic Messages of the integration framework and the domain
- * objects that are passed-to and returned-from business components.
+ * Indicates that a method-invoking handler adapter should delegate to this
+ * method.
  * 
  * @author Mark Fisher
  */
-public interface MessageHandler {
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+@Documented
+public @interface Subscriber {
 
-	Message<?> handle(Message<?> message);
+	String channel();
 
 }

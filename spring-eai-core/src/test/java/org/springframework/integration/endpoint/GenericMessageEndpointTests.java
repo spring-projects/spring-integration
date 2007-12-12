@@ -20,15 +20,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
-
 import org.springframework.integration.bus.ConsumerPolicy;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.bus.Subscription;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PointToPointChannel;
 import org.springframework.integration.handler.MessageHandler;
-import org.springframework.integration.message.DocumentMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -40,8 +39,8 @@ public class GenericMessageEndpointTests {
 		MessageChannel channel = new PointToPointChannel();
 		MessageChannel replyChannel = new PointToPointChannel();
 		MessageHandler handler = new MessageHandler() {
-			public Message handle(Message message) {
-				return new DocumentMessage("123", "hello " + message.getPayload());
+			public Message<String> handle(Message message) {
+				return new StringMessage("123", "hello " + message.getPayload());
 			}
 		};
 		GenericMessageEndpoint endpoint = new GenericMessageEndpoint();
@@ -60,9 +59,9 @@ public class GenericMessageEndpointTests {
 		subscription.setPolicy(policy);
 		bus.activateSubscription(subscription);
 		bus.start();
-		DocumentMessage testMessage = new DocumentMessage(1, "test");
+		StringMessage testMessage = new StringMessage(1, "test");
 		channel.send(testMessage);
-		Message reply = replyChannel.receive(10);
+		Message<String> reply = replyChannel.receive(10);
 		assertNotNull(reply);
 		assertEquals("hello test", reply.getPayload());
 	}
@@ -73,7 +72,7 @@ public class GenericMessageEndpointTests {
 		final MessageChannel replyChannel = new PointToPointChannel();
 		MessageHandler handler = new MessageHandler() {
 			public Message handle(Message message) {
-				return new DocumentMessage("123", "hello " + message.getPayload());
+				return new StringMessage("123", "hello " + message.getPayload());
 			}
 		};
 		GenericMessageEndpoint endpoint = new GenericMessageEndpoint();
@@ -91,7 +90,7 @@ public class GenericMessageEndpointTests {
 		subscription.setPolicy(policy);
 		bus.activateSubscription(subscription);
 		bus.start();
-		DocumentMessage testMessage = new DocumentMessage(1, "test");
+		StringMessage testMessage = new StringMessage(1, "test");
 		testMessage.getHeader().setReplyChannelName("replyChannel");
 		channel.send(testMessage);
 		Message reply = replyChannel.receive(10);

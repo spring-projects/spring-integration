@@ -14,19 +14,26 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler;
+package org.springframework.integration.samples;
 
-import org.springframework.integration.message.Message;
+import java.math.BigDecimal;
 
 /**
- * Generic message handler interface. Typical implementations will translate
- * between the generic Messages of the integration framework and the domain
- * objects that are passed-to and returned-from business components.
- * 
  * @author Mark Fisher
  */
-public interface MessageHandler {
+public class Quote {
 
-	Message<?> handle(Message<?> message);
+	private String ticker;
+
+	private BigDecimal price;
+
+	public Quote(String ticker, BigDecimal price) {
+		this.ticker = ticker;
+		this.price = price;
+	}
+
+	public String toString() {
+		return ticker + ": " + price;
+	}
 
 }

@@ -21,16 +21,16 @@ package org.springframework.integration.message;
  * 
  * @author Mark Fisher
  */
-public interface MessageMapper {
+public interface MessageMapper<M,O> {
 
 	/**
 	 * Map to a {@link Message} from the given object.
 	 */
-	Message toMessage(Object source);
+	Message<M> toMessage(O source);
 
 	/**
 	 * Map from the given {@link Message} to an object.
 	 */
-	Object fromMessage(Message message);
+	O fromMessage(Message<M> message);
 
 }

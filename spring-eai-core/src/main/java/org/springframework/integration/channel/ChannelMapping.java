@@ -25,4 +25,6 @@ public interface ChannelMapping {
 
 	MessageChannel getChannel(String channelName);
 
+	MessageChannel getInvalidMessageChannel();
+
 }

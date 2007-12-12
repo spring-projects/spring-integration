@@ -22,7 +22,7 @@ import org.junit.Test;
 
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.endpoint.OutboundMethodInvokingChannelAdapter;
-import org.springframework.integration.message.DocumentMessage;
+import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -36,7 +36,7 @@ public class OutboundChannelAdapterTests {
 		adapter.setObject(new TestSink());
 		adapter.setMethod("validMethod");
 		adapter.afterPropertiesSet();
-		boolean result = adapter.send(new DocumentMessage(1, "test"));
+		boolean result = adapter.send(new StringMessage(1, "test"));
 		assertTrue(result);
 	}
 
@@ -47,7 +47,7 @@ public class OutboundChannelAdapterTests {
 		adapter.setObject(new TestSink());
 		adapter.setMethod("invalidMethodWithNoArgs");
 		adapter.afterPropertiesSet();
-		adapter.send(new DocumentMessage(1, "test"));
+		adapter.send(new StringMessage(1, "test"));
 	}
 
 	@Test
@@ -57,7 +57,7 @@ public class OutboundChannelAdapterTests {
 		adapter.setObject(new TestSink());
 		adapter.setMethod("validMethodWithIgnoredReturnValue");
 		adapter.afterPropertiesSet();
-		boolean result = adapter.send(new DocumentMessage(1, "test"));
+		boolean result = adapter.send(new StringMessage(1, "test"));
 		assertTrue(result);
 	}
 
@@ -68,7 +68,7 @@ public class OutboundChannelAdapterTests {
 		adapter.setObject(new TestSink());
 		adapter.setMethod("noSuchMethod");
 		adapter.afterPropertiesSet();
-		adapter.send(new DocumentMessage(1, "test"));
+		adapter.send(new StringMessage(1, "test"));
 	}
 
 }

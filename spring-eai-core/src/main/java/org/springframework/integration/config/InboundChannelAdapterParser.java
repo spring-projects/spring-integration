@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler;
-
-import org.springframework.integration.message.Message;
+package org.springframework.integration.config;
 
 /**
- * Generic message handler interface. Typical implementations will translate
- * between the generic Messages of the integration framework and the domain
- * objects that are passed-to and returned-from business components.
- * 
  * @author Mark Fisher
  */
-public interface MessageHandler {
+public class InboundChannelAdapterParser extends AbstractChannelAdapterParser {
 
-	Message<?> handle(Message<?> message);
+	@Override
+	protected boolean isInbound() {
+		return true;
+	}
 
 }

@@ -19,14 +19,18 @@ package org.springframework.integration.config;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
 /**
- * Handler for the integration namespace.
+ * Namespace handler for the integration namespace.
  * 
  * @author Mark Fisher
  */
 public class IntegrationNamespaceHandler extends NamespaceHandlerSupport {
 
 	public void init() {
+		registerBeanDefinitionParser("message-bus", new MessageBusParser());
+		registerBeanDefinitionParser("annotation-driven", new AnnotationDrivenParser());
 		registerBeanDefinitionParser("channel", new ChannelParser());
+		registerBeanDefinitionParser("inbound-channel-adapter", new InboundChannelAdapterParser());
+		registerBeanDefinitionParser("outbound-channel-adapter", new OutboundChannelAdapterParser());
 		registerBeanDefinitionParser("endpoint", new EndpointParser());
 	}
 

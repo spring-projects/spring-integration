@@ -24,14 +24,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
-
-import org.springframework.integration.bus.ConsumerPolicy;
-import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.PointToPointChannel;
 import org.springframework.integration.endpoint.GenericMessageEndpoint;
 import org.springframework.integration.endpoint.MessageEndpoint;
-import org.springframework.integration.message.DocumentMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Mark Fisher
@@ -66,7 +63,7 @@ public class FixedDelayConsumerTests {
 		bus.activateSubscription(subscription);
 		bus.start();
 		for (int i = 0; i < messagesToSend; i++) {
-			channel.send(new DocumentMessage(1, "test " + (i+1)));
+			channel.send(new GenericMessage<String>(1, "test " + (i+1)));
 		}
 		latch.await(250, TimeUnit.MILLISECONDS);
 		assertEquals(messagesToSend, counter.get());
@@ -100,7 +97,7 @@ public class FixedDelayConsumerTests {
 		bus.activateSubscription(subscription);
 		bus.start();
 		for (int i = 0; i < messagesToSend; i++) {
-			channel.send(new DocumentMessage(1, "test " + (i+1)));
+			channel.send(new GenericMessage<String>(1, "test " + (i+1)));
 		}
 		latch.await(80, TimeUnit.MILLISECONDS);
 		assertTrue(counter.get() < 10);

@@ -23,13 +23,13 @@ import org.springframework.integration.transformer.ObjectTransformer;
  * 
  * @author Mark Fisher
  */
-public interface Message {
+public interface Message<T> {
 
 	Object getId();
 
 	MessageHeader getHeader();
 
-	Object getPayload();
+	T getPayload();
 
 	void transformPayload(ObjectTransformer transformer);
 

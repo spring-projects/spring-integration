@@ -25,7 +25,7 @@ import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.DocumentMessage;
+import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Mark Fisher
@@ -40,7 +40,7 @@ public class EndpointParserTests {
 		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
 		TestHandler handler = (TestHandler) context.getBean("testHandler");
 		assertNull(handler.getMessageString());
-		channel.send(new DocumentMessage(1, "test"));
+		channel.send(new GenericMessage<String>(1, "test"));
 		handler.getLatch().await(50, TimeUnit.MILLISECONDS);
 		assertEquals("test", handler.getMessageString());
 	}
@@ -53,7 +53,7 @@ public class EndpointParserTests {
 		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
 		TestBean bean = (TestBean) context.getBean("testBean");
 		assertNull(bean.getMessage());
-		channel.send(new DocumentMessage(1, "test"));
+		channel.send(new GenericMessage<String>(1, "test"));
 		bean.getLatch().await(50, TimeUnit.MILLISECONDS);
 		assertEquals("test", bean.getMessage());
 	}

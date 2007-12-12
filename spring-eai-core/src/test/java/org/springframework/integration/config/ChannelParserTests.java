@@ -20,10 +20,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
-
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.DocumentMessage;
+import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Mark Fisher
@@ -36,9 +35,10 @@ public class ChannelParserTests {
 				"channelParserTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
 		for (int i = 0; i < 10; i++) {
-			boolean result = channel.send(new DocumentMessage(1, "test"), 10);
+			boolean result = channel.send(new GenericMessage<String>(1, "test"), 10);
 			assertTrue(result);
 		}
-		assertFalse(channel.send(new DocumentMessage(1, "test"), 3));
+		assertFalse(channel.send(new GenericMessage<String>(1, "test"), 3));
 	}
+
 }

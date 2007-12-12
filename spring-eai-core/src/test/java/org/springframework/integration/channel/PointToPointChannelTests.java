@@ -29,9 +29,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
-import org.springframework.integration.message.DocumentMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageSelector;
+import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Mark Fisher
@@ -45,7 +45,7 @@ public class PointToPointChannelTests {
 		final PointToPointChannel channel = new PointToPointChannel();
 		new Thread(new Runnable() {
 			public void run() {
-				Message message = channel.receive();
+				Message<String> message = channel.receive();
 				if (message != null) {
 					messageReceived.set(true);
 					latch.countDown();
@@ -53,7 +53,7 @@ public class PointToPointChannelTests {
 			}
 		}).start();
 		assertFalse(messageReceived.get());
-		channel.send(new DocumentMessage(1, "testing"));
+		channel.send(new GenericMessage<String>(1, "testing"));
 		latch.await(25, TimeUnit.MILLISECONDS);
 		assertTrue(messageReceived.get());
 	}
@@ -67,7 +67,7 @@ public class PointToPointChannelTests {
 		Executor singleThreadExecutor = Executors.newSingleThreadExecutor();
 		Runnable receiveTask1 = new Runnable() {
 			public void run() {
-				Message message = channel.receive(0);
+				Message<String> message = channel.receive(0);
 				if (message != null) {
 					messageReceived.set(true);
 				}
@@ -76,7 +76,7 @@ public class PointToPointChannelTests {
 		};
 		Runnable sendTask = new Runnable() {
 			public void run() {
-				channel.send(new DocumentMessage(1, "testing"));
+				channel.send(new GenericMessage<String>(1, "testing"));
 			}
 		};
 		singleThreadExecutor.execute(receiveTask1);
@@ -85,7 +85,7 @@ public class PointToPointChannelTests {
 		assertFalse(messageReceived.get());
 		Runnable receiveTask2 = new Runnable() {
 			public void run() {
-				Message message = channel.receive(0);
+				Message<String> message = channel.receive(0);
 				if (message != null) {
 					messageReceived.set(true);
 				}
@@ -104,7 +104,7 @@ public class PointToPointChannelTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
 			public void run() {
-				Message message = channel.receive();
+				Message<String> message = channel.receive();
 				receiveInterrupted.set(true);
 				assertTrue(message == null);
 				latch.countDown();
@@ -124,7 +124,7 @@ public class PointToPointChannelTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
 			public void run() {
-				Message message = channel.receive(10000);
+				Message<String> message = channel.receive(10000);
 				receiveInterrupted.set(true);
 				assertTrue(message == null);
 				latch.countDown();
@@ -140,26 +140,26 @@ public class PointToPointChannelTests {
 	@Test
 	public void testImmediateSend() {
 		PointToPointChannel channel = new PointToPointChannel(3);
-		boolean result1 = channel.send(new DocumentMessage(1, "test-1"));
+		boolean result1 = channel.send(new GenericMessage<String>(1, "test-1"));
 		assertTrue(result1);
-		boolean result2 = channel.send(new DocumentMessage(2, "test-2"), 100);
+		boolean result2 = channel.send(new GenericMessage<String>(2, "test-2"), 100);
 		assertTrue(result2);
-		boolean result3 = channel.send(new DocumentMessage(3, "test-3"), 0);
+		boolean result3 = channel.send(new GenericMessage<String>(3, "test-3"), 0);
 		assertTrue(result3);
-		boolean result4 = channel.send(new DocumentMessage(4, "test-4"), 0);
+		boolean result4 = channel.send(new GenericMessage<String>(4, "test-4"), 0);
 		assertFalse(result4);
 	}
 
 	@Test
 	public void testBlockingSendWithNoTimeout() throws Exception{
 		final PointToPointChannel channel = new PointToPointChannel(1);
-		boolean result1 = channel.send(new DocumentMessage(1, "test-1"));
+		boolean result1 = channel.send(new GenericMessage<String>(1, "test-1"));
 		assertTrue(result1);
 		final AtomicBoolean sendInterrupted = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
 			public void run() {
-				channel.send(new DocumentMessage(2, "test-2"));
+				channel.send(new GenericMessage<String>(2, "test-2"));
 				sendInterrupted.set(true);
 				latch.countDown();
 			}
@@ -174,13 +174,13 @@ public class PointToPointChannelTests {
 	@Test
 	public void testBlockingSendWithTimeout() throws Exception{
 		final PointToPointChannel channel = new PointToPointChannel(1);
-		boolean result1 = channel.send(new DocumentMessage(1, "test-1"));
+		boolean result1 = channel.send(new GenericMessage<String>(1, "test-1"));
 		assertTrue(result1);
 		final AtomicBoolean sendInterrupted = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
 			public void run() {
-				channel.send(new DocumentMessage(2, "test-2"), 10000);
+				channel.send(new GenericMessage<String>(2, "test-2"), 10000);
 				sendInterrupted.set(true);
 				latch.countDown();
 			}
@@ -196,7 +196,7 @@ public class PointToPointChannelTests {
 	public void testSelectorMatchesWithinTimeout() throws Exception {
 		final PointToPointChannel channel = new PointToPointChannel();
 		final CountDownLatch latch = new CountDownLatch(1);
-		final AtomicReference<Message> messageRef = new AtomicReference<Message>();
+		final AtomicReference<Message<String>> messageRef = new AtomicReference<Message<String>>();
 		Thread receiver = new Thread(new Runnable() {
 			public void run() {
 				Message message = channel.receive(new MessageSelector() {
@@ -211,13 +211,13 @@ public class PointToPointChannelTests {
 		receiver.start();
 		Thread sender = new Thread(new Runnable() {
 			public void run() {
-				channel.send(new DocumentMessage(1, "test-1"));
+				channel.send(new GenericMessage<String>(1, "test-1"));
 				try { Thread.sleep(5); } catch (Exception e) {}
-				channel.send(new DocumentMessage(2, "test-2"));
+				channel.send(new GenericMessage<String>(2, "test-2"));
 				try { Thread.sleep(5); } catch (Exception e) {}
-				channel.send(new DocumentMessage(3, "test-3"));
+				channel.send(new GenericMessage<String>(3, "test-3"));
 				try { Thread.sleep(100); } catch (Exception e) {}
-				channel.send(new DocumentMessage(4, "test-4"));
+				channel.send(new GenericMessage<String>(4, "test-4"));
 			}
 		});
 		sender.start();
@@ -229,7 +229,7 @@ public class PointToPointChannelTests {
 	public void testSelectorDoesNotMatchWithinTimeout() throws Exception {
 		final PointToPointChannel channel = new PointToPointChannel();
 		final CountDownLatch latch = new CountDownLatch(1);
-		final AtomicReference<Message> messageRef = new AtomicReference<Message>();
+		final AtomicReference<Message<String>> messageRef = new AtomicReference<Message<String>>();
 		Thread receiver = new Thread(new Runnable() {
 			public void run() {
 				Message message = channel.receive(new MessageSelector() {
@@ -244,11 +244,11 @@ public class PointToPointChannelTests {
 		receiver.start();
 		Thread sender = new Thread(new Runnable() {
 			public void run() {
-				channel.send(new DocumentMessage(1, "test-1"));
+				channel.send(new GenericMessage<String>(1, "test-1"));
 				try { Thread.sleep(5); } catch (Exception e) {}
-				channel.send(new DocumentMessage(2, "test-2"));
+				channel.send(new GenericMessage<String>(2, "test-2"));
 				try { Thread.sleep(5); } catch (Exception e) {}
-				channel.send(new DocumentMessage(3, "test-3"));
+				channel.send(new GenericMessage<String>(3, "test-3"));
 			}
 		});
 		sender.start();

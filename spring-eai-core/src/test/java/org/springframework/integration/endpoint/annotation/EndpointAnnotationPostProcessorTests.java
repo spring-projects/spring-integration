@@ -16,36 +16,29 @@
 
 package org.springframework.integration.endpoint.annotation;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
-import org.springframework.integration.bus.MessageBus;
+import org.junit.Test;
+import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.message.Message;
 import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Mark Fisher
  */
-public class AnnotationAwareMessageEndpointTests {
+public class EndpointAnnotationPostProcessorTests {
 
 	@Test
 	public void testSimpleHandler() throws InterruptedException {
-		MessageBus messageBus = new MessageBus();
-		messageBus.setAutoCreateChannels(true);
-		AnnotationAwareMessageEndpoint endpoint =
-				new AnnotationAwareMessageEndpoint(new SimpleEndpoint(), messageBus);
-		endpoint.afterPropertiesSet();
-		MessageChannel channel = messageBus.getChannel("testChannel");
-		messageBus.start();
-		endpoint.afterPropertiesSet();
-		channel.send(new GenericMessage<String>(1, "world"), 10);
+		AbstractApplicationContext context = new ClassPathXmlApplicationContext("simpleAnnotatedEndpointTests.xml", this.getClass());
+		context.start();
+		MessageChannel inputChannel = (MessageChannel) context.getBean("inputChannel");
+		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
+		inputChannel.send(new GenericMessage<String>(1, "world"));
+		Message<String> message = outputChannel.receive();
+		assertEquals("hello world", message.getPayload());
 	}
 
-	@MessageEndpoint(input="testChannel", pollPeriod=10)
-	public class SimpleEndpoint {
-
-		@Handler
-		public void sayHello(String name) {
-			System.out.println("hello " + name);
-		}
-	}
 }

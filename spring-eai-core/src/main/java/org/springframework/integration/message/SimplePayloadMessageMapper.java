@@ -26,7 +26,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class SimplePayloadMessageMapper implements MessageMapper {
+public class SimplePayloadMessageMapper<T> implements MessageMapper<T,T> {
 
 	private UidGenerator uidGenerator;
 
@@ -54,15 +54,15 @@ public class SimplePayloadMessageMapper implements MessageMapper {
 	/**
 	 * Return the payload of the given Message.
 	 */
-	public Object fromMessage(Message message) {
+	public T fromMessage(Message<T> message) {
 		return message.getPayload();
 	}
 
 	/**
 	 * Return a {@link DocumentMessage} with the given object as its payload.
 	 */
-	public Message toMessage(Object source) {
-		return new DocumentMessage(uidGenerator.generateUid(), source);
+	public Message<T> toMessage(T source) {
+		return new GenericMessage<T>(uidGenerator.generateUid(), source);
 	}
 
 }

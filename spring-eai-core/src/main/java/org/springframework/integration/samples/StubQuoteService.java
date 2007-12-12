@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler;
+package org.springframework.integration.samples;
 
-import org.springframework.integration.message.Message;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Random;
+
+import org.springframework.integration.aop.Publisher;
 
 /**
- * Generic message handler interface. Typical implementations will translate
- * between the generic Messages of the integration framework and the domain
- * objects that are passed-to and returned-from business components.
- * 
  * @author Mark Fisher
  */
-public interface MessageHandler {
+public class StubQuoteService implements QuoteService {
 
-	Message<?> handle(Message<?> message);
+	@Publisher(channel="quotes")
+	public Quote lookup(String ticker) {
+		BigDecimal price = new BigDecimal(new Random().nextDouble() * 100);
+		return new Quote(ticker, price.setScale(2, RoundingMode.HALF_EVEN));
+	}
 
 }

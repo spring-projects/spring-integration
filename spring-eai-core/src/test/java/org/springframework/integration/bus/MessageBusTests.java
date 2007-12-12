@@ -19,13 +19,10 @@ package org.springframework.integration.bus;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.bus.ConsumerPolicy;
-import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.DocumentMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Mark Fisher
@@ -65,9 +62,8 @@ public class MessageBusTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("messageBusTests.xml", this.getClass());
 		context.start();
 		MessageChannel sourceChannel = (MessageChannel) context.getBean("sourceChannel");
-		sourceChannel.send(new DocumentMessage("123", "test"));		
+		sourceChannel.send(new GenericMessage<String>("123", "test"));		
 		MessageChannel targetChannel = (MessageChannel) context.getBean("targetChannel");
-		// TODO: add metadata for this
 		MessageBus bus = (MessageBus) context.getBean("bus");
 		ConsumerPolicy policy = new ConsumerPolicy();
 		Subscription subscription = new Subscription();
@@ -75,7 +71,7 @@ public class MessageBusTests {
 		subscription.setEndpoint("endpoint");
 		subscription.setPolicy(policy);
 		bus.activateSubscription(subscription);
-		Message result = targetChannel.receive(10);
+		Message<String> result = targetChannel.receive(10);
 		assertEquals("test", result.getPayload());
 	}
 

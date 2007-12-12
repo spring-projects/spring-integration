@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler;
+package org.springframework.integration.samples;
 
-import org.springframework.integration.message.Message;
+import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
- * Generic message handler interface. Typical implementations will translate
- * between the generic Messages of the integration framework and the domain
- * objects that are passed-to and returned-from business components.
- * 
  * @author Mark Fisher
  */
-public interface MessageHandler {
+public class StockQuoteDemo {
 
-	Message<?> handle(Message<?> message);
-
+	public static void main(String[] args) throws Exception {
+		AbstractApplicationContext context = new ClassPathXmlApplicationContext("stockQuoteDemo.xml", StockQuoteDemo.class);
+		context.start();
+		QuoteService service = (QuoteService) context.getBean("quoteService");
+		service.lookup("SOA");
+		Thread.sleep(1000);
+	}
 }

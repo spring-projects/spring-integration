@@ -24,14 +24,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
-
-import org.springframework.integration.bus.ConsumerPolicy;
-import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.PointToPointChannel;
 import org.springframework.integration.endpoint.GenericMessageEndpoint;
 import org.springframework.integration.endpoint.MessageEndpoint;
-import org.springframework.integration.message.DocumentMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author Mark Fisher
@@ -74,16 +71,16 @@ public class EventDrivenConsumerTests {
 		bus.activateSubscription(subscription);
 		bus.start();
 		for (int i = 0; i < messagesToSend - 110; i++) {
-			channel.send(new DocumentMessage(1, "fast-1." + (i+1)));
+			channel.send(new GenericMessage<String>(1, "fast-1." + (i+1)));
 		}
 		int activeCountAfterFirstBurst = bus.getActiveCountForEndpoint("testEndpoint");
 		for (int i = 0; i < 10; i++) {
-			channel.send(new DocumentMessage(1, "slow-1." + (i+1)));
+			channel.send(new GenericMessage<String>(1, "slow-1." + (i+1)));
 			Thread.sleep(10);
 		}
 		int activeCountAfterSlowDown = bus.getActiveCountForEndpoint("testEndpoint");
 		for (int i = 0; i < 100; i++) {
-			channel.send(new DocumentMessage(1, "fast-2." + (i+1)));
+			channel.send(new GenericMessage<String>(1, "fast-2." + (i+1)));
 		}
 		int activeCountAfterLastBurst = bus.getActiveCountForEndpoint("testEndpoint");
 		latch.await(100, TimeUnit.SECONDS);

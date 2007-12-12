@@ -37,6 +37,6 @@ public interface MessageEndpoint {
 
 	void setChannelMapping(ChannelMapping channelMapping);
 
-	void messageReceived(Message message);
+	void messageReceived(Message<?> message);
 
 }

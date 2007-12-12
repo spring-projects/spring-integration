@@ -50,7 +50,7 @@ public class ConsumerPolicy {
 
 	private int initialDelay = 0;
 
-	private int period = -1;
+	private int period = 5;
 
 	private TimeUnit timeUnit = TimeUnit.MILLISECONDS;
 
