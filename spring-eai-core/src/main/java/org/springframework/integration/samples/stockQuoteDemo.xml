@@ -13,11 +13,7 @@
 
 	<channel id="quotes"/>
 
-	<endpoint input-channel="quotes" handler="logger" handler-method="log">
-		<consumer period="1000"/>
-	</endpoint>
-
-	<beans:bean id="quoteService" class="org.springframework.integration.samples.StubQuoteService"/>
+	<beans:bean id="quotePublisher" class="org.springframework.integration.samples.QuotePublisher"/>
 
 	<beans:bean id="logger" class="org.springframework.integration.samples.Logger"/>
 

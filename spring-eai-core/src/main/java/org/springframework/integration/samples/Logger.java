@@ -23,7 +23,7 @@ import org.springframework.integration.endpoint.annotation.Subscriber;
  */
 public class Logger {
 
-	//@Subscriber(channel="quotes")
+	@Subscriber(channel="quotes")
 	public void log(Object o) {
 		System.out.println(o);
 	}

@@ -27,8 +27,6 @@ public class StockQuoteDemo {
 	public static void main(String[] args) throws Exception {
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext("stockQuoteDemo.xml", StockQuoteDemo.class);
 		context.start();
-		QuoteService service = (QuoteService) context.getBean("quoteService");
-		service.lookup("SOA");
-		Thread.sleep(1000);
+		System.in.read();
 	}
 }

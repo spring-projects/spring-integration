@@ -20,17 +20,19 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Random;
 
-import org.springframework.integration.aop.Publisher;
+import org.springframework.integration.endpoint.annotation.MessageEndpoint;
+import org.springframework.integration.endpoint.annotation.Polled;
 
 /**
  * @author Mark Fisher
  */
-public class StubQuoteService implements QuoteService {
+@MessageEndpoint(defaultOutput="quotes")
+public class QuotePublisher {
 
-	@Publisher(channel="quotes")
-	public Quote lookup(String ticker) {
+	@Polled(period=300)
+	public Quote getQuote() {
 		BigDecimal price = new BigDecimal(new Random().nextDouble() * 100);
-		return new Quote(ticker, price.setScale(2, RoundingMode.HALF_EVEN));
+		return new Quote("SOA", price.setScale(2, RoundingMode.HALF_EVEN));
 	}
 
 }
