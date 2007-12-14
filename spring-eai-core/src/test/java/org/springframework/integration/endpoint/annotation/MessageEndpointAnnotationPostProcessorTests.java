@@ -28,7 +28,7 @@ import org.springframework.integration.message.GenericMessage;
 /**
  * @author Mark Fisher
  */
-public class EndpointAnnotationPostProcessorTests {
+public class MessageEndpointAnnotationPostProcessorTests {
 
 	@Test
 	public void testSimpleHandler() throws InterruptedException {

@@ -15,7 +15,7 @@
 
 	<bean id="endpoint" class="org.springframework.integration.endpoint.annotation.SimpleAnnotatedEndpoint"/>
 
-	<bean class="org.springframework.integration.endpoint.annotation.EndpointAnnotationPostProcessor">
+	<bean class="org.springframework.integration.endpoint.annotation.MessageEndpointAnnotationPostProcessor">
 		<property name="messageBus" ref="bus"/>
 	</bean>
 

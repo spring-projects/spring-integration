@@ -24,6 +24,7 @@ import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.endpoint.annotation.MessageEndpointAnnotationPostProcessor;
 
 /**
  * @author Mark Fisher
@@ -36,10 +37,14 @@ public class AnnotationDrivenParser implements BeanDefinitionParser {
 	private static final String SUBSCRIBER_ANNOTATION_POST_PROCESSOR_BEAN_NAME = 
 			"internal.SubscriberAnnotationPostProcessor";
 
+	private static final String MESSAGE_ENDPOINT_ANNOTATION_POST_PROCESSOR_BEAN_NAME = 
+		"internal.MessageEndpointAnnotationPostProcessor";
+
 
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
 		this.createPublisherPostProcessor(parserContext);
 		this.createSubscriberPostProcessor(parserContext);
+		this.createMessageEndpointPostProcessor(parserContext);
 		return null;
 	}
 
@@ -58,6 +63,15 @@ public class AnnotationDrivenParser implements BeanDefinitionParser {
 				new RuntimeBeanReference(MessageBusParser.MESSAGE_BUS_BEAN_NAME));
 		BeanComponentDefinition bcd = new BeanComponentDefinition(
 				bd, SUBSCRIBER_ANNOTATION_POST_PROCESSOR_BEAN_NAME);
+		parserContext.registerBeanComponent(bcd);
+	}
+
+	private void createMessageEndpointPostProcessor(ParserContext parserContext) {
+		BeanDefinition bd = new RootBeanDefinition(MessageEndpointAnnotationPostProcessor.class);
+		bd.getPropertyValues().addPropertyValue("messageBus",
+				new RuntimeBeanReference(MessageBusParser.MESSAGE_BUS_BEAN_NAME));
+		BeanComponentDefinition bcd = new BeanComponentDefinition(
+				bd, MESSAGE_ENDPOINT_ANNOTATION_POST_PROCESSOR_BEAN_NAME);
 		parserContext.registerBeanComponent(bcd);
 	}
 

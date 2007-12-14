@@ -12,7 +12,7 @@
 
 	<bean id="outputChannel" class="org.springframework.integration.channel.PointToPointChannel"/>
 
-	<bean class="org.springframework.integration.endpoint.annotation.EndpointAnnotationPostProcessor">
+	<bean class="org.springframework.integration.endpoint.annotation.MessageEndpointAnnotationPostProcessor">
 		<property name="messageBus" ref="bus"/>
 	</bean>
 

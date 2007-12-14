@@ -46,7 +46,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class EndpointAnnotationPostProcessor implements BeanPostProcessor, InitializingBean {
+public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor, InitializingBean {
 
 	private Map<Class<? extends Annotation>, AnnotationHandlerCreator> handlerCreators =
 			new ConcurrentHashMap<Class<? extends Annotation>, AnnotationHandlerCreator>();

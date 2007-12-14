@@ -100,8 +100,8 @@ public class FixedDelayConsumerTests {
 			channel.send(new GenericMessage<String>(1, "test " + (i+1)));
 		}
 		latch.await(80, TimeUnit.MILLISECONDS);
-		assertTrue(counter.get() < 10);
-		assertTrue(counter.get() > 7);
+		assertTrue(counter.get() < 15);
+		assertTrue(counter.get() > 5);
 	}
 
 }
