@@ -112,6 +112,13 @@ public class EndpointAnnotationPostProcessor implements BeanPostProcessor, Initi
 					String channelName = beanName + "-inputChannel";
 					messageBus.registerChannel(channelName, adapter);
 					endpoint.setInputChannelName(channelName);
+					int period = ((Polled) annotation).period();
+					endpoint.getConsumerPolicy().setPeriod(period);
+					if (period > 0) {
+						endpoint.getConsumerPolicy().setConcurrency(1);
+						endpoint.getConsumerPolicy().setMaxConcurrency(1);
+						endpoint.getConsumerPolicy().setMaxMessagesPerTask(1);
+					}
 					return;
 				}
 			}
