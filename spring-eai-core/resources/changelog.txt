@@ -1,6 +1,6 @@
-SPRING EAI CHANGELOG
-====================
+SPRING INTEGRATION CHANGELOG
+============================
 
-Changes in version 1.0 M1 (2007)
---------------------------------
+Changes in version 1.0 M1 (Jan 04, 2008)
+----------------------------------------
 
