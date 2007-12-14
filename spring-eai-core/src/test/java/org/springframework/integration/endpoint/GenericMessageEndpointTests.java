@@ -20,9 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
-import org.springframework.integration.bus.ConsumerPolicy;
 import org.springframework.integration.bus.MessageBus;
-import org.springframework.integration.bus.Subscription;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PointToPointChannel;
 import org.springframework.integration.handler.MessageHandler;
@@ -51,13 +49,6 @@ public class GenericMessageEndpointTests {
 		bus.registerChannel("testChannel", channel);
 		bus.registerEndpoint("testEndpoint", endpoint);
 		bus.registerChannel("replyChannel", replyChannel);
-		ConsumerPolicy policy = new ConsumerPolicy();
-		policy.setPeriod(0);
-		Subscription subscription = new Subscription();
-		subscription.setChannel("testChannel");
-		subscription.setEndpoint("testEndpoint");
-		subscription.setPolicy(policy);
-		bus.activateSubscription(subscription);
 		bus.start();
 		StringMessage testMessage = new StringMessage(1, "test");
 		channel.send(testMessage);
@@ -82,13 +73,6 @@ public class GenericMessageEndpointTests {
 		bus.registerChannel("testChannel", channel);
 		bus.registerEndpoint("testEndpoint", endpoint);
 		bus.registerChannel("replyChannel", replyChannel);
-		ConsumerPolicy policy = new ConsumerPolicy();
-		policy.setPeriod(0);
-		Subscription subscription = new Subscription();
-		subscription.setChannel("testChannel");
-		subscription.setEndpoint("testEndpoint");
-		subscription.setPolicy(policy);
-		bus.activateSubscription(subscription);
 		bus.start();
 		StringMessage testMessage = new StringMessage(1, "test");
 		testMessage.getHeader().setReplyChannelName("replyChannel");
