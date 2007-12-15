@@ -28,7 +28,7 @@ import org.springframework.jms.core.JmsTemplate;
  * 
  * @author Mark Fisher
  */
-public class JmsInboundChannelAdapter extends AbstractInboundChannelAdapter {
+public class JmsInboundAdapter extends AbstractInboundChannelAdapter {
 
 	private ConnectionFactory connectionFactory;
 
