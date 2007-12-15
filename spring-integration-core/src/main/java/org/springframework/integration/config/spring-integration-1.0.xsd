@@ -33,7 +33,7 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Enables the publisher annotation post-processor.
+	Enables the annotation-driven post-processors.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:complexType>
