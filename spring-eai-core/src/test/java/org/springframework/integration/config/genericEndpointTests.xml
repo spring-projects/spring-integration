@@ -11,7 +11,7 @@
 
 	<channel id="testChannel" capacity="50"/>
 
-	<endpoint input-channel="testChannel" handler="testHandler">
+	<endpoint input-channel="testChannel" handler-ref="testHandler">
 		<consumer period="100"/>
 	</endpoint>
 	

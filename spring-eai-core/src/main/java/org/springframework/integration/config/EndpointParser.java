@@ -48,7 +48,7 @@ public class EndpointParser implements BeanDefinitionParser {
 
 	private static final String DEFAULT_OUTPUT_CHANNEL_PROPERTY = "defaultOutputChannelName";
 
-	private static final String HANDLER_REF_ATTRIBUTE = "handler";
+	private static final String HANDLER_REF_ATTRIBUTE = "handler-ref";
 
 	private static final String HANDLER_METHOD_ATTRIBUTE = "handler-method";
 
