@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint.annotation;
+package org.springframework.integration.handler.annotation;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
-import org.springframework.integration.endpoint.MessageHandlerAdapter;
 import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
 
 /**
  * Default implementation of the handler creator strategy that creates a
- * {@link MessageHandlerAdapter} for the provided object and method. This
+ * {@link DefaultMessageHandlerAdapter} for the provided object and method. This
  * version does not even consider the annotation itself. It does however
  * respect an {@link Order} annotation if present.
  * 
@@ -35,7 +35,7 @@ import org.springframework.integration.handler.MessageHandler;
 public class DefaultAnnotationHandlerCreator implements AnnotationHandlerCreator {
 
 	public MessageHandler createHandler(Object object, Method method, Annotation annotation) {
-		MessageHandlerAdapter<Object> adapter = new MessageHandlerAdapter<Object>();
+		DefaultMessageHandlerAdapter<Object> adapter = new DefaultMessageHandlerAdapter<Object>();
 		adapter.setObject(object);
 		adapter.setMethod(method.getName());
 		Order orderAnnotation = (Order) AnnotationUtils.getAnnotation(method, Order.class);

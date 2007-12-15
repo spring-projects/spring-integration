@@ -28,7 +28,7 @@ import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.bus.ConsumerPolicy;
 import org.springframework.integration.endpoint.GenericMessageEndpoint;
-import org.springframework.integration.endpoint.MessageHandlerAdapter;
+import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
 import org.springframework.util.StringUtils;
 
 /**
@@ -82,7 +82,7 @@ public class EndpointParser implements BeanDefinitionParser {
 		if (StringUtils.hasText(handlerRef)) {
 			String handlerMethod = element.getAttribute(HANDLER_METHOD_ATTRIBUTE);
 			if (StringUtils.hasText(handlerMethod)) {
-				BeanDefinition handlerAdapterDef = new RootBeanDefinition(MessageHandlerAdapter.class);
+				BeanDefinition handlerAdapterDef = new RootBeanDefinition(DefaultMessageHandlerAdapter.class);
 				handlerAdapterDef.getPropertyValues().addPropertyValue(OBJECT_PROPERTY, new RuntimeBeanReference(handlerRef));
 				handlerAdapterDef.getPropertyValues().addPropertyValue(METHOD_PROPERTY, handlerMethod);
 				String adapterBeanName = parserContext.getReaderContext().generateBeanName(handlerAdapterDef);

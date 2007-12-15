@@ -28,8 +28,8 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.endpoint.GenericMessageEndpoint;
-import org.springframework.integration.endpoint.MessageHandlerAdapter;
 import org.springframework.integration.endpoint.annotation.Subscriber;
+import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
@@ -81,7 +81,7 @@ public class SubscriberAnnotationPostProcessor implements BeanPostProcessor {
 				Annotation annotation = method.getAnnotation(subscriberAnnotationType);
 				if (annotation != null) {
 					String channelName = (String) AnnotationUtils.getValue(annotation, channelNameAttribute);
-					MessageHandlerAdapter adapter = new MessageHandlerAdapter();
+					DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
 					adapter.setMethod(method.getName());
 					adapter.setObject(bean);
 					adapter.afterPropertiesSet();

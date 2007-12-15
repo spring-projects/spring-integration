@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint;
+package org.springframework.integration.handler;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.Ordered;
-import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.endpoint.SimpleMethodInvoker;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageMapper;
-import org.springframework.integration.message.SimplePayloadMessageMapper;
-import org.springframework.util.Assert;
 
 /**
  * An implementation of {@link MessageHandler} that invokes the specified method
@@ -32,47 +30,11 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class MessageHandlerAdapter<T> implements MessageHandler, Ordered, InitializingBean {
+public class DefaultMessageHandlerAdapter<T> extends AbstractMessageHandlerAdapter<T> 
+		implements Ordered, InitializingBean {
 
-	private T object;
-
-	private String method;
-
-	private MessageMapper mapper = new SimplePayloadMessageMapper();
-
-	private SimpleMethodInvoker<T> invoker;
-
-	private int order = Integer.MAX_VALUE;
-
-
-	public void setObject(T object) {
-		Assert.notNull(object, "'object' must not be null");
-		this.object = object;
-	}
-
-	public void setMethod(String method) {
-		Assert.notNull(method, "'method' must not be null");
-		this.method = method;
-	}
-
-	public void setOrder(int order) {
-		this.order = order;
-	}
-
-	public int getOrder() {
-		return this.order;
-	}
-
-	public void afterPropertiesSet() {
-		this.invoker = new SimpleMethodInvoker<T>(this.object, this.method);
-	}
-
-	public Message handle(Message message) {
-		Object result = this.invoker.invokeMethod(this.mapper.fromMessage(message));
-		if (result != null) {
-			return this.mapper.toMessage(result);
-		}
-		return null;
+	public Object doHandle(Message message, SimpleMethodInvoker invoker) {
+		return invoker.invokeMethod(this.getMapper().fromMessage(message));
 	}
 
 }

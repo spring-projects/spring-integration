@@ -16,6 +16,8 @@
 
 package org.springframework.integration.endpoint.annotation;
 
+import org.springframework.integration.handler.annotation.Handler;
+
 /**
  * @author Mark Fisher
  */

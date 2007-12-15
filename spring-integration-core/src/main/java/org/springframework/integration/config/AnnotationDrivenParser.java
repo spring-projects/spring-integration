@@ -24,7 +24,6 @@ import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.endpoint.annotation.MessageEndpointAnnotationPostProcessor;
 
 /**
  * Parser for the <em>annotation-driven</em> element of the integration

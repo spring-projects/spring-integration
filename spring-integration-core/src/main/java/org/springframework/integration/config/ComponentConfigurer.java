@@ -23,8 +23,8 @@ import org.springframework.beans.factory.support.DefaultBeanNameGenerator;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.integration.endpoint.GenericMessageEndpoint;
 import org.springframework.integration.endpoint.InboundMethodInvokingChannelAdapter;
-import org.springframework.integration.endpoint.MessageHandlerAdapter;
 import org.springframework.integration.endpoint.OutboundMethodInvokingChannelAdapter;
+import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
 import org.springframework.util.Assert;
 
 /**
@@ -47,7 +47,7 @@ public class ComponentConfigurer {
 
 	public String serviceActivator(String inputChannel, String outputChannel, String objectRef, String method) {
 		RootBeanDefinition endpointDef = new RootBeanDefinition(GenericMessageEndpoint.class);
-		RootBeanDefinition adapterDef = new RootBeanDefinition(MessageHandlerAdapter.class);
+		RootBeanDefinition adapterDef = new RootBeanDefinition(DefaultMessageHandlerAdapter.class);
 		adapterDef.getPropertyValues().addPropertyValue("object", new RuntimeBeanReference(objectRef));
 		adapterDef.getPropertyValues().addPropertyValue("method", method);
 		String adapterName = beanNameGenerator.generateBeanName(adapterDef, this.registry);

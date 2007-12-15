@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint.annotation;
+package org.springframework.integration.config;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -34,8 +34,14 @@ import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.endpoint.GenericMessageEndpoint;
 import org.springframework.integration.endpoint.InboundMethodInvokingChannelAdapter;
 import org.springframework.integration.endpoint.OutboundMethodInvokingChannelAdapter;
+import org.springframework.integration.endpoint.annotation.DefaultOutput;
+import org.springframework.integration.endpoint.annotation.MessageEndpoint;
+import org.springframework.integration.endpoint.annotation.Polled;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
+import org.springframework.integration.handler.annotation.AnnotationHandlerCreator;
+import org.springframework.integration.handler.annotation.DefaultAnnotationHandlerCreator;
+import org.springframework.integration.handler.annotation.Handler;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;

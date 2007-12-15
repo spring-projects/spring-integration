@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint.annotation;
+package org.springframework.integration.handler.annotation;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
