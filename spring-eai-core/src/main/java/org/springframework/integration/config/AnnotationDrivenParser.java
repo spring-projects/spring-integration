@@ -27,6 +27,9 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.endpoint.annotation.MessageEndpointAnnotationPostProcessor;
 
 /**
+ * Parser for the <em>annotation-driven</em> element of the integration
+ * namespace. Registers the annotation-driven post-processors.
+ * 
  * @author Mark Fisher
  */
 public class AnnotationDrivenParser implements BeanDefinitionParser {

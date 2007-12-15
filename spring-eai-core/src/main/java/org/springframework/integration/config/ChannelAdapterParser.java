@@ -29,11 +29,11 @@ import org.springframework.integration.endpoint.OutboundMethodInvokingChannelAda
 import org.springframework.util.StringUtils;
 
 /**
- * Base parser for inbound and outbound channel adapters.
+ * Parser for inbound and outbound channel adapters.
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractChannelAdapterParser implements BeanDefinitionParser {
+public class ChannelAdapterParser implements BeanDefinitionParser {
 
 	private static final String ID_ATTRIBUTE = "id";
 
@@ -42,9 +42,17 @@ public abstract class AbstractChannelAdapterParser implements BeanDefinitionPars
 	private static final String METHOD_ATTRIBUTE = "method";
 
 
+	private final boolean isInbound; 
+
+
+	public ChannelAdapterParser(boolean isInbound) {
+		this.isInbound = isInbound;
+	}
+
+
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
 		RootBeanDefinition adapterDef = null;
-		if (this.isInbound()) {
+		if (this.isInbound) {
 			adapterDef = new RootBeanDefinition(InboundMethodInvokingChannelAdapter.class);
 		}
 		else {
@@ -64,7 +72,5 @@ public abstract class AbstractChannelAdapterParser implements BeanDefinitionPars
 		parserContext.registerBeanComponent(new BeanComponentDefinition(adapterDef, beanName));
 		return adapterDef;
 	}
-
-	protected abstract boolean isInbound();
 
 }
