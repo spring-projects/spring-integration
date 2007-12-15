@@ -19,7 +19,6 @@ package org.springframework.integration.message;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.integration.SystemInterruptedException;
-import org.springframework.integration.transformer.ObjectTransformer;
 import org.springframework.util.Assert;
 
 /**
@@ -80,17 +79,6 @@ public class GenericMessage<T> implements Message<T> {
 
 	public void unlock() {
 		lock.unlock();
-	}
-
-	public void transformPayload(ObjectTransformer transformer) {
-		this.lock();
-		try {
-			// TODO: remove this method (probably) or parameterize transformer
-			this.setPayload((T) transformer.transform(this.getPayload()));
-		}
-		finally {
-			this.unlock();
-		}
 	}
 
 }

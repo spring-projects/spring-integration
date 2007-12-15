@@ -16,8 +16,6 @@
 
 package org.springframework.integration.message;
 
-import org.springframework.integration.transformer.ObjectTransformer;
-
 /**
  * The central interface that any Message type must implement.
  * 
@@ -30,8 +28,6 @@ public interface Message<T> {
 	MessageHeader getHeader();
 
 	T getPayload();
-
-	void transformPayload(ObjectTransformer transformer);
 
 	void lock();
 
