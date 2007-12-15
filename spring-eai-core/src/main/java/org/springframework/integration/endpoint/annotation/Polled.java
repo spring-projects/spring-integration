@@ -37,6 +37,6 @@ import java.lang.annotation.Target;
 @Documented
 public @interface Polled {
 
-	int period() default 100;
+	int period() default 1000;
 
 }
