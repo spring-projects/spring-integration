@@ -25,6 +25,11 @@ import org.springframework.integration.endpoint.MessageHandlerAdapter;
 import org.springframework.integration.handler.MessageHandler;
 
 /**
+ * Default implementation of the handler creator strategy that creates a
+ * {@link MessageHandlerAdapter} for the provided object and method. This
+ * version does not even consider the annotation itself. It does however
+ * respect an {@link Order} annotation if present.
+ * 
  * @author Mark Fisher
  */
 public class DefaultAnnotationHandlerCreator implements AnnotationHandlerCreator {

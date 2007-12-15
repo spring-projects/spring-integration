@@ -22,6 +22,9 @@ import java.lang.reflect.Method;
 import org.springframework.integration.handler.MessageHandler;
 
 /**
+ * A strategy for programmatically creating a {@link MessageHandler} based on
+ * metadata provided by an annotation.
+ * 
  * @author Mark Fisher
  */
 public interface AnnotationHandlerCreator {

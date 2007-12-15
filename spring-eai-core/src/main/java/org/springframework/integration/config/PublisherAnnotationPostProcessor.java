@@ -50,6 +50,7 @@ public class PublisherAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 
 	public void setBeanClassLoader(ClassLoader beanClassLoader) {
+		Assert.notNull(beanClassLoader, "beanClassLoader must not be null");
 		this.beanClassLoader = beanClassLoader;
 	}
 

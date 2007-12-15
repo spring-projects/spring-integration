@@ -72,7 +72,7 @@ public abstract class AbstractChannelAdapter implements MessageChannel, Initiali
 			return this.sendObject(source);
 		}
 		catch (Exception e) {
-			throw new MessageHandlingException("Failed to send message to target", e);
+			throw new MessageHandlingException("failed to send message", e);
 		}
 	}
 
