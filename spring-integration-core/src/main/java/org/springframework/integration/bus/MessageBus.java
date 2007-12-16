@@ -88,9 +88,6 @@ public class MessageBus implements ChannelMapping, ApplicationContextAware, Life
 				(Map<String, MessageChannel>) context.getBeansOfType(MessageChannel.class);
 		for (Map.Entry<String, MessageChannel> entry : channelBeans.entrySet()) {
 			this.registerChannel(entry.getKey(), entry.getValue());
-			if (logger.isInfoEnabled()) {
-				logger.info("registered channel '" + entry.getKey() + "'");
-			}
 		}
 	}
 
@@ -100,9 +97,6 @@ public class MessageBus implements ChannelMapping, ApplicationContextAware, Life
 				(Map<String, MessageEndpoint>) context.getBeansOfType(MessageEndpoint.class);
 		for (Map.Entry<String, MessageEndpoint> entry : endpointBeans.entrySet()) {
 			this.registerEndpoint(entry.getKey(), entry.getValue());
-			if (logger.isInfoEnabled()) {
-				logger.info("registered endpoint '" + entry.getKey() + "'");
-			}
 		}
 	}
 
@@ -132,11 +126,22 @@ public class MessageBus implements ChannelMapping, ApplicationContextAware, Life
 	}
 
 	public void registerChannel(String name, MessageChannel channel) {
+		Assert.notNull(name, "'name' must not be null");
+		Assert.notNull(channel, "'channel' must not be null");
+		channel.setName(name);
 		this.channels.put(name, channel);
+		if (this.logger.isInfoEnabled()) {
+			logger.info("registered channel '" + name + "'");
+		}
 	}
 
 	public void registerEndpoint(String name, MessageEndpoint endpoint) {
+		Assert.notNull(name, "'name' must not be null");
+		Assert.notNull(endpoint, "'endpoint' must not be null");
 		this.endpoints.put(name, endpoint);
+		if (logger.isInfoEnabled()) {
+			logger.info("registered endpoint '" + name + "'");
+		}
 		endpoint.setChannelMapping(this);
 		if (endpoint.getInputChannelName() != null && endpoint.getConsumerPolicy() != null) {
 			Subscription subscription = new Subscription();
@@ -157,19 +162,28 @@ public class MessageBus implements ChannelMapping, ApplicationContextAware, Life
 				throw new MessagingException("Cannot activate subscription, unknown channel '" + channelName +
 						"'. Consider enabling the 'autoCreateChannels' option for the message bus.");
 			}
-			this.registerChannel(channelName, new PointToPointChannel());
 			if (this.logger.isInfoEnabled()) {
-				logger.info("created channel '" + channelName + "'");
+				logger.info("auto-creating channel '" + channelName + "'");
 			}
+			channel = new PointToPointChannel(); 
+			this.registerChannel(channelName, channel);
 		}
 		MessageEndpoint endpoint = this.endpoints.get(endpointName);
 		if (endpoint == null) {
 			throw new MessagingException("Cannot activate subscription, unknown endpoint '" + endpointName + "'");
 		}
+		if (logger.isInfoEnabled()) {
+			logger.info("activated subscription to channel '" + channelName + 
+					"' for endpoint '" + endpointName + "'");
+		}
 		EndpointExecutor endpointExecutor = new EndpointExecutor(policy.getConcurrency(), policy.getMaxConcurrency());
 		endpointExecutors.put(endpoint, endpointExecutor);
 		DispatcherTask dispatcherTask = new DispatcherTask(channel, endpoint, policy);
 		this.dispatcherTasks.add(dispatcherTask);
+		if (this.logger.isInfoEnabled()) {
+			logger.info("registered dispatcher task: channel='" +
+					channelName + "' endpoint='" + endpointName + "'");
+		}
 		if (this.isRunning()) {
 			scheduleDispatcherTask(dispatcherTask);
 			if (this.logger.isInfoEnabled()) {
