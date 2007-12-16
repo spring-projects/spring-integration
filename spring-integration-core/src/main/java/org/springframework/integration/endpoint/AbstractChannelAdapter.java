@@ -26,7 +26,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.MessageChannel;
@@ -40,14 +40,29 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractChannelAdapter implements MessageChannel, InitializingBean {
+public abstract class AbstractChannelAdapter implements MessageChannel, InitializingBean, BeanNameAware {
 
 	protected Log logger = LogFactory.getLog(this.getClass());
+
+	private String name;
 
 	private MessageMapper mapper = new SimplePayloadMessageMapper();
 
 	private volatile boolean initialized;
 
+
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public void setBeanName(String beanName) {
+		this.setName(beanName);
+	}
 
 	public final void afterPropertiesSet() {
 		this.initialize();
