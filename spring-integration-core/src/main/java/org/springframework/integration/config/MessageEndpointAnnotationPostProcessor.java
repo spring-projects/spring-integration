@@ -45,7 +45,7 @@ import org.springframework.integration.handler.annotation.AnnotationHandlerCreat
 import org.springframework.integration.handler.annotation.DefaultAnnotationHandlerCreator;
 import org.springframework.integration.handler.annotation.Handler;
 import org.springframework.integration.handler.annotation.Router;
-import org.springframework.integration.router.RouterAnnotationHandlerCreator;
+import org.springframework.integration.handler.annotation.RouterAnnotationHandlerCreator;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
