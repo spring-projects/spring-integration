@@ -19,7 +19,6 @@ package org.springframework.integration.handler.annotation;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
-import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
@@ -32,18 +31,10 @@ import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
  * 
  * @author Mark Fisher
  */
-public class DefaultAnnotationHandlerCreator implements AnnotationHandlerCreator {
+public class DefaultAnnotationHandlerCreator extends AbstractAnnotationHandlerCreator {
 
-	public MessageHandler createHandler(Object object, Method method, Annotation annotation) {
-		DefaultMessageHandlerAdapter<Object> adapter = new DefaultMessageHandlerAdapter<Object>();
-		adapter.setObject(object);
-		adapter.setMethod(method.getName());
-		Order orderAnnotation = (Order) AnnotationUtils.getAnnotation(method, Order.class);
-		if (orderAnnotation != null) {
-			adapter.setOrder(orderAnnotation.value());
-		}
-		adapter.afterPropertiesSet();
-		return adapter;
+	public MessageHandler doCreateHandler(Object object, Method method, Annotation annotation) {
+		return new DefaultMessageHandlerAdapter<Object>();
 	}
 
 }
