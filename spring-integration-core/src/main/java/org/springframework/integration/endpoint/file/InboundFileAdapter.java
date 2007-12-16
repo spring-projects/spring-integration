@@ -69,7 +69,6 @@ public class InboundFileAdapter extends AbstractInboundChannelAdapter {
 
 	@Override
 	protected Object doReceiveObject() {
-		System.out.println("polling");
 		File[] files = null;
 		if (this.fileFilter != null) {
 			files = this.directory.listFiles(fileFilter);
