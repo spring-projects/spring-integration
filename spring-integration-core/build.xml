@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="spring-eai-core">
+<project name="spring-integration-core">
 
 	<property name="version" value="0.5-SNAPSHOT"/>
 	<property name="integration.repo.dir" value="${basedir}/../integration-repo"/>
