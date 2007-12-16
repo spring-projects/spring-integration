@@ -49,7 +49,7 @@ public class ComponentConfigurer {
 		RootBeanDefinition endpointDef = new RootBeanDefinition(GenericMessageEndpoint.class);
 		RootBeanDefinition adapterDef = new RootBeanDefinition(DefaultMessageHandlerAdapter.class);
 		adapterDef.getPropertyValues().addPropertyValue("object", new RuntimeBeanReference(objectRef));
-		adapterDef.getPropertyValues().addPropertyValue("method", method);
+		adapterDef.getPropertyValues().addPropertyValue("methodName", method);
 		String adapterName = beanNameGenerator.generateBeanName(adapterDef, this.registry);
 		this.registry.registerBeanDefinition(adapterName, adapterDef);
 		endpointDef.getPropertyValues().addPropertyValue("handler", new RuntimeBeanReference(adapterName));

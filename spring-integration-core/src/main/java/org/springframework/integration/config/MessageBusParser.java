@@ -20,7 +20,7 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
+import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.bus.MessageBus;
 
@@ -29,9 +29,9 @@ import org.springframework.integration.bus.MessageBus;
  * 
  * @author Mark Fisher
  */
-public class MessageBusParser extends AbstractSingleBeanDefinitionParser {
+public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 
-	public static final String MESSAGE_BUS_BEAN_NAME = "internal.messageBus";
+	public static final String MESSAGE_BUS_BEAN_NAME = "org.springframework.integration.bus.internalMessageBus";
 
 	@Override
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)

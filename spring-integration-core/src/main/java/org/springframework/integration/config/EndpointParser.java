@@ -56,7 +56,7 @@ public class EndpointParser implements BeanDefinitionParser {
 
 	private static final String OBJECT_PROPERTY = "object";
 
-	private static final String METHOD_PROPERTY = "method";
+	private static final String METHOD_NAME_PROPERTY = "methodName";
 
 	private static final String PERIOD_ATTRIBUTE = "period";
 
@@ -84,7 +84,7 @@ public class EndpointParser implements BeanDefinitionParser {
 			if (StringUtils.hasText(handlerMethod)) {
 				BeanDefinition handlerAdapterDef = new RootBeanDefinition(DefaultMessageHandlerAdapter.class);
 				handlerAdapterDef.getPropertyValues().addPropertyValue(OBJECT_PROPERTY, new RuntimeBeanReference(handlerRef));
-				handlerAdapterDef.getPropertyValues().addPropertyValue(METHOD_PROPERTY, handlerMethod);
+				handlerAdapterDef.getPropertyValues().addPropertyValue(METHOD_NAME_PROPERTY, handlerMethod);
 				String adapterBeanName = parserContext.getReaderContext().generateBeanName(handlerAdapterDef);
 				parserContext.registerBeanComponent(new BeanComponentDefinition(handlerAdapterDef, adapterBeanName));
 				endpointDef.getPropertyValues().addPropertyValue(HANDLER_PROPERTY, new RuntimeBeanReference(adapterBeanName));

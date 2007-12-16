@@ -29,8 +29,10 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.OrderComparator;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.bus.ConsumerPolicy;
 import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.channel.ChannelMappingAware;
 import org.springframework.integration.endpoint.GenericMessageEndpoint;
 import org.springframework.integration.endpoint.InboundMethodInvokingChannelAdapter;
 import org.springframework.integration.endpoint.OutboundMethodInvokingChannelAdapter;
@@ -42,6 +44,8 @@ import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.integration.handler.annotation.AnnotationHandlerCreator;
 import org.springframework.integration.handler.annotation.DefaultAnnotationHandlerCreator;
 import org.springframework.integration.handler.annotation.Handler;
+import org.springframework.integration.handler.annotation.Router;
+import org.springframework.integration.router.RouterAnnotationHandlerCreator;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
@@ -75,6 +79,7 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 	public void afterPropertiesSet() {
 		Assert.notNull(this.messageBus, "messageBus is required");
 		this.handlerCreators.put(Handler.class, new DefaultAnnotationHandlerCreator());
+		this.handlerCreators.put(Router.class, new RouterAnnotationHandlerCreator());
 	}
 
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
@@ -139,9 +144,13 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 			return;
 		}
 		ReflectionUtils.doWithMethods(bean.getClass(), new ReflectionUtils.MethodCallback() {
+			boolean foundDefaultOutput = false;
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
 				Annotation annotation = AnnotationUtils.getAnnotation(method, DefaultOutput.class);
 				if (annotation != null) {
+					if (foundDefaultOutput) {
+						throw new MessagingConfigurationException("only one @DefaultOutput allowed per endpoint");
+					}
 					OutboundMethodInvokingChannelAdapter<Object> adapter = new OutboundMethodInvokingChannelAdapter<Object>();
 					adapter.setObject(bean);
 					adapter.setMethod(method.getName());
@@ -149,6 +158,7 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 					String channelName = beanName + "-defaultOutputChannel";
 					messageBus.registerChannel(channelName, adapter);
 					endpoint.setDefaultOutputChannelName(channelName);
+					foundDefaultOutput = true;
 					return;
 				}
 			}
@@ -164,6 +174,17 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 					Annotation annotation = AnnotationUtils.getAnnotation(method, annotationType);
 					if (annotation != null) {
 						MessageHandler handler = handlerCreators.get(annotationType).createHandler(bean, method, annotation);
+						if (handler instanceof ChannelMappingAware) {
+							((ChannelMappingAware) handler).setChannelMapping(messageBus);
+						}
+						if (handler instanceof InitializingBean) {
+							try {
+								((InitializingBean) handler).afterPropertiesSet();
+							}
+							catch (Exception e) {
+								throw new MessagingConfigurationException("failed to create handler", e);
+							}
+						}
 						if (handler != null) {
 							handlers.add(handler);
 						}

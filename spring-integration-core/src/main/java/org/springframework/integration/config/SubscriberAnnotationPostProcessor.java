@@ -82,7 +82,7 @@ public class SubscriberAnnotationPostProcessor implements BeanPostProcessor {
 				if (annotation != null) {
 					String channelName = (String) AnnotationUtils.getValue(annotation, channelNameAttribute);
 					DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
-					adapter.setMethod(method.getName());
+					adapter.setMethodName(method.getName());
 					adapter.setObject(bean);
 					adapter.afterPropertiesSet();
 					GenericMessageEndpoint endpoint = new GenericMessageEndpoint();
@@ -92,9 +92,6 @@ public class SubscriberAnnotationPostProcessor implements BeanPostProcessor {
 					String endpointName = ClassUtils.getShortNameAsProperty(targetClass) + 
 							"-" + method.getName() + "-endpoint";
 					messageBus.registerEndpoint(endpointName, endpoint);
-					if (logger.isInfoEnabled()) {
-						logger.info("registered endpoint: " + endpointName);
-					}
 				}
 			}
 		});

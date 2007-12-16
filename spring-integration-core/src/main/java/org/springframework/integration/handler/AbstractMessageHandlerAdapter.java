@@ -16,6 +16,9 @@
 
 package org.springframework.integration.handler;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.Ordered;
 import org.springframework.integration.endpoint.SimpleMethodInvoker;
@@ -36,9 +39,11 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractMessageHandlerAdapter<T> implements MessageHandler, Ordered, InitializingBean {
 
+	protected Log logger = LogFactory.getLog(this.getClass());
+
 	private T object;
 
-	private String method;
+	private String methodName;
 
 	private MessageMapper mapper = new SimplePayloadMessageMapper();
 
@@ -56,13 +61,13 @@ public abstract class AbstractMessageHandlerAdapter<T> implements MessageHandler
 		return this.object;
 	}
 
-	public void setMethod(String method) {
-		Assert.notNull(method, "'method' must not be null");
-		this.method = method;
+	public void setMethodName(String methodName) {
+		Assert.notNull(methodName, "'methodName' must not be null");
+		this.methodName = methodName;
 	}
 
-	public String getMethod() {
-		return this.method;
+	public String getMethodName() {
+		return this.methodName;
 	}
 
 	public void setMapper(MessageMapper mapper) {
@@ -82,15 +87,15 @@ public abstract class AbstractMessageHandlerAdapter<T> implements MessageHandler
 		return this.order;
 	}
 
-	public void afterPropertiesSet() {
-		this.invoker = new SimpleMethodInvoker<T>(this.object, this.method);
+	public final void afterPropertiesSet() {
+		this.invoker = new SimpleMethodInvoker<T>(this.object, this.methodName);
 	}
 
-	public Message handle(Message message) {
+	public final Message<?> handle(Message<?> message) {
 		Object result = this.doHandle(message, invoker);
 		if (result != null) {
 			if (result instanceof Message) {
-				return (Message) result;
+				return (Message<?>) result;
 			}
 			return this.mapper.toMessage(result);
 		}
