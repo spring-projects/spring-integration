@@ -20,6 +20,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageSelector;
 
@@ -30,10 +31,12 @@ import org.springframework.integration.message.MessageSelector;
  * 
  * @author Mark Fisher
  */
-public class PointToPointChannel implements MessageChannel {
+public class PointToPointChannel implements MessageChannel, BeanNameAware {
 
 	private static final int DEFAULT_CAPACITY = 25;
 
+
+	private String name;
 
 	private BlockingQueue<Message> queue;
 
@@ -53,6 +56,17 @@ public class PointToPointChannel implements MessageChannel {
 	}
 
 
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public void setBeanName(String beanName) {
+		this.setName(beanName);
+	}
 	/**
 	 * Send a message on this channel. If the queue is full, this method will
 	 * block until either space becomes available or the sending thread is

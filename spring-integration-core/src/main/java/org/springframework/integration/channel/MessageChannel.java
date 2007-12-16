@@ -25,6 +25,10 @@ import org.springframework.integration.message.Message;
  */
 public interface MessageChannel {
 
+	void setName(String name);
+
+	String getName();
+
 	/**
 	 * Send a message, blocking indefinitely if necessary.
 	 * 
