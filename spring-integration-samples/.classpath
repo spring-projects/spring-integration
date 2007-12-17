@@ -15,5 +15,6 @@
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework/spring-tx/spring-tx-2.5.0.jar"/>
 	<classpathentry kind="var" path="IVY_CACHE/org.apache/commons-pool/commons-pool-1.3.jar"/>
 	<classpathentry kind="var" path="IVY_CACHE/javax.jms/jms/jms-1.1.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.springframework/spring-integration-core/spring-integration-core-0.5-SNAPSHOT.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
