@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="build-spring-integration" default="precommit">
+
+	<target name="precommit" depends="clean,jar,test"/>
+
+	<path id="bundles">
+		<pathelement location="../spring-integration-core"/>
+		<pathelement location="../spring-integration-samples"/>
+	</path>
+
+	<import file="../spring-build/multi-bundle/default.xml"/>
+
+</project>
