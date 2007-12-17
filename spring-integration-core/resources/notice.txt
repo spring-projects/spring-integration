@@ -18,4 +18,4 @@
    The names "Spring", "Spring Framework", and "Spring Integration" must
    not be used to endorse or promote products derived from this software
    without prior written permission. For written permission, please contact
-   rod.johnson@interface21.com or juergen.hoeller@interface21.com.
+   rod.johnson@springsource.com or juergen.hoeller@springsource.com.
