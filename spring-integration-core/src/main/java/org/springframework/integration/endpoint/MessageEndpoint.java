@@ -33,6 +33,8 @@ public interface MessageEndpoint {
 
 	void setDefaultOutputChannelName(String defaultOutputChannelName);
 
+	String getDefaultOutputChannelName();
+
 	ConsumerPolicy getConsumerPolicy();
 
 	void setChannelRegistry(ChannelRegistry channelRegistry);

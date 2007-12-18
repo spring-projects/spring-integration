@@ -79,6 +79,10 @@ public class GenericMessageEndpoint implements MessageEndpoint {
 		this.defaultOutputChannelName = defaultOutputChannelName;
 	}
 
+	public String getDefaultOutputChannelName() {
+		return this.defaultOutputChannelName;
+	}
+
 	/**
 	 * Set a handler to be invoked for each consumed message.
 	 */
