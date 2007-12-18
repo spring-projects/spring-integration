@@ -32,7 +32,15 @@ public class QuotePublisher {
 	@Polled(period=300)
 	public Quote getQuote() {
 		BigDecimal price = new BigDecimal(new Random().nextDouble() * 100);
-		return new Quote("SOA", price.setScale(2, RoundingMode.HALF_EVEN));
+		return new Quote(generateTicker(), price.setScale(2, RoundingMode.HALF_EVEN));
+	}
+
+	private String generateTicker() {
+		char[] chars = new char[3];
+		for (int i = 0; i < 3; i++) {
+			chars[i] = (char) (new Random().nextInt(25) + 65);
+		}
+		return new String(chars);	
 	}
 
 }
