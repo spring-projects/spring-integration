@@ -17,13 +17,17 @@
 package org.springframework.integration.channel;
 
 /**
- * A strategy interface for resolution of message channels by name.
+ * A strategy interface for registration and lookup of message channels by name.
  * 
  * @author Mark Fisher
  */
-public interface ChannelMapping {
+public interface ChannelRegistry {
 
-	MessageChannel getChannel(String channelName);
+	void registerChannel(String name, MessageChannel channel);
+
+	MessageChannel lookupChannel(String channelName);
+
+	void setInvalidMessageChannel(MessageChannel invalidMessageChannel);
 
 	MessageChannel getInvalidMessageChannel();
 

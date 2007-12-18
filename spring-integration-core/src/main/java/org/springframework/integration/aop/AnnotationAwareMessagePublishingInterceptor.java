@@ -23,7 +23,7 @@ import org.aopalliance.intercept.MethodInvocation;
 
 import org.springframework.aop.support.AopUtils;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.integration.channel.ChannelMapping;
+import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.util.Assert;
 
@@ -39,17 +39,17 @@ public class AnnotationAwareMessagePublishingInterceptor extends MessagePublishi
 
 	private String channelAttributeName;
 
-	private ChannelMapping channelMapping;
+	private ChannelRegistry channelRegistry;
 
 
 	public AnnotationAwareMessagePublishingInterceptor(Class<? extends Annotation> publisherAnnotationType,
-			String channelAttributeName, ChannelMapping channelMapping) {
-		Assert.notNull(publisherAnnotationType, "publisherAnnotationType must not be null");
-		Assert.notNull(channelAttributeName, "channelAttributeName must not be null");
-		Assert.notNull(channelMapping, "channelMapping must not be null");
+			String channelAttributeName, ChannelRegistry channelRegistry) {
+		Assert.notNull(publisherAnnotationType, "'publisherAnnotationType' must not be null");
+		Assert.notNull(channelAttributeName, "'channelAttributeName' must not be null");
+		Assert.notNull(channelRegistry, "'channelRegistry' must not be null");
 		this.publisherAnnotationType = publisherAnnotationType;
 		this.channelAttributeName = channelAttributeName;
-		this.channelMapping = channelMapping;
+		this.channelRegistry = channelRegistry;
 	}
 
 
@@ -61,7 +61,7 @@ public class AnnotationAwareMessagePublishingInterceptor extends MessagePublishi
 		if (annotation != null) {
 			String channelName = (String) AnnotationUtils.getValue(annotation, this.channelAttributeName);
 			if (channelName != null) {
-				MessageChannel channel = this.channelMapping.getChannel(channelName);
+				MessageChannel channel = this.channelRegistry.lookupChannel(channelName);
 				if (channel != null) {
 					return channel;
 				}

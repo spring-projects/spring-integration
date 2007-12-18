@@ -27,7 +27,7 @@ import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.integration.aop.Publisher;
 import org.springframework.integration.aop.PublisherAnnotationAdvisor;
-import org.springframework.integration.channel.ChannelMapping;
+import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.util.Assert;
 
 /**
@@ -42,7 +42,7 @@ public class PublisherAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 	private String channelNameAttribute = "channel";
 
-	private ChannelMapping channelMapping;
+	private ChannelRegistry channelRegistry;
 
 	private Advisor advisor;
 
@@ -50,31 +50,31 @@ public class PublisherAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 
 	public void setBeanClassLoader(ClassLoader beanClassLoader) {
-		Assert.notNull(beanClassLoader, "beanClassLoader must not be null");
+		Assert.notNull(beanClassLoader, "'beanClassLoader' must not be null");
 		this.beanClassLoader = beanClassLoader;
 	}
 
 	public void setPublisherAnnotationType(Class<? extends Annotation> publisherAnnotationType) {
-		Assert.notNull(publisherAnnotationType, "publisherAnnotationType must not be null");
+		Assert.notNull(publisherAnnotationType, "'publisherAnnotationType' must not be null");
 		this.publisherAnnotationType = publisherAnnotationType;
 	}
 
 	public void setChannelNameAttribute(String channelNameAttribute) {
-		Assert.notNull(channelNameAttribute, "channelNameAttribute must not be null");
+		Assert.notNull(channelNameAttribute, "'channelNameAttribute' must not be null");
 		this.channelNameAttribute = channelNameAttribute;
 	}
 
-	public void setChannelMapping(ChannelMapping channelMapping) {
-		Assert.notNull(channelMapping, "channelMapping must not be null");
-		this.channelMapping = channelMapping;
+	public void setChannelRegistry(ChannelRegistry channelRegistry) {
+		Assert.notNull(channelRegistry, "'channelRegistry' must not be null");
+		this.channelRegistry = channelRegistry;
 	}
 
 	private void createAdvisor() {
-		if (this.channelMapping == null) {
-			throw new IllegalStateException("channelMapping is required");
+		if (this.channelRegistry == null) {
+			throw new IllegalStateException("'channelRegistry' is required");
 		}
 		this.advisor = new PublisherAnnotationAdvisor(this.publisherAnnotationType, this.channelNameAttribute,
-				this.channelMapping);
+				this.channelRegistry);
 	}
 
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {

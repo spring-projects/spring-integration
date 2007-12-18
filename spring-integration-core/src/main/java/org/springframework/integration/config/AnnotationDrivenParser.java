@@ -52,7 +52,7 @@ public class AnnotationDrivenParser implements BeanDefinitionParser {
 
 	private void createPublisherPostProcessor(ParserContext parserContext) {
 		BeanDefinition bd = new RootBeanDefinition(PublisherAnnotationPostProcessor.class);
-		bd.getPropertyValues().addPropertyValue("channelMapping",
+		bd.getPropertyValues().addPropertyValue("channelRegistry",
 				new RuntimeBeanReference(MessageBusParser.MESSAGE_BUS_BEAN_NAME));
 		BeanComponentDefinition bcd = new BeanComponentDefinition(
 				bd, PUBLISHER_ANNOTATION_POST_PROCESSOR_BEAN_NAME);

@@ -52,17 +52,17 @@ public class SubscriberAnnotationPostProcessor implements BeanPostProcessor {
 
 
 	public void setSubscriberAnnotationType(Class<? extends Annotation> subscriberAnnotationType) {
-		Assert.notNull(subscriberAnnotationType, "subscriberAnnotationType must not be null");
+		Assert.notNull(subscriberAnnotationType, "'subscriberAnnotationType' must not be null");
 		this.subscriberAnnotationType = subscriberAnnotationType;
 	}
 
 	public void setChannelNameAttribute(String channelNameAttribute) {
-		Assert.notNull(channelNameAttribute, "channelNameAttribute must not be null");
+		Assert.notNull(channelNameAttribute, "'channelNameAttribute' must not be null");
 		this.channelNameAttribute = channelNameAttribute;
 	}
 
 	public void setMessageBus(MessageBus messageBus) {
-		Assert.notNull(messageBus, "messageBus must not be null");
+		Assert.notNull(messageBus, "'messageBus' must not be null");
 		this.messageBus = messageBus;
 	}
 
@@ -87,7 +87,7 @@ public class SubscriberAnnotationPostProcessor implements BeanPostProcessor {
 					adapter.afterPropertiesSet();
 					GenericMessageEndpoint endpoint = new GenericMessageEndpoint();
 					endpoint.setInputChannelName(channelName);
-					endpoint.setChannelMapping(messageBus);
+					endpoint.setChannelRegistry(messageBus);
 					endpoint.setHandler(adapter);
 					String endpointName = ClassUtils.getShortNameAsProperty(targetClass) + 
 							"-" + method.getName() + "-endpoint";

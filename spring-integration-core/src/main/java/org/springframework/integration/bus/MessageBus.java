@@ -31,9 +31,10 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.channel.ChannelMapping;
+import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PointToPointChannel;
+import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
@@ -44,11 +45,11 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class MessageBus implements ChannelMapping, ApplicationContextAware, Lifecycle {
+public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lifecycle {
 
 	private Log logger = LogFactory.getLog(this.getClass());
 
-	private Map<String, MessageChannel> channels = new ConcurrentHashMap<String, MessageChannel>();
+	private ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 
 	private Map<String, MessageEndpoint> endpoints = new ConcurrentHashMap<String, MessageEndpoint>();
 
@@ -57,8 +58,6 @@ public class MessageBus implements ChannelMapping, ApplicationContextAware, Life
 	private Map<MessageEndpoint, EndpointExecutor> endpointExecutors = new ConcurrentHashMap<MessageEndpoint, EndpointExecutor>();
 
 	private ScheduledThreadPoolExecutor dispatcherExecutor;
-
-	private MessageChannel invalidMessageChannel;
 
 	private boolean autoCreateChannels;
 
@@ -76,10 +75,6 @@ public class MessageBus implements ChannelMapping, ApplicationContextAware, Life
 
 	public void setAutoCreateChannels(boolean autoCreateChannels) {
 		this.autoCreateChannels = autoCreateChannels;
-	}
-
-	public void setInvalidMessageChannel(MessageChannel invalidMessageChannel) {
-		this.invalidMessageChannel = invalidMessageChannel;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -117,22 +112,20 @@ public class MessageBus implements ChannelMapping, ApplicationContextAware, Life
 		this.dispatcherExecutor = new ScheduledThreadPoolExecutor(this.dispatcherTasks.size() > 0 ? this.dispatcherTasks.size() : 1);
 	}
 
-	public MessageChannel getChannel(String channelName) {
-		return this.channels.get(channelName);
+	public MessageChannel getInvalidMessageChannel() {
+		return this.channelRegistry.getInvalidMessageChannel();
 	}
 
-	public MessageChannel getInvalidMessageChannel() {
-		return this.invalidMessageChannel;
+	public void setInvalidMessageChannel(MessageChannel invalidMessageChannel) {
+		this.channelRegistry.setInvalidMessageChannel(invalidMessageChannel);
+	}
+
+	public MessageChannel lookupChannel(String channelName) {
+		return this.channelRegistry.lookupChannel(channelName);
 	}
 
 	public void registerChannel(String name, MessageChannel channel) {
-		Assert.notNull(name, "'name' must not be null");
-		Assert.notNull(channel, "'channel' must not be null");
-		channel.setName(name);
-		this.channels.put(name, channel);
-		if (this.logger.isInfoEnabled()) {
-			logger.info("registered channel '" + name + "'");
-		}
+		this.channelRegistry.registerChannel(name, channel);
 	}
 
 	public void registerEndpoint(String name, MessageEndpoint endpoint) {
@@ -142,7 +135,7 @@ public class MessageBus implements ChannelMapping, ApplicationContextAware, Life
 		if (logger.isInfoEnabled()) {
 			logger.info("registered endpoint '" + name + "'");
 		}
-		endpoint.setChannelMapping(this);
+		endpoint.setChannelRegistry(this);
 		if (endpoint.getInputChannelName() != null && endpoint.getConsumerPolicy() != null) {
 			Subscription subscription = new Subscription();
 			subscription.setChannel(endpoint.getInputChannelName());
@@ -156,7 +149,7 @@ public class MessageBus implements ChannelMapping, ApplicationContextAware, Life
 		String channelName = subscription.getChannel();
 		String endpointName = subscription.getEndpoint();
 		ConsumerPolicy policy = subscription.getPolicy();
-		MessageChannel channel = this.channels.get(channelName);
+		MessageChannel channel = this.lookupChannel(channelName);
 		if (channel == null) {
 			if (this.autoCreateChannels == false) {
 				throw new MessagingException("Cannot activate subscription, unknown channel '" + channelName +
@@ -289,7 +282,7 @@ public class MessageBus implements ChannelMapping, ApplicationContextAware, Life
 				return;
 			}			
 			for (int i = 0; i < policy.getMaxMessagesPerTask(); i++) {
-				Message message = channel.receive(this.policy.getReceiveTimeout());
+				Message<?> message = channel.receive(this.policy.getReceiveTimeout());
 				if (message == null) {
 					return;
 				}
@@ -342,12 +335,12 @@ public class MessageBus implements ChannelMapping, ApplicationContextAware, Life
 
 		private MessageEndpoint endpoint;
 
-		private Message message;
+		private Message<?> message;
 
 		private Throwable error;
 
 
-		EndpointTask(MessageEndpoint endpoint, Message message) {
+		EndpointTask(MessageEndpoint endpoint, Message<?> message) {
 			this.endpoint = endpoint;
 			this.message = message;
 		}

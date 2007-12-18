@@ -18,12 +18,12 @@ package org.springframework.integration.channel;
 
 /**
  * Interface to be implemented by components that need access to the
- * {@link ChannelMapping}.
+ * {@link ChannelRegistry}.
  * 
  * @author Mark Fisher
  */
-public interface ChannelMappingAware {
+public interface ChannelRegistryAware {
 
-	void setChannelMapping(ChannelMapping channelMapping);
+	void setChannelRegistry(ChannelRegistry channelRegistry);
 
 }

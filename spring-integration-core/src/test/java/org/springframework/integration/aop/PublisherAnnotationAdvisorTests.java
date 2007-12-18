@@ -23,9 +23,10 @@ import static org.junit.Assert.assertNull;
 import org.junit.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
-import org.springframework.integration.channel.ChannelMapping;
+import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PointToPointChannel;
+import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.message.Message;
 
 /**
@@ -36,21 +37,12 @@ public class PublisherAnnotationAdvisorTests {
 	@Test
 	public void testPublisherAnnotation() {
 		final MessageChannel channel = new PointToPointChannel();
-		ChannelMapping channelMapping = new ChannelMapping() {
-			public MessageChannel getChannel(String channelName) {
-				if (channelName.equals("testChannel")) {
-					return channel;
-				}
-				return null;
-			}
-			public MessageChannel getInvalidMessageChannel() {
-				return null;
-			}
-		};
-		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor(channelMapping);
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		channelRegistry.registerChannel("testChannel", channel);
+		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor(channelRegistry);
 		TestService proxy = (TestService) this.createProxy(new TestServiceImpl("hello world"), advisor);
 		proxy.publisherTest();
-		Message message = channel.receive(0);
+		Message<?> message = channel.receive(0);
 		assertNotNull(message);
 		assertEquals("hello world", message.getPayload());
 	}
@@ -58,21 +50,12 @@ public class PublisherAnnotationAdvisorTests {
 	@Test
 	public void testNoPublisherAnnotation() {
 		final MessageChannel channel = new PointToPointChannel();
-		ChannelMapping channelMapping = new ChannelMapping() {
-			public MessageChannel getChannel(String channelName) {
-				if (channelName.equals("testChannel")) {
-					return channel;
-				}
-				return null;
-			}
-			public MessageChannel getInvalidMessageChannel() {
-				return null;
-			}
-		};
-		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor(channelMapping);
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		channelRegistry.registerChannel("testChannel", channel);
+		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor(channelRegistry);
 		TestService proxy = (TestService) this.createProxy(new TestServiceImpl("hello world"), advisor);
 		proxy.noPublisherTest();
-		Message message = channel.receive(0);
+		Message<?> message = channel.receive(0);
 		assertNull(message);
 	}
 

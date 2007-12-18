@@ -20,8 +20,8 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 
 import org.springframework.integration.MessagingConfigurationException;
-import org.springframework.integration.channel.ChannelMapping;
-import org.springframework.integration.channel.ChannelMappingAware;
+import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.SimpleMethodInvoker;
 import org.springframework.integration.handler.AbstractMessageHandlerAdapter;
@@ -34,13 +34,13 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class RouterMessageHandlerAdapter extends AbstractMessageHandlerAdapter implements ChannelMappingAware {
+public class RouterMessageHandlerAdapter extends AbstractMessageHandlerAdapter implements ChannelRegistryAware {
 
 	private Router routerAnnotation;
 
 	private Method method;
 
-	private ChannelMapping channelMapping;
+	private ChannelRegistry channelRegistry;
 
 
 	public RouterMessageHandlerAdapter(Object object, Method method, Router routerAnnotation) {
@@ -49,8 +49,8 @@ public class RouterMessageHandlerAdapter extends AbstractMessageHandlerAdapter i
 		this.routerAnnotation = routerAnnotation;
 	}
 
-	public void setChannelMapping(ChannelMapping channelMapping) {
-		this.channelMapping = channelMapping;
+	public void setChannelRegistry(ChannelRegistry channelRegistry) {
+		this.channelRegistry = channelRegistry;
 	}
 
 	@Override
@@ -130,7 +130,7 @@ public class RouterMessageHandlerAdapter extends AbstractMessageHandlerAdapter i
 	}
 
 	private boolean sendMessage(Message<?> message, String channelName) {
-		MessageChannel channel = this.channelMapping.getChannel(channelName);
+		MessageChannel channel = this.channelRegistry.lookupChannel(channelName);
 		if (channel == null) {
 			if (logger.isWarnEnabled()) {
 				logger.warn("unable to resolve channel for name '" + channelName + "'");

@@ -17,7 +17,7 @@
 package org.springframework.integration.endpoint;
 
 import org.springframework.integration.bus.ConsumerPolicy;
-import org.springframework.integration.channel.ChannelMapping;
+import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.message.Message;
 
 /**
@@ -35,7 +35,7 @@ public interface MessageEndpoint {
 
 	ConsumerPolicy getConsumerPolicy();
 
-	void setChannelMapping(ChannelMapping channelMapping);
+	void setChannelRegistry(ChannelRegistry channelRegistry);
 
 	void messageReceived(Message<?> message);
 

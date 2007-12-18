@@ -32,7 +32,7 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.bus.ConsumerPolicy;
 import org.springframework.integration.bus.MessageBus;
-import org.springframework.integration.channel.ChannelMappingAware;
+import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.endpoint.GenericMessageEndpoint;
 import org.springframework.integration.endpoint.InboundMethodInvokingChannelAdapter;
 import org.springframework.integration.endpoint.OutboundMethodInvokingChannelAdapter;
@@ -174,8 +174,8 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 					Annotation annotation = AnnotationUtils.getAnnotation(method, annotationType);
 					if (annotation != null) {
 						MessageHandler handler = handlerCreators.get(annotationType).createHandler(bean, method, annotation);
-						if (handler instanceof ChannelMappingAware) {
-							((ChannelMappingAware) handler).setChannelMapping(messageBus);
+						if (handler instanceof ChannelRegistryAware) {
+							((ChannelRegistryAware) handler).setChannelRegistry(messageBus);
 						}
 						if (handler instanceof InitializingBean) {
 							try {
