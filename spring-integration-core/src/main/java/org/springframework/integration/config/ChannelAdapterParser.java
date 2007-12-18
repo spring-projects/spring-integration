@@ -24,6 +24,7 @@ import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.endpoint.InboundMethodInvokingChannelAdapter;
 import org.springframework.integration.endpoint.OutboundMethodInvokingChannelAdapter;
 import org.springframework.util.StringUtils;
@@ -62,6 +63,7 @@ public class ChannelAdapterParser implements BeanDefinitionParser {
 		String ref = element.getAttribute(REF_ATTRIBUTE);
 		String method = element.getAttribute(METHOD_ATTRIBUTE);
 		if (!StringUtils.hasText(ref) || !StringUtils.hasText(method)) {
+			throw new MessagingConfigurationException("'ref' and 'method' are both required");
 		}
 		adapterDef.getPropertyValues().addPropertyValue("object", new RuntimeBeanReference(ref));
 		adapterDef.getPropertyValues().addPropertyValue("method", method);

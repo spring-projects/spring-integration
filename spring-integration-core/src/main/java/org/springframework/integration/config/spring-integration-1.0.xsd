@@ -97,6 +97,7 @@
 				<xsd:extension base="beans:identifiedType">
 					<xsd:sequence>
 						<xsd:element ref="consumer" minOccurs="0" maxOccurs="1"/>
+						<xsd:element ref="handler" minOccurs="0" maxOccurs="unbounded"/>
 					</xsd:sequence>
 					<xsd:attribute name="input-channel" type="xsd:string"/>
 					<xsd:attribute name="default-output-channel" type="xsd:string"/>
@@ -115,6 +116,18 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:attribute name="period" type="xsd:int"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="handler">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a handler.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="ref" type="xsd:string" use="required"/>
+			<xsd:attribute name="method" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
 

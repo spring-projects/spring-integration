@@ -46,6 +46,11 @@ public class MessageHandlerChain implements MessageHandler {
 		this.handlers.add(index, handler);
 	}
 
+	public void setHandlers(List<MessageHandler> handlers) {
+		this.handlers.clear();
+		this.handlers.addAll(handlers);
+	}
+
 	public Message handle(Message message) {
 		for (MessageHandler next : handlers) {
 			message = next.handle(message);

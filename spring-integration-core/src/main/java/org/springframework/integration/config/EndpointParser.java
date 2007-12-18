@@ -16,6 +16,9 @@
 
 package org.springframework.integration.config;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -23,12 +26,15 @@ import org.w3c.dom.NodeList;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
+import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.bus.ConsumerPolicy;
 import org.springframework.integration.endpoint.GenericMessageEndpoint;
 import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
+import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.util.StringUtils;
 
 /**
@@ -47,6 +53,14 @@ public class EndpointParser implements BeanDefinitionParser {
 	private static final String DEFAULT_OUTPUT_CHANNEL_ATTRIBUTE = "default-output-channel";
 
 	private static final String DEFAULT_OUTPUT_CHANNEL_PROPERTY = "defaultOutputChannelName";
+
+	private static final String HANDLER_ELEMENT = "handler";
+
+	private static final String REF_ATTRIBUTE = "ref";
+
+	private static final String METHOD_ATTRIBUTE = "method";
+
+	private static final String HANDLERS_PROPERTY = "handlers";
 
 	private static final String HANDLER_REF_ATTRIBUTE = "handler-ref";
 
@@ -78,25 +92,7 @@ public class EndpointParser implements BeanDefinitionParser {
 		if (StringUtils.hasText(defaultOutputChannel)) {
 			endpointDef.getPropertyValues().addPropertyValue(DEFAULT_OUTPUT_CHANNEL_PROPERTY, defaultOutputChannel);
 		}
-		String handlerRef = element.getAttribute(HANDLER_REF_ATTRIBUTE);
-		if (StringUtils.hasText(handlerRef)) {
-			String handlerMethod = element.getAttribute(HANDLER_METHOD_ATTRIBUTE);
-			if (StringUtils.hasText(handlerMethod)) {
-				BeanDefinition handlerAdapterDef = new RootBeanDefinition(DefaultMessageHandlerAdapter.class);
-				handlerAdapterDef.getPropertyValues().addPropertyValue(OBJECT_PROPERTY, new RuntimeBeanReference(handlerRef));
-				handlerAdapterDef.getPropertyValues().addPropertyValue(METHOD_NAME_PROPERTY, handlerMethod);
-				String adapterBeanName = parserContext.getReaderContext().generateBeanName(handlerAdapterDef);
-				parserContext.registerBeanComponent(new BeanComponentDefinition(handlerAdapterDef, adapterBeanName));
-				endpointDef.getPropertyValues().addPropertyValue(HANDLER_PROPERTY, new RuntimeBeanReference(adapterBeanName));
-			}
-			else {
-				endpointDef.getPropertyValues().addPropertyValue(HANDLER_PROPERTY, new RuntimeBeanReference(handlerRef));
-			}
-		}
-		String beanName = element.getAttribute(ID_ATTRIBUTE);
-		if (!StringUtils.hasText(beanName)) {
-			beanName = parserContext.getReaderContext().generateBeanName(endpointDef);
-		}
+		List<String> childHandlerRefs = new ArrayList<String>();
 		NodeList childNodes = element.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); i++) {
 			Node child = childNodes.item(i);
@@ -107,7 +103,48 @@ public class EndpointParser implements BeanDefinitionParser {
 					endpointDef.getPropertyValues().addPropertyValue(
 							CONSUMER_POLICY_PROPERTY, new RuntimeBeanReference(consumerBeanName));
 				}
+				else if (HANDLER_ELEMENT.equals(localName)) {
+					String ref = ((Element) child).getAttribute(REF_ATTRIBUTE);
+					String method = ((Element) child).getAttribute(METHOD_ATTRIBUTE);
+					childHandlerRefs.add(this.parseHandlerAdapter(ref, method, parserContext));
+				}
 			}
+		}
+		if (childHandlerRefs.size() > 0) {
+			if (childHandlerRefs.size() == 1) {
+				endpointDef.getPropertyValues().addPropertyValue(
+						HANDLER_PROPERTY, new RuntimeBeanReference(childHandlerRefs.get(0)));
+			}
+			else {
+				RootBeanDefinition handlerChainDef = new RootBeanDefinition(MessageHandlerChain.class);
+				List handlerList = new ManagedList();
+				for (String ref : childHandlerRefs) {
+					handlerList.add(new RuntimeBeanReference(ref));
+				}
+				handlerChainDef.getPropertyValues().addPropertyValue(HANDLERS_PROPERTY, handlerList);
+				String chainBeanName = parserContext.getReaderContext().generateBeanName(handlerChainDef);
+				parserContext.registerBeanComponent(new BeanComponentDefinition(handlerChainDef, chainBeanName));
+				endpointDef.getPropertyValues().addPropertyValue(HANDLER_PROPERTY, new RuntimeBeanReference(chainBeanName));
+			}
+		}
+		String handlerRef = element.getAttribute(HANDLER_REF_ATTRIBUTE);
+		if (StringUtils.hasText(handlerRef)) {
+			if (childHandlerRefs.size() > 0) {
+				throw new MessagingConfigurationException(
+						"The 'handler-ref' attribute is only supported when no 'handler' child elements are present");
+			}
+			String handlerMethod = element.getAttribute(HANDLER_METHOD_ATTRIBUTE);
+			if (StringUtils.hasText(handlerMethod)) {
+				String adapterBeanName = this.parseHandlerAdapter(handlerRef, handlerMethod, parserContext);
+				endpointDef.getPropertyValues().addPropertyValue(HANDLER_PROPERTY, new RuntimeBeanReference(adapterBeanName));
+			}
+			else {
+				endpointDef.getPropertyValues().addPropertyValue(HANDLER_PROPERTY, new RuntimeBeanReference(handlerRef));
+			}
+		}
+		String beanName = element.getAttribute(ID_ATTRIBUTE);
+		if (!StringUtils.hasText(beanName)) {
+			beanName = parserContext.getReaderContext().generateBeanName(endpointDef);
 		}
 		parserContext.registerBeanComponent(new BeanComponentDefinition(endpointDef, beanName));		
 		return endpointDef;
@@ -122,6 +159,15 @@ public class EndpointParser implements BeanDefinitionParser {
 		String beanName = parserContext.getReaderContext().generateBeanName(consumerDef);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(consumerDef, beanName));
 		return beanName;
+	}
+
+	private String parseHandlerAdapter(String handlerRef, String handlerMethod, ParserContext parserContext) {
+		BeanDefinition handlerAdapterDef = new RootBeanDefinition(DefaultMessageHandlerAdapter.class);
+		handlerAdapterDef.getPropertyValues().addPropertyValue(OBJECT_PROPERTY, new RuntimeBeanReference(handlerRef));
+		handlerAdapterDef.getPropertyValues().addPropertyValue(METHOD_NAME_PROPERTY, handlerMethod);
+		String adapterBeanName = parserContext.getReaderContext().generateBeanName(handlerAdapterDef);
+		parserContext.registerBeanComponent(new BeanComponentDefinition(handlerAdapterDef, adapterBeanName));
+		return adapterBeanName;
 	}
 
 }
