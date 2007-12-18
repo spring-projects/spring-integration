@@ -70,7 +70,7 @@ public class EndpointExecutor extends ThreadPoolExecutor {
 		EndpointTask task = (EndpointTask) r;
 		if (task.getError() != null) {
 			if (logger.isWarnEnabled()) {
-				logger.warn("Exception occurred in endpoint execution: " + task.getError());
+				logger.warn("Exception occurred in endpoint execution", task.getError());
 			}
 			this.successiveErrorCount++;
 			this.totalErrorCount++;
