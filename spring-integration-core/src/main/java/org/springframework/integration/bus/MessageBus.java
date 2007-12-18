@@ -38,6 +38,7 @@ import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * The messaging bus. Serves as a registry for channels and endpoints, manages their lifecycle,
@@ -142,6 +143,12 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			subscription.setEndpoint(name);
 			subscription.setPolicy(endpoint.getConsumerPolicy());
 			this.activateSubscription(subscription);
+		}
+		if (this.autoCreateChannels) {
+			String defaultOutputChannelName = endpoint.getDefaultOutputChannelName();
+			if (StringUtils.hasText(defaultOutputChannelName)) {
+				this.registerChannel(defaultOutputChannelName, new PointToPointChannel());
+			}
 		}
 	}
 
