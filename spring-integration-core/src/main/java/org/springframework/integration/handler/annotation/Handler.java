@@ -32,7 +32,7 @@ import org.springframework.integration.endpoint.annotation.MessageEndpoint;
  * 
  * @author Mark Fisher
  */
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented

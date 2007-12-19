@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler.annotation;
+package org.springframework.integration.handler.config;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Map;
 
 import org.springframework.integration.handler.MessageHandler;
 
 /**
- * A strategy for programmatically creating a {@link MessageHandler} based on
- * metadata provided by an annotation.
+ * Strategy interface for creating {@link MessageHandler MessageHandlers}.
  * 
  * @author Mark Fisher
  */
-public interface AnnotationHandlerCreator {
+public interface MessageHandlerCreator {
 
-	MessageHandler createHandler(Object object, Method method, Annotation annotation);
+	MessageHandler createHandler(Object object, Method method, Map<String, ?> attributes);
 
 }

@@ -24,6 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -41,11 +44,13 @@ import org.springframework.integration.endpoint.annotation.MessageEndpoint;
 import org.springframework.integration.endpoint.annotation.Polled;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
-import org.springframework.integration.handler.annotation.AnnotationHandlerCreator;
-import org.springframework.integration.handler.annotation.DefaultAnnotationHandlerCreator;
 import org.springframework.integration.handler.annotation.Handler;
 import org.springframework.integration.handler.annotation.Router;
-import org.springframework.integration.handler.annotation.RouterAnnotationHandlerCreator;
+import org.springframework.integration.handler.annotation.Splitter;
+import org.springframework.integration.handler.config.DefaultMessageHandlerCreator;
+import org.springframework.integration.handler.config.MessageHandlerCreator;
+import org.springframework.integration.handler.config.RouterMessageHandlerCreator;
+import org.springframework.integration.handler.config.SplitterMessageHandlerCreator;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
@@ -58,8 +63,10 @@ import org.springframework.util.StringUtils;
  */
 public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor, InitializingBean {
 
-	private Map<Class<? extends Annotation>, AnnotationHandlerCreator> handlerCreators =
-			new ConcurrentHashMap<Class<? extends Annotation>, AnnotationHandlerCreator>();
+	private Log logger = LogFactory.getLog(this.getClass());
+
+	private Map<Class<? extends Annotation>, MessageHandlerCreator> handlerCreators =
+			new ConcurrentHashMap<Class<? extends Annotation>, MessageHandlerCreator>();
 
 	private MessageBus messageBus;
 
@@ -70,16 +77,17 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 	}
 
 	public void setCustomHandlerCreators(
-			Map<Class<? extends Annotation>, AnnotationHandlerCreator> customHandlerCreators) {
-		for (Map.Entry<Class<? extends Annotation>, AnnotationHandlerCreator> entry : customHandlerCreators.entrySet()) {
+			Map<Class<? extends Annotation>, MessageHandlerCreator> customHandlerCreators) {
+		for (Map.Entry<Class<? extends Annotation>, MessageHandlerCreator> entry : customHandlerCreators.entrySet()) {
 			this.handlerCreators.put(entry.getKey(), entry.getValue());
 		}
 	}
 
 	public void afterPropertiesSet() {
 		Assert.notNull(this.messageBus, "messageBus is required");
-		this.handlerCreators.put(Handler.class, new DefaultAnnotationHandlerCreator());
-		this.handlerCreators.put(Router.class, new RouterAnnotationHandlerCreator());
+		this.handlerCreators.put(Handler.class, new DefaultMessageHandlerCreator());
+		this.handlerCreators.put(Router.class, new RouterMessageHandlerCreator());
+		this.handlerCreators.put(Splitter.class, new SplitterMessageHandlerCreator());
 	}
 
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
@@ -170,23 +178,33 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 		final List<MessageHandler> handlers = new ArrayList<MessageHandler>();
 		ReflectionUtils.doWithMethods(bean.getClass(), new ReflectionUtils.MethodCallback() {
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
-				for (Class<? extends Annotation> annotationType : handlerCreators.keySet()) {
-					Annotation annotation = AnnotationUtils.getAnnotation(method, annotationType);
-					if (annotation != null) {
-						MessageHandler handler = handlerCreators.get(annotationType).createHandler(bean, method, annotation);
-						if (handler instanceof ChannelRegistryAware) {
-							((ChannelRegistryAware) handler).setChannelRegistry(messageBus);
-						}
-						if (handler instanceof InitializingBean) {
-							try {
-								((InitializingBean) handler).afterPropertiesSet();
-							}
-							catch (Exception e) {
-								throw new MessagingConfigurationException("failed to create handler", e);
+				Annotation[] annotations = AnnotationUtils.getAnnotations(method);
+				for (Annotation annotation : annotations) {
+					if (isHandlerAnnotation(annotation)) {
+						Map<String, ?> attributes = AnnotationUtils.getAnnotationAttributes(annotation);
+						MessageHandlerCreator handlerCreator = handlerCreators.get(annotation.annotationType());
+						if (handlerCreator == null) {
+							if (logger.isWarnEnabled()) {
+								logger.warn("No handler creator has been registered for handler annotation '" +
+										annotation.annotationType() + "'");
 							}
 						}
-						if (handler != null) {
-							handlers.add(handler);
+						else {
+							MessageHandler handler = handlerCreator.createHandler(bean, method, attributes);
+							if (handler instanceof ChannelRegistryAware) {
+								((ChannelRegistryAware) handler).setChannelRegistry(messageBus);
+							}
+							if (handler instanceof InitializingBean) {
+								try {
+									((InitializingBean) handler).afterPropertiesSet();
+								}
+								catch (Exception e) {
+									throw new MessagingConfigurationException("failed to create handler", e);
+								}
+							}
+							if (handler != null) {
+								handlers.add(handler);
+							}
 						}
 					}
 				}
@@ -201,6 +219,12 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 			return handlerChain;
 		}
 		return null;
+	}
+
+	private boolean isHandlerAnnotation(Annotation annotation) {
+		return annotation.annotationType().equals(Handler.class)
+				|| annotation.annotationType().isAnnotationPresent(Handler.class)
+				|| this.handlerCreators.keySet().contains(annotation.annotationType());
 	}
 
 }

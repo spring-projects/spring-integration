@@ -18,34 +18,23 @@ package org.springframework.integration.handler.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that a method is capable of resolving to a channel or channel name
- * based on a message, message payload, message attribute, or message property.
+ * Indicates that a method is capable of splitting a single message or message
+ * payload to produce multiple messages which are then sent to the channel whose
+ * name is provided with the 'channel' attribute.
  * 
  * @author Mark Fisher
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@Inherited
 @Documented
 @Handler
-public @interface Router {
+public @interface Splitter {
 
-	/**
-	 * String value representing the name of the property that should be passed
-	 * into the router method. This and 'attribute' should not both be provided.
-	 */
-	String property() default "";
-
-	/**
-	 * String value representing the name of the attribute that should be passed
-	 * into the router method. This and 'property' should not both be provided.
-	 */
-	String attribute() default "";
+	String channel();
 
 }

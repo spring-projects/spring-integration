@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler.annotation;
+package org.springframework.integration.handler.config;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Map;
 
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
@@ -25,14 +25,15 @@ import org.springframework.integration.handler.AbstractMessageHandlerAdapter;
 import org.springframework.integration.handler.MessageHandler;
 
 /**
- * Base class for handler creators for the provided object and method.
+ * Base class for handler creators that generate a {@link MessageHandler}
+ * adapter for the provided object and method.
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractAnnotationHandlerCreator implements AnnotationHandlerCreator {
+public abstract class AbstractMessageHandlerCreator implements MessageHandlerCreator {
 
-	public final MessageHandler createHandler(Object object, Method method, Annotation annotation) {
-		MessageHandler handler = this.doCreateHandler(object, method, annotation);
+	public final MessageHandler createHandler(Object object, Method method, Map<String, ?> attributes) {
+		MessageHandler handler = this.doCreateHandler(object, method, attributes);
 		if (handler instanceof AbstractMessageHandlerAdapter<?>) {
 			AbstractMessageHandlerAdapter adapter = ((AbstractMessageHandlerAdapter) handler);
 			adapter.setObject(object);
@@ -45,6 +46,6 @@ public abstract class AbstractAnnotationHandlerCreator implements AnnotationHand
 		return handler;
 	}
 
-	protected abstract MessageHandler doCreateHandler(Object object, Method method, Annotation annotation);
+	protected abstract MessageHandler doCreateHandler(Object object, Method method, Map<String, ?> attributes);
 
 }

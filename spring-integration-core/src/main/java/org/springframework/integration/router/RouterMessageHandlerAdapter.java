@@ -18,6 +18,7 @@ package org.springframework.integration.router;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.Map;
 
 import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.channel.ChannelRegistry;
@@ -36,17 +37,22 @@ import org.springframework.util.StringUtils;
  */
 public class RouterMessageHandlerAdapter extends AbstractMessageHandlerAdapter implements ChannelRegistryAware {
 
-	private Router routerAnnotation;
+	private static final String PROPERTY_KEY = "property";
+
+	private static final String ATTRIBUTE_KEY = "attribute";
+
 
 	private Method method;
+
+	private Map<String, ?> attributes;
 
 	private ChannelRegistry channelRegistry;
 
 
-	public RouterMessageHandlerAdapter(Object object, Method method, Router routerAnnotation) {
+	public RouterMessageHandlerAdapter(Object object, Method method, Map<String, ?> attributes) {
 		this.setObject(object);
 		this.method = method;
-		this.routerAnnotation = routerAnnotation;
+		this.attributes = attributes;
 	}
 
 	public void setChannelRegistry(ChannelRegistry channelRegistry) {
@@ -59,8 +65,8 @@ public class RouterMessageHandlerAdapter extends AbstractMessageHandlerAdapter i
 			throw new MessagingConfigurationException(
 					"method must accept exactly one parameter");
 		}
-		String propertyName = routerAnnotation.property();
-		String attributeName = routerAnnotation.attribute();
+		String propertyName = (String) attributes.get(PROPERTY_KEY);
+		String attributeName = (String) attributes.get(ATTRIBUTE_KEY);
 		Object retval = null;
 		if (StringUtils.hasText(propertyName)) {
 			if (StringUtils.hasText(attributeName)) {

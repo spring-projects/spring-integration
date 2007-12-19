@@ -14,27 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler.annotation;
+package org.springframework.integration.handler.config;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Map;
 
-import org.springframework.core.annotation.Order;
 import org.springframework.integration.handler.MessageHandler;
-import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
+import org.springframework.integration.router.SplitterMessageHandlerAdapter;
 
 /**
- * Default implementation of the handler creator strategy that creates a
- * {@link DefaultMessageHandlerAdapter} for the provided object and method. This
- * version does not even consider the annotation itself. It does however
- * respect an {@link Order} annotation if present.
+ * Creates a {@link MessageHandler} adapter for splitter methods.
  * 
  * @author Mark Fisher
  */
-public class DefaultAnnotationHandlerCreator extends AbstractAnnotationHandlerCreator {
+public class SplitterMessageHandlerCreator extends AbstractMessageHandlerCreator {
 
-	public MessageHandler doCreateHandler(Object object, Method method, Annotation annotation) {
-		return new DefaultMessageHandlerAdapter<Object>();
+	public MessageHandler doCreateHandler(Object object, Method method, Map<String, ?> attributes) {
+		return new SplitterMessageHandlerAdapter(object, method, attributes);
 	}
-
 }
