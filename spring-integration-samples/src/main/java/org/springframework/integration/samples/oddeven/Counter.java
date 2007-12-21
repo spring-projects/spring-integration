@@ -16,6 +16,8 @@
 
 package org.springframework.integration.samples.oddeven;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.springframework.integration.endpoint.annotation.MessageEndpoint;
 import org.springframework.integration.endpoint.annotation.Polled;
 import org.springframework.integration.handler.annotation.Router;
@@ -26,11 +28,11 @@ import org.springframework.integration.handler.annotation.Router;
 @MessageEndpoint
 public class Counter {
 
-	private volatile int count = 1;
+	private AtomicInteger count = new AtomicInteger();
 
 	@Polled(period=3000)
 	public int getNumber() {
-		return count++;
+		return count.incrementAndGet();
 	}
 
 	@Router
