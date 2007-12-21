@@ -128,7 +128,10 @@ public class GenericMessageEndpoint implements MessageEndpoint {
 		if (replyChannelName != null && replyChannelName.trim().length() > 0) {
 			return this.channelRegistry.lookupChannel(replyChannelName);
 		}
-		return this.channelRegistry.lookupChannel(this.defaultOutputChannelName);
+		if (this.defaultOutputChannelName != null) {
+			return this.channelRegistry.lookupChannel(this.defaultOutputChannelName);
+		}
+		return null;
 	}
 
 }
