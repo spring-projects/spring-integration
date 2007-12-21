@@ -176,7 +176,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			logger.info("activated subscription to channel '" + channelName + 
 					"' for endpoint '" + endpointName + "'");
 		}
-		EndpointExecutor endpointExecutor = new EndpointExecutor(policy.getConcurrency(), policy.getMaxConcurrency());
+		EndpointExecutor endpointExecutor = new EndpointExecutor(endpoint, policy.getConcurrency(), policy.getMaxConcurrency());
 		endpointExecutors.put(endpoint, endpointExecutor);
 		DispatcherTask dispatcherTask = new DispatcherTask(channel, endpoint, policy);
 		this.dispatcherTasks.add(dispatcherTask);
@@ -298,7 +298,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 					int attempts = 0;
 					while (!taskSubmitted) {
 						try {
-							executor.execute(new EndpointTask(this.endpoint, message));
+							executor.executeTask(message);
 							taskSubmitted = true;
 						}
 						catch (RejectedExecutionException rex) {
@@ -334,35 +334,6 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		public void run() {
 			task.run();
 			dispatcherExecutor.execute(new RepeatingDispatcherTask(task));
-		}
-	}
-
-
-	public static class EndpointTask implements Runnable {
-
-		private MessageEndpoint endpoint;
-
-		private Message<?> message;
-
-		private Throwable error;
-
-
-		EndpointTask(MessageEndpoint endpoint, Message<?> message) {
-			this.endpoint = endpoint;
-			this.message = message;
-		}
-
-		public Throwable getError() {
-			return this.error;
-		}
-
-		public void run() {
-			try {
-				this.endpoint.messageReceived(this.message);
-			}
-			catch (Throwable t) {
-				this.error = t;
-			}
 		}
 	}
 

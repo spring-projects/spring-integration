@@ -23,16 +23,22 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.integration.bus.MessageBus.EndpointTask;
+import org.springframework.integration.endpoint.MessageEndpoint;
+import org.springframework.integration.message.Message;
+import org.springframework.util.Assert;
 
 /**
- * A subclass of {@link ThreadPoolExecutor} with configurable error thresholds.
+ * Encapsulates a {@link ThreadPoolExecutor} with configurable error thresholds.
  * 
  * @author Mark Fisher
  */
-public class EndpointExecutor extends ThreadPoolExecutor {
+public class EndpointExecutor {
 
 	private Log logger = LogFactory.getLog(this.getClass());
+
+	private MessageEndpoint endpoint;
+
+	private ThreadPoolExecutor threadPoolExecutor;
 
 	private int successiveErrorCount;
 
@@ -43,8 +49,14 @@ public class EndpointExecutor extends ThreadPoolExecutor {
 	private int totalErrorThreshold = -1;
 
 
-	public EndpointExecutor(int corePoolSize, int maximumPoolSize) {
-		super(corePoolSize, maximumPoolSize, 0, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>());
+	public EndpointExecutor(MessageEndpoint endpoint, int corePoolSize, int maximumPoolSize) {
+		Assert.notNull(endpoint, "'endpoint' must not be null");
+		this.endpoint = endpoint;
+		this.threadPoolExecutor = new EndpointThreadPoolExecutor(corePoolSize, maximumPoolSize);
+	}
+
+	public void executeTask(Message<?> message) {
+		this.threadPoolExecutor.execute(new EndpointTask(this.endpoint, message));
 	}
 
 	/**
@@ -65,25 +77,70 @@ public class EndpointExecutor extends ThreadPoolExecutor {
 		this.totalErrorThreshold = totalErrorThreshold;
 	}
 
-	@Override
-	protected void afterExecute(Runnable r, Throwable t) {
-		EndpointTask task = (EndpointTask) r;
-		if (task.getError() != null) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("Exception occurred in endpoint execution", task.getError());
+	public int getActiveCount() {
+		return this.threadPoolExecutor.getActiveCount();
+	}
+
+	public boolean isShutdown() {
+		return this.threadPoolExecutor.isShutdown();
+	}
+
+
+	private static class EndpointTask implements Runnable {
+
+		private MessageEndpoint endpoint;
+
+		private Message<?> message;
+
+		private Throwable error;
+
+
+		EndpointTask(MessageEndpoint endpoint, Message<?> message) {
+			this.endpoint = endpoint;
+			this.message = message;
+		}
+
+		public Throwable getError() {
+			return this.error;
+		}
+
+		public void run() {
+			try {
+				this.endpoint.messageReceived(this.message);
 			}
-			this.successiveErrorCount++;
-			this.totalErrorCount++;
-			if ((successiveErrorThreshold >= 0 && successiveErrorCount > successiveErrorThreshold)
-					|| (totalErrorThreshold >= 0 && totalErrorCount > totalErrorThreshold)) {
-				if (logger.isInfoEnabled()) {
-					logger.info("error threshold exceeded, shutting down now");
-				}
-				this.shutdownNow();
+			catch (Throwable t) {
+				this.error = t;
 			}
 		}
-		else {
-			successiveErrorCount = 0;
+	}
+
+
+	private class EndpointThreadPoolExecutor extends ThreadPoolExecutor {
+
+		public EndpointThreadPoolExecutor(int corePoolSize, int maximumPoolSize) {
+			super(corePoolSize, maximumPoolSize, 0, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>());
+		}
+
+		@Override
+		protected void afterExecute(Runnable r, Throwable t) {
+			EndpointTask task = (EndpointTask) r;
+			if (task.getError() != null) {
+				if (logger.isWarnEnabled()) {
+					logger.warn("Exception occurred in endpoint execution", task.getError());
+				}
+				successiveErrorCount++;
+				totalErrorCount++;
+				if ((successiveErrorThreshold >= 0 && successiveErrorCount > successiveErrorThreshold)
+						|| (totalErrorThreshold >= 0 && totalErrorCount > totalErrorThreshold)) {
+					if (logger.isInfoEnabled()) {
+						logger.info("error threshold exceeded, shutting down now");
+					}
+					this.shutdownNow();
+				}
+			}
+			else {
+				successiveErrorCount = 0;
+			}
 		}
 	}
 
