@@ -26,6 +26,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.MessageHandlingException;
@@ -142,16 +143,17 @@ public abstract class AbstractChannelAdapter implements MessageChannel, Initiali
 			throw new MessageHandlingException("adapter not initialized");
 		}
 		ExecutorService executor = Executors.newSingleThreadExecutor();
-		Future<Message> result = executor.submit(new Callable<Message>() {
-			public Message call() throws Exception {
-				return receive();
-			}
-		});
 		try {
+			Future<Message> result = executor.submit(new Callable<Message>() {
+				public Message call() throws Exception {
+					return receive();
+				}
+			});
 			result.get(timeout, TimeUnit.MILLISECONDS);
 			if (result.isDone()) {
 				return result.get();
 			}
+			result.cancel(true);
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
@@ -163,7 +165,9 @@ public abstract class AbstractChannelAdapter implements MessageChannel, Initiali
 		catch (ExecutionException e) {
 			throw new MessageHandlingException("Exception occurred in message source", e);
 		}
-		result.cancel(true);
+		finally {
+			executor.shutdown();
+		}
 		return null;
 	}
 

@@ -23,8 +23,11 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.context.Lifecycle;
+import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 
 /**
@@ -32,13 +35,21 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class EndpointExecutor {
+public class EndpointExecutor implements Lifecycle {
 
 	private Log logger = LogFactory.getLog(this.getClass());
 
 	private MessageEndpoint endpoint;
 
 	private ThreadPoolExecutor threadPoolExecutor;
+
+	private int corePoolSize;
+
+	private int maxPoolSize;
+
+	private volatile boolean running;
+
+	private Object lifecycleMonitor = new Object();
 
 	private int successiveErrorCount;
 
@@ -49,13 +60,51 @@ public class EndpointExecutor {
 	private int totalErrorThreshold = -1;
 
 
-	public EndpointExecutor(MessageEndpoint endpoint, int corePoolSize, int maximumPoolSize) {
+	public EndpointExecutor(MessageEndpoint endpoint, int corePoolSize, int maxPoolSize) {
 		Assert.notNull(endpoint, "'endpoint' must not be null");
+		Assert.isTrue(corePoolSize > 0, "'corePoolSize' must be at least 1");
+		Assert.isTrue(maxPoolSize > 0, "'maxPoolSize' must be at least 1");
+		Assert.isTrue(maxPoolSize >= corePoolSize, "'corePoolSize' cannot exceed 'maxPoolSize'");
 		this.endpoint = endpoint;
-		this.threadPoolExecutor = new EndpointThreadPoolExecutor(corePoolSize, maximumPoolSize);
+		this.corePoolSize = corePoolSize;
+		this.maxPoolSize = maxPoolSize;
+	}
+
+	public void setCorePoolSize(int corePoolSize) {
+		this.corePoolSize = corePoolSize;
+	}
+
+	public void setMaxPoolSize(int maxPoolSize) {
+		this.maxPoolSize = maxPoolSize;
+	}
+
+	public boolean isRunning() {
+		return this.running;
+	}
+
+	public void start() {
+		synchronized (this.lifecycleMonitor) {
+			if (!this.running) {
+				this.threadPoolExecutor = new EndpointThreadPoolExecutor(this.corePoolSize, this.maxPoolSize);
+			}
+			this.running = true;
+		}
+	}
+
+	public void stop() {
+		synchronized (this.lifecycleMonitor) {
+			if (this.isRunning()) {
+				this.threadPoolExecutor.shutdown();
+				this.threadPoolExecutor = null;
+			}
+			this.running = false;
+		}
 	}
 
 	public void executeTask(Message<?> message) {
+		if (threadPoolExecutor == null) {
+			throw new MessageHandlingException("executor is not running");
+		}
 		this.threadPoolExecutor.execute(new EndpointTask(this.endpoint, message));
 	}
 
@@ -119,6 +168,9 @@ public class EndpointExecutor {
 
 		public EndpointThreadPoolExecutor(int corePoolSize, int maximumPoolSize) {
 			super(corePoolSize, maximumPoolSize, 0, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>());
+			CustomizableThreadFactory threadFactory = new CustomizableThreadFactory();
+			threadFactory.setThreadNamePrefix("endpoint-executor-");
+			this.setThreadFactory(threadFactory);
 		}
 
 		@Override

@@ -185,6 +185,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 					channelName + "' endpoint='" + endpointName + "'");
 		}
 		if (this.isRunning()) {
+			endpointExecutor.start();
 			scheduleDispatcherTask(dispatcherTask);
 			if (this.logger.isInfoEnabled()) {
 				logger.info("scheduled dispatcher task: channel='" +
@@ -236,6 +237,9 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		synchronized (this.lifecycleMonitor) {
 			if (!this.isRunning()) {
 				this.running = true;
+				for (EndpointExecutor executor : endpointExecutors.values()) {
+					executor.start();
+				}
 				for (DispatcherTask task : this.dispatcherTasks) {
 					scheduleDispatcherTask(task);
 				}
@@ -247,6 +251,9 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		synchronized (this.lifecycleMonitor) {
 			if (this.isRunning()) {
 				this.running = false;
+				for (EndpointExecutor executor : endpointExecutors.values()) {
+					executor.stop();
+				}
 				this.dispatcherExecutor.shutdownNow();
 			}
 		}
