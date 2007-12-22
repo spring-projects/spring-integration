@@ -38,6 +38,7 @@ public class HelloWorldDemo {
 		MessageChannel outputChannel = channelRegistry.lookupChannel("outputChannel");
 		inputChannel.send(new StringMessage(1, "World"));
 		System.out.println(outputChannel.receive().getPayload());
+		context.stop();
 	}
 
 }

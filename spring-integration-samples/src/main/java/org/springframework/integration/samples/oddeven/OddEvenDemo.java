@@ -24,10 +24,9 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  */
 public class OddEvenDemo {
 
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) {
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext("oddEvenDemo.xml", OddEvenDemo.class);
 		context.start();
-		System.in.read();
 	}
 
 }
