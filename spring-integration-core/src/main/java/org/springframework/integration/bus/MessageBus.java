@@ -146,7 +146,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		}
 		if (this.autoCreateChannels) {
 			String defaultOutputChannelName = endpoint.getDefaultOutputChannelName();
-			if (StringUtils.hasText(defaultOutputChannelName)) {
+			if (StringUtils.hasText(defaultOutputChannelName) && this.lookupChannel(defaultOutputChannelName) == null) {
 				this.registerChannel(defaultOutputChannelName, new PointToPointChannel());
 			}
 		}
