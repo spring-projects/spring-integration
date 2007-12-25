@@ -101,7 +101,7 @@ public class EndpointExecutor implements Lifecycle {
 		}
 	}
 
-	public void executeTask(Message<?> message) {
+	public void processMessage(Message<?> message) {
 		if (threadPoolExecutor == null) {
 			throw new MessageHandlingException("executor is not running");
 		}

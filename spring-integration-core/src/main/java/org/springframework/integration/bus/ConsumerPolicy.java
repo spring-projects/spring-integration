@@ -29,7 +29,7 @@ public class ConsumerPolicy {
 
 	private static final int DEFAULT_MAX_CONCURRENCY = 10;
 
-	private static final int DEFAULT_MAX_MESSAGES_PER_TASK = 10;
+	private static final int DEFAULT_MAX_MESSAGES_PER_TASK = 1;
 
 	private static final int DEFAULT_REJECTION_LIMIT = 10;
 

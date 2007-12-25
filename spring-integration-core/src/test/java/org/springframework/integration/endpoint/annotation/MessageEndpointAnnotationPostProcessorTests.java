@@ -39,6 +39,7 @@ public class MessageEndpointAnnotationPostProcessorTests {
 		inputChannel.send(new GenericMessage<String>(1, "world"));
 		Message<String> message = outputChannel.receive();
 		assertEquals("hello world", message.getPayload());
+		context.stop();
 	}
 
 }

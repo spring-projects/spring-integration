@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import org.apache.commons.logging.Log;
@@ -36,7 +35,6 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PointToPointChannel;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.endpoint.MessageEndpoint;
-import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -178,7 +176,10 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		}
 		EndpointExecutor endpointExecutor = new EndpointExecutor(endpoint, policy.getConcurrency(), policy.getMaxConcurrency());
 		endpointExecutors.put(endpoint, endpointExecutor);
-		DispatcherTask dispatcherTask = new DispatcherTask(channel, endpoint, policy);
+		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
+		UnicastMessageDispatcher dispatcher = new UnicastMessageDispatcher(retriever, policy);
+		dispatcher.addEndpointExecutor(endpointExecutor);
+		DispatcherTask dispatcherTask = new DispatcherTask(dispatcher, policy);
 		this.dispatcherTasks.add(dispatcherTask);
 		if (this.logger.isInfoEnabled()) {
 			logger.info("registered dispatcher task: channel='" +
@@ -260,73 +261,27 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 	}
 
 
-	private class DispatcherTask implements Runnable {
+	private static class DispatcherTask implements Runnable {
 
-		private MessageChannel channel;
-
-		private MessageEndpoint endpoint;
+		private MessageDispatcher dispatcher;
 
 		private ConsumerPolicy policy;
 
 
-		public DispatcherTask(MessageChannel channel, MessageEndpoint endpoint, ConsumerPolicy policy) {
-			this.channel = channel;
-			this.endpoint = endpoint;
+		public DispatcherTask(MessageDispatcher dispatcher, ConsumerPolicy policy) {
+			this.dispatcher = dispatcher;
 			this.policy = policy;
 		}
 
-		public MessageChannel getChannel() {
-			return this.channel;
-		}
-
-		public MessageEndpoint getEndpoint() {
-			return this.endpoint;
-		}
 
 		public ConsumerPolicy getPolicy() {
 			return this.policy;
 		}
 
 		public void run() {
-			EndpointExecutor executor = endpointExecutors.get(this.endpoint);
-			if (executor == null || executor.isShutdown()) {
-				if (logger.isWarnEnabled()) {
-					logger.warn("dispatcher shutting down, endpoint executor is not active");
-				}
-				return;
-			}			
-			for (int i = 0; i < policy.getMaxMessagesPerTask(); i++) {
-				Message<?> message = channel.receive(this.policy.getReceiveTimeout());
-				if (message == null) {
-					return;
-				}
-				else {
-					boolean taskSubmitted = false;
-					int attempts = 0;
-					while (!taskSubmitted) {
-						try {
-							executor.executeTask(message);
-							taskSubmitted = true;
-						}
-						catch (RejectedExecutionException rex) {
-							attempts++;
-							if (attempts == policy.getRejectionLimit()) {
-								attempts = 0;
-								if (logger.isDebugEnabled()) {
-									logger.debug("reached rejected execution limit");
-								}
-								try {
-									Thread.sleep(policy.getRejectionLimitWait());
-								}
-								catch (InterruptedException iex) {
-									Thread.currentThread().interrupt();
-								}
-							}
-						}
-					}
-				}
-			}
+			dispatcher.receiveAndDispatch();
 		}
+
 	}
 
 
