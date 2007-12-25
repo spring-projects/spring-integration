@@ -92,6 +92,7 @@ public class EventDrivenConsumerTests {
 		assertTrue(maxActive.get() <= maxConcurrency);
 		assertTrue(averageActive > concurrency);
 		assertTrue(averageActive < maxActive.get());
+		bus.stop();
 	}
 
 }
