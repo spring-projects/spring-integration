@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
+
 import org.springframework.integration.channel.PointToPointChannel;
 import org.springframework.integration.endpoint.GenericMessageEndpoint;
 import org.springframework.integration.endpoint.MessageEndpoint;
@@ -42,7 +43,7 @@ public class FixedRateConsumerTests {
 		final CountDownLatch latch = new CountDownLatch(messagesToSend);
 		PointToPointChannel channel = new PointToPointChannel();
 		MessageEndpoint endpoint = new GenericMessageEndpoint() {
-			public void messageReceived(Message message) {
+			public void messageReceived(Message<?> message) {
 				counter.incrementAndGet();
 				latch.countDown();
 			}
@@ -73,7 +74,7 @@ public class FixedRateConsumerTests {
 		final CountDownLatch latch = new CountDownLatch(messagesToSend);
 		PointToPointChannel channel = new PointToPointChannel();
 		MessageEndpoint endpoint = new GenericMessageEndpoint() {
-			public void messageReceived(Message message) {
+			public void messageReceived(Message<?> message) {
 				counter.incrementAndGet();
 				latch.countDown();
 			}
@@ -86,7 +87,7 @@ public class FixedRateConsumerTests {
 		policy.setMaxConcurrency(1);
 		policy.setMaxMessagesPerTask(1);
 		policy.setFixedRate(true);
-		policy.setPeriod(10);
+		policy.setPeriod(20);
 		Subscription subscription = new Subscription();
 		subscription.setChannel("testChannel");
 		subscription.setEndpoint("testEndpoint");
@@ -97,8 +98,9 @@ public class FixedRateConsumerTests {
 			channel.send(new GenericMessage<String>(1, "test " + (i+1)));
 		}
 		latch.await(80, TimeUnit.MILLISECONDS);
-		assertTrue(counter.get() < 10);
-		assertTrue("only " + counter.get() + " messages received", counter.get() > 7);
+		int count = counter.get();
+		assertTrue("received " + count + ", but expected less than 6", count < 6);
+		assertTrue("received " + count + ", but expected more than 3", count > 3);
 	}
 
 }
