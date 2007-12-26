@@ -127,6 +127,9 @@ public class EndpointExecutor implements Lifecycle {
 	}
 
 	public int getActiveCount() {
+		if (this.threadPoolExecutor == null) {
+			return 0;
+		}
 		return this.threadPoolExecutor.getActiveCount();
 	}
 

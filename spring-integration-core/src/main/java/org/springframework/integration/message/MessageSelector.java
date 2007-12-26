@@ -23,6 +23,6 @@ package org.springframework.integration.message;
  */
 public interface MessageSelector {
 
-	boolean accept(Message message);
+	boolean accept(Message<?> message);
 
 }
