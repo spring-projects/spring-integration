@@ -17,45 +17,54 @@
 package org.springframework.integration.bus;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.channel.PointToPointChannel;
+import org.springframework.integration.endpoint.GenericMessageEndpoint;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
  */
 public class MessageBusTests {
-/*
+
 	@Test
-	public void testStandaloneWithEndpoint() {
+	public void testChannelsConnectedWithEndpoint() {
 		MessageBus bus = new MessageBus();
 		MessageChannel sourceChannel = new PointToPointChannel();
 		MessageChannel targetChannel = new PointToPointChannel();
 		bus.registerChannel("sourceChannel", sourceChannel);
-		sourceChannel.send(new DocumentMessage("123", "test"));
+		sourceChannel.send(new StringMessage("123", "test"));
 		bus.registerChannel("targetChannel", targetChannel);
-		GenericMessageEndpoint endpoint = new GenericMessageEndpoint(sourceChannel);
-		endpoint.setTarget(targetChannel);
+		GenericMessageEndpoint endpoint = new GenericMessageEndpoint();
+		endpoint.setInputChannelName("sourceChannel");
+		endpoint.setDefaultOutputChannelName("targetChannel");
 		bus.registerEndpoint("endpoint", endpoint);
-		Message result = targetChannel.receive();
+		bus.start();
+		Message<?> result = targetChannel.receive();
 		assertEquals("test", result.getPayload());
+		bus.stop();
 	}
 
 	@Test
-	public void testStandaloneWithoutEndpoint() {
+	public void testChannelsWithoutEndpoint() {
 		MessageBus bus = new MessageBus();
 		MessageChannel sourceChannel = new PointToPointChannel();
-		sourceChannel.send(new DocumentMessage("123", "test"));
+		sourceChannel.send(new StringMessage("123", "test"));
 		MessageChannel targetChannel = new PointToPointChannel();
 		bus.registerChannel("sourceChannel", sourceChannel);
 		bus.registerChannel("targetChannel", targetChannel);
-		Message result = targetChannel.receive(10);
+		bus.start();
+		Message<?> result = targetChannel.receive(10);
 		assertNull(result);
+		bus.stop();
 	}
-*/
 
 	@Test
 	public void testAutodetectionWithApplicationContext() {
@@ -71,7 +80,7 @@ public class MessageBusTests {
 		subscription.setEndpoint("endpoint");
 		subscription.setPolicy(policy);
 		bus.activateSubscription(subscription);
-		Message<String> result = targetChannel.receive(10);
+		Message<?> result = targetChannel.receive(10);
 		assertEquals("test", result.getPayload());
 	}
 
