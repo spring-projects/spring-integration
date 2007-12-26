@@ -35,17 +35,15 @@ public class PointToPointChannel implements MessageChannel, BeanNameAware {
 
 	private static final int DEFAULT_CAPACITY = 25;
 
-
 	private String name;
 
-	private BlockingQueue<Message> queue;
-
+	private BlockingQueue<Message<?>> queue;
 
 	/**
 	 * Create a channel with the specified queue capacity.
 	 */
 	public PointToPointChannel(int capacity) {
-		queue = new LinkedBlockingQueue<Message>(capacity);
+		queue = new LinkedBlockingQueue<Message<?>>(capacity);
 	}
 
 	/**
@@ -56,17 +54,29 @@ public class PointToPointChannel implements MessageChannel, BeanNameAware {
 	}
 
 
+	/**
+	 * Set the name of this channel.
+	 */
 	public void setName(String name) {
 		this.name = name;
 	}
 
+	/**
+	 * Return the name of this channel.
+	 */
 	public String getName() {
 		return this.name;
 	}
 
+	/**
+	 * Set the name of this channel to its bean name. This will be invoked
+	 * automatically whenever the channel is configured explicitly with a bean
+	 * definition.
+	 */
 	public void setBeanName(String beanName) {
 		this.setName(beanName);
 	}
+
 	/**
 	 * Send a message on this channel. If the queue is full, this method will
 	 * block until either space becomes available or the sending thread is
@@ -173,7 +183,7 @@ public class PointToPointChannel implements MessageChannel, BeanNameAware {
 		while (timeout <= 0 || System.currentTimeMillis() - start < timeout) {
 			Object[] elements = this.queue.toArray();
 			for (int i = (elements.length - 1); i >= 0; i--) {
-				Message m = (Message) elements[i];
+				Message<?> m = (Message<?>) elements[i];
 				if (selector.accept(m) && this.queue.remove(m)) {
 					return m;
 				}

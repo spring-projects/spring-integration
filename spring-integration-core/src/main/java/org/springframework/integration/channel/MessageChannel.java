@@ -19,14 +19,20 @@ package org.springframework.integration.channel;
 import org.springframework.integration.message.Message;
 
 /**
- * Base channel interface defining common behavior for message reception and sending.
+ * Base channel interface defining common behavior for message sending and receiving.
  * 
  * @author Mark Fisher
  */
 public interface MessageChannel {
 
+	/**
+	 * Set the name of this channel. Must be unique within a context.
+	 */
 	void setName(String name);
 
+	/**
+	 * Return the name of this channel.
+	 */
 	String getName();
 
 	/**
@@ -34,41 +40,40 @@ public interface MessageChannel {
 	 * 
 	 * @param message the {@link Message} to send
 	 * 
-	 * @return <code>true</code> if the message is sent
-	 * successfully, <code>false</false> if interrupted
+	 * @return <code>true</code> if the message is sent successfully,
+	 * <code>false</false> if interrupted
 	 */
 	boolean send(Message message);
 
 	/**
-	 * Send a message, blocking until either the message is
-	 * accepted or the specified timeout period elapses.
+	 * Send a message, blocking until either the message is accepted or the
+	 * specified timeout period elapses.
 	 * 
 	 * @param message the {@link Message} to send
 	 * @param timeout the timeout in milliseconds
 	 * 
-	 * @return <code>true</code> if the message is sent
-	 * successfully, <code>false</false> if the specified
-	 * timeout period elapses or the send is interrupted
+	 * @return <code>true</code> if the message is sent successfully,
+	 * <code>false</false> if the specified timeout period elapses or
+	 * the send is interrupted
 	 */
 	boolean send(Message message, long timeout);
 
 	/**
 	 * Receive a message, blocking indefinitely if necessary.
 	 * 
-	 * @return the next available {@link Message} or
-	 * <code>null</code> if interrupted
+	 * @return the next available {@link Message} or <code>null</code> if
+	 * interrupted
 	 */
 	Message receive();
 
 	/**
-	 * Receive a message, blocking until either a message is
-	 * available or the specified timeout period elapses.
+	 * Receive a message, blocking until either a message is available or the
+	 * specified timeout period elapses.
 	 * 
 	 * @param timeout the timeout in milliseconds
 	 * 
-	 * @return the next available {@link Message} or
-	 * <code>null</code> if the specified timeout period
-	 * elapses or the message reception is interrupted
+	 * @return the next available {@link Message} or <code>null</code> if the
+	 * specified timeout period elapses or the message reception is interrupted
 	 */
 	Message receive(long timeout);
 
