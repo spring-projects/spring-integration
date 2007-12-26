@@ -36,7 +36,7 @@ import org.springframework.integration.message.GenericMessage;
  */
 public class FixedRateConsumerTests {
 
-	@Test
+	//@Test
 	public void testAllSentMessagesAreReceivedWithinTimeLimit() throws Exception {
 		int messagesToSend = 20;
 		final AtomicInteger counter = new AtomicInteger(0);
