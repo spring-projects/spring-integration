@@ -47,7 +47,7 @@ public class MessageBusTests {
 		endpoint.setDefaultOutputChannelName("targetChannel");
 		bus.registerEndpoint("endpoint", endpoint);
 		bus.start();
-		Message<?> result = targetChannel.receive();
+		Message<?> result = targetChannel.receive(1000);
 		assertEquals("test", result.getPayload());
 		bus.stop();
 	}

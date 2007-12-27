@@ -19,6 +19,7 @@ package org.springframework.integration.endpoint.annotation;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
+
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
@@ -37,7 +38,7 @@ public class MessageEndpointAnnotationPostProcessorTests {
 		MessageChannel inputChannel = (MessageChannel) context.getBean("inputChannel");
 		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
 		inputChannel.send(new GenericMessage<String>(1, "world"));
-		Message<String> message = outputChannel.receive();
+		Message<String> message = outputChannel.receive(1000);
 		assertEquals("hello world", message.getPayload());
 		context.stop();
 	}
