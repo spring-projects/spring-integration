@@ -30,12 +30,14 @@ import org.springframework.util.Assert;
  */
 public class FileSourceAdapter extends PollingSourceAdapter<File> {
 
-	public FileSourceAdapter(File directory, MessageChannel channel, int pollInterval) {
-		this(directory, channel, pollInterval, true);
+	public FileSourceAdapter(File directory, MessageChannel channel, int period) {
+		this(directory, channel, period, true);
 	}
 
-	public FileSourceAdapter(File directory, MessageChannel channel, int pollInterval, boolean isTextBased) {
-		super(new FileSource(directory), channel, pollInterval);
+	public FileSourceAdapter(File directory, MessageChannel channel, int period, boolean isTextBased) {
+		super(new FileSource(directory));
+		this.setChannel(channel);
+		this.setPeriod(period);
 		if (isTextBased) {
 			this.setMessageMapper(new TextFileMapper(directory));
 		}

@@ -17,6 +17,7 @@
 package org.springframework.integration.adapter;
 
 import org.springframework.integration.bus.ConsumerPolicy;
+import org.springframework.integration.channel.MessageChannel;
 
 /**
  * Base interface for source adapters.
@@ -24,6 +25,8 @@ import org.springframework.integration.bus.ConsumerPolicy;
  * @author Mark Fisher
  */
 public interface SourceAdapter {
+
+	void setChannel(MessageChannel channel);
 
 	ConsumerPolicy getConsumerPolicy();
 

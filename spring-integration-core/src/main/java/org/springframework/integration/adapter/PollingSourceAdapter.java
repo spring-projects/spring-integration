@@ -36,21 +36,36 @@ import org.springframework.util.Assert;
  */
 public class PollingSourceAdapter<T> implements SourceAdapter, MessageDispatcher {
 
+	private static int DEFAULT_PERIOD = 1000;
+
 	private PollableSource<T> source;
 
 	private MessageChannel channel;
 
 	private MessageMapper<?,T> mapper = new SimplePayloadMessageMapper<T>();
 
-	private ConsumerPolicy policy;
+	private ConsumerPolicy policy = ConsumerPolicy.newPollingPolicy(DEFAULT_PERIOD);
 
 	private long sendTimeout = -1;
 
 
-	public PollingSourceAdapter(PollableSource<T> source, MessageChannel channel, int pollInterval) {
+	public PollingSourceAdapter(PollableSource<T> source) {
+		Assert.notNull(source, "'source' must not be null");
 		this.source = source;
+	}
+
+	public void setChannel(MessageChannel channel) {
+		Assert.notNull(channel, "'channel' must not be null");
 		this.channel = channel;
-		this.initConsumerPolicy(pollInterval);
+	}
+
+	public void setPeriod(int period) {
+		Assert.isTrue(period > 0, "'period' must be a positive value");
+		this.policy.setPeriod(period);
+	}
+
+	public void setSendTimeout(long sendTimeout) {
+		this.sendTimeout = sendTimeout;
 	}
 
 	public void setMessageMapper(MessageMapper<?,T> mapper) {
@@ -62,23 +77,13 @@ public class PollingSourceAdapter<T> implements SourceAdapter, MessageDispatcher
 		return this.mapper;
 	}
 
-	public void setLimit(int limit) {
-		Assert.isTrue(limit > 0, "'limit' must be a positive value");
-		this.policy.setMaxMessagesPerTask(limit);
-	}
-
-	public void setSendTimeout(long sendTimeout) {
-		this.sendTimeout = sendTimeout;
+	public void setMaxMessagesPerTask(int maxMessagesPerTask) {
+		Assert.isTrue(maxMessagesPerTask > 0, "'maxMessagesPerTask' must be a positive value");
+		this.policy.setMaxMessagesPerTask(maxMessagesPerTask);
 	}
 
 	public ConsumerPolicy getConsumerPolicy() {
 		return this.policy;
-	}
-
-	private void initConsumerPolicy(int pollInterval) {
-		ConsumerPolicy policy = new ConsumerPolicy();
-		policy.setPeriod(pollInterval);
-		this.policy = policy;
 	}
 
 	public int receiveAndDispatch() {

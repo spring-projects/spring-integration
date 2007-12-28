@@ -18,6 +18,8 @@ package org.springframework.integration.bus;
 
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.util.Assert;
+
 /**
  * A container for Message consumer configuration metadata.
  * 
@@ -58,6 +60,20 @@ public class ConsumerPolicy {
 
 	private long receiveTimeout = DEFAULT_RECEIVE_TIMEOUT;
 
+
+	/**
+	 * Factory method for a basic polling policy.
+	 * 
+	 *  @param period the polling interval
+	 */
+	public static ConsumerPolicy newPollingPolicy(int period) {
+		Assert.isTrue(period > 0, "'period' must be a positive value");
+		ConsumerPolicy policy = new ConsumerPolicy();
+		policy.setPeriod(period);
+		policy.setConcurrency(1);
+		policy.setMaxConcurrency(1);
+		return policy;
+	}
 
 	public int getInitialDelay() {
 		return this.initialDelay;
