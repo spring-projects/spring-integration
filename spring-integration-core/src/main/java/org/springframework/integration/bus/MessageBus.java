@@ -30,6 +30,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.adapter.SourceAdapter;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PointToPointChannel;
@@ -150,6 +151,14 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		}
 	}
 
+	public void registerSourceAdapter(SourceAdapter adapter) {
+		if (adapter instanceof MessageDispatcher) {
+			ConsumerPolicy policy = adapter.getConsumerPolicy();
+			DispatcherTask dispatcherTask = new DispatcherTask((MessageDispatcher) adapter, policy);
+			this.addDispatcherTask(dispatcherTask);
+		}
+	}
+
 	public void activateSubscription(Subscription subscription) {
 		String channelName = subscription.getChannel();
 		String endpointName = subscription.getEndpoint();
@@ -180,17 +189,22 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		UnicastMessageDispatcher dispatcher = new UnicastMessageDispatcher(retriever, policy);
 		dispatcher.addEndpointExecutor(endpointExecutor);
 		DispatcherTask dispatcherTask = new DispatcherTask(dispatcher, policy);
-		this.dispatcherTasks.add(dispatcherTask);
+		if (this.isRunning()) {
+			endpointExecutor.start();
+		}
+		this.addDispatcherTask(dispatcherTask);
 		if (this.logger.isInfoEnabled()) {
 			logger.info("registered dispatcher task: channel='" +
 					channelName + "' endpoint='" + endpointName + "'");
 		}
+	}
+
+	private void addDispatcherTask(DispatcherTask dispatcherTask) {
+		this.dispatcherTasks.add(dispatcherTask);
 		if (this.isRunning()) {
-			endpointExecutor.start();
 			scheduleDispatcherTask(dispatcherTask);
 			if (this.logger.isInfoEnabled()) {
-				logger.info("scheduled dispatcher task: channel='" +
-						channelName + "' endpoint='" + endpointName + "'");
+				logger.info("scheduled dispatcher task");
 			}
 		}
 	}
