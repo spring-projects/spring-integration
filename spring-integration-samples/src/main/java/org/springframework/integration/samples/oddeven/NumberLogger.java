@@ -16,7 +16,7 @@
 
 package org.springframework.integration.samples.oddeven;
 
-import org.springframework.integration.endpoint.annotation.Subscriber;
+import org.springframework.integration.annotation.Subscriber;
 import org.springframework.stereotype.Component;
 
 /**

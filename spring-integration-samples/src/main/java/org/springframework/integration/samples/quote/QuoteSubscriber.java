@@ -16,7 +16,7 @@
 
 package org.springframework.integration.samples.quote;
 
-import org.springframework.integration.endpoint.annotation.Subscriber;
+import org.springframework.integration.annotation.Subscriber;
 
 /**
  * @author Mark Fisher

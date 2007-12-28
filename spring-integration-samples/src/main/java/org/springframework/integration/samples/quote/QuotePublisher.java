@@ -20,8 +20,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Random;
 
-import org.springframework.integration.endpoint.annotation.MessageEndpoint;
-import org.springframework.integration.endpoint.annotation.Polled;
+import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.annotation.Polled;
 
 /**
  * @author Mark Fisher

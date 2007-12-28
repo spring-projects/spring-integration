@@ -18,9 +18,9 @@ package org.springframework.integration.samples.oddeven;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.integration.endpoint.annotation.MessageEndpoint;
-import org.springframework.integration.endpoint.annotation.Polled;
-import org.springframework.integration.handler.annotation.Router;
+import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.annotation.Polled;
+import org.springframework.integration.annotation.Router;
 
 /**
  * @author Mark Fisher
