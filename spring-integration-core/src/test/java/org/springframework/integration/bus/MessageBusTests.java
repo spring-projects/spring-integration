@@ -62,7 +62,7 @@ public class MessageBusTests {
 		bus.registerChannel("sourceChannel", sourceChannel);
 		bus.registerChannel("targetChannel", targetChannel);
 		bus.start();
-		Message<?> result = targetChannel.receive(10);
+		Message<?> result = targetChannel.receive(100);
 		assertNull(result);
 		bus.stop();
 	}
