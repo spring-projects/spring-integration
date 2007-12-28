@@ -222,7 +222,8 @@ public class PointToPointChannelTests {
 		});
 		sender.start();
 		latch.await();
-		assertEquals("test-3", messageRef.get().getPayload());
+		String payload = (String) messageRef.get().getPayload();
+		assertEquals("expected 'test-3', but message was '" + payload, "test-3", payload);
 	}
 
 	@Test
