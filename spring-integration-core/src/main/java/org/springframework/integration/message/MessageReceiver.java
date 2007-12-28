@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.bus;
+package org.springframework.integration.message;
 
 /**
- * Strategy interface for dispatching messages.
+ * The primary callback interface for any component capable of receiving
+ * messages. This includes message endpoints as well as target adapters.
  * 
  * @author Mark Fisher
  */
-public interface MessageDispatcher {
+public interface MessageReceiver {
 
-	int dispatch();
+	void messageReceived(Message<?> message);
 
 }

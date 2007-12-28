@@ -30,12 +30,15 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.MessagingException;
+import org.springframework.integration.adapter.DefaultTargetAdapter;
 import org.springframework.integration.adapter.SourceAdapter;
+import org.springframework.integration.adapter.TargetAdapter;
 import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PointToPointChannel;
-import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.endpoint.MessageEndpoint;
+import org.springframework.integration.message.MessageReceiver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -53,9 +56,11 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 
 	private Map<String, MessageEndpoint> endpoints = new ConcurrentHashMap<String, MessageEndpoint>();
 
+	private Map<String, TargetAdapter> targetAdapters = new ConcurrentHashMap<String, TargetAdapter>();
+
 	private List<DispatcherTask> dispatcherTasks = new CopyOnWriteArrayList<DispatcherTask>();
 
-	private Map<MessageEndpoint, EndpointExecutor> endpointExecutors = new ConcurrentHashMap<MessageEndpoint, EndpointExecutor>();
+	private Map<MessageReceiver, MessageReceivingExecutor> receiverExecutors = new ConcurrentHashMap<MessageReceiver, MessageReceivingExecutor>();
 
 	private ScheduledThreadPoolExecutor dispatcherExecutor;
 
@@ -70,6 +75,8 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		Assert.notNull(applicationContext, "applicationContext must not be null");
 		this.registerChannels(applicationContext);
 		this.registerEndpoints(applicationContext);
+		this.registerSourceAdapters(applicationContext);
+		this.registerTargetAdapters(applicationContext);
 		this.activateSubscriptions(applicationContext);
 	}
 
@@ -92,6 +99,24 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 				(Map<String, MessageEndpoint>) context.getBeansOfType(MessageEndpoint.class);
 		for (Map.Entry<String, MessageEndpoint> entry : endpointBeans.entrySet()) {
 			this.registerEndpoint(entry.getKey(), entry.getValue());
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private void registerSourceAdapters(ApplicationContext context) {
+		Map<String, SourceAdapter> sourceAdapterBeans =
+				(Map<String, SourceAdapter>) context.getBeansOfType(SourceAdapter.class);
+		for (Map.Entry<String, SourceAdapter> entry : sourceAdapterBeans.entrySet()) {
+			this.registerSourceAdapter(entry.getKey(), entry.getValue());
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private void registerTargetAdapters(ApplicationContext context) {
+		Map<String, TargetAdapter> targetAdapterBeans =
+				(Map<String, TargetAdapter>) context.getBeansOfType(TargetAdapter.class);
+		for (Map.Entry<String, TargetAdapter> entry : targetAdapterBeans.entrySet()) {
+			this.registerTargetAdapter(entry.getKey(), entry.getValue());
 		}
 	}
 
@@ -151,11 +176,26 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		}
 	}
 
-	public void registerSourceAdapter(SourceAdapter adapter) {
+	public void registerSourceAdapter(String name, SourceAdapter adapter) {
+		// TODO: use the name
 		if (adapter instanceof MessageDispatcher) {
 			ConsumerPolicy policy = adapter.getConsumerPolicy();
 			DispatcherTask dispatcherTask = new DispatcherTask((MessageDispatcher) adapter, policy);
 			this.addDispatcherTask(dispatcherTask);
+		}
+	}
+
+	public void registerTargetAdapter(String name, TargetAdapter targetAdapter) {
+		if (targetAdapter instanceof DefaultTargetAdapter) {
+			DefaultTargetAdapter adapter = (DefaultTargetAdapter) targetAdapter;
+			adapter.setName(name);
+			this.targetAdapters.put(name, targetAdapter);
+			MessageChannel channel = adapter.getChannel();
+			ConsumerPolicy policy = adapter.getConsumerPolicy();
+			MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
+			UnicastMessageDispatcher dispatcher = new UnicastMessageDispatcher(retriever, policy);
+			dispatcher.addExecutor(new MessageReceivingExecutor(adapter, policy.getConcurrency(), policy.getMaxConcurrency()));
+			this.addDispatcherTask(new DispatcherTask(dispatcher, policy));
 		}
 	}
 
@@ -183,19 +223,19 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			logger.info("activated subscription to channel '" + channelName + 
 					"' for endpoint '" + endpointName + "'");
 		}
-		EndpointExecutor endpointExecutor = new EndpointExecutor(endpoint, policy.getConcurrency(), policy.getMaxConcurrency());
-		endpointExecutors.put(endpoint, endpointExecutor);
+		MessageReceivingExecutor executor = new MessageReceivingExecutor(endpoint, policy.getConcurrency(), policy.getMaxConcurrency());
+		receiverExecutors.put(endpoint, executor);
 		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
 		UnicastMessageDispatcher dispatcher = new UnicastMessageDispatcher(retriever, policy);
-		dispatcher.addEndpointExecutor(endpointExecutor);
+		dispatcher.addExecutor(executor);
 		DispatcherTask dispatcherTask = new DispatcherTask(dispatcher, policy);
 		if (this.isRunning()) {
-			endpointExecutor.start();
+			executor.start();
 		}
 		this.addDispatcherTask(dispatcherTask);
 		if (this.logger.isInfoEnabled()) {
 			logger.info("registered dispatcher task: channel='" +
-					channelName + "' endpoint='" + endpointName + "'");
+					channelName + "' receiver='" + endpointName + "'");
 		}
 	}
 
@@ -209,10 +249,13 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		}
 	}
 
-	public int getActiveCountForEndpoint(String endpointName) {
-		MessageEndpoint endpoint = this.endpoints.get(endpointName);
-		if (endpoint != null) {
-			EndpointExecutor executor = this.endpointExecutors.get(endpoint);
+	public int getActiveCountForReceiver(String receiverName) {
+		MessageReceiver receiver = this.endpoints.get(receiverName);
+		if (receiver == null) {
+			receiver = this.targetAdapters.get(receiverName);
+		}
+		if (receiver != null) {
+			MessageReceivingExecutor executor = this.receiverExecutors.get(receiver);
 			if (executor != null) {
 				return executor.getActiveCount();
 			}
@@ -252,7 +295,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		synchronized (this.lifecycleMonitor) {
 			if (!this.isRunning()) {
 				this.running = true;
-				for (EndpointExecutor executor : endpointExecutors.values()) {
+				for (MessageReceivingExecutor executor : receiverExecutors.values()) {
 					executor.start();
 				}
 				for (DispatcherTask task : this.dispatcherTasks) {
@@ -266,7 +309,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		synchronized (this.lifecycleMonitor) {
 			if (this.isRunning()) {
 				this.running = false;
-				for (EndpointExecutor executor : endpointExecutors.values()) {
+				for (MessageReceivingExecutor executor : receiverExecutors.values()) {
 					executor.stop();
 				}
 				this.dispatcherExecutor.shutdownNow();
@@ -293,7 +336,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		}
 
 		public void run() {
-			dispatcher.receiveAndDispatch();
+			dispatcher.dispatch();
 		}
 
 	}

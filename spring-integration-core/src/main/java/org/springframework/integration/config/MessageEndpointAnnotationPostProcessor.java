@@ -33,6 +33,8 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.OrderComparator;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.adapter.MethodInvokingSource;
+import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.annotation.DefaultOutput;
 import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.MessageEndpoint;
@@ -42,8 +44,9 @@ import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.bus.ConsumerPolicy;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelRegistryAware;
+import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PointToPointChannel;
 import org.springframework.integration.endpoint.GenericMessageEndpoint;
-import org.springframework.integration.endpoint.InboundMethodInvokingChannelAdapter;
 import org.springframework.integration.endpoint.OutboundMethodInvokingChannelAdapter;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
@@ -124,14 +127,18 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
 				Annotation annotation = AnnotationUtils.getAnnotation(method, Polled.class);
 				if (annotation != null) {
-					InboundMethodInvokingChannelAdapter<Object> adapter = new InboundMethodInvokingChannelAdapter<Object>();
-					adapter.setObject(bean);
-					adapter.setMethod(method.getName());
-					adapter.afterPropertiesSet();
-					String channelName = beanName + "-inputChannel";
-					messageBus.registerChannel(channelName, adapter);
-					endpoint.setInputChannelName(channelName);
 					int period = ((Polled) annotation).period();
+					MethodInvokingSource<Object> source = new MethodInvokingSource<Object>();
+					source.setObject(bean);
+					source.setMethod(method.getName());
+					PollingSourceAdapter<Object> adapter = new PollingSourceAdapter<Object>(source);
+					MessageChannel channel = new PointToPointChannel();
+					adapter.setChannel(channel);
+					adapter.setPeriod(period);
+					String channelName = beanName + "-inputChannel";
+					messageBus.registerChannel(channelName, channel);
+					messageBus.registerSourceAdapter(beanName + "-sourceAdapter", adapter);
+					endpoint.setInputChannelName(channelName);
 					endpoint.getConsumerPolicy().setPeriod(period);
 					if (period > 0) {
 						endpoint.getConsumerPolicy().setConcurrency(1);

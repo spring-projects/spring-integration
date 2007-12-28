@@ -37,7 +37,7 @@ public abstract class AbstractMessageDispatcher implements MessageDispatcher {
 
 	private MessageRetriever retriever;
 
-	private List<EndpointExecutor> endpointExecutors = new CopyOnWriteArrayList<EndpointExecutor>();
+	private List<MessageReceivingExecutor> executors = new CopyOnWriteArrayList<MessageReceivingExecutor>();
 
 
 	public AbstractMessageDispatcher(MessageRetriever retriever) {
@@ -45,20 +45,21 @@ public abstract class AbstractMessageDispatcher implements MessageDispatcher {
 	}
 
 
-	public void addEndpointExecutor(EndpointExecutor executor) {
+	public void addExecutor(MessageReceivingExecutor executor) {
 		executor.start();
-		this.endpointExecutors.add(executor);
+		this.executors.add(executor);
 	}
 
-	protected List<EndpointExecutor> getEndpointExecutors() {
-		return this.endpointExecutors;
+	protected List<MessageReceivingExecutor> getExecutors() {
+		return this.executors;
 	}
 
 	/**
-	 * Receives messages and dispatches to the endpoints. Returns the number of
-	 * messages processed.
+	 * Retrieves messages and dispatches to the executors.
+	 * 
+	 * @return the number of messages processed
 	 */
-	public int receiveAndDispatch() {
+	public int dispatch() {
 		int messagesProcessed = 0;
 		Collection<Message<?>> messages = this.retriever.retrieveMessages();
 		if (messages == null) {

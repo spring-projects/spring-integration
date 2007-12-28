@@ -59,9 +59,9 @@ public class UnicastMessageDispatcherTests {
 		channel.send(new StringMessage(1, "test"));
 		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
 		UnicastMessageDispatcher dispatcher = new UnicastMessageDispatcher(retriever, policy);
-		dispatcher.addEndpointExecutor(new EndpointExecutor(endpoint1, 1, 1));
-		dispatcher.addEndpointExecutor(new EndpointExecutor(endpoint2, 1, 1));
-		dispatcher.receiveAndDispatch();
+		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint1, 1, 1));
+		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint2, 1, 1));
+		dispatcher.dispatch();
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertTrue("exactly one endpoint should have received message",
 				endpoint1Received.get() ^ endpoint2Received.get());

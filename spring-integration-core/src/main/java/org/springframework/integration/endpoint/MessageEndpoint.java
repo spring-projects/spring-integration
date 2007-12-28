@@ -18,14 +18,14 @@ package org.springframework.integration.endpoint;
 
 import org.springframework.integration.bus.ConsumerPolicy;
 import org.springframework.integration.channel.ChannelRegistry;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageReceiver;
 
 /**
  * Base interface for message endpoints.
  * 
  * @author Mark Fisher
  */
-public interface MessageEndpoint {
+public interface MessageEndpoint extends MessageReceiver {
 
 	void setInputChannelName(String inputChannelName);
 
@@ -38,7 +38,5 @@ public interface MessageEndpoint {
 	ConsumerPolicy getConsumerPolicy();
 
 	void setChannelRegistry(ChannelRegistry channelRegistry);
-
-	void messageReceived(Message<?> message);
 
 }

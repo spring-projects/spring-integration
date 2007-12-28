@@ -14,31 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint;
+package org.springframework.integration.adapter;
 
 /**
+ * Interface for any external target that may receive data from an outgoing
+ * channel adapter.
+ * 
  * @author Mark Fisher
  */
-public class TestSink {
+public interface Target<T> {
 
-	private String result;
-
-	public void validMethod(String s) {
-	}
-
-	public void invalidMethodWithNoArgs() {
-	}
-
-	public String validMethodWithIgnoredReturnValue(String s) {
-		return "ignored";
-	}
-
-	public void store(String s) {
-		this.result = s;
-	}
-
-	public String get() {
-		return this.result;
-	}
+	boolean send(T t);
 
 }

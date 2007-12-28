@@ -25,8 +25,8 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageReceiver;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 
@@ -35,11 +35,11 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class EndpointExecutor implements Lifecycle {
+public class MessageReceivingExecutor implements Lifecycle {
 
 	private Log logger = LogFactory.getLog(this.getClass());
 
-	private MessageEndpoint endpoint;
+	private MessageReceiver receiver;
 
 	private ThreadPoolExecutor threadPoolExecutor;
 
@@ -60,12 +60,12 @@ public class EndpointExecutor implements Lifecycle {
 	private int totalErrorThreshold = -1;
 
 
-	public EndpointExecutor(MessageEndpoint endpoint, int corePoolSize, int maxPoolSize) {
-		Assert.notNull(endpoint, "'endpoint' must not be null");
+	public MessageReceivingExecutor(MessageReceiver receiver, int corePoolSize, int maxPoolSize) {
+		Assert.notNull(receiver, "'receiver' must not be null");
 		Assert.isTrue(corePoolSize > 0, "'corePoolSize' must be at least 1");
 		Assert.isTrue(maxPoolSize > 0, "'maxPoolSize' must be at least 1");
 		Assert.isTrue(maxPoolSize >= corePoolSize, "'corePoolSize' cannot exceed 'maxPoolSize'");
-		this.endpoint = endpoint;
+		this.receiver = receiver;
 		this.corePoolSize = corePoolSize;
 		this.maxPoolSize = maxPoolSize;
 	}
@@ -85,7 +85,7 @@ public class EndpointExecutor implements Lifecycle {
 	public void start() {
 		synchronized (this.lifecycleMonitor) {
 			if (!this.running) {
-				this.threadPoolExecutor = new EndpointThreadPoolExecutor(this.corePoolSize, this.maxPoolSize);
+				this.threadPoolExecutor = new MessageReceivingThreadPoolExecutor(this.corePoolSize, this.maxPoolSize);
 			}
 			this.running = true;
 		}
@@ -105,12 +105,12 @@ public class EndpointExecutor implements Lifecycle {
 		if (threadPoolExecutor == null) {
 			throw new MessageHandlingException("executor is not running");
 		}
-		this.threadPoolExecutor.execute(new EndpointTask(this.endpoint, message));
+		this.threadPoolExecutor.execute(new MessageReceivingTask(this.receiver, message));
 	}
 
 	/**
 	 * Set the maximum number of errors allowed in <em>successive</em>
-	 * endpoint executions. If this threshold is ever exceeded, the executor
+	 * executions. If this threshold is ever exceeded, the executor
 	 * will shutdown.
 	 */
 	public void setSuccessiveErrorThreshold(int successiveErrorThreshold) {
@@ -118,9 +118,8 @@ public class EndpointExecutor implements Lifecycle {
 	}
 
 	/**
-	 * Set the maximum number of <em>total</em> errors allowed in endpoint
-	 * executions. If this threshold is ever exceeded, the executor will
-	 * shutdown.
+	 * Set the maximum number of <em>total</em> errors allowed in executions
+	 * If this threshold is ever exceeded, the executor will shutdown.
 	 */
 	public void setTotalErrorThreshold(int totalErrorThreshold) {
 		this.totalErrorThreshold = totalErrorThreshold;
@@ -138,17 +137,17 @@ public class EndpointExecutor implements Lifecycle {
 	}
 
 
-	private static class EndpointTask implements Runnable {
+	private static class MessageReceivingTask implements Runnable {
 
-		private MessageEndpoint endpoint;
+		private MessageReceiver receiver;
 
 		private Message<?> message;
 
 		private Throwable error;
 
 
-		EndpointTask(MessageEndpoint endpoint, Message<?> message) {
-			this.endpoint = endpoint;
+		MessageReceivingTask(MessageReceiver receiver, Message<?> message) {
+			this.receiver = receiver;
 			this.message = message;
 		}
 
@@ -158,7 +157,7 @@ public class EndpointExecutor implements Lifecycle {
 
 		public void run() {
 			try {
-				this.endpoint.messageReceived(this.message);
+				this.receiver.messageReceived(this.message);
 			}
 			catch (Throwable t) {
 				this.error = t;
@@ -167,9 +166,9 @@ public class EndpointExecutor implements Lifecycle {
 	}
 
 
-	private class EndpointThreadPoolExecutor extends ThreadPoolExecutor {
+	private class MessageReceivingThreadPoolExecutor extends ThreadPoolExecutor {
 
-		public EndpointThreadPoolExecutor(int corePoolSize, int maximumPoolSize) {
+		public MessageReceivingThreadPoolExecutor(int corePoolSize, int maximumPoolSize) {
 			super(corePoolSize, maximumPoolSize, 0, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>());
 			CustomizableThreadFactory threadFactory = new CustomizableThreadFactory();
 			threadFactory.setThreadNamePrefix("endpoint-executor-");
@@ -178,10 +177,10 @@ public class EndpointExecutor implements Lifecycle {
 
 		@Override
 		protected void afterExecute(Runnable r, Throwable t) {
-			EndpointTask task = (EndpointTask) r;
+			MessageReceivingTask task = (MessageReceivingTask) r;
 			if (task.getError() != null) {
 				if (logger.isWarnEnabled()) {
-					logger.warn("Exception occurred in endpoint execution", task.getError());
+					logger.warn("Exception occurred during task execution", task.getError());
 				}
 				successiveErrorCount++;
 				totalErrorCount++;

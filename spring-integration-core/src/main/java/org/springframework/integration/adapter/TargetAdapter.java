@@ -14,37 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint;
+package org.springframework.integration.adapter;
+
+import org.springframework.integration.bus.ConsumerPolicy;
+import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.message.MessageReceiver;
 
 /**
+ * Base interface for target adapters.
+ * 
  * @author Mark Fisher
  */
-public class TestSource {
+public interface TargetAdapter extends MessageReceiver {
 
-	private boolean fooCalled;
+	String getName();
 
-	public String validMethod() {
-		return "valid";
-	}
+	void setChannel(MessageChannel channel);
 
-	public String invalidMethodWithArg(String arg) {
-		return "invalid";
-	}
-
-	public void invalidMethodWithNoReturnValue() {
-	}
-
-	public String foo() {
-		if (this.fooCalled) {
-			try {
-				Thread.sleep(5000);
-			}
-			catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-			}
-		}
-		this.fooCalled = true;
-		return "bar";
-	}
+	ConsumerPolicy getConsumerPolicy();
 
 }

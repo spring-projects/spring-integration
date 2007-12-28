@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint;
+package org.springframework.integration.adapter;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;

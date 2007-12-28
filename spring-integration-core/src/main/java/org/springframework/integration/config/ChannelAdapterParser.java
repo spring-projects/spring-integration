@@ -25,8 +25,10 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.MessagingConfigurationException;
-import org.springframework.integration.endpoint.InboundMethodInvokingChannelAdapter;
-import org.springframework.integration.endpoint.OutboundMethodInvokingChannelAdapter;
+import org.springframework.integration.adapter.DefaultTargetAdapter;
+import org.springframework.integration.adapter.MethodInvokingSource;
+import org.springframework.integration.adapter.MethodInvokingTarget;
+import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.util.StringUtils;
 
 /**
@@ -52,21 +54,27 @@ public class ChannelAdapterParser implements BeanDefinitionParser {
 
 
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
-		RootBeanDefinition adapterDef = null;
-		if (this.isInbound) {
-			adapterDef = new RootBeanDefinition(InboundMethodInvokingChannelAdapter.class);
-		}
-		else {
-			adapterDef = new RootBeanDefinition(OutboundMethodInvokingChannelAdapter.class);
-		}
-		adapterDef.setSource(parserContext.extractSource(element));
 		String ref = element.getAttribute(REF_ATTRIBUTE);
 		String method = element.getAttribute(METHOD_ATTRIBUTE);
 		if (!StringUtils.hasText(ref) || !StringUtils.hasText(method)) {
 			throw new MessagingConfigurationException("'ref' and 'method' are both required");
 		}
-		adapterDef.getPropertyValues().addPropertyValue("object", new RuntimeBeanReference(ref));
-		adapterDef.getPropertyValues().addPropertyValue("method", method);
+		RootBeanDefinition adapterDef = null;
+		RootBeanDefinition invokerDef = null;
+		if (this.isInbound) {
+			adapterDef = new RootBeanDefinition(PollingSourceAdapter.class);
+			invokerDef = new RootBeanDefinition(MethodInvokingSource.class);
+		}
+		else {
+			adapterDef = new RootBeanDefinition(DefaultTargetAdapter.class);
+			invokerDef = new RootBeanDefinition(MethodInvokingTarget.class);
+		}
+		invokerDef.getPropertyValues().addPropertyValue("object", new RuntimeBeanReference(ref));
+		invokerDef.getPropertyValues().addPropertyValue("method", method);
+		String invokerBeanName = parserContext.getReaderContext().generateBeanName(invokerDef);
+		parserContext.registerBeanComponent(new BeanComponentDefinition(invokerDef, invokerBeanName));
+		adapterDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(invokerBeanName));
+		adapterDef.setSource(parserContext.extractSource(element));
 		String beanName = element.getAttribute(ID_ATTRIBUTE);
 		if (!StringUtils.hasText(beanName)) {
 			beanName = parserContext.getReaderContext().generateBeanName(adapterDef);

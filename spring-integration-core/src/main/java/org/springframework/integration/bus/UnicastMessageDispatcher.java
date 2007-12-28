@@ -23,7 +23,7 @@ import org.springframework.integration.message.Message;
 
 /**
  * A {@link MessageDispatcher} implementation that dispatches each retrieved
- * {@link Message} to a single {@link EndpointExecutor}.
+ * {@link Message} to a single {@link MessageReceivingExecutor}.
  * 
  * @author Mark Fisher
  */
@@ -41,19 +41,19 @@ public class UnicastMessageDispatcher extends AbstractMessageDispatcher {
 	@Override
 	protected boolean dispatchMessage(Message<?> message) {
 		int attempts = 0;
-		Iterator<EndpointExecutor> iter = this.getEndpointExecutors().iterator();
+		Iterator<MessageReceivingExecutor> iter = this.getExecutors().iterator();
 		if (!iter.hasNext()) {
 			if (logger.isWarnEnabled()) {
-				logger.warn("dispatcher has no active endpoint executors");
+				logger.warn("dispatcher has no active executors");
 			}
 			return false;
 		}
 		while (iter.hasNext()) {
-			EndpointExecutor executor = iter.next();
+			MessageReceivingExecutor executor = iter.next();
 			try {
 				if (executor == null || !executor.isRunning()) {
 					if (logger.isInfoEnabled()) {
-						logger.info("removing inactive endpoint executor");
+						logger.info("removing inactive executor");
 					}
 					iter.remove();
 					continue;

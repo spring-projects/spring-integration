@@ -86,7 +86,7 @@ public class PollingSourceAdapter<T> implements SourceAdapter, MessageDispatcher
 		return this.policy;
 	}
 
-	public int receiveAndDispatch() {
+	public int dispatch() {
 		int messagesProcessed = 0;
 		int limit = this.policy.getMaxMessagesPerTask();
 		Collection<T> results = this.source.poll(limit);

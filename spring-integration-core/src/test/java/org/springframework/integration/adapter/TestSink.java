@@ -14,15 +14,31 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.bus;
+package org.springframework.integration.adapter;
 
 /**
- * Strategy interface for dispatching messages.
- * 
  * @author Mark Fisher
  */
-public interface MessageDispatcher {
+public class TestSink {
 
-	int dispatch();
+	private String result;
+
+	public void validMethod(String s) {
+	}
+
+	public void invalidMethodWithNoArgs() {
+	}
+
+	public String validMethodWithIgnoredReturnValue(String s) {
+		return "ignored";
+	}
+
+	public void store(String s) {
+		this.result = s;
+	}
+
+	public String get() {
+		return this.result;
+	}
 
 }
