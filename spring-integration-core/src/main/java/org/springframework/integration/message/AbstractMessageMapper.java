@@ -16,26 +16,28 @@
 
 package org.springframework.integration.message;
 
+import org.springframework.integration.util.RandomGuidUidGenerator;
+import org.springframework.integration.util.UidGenerator;
+import org.springframework.util.Assert;
+
 /**
- * A {@link MessageMapper} implementation that simply wraps and unwraps a
- * payload object in a {@link DocumentMessage}.
+ * Base class that provides the default {@link UidGenerator} as well as a setter
+ * for providing a custom id generator implementation.
  * 
  * @author Mark Fisher
  */
-public class SimplePayloadMessageMapper<T> extends AbstractMessageMapper<T,T> {
+public abstract class AbstractMessageMapper<M, O> implements MessageMapper<M, O> {
 
-	/**
-	 * Return the payload of the given Message.
-	 */
-	public T fromMessage(Message<T> message) {
-		return message.getPayload();
+	private UidGenerator uidGenerator = new RandomGuidUidGenerator();
+
+
+	public void setUidGenerator(UidGenerator uidGenerator) {
+		Assert.notNull(uidGenerator, "'uidGenerator' must not be null");
+		this.uidGenerator = uidGenerator;
 	}
 
-	/**
-	 * Return a {@link DocumentMessage} with the given object as its payload.
-	 */
-	public Message<T> toMessage(T source) {
-		return new GenericMessage<T>(this.getUidGenerator().generateUid(), source);
+	public UidGenerator getUidGenerator() {
+		return this.uidGenerator;
 	}
 
 }
