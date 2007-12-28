@@ -35,6 +35,11 @@ import org.springframework.integration.message.GenericMessage;
  */
 public class FixedDelayConsumerTests {
 
+	@Test
+	public void temp() {
+		// stub method until others can be uncommented
+	}
+
 	//@Test
 	public void testAllSentMessagesAreReceivedWithinTimeLimit() throws Exception {
 		int messagesToSend = 20;
