@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint;
-
-import java.lang.reflect.Method;
-
-import org.springframework.integration.MessagingConfigurationException;
+package org.springframework.integration.adapter;
 
 /**
- * Interface for method validation. Implementations should throw an exception if
- * the method is invalid for its purpose.
+ * A strategy for preparing an argument list from a single source object.
  * 
  * @author Mark Fisher
  */
-public interface MethodValidator {
+public interface ArgumentListPreparer {
 
-	void validate(Method method) throws MessagingConfigurationException;
+	Object[] prepare(Object source);
 
 }

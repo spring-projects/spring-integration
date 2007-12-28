@@ -22,8 +22,8 @@ import java.util.Collection;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.MessagingConfigurationException;
-import org.springframework.integration.endpoint.MethodValidator;
-import org.springframework.integration.endpoint.SimpleMethodInvoker;
+import org.springframework.integration.util.MethodValidator;
+import org.springframework.integration.util.SimpleMethodInvoker;
 import org.springframework.util.Assert;
 
 /**

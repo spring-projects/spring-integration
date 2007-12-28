@@ -18,9 +18,9 @@ package org.springframework.integration.handler;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.Ordered;
-import org.springframework.integration.endpoint.SimpleMethodInvoker;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageMapper;
+import org.springframework.integration.util.SimpleMethodInvoker;
 
 /**
  * An implementation of {@link MessageHandler} that invokes the specified method

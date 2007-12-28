@@ -21,10 +21,10 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.Ordered;
-import org.springframework.integration.endpoint.SimpleMethodInvoker;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageMapper;
 import org.springframework.integration.message.SimplePayloadMessageMapper;
+import org.springframework.integration.util.SimpleMethodInvoker;
 import org.springframework.util.Assert;
 
 /**

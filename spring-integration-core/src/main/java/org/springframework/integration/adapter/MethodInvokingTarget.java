@@ -20,8 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.endpoint.ArgumentListPreparer;
-import org.springframework.integration.endpoint.SimpleMethodInvoker;
+import org.springframework.integration.util.SimpleMethodInvoker;
 import org.springframework.util.Assert;
 
 /**

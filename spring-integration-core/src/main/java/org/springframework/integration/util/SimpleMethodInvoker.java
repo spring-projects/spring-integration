@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint;
+package org.springframework.integration.util;
 
 import java.lang.reflect.InvocationTargetException;
 
