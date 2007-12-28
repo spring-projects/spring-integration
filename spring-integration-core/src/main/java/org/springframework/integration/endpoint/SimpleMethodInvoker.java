@@ -55,6 +55,7 @@ public class SimpleMethodInvoker<T> {
 			methodInvoker.setTargetMethod(this.method);
 			methodInvoker.setArguments(args);
 			methodInvoker.prepare();
+			methodInvoker.getPreparedMethod().setAccessible(true);
 			if (this.methodValidator != null) {
 				this.methodValidator.validate(methodInvoker.getPreparedMethod());
 			}
