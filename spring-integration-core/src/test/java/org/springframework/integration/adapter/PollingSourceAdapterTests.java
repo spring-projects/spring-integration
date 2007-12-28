@@ -40,7 +40,9 @@ public class PollingSourceAdapterTests {
 	public void testPolledSourceSendsToChannel() {
 		TestSource source = new TestSource("testing", 1);
 		PointToPointChannel channel = new PointToPointChannel();
-		PollingSourceAdapter<String> adapter = new PollingSourceAdapter<String>(source, channel, 100);
+		PollingSourceAdapter<String> adapter = new PollingSourceAdapter<String>(source);
+		adapter.setChannel(channel);
+		adapter.setPeriod(100);
 		adapter.receiveAndDispatch();
 		Message<?> message = channel.receive();
 		assertNotNull("message should not be null", message);
@@ -51,7 +53,9 @@ public class PollingSourceAdapterTests {
 	public void testSendTimeout() {
 		TestSource source = new TestSource("testing", 1);
 		PointToPointChannel channel = new PointToPointChannel(1);
-		PollingSourceAdapter<String> adapter = new PollingSourceAdapter<String>(source, channel, 500);
+		PollingSourceAdapter<String> adapter = new PollingSourceAdapter<String>(source);
+		adapter.setChannel(channel);
+		adapter.setPeriod(500);
 		adapter.setSendTimeout(10);
 		adapter.receiveAndDispatch();
 		adapter.receiveAndDispatch();
@@ -70,8 +74,10 @@ public class PollingSourceAdapterTests {
 	public void testMultipleMessagesPerPoll() {
 		TestSource source = new TestSource("testing", 3);
 		PointToPointChannel channel = new PointToPointChannel();
-		PollingSourceAdapter<String> adapter = new PollingSourceAdapter<String>(source, channel, 1000);
-		adapter.setLimit(5);
+		PollingSourceAdapter<String> adapter = new PollingSourceAdapter<String>(source);
+		adapter.setChannel(channel);
+		adapter.setPeriod(1000);
+		adapter.setMaxMessagesPerTask(5);
 		adapter.receiveAndDispatch();
 		Message<?> message1 = channel.receive(0);
 		assertNotNull("message should not be null", message1);
@@ -90,8 +96,10 @@ public class PollingSourceAdapterTests {
 	public void testResultSizeExceedsLimit() {
 		TestSource source = new TestSource("testing", 3);
 		PointToPointChannel channel = new PointToPointChannel();
-		PollingSourceAdapter<String> adapter = new PollingSourceAdapter<String>(source, channel, 1000);
-		adapter.setLimit(2);
+		PollingSourceAdapter<String> adapter = new PollingSourceAdapter<String>(source);
+		adapter.setChannel(channel);
+		adapter.setPeriod(1000);
+		adapter.setMaxMessagesPerTask(2);
 		adapter.receiveAndDispatch();
 	}
 
