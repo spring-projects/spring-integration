@@ -31,28 +31,51 @@ import org.springframework.integration.MessageDeliveryException;
 public class MethodInvokingSourceTests {
 
 	@Test
-	public void testSingleObjectResult() {
+	public void testValidMethod() {
 		MethodInvokingSource<TestBean> source = new MethodInvokingSource<TestBean>();
 		source.setObject(new TestBean());
-		source.setMethod("foo");
+		source.setMethod("validMethod");
 		Collection<Object> result = source.poll(5);
 		assertNotNull(result);
-		assertEquals("bar", result.iterator().next());
+		assertEquals("valid", result.iterator().next());
 	}
 
 	@Test(expected=MessageDeliveryException.class)
-	public void testInvalidMethod() {
+	public void testNoMatchingMethodName() {
 		MethodInvokingSource<TestBean> source = new MethodInvokingSource<TestBean>();
 		source.setObject(new TestBean());
-		source.setMethod("boo");
+		source.setMethod("noMatchingMethod");
+		source.poll(5);
+	}
+
+	@Test(expected=MessageDeliveryException.class)
+	public void testInvalidMethodWithArg() {
+		MethodInvokingSource<TestBean> source = new MethodInvokingSource<TestBean>();
+		source.setObject(new TestBean());
+		source.setMethod("invalidMethodWithArg");
+		source.poll(5);
+	}
+
+	@Test(expected=MessageDeliveryException.class)
+	public void testInvalidMethodWithNoReturnValue() {
+		MethodInvokingSource<TestBean> source = new MethodInvokingSource<TestBean>();
+		source.setObject(new TestBean());
+		source.setMethod("invalidMethodWithNoReturnValue");
 		source.poll(5);
 	}
 
 
 	private static class TestBean {
 
-		public String foo() {
-			return "bar";
+		public String validMethod() {
+			return "valid";
+		}
+
+		public String invalidMethodWithArg(String arg) {
+			return "invalid";
+		}
+
+		public void invalidMethodWithNoReturnValue() {
 		}
 	}
 
