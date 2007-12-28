@@ -18,6 +18,7 @@ package org.springframework.integration.channel;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -222,6 +223,7 @@ public class PointToPointChannelTests {
 		});
 		sender.start();
 		latch.await();
+		assertNotNull("message reference should not be null", messageRef.get());
 		String payload = (String) messageRef.get().getPayload();
 		assertEquals("expected 'test-3', but message was '" + payload, "test-3", payload);
 	}
