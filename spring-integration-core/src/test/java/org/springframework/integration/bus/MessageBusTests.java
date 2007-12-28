@@ -18,6 +18,7 @@ package org.springframework.integration.bus;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -82,6 +83,31 @@ public class MessageBusTests {
 		bus.activateSubscription(subscription);
 		Message<?> result = targetChannel.receive(10);
 		assertEquals("test", result.getPayload());
+	}
+
+	@Test
+	public void testExactlyOneEndpointReceivesUnicastMessage() {
+		PointToPointChannel inputChannel = new PointToPointChannel();
+		PointToPointChannel outputChannel1 = new PointToPointChannel();
+		PointToPointChannel outputChannel2 = new PointToPointChannel();
+		GenericMessageEndpoint endpoint1 = new GenericMessageEndpoint();
+		endpoint1.setDefaultOutputChannelName("output1");
+		endpoint1.setInputChannelName("input");
+		GenericMessageEndpoint endpoint2 = new GenericMessageEndpoint();
+		endpoint2.setDefaultOutputChannelName("output2");
+		endpoint2.setInputChannelName("input");
+		MessageBus bus = new MessageBus();
+		bus.registerChannel("input", inputChannel);
+		bus.registerChannel("output1", outputChannel1);
+		bus.registerChannel("output2", outputChannel2);
+		bus.registerEndpoint("endpoint1", endpoint1);
+		bus.registerEndpoint("endpoint2", endpoint2);
+		bus.start();
+		inputChannel.send(new StringMessage(1, "testing"));
+		Message<?> message1 = outputChannel1.receive(100);
+		Message<?> message2 = outputChannel2.receive(0);
+		bus.stop();
+		assertTrue("exactly one message should be null", message1 == null ^ message2 == null);
 	}
 
 }

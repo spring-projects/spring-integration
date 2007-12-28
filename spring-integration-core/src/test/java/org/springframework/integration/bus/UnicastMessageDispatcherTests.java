@@ -18,10 +18,15 @@ package org.springframework.integration.bus;
 
 import static org.junit.Assert.assertTrue;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.junit.Test;
 
 import org.springframework.integration.channel.PointToPointChannel;
 import org.springframework.integration.endpoint.GenericMessageEndpoint;
+import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 
@@ -31,28 +36,35 @@ import org.springframework.integration.message.StringMessage;
 public class UnicastMessageDispatcherTests {
 
 	@Test
-	public void testExactlyOneEndpointReceivesMessage() {
-		PointToPointChannel inputChannel = new PointToPointChannel();
-		PointToPointChannel outputChannel1 = new PointToPointChannel();
-		PointToPointChannel outputChannel2 = new PointToPointChannel();
-		GenericMessageEndpoint endpoint1 = new GenericMessageEndpoint();
-		endpoint1.setDefaultOutputChannelName("output1");
-		endpoint1.setInputChannelName("input");
-		GenericMessageEndpoint endpoint2 = new GenericMessageEndpoint();
-		endpoint2.setDefaultOutputChannelName("output2");
-		endpoint2.setInputChannelName("input");
-		MessageBus bus = new MessageBus();
-		bus.registerChannel("input", inputChannel);
-		bus.registerChannel("output1", outputChannel1);
-		bus.registerChannel("output2", outputChannel2);
-		bus.registerEndpoint("endpoint1", endpoint1);
-		bus.registerEndpoint("endpoint2", endpoint2);
-		bus.start();
-		inputChannel.send(new StringMessage(1, "testing"));
-		Message<?> message1 = outputChannel1.receive(100);
-		Message<?> message2 = outputChannel2.receive(0);
-		bus.stop();
-		assertTrue("exactly one message should be null", message1 == null ^ message2 == null);
+	public void testDispatcherSendsToExactlyOneEndpoint() throws InterruptedException {
+		final AtomicBoolean endpoint1Received = new AtomicBoolean();
+		final AtomicBoolean endpoint2Received = new AtomicBoolean();
+		final CountDownLatch latch = new CountDownLatch(1);
+		MessageEndpoint endpoint1 = new GenericMessageEndpoint() {
+			@Override
+			public void messageReceived(Message<?> message) {
+				endpoint1Received.set(true);
+				latch.countDown();
+			}
+		};
+		MessageEndpoint endpoint2 = new GenericMessageEndpoint() {
+			@Override
+			public void messageReceived(Message<?> message) {
+				endpoint2Received.set(true);
+				latch.countDown();
+			}
+		};
+		ConsumerPolicy policy = new ConsumerPolicy();
+		PointToPointChannel channel = new PointToPointChannel();
+		channel.send(new StringMessage(1, "test"));
+		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
+		UnicastMessageDispatcher dispatcher = new UnicastMessageDispatcher(retriever, policy);
+		dispatcher.addEndpointExecutor(new EndpointExecutor(endpoint1, 1, 1));
+		dispatcher.addEndpointExecutor(new EndpointExecutor(endpoint2, 1, 1));
+		dispatcher.receiveAndDispatch();
+		latch.await(500, TimeUnit.MILLISECONDS);
+		assertTrue("exactly one endpoint should have received message",
+				endpoint1Received.get() ^ endpoint2Received.get());
 	}
 
 }
