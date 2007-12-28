@@ -14,23 +14,27 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint;
+package org.springframework.integration.adapter.jms;
+
+import javax.jms.ConnectionFactory;
+import javax.jms.Destination;
+
+import org.springframework.integration.adapter.PollingSourceAdapter;
+import org.springframework.jms.core.JmsTemplate;
 
 /**
- * Convenience base class for inbound channel adapters.
+ * A convenience adapter that wraps a {@link JmsPollableSource}.
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractInboundChannelAdapter extends AbstractChannelAdapter {
+public class JmsPollingSourceAdapter extends PollingSourceAdapter<Object> {
 
-	protected boolean sendObject(Object object) throws Exception {
-		return false;
+	public JmsPollingSourceAdapter(ConnectionFactory connectionFactory, Destination destination) {
+		super(new JmsPollableSource(connectionFactory, destination));
 	}
 
-	protected Object receiveObject() throws Exception {
-		return this.doReceiveObject();
+	public JmsPollingSourceAdapter(JmsTemplate jmsTemplate) {
+		super(new JmsPollableSource(jmsTemplate));
 	}
-
-	protected abstract Object doReceiveObject() throws Exception;
 
 }

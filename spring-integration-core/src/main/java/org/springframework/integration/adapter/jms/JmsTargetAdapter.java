@@ -14,25 +14,27 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint;
+package org.springframework.integration.adapter.jms;
+
+import javax.jms.ConnectionFactory;
+import javax.jms.Destination;
+
+import org.springframework.integration.adapter.DefaultTargetAdapter;
+import org.springframework.jms.core.JmsTemplate;
 
 /**
- * A convenience base class for outbound channel adapters.
+ * A convenience adapter that wraps a {@link JmsTarget}.
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractOutboundChannelAdapter extends AbstractChannelAdapter {
+public class JmsTargetAdapter extends DefaultTargetAdapter {
 
-	@Override
-	protected Object receiveObject() throws Exception {
-		return null;
+	public JmsTargetAdapter(ConnectionFactory connectionFactory, Destination destination) {
+		super(new JmsTarget(connectionFactory, destination));
 	}
 
-	@Override
-	protected boolean sendObject(Object object) throws Exception {
-		return this.doSendObject(object);
+	public JmsTargetAdapter(JmsTemplate jmsTemplate) {
+		super(new JmsTarget(jmsTemplate));
 	}
-
-	protected abstract boolean doSendObject(Object object) throws Exception;
 
 }

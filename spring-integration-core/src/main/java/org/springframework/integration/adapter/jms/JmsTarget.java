@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint.jms;
+package org.springframework.integration.adapter.jms;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.MessagingConfigurationException;
-import org.springframework.integration.endpoint.AbstractInboundChannelAdapter;
+import org.springframework.integration.adapter.Target;
 import org.springframework.jms.core.JmsTemplate;
 
 /**
- * A simple channel adapter for receiving JMS Messages with a polling listener.
+ * A target for sending JMS Messages.
  * 
  * @author Mark Fisher
  */
-public class JmsInboundAdapter extends AbstractInboundChannelAdapter {
+public class JmsTarget implements Target<Object>, InitializingBean {
 
 	private ConnectionFactory connectionFactory;
 
@@ -36,6 +37,23 @@ public class JmsInboundAdapter extends AbstractInboundChannelAdapter {
 
 	private JmsTemplate jmsTemplate;
 
+
+	public JmsTarget(JmsTemplate jmsTemplate) {
+		this.jmsTemplate = jmsTemplate;
+	}
+
+	public JmsTarget(ConnectionFactory connectionFactory, Destination destination) {
+		this.connectionFactory = connectionFactory;
+		this.destination = destination;
+		this.initJmsTemplate();
+	}
+
+	/**
+	 * No-arg constructor provided for convenience when configuring with
+	 * setters. Note that the initialization callback will validate.
+	 */
+	public JmsTarget() {
+	}
 
 	public void setConnectionFactory(ConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
@@ -49,22 +67,25 @@ public class JmsInboundAdapter extends AbstractInboundChannelAdapter {
 		this.jmsTemplate = jmsTemplate;
 	}
 
-	@Override
-	public void initialize() {
+	public void afterPropertiesSet() {
 		if (this.jmsTemplate == null) {
 			if (this.connectionFactory == null || this.destination == null) {
 				throw new MessagingConfigurationException("Either a 'jmsTemplate' or " +
 						"*both* 'connectionFactory' and 'destination' are required.");
 			}
-			this.jmsTemplate = new JmsTemplate();
-			this.jmsTemplate.setConnectionFactory(this.connectionFactory);
-			this.jmsTemplate.setDefaultDestination(this.destination);
+			this.initJmsTemplate();
 		}
 	}
 
-	@Override
-	protected Object doReceiveObject() {
-		return this.jmsTemplate.receiveAndConvert();
+	private void initJmsTemplate() {
+		this.jmsTemplate = new JmsTemplate();
+		this.jmsTemplate.setConnectionFactory(this.connectionFactory);
+		this.jmsTemplate.setDefaultDestination(this.destination);
+	}
+
+	public boolean send(Object object) {
+		this.jmsTemplate.convertAndSend(object);
+		return true;
 	}
 
 }

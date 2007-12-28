@@ -33,7 +33,9 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.OrderComparator;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.adapter.DefaultTargetAdapter;
 import org.springframework.integration.adapter.MethodInvokingSource;
+import org.springframework.integration.adapter.MethodInvokingTarget;
 import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.annotation.DefaultOutput;
 import org.springframework.integration.annotation.Handler;
@@ -47,7 +49,6 @@ import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PointToPointChannel;
 import org.springframework.integration.endpoint.GenericMessageEndpoint;
-import org.springframework.integration.endpoint.OutboundMethodInvokingChannelAdapter;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.integration.handler.config.DefaultMessageHandlerCreator;
@@ -166,12 +167,15 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 					if (foundDefaultOutput) {
 						throw new MessagingConfigurationException("only one @DefaultOutput allowed per endpoint");
 					}
-					OutboundMethodInvokingChannelAdapter<Object> adapter = new OutboundMethodInvokingChannelAdapter<Object>();
-					adapter.setObject(bean);
-					adapter.setMethod(method.getName());
-					adapter.afterPropertiesSet();
+					MethodInvokingTarget<Object> target = new MethodInvokingTarget<Object>();
+					target.setObject(bean);
+					target.setMethod(method.getName());
+					target.afterPropertiesSet();
+					DefaultTargetAdapter adapter = new DefaultTargetAdapter(target);
+					PointToPointChannel channel = new PointToPointChannel();
 					String channelName = beanName + "-defaultOutputChannel";
-					messageBus.registerChannel(channelName, adapter);
+					messageBus.registerChannel(channelName, channel);
+					messageBus.registerTargetAdapter(beanName + "-targetAdapter", adapter);
 					endpoint.setDefaultOutputChannelName(channelName);
 					foundDefaultOutput = true;
 					return;
