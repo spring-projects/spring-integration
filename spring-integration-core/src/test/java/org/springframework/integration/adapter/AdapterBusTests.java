@@ -39,11 +39,12 @@ public class AdapterBusTests {
 		context.start();
 		String result = null;
 		int attempts = 0;
-		while (result == null && attempts++ < 10) {
+		while (result == null && attempts++ < 100) {
 			Thread.sleep(5);
 			result = sink.get();
 		}
 		assertNotNull(result);
+		context.close();
 	}
 
 }
