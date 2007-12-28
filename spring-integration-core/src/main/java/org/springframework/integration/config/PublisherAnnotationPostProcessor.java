@@ -25,7 +25,7 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.integration.aop.Publisher;
+import org.springframework.integration.annotation.Publisher;
 import org.springframework.integration.aop.PublisherAnnotationAdvisor;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.util.Assert;

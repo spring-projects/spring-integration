@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint.annotation;
+package org.springframework.integration.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -23,18 +23,18 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+
 /**
- * Indicates that a method-invoking handler adapter should delegate to this
- * method.
+ * Indicates that a method is capable of handling a message or message payload.
+ * The method may only accept a single parameter, and the enclosing class should
+ * be annotated with {@link MessageEndpoint @MessageEndpoint}.
  * 
  * @author Mark Fisher
  */
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-public @interface Subscriber {
-
-	String channel();
+public @interface Handler {
 
 }

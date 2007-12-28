@@ -16,6 +16,8 @@
 
 package org.springframework.integration.aop;
 
+import org.springframework.integration.annotation.Publisher;
+
 
 /**
  * @author Mark Fisher

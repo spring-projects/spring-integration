@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint.annotation;
+package org.springframework.integration.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -23,24 +23,18 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.stereotype.Component;
-
 /**
- * Indicates that a class is capable of serving as a message endpoint.
+ * Indicates that the method's return value should be published to the specified
+ * channel. The value will only be published if non-null.
  * 
  * @author Mark Fisher
  */
-@Target(ElementType.TYPE)
+@Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-@Component
-public @interface MessageEndpoint {
+public @interface Publisher {
 
-	String input() default "";
-
-	String defaultOutput() default "";
-
-	int pollPeriod() default 0;
+	String channel();
 
 }

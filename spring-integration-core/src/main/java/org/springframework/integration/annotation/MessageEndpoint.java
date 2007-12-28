@@ -14,28 +14,33 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint.annotation;
+package org.springframework.integration.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import org.springframework.integration.message.Message;
+import org.springframework.stereotype.Component;
 
 /**
- * Indicates that a method is capable of sending messages. The method must
- * accept a single parameter that is either a {@link Message} or an Object to
- * be passed as a message payload. The enclosing class should be annotated with
- * {@link MessageEndpoint @MessageEndpoint}.
+ * Indicates that a class is capable of serving as a message endpoint.
  * 
  * @author Mark Fisher
  */
-@java.lang.annotation.Target(ElementType.METHOD)
+@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-public @interface DefaultOutput {
+@Component
+public @interface MessageEndpoint {
+
+	String input() default "";
+
+	String defaultOutput() default "";
+
+	int pollPeriod() default 0;
 
 }

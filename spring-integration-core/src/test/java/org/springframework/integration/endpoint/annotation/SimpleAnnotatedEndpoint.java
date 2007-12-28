@@ -16,7 +16,8 @@
 
 package org.springframework.integration.endpoint.annotation;
 
-import org.springframework.integration.handler.annotation.Handler;
+import org.springframework.integration.annotation.Handler;
+import org.springframework.integration.annotation.MessageEndpoint;
 
 /**
  * @author Mark Fisher
