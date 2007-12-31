@@ -39,7 +39,7 @@ public class FixedRateConsumerTests {
 	@Test
 	public void temp() {}
 
-	//@Test
+	@Test
 	public void testAllSentMessagesAreReceivedWithinTimeLimit() throws Exception {
 		int messagesToSend = 20;
 		final AtomicInteger counter = new AtomicInteger(0);
@@ -70,7 +70,7 @@ public class FixedRateConsumerTests {
 		assertEquals(messagesToSend, counter.get());
 	}
 
-	//@Test
+	@Test
 	public void testTimedOutMessagesAreNotReceived() throws Exception {
 		int messagesToSend = 20;
 		final AtomicInteger counter = new AtomicInteger(0);
