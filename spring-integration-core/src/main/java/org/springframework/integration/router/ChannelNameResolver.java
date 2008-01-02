@@ -16,13 +16,15 @@
 
 package org.springframework.integration.router;
 
+import org.springframework.integration.message.Message;
+
 /**
  * Strategy interface for content-based routing to a channel name.
  * 
  * @author Mark Fisher
  */
-public interface ChannelNameResolver<T> {
+public interface ChannelNameResolver {
 
-	String resolve(T t);
+	String resolve(Message<?> message);
 
 }

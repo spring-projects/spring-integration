@@ -17,14 +17,15 @@
 package org.springframework.integration.router;
 
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.message.Message;
 
 /**
  * Strategy interface for content-based routing to a channel instance.
  * 
  * @author Mark Fisher
  */
-public interface ChannelResolver<T> {
+public interface ChannelResolver {
 
-	MessageChannel resolve(T t);
+	MessageChannel resolve(Message<?> message);
 
 }
