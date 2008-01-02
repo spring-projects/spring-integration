@@ -33,7 +33,7 @@ import org.springframework.integration.message.StringMessage;
 /**
  * @author Mark Fisher
  */
-public class RoutingMessageHandlerTests {
+public class SingleChannelRouterTests {
 
 	@Test
 	public void testRoutingWithChannelResolver() {
@@ -43,7 +43,7 @@ public class RoutingMessageHandlerTests {
 				return channel;
 			}
 		};
-		RoutingMessageHandler router = new RoutingMessageHandler();
+		SingleChannelRouter router = new SingleChannelRouter();
 		router.setChannelResolver(channelResolver);
 		router.afterPropertiesSet();
 		Message<String> message = new StringMessage("123", "test");
@@ -63,7 +63,7 @@ public class RoutingMessageHandlerTests {
 		PointToPointChannel channel = new PointToPointChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("testChannel", channel);
-		RoutingMessageHandler router = new RoutingMessageHandler();
+		SingleChannelRouter router = new SingleChannelRouter();
 		router.setChannelNameResolver(channelNameResolver);
 		router.setChannelRegistry(channelRegistry);
 		router.afterPropertiesSet();
@@ -86,39 +86,68 @@ public class RoutingMessageHandlerTests {
 				return "";
 			}
 		};
-		RoutingMessageHandler router = new RoutingMessageHandler();
+		SingleChannelRouter router = new SingleChannelRouter();
 		router.setChannelResolver(channelResolver);		
 		router.setChannelNameResolver(channelNameResolver);
 		router.afterPropertiesSet();
 	}
 
-	@Test(expected=MessageHandlingException.class)
-	public void testChannelResolutionFailure() {
+	public void testChannelResolutionFailureIgnoredByDefault() {
 		ChannelResolver channelResolver = new ChannelResolver() {
 			public MessageChannel resolve(Message<?> message) {
 				return null;
 			}
 		};
-		RoutingMessageHandler router = new RoutingMessageHandler();
+		SingleChannelRouter router = new SingleChannelRouter();
 		router.setChannelResolver(channelResolver);
+		router.setResolutionRequired(true);
 		router.afterPropertiesSet();
 		Message<String> message = new StringMessage("123", "test");
 		router.handle(message);
 	}
 
 	@Test(expected=MessageHandlingException.class)
-	public void testChannelNameResolutionFailure() {
+	public void testChannelResolutionFailureThrowsExceptionWhenResolutionRequired() {
+		ChannelResolver channelResolver = new ChannelResolver() {
+			public MessageChannel resolve(Message<?> message) {
+				return null;
+			}
+		};
+		SingleChannelRouter router = new SingleChannelRouter();
+		router.setChannelResolver(channelResolver);
+		router.setResolutionRequired(true);
+		router.afterPropertiesSet();
+		Message<String> message = new StringMessage("123", "test");
+		router.handle(message);
+	}
+
+	public void testChannelNameResolutionFailureIgnoredByDefault() {
 		ChannelNameResolver channelNameResolver = new ChannelNameResolver() {
 			public String resolve(Message<?> message) {
 				return "noSuchChannel";
 			}
 		};
-		PointToPointChannel channel = new PointToPointChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		channelRegistry.registerChannel("testChannel", channel);
-		RoutingMessageHandler router = new RoutingMessageHandler();
+		SingleChannelRouter router = new SingleChannelRouter();
 		router.setChannelNameResolver(channelNameResolver);
 		router.setChannelRegistry(channelRegistry);
+		router.afterPropertiesSet();
+		Message<String> message = new StringMessage("123", "test");
+		router.handle(message);
+	}
+
+	@Test(expected=MessageHandlingException.class)
+	public void testChannelNameResolutionFailureThrowsExceptionWhenResolutionRequired() {
+		ChannelNameResolver channelNameResolver = new ChannelNameResolver() {
+			public String resolve(Message<?> message) {
+				return "noSuchChannel";
+			}
+		};
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		SingleChannelRouter router = new SingleChannelRouter();
+		router.setChannelNameResolver(channelNameResolver);
+		router.setChannelRegistry(channelRegistry);
+		router.setResolutionRequired(true);
 		router.afterPropertiesSet();
 		Message<String> message = new StringMessage("123", "test");
 		router.handle(message);
