@@ -100,9 +100,9 @@ public class FixedDelayConsumerTests {
 			channel.send(new GenericMessage<String>(1, "test " + (i+1)));
 		}
 		latch.await(80, TimeUnit.MILLISECONDS);
-		System.out.println("count: " + counter.get());
-		assertTrue(counter.get() < 10);
-		assertTrue(counter.get() > 7);
+		int count = counter.get();
+		assertTrue("received " + count + ", expected less than 10", counter.get() < 10);
+		assertTrue("received " + count + ", expected more than 7", counter.get() > 7);
 	}
 
 }
