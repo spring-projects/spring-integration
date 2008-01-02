@@ -17,6 +17,7 @@
 package org.springframework.integration.adapter.file;
 
 import org.springframework.integration.message.Message;
+import org.springframework.util.StringUtils;
 
 /**
  * Default implementation of the filename generator strategy. Concatenates the
@@ -27,7 +28,9 @@ import org.springframework.integration.message.Message;
 public class DefaultFileNameGenerator implements FileNameGenerator {
 
 	public String generateFileName(Message<?> message) {
-		return message.getId() + "-" + System.currentTimeMillis() + ".msg";
+		String filenameProperty = message.getHeader().getProperty(FILENAME_PROPERTY_KEY);
+		return StringUtils.hasText(filenameProperty) ?
+				filenameProperty : message.getId() + "-" + System.currentTimeMillis() + ".msg";
 	}
 
 }

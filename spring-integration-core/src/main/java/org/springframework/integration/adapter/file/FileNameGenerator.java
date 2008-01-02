@@ -25,6 +25,9 @@ import org.springframework.integration.message.Message;
  */
 public interface FileNameGenerator {
 
+	String FILENAME_PROPERTY_KEY = "filename";
+
+
 	String generateFileName(Message<?> message);
 
 }
