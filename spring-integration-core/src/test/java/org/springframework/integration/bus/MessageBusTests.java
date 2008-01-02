@@ -48,7 +48,7 @@ public class MessageBusTests {
 		endpoint.setDefaultOutputChannelName("targetChannel");
 		bus.registerEndpoint("endpoint", endpoint);
 		bus.start();
-		Message<?> result = targetChannel.receive(1000);
+		Message<?> result = targetChannel.receive(100);
 		assertEquals("test", result.getPayload());
 		bus.stop();
 	}
@@ -62,7 +62,7 @@ public class MessageBusTests {
 		bus.registerChannel("sourceChannel", sourceChannel);
 		bus.registerChannel("targetChannel", targetChannel);
 		bus.start();
-		Message<?> result = targetChannel.receive(500);
+		Message<?> result = targetChannel.receive(100);
 		assertNull(result);
 		bus.stop();
 	}
@@ -81,7 +81,7 @@ public class MessageBusTests {
 		subscription.setEndpoint("endpoint");
 		subscription.setPolicy(policy);
 		bus.activateSubscription(subscription);
-		Message<?> result = targetChannel.receive(500);
+		Message<?> result = targetChannel.receive(100);
 		assertEquals("test", result.getPayload());
 	}
 

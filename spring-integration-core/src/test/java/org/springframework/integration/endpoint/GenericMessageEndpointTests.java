@@ -52,7 +52,7 @@ public class GenericMessageEndpointTests {
 		bus.start();
 		StringMessage testMessage = new StringMessage(1, "test");
 		channel.send(testMessage);
-		Message<String> reply = replyChannel.receive(10);
+		Message<String> reply = replyChannel.receive(50);
 		assertNotNull(reply);
 		assertEquals("hello test", reply.getPayload());
 	}
@@ -77,7 +77,7 @@ public class GenericMessageEndpointTests {
 		StringMessage testMessage = new StringMessage(1, "test");
 		testMessage.getHeader().setReplyChannelName("replyChannel");
 		channel.send(testMessage);
-		Message reply = replyChannel.receive(10);
+		Message reply = replyChannel.receive(50);
 		assertNotNull(reply);
 		assertEquals("hello test", reply.getPayload());
 	}

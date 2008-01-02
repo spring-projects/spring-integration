@@ -193,7 +193,7 @@ public class PointToPointChannelTests {
 		assertTrue(sendInterrupted.get());
 	}
 
-	//@Test
+	@Test
 	public void testSelectorMatchesWithinTimeout() throws Exception {
 		final PointToPointChannel channel = new PointToPointChannel();
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -204,7 +204,7 @@ public class PointToPointChannelTests {
 					public boolean accept(Message<?> message) {
 						return (((Integer)message.getId()).intValue() == 3);
 					}
-				}, 50);
+				}, 100);
 				messageRef.set(message);
 				latch.countDown();
 			}

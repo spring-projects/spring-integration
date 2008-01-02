@@ -36,11 +36,6 @@ import org.springframework.integration.message.GenericMessage;
 public class FixedDelayConsumerTests {
 
 	@Test
-	public void temp() {
-		// stub method until others can be uncommented
-	}
-
-	@Test
 	public void testAllSentMessagesAreReceivedWithinTimeLimit() throws Exception {
 		int messagesToSend = 20;
 		final AtomicInteger counter = new AtomicInteger(0);
@@ -70,7 +65,7 @@ public class FixedDelayConsumerTests {
 		for (int i = 0; i < messagesToSend; i++) {
 			channel.send(new GenericMessage<String>(1, "test " + (i+1)));
 		}
-		latch.await(5000, TimeUnit.MILLISECONDS);
+		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(messagesToSend, counter.get());
 	}
 
@@ -105,8 +100,9 @@ public class FixedDelayConsumerTests {
 			channel.send(new GenericMessage<String>(1, "test " + (i+1)));
 		}
 		latch.await(80, TimeUnit.MILLISECONDS);
-		assertTrue(counter.get() < 15);
-		assertTrue(counter.get() > 5);
+		System.out.println("count: " + counter.get());
+		assertTrue(counter.get() < 10);
+		assertTrue(counter.get() > 7);
 	}
 
 }

@@ -62,7 +62,7 @@ public class UnicastMessageDispatcherTests {
 		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint1, 1, 1));
 		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint2, 1, 1));
 		dispatcher.dispatch();
-		latch.await(500, TimeUnit.MILLISECONDS);
+		latch.await(100, TimeUnit.MILLISECONDS);
 		assertTrue("exactly one endpoint should have received message",
 				endpoint1Received.get() ^ endpoint2Received.get());
 	}

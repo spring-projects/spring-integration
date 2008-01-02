@@ -37,9 +37,6 @@ import org.springframework.integration.message.GenericMessage;
 public class FixedRateConsumerTests {
 
 	@Test
-	public void temp() {}
-
-	@Test
 	public void testAllSentMessagesAreReceivedWithinTimeLimit() throws Exception {
 		int messagesToSend = 20;
 		final AtomicInteger counter = new AtomicInteger(0);
@@ -66,7 +63,7 @@ public class FixedRateConsumerTests {
 		for (int i = 0; i < messagesToSend; i++) {
 			channel.send(new GenericMessage<String>(1, "test " + (i+1)));
 		}
-		latch.await(250, TimeUnit.MILLISECONDS);
+		latch.await(210, TimeUnit.MILLISECONDS);
 		assertEquals(messagesToSend, counter.get());
 	}
 
