@@ -43,6 +43,7 @@ public class DefaultTargetAdapter implements TargetAdapter {
 
 
 	public DefaultTargetAdapter(Target target) {
+		Assert.notNull(target, "'target' must not be null");
 		this.target = target;
 	}
 

@@ -54,33 +54,36 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="inbound-channel-adapter">
+	<xsd:element name="source-adapter">
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines an inbound channel adapter.
+	Defines a source (inbound) channel adapter.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="beans:identifiedType">
 					<xsd:attribute name="ref" type="xsd:string" use="required"/>
 					<xsd:attribute name="method" type="xsd:string" use="required"/>
+					<xsd:attribute name="channel" type="xsd:string" use="required"/>
+					<xsd:attribute name="period" type="xsd:int"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="outbound-channel-adapter">
+	<xsd:element name="target-adapter">
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines an outbound channel adapter.
+	Defines a target (outbound) channel adapter.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="beans:identifiedType">
 					<xsd:attribute name="ref" type="xsd:string" use="required"/>
 					<xsd:attribute name="method" type="xsd:string" use="required"/>
+					<xsd:attribute name="channel" type="xsd:string" use="required"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

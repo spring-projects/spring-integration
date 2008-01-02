@@ -44,6 +44,10 @@ public class ChannelAdapterParser implements BeanDefinitionParser {
 
 	private static final String METHOD_ATTRIBUTE = "method";
 
+	private static final String CHANNEL_ATTRIBUTE = "channel";
+
+	private static final String PERIOD_ATTRIBUTE = "period";
+
 
 	private final boolean isInbound; 
 
@@ -56,14 +60,25 @@ public class ChannelAdapterParser implements BeanDefinitionParser {
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
 		String ref = element.getAttribute(REF_ATTRIBUTE);
 		String method = element.getAttribute(METHOD_ATTRIBUTE);
-		if (!StringUtils.hasText(ref) || !StringUtils.hasText(method)) {
-			throw new MessagingConfigurationException("'ref' and 'method' are both required");
+		String channel = element.getAttribute(CHANNEL_ATTRIBUTE);
+		if (!StringUtils.hasText(ref)) {
+			throw new MessagingConfigurationException("'ref' is required");
+		}
+		if (!StringUtils.hasText(method)) {
+			throw new MessagingConfigurationException("'method' is required");
+		}
+		if (!StringUtils.hasText(channel)) {
+			throw new MessagingConfigurationException("'channel' is required");
 		}
 		RootBeanDefinition adapterDef = null;
 		RootBeanDefinition invokerDef = null;
 		if (this.isInbound) {
 			adapterDef = new RootBeanDefinition(PollingSourceAdapter.class);
 			invokerDef = new RootBeanDefinition(MethodInvokingSource.class);
+			String period = element.getAttribute(PERIOD_ATTRIBUTE);
+			if (StringUtils.hasText(period)) {
+				adapterDef.getPropertyValues().addPropertyValue("period", period);
+			}
 		}
 		else {
 			adapterDef = new RootBeanDefinition(DefaultTargetAdapter.class);
@@ -74,6 +89,7 @@ public class ChannelAdapterParser implements BeanDefinitionParser {
 		String invokerBeanName = parserContext.getReaderContext().generateBeanName(invokerDef);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(invokerDef, invokerBeanName));
 		adapterDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(invokerBeanName));
+		adapterDef.getPropertyValues().addPropertyValue("channel", new RuntimeBeanReference(channel));
 		adapterDef.setSource(parserContext.extractSource(element));
 		String beanName = element.getAttribute(ID_ATTRIBUTE);
 		if (!StringUtils.hasText(beanName)) {

@@ -28,6 +28,7 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.AbstractMessageHandlerAdapter;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.util.SimpleMethodInvoker;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -50,7 +51,11 @@ public class RouterMessageHandlerAdapter extends AbstractMessageHandlerAdapter i
 
 
 	public RouterMessageHandlerAdapter(Object object, Method method, Map<String, ?> attributes) {
+		Assert.notNull(object, "'object' must not be null");
+		Assert.notNull(method, "'method' must not be null");
+		Assert.notNull(attributes, "'attributes' must not be null");
 		this.setObject(object);
+		this.setMethodName(method.getName());
 		this.method = method;
 		this.attributes = attributes;
 	}
@@ -61,6 +66,9 @@ public class RouterMessageHandlerAdapter extends AbstractMessageHandlerAdapter i
 
 	@Override
 	protected Object doHandle(Message message, SimpleMethodInvoker invoker) {
+		if (!this.isInitialized()) {
+			this.afterPropertiesSet();
+		}
 		if (method.getParameterTypes().length != 1) {
 			throw new MessagingConfigurationException(
 					"method must accept exactly one parameter");

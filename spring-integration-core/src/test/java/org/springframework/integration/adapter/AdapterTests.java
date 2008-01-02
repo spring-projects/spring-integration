@@ -29,11 +29,27 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 /**
  * @author Mark Fisher
  */
-public class AdapterBusTests {
+public class AdapterTests {
 
 	@Test
-	public void testAdapters() throws IOException, InterruptedException {
-		AbstractApplicationContext context = new ClassPathXmlApplicationContext("adapterBusTests.xml", this.getClass());
+	public void testAdaptersWithBeanDefinitions() throws IOException, InterruptedException {
+		AbstractApplicationContext context = new ClassPathXmlApplicationContext("adapterTests.xml", this.getClass());
+		TestSink sink = (TestSink) context.getBean("sink");
+		assertNull(sink.get());
+		context.start();
+		String result = null;
+		int attempts = 0;
+		while (result == null && attempts++ < 100) {
+			Thread.sleep(5);
+			result = sink.get();
+		}
+		assertNotNull(result);
+		context.close();
+	}
+
+	@Test
+	public void testAdaptersWithNamespace() throws IOException, InterruptedException {
+		AbstractApplicationContext context = new ClassPathXmlApplicationContext("adapterTestsWithNamespace.xml", this.getClass());
 		TestSink sink = (TestSink) context.getBean("sink");
 		assertNull(sink.get());
 		context.start();

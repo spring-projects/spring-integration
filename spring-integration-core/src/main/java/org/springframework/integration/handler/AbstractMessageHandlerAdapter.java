@@ -51,6 +51,10 @@ public abstract class AbstractMessageHandlerAdapter<T> implements MessageHandler
 
 	private int order = Integer.MAX_VALUE;
 
+	private volatile boolean initialized;
+
+	private Object lifecycleMonitor = new Object();
+
 
 	public void setObject(T object) {
 		Assert.notNull(object, "'object' must not be null");
@@ -88,7 +92,17 @@ public abstract class AbstractMessageHandlerAdapter<T> implements MessageHandler
 	}
 
 	public final void afterPropertiesSet() {
-		this.invoker = new SimpleMethodInvoker<T>(this.object, this.methodName);
+		this.validate();
+		synchronized (this.lifecycleMonitor) {
+			this.invoker = new SimpleMethodInvoker<T>(this.object, this.methodName);
+			this.initialized = true;
+		}
+	}
+
+	public final boolean isInitialized() {
+		synchronized (this.lifecycleMonitor) {
+			return this.initialized;
+		}
 	}
 
 	public final Message<?> handle(Message<?> message) {
@@ -100,6 +114,12 @@ public abstract class AbstractMessageHandlerAdapter<T> implements MessageHandler
 			return this.mapper.toMessage(result);
 		}
 		return null;
+	}
+
+	/**
+	 * Subclasses may override this method to provide validation upon initialization.
+	 */
+	protected void validate() {
 	}
 
 	/**

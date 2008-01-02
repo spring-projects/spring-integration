@@ -182,6 +182,9 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			ConsumerPolicy policy = adapter.getConsumerPolicy();
 			DispatcherTask dispatcherTask = new DispatcherTask((MessageDispatcher) adapter, policy);
 			this.addDispatcherTask(dispatcherTask);
+			if (logger.isInfoEnabled()) {
+				logger.info("registered source adapter '" + name + "'");
+			}
 		}
 	}
 
