@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" 
+"http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY overview SYSTEM "overview.xml">
+]>
+<book>
+  <bookinfo>
+    <title>Reference Manual</title>
+
+    <productname>Spring Integration</productname>
+    <releaseinfo>1.0 Milestone 1</releaseinfo>
+
+    <mediaobject>
+      <imageobject role="fo">
+        <imagedata align="center" fileref="images/logo.png" format="PNG"/>
+      </imageobject>
+      <imageobject role="html">
+        <imagedata align="right" fileref="images/small-logo.png" format="PNG"/>
+      </imageobject>
+    </mediaobject>
+
+    <authorgroup>
+      <author>
+        <firstname>Mark</firstname>
+        <surname>Fisher</surname>
+      </author>
+    </authorgroup>
+
+    <legalnotice>Copyright &copy; SpringSource Inc., 2007</legalnotice>
+  </bookinfo>
+
+  <toc></toc>
+
+  &overview;
+
+</book>
