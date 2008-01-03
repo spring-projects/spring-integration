@@ -38,6 +38,10 @@ public class UnicastMessageDispatcher extends AbstractMessageDispatcher {
 	}
 
 
+	public ConsumerPolicy getConsumerPolicy() {
+		return this.policy;
+	}
+
 	@Override
 	protected boolean dispatchMessage(Message<?> message) {
 		int attempts = 0;

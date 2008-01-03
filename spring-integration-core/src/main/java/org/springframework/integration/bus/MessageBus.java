@@ -179,8 +179,9 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 	public void registerSourceAdapter(String name, SourceAdapter adapter) {
 		// TODO: use the name
 		if (adapter instanceof MessageDispatcher) {
-			ConsumerPolicy policy = adapter.getConsumerPolicy();
-			DispatcherTask dispatcherTask = new DispatcherTask((MessageDispatcher) adapter, policy);
+			MessageDispatcher dispatcher = (MessageDispatcher) adapter;
+			ConsumerPolicy policy = dispatcher.getConsumerPolicy();
+			DispatcherTask dispatcherTask = new DispatcherTask(dispatcher, policy);
 			this.addDispatcherTask(dispatcherTask);
 			if (logger.isInfoEnabled()) {
 				logger.info("registered source adapter '" + name + "'");

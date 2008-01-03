@@ -16,7 +16,6 @@
 
 package org.springframework.integration.adapter;
 
-import org.springframework.integration.bus.ConsumerPolicy;
 import org.springframework.integration.channel.MessageChannel;
 
 /**
@@ -27,7 +26,5 @@ import org.springframework.integration.channel.MessageChannel;
 public interface SourceAdapter {
 
 	void setChannel(MessageChannel channel);
-
-	ConsumerPolicy getConsumerPolicy();
 
 }

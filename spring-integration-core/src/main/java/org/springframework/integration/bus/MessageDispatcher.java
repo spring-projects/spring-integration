@@ -23,6 +23,8 @@ package org.springframework.integration.bus;
  */
 public interface MessageDispatcher {
 
+	ConsumerPolicy getConsumerPolicy();
+
 	int dispatch();
 
 }

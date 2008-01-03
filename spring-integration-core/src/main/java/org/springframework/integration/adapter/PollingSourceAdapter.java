@@ -22,9 +22,7 @@ import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.bus.ConsumerPolicy;
 import org.springframework.integration.bus.MessageDispatcher;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageMapper;
-import org.springframework.integration.message.SimplePayloadMessageMapper;
 import org.springframework.util.Assert;
 
 /**
@@ -34,19 +32,13 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class PollingSourceAdapter<T> implements SourceAdapter, MessageDispatcher {
+public class PollingSourceAdapter<T> extends AbstractSourceAdapter<T> implements MessageDispatcher {
 
 	private static int DEFAULT_PERIOD = 1000;
 
 	private PollableSource<T> source;
 
-	private MessageChannel channel;
-
-	private MessageMapper<?,T> mapper = new SimplePayloadMessageMapper<T>();
-
 	private ConsumerPolicy policy = ConsumerPolicy.newPollingPolicy(DEFAULT_PERIOD);
-
-	private long sendTimeout = -1;
 
 
 	public PollingSourceAdapter(PollableSource<T> source) {
@@ -54,27 +46,9 @@ public class PollingSourceAdapter<T> implements SourceAdapter, MessageDispatcher
 		this.source = source;
 	}
 
-	public void setChannel(MessageChannel channel) {
-		Assert.notNull(channel, "'channel' must not be null");
-		this.channel = channel;
-	}
-
 	public void setPeriod(int period) {
 		Assert.isTrue(period > 0, "'period' must be a positive value");
 		this.policy.setPeriod(period);
-	}
-
-	public void setSendTimeout(long sendTimeout) {
-		this.sendTimeout = sendTimeout;
-	}
-
-	public void setMessageMapper(MessageMapper<?,T> mapper) {
-		Assert.notNull(mapper, "'mapper' must not be null");
-		this.mapper = mapper;
-	}
-
-	protected MessageMapper<?,T> getMessageMapper() {
-		return this.mapper;
 	}
 
 	public void setMaxMessagesPerTask(int maxMessagesPerTask) {
@@ -95,16 +69,8 @@ public class PollingSourceAdapter<T> implements SourceAdapter, MessageDispatcher
 				throw new MessageHandlingException("source returned too many results, the limit is " + limit);
 			}
 			for (T next : results) {
-				Message<?> message = this.mapper.toMessage(next);
-				if (this.sendTimeout < 0) {
-					if (this.channel.send(message)) {
-						messagesProcessed++;
-					}
-				}
-				else {
-					if (this.channel.send(message, this.sendTimeout)) {
-						messagesProcessed++;
-					}
+				if (this.sendToChannel(next)) {
+					messagesProcessed++;
 				}
 			}
 		}
