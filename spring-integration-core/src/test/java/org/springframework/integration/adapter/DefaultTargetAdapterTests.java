@@ -37,7 +37,7 @@ import org.springframework.integration.message.Message;
 public class DefaultTargetAdapterTests {
 
 	@Test
-	public void test() throws Exception {
+	public void testAdapterSendsToChannel() throws Exception {
 		SynchronousQueue<String> queue = new SynchronousQueue<String>();
 		TestBean testBean = new TestBean(queue);
 		MethodInvokingTarget<TestBean> target = new MethodInvokingTarget<TestBean>();
@@ -54,9 +54,10 @@ public class DefaultTargetAdapterTests {
 		bus.registerChannel("channel", channel);
 		bus.registerTargetAdapter("targetAdapter", adapter);
 		bus.start();
-		String result = queue.poll(20, TimeUnit.MILLISECONDS);
+		String result = queue.poll(100, TimeUnit.MILLISECONDS);
 		assertNotNull(result);
 		assertEquals("testing", result);
+		bus.stop();
 	}
 
 
