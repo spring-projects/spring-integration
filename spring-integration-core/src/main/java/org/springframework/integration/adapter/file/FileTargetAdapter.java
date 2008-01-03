@@ -20,6 +20,8 @@ import java.io.File;
 
 import org.springframework.integration.adapter.DefaultTargetAdapter;
 import org.springframework.integration.adapter.Target;
+import org.springframework.integration.message.MessageMapper;
+import org.springframework.util.Assert;
 
 /**
  * A convenience adapter for writing files. The actual file writing occurs in
@@ -40,6 +42,14 @@ public class FileTargetAdapter extends DefaultTargetAdapter {
 		}
 		else {
 			this.setMessageMapper(new ByteArrayFileMapper(directory));
+		}
+	}
+
+	public void setFileNameGenerator(FileNameGenerator fileNameGenerator) {
+		Assert.notNull(fileNameGenerator, "'fileNameGenerator' must not be null");
+		MessageMapper<?,?> mapper = this.getMessageMapper();
+		if (mapper instanceof AbstractFileMapper<?>) {
+			((AbstractFileMapper<?>) mapper).setFileNameGenerator(fileNameGenerator);
 		}
 	}
 

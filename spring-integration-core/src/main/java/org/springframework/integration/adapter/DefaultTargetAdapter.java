@@ -69,6 +69,10 @@ public class DefaultTargetAdapter implements TargetAdapter {
 		this.mapper = mapper;
 	}
 
+	protected MessageMapper getMessageMapper() {
+		return this.mapper;
+	}
+
 	public void setConsumerPolicy(ConsumerPolicy policy) {
 		Assert.notNull(policy, "'policy' must not be null");
 		this.policy = policy;

@@ -46,6 +46,14 @@ public class FileSourceAdapter extends PollingSourceAdapter<File> {
 		}
 	}
 
+	public void setFileNameGenerator(FileNameGenerator fileNameGenerator) {
+		Assert.notNull(fileNameGenerator, "'fileNameGenerator' must not be null");
+		MessageMapper<?,?> mapper = this.getMessageMapper();
+		if (mapper instanceof AbstractFileMapper<?>) {
+			((AbstractFileMapper<?>) mapper).setFileNameGenerator(fileNameGenerator);
+		}
+	}
+
 	public void setBackupDirectory(File backupDirectory) {
 		Assert.notNull(backupDirectory, "'backupDirectory' must not be null");
 		MessageMapper<?, File> mapper = this.getMessageMapper();
