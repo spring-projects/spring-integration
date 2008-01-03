@@ -65,7 +65,7 @@ public class FixedDelayConsumerTests {
 		for (int i = 0; i < messagesToSend; i++) {
 			channel.send(new GenericMessage<String>(1, "test " + (i+1)));
 		}
-		latch.await(500, TimeUnit.MILLISECONDS);
+		latch.await(1000, TimeUnit.MILLISECONDS);
 		assertEquals(messagesToSend, counter.get());
 	}
 
