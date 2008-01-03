@@ -19,22 +19,75 @@ package org.springframework.integration.adapter.jms;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 
-import org.springframework.integration.adapter.DefaultTargetAdapter;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.adapter.AbstractTargetAdapter;
 import org.springframework.jms.core.JmsTemplate;
 
 /**
- * A convenience adapter that wraps a {@link JmsTarget}.
+ * A target adapter for sending JMS Messages.
  * 
  * @author Mark Fisher
  */
-public class JmsTargetAdapter extends DefaultTargetAdapter {
+public class JmsTargetAdapter extends AbstractTargetAdapter<Object> implements InitializingBean {
 
-	public JmsTargetAdapter(ConnectionFactory connectionFactory, Destination destination) {
-		super(new JmsTarget(connectionFactory, destination));
-	}
+	private ConnectionFactory connectionFactory;
+
+	private Destination destination;
+
+	private JmsTemplate jmsTemplate;
+
 
 	public JmsTargetAdapter(JmsTemplate jmsTemplate) {
-		super(new JmsTarget(jmsTemplate));
+		this.jmsTemplate = jmsTemplate;
+	}
+
+	public JmsTargetAdapter(ConnectionFactory connectionFactory, Destination destination) {
+		this.connectionFactory = connectionFactory;
+		this.destination = destination;
+		this.initJmsTemplate();
+	}
+
+	/**
+	 * No-arg constructor provided for convenience when configuring with
+	 * setters. Note that the initialization callback will validate.
+	 */
+	public JmsTargetAdapter() {
+	}
+
+
+	public void setConnectionFactory(ConnectionFactory connectionFactory) {
+		this.connectionFactory = connectionFactory;
+	}
+
+	public void setDestination(Destination destination) {
+		this.destination = destination;
+	}
+
+	public void setJmsTemplate(JmsTemplate jmsTemplate) {
+		this.jmsTemplate = jmsTemplate;
+	}
+
+	public void afterPropertiesSet() {
+		if (this.jmsTemplate == null) {
+			if (this.connectionFactory == null || this.destination == null) {
+				throw new MessagingConfigurationException("Either a 'jmsTemplate' or " +
+						"*both* 'connectionFactory' and 'destination' are required.");
+			}
+			this.initJmsTemplate();
+		}
+	}
+
+	private void initJmsTemplate() {
+		this.jmsTemplate = new JmsTemplate();
+		this.jmsTemplate.setConnectionFactory(this.connectionFactory);
+		this.jmsTemplate.setDefaultDestination(this.destination);
+	}
+
+	@Override
+	protected boolean sendToTarget(Object object) {
+		this.jmsTemplate.convertAndSend(object);
+		return true;
 	}
 
 }
