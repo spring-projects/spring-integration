@@ -25,7 +25,7 @@ import org.springframework.integration.message.MessageReceiver;
  * 
  * @author Mark Fisher
  */
-public interface MessageEndpoint extends MessageReceiver {
+public interface MessageEndpoint<T> extends MessageReceiver<T> {
 
 	void setInputChannelName(String inputChannelName);
 

@@ -22,8 +22,8 @@ package org.springframework.integration.message;
  * 
  * @author Mark Fisher
  */
-public interface MessageReceiver {
+public interface MessageReceiver<T> {
 
-	void messageReceived(Message<?> message);
+	void messageReceived(Message<T> message);
 
 }

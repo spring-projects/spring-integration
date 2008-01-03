@@ -14,29 +14,25 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter;
+package org.springframework.integration.adapter.event;
 
+import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageMapper;
-import org.springframework.util.Assert;
 
 /**
- * Target adapter implementation that delegates to a {@link MessageMapper}
- * and then passes the resulting object to the provided {@link Target}.
+ * A {@link MessageMapper} implementation for mapping to and from
+ * {@link MessagingEvent MessagingEvents}.
  * 
  * @author Mark Fisher
  */
-public class DefaultTargetAdapter<T> extends AbstractTargetAdapter<T> {
+public class MessagingEventMapper<T> implements MessageMapper<T, MessagingEvent<T>> {
 
-	private Target<T> target;
-
-
-	public DefaultTargetAdapter(Target<T> target) {
-		Assert.notNull(target, "'target' must not be null");
-		this.target = target;
+	public MessagingEvent<T> fromMessage(Message<T> message) {
+		return new MessagingEvent<T>(message);
 	}
 
-	public boolean sendToTarget(T object) {
-		return this.target.send(object);
+	public Message<T> toMessage(MessagingEvent<T> event) {
+		return event.getMessage();
 	}
 
 }

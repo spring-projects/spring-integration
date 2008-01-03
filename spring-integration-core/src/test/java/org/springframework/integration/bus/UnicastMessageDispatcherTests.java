@@ -40,16 +40,16 @@ public class UnicastMessageDispatcherTests {
 		final AtomicBoolean endpoint1Received = new AtomicBoolean();
 		final AtomicBoolean endpoint2Received = new AtomicBoolean();
 		final CountDownLatch latch = new CountDownLatch(1);
-		MessageEndpoint endpoint1 = new GenericMessageEndpoint() {
+		MessageEndpoint<String> endpoint1 = new GenericMessageEndpoint<String>() {
 			@Override
-			public void messageReceived(Message<?> message) {
+			public void messageReceived(Message<String> message) {
 				endpoint1Received.set(true);
 				latch.countDown();
 			}
 		};
-		MessageEndpoint endpoint2 = new GenericMessageEndpoint() {
+		MessageEndpoint<String> endpoint2 = new GenericMessageEndpoint<String>() {
 			@Override
-			public void messageReceived(Message<?> message) {
+			public void messageReceived(Message<String> message) {
 				endpoint2Received.set(true);
 				latch.countDown();
 			}

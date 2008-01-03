@@ -30,7 +30,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.MessagingException;
-import org.springframework.integration.adapter.DefaultTargetAdapter;
+import org.springframework.integration.adapter.AbstractTargetAdapter;
 import org.springframework.integration.adapter.SourceAdapter;
 import org.springframework.integration.adapter.TargetAdapter;
 import org.springframework.integration.channel.ChannelRegistry;
@@ -54,13 +54,13 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 
 	private ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 
-	private Map<String, MessageEndpoint> endpoints = new ConcurrentHashMap<String, MessageEndpoint>();
+	private Map<String, MessageEndpoint<?>> endpoints = new ConcurrentHashMap<String, MessageEndpoint<?>>();
 
-	private Map<String, TargetAdapter> targetAdapters = new ConcurrentHashMap<String, TargetAdapter>();
+	private Map<String, TargetAdapter<?>> targetAdapters = new ConcurrentHashMap<String, TargetAdapter<?>>();
 
 	private List<DispatcherTask> dispatcherTasks = new CopyOnWriteArrayList<DispatcherTask>();
 
-	private Map<MessageReceiver, MessageReceivingExecutor> receiverExecutors = new ConcurrentHashMap<MessageReceiver, MessageReceivingExecutor>();
+	private Map<MessageReceiver<?>, MessageReceivingExecutor> receiverExecutors = new ConcurrentHashMap<MessageReceiver<?>, MessageReceivingExecutor>();
 
 	private ScheduledThreadPoolExecutor dispatcherExecutor;
 
@@ -153,7 +153,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		this.channelRegistry.registerChannel(name, channel);
 	}
 
-	public void registerEndpoint(String name, MessageEndpoint endpoint) {
+	public void registerEndpoint(String name, MessageEndpoint<?> endpoint) {
 		Assert.notNull(name, "'name' must not be null");
 		Assert.notNull(endpoint, "'endpoint' must not be null");
 		this.endpoints.put(name, endpoint);
@@ -189,9 +189,9 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		}
 	}
 
-	public void registerTargetAdapter(String name, TargetAdapter targetAdapter) {
-		if (targetAdapter instanceof DefaultTargetAdapter) {
-			DefaultTargetAdapter adapter = (DefaultTargetAdapter) targetAdapter;
+	public void registerTargetAdapter(String name, TargetAdapter<?> targetAdapter) {
+		if (targetAdapter instanceof AbstractTargetAdapter) {
+			AbstractTargetAdapter<?> adapter = (AbstractTargetAdapter<?>) targetAdapter;
 			adapter.setName(name);
 			this.targetAdapters.put(name, targetAdapter);
 			MessageChannel channel = adapter.getChannel();
@@ -222,7 +222,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			channel = new PointToPointChannel(); 
 			this.registerChannel(channelName, channel);
 		}
-		MessageEndpoint endpoint = this.endpoints.get(endpointName);
+		MessageEndpoint<?> endpoint = this.endpoints.get(endpointName);
 		if (endpoint == null) {
 			throw new MessagingException("Cannot activate subscription, unknown endpoint '" + endpointName + "'");
 		}
@@ -257,7 +257,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 	}
 
 	public int getActiveCountForReceiver(String receiverName) {
-		MessageReceiver receiver = this.endpoints.get(receiverName);
+		MessageReceiver<?> receiver = this.endpoints.get(receiverName);
 		if (receiver == null) {
 			receiver = this.targetAdapters.get(receiverName);
 		}

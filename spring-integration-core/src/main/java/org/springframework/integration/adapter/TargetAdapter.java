@@ -25,7 +25,7 @@ import org.springframework.integration.message.MessageReceiver;
  * 
  * @author Mark Fisher
  */
-public interface TargetAdapter extends MessageReceiver {
+public interface TargetAdapter<T> extends MessageReceiver<T> {
 
 	String getName();
 

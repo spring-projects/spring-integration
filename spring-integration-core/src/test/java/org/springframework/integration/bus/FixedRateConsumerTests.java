@@ -42,8 +42,8 @@ public class FixedRateConsumerTests {
 		final AtomicInteger counter = new AtomicInteger(0);
 		final CountDownLatch latch = new CountDownLatch(messagesToSend);
 		PointToPointChannel channel = new PointToPointChannel();
-		MessageEndpoint endpoint = new GenericMessageEndpoint() {
-			public void messageReceived(Message<?> message) {
+		MessageEndpoint<String> endpoint = new GenericMessageEndpoint<String>() {
+			public void messageReceived(Message<String> message) {
 				counter.incrementAndGet();
 				latch.countDown();
 			}
@@ -73,8 +73,8 @@ public class FixedRateConsumerTests {
 		final AtomicInteger counter = new AtomicInteger(0);
 		final CountDownLatch latch = new CountDownLatch(messagesToSend);
 		PointToPointChannel channel = new PointToPointChannel();
-		MessageEndpoint endpoint = new GenericMessageEndpoint() {
-			public void messageReceived(Message<?> message) {
+		MessageEndpoint<String> endpoint = new GenericMessageEndpoint<String>() {
+			public void messageReceived(Message<String> message) {
 				counter.incrementAndGet();
 				latch.countDown();
 			}

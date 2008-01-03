@@ -37,7 +37,7 @@ import org.springframework.integration.message.Message;
  * 
  * @author Mark Fisher
  */
-public class GenericMessageEndpoint implements MessageEndpoint {
+public class GenericMessageEndpoint<T> implements MessageEndpoint<T> {
 
 	private String inputChannelName;
 
@@ -98,7 +98,7 @@ public class GenericMessageEndpoint implements MessageEndpoint {
 	}
 
 
-	public void messageReceived(Message<?> message) {
+	public void messageReceived(Message<T> message) {
 		if (this.handler == null) {
 			if (this.defaultOutputChannelName == null) {
 				throw new MessagingConfigurationException(
