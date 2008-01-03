@@ -18,8 +18,7 @@ package org.springframework.integration.adapter.file;
 
 import java.io.File;
 
-import org.springframework.integration.adapter.DefaultTargetAdapter;
-import org.springframework.integration.adapter.Target;
+import org.springframework.integration.adapter.AbstractTargetAdapter;
 import org.springframework.integration.message.MessageMapper;
 import org.springframework.util.Assert;
 
@@ -29,14 +28,13 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class FileTargetAdapter extends DefaultTargetAdapter {
+public class FileTargetAdapter extends AbstractTargetAdapter<File> {
 
 	public FileTargetAdapter(File directory) {
 		this(directory, true);
 	}
 
 	public FileTargetAdapter(File directory, boolean isTextBased) {
-		super(new FileTarget());
 		if (isTextBased) {
 			this.setMessageMapper(new TextFileMapper(directory));
 		}
@@ -53,12 +51,9 @@ public class FileTargetAdapter extends DefaultTargetAdapter {
 		}
 	}
 
-
-	private static class FileTarget implements Target<File> {
-
-		public boolean send(File file) {
-			return file.exists();
-		}
+	@Override
+	protected boolean sendToTarget(File file) {
+		return file.exists();
 	}
 
 }
