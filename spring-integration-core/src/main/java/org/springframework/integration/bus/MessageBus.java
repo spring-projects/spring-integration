@@ -199,6 +199,9 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			UnicastMessageDispatcher dispatcher = new UnicastMessageDispatcher(retriever, policy);
 			dispatcher.addExecutor(new MessageReceivingExecutor(adapter, policy.getConcurrency(), policy.getMaxConcurrency()));
 			this.addDispatcherTask(new DispatcherTask(dispatcher, policy));
+			if (logger.isInfoEnabled()) {
+				logger.info("registered target adapter '" + name + "'");
+			}
 		}
 	}
 
