@@ -159,4 +159,18 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="jms-target">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a jms-based target channel adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="jms-template" type="xsd:string"/>
+			<xsd:attribute name="connection-factory" type="xsd:string"/>
+			<xsd:attribute name="destination" type="xsd:string"/>
+			<xsd:attribute name="channel" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
 </xsd:schema>
