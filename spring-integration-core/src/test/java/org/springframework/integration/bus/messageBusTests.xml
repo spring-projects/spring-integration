@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="bus" class="org.springframework.integration.bus.MessageBus"/>
+
+	<bean id="sourceChannel" class="org.springframework.integration.channel.PointToPointChannel"/>
+
+	<bean id="targetChannel" class="org.springframework.integration.channel.PointToPointChannel"/>
+
+	<bean id="endpoint" class="org.springframework.integration.endpoint.GenericMessageEndpoint">
+		<property name="inputChannelName" value="sourceChannel"/>
+		<property name="defaultOutputChannelName" value="targetChannel"/>
+	</bean>
+
+</beans>

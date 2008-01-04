@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns="http://www.springframework.org/schema/integration"
+		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+		xmlns:beans="http://www.springframework.org/schema/beans"
+		xmlns:tool="http://www.springframework.org/schema/tool"
+		targetNamespace="http://www.springframework.org/schema/integration"
+		elementFormDefault="qualified"
+		attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
+	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
+
+	<xsd:annotation>
+		<xsd:documentation><![CDATA[
+	Defines the configuration elements for Spring Integration.
+		]]></xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:element name="message-bus">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a message bus.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="auto-create-channels" type="xsd:boolean"/>
+			<xsd:attribute name="invalid-message-channel" type="xsd:string"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="annotation-driven">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Enables the annotation-driven post-processors.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="channel">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a message channel.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="beans:identifiedType">
+					<xsd:attribute name="capacity" type="xsd:integer"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="source-adapter">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a source (inbound) channel adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="beans:identifiedType">
+					<xsd:attribute name="ref" type="xsd:string" use="required"/>
+					<xsd:attribute name="method" type="xsd:string" use="required"/>
+					<xsd:attribute name="channel" type="xsd:string" use="required"/>
+					<xsd:attribute name="period" type="xsd:int"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="target-adapter">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a target (outbound) channel adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="beans:identifiedType">
+					<xsd:attribute name="ref" type="xsd:string" use="required"/>
+					<xsd:attribute name="method" type="xsd:string" use="required"/>
+					<xsd:attribute name="channel" type="xsd:string" use="required"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="endpoint">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a message endpoint.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="beans:identifiedType">
+					<xsd:sequence>
+						<xsd:element ref="consumer" minOccurs="0" maxOccurs="1"/>
+						<xsd:element ref="handler" minOccurs="0" maxOccurs="unbounded"/>
+					</xsd:sequence>
+					<xsd:attribute name="input-channel" type="xsd:string"/>
+					<xsd:attribute name="default-output-channel" type="xsd:string"/>
+					<xsd:attribute name="handler-ref" type="xsd:string"/>
+					<xsd:attribute name="handler-method" type="xsd:string"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="consumer">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a consumer policy.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="period" type="xsd:int"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="handler">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a handler.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="ref" type="xsd:string" use="required"/>
+			<xsd:attribute name="method" type="xsd:string"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="file-source">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a file-based source channel adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="directory" type="xsd:string" use="required"/>
+			<xsd:attribute name="channel" type="xsd:string" use="required"/>
+			<xsd:attribute name="poll-period" type="xsd:int" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="file-target">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a file-based target channel adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="directory" type="xsd:string" use="required"/>
+			<xsd:attribute name="channel" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="jms-target">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a jms-based target channel adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="jms-template" type="xsd:string"/>
+			<xsd:attribute name="connection-factory" type="xsd:string"/>
+			<xsd:attribute name="destination" type="xsd:string"/>
+			<xsd:attribute name="channel" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+</xsd:schema>

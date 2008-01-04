@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+	<bean id="bus" class="org.springframework.integration.bus.MessageBus"/>
+
+	<bean id="inputChannel" class="org.springframework.integration.channel.PointToPointChannel"/>
+
+	<bean id="outputChannel" class="org.springframework.integration.channel.PointToPointChannel"/>
+
+	<bean id="sourceAdapter" class="org.springframework.integration.adapter.PollingSourceAdapter">
+		<constructor-arg>
+			<bean class="org.springframework.integration.adapter.MethodInvokingSource">
+				<property name="object">
+					<bean class="org.springframework.integration.adapter.TestSource"/>
+				</property>
+				<property name="method" value="foo"/>
+			</bean>
+		</constructor-arg>
+		<property name="channel" ref="inputChannel"/>
+	</bean>
+
+	<bean id="targetAdapter" class="org.springframework.integration.adapter.DefaultTargetAdapter">
+		<constructor-arg>
+			<bean class="org.springframework.integration.adapter.MethodInvokingTarget">
+				<property name="object" ref="sink"/>
+				<property name="method" value="store"/>
+			</bean>
+		</constructor-arg>
+		<property name="channel" ref="outputChannel"/>
+	</bean>
+
+	<bean id="sink" class="org.springframework.integration.adapter.TestSink"/>
+
+	<bean id="endpoint" class="org.springframework.integration.endpoint.GenericMessageEndpoint">
+		<property name="inputChannelName" value="inputChannel"/>
+		<property name="defaultOutputChannelName" value="outputChannel"/>
+		<property name="consumerPolicy">
+			<bean class="org.springframework.integration.bus.ConsumerPolicy">
+				<property name="receiveTimeout" value="100"/>
+			</bean>
+		</property>
+	</bean>
+
+</beans>

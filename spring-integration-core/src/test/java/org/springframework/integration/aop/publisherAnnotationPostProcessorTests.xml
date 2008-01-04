@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+	<bean id="messageBus" class="org.springframework.integration.bus.MessageBus"/>
+
+	<bean id="testChannel" class="org.springframework.integration.channel.PointToPointChannel"/>
+
+	<bean id="testBean" class="org.springframework.integration.aop.PublisherAnnotationTestBean"/>
+
+	<bean class="org.springframework.integration.config.PublisherAnnotationPostProcessor">
+		<property name="channelRegistry" ref="messageBus"/>
+	</bean>
+
+</beans>
