@@ -9,12 +9,21 @@
 
 	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
 
-	<bean class="org.springframework.integration.bus.MessageBus"/>
+	<si:message-bus/>
 
-	<bean id="channel" class="org.springframework.integration.channel.PointToPointChannel"/>
+	<si:channel id="channel1"/>
 
-	<si:file-source directory="${java.io.tmpdir}/spring-integration-samples/input" channel="channel" poll-period="10000"/>
+	<si:channel id="channel2"/>
 
-	<si:file-target directory="${java.io.tmpdir}/spring-integration-samples/output" channel="channel"/>
+	<si:file-source directory="${java.io.tmpdir}/spring-integration-samples/input"
+                    channel="channel1" poll-period="10000"/>
+
+	<si:endpoint input-channel="channel1" default-output-channel="channel2"
+                 handler-ref="exclaimer" handler-method="exclaim"/>
+
+	<si:file-target directory="${java.io.tmpdir}/spring-integration-samples/output"
+                    channel="channel2"/>
+
+	<bean id="exclaimer" class="org.springframework.integration.samples.filecopy.Exclaimer"/>
 
 </beans>
