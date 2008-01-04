@@ -17,6 +17,8 @@
 package org.springframework.integration.config;
 
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
+import org.springframework.integration.adapter.file.config.FileSourceAdapterParser;
+import org.springframework.integration.adapter.file.config.FileTargetAdapterParser;
 
 /**
  * Namespace handler for the integration namespace.
@@ -32,6 +34,8 @@ public class IntegrationNamespaceHandler extends NamespaceHandlerSupport {
 		registerBeanDefinitionParser("source-adapter", new ChannelAdapterParser(true));
 		registerBeanDefinitionParser("target-adapter", new ChannelAdapterParser(false));
 		registerBeanDefinitionParser("endpoint", new EndpointParser());
+		registerBeanDefinitionParser("file-source", new FileSourceAdapterParser());
+		registerBeanDefinitionParser("file-target", new FileTargetAdapterParser());
 	}
 
 }

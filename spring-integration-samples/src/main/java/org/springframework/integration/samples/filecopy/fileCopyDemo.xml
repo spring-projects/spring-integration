@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:si="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
+
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
+
+	<bean class="org.springframework.integration.bus.MessageBus"/>
+
+	<bean id="channel" class="org.springframework.integration.channel.PointToPointChannel"/>
+
+	<si:file-source directory="${java.io.tmpdir}/spring-integration-samples/input" channel="channel" poll-period="10000"/>
+
+	<si:file-target directory="${java.io.tmpdir}/spring-integration-samples/output" channel="channel"/>
+
+</beans>

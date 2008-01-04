@@ -134,4 +134,29 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="file-source">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a file-based source channel adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="directory" type="xsd:string" use="required"/>
+			<xsd:attribute name="channel" type="xsd:string" use="required"/>
+			<xsd:attribute name="poll-period" type="xsd:int" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="file-target">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a file-based target channel adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="directory" type="xsd:string" use="required"/>
+			<xsd:attribute name="channel" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
 </xsd:schema>
