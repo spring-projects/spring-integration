@@ -16,6 +16,11 @@
 
 package org.springframework.integration.adapter;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageMapper;
@@ -27,7 +32,9 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class AbstractSourceAdapter<T> implements SourceAdapter {
+public class AbstractSourceAdapter<T> implements SourceAdapter, InitializingBean {
+
+	protected Log logger = LogFactory.getLog(this.getClass());
 
 	private MessageChannel channel;
 
@@ -54,8 +61,33 @@ public class AbstractSourceAdapter<T> implements SourceAdapter {
 		return this.mapper;
 	}
 
+	public final void afterPropertiesSet() {
+		if (this.channel == null) {
+			throw new MessagingConfigurationException("'channel' is required");
+		}
+		this.initialize();
+	}
+
+	/**
+	 * Subclasses may implement this to take advantage of the initialization callback.
+	 */
+	protected void initialize() {		
+	}
+
 	protected boolean sendToChannel(T object) {
-		Message<?> message = this.mapper.toMessage(object);
+		Message<?> message = null;
+		if (object instanceof Message<?>) {
+			message = (Message<?>) object;
+		}
+		else {
+			message = this.mapper.toMessage(object);
+		}
+		if (message == null) {
+			if (logger.isWarnEnabled()) {
+				logger.warn("unable to create Message from source object: " + object);
+			}
+			return false;
+		}
 		if (this.sendTimeout < 0) {
 			return this.channel.send(message);
 		}

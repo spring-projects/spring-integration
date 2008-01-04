@@ -58,6 +58,8 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 
 	private Map<String, TargetAdapter<?>> targetAdapters = new ConcurrentHashMap<String, TargetAdapter<?>>();
 
+	private Map<String, Lifecycle> lifecycleComponents = new ConcurrentHashMap<String, Lifecycle>();
+
 	private List<DispatcherTask> dispatcherTasks = new CopyOnWriteArrayList<DispatcherTask>();
 
 	private Map<MessageReceiver<?>, MessageReceivingExecutor> receiverExecutors = new ConcurrentHashMap<MessageReceiver<?>, MessageReceivingExecutor>();
@@ -183,9 +185,18 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			ConsumerPolicy policy = dispatcher.getConsumerPolicy();
 			DispatcherTask dispatcherTask = new DispatcherTask(dispatcher, policy);
 			this.addDispatcherTask(dispatcherTask);
-			if (logger.isInfoEnabled()) {
-				logger.info("registered source adapter '" + name + "'");
+		}
+		if (adapter instanceof Lifecycle) {
+			this.lifecycleComponents.put(name, (Lifecycle) adapter);
+			if (this.isRunning()) {
+				((Lifecycle) adapter).start();
+				if (logger.isInfoEnabled()) {
+					logger.info("started source adapter '" + name + "'");
+				}
 			}
+		}
+		if (logger.isInfoEnabled()) {
+			logger.info("registered source adapter '" + name + "'");
 		}
 	}
 
@@ -231,7 +242,8 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 					"' for endpoint '" + endpointName + "'");
 		}
 		MessageReceivingExecutor executor = new MessageReceivingExecutor(endpoint, policy.getConcurrency(), policy.getMaxConcurrency());
-		receiverExecutors.put(endpoint, executor);
+		this.receiverExecutors.put(endpoint, executor);
+		this.lifecycleComponents.put(endpointName + "-executor", executor);
 		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
 		UnicastMessageDispatcher dispatcher = new UnicastMessageDispatcher(retriever, policy);
 		dispatcher.addExecutor(executor);
@@ -302,8 +314,11 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		synchronized (this.lifecycleMonitor) {
 			if (!this.isRunning()) {
 				this.running = true;
-				for (MessageReceivingExecutor executor : receiverExecutors.values()) {
-					executor.start();
+				for (Map.Entry<String, Lifecycle> entry : this.lifecycleComponents.entrySet()) {
+					entry.getValue().start();
+					if (logger.isInfoEnabled()) {
+						logger.info("started lifecycle component '" + entry.getKey() + "'");
+					}
 				}
 				for (DispatcherTask task : this.dispatcherTasks) {
 					scheduleDispatcherTask(task);
@@ -316,8 +331,11 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		synchronized (this.lifecycleMonitor) {
 			if (this.isRunning()) {
 				this.running = false;
-				for (MessageReceivingExecutor executor : receiverExecutors.values()) {
-					executor.stop();
+				for (Map.Entry<String, Lifecycle> entry : this.lifecycleComponents.entrySet()) {
+					entry.getValue().stop();
+					if (logger.isInfoEnabled()) {
+						logger.info("stopped lifecycle component '" + entry.getKey() + "'");
+					}
 				}
 				this.dispatcherExecutor.shutdownNow();
 			}

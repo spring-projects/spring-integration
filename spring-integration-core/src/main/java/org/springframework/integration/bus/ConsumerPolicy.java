@@ -75,6 +75,17 @@ public class ConsumerPolicy {
 		return policy;
 	}
 
+	/**
+	 * Factory method for a basic event-driven policy.
+	 */
+	public static ConsumerPolicy newEventDrivenPolicy() {
+		ConsumerPolicy policy = new ConsumerPolicy();
+		policy.setPeriod(-1);
+		policy.setConcurrency(1);
+		policy.setMaxConcurrency(1);
+		return policy;
+	}
+
 	public int getInitialDelay() {
 		return this.initialDelay;
 	}

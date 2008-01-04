@@ -57,9 +57,8 @@ public class UnicastMessageDispatcher extends AbstractMessageDispatcher {
 			try {
 				if (executor == null || !executor.isRunning()) {
 					if (logger.isInfoEnabled()) {
-						logger.info("removing inactive executor");
+						logger.info("skipping inactive executor");
 					}
-					iter.remove();
 					continue;
 				}
 				executor.processMessage(message);
