@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="spring-integration-docs" default="reference">
 
-	<property name="integration.repo.dir" value="${basedir}/../integration-repo"/>
-
+	<property file="${basedir}/../build.properties"/>
 	<import file="../spring-build/documentation/default.xml"/>
 
 </project>

@@ -8,8 +8,7 @@
 		<pathelement location="../spring-integration-samples"/>
 	</path>
 
-	<property name="integration.repo.dir" value="${basedir}/../integration-repo"/>
-
+	<property file="${basedir}/../build.properties"/>
 	<import file="../spring-build/multi-bundle/default.xml"/>
 
 </project>

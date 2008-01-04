@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="spring-integration-samples">
 
-	<property name="version" value="0.5-SNAPSHOT"/>
-	<property name="integration.repo.dir" value="${basedir}/../integration-repo"/>
-
+	<property file="${basedir}/../build.properties"/>
 	<import file="../spring-build/standard/default.xml"/>
 
 </project>
