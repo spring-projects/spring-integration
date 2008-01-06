@@ -187,13 +187,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			this.addDispatcherTask(dispatcherTask);
 		}
 		if (adapter instanceof Lifecycle) {
-			this.lifecycleComponents.put(name, (Lifecycle) adapter);
-			if (this.isRunning()) {
-				((Lifecycle) adapter).start();
-				if (logger.isInfoEnabled()) {
-					logger.info("started source adapter '" + name + "'");
-				}
-			}
+			this.addLifecycleComponent(name, (Lifecycle) adapter);
 		}
 		if (logger.isInfoEnabled()) {
 			logger.info("registered source adapter '" + name + "'");
@@ -209,7 +203,9 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			ConsumerPolicy policy = adapter.getConsumerPolicy();
 			MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
 			UnicastMessageDispatcher dispatcher = new UnicastMessageDispatcher(retriever, policy);
-			dispatcher.addExecutor(new MessageReceivingExecutor(adapter, policy.getConcurrency(), policy.getMaxConcurrency()));
+			MessageReceivingExecutor executor = new MessageReceivingExecutor(adapter, policy.getConcurrency(), policy.getMaxConcurrency());
+			dispatcher.addExecutor(executor);
+			this.addLifecycleComponent(name + "-executor", executor);
 			this.addDispatcherTask(new DispatcherTask(dispatcher, policy));
 			if (logger.isInfoEnabled()) {
 				logger.info("registered target adapter '" + name + "'");
@@ -255,6 +251,16 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		if (this.logger.isInfoEnabled()) {
 			logger.info("registered dispatcher task: channel='" +
 					channelName + "' receiver='" + endpointName + "'");
+		}
+	}
+
+	private void addLifecycleComponent(String name, Lifecycle component) {
+		this.lifecycleComponents.put(name, component);
+		if (this.isRunning()) {
+			component.start();
+			if (logger.isInfoEnabled()) {
+				logger.info("started lifecycle component '" + name + "'");
+			}
 		}
 	}
 
@@ -331,13 +337,13 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		synchronized (this.lifecycleMonitor) {
 			if (this.isRunning()) {
 				this.running = false;
+				this.dispatcherExecutor.shutdownNow();
 				for (Map.Entry<String, Lifecycle> entry : this.lifecycleComponents.entrySet()) {
 					entry.getValue().stop();
 					if (logger.isInfoEnabled()) {
 						logger.info("stopped lifecycle component '" + entry.getKey() + "'");
 					}
 				}
-				this.dispatcherExecutor.shutdownNow();
 			}
 		}
 	}
