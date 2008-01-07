@@ -19,6 +19,7 @@ package org.springframework.integration.bus;
 import java.util.Iterator;
 import java.util.concurrent.RejectedExecutionException;
 
+import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.message.Message;
 
 /**
@@ -45,47 +46,50 @@ public class UnicastMessageDispatcher extends AbstractMessageDispatcher {
 	@Override
 	protected boolean dispatchMessage(Message<?> message) {
 		int attempts = 0;
-		Iterator<MessageReceivingExecutor> iter = this.getExecutors().iterator();
-		if (!iter.hasNext()) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("dispatcher has no active executors");
+		while (attempts < policy.getRejectionLimit()) {
+			if (attempts > 0) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("executor(s) rejected message after " + attempts
+							+ " attempt(s), will try again after 'retryInterval' of " + this.policy.getRetryInterval()
+							+ " milliseconds");
+				}
+				try {
+					Thread.sleep(policy.getRetryInterval());
+				}
+				catch (InterruptedException iex) {
+					Thread.currentThread().interrupt();
+					return false;
+				}
 			}
-			return false;
-		}
-		while (iter.hasNext()) {
-			MessageReceivingExecutor executor = iter.next();
-			try {
+			Iterator<MessageReceivingExecutor> iter = this.getExecutors().iterator();
+			if (!iter.hasNext()) {
+				if (logger.isWarnEnabled()) {
+					logger.warn("dispatcher has no active executors");
+				}
+				return false;
+			}
+			while (iter.hasNext()) {
+				MessageReceivingExecutor executor = iter.next();
 				if (executor == null || !executor.isRunning()) {
 					if (logger.isInfoEnabled()) {
 						logger.info("skipping inactive executor");
 					}
 					continue;
 				}
-				executor.processMessage(message);
-				return true;
-			}
-			catch (RejectedExecutionException rex) {
-				attempts++;
-				if (attempts == policy.getRejectionLimit()) {
-					attempts = 0;
+				try {
+					executor.processMessage(message);
+					return true;
+				}
+				catch (RejectedExecutionException rex) {
 					if (logger.isDebugEnabled()) {
-						logger.debug("reached rejected execution limit");
-					}
-					try {
-						Thread.sleep(policy.getRejectionLimitWait());
-					}
-					catch (InterruptedException iex) {
-						Thread.currentThread().interrupt();
+						logger.debug("executor rejected task, continuing with other executors if available", rex);
 					}
 				}
 			}
-			catch (Exception e) {
-				if (logger.isWarnEnabled()) {
-					logger.warn("error occurred during dispatch", e);
-				}
-			}
+			attempts++;
 		}
-		return false;
+		throw new MessageDeliveryException("Dispatcher reached rejection limit of " +
+				this.policy.getRejectionLimit() + ". Consider increasing the concurrency and/or raising the limit.");
 	}
 
 }

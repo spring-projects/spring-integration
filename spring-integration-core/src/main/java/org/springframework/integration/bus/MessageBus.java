@@ -38,7 +38,9 @@ import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PointToPointChannel;
 import org.springframework.integration.endpoint.MessageEndpoint;
+import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.MessageReceiver;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -66,6 +68,8 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 
 	private ScheduledThreadPoolExecutor dispatcherExecutor;
 
+	private int dispatcherPoolSize = 10;
+
 	private boolean autoCreateChannels;
 
 	private boolean running;
@@ -82,6 +86,21 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		this.activateSubscriptions(applicationContext);
 	}
 
+	/**
+	 * Set the size for the dispatcher thread pool.
+	 */
+	public void setDispatcherPoolSize(int dispatcherPoolSize) {
+		Assert.isTrue(dispatcherPoolSize > 0, "'dispatcherPoolSize' must be at least 1");
+		this.dispatcherPoolSize = dispatcherPoolSize;
+		if (this.dispatcherExecutor != null) {
+			this.dispatcherExecutor.setCorePoolSize(dispatcherPoolSize);
+		}
+	}
+
+	/**
+	 * Set whether the bus should automatically create a channel when a
+	 * subscription contains the name of a previously unregistered channel.
+	 */
 	public void setAutoCreateChannels(boolean autoCreateChannels) {
 		this.autoCreateChannels = autoCreateChannels;
 	}
@@ -136,7 +155,17 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 	}
 
 	public void initialize() {
-		this.dispatcherExecutor = new ScheduledThreadPoolExecutor(this.dispatcherTasks.size() > 0 ? this.dispatcherTasks.size() : 1);
+		initDispatcherExecutor();
+		if (this.getInvalidMessageChannel() == null) {
+			this.setInvalidMessageChannel(new PointToPointChannel(Integer.MAX_VALUE));
+		}
+	}
+
+	private void initDispatcherExecutor() {
+		CustomizableThreadFactory threadFactory = new CustomizableThreadFactory();
+		threadFactory.setThreadNamePrefix("dispatcher-executor-");
+		threadFactory.setThreadGroup(new ThreadGroup("dispatcher-executors"));
+		this.dispatcherExecutor = new ScheduledThreadPoolExecutor(this.dispatcherPoolSize, threadFactory);
 	}
 
 	public MessageChannel getInvalidMessageChannel() {
@@ -179,7 +208,6 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 	}
 
 	public void registerSourceAdapter(String name, SourceAdapter adapter) {
-		// TODO: use the name
 		if (adapter instanceof MessageDispatcher) {
 			MessageDispatcher dispatcher = (MessageDispatcher) adapter;
 			ConsumerPolicy policy = dispatcher.getConsumerPolicy();
@@ -348,8 +376,19 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		}
 	}
 
+	private void handleDispatchError(DispatcherTask task, Throwable t) {
+		try {
+			this.getInvalidMessageChannel().send(new ErrorMessage(t), 1000);
+		}
+		catch (Throwable ignore) { // message will be logged only
+		}
+		if (logger.isWarnEnabled()) {
+			logger.warn("failure occurred while dispatching message", t);
+		}
+	}
 
-	private static class DispatcherTask implements Runnable {
+
+	private class DispatcherTask implements Runnable {
 
 		private MessageDispatcher dispatcher;
 
@@ -367,7 +406,12 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		}
 
 		public void run() {
-			dispatcher.dispatch();
+			try {
+				dispatcher.dispatch();
+			}
+			catch (Throwable t) {
+				handleDispatchError(this, t);
+			}
 		}
 
 	}

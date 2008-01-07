@@ -33,9 +33,9 @@ public class ConsumerPolicy {
 
 	private static final int DEFAULT_MAX_MESSAGES_PER_TASK = 1;
 
-	private static final int DEFAULT_REJECTION_LIMIT = 10;
+	private static final int DEFAULT_REJECTION_LIMIT = 5;
 
-	private static final int DEFAULT_REJECTION_LIMIT_WAIT = 1000;
+	private static final int DEFAULT_RETRY_INTERVAL = 1000;
 
 	private static final long DEFAULT_RECEIVE_TIMEOUT = 1000;
 
@@ -48,7 +48,7 @@ public class ConsumerPolicy {
 
 	private int rejectionLimit = DEFAULT_REJECTION_LIMIT;
 
-	private int rejectionLimitWait = DEFAULT_REJECTION_LIMIT_WAIT;
+	private int retryInterval = DEFAULT_RETRY_INTERVAL;
 
 	private int initialDelay = 0;
 
@@ -82,7 +82,7 @@ public class ConsumerPolicy {
 		ConsumerPolicy policy = new ConsumerPolicy();
 		policy.setPeriod(-1);
 		policy.setConcurrency(1);
-		policy.setMaxConcurrency(1);
+		policy.setMaxConcurrency(10);
 		return policy;
 	}
 
@@ -157,17 +157,17 @@ public class ConsumerPolicy {
 
 	public void setRejectionLimit(int rejectionLimit) {
 		if (rejectionLimit < 1) {
-			throw new IllegalArgumentException("'idleTaskExecutionLimit' must be at least 1");
+			throw new IllegalArgumentException("'rejectionLimit' must be at least 1");
 		}
 		this.rejectionLimit = rejectionLimit;
 	}
 
-	public int getRejectionLimitWait() {
-		return this.rejectionLimitWait;
+	public int getRetryInterval() {
+		return this.retryInterval;
 	}
 
-	public void setRejectionLimitWait(int rejectionLimitWait) {
-		this.rejectionLimitWait = rejectionLimitWait;
+	public void setRetryInterval(int retryInterval) {
+		this.retryInterval = retryInterval;
 	}
 
 	public long getReceiveTimeout() {
