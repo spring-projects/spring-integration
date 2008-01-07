@@ -17,9 +17,15 @@
 package org.springframework.integration.message;
 
 /**
+ * A message implementation that accepts a String payload. 
+ * 
  * @author Mark Fisher
  */
 public class StringMessage extends GenericMessage<String> {
+
+	public StringMessage(String payload) {
+		super(payload);
+	}
 
 	public StringMessage(Object id, String payload) {
 		super(id, payload);
