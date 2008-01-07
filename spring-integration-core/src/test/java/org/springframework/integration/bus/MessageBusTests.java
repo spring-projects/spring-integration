@@ -17,15 +17,18 @@
 package org.springframework.integration.bus;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.adapter.SourceAdapter;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PointToPointChannel;
 import org.springframework.integration.endpoint.GenericMessageEndpoint;
+import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
@@ -43,7 +46,7 @@ public class MessageBusTests {
 		bus.registerChannel("sourceChannel", sourceChannel);
 		sourceChannel.send(new StringMessage("123", "test"));
 		bus.registerChannel("targetChannel", targetChannel);
-		GenericMessageEndpoint endpoint = new GenericMessageEndpoint();
+		GenericMessageEndpoint<String> endpoint = new GenericMessageEndpoint<String>();
 		endpoint.setInputChannelName("sourceChannel");
 		endpoint.setDefaultOutputChannelName("targetChannel");
 		bus.registerEndpoint("endpoint", endpoint);
@@ -90,10 +93,10 @@ public class MessageBusTests {
 		PointToPointChannel inputChannel = new PointToPointChannel();
 		PointToPointChannel outputChannel1 = new PointToPointChannel();
 		PointToPointChannel outputChannel2 = new PointToPointChannel();
-		GenericMessageEndpoint endpoint1 = new GenericMessageEndpoint();
+		GenericMessageEndpoint<String> endpoint1 = new GenericMessageEndpoint<String>();
 		endpoint1.setDefaultOutputChannelName("output1");
 		endpoint1.setInputChannelName("input");
-		GenericMessageEndpoint endpoint2 = new GenericMessageEndpoint();
+		GenericMessageEndpoint<String> endpoint2 = new GenericMessageEndpoint<String>();
 		endpoint2.setDefaultOutputChannelName("output2");
 		endpoint2.setInputChannelName("input");
 		MessageBus bus = new MessageBus();
@@ -110,4 +113,31 @@ public class MessageBusTests {
 		assertTrue("exactly one message should be null", message1 == null ^ message2 == null);
 	}
 
+	@Test
+	public void testInvalidMessageChannelWithFailedDispatch() {
+		MessageBus bus = new MessageBus();
+		SourceAdapter sourceAdapter = new FailingSourceAdapter();
+		bus.registerSourceAdapter("testAdapter", sourceAdapter);
+		bus.start();
+		Message<?> message = bus.getInvalidMessageChannel().receive(100);
+		assertNotNull("message should not be null", message);
+		assertTrue(message instanceof ErrorMessage);
+		assertEquals("intentional test failure", ((ErrorMessage) message).getPayload().getMessage());
+		bus.stop();
+	}
+
+
+	private static class FailingSourceAdapter implements SourceAdapter, MessageDispatcher {
+
+		public void setChannel(MessageChannel channel) {
+		}
+
+		public int dispatch() {
+			throw new RuntimeException("intentional test failure");
+		}
+
+		public ConsumerPolicy getConsumerPolicy() {
+			return ConsumerPolicy.newPollingPolicy(1000);
+		}
+	}
 }
