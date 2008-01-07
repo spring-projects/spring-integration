@@ -1,3 +1,3 @@
-SPRING INTEGRATION 1.0 M1 (JAN 04 2008)
+SPRING INTEGRATION 1.0 M1 (JAN 18 2008)
 ---------------------------------------
 
