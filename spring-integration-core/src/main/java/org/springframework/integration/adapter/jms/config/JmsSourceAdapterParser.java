@@ -66,6 +66,10 @@ public class JmsSourceAdapterParser extends AbstractSingleBeanDefinitionParser {
 		return false;
 	}
 
+	protected boolean shouldGenerateIdAsFallback() {
+		return true;
+	}
+
 	protected void doParse(Element element, BeanDefinitionBuilder builder) {
 		if (builder.getBeanDefinition().getBeanClass().equals(JmsPollingSourceAdapter.class)) {
 			parsePollingSourceAdapter(element, builder);

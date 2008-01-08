@@ -37,6 +37,10 @@ public class FileSourceAdapterParser extends AbstractSingleBeanDefinitionParser 
 		return false;
 	}
 
+	protected boolean shouldGenerateIdAsFallback() {
+		return true;
+	}
+
 	protected void doParse(Element element, BeanDefinitionBuilder builder) {
 		String directory = element.getAttribute("directory");
 		String channel = element.getAttribute("channel");

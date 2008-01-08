@@ -56,6 +56,10 @@ public class JmsTargetAdapterParser extends AbstractSingleBeanDefinitionParser {
 		return false;
 	}
 
+	protected boolean shouldGenerateIdAsFallback() {
+		return true;
+	}
+
 	protected void doParse(Element element, BeanDefinitionBuilder builder) {
 		String jmsTemplate = element.getAttribute(JMS_TEMPLATE_ATTRIBUTE);
 		String connectionFactory = element.getAttribute(CONNECTION_FACTORY_ATTRIBUTE);
