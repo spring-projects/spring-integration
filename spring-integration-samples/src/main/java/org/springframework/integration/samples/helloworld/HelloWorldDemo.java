@@ -36,7 +36,7 @@ public class HelloWorldDemo {
 		ChannelRegistry channelRegistry = (ChannelRegistry) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		MessageChannel inputChannel = channelRegistry.lookupChannel("inputChannel");
 		MessageChannel outputChannel = channelRegistry.lookupChannel("outputChannel");
-		inputChannel.send(new StringMessage(1, "World"));
+		inputChannel.send(new StringMessage("World"));
 		System.out.println(outputChannel.receive().getPayload());
 		context.stop();
 	}
