@@ -204,7 +204,7 @@ public class PointToPointChannelTests {
 					public boolean accept(Message<?> message) {
 						return (((Integer)message.getId()).intValue() == 3);
 					}
-				}, 100);
+				}, 500);
 				messageRef.set(message);
 				latch.countDown();
 			}
