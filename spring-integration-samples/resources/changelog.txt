@@ -1,6 +1,6 @@
 SPRING INTEGRATION SAMPLES CHANGELOG
 ====================================
 
-Changes in version 1.0 M1 (Jan 04, 2008)
+Changes in version 1.0 M1 (Jan 18, 2008)
 ----------------------------------------
 
