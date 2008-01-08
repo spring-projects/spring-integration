@@ -29,12 +29,16 @@ import org.springframework.jms.core.JmsTemplate;
  */
 public class JmsPollingSourceAdapter extends PollingSourceAdapter<Object> {
 
+	public JmsPollingSourceAdapter(JmsTemplate jmsTemplate) {
+		super(new JmsPollableSource(jmsTemplate));
+	}
+
 	public JmsPollingSourceAdapter(ConnectionFactory connectionFactory, Destination destination) {
 		super(new JmsPollableSource(connectionFactory, destination));
 	}
 
-	public JmsPollingSourceAdapter(JmsTemplate jmsTemplate) {
-		super(new JmsPollableSource(jmsTemplate));
+	public JmsPollingSourceAdapter(ConnectionFactory connectionFactory, String destinationName) {
+		super(new JmsPollableSource(connectionFactory, destinationName));
 	}
 
 }

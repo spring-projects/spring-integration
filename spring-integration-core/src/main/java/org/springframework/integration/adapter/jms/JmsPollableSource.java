@@ -29,9 +29,9 @@ import org.springframework.jms.core.JmsTemplate;
 
 /**
  * A source for receiving JMS Messages with a polling listener. This source is
- * only recommended for very low message volume. Otherwise, an event-driven
- * option that uses one of Spring's MessageListener containers is highly
- * recommended.
+ * only recommended for very low message volume. Otherwise, the
+ * {@link JmsMessageDrivenSourceAdapter} that uses Spring's MessageListener
+ * container support is highly recommended.
  * 
  * @author Mark Fisher
  */
@@ -40,6 +40,8 @@ public class JmsPollableSource implements PollableSource<Object>, InitializingBe
 	private ConnectionFactory connectionFactory;
 
 	private Destination destination;
+
+	private String destinationName;
 
 	private JmsTemplate jmsTemplate;
 
@@ -51,6 +53,12 @@ public class JmsPollableSource implements PollableSource<Object>, InitializingBe
 	public JmsPollableSource(ConnectionFactory connectionFactory, Destination destination) {
 		this.connectionFactory = connectionFactory;
 		this.destination = destination;
+		this.initJmsTemplate();
+	}
+
+	public JmsPollableSource(ConnectionFactory connectionFactory, String destinationName) {
+		this.connectionFactory = connectionFactory;
+		this.destinationName = destinationName;
 		this.initJmsTemplate();
 	}
 
@@ -69,15 +77,19 @@ public class JmsPollableSource implements PollableSource<Object>, InitializingBe
 		this.destination = destination;
 	}
 
+	public void setDestinationName(String destinationName) {
+		this.destinationName = destinationName;
+	}
+
 	public void setJmsTemplate(JmsTemplate jmsTemplate) {
 		this.jmsTemplate = jmsTemplate;
 	}
 
 	public void afterPropertiesSet() {
 		if (this.jmsTemplate == null) {
-			if (this.connectionFactory == null || this.destination == null) {
+			if (this.connectionFactory == null || (this.destination == null && this.destinationName == null)) {
 				throw new MessagingConfigurationException("Either a 'jmsTemplate' or "
-						+ "*both* 'connectionFactory' and 'destination' are required.");
+						+ "both 'connectionFactory' and 'destination' (or 'destinationName') are required.");
 			}
 			this.initJmsTemplate();
 		}
@@ -86,7 +98,15 @@ public class JmsPollableSource implements PollableSource<Object>, InitializingBe
 	private void initJmsTemplate() {
 		this.jmsTemplate = new JmsTemplate();
 		this.jmsTemplate.setConnectionFactory(this.connectionFactory);
-		this.jmsTemplate.setDefaultDestination(this.destination);
+		if (this.destination != null) {
+			this.jmsTemplate.setDefaultDestination(this.destination);
+		}
+		else if (this.destinationName != null) {
+			this.jmsTemplate.setDefaultDestinationName(this.destinationName);
+		}
+		else {
+			throw new MessagingConfigurationException("either 'destination' or 'destinationName' is required");
+		}
 	}
 
 	public Collection<Object> poll(int limit) {

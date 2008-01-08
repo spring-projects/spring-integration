@@ -29,12 +29,12 @@ import org.springframework.integration.adapter.file.FileTargetAdapter;
  */
 public class FileTargetAdapterParser extends AbstractSingleBeanDefinitionParser {
 
-	protected Class getBeanClass(Element element) {
+	protected Class<?> getBeanClass(Element element) {
 		return FileTargetAdapter.class;
 	}
 
 	protected boolean shouldGenerateId() {
-		return true;
+		return false;
 	}
 
 	protected void doParse(Element element, BeanDefinitionBuilder builder) {

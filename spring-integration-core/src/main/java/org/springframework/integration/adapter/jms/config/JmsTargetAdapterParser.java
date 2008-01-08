@@ -53,7 +53,7 @@ public class JmsTargetAdapterParser extends AbstractSingleBeanDefinitionParser {
 	}
 
 	protected boolean shouldGenerateId() {
-		return true;
+		return false;
 	}
 
 	protected void doParse(Element element, BeanDefinitionBuilder builder) {

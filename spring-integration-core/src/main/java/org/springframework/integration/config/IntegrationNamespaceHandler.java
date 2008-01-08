@@ -19,6 +19,7 @@ package org.springframework.integration.config;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 import org.springframework.integration.adapter.file.config.FileSourceAdapterParser;
 import org.springframework.integration.adapter.file.config.FileTargetAdapterParser;
+import org.springframework.integration.adapter.jms.config.JmsSourceAdapterParser;
 import org.springframework.integration.adapter.jms.config.JmsTargetAdapterParser;
 
 /**
@@ -37,6 +38,7 @@ public class IntegrationNamespaceHandler extends NamespaceHandlerSupport {
 		registerBeanDefinitionParser("endpoint", new EndpointParser());
 		registerBeanDefinitionParser("file-source", new FileSourceAdapterParser());
 		registerBeanDefinitionParser("file-target", new FileTargetAdapterParser());
+		registerBeanDefinitionParser("jms-source", new JmsSourceAdapterParser());
 		registerBeanDefinitionParser("jms-target", new JmsTargetAdapterParser());
 	}
 

@@ -22,7 +22,7 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
 
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.MessageHandlingException;
@@ -41,7 +41,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  */
 public class JmsMessageDrivenSourceAdapter extends AbstractSourceAdapter<Object> implements MessageListener, Lifecycle,
-		InitializingBean {
+		DisposableBean {
 
 	private AbstractJmsListeningContainer container;
 
@@ -131,6 +131,10 @@ public class JmsMessageDrivenSourceAdapter extends AbstractSourceAdapter<Object>
 
 	public void stop() {
 		container.stop();
+	}
+
+	public void destroy() {
+		container.destroy();
 	}
 
 	public void onMessage(Message message) {

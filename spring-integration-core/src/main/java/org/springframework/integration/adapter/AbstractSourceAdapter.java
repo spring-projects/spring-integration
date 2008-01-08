@@ -75,6 +75,12 @@ public class AbstractSourceAdapter<T> implements SourceAdapter, InitializingBean
 	}
 
 	protected boolean sendToChannel(T object) {
+		if (object == null) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("adapter attempted to send a null object");
+			}
+			return false;
+		}
 		Message<?> message = null;
 		if (object instanceof Message<?>) {
 			message = (Message<?>) object;
