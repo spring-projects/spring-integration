@@ -24,6 +24,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.message.Message;
+import org.springframework.util.Assert;
 
 /**
  * Abstract base class for message dispatchers. Delegates to a
@@ -46,6 +47,7 @@ public abstract class AbstractMessageDispatcher implements MessageDispatcher {
 
 
 	public void addExecutor(MessageReceivingExecutor executor) {
+		Assert.notNull(executor, "'executor' must not be null");
 		executor.start();
 		this.executors.add(executor);
 	}

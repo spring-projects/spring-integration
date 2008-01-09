@@ -38,31 +38,26 @@ public class PollingSourceAdapter<T> extends AbstractSourceAdapter<T> implements
 
 	private PollableSource<T> source;
 
-	private ConsumerPolicy policy = ConsumerPolicy.newPollingPolicy(DEFAULT_PERIOD);
-
 
 	public PollingSourceAdapter(PollableSource<T> source) {
 		Assert.notNull(source, "'source' must not be null");
 		this.source = source;
+		this.setConsumerPolicy(ConsumerPolicy.newPollingPolicy(DEFAULT_PERIOD));
 	}
 
 	public void setPeriod(int period) {
 		Assert.isTrue(period > 0, "'period' must be a positive value");
-		this.policy.setPeriod(period);
+		this.getConsumerPolicy().setPeriod(period);
 	}
 
 	public void setMaxMessagesPerTask(int maxMessagesPerTask) {
 		Assert.isTrue(maxMessagesPerTask > 0, "'maxMessagesPerTask' must be a positive value");
-		this.policy.setMaxMessagesPerTask(maxMessagesPerTask);
-	}
-
-	public ConsumerPolicy getConsumerPolicy() {
-		return this.policy;
+		this.getConsumerPolicy().setMaxMessagesPerTask(maxMessagesPerTask);
 	}
 
 	public int dispatch() {
 		int messagesProcessed = 0;
-		int limit = this.policy.getMaxMessagesPerTask();
+		int limit = this.getConsumerPolicy().getMaxMessagesPerTask();
 		Collection<T> results = this.source.poll(limit);
 		if (results != null) {
 			if (results.size() > limit) {

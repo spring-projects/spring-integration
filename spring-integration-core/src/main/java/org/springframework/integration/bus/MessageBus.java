@@ -208,9 +208,9 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 	}
 
 	public void registerSourceAdapter(String name, SourceAdapter adapter) {
+		ConsumerPolicy policy = adapter.getConsumerPolicy();
 		if (adapter instanceof MessageDispatcher) {
 			MessageDispatcher dispatcher = (MessageDispatcher) adapter;
-			ConsumerPolicy policy = dispatcher.getConsumerPolicy();
 			DispatcherTask dispatcherTask = new DispatcherTask(dispatcher, policy);
 			this.addDispatcherTask(dispatcherTask);
 		}
@@ -230,7 +230,9 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			MessageChannel channel = adapter.getChannel();
 			ConsumerPolicy policy = adapter.getConsumerPolicy();
 			MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
-			UnicastMessageDispatcher dispatcher = new UnicastMessageDispatcher(retriever, policy);
+			DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+			dispatcher.setRejectionLimit(policy.getRejectionLimit());
+			dispatcher.setRetryInterval(policy.getRetryInterval());
 			MessageReceivingExecutor executor = new MessageReceivingExecutor(adapter, policy.getConcurrency(), policy.getMaxConcurrency());
 			dispatcher.addExecutor(executor);
 			this.addLifecycleComponent(name + "-executor", executor);
@@ -245,6 +247,10 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		String channelName = subscription.getChannel();
 		String endpointName = subscription.getEndpoint();
 		ConsumerPolicy policy = subscription.getPolicy();
+		MessageEndpoint<?> endpoint = this.endpoints.get(endpointName);
+		if (endpoint == null) {
+			throw new MessagingException("Cannot activate subscription, unknown endpoint '" + endpointName + "'");
+		}
 		MessageChannel channel = this.lookupChannel(channelName);
 		if (channel == null) {
 			if (this.autoCreateChannels == false) {
@@ -257,10 +263,6 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			channel = new SimpleChannel(); 
 			this.registerChannel(channelName, channel);
 		}
-		MessageEndpoint<?> endpoint = this.endpoints.get(endpointName);
-		if (endpoint == null) {
-			throw new MessagingException("Cannot activate subscription, unknown endpoint '" + endpointName + "'");
-		}
 		if (logger.isInfoEnabled()) {
 			logger.info("activated subscription to channel '" + channelName + 
 					"' for endpoint '" + endpointName + "'");
@@ -269,7 +271,9 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		this.receiverExecutors.put(endpoint, executor);
 		this.lifecycleComponents.put(endpointName + "-executor", executor);
 		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
-		UnicastMessageDispatcher dispatcher = new UnicastMessageDispatcher(retriever, policy);
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		dispatcher.setRejectionLimit(policy.getRejectionLimit());
+		dispatcher.setRetryInterval(policy.getRetryInterval());
 		dispatcher.addExecutor(executor);
 		DispatcherTask dispatcherTask = new DispatcherTask(dispatcher, policy);
 		if (this.isRunning()) {

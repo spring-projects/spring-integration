@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.bus.ConsumerPolicy;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageMapper;
@@ -32,13 +33,15 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class AbstractSourceAdapter<T> implements SourceAdapter, InitializingBean {
+public abstract class AbstractSourceAdapter<T> implements SourceAdapter, InitializingBean {
 
 	protected Log logger = LogFactory.getLog(this.getClass());
 
 	private MessageChannel channel;
 
 	private MessageMapper<?,T> mapper = new SimplePayloadMessageMapper<T>();
+
+	private ConsumerPolicy consumerPolicy;
 
 	private long sendTimeout = -1;
 
@@ -59,6 +62,15 @@ public class AbstractSourceAdapter<T> implements SourceAdapter, InitializingBean
 
 	protected MessageMapper<?,T> getMessageMapper() {
 		return this.mapper;
+	}
+
+	public void setConsumerPolicy(ConsumerPolicy consumerPolicy) {
+		Assert.notNull(consumerPolicy, "'consumerPolicy' must not be null");
+		this.consumerPolicy = consumerPolicy;
+	}
+
+	public ConsumerPolicy getConsumerPolicy() {
+		return this.consumerPolicy;
 	}
 
 	public final void afterPropertiesSet() {

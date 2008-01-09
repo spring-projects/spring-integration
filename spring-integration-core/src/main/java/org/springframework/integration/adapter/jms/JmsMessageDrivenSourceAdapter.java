@@ -83,11 +83,6 @@ public class JmsMessageDrivenSourceAdapter extends AbstractSourceAdapter<Object>
 		this.taskExecutor = taskExecutor;
 	}
 
-	public void setPolicy(ConsumerPolicy policy) {
-		Assert.notNull(policy, "'policy' must not be null");
-		this.policy = policy;
-	}
-
 	@Override
 	public void initialize() {
 		if (this.container == null) {
