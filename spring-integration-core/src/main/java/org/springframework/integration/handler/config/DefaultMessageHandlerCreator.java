@@ -20,8 +20,10 @@ import java.lang.reflect.Method;
 import java.util.Map;
 
 import org.springframework.core.annotation.Order;
+import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
 import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.message.Message;
 
 /**
  * Default implementation of the handler creator strategy that creates a
@@ -34,7 +36,14 @@ import org.springframework.integration.handler.MessageHandler;
 public class DefaultMessageHandlerCreator extends AbstractMessageHandlerCreator {
 
 	public MessageHandler doCreateHandler(Object object, Method method, Map<String, ?> attributes) {
-		return new DefaultMessageHandlerAdapter<Object>();
+		Class<?>[] types = method.getParameterTypes();
+		if (types.length != 1) {
+			throw new MessagingConfigurationException("exactly one method parameter is required");
+		}
+		DefaultMessageHandlerAdapter<Object> adapter = new DefaultMessageHandlerAdapter<Object>();
+		boolean expectsMessage = (Message.class.isAssignableFrom(types[0]));
+		adapter.setShouldUseMapperOnInvocation(!expectsMessage);
+		return adapter;
 	}
 
 }

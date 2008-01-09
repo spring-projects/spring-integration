@@ -19,8 +19,10 @@ package org.springframework.integration.handler.config;
 import java.lang.reflect.Method;
 import java.util.Map;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
+import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.handler.AbstractMessageHandlerAdapter;
 import org.springframework.integration.handler.MessageHandler;
 
@@ -41,6 +43,14 @@ public abstract class AbstractMessageHandlerCreator implements MessageHandlerCre
 			Order orderAnnotation = (Order) AnnotationUtils.getAnnotation(method, Order.class);
 			if (orderAnnotation != null) {
 				adapter.setOrder(orderAnnotation.value());
+			}
+		}
+		if (handler instanceof InitializingBean) {
+			try {
+				((InitializingBean) handler).afterPropertiesSet();
+			}
+			catch (Exception e) {
+				throw new MessagingConfigurationException("failed to initialize handler", e);
 			}
 		}
 		return handler;
