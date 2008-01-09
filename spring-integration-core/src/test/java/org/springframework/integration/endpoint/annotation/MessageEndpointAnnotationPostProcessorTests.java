@@ -24,7 +24,7 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -37,7 +37,19 @@ public class MessageEndpointAnnotationPostProcessorTests {
 		context.start();
 		MessageChannel inputChannel = (MessageChannel) context.getBean("inputChannel");
 		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
-		inputChannel.send(new GenericMessage<String>(1, "world"));
+		inputChannel.send(new StringMessage("world"));
+		Message<String> message = outputChannel.receive(1000);
+		assertEquals("hello world", message.getPayload());
+		context.stop();
+	}
+
+	@Test
+	public void testMessageParameterHandler() throws InterruptedException {
+		AbstractApplicationContext context = new ClassPathXmlApplicationContext("messageParameterAnnotatedEndpointTests.xml", this.getClass());
+		context.start();
+		MessageChannel inputChannel = (MessageChannel) context.getBean("inputChannel");
+		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
+		inputChannel.send(new StringMessage("world"));
 		Message<String> message = outputChannel.receive(1000);
 		assertEquals("hello world", message.getPayload());
 		context.stop();
