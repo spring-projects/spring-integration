@@ -74,6 +74,15 @@ public class DefaultMessageHandlerCreatorTests {
 		assertEquals("testing-5", result.getPayload());
 	}
 
+	@Test
+	public void testMessageSubclassAsMethodParameterAndMessageSubclassAsReturnValue() throws Exception {
+		DefaultMessageHandlerCreator creator = new DefaultMessageHandlerCreator();
+		MessageHandler handler = creator.createHandler(new TestHandler(),
+				TestHandler.class.getMethod("acceptMessageSubclassAndReturnMessageSubclass", StringMessage.class), null);
+		Message<?> result = handler.handle(new StringMessage("testing"));
+		assertEquals("testing-6", result.getPayload());
+	}
+
 
 	private static class TestHandler {
 
@@ -96,5 +105,10 @@ public class DefaultMessageHandlerCreatorTests {
 		public Message<?> acceptMessageSubclassAndReturnMessage(StringMessage m) {
 			return new StringMessage(m.getPayload() + "-5");
 		}
+
+		public StringMessage acceptMessageSubclassAndReturnMessageSubclass(StringMessage m) {
+			return new StringMessage(m.getPayload() + "-6");
+		}
 	}
+
 }

@@ -81,6 +81,17 @@ public class DefaultMessageHandlerAdapterTests {
 		assertEquals("testing-5", result.getPayload());
 	}
 
+	@Test
+	public void testMessageSubclassAsMethodParameterAndMessageSubclassAsReturnValue() {
+		DefaultMessageHandlerAdapter<TestHandler> adapter = new DefaultMessageHandlerAdapter<TestHandler>();
+		adapter.setShouldUseMapperOnInvocation(false);
+		adapter.setObject(new TestHandler());
+		adapter.setMethodName("acceptMessageSubclassAndReturnMessageSubclass");
+		adapter.afterPropertiesSet();
+		Message<?> result = adapter.handle(new StringMessage("testing"));
+		assertEquals("testing-6", result.getPayload());
+	}
+
 
 	private static class TestHandler {
 
@@ -102,6 +113,10 @@ public class DefaultMessageHandlerAdapterTests {
 
 		public Message<?> acceptMessageSubclassAndReturnMessage(StringMessage m) {
 			return new StringMessage(m.getPayload() + "-5");
+		}
+
+		public StringMessage acceptMessageSubclassAndReturnMessageSubclass(StringMessage m) {
+			return new StringMessage(m.getPayload() + "-6");
 		}
 	}
 
