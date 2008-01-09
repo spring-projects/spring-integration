@@ -22,10 +22,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageSelector;
 
 /**
- * Simple implementation of a point-to-point message channel. Each Messages is
+ * Simple implementation of a message channel. Each {@link Message} is
  * placed in a queue whose capacity may be specified upon construction. If no
  * capacity is specified, the {@link #DEFAULT_CAPACITY} will be used.
  * 
@@ -163,51 +162,6 @@ public class PointToPointChannel implements MessageChannel, BeanNameAware {
 			Thread.currentThread().interrupt();
 			return null;
 		}
-	}
-
-	/**
-	 * Receive the first message that is accepted by the specified selector
-	 * starting from the head of the queue. If the queue is empty, this method
-	 * will block until the allotted timeout elapses. If the specified timeout
-	 * is less than 1, the method will return immediately.
-	 * 
-	 * @param selector the selector to use
-	 * @param timeout the timeout in milliseconds
-	 * 
-	 * @return the first accepted message or <code>null</code> in case the
-	 * selector does not accept any message within the allotted time or the
-	 * receiving thread is interrupted.
-	 */
-	public Message receive(MessageSelector selector, long timeout) {
-		long start = System.currentTimeMillis();
-		while (timeout <= 0 || System.currentTimeMillis() - start < timeout) {
-			Object[] elements = this.queue.toArray();
-			for (int i = (elements.length - 1); i >= 0; i--) {
-				Message<?> m = (Message<?>) elements[i];
-				if (selector.accept(m) && this.queue.remove(m)) {
-					return m;
-				}
-			}
-			if (timeout == 0) {
-				return null;
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Receive the first message that is accepted by the specified selector
-	 * starting from the head of the queue. If the queue is empty, this method
-	 * will block.
-	 * 
-	 * @param selector the selector to use
-	 * 
-	 * @return the first accepted message or <code>null</code> in case the
-	 * selector does not accept any message or the receiving thread is
-	 * interrupted.
-	 */
-	public Message receive(MessageSelector selector) {
-		return this.receive(selector, -1);
 	}
 
 }
