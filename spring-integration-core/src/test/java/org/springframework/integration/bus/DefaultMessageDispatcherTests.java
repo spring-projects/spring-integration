@@ -296,7 +296,7 @@ public class DefaultMessageDispatcherTests {
 		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint2, 1, 1) {
 			@Override
 			public void processMessage(Message<?> message) {
-				if (rejectedCounter2.get() > 0) {
+				if (rejectedCounter2.get() == 1) {
 					super.processMessage(message);
 					return;
 				}
@@ -319,6 +319,54 @@ public class DefaultMessageDispatcherTests {
 		assertEquals("endpoint1 should have rejected two times", 2, rejectedCounter1.get());
 		assertEquals("endpoint2 should have rejected one time", 1, rejectedCounter2.get());
 		assertEquals("endpoint3 should have rejected one time", 1, rejectedCounter3.get());
+	}
+
+	@Test
+	public void testBroadcastingDispatcherStillRetriesRejectedExecutorAfterOtherSucceeds() throws InterruptedException {
+		final AtomicInteger counter1 = new AtomicInteger();
+		final AtomicInteger counter2 = new AtomicInteger();
+		final AtomicInteger rejectedCounter1 = new AtomicInteger();
+		final AtomicInteger rejectedCounter2 = new AtomicInteger();
+		final CountDownLatch latch = new CountDownLatch(2);
+		TestEndpoint endpoint1 = new TestEndpoint(counter1, latch);
+		TestEndpoint endpoint2 = new TestEndpoint(counter2, latch);
+		ConsumerPolicy policy = new ConsumerPolicy();
+		SimpleChannel channel = new SimpleChannel();
+		channel.send(new StringMessage(1, "test"));
+		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		dispatcher.setBroadcast(true);
+		dispatcher.setRejectionLimit(5);
+		dispatcher.setRetryInterval(3);
+		dispatcher.setShouldFailOnRejectionLimit(false);
+		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint1, 1, 1) {
+			@Override
+			public void processMessage(Message<?> message) {
+				if (rejectedCounter1.get() == 2) {
+					super.processMessage(message);
+					return;
+				}
+				rejectedCounter1.incrementAndGet();
+				throw new RejectedExecutionException();
+			}
+		});
+		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint2, 1, 1) {
+			@Override
+			public void processMessage(Message<?> message) {
+				if (rejectedCounter2.get() == 4) {
+					super.processMessage(message);
+					return;
+				}
+				rejectedCounter2.incrementAndGet();
+				throw new RejectedExecutionException();
+			}
+		});
+		dispatcher.dispatch();
+		latch.await(100, TimeUnit.MILLISECONDS);
+		assertEquals("endpoint1 should have received one message", 1, counter1.get());
+		assertEquals("endpoint2 should have received one message", 1, counter1.get());
+		assertEquals("endpoint1 should have rejected two times", 2, rejectedCounter1.get());
+		assertEquals("endpoint2 should have rejected four times", 4, rejectedCounter2.get());
 	}
 
 
