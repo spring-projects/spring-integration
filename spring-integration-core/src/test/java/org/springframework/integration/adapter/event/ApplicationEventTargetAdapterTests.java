@@ -27,7 +27,7 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.PointToPointChannel;
+import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -43,7 +43,7 @@ public class ApplicationEventTargetAdapterTests {
 				latch.countDown();
 			}
 		};
-		MessageChannel channel = new PointToPointChannel();
+		MessageChannel channel = new SimpleChannel();
 		ApplicationEventTargetAdapter adapter = new ApplicationEventTargetAdapter();
 		adapter.setApplicationEventPublisher(publisher);
 		adapter.setChannel(channel);

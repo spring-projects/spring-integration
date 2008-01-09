@@ -29,7 +29,7 @@ import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.PointToPointChannel;
+import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 
@@ -40,8 +40,8 @@ public class RecipientListRouterTests {
 
 	@Test
 	public void testRoutingWithChannelList() {
-		PointToPointChannel channel1 = new PointToPointChannel();
-		PointToPointChannel channel2 = new PointToPointChannel();
+		SimpleChannel channel1 = new SimpleChannel();
+		SimpleChannel channel2 = new SimpleChannel();
 		List<MessageChannel> channels = new ArrayList<MessageChannel>();
 		channels.add(channel1);
 		channels.add(channel2);
@@ -60,8 +60,8 @@ public class RecipientListRouterTests {
 
 	@Test
 	public void testRoutingWithChannelNames() {
-		PointToPointChannel channel1 = new PointToPointChannel();
-		PointToPointChannel channel2 = new PointToPointChannel();
+		SimpleChannel channel1 = new SimpleChannel();
+		SimpleChannel channel2 = new SimpleChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("channel1", channel1);
 		channelRegistry.registerChannel("channel2", channel2);
@@ -81,8 +81,8 @@ public class RecipientListRouterTests {
 
 	@Test
 	public void testRoutingToSingleChannelByName() {
-		PointToPointChannel channel1 = new PointToPointChannel();
-		PointToPointChannel channel2 = new PointToPointChannel();
+		SimpleChannel channel1 = new SimpleChannel();
+		SimpleChannel channel2 = new SimpleChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("channel1", channel1);
 		channelRegistry.registerChannel("channel2", channel2);
@@ -101,8 +101,8 @@ public class RecipientListRouterTests {
 
 	@Test(expected=MessagingConfigurationException.class)
 	public void testConfigurationExceptionWhenBothChannelsAndNamesAreProvided() {
-		PointToPointChannel channel1 = new PointToPointChannel();
-		PointToPointChannel channel2 = new PointToPointChannel();
+		SimpleChannel channel1 = new SimpleChannel();
+		SimpleChannel channel2 = new SimpleChannel();
 		List<MessageChannel> channels = new ArrayList<MessageChannel>();
 		channels.add(channel1);
 		channels.add(channel2);

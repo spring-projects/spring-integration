@@ -33,13 +33,13 @@ import org.springframework.integration.message.GenericMessage;
 /**
  * @author Mark Fisher
  */
-public class PointToPointChannelTests {
+public class SimpleChannelTests {
 
 	@Test
 	public void testSimpleSendAndReceive() throws Exception {
 		final AtomicBoolean messageReceived = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
-		final PointToPointChannel channel = new PointToPointChannel();
+		final SimpleChannel channel = new SimpleChannel();
 		new Thread(new Runnable() {
 			public void run() {
 				Message<?> message = channel.receive();
@@ -58,7 +58,7 @@ public class PointToPointChannelTests {
 	@Test
 	public void testImmediateReceive() throws Exception {
 		final AtomicBoolean messageReceived = new AtomicBoolean(false);
-		final PointToPointChannel channel = new PointToPointChannel();
+		final SimpleChannel channel = new SimpleChannel();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		Executor singleThreadExecutor = Executors.newSingleThreadExecutor();
@@ -96,7 +96,7 @@ public class PointToPointChannelTests {
 
 	@Test
 	public void testBlockingReceiveWithNoTimeout() throws Exception{
-		final PointToPointChannel channel = new PointToPointChannel();
+		final SimpleChannel channel = new SimpleChannel();
 		final AtomicBoolean receiveInterrupted = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
@@ -116,7 +116,7 @@ public class PointToPointChannelTests {
 
 	@Test
 	public void testBlockingReceiveWithTimeout() throws Exception{
-		final PointToPointChannel channel = new PointToPointChannel();
+		final SimpleChannel channel = new SimpleChannel();
 		final AtomicBoolean receiveInterrupted = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
@@ -136,7 +136,7 @@ public class PointToPointChannelTests {
 
 	@Test
 	public void testImmediateSend() {
-		PointToPointChannel channel = new PointToPointChannel(3);
+		SimpleChannel channel = new SimpleChannel(3);
 		boolean result1 = channel.send(new GenericMessage<String>(1, "test-1"));
 		assertTrue(result1);
 		boolean result2 = channel.send(new GenericMessage<String>(2, "test-2"), 100);
@@ -149,7 +149,7 @@ public class PointToPointChannelTests {
 
 	@Test
 	public void testBlockingSendWithNoTimeout() throws Exception{
-		final PointToPointChannel channel = new PointToPointChannel(1);
+		final SimpleChannel channel = new SimpleChannel(1);
 		boolean result1 = channel.send(new GenericMessage<String>(1, "test-1"));
 		assertTrue(result1);
 		final AtomicBoolean sendInterrupted = new AtomicBoolean(false);
@@ -170,7 +170,7 @@ public class PointToPointChannelTests {
 
 	@Test
 	public void testBlockingSendWithTimeout() throws Exception{
-		final PointToPointChannel channel = new PointToPointChannel(1);
+		final SimpleChannel channel = new SimpleChannel(1);
 		boolean result1 = channel.send(new GenericMessage<String>(1, "test-1"));
 		assertTrue(result1);
 		final AtomicBoolean sendInterrupted = new AtomicBoolean(false);

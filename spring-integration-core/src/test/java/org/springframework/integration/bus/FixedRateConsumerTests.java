@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
-import org.springframework.integration.channel.PointToPointChannel;
+import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.endpoint.GenericMessageEndpoint;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
@@ -41,7 +41,7 @@ public class FixedRateConsumerTests {
 		int messagesToSend = 20;
 		final AtomicInteger counter = new AtomicInteger(0);
 		final CountDownLatch latch = new CountDownLatch(messagesToSend);
-		PointToPointChannel channel = new PointToPointChannel();
+		SimpleChannel channel = new SimpleChannel();
 		MessageEndpoint<String> endpoint = new GenericMessageEndpoint<String>() {
 			public void messageReceived(Message<String> message) {
 				counter.incrementAndGet();
@@ -72,7 +72,7 @@ public class FixedRateConsumerTests {
 		int messagesToSend = 20;
 		final AtomicInteger counter = new AtomicInteger(0);
 		final CountDownLatch latch = new CountDownLatch(messagesToSend);
-		PointToPointChannel channel = new PointToPointChannel();
+		SimpleChannel channel = new SimpleChannel();
 		MessageEndpoint<String> endpoint = new GenericMessageEndpoint<String>() {
 			public void messageReceived(Message<String> message) {
 				counter.incrementAndGet();

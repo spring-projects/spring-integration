@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.channel.PointToPointChannel;
+import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.message.Message;
 
 /**
@@ -39,7 +39,7 @@ public class PollingSourceAdapterTests {
 	@Test
 	public void testPolledSourceSendsToChannel() {
 		TestSource source = new TestSource("testing", 1);
-		PointToPointChannel channel = new PointToPointChannel();
+		SimpleChannel channel = new SimpleChannel();
 		PollingSourceAdapter<String> adapter = new PollingSourceAdapter<String>(source);
 		adapter.setChannel(channel);
 		adapter.setPeriod(100);
@@ -52,7 +52,7 @@ public class PollingSourceAdapterTests {
 	@Test
 	public void testSendTimeout() {
 		TestSource source = new TestSource("testing", 1);
-		PointToPointChannel channel = new PointToPointChannel(1);
+		SimpleChannel channel = new SimpleChannel(1);
 		PollingSourceAdapter<String> adapter = new PollingSourceAdapter<String>(source);
 		adapter.setChannel(channel);
 		adapter.setPeriod(500);
@@ -73,7 +73,7 @@ public class PollingSourceAdapterTests {
 	@Test
 	public void testMultipleMessagesPerPoll() {
 		TestSource source = new TestSource("testing", 3);
-		PointToPointChannel channel = new PointToPointChannel();
+		SimpleChannel channel = new SimpleChannel();
 		PollingSourceAdapter<String> adapter = new PollingSourceAdapter<String>(source);
 		adapter.setChannel(channel);
 		adapter.setPeriod(1000);
@@ -95,7 +95,7 @@ public class PollingSourceAdapterTests {
 	@Test(expected=MessageHandlingException.class)
 	public void testResultSizeExceedsLimit() {
 		TestSource source = new TestSource("testing", 3);
-		PointToPointChannel channel = new PointToPointChannel();
+		SimpleChannel channel = new SimpleChannel();
 		PollingSourceAdapter<String> adapter = new PollingSourceAdapter<String>(source);
 		adapter.setChannel(channel);
 		adapter.setPeriod(1000);

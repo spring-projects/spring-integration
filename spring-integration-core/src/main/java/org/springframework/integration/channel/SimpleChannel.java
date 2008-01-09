@@ -30,7 +30,7 @@ import org.springframework.integration.message.Message;
  * 
  * @author Mark Fisher
  */
-public class PointToPointChannel implements MessageChannel, BeanNameAware {
+public class SimpleChannel implements MessageChannel, BeanNameAware {
 
 	private static final int DEFAULT_CAPACITY = 25;
 
@@ -41,14 +41,14 @@ public class PointToPointChannel implements MessageChannel, BeanNameAware {
 	/**
 	 * Create a channel with the specified queue capacity.
 	 */
-	public PointToPointChannel(int capacity) {
+	public SimpleChannel(int capacity) {
 		queue = new LinkedBlockingQueue<Message<?>>(capacity);
 	}
 
 	/**
 	 * Create a channel with the default queue capacity.
 	 */
-	public PointToPointChannel() {
+	public SimpleChannel() {
 		this(DEFAULT_CAPACITY);
 	}
 

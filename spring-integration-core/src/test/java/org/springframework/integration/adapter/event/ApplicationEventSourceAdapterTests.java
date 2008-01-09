@@ -32,7 +32,7 @@ import org.springframework.context.event.ContextStartedEvent;
 import org.springframework.context.event.ContextStoppedEvent;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.PointToPointChannel;
+import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.message.Message;
 
 /**
@@ -42,7 +42,7 @@ public class ApplicationEventSourceAdapterTests {
 
 	@Test
 	public void testAnyApplicationEventSentByDefault() {
-		MessageChannel channel = new PointToPointChannel();
+		MessageChannel channel = new SimpleChannel();
 		ApplicationEventSourceAdapter adapter = new ApplicationEventSourceAdapter();
 		adapter.setChannel(channel);
 		Message<?> message1 = channel.receive(0);
@@ -59,7 +59,7 @@ public class ApplicationEventSourceAdapterTests {
 
 	@Test
 	public void testOnlyConfiguredEventTypesAreSent() {
-		MessageChannel channel = new PointToPointChannel();
+		MessageChannel channel = new SimpleChannel();
 		ApplicationEventSourceAdapter adapter = new ApplicationEventSourceAdapter();
 		List<Class<? extends ApplicationEvent>> eventTypes = new ArrayList<Class<? extends ApplicationEvent>>();
 		eventTypes.add(TestApplicationEvent1.class);

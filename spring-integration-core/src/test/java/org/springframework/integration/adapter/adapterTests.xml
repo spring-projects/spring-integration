@@ -6,9 +6,9 @@
 
 	<bean id="bus" class="org.springframework.integration.bus.MessageBus"/>
 
-	<bean id="inputChannel" class="org.springframework.integration.channel.PointToPointChannel"/>
+	<bean id="inputChannel" class="org.springframework.integration.channel.SimpleChannel"/>
 
-	<bean id="outputChannel" class="org.springframework.integration.channel.PointToPointChannel"/>
+	<bean id="outputChannel" class="org.springframework.integration.channel.SimpleChannel"/>
 
 	<bean id="sourceAdapter" class="org.springframework.integration.adapter.PollingSourceAdapter">
 		<constructor-arg>

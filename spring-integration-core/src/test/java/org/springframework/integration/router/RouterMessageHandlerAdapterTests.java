@@ -29,7 +29,7 @@ import org.junit.Test;
 import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.DefaultChannelRegistry;
-import org.springframework.integration.channel.PointToPointChannel;
+import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 
@@ -45,7 +45,7 @@ public class RouterMessageHandlerAdapterTests {
 		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
 		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, fooMethod, attribs);
 		Message<String> message = new GenericMessage<String>("123", "bar");
-		PointToPointChannel barChannel = new PointToPointChannel();
+		SimpleChannel barChannel = new SimpleChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("bar-channel", barChannel);
 		adapter.setChannelRegistry(channelRegistry);
@@ -65,8 +65,8 @@ public class RouterMessageHandlerAdapterTests {
 		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, fooMethod, attribs);
 		Message<String> message = new GenericMessage<String>("123", "bar");
 		message.getHeader().setProperty("returnAddress", "baz");
-		PointToPointChannel barChannel = new PointToPointChannel();
-		PointToPointChannel bazChannel = new PointToPointChannel();
+		SimpleChannel barChannel = new SimpleChannel();
+		SimpleChannel bazChannel = new SimpleChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("bar-channel", barChannel);
 		channelRegistry.registerChannel("baz-channel", bazChannel);
@@ -90,9 +90,9 @@ public class RouterMessageHandlerAdapterTests {
 		Message<String> message = new GenericMessage<String>("123", "bar");
 		message.getHeader().setProperty("returnAddress", "bad");
 		message.getHeader().setAttribute("returnAddress", "baz");
-		PointToPointChannel barChannel = new PointToPointChannel();
-		PointToPointChannel badChannel = new PointToPointChannel();
-		PointToPointChannel bazChannel = new PointToPointChannel();
+		SimpleChannel barChannel = new SimpleChannel();
+		SimpleChannel badChannel = new SimpleChannel();
+		SimpleChannel bazChannel = new SimpleChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("bar-channel", barChannel);
 		channelRegistry.registerChannel("bad-channel", badChannel);

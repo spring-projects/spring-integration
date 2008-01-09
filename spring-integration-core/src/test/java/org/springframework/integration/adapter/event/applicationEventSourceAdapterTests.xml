@@ -6,7 +6,7 @@
 
 	<bean id="bus" class="org.springframework.integration.bus.MessageBus"/>
 
-	<bean id="channel" class="org.springframework.integration.channel.PointToPointChannel"/>
+	<bean id="channel" class="org.springframework.integration.channel.SimpleChannel"/>
 
 	<bean id="adapter" class="org.springframework.integration.adapter.event.ApplicationEventSourceAdapter">
 		<property name="channel" ref="channel"/>

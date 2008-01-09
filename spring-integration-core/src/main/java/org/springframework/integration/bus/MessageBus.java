@@ -36,7 +36,7 @@ import org.springframework.integration.adapter.TargetAdapter;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.PointToPointChannel;
+import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.MessageReceiver;
@@ -157,7 +157,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 	public void initialize() {
 		initDispatcherExecutor();
 		if (this.getInvalidMessageChannel() == null) {
-			this.setInvalidMessageChannel(new PointToPointChannel(Integer.MAX_VALUE));
+			this.setInvalidMessageChannel(new SimpleChannel(Integer.MAX_VALUE));
 		}
 	}
 
@@ -202,7 +202,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		if (this.autoCreateChannels) {
 			String defaultOutputChannelName = endpoint.getDefaultOutputChannelName();
 			if (StringUtils.hasText(defaultOutputChannelName) && this.lookupChannel(defaultOutputChannelName) == null) {
-				this.registerChannel(defaultOutputChannelName, new PointToPointChannel());
+				this.registerChannel(defaultOutputChannelName, new SimpleChannel());
 			}
 		}
 	}
@@ -254,7 +254,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			if (this.logger.isInfoEnabled()) {
 				logger.info("auto-creating channel '" + channelName + "'");
 			}
-			channel = new PointToPointChannel(); 
+			channel = new SimpleChannel(); 
 			this.registerChannel(channelName, channel);
 		}
 		MessageEndpoint<?> endpoint = this.endpoints.get(endpointName);

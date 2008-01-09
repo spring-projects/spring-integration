@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 
-import org.springframework.integration.channel.PointToPointChannel;
+import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.endpoint.GenericMessageEndpoint;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
@@ -55,7 +55,7 @@ public class UnicastMessageDispatcherTests {
 			}
 		};
 		ConsumerPolicy policy = new ConsumerPolicy();
-		PointToPointChannel channel = new PointToPointChannel();
+		SimpleChannel channel = new SimpleChannel();
 		channel.send(new StringMessage(1, "test"));
 		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
 		UnicastMessageDispatcher dispatcher = new UnicastMessageDispatcher(retriever, policy);

@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import org.springframework.integration.bus.MessageBus;
-import org.springframework.integration.channel.PointToPointChannel;
+import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 
@@ -45,7 +45,7 @@ public class DefaultTargetAdapterTests {
 		target.setMethod("foo");
 		target.afterPropertiesSet();
 		DefaultTargetAdapter adapter = new DefaultTargetAdapter(target);
-		PointToPointChannel channel = new PointToPointChannel();
+		SimpleChannel channel = new SimpleChannel();
 		adapter.setChannel(channel);
 		Message<String> message = new GenericMessage<String>("123", "testing");
 		channel.send(message);

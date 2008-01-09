@@ -24,7 +24,7 @@ import org.junit.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.PointToPointChannel;
+import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.message.Message;
 
 /**
@@ -34,7 +34,7 @@ public class MessagePublishingInterceptorTests {
 
 	@Test
 	public void testNonNullReturnValuePublishedWithDefaultChannel() {
-		MessageChannel channel = new PointToPointChannel();
+		MessageChannel channel = new SimpleChannel();
 		MessagePublishingInterceptor interceptor = new MessagePublishingInterceptor();
 		interceptor.setDefaultChannel(channel);
 		TestService proxy = (TestService) this.createProxy(new TestServiceImpl("hello world"), interceptor);
@@ -46,7 +46,7 @@ public class MessagePublishingInterceptorTests {
 
 	@Test
 	public void testNullReturnValueNotPublished() {
-		MessageChannel channel = new PointToPointChannel();
+		MessageChannel channel = new SimpleChannel();
 		MessagePublishingInterceptor interceptor = new MessagePublishingInterceptor();
 		interceptor.setDefaultChannel(channel);
 		TestService proxy = (TestService) this.createProxy(new TestServiceImpl(null), interceptor);
@@ -57,7 +57,7 @@ public class MessagePublishingInterceptorTests {
 
 	@Test
 	public void testVoidReturnValueNotPublished() {
-		MessageChannel channel = new PointToPointChannel();
+		MessageChannel channel = new SimpleChannel();
 		MessagePublishingInterceptor interceptor = new MessagePublishingInterceptor();
 		interceptor.setDefaultChannel(channel);
 		TestService proxy = (TestService) this.createProxy(new TestServiceImpl(null), interceptor);

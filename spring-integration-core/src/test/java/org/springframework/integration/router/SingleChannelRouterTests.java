@@ -26,7 +26,7 @@ import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.PointToPointChannel;
+import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 
@@ -37,7 +37,7 @@ public class SingleChannelRouterTests {
 
 	@Test
 	public void testRoutingWithChannelResolver() {
-		final PointToPointChannel channel = new PointToPointChannel();
+		final SimpleChannel channel = new SimpleChannel();
 		ChannelResolver channelResolver = new ChannelResolver() {
 			public MessageChannel resolve(Message<?> message) {
 				return channel;
@@ -60,7 +60,7 @@ public class SingleChannelRouterTests {
 				return "testChannel";
 			}
 		};
-		PointToPointChannel channel = new PointToPointChannel();
+		SimpleChannel channel = new SimpleChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("testChannel", channel);
 		SingleChannelRouter router = new SingleChannelRouter();
@@ -78,7 +78,7 @@ public class SingleChannelRouterTests {
 	public void testConfiguringBothChannelResolverAndChannelNameResolverIsNotAllowed() {
 		ChannelResolver channelResolver = new ChannelResolver() {
 			public MessageChannel resolve(Message<?> message) {
-				return new PointToPointChannel();
+				return new SimpleChannel();
 			}
 		};
 		ChannelNameResolver channelNameResolver = new ChannelNameResolver() {

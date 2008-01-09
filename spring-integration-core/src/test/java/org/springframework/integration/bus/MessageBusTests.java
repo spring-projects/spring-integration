@@ -26,7 +26,7 @@ import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.adapter.SourceAdapter;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.PointToPointChannel;
+import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.endpoint.GenericMessageEndpoint;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
@@ -41,8 +41,8 @@ public class MessageBusTests {
 	@Test
 	public void testChannelsConnectedWithEndpoint() {
 		MessageBus bus = new MessageBus();
-		MessageChannel sourceChannel = new PointToPointChannel();
-		MessageChannel targetChannel = new PointToPointChannel();
+		MessageChannel sourceChannel = new SimpleChannel();
+		MessageChannel targetChannel = new SimpleChannel();
 		bus.registerChannel("sourceChannel", sourceChannel);
 		sourceChannel.send(new StringMessage("123", "test"));
 		bus.registerChannel("targetChannel", targetChannel);
@@ -59,9 +59,9 @@ public class MessageBusTests {
 	@Test
 	public void testChannelsWithoutEndpoint() {
 		MessageBus bus = new MessageBus();
-		MessageChannel sourceChannel = new PointToPointChannel();
+		MessageChannel sourceChannel = new SimpleChannel();
 		sourceChannel.send(new StringMessage("123", "test"));
-		MessageChannel targetChannel = new PointToPointChannel();
+		MessageChannel targetChannel = new SimpleChannel();
 		bus.registerChannel("sourceChannel", sourceChannel);
 		bus.registerChannel("targetChannel", targetChannel);
 		bus.start();
@@ -90,9 +90,9 @@ public class MessageBusTests {
 
 	@Test
 	public void testExactlyOneEndpointReceivesUnicastMessage() {
-		PointToPointChannel inputChannel = new PointToPointChannel();
-		PointToPointChannel outputChannel1 = new PointToPointChannel();
-		PointToPointChannel outputChannel2 = new PointToPointChannel();
+		SimpleChannel inputChannel = new SimpleChannel();
+		SimpleChannel outputChannel1 = new SimpleChannel();
+		SimpleChannel outputChannel2 = new SimpleChannel();
 		GenericMessageEndpoint<String> endpoint1 = new GenericMessageEndpoint<String>();
 		endpoint1.setDefaultOutputChannelName("output1");
 		endpoint1.setInputChannelName("input");

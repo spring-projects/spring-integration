@@ -22,7 +22,7 @@ import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.PointToPointChannel;
+import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
@@ -34,8 +34,8 @@ public class GenericMessageEndpointTests {
 
 	@Test
 	public void testDefaultReplyChannel() throws Exception {
-		MessageChannel channel = new PointToPointChannel();
-		MessageChannel replyChannel = new PointToPointChannel();
+		MessageChannel channel = new SimpleChannel();
+		MessageChannel replyChannel = new SimpleChannel();
 		MessageHandler handler = new MessageHandler() {
 			public Message<String> handle(Message message) {
 				return new StringMessage("123", "hello " + message.getPayload());
@@ -59,8 +59,8 @@ public class GenericMessageEndpointTests {
 
 	@Test
 	public void testExplicitReplyChannel() throws Exception {
-		MessageChannel channel = new PointToPointChannel();
-		final MessageChannel replyChannel = new PointToPointChannel();
+		MessageChannel channel = new SimpleChannel();
+		final MessageChannel replyChannel = new SimpleChannel();
 		MessageHandler handler = new MessageHandler() {
 			public Message handle(Message message) {
 				return new StringMessage("123", "hello " + message.getPayload());

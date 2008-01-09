@@ -23,7 +23,7 @@ import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.channel.PointToPointChannel;
+import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.util.StringUtils;
 
 /**
@@ -39,7 +39,7 @@ public class ChannelParser implements BeanDefinitionParser {
 
 
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
-		RootBeanDefinition channelDef = new RootBeanDefinition(PointToPointChannel.class);
+		RootBeanDefinition channelDef = new RootBeanDefinition(SimpleChannel.class);
 		channelDef.setSource(parserContext.extractSource(element));
 		String capacity = element.getAttribute(CAPACITY_ATTRIBUTE);
 		if (StringUtils.hasText(capacity)) {

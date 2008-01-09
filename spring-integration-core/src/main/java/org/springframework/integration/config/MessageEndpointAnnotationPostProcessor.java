@@ -47,7 +47,7 @@ import org.springframework.integration.bus.ConsumerPolicy;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.PointToPointChannel;
+import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.endpoint.GenericMessageEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
@@ -133,7 +133,7 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 					source.setObject(bean);
 					source.setMethod(method.getName());
 					PollingSourceAdapter<Object> adapter = new PollingSourceAdapter<Object>(source);
-					MessageChannel channel = new PointToPointChannel();
+					MessageChannel channel = new SimpleChannel();
 					adapter.setChannel(channel);
 					adapter.setPeriod(period);
 					String channelName = beanName + "-inputChannel";
@@ -172,7 +172,7 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 					target.setMethod(method.getName());
 					target.afterPropertiesSet();
 					DefaultTargetAdapter adapter = new DefaultTargetAdapter(target);
-					PointToPointChannel channel = new PointToPointChannel();
+					SimpleChannel channel = new SimpleChannel();
 					String channelName = beanName + "-defaultOutputChannel";
 					messageBus.registerChannel(channelName, channel);
 					messageBus.registerTargetAdapter(beanName + "-targetAdapter", adapter);
