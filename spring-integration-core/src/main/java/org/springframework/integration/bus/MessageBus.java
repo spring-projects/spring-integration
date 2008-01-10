@@ -58,11 +58,9 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 
 	private Map<String, MessageReceiver<?>> receivers = new ConcurrentHashMap<String, MessageReceiver<?>>();
 
-	private Map<String, Lifecycle> lifecycleComponents = new ConcurrentHashMap<String, Lifecycle>();
+	private List<MessageDispatcher> dispatchers = new CopyOnWriteArrayList<MessageDispatcher>();
 
 	private List<DispatcherTask> dispatcherTasks = new CopyOnWriteArrayList<DispatcherTask>();
-
-	private Map<MessageReceiver<?>, MessageReceivingExecutor> receiverExecutors = new ConcurrentHashMap<MessageReceiver<?>, MessageReceivingExecutor>();
 
 	private ScheduledThreadPoolExecutor dispatcherExecutor;
 
@@ -147,7 +145,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			this.activateSubscription(subscription);
 			if (logger.isInfoEnabled()) {
 				logger.info("activated subscription to channel '" + subscription.getChannel() + 
-						"' for endpoint '" + subscription.getReceiver() + "'");
+						"' for receiver '" + subscription.getReceiver() + "'");
 			}
 		}
 	}
@@ -210,11 +208,9 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		ConsumerPolicy policy = adapter.getConsumerPolicy();
 		if (adapter instanceof MessageDispatcher) {
 			MessageDispatcher dispatcher = (MessageDispatcher) adapter;
+			this.dispatchers.add(dispatcher);
 			DispatcherTask dispatcherTask = new DispatcherTask(dispatcher, policy);
 			this.addDispatcherTask(dispatcherTask);
-		}
-		if (adapter instanceof Lifecycle) {
-			this.addLifecycleComponent(name, (Lifecycle) adapter);
 		}
 		if (logger.isInfoEnabled()) {
 			logger.info("registered source adapter '" + name + "'");
@@ -264,8 +260,6 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 
 	private void doActivate(MessageChannel channel, MessageReceiver<?> receiver, ConsumerPolicy policy) {
 		MessageReceivingExecutor executor = new MessageReceivingExecutor(receiver, policy.getConcurrency(), policy.getMaxConcurrency());
-		this.receiverExecutors.put(receiver, executor);
-		this.addLifecycleComponent(receiver.getName() + "-executor", executor);
 		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
 		dispatcher.setRejectionLimit(policy.getRejectionLimit());
@@ -275,20 +269,11 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		if (this.isRunning()) {
 			executor.start();
 		}
+		this.dispatchers.add(dispatcher);
 		this.addDispatcherTask(dispatcherTask);
 		if (this.logger.isInfoEnabled()) {
 			logger.info("registered dispatcher task: channel='" +
 					channel.getName() + "' receiver='" + receiver.getName() + "'");
-		}
-	}
-
-	private void addLifecycleComponent(String name, Lifecycle component) {
-		this.lifecycleComponents.put(name, component);
-		if (this.isRunning()) {
-			component.start();
-			if (logger.isInfoEnabled()) {
-				logger.info("started lifecycle component '" + name + "'");
-			}
 		}
 	}
 
@@ -300,17 +285,6 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 				logger.info("scheduled dispatcher task");
 			}
 		}
-	}
-
-	public int getActiveCountForReceiver(String receiverName) {
-		MessageReceiver<?> receiver = this.receivers.get(receiverName);
-		if (receiver != null) {
-			MessageReceivingExecutor executor = this.receiverExecutors.get(receiver);
-			if (executor != null) {
-				return executor.getActiveCount();
-			}
-		}
-		return 0;
 	}
 
 	private void scheduleDispatcherTask(DispatcherTask task) {
@@ -345,10 +319,10 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		synchronized (this.lifecycleMonitor) {
 			if (!this.isRunning()) {
 				this.running = true;
-				for (Map.Entry<String, Lifecycle> entry : this.lifecycleComponents.entrySet()) {
-					entry.getValue().start();
+				for (MessageDispatcher dispatcher : this.dispatchers) {
+					dispatcher.start();
 					if (logger.isInfoEnabled()) {
-						logger.info("started lifecycle component '" + entry.getKey() + "'");
+						logger.info("started dispatcher '" + dispatcher + "'");
 					}
 				}
 				for (DispatcherTask task : this.dispatcherTasks) {
@@ -363,10 +337,10 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			if (this.isRunning()) {
 				this.running = false;
 				this.dispatcherExecutor.shutdownNow();
-				for (Map.Entry<String, Lifecycle> entry : this.lifecycleComponents.entrySet()) {
-					entry.getValue().stop();
+				for (MessageDispatcher dispatcher : this.dispatchers) {
+					dispatcher.stop();
 					if (logger.isInfoEnabled()) {
-						logger.info("stopped lifecycle component '" + entry.getKey() + "'");
+						logger.info("stopped dispatcher '" + dispatcher + "'");
 					}
 				}
 			}

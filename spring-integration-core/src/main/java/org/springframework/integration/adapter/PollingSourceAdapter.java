@@ -38,11 +38,25 @@ public class PollingSourceAdapter<T> extends AbstractSourceAdapter<T> implements
 
 	private PollableSource<T> source;
 
+	private volatile boolean running;
+
 
 	public PollingSourceAdapter(PollableSource<T> source) {
 		Assert.notNull(source, "'source' must not be null");
 		this.source = source;
 		this.setConsumerPolicy(ConsumerPolicy.newPollingPolicy(DEFAULT_PERIOD));
+	}
+
+	public boolean isRunning() {
+		return this.running;
+	}
+
+	public void start() {
+		this.running = true;
+	}
+
+	public void stop() {
+		this.running = false;
 	}
 
 	public void setPeriod(int period) {
@@ -56,6 +70,9 @@ public class PollingSourceAdapter<T> extends AbstractSourceAdapter<T> implements
 	}
 
 	public int dispatch() {
+		if (!this.isRunning()) {
+			return 0;
+		}
 		int messagesProcessed = 0;
 		int limit = this.getConsumerPolicy().getMaxMessagesPerTask();
 		Collection<T> results = this.source.poll(limit);

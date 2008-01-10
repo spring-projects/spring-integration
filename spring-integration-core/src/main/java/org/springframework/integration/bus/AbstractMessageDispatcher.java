@@ -40,6 +40,10 @@ public abstract class AbstractMessageDispatcher implements MessageDispatcher {
 
 	private List<MessageReceivingExecutor> executors = new CopyOnWriteArrayList<MessageReceivingExecutor>();
 
+	private volatile boolean running;
+
+	private Object lifecycleMonitor = new Object();
+
 
 	public AbstractMessageDispatcher(MessageRetriever retriever) {
 		this.retriever = retriever;
@@ -54,6 +58,30 @@ public abstract class AbstractMessageDispatcher implements MessageDispatcher {
 
 	protected List<MessageReceivingExecutor> getExecutors() {
 		return this.executors;
+	}
+
+	public boolean isRunning() {
+		return this.running;
+	}
+
+	public void start() {
+		synchronized (this.lifecycleMonitor) {
+			if (!this.isRunning()) {
+				for (MessageReceivingExecutor executor : this.executors) {
+					executor.start();
+				}
+			}
+		}
+	}
+
+	public void stop() {
+		synchronized (this.lifecycleMonitor) {
+			if (this.isRunning()) {
+				for (MessageReceivingExecutor executor : this.executors) {
+					executor.stop();
+				}
+			}
+		}		
 	}
 
 	/**

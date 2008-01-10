@@ -43,6 +43,7 @@ public class PollingSourceAdapterTests {
 		PollingSourceAdapter<String> adapter = new PollingSourceAdapter<String>(source);
 		adapter.setChannel(channel);
 		adapter.setPeriod(100);
+		adapter.start();
 		adapter.dispatch();
 		Message<?> message = channel.receive();
 		assertNotNull("message should not be null", message);
@@ -57,6 +58,7 @@ public class PollingSourceAdapterTests {
 		adapter.setChannel(channel);
 		adapter.setPeriod(500);
 		adapter.setSendTimeout(10);
+		adapter.start();
 		adapter.dispatch();
 		adapter.dispatch();
 		Message<?> message1 = channel.receive();
@@ -78,6 +80,7 @@ public class PollingSourceAdapterTests {
 		adapter.setChannel(channel);
 		adapter.setPeriod(1000);
 		adapter.setMaxMessagesPerTask(5);
+		adapter.start();
 		adapter.dispatch();
 		Message<?> message1 = channel.receive(0);
 		assertNotNull("message should not be null", message1);
@@ -100,6 +103,7 @@ public class PollingSourceAdapterTests {
 		adapter.setChannel(channel);
 		adapter.setPeriod(1000);
 		adapter.setMaxMessagesPerTask(2);
+		adapter.start();
 		adapter.dispatch();
 	}
 

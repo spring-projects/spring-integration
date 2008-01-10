@@ -139,5 +139,15 @@ public class MessageBusTests {
 		public ConsumerPolicy getConsumerPolicy() {
 			return ConsumerPolicy.newPollingPolicy(1000);
 		}
+
+		public boolean isRunning() {
+			return true;
+		}
+
+		public void start() {
+		}
+
+		public void stop() {
+		}
 	}
 }

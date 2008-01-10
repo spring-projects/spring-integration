@@ -16,12 +16,14 @@
 
 package org.springframework.integration.bus;
 
+import org.springframework.context.Lifecycle;
+
 /**
  * Strategy interface for dispatching messages.
  * 
  * @author Mark Fisher
  */
-public interface MessageDispatcher {
+public interface MessageDispatcher extends Lifecycle {
 
 	int dispatch();
 
