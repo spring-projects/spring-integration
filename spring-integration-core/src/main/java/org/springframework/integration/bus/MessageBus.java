@@ -38,8 +38,8 @@ import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.endpoint.MessageEndpoint;
+import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.ErrorMessage;
-import org.springframework.integration.message.MessageReceiver;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -56,7 +56,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 
 	private ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 
-	private Map<String, MessageReceiver<?>> receivers = new ConcurrentHashMap<String, MessageReceiver<?>>();
+	private Map<String, MessageHandler> handlers = new ConcurrentHashMap<String, MessageHandler>();
 
 	private List<MessageDispatcher> dispatchers = new CopyOnWriteArrayList<MessageDispatcher>();
 
@@ -180,11 +180,11 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		this.channelRegistry.registerChannel(name, channel);
 	}
 
-	public void registerEndpoint(String name, MessageEndpoint<?> endpoint) {
+	public void registerEndpoint(String name, MessageEndpoint endpoint) {
 		Assert.notNull(name, "'name' must not be null");
 		Assert.notNull(endpoint, "'endpoint' must not be null");
 		endpoint.setName(name);
-		this.receivers.put(name, endpoint);
+		this.handlers.put(name, endpoint);
 		if (logger.isInfoEnabled()) {
 			logger.info("registered endpoint '" + name + "'");
 		}
@@ -217,11 +217,11 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		}
 	}
 
-	public void registerTargetAdapter(String name, TargetAdapter<?> targetAdapter) {
+	public void registerTargetAdapter(String name, TargetAdapter targetAdapter) {
 		if (targetAdapter instanceof AbstractTargetAdapter) {
 			AbstractTargetAdapter<?> adapter = (AbstractTargetAdapter<?>) targetAdapter;
 			adapter.setName(name);
-			this.receivers.put(name, targetAdapter);
+			this.handlers.put(name, targetAdapter);
 			MessageChannel channel = adapter.getChannel();
 			ConsumerPolicy policy = adapter.getConsumerPolicy();
 			this.doActivate(channel, adapter, policy);
@@ -233,11 +233,11 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 
 	public void activateSubscription(Subscription subscription) {
 		String channelName = subscription.getChannel();
-		String receiverName = subscription.getReceiver();
+		String handlerName = subscription.getReceiver();
 		ConsumerPolicy policy = subscription.getPolicy();
-		MessageReceiver<?> receiver = this.receivers.get(receiverName);
-		if (receiver == null) {
-			throw new MessagingException("Cannot activate subscription, unknown receiver '" + receiverName + "'");
+		MessageHandler handler = this.handlers.get(handlerName);
+		if (handler == null) {
+			throw new MessagingException("Cannot activate subscription, unknown handler '" + handlerName + "'");
 		}
 		MessageChannel channel = this.lookupChannel(channelName);
 		if (channel == null) {
@@ -251,29 +251,29 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			channel = new SimpleChannel(); 
 			this.registerChannel(channelName, channel);
 		}
-		this.doActivate(channel, receiver, policy);
+		this.doActivate(channel, handler, policy);
 		if (logger.isInfoEnabled()) {
 			logger.info("activated subscription to channel '" + channelName + 
-					"' for receiver '" + receiverName + "'");
+					"' for handler '" + handlerName + "'");
 		}
 	}
 
-	private void doActivate(MessageChannel channel, MessageReceiver<?> receiver, ConsumerPolicy policy) {
-		MessageReceivingExecutor executor = new MessageReceivingExecutor(receiver, policy.getConcurrency(), policy.getMaxConcurrency());
+	private void doActivate(MessageChannel channel, MessageHandler handler, ConsumerPolicy policy) {
+		PooledMessageHandler pooledHandler = new PooledMessageHandler(handler, policy.getConcurrency(), policy.getMaxConcurrency());
 		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
 		dispatcher.setRejectionLimit(policy.getRejectionLimit());
 		dispatcher.setRetryInterval(policy.getRetryInterval());
-		dispatcher.addExecutor(executor);
+		dispatcher.addHandler(pooledHandler);
 		DispatcherTask dispatcherTask = new DispatcherTask(dispatcher, policy);
 		if (this.isRunning()) {
-			executor.start();
+			dispatcher.start();
 		}
 		this.dispatchers.add(dispatcher);
 		this.addDispatcherTask(dispatcherTask);
 		if (this.logger.isInfoEnabled()) {
 			logger.info("registered dispatcher task: channel='" +
-					channel.getName() + "' receiver='" + receiver.getName() + "'");
+					channel.getName() + "' handler='" + handler + "'");
 		}
 	}
 

@@ -38,7 +38,7 @@ import org.springframework.integration.message.Message;
  * 
  * @author Mark Fisher
  */
-public class GenericMessageEndpoint<T> implements MessageEndpoint<T>, BeanNameAware {
+public class GenericMessageEndpoint implements MessageEndpoint, BeanNameAware {
 
 	private String name;
 
@@ -113,7 +113,7 @@ public class GenericMessageEndpoint<T> implements MessageEndpoint<T>, BeanNameAw
 	}
 
 
-	public void messageReceived(Message<T> message) {
+	public Message handle(Message<?> message) {
 		if (this.handler == null) {
 			if (this.defaultOutputChannelName == null) {
 				throw new MessagingConfigurationException(
@@ -121,7 +121,7 @@ public class GenericMessageEndpoint<T> implements MessageEndpoint<T>, BeanNameAw
 			}
 			MessageChannel replyChannel = this.channelRegistry.lookupChannel(this.defaultOutputChannelName);
 			replyChannel.send(message);
-			return;
+			return null;
 		}
 		Message<?> replyMessage = handler.handle(message);
 		if (replyMessage != null) {
@@ -133,6 +133,7 @@ public class GenericMessageEndpoint<T> implements MessageEndpoint<T>, BeanNameAw
 			}
 			replyChannel.send(replyMessage);
 		}
+		return null;
 	}
 
 	private MessageChannel resolveReplyChannel(Message<?> message) {

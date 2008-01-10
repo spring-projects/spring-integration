@@ -22,7 +22,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
+import org.springframework.context.Lifecycle;
+import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
 
@@ -38,7 +39,7 @@ public abstract class AbstractMessageDispatcher implements MessageDispatcher {
 
 	private MessageRetriever retriever;
 
-	private List<MessageReceivingExecutor> executors = new CopyOnWriteArrayList<MessageReceivingExecutor>();
+	private List<MessageHandler> handlers = new CopyOnWriteArrayList<MessageHandler>();
 
 	private volatile boolean running;
 
@@ -50,14 +51,16 @@ public abstract class AbstractMessageDispatcher implements MessageDispatcher {
 	}
 
 
-	public void addExecutor(MessageReceivingExecutor executor) {
-		Assert.notNull(executor, "'executor' must not be null");
-		executor.start();
-		this.executors.add(executor);
+	public void addHandler(MessageHandler handler) {
+		Assert.notNull(handler, "'handler' must not be null");
+		if (this.isRunning() && handler instanceof Lifecycle) {
+			((Lifecycle) handler).start();
+		}
+		this.handlers.add(handler);
 	}
 
-	protected List<MessageReceivingExecutor> getExecutors() {
-		return this.executors;
+	protected List<MessageHandler> getHandlers() {
+		return this.handlers;
 	}
 
 	public boolean isRunning() {
@@ -67,9 +70,12 @@ public abstract class AbstractMessageDispatcher implements MessageDispatcher {
 	public void start() {
 		synchronized (this.lifecycleMonitor) {
 			if (!this.isRunning()) {
-				for (MessageReceivingExecutor executor : this.executors) {
-					executor.start();
+				for (MessageHandler handler : this.handlers) {
+					if (handler instanceof Lifecycle) {
+						((Lifecycle) handler).start();
+					}
 				}
+				this.running = true;
 			}
 		}
 	}
@@ -77,9 +83,12 @@ public abstract class AbstractMessageDispatcher implements MessageDispatcher {
 	public void stop() {
 		synchronized (this.lifecycleMonitor) {
 			if (this.isRunning()) {
-				for (MessageReceivingExecutor executor : this.executors) {
-					executor.stop();
+				for (MessageHandler handler : this.handlers) {
+					if (handler instanceof Lifecycle) {
+						((Lifecycle) handler).stop();
+					}
 				}
+				this.running = false;
 			}
 		}		
 	}
@@ -90,6 +99,9 @@ public abstract class AbstractMessageDispatcher implements MessageDispatcher {
 	 * @return the number of messages processed
 	 */
 	public int dispatch() {
+		if (!this.isRunning()) {
+			return 0;
+		}
 		int messagesProcessed = 0;
 		Collection<Message<?>> messages = this.retriever.retrieveMessages();
 		if (messages == null) {

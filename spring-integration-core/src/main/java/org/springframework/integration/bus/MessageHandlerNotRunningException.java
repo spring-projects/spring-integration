@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration.bus;
+
+import org.springframework.integration.MessageHandlingException;
 
 /**
- * The primary callback interface for any component capable of receiving
- * messages. This includes message endpoints as well as target adapters.
+ * An exception indicating that a handler is not currently running.
  * 
  * @author Mark Fisher
  */
-public interface MessageReceiver<T> {
+public class MessageHandlerNotRunningException extends MessageHandlingException {
 
-	String getName();
-
-	void setName(String name);
-
-	void messageReceived(Message<T> message);
+	public MessageHandlerNotRunningException() {
+		super("handler is not running");
+	}
 
 }

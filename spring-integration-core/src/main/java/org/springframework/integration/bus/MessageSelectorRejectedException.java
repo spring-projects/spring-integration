@@ -14,31 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint;
+package org.springframework.integration.bus;
 
-import org.springframework.integration.bus.ConsumerPolicy;
-import org.springframework.integration.channel.ChannelRegistry;
-import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.MessageHandlingException;
 
 /**
- * Base interface for message endpoints.
+ * An exception indicating that a message was rejected by an implementation of
+ * {@link org.springframework.integration.message.selector.MessageSelector}.
  * 
  * @author Mark Fisher
  */
-public interface MessageEndpoint extends MessageHandler {
+public class MessageSelectorRejectedException extends MessageHandlingException {
 
-	void setName(String name);
-
-	void setInputChannelName(String inputChannelName);
-
-	String getInputChannelName();
-
-	void setDefaultOutputChannelName(String defaultOutputChannelName);
-
-	String getDefaultOutputChannelName();
-
-	ConsumerPolicy getConsumerPolicy();
-
-	void setChannelRegistry(ChannelRegistry channelRegistry);
+	public MessageSelectorRejectedException(String message) {
+		super(message);
+	}
 
 }

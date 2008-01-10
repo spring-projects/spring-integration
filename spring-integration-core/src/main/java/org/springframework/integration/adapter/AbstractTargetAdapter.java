@@ -28,7 +28,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractTargetAdapter<T> implements TargetAdapter<T> {
+public abstract class AbstractTargetAdapter<T> implements TargetAdapter {
 
 	private String name;
 
@@ -74,8 +74,9 @@ public abstract class AbstractTargetAdapter<T> implements TargetAdapter<T> {
 		return this.policy;
 	}
 
-	public final void messageReceived(Message message) {
+	public final Message handle(Message message) {
 		this.sendToTarget(this.mapper.fromMessage(message));
+		return null;
 	}
 
 	protected abstract boolean sendToTarget(T object);

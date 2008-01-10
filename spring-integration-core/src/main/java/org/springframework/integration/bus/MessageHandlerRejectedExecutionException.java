@@ -14,31 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint;
+package org.springframework.integration.bus;
 
-import org.springframework.integration.bus.ConsumerPolicy;
-import org.springframework.integration.channel.ChannelRegistry;
-import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.MessageHandlingException;
 
 /**
- * Base interface for message endpoints.
+ * An exception indicating that a message was rejected by a handler; typically
+ * this would be the result of a thread pool executor rejecting a handler task.
  * 
  * @author Mark Fisher
  */
-public interface MessageEndpoint extends MessageHandler {
+public class MessageHandlerRejectedExecutionException extends MessageHandlingException {
 
-	void setName(String name);
+	public MessageHandlerRejectedExecutionException(Throwable cause) {
+		super("handler rejected execution", cause);
+	}
 
-	void setInputChannelName(String inputChannelName);
-
-	String getInputChannelName();
-
-	void setDefaultOutputChannelName(String defaultOutputChannelName);
-
-	String getDefaultOutputChannelName();
-
-	ConsumerPolicy getConsumerPolicy();
-
-	void setChannelRegistry(ChannelRegistry channelRegistry);
+	public MessageHandlerRejectedExecutionException(String message, Throwable cause) {
+		super(message, cause);
+	}
 
 }

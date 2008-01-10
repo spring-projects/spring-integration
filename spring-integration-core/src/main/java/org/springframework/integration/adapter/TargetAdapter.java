@@ -18,14 +18,14 @@ package org.springframework.integration.adapter;
 
 import org.springframework.integration.bus.ConsumerPolicy;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.MessageReceiver;
+import org.springframework.integration.handler.MessageHandler;
 
 /**
  * Base interface for target adapters.
  * 
  * @author Mark Fisher
  */
-public interface TargetAdapter<T> extends MessageReceiver<T> {
+public interface TargetAdapter extends MessageHandler {
 
 	String getName();
 

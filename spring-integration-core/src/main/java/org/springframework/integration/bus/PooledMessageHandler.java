@@ -18,6 +18,7 @@ package org.springframework.integration.bus;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -27,8 +28,8 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageReceiver;
 import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
@@ -38,11 +39,11 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class MessageReceivingExecutor implements Lifecycle {
+public class PooledMessageHandler implements MessageHandler, Lifecycle {
 
 	private Log logger = LogFactory.getLog(this.getClass());
 
-	private MessageReceiver receiver;
+	private MessageHandler handler;
 
 	private List<MessageSelector> selectors = new CopyOnWriteArrayList<MessageSelector>();
 
@@ -65,12 +66,12 @@ public class MessageReceivingExecutor implements Lifecycle {
 	private int totalErrorThreshold = -1;
 
 
-	public MessageReceivingExecutor(MessageReceiver receiver, int corePoolSize, int maxPoolSize) {
-		Assert.notNull(receiver, "'receiver' must not be null");
+	public PooledMessageHandler(MessageHandler handler, int corePoolSize, int maxPoolSize) {
+		Assert.notNull(handler, "'handler' must not be null");
 		Assert.isTrue(corePoolSize > 0, "'corePoolSize' must be at least 1");
 		Assert.isTrue(maxPoolSize > 0, "'maxPoolSize' must be at least 1");
 		Assert.isTrue(maxPoolSize >= corePoolSize, "'corePoolSize' cannot exceed 'maxPoolSize'");
-		this.receiver = receiver;
+		this.handler = handler;
 		this.corePoolSize = corePoolSize;
 		this.maxPoolSize = maxPoolSize;
 	}
@@ -95,7 +96,7 @@ public class MessageReceivingExecutor implements Lifecycle {
 	public void start() {
 		synchronized (this.lifecycleMonitor) {
 			if (!this.running) {
-				this.threadPoolExecutor = new MessageReceivingThreadPoolExecutor(this.corePoolSize, this.maxPoolSize);
+				this.threadPoolExecutor = new MessageHandlerThreadPoolExecutor(this.corePoolSize, this.maxPoolSize);
 			}
 			this.running = true;
 		}
@@ -111,17 +112,23 @@ public class MessageReceivingExecutor implements Lifecycle {
 		}
 	}
 
-	public boolean acceptMessage(Message<?> message) {
-		if (threadPoolExecutor == null) {
-			throw new MessageHandlingException("executor is not running");
+	public Message handle(Message<?> message) {
+		if (!this.isRunning()) {
+			throw new MessageHandlerNotRunningException();
 		}
 		for (MessageSelector selector : this.selectors) {
 			if (!selector.accept(message)) {
-				return false;
+				throw new MessageSelectorRejectedException("selector rejected message");
 			}
 		}
-		this.threadPoolExecutor.execute(new MessageReceivingTask(this.receiver, message));
-		return true;
+		try {
+			this.threadPoolExecutor.execute(new HandlerTask(this.handler, message));
+			return null;
+		}
+		catch (RejectedExecutionException e) {
+			throw new MessageHandlerRejectedExecutionException(
+					"handler executor rejected message", e);
+		}
 	}
 
 	/**
@@ -153,17 +160,17 @@ public class MessageReceivingExecutor implements Lifecycle {
 	}
 
 
-	private static class MessageReceivingTask implements Runnable {
+	private static class HandlerTask implements Runnable {
 
-		private MessageReceiver receiver;
+		private MessageHandler handler;
 
 		private Message<?> message;
 
 		private Throwable error;
 
 
-		MessageReceivingTask(MessageReceiver receiver, Message<?> message) {
-			this.receiver = receiver;
+		HandlerTask(MessageHandler handler, Message<?> message) {
+			this.handler = handler;
 			this.message = message;
 		}
 
@@ -173,7 +180,7 @@ public class MessageReceivingExecutor implements Lifecycle {
 
 		public void run() {
 			try {
-				this.receiver.messageReceived(this.message);
+				this.handler.handle(this.message);
 			}
 			catch (Throwable t) {
 				this.error = t;
@@ -182,18 +189,18 @@ public class MessageReceivingExecutor implements Lifecycle {
 	}
 
 
-	private class MessageReceivingThreadPoolExecutor extends ThreadPoolExecutor {
+	private class MessageHandlerThreadPoolExecutor extends ThreadPoolExecutor {
 
-		public MessageReceivingThreadPoolExecutor(int corePoolSize, int maximumPoolSize) {
+		public MessageHandlerThreadPoolExecutor(int corePoolSize, int maximumPoolSize) {
 			super(corePoolSize, maximumPoolSize, 0, TimeUnit.MILLISECONDS, new SynchronousQueue<Runnable>());
 			CustomizableThreadFactory threadFactory = new CustomizableThreadFactory();
-			threadFactory.setThreadNamePrefix("endpoint-executor-");
+			threadFactory.setThreadNamePrefix("handler-pool-");
 			this.setThreadFactory(threadFactory);
 		}
 
 		@Override
 		protected void afterExecute(Runnable r, Throwable t) {
-			MessageReceivingTask task = (MessageReceivingTask) r;
+			HandlerTask task = (HandlerTask) r;
 			if (task.getError() != null) {
 				if (logger.isWarnEnabled()) {
 					logger.warn("Exception occurred during task execution", task.getError());

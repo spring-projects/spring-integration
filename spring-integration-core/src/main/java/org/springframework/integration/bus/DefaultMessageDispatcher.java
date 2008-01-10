@@ -19,17 +19,18 @@ package org.springframework.integration.bus;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.RejectedExecutionException;
 
 import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
 
 /**
  * The default implementation of {@link MessageDispatcher}. If
  * {@link #broadcast} is set to <code>false</code> (the default), each message
- * will be sent to a single {@link MessageReceivingExecutor}. Otherwise, each
- * retrieved {@link Message} will be sent to all executors.
+ * will be sent to a single {@link MessageHandler}. Otherwise, each
+ * retrieved {@link Message} will be sent to all handlers.
  * 
  * @author Mark Fisher
  */
@@ -74,11 +75,11 @@ public class DefaultMessageDispatcher extends AbstractMessageDispatcher {
 	@Override
 	protected boolean dispatchMessage(Message<?> message) {
 		int attempts = 0;
-		List<MessageReceivingExecutor> targets = new ArrayList<MessageReceivingExecutor>(this.getExecutors());
+		List<MessageHandler> targets = new ArrayList<MessageHandler>(this.getHandlers());
 		while (attempts < this.rejectionLimit) {
 			if (attempts > 0) {
 				if (logger.isDebugEnabled()) {
-					logger.debug("executor(s) rejected message after " + attempts
+					logger.debug("handler(s) rejected message after " + attempts
 							+ " attempt(s), will try again after 'retryInterval' of " + this.retryInterval
 							+ " milliseconds");
 				}
@@ -90,38 +91,41 @@ public class DefaultMessageDispatcher extends AbstractMessageDispatcher {
 					return false;
 				}
 			}
-			Iterator<MessageReceivingExecutor> iter = targets.iterator();
+			Iterator<MessageHandler> iter = targets.iterator();
 			if (!iter.hasNext()) {
 				if (logger.isWarnEnabled()) {
-					logger.warn("dispatcher has no active executors");
+					logger.warn("dispatcher has no active handlers");
 				}
 				return false;
 			}
-			boolean encounteredRejection = false;
+			boolean encounteredHandlerException = false;
 			while (iter.hasNext()) {
-				MessageReceivingExecutor executor = iter.next();
-				if (executor == null || !executor.isRunning()) {
-					if (logger.isInfoEnabled()) {
-						logger.info("skipping inactive executor");
-					}
-					iter.remove();
-					continue;
-				}
+				MessageHandler handler = iter.next();
 				try {
-					boolean accepted = executor.acceptMessage(message);
-					if (accepted && !this.broadcast) {
+					handler.handle(message);
+					if (!this.broadcast) {
 						return true;
 					}
 					iter.remove();
 				}
-				catch (RejectedExecutionException rex) {
-					encounteredRejection = true;
+				catch (MessageSelectorRejectedException e) {
 					if (logger.isDebugEnabled()) {
-						logger.debug("executor rejected task, continuing with other executors if available", rex);
+						logger.debug("selector rejected task, continuing with other handlers if available", e);
+					}
+				}
+				catch (MessageHandlerNotRunningException e) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("handler not running, continuing with other handlers if available", e);
+					}					
+				}
+				catch (MessageHandlingException e) {
+					encounteredHandlerException = true;
+					if (logger.isDebugEnabled()) {
+						logger.debug("handler threw exception, continuing with other handlers if available", e);
 					}
 				}
 			}
-			if (!encounteredRejection) {
+			if (!encounteredHandlerException) {
 				return true;
 			}
 			attempts++;

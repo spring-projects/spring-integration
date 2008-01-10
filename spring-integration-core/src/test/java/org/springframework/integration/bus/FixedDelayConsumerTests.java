@@ -42,9 +42,11 @@ public class FixedDelayConsumerTests {
 		final CountDownLatch latch = new CountDownLatch(messagesToSend);
 		SimpleChannel channel = new SimpleChannel();
 		MessageEndpoint endpoint = new GenericMessageEndpoint() {
-			public void messageReceived(Message message) {
+			@Override
+			public Message<?> handle(Message<?> message) {
 				counter.incrementAndGet();
 				latch.countDown();
+				return null;
 			}
 		};
 		MessageBus bus = new MessageBus();
@@ -76,9 +78,11 @@ public class FixedDelayConsumerTests {
 		final CountDownLatch latch = new CountDownLatch(messagesToSend);
 		SimpleChannel channel = new SimpleChannel();
 		MessageEndpoint endpoint = new GenericMessageEndpoint() {
-			public void messageReceived(Message message) {
+			@Override
+			public Message<?> handle(Message<?> message) {
 				counter.incrementAndGet();
 				latch.countDown();
+				return null;
 			}
 		};
 		MessageBus bus = new MessageBus();

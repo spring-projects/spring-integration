@@ -49,8 +49,9 @@ public class DefaultMessageDispatcherTests {
 		channel.send(new StringMessage(1, "test"));
 		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
-		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint1, 1, 1));
-		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint2, 1, 1));
+		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1));
+		dispatcher.addHandler(new PooledMessageHandler(endpoint2, 1, 1));
+		dispatcher.start();
 		dispatcher.dispatch();
 		latch.await(100, TimeUnit.MILLISECONDS);
 		assertEquals("exactly one endpoint should have received message", 1, counter1.get() + counter2.get());
@@ -69,8 +70,9 @@ public class DefaultMessageDispatcherTests {
 		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
 		dispatcher.setBroadcast(true);
-		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint1, 1, 1));
-		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint2, 1, 1));
+		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1));
+		dispatcher.addHandler(new PooledMessageHandler(endpoint2, 1, 1));
+		dispatcher.start();
 		dispatcher.dispatch();
 		latch.await(100, TimeUnit.MILLISECONDS);
 		assertEquals("both endpoints should have received message", 2, counter1.get() + counter2.get());
@@ -90,13 +92,14 @@ public class DefaultMessageDispatcherTests {
 		channel.send(new StringMessage(1, "test"));
 		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
-		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint1, 1, 1) {
+		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1) {
 			@Override
 			public void start() {
 			}
 		});
-		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint2, 1, 1));
-		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint3, 1, 1));
+		dispatcher.addHandler(new PooledMessageHandler(endpoint2, 1, 1));
+		dispatcher.addHandler(new PooledMessageHandler(endpoint3, 1, 1));
+		dispatcher.start();
 		dispatcher.dispatch();
 		latch.await(100, TimeUnit.MILLISECONDS);
 		assertEquals("inactive endpoint should not have received message", 0, counter1.get());
@@ -118,13 +121,14 @@ public class DefaultMessageDispatcherTests {
 		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
 		dispatcher.setBroadcast(true);
-		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint1, 1, 1));
-		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint2, 1, 1) {
+		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1));
+		dispatcher.addHandler(new PooledMessageHandler(endpoint2, 1, 1) {
 			@Override
 			public void start() {
 			}
 		});
-		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint3, 1, 1));
+		dispatcher.addHandler(new PooledMessageHandler(endpoint3, 1, 1));
+		dispatcher.start();
 		dispatcher.dispatch();
 		latch.await(100, TimeUnit.MILLISECONDS);
 		assertEquals("inactive endpoint should not have received message", 0, counter2.get());
@@ -158,14 +162,15 @@ public class DefaultMessageDispatcherTests {
 		dispatcher.setBroadcast(true);
 		dispatcher.setRejectionLimit(2);
 		dispatcher.setRetryInterval(3);
-		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint1, 1, 1));
-		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint2, 1, 1) {
+		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1));
+		dispatcher.addHandler(new PooledMessageHandler(endpoint2, 1, 1) {
 			@Override
-			public boolean acceptMessage(Message<?> message) {
-				throw new RejectedExecutionException();
+			public Message handle(Message<?> message) {
+				throw new MessageHandlerRejectedExecutionException(null);
 			}
 		});
-		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint3, 1, 1));
+		dispatcher.addHandler(new PooledMessageHandler(endpoint3, 1, 1));
+		dispatcher.start();
 		dispatcher.dispatch();
 	}
 
@@ -187,14 +192,15 @@ public class DefaultMessageDispatcherTests {
 		dispatcher.setRejectionLimit(2);
 		dispatcher.setRetryInterval(3);
 		dispatcher.setShouldFailOnRejectionLimit(false);
-		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint1, 1, 1));
-		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint2, 1, 1) {
+		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1));
+		dispatcher.addHandler(new PooledMessageHandler(endpoint2, 1, 1) {
 			@Override
-			public boolean acceptMessage(Message<?> message) {
-				throw new RejectedExecutionException();
+			public Message handle(Message<?> message) {
+				throw new MessageHandlerRejectedExecutionException(null);
 			}
 		});
-		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint3, 1, 1));
+		dispatcher.addHandler(new PooledMessageHandler(endpoint3, 1, 1));
+		dispatcher.start();
 		dispatcher.dispatch();
 		latch.await(100, TimeUnit.MILLISECONDS);
 		assertEquals("rejecting endpoint should not have received message", 0, counter2.get());
@@ -215,18 +221,19 @@ public class DefaultMessageDispatcherTests {
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
 		dispatcher.setRejectionLimit(2);
 		dispatcher.setRetryInterval(3);
-		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint1, 1, 1) {
+		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1) {
 			@Override
-			public boolean acceptMessage(Message<?> message) {
-				throw new RejectedExecutionException();
+			public Message handle(Message<?> message) {
+				throw new MessageHandlerRejectedExecutionException(null);
 			}
 		});
-		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint2, 1, 1) {
+		dispatcher.addHandler(new PooledMessageHandler(endpoint2, 1, 1) {
 			@Override
-			public boolean acceptMessage(Message<?> message) {
-				throw new RejectedExecutionException();
+			public Message handle(Message<?> message) {
+				throw new MessageHandlerRejectedExecutionException(null);
 			}
 		});
+		dispatcher.start();
 		dispatcher.dispatch();
 	}
 
@@ -247,20 +254,21 @@ public class DefaultMessageDispatcherTests {
 		dispatcher.setRejectionLimit(2);
 		dispatcher.setRetryInterval(3);
 		dispatcher.setShouldFailOnRejectionLimit(false);
-		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint1, 1, 1) {
+		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1) {
 			@Override
-			public boolean acceptMessage(Message<?> message) {
+			public Message handle(Message<?> message) {
 				rejectedCounter1.incrementAndGet();
-				throw new RejectedExecutionException();
+				throw new MessageHandlerRejectedExecutionException(null);
 			}
 		});
-		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint2, 1, 1) {
+		dispatcher.addHandler(new PooledMessageHandler(endpoint2, 1, 1) {
 			@Override
-			public boolean acceptMessage(Message<?> message) {
+			public Message handle(Message<?> message) {
 				rejectedCounter2.incrementAndGet();
-				throw new RejectedExecutionException();
+				throw new MessageHandlerRejectedExecutionException(null);
 			}
 		});
+		dispatcher.start();
 		dispatcher.dispatch();
 		assertEquals("rejecting endpoints should not have received message", 0, counter1.get() + counter2.get());
 		assertEquals("endpoint1 should have rejected two times", 2, rejectedCounter1.get());
@@ -287,30 +295,31 @@ public class DefaultMessageDispatcherTests {
 		dispatcher.setRejectionLimit(2);
 		dispatcher.setRetryInterval(3);
 		dispatcher.setShouldFailOnRejectionLimit(false);
-		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint1, 1, 1) {
+		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1) {
 			@Override
-			public boolean acceptMessage(Message<?> message) {
+			public Message handle(Message<?> message) {
 				rejectedCounter1.incrementAndGet();
-				throw new RejectedExecutionException();
+				throw new MessageHandlerRejectedExecutionException(null);
 			}
 		});
-		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint2, 1, 1) {
+		dispatcher.addHandler(new PooledMessageHandler(endpoint2, 1, 1) {
 			@Override
-			public boolean acceptMessage(Message<?> message) {
+			public Message handle(Message<?> message) {
 				if (rejectedCounter2.get() == 1) {
-					return super.acceptMessage(message);
+					return super.handle(message);
 				}
 				rejectedCounter2.incrementAndGet();
-				throw new RejectedExecutionException();
+				throw new MessageHandlerRejectedExecutionException(null);
 			}
 		});
-		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint3, 1, 1) {
+		dispatcher.addHandler(new PooledMessageHandler(endpoint3, 1, 1) {
 			@Override
-			public boolean acceptMessage(Message<?> message) {
+			public Message handle(Message<?> message) {
 				rejectedCounter3.incrementAndGet();
-				throw new RejectedExecutionException();
+				throw new MessageHandlerRejectedExecutionException(null);
 			}
 		});
+		dispatcher.start();
 		dispatcher.dispatch();
 		latch.await(100, TimeUnit.MILLISECONDS);
 		assertEquals("endpoint1 should not have received message", 0, counter1.get());
@@ -339,26 +348,27 @@ public class DefaultMessageDispatcherTests {
 		dispatcher.setRejectionLimit(5);
 		dispatcher.setRetryInterval(3);
 		dispatcher.setShouldFailOnRejectionLimit(false);
-		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint1, 1, 1) {
+		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1) {
 			@Override
-			public boolean acceptMessage(Message<?> message) {
+			public Message handle(Message<?> message) {
 				if (rejectedCounter1.get() == 2) {
-					return super.acceptMessage(message);
+					return super.handle(message);
 				}
 				rejectedCounter1.incrementAndGet();
-				throw new RejectedExecutionException();
+				throw new MessageHandlerRejectedExecutionException(null);
 			}
 		});
-		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint2, 1, 1) {
+		dispatcher.addHandler(new PooledMessageHandler(endpoint2, 1, 1) {
 			@Override
-			public boolean acceptMessage(Message<?> message) {
+			public Message handle(Message<?> message) {
 				if (rejectedCounter2.get() == 4) {
-					return super.acceptMessage(message);
+					return super.handle(message);
 				}
 				rejectedCounter2.incrementAndGet();
-				throw new RejectedExecutionException();
+				throw new MessageHandlerRejectedExecutionException(null);
 			}
 		});
+		dispatcher.start();
 		dispatcher.dispatch();
 		latch.await(100, TimeUnit.MILLISECONDS);
 		assertEquals("endpoint1 should have received one message", 1, counter1.get());
@@ -379,12 +389,13 @@ public class DefaultMessageDispatcherTests {
 		channel.send(new StringMessage(1, "test"));
 		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
-		MessageReceivingExecutor executor1 = new MessageReceivingExecutor(endpoint1, 1, 1);
-		MessageReceivingExecutor executor2 = new MessageReceivingExecutor(endpoint2, 1, 1);
+		PooledMessageHandler executor1 = new PooledMessageHandler(endpoint1, 1, 1);
+		PooledMessageHandler executor2 = new PooledMessageHandler(endpoint2, 1, 1);
 		executor1.addMessageSelector(new PayloadTypeSelector(Integer.class));
 		executor2.addMessageSelector(new PayloadTypeSelector(String.class));
-		dispatcher.addExecutor(executor1);
-		dispatcher.addExecutor(executor2);
+		dispatcher.addHandler(executor1);
+		dispatcher.addHandler(executor2);
+		dispatcher.start();
 		dispatcher.dispatch();
 		latch.await(100, TimeUnit.MILLISECONDS);
 		assertEquals("endpoint1 should not have accepted the message", 0, counter1.get());
@@ -406,26 +417,27 @@ public class DefaultMessageDispatcherTests {
 		channel.send(new StringMessage(1, "test"));
 		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
-		MessageReceivingExecutor executor1 = new MessageReceivingExecutor(endpoint1, 1, 1) {
+		PooledMessageHandler executor1 = new PooledMessageHandler(endpoint1, 1, 1) {
 			@Override
-			public boolean acceptMessage(Message<?> message) {
+			public Message handle(Message<?> message) {
 				attemptedCounter1.incrementAndGet();
 				attemptedLatch.countDown();
-				return super.acceptMessage(message);
+				return super.handle(message);
 			}
 		};
-		MessageReceivingExecutor executor2 = new MessageReceivingExecutor(endpoint2, 1, 1) {
+		PooledMessageHandler executor2 = new PooledMessageHandler(endpoint2, 1, 1) {
 			@Override
-			public boolean acceptMessage(Message<?> message) {
+			public Message handle(Message<?> message) {
 				attemptedCounter2.incrementAndGet();
 				attemptedLatch.countDown();
-				return super.acceptMessage(message);
+				return super.handle(message);
 			}
 		};
 		executor1.addMessageSelector(new PayloadTypeSelector(Integer.class));
 		executor2.addMessageSelector(new PayloadTypeSelector(Integer.class));
-		dispatcher.addExecutor(executor1);
-		dispatcher.addExecutor(executor2);
+		dispatcher.addHandler(executor1);
+		dispatcher.addHandler(executor2);
+		dispatcher.start();
 		dispatcher.dispatch();
 		attemptedLatch.await(100, TimeUnit.MILLISECONDS);
 		assertEquals("endpoint1 should not have accepted the message", 0, counter1.get());
@@ -449,12 +461,13 @@ public class DefaultMessageDispatcherTests {
 		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
 		dispatcher.setBroadcast(true);
-		MessageReceivingExecutor executor1 = new MessageReceivingExecutor(endpoint1, 1, 1);
-		MessageReceivingExecutor executor2 = new MessageReceivingExecutor(endpoint2, 1, 1);
+		PooledMessageHandler executor1 = new PooledMessageHandler(endpoint1, 1, 1);
+		PooledMessageHandler executor2 = new PooledMessageHandler(endpoint2, 1, 1);
 		executor1.addMessageSelector(new PayloadTypeSelector(Integer.class));
 		executor2.addMessageSelector(new PayloadTypeSelector(String.class));
-		dispatcher.addExecutor(executor1);
-		dispatcher.addExecutor(executor2);
+		dispatcher.addHandler(executor1);
+		dispatcher.addHandler(executor2);
+		dispatcher.start();
 		dispatcher.dispatch();
 		latch.await(100, TimeUnit.MILLISECONDS);
 		assertEquals("endpoint1 should not have accepted the message", 0, counter1.get());
@@ -462,7 +475,7 @@ public class DefaultMessageDispatcherTests {
 	}
 
 
-	private static class TestEndpoint extends GenericMessageEndpoint<String> {
+	private static class TestEndpoint extends GenericMessageEndpoint {
 
 		private AtomicInteger counter;
 
@@ -475,9 +488,10 @@ public class DefaultMessageDispatcherTests {
 		}
 
 		@Override
-		public void messageReceived(Message<String> message) {
+		public Message handle(Message message) {
 			counter.incrementAndGet();
 			latch.countDown();
+			return null;
 		}
 	}
 

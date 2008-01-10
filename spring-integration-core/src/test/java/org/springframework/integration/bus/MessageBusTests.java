@@ -46,7 +46,7 @@ public class MessageBusTests {
 		bus.registerChannel("sourceChannel", sourceChannel);
 		sourceChannel.send(new StringMessage("123", "test"));
 		bus.registerChannel("targetChannel", targetChannel);
-		GenericMessageEndpoint<String> endpoint = new GenericMessageEndpoint<String>();
+		GenericMessageEndpoint endpoint = new GenericMessageEndpoint();
 		endpoint.setInputChannelName("sourceChannel");
 		endpoint.setDefaultOutputChannelName("targetChannel");
 		bus.registerEndpoint("endpoint", endpoint);
@@ -93,10 +93,10 @@ public class MessageBusTests {
 		SimpleChannel inputChannel = new SimpleChannel();
 		SimpleChannel outputChannel1 = new SimpleChannel();
 		SimpleChannel outputChannel2 = new SimpleChannel();
-		GenericMessageEndpoint<String> endpoint1 = new GenericMessageEndpoint<String>();
+		GenericMessageEndpoint endpoint1 = new GenericMessageEndpoint();
 		endpoint1.setDefaultOutputChannelName("output1");
 		endpoint1.setInputChannelName("input");
-		GenericMessageEndpoint<String> endpoint2 = new GenericMessageEndpoint<String>();
+		GenericMessageEndpoint endpoint2 = new GenericMessageEndpoint();
 		endpoint2.setDefaultOutputChannelName("output2");
 		endpoint2.setInputChannelName("input");
 		MessageBus bus = new MessageBus();
