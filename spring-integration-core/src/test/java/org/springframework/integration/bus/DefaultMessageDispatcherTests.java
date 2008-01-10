@@ -30,6 +30,7 @@ import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.endpoint.GenericMessageEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.message.selector.PayloadTypeSelector;
 
 /**
  * @author Mark Fisher
@@ -361,9 +362,33 @@ public class DefaultMessageDispatcherTests {
 		dispatcher.dispatch();
 		latch.await(100, TimeUnit.MILLISECONDS);
 		assertEquals("endpoint1 should have received one message", 1, counter1.get());
-		assertEquals("endpoint2 should have received one message", 1, counter1.get());
+		assertEquals("endpoint2 should have received one message", 1, counter2.get());
 		assertEquals("endpoint1 should have rejected two times", 2, rejectedCounter1.get());
 		assertEquals("endpoint2 should have rejected four times", 4, rejectedCounter2.get());
+	}
+
+	@Test
+	public void testTwoExecutorsWithPayloadTypeMessageSelectors() throws InterruptedException {
+		final AtomicInteger counter1 = new AtomicInteger();
+		final AtomicInteger counter2 = new AtomicInteger();
+		final CountDownLatch latch = new CountDownLatch(1);
+		TestEndpoint endpoint1 = new TestEndpoint(counter1, latch);
+		TestEndpoint endpoint2 = new TestEndpoint(counter2, latch);
+		ConsumerPolicy policy = new ConsumerPolicy();
+		SimpleChannel channel = new SimpleChannel();
+		channel.send(new StringMessage(1, "test"));
+		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		MessageReceivingExecutor executor1 = new MessageReceivingExecutor(endpoint1, 1, 1);
+		MessageReceivingExecutor executor2 = new MessageReceivingExecutor(endpoint2, 1, 1);
+		executor1.addMessageSelector(new PayloadTypeSelector(Integer.class));
+		executor2.addMessageSelector(new PayloadTypeSelector(String.class));
+		dispatcher.addExecutor(executor1);
+		dispatcher.addExecutor(executor2);
+		dispatcher.dispatch();
+		latch.await(100, TimeUnit.MILLISECONDS);
+		assertEquals("endpoint1 should not have accepted the message", 0, counter1.get());
+		assertEquals("endpoint2 should have accepted the message", 1, counter2.get());
 	}
 
 
