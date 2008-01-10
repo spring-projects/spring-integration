@@ -81,7 +81,7 @@ public class MessageBusTests {
 		ConsumerPolicy policy = new ConsumerPolicy();
 		Subscription subscription = new Subscription();
 		subscription.setChannel("sourceChannel");
-		subscription.setEndpoint("endpoint");
+		subscription.setReceiver("endpoint");
 		subscription.setPolicy(policy);
 		bus.activateSubscription(subscription);
 		Message<?> result = targetChannel.receive(100);

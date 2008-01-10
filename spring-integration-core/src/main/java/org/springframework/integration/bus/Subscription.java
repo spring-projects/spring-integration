@@ -25,7 +25,7 @@ public class Subscription {
 
 	private String channel;
 
-	private String endpoint;
+	private String receiver;
 
 	private ConsumerPolicy policy = new ConsumerPolicy();
 
@@ -38,12 +38,12 @@ public class Subscription {
 		this.channel = channel;
 	}
 
-	public String getEndpoint() {
-		return this.endpoint;
+	public String getReceiver() {
+		return this.receiver;
 	}
 
-	public void setEndpoint(String endpoint) {
-		this.endpoint = endpoint;
+	public void setReceiver(String receiver) {
+		this.receiver = receiver;
 	}
 
 	public ConsumerPolicy getPolicy() {

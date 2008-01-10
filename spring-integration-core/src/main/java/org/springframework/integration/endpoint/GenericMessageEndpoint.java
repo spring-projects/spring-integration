@@ -16,6 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.bus.ConsumerPolicy;
@@ -37,7 +38,9 @@ import org.springframework.integration.message.Message;
  * 
  * @author Mark Fisher
  */
-public class GenericMessageEndpoint<T> implements MessageEndpoint<T> {
+public class GenericMessageEndpoint<T> implements MessageEndpoint<T>, BeanNameAware {
+
+	private String name;
 
 	private String inputChannelName;
 
@@ -49,6 +52,18 @@ public class GenericMessageEndpoint<T> implements MessageEndpoint<T> {
 
 	private ConsumerPolicy consumerPolicy = new ConsumerPolicy();
 
+
+	public String getName() {
+		return this.name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public void setBeanName(String beanName) {
+		this.setName(beanName);
+	}
 
 	/**
 	 * Set the name of the channel from which this endpoint receives messages.

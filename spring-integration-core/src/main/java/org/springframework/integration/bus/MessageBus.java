@@ -149,7 +149,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			this.activateSubscription(subscription);
 			if (logger.isInfoEnabled()) {
 				logger.info("activated subscription to channel '" + subscription.getChannel() + 
-						"' for endpoint '" + subscription.getEndpoint() + "'");
+						"' for endpoint '" + subscription.getReceiver() + "'");
 			}
 		}
 	}
@@ -187,6 +187,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 	public void registerEndpoint(String name, MessageEndpoint<?> endpoint) {
 		Assert.notNull(name, "'name' must not be null");
 		Assert.notNull(endpoint, "'endpoint' must not be null");
+		endpoint.setName(name);
 		this.endpoints.put(name, endpoint);
 		if (logger.isInfoEnabled()) {
 			logger.info("registered endpoint '" + name + "'");
@@ -195,7 +196,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		if (endpoint.getInputChannelName() != null && endpoint.getConsumerPolicy() != null) {
 			Subscription subscription = new Subscription();
 			subscription.setChannel(endpoint.getInputChannelName());
-			subscription.setEndpoint(name);
+			subscription.setReceiver(name);
 			subscription.setPolicy(endpoint.getConsumerPolicy());
 			this.activateSubscription(subscription);
 		}
@@ -229,27 +230,23 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			this.targetAdapters.put(name, targetAdapter);
 			MessageChannel channel = adapter.getChannel();
 			ConsumerPolicy policy = adapter.getConsumerPolicy();
-			MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
-			DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
-			dispatcher.setRejectionLimit(policy.getRejectionLimit());
-			dispatcher.setRetryInterval(policy.getRetryInterval());
-			MessageReceivingExecutor executor = new MessageReceivingExecutor(adapter, policy.getConcurrency(), policy.getMaxConcurrency());
-			dispatcher.addExecutor(executor);
-			this.addLifecycleComponent(name + "-executor", executor);
-			this.addDispatcherTask(new DispatcherTask(dispatcher, policy));
-			if (logger.isInfoEnabled()) {
-				logger.info("registered target adapter '" + name + "'");
-			}
+			this.doActivate(channel, adapter, policy);
+		}
+		if (logger.isInfoEnabled()) {
+			logger.info("registered target adapter '" + name + "'");
 		}
 	}
 
 	public void activateSubscription(Subscription subscription) {
 		String channelName = subscription.getChannel();
-		String endpointName = subscription.getEndpoint();
+		String receiverName = subscription.getReceiver();
 		ConsumerPolicy policy = subscription.getPolicy();
-		MessageEndpoint<?> endpoint = this.endpoints.get(endpointName);
-		if (endpoint == null) {
-			throw new MessagingException("Cannot activate subscription, unknown endpoint '" + endpointName + "'");
+		MessageReceiver<?> receiver = this.endpoints.get(receiverName);
+		if (receiver == null) {
+			receiver = this.targetAdapters.get(receiverName);
+			if (receiver == null) {
+				throw new MessagingException("Cannot activate subscription, unknown receiver '" + receiverName + "'");
+			}
 		}
 		MessageChannel channel = this.lookupChannel(channelName);
 		if (channel == null) {
@@ -263,13 +260,17 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			channel = new SimpleChannel(); 
 			this.registerChannel(channelName, channel);
 		}
+		this.doActivate(channel, receiver, policy);
 		if (logger.isInfoEnabled()) {
 			logger.info("activated subscription to channel '" + channelName + 
-					"' for endpoint '" + endpointName + "'");
+					"' for receiver '" + receiverName + "'");
 		}
-		MessageReceivingExecutor executor = new MessageReceivingExecutor(endpoint, policy.getConcurrency(), policy.getMaxConcurrency());
-		this.receiverExecutors.put(endpoint, executor);
-		this.lifecycleComponents.put(endpointName + "-executor", executor);
+	}
+
+	private void doActivate(MessageChannel channel, MessageReceiver<?> receiver, ConsumerPolicy policy) {
+		MessageReceivingExecutor executor = new MessageReceivingExecutor(receiver, policy.getConcurrency(), policy.getMaxConcurrency());
+		this.receiverExecutors.put(receiver, executor);
+		this.addLifecycleComponent(receiver.getName() + "-executor", executor);
 		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
 		dispatcher.setRejectionLimit(policy.getRejectionLimit());
@@ -282,7 +283,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		this.addDispatcherTask(dispatcherTask);
 		if (this.logger.isInfoEnabled()) {
 			logger.info("registered dispatcher task: channel='" +
-					channelName + "' receiver='" + endpointName + "'");
+					channel.getName() + "' receiver='" + receiver.getName() + "'");
 		}
 	}
 

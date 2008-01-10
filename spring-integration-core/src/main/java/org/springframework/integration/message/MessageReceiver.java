@@ -24,6 +24,10 @@ package org.springframework.integration.message;
  */
 public interface MessageReceiver<T> {
 
+	String getName();
+
+	void setName(String name);
+
 	void messageReceived(Message<T> message);
 
 }

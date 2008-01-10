@@ -56,7 +56,7 @@ public class FixedRateConsumerTests {
 		policy.setPeriod(10);
 		Subscription subscription = new Subscription();
 		subscription.setChannel("testChannel");
-		subscription.setEndpoint("testEndpoint");
+		subscription.setReceiver("testEndpoint");
 		subscription.setPolicy(policy);
 		bus.activateSubscription(subscription);
 		bus.start();
@@ -90,7 +90,7 @@ public class FixedRateConsumerTests {
 		policy.setPeriod(20);
 		Subscription subscription = new Subscription();
 		subscription.setChannel("testChannel");
-		subscription.setEndpoint("testEndpoint");
+		subscription.setReceiver("testEndpoint");
 		subscription.setPolicy(policy);
 		bus.activateSubscription(subscription);
 		bus.start();

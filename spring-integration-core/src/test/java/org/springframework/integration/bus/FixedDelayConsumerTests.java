@@ -58,7 +58,7 @@ public class FixedDelayConsumerTests {
 		policy.setPeriod(10);
 		Subscription subscription = new Subscription();
 		subscription.setChannel("testChannel");
-		subscription.setEndpoint("testEndpoint");
+		subscription.setReceiver("testEndpoint");
 		subscription.setPolicy(policy);
 		bus.activateSubscription(subscription);
 		bus.start();
@@ -92,7 +92,7 @@ public class FixedDelayConsumerTests {
 		policy.setPeriod(10);
 		Subscription subscription = new Subscription();
 		subscription.setChannel("testChannel");
-		subscription.setEndpoint("testEndpoint");
+		subscription.setReceiver("testEndpoint");
 		subscription.setPolicy(policy);
 		bus.activateSubscription(subscription);
 		for (int i = 0; i < messagesToSend; i++) {
