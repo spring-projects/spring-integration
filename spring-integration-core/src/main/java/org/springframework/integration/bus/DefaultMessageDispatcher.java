@@ -121,7 +121,7 @@ public class DefaultMessageDispatcher extends AbstractMessageDispatcher {
 					}
 				}
 			}
-			if (this.broadcast && !encounteredRejection) {
+			if (!encounteredRejection) {
 				return true;
 			}
 			attempts++;

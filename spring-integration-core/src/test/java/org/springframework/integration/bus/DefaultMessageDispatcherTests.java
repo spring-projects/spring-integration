@@ -368,7 +368,7 @@ public class DefaultMessageDispatcherTests {
 	}
 
 	@Test
-	public void testTwoExecutorsWithPayloadTypeMessageSelectors() throws InterruptedException {
+	public void testTwoExecutorsWithSelectorsAndOneAccepts() throws InterruptedException {
 		final AtomicInteger counter1 = new AtomicInteger();
 		final AtomicInteger counter2 = new AtomicInteger();
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -379,6 +379,76 @@ public class DefaultMessageDispatcherTests {
 		channel.send(new StringMessage(1, "test"));
 		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		MessageReceivingExecutor executor1 = new MessageReceivingExecutor(endpoint1, 1, 1);
+		MessageReceivingExecutor executor2 = new MessageReceivingExecutor(endpoint2, 1, 1);
+		executor1.addMessageSelector(new PayloadTypeSelector(Integer.class));
+		executor2.addMessageSelector(new PayloadTypeSelector(String.class));
+		dispatcher.addExecutor(executor1);
+		dispatcher.addExecutor(executor2);
+		dispatcher.dispatch();
+		latch.await(100, TimeUnit.MILLISECONDS);
+		assertEquals("endpoint1 should not have accepted the message", 0, counter1.get());
+		assertEquals("endpoint2 should have accepted the message", 1, counter2.get());
+	}
+
+	@Test
+	public void testTwoExecutorsWithSelectorsAndNeitherAccepts() throws InterruptedException {
+		final AtomicInteger counter1 = new AtomicInteger();
+		final AtomicInteger counter2 = new AtomicInteger();
+		final AtomicInteger attemptedCounter1 = new AtomicInteger();
+		final AtomicInteger attemptedCounter2 = new AtomicInteger();
+		final CountDownLatch attemptedLatch = new CountDownLatch(2);
+		final CountDownLatch endpointLatch = new CountDownLatch(1);
+		TestEndpoint endpoint1 = new TestEndpoint(counter1, endpointLatch);
+		TestEndpoint endpoint2 = new TestEndpoint(counter2, endpointLatch);
+		ConsumerPolicy policy = new ConsumerPolicy();
+		SimpleChannel channel = new SimpleChannel();
+		channel.send(new StringMessage(1, "test"));
+		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		MessageReceivingExecutor executor1 = new MessageReceivingExecutor(endpoint1, 1, 1) {
+			@Override
+			public boolean acceptMessage(Message<?> message) {
+				attemptedCounter1.incrementAndGet();
+				attemptedLatch.countDown();
+				return super.acceptMessage(message);
+			}
+		};
+		MessageReceivingExecutor executor2 = new MessageReceivingExecutor(endpoint2, 1, 1) {
+			@Override
+			public boolean acceptMessage(Message<?> message) {
+				attemptedCounter2.incrementAndGet();
+				attemptedLatch.countDown();
+				return super.acceptMessage(message);
+			}
+		};
+		executor1.addMessageSelector(new PayloadTypeSelector(Integer.class));
+		executor2.addMessageSelector(new PayloadTypeSelector(Integer.class));
+		dispatcher.addExecutor(executor1);
+		dispatcher.addExecutor(executor2);
+		dispatcher.dispatch();
+		attemptedLatch.await(100, TimeUnit.MILLISECONDS);
+		assertEquals("endpoint1 should not have accepted the message", 0, counter1.get());
+		assertEquals("endpoint2 should not have accepted the message", 0, counter2.get());
+		assertEquals("executor1 should have had exactly one attempt", 1, attemptedCounter1.get());
+		assertEquals("executor2 should have had exactly one attempt", 1, attemptedCounter2.get());
+		assertEquals("endpointLatch should not have counted down", 1, endpointLatch.getCount());
+		assertEquals("attemptedLatch should have counted down", 0, attemptedLatch.getCount());
+	}
+
+	@Test
+	public void testBroadcastingDispatcherWithSelectorsAndOneAccepts() throws InterruptedException {
+		final AtomicInteger counter1 = new AtomicInteger();
+		final AtomicInteger counter2 = new AtomicInteger();
+		final CountDownLatch latch = new CountDownLatch(1);
+		TestEndpoint endpoint1 = new TestEndpoint(counter1, latch);
+		TestEndpoint endpoint2 = new TestEndpoint(counter2, latch);
+		ConsumerPolicy policy = new ConsumerPolicy();
+		SimpleChannel channel = new SimpleChannel();
+		channel.send(new StringMessage(1, "test"));
+		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		dispatcher.setBroadcast(true);
 		MessageReceivingExecutor executor1 = new MessageReceivingExecutor(endpoint1, 1, 1);
 		MessageReceivingExecutor executor2 = new MessageReceivingExecutor(endpoint2, 1, 1);
 		executor1.addMessageSelector(new PayloadTypeSelector(Integer.class));
