@@ -160,7 +160,7 @@ public class DefaultMessageDispatcherTests {
 		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint1, 1, 1));
 		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint2, 1, 1) {
 			@Override
-			public void processMessage(Message<?> message) {
+			public boolean acceptMessage(Message<?> message) {
 				throw new RejectedExecutionException();
 			}
 		});
@@ -189,7 +189,7 @@ public class DefaultMessageDispatcherTests {
 		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint1, 1, 1));
 		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint2, 1, 1) {
 			@Override
-			public void processMessage(Message<?> message) {
+			public boolean acceptMessage(Message<?> message) {
 				throw new RejectedExecutionException();
 			}
 		});
@@ -216,13 +216,13 @@ public class DefaultMessageDispatcherTests {
 		dispatcher.setRetryInterval(3);
 		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint1, 1, 1) {
 			@Override
-			public void processMessage(Message<?> message) {
+			public boolean acceptMessage(Message<?> message) {
 				throw new RejectedExecutionException();
 			}
 		});
 		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint2, 1, 1) {
 			@Override
-			public void processMessage(Message<?> message) {
+			public boolean acceptMessage(Message<?> message) {
 				throw new RejectedExecutionException();
 			}
 		});
@@ -248,14 +248,14 @@ public class DefaultMessageDispatcherTests {
 		dispatcher.setShouldFailOnRejectionLimit(false);
 		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint1, 1, 1) {
 			@Override
-			public void processMessage(Message<?> message) {
+			public boolean acceptMessage(Message<?> message) {
 				rejectedCounter1.incrementAndGet();
 				throw new RejectedExecutionException();
 			}
 		});
 		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint2, 1, 1) {
 			@Override
-			public void processMessage(Message<?> message) {
+			public boolean acceptMessage(Message<?> message) {
 				rejectedCounter2.incrementAndGet();
 				throw new RejectedExecutionException();
 			}
@@ -288,17 +288,16 @@ public class DefaultMessageDispatcherTests {
 		dispatcher.setShouldFailOnRejectionLimit(false);
 		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint1, 1, 1) {
 			@Override
-			public void processMessage(Message<?> message) {
+			public boolean acceptMessage(Message<?> message) {
 				rejectedCounter1.incrementAndGet();
 				throw new RejectedExecutionException();
 			}
 		});
 		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint2, 1, 1) {
 			@Override
-			public void processMessage(Message<?> message) {
+			public boolean acceptMessage(Message<?> message) {
 				if (rejectedCounter2.get() == 1) {
-					super.processMessage(message);
-					return;
+					return super.acceptMessage(message);
 				}
 				rejectedCounter2.incrementAndGet();
 				throw new RejectedExecutionException();
@@ -306,7 +305,7 @@ public class DefaultMessageDispatcherTests {
 		});
 		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint3, 1, 1) {
 			@Override
-			public void processMessage(Message<?> message) {
+			public boolean acceptMessage(Message<?> message) {
 				rejectedCounter3.incrementAndGet();
 				throw new RejectedExecutionException();
 			}
@@ -341,10 +340,9 @@ public class DefaultMessageDispatcherTests {
 		dispatcher.setShouldFailOnRejectionLimit(false);
 		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint1, 1, 1) {
 			@Override
-			public void processMessage(Message<?> message) {
+			public boolean acceptMessage(Message<?> message) {
 				if (rejectedCounter1.get() == 2) {
-					super.processMessage(message);
-					return;
+					return super.acceptMessage(message);
 				}
 				rejectedCounter1.incrementAndGet();
 				throw new RejectedExecutionException();
@@ -352,10 +350,9 @@ public class DefaultMessageDispatcherTests {
 		});
 		dispatcher.addExecutor(new MessageReceivingExecutor(endpoint2, 1, 1) {
 			@Override
-			public void processMessage(Message<?> message) {
+			public boolean acceptMessage(Message<?> message) {
 				if (rejectedCounter2.get() == 4) {
-					super.processMessage(message);
-					return;
+					return super.acceptMessage(message);
 				}
 				rejectedCounter2.incrementAndGet();
 				throw new RejectedExecutionException();

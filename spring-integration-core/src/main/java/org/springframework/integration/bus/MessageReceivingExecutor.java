@@ -16,6 +16,8 @@
 
 package org.springframework.integration.bus;
 
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -27,6 +29,7 @@ import org.springframework.context.Lifecycle;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageReceiver;
+import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 
@@ -40,6 +43,8 @@ public class MessageReceivingExecutor implements Lifecycle {
 	private Log logger = LogFactory.getLog(this.getClass());
 
 	private MessageReceiver receiver;
+
+	private List<MessageSelector> selectors = new CopyOnWriteArrayList<MessageSelector>();
 
 	private ThreadPoolExecutor threadPoolExecutor;
 
@@ -78,6 +83,11 @@ public class MessageReceivingExecutor implements Lifecycle {
 		this.maxPoolSize = maxPoolSize;
 	}
 
+	public void addMessageSelector(MessageSelector messageSelector) {
+		Assert.notNull(messageSelector, "'messageSelector' must not be null");
+		this.selectors.add(messageSelector);
+	}
+
 	public boolean isRunning() {
 		return this.running;
 	}
@@ -101,11 +111,17 @@ public class MessageReceivingExecutor implements Lifecycle {
 		}
 	}
 
-	public void processMessage(Message<?> message) {
+	public boolean acceptMessage(Message<?> message) {
 		if (threadPoolExecutor == null) {
 			throw new MessageHandlingException("executor is not running");
 		}
+		for (MessageSelector selector : this.selectors) {
+			if (!selector.accept(message)) {
+				return false;
+			}
+		}
 		this.threadPoolExecutor.execute(new MessageReceivingTask(this.receiver, message));
+		return true;
 	}
 
 	/**

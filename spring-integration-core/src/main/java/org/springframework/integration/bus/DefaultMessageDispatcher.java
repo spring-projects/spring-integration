@@ -108,14 +108,11 @@ public class DefaultMessageDispatcher extends AbstractMessageDispatcher {
 					continue;
 				}
 				try {
-					executor.processMessage(message);
-					if (!this.broadcast) {
+					boolean accepted = executor.acceptMessage(message);
+					if (accepted && !this.broadcast) {
 						return true;
 					}
 					iter.remove();
-					if (!iter.hasNext() && !encounteredRejection) {
-						return true;
-					}
 				}
 				catch (RejectedExecutionException rex) {
 					encounteredRejection = true;
@@ -123,6 +120,9 @@ public class DefaultMessageDispatcher extends AbstractMessageDispatcher {
 						logger.debug("executor rejected task, continuing with other executors if available", rex);
 					}
 				}
+			}
+			if (this.broadcast && !encounteredRejection) {
+				return true;
 			}
 			attempts++;
 		}
