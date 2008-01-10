@@ -24,6 +24,10 @@ package org.springframework.integration;
 @SuppressWarnings("serial")
 public class MessagingException extends RuntimeException {
 
+	public MessagingException() {
+		super();
+	}
+
 	public MessagingException(String message) {
 		super(message);
 	}
