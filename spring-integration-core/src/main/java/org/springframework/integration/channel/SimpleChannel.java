@@ -36,7 +36,10 @@ public class SimpleChannel implements MessageChannel, BeanNameAware {
 
 	private String name;
 
+	private boolean broadcaster = false;
+
 	private BlockingQueue<Message<?>> queue;
+
 
 	/**
 	 * Create a channel with the specified queue capacity.
@@ -65,6 +68,14 @@ public class SimpleChannel implements MessageChannel, BeanNameAware {
 	 */
 	public String getName() {
 		return this.name;
+	}
+
+	public boolean isBroadcaster() {
+		return this.broadcaster;
+	}
+
+	public void setBroadcaster(boolean broadcaster) {
+		this.broadcaster = broadcaster;
 	}
 
 	/**

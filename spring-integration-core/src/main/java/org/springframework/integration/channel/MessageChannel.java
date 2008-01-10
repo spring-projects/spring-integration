@@ -36,6 +36,13 @@ public interface MessageChannel {
 	String getName();
 
 	/**
+	 * Return whether this channel has been designated as a broadcaster. If so,
+	 * any dispatcher retrieving messages from this channel should send each
+	 * message to each of its receivers.
+	 */
+	boolean isBroadcaster();
+
+	/**
 	 * Send a message, blocking indefinitely if necessary.
 	 * 
 	 * @param message the {@link Message} to send
