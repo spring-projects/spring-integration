@@ -18,7 +18,7 @@ package org.springframework.integration.transformer;
 
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageSelector;
+import org.springframework.integration.message.selector.MessageSelector;
 
 /**
  * Handler for deciding whether to pass a message. Implements
