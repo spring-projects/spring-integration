@@ -67,7 +67,7 @@ public class FixedDelayConsumerTests {
 		for (int i = 0; i < messagesToSend; i++) {
 			channel.send(new GenericMessage<String>(1, "test " + (i+1)));
 		}
-		latch.await(2500, TimeUnit.MILLISECONDS);
+		latch.await(3000, TimeUnit.MILLISECONDS);
 		assertEquals(messagesToSend, counter.get());
 	}
 
@@ -106,7 +106,7 @@ public class FixedDelayConsumerTests {
 		latch.await(80, TimeUnit.MILLISECONDS);
 		int count = counter.get();
 		assertTrue("received " + count + ", expected less than 11", counter.get() < 11);
-		assertTrue("received " + count + ", expected more than 6", counter.get() > 6);
+		assertTrue("received " + count + ", expected more than 5", counter.get() > 5);
 		bus.stop();
 	}
 
