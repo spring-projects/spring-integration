@@ -101,8 +101,8 @@ public class FixedDelayConsumerTests {
 		bus.start();
 		latch.await(80, TimeUnit.MILLISECONDS);
 		int count = counter.get();
-		assertTrue("received " + count + ", expected less than 10", counter.get() < 10);
-		assertTrue("received " + count + ", expected more than 7", counter.get() > 7);
+		assertTrue("received " + count + ", expected less than 11", counter.get() < 11);
+		assertTrue("received " + count + ", expected more than 6", counter.get() > 6);
 		bus.stop();
 	}
 
