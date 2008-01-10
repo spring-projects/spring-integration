@@ -56,9 +56,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 
 	private ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 
-	private Map<String, MessageEndpoint<?>> endpoints = new ConcurrentHashMap<String, MessageEndpoint<?>>();
-
-	private Map<String, TargetAdapter<?>> targetAdapters = new ConcurrentHashMap<String, TargetAdapter<?>>();
+	private Map<String, MessageReceiver<?>> receivers = new ConcurrentHashMap<String, MessageReceiver<?>>();
 
 	private Map<String, Lifecycle> lifecycleComponents = new ConcurrentHashMap<String, Lifecycle>();
 
@@ -188,7 +186,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		Assert.notNull(name, "'name' must not be null");
 		Assert.notNull(endpoint, "'endpoint' must not be null");
 		endpoint.setName(name);
-		this.endpoints.put(name, endpoint);
+		this.receivers.put(name, endpoint);
 		if (logger.isInfoEnabled()) {
 			logger.info("registered endpoint '" + name + "'");
 		}
@@ -227,7 +225,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		if (targetAdapter instanceof AbstractTargetAdapter) {
 			AbstractTargetAdapter<?> adapter = (AbstractTargetAdapter<?>) targetAdapter;
 			adapter.setName(name);
-			this.targetAdapters.put(name, targetAdapter);
+			this.receivers.put(name, targetAdapter);
 			MessageChannel channel = adapter.getChannel();
 			ConsumerPolicy policy = adapter.getConsumerPolicy();
 			this.doActivate(channel, adapter, policy);
@@ -241,12 +239,9 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		String channelName = subscription.getChannel();
 		String receiverName = subscription.getReceiver();
 		ConsumerPolicy policy = subscription.getPolicy();
-		MessageReceiver<?> receiver = this.endpoints.get(receiverName);
+		MessageReceiver<?> receiver = this.receivers.get(receiverName);
 		if (receiver == null) {
-			receiver = this.targetAdapters.get(receiverName);
-			if (receiver == null) {
-				throw new MessagingException("Cannot activate subscription, unknown receiver '" + receiverName + "'");
-			}
+			throw new MessagingException("Cannot activate subscription, unknown receiver '" + receiverName + "'");
 		}
 		MessageChannel channel = this.lookupChannel(channelName);
 		if (channel == null) {
@@ -308,10 +303,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 	}
 
 	public int getActiveCountForReceiver(String receiverName) {
-		MessageReceiver<?> receiver = this.endpoints.get(receiverName);
-		if (receiver == null) {
-			receiver = this.targetAdapters.get(receiverName);
-		}
+		MessageReceiver<?> receiver = this.receivers.get(receiverName);
 		if (receiver != null) {
 			MessageReceivingExecutor executor = this.receiverExecutors.get(receiver);
 			if (executor != null) {
