@@ -47,6 +47,10 @@ public class PollingSourceAdapter<T> extends AbstractSourceAdapter<T> implements
 		this.setConsumerPolicy(ConsumerPolicy.newPollingPolicy(DEFAULT_PERIOD));
 	}
 
+	protected PollableSource<T> getSource() {
+		return this.source;
+	}
+
 	public boolean isRunning() {
 		return this.running;
 	}
