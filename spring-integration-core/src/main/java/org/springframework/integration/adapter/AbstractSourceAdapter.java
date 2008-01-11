@@ -45,6 +45,8 @@ public abstract class AbstractSourceAdapter<T> implements SourceAdapter, Initial
 
 	private long sendTimeout = -1;
 
+	private volatile boolean initialized = false;
+
 
 	public void setChannel(MessageChannel channel) {
 		Assert.notNull(channel, "'channel' must not be null");
@@ -78,6 +80,11 @@ public abstract class AbstractSourceAdapter<T> implements SourceAdapter, Initial
 			throw new MessagingConfigurationException("'channel' is required");
 		}
 		this.initialize();
+		this.initialized = true;
+	}
+
+	protected boolean isInitialized() {
+		return this.initialized;
 	}
 
 	/**
@@ -87,6 +94,9 @@ public abstract class AbstractSourceAdapter<T> implements SourceAdapter, Initial
 	}
 
 	protected boolean sendToChannel(T object) {
+		if (!this.initialized) {
+			this.afterPropertiesSet();
+		}
 		if (object == null) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("adapter attempted to send a null object");

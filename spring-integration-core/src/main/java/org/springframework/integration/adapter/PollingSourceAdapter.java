@@ -52,6 +52,9 @@ public class PollingSourceAdapter<T> extends AbstractSourceAdapter<T> implements
 	}
 
 	public void start() {
+		if (!this.isInitialized()) {
+			this.afterPropertiesSet();
+		}
 		this.running = true;
 	}
 
