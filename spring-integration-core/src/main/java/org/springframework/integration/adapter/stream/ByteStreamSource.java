@@ -35,14 +35,24 @@ public class ByteStreamSource implements PollableSource<byte[]> {
 
 	private BufferedInputStream stream;
 
+	private Object streamMonitor;
+
 	private int bytesPerMessage = 1024;
 
 	private boolean shouldTruncate = true;
 
 
 	public ByteStreamSource(InputStream stream) {
+		this(stream, -1);
+	}
+
+	public ByteStreamSource(InputStream stream, int bufferSize) {
+		this.streamMonitor = stream;
 		if (stream instanceof BufferedInputStream) {
 			this.stream = (BufferedInputStream) stream;
+		}
+		else if (bufferSize > 0) {
+			this.stream = new BufferedInputStream(stream, bufferSize);
 		}
 		else {
 			this.stream = new BufferedInputStream(stream);
@@ -62,12 +72,18 @@ public class ByteStreamSource implements PollableSource<byte[]> {
 		List<byte[]> results = new ArrayList<byte[]>();
 		while (results.size() < limit) {
 			try {
-				int bytesAvailable = stream.available();
-				if (bytesAvailable == 0) {
+				byte[] bytes;
+				int bytesRead = 0;
+				synchronized (this.streamMonitor) {
+					if (stream.available() == 0) {
+						return results;
+					}
+					bytes = new byte[bytesPerMessage];
+					bytesRead = stream.read(bytes, 0, bytes.length);
+				}
+				if (bytesRead <= 0) {
 					return results;
 				}
-				byte[] bytes = new byte[bytesPerMessage];
-				int bytesRead = stream.read(bytes, 0, bytes.length);
 				if (!this.shouldTruncate) {
 					results.add(bytes);
 				}
