@@ -19,6 +19,7 @@ package org.springframework.integration.adapter.stream;
 import java.io.InputStream;
 
 import org.springframework.integration.adapter.PollingSourceAdapter;
+import org.springframework.integration.channel.MessageChannel;
 
 /**
  * A polling source adapter that wraps a {@link CharacterStreamSource}.
@@ -27,11 +28,18 @@ import org.springframework.integration.adapter.PollingSourceAdapter;
  */
 public class CharacterStreamSourceAdapter extends PollingSourceAdapter<String> {
 
-	public static final CharacterStreamSourceAdapter STDIN_ADAPTER = new CharacterStreamSourceAdapter(System.in);
-
-
 	public CharacterStreamSourceAdapter(InputStream stream) {
 		super(new CharacterStreamSource(stream));
+	}
+
+
+	/**
+	 * Factory method for creating an adapter for stdin (System.in).
+	 */
+	public static CharacterStreamSourceAdapter stdinAdapter(MessageChannel channel) {
+		CharacterStreamSourceAdapter adapter = new CharacterStreamSourceAdapter(System.in);
+		adapter.setChannel(channel);
+		return adapter;
 	}
 
 }
