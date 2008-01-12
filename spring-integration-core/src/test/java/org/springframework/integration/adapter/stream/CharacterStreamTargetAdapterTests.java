@@ -22,9 +22,8 @@ import java.io.ByteArrayOutputStream;
 
 import org.junit.Test;
 
-import org.springframework.integration.bus.ChannelPollingMessageRetriever;
 import org.springframework.integration.bus.ConsumerPolicy;
-import org.springframework.integration.bus.DefaultMessageDispatcher;
+import org.springframework.integration.bus.ChannelPollingMessageDispatcher;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.message.GenericMessage;
@@ -42,8 +41,7 @@ public class CharacterStreamTargetAdapterTests {
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
 		adapter.setChannel(channel);
 		ConsumerPolicy policy = ConsumerPolicy.newEventDrivenPolicy();
-		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
 		dispatcher.addHandler(adapter);
 		dispatcher.start();
 		channel.send(new StringMessage("foo"));
@@ -60,8 +58,7 @@ public class CharacterStreamTargetAdapterTests {
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
 		adapter.setChannel(channel);
 		ConsumerPolicy policy = ConsumerPolicy.newEventDrivenPolicy();
-		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
 		dispatcher.addHandler(adapter);
 		dispatcher.start();
 		channel.send(new StringMessage("foo"));
@@ -82,8 +79,7 @@ public class CharacterStreamTargetAdapterTests {
 		adapter.setChannel(channel);
 		adapter.setShouldAppendNewLine(true);
 		ConsumerPolicy policy = ConsumerPolicy.newEventDrivenPolicy();
-		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
 		dispatcher.addHandler(adapter);
 		dispatcher.start();
 		channel.send(new StringMessage("foo"));
@@ -105,8 +101,7 @@ public class CharacterStreamTargetAdapterTests {
 		adapter.setChannel(channel);
 		ConsumerPolicy policy = ConsumerPolicy.newEventDrivenPolicy();
 		policy.setMaxMessagesPerTask(2);
-		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
 		dispatcher.addHandler(adapter);
 		dispatcher.start();
 		channel.send(new StringMessage("foo"));
@@ -126,8 +121,7 @@ public class CharacterStreamTargetAdapterTests {
 		ConsumerPolicy policy = ConsumerPolicy.newEventDrivenPolicy();
 		policy.setReceiveTimeout(0);
 		policy.setMaxMessagesPerTask(10);
-		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
 		dispatcher.addHandler(adapter);
 		dispatcher.start();
 		channel.send(new StringMessage("foo"));
@@ -145,8 +139,7 @@ public class CharacterStreamTargetAdapterTests {
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
 		adapter.setChannel(channel);
 		ConsumerPolicy policy = ConsumerPolicy.newEventDrivenPolicy();
-		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
 		dispatcher.addHandler(adapter);
 		dispatcher.start();
 		TestObject testObject = new TestObject("foo");
@@ -166,8 +159,7 @@ public class CharacterStreamTargetAdapterTests {
 		ConsumerPolicy policy = ConsumerPolicy.newEventDrivenPolicy();
 		policy.setReceiveTimeout(0);
 		policy.setMaxMessagesPerTask(2);
-		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
 		dispatcher.addHandler(adapter);
 		dispatcher.start();
 		TestObject testObject1 = new TestObject("foo");
@@ -189,8 +181,7 @@ public class CharacterStreamTargetAdapterTests {
 		ConsumerPolicy policy = ConsumerPolicy.newEventDrivenPolicy();
 		policy.setReceiveTimeout(0);
 		policy.setMaxMessagesPerTask(2);
-		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
 		dispatcher.addHandler(adapter);
 		dispatcher.start();
 		TestObject testObject1 = new TestObject("foo");

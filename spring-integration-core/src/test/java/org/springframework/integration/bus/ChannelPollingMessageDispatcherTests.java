@@ -19,7 +19,6 @@ package org.springframework.integration.bus;
 import static org.junit.Assert.assertEquals;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -35,7 +34,7 @@ import org.springframework.integration.message.selector.PayloadTypeSelector;
 /**
  * @author Mark Fisher
  */
-public class DefaultMessageDispatcherTests {
+public class ChannelPollingMessageDispatcherTests {
 
 	@Test
 	public void testNonBroadcastingDispatcherSendsToExactlyOneEndpoint() throws InterruptedException {
@@ -47,8 +46,7 @@ public class DefaultMessageDispatcherTests {
 		ConsumerPolicy policy = new ConsumerPolicy();
 		SimpleChannel channel = new SimpleChannel();
 		channel.send(new StringMessage(1, "test"));
-		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
 		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1));
 		dispatcher.addHandler(new PooledMessageHandler(endpoint2, 1, 1));
 		dispatcher.start();
@@ -67,8 +65,7 @@ public class DefaultMessageDispatcherTests {
 		ConsumerPolicy policy = new ConsumerPolicy();
 		SimpleChannel channel = new SimpleChannel();
 		channel.send(new StringMessage(1, "test"));
-		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
 		dispatcher.setBroadcast(true);
 		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1));
 		dispatcher.addHandler(new PooledMessageHandler(endpoint2, 1, 1));
@@ -90,8 +87,7 @@ public class DefaultMessageDispatcherTests {
 		ConsumerPolicy policy = new ConsumerPolicy();
 		SimpleChannel channel = new SimpleChannel();
 		channel.send(new StringMessage(1, "test"));
-		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
 		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1) {
 			@Override
 			public void start() {
@@ -118,8 +114,7 @@ public class DefaultMessageDispatcherTests {
 		ConsumerPolicy policy = new ConsumerPolicy();
 		SimpleChannel channel = new SimpleChannel();
 		channel.send(new StringMessage(1, "test"));
-		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
 		dispatcher.setBroadcast(true);
 		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1));
 		dispatcher.addHandler(new PooledMessageHandler(endpoint2, 1, 1) {
@@ -140,8 +135,7 @@ public class DefaultMessageDispatcherTests {
 		ConsumerPolicy policy = new ConsumerPolicy();
 		SimpleChannel channel = new SimpleChannel();
 		channel.send(new StringMessage(1, "test"));
-		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
 		assertEquals(0, dispatcher.dispatch());
 	}
 
@@ -157,8 +151,7 @@ public class DefaultMessageDispatcherTests {
 		ConsumerPolicy policy = new ConsumerPolicy();
 		SimpleChannel channel = new SimpleChannel();
 		channel.send(new StringMessage(1, "test"));
-		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
 		dispatcher.setBroadcast(true);
 		dispatcher.setRejectionLimit(2);
 		dispatcher.setRetryInterval(3);
@@ -186,8 +179,7 @@ public class DefaultMessageDispatcherTests {
 		ConsumerPolicy policy = new ConsumerPolicy();
 		SimpleChannel channel = new SimpleChannel();
 		channel.send(new StringMessage(1, "test"));
-		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
 		dispatcher.setBroadcast(true);
 		dispatcher.setRejectionLimit(2);
 		dispatcher.setRetryInterval(3);
@@ -217,8 +209,7 @@ public class DefaultMessageDispatcherTests {
 		ConsumerPolicy policy = new ConsumerPolicy();
 		SimpleChannel channel = new SimpleChannel();
 		channel.send(new StringMessage(1, "test"));
-		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
 		dispatcher.setRejectionLimit(2);
 		dispatcher.setRetryInterval(3);
 		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1) {
@@ -249,8 +240,7 @@ public class DefaultMessageDispatcherTests {
 		ConsumerPolicy policy = new ConsumerPolicy();
 		SimpleChannel channel = new SimpleChannel();
 		channel.send(new StringMessage(1, "test"));
-		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
 		dispatcher.setRejectionLimit(2);
 		dispatcher.setRetryInterval(3);
 		dispatcher.setShouldFailOnRejectionLimit(false);
@@ -290,8 +280,7 @@ public class DefaultMessageDispatcherTests {
 		ConsumerPolicy policy = new ConsumerPolicy();
 		SimpleChannel channel = new SimpleChannel();
 		channel.send(new StringMessage(1, "test"));
-		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
 		dispatcher.setRejectionLimit(2);
 		dispatcher.setRetryInterval(3);
 		dispatcher.setShouldFailOnRejectionLimit(false);
@@ -342,8 +331,7 @@ public class DefaultMessageDispatcherTests {
 		ConsumerPolicy policy = new ConsumerPolicy();
 		SimpleChannel channel = new SimpleChannel();
 		channel.send(new StringMessage(1, "test"));
-		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
 		dispatcher.setBroadcast(true);
 		dispatcher.setRejectionLimit(5);
 		dispatcher.setRetryInterval(3);
@@ -387,8 +375,7 @@ public class DefaultMessageDispatcherTests {
 		ConsumerPolicy policy = new ConsumerPolicy();
 		SimpleChannel channel = new SimpleChannel();
 		channel.send(new StringMessage(1, "test"));
-		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
 		PooledMessageHandler executor1 = new PooledMessageHandler(endpoint1, 1, 1);
 		PooledMessageHandler executor2 = new PooledMessageHandler(endpoint2, 1, 1);
 		executor1.addMessageSelector(new PayloadTypeSelector(Integer.class));
@@ -415,8 +402,7 @@ public class DefaultMessageDispatcherTests {
 		ConsumerPolicy policy = new ConsumerPolicy();
 		SimpleChannel channel = new SimpleChannel();
 		channel.send(new StringMessage(1, "test"));
-		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
 		PooledMessageHandler executor1 = new PooledMessageHandler(endpoint1, 1, 1) {
 			@Override
 			public Message handle(Message<?> message) {
@@ -458,8 +444,7 @@ public class DefaultMessageDispatcherTests {
 		ConsumerPolicy policy = new ConsumerPolicy();
 		SimpleChannel channel = new SimpleChannel();
 		channel.send(new StringMessage(1, "test"));
-		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
 		dispatcher.setBroadcast(true);
 		PooledMessageHandler executor1 = new PooledMessageHandler(endpoint1, 1, 1);
 		PooledMessageHandler executor2 = new PooledMessageHandler(endpoint2, 1, 1);

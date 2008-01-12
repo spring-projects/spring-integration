@@ -260,8 +260,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 
 	private void doActivate(MessageChannel channel, MessageHandler handler, ConsumerPolicy policy) {
 		PooledMessageHandler pooledHandler = new PooledMessageHandler(handler, policy.getConcurrency(), policy.getMaxConcurrency());
-		MessageRetriever retriever = new ChannelPollingMessageRetriever(channel, policy);
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(retriever);
+		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
 		dispatcher.setRejectionLimit(policy.getRejectionLimit());
 		dispatcher.setRetryInterval(policy.getRetryInterval());
 		dispatcher.addHandler(pooledHandler);

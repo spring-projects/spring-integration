@@ -27,14 +27,14 @@ import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
 
 /**
- * The default implementation of {@link MessageDispatcher}. If
+ * The base implementation of a polling {@link MessageDispatcher}. If
  * {@link #broadcast} is set to <code>false</code> (the default), each message
  * will be sent to a single {@link MessageHandler}. Otherwise, each
  * retrieved {@link Message} will be sent to all handlers.
  * 
  * @author Mark Fisher
  */
-public class DefaultMessageDispatcher extends AbstractMessageDispatcher {
+public class BasePollingMessageDispatcher extends AbstractMessageDispatcher {
 
 	private boolean broadcast = false;
 
@@ -45,7 +45,7 @@ public class DefaultMessageDispatcher extends AbstractMessageDispatcher {
 	private boolean shouldFailOnRejectionLimit = true;
 
 
-	public DefaultMessageDispatcher(MessageRetriever retriever) {
+	public BasePollingMessageDispatcher(MessageRetriever retriever) {
 		super(retriever);
 	}
 
