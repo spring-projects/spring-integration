@@ -34,7 +34,7 @@ public class CharacterStreamSourceAdapter extends PollingSourceAdapter<String> {
 
 
 	/**
-	 * Factory method for creating an adapter for stdin (System.in).
+	 * Factory method that creates an adapter for stdin (System.in).
 	 */
 	public static CharacterStreamSourceAdapter stdinAdapter(MessageChannel channel) {
 		CharacterStreamSourceAdapter adapter = new CharacterStreamSourceAdapter(System.in);

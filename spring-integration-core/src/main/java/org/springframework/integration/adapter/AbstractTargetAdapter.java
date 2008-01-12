@@ -16,6 +16,9 @@
 
 package org.springframework.integration.adapter;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.bus.ConsumerPolicy;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
@@ -29,6 +32,8 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  */
 public abstract class AbstractTargetAdapter<T> implements TargetAdapter {
+
+	protected Log logger = LogFactory.getLog(this.getClass());
 
 	private String name;
 
