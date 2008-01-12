@@ -36,20 +36,36 @@ public class CharacterStreamSource implements PollableSource<String> {
 
 	private BufferedReader reader;
 
+	private Object streamMonitor;
+
 
 	public CharacterStreamSource(InputStream stream) {
-		this.reader = new BufferedReader(new InputStreamReader(stream));
+		this(stream, -1);
 	}
+
+	public CharacterStreamSource(InputStream stream, int bufferSize) {
+		this.streamMonitor = stream;
+		if (bufferSize > 0) {
+			this.reader = new BufferedReader(new InputStreamReader(stream), bufferSize);
+		}
+		else {
+			this.reader = new BufferedReader(new InputStreamReader(stream));
+		}
+	}
+
 
 	public Collection<String> poll(int limit) {
 		List<String> results = new ArrayList<String>();
 		while (results.size() < limit) {
 			try {
-				boolean isReady = reader.ready();
-				if (!isReady) {
-					return results;
+				String line = null;
+				synchronized (this.streamMonitor) {
+					boolean isReady = reader.ready();
+					if (!isReady) {
+						return results;
+					}
+					line = reader.readLine();
 				}
-				String line = reader.readLine();
 				if (line == null) {
 					return results;
 				}
