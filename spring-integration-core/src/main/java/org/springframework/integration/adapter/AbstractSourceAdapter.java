@@ -53,6 +53,10 @@ public abstract class AbstractSourceAdapter<T> implements SourceAdapter, Initial
 		this.channel = channel;
 	}
 
+	protected MessageChannel getChannel() {
+		return this.channel;
+	}
+
 	public void setSendTimeout(long sendTimeout) {
 		this.sendTimeout = sendTimeout;
 	}

@@ -18,14 +18,10 @@ package org.springframework.integration.adapter.jms;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageListener;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.adapter.AbstractSourceAdapter;
 import org.springframework.integration.bus.ConsumerPolicy;
@@ -40,8 +36,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class JmsMessageDrivenSourceAdapter extends AbstractSourceAdapter<Object> implements MessageListener, Lifecycle,
-		DisposableBean {
+public class JmsMessageDrivenSourceAdapter extends AbstractSourceAdapter<Object> implements Lifecycle, DisposableBean {
 
 	private AbstractJmsListeningContainer container;
 
@@ -56,6 +51,8 @@ public class JmsMessageDrivenSourceAdapter extends AbstractSourceAdapter<Object>
 	private TaskExecutor taskExecutor;
 
 	private ConsumerPolicy policy = ConsumerPolicy.newEventDrivenPolicy();
+
+	private long sendTimeout = -1;
 
 
 	public void setContainer(AbstractJmsListeningContainer container) {
@@ -77,6 +74,10 @@ public class JmsMessageDrivenSourceAdapter extends AbstractSourceAdapter<Object>
 	public void setMessageConverter(MessageConverter messageConverter) {
 		Assert.notNull(messageConverter, "'messageConverter' must not be null");
 		this.messageConverter = messageConverter;
+	}
+
+	public void setSendTimeout(long sendTimeout) {
+		this.sendTimeout = sendTimeout;
 	}
 
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
@@ -108,7 +109,11 @@ public class JmsMessageDrivenSourceAdapter extends AbstractSourceAdapter<Object>
 		dmlc.setMaxConcurrentConsumers(this.policy.getMaxConcurrency());
 		dmlc.setMaxMessagesPerTask(this.policy.getMaxMessagesPerTask());
 		dmlc.setAutoStartup(false);
-		dmlc.setMessageListener(this);
+		ChannelPublishingJmsListener listener = new ChannelPublishingJmsListener(this.getChannel());
+		listener.setMessageConverter(this.messageConverter);
+		listener.setMessageMapper(this.getMessageMapper());
+		listener.setTimeout(this.sendTimeout);
+		dmlc.setMessageListener(listener);
 		if (this.taskExecutor != null) {
 			dmlc.setTaskExecutor(this.taskExecutor);
 		}
@@ -130,15 +135,6 @@ public class JmsMessageDrivenSourceAdapter extends AbstractSourceAdapter<Object>
 
 	public void destroy() {
 		container.destroy();
-	}
-
-	public void onMessage(Message message) {
-		try {
-			this.sendToChannel(messageConverter.fromMessage(message));
-		}
-		catch (JMSException e) {
-			throw new MessageHandlingException("failed to convert JMS Message", e);
-		}
 	}
 
 }
