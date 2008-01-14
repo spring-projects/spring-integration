@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.bus;
-
-import java.util.Collection;
-
-import org.springframework.integration.message.Message;
+package org.springframework.integration.endpoint;
 
 /**
- * Strategy interface for retrieving messages.
+ * A marker interface for endpoint metadata.
  * 
  * @author Mark Fisher
  */
-public interface MessageRetriever {
-
-	Collection<Message<?>> retrieveMessages();
+public interface EndpointPolicy {
 
 }

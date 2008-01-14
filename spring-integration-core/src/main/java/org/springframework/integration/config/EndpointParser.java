@@ -31,10 +31,11 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.MessagingConfigurationException;
-import org.springframework.integration.bus.ConsumerPolicy;
-import org.springframework.integration.endpoint.GenericMessageEndpoint;
+import org.springframework.integration.endpoint.ConcurrencyPolicy;
+import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
 import org.springframework.integration.handler.MessageHandlerChain;
+import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.util.StringUtils;
 
 /**
@@ -74,15 +75,19 @@ public class EndpointParser implements BeanDefinitionParser {
 
 	private static final String PERIOD_ATTRIBUTE = "period";
 
-	private static final String PERIOD_PROPERTY = "period";
+	private static final String SCHEDULE_PROPERTY = "schedule";
 
-	private static final String CONSUMER_ELEMENT = "consumer";
+	private static final String CONCURRENCY_ELEMENT = "concurrency";
 
-	private static final String CONSUMER_POLICY_PROPERTY = "consumerPolicy";
+	private static final String CORE_CONCURRENCY_ATTRIBUTE = "core";
+
+	private static final String MAX_CONCURRENCY_ATTRIBUTE = "max";
+
+	private static final String CONCURRENCY_POLICY_PROPERTY = "concurrencyPolicy";
 
 
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
-		RootBeanDefinition endpointDef = new RootBeanDefinition(GenericMessageEndpoint.class);
+		RootBeanDefinition endpointDef = new RootBeanDefinition(DefaultMessageEndpoint.class);
 		endpointDef.setSource(parserContext.extractSource(element));
 		String inputChannel = element.getAttribute(INPUT_CHANNEL_ATTRIBUTE);
 		if (StringUtils.hasText(inputChannel)) {
@@ -98,10 +103,8 @@ public class EndpointParser implements BeanDefinitionParser {
 			Node child = childNodes.item(i);
 			if (child.getNodeType() == Node.ELEMENT_NODE) {
 				String localName = child.getLocalName();
-				if (CONSUMER_ELEMENT.equals(localName)) {
-					String consumerBeanName = parseConsumer((Element) child, parserContext);
-					endpointDef.getPropertyValues().addPropertyValue(
-							CONSUMER_POLICY_PROPERTY, new RuntimeBeanReference(consumerBeanName));
+				if (CONCURRENCY_ELEMENT.equals(localName)) {
+					parseConcurrencyPolicy((Element) child, endpointDef);
 				}
 				else if (HANDLER_ELEMENT.equals(localName)) {
 					String ref = ((Element) child).getAttribute(REF_ATTRIBUTE);
@@ -150,15 +153,26 @@ public class EndpointParser implements BeanDefinitionParser {
 		return endpointDef;
 	}
 
-	private String parseConsumer(Element element, ParserContext parserContext) {
-		RootBeanDefinition consumerDef = new RootBeanDefinition(ConsumerPolicy.class);
-		String period = element.getAttribute(PERIOD_ATTRIBUTE);
-		if (StringUtils.hasText(period)) {
-			consumerDef.getPropertyValues().addPropertyValue(PERIOD_PROPERTY, Integer.parseInt(period));
+	private void parseConcurrencyPolicy(Element concurrencyElement, RootBeanDefinition endpointDefinition) {
+		ConcurrencyPolicy policy = new ConcurrencyPolicy();
+		String coreConcurrency = concurrencyElement.getAttribute(CORE_CONCURRENCY_ATTRIBUTE);
+		String maxConcurrency = concurrencyElement.getAttribute(MAX_CONCURRENCY_ATTRIBUTE);
+		if (StringUtils.hasText(coreConcurrency)) {
+			policy.setCoreConcurrency(Integer.parseInt(coreConcurrency));
 		}
-		String beanName = parserContext.getReaderContext().generateBeanName(consumerDef);
-		parserContext.registerBeanComponent(new BeanComponentDefinition(consumerDef, beanName));
-		return beanName;
+		if (StringUtils.hasText(maxConcurrency)) {
+			policy.setMaxConcurrency(Integer.parseInt(maxConcurrency));
+		}
+		endpointDefinition.getPropertyValues().addPropertyValue(CONCURRENCY_POLICY_PROPERTY, policy);
+	}
+
+	private void parseSchedule(Element scheduleElement, RootBeanDefinition endpointDefinition) {
+		PollingSchedule schedule = new PollingSchedule(5);
+		String period = scheduleElement.getAttribute(PERIOD_ATTRIBUTE);
+		if (StringUtils.hasText(period)) {
+			schedule.setPeriod(Integer.parseInt(period));
+		}
+		endpointDefinition.getPropertyValues().addPropertyValue(SCHEDULE_PROPERTY, schedule);
 	}
 
 	private String parseHandlerAdapter(String handlerRef, String handlerMethod, ParserContext parserContext) {

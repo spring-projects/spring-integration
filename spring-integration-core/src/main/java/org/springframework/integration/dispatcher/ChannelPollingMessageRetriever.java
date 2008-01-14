@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.bus;
+package org.springframework.integration.dispatcher;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -22,14 +22,14 @@ import java.util.List;
 
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
+import org.springframework.util.Assert;
 
 /**
  * Message retriever that polls a {@link MessageChannel}. The number of
  * messages retrieved per poll is limited by the '<em>maxMessagesPerTask</em>'
- * property of the provided {@link ConsumerPolicy}, and the timeout for each
- * receive call is determined by the policy's '<em>receiveTimeout</em>'
+ * property, and the timeout for each receive call is determined by the '<em>receiveTimeout</em>'
  * property. In general, it is recommended to use a value of 1 for
- * 'maxMessagesPerTask' whenever a non-zero timeout is provided. Otherwise the
+ * 'maxMessagesPerTask' whenever a significant timeout is provided. Otherwise the
  * retriever may be holding on to available messages while waiting for
  * additional messages.
  * 
@@ -39,19 +39,40 @@ public class ChannelPollingMessageRetriever implements MessageRetriever {
 
 	private MessageChannel channel;
 
-	private ConsumerPolicy policy;
+	private int maxMessagesPerTask = DispatcherPolicy.DEFAULT_MAX_MESSAGES_PER_TASK;
+
+	private long receiveTimeout = DispatcherPolicy.DEFAULT_RECEIVE_TIMEOUT;
 
 
-	public ChannelPollingMessageRetriever(MessageChannel channel, ConsumerPolicy policy) {
+	public ChannelPollingMessageRetriever(MessageChannel channel) {
+		Assert.notNull(channel, "'channel' must not be null");
 		this.channel = channel;
-		this.policy = policy;
 	}
 
 
+	public void setMaxMessagesPerTask(int maxMessagesPerTask) {
+		Assert.isTrue(maxMessagesPerTask > 0, "'maxMessagesPerTask' must be at least 1");
+		this.maxMessagesPerTask = maxMessagesPerTask;
+	}
+
+	public void setReceiveTimeout(long receiveTimeout) {
+		this.receiveTimeout = receiveTimeout;
+	}
+
+	public MessageChannel getChannel() {
+		return this.channel;
+	}
+
 	public Collection<Message<?>> retrieveMessages() {
 		List<Message<?>> messages = new LinkedList<Message<?>>();
-		while (messages.size() < this.policy.getMaxMessagesPerTask()) {
-			Message<?> message = this.channel.receive(this.policy.getReceiveTimeout());
+		while (messages.size() < this.maxMessagesPerTask) {
+			Message<?> message = null;
+			if (this.receiveTimeout < 0) {
+				message = this.channel.receive();
+			}
+			else {
+				message = this.channel.receive(this.receiveTimeout);
+			}
 			if (message == null) {
 				return messages;
 			}

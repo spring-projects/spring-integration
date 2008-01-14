@@ -16,6 +16,9 @@
 
 package org.springframework.integration.bus;
 
+import org.springframework.integration.endpoint.ConcurrencyPolicy;
+import org.springframework.integration.scheduling.Schedule;
+
 /**
  * Configuration metadata for activating a subscription.
  * 
@@ -25,9 +28,11 @@ public class Subscription {
 
 	private String channel;
 
-	private String receiver;
+	private String handler;
 
-	private ConsumerPolicy policy = new ConsumerPolicy();
+	private Schedule schedule;
+
+	private ConcurrencyPolicy concurrencyPolicy;
 
 
 	public String getChannel() {
@@ -38,20 +43,28 @@ public class Subscription {
 		this.channel = channel;
 	}
 
-	public String getReceiver() {
-		return this.receiver;
+	public String getHandler() {
+		return this.handler;
 	}
 
-	public void setReceiver(String receiver) {
-		this.receiver = receiver;
+	public void setHandler(String handler) {
+		this.handler = handler;
 	}
 
-	public ConsumerPolicy getPolicy() {
-		return this.policy;
+	public Schedule getSchedule() {
+		return this.schedule;
 	}
 
-	public void setPolicy(ConsumerPolicy policy) {
-		this.policy = policy;
+	public void setSchedule(Schedule schedule) {
+		this.schedule = schedule;
+	}
+
+	public ConcurrencyPolicy getConcurrencyPolicy() {
+		return this.concurrencyPolicy;
+	}
+
+	public void setConcurrencyPolicy(ConcurrencyPolicy concurrencyPolicy) {
+		this.concurrencyPolicy = concurrencyPolicy;
 	}
 
 }

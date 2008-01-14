@@ -19,11 +19,12 @@ package org.springframework.integration.adapter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.integration.bus.ConsumerPolicy;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageMapper;
 import org.springframework.integration.message.SimplePayloadMessageMapper;
+import org.springframework.integration.scheduling.PollingSchedule;
+import org.springframework.integration.scheduling.Schedule;
 import org.springframework.util.Assert;
 
 /**
@@ -41,7 +42,7 @@ public abstract class AbstractTargetAdapter<T> implements TargetAdapter {
 
 	private MessageMapper<?,T> mapper = new SimplePayloadMessageMapper<T>();
 
-	private ConsumerPolicy policy = ConsumerPolicy.newPollingPolicy(5);
+	private Schedule schedule = new PollingSchedule(5);
 
 
 	public void setName(String name) {
@@ -70,13 +71,13 @@ public abstract class AbstractTargetAdapter<T> implements TargetAdapter {
 		return this.mapper;
 	}
 
-	public void setConsumerPolicy(ConsumerPolicy policy) {
-		Assert.notNull(policy, "'policy' must not be null");
-		this.policy = policy;
+	public void setSchedule(Schedule schedule) {
+		Assert.notNull(schedule, "'schedule' must not be null");
+		this.schedule = schedule;
 	}
 
-	public ConsumerPolicy getConsumerPolicy() {
-		return this.policy;
+	public Schedule getSchedule() {
+		return this.schedule;
 	}
 
 	public final Message handle(Message message) {

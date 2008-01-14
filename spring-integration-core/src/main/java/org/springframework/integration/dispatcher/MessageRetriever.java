@@ -14,43 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter;
+package org.springframework.integration.dispatcher;
 
-import java.util.concurrent.CountDownLatch;
+import java.util.Collection;
+
+import org.springframework.integration.message.Message;
 
 /**
+ * Strategy interface for retrieving messages.
+ * 
  * @author Mark Fisher
  */
-public class TestSink {
+public interface MessageRetriever {
 
-	private String result;
-
-	private CountDownLatch latch;
-
-
-	public void setLatch(CountDownLatch latch) {
-		this.latch = latch;
-	}
-
-	public void validMethod(String s) {
-	}
-
-	public void invalidMethodWithNoArgs() {
-	}
-
-	public String validMethodWithIgnoredReturnValue(String s) {
-		return "ignored";
-	}
-
-	public void store(String s) {
-		if (this.latch != null) {
-			this.latch.countDown();
-		}
-		this.result = s;
-	}
-
-	public String get() {
-		return this.result;
-	}
+	Collection<Message<?>> retrieveMessages();
 
 }

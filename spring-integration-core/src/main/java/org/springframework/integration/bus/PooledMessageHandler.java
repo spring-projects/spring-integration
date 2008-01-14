@@ -27,7 +27,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.dispatcher.MessageHandlerNotRunningException;
+import org.springframework.integration.dispatcher.MessageHandlerRejectedExecutionException;
+import org.springframework.integration.dispatcher.MessageSelectorRejectedException;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.selector.MessageSelector;
@@ -112,7 +114,7 @@ public class PooledMessageHandler implements MessageHandler, Lifecycle {
 		}
 	}
 
-	public Message handle(Message<?> message) {
+	public Message<?> handle(Message<?> message) {
 		if (!this.isRunning()) {
 			throw new MessageHandlerNotRunningException();
 		}

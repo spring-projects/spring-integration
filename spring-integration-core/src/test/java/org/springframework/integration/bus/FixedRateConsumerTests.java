@@ -26,10 +26,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
 import org.springframework.integration.channel.SimpleChannel;
-import org.springframework.integration.endpoint.GenericMessageEndpoint;
+import org.springframework.integration.endpoint.ConcurrencyPolicy;
+import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.scheduling.PollingSchedule;
 
 /**
  * @author Mark Fisher
@@ -42,7 +44,7 @@ public class FixedRateConsumerTests {
 		final AtomicInteger counter = new AtomicInteger(0);
 		final CountDownLatch latch = new CountDownLatch(messagesToSend);
 		SimpleChannel channel = new SimpleChannel();
-		MessageEndpoint endpoint = new GenericMessageEndpoint() {
+		MessageEndpoint endpoint = new DefaultMessageEndpoint() {
 			@Override
 			public Message<?> handle(Message<?> message) {
 				counter.incrementAndGet();
@@ -51,15 +53,15 @@ public class FixedRateConsumerTests {
 			}
 		};
 		MessageBus bus = new MessageBus();
+		bus.initialize();
 		bus.registerChannel("testChannel", channel);
 		bus.registerEndpoint("testEndpoint", endpoint);
-		ConsumerPolicy policy = new ConsumerPolicy();
-		policy.setFixedRate(true);
-		policy.setPeriod(10);
+		PollingSchedule schedule = new PollingSchedule(10);
+		schedule.setFixedRate(true);
 		Subscription subscription = new Subscription();
 		subscription.setChannel("testChannel");
-		subscription.setReceiver("testEndpoint");
-		subscription.setPolicy(policy);
+		subscription.setHandler("testEndpoint");
+		subscription.setSchedule(schedule);
 		bus.activateSubscription(subscription);
 		bus.start();
 		for (int i = 0; i < messagesToSend; i++) {
@@ -75,7 +77,7 @@ public class FixedRateConsumerTests {
 		final AtomicInteger counter = new AtomicInteger(0);
 		final CountDownLatch latch = new CountDownLatch(messagesToSend);
 		SimpleChannel channel = new SimpleChannel();
-		MessageEndpoint endpoint = new GenericMessageEndpoint() {
+		MessageEndpoint endpoint = new DefaultMessageEndpoint() {
 			@Override
 			public Message<?> handle(Message<?> message) {
 				counter.incrementAndGet();
@@ -84,18 +86,19 @@ public class FixedRateConsumerTests {
 			}
 		};
 		MessageBus bus = new MessageBus();
+		bus.initialize();
 		bus.registerChannel("testChannel", channel);
 		bus.registerEndpoint("testEndpoint", endpoint);
-		ConsumerPolicy policy = new ConsumerPolicy();
-		policy.setConcurrency(1);
-		policy.setMaxConcurrency(1);
-		policy.setMaxMessagesPerTask(1);
-		policy.setFixedRate(true);
-		policy.setPeriod(20);
+		PollingSchedule schedule = new PollingSchedule(5);
+		schedule.setFixedRate(true);
+		ConcurrencyPolicy  concurrencyPolicy = new ConcurrencyPolicy();
+		concurrencyPolicy.setCoreConcurrency(1);
+		concurrencyPolicy.setMaxConcurrency(1);
 		Subscription subscription = new Subscription();
 		subscription.setChannel("testChannel");
-		subscription.setReceiver("testEndpoint");
-		subscription.setPolicy(policy);
+		subscription.setHandler("testEndpoint");
+		subscription.setSchedule(schedule);
+		subscription.setConcurrencyPolicy(concurrencyPolicy);
 		bus.activateSubscription(subscription);
 		bus.start();
 		for (int i = 0; i < messagesToSend; i++) {
@@ -103,8 +106,8 @@ public class FixedRateConsumerTests {
 		}
 		latch.await(80, TimeUnit.MILLISECONDS);
 		int count = counter.get();
-		assertTrue("received " + count + ", but expected less than 7", count < 7);
-		assertTrue("received " + count + ", but expected more than 3", count > 3);
+		assertTrue("received " + count + ", but expected less than 20", count < 20);
+		assertTrue("received " + count + ", but expected more than 5", count > 5);
 	}
 
 }

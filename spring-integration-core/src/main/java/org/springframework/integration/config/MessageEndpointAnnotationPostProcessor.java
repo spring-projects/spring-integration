@@ -43,18 +43,20 @@ import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Polled;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.annotation.Splitter;
-import org.springframework.integration.bus.ConsumerPolicy;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
-import org.springframework.integration.endpoint.GenericMessageEndpoint;
+import org.springframework.integration.endpoint.ConcurrencyPolicy;
+import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.integration.handler.config.DefaultMessageHandlerCreator;
 import org.springframework.integration.handler.config.MessageHandlerCreator;
 import org.springframework.integration.handler.config.RouterMessageHandlerCreator;
 import org.springframework.integration.handler.config.SplitterMessageHandlerCreator;
+import org.springframework.integration.scheduling.PollingSchedule;
+import org.springframework.integration.scheduling.Schedule;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
@@ -103,7 +105,7 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 		if (endpointAnnotation == null) {
 			return bean;
 		}
-		GenericMessageEndpoint endpoint = new GenericMessageEndpoint();
+		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint();
 		this.configureInputChannel(bean, beanName, endpointAnnotation, endpoint);
 		this.configureDefaultOutputChannel(bean, beanName, endpointAnnotation, endpoint);
 		MessageHandlerChain handlerChain = this.createHandlerChain(bean);
@@ -115,13 +117,12 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 	}
 
 	private void configureInputChannel(final Object bean, final String beanName,
-			MessageEndpoint annotation, final GenericMessageEndpoint endpoint) {
+			MessageEndpoint annotation, final DefaultMessageEndpoint endpoint) {
 		String channelName = annotation.input();
 		if (StringUtils.hasText(channelName)) {
 			endpoint.setInputChannelName(channelName);
-			ConsumerPolicy consumerPolicy = new ConsumerPolicy();
-			consumerPolicy.setPeriod(annotation.pollPeriod());
-			endpoint.setConsumerPolicy(consumerPolicy);
+			Schedule schedule = new PollingSchedule(annotation.pollPeriod());
+			endpoint.setSchedule(schedule);
 			return;
 		}
 		ReflectionUtils.doWithMethods(bean.getClass(), new ReflectionUtils.MethodCallback() {
@@ -140,11 +141,13 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 					messageBus.registerChannel(channelName, channel);
 					messageBus.registerSourceAdapter(beanName + "-sourceAdapter", adapter);
 					endpoint.setInputChannelName(channelName);
-					endpoint.getConsumerPolicy().setPeriod(period);
+					Schedule schedule = new PollingSchedule(period);
+					endpoint.setSchedule(schedule);
 					if (period > 0) {
-						endpoint.getConsumerPolicy().setConcurrency(1);
-						endpoint.getConsumerPolicy().setMaxConcurrency(1);
-						endpoint.getConsumerPolicy().setMaxMessagesPerTask(1);
+						ConcurrencyPolicy concurrencyPolicy = new ConcurrencyPolicy();
+						concurrencyPolicy.setCoreConcurrency(1);
+						concurrencyPolicy.setMaxConcurrency(1);
+						endpoint.setConcurrencyPolicy(concurrencyPolicy);
 					}
 					return;
 				}
@@ -153,7 +156,7 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 	}
 
 	private void configureDefaultOutputChannel(final Object bean, final String beanName,
-			final MessageEndpoint annotation, final GenericMessageEndpoint endpoint) {
+			final MessageEndpoint annotation, final DefaultMessageEndpoint endpoint) {
 		String channelName = annotation.defaultOutput();
 		if (StringUtils.hasText(channelName)) {
 			endpoint.setDefaultOutputChannelName(channelName);

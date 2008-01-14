@@ -24,7 +24,6 @@ import org.springframework.context.Lifecycle;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.adapter.AbstractSourceAdapter;
-import org.springframework.integration.bus.ConsumerPolicy;
 import org.springframework.jms.listener.AbstractJmsListeningContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -50,7 +49,15 @@ public class JmsMessageDrivenSourceAdapter extends AbstractSourceAdapter<Object>
 
 	private TaskExecutor taskExecutor;
 
-	private ConsumerPolicy policy = ConsumerPolicy.newEventDrivenPolicy();
+	private long receiveTimeout = 1000;
+
+	private int concurrentConsumers = 1;
+
+	private int maxConcurrentConsumers = 1;
+
+	private int maxMessagesPerTask = Integer.MIN_VALUE;
+
+	private int idleTaskExecutionLimit = 1;
 
 	private long sendTimeout = -1;
 
@@ -104,10 +111,11 @@ public class JmsMessageDrivenSourceAdapter extends AbstractSourceAdapter<Object>
 		if (this.destinationName != null) {
 			dmlc.setDestinationName(this.destinationName);
 		}
-		dmlc.setReceiveTimeout(this.policy.getReceiveTimeout());
-		dmlc.setConcurrentConsumers(this.policy.getConcurrency());
-		dmlc.setMaxConcurrentConsumers(this.policy.getMaxConcurrency());
-		dmlc.setMaxMessagesPerTask(this.policy.getMaxMessagesPerTask());
+		dmlc.setReceiveTimeout(this.receiveTimeout);
+		dmlc.setConcurrentConsumers(this.concurrentConsumers);
+		dmlc.setMaxConcurrentConsumers(this.maxConcurrentConsumers);
+		dmlc.setMaxMessagesPerTask(this.maxMessagesPerTask);
+		dmlc.setIdleTaskExecutionLimit(this.idleTaskExecutionLimit);
 		dmlc.setAutoStartup(false);
 		ChannelPublishingJmsListener listener = new ChannelPublishingJmsListener(this.getChannel());
 		listener.setMessageConverter(this.messageConverter);

@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,9 +36,17 @@ import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.dispatcher.DefaultMessageDispatcher;
+import org.springframework.integration.dispatcher.DispatcherPolicy;
+import org.springframework.integration.dispatcher.MessageDispatcher;
+import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.handler.MessageHandler;
-import org.springframework.integration.message.ErrorMessage;
+import org.springframework.integration.scheduling.MessagePublishingErrorHandler;
+import org.springframework.integration.scheduling.MessagingTaskScheduler;
+import org.springframework.integration.scheduling.MessagingTaskSchedulerAware;
+import org.springframework.integration.scheduling.Schedule;
+import org.springframework.integration.scheduling.SimpleMessagingTaskScheduler;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -58,23 +65,27 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 
 	private Map<String, MessageHandler> handlers = new ConcurrentHashMap<String, MessageHandler>();
 
-	private List<MessageDispatcher> dispatchers = new CopyOnWriteArrayList<MessageDispatcher>();
+	private Map<MessageChannel, MessageDispatcher> dispatchers = new ConcurrentHashMap<MessageChannel, MessageDispatcher>();
 
-	private List<DispatcherTask> dispatcherTasks = new CopyOnWriteArrayList<DispatcherTask>();
+	private List<Lifecycle> lifecycleSourceAdapters = new CopyOnWriteArrayList<Lifecycle>();
 
-	private ScheduledThreadPoolExecutor dispatcherExecutor;
+	private MessagingTaskScheduler taskScheduler;
 
 	private int dispatcherPoolSize = 10;
 
 	private boolean autoCreateChannels;
 
-	private boolean running;
+	private volatile boolean initialized;
+
+	private volatile boolean starting;
+
+	private volatile boolean running;
 
 	private Object lifecycleMonitor = new Object();
 
 
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		Assert.notNull(applicationContext, "applicationContext must not be null");
+		Assert.notNull(applicationContext, "'applicationContext' must not be null");
 		this.registerChannels(applicationContext);
 		this.registerEndpoints(applicationContext);
 		this.registerSourceAdapters(applicationContext);
@@ -88,8 +99,8 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 	public void setDispatcherPoolSize(int dispatcherPoolSize) {
 		Assert.isTrue(dispatcherPoolSize > 0, "'dispatcherPoolSize' must be at least 1");
 		this.dispatcherPoolSize = dispatcherPoolSize;
-		if (this.dispatcherExecutor != null) {
-			this.dispatcherExecutor.setCorePoolSize(dispatcherPoolSize);
+		if (this.taskScheduler != null && this.taskScheduler instanceof SimpleMessagingTaskScheduler) {
+			((SimpleMessagingTaskScheduler) this.taskScheduler).setCorePoolSize(dispatcherPoolSize);
 		}
 	}
 
@@ -145,23 +156,29 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			this.activateSubscription(subscription);
 			if (logger.isInfoEnabled()) {
 				logger.info("activated subscription to channel '" + subscription.getChannel() + 
-						"' for receiver '" + subscription.getReceiver() + "'");
+						"' for handler '" + subscription.getHandler() + "'");
 			}
 		}
 	}
 
 	public void initialize() {
-		initDispatcherExecutor();
 		if (this.getInvalidMessageChannel() == null) {
 			this.setInvalidMessageChannel(new SimpleChannel(Integer.MAX_VALUE));
 		}
+		initScheduler();
+		this.initialized = true;
 	}
 
-	private void initDispatcherExecutor() {
+	private void initScheduler() {
 		CustomizableThreadFactory threadFactory = new CustomizableThreadFactory();
 		threadFactory.setThreadNamePrefix("dispatcher-executor-");
 		threadFactory.setThreadGroup(new ThreadGroup("dispatcher-executors"));
-		this.dispatcherExecutor = new ScheduledThreadPoolExecutor(this.dispatcherPoolSize, threadFactory);
+		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler();
+		scheduler.setCorePoolSize(this.dispatcherPoolSize);
+		scheduler.setThreadFactory(threadFactory);
+		scheduler.setErrorHandler(new MessagePublishingErrorHandler(this.getInvalidMessageChannel()));
+		scheduler.afterPropertiesSet();
+		this.taskScheduler = scheduler;
 	}
 
 	public MessageChannel getInvalidMessageChannel() {
@@ -177,23 +194,42 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 	}
 
 	public void registerChannel(String name, MessageChannel channel) {
+		this.registerChannel(name, channel, null);
+	}
+
+	public void registerChannel(String name, MessageChannel channel, DispatcherPolicy dispatcherPolicy) {
+		if (!this.initialized) {
+			this.initialize();
+		}
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
+		dispatcher.setMessagingTaskScheduler(this.taskScheduler);
+		if (dispatcherPolicy != null) {
+			dispatcher.setMaxMessagesPerTask(dispatcherPolicy.getMaxMessagesPerTask());
+			dispatcher.setReceiveTimeout(dispatcherPolicy.getReceiveTimeout());
+			dispatcher.setRejectionLimit(dispatcherPolicy.getRejectionLimit());
+			dispatcher.setRetryInterval(dispatcherPolicy.getRetryInterval());
+		}
+		this.dispatchers.put(channel, dispatcher);
 		this.channelRegistry.registerChannel(name, channel);
 	}
 
 	public void registerEndpoint(String name, MessageEndpoint endpoint) {
+		if (!this.initialized) {
+			this.initialize();
+		}
 		Assert.notNull(name, "'name' must not be null");
 		Assert.notNull(endpoint, "'endpoint' must not be null");
 		endpoint.setName(name);
 		this.handlers.put(name, endpoint);
-		if (logger.isInfoEnabled()) {
-			logger.info("registered endpoint '" + name + "'");
-		}
 		endpoint.setChannelRegistry(this);
-		if (endpoint.getInputChannelName() != null && endpoint.getConsumerPolicy() != null) {
+		Schedule schedule = endpoint.getSchedule();
+		if (endpoint.getInputChannelName() != null) {
 			Subscription subscription = new Subscription();
+			subscription.setHandler(name);
 			subscription.setChannel(endpoint.getInputChannelName());
-			subscription.setReceiver(name);
-			subscription.setPolicy(endpoint.getConsumerPolicy());
+			if (schedule != null) {
+				subscription.setSchedule(schedule);
+			}
 			this.activateSubscription(subscription);
 		}
 		if (this.autoCreateChannels) {
@@ -205,12 +241,17 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 	}
 
 	public void registerSourceAdapter(String name, SourceAdapter adapter) {
-		ConsumerPolicy policy = adapter.getConsumerPolicy();
-		if (adapter instanceof MessageDispatcher) {
-			MessageDispatcher dispatcher = (MessageDispatcher) adapter;
-			this.dispatchers.add(dispatcher);
-			DispatcherTask dispatcherTask = new DispatcherTask(dispatcher, policy);
-			this.addDispatcherTask(dispatcherTask);
+		if (!this.initialized) {
+			this.initialize();
+		}
+		if (adapter instanceof MessagingTaskSchedulerAware) {
+			((MessagingTaskSchedulerAware) adapter).setMessagingTaskScheduler(this.taskScheduler);
+		}
+		if (adapter instanceof Lifecycle) {
+			this.lifecycleSourceAdapters.add((Lifecycle) adapter);
+			if (this.isRunning()) {
+				((Lifecycle) adapter).start();
+			}
 		}
 		if (logger.isInfoEnabled()) {
 			logger.info("registered source adapter '" + name + "'");
@@ -221,10 +262,13 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		if (targetAdapter instanceof AbstractTargetAdapter) {
 			AbstractTargetAdapter<?> adapter = (AbstractTargetAdapter<?>) targetAdapter;
 			adapter.setName(name);
-			this.handlers.put(name, targetAdapter);
+			this.handlers.put(name, adapter);
 			MessageChannel channel = adapter.getChannel();
-			ConsumerPolicy policy = adapter.getConsumerPolicy();
-			this.doActivate(channel, adapter, policy);
+			Schedule schedule = adapter.getSchedule();
+			ConcurrencyPolicy concurrencyPolicy = new ConcurrencyPolicy();
+			concurrencyPolicy.setCoreConcurrency(1);
+			concurrencyPolicy.setMaxConcurrency(1);
+			this.doActivate(channel, adapter, schedule, concurrencyPolicy);
 		}
 		if (logger.isInfoEnabled()) {
 			logger.info("registered target adapter '" + name + "'");
@@ -233,8 +277,9 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 
 	public void activateSubscription(Subscription subscription) {
 		String channelName = subscription.getChannel();
-		String handlerName = subscription.getReceiver();
-		ConsumerPolicy policy = subscription.getPolicy();
+		String handlerName = subscription.getHandler();
+		Schedule schedule = subscription.getSchedule();
+		ConcurrencyPolicy concurrencyPolicy = subscription.getConcurrencyPolicy();
 		MessageHandler handler = this.handlers.get(handlerName);
 		if (handler == null) {
 			throw new MessagingException("Cannot activate subscription, unknown handler '" + handlerName + "'");
@@ -251,57 +296,26 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			channel = new SimpleChannel(); 
 			this.registerChannel(channelName, channel);
 		}
-		this.doActivate(channel, handler, policy);
+		this.doActivate(channel, handler, schedule, concurrencyPolicy);
 		if (logger.isInfoEnabled()) {
 			logger.info("activated subscription to channel '" + channelName + 
 					"' for handler '" + handlerName + "'");
 		}
 	}
 
-	private void doActivate(MessageChannel channel, MessageHandler handler, ConsumerPolicy policy) {
-		PooledMessageHandler pooledHandler = new PooledMessageHandler(handler, policy.getConcurrency(), policy.getMaxConcurrency());
-		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
-		dispatcher.setRejectionLimit(policy.getRejectionLimit());
-		dispatcher.setRetryInterval(policy.getRetryInterval());
-		dispatcher.addHandler(pooledHandler);
-		DispatcherTask dispatcherTask = new DispatcherTask(dispatcher, policy);
+	private void doActivate(MessageChannel channel, MessageHandler handler, Schedule schedule, ConcurrencyPolicy concurrencyPolicy) {
+		MessageDispatcher dispatcher = dispatchers.get(channel);
+		if (dispatcher == null) {
+			if (logger.isWarnEnabled()) {
+				logger.warn("no dispatcher available for channel '" + channel + "', be sure to register the channel");
+			}
+		}
+		if (concurrencyPolicy != null) {
+			handler = new PooledMessageHandler(handler, concurrencyPolicy.getCoreConcurrency(), concurrencyPolicy.getMaxConcurrency());
+		}
+		dispatcher.addHandler(handler, schedule);
 		if (this.isRunning()) {
 			dispatcher.start();
-		}
-		this.dispatchers.add(dispatcher);
-		this.addDispatcherTask(dispatcherTask);
-		if (this.logger.isInfoEnabled()) {
-			logger.info("registered dispatcher task: channel='" +
-					channel.getName() + "' handler='" + handler + "'");
-		}
-	}
-
-	private void addDispatcherTask(DispatcherTask dispatcherTask) {
-		this.dispatcherTasks.add(dispatcherTask);
-		if (this.isRunning()) {
-			scheduleDispatcherTask(dispatcherTask);
-			if (this.logger.isInfoEnabled()) {
-				logger.info("scheduled dispatcher task");
-			}
-		}
-	}
-
-	private void scheduleDispatcherTask(DispatcherTask task) {
-		ConsumerPolicy policy = task.getPolicy();
-		if (policy.getPeriod() <= 0) {
-			if (policy.getReceiveTimeout() <= 0) {
-				if (logger.isWarnEnabled()) {
-					logger.warn("Scheduling a repeating task with no receive timeout is not recommended! " +
-							"Consider providing a positive value for either 'period' or 'receiveTimeout'");
-				}
-			}
-			dispatcherExecutor.schedule(new RepeatingDispatcherTask(task), policy.getInitialDelay(), policy.getTimeUnit());
-		}
-		else if (policy.isFixedRate()) {
-			dispatcherExecutor.scheduleAtFixedRate(task, policy.getInitialDelay(), policy.getPeriod(), policy.getTimeUnit());
-		}
-		else {
-			dispatcherExecutor.scheduleWithFixedDelay(task, policy.getInitialDelay(), policy.getPeriod(), policy.getTimeUnit());
 		}
 	}
 
@@ -312,22 +326,33 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 	}
 
 	public void start() {
-		if (this.dispatcherExecutor == null) {
+		if (!this.initialized) {
 			this.initialize();
 		}
+		if (this.isRunning() || this.starting) {
+			return;
+		}
+		this.starting = true;
 		synchronized (this.lifecycleMonitor) {
-			if (!this.isRunning()) {
-				this.running = true;
-				for (MessageDispatcher dispatcher : this.dispatchers) {
-					dispatcher.start();
-					if (logger.isInfoEnabled()) {
-						logger.info("started dispatcher '" + dispatcher + "'");
-					}
-				}
-				for (DispatcherTask task : this.dispatcherTasks) {
-					scheduleDispatcherTask(task);
+			this.taskScheduler.start();
+			this.running = true;
+			for (MessageDispatcher dispatcher : this.dispatchers.values()) {
+				dispatcher.start();
+				if (logger.isInfoEnabled()) {
+					logger.info("started dispatcher '" + dispatcher + "'");
 				}
 			}
+			for (Lifecycle adapter : this.lifecycleSourceAdapters) {
+				adapter.start();
+				if (logger.isInfoEnabled()) {
+					logger.info("started source adapter '" + adapter + "'");
+				}
+			}
+		}
+		this.running = true;
+		this.starting = false;
+		if (logger.isInfoEnabled()) {
+			logger.info("message bus started");
 		}
 	}
 
@@ -335,69 +360,20 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		synchronized (this.lifecycleMonitor) {
 			if (this.isRunning()) {
 				this.running = false;
-				this.dispatcherExecutor.shutdownNow();
-				for (MessageDispatcher dispatcher : this.dispatchers) {
+				this.taskScheduler.stop();
+				for (Lifecycle adapter : this.lifecycleSourceAdapters) {
+					adapter.stop();
+					if (logger.isInfoEnabled()) {
+						logger.info("stopped source adapter '" + adapter + "'");
+					}
+				}
+				for (MessageDispatcher dispatcher : this.dispatchers.values()) {
 					dispatcher.stop();
 					if (logger.isInfoEnabled()) {
 						logger.info("stopped dispatcher '" + dispatcher + "'");
 					}
 				}
 			}
-		}
-	}
-
-	private void handleDispatchError(DispatcherTask task, Throwable t) {
-		try {
-			this.getInvalidMessageChannel().send(new ErrorMessage(t), 1000);
-		}
-		catch (Throwable ignore) { // message will be logged only
-		}
-		if (logger.isWarnEnabled()) {
-			logger.warn("failure occurred while dispatching message", t);
-		}
-	}
-
-
-	private class DispatcherTask implements Runnable {
-
-		private MessageDispatcher dispatcher;
-
-		private ConsumerPolicy policy;
-
-
-		public DispatcherTask(MessageDispatcher dispatcher, ConsumerPolicy policy) {
-			this.dispatcher = dispatcher;
-			this.policy = policy;
-		}
-
-
-		public ConsumerPolicy getPolicy() {
-			return this.policy;
-		}
-
-		public void run() {
-			try {
-				dispatcher.dispatch();
-			}
-			catch (Throwable t) {
-				handleDispatchError(this, t);
-			}
-		}
-
-	}
-
-
-	private class RepeatingDispatcherTask implements Runnable {
-
-		private DispatcherTask task;
-
-		RepeatingDispatcherTask(DispatcherTask task) {
-			this.task = task;
-		}
-
-		public void run() {
-			task.run();
-			dispatcherExecutor.execute(new RepeatingDispatcherTask(task));
 		}
 	}
 

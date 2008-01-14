@@ -39,10 +39,10 @@ public class JmsSourceAdapterParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"pollingAdapterWithJmsTemplate.xml", this.getClass());
 		context.start();
-		MessageChannel channel = (MessageChannel) context.getBean("channel");
 		JmsPollingSourceAdapter adapter = (JmsPollingSourceAdapter) context.getBean("adapter");
-		adapter.dispatch();
-		Message<?> message = channel.receive(100);
+		adapter.processMessages();
+		MessageChannel channel = (MessageChannel) context.getBean("channel");
+		Message<?> message = channel.receive(500);
 		assertNotNull("message should not be null", message);
 		assertEquals("polling-test", message.getPayload());
 		context.stop();
@@ -53,10 +53,10 @@ public class JmsSourceAdapterParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"pollingAdapterWithConnectionFactoryAndDestination.xml", this.getClass());
 		context.start();
-		MessageChannel channel = (MessageChannel) context.getBean("channel");
 		JmsPollingSourceAdapter adapter = (JmsPollingSourceAdapter) context.getBean("adapter");
-		adapter.dispatch();
-		Message<?> message = channel.receive(100);
+		adapter.processMessages();
+		MessageChannel channel = (MessageChannel) context.getBean("channel");
+		Message<?> message = channel.receive(500);
 		assertNotNull("message should not be null", message);
 		assertEquals("polling-test", message.getPayload());
 		context.stop();
@@ -67,10 +67,10 @@ public class JmsSourceAdapterParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"pollingAdapterWithConnectionFactoryAndDestinationName.xml", this.getClass());
 		context.start();
-		MessageChannel channel = (MessageChannel) context.getBean("channel");
 		JmsPollingSourceAdapter adapter = (JmsPollingSourceAdapter) context.getBean("adapter");
-		adapter.dispatch();
-		Message<?> message = channel.receive(100);
+		adapter.processMessages();
+		MessageChannel channel = (MessageChannel) context.getBean("channel");
+		Message<?> message = channel.receive(500);
 		assertNotNull("message should not be null", message);
 		assertEquals("polling-test", message.getPayload());
 		context.stop();
@@ -81,10 +81,10 @@ public class JmsSourceAdapterParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageDrivenAdapterWithConnectionFactoryAndDestination.xml", this.getClass());
 		context.start();
-		MessageChannel channel = (MessageChannel) context.getBean("channel");
 		JmsMessageDrivenSourceAdapter adapter = (JmsMessageDrivenSourceAdapter) context.getBean("adapter");
 		assertEquals(JmsMessageDrivenSourceAdapter.class, adapter.getClass());
-		Message<?> message = channel.receive(100);
+		MessageChannel channel = (MessageChannel) context.getBean("channel");
+		Message<?> message = channel.receive(3000);
 		assertNotNull("message should not be null", message);
 		assertEquals("message-driven-test", message.getPayload());
 		context.stop();
@@ -95,10 +95,10 @@ public class JmsSourceAdapterParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageDrivenAdapterWithConnectionFactoryAndDestinationName.xml", this.getClass());
 		context.start();
-		MessageChannel channel = (MessageChannel) context.getBean("channel");
 		JmsMessageDrivenSourceAdapter adapter = (JmsMessageDrivenSourceAdapter) context.getBean("adapter");
 		assertEquals(JmsMessageDrivenSourceAdapter.class, adapter.getClass());
-		Message<?> message = channel.receive(100);
+		MessageChannel channel = (MessageChannel) context.getBean("channel");
+		Message<?> message = channel.receive(3000);
 		assertNotNull("message should not be null", message);
 		assertEquals("message-driven-test", message.getPayload());
 		context.stop();

@@ -16,7 +16,6 @@
 
 package org.springframework.integration.adapter;
 
-import org.springframework.integration.bus.ConsumerPolicy;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandler;
 
@@ -30,7 +29,5 @@ public interface TargetAdapter extends MessageHandler {
 	String getName();
 
 	void setChannel(MessageChannel channel);
-
-	ConsumerPolicy getConsumerPolicy();
 
 }

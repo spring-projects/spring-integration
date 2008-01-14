@@ -24,24 +24,27 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
+
 import org.springframework.integration.channel.SimpleChannel;
-import org.springframework.integration.endpoint.GenericMessageEndpoint;
+import org.springframework.integration.endpoint.ConcurrencyPolicy;
+import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.scheduling.PollingSchedule;
 
 /**
  * @author Mark Fisher
  */
 public class FixedDelayConsumerTests {
 
-	//@Test
+	@Test
 	public void testAllSentMessagesAreReceivedWithinTimeLimit() throws Exception {
 		int messagesToSend = 20;
 		final AtomicInteger counter = new AtomicInteger(0);
 		final CountDownLatch latch = new CountDownLatch(messagesToSend);
 		SimpleChannel channel = new SimpleChannel();
-		MessageEndpoint endpoint = new GenericMessageEndpoint() {
+		MessageEndpoint endpoint = new DefaultMessageEndpoint() {
 			@Override
 			public Message<?> handle(Message<?> message) {
 				counter.incrementAndGet();
@@ -50,18 +53,19 @@ public class FixedDelayConsumerTests {
 			}
 		};
 		MessageBus bus = new MessageBus();
+		bus.initialize();
 		bus.registerChannel("testChannel", channel);
 		bus.registerEndpoint("testEndpoint", endpoint);
-		ConsumerPolicy policy = new ConsumerPolicy();
-		policy.setConcurrency(1);
-		policy.setMaxConcurrency(1);
-		policy.setMaxMessagesPerTask(1);
-		policy.setFixedRate(true);
-		policy.setPeriod(10);
+		PollingSchedule schedule = new PollingSchedule(10);
+		schedule.setFixedRate(false);
+		ConcurrencyPolicy concurrencyPolicy = new ConcurrencyPolicy();
+		concurrencyPolicy.setCoreConcurrency(1);
+		concurrencyPolicy.setMaxConcurrency(1);
 		Subscription subscription = new Subscription();
+		subscription.setSchedule(schedule);
+		subscription.setConcurrencyPolicy(concurrencyPolicy);
 		subscription.setChannel("testChannel");
-		subscription.setReceiver("testEndpoint");
-		subscription.setPolicy(policy);
+		subscription.setHandler("testEndpoint");
 		bus.activateSubscription(subscription);
 		bus.start();
 		for (int i = 0; i < messagesToSend; i++) {
@@ -77,7 +81,7 @@ public class FixedDelayConsumerTests {
 		final AtomicInteger counter = new AtomicInteger(0);
 		final CountDownLatch latch = new CountDownLatch(messagesToSend);
 		SimpleChannel channel = new SimpleChannel();
-		MessageEndpoint endpoint = new GenericMessageEndpoint() {
+		MessageEndpoint endpoint = new DefaultMessageEndpoint() {
 			@Override
 			public Message<?> handle(Message<?> message) {
 				counter.incrementAndGet();
@@ -86,18 +90,15 @@ public class FixedDelayConsumerTests {
 			}
 		};
 		MessageBus bus = new MessageBus();
+		bus.initialize();
 		bus.registerChannel("testChannel", channel);
 		bus.registerEndpoint("testEndpoint", endpoint);
-		ConsumerPolicy policy = new ConsumerPolicy();
-		policy.setConcurrency(1);
-		policy.setMaxConcurrency(1);
-		policy.setMaxMessagesPerTask(1);
-		policy.setFixedRate(true);
-		policy.setPeriod(10);
+		PollingSchedule schedule = new PollingSchedule(10);
+		schedule.setFixedRate(false);
 		Subscription subscription = new Subscription();
 		subscription.setChannel("testChannel");
-		subscription.setReceiver("testEndpoint");
-		subscription.setPolicy(policy);
+		subscription.setHandler("testEndpoint");
+		subscription.setSchedule(schedule);
 		bus.activateSubscription(subscription);
 		for (int i = 0; i < messagesToSend; i++) {
 			channel.send(new GenericMessage<String>(1, "test " + (i+1)));

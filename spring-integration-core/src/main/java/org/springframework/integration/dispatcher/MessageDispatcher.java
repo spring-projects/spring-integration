@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.bus;
+package org.springframework.integration.dispatcher;
 
-import org.springframework.integration.MessageHandlingException;
+import org.springframework.context.Lifecycle;
+import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.scheduling.Schedule;
 
 /**
- * An exception indicating that a message was rejected by a handler; typically
- * this would be the result of a thread pool executor rejecting a handler task.
+ * Strategy interface for dispatching messages.
  * 
  * @author Mark Fisher
  */
-public class MessageHandlerRejectedExecutionException extends MessageHandlingException {
+public interface MessageDispatcher extends Lifecycle {
 
-	public MessageHandlerRejectedExecutionException(Throwable cause) {
-		super("handler rejected execution", cause);
-	}
+	void addHandler(MessageHandler handler);
 
-	public MessageHandlerRejectedExecutionException(String message, Throwable cause) {
-		super(message, cause);
-	}
+	void addHandler(MessageHandler handler, Schedule schedule);
 
 }

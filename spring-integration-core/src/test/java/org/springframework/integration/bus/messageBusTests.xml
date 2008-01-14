@@ -10,7 +10,7 @@
 
 	<bean id="targetChannel" class="org.springframework.integration.channel.SimpleChannel"/>
 
-	<bean id="endpoint" class="org.springframework.integration.endpoint.GenericMessageEndpoint">
+	<bean id="endpoint" class="org.springframework.integration.endpoint.DefaultMessageEndpoint">
 		<property name="inputChannelName" value="sourceChannel"/>
 		<property name="defaultOutputChannelName" value="targetChannel"/>
 	</bean>

@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.bus;
+package org.springframework.integration.dispatcher;
 
 import org.springframework.integration.MessageHandlingException;
 
 /**
- * An exception indicating that a message was rejected by an implementation of
- * {@link org.springframework.integration.message.selector.MessageSelector}.
+ * An exception indicating that a handler is not currently running.
  * 
  * @author Mark Fisher
  */
-public class MessageSelectorRejectedException extends MessageHandlingException {
+public class MessageHandlerNotRunningException extends MessageHandlingException {
 
-	public MessageSelectorRejectedException(String message) {
-		super(message);
+	public MessageHandlerNotRunningException() {
+		super("handler is not running");
 	}
 
 }

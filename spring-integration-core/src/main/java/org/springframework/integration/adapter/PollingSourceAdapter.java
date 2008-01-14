@@ -18,11 +18,16 @@ package org.springframework.integration.adapter;
 
 import java.util.Collection;
 
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.bus.ConsumerPolicy;
-import org.springframework.integration.bus.MessageDispatcher;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.MessageMapper;
+import org.springframework.integration.scheduling.MessagingTask;
+import org.springframework.integration.scheduling.MessagingTaskScheduler;
+import org.springframework.integration.scheduling.MessagingTaskSchedulerAware;
+import org.springframework.integration.scheduling.PollingSchedule;
+import org.springframework.integration.scheduling.Schedule;
+import org.springframework.integration.scheduling.SimpleMessagingTaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -32,11 +37,17 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class PollingSourceAdapter<T> extends AbstractSourceAdapter<T> implements MessageDispatcher {
-
-	private static int DEFAULT_PERIOD = 1000;
+public class PollingSourceAdapter<T> extends AbstractSourceAdapter<T> implements MessagingTaskSchedulerAware, Lifecycle {
 
 	private PollableSource<T> source;
+
+	private PollingSchedule schedule = new PollingSchedule(1000);
+
+	private MessagingTaskScheduler scheduler;
+
+	private int maxMessagesPerTask = 1;
+
+	private volatile boolean starting;
 
 	private volatile boolean running;
 
@@ -44,7 +55,26 @@ public class PollingSourceAdapter<T> extends AbstractSourceAdapter<T> implements
 	public PollingSourceAdapter(PollableSource<T> source) {
 		Assert.notNull(source, "'source' must not be null");
 		this.source = source;
-		this.setConsumerPolicy(ConsumerPolicy.newPollingPolicy(DEFAULT_PERIOD));
+	}
+
+
+	public void setInitialDelay(long intialDelay) {
+		Assert.isTrue(intialDelay >= 0, "'intialDelay' must not be negative");
+		this.schedule.setInitialDelay(intialDelay);
+	}
+
+	public void setPeriod(long period) {
+		this.schedule.setPeriod(period);
+	}
+
+	public void setMaxMessagesPerTask(int maxMessagesPerTask) {
+		Assert.isTrue(maxMessagesPerTask > 0, "'maxMessagesPerTask' must be at least one");
+		this.maxMessagesPerTask = maxMessagesPerTask;
+	}
+
+	public void setMessagingTaskScheduler(MessagingTaskScheduler scheduler) {
+		Assert.notNull(scheduler, "scheduler must not be null");
+		this.scheduler = scheduler;
 	}
 
 	protected PollableSource<T> getSource() {
@@ -56,32 +86,42 @@ public class PollingSourceAdapter<T> extends AbstractSourceAdapter<T> implements
 	}
 
 	public void start() {
+		if (this.isRunning() || this.starting) {
+			return;
+		}
+		this.starting = true;
 		if (!this.isInitialized()) {
 			this.afterPropertiesSet();
 		}
+		if (this.scheduler == null) {
+			if (logger.isInfoEnabled()) {
+				logger.info("no task scheduler has been provided, will create one");
+			}
+			SimpleMessagingTaskScheduler taskScheduler = new SimpleMessagingTaskScheduler();
+			taskScheduler.setCorePoolSize(1);
+			this.scheduler = taskScheduler;
+		}
+		if (!this.scheduler.isRunning()) {
+			this.scheduler.start();
+		}
+		this.scheduler.schedule(new PollingSourceAdapterTask());
 		this.running = true;
+		this.starting = false;
 	}
 
 	public void stop() {
 		this.running = false;
 	}
 
-	public void setPeriod(int period) {
-		Assert.isTrue(period > 0, "'period' must be a positive value");
-		this.getConsumerPolicy().setPeriod(period);
-	}
-
-	public void setMaxMessagesPerTask(int maxMessagesPerTask) {
-		Assert.isTrue(maxMessagesPerTask > 0, "'maxMessagesPerTask' must be a positive value");
-		this.getConsumerPolicy().setMaxMessagesPerTask(maxMessagesPerTask);
-	}
-
-	public int dispatch() {
+	public int processMessages() {
 		if (!this.isRunning()) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("source adapter not polling since it has not yet been started");
+			}
 			return 0;
 		}
 		int messagesProcessed = 0;
-		int limit = this.getConsumerPolicy().getMaxMessagesPerTask();
+		int limit = this.maxMessagesPerTask;
 		Collection<T> results = this.source.poll(limit);
 		if (results != null) {
 			if (results.size() > limit) {
@@ -94,6 +134,18 @@ public class PollingSourceAdapter<T> extends AbstractSourceAdapter<T> implements
 			}
 		}
 		return messagesProcessed;
+	}
+
+
+	private class PollingSourceAdapterTask implements MessagingTask {
+
+		public void run() {
+			processMessages();
+		}
+
+		public Schedule getSchedule() {
+			return schedule;
+		}
 	}
 
 }

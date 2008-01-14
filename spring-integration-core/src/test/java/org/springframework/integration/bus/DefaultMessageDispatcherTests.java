@@ -17,6 +17,8 @@
 package org.springframework.integration.bus;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -26,15 +28,20 @@ import org.junit.Test;
 
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.channel.SimpleChannel;
-import org.springframework.integration.endpoint.GenericMessageEndpoint;
+import org.springframework.integration.dispatcher.DefaultMessageDispatcher;
+import org.springframework.integration.dispatcher.MessageHandlerRejectedExecutionException;
+import org.springframework.integration.endpoint.DefaultMessageEndpoint;
+import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.selector.PayloadTypeSelector;
+import org.springframework.integration.scheduling.MessagePublishingErrorHandler;
+import org.springframework.integration.scheduling.SimpleMessagingTaskScheduler;
 
 /**
  * @author Mark Fisher
  */
-public class ChannelPollingMessageDispatcherTests {
+public class DefaultMessageDispatcherTests {
 
 	@Test
 	public void testNonBroadcastingDispatcherSendsToExactlyOneEndpoint() throws InterruptedException {
@@ -43,14 +50,15 @@ public class ChannelPollingMessageDispatcherTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		TestEndpoint endpoint1 = new TestEndpoint(counter1, latch);
 		TestEndpoint endpoint2 = new TestEndpoint(counter2, latch);		
-		ConsumerPolicy policy = new ConsumerPolicy();
 		SimpleChannel channel = new SimpleChannel();
 		channel.send(new StringMessage(1, "test"));
-		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
 		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1));
 		dispatcher.addHandler(new PooledMessageHandler(endpoint2, 1, 1));
+		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler();
+		scheduler.start();
+		dispatcher.setMessagingTaskScheduler(scheduler);
 		dispatcher.start();
-		dispatcher.dispatch();
 		latch.await(100, TimeUnit.MILLISECONDS);
 		assertEquals("exactly one endpoint should have received message", 1, counter1.get() + counter2.get());
 	}
@@ -62,15 +70,13 @@ public class ChannelPollingMessageDispatcherTests {
 		final CountDownLatch latch = new CountDownLatch(2);
 		TestEndpoint endpoint1 = new TestEndpoint(counter1, latch);
 		TestEndpoint endpoint2 = new TestEndpoint(counter2, latch);		
-		ConsumerPolicy policy = new ConsumerPolicy();
 		SimpleChannel channel = new SimpleChannel();
+		channel.setBroadcaster(true);
 		channel.send(new StringMessage(1, "test"));
-		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
-		dispatcher.setBroadcast(true);
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
 		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1));
 		dispatcher.addHandler(new PooledMessageHandler(endpoint2, 1, 1));
 		dispatcher.start();
-		dispatcher.dispatch();
 		latch.await(100, TimeUnit.MILLISECONDS);
 		assertEquals("both endpoints should have received message", 2, counter1.get() + counter2.get());
 	}
@@ -84,10 +90,9 @@ public class ChannelPollingMessageDispatcherTests {
 		TestEndpoint endpoint1 = new TestEndpoint(counter1, latch);
 		TestEndpoint endpoint2 = new TestEndpoint(counter2, latch);
 		TestEndpoint endpoint3 = new TestEndpoint(counter3, latch);
-		ConsumerPolicy policy = new ConsumerPolicy();
 		SimpleChannel channel = new SimpleChannel();
 		channel.send(new StringMessage(1, "test"));
-		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
 		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1) {
 			@Override
 			public void start() {
@@ -96,7 +101,6 @@ public class ChannelPollingMessageDispatcherTests {
 		dispatcher.addHandler(new PooledMessageHandler(endpoint2, 1, 1));
 		dispatcher.addHandler(new PooledMessageHandler(endpoint3, 1, 1));
 		dispatcher.start();
-		dispatcher.dispatch();
 		latch.await(100, TimeUnit.MILLISECONDS);
 		assertEquals("inactive endpoint should not have received message", 0, counter1.get());
 		assertEquals("exactly one endpoint should have received message", 1, counter2.get() + counter3.get());
@@ -111,11 +115,10 @@ public class ChannelPollingMessageDispatcherTests {
 		TestEndpoint endpoint1 = new TestEndpoint(counter1, latch);
 		TestEndpoint endpoint2 = new TestEndpoint(counter2, latch);
 		TestEndpoint endpoint3 = new TestEndpoint(counter3, latch);
-		ConsumerPolicy policy = new ConsumerPolicy();
 		SimpleChannel channel = new SimpleChannel();
+		channel.setBroadcaster(true);
 		channel.send(new StringMessage(1, "test"));
-		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
-		dispatcher.setBroadcast(true);
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
 		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1));
 		dispatcher.addHandler(new PooledMessageHandler(endpoint2, 1, 1) {
 			@Override
@@ -124,23 +127,21 @@ public class ChannelPollingMessageDispatcherTests {
 		});
 		dispatcher.addHandler(new PooledMessageHandler(endpoint3, 1, 1));
 		dispatcher.start();
-		dispatcher.dispatch();
 		latch.await(100, TimeUnit.MILLISECONDS);
 		assertEquals("inactive endpoint should not have received message", 0, counter2.get());
 		assertEquals("both active endpoints should have received message", 2, counter1.get() + counter3.get());
 	}
 
 	@Test
-	public void testDispatcherWithNoExecutors() {
-		ConsumerPolicy policy = new ConsumerPolicy();
+	public void testDispatcherWithNoExecutorsDoesNotFail() {
 		SimpleChannel channel = new SimpleChannel();
 		channel.send(new StringMessage(1, "test"));
-		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
-		assertEquals(0, dispatcher.dispatch());
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
+		dispatcher.start();
 	}
 
-	@Test(expected=MessageDeliveryException.class)
-	public void testBroadcastingDispatcherReachesRejectionLimitAndShouldFail() {
+	@Test
+	public void testBroadcastingDispatcherReachesRejectionLimitAndShouldFail() throws InterruptedException {
 		final AtomicInteger counter1 = new AtomicInteger();
 		final AtomicInteger counter2 = new AtomicInteger();
 		final AtomicInteger counter3 = new AtomicInteger();
@@ -148,23 +149,30 @@ public class ChannelPollingMessageDispatcherTests {
 		TestEndpoint endpoint1 = new TestEndpoint(counter1, latch);
 		TestEndpoint endpoint2 = new TestEndpoint(counter2, latch);
 		TestEndpoint endpoint3 = new TestEndpoint(counter3, latch);
-		ConsumerPolicy policy = new ConsumerPolicy();
 		SimpleChannel channel = new SimpleChannel();
+		channel.setBroadcaster(true);
 		channel.send(new StringMessage(1, "test"));
-		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
-		dispatcher.setBroadcast(true);
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
 		dispatcher.setRejectionLimit(2);
 		dispatcher.setRetryInterval(3);
 		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1));
 		dispatcher.addHandler(new PooledMessageHandler(endpoint2, 1, 1) {
 			@Override
-			public Message handle(Message<?> message) {
-				throw new MessageHandlerRejectedExecutionException(null);
+			public Message<?> handle(Message<?> message) {
+				throw new MessageHandlerRejectedExecutionException();
 			}
 		});
 		dispatcher.addHandler(new PooledMessageHandler(endpoint3, 1, 1));
+		SimpleChannel errorChannel = new SimpleChannel();
+		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler();
+		scheduler.setErrorHandler(new MessagePublishingErrorHandler(errorChannel));
+		dispatcher.setMessagingTaskScheduler(scheduler);
 		dispatcher.start();
-		dispatcher.dispatch();
+		latch.await(500, TimeUnit.MILLISECONDS);
+		Message<?> errorMessage = errorChannel.receive(100);
+		assertNotNull(errorMessage);
+		assertTrue(errorMessage instanceof ErrorMessage);
+		assertEquals(MessageDeliveryException.class, ((ErrorMessage) errorMessage).getPayload().getClass());
 	}
 
 	@Test
@@ -176,90 +184,95 @@ public class ChannelPollingMessageDispatcherTests {
 		TestEndpoint endpoint1 = new TestEndpoint(counter1, latch);
 		TestEndpoint endpoint2 = new TestEndpoint(counter2, latch);
 		TestEndpoint endpoint3 = new TestEndpoint(counter3, latch);
-		ConsumerPolicy policy = new ConsumerPolicy();
 		SimpleChannel channel = new SimpleChannel();
+		channel.setBroadcaster(true);
 		channel.send(new StringMessage(1, "test"));
-		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
-		dispatcher.setBroadcast(true);
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
 		dispatcher.setRejectionLimit(2);
 		dispatcher.setRetryInterval(3);
 		dispatcher.setShouldFailOnRejectionLimit(false);
 		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1));
 		dispatcher.addHandler(new PooledMessageHandler(endpoint2, 1, 1) {
 			@Override
-			public Message handle(Message<?> message) {
-				throw new MessageHandlerRejectedExecutionException(null);
+			public Message<?> handle(Message<?> message) {
+				throw new MessageHandlerRejectedExecutionException();
 			}
 		});
 		dispatcher.addHandler(new PooledMessageHandler(endpoint3, 1, 1));
 		dispatcher.start();
-		dispatcher.dispatch();
 		latch.await(100, TimeUnit.MILLISECONDS);
 		assertEquals("rejecting endpoint should not have received message", 0, counter2.get());
 		assertEquals("both non-rejecting endpoints should have received message", 2, counter1.get() + counter3.get());
 	}
 
-	@Test(expected=MessageDeliveryException.class)
+	@Test
 	public void testNonBroadcastingDispatcherReachesRejectionLimitAndShouldFail() {
 		final AtomicInteger counter1 = new AtomicInteger();
 		final AtomicInteger counter2 = new AtomicInteger();
 		final CountDownLatch latch = new CountDownLatch(1);
 		TestEndpoint endpoint1 = new TestEndpoint(counter1, latch);
 		TestEndpoint endpoint2 = new TestEndpoint(counter2, latch);
-		ConsumerPolicy policy = new ConsumerPolicy();
 		SimpleChannel channel = new SimpleChannel();
 		channel.send(new StringMessage(1, "test"));
-		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
 		dispatcher.setRejectionLimit(2);
 		dispatcher.setRetryInterval(3);
 		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1) {
 			@Override
-			public Message handle(Message<?> message) {
-				throw new MessageHandlerRejectedExecutionException(null);
+			public Message<?> handle(Message<?> message) {
+				throw new MessageHandlerRejectedExecutionException();
 			}
 		});
 		dispatcher.addHandler(new PooledMessageHandler(endpoint2, 1, 1) {
 			@Override
-			public Message handle(Message<?> message) {
-				throw new MessageHandlerRejectedExecutionException(null);
+			public Message<?> handle(Message<?> message) {
+				throw new MessageHandlerRejectedExecutionException();
 			}
 		});
+		SimpleChannel errorChannel = new SimpleChannel();
+		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler();
+		scheduler.setErrorHandler(new MessagePublishingErrorHandler(errorChannel));
+		dispatcher.setMessagingTaskScheduler(scheduler);
 		dispatcher.start();
-		dispatcher.dispatch();
+		Message<?> errorMessage = errorChannel.receive(100);
+		assertNotNull(errorMessage);
+		assertTrue(errorMessage instanceof ErrorMessage);
+		assertEquals(MessageDeliveryException.class, ((ErrorMessage) errorMessage).getPayload().getClass());
 	}
 
 	@Test
-	public void testNonBroadcastingDispatcherReachesRejectionLimitButShouldNotFail() {
+	public void testNonBroadcastingDispatcherReachesRejectionLimitButShouldNotFail() throws InterruptedException {
 		final AtomicInteger counter1 = new AtomicInteger();
 		final AtomicInteger counter2 = new AtomicInteger();
 		final AtomicInteger rejectedCounter1 = new AtomicInteger();
 		final AtomicInteger rejectedCounter2 = new AtomicInteger();
-		final CountDownLatch latch = new CountDownLatch(1);
+		final CountDownLatch latch = new CountDownLatch(4);
 		TestEndpoint endpoint1 = new TestEndpoint(counter1, latch);
 		TestEndpoint endpoint2 = new TestEndpoint(counter2, latch);
-		ConsumerPolicy policy = new ConsumerPolicy();
 		SimpleChannel channel = new SimpleChannel();
 		channel.send(new StringMessage(1, "test"));
-		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
 		dispatcher.setRejectionLimit(2);
 		dispatcher.setRetryInterval(3);
 		dispatcher.setShouldFailOnRejectionLimit(false);
 		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1) {
 			@Override
-			public Message handle(Message<?> message) {
+			public Message<?> handle(Message<?> message) {
 				rejectedCounter1.incrementAndGet();
-				throw new MessageHandlerRejectedExecutionException(null);
+				latch.countDown();
+				throw new MessageHandlerRejectedExecutionException();
 			}
 		});
 		dispatcher.addHandler(new PooledMessageHandler(endpoint2, 1, 1) {
 			@Override
-			public Message handle(Message<?> message) {
+			public Message<?> handle(Message<?> message) {
 				rejectedCounter2.incrementAndGet();
-				throw new MessageHandlerRejectedExecutionException(null);
+				latch.countDown();
+				throw new MessageHandlerRejectedExecutionException();
 			}
 		});
 		dispatcher.start();
-		dispatcher.dispatch();
+		latch.await(100, TimeUnit.MILLISECONDS);
 		assertEquals("rejecting endpoints should not have received message", 0, counter1.get() + counter2.get());
 		assertEquals("endpoint1 should have rejected two times", 2, rejectedCounter1.get());
 		assertEquals("endpoint2 should have rejected two times", 2, rejectedCounter2.get());
@@ -277,39 +290,37 @@ public class ChannelPollingMessageDispatcherTests {
 		TestEndpoint endpoint1 = new TestEndpoint(counter1, latch);
 		TestEndpoint endpoint2 = new TestEndpoint(counter2, latch);
 		TestEndpoint endpoint3 = new TestEndpoint(counter3, latch);
-		ConsumerPolicy policy = new ConsumerPolicy();
 		SimpleChannel channel = new SimpleChannel();
 		channel.send(new StringMessage(1, "test"));
-		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
 		dispatcher.setRejectionLimit(2);
 		dispatcher.setRetryInterval(3);
 		dispatcher.setShouldFailOnRejectionLimit(false);
 		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1) {
 			@Override
-			public Message handle(Message<?> message) {
+			public Message<?> handle(Message<?> message) {
 				rejectedCounter1.incrementAndGet();
-				throw new MessageHandlerRejectedExecutionException(null);
+				throw new MessageHandlerRejectedExecutionException();
 			}
 		});
 		dispatcher.addHandler(new PooledMessageHandler(endpoint2, 1, 1) {
 			@Override
-			public Message handle(Message<?> message) {
+			public Message<?> handle(Message<?> message) {
 				if (rejectedCounter2.get() == 1) {
 					return super.handle(message);
 				}
 				rejectedCounter2.incrementAndGet();
-				throw new MessageHandlerRejectedExecutionException(null);
+				throw new MessageHandlerRejectedExecutionException();
 			}
 		});
 		dispatcher.addHandler(new PooledMessageHandler(endpoint3, 1, 1) {
 			@Override
-			public Message handle(Message<?> message) {
+			public Message<?> handle(Message<?> message) {
 				rejectedCounter3.incrementAndGet();
-				throw new MessageHandlerRejectedExecutionException(null);
+				throw new MessageHandlerRejectedExecutionException();
 			}
 		});
 		dispatcher.start();
-		dispatcher.dispatch();
 		latch.await(100, TimeUnit.MILLISECONDS);
 		assertEquals("endpoint1 should not have received message", 0, counter1.get());
 		assertEquals("endpoint2 should have received message the second time", 1, counter2.get());
@@ -328,36 +339,34 @@ public class ChannelPollingMessageDispatcherTests {
 		final CountDownLatch latch = new CountDownLatch(2);
 		TestEndpoint endpoint1 = new TestEndpoint(counter1, latch);
 		TestEndpoint endpoint2 = new TestEndpoint(counter2, latch);
-		ConsumerPolicy policy = new ConsumerPolicy();
 		SimpleChannel channel = new SimpleChannel();
+		channel.setBroadcaster(true);
 		channel.send(new StringMessage(1, "test"));
-		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
-		dispatcher.setBroadcast(true);
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
 		dispatcher.setRejectionLimit(5);
 		dispatcher.setRetryInterval(3);
 		dispatcher.setShouldFailOnRejectionLimit(false);
 		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1) {
 			@Override
-			public Message handle(Message<?> message) {
+			public Message<?> handle(Message<?> message) {
 				if (rejectedCounter1.get() == 2) {
 					return super.handle(message);
 				}
 				rejectedCounter1.incrementAndGet();
-				throw new MessageHandlerRejectedExecutionException(null);
+				throw new MessageHandlerRejectedExecutionException();
 			}
 		});
 		dispatcher.addHandler(new PooledMessageHandler(endpoint2, 1, 1) {
 			@Override
-			public Message handle(Message<?> message) {
+			public Message<?> handle(Message<?> message) {
 				if (rejectedCounter2.get() == 4) {
 					return super.handle(message);
 				}
 				rejectedCounter2.incrementAndGet();
-				throw new MessageHandlerRejectedExecutionException(null);
+				throw new MessageHandlerRejectedExecutionException();
 			}
 		});
 		dispatcher.start();
-		dispatcher.dispatch();
 		latch.await(100, TimeUnit.MILLISECONDS);
 		assertEquals("endpoint1 should have received one message", 1, counter1.get());
 		assertEquals("endpoint2 should have received one message", 1, counter2.get());
@@ -372,10 +381,9 @@ public class ChannelPollingMessageDispatcherTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		TestEndpoint endpoint1 = new TestEndpoint(counter1, latch);
 		TestEndpoint endpoint2 = new TestEndpoint(counter2, latch);
-		ConsumerPolicy policy = new ConsumerPolicy();
 		SimpleChannel channel = new SimpleChannel();
 		channel.send(new StringMessage(1, "test"));
-		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
 		PooledMessageHandler executor1 = new PooledMessageHandler(endpoint1, 1, 1);
 		PooledMessageHandler executor2 = new PooledMessageHandler(endpoint2, 1, 1);
 		executor1.addMessageSelector(new PayloadTypeSelector(Integer.class));
@@ -383,7 +391,6 @@ public class ChannelPollingMessageDispatcherTests {
 		dispatcher.addHandler(executor1);
 		dispatcher.addHandler(executor2);
 		dispatcher.start();
-		dispatcher.dispatch();
 		latch.await(100, TimeUnit.MILLISECONDS);
 		assertEquals("endpoint1 should not have accepted the message", 0, counter1.get());
 		assertEquals("endpoint2 should have accepted the message", 1, counter2.get());
@@ -399,13 +406,12 @@ public class ChannelPollingMessageDispatcherTests {
 		final CountDownLatch endpointLatch = new CountDownLatch(1);
 		TestEndpoint endpoint1 = new TestEndpoint(counter1, endpointLatch);
 		TestEndpoint endpoint2 = new TestEndpoint(counter2, endpointLatch);
-		ConsumerPolicy policy = new ConsumerPolicy();
 		SimpleChannel channel = new SimpleChannel();
 		channel.send(new StringMessage(1, "test"));
-		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
 		PooledMessageHandler executor1 = new PooledMessageHandler(endpoint1, 1, 1) {
 			@Override
-			public Message handle(Message<?> message) {
+			public Message<?> handle(Message<?> message) {
 				attemptedCounter1.incrementAndGet();
 				attemptedLatch.countDown();
 				return super.handle(message);
@@ -413,7 +419,7 @@ public class ChannelPollingMessageDispatcherTests {
 		};
 		PooledMessageHandler executor2 = new PooledMessageHandler(endpoint2, 1, 1) {
 			@Override
-			public Message handle(Message<?> message) {
+			public Message<?> handle(Message<?> message) {
 				attemptedCounter2.incrementAndGet();
 				attemptedLatch.countDown();
 				return super.handle(message);
@@ -424,7 +430,6 @@ public class ChannelPollingMessageDispatcherTests {
 		dispatcher.addHandler(executor1);
 		dispatcher.addHandler(executor2);
 		dispatcher.start();
-		dispatcher.dispatch();
 		attemptedLatch.await(100, TimeUnit.MILLISECONDS);
 		assertEquals("endpoint1 should not have accepted the message", 0, counter1.get());
 		assertEquals("endpoint2 should not have accepted the message", 0, counter2.get());
@@ -441,11 +446,10 @@ public class ChannelPollingMessageDispatcherTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		TestEndpoint endpoint1 = new TestEndpoint(counter1, latch);
 		TestEndpoint endpoint2 = new TestEndpoint(counter2, latch);
-		ConsumerPolicy policy = new ConsumerPolicy();
 		SimpleChannel channel = new SimpleChannel();
+		channel.setBroadcaster(true);
 		channel.send(new StringMessage(1, "test"));
-		ChannelPollingMessageDispatcher dispatcher = new ChannelPollingMessageDispatcher(channel, policy);
-		dispatcher.setBroadcast(true);
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
 		PooledMessageHandler executor1 = new PooledMessageHandler(endpoint1, 1, 1);
 		PooledMessageHandler executor2 = new PooledMessageHandler(endpoint2, 1, 1);
 		executor1.addMessageSelector(new PayloadTypeSelector(Integer.class));
@@ -453,14 +457,12 @@ public class ChannelPollingMessageDispatcherTests {
 		dispatcher.addHandler(executor1);
 		dispatcher.addHandler(executor2);
 		dispatcher.start();
-		dispatcher.dispatch();
 		latch.await(100, TimeUnit.MILLISECONDS);
 		assertEquals("endpoint1 should not have accepted the message", 0, counter1.get());
 		assertEquals("endpoint2 should have accepted the message", 1, counter2.get());
 	}
 
-
-	private static class TestEndpoint extends GenericMessageEndpoint {
+	private static class TestEndpoint extends DefaultMessageEndpoint {
 
 		private AtomicInteger counter;
 
@@ -473,7 +475,7 @@ public class ChannelPollingMessageDispatcherTests {
 		}
 
 		@Override
-		public Message handle(Message message) {
+		public Message<?> handle(Message<?> message) {
 			counter.incrementAndGet();
 			latch.countDown();
 			return null;

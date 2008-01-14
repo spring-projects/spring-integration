@@ -99,7 +99,8 @@
 			<xsd:complexContent>
 				<xsd:extension base="beans:identifiedType">
 					<xsd:sequence>
-						<xsd:element ref="consumer" minOccurs="0" maxOccurs="1"/>
+						<xsd:element ref="schedule" minOccurs="0" maxOccurs="1"/>
+						<xsd:element ref="concurrency-policy" minOccurs="0" maxOccurs="1"/>
 						<xsd:element ref="handler" minOccurs="0" maxOccurs="unbounded"/>
 					</xsd:sequence>
 					<xsd:attribute name="input-channel" type="xsd:string"/>
@@ -111,14 +112,26 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="consumer">
+	<xsd:element name="schedule">
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a consumer policy.
+	Defines a schedule.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:attribute name="period" type="xsd:int"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="concurrency-policy">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a concurrency policy.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="core" type="xsd:int"/>
+			<xsd:attribute name="max" type="xsd:int"/>
 		</xsd:complexType>
 	</xsd:element>
 

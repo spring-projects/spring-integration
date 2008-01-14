@@ -16,12 +16,17 @@
 
 package org.springframework.integration.scheduling;
 
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.util.ErrorHandler;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 
 /**
@@ -36,6 +41,18 @@ public class SimpleMessagingTaskScheduler extends AbstractMessagingTaskScheduler
 
 	private int corePoolSize = 10;
 
+	private ThreadFactory threadFactory;
+
+	private String threadNamePrefix = this.getClass().getSimpleName() + "-";
+
+	private ErrorHandler errorHandler;
+
+	private Set<Runnable> pendingTasks = new CopyOnWriteArraySet<Runnable>();
+
+	private volatile boolean running;
+
+	private Object lifecycleMonitor = new Object();
+
 
 	public void setExecutor(ScheduledExecutorService executor) {
 		Assert.notNull(executor, "'executor' must not be null");
@@ -47,47 +64,108 @@ public class SimpleMessagingTaskScheduler extends AbstractMessagingTaskScheduler
 		this.corePoolSize = corePoolSize;
 	}
 
+	public void setThreadFactory(ThreadFactory threadFactory) {
+		this.threadFactory = threadFactory;
+	}
+
+	public void setThreadNamePrefix(String threadNamePrefix) {
+		Assert.notNull(threadNamePrefix, "'threadNamePrefix' must not be null");
+		this.threadNamePrefix = threadNamePrefix;
+	}
+
+	public void setErrorHandler(ErrorHandler errorHandler) {
+		this.errorHandler = errorHandler;
+	}
+
 	public void afterPropertiesSet() {
 		if (this.executor == null) {
-			this.executor = new ScheduledThreadPoolExecutor(this.corePoolSize);
+			if (this.threadFactory == null) {
+				this.threadFactory = new CustomizableThreadFactory(this.threadNamePrefix);
+			}
+			this.executor = new ScheduledThreadPoolExecutor(this.corePoolSize, this.threadFactory);
+		}
+	}
+
+	public boolean isRunning() {
+		return this.running;
+	}
+
+	public void start() {
+		if (this.executor == null) {
+			this.afterPropertiesSet();
+		}
+		synchronized (this.lifecycleMonitor) {
+			this.running = true;
+			for (Runnable task : this.pendingTasks) {
+				this.schedule(task);
+			}
+			this.pendingTasks.clear();
+		}
+	}
+
+	public void stop() {
+		if (this.isRunning()) {
+			this.running = false;
+			this.executor.shutdownNow();
 		}
 	}
 
 	@Override
-	public ScheduledFuture<?> schedule(MessagingTask task) {
-		if (this.executor == null) {
-			this.afterPropertiesSet();
+	public ScheduledFuture<?> schedule(Runnable task) {
+		if (!this.isRunning()) {
+			this.pendingTasks.add(task);
+			return null;
 		}
-		Schedule schedule = task.getSchedule();
+		Schedule schedule = (task instanceof MessagingTask) ? ((MessagingTask) task).getSchedule() : null;
+		MessagingTaskRunner runner = new MessagingTaskRunner(task);
 		if (schedule == null) {
-			return this.executor.schedule(task, 0, TimeUnit.MILLISECONDS);
+			return this.executor.schedule(runner, 0, TimeUnit.MILLISECONDS);
 		}
 		if (schedule instanceof PollingSchedule) {
 			PollingSchedule ps = (PollingSchedule) schedule;
 			if (ps.getPeriod() <= 0) {
-				return this.executor.schedule(new RepeatingTask(task), ps.getInitialDelay(), ps.getTimeUnit());
+				runner.setShouldRepeat(true);
+				return this.executor.schedule(runner, ps.getInitialDelay(), ps.getTimeUnit());
 			}
 			if (ps.getFixedRate()) {
-				return this.executor.scheduleAtFixedRate(task, ps.getInitialDelay(), ps.getPeriod(), ps.getTimeUnit());
+				return this.executor.scheduleAtFixedRate(runner, ps.getInitialDelay(), ps.getPeriod(), ps.getTimeUnit());
 			}
-			return this.executor.scheduleWithFixedDelay(task, ps.getInitialDelay(), ps.getPeriod(), ps.getTimeUnit());
+			return this.executor.scheduleWithFixedDelay(runner, ps.getInitialDelay(), ps.getPeriod(), ps.getTimeUnit());
 		}
 		throw new UnsupportedOperationException(this.getClass().getName() + " does not support schedule type '"
 				+ schedule.getClass().getName() + "'");
 	}
 
 
-	private class RepeatingTask implements Runnable {
+	private class MessagingTaskRunner implements Runnable {
 
-		private MessagingTask task;
+		private Runnable task;
 
-		RepeatingTask(MessagingTask task) {
+		private boolean shouldRepeat;
+
+
+		public MessagingTaskRunner(Runnable task) {
 			this.task = task;
 		}
 
+		public void setShouldRepeat(boolean shouldRepeat) {
+			this.shouldRepeat = shouldRepeat;
+		}
+
 		public void run() {
-			task.run();
-			executor.execute(new RepeatingTask(task));
+			try {
+				this.task.run();
+			}
+			catch (Throwable t) {
+				if (errorHandler != null) {
+					errorHandler.handle(t);
+				}
+			}
+			if (this.shouldRepeat) {
+				MessagingTaskRunner runner = new MessagingTaskRunner(this.task);
+				runner.setShouldRepeat(true);
+				executor.execute(runner);
+			}
 		}
 	}
 

@@ -18,6 +18,7 @@ package org.springframework.integration.scheduling;
 
 import java.util.concurrent.ScheduledFuture;
 
+import org.springframework.context.Lifecycle;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 
 /**
@@ -25,8 +26,8 @@ import org.springframework.scheduling.SchedulingTaskExecutor;
  * 
  * @author Mark Fisher
  */
-public interface MessagingTaskScheduler extends SchedulingTaskExecutor {
+public interface MessagingTaskScheduler extends SchedulingTaskExecutor, Lifecycle {
 
-	ScheduledFuture<?> schedule(MessagingTask task);
+	ScheduledFuture<?> schedule(Runnable task);
 
 }

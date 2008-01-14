@@ -19,26 +19,18 @@ package org.springframework.integration.endpoint;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingConfigurationException;
-import org.springframework.integration.bus.ConsumerPolicy;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.scheduling.Schedule;
 
 /**
- * A generic endpoint implementation designed to accommodate a variety of
- * strategies including:
- * <ul>
- *   <li><i>source channel-adapter:</i> source adapter + target channel</li>
- *   <li><i>target channel-adapter:</i> source channel + target adapter</li>
- *   <li><i>one-way:</i> source + handler that returns null and no target</li>
- *   <li><i>request-reply:</i> source + handler and either a reply channel
- *   specified on the request message or a default target on the endpoint</i>
- * </ul>
+ * Default implementation of the {@link MessageEndpoint} interface.
  * 
  * @author Mark Fisher
  */
-public class GenericMessageEndpoint implements MessageEndpoint, BeanNameAware {
+public class DefaultMessageEndpoint implements MessageEndpoint, BeanNameAware {
 
 	private String name;
 
@@ -48,9 +40,11 @@ public class GenericMessageEndpoint implements MessageEndpoint, BeanNameAware {
 
 	private MessageHandler handler;
 
-	private ChannelRegistry channelRegistry;
+	private Schedule schedule;
 
-	private ConsumerPolicy consumerPolicy = new ConsumerPolicy();
+	private ConcurrencyPolicy concurrencyPolicy;
+
+	private ChannelRegistry channelRegistry;
 
 
 	public String getName() {
@@ -79,14 +73,6 @@ public class GenericMessageEndpoint implements MessageEndpoint, BeanNameAware {
 		return this.inputChannelName;
 	}
 
-	public void setConsumerPolicy(ConsumerPolicy consumerPolicy) {
-		this.consumerPolicy = consumerPolicy;
-	}
-
-	public ConsumerPolicy getConsumerPolicy() {
-		return this.consumerPolicy;
-	}
-
 	/**
 	 * Set the name of the channel to which this endpoint can send reply messages by default.
 	 */
@@ -105,13 +91,28 @@ public class GenericMessageEndpoint implements MessageEndpoint, BeanNameAware {
 		this.handler = handler;
 	}
 
+	public Schedule getSchedule() {
+		return this.schedule;
+	}
+
+	public void setSchedule(Schedule schedule) {
+		this.schedule = schedule;
+	}
+
+	public ConcurrencyPolicy getConcurrencyPolicy() {
+		return this.concurrencyPolicy;
+	}
+
+	public void setConcurrencyPolicy(ConcurrencyPolicy concurrencyPolicy) {
+		this.concurrencyPolicy = concurrencyPolicy;
+	}
+
 	/**
 	 * Set the channel registry to use for looking up channels by name.
 	 */
 	public void setChannelRegistry(ChannelRegistry channelRegistry) {
 		this.channelRegistry = channelRegistry;
 	}
-
 
 	public Message handle(Message<?> message) {
 		if (this.handler == null) {

@@ -14,19 +14,28 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.bus;
+package org.springframework.integration.dispatcher;
 
 import org.springframework.integration.MessageHandlingException;
 
 /**
- * An exception indicating that a handler is not currently running.
+ * An exception indicating that a message was rejected by a handler; typically
+ * this would be the result of a thread pool executor rejecting a handler task.
  * 
  * @author Mark Fisher
  */
-public class MessageHandlerNotRunningException extends MessageHandlingException {
+public class MessageHandlerRejectedExecutionException extends MessageHandlingException {
 
-	public MessageHandlerNotRunningException() {
-		super("handler is not running");
+	public MessageHandlerRejectedExecutionException() {
+		super();
+	}
+
+	public MessageHandlerRejectedExecutionException(Throwable cause) {
+		super("handler rejected execution", cause);
+	}
+
+	public MessageHandlerRejectedExecutionException(String message, Throwable cause) {
+		super(message, cause);
 	}
 
 }

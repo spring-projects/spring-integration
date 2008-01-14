@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.bus;
+package org.springframework.integration.dispatcher;
 
-import org.springframework.context.Lifecycle;
+import org.springframework.integration.MessageHandlingException;
 
 /**
- * Strategy interface for dispatching messages.
+ * An exception indicating that a message was rejected by an implementation of
+ * {@link org.springframework.integration.message.selector.MessageSelector}.
  * 
  * @author Mark Fisher
  */
-public interface MessageDispatcher extends Lifecycle {
+public class MessageSelectorRejectedException extends MessageHandlingException {
 
-	int dispatch();
+	public MessageSelectorRejectedException(String message) {
+		super(message);
+	}
 
 }

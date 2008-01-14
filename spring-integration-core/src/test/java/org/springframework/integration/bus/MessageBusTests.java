@@ -21,13 +21,19 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Collection;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.adapter.PollableSource;
+import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.adapter.SourceAdapter;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
-import org.springframework.integration.endpoint.GenericMessageEndpoint;
+import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
@@ -46,7 +52,7 @@ public class MessageBusTests {
 		bus.registerChannel("sourceChannel", sourceChannel);
 		sourceChannel.send(new StringMessage("123", "test"));
 		bus.registerChannel("targetChannel", targetChannel);
-		GenericMessageEndpoint endpoint = new GenericMessageEndpoint();
+		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint();
 		endpoint.setInputChannelName("sourceChannel");
 		endpoint.setDefaultOutputChannelName("targetChannel");
 		bus.registerEndpoint("endpoint", endpoint);
@@ -78,11 +84,9 @@ public class MessageBusTests {
 		sourceChannel.send(new GenericMessage<String>("123", "test"));		
 		MessageChannel targetChannel = (MessageChannel) context.getBean("targetChannel");
 		MessageBus bus = (MessageBus) context.getBean("bus");
-		ConsumerPolicy policy = new ConsumerPolicy();
 		Subscription subscription = new Subscription();
 		subscription.setChannel("sourceChannel");
-		subscription.setReceiver("endpoint");
-		subscription.setPolicy(policy);
+		subscription.setHandler("endpoint");
 		bus.activateSubscription(subscription);
 		Message<?> result = targetChannel.receive(100);
 		assertEquals("test", result.getPayload());
@@ -93,10 +97,10 @@ public class MessageBusTests {
 		SimpleChannel inputChannel = new SimpleChannel();
 		SimpleChannel outputChannel1 = new SimpleChannel();
 		SimpleChannel outputChannel2 = new SimpleChannel();
-		GenericMessageEndpoint endpoint1 = new GenericMessageEndpoint();
+		DefaultMessageEndpoint endpoint1 = new DefaultMessageEndpoint();
 		endpoint1.setDefaultOutputChannelName("output1");
 		endpoint1.setInputChannelName("input");
-		GenericMessageEndpoint endpoint2 = new GenericMessageEndpoint();
+		DefaultMessageEndpoint endpoint2 = new DefaultMessageEndpoint();
 		endpoint2.setDefaultOutputChannelName("output2");
 		endpoint2.setInputChannelName("input");
 		MessageBus bus = new MessageBus();
@@ -114,11 +118,14 @@ public class MessageBusTests {
 	}
 
 	@Test
-	public void testInvalidMessageChannelWithFailedDispatch() {
+	public void testInvalidMessageChannelWithFailedDispatch() throws InterruptedException {
 		MessageBus bus = new MessageBus();
-		SourceAdapter sourceAdapter = new FailingSourceAdapter();
+		CountDownLatch latch = new CountDownLatch(1);
+		SourceAdapter sourceAdapter = new PollingSourceAdapter<Object>(new FailingSource(latch));
+		sourceAdapter.setChannel(new SimpleChannel());
 		bus.registerSourceAdapter("testAdapter", sourceAdapter);
 		bus.start();
+		latch.await(1000, TimeUnit.MILLISECONDS);
 		Message<?> message = bus.getInvalidMessageChannel().receive(100);
 		assertNotNull("message should not be null", message);
 		assertTrue(message instanceof ErrorMessage);
@@ -127,27 +134,18 @@ public class MessageBusTests {
 	}
 
 
-	private static class FailingSourceAdapter implements SourceAdapter, MessageDispatcher {
+	private static class FailingSource implements PollableSource<Object> {
 
-		public void setChannel(MessageChannel channel) {
+		private CountDownLatch latch;
+
+		public FailingSource(CountDownLatch latch) {
+			this.latch = latch;
 		}
 
-		public int dispatch() {
+		public Collection<Object> poll(int limit) {
+			latch.countDown();
 			throw new RuntimeException("intentional test failure");
 		}
-
-		public ConsumerPolicy getConsumerPolicy() {
-			return ConsumerPolicy.newPollingPolicy(1000);
-		}
-
-		public boolean isRunning() {
-			return true;
-		}
-
-		public void start() {
-		}
-
-		public void stop() {
-		}
 	}
+
 }

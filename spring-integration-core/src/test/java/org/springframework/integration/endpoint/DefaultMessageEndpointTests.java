@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
+
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
@@ -30,18 +31,18 @@ import org.springframework.integration.message.StringMessage;
 /**
  * @author Mark Fisher
  */
-public class GenericMessageEndpointTests {
+public class DefaultMessageEndpointTests {
 
 	@Test
 	public void testDefaultReplyChannel() throws Exception {
 		MessageChannel channel = new SimpleChannel();
 		MessageChannel replyChannel = new SimpleChannel();
 		MessageHandler handler = new MessageHandler() {
-			public Message<String> handle(Message message) {
+			public Message<String> handle(Message<?> message) {
 				return new StringMessage("123", "hello " + message.getPayload());
 			}
 		};
-		GenericMessageEndpoint endpoint = new GenericMessageEndpoint();
+		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint();
 		endpoint.setInputChannelName("testChannel");
 		endpoint.setHandler(handler);
 		endpoint.setDefaultOutputChannelName("replyChannel");
@@ -62,11 +63,11 @@ public class GenericMessageEndpointTests {
 		MessageChannel channel = new SimpleChannel();
 		final MessageChannel replyChannel = new SimpleChannel();
 		MessageHandler handler = new MessageHandler() {
-			public Message handle(Message message) {
+			public Message<?> handle(Message<?> message) {
 				return new StringMessage("123", "hello " + message.getPayload());
 			}
 		};
-		GenericMessageEndpoint endpoint = new GenericMessageEndpoint();
+		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint();
 		endpoint.setInputChannelName("testChannel");
 		endpoint.setHandler(handler);
 		MessageBus bus = new MessageBus();
@@ -77,7 +78,7 @@ public class GenericMessageEndpointTests {
 		StringMessage testMessage = new StringMessage(1, "test");
 		testMessage.getHeader().setReplyChannelName("replyChannel");
 		channel.send(testMessage);
-		Message reply = replyChannel.receive(50);
+		Message<?> reply = replyChannel.receive(50);
 		assertNotNull(reply);
 		assertEquals("hello test", reply.getPayload());
 	}

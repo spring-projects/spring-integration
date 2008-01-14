@@ -14,21 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.channel;
+package org.springframework.integration.util;
 
 /**
- * Enumeration of the different types of message consumer.
+ * Strategy for handling a {@link Throwable}.
  * 
  * @author Mark Fisher
  */
-public enum ConsumerType {
+public interface ErrorHandler {
 
-	EVENT_DRIVEN,
-
-	FIXED_RATE,
-
-	FIXED_DELAY,
-
-	SCHEDULED
+	void handle(Throwable t);
 
 }

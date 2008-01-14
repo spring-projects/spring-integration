@@ -40,7 +40,7 @@ public class ByteStreamSourceAdapterTests {
 		ByteStreamSourceAdapter adapter = new ByteStreamSourceAdapter(stream);
 		adapter.setChannel(channel);
 		adapter.start();
-		int count = adapter.dispatch();
+		int count = adapter.processMessages();
 		assertEquals(1, count);
 		Message<?> message1 = channel.receive(0);
 		byte[] payload = (byte[]) message1.getPayload();
@@ -50,7 +50,7 @@ public class ByteStreamSourceAdapterTests {
 		assertEquals(3, payload[2]);
 		Message<?> message2 = channel.receive(0);
 		assertNull(message2);
-		adapter.dispatch();
+		adapter.processMessages();
 		Message<?> message3 = channel.receive(0);
 		assertNull(message3);
 	}
@@ -65,7 +65,7 @@ public class ByteStreamSourceAdapterTests {
 		adapter.setBytesPerMessage(8);
 		adapter.setMaxMessagesPerTask(5);
 		adapter.start();
-		int count = adapter.dispatch();
+		int count = adapter.processMessages();
 		assertEquals(1, count);
 		Message<?> message1 = channel.receive(0);
 		assertEquals(8, ((byte[]) message1.getPayload()).length);
@@ -80,10 +80,11 @@ public class ByteStreamSourceAdapterTests {
 		MessageChannel channel = new SimpleChannel();
 		ByteStreamSourceAdapter adapter = new ByteStreamSourceAdapter(stream);
 		adapter.setBytesPerMessage(4);
+		adapter.setInitialDelay(10000);
 		adapter.setMaxMessagesPerTask(1);
 		adapter.setChannel(channel);
 		adapter.start();
-		int count = adapter.dispatch();
+		int count = adapter.processMessages();
 		assertEquals(1, count);
 		Message<?> message1 = channel.receive(0);
 		byte[] bytes1 = (byte[]) message1.getPayload();
@@ -91,7 +92,7 @@ public class ByteStreamSourceAdapterTests {
 		assertEquals(0, bytes1[0]);
 		Message<?> message2 = channel.receive(0);
 		assertNull(message2);
-		adapter.dispatch();
+		adapter.processMessages();
 		Message<?> message3 = channel.receive(0);
 		byte[] bytes3 = (byte[]) message3.getPayload();
 		assertEquals(4, bytes3.length);
@@ -104,11 +105,12 @@ public class ByteStreamSourceAdapterTests {
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
 		MessageChannel channel = new SimpleChannel();
 		ByteStreamSourceAdapter adapter = new ByteStreamSourceAdapter(stream);
+		adapter.setInitialDelay(10000);
 		adapter.setChannel(channel);
 		adapter.setBytesPerMessage(4);
 		adapter.setMaxMessagesPerTask(5);
 		adapter.start();
-		int count = adapter.dispatch();
+		int count = adapter.processMessages();
 		assertEquals(2, count);
 		Message<?> message1 = channel.receive(0);
 		byte[] bytes1 = (byte[]) message1.getPayload();
@@ -128,17 +130,18 @@ public class ByteStreamSourceAdapterTests {
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
 		MessageChannel channel = new SimpleChannel();
 		ByteStreamSourceAdapter adapter = new ByteStreamSourceAdapter(stream);
+		adapter.setInitialDelay(10000);
 		adapter.setBytesPerMessage(4);
 		adapter.setMaxMessagesPerTask(1);
 		adapter.setChannel(channel);
 		adapter.start();
-		int count = adapter.dispatch();
+		int count = adapter.processMessages();
 		assertEquals(1, count);
 		Message<?> message1 = channel.receive(0);
 		assertEquals(4, ((byte[]) message1.getPayload()).length);
 		Message<?> message2 = channel.receive(0);
 		assertNull(message2);
-		adapter.dispatch();
+		adapter.processMessages();
 		Message<?> message3 = channel.receive(0);
 		assertEquals(2, ((byte[]) message3.getPayload()).length);
 	}
@@ -149,18 +152,19 @@ public class ByteStreamSourceAdapterTests {
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
 		MessageChannel channel = new SimpleChannel();
 		ByteStreamSourceAdapter adapter = new ByteStreamSourceAdapter(stream);
+		adapter.setInitialDelay(10000);
 		adapter.setBytesPerMessage(4);
 		adapter.setShouldTruncate(false);
 		adapter.setMaxMessagesPerTask(1);
 		adapter.setChannel(channel);
 		adapter.start();
-		int count = adapter.dispatch();
+		int count = adapter.processMessages();
 		assertEquals(1, count);
 		Message<?> message1 = channel.receive(0);
 		assertEquals(4, ((byte[]) message1.getPayload()).length);
 		Message<?> message2 = channel.receive(0);
 		assertNull(message2);
-		adapter.dispatch();
+		adapter.processMessages();
 		Message<?> message3 = channel.receive(0);
 		assertEquals(4, ((byte[]) message3.getPayload()).length);
 		assertEquals(0, ((byte[]) message3.getPayload())[3]);

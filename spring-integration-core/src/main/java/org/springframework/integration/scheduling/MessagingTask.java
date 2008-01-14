@@ -26,8 +26,4 @@ public interface MessagingTask extends Runnable {
 
 	Schedule getSchedule();
 
-	Throwable getLastError();
-
-	void run();
-
 }

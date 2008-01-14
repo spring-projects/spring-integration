@@ -44,7 +44,6 @@ public class PollingSourceAdapterTests {
 		adapter.setChannel(channel);
 		adapter.setPeriod(100);
 		adapter.start();
-		adapter.dispatch();
 		Message<?> message = channel.receive();
 		assertNotNull("message should not be null", message);
 		assertEquals("testing.1", message.getPayload());
@@ -56,18 +55,20 @@ public class PollingSourceAdapterTests {
 		SimpleChannel channel = new SimpleChannel(1);
 		PollingSourceAdapter<String> adapter = new PollingSourceAdapter<String>(source);
 		adapter.setChannel(channel);
-		adapter.setPeriod(500);
+		adapter.setInitialDelay(10000);
 		adapter.setSendTimeout(10);
 		adapter.start();
-		adapter.dispatch();
-		adapter.dispatch();
+		adapter.processMessages();
+		adapter.processMessages();
+		adapter.stop();
 		Message<?> message1 = channel.receive();
 		assertNotNull("message should not be null", message1);
 		assertEquals("testing.1", message1.getPayload());
 		Message<?> message2 = channel.receive(0);
 		assertNull("second message should be null", message2);
-		adapter.dispatch();
-		Message<?> message3 = channel.receive(0);
+		adapter.start();
+		adapter.processMessages();
+		Message<?> message3 = channel.receive(100);
 		assertNotNull("third message should not be null", message3);
 		assertEquals("testing.3", message3.getPayload());
 	}
@@ -78,10 +79,10 @@ public class PollingSourceAdapterTests {
 		SimpleChannel channel = new SimpleChannel();
 		PollingSourceAdapter<String> adapter = new PollingSourceAdapter<String>(source);
 		adapter.setChannel(channel);
-		adapter.setPeriod(1000);
+		adapter.setInitialDelay(10000);
 		adapter.setMaxMessagesPerTask(5);
 		adapter.start();
-		adapter.dispatch();
+		adapter.processMessages();
 		Message<?> message1 = channel.receive(0);
 		assertNotNull("message should not be null", message1);
 		assertEquals("testing.1", message1.getPayload());
@@ -104,7 +105,7 @@ public class PollingSourceAdapterTests {
 		adapter.setPeriod(1000);
 		adapter.setMaxMessagesPerTask(2);
 		adapter.start();
-		adapter.dispatch();
+		adapter.processMessages();
 	}
 
 

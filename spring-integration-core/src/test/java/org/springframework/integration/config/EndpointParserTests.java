@@ -35,7 +35,7 @@ public class EndpointParserTests {
 	@Test
 	public void testSimpleEndpoint() throws InterruptedException {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"genericEndpointTests.xml", this.getClass());
+				"simpleEndpointTests.xml", this.getClass());
 		context.start();
 		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
 		TestHandler handler = (TestHandler) context.getBean("testHandler");

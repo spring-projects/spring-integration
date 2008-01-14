@@ -40,13 +40,13 @@ public class CharacterStreamSourceAdapterTests {
 		CharacterStreamSourceAdapter adapter = new CharacterStreamSourceAdapter(stream);
 		adapter.setChannel(channel);
 		adapter.start();
-		int count = adapter.dispatch();
+		int count = adapter.processMessages();
 		assertEquals(1, count);
 		Message<?> message1 = channel.receive(0);
 		assertEquals("test", message1.getPayload());
 		Message<?> message2 = channel.receive(0);
 		assertNull(message2);
-		adapter.dispatch();
+		adapter.processMessages();
 		Message<?> message3 = channel.receive(0);
 		assertNull(message3);
 	}
@@ -60,7 +60,7 @@ public class CharacterStreamSourceAdapterTests {
 		adapter.setChannel(channel);
 		adapter.setMaxMessagesPerTask(5);
 		adapter.start();
-		int count = adapter.dispatch();
+		int count = adapter.processMessages();
 		assertEquals(1, count);
 		Message<?> message1 = channel.receive(0);
 		assertEquals("test", message1.getPayload());
@@ -74,16 +74,17 @@ public class CharacterStreamSourceAdapterTests {
 		ByteArrayInputStream stream = new ByteArrayInputStream(s.getBytes());
 		MessageChannel channel = new SimpleChannel();
 		CharacterStreamSourceAdapter adapter = new CharacterStreamSourceAdapter(stream);
+		adapter.setInitialDelay(10000);
 		adapter.setMaxMessagesPerTask(1);
 		adapter.setChannel(channel);
 		adapter.start();
-		int count = adapter.dispatch();
+		int count = adapter.processMessages();
 		assertEquals(1, count);
 		Message<?> message1 = channel.receive(0);
 		assertEquals("test1", message1.getPayload());
 		Message<?> message2 = channel.receive(0);
 		assertNull(message2);
-		adapter.dispatch();
+		adapter.processMessages();
 		Message<?> message3 = channel.receive(0);
 		assertEquals("test2", message3.getPayload());
 	}
@@ -97,7 +98,7 @@ public class CharacterStreamSourceAdapterTests {
 		adapter.setChannel(channel);
 		adapter.setMaxMessagesPerTask(5);
 		adapter.start();
-		int count = adapter.dispatch();
+		int count = adapter.processMessages();
 		assertEquals(2, count);
 		Message<?> message1 = channel.receive(0);
 		assertEquals("test1", message1.getPayload());

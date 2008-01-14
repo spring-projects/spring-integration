@@ -20,6 +20,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
@@ -35,14 +37,13 @@ public class AdapterTests {
 	public void testAdaptersWithBeanDefinitions() throws IOException, InterruptedException {
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext("adapterTests.xml", this.getClass());
 		TestSink sink = (TestSink) context.getBean("sink");
+		CountDownLatch latch = new CountDownLatch(1);
+		sink.setLatch(latch);
 		assertNull(sink.get());
 		context.start();
 		String result = null;
-		int attempts = 0;
-		while (result == null && attempts++ < 100) {
-			Thread.sleep(5);
-			result = sink.get();
-		}
+		latch.await(3000, TimeUnit.MILLISECONDS);
+		result = sink.get();
 		assertNotNull(result);
 		context.close();
 	}
@@ -51,14 +52,13 @@ public class AdapterTests {
 	public void testAdaptersWithNamespace() throws IOException, InterruptedException {
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext("adapterTestsWithNamespace.xml", this.getClass());
 		TestSink sink = (TestSink) context.getBean("sink");
+		CountDownLatch latch = new CountDownLatch(1);
+		sink.setLatch(latch);
 		assertNull(sink.get());
 		context.start();
 		String result = null;
-		int attempts = 0;
-		while (result == null && attempts++ < 100) {
-			Thread.sleep(5);
-			result = sink.get();
-		}
+		latch.await(3000, TimeUnit.MILLISECONDS);
+		result = sink.get();
 		assertNotNull(result);
 		context.close();
 	}

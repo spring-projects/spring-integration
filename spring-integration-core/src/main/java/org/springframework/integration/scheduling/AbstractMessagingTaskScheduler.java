@@ -33,9 +33,9 @@ public abstract class AbstractMessagingTaskScheduler implements MessagingTaskSch
 	 * Submit a task to be run once.
 	 */
 	public void execute(Runnable task) {
-		this.schedule(new DefaultMessagingTask(task));
+		this.schedule(task);
 	}
 
-	public abstract ScheduledFuture<?> schedule(MessagingTask task);
+	public abstract ScheduledFuture<?> schedule(Runnable task);
 
 }

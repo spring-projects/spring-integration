@@ -16,31 +16,36 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.integration.channel.ChannelRegistry;
-import org.springframework.integration.handler.MessageHandler;
-import org.springframework.integration.scheduling.Schedule;
+import org.springframework.util.Assert;
 
 /**
- * Base interface for message endpoints.
+ * Metadata for configuring a pool of concurrent threads.
  * 
  * @author Mark Fisher
  */
-public interface MessageEndpoint extends MessageHandler {
+public class ConcurrencyPolicy implements EndpointPolicy {
 
-	void setName(String name);
+	private int coreConcurrency;
 
-	void setInputChannelName(String inputChannelName);
+	private int maxConcurrency;
 
-	String getInputChannelName();
 
-	void setDefaultOutputChannelName(String defaultOutputChannelName);
+	public int getCoreConcurrency() {
+		return this.coreConcurrency;
+	}
 
-	String getDefaultOutputChannelName();
+	public void setCoreConcurrency(int coreConcurrency) {
+		Assert.isTrue(coreConcurrency > 0, "'coreConcurrency' must be at least 1");
+		this.coreConcurrency = coreConcurrency;
+	}
 
-	void setChannelRegistry(ChannelRegistry channelRegistry);
+	public int getMaxConcurrency() {
+		return this.maxConcurrency;
+	}
 
-	Schedule getSchedule();
-
-	ConcurrencyPolicy getConcurrencyPolicy();
+	public void setMaxConcurrency(int maxConcurrency) {
+		Assert.isTrue(maxConcurrency > 0, "'maxConcurrency' must be at least 1");
+		this.maxConcurrency = maxConcurrency;
+	}
 
 }

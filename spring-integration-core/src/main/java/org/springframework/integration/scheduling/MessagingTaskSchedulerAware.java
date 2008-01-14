@@ -14,23 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.bus;
-
-import org.springframework.integration.channel.MessageChannel;
+package org.springframework.integration.scheduling;
 
 /**
- * A {@link MessageDispatcher} that polls a {@link MessageChannel}.
+ * Callback interface for components that require the
+ * {@link MessagingTaskScheduler}.
  * 
  * @author Mark Fisher
  */
-public class ChannelPollingMessageDispatcher extends BasePollingMessageDispatcher {
+public interface MessagingTaskSchedulerAware {
 
-	public ChannelPollingMessageDispatcher(MessageChannel channel, int period) {
-		this(channel, ConsumerPolicy.newPollingPolicy(period));
-	}
-
-	public ChannelPollingMessageDispatcher(MessageChannel channel, ConsumerPolicy policy) {
-		super(new ChannelPollingMessageRetriever(channel, policy));
-	}
+	void setMessagingTaskScheduler(MessagingTaskScheduler scheduler);
 
 }
