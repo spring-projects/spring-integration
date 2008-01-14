@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.bus;
+package org.springframework.integration.handler;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -30,7 +30,6 @@ import org.springframework.context.Lifecycle;
 import org.springframework.integration.dispatcher.MessageHandlerNotRunningException;
 import org.springframework.integration.dispatcher.MessageHandlerRejectedExecutionException;
 import org.springframework.integration.dispatcher.MessageSelectorRejectedException;
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;

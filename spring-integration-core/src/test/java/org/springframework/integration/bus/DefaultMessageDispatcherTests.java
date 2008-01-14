@@ -31,6 +31,7 @@ import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.dispatcher.DefaultMessageDispatcher;
 import org.springframework.integration.dispatcher.MessageHandlerRejectedExecutionException;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
+import org.springframework.integration.handler.PooledMessageHandler;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;

@@ -34,7 +34,7 @@ public abstract class InterceptingMessageHandler implements MessageHandler {
 		this.target = target;
 	}
 
-	public Message handle(Message message) {
+	public Message<?> handle(Message<?> message) {
 		return handle(message, this.target);
 	}
 
@@ -46,6 +46,6 @@ public abstract class InterceptingMessageHandler implements MessageHandler {
 	 * @param target the intercepted handler
 	 * @return a reply message or null
 	 */
-	public abstract Message handle(Message message, MessageHandler target);
+	public abstract Message<?> handle(Message<?> message, MessageHandler target);
 
 }

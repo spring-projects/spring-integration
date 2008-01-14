@@ -23,7 +23,8 @@ import org.springframework.integration.message.Message;
 
 /**
  * A message handler implementation that passes incoming messages through a
- * chain of handlers.
+ * chain of handlers. The chain will be broken by any handler throwing an
+ * exception or returning <em>null</em>.
  * 
  * @author Mark Fisher
  */
@@ -51,7 +52,7 @@ public class MessageHandlerChain implements MessageHandler {
 		this.handlers.addAll(handlers);
 	}
 
-	public Message handle(Message message) {
+	public Message<?> handle(Message<?> message) {
 		for (MessageHandler next : handlers) {
 			message = next.handle(message);
 			if (message == null) {
