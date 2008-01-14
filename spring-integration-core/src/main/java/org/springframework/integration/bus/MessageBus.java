@@ -314,7 +314,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			handler = new PooledMessageHandler(handler, concurrencyPolicy.getCoreConcurrency(), concurrencyPolicy.getMaxConcurrency());
 		}
 		dispatcher.addHandler(handler, schedule);
-		if (this.isRunning()) {
+		if (this.isRunning() && !dispatcher.isRunning()) {
 			dispatcher.start();
 		}
 	}

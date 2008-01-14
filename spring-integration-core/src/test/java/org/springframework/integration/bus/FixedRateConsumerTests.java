@@ -107,7 +107,6 @@ public class FixedRateConsumerTests {
 		latch.await(80, TimeUnit.MILLISECONDS);
 		int count = counter.get();
 		assertTrue("received " + count + ", but expected less than 20", count < 20);
-		assertTrue("received " + count + ", but expected more than 5", count > 5);
 	}
 
 }
