@@ -200,7 +200,7 @@ public class DefaultMessageDispatcherTests {
 		});
 		dispatcher.addHandler(new PooledMessageHandler(endpoint3, 1, 1));
 		dispatcher.start();
-		latch.await(100, TimeUnit.MILLISECONDS);
+		latch.await(1000, TimeUnit.MILLISECONDS);
 		assertEquals("rejecting endpoint should not have received message", 0, counter2.get());
 		assertEquals("both non-rejecting endpoints should have received message", 2, counter1.get() + counter3.get());
 	}
@@ -209,7 +209,7 @@ public class DefaultMessageDispatcherTests {
 	public void testNonBroadcastingDispatcherReachesRejectionLimitAndShouldFail() {
 		final AtomicInteger counter1 = new AtomicInteger();
 		final AtomicInteger counter2 = new AtomicInteger();
-		final CountDownLatch latch = new CountDownLatch(1);
+		final CountDownLatch latch = new CountDownLatch(2);
 		TestEndpoint endpoint1 = new TestEndpoint(counter1, latch);
 		TestEndpoint endpoint2 = new TestEndpoint(counter2, latch);
 		SimpleChannel channel = new SimpleChannel();
@@ -220,12 +220,14 @@ public class DefaultMessageDispatcherTests {
 		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1) {
 			@Override
 			public Message<?> handle(Message<?> message) {
+				latch.countDown();
 				throw new MessageHandlerRejectedExecutionException();
 			}
 		});
 		dispatcher.addHandler(new PooledMessageHandler(endpoint2, 1, 1) {
 			@Override
 			public Message<?> handle(Message<?> message) {
+				latch.countDown();
 				throw new MessageHandlerRejectedExecutionException();
 			}
 		});
@@ -336,7 +338,7 @@ public class DefaultMessageDispatcherTests {
 		final AtomicInteger counter2 = new AtomicInteger();
 		final AtomicInteger rejectedCounter1 = new AtomicInteger();
 		final AtomicInteger rejectedCounter2 = new AtomicInteger();
-		final CountDownLatch latch = new CountDownLatch(2);
+		final CountDownLatch latch = new CountDownLatch(8);
 		TestEndpoint endpoint1 = new TestEndpoint(counter1, latch);
 		TestEndpoint endpoint2 = new TestEndpoint(counter2, latch);
 		SimpleChannel channel = new SimpleChannel();
@@ -353,6 +355,7 @@ public class DefaultMessageDispatcherTests {
 					return super.handle(message);
 				}
 				rejectedCounter1.incrementAndGet();
+				latch.countDown();
 				throw new MessageHandlerRejectedExecutionException();
 			}
 		});
@@ -363,6 +366,7 @@ public class DefaultMessageDispatcherTests {
 					return super.handle(message);
 				}
 				rejectedCounter2.incrementAndGet();
+				latch.countDown();
 				throw new MessageHandlerRejectedExecutionException();
 			}
 		});
