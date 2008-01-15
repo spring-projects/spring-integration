@@ -28,8 +28,6 @@ public interface MessageEndpoint extends MessageHandler {
 
 	String getName();
 
-	MessageHandler getHandler();
-
 	Subscription getSubscription();
 
 	ConcurrencyPolicy getConcurrencyPolicy();

@@ -52,7 +52,7 @@ public class EndpointParser implements BeanDefinitionParser {
 
 	private static final String SUBSCRIPTION_PROPERTY = "subscription";
 
-	private static final String CHANNEL_PROPERTY = "channel";
+	private static final String CHANNEL_NAME_PROPERTY = "channelName";
 
 	private static final String DEFAULT_OUTPUT_CHANNEL_ATTRIBUTE = "default-output-channel";
 
@@ -95,7 +95,7 @@ public class EndpointParser implements BeanDefinitionParser {
 		String inputChannel = element.getAttribute(INPUT_CHANNEL_ATTRIBUTE);
 		RootBeanDefinition subscriptionDef = new RootBeanDefinition(Subscription.class);
 		if (StringUtils.hasText(inputChannel)) {
-			subscriptionDef.getPropertyValues().addPropertyValue(CHANNEL_PROPERTY, new RuntimeBeanReference(inputChannel));
+			subscriptionDef.getPropertyValues().addPropertyValue(CHANNEL_NAME_PROPERTY, inputChannel);
 		}
 		String defaultOutputChannel = element.getAttribute(DEFAULT_OUTPUT_CHANNEL_ATTRIBUTE);
 		if (StringUtils.hasText(defaultOutputChannel)) {

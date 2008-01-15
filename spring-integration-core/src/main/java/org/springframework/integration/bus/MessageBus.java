@@ -244,10 +244,21 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 							"'. Consider enabling the 'autoCreateChannels' option for the message bus.");
 				}
 				if (this.logger.isInfoEnabled()) {
-					logger.info("auto-creating channel '" + channel.getName() + "'");
+					logger.info("auto-creating channel '" + channelName + "'");
 				}
 				channel = new SimpleChannel(); 
 				this.registerChannel(channelName, channel);
+			}
+		}
+		if (endpoint instanceof DefaultMessageEndpoint) {
+			String outputChannelName = ((DefaultMessageEndpoint) endpoint).getDefaultOutputChannelName();
+			if (outputChannelName != null && this.lookupChannel(outputChannelName) == null) {
+				if (!this.autoCreateChannels) {
+					throw new MessagingConfigurationException("Unknown channel '" + outputChannelName +
+							"' configured as 'default-output' for endpoint '" + endpoint.getName() +
+							"'. Consider enabling the 'autoCreateChannels' option for the message bus.");
+				}
+				this.registerChannel(outputChannelName, new SimpleChannel());
 			}
 		}
 		this.registerWithDispatcher(channel, endpoint, subscription.getSchedule(), endpoint.getConcurrencyPolicy());
