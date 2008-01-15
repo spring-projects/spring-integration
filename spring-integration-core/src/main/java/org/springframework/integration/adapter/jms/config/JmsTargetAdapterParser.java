@@ -19,9 +19,15 @@ package org.springframework.integration.adapter.jms.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
+import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.adapter.jms.JmsTargetAdapter;
+import org.springframework.integration.bus.Subscription;
+import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.util.StringUtils;
 
 /**
@@ -45,11 +51,13 @@ public class JmsTargetAdapterParser extends AbstractSingleBeanDefinitionParser {
 
 	private static final String CHANNEL_ATTRIBUTE = "channel";
 
-	private static final String CHANNEL_PROPERTY = "channel";
+	private static final String HANDLER_PROPERTY = "handler";
+
+	private static final String SUBSCRIPTION_PROPERTY = "subscription";
 
 
 	protected Class<?> getBeanClass(Element element) {
-		return JmsTargetAdapter.class;
+		return DefaultMessageEndpoint.class;
 	}
 
 	protected boolean shouldGenerateId() {
@@ -60,27 +68,32 @@ public class JmsTargetAdapterParser extends AbstractSingleBeanDefinitionParser {
 		return true;
 	}
 
-	protected void doParse(Element element, BeanDefinitionBuilder builder) {
+	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String jmsTemplate = element.getAttribute(JMS_TEMPLATE_ATTRIBUTE);
 		String connectionFactory = element.getAttribute(CONNECTION_FACTORY_ATTRIBUTE);
 		String destination = element.getAttribute(DESTINATION_ATTRIBUTE);
+		RootBeanDefinition adapterDef = new RootBeanDefinition(JmsTargetAdapter.class);
 		if (StringUtils.hasText(jmsTemplate)) {
 			if (StringUtils.hasText(connectionFactory) || StringUtils.hasText(destination)) {
 				throw new BeanCreationException("when providing a 'jms-template' reference, neither " +
 						"'connection-factory' or 'destination' should be provided.");
 			}
-			builder.addPropertyReference(JMS_TEMPLATE_PROPERTY, jmsTemplate);
+			adapterDef.getPropertyValues().addPropertyValue(JMS_TEMPLATE_PROPERTY, new RuntimeBeanReference(jmsTemplate));
 		}
 		else if (StringUtils.hasText(connectionFactory) && StringUtils.hasText(destination)) {
-			builder.addPropertyReference(CONNECTION_FACTORY_PROPERTY, connectionFactory);
-			builder.addPropertyReference(DESTINATION_PROPERTY, destination);
+			adapterDef.getPropertyValues().addPropertyValue(CONNECTION_FACTORY_PROPERTY, new RuntimeBeanReference(connectionFactory));
+			adapterDef.getPropertyValues().addPropertyValue(DESTINATION_PROPERTY, new RuntimeBeanReference(destination));
 		}
 		else {
 			throw new BeanCreationException("either a 'jms-template' reference or both " +
 			"'connection-factory' and 'destination' references must be provided.");
 		}
 		String channel = element.getAttribute(CHANNEL_ATTRIBUTE);
-		builder.addPropertyReference(CHANNEL_PROPERTY, channel);
+		Subscription subscription = new Subscription(channel);
+		String adapterBeanName = parserContext.getReaderContext().generateBeanName(adapterDef);
+		parserContext.registerBeanComponent(new BeanComponentDefinition(adapterDef, adapterBeanName));
+		builder.addPropertyReference(HANDLER_PROPERTY, adapterBeanName);
+		builder.addPropertyValue(SUBSCRIPTION_PROPERTY, subscription);
 	}
 
 }
