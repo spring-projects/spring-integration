@@ -18,9 +18,14 @@ package org.springframework.integration.adapter.file.config;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
+import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.adapter.file.FileTargetAdapter;
+import org.springframework.integration.bus.Subscription;
+import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 
 /**
  * Parser for the &lt;file-target/&gt; element. 
@@ -30,7 +35,7 @@ import org.springframework.integration.adapter.file.FileTargetAdapter;
 public class FileTargetAdapterParser extends AbstractSingleBeanDefinitionParser {
 
 	protected Class<?> getBeanClass(Element element) {
-		return FileTargetAdapter.class;
+		return DefaultMessageEndpoint.class;
 	}
 
 	protected boolean shouldGenerateId() {
@@ -41,11 +46,15 @@ public class FileTargetAdapterParser extends AbstractSingleBeanDefinitionParser 
 		return true;
 	}
 
-	protected void doParse(Element element, BeanDefinitionBuilder builder) {
-		String directory = element.getAttribute("directory");
+	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+		RootBeanDefinition adapterDef = new RootBeanDefinition(FileTargetAdapter.class);
+		adapterDef.getConstructorArgumentValues().addGenericArgumentValue(element.getAttribute("directory"));
+		String adapterBeanName = parserContext.getReaderContext().generateBeanName(adapterDef);
+		parserContext.registerBeanComponent(new BeanComponentDefinition(adapterDef, adapterBeanName));
+		builder.addPropertyReference("handler", adapterBeanName);
 		String channel = element.getAttribute("channel");
-		builder.addConstructorArg(directory);
-		builder.addPropertyReference("channel", channel);
+		Subscription subscription = new Subscription(channel);
+		builder.addPropertyValue("subscription", subscription);
 	}
 
 }
