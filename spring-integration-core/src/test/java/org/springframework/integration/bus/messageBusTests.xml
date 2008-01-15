@@ -11,7 +11,11 @@
 	<bean id="targetChannel" class="org.springframework.integration.channel.SimpleChannel"/>
 
 	<bean id="endpoint" class="org.springframework.integration.endpoint.DefaultMessageEndpoint">
-		<property name="inputChannelName" value="sourceChannel"/>
+		<property name="subscription">
+			<bean class="org.springframework.integration.bus.Subscription">
+				<constructor-arg ref="sourceChannel"/>
+			</bean>
+		</property>
 		<property name="defaultOutputChannelName" value="targetChannel"/>
 	</bean>
 

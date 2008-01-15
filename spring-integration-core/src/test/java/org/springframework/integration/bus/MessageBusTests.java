@@ -33,7 +33,7 @@ import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.adapter.SourceAdapter;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
-import org.springframework.integration.endpoint.DefaultMessageEndpoint;
+import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
@@ -45,25 +45,30 @@ import org.springframework.integration.message.StringMessage;
 public class MessageBusTests {
 
 	@Test
-	public void testChannelsConnectedWithEndpoint() {
+	public void testOutputChannel() {
 		MessageBus bus = new MessageBus();
 		MessageChannel sourceChannel = new SimpleChannel();
 		MessageChannel targetChannel = new SimpleChannel();
 		bus.registerChannel("sourceChannel", sourceChannel);
-		sourceChannel.send(new StringMessage("123", "test"));
+		StringMessage message = new StringMessage("test");
+		message.getHeader().setReplyChannelName("targetChannel");
+		sourceChannel.send(message);
 		bus.registerChannel("targetChannel", targetChannel);
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint();
-		endpoint.setInputChannelName("sourceChannel");
-		endpoint.setDefaultOutputChannelName("targetChannel");
-		bus.registerEndpoint("endpoint", endpoint);
+		MessageHandler handler = new MessageHandler() {
+			public Message<?> handle(Message<?> message) {
+				return message;
+			}
+		};
+		Subscription subscription = new Subscription(sourceChannel);
+		bus.registerHandler("handler", handler, subscription);
 		bus.start();
-		Message<?> result = targetChannel.receive(100);
+		Message<?> result = targetChannel.receive(3000);
 		assertEquals("test", result.getPayload());
 		bus.stop();
 	}
 
 	@Test
-	public void testChannelsWithoutEndpoint() {
+	public void testChannelsWithoutHandlers() {
 		MessageBus bus = new MessageBus();
 		MessageChannel sourceChannel = new SimpleChannel();
 		sourceChannel.send(new StringMessage("123", "test"));
@@ -84,37 +89,73 @@ public class MessageBusTests {
 		sourceChannel.send(new GenericMessage<String>("123", "test"));		
 		MessageChannel targetChannel = (MessageChannel) context.getBean("targetChannel");
 		MessageBus bus = (MessageBus) context.getBean("bus");
-		Subscription subscription = new Subscription();
-		subscription.setChannel("sourceChannel");
-		subscription.setHandler("endpoint");
-		bus.activateSubscription(subscription);
-		Message<?> result = targetChannel.receive(100);
+		bus.start();
+		Message<?> result = targetChannel.receive(1000);
 		assertEquals("test", result.getPayload());
 	}
 
 	@Test
-	public void testExactlyOneEndpointReceivesUnicastMessage() {
+	public void testExactlyOneHandlerReceivesPointToPointMessage() {
 		SimpleChannel inputChannel = new SimpleChannel();
 		SimpleChannel outputChannel1 = new SimpleChannel();
 		SimpleChannel outputChannel2 = new SimpleChannel();
-		DefaultMessageEndpoint endpoint1 = new DefaultMessageEndpoint();
-		endpoint1.setDefaultOutputChannelName("output1");
-		endpoint1.setInputChannelName("input");
-		DefaultMessageEndpoint endpoint2 = new DefaultMessageEndpoint();
-		endpoint2.setDefaultOutputChannelName("output2");
-		endpoint2.setInputChannelName("input");
+		MessageHandler handler1 = new MessageHandler() {
+			public Message<?> handle(Message<?> message) {
+				message.getHeader().setReplyChannelName("output1");
+				return message;
+			}
+		};
+		MessageHandler handler2 = new MessageHandler() {
+			public Message<?> handle(Message<?> message) {
+				message.getHeader().setReplyChannelName("output2");
+				return message;
+			}
+		};
 		MessageBus bus = new MessageBus();
 		bus.registerChannel("input", inputChannel);
 		bus.registerChannel("output1", outputChannel1);
 		bus.registerChannel("output2", outputChannel2);
-		bus.registerEndpoint("endpoint1", endpoint1);
-		bus.registerEndpoint("endpoint2", endpoint2);
+		bus.registerHandler("handler1", handler1, new Subscription(inputChannel));
+		bus.registerHandler("handler2", handler2, new Subscription(inputChannel));
 		bus.start();
 		inputChannel.send(new StringMessage(1, "testing"));
 		Message<?> message1 = outputChannel1.receive(100);
 		Message<?> message2 = outputChannel2.receive(0);
 		bus.stop();
 		assertTrue("exactly one message should be null", message1 == null ^ message2 == null);
+	}
+
+	@Test
+	public void testBothHandlersReceivePublishSubscribeMessage() {
+		SimpleChannel inputChannel = new SimpleChannel();
+		inputChannel.setBroadcaster(true);
+		SimpleChannel outputChannel1 = new SimpleChannel();
+		SimpleChannel outputChannel2 = new SimpleChannel();
+		MessageHandler handler1 = new MessageHandler() {
+			public Message<?> handle(Message<?> message) {
+				message.getHeader().setReplyChannelName("output1");
+				return message;
+			}
+		};
+		MessageHandler handler2 = new MessageHandler() {
+			public Message<?> handle(Message<?> message) {
+				message.getHeader().setReplyChannelName("output2");
+				return message;
+			}
+		};
+		MessageBus bus = new MessageBus();
+		bus.registerChannel("input", inputChannel);
+		bus.registerChannel("output1", outputChannel1);
+		bus.registerChannel("output2", outputChannel2);
+		bus.registerHandler("handler1", handler1, new Subscription(inputChannel));
+		bus.registerHandler("handler2", handler2, new Subscription(inputChannel));
+		bus.start();
+		inputChannel.send(new StringMessage(1, "testing"));
+		Message<?> message1 = outputChannel1.receive(100);
+		Message<?> message2 = outputChannel2.receive(0);
+		bus.stop();
+		assertTrue("both handlers should have received and replied to the message",
+				(message1 != null && message2 != null));
 	}
 
 	@Test

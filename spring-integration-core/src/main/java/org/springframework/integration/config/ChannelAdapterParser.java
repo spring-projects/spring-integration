@@ -29,6 +29,8 @@ import org.springframework.integration.adapter.DefaultTargetAdapter;
 import org.springframework.integration.adapter.MethodInvokingSource;
 import org.springframework.integration.adapter.MethodInvokingTarget;
 import org.springframework.integration.adapter.PollingSourceAdapter;
+import org.springframework.integration.bus.Subscription;
+import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.util.StringUtils;
 
 /**
@@ -79,6 +81,7 @@ public class ChannelAdapterParser implements BeanDefinitionParser {
 			if (StringUtils.hasText(period)) {
 				adapterDef.getPropertyValues().addPropertyValue("period", period);
 			}
+			adapterDef.getPropertyValues().addPropertyValue("channel", new RuntimeBeanReference(channel));
 		}
 		else {
 			adapterDef = new RootBeanDefinition(DefaultTargetAdapter.class);
@@ -89,11 +92,21 @@ public class ChannelAdapterParser implements BeanDefinitionParser {
 		String invokerBeanName = parserContext.getReaderContext().generateBeanName(invokerDef);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(invokerDef, invokerBeanName));
 		adapterDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(invokerBeanName));
-		adapterDef.getPropertyValues().addPropertyValue("channel", new RuntimeBeanReference(channel));
 		adapterDef.setSource(parserContext.extractSource(element));
 		String beanName = element.getAttribute(ID_ATTRIBUTE);
 		if (!StringUtils.hasText(beanName)) {
 			beanName = parserContext.getReaderContext().generateBeanName(adapterDef);
+		}
+		if (!this.isInbound) {
+			RootBeanDefinition endpointDef = new RootBeanDefinition(DefaultMessageEndpoint.class);
+			RootBeanDefinition subscriptionDef = new RootBeanDefinition(Subscription.class);
+			subscriptionDef.getPropertyValues().addPropertyValue("channel", new RuntimeBeanReference(channel));
+			String subscriptionBeanName = parserContext.getReaderContext().generateBeanName(subscriptionDef);
+			parserContext.registerBeanComponent(new BeanComponentDefinition(subscriptionDef, subscriptionBeanName));
+			endpointDef.getPropertyValues().addPropertyValue("subscription", new RuntimeBeanReference(subscriptionBeanName));
+			endpointDef.getPropertyValues().addPropertyValue("handler", new RuntimeBeanReference(beanName));
+			String endpointBeanName = parserContext.getReaderContext().generateBeanName(endpointDef);
+			parserContext.registerBeanComponent(new BeanComponentDefinition(endpointDef, endpointBeanName));
 		}
 		parserContext.registerBeanComponent(new BeanComponentDefinition(adapterDef, beanName));
 		return adapterDef;

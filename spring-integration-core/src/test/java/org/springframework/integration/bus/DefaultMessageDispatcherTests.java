@@ -30,7 +30,7 @@ import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.dispatcher.DefaultMessageDispatcher;
 import org.springframework.integration.dispatcher.MessageHandlerRejectedExecutionException;
-import org.springframework.integration.endpoint.DefaultMessageEndpoint;
+import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.PooledMessageHandler;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.Message;
@@ -467,19 +467,18 @@ public class DefaultMessageDispatcherTests {
 		assertEquals("endpoint2 should have accepted the message", 1, counter2.get());
 	}
 
-	private static class TestEndpoint extends DefaultMessageEndpoint {
+
+	private static class TestEndpoint implements MessageHandler {
 
 		private AtomicInteger counter;
 
 		private CountDownLatch latch;
-
 
 		public TestEndpoint(AtomicInteger counter, CountDownLatch latch) {
 			this.counter = counter;
 			this.latch = latch;
 		}
 
-		@Override
 		public Message<?> handle(Message<?> message) {
 			counter.incrementAndGet();
 			latch.countDown();

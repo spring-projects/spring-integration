@@ -29,13 +29,25 @@
 				<property name="method" value="store"/>
 			</bean>
 		</constructor-arg>
-		<property name="channel" ref="outputChannel"/>
+	</bean>
+
+	<bean id="targetEndpoint" class="org.springframework.integration.endpoint.DefaultMessageEndpoint">
+		<property name="handler" ref="targetAdapter"/>
+		<property name="subscription">
+			<bean class="org.springframework.integration.bus.Subscription">
+				<constructor-arg ref="outputChannel"/>
+			</bean>
+		</property>
 	</bean>
 
 	<bean id="sink" class="org.springframework.integration.adapter.TestSink"/>
 
-	<bean id="endpoint" class="org.springframework.integration.endpoint.DefaultMessageEndpoint">
-		<property name="inputChannelName" value="inputChannel"/>
+	<bean class="org.springframework.integration.endpoint.DefaultMessageEndpoint">
+		<property name="subscription">
+			<bean class="org.springframework.integration.bus.Subscription">
+				<constructor-arg ref="inputChannel"/>
+			</bean>
+		</property>
 		<property name="defaultOutputChannelName" value="outputChannel"/>
 	</bean>
 

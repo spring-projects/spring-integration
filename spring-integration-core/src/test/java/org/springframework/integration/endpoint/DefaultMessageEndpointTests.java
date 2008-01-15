@@ -21,7 +21,8 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
-import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.handler.MessageHandler;
@@ -35,49 +36,40 @@ public class DefaultMessageEndpointTests {
 
 	@Test
 	public void testDefaultReplyChannel() throws Exception {
-		MessageChannel channel = new SimpleChannel();
 		MessageChannel replyChannel = new SimpleChannel();
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		channelRegistry.registerChannel("replyChannel", replyChannel);
 		MessageHandler handler = new MessageHandler() {
 			public Message<String> handle(Message<?> message) {
 				return new StringMessage("123", "hello " + message.getPayload());
 			}
 		};
 		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint();
-		endpoint.setInputChannelName("testChannel");
+		endpoint.setChannelRegistry(channelRegistry);
 		endpoint.setHandler(handler);
 		endpoint.setDefaultOutputChannelName("replyChannel");
-		MessageBus bus = new MessageBus();
-		bus.registerChannel("testChannel", channel);
-		bus.registerEndpoint("testEndpoint", endpoint);
-		bus.registerChannel("replyChannel", replyChannel);
-		bus.start();
-		StringMessage testMessage = new StringMessage(1, "test");
-		channel.send(testMessage);
-		Message<String> reply = replyChannel.receive(50);
+		endpoint.handle(new StringMessage(1, "test"));
+		Message<?> reply = replyChannel.receive(50);
 		assertNotNull(reply);
 		assertEquals("hello test", reply.getPayload());
 	}
 
 	@Test
 	public void testExplicitReplyChannel() throws Exception {
-		MessageChannel channel = new SimpleChannel();
 		final MessageChannel replyChannel = new SimpleChannel();
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		channelRegistry.registerChannel("replyChannel", replyChannel);
 		MessageHandler handler = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				return new StringMessage("123", "hello " + message.getPayload());
 			}
 		};
 		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint();
-		endpoint.setInputChannelName("testChannel");
+		endpoint.setChannelRegistry(channelRegistry);
 		endpoint.setHandler(handler);
-		MessageBus bus = new MessageBus();
-		bus.registerChannel("testChannel", channel);
-		bus.registerEndpoint("testEndpoint", endpoint);
-		bus.registerChannel("replyChannel", replyChannel);
-		bus.start();
 		StringMessage testMessage = new StringMessage(1, "test");
 		testMessage.getHeader().setReplyChannelName("replyChannel");
-		channel.send(testMessage);
+		endpoint.handle(testMessage);
 		Message<?> reply = replyChannel.receive(50);
 		assertNotNull(reply);
 		assertEquals("hello test", reply.getPayload());

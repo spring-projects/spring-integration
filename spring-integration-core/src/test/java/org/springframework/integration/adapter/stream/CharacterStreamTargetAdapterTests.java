@@ -39,7 +39,6 @@ public class CharacterStreamTargetAdapterTests {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		MessageChannel channel = new SimpleChannel();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
-		adapter.setChannel(channel);
 		DispatcherTask dispatcherTask = new DispatcherTask(channel);
 		dispatcherTask.addHandler(adapter);
 		channel.send(new StringMessage("foo"));
@@ -54,7 +53,6 @@ public class CharacterStreamTargetAdapterTests {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		MessageChannel channel = new SimpleChannel();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
-		adapter.setChannel(channel);
 		DispatcherTask dispatcherTask = new DispatcherTask(channel);
 		dispatcherTask.addHandler(adapter);
 		channel.send(new StringMessage("foo"));
@@ -72,7 +70,6 @@ public class CharacterStreamTargetAdapterTests {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		MessageChannel channel = new SimpleChannel();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
-		adapter.setChannel(channel);
 		adapter.setShouldAppendNewLine(true);
 		DispatcherTask dispatcherTask = new DispatcherTask(channel);
 		dispatcherTask.addHandler(adapter);
@@ -92,7 +89,6 @@ public class CharacterStreamTargetAdapterTests {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		MessageChannel channel = new SimpleChannel();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
-		adapter.setChannel(channel);
 		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel);
 		retriever.setMaxMessagesPerTask(2);
 		DispatcherTask dispatcherTask = new DispatcherTask(retriever);
@@ -109,7 +105,6 @@ public class CharacterStreamTargetAdapterTests {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		MessageChannel channel = new SimpleChannel();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
-		adapter.setChannel(channel);
 		adapter.setShouldAppendNewLine(true);
 		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel);
 		retriever.setReceiveTimeout(0);
@@ -129,7 +124,6 @@ public class CharacterStreamTargetAdapterTests {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		MessageChannel channel = new SimpleChannel();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
-		adapter.setChannel(channel);
 		DispatcherTask dispatcherTask = new DispatcherTask(channel);
 		dispatcherTask.addHandler(adapter);
 		TestObject testObject = new TestObject("foo");
@@ -145,7 +139,6 @@ public class CharacterStreamTargetAdapterTests {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		MessageChannel channel = new SimpleChannel();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
-		adapter.setChannel(channel);
 		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel);
 		retriever.setReceiveTimeout(0);
 		retriever.setMaxMessagesPerTask(2);
@@ -165,7 +158,6 @@ public class CharacterStreamTargetAdapterTests {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		MessageChannel channel = new SimpleChannel();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
-		adapter.setChannel(channel);
 		adapter.setShouldAppendNewLine(true);
 		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel);
 		retriever.setReceiveTimeout(0);

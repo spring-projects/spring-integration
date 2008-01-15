@@ -44,10 +44,10 @@ import org.springframework.integration.annotation.Polled;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.bus.Subscription;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
-import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
@@ -106,24 +106,23 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 			return bean;
 		}
 		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint();
-		this.configureInputChannel(bean, beanName, endpointAnnotation, endpoint);
-		this.configureDefaultOutputChannel(bean, beanName, endpointAnnotation, endpoint);
+		this.configureInput(bean, beanName, endpointAnnotation, endpoint);
 		MessageHandlerChain handlerChain = this.createHandlerChain(bean);
-		if (handlerChain != null) {
-			endpoint.setHandler(handlerChain);
-		}
-		this.messageBus.registerEndpoint(beanName, endpoint);
-		return endpoint;
+		endpoint.setHandler(handlerChain);
+		this.configureDefaultOutput(bean, beanName, endpointAnnotation, endpoint);
+		this.messageBus.registerEndpoint(bean + "-endpoint", endpoint);
+		return bean;
 	}
 
-	private void configureInputChannel(final Object bean, final String beanName,
-			MessageEndpoint annotation, final DefaultMessageEndpoint endpoint) {
+	private void configureInput(final Object bean, final String beanName, MessageEndpoint annotation,
+			final DefaultMessageEndpoint endpoint) {
 		String channelName = annotation.input();
 		if (StringUtils.hasText(channelName)) {
-			endpoint.setInputChannelName(channelName);
+			Subscription subscription = new Subscription();
+			subscription.setChannelName(channelName);
 			Schedule schedule = new PollingSchedule(annotation.pollPeriod());
-			endpoint.setSchedule(schedule);
-			return;
+			subscription.setSchedule(schedule);
+			endpoint.setSubscription(subscription);
 		}
 		ReflectionUtils.doWithMethods(bean.getClass(), new ReflectionUtils.MethodCallback() {
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
@@ -140,22 +139,16 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 					String channelName = beanName + "-inputChannel";
 					messageBus.registerChannel(channelName, channel);
 					messageBus.registerSourceAdapter(beanName + "-sourceAdapter", adapter);
-					endpoint.setInputChannelName(channelName);
+					Subscription subscription = new Subscription(channel);
 					Schedule schedule = new PollingSchedule(period);
-					endpoint.setSchedule(schedule);
-					if (period > 0) {
-						ConcurrencyPolicy concurrencyPolicy = new ConcurrencyPolicy();
-						concurrencyPolicy.setCoreConcurrency(1);
-						concurrencyPolicy.setMaxConcurrency(1);
-						endpoint.setConcurrencyPolicy(concurrencyPolicy);
-					}
-					return;
+					subscription.setSchedule(schedule);
+					endpoint.setSubscription(subscription);
 				}
 			}
 		});
 	}
 
-	private void configureDefaultOutputChannel(final Object bean, final String beanName,
+	private void configureDefaultOutput(final Object bean, final String beanName,
 			final MessageEndpoint annotation, final DefaultMessageEndpoint endpoint) {
 		String channelName = annotation.defaultOutput();
 		if (StringUtils.hasText(channelName)) {
@@ -177,8 +170,9 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 					DefaultTargetAdapter adapter = new DefaultTargetAdapter(target);
 					SimpleChannel channel = new SimpleChannel();
 					String channelName = beanName + "-defaultOutputChannel";
+					Subscription subscription = new Subscription(channel);
 					messageBus.registerChannel(channelName, channel);
-					messageBus.registerTargetAdapter(beanName + "-targetAdapter", adapter);
+					messageBus.registerHandler(beanName + "-targetAdapter", adapter, subscription);
 					endpoint.setDefaultOutputChannelName(channelName);
 					foundDefaultOutput = true;
 					return;

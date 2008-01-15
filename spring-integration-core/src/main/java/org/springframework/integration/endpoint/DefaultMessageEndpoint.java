@@ -19,30 +19,29 @@ package org.springframework.integration.endpoint;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.bus.Subscription;
 import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.scheduling.Schedule;
 
 /**
  * Default implementation of the {@link MessageEndpoint} interface.
  * 
  * @author Mark Fisher
  */
-public class DefaultMessageEndpoint implements MessageEndpoint, BeanNameAware {
+public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryAware, BeanNameAware {
 
 	private String name;
 
-	private String inputChannelName;
-
-	private String defaultOutputChannelName;
-
 	private MessageHandler handler;
 
-	private Schedule schedule;
+	private Subscription subscription;
 
 	private ConcurrencyPolicy concurrencyPolicy;
+
+	private String defaultOutputChannelName;
 
 	private ChannelRegistry channelRegistry;
 
@@ -59,18 +58,8 @@ public class DefaultMessageEndpoint implements MessageEndpoint, BeanNameAware {
 		this.setName(beanName);
 	}
 
-	/**
-	 * Set the name of the channel from which this endpoint receives messages.
-	 */
-	public void setInputChannelName(String inputChannelName) {
-		this.inputChannelName = inputChannelName;
-	}
-
-	/**
-	 * Return the name of the channel from which this endpoint receives messages.
-	 */
-	public String getInputChannelName() {
-		return this.inputChannelName;
+	public String getDefaultOutputChannelName() {
+		return this.defaultOutputChannelName;
 	}
 
 	/**
@@ -80,8 +69,8 @@ public class DefaultMessageEndpoint implements MessageEndpoint, BeanNameAware {
 		this.defaultOutputChannelName = defaultOutputChannelName;
 	}
 
-	public String getDefaultOutputChannelName() {
-		return this.defaultOutputChannelName;
+	public MessageHandler getHandler() {
+		return this.handler;
 	}
 
 	/**
@@ -91,12 +80,12 @@ public class DefaultMessageEndpoint implements MessageEndpoint, BeanNameAware {
 		this.handler = handler;
 	}
 
-	public Schedule getSchedule() {
-		return this.schedule;
+	public Subscription getSubscription() {
+		return this.subscription;
 	}
 
-	public void setSchedule(Schedule schedule) {
-		this.schedule = schedule;
+	public void setSubscription(Subscription subscription) {
+		this.subscription = subscription;
 	}
 
 	public ConcurrencyPolicy getConcurrencyPolicy() {
@@ -114,7 +103,7 @@ public class DefaultMessageEndpoint implements MessageEndpoint, BeanNameAware {
 		this.channelRegistry = channelRegistry;
 	}
 
-	public Message handle(Message<?> message) {
+	public Message<?> handle(Message<?> message) {
 		if (this.handler == null) {
 			if (this.defaultOutputChannelName == null) {
 				throw new MessagingConfigurationException(

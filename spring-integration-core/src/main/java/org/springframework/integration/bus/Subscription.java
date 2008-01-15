@@ -16,7 +16,7 @@
 
 package org.springframework.integration.bus;
 
-import org.springframework.integration.endpoint.ConcurrencyPolicy;
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.scheduling.Schedule;
 
 /**
@@ -26,29 +26,39 @@ import org.springframework.integration.scheduling.Schedule;
  */
 public class Subscription {
 
-	private String channel;
+	private MessageChannel channel;
 
-	private String handler;
+	private String channelName;
 
 	private Schedule schedule;
 
-	private ConcurrencyPolicy concurrencyPolicy;
 
-
-	public String getChannel() {
-		return this.channel;
+	public Subscription() {
 	}
 
-	public void setChannel(String channel) {
+	public Subscription(MessageChannel channel) {
 		this.channel = channel;
 	}
 
-	public String getHandler() {
-		return this.handler;
+	public Subscription(String channelName) {
+		this.channelName = channelName;
 	}
 
-	public void setHandler(String handler) {
-		this.handler = handler;
+
+	public MessageChannel getChannel() {
+		return this.channel;
+	}
+
+	public void setChannel(MessageChannel channel) {
+		this.channel = channel;
+	}
+
+	public String getChannelName() {
+		return (this.channel != null) ? this.channel.getName() : this.channelName;
+	}
+
+	public void setChannelName(String channelName) {
+		this.channelName = channelName;
 	}
 
 	public Schedule getSchedule() {
@@ -57,14 +67,6 @@ public class Subscription {
 
 	public void setSchedule(Schedule schedule) {
 		this.schedule = schedule;
-	}
-
-	public ConcurrencyPolicy getConcurrencyPolicy() {
-		return this.concurrencyPolicy;
-	}
-
-	public void setConcurrencyPolicy(ConcurrencyPolicy concurrencyPolicy) {
-		this.concurrencyPolicy = concurrencyPolicy;
 	}
 
 }

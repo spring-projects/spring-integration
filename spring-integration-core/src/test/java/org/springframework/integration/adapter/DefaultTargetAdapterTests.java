@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.bus.Subscription;
 import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
@@ -46,15 +47,16 @@ public class DefaultTargetAdapterTests {
 		target.afterPropertiesSet();
 		DefaultTargetAdapter adapter = new DefaultTargetAdapter(target);
 		SimpleChannel channel = new SimpleChannel();
-		adapter.setChannel(channel);
+		Subscription subscription = new Subscription();
+		subscription.setChannel(channel);
 		Message<String> message = new GenericMessage<String>("123", "testing");
 		channel.send(message);
 		assertNull(queue.poll());
 		MessageBus bus = new MessageBus();
 		bus.registerChannel("channel", channel);
-		bus.registerTargetAdapter("targetAdapter", adapter);
+		bus.registerHandler("targetAdapter", adapter, subscription);
 		bus.start();
-		String result = queue.poll(100, TimeUnit.MILLISECONDS);
+		String result = queue.poll(500, TimeUnit.MILLISECONDS);
 		assertNotNull(result);
 		assertEquals("testing", result);
 		bus.stop();

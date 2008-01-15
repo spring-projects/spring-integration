@@ -16,9 +16,8 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.bus.Subscription;
 import org.springframework.integration.handler.MessageHandler;
-import org.springframework.integration.scheduling.Schedule;
 
 /**
  * Base interface for message endpoints.
@@ -27,19 +26,11 @@ import org.springframework.integration.scheduling.Schedule;
  */
 public interface MessageEndpoint extends MessageHandler {
 
-	void setName(String name);
+	String getName();
 
-	void setInputChannelName(String inputChannelName);
+	MessageHandler getHandler();
 
-	String getInputChannelName();
-
-	void setDefaultOutputChannelName(String defaultOutputChannelName);
-
-	String getDefaultOutputChannelName();
-
-	void setChannelRegistry(ChannelRegistry channelRegistry);
-
-	Schedule getSchedule();
+	Subscription getSubscription();
 
 	ConcurrencyPolicy getConcurrencyPolicy();
 

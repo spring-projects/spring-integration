@@ -31,6 +31,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.bus.Subscription;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
@@ -49,7 +50,9 @@ public class EndpointParser implements BeanDefinitionParser {
 
 	private static final String INPUT_CHANNEL_ATTRIBUTE = "input-channel";
 
-	private static final String INPUT_CHANNEL_PROPERTY = "inputChannelName";
+	private static final String SUBSCRIPTION_PROPERTY = "subscription";
+
+	private static final String CHANNEL_PROPERTY = "channel";
 
 	private static final String DEFAULT_OUTPUT_CHANNEL_ATTRIBUTE = "default-output-channel";
 
@@ -90,8 +93,9 @@ public class EndpointParser implements BeanDefinitionParser {
 		RootBeanDefinition endpointDef = new RootBeanDefinition(DefaultMessageEndpoint.class);
 		endpointDef.setSource(parserContext.extractSource(element));
 		String inputChannel = element.getAttribute(INPUT_CHANNEL_ATTRIBUTE);
+		RootBeanDefinition subscriptionDef = new RootBeanDefinition(Subscription.class);
 		if (StringUtils.hasText(inputChannel)) {
-			endpointDef.getPropertyValues().addPropertyValue(INPUT_CHANNEL_PROPERTY, inputChannel);
+			subscriptionDef.getPropertyValues().addPropertyValue(CHANNEL_PROPERTY, new RuntimeBeanReference(inputChannel));
 		}
 		String defaultOutputChannel = element.getAttribute(DEFAULT_OUTPUT_CHANNEL_ATTRIBUTE);
 		if (StringUtils.hasText(defaultOutputChannel)) {
@@ -104,7 +108,7 @@ public class EndpointParser implements BeanDefinitionParser {
 			if (child.getNodeType() == Node.ELEMENT_NODE) {
 				String localName = child.getLocalName();
 				if (CONCURRENCY_ELEMENT.equals(localName)) {
-					parseConcurrencyPolicy((Element) child, endpointDef);
+					parseConcurrencyPolicy((Element) child, subscriptionDef);
 				}
 				else if (HANDLER_ELEMENT.equals(localName)) {
 					String ref = ((Element) child).getAttribute(REF_ATTRIBUTE);
@@ -113,6 +117,9 @@ public class EndpointParser implements BeanDefinitionParser {
 				}
 			}
 		}
+		String subscriptionBeanName = parserContext.getReaderContext().generateBeanName(subscriptionDef);
+		parserContext.registerBeanComponent(new BeanComponentDefinition(subscriptionDef, subscriptionBeanName));
+		endpointDef.getPropertyValues().addPropertyValue(SUBSCRIPTION_PROPERTY, new RuntimeBeanReference(subscriptionBeanName));
 		if (childHandlerRefs.size() > 0) {
 			if (childHandlerRefs.size() == 1) {
 				endpointDef.getPropertyValues().addPropertyValue(
@@ -153,7 +160,7 @@ public class EndpointParser implements BeanDefinitionParser {
 		return endpointDef;
 	}
 
-	private void parseConcurrencyPolicy(Element concurrencyElement, RootBeanDefinition endpointDefinition) {
+	private void parseConcurrencyPolicy(Element concurrencyElement, RootBeanDefinition subscriptionDefinition) {
 		ConcurrencyPolicy policy = new ConcurrencyPolicy();
 		String coreConcurrency = concurrencyElement.getAttribute(CORE_CONCURRENCY_ATTRIBUTE);
 		String maxConcurrency = concurrencyElement.getAttribute(MAX_CONCURRENCY_ATTRIBUTE);
@@ -163,7 +170,7 @@ public class EndpointParser implements BeanDefinitionParser {
 		if (StringUtils.hasText(maxConcurrency)) {
 			policy.setMaxConcurrency(Integer.parseInt(maxConcurrency));
 		}
-		endpointDefinition.getPropertyValues().addPropertyValue(CONCURRENCY_POLICY_PROPERTY, policy);
+		subscriptionDefinition.getPropertyValues().addPropertyValue(CONCURRENCY_POLICY_PROPERTY, policy);
 	}
 
 	private void parseSchedule(Element scheduleElement, RootBeanDefinition endpointDefinition) {

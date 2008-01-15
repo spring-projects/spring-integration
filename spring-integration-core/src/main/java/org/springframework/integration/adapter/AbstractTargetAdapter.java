@@ -19,12 +19,10 @@ package org.springframework.integration.adapter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageMapper;
 import org.springframework.integration.message.SimplePayloadMessageMapper;
-import org.springframework.integration.scheduling.PollingSchedule;
-import org.springframework.integration.scheduling.Schedule;
 import org.springframework.util.Assert;
 
 /**
@@ -32,35 +30,12 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractTargetAdapter<T> implements TargetAdapter {
+public abstract class AbstractTargetAdapter<T> implements MessageHandler {
 
 	protected Log logger = LogFactory.getLog(this.getClass());
 
-	private String name;
-
-	private MessageChannel channel;
-
 	private MessageMapper<?,T> mapper = new SimplePayloadMessageMapper<T>();
 
-	private Schedule schedule = new PollingSchedule(5);
-
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getName() {
-		return this.name;
-	}
-
-	public void setChannel(MessageChannel channel) {
-		Assert.notNull(channel, "'channel' must not be null");
-		this.channel = channel;
-	}
-
-	public MessageChannel getChannel() {
-		return this.channel;
-	}
 
 	public void setMessageMapper(MessageMapper<?,T> mapper) {
 		Assert.notNull(mapper, "'mapper' must not be null");
@@ -69,15 +44,6 @@ public abstract class AbstractTargetAdapter<T> implements TargetAdapter {
 
 	protected MessageMapper<?,T> getMessageMapper() {
 		return this.mapper;
-	}
-
-	public void setSchedule(Schedule schedule) {
-		Assert.notNull(schedule, "'schedule' must not be null");
-		this.schedule = schedule;
-	}
-
-	public Schedule getSchedule() {
-		return this.schedule;
 	}
 
 	public final Message handle(Message message) {
