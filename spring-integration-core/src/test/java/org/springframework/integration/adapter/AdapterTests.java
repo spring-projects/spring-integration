@@ -42,11 +42,9 @@ public class AdapterTests {
 		sink.setLatch(latch);
 		assertNull(sink.get());
 		context.start();
-		String result = null;
 		latch.await(3000, TimeUnit.MILLISECONDS);
 		assertEquals("latch should have counted down within allotted time", 0, latch.getCount());
-		result = sink.get();
-		assertNotNull(result);
+		assertNotNull(sink.get());
 		context.close();
 	}
 
@@ -58,11 +56,9 @@ public class AdapterTests {
 		sink.setLatch(latch);
 		assertNull(sink.get());
 		context.start();
-		String result = null;
 		latch.await(3000, TimeUnit.MILLISECONDS);
 		assertEquals("latch should have counted down within allotted time", 0, latch.getCount());
-		result = sink.get();
-		assertNotNull(result);
+		assertNotNull(sink.get());
 		context.close();
 	}
 

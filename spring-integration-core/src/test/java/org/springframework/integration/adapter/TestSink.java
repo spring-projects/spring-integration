@@ -43,10 +43,10 @@ public class TestSink {
 	}
 
 	public void store(String s) {
+		this.result = s;
 		if (this.latch != null) {
 			this.latch.countDown();
 		}
-		this.result = s;
 	}
 
 	public String get() {
