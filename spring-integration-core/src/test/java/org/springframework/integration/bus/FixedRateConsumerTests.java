@@ -40,12 +40,10 @@ public class FixedRateConsumerTests {
 	@Test
 	public void testAllSentMessagesAreReceivedWithinTimeLimit() throws Exception {
 		int messagesToSend = 20;
-		final AtomicInteger counter = new AtomicInteger(0);
 		final CountDownLatch latch = new CountDownLatch(messagesToSend);
 		SimpleChannel channel = new SimpleChannel();
 		MessageHandler handler = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
-				counter.incrementAndGet();
 				latch.countDown();
 				return null;
 			}
@@ -63,8 +61,8 @@ public class FixedRateConsumerTests {
 		for (int i = 0; i < messagesToSend; i++) {
 			channel.send(new GenericMessage<String>(1, "test " + (i+1)));
 		}
-		latch.await(210, TimeUnit.MILLISECONDS);
-		assertEquals(messagesToSend, counter.get());
+		latch.await(250, TimeUnit.MILLISECONDS);
+		assertEquals("all messages should have been received within the time limit", 0, latch.getCount());
 	}
 
 	@Test
