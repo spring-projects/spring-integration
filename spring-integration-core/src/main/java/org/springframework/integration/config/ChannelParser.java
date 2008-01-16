@@ -37,6 +37,13 @@ public class ChannelParser implements BeanDefinitionParser {
 
 	private static final String CAPACITY_ATTRIBUTE = "capacity";
 
+	private boolean isBroadcaster;
+
+
+	public ChannelParser(boolean isBroadcaster) {
+		this.isBroadcaster = isBroadcaster;
+	}
+
 
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
 		RootBeanDefinition channelDef = new RootBeanDefinition(SimpleChannel.class);
@@ -44,6 +51,9 @@ public class ChannelParser implements BeanDefinitionParser {
 		String capacity = element.getAttribute(CAPACITY_ATTRIBUTE);
 		if (StringUtils.hasText(capacity)) {
 			channelDef.getConstructorArgumentValues().addGenericArgumentValue(Integer.parseInt(capacity));
+		}
+		if (this.isBroadcaster) {
+			channelDef.getPropertyValues().addPropertyValue("broadcaster", Boolean.TRUE);
 		}
 		String beanName = element.getAttribute(ID_ATTRIBUTE);
 		if (!StringUtils.hasText(beanName)) {
