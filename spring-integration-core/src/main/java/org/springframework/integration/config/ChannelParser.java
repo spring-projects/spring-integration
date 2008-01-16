@@ -39,6 +39,8 @@ public class ChannelParser implements BeanDefinitionParser {
 
 	private static final String PUBLISH_SUBSCRIBE_ATTRIBUTE = "publish-subscribe";
 
+	private static final String PUBLISH_SUBSCRIBE_PROPERTY = "publishSubscribe";
+
 
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
 		RootBeanDefinition channelDef = new RootBeanDefinition(SimpleChannel.class);
@@ -49,7 +51,7 @@ public class ChannelParser implements BeanDefinitionParser {
 		}
 		String isPublishSubscribe = element.getAttribute(PUBLISH_SUBSCRIBE_ATTRIBUTE);
 		if ("true".equals(isPublishSubscribe)) {
-			channelDef.getPropertyValues().addPropertyValue("broadcaster", Boolean.TRUE);
+			channelDef.getPropertyValues().addPropertyValue(PUBLISH_SUBSCRIBE_PROPERTY, Boolean.TRUE);
 		}
 		String beanName = element.getAttribute(ID_ATTRIBUTE);
 		if (!StringUtils.hasText(beanName)) {

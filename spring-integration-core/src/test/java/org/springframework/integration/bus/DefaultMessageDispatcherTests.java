@@ -72,7 +72,7 @@ public class DefaultMessageDispatcherTests {
 		TestEndpoint endpoint1 = new TestEndpoint(counter1, latch);
 		TestEndpoint endpoint2 = new TestEndpoint(counter2, latch);		
 		SimpleChannel channel = new SimpleChannel();
-		channel.setBroadcaster(true);
+		channel.setPublishSubscribe(true);
 		channel.send(new StringMessage(1, "test"));
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
 		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1));
@@ -117,7 +117,7 @@ public class DefaultMessageDispatcherTests {
 		TestEndpoint endpoint2 = new TestEndpoint(counter2, latch);
 		TestEndpoint endpoint3 = new TestEndpoint(counter3, latch);
 		SimpleChannel channel = new SimpleChannel();
-		channel.setBroadcaster(true);
+		channel.setPublishSubscribe(true);
 		channel.send(new StringMessage(1, "test"));
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
 		dispatcher.addHandler(new PooledMessageHandler(endpoint1, 1, 1));
@@ -151,7 +151,7 @@ public class DefaultMessageDispatcherTests {
 		TestEndpoint endpoint2 = new TestEndpoint(counter2, latch);
 		TestEndpoint endpoint3 = new TestEndpoint(counter3, latch);
 		SimpleChannel channel = new SimpleChannel();
-		channel.setBroadcaster(true);
+		channel.setPublishSubscribe(true);
 		channel.send(new StringMessage(1, "test"));
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
 		dispatcher.setRejectionLimit(2);
@@ -186,7 +186,7 @@ public class DefaultMessageDispatcherTests {
 		TestEndpoint endpoint2 = new TestEndpoint(counter2, latch);
 		TestEndpoint endpoint3 = new TestEndpoint(counter3, latch);
 		SimpleChannel channel = new SimpleChannel();
-		channel.setBroadcaster(true);
+		channel.setPublishSubscribe(true);
 		channel.send(new StringMessage(1, "test"));
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
 		dispatcher.setRejectionLimit(2);
@@ -343,7 +343,7 @@ public class DefaultMessageDispatcherTests {
 		TestEndpoint endpoint1 = new TestEndpoint(counter1, latch);
 		TestEndpoint endpoint2 = new TestEndpoint(counter2, latch);
 		SimpleChannel channel = new SimpleChannel();
-		channel.setBroadcaster(true);
+		channel.setPublishSubscribe(true);
 		channel.send(new StringMessage(1, "test"));
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
 		dispatcher.setRejectionLimit(5);
@@ -452,7 +452,7 @@ public class DefaultMessageDispatcherTests {
 		TestEndpoint endpoint1 = new TestEndpoint(counter1, latch);
 		TestEndpoint endpoint2 = new TestEndpoint(counter2, latch);
 		SimpleChannel channel = new SimpleChannel();
-		channel.setBroadcaster(true);
+		channel.setPublishSubscribe(true);
 		channel.send(new StringMessage(1, "test"));
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
 		PooledMessageHandler executor1 = new PooledMessageHandler(endpoint1, 1, 1);

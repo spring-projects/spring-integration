@@ -121,10 +121,11 @@ public class DefaultMessageDispatcher implements MessageDispatcher, MessagingTas
 		if (schedule == null) {
 			schedule = this.defaultSchedule;
 		}
-		else if (this.channel.isBroadcaster()) {
+		else if (this.channel.isPublishSubscribe()) {
 			if (logger.isInfoEnabled()) {
-				logger.info("This dispatcher's channel is a broadcaster, and therefore all handlers are " +
-						"scheduled with its 'defaultSchedule'. The provided schedule will be ignored.");
+				logger.info("This dispatcher broadcasts messages for a publish-subscribe channel. " + 
+						"Therefore all handlers are scheduled with its 'defaultSchedule', " +
+						"and the provided schedule will be ignored.");
 			}
 			schedule = this.defaultSchedule;
 		}
@@ -167,7 +168,7 @@ public class DefaultMessageDispatcher implements MessageDispatcher, MessagingTas
 					task.setSchedule(schedule);
 					task.setRejectionLimit(this.rejectionLimit);
 					task.setRetryInterval(this.retryInterval);
-					task.setBroadcast(channel.isBroadcaster());
+					task.setPublishSubscribe(channel.isPublishSubscribe());
 					task.setShouldFailOnRejectionLimit(this.shouldFailOnRejectionLimit);
 					for (MessageHandler handler : handlers) {
 						if (handler instanceof Lifecycle) {

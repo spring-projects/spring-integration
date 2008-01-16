@@ -36,11 +36,11 @@ public interface MessageChannel {
 	String getName();
 
 	/**
-	 * Return whether this channel has been designated as a broadcaster. If so,
-	 * any dispatcher retrieving messages from this channel should send each
-	 * message to each of its receivers.
+	 * Return whether this channel has been designated as a publish-subscribe channel.
+	 * If so, any dispatcher retrieving messages from this channel should send each
+	 * message to each of the dispatcher's handlers.
 	 */
-	boolean isBroadcaster();
+	boolean isPublishSubscribe();
 
 	/**
 	 * Send a message, blocking indefinitely if necessary.

@@ -36,7 +36,7 @@ public class SimpleChannel implements MessageChannel, BeanNameAware {
 
 	private String name;
 
-	private boolean broadcaster = false;
+	private boolean publishSubscribe = false;
 
 	private BlockingQueue<Message<?>> queue;
 
@@ -70,12 +70,12 @@ public class SimpleChannel implements MessageChannel, BeanNameAware {
 		return this.name;
 	}
 
-	public boolean isBroadcaster() {
-		return this.broadcaster;
+	public boolean isPublishSubscribe() {
+		return this.publishSubscribe;
 	}
 
-	public void setBroadcaster(boolean broadcaster) {
-		this.broadcaster = broadcaster;
+	public void setPublishSubscribe(boolean publishSubscribe) {
+		this.publishSubscribe = publishSubscribe;
 	}
 
 	/**

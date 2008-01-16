@@ -128,7 +128,7 @@ public class MessageBusTests {
 	@Test
 	public void testBothHandlersReceivePublishSubscribeMessage() {
 		SimpleChannel inputChannel = new SimpleChannel();
-		inputChannel.setBroadcaster(true);
+		inputChannel.setPublishSubscribe(true);
 		SimpleChannel outputChannel1 = new SimpleChannel();
 		SimpleChannel outputChannel2 = new SimpleChannel();
 		MessageHandler handler1 = new MessageHandler() {

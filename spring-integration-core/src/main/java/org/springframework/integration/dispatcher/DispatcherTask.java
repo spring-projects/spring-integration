@@ -46,7 +46,7 @@ public class DispatcherTask implements MessagingTask {
 
 	private Log logger = LogFactory.getLog(this.getClass());
 
-	private boolean broadcast = false;
+	private boolean publishSubscribe = false;
 
 	private Schedule schedule;
 
@@ -64,20 +64,20 @@ public class DispatcherTask implements MessagingTask {
 	public DispatcherTask(MessageChannel channel) {
 		Assert.notNull(channel, "'channel' must not be null");
 		this.retriever = new ChannelPollingMessageRetriever(channel);
-		this.broadcast = channel.isBroadcaster();
+		this.publishSubscribe = channel.isPublishSubscribe();
 	}
 
 	public DispatcherTask(MessageRetriever retriever) {
 		Assert.notNull(retriever, "'retriever' must not be null");
 		if (retriever instanceof ChannelPollingMessageRetriever) {
-			this.broadcast = ((ChannelPollingMessageRetriever) retriever).getChannel().isBroadcaster();
+			this.publishSubscribe = ((ChannelPollingMessageRetriever) retriever).getChannel().isPublishSubscribe();
 		}
 		this.retriever = retriever;
 	}
 
 
-	public void setBroadcast(boolean broadcast) {
-		this.broadcast = broadcast;
+	public void setPublishSubscribe(boolean publishSubscribe) {
+		this.publishSubscribe = publishSubscribe;
 	}
 
 	public void setSchedule(Schedule schedule) {
@@ -161,7 +161,7 @@ public class DispatcherTask implements MessagingTask {
 				MessageHandler handler = iter.next();
 				try {
 					handler.handle(message);
-					if (!this.broadcast) {
+					if (!this.publishSubscribe) {
 						return true;
 					}
 					iter.remove();
