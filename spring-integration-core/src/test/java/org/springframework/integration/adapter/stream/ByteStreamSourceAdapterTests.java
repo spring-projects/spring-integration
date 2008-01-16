@@ -42,7 +42,7 @@ public class ByteStreamSourceAdapterTests {
 		adapter.start();
 		int count = adapter.processMessages();
 		assertEquals(1, count);
-		Message<?> message1 = channel.receive(0);
+		Message<?> message1 = channel.receive(500);
 		byte[] payload = (byte[]) message1.getPayload();
 		assertEquals(3, payload.length);
 		assertEquals(1, payload[0]);
@@ -67,7 +67,7 @@ public class ByteStreamSourceAdapterTests {
 		adapter.start();
 		int count = adapter.processMessages();
 		assertEquals(1, count);
-		Message<?> message1 = channel.receive(0);
+		Message<?> message1 = channel.receive(500);
 		assertEquals(8, ((byte[]) message1.getPayload()).length);
 		Message<?> message2 = channel.receive(0);
 		assertNull(message2);
