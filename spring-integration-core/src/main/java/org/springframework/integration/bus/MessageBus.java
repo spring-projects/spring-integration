@@ -92,6 +92,14 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		this.registerSourceAdapters(applicationContext);
 	}
 
+	public void setMessagingTaskScheduler(MessagingTaskScheduler taskScheduler) {
+		Assert.notNull(taskScheduler, "task scheduler must not be null");
+		if (taskScheduler instanceof SimpleMessagingTaskScheduler) {
+			((SimpleMessagingTaskScheduler) this.taskScheduler).setCorePoolSize(dispatcherPoolSize);
+		}
+		this.taskScheduler = taskScheduler;
+	}
+
 	/**
 	 * Set the size for the dispatcher thread pool.
 	 */
