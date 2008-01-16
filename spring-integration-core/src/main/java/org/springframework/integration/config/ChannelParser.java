@@ -37,12 +37,7 @@ public class ChannelParser implements BeanDefinitionParser {
 
 	private static final String CAPACITY_ATTRIBUTE = "capacity";
 
-	private boolean isBroadcaster;
-
-
-	public ChannelParser(boolean isBroadcaster) {
-		this.isBroadcaster = isBroadcaster;
-	}
+	private static final String PUBLISH_SUBSCRIBE_ATTRIBUTE = "publish-subscribe";
 
 
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
@@ -52,7 +47,8 @@ public class ChannelParser implements BeanDefinitionParser {
 		if (StringUtils.hasText(capacity)) {
 			channelDef.getConstructorArgumentValues().addGenericArgumentValue(Integer.parseInt(capacity));
 		}
-		if (this.isBroadcaster) {
+		String isPublishSubscribe = element.getAttribute(PUBLISH_SUBSCRIBE_ATTRIBUTE);
+		if ("true".equals(isPublishSubscribe)) {
 			channelDef.getPropertyValues().addPropertyValue("broadcaster", Boolean.TRUE);
 		}
 		String beanName = element.getAttribute(ID_ATTRIBUTE);

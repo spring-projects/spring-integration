@@ -16,13 +16,23 @@
 
 package org.springframework.integration.config;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.junit.Test;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.dispatcher.DefaultMessageDispatcher;
+import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -30,15 +40,91 @@ import org.springframework.integration.message.GenericMessage;
 public class ChannelParserTests {
 
 	@Test
-	public void testSimpleChannelWithDefaults() {
+	public void testChannelWithCapacity() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"channelParserTests.xml", this.getClass());
-		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
+		MessageChannel channel = (MessageChannel) context.getBean("capacityChannel");
 		for (int i = 0; i < 10; i++) {
 			boolean result = channel.send(new GenericMessage<String>(1, "test"), 10);
 			assertTrue(result);
 		}
 		assertFalse(channel.send(new GenericMessage<String>(1, "test"), 3));
+	}
+
+	@Test
+	public void testPointToPointChannelByDefault() throws InterruptedException {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"channelParserTests.xml", this.getClass());
+		MessageChannel channel = (MessageChannel) context.getBean("pointToPointChannelByDefault");
+		channel.send(new StringMessage("test"));
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
+		AtomicInteger counter = new AtomicInteger();
+		CountDownLatch latch = new CountDownLatch(1);
+		TestHandler handler1 = new TestHandler(counter, latch);
+		TestHandler handler2 = new TestHandler(counter, latch);
+		dispatcher.addHandler(handler1);
+		dispatcher.addHandler(handler2);
+		dispatcher.start();
+		latch.await(500, TimeUnit.MILLISECONDS);
+		assertEquals(0, latch.getCount());
+		assertEquals(1, counter.get());
+	}
+
+	@Test
+	public void testPointToPointChannelExplicitlyConfigured() throws InterruptedException {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"channelParserTests.xml", this.getClass());
+		MessageChannel channel = (MessageChannel) context.getBean("pointToPointChannelExplicitlyConfigured");
+		channel.send(new StringMessage("test"));
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
+		AtomicInteger counter = new AtomicInteger();
+		CountDownLatch latch = new CountDownLatch(1);
+		TestHandler handler1 = new TestHandler(counter, latch);
+		TestHandler handler2 = new TestHandler(counter, latch);
+		dispatcher.addHandler(handler1);
+		dispatcher.addHandler(handler2);
+		dispatcher.start();
+		latch.await(500, TimeUnit.MILLISECONDS);
+		assertEquals(0, latch.getCount());
+		assertEquals(1, counter.get());
+	}
+
+	@Test
+	public void testPublishSubscribeChannel() throws InterruptedException {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"channelParserTests.xml", this.getClass());
+		MessageChannel channel = (MessageChannel) context.getBean("publishSubscribeChannel");
+		channel.send(new StringMessage("test"));
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
+		AtomicInteger counter = new AtomicInteger();
+		CountDownLatch latch = new CountDownLatch(2);
+		TestHandler handler1 = new TestHandler(counter, latch);
+		TestHandler handler2 = new TestHandler(counter, latch);
+		dispatcher.addHandler(handler1);
+		dispatcher.addHandler(handler2);
+		dispatcher.start();
+		latch.await(500, TimeUnit.MILLISECONDS);
+		assertEquals(0, latch.getCount());
+		assertEquals(2, counter.get());
+	}
+
+
+	private static class TestHandler implements MessageHandler {
+
+		private AtomicInteger counter;
+
+		private CountDownLatch latch;
+
+		TestHandler(AtomicInteger counter, CountDownLatch latch) {
+			this.counter = counter;
+			this.latch = latch;
+		}
+
+		public Message<?> handle(Message<?> message) {
+			this.counter.incrementAndGet();
+			this.latch.countDown();
+			return null;
+		}
 	}
 
 }

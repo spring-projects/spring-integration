@@ -32,7 +32,7 @@ public class IntegrationNamespaceHandler extends NamespaceHandlerSupport {
 	public void init() {
 		registerBeanDefinitionParser("message-bus", new MessageBusParser());
 		registerBeanDefinitionParser("annotation-driven", new AnnotationDrivenParser());
-		registerBeanDefinitionParser("channel", new ChannelParser(false));
+		registerBeanDefinitionParser("channel", new ChannelParser());
 		registerBeanDefinitionParser("source-adapter", new ChannelAdapterParser(true));
 		registerBeanDefinitionParser("target-adapter", new ChannelAdapterParser(false));
 		registerBeanDefinitionParser("endpoint", new EndpointParser());

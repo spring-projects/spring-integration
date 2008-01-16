@@ -7,6 +7,12 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<channel id="testChannel" capacity="10"/>
+	<channel id="capacityChannel" capacity="10"/>
+
+	<channel id="pointToPointChannelByDefault"/>
+
+	<channel id="pointToPointChannelExplicitlyConfigured" publish-subscribe="false"/>
+
+	<channel id="publishSubscribeChannel" publish-subscribe="true"/>
 
 </beans:beans>
