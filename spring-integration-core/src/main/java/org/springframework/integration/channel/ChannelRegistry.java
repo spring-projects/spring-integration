@@ -27,8 +27,8 @@ public interface ChannelRegistry {
 
 	MessageChannel lookupChannel(String channelName);
 
-	void setInvalidMessageChannel(MessageChannel invalidMessageChannel);
+	void setErrorChannel(MessageChannel errorChannel);
 
-	MessageChannel getInvalidMessageChannel();
+	MessageChannel getErrorChannel();
 
 }

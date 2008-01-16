@@ -30,15 +30,15 @@ public class DefaultChannelRegistry implements ChannelRegistry {
 
 	private Map<String, MessageChannel> channels = new ConcurrentHashMap<String, MessageChannel>();
 
-	private MessageChannel invalidMessageChannel;
+	private MessageChannel errorChannel;
 
 
-	public void setInvalidMessageChannel(MessageChannel invalidMessageChannel) {
-		this.invalidMessageChannel = invalidMessageChannel;
+	public void setErrorChannel(MessageChannel errorChannel) {
+		this.errorChannel = errorChannel;
 	}
 
-	public MessageChannel getInvalidMessageChannel() {
-		return this.invalidMessageChannel;
+	public MessageChannel getErrorChannel() {
+		return this.errorChannel;
 	}
 
 	public MessageChannel lookupChannel(String channelName) {

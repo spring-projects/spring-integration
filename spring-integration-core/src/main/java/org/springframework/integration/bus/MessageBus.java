@@ -146,8 +146,8 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 	}
 
 	public void initialize() {
-		if (this.getInvalidMessageChannel() == null) {
-			this.setInvalidMessageChannel(new SimpleChannel(Integer.MAX_VALUE));
+		if (this.getErrorChannel() == null) {
+			this.setErrorChannel(new SimpleChannel(Integer.MAX_VALUE));
 		}
 		if (this.taskScheduler == null) {
 			this.setMessagingTaskScheduler(createDefaultScheduler());
@@ -162,17 +162,17 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler();
 		scheduler.setCorePoolSize(this.dispatcherPoolSize);
 		scheduler.setThreadFactory(threadFactory);
-		scheduler.setErrorHandler(new MessagePublishingErrorHandler(this.getInvalidMessageChannel()));
+		scheduler.setErrorHandler(new MessagePublishingErrorHandler(this.getErrorChannel()));
 		scheduler.afterPropertiesSet();
 		return scheduler;
 	}
 
-	public MessageChannel getInvalidMessageChannel() {
-		return this.channelRegistry.getInvalidMessageChannel();
+	public MessageChannel getErrorChannel() {
+		return this.channelRegistry.getErrorChannel();
 	}
 
-	public void setInvalidMessageChannel(MessageChannel invalidMessageChannel) {
-		this.channelRegistry.setInvalidMessageChannel(invalidMessageChannel);
+	public void setErrorChannel(MessageChannel errorChannel) {
+		this.channelRegistry.setErrorChannel(errorChannel);
 	}
 
 	public MessageChannel lookupChannel(String channelName) {

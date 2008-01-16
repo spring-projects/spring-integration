@@ -25,7 +25,7 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:attribute name="auto-create-channels" type="xsd:boolean"/>
-			<xsd:attribute name="invalid-message-channel" type="xsd:string"/>
+			<xsd:attribute name="error-channel" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
 

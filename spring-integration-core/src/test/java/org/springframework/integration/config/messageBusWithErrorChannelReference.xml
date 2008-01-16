@@ -7,8 +7,8 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<channel id="errorMessages"/>
+	<channel id="testErrorChannel"/>
 
-	<message-bus invalid-message-channel="errorMessages"/>
+	<message-bus error-channel="testErrorChannel"/>
 
 </beans:beans>

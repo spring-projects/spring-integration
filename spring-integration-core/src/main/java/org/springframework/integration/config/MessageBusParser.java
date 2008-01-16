@@ -36,7 +36,7 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 
 	public static final String MESSAGE_BUS_BEAN_NAME = "org.springframework.integration.bus.internalMessageBus";
 
-	private static final String INVALID_MESSAGE_CHANNEL_ATTRIBUTE = "invalid-message-channel";
+	private static final String ERROR_CHANNEL_ATTRIBUTE = "error-channel";
 
 
 	@Override
@@ -52,15 +52,15 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
-		return !INVALID_MESSAGE_CHANNEL_ATTRIBUTE.equals(attributeName) && super.isEligibleAttribute(attributeName);
+		return !ERROR_CHANNEL_ATTRIBUTE.equals(attributeName) && super.isEligibleAttribute(attributeName);
 	}
 
 	@Override
 	protected void postProcess(BeanDefinitionBuilder beanDefinition, Element element) {
-		String invalidMessageChannelRef = element.getAttribute(INVALID_MESSAGE_CHANNEL_ATTRIBUTE);
-		if (StringUtils.hasText(invalidMessageChannelRef)) {
+		String errorChannelRef = element.getAttribute(ERROR_CHANNEL_ATTRIBUTE);
+		if (StringUtils.hasText(errorChannelRef)) {
 			beanDefinition.addPropertyReference(Conventions.attributeNameToPropertyName(
-					INVALID_MESSAGE_CHANNEL_ATTRIBUTE), invalidMessageChannelRef);
+					ERROR_CHANNEL_ATTRIBUTE), errorChannelRef);
 		}
 	}
 

@@ -159,7 +159,7 @@ public class MessageBusTests {
 	}
 
 	@Test
-	public void testInvalidMessageChannelWithFailedDispatch() throws InterruptedException {
+	public void testErrorChannelWithFailedDispatch() throws InterruptedException {
 		MessageBus bus = new MessageBus();
 		CountDownLatch latch = new CountDownLatch(1);
 		SourceAdapter sourceAdapter = new PollingSourceAdapter<Object>(new FailingSource(latch));
@@ -167,7 +167,7 @@ public class MessageBusTests {
 		bus.registerSourceAdapter("testAdapter", sourceAdapter);
 		bus.start();
 		latch.await(1000, TimeUnit.MILLISECONDS);
-		Message<?> message = bus.getInvalidMessageChannel().receive(100);
+		Message<?> message = bus.getErrorChannel().receive(100);
 		assertNotNull("message should not be null", message);
 		assertTrue(message instanceof ErrorMessage);
 		assertEquals("intentional test failure", ((ErrorMessage) message).getPayload().getMessage());

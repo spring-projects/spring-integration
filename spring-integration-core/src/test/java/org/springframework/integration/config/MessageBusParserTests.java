@@ -39,7 +39,7 @@ public class MessageBusParserTests {
 				"messageBusWithErrorChannelReference.xml", this.getClass());
 		MessageBus bus = (MessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		bus.initialize();
-		assertEquals(context.getBean("errorMessages"), bus.getInvalidMessageChannel());
+		assertEquals(context.getBean("testErrorChannel"), bus.getErrorChannel());
 	}
 
 	@Test
@@ -48,7 +48,7 @@ public class MessageBusParserTests {
 				"messageBusWithDefaults.xml", this.getClass());
 		MessageBus bus = (MessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		bus.initialize();
-		assertNotNull("bus should have created a default error channel", bus.getInvalidMessageChannel());
+		assertNotNull("bus should have created a default error channel", bus.getErrorChannel());
 	}
 
 	@Test(expected=MessagingConfigurationException.class)
