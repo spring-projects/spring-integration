@@ -17,8 +17,10 @@
 package org.springframework.integration.message;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -35,6 +37,8 @@ public class MessageHeader {
 	private Object correlationId;
 
 	private String replyChannelName;
+
+	private Date timestamp = new Date();
 
 	private Date expiration;
 
@@ -65,6 +69,10 @@ public class MessageHeader {
 
 	public int getSequenceNumber() {
 		return this.sequenceNumber;
+	}
+
+	public Date getTimestamp() {
+		return this.timestamp;
 	}
 
 	/**
@@ -103,12 +111,24 @@ public class MessageHeader {
 		this.properties.setProperty(key, value);
 	}
 
+	public Set<String> getPropertyNames() {
+		Set<String> propertyNames = new HashSet<String>();
+		for (Object key : this.properties.keySet()) {
+			propertyNames.add((String) key);
+		}
+		return propertyNames; 
+	}
+
 	public Object getAttribute(String key) {
 		return this.attributes.get(key);
 	}
 
 	public void setAttribute(String key, Object value) {
 		this.attributes.put(key, value);
+	}
+
+	public Set<String> getAttributeNames() {
+		return this.attributes.keySet();
 	}
 
 }
