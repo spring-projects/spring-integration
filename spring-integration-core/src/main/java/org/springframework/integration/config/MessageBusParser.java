@@ -20,9 +20,12 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.core.Conventions;
 import org.springframework.integration.bus.MessageBus;
+import org.springframework.util.StringUtils;
 
 /**
  * Parser for the <em>message-bus</em> element of the integration namespace.
@@ -33,6 +36,9 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 
 	public static final String MESSAGE_BUS_BEAN_NAME = "org.springframework.integration.bus.internalMessageBus";
 
+	private static final String INVALID_MESSAGE_CHANNEL_ATTRIBUTE = "invalid-message-channel";
+
+
 	@Override
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
 			throws BeanDefinitionStoreException {
@@ -42,6 +48,20 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 	@Override
 	protected Class<?> getBeanClass(Element element) {
 		return MessageBus.class;
+	}
+
+	@Override
+	protected boolean isEligibleAttribute(String attributeName) {
+		return !INVALID_MESSAGE_CHANNEL_ATTRIBUTE.equals(attributeName) && super.isEligibleAttribute(attributeName);
+	}
+
+	@Override
+	protected void postProcess(BeanDefinitionBuilder beanDefinition, Element element) {
+		String invalidMessageChannelRef = element.getAttribute(INVALID_MESSAGE_CHANNEL_ATTRIBUTE);
+		if (StringUtils.hasText(invalidMessageChannelRef)) {
+			beanDefinition.addPropertyReference(Conventions.attributeNameToPropertyName(
+					INVALID_MESSAGE_CHANNEL_ATTRIBUTE), invalidMessageChannelRef);
+		}
 	}
 
 }

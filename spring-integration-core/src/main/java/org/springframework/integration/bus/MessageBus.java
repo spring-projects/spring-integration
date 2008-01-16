@@ -29,7 +29,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.MessagingConfigurationException;
-import org.springframework.integration.MessagingException;
 import org.springframework.integration.adapter.SourceAdapter;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
@@ -95,7 +94,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 	public void setMessagingTaskScheduler(MessagingTaskScheduler taskScheduler) {
 		Assert.notNull(taskScheduler, "task scheduler must not be null");
 		if (taskScheduler instanceof SimpleMessagingTaskScheduler) {
-			((SimpleMessagingTaskScheduler) this.taskScheduler).setCorePoolSize(dispatcherPoolSize);
+			((SimpleMessagingTaskScheduler) taskScheduler).setCorePoolSize(dispatcherPoolSize);
 		}
 		this.taskScheduler = taskScheduler;
 	}
@@ -150,11 +149,13 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		if (this.getInvalidMessageChannel() == null) {
 			this.setInvalidMessageChannel(new SimpleChannel(Integer.MAX_VALUE));
 		}
-		initScheduler();
+		if (this.taskScheduler == null) {
+			this.setMessagingTaskScheduler(createDefaultScheduler());
+		}
 		this.initialized = true;
 	}
 
-	private void initScheduler() {
+	private MessagingTaskScheduler createDefaultScheduler() {
 		CustomizableThreadFactory threadFactory = new CustomizableThreadFactory();
 		threadFactory.setThreadNamePrefix("dispatcher-executor-");
 		threadFactory.setThreadGroup(new ThreadGroup("dispatcher-executors"));
@@ -163,7 +164,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		scheduler.setThreadFactory(threadFactory);
 		scheduler.setErrorHandler(new MessagePublishingErrorHandler(this.getInvalidMessageChannel()));
 		scheduler.afterPropertiesSet();
-		this.taskScheduler = scheduler;
+		return scheduler;
 	}
 
 	public MessageChannel getInvalidMessageChannel() {
@@ -248,7 +249,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			channel = this.lookupChannel(channelName);
 			if (channel == null) {
 				if (this.autoCreateChannels == false) {
-					throw new MessagingException("Cannot activate subscription, unknown channel '" + channelName +
+					throw new MessagingConfigurationException("Cannot activate subscription, unknown channel '" + channelName +
 							"'. Consider enabling the 'autoCreateChannels' option for the message bus.");
 				}
 				if (this.logger.isInfoEnabled()) {
