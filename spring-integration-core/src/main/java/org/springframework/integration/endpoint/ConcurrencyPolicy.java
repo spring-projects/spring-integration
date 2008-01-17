@@ -30,6 +30,15 @@ public class ConcurrencyPolicy implements EndpointPolicy {
 	private int maxSize;
 
 
+	public ConcurrencyPolicy() {
+	}
+
+	public ConcurrencyPolicy(int coreSize, int maxSize) {
+		this.setCoreSize(coreSize);
+		this.setMaxSize(maxSize);
+	}
+
+
 	public int getCoreSize() {
 		return this.coreSize;
 	}

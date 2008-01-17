@@ -42,7 +42,6 @@ import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.handler.MessageHandler;
-import org.springframework.integration.handler.PooledMessageHandler;
 import org.springframework.integration.scheduling.MessagePublishingErrorHandler;
 import org.springframework.integration.scheduling.MessagingTaskScheduler;
 import org.springframework.integration.scheduling.MessagingTaskSchedulerAware;
@@ -187,6 +186,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		if (!this.initialized) {
 			this.initialize();
 		}
+		channel.setName(name);
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
 		dispatcher.setMessagingTaskScheduler(this.taskScheduler);
 		if (dispatcherPolicy != null) {
@@ -213,11 +213,11 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		Assert.notNull(name, "'name' must not be null");
 		Assert.notNull(handler, "'handler' must not be null");
 		Assert.notNull(subscription, "'subscription' must not be null");
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint();
+		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(handler);
 		endpoint.setName(name);
-		endpoint.setHandler(handler);
 		endpoint.setSubscription(subscription);
 		endpoint.setConcurrencyPolicy(concurrencyPolicy);
+		endpoint.afterPropertiesSet();
 		this.registerEndpoint(name, endpoint);
 	}
 
@@ -260,7 +260,8 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			}
 		}
 		if (endpoint instanceof DefaultMessageEndpoint) {
-			String outputChannelName = ((DefaultMessageEndpoint) endpoint).getDefaultOutputChannelName();
+			DefaultMessageEndpoint dme = (DefaultMessageEndpoint) endpoint;
+			String outputChannelName = dme.getDefaultOutputChannelName();
 			if (outputChannelName != null && this.lookupChannel(outputChannelName) == null) {
 				if (!this.autoCreateChannels) {
 					throw new MessagingConfigurationException("Unknown channel '" + outputChannelName +
@@ -269,8 +270,11 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 				}
 				this.registerChannel(outputChannelName, new SimpleChannel());
 			}
+			if (!dme.hasErrorHandler() && this.getErrorChannel() != null) {
+				dme.setErrorHandler(new MessagePublishingErrorHandler(this.getErrorChannel()));
+			}
 		}
-		this.registerWithDispatcher(channel, endpoint, subscription.getSchedule(), endpoint.getConcurrencyPolicy());
+		this.registerWithDispatcher(channel, endpoint, subscription.getSchedule());
 		if (logger.isInfoEnabled()) {
 			logger.info("activated subscription to channel '" + channel.getName() + 
 					"' for endpoint '" + endpoint.getName() + "'");
@@ -295,15 +299,12 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		}
 	}
 
-	private void registerWithDispatcher(MessageChannel channel, MessageHandler handler, Schedule schedule, ConcurrencyPolicy concurrencyPolicy) {
+	private void registerWithDispatcher(MessageChannel channel, MessageHandler handler, Schedule schedule) {
 		MessageDispatcher dispatcher = dispatchers.get(channel);
 		if (dispatcher == null) {
 			if (logger.isWarnEnabled()) {
 				logger.warn("no dispatcher available for channel '" + channel.getName() + "', be sure to register the channel");
 			}
-		}
-		if (concurrencyPolicy != null) {
-			handler = new PooledMessageHandler(handler, concurrencyPolicy.getCoreSize(), concurrencyPolicy.getMaxSize());
 		}
 		dispatcher.addHandler(handler, schedule);
 		if (this.isRunning() && !dispatcher.isRunning()) {
@@ -349,23 +350,27 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 	}
 
 	public void stop() {
+		if (!this.isRunning()) {
+			return;
+		}
 		synchronized (this.lifecycleMonitor) {
-			if (this.isRunning()) {
-				this.running = false;
-				this.taskScheduler.stop();
-				for (Lifecycle adapter : this.lifecycleSourceAdapters) {
-					adapter.stop();
-					if (logger.isInfoEnabled()) {
-						logger.info("stopped source adapter '" + adapter + "'");
-					}
-				}
-				for (MessageDispatcher dispatcher : this.dispatchers.values()) {
-					dispatcher.stop();
-					if (logger.isInfoEnabled()) {
-						logger.info("stopped dispatcher '" + dispatcher + "'");
-					}
+			this.running = false;
+			this.taskScheduler.stop();
+			for (Lifecycle adapter : this.lifecycleSourceAdapters) {
+				adapter.stop();
+				if (logger.isInfoEnabled()) {
+					logger.info("stopped source adapter '" + adapter + "'");
 				}
 			}
+			for (MessageDispatcher dispatcher : this.dispatchers.values()) {
+				dispatcher.stop();
+				if (logger.isInfoEnabled()) {
+					logger.info("stopped dispatcher '" + dispatcher + "'");
+				}
+			}
+		}
+		if (logger.isInfoEnabled()) {
+			logger.info("message bus stopped");
 		}
 	}
 

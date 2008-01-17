@@ -48,7 +48,9 @@ public class DefaultMessageEndpointTests {
 		endpoint.setChannelRegistry(channelRegistry);
 		endpoint.setHandler(handler);
 		endpoint.setDefaultOutputChannelName("replyChannel");
+		endpoint.start();
 		endpoint.handle(new StringMessage(1, "test"));
+		endpoint.stop();
 		Message<?> reply = replyChannel.receive(50);
 		assertNotNull(reply);
 		assertEquals("hello test", reply.getPayload());
@@ -67,9 +69,11 @@ public class DefaultMessageEndpointTests {
 		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint();
 		endpoint.setChannelRegistry(channelRegistry);
 		endpoint.setHandler(handler);
+		endpoint.start();
 		StringMessage testMessage = new StringMessage(1, "test");
 		testMessage.getHeader().setReplyChannelName("replyChannel");
 		endpoint.handle(testMessage);
+		endpoint.stop();
 		Message<?> reply = replyChannel.receive(50);
 		assertNotNull(reply);
 		assertEquals("hello test", reply.getPayload());

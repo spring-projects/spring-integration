@@ -17,20 +17,22 @@
 package org.springframework.integration.handler;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.integration.message.Message;
 
 /**
- * Factory for {@link MessageHandler} implementations that are useful for testing.
+ * Factory for {@link MessageHandler} implementations that are useful for
+ * testing.
  * 
  * @author Mark Fisher
  */
-public class TestHandlers {
+public abstract class TestHandlers {
 
 	/**
 	 * Create a {@link MessageHandler} that always returns null.
 	 */
-	public static MessageHandler nullHandler() {
+	public final static MessageHandler nullHandler() {
 		return new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				return null;
@@ -39,11 +41,37 @@ public class TestHandlers {
 	}
 
 	/**
-	 * Create a {@link MessageHandler} that counts down on the provided latch.
+	 * Create a {@link MessageHandler} that increments the provided counter.
 	 */
-	public static MessageHandler countDownHandler(final CountDownLatch latch) {
+	public final static MessageHandler countingHandler(final AtomicInteger counter) {
 		return new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
+				counter.incrementAndGet();
+				return null;
+			}
+		};
+	}
+
+	/**
+	 * Create a {@link MessageHandler} that counts down on the provided latch.
+	 */
+	public final static MessageHandler countDownHandler(final CountDownLatch latch) {
+		return new MessageHandler() {
+			public Message<?> handle(Message<?> message) {
+				latch.countDown();
+				return null;
+			}
+		};
+	}
+
+	/**
+	 * Create a {@link MessageHandler} that counts down on the provided latch
+	 * and also increments the provided counter.
+	 */
+	public final static MessageHandler countingCountDownHandler(final AtomicInteger counter, final CountDownLatch latch) {
+		return new MessageHandler() {
+			public Message<?> handle(Message<?> message) {
+				counter.incrementAndGet();
 				latch.countDown();
 				return null;
 			}

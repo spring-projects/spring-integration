@@ -156,51 +156,53 @@ public class DefaultMessageDispatcher implements MessageDispatcher, MessagingTas
 		if (!this.scheduler.isRunning()) {
 			this.scheduler.start();
 		}
+		if (this.isRunning()) {
+			return;
+		}
 		synchronized (this.lifecycleMonitor) {
-			if (!this.isRunning()) {
-				for (Map.Entry<Schedule, List<MessageHandler>> entry : this.scheduledHandlers.entrySet()) {
-					Schedule schedule = entry.getKey();
-					List<MessageHandler> handlers = entry.getValue();
-					ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel);
-					retriever.setMaxMessagesPerTask(this.maxMessagesPerTask);
-					retriever.setReceiveTimeout(this.receiveTimeout);
-					DispatcherTask task = new DispatcherTask(retriever);
-					task.setSchedule(schedule);
-					task.setRejectionLimit(this.rejectionLimit);
-					task.setRetryInterval(this.retryInterval);
-					task.setPublishSubscribe(channel.isPublishSubscribe());
-					task.setShouldFailOnRejectionLimit(this.shouldFailOnRejectionLimit);
-					for (MessageHandler handler : handlers) {
-						if (handler instanceof Lifecycle) {
-							((Lifecycle) handler).start();
-						}
-						task.addHandler(handler);
+			for (Map.Entry<Schedule, List<MessageHandler>> entry : this.scheduledHandlers.entrySet()) {
+				Schedule schedule = entry.getKey();
+				List<MessageHandler> handlers = entry.getValue();
+				ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel);
+				retriever.setMaxMessagesPerTask(this.maxMessagesPerTask);
+				retriever.setReceiveTimeout(this.receiveTimeout);
+				DispatcherTask task = new DispatcherTask(retriever);
+				task.setSchedule(schedule);
+				task.setRejectionLimit(this.rejectionLimit);
+				task.setRetryInterval(this.retryInterval);
+				task.setPublishSubscribe(channel.isPublishSubscribe());
+				task.setShouldFailOnRejectionLimit(this.shouldFailOnRejectionLimit);
+				for (MessageHandler handler : handlers) {
+					if (handler instanceof Lifecycle) {
+						((Lifecycle) handler).start();
 					}
-					ScheduledFuture<?> future = this.scheduler.schedule(task);
-					if (future != null) {
-						futures.add(future);
-					}
+					task.addHandler(handler);
 				}
-				this.running = true;
+				ScheduledFuture<?> future = this.scheduler.schedule(task);
+				if (future != null) {
+					futures.add(future);
+				}
 			}
+			this.running = true;
 		}
 	}
 
 	public void stop() {
+		if (!this.isRunning()) {
+			return;
+		}
 		synchronized (this.lifecycleMonitor) {
-			if (this.isRunning()) {
-				for (ScheduledFuture<?> future : this.futures) {
-					future.cancel(true);
-					for (List<MessageHandler> handlerList : scheduledHandlers.values()) {
-						for (MessageHandler handler : handlerList) {
-							if (handler instanceof Lifecycle) {
-								((Lifecycle) handler).stop();
-							}
+			for (ScheduledFuture<?> future : this.futures) {
+				future.cancel(true);
+				for (List<MessageHandler> handlerList : scheduledHandlers.values()) {
+					for (MessageHandler handler : handlerList) {
+						if (handler instanceof Lifecycle) {
+							((Lifecycle) handler).stop();
 						}
 					}
 				}
-				this.running = false;
 			}
+			this.running = false;
 		}
 	}
 

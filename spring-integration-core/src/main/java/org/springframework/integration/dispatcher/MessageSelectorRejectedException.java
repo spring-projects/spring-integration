@@ -26,6 +26,10 @@ import org.springframework.integration.MessageHandlingException;
  */
 public class MessageSelectorRejectedException extends MessageHandlingException {
 
+	public MessageSelectorRejectedException() {
+		super();
+	}
+
 	public MessageSelectorRejectedException(String message) {
 		super(message);
 	}

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.bus.Subscription;
 import org.springframework.integration.handler.MessageHandler;
 
@@ -24,7 +25,7 @@ import org.springframework.integration.handler.MessageHandler;
  * 
  * @author Mark Fisher
  */
-public interface MessageEndpoint extends MessageHandler {
+public interface MessageEndpoint extends MessageHandler, Lifecycle {
 
 	String getName();
 

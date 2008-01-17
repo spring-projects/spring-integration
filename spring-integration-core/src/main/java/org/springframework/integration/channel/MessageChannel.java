@@ -31,6 +31,11 @@ public interface MessageChannel {
 	String getName();
 
 	/**
+	 * Set the name of this channel.
+	 */
+	void setName(String name);
+
+	/**
 	 * Return whether this channel has been designated as a publish-subscribe channel.
 	 * If so, any dispatcher retrieving messages from this channel should send each
 	 * message to each of the dispatcher's handlers.
