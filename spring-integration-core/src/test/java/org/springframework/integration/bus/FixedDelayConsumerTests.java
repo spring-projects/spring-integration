@@ -56,8 +56,8 @@ public class FixedDelayConsumerTests {
 		PollingSchedule schedule = new PollingSchedule(10);
 		schedule.setFixedRate(false);
 		ConcurrencyPolicy concurrencyPolicy = new ConcurrencyPolicy();
-		concurrencyPolicy.setCoreConcurrency(1);
-		concurrencyPolicy.setMaxConcurrency(1);
+		concurrencyPolicy.setCoreSize(1);
+		concurrencyPolicy.setMaxSize(1);
 		Subscription subscription = new Subscription();
 		subscription.setSchedule(schedule);
 		subscription.setChannelName("testChannel");

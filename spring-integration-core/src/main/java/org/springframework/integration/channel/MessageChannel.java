@@ -26,11 +26,6 @@ import org.springframework.integration.message.Message;
 public interface MessageChannel {
 
 	/**
-	 * Set the name of this channel. Must be unique within a context.
-	 */
-	void setName(String name);
-
-	/**
 	 * Return the name of this channel.
 	 */
 	String getName();

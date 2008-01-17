@@ -29,8 +29,4 @@ public interface Message<T> {
 
 	T getPayload();
 
-	void lock();
-
-	void unlock();
-
 }

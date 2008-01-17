@@ -48,7 +48,6 @@ public class DefaultChannelRegistry implements ChannelRegistry {
 	public void registerChannel(String name, MessageChannel channel) {
 		Assert.notNull(name, "'name' must not be null");
 		Assert.notNull(channel, "'channel' must not be null");
-		channel.setName(name);
 		this.channels.put(name, channel);
 	}
 

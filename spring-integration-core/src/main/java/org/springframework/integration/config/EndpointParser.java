@@ -82,9 +82,9 @@ public class EndpointParser implements BeanDefinitionParser {
 
 	private static final String CONCURRENCY_ELEMENT = "concurrency";
 
-	private static final String CORE_CONCURRENCY_ATTRIBUTE = "core";
+	private static final String CORE_SIZE_ATTRIBUTE = "core";
 
-	private static final String MAX_CONCURRENCY_ATTRIBUTE = "max";
+	private static final String MAX_SIZE_ATTRIBUTE = "max";
 
 	private static final String CONCURRENCY_POLICY_PROPERTY = "concurrencyPolicy";
 
@@ -162,13 +162,13 @@ public class EndpointParser implements BeanDefinitionParser {
 
 	private void parseConcurrencyPolicy(Element concurrencyElement, RootBeanDefinition subscriptionDefinition) {
 		ConcurrencyPolicy policy = new ConcurrencyPolicy();
-		String coreConcurrency = concurrencyElement.getAttribute(CORE_CONCURRENCY_ATTRIBUTE);
-		String maxConcurrency = concurrencyElement.getAttribute(MAX_CONCURRENCY_ATTRIBUTE);
-		if (StringUtils.hasText(coreConcurrency)) {
-			policy.setCoreConcurrency(Integer.parseInt(coreConcurrency));
+		String coreSize = concurrencyElement.getAttribute(CORE_SIZE_ATTRIBUTE);
+		String maxSize = concurrencyElement.getAttribute(MAX_SIZE_ATTRIBUTE);
+		if (StringUtils.hasText(coreSize)) {
+			policy.setCoreSize(Integer.parseInt(coreSize));
 		}
-		if (StringUtils.hasText(maxConcurrency)) {
-			policy.setMaxConcurrency(Integer.parseInt(maxConcurrency));
+		if (StringUtils.hasText(maxSize)) {
+			policy.setMaxSize(Integer.parseInt(maxSize));
 		}
 		subscriptionDefinition.getPropertyValues().addPropertyValue(CONCURRENCY_POLICY_PROPERTY, policy);
 	}

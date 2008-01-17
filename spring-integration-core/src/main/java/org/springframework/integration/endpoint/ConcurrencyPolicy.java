@@ -25,27 +25,27 @@ import org.springframework.util.Assert;
  */
 public class ConcurrencyPolicy implements EndpointPolicy {
 
-	private int coreConcurrency;
+	private int coreSize;
 
-	private int maxConcurrency;
+	private int maxSize;
 
 
-	public int getCoreConcurrency() {
-		return this.coreConcurrency;
+	public int getCoreSize() {
+		return this.coreSize;
 	}
 
-	public void setCoreConcurrency(int coreConcurrency) {
-		Assert.isTrue(coreConcurrency > 0, "'coreConcurrency' must be at least 1");
-		this.coreConcurrency = coreConcurrency;
+	public void setCoreSize(int coreSize) {
+		Assert.isTrue(coreSize > 0, "'coreSize' must be at least 1");
+		this.coreSize = coreSize;
 	}
 
-	public int getMaxConcurrency() {
-		return this.maxConcurrency;
+	public int getMaxSize() {
+		return this.maxSize;
 	}
 
-	public void setMaxConcurrency(int maxConcurrency) {
-		Assert.isTrue(maxConcurrency > 0, "'maxConcurrency' must be at least 1");
-		this.maxConcurrency = maxConcurrency;
+	public void setMaxSize(int maxSize) {
+		Assert.isTrue(maxSize > 0, "'maxSize' must be at least 1");
+		this.maxSize = maxSize;
 	}
 
 }

@@ -16,9 +16,6 @@
 
 package org.springframework.integration.message;
 
-import java.util.concurrent.locks.ReentrantLock;
-
-import org.springframework.integration.SystemInterruptedException;
 import org.springframework.integration.util.RandomGuidUidGenerator;
 import org.springframework.integration.util.UidGenerator;
 import org.springframework.util.Assert;
@@ -37,8 +34,6 @@ public class GenericMessage<T> implements Message<T> {
 	private T payload;
 
 	private UidGenerator defaultUidGenerator = new RandomGuidUidGenerator();
-
-	private ReentrantLock lock;
 
 
 	/**
@@ -85,23 +80,6 @@ public class GenericMessage<T> implements Message<T> {
 
 	protected void setPayload(T newPayload) {
 		this.payload = newPayload;
-	}
-
-	public void lock() {
-		this.lock.lock();
-	}
-
-	public void lockInterruptibly() {
-		try {
-			lock.lockInterruptibly();
-		}
-		catch (InterruptedException e) {
-			throw new SystemInterruptedException("Unable to obtain lock for message", e);
-		}
-	}
-
-	public void unlock() {
-		lock.unlock();
 	}
 
 }

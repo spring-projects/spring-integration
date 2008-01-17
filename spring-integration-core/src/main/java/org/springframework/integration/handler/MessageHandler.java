@@ -19,7 +19,7 @@ package org.springframework.integration.handler;
 import org.springframework.integration.message.Message;
 
 /**
- * Generic message handler interface. Typical implementations will translate
+ * Base message handler interface. Typical implementations will translate
  * between the generic Messages of the integration framework and the domain
  * objects that are passed-to and returned-from business components.
  * 

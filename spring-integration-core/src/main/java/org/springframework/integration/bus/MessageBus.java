@@ -303,7 +303,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			}
 		}
 		if (concurrencyPolicy != null) {
-			handler = new PooledMessageHandler(handler, concurrencyPolicy.getCoreConcurrency(), concurrencyPolicy.getMaxConcurrency());
+			handler = new PooledMessageHandler(handler, concurrencyPolicy.getCoreSize(), concurrencyPolicy.getMaxSize());
 		}
 		dispatcher.addHandler(handler, schedule);
 		if (this.isRunning() && !dispatcher.isRunning()) {

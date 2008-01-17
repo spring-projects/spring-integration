@@ -24,23 +24,23 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * A holder for Message metadata. This includes information that is used by the
- * messaging system (such <i>correlationId</i>) as well as information that is
- * relevant for specific messaging endpoints. For the latter, String values may
- * be stored as <i>properties</i> and Object values may be stored as
+ * A holder for Message metadata. This includes information that may be used by
+ * the messaging system (such as <i>correlationId</i>) as well as information
+ * that is relevant for specific messaging endpoints. For the latter, String
+ * values may be stored as <i>properties</i> and Object values may be stored as
  * <i>attributes</i>.
  * 
  * @author Mark Fisher
  */
 public class MessageHeader {
 
-	private Object correlationId;
-
-	private String replyChannelName;
-
 	private Date timestamp = new Date();
 
 	private Date expiration;
+
+	private Object correlationId;
+
+	private String replyChannelName;
 
 	private int sequenceNumber = 1;
 
@@ -50,6 +50,29 @@ public class MessageHeader {
 
 	private Map<String, Object> attributes = new ConcurrentHashMap<String, Object>();
 
+
+	/**
+	 * Return the creation time of this message.  
+	 */
+	public Date getTimestamp() {
+		return this.timestamp;
+	}
+
+	/**
+	 * Return the expiration date for this message or <code>null</code> to
+	 * indicate 'never expire'.
+	 */
+	public Date getExpiration() {
+		return this.expiration;
+	}
+
+	/**
+	 * Set the expiration date for this message or <code>null</code> to
+	 * indicate 'never expire'. The default is <code>null</code>.
+	 */
+	public void setExpiration(Date expiration) {
+		this.expiration = expiration;
+	}
 
 	public Object getCorrelationId() {
 		return this.correlationId;
@@ -69,26 +92,6 @@ public class MessageHeader {
 
 	public int getSequenceNumber() {
 		return this.sequenceNumber;
-	}
-
-	public Date getTimestamp() {
-		return this.timestamp;
-	}
-
-	/**
-	 * Set the expiration date for this message or <code>null</code> to
-	 * indicate 'never expire'. The default is <code>null</code>.
-	 */
-	public void setExpiration(Date expiration) {
-		this.expiration = expiration;
-	}
-
-	/**
-	 * Return the expiration date for this message or <code>null</code> to
-	 * indicate 'never expire'.
-	 */
-	public Date getExpiration() {
-		return this.expiration;
 	}
 
 	public void setSequenceNumber(int sequenceNumber) {
@@ -116,7 +119,7 @@ public class MessageHeader {
 		for (Object key : this.properties.keySet()) {
 			propertyNames.add((String) key);
 		}
-		return propertyNames; 
+		return propertyNames;
 	}
 
 	public Object getAttribute(String key) {
