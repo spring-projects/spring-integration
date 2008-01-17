@@ -16,7 +16,6 @@
 
 package org.springframework.integration.dispatcher;
 
-import org.springframework.integration.endpoint.EndpointPolicy;
 import org.springframework.util.Assert;
 
 /**
@@ -24,7 +23,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class DispatcherPolicy implements EndpointPolicy {
+public class DispatcherPolicy {
 
 	public final static int DEFAULT_MAX_MESSAGES_PER_TASK = 1;
 

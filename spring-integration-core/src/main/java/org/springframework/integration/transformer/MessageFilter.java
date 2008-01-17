@@ -35,7 +35,7 @@ public class MessageFilter implements MessageHandler {
 		this.selector = selector;
 	}
 
-	public Message handle(Message message) {
+	public Message<?> handle(Message<?> message) {
 		if (this.selector.accept(message)) {
 			return message;
 		}
