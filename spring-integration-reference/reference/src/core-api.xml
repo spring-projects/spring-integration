@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter id="api">
+  <title>Spring Integration Core API</title>
+
+  <section id="api-message">
+    <title>Message</title>
+    <para>
+      The Spring Integration <interfacename>Message</interfacename> is a generic container for data. Any object can
+      be provided as the payload, and each <interfacename>Message</interfacename> also includes a header containing
+      user-extensible properties as key-value pairs. Here is the definition of the
+      <interfacename>Message</interfacename> interface:
+      <programlisting>public interface Message&lt;T&gt; {
+    Object getId();
+    MessageHeader getHeader();
+    T getPayload();
+}</programlisting>
+      And the header provides the following properties:
+      <table id="api-message-headerproperties">
+        <title>Properties of the MessageHeader</title>
+        <tgroup cols="2">
+          <colspec align="left" />
+          <thead>
+            <row>
+              <entry align="center">Property Name</entry>
+              <entry align="center">Property Type</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>timestamp</entry>
+              <entry>java.util.Date</entry>
+            </row>
+            <row>
+              <entry>expiration</entry>
+              <entry>java.util.Date</entry>
+            </row>
+            <row>
+              <entry>correlationId</entry>
+              <entry>java.lang.Object</entry>
+            </row>
+            <row>
+              <entry>replyChannelName</entry>
+              <entry>java.lang.String</entry>
+            </row>
+            <row>
+              <entry>sequenceNumber</entry>
+              <entry>int</entry>
+            </row>
+            <row>
+              <entry>sequenceSize</entry>
+              <entry>int</entry>
+            </row>
+            <row>
+              <entry>properties</entry>
+              <entry>java.util.Properties</entry>
+            </row>
+            <row>
+              <entry>attributes</entry>
+              <entry>Map&lt;String,Object&gt;</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </para>
+    <para>
+      The base implementation of the <interfacename>Message</interfacename> interface is
+      <classname>GenericMessage&lt;T&gt;</classname>, and it provides two constructors:
+      <programlisting>new GenericMessage&lt;T&gt;(Object id, T payload);
+new GenericMessage&lt;T&gt;(T payload);</programlisting>
+      When no id is provided, a random unique id will be generated. There are also two convenient subclasses available
+      currently: <classname>StringMessage</classname> and <classname>ErrorMessage</classname>. The latter accepts any
+      <classname>Throwable</classname> object as its payload.
+    </para>
+    <para>
+      The <interfacename>Message</interfacename> is obviously a very important part of the API. By encapsulating the
+      data in a generic wrapper, the messaging system can pass it around without any knowledge of the data's type. As
+      the system evolves to support new types, or when the types themselves are modified and/or extended, the messaging
+      system will not be affected by such changes. On the other hand, when some component in the messaging system
+      <emphasis>does</emphasis> require access to information about the <interfacename>Message</interfacename>, such
+      metadata can typically be stored to and retrieved from the metadata in the header (the 'properties' and
+      'attributes').
+    </para>
+  </section>
+
+  <section id="api-messagechannel">
+    <title>MessageChannel</title>
+    <para>
+      While the <interfacename>Message</interfacename> plays the crucial role of encapsulating data, it is the
+      <interfacename>MessageChannel</interfacename> that decouples message producers from message consumers.
+      Spring Integration's <interfacename>MessageChannel</interfacename> interface is defined as follows.
+      <programlisting>public interface MessageChannel {
+    String getName();
+    boolean isPublishSubscribe();
+    boolean send(Message message);
+    boolean send(Message message, long timeout);
+    Message receive();
+    Message receive(long timeout);
+}</programlisting>
+    The <classname>SimpleChannel</classname> implementation wraps a queue. It provides a no-argument constructor as
+    well as a constructor that accepts the queue capacity:
+    <programlisting>public SimpleChannel(int capacity)</programlisting>
+      When sending a message, the return value will be <emphasis>true</emphasis> if the message is sent successfully.
+      If the send call times out or is interrupted, then it will return <emphasis>false</emphasis>. Likewise when
+      receiving a message, the return value will be <emphasis>null</emphasis> in the case of a timeout or interrupt.
+    </para>
+  </section>
+
+  <section id="api-messagehandler">
+    <title>MessageHandler</title>
+    <para>
+      So far we have seen that generic message objects are sent-to and received-from simple channel objects. Here is
+      Spring Integration's callback interface for handling the <interfacename>Messages</interfacename>:
+      <programlisting>public interface MessageHandler {
+    Message&lt;?&gt; handle(Message&lt;?&gt; message);
+}</programlisting>
+      The handler plays an important role, since it is typically responsible for translating between the generic
+      <interfacename>Message</interfacename> objects and the business components that consume the message payload.
+      That said, developers will rarely need to implement this callback directly. While that option will always be
+      available, we will soon discuss the higher-level configuration options including both annotation-driven
+      techniques and XML-based configuration with convenient namespace support.
+    </para>
+  </section>
+
+  <section id="api-messagebus">
+    <title>MessageBus</title>
+    <para>
+      There is a rather obvious gap in what we have reviewed thus far. The
+      <interfacename>MessageChannel</interfacename> provides a <methodname>receive()</methodname> method that returns
+      a <interfacename>Message</interfacename>, and the <interfacename>MessageHandler</interfacename> provides a
+      <methodname>handle()</methodname> method that accepts a <interfacename>Message</interfacename>, but how do the
+      messages get passed from the channel to the handler? As mentioned earlier, the <classname>MessageBus</classname>
+      provides a runtime form of inversion of control, and so the short answer is: you don't need to worry about it.
+      Nevertheless since this is a reference guide, we will explore this in a bit of detail.
+    </para>
+    <para>
+      The <interfacename>MessageBus</interfacename> is an example of a mediator. It performs a number of roles - mostly
+      by delegating to other strategies. One of its fundamental responsibilities is to manage registration of the
+      <interfacename>MessageChannels</interfacename> and <interfacename>MessageHandlers</interfacename>. It provides
+      the following methods:
+      <programlisting>public void registerChannel(String name, MessageChannel channel)
+public void registerChannel(String name, MessageChannel channel, DispatcherPolicy dispatcherPolicy)
+public void registerHandler(String name, MessageHandler handler, Subscription subscription)
+public void registerHandler(String name, MessageHandler handler, Subscription subscription, ConcurrencyPolicy concurrencyPolicy)</programlisting>
+      As those method signatures reveal, the message bus is handling several of the concerns here so that the channel
+      and handler objects can be as simple as possible. These responsibilities include the creation and lifecycle
+      management of message dispatchers, the activation of handler subscriptions, and the configuration of thread
+      pools. The bus coordinates all of that behavior based upon the metadata provided via these registration methods.
+      We will briefly take a look at each of those metadata objects.
+    </para>
+    <para>
+      The bus creates and manages dispatchers that pull messages from a channel in order to push those messages to
+      handlers registered on that channel. The <classname>DispatcherPolicy</classname> contains metadata for
+      configuring those dispatchers:
+      <table id="api-messagebus-dispatcherpolicy">
+        <title>Properties of the DispatcherPolicy</title>
+        <tgroup cols="3">
+          <colspec align="left" />
+          <thead>
+            <row>
+              <entry align="center">Property Name</entry>
+              <entry align="center">Default Value</entry>
+              <entry align="center">Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>maxMessagesPerTask</entry>
+              <entry>1</entry>
+              <entry>maximum number of messages to retrieve per poll</entry>
+            </row>
+            <row>
+              <entry>receiveTimeout</entry>
+              <entry>1000 (milliseconds)</entry>
+              <entry>how long to block on the receive call (0 for no blocking, -1 for indefinite block)</entry>
+            </row>
+            <row>
+              <entry>rejectionLimit</entry>
+              <entry>5</entry>
+              <entry>maximum number of attempts to invoke handlers (e.g. no threads available)</entry>
+            </row>
+            <row>
+              <entry>retryInterval</entry>
+              <entry>1000 (milliseconds)</entry>
+              <entry>amount of time to wait between successive attempts to invoke handlers</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+    </para>
+    <para>
+      The bus registers handlers with a channel's dispatcher based upon the <classname>Subscription</classname>
+      metadata provided to the <methodname>registerHandler()</methodname> method.
+      <table id="api-messagebus-subscription">
+        <title>Properties of the Subscription</title>
+        <tgroup cols="2">
+          <colspec align="left" />
+          <thead>
+            <row>
+              <entry align="center">Property Name</entry>
+              <entry align="center">Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>channel</entry>
+              <entry>the channel instance to subscribe to (an object reference)</entry>
+            </row>
+            <row>
+              <entry>channelName</entry>
+              <entry>the name of the channel to subscribe to - only used as a fallback if 'channel' is null</entry>
+            </row>
+            <row>
+              <entry>schedule</entry>
+              <entry>the scheduling metadata (see below)</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      The scheduling metadata is provided with an instance of the <interfacename>Schedule</interfacename> interface.
+      This is an abstraction designed to allow extensibility of schedulers for messaging tasks. Currently, there is
+      a single implementation called <classname>PollingSchedule</classname> that provides the following properties:
+      <table id="api-messagebus-pollingschedule">
+        <title>Properties of the PollingSchedule</title>
+        <tgroup cols="2">
+          <colspec align="left" />
+          <thead>
+            <row>
+              <entry align="center">Property Name</entry>
+              <entry align="center">Default Value</entry>
+              <entry align="center">Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>period</entry>
+              <entry>N/A</entry>
+              <entry>the delay interval between each poll</entry>
+            </row>
+            <row>
+              <entry>initialDelay</entry>
+              <entry>0</entry>
+              <entry>the delay prior to the first poll</entry>
+            </row>
+            <row>
+              <entry>timeUnit</entry>
+              <entry>TimeUnit.MILLISECONDS</entry>
+              <entry>time unit for 'period' and 'initialDelay'</entry>
+            </row>
+            <row>
+              <entry>fixedRate</entry>
+              <entry>false</entry>
+              <entry>'false' indicates fixed-delay (no backlog)</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      The <classname>PollingSchedule</classname> constructor requires the 'period' value.
+    </para>
+    <para>
+      The <classname>ConcurrencyPolicy</classname> is an optional parameter to provide when registering a handler.
+      It encapsulates two properties: 'coreSize' and 'maxSize'. When the <interfacename>MessageBus</interfacename>
+      registers a handler, it will use these properties to configure that handler's thread pool. These pool size
+      parameters are configurable on a per-handler basis since handlers may have differences in performance and
+      may have different expectations with regard to the volume of throughput.
+    </para>
+  </section>
+</chapter>

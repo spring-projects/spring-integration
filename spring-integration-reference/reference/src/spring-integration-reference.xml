@@ -2,10 +2,11 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" 
 "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
 <!ENTITY overview SYSTEM "overview.xml">
+<!ENTITY core-api SYSTEM "core-api.xml">
 ]>
 <book>
   <bookinfo>
-    <title>Reference Manual</title>
+    <title>Spring Integration Reference Manual</title>
 
     <productname>Spring Integration</productname>
     <releaseinfo>1.0 Milestone 1</releaseinfo>
@@ -32,5 +33,6 @@
   <toc></toc>
 
   &overview;
+  &core-api;
 
 </book>
