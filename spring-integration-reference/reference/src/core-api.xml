@@ -264,4 +264,23 @@ public void registerHandler(String name, MessageHandler handler, Subscription su
       may have different expectations with regard to the volume of throughput.
     </para>
   </section>
+
+  <section id="api-messageendpoint">
+    <title>MessageEndpoint</title>
+    <para>
+      When <interfacename>MessageHandlers</interfacename> are registered with the <classname>MessageBus</classname>,
+      the bus assigns the handler to a dispatcher based on the provided schedule as described above. Internally, the
+      bus is creating and registering an instance that implements the <interfacename>MessageEndpoint</interfacename>
+      interface. This is where other handler metadata enters the picture (e.g. the concurrency settings). Basically,
+      you can consider the endpoint to be a composite handler built from a simple implementation of the
+      <interfacename>MessageHandler</interfacename> along with its metadata. In fact, the
+      <interfacename>MessageEndpoint</interfacename> does extend the <interfacename>MessageHandler</interfacename>
+      interface.
+      <programlisting>public interface MessageEndpoint extends MessageHandler {
+    String getName();
+    Subscription getSubscription();
+    ConcurrencyPolicy getConcurrencyPolicy();
+}</programlisting>
+    </para>
+  </section>
 </chapter>
