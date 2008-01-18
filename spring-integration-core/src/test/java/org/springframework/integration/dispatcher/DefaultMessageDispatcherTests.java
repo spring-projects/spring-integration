@@ -189,11 +189,9 @@ public class DefaultMessageDispatcherTests {
 	public void testBroadcastingDispatcherReachesRejectionLimitAndShouldNotFail() throws InterruptedException {
 		final AtomicInteger counter1 = new AtomicInteger();
 		final AtomicInteger counter2 = new AtomicInteger();
-		final AtomicInteger counter3 = new AtomicInteger();
-		final CountDownLatch latch = new CountDownLatch(2);
+		final CountDownLatch latch = new CountDownLatch(3);
 		MessageHandler handler1 = TestHandlers.countingCountDownHandler(counter1, latch);
 		MessageHandler handler2 = TestHandlers.countingCountDownHandler(counter2, latch);
-		MessageHandler handler3 = TestHandlers.countingCountDownHandler(counter3, latch);
 		SimpleChannel channel = new SimpleChannel();
 		channel.setPublishSubscribe(true);
 		channel.send(new StringMessage(1, "test"));
@@ -201,19 +199,18 @@ public class DefaultMessageDispatcherTests {
 		dispatcher.setRejectionLimit(2);
 		dispatcher.setRetryInterval(3);
 		dispatcher.setShouldFailOnRejectionLimit(false);
-		dispatcher.addHandler(new ConcurrentHandler(handler1, 1, 1));
-		dispatcher.addHandler(new ConcurrentHandler(handler2, 1, 1) {
-			@Override
+		dispatcher.addHandler(handler1);
+		dispatcher.addHandler(new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
+				latch.countDown();
 				throw new MessageHandlerRejectedExecutionException();
 			}
 		});
-		dispatcher.addHandler(new ConcurrentHandler(handler3, 1, 1));
+		dispatcher.addHandler(handler2);
 		dispatcher.start();
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals("messages should have been dispatched within allotted time", 0, latch.getCount());
-		assertEquals("rejecting handler should not have received message", 0, counter2.get());
-		assertEquals("both non-rejecting handlers should have received message", 2, counter1.get() + counter3.get());
+		assertEquals("both non-rejecting handlers should have received message", 2, counter1.get() + counter2.get());
 	}
 
 	@Test
