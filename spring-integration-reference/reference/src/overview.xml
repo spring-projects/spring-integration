@@ -75,6 +75,22 @@
 
   <section id="overview-components">
     <title>Main Components</title>
+
+    <para>
+      From the <emphasis>vertical</emphasis> perspective, a layered architecture facilitates separation of concerns,
+      and interface-based contracts between layers promote loose coupling. Spring-based applications are typically
+      designed this way, and the Spring framework and portfolio provide a strong foundation for following this best
+      practice for the full-stack of an enterprise application. Message-driven architectures add a
+      <emphasis>horizontal</emphasis> perspective, yet these same goals are still relevant. Just as "layered
+      architecture" is an extremely generic and abstract paradigm, messaging systems typically follow the similarly
+      abstract "pipes-and-filters" model. The "filters" represent any component that is capable of producing and/or
+      consuming messages, and the "pipes" transport the messages between filters so that the components themselves
+      remain loosely-coupled. It is important to note that these two high-level paradigms are not mutually exclusive.
+      The underlying messaging infrastructure that supports the "pipes" should still be encapsulated in a layer whose
+      contracts are defined as interfaces. Likewise, the "filters" themselves would typically be managed within a layer
+      that is logically above the application's service layer, interacting with those services through interfaces much
+      in the same way that a web-tier would.
+    </para>
     <section id="overview-components-message">
       <title>Message</title>
       <para>
@@ -99,9 +115,11 @@
         A Message Endpoint represents the "filter" of a pipes-and-filters architecture. The endpoint's primary role is
         to connect application code to the messaging framework and to do so in a non-invasive manner. In other words,
         the application code should have no awareness of the messaging framework. This is similar to the role of a
-        Controller in the MVC paradigm. Just as a Controller handles HttpRequests, the endpoint handles Messages. Just
-        as Controllers are mapped to URL patterns, endpoints are mapped to MessageChannels. The goal is the same in both
-        cases: isolate application code from the infrastructure.
+        Controller in the MVC paradigm. Just as a Controller handles HTTP requests, the endpoint handles Messages. Just
+        as Controllers are mapped to URL patterns, endpoints are mapped to Message Channels. The goal is the same in
+        both cases: isolate application code from the infrastructure. In Spring Integration, the Message Endpoint
+        invokes a <interfacename>MessageHandler</interfacename> callback interface as described in
+        <xref linkend="api-messagehandler"/>.
       </para>
     </section>
     <section id="overview-component-bus">

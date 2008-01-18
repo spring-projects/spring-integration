@@ -3,6 +3,10 @@
 "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
 <!ENTITY overview SYSTEM "overview.xml">
 <!ENTITY core-api SYSTEM "core-api.xml">
+<!ENTITY adapters SYSTEM "adapters.xml">
+<!ENTITY configuration SYSTEM "configuration.xml">
+<!ENTITY samples SYSTEM "samples.xml">
+<!ENTITY resources SYSTEM "resources.xml">
 ]>
 <book>
   <bookinfo>
@@ -34,5 +38,9 @@
 
   &overview;
   &core-api;
+  &adapters;
+  &configuration;
+  &samples;
+  &resources;
 
 </book>

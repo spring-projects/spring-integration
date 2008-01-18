@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <chapter id="api">
-  <title>Spring Integration Core API</title>
+  <title>The Core API</title>
 
   <section id="api-message">
     <title>Message</title>
@@ -149,7 +149,7 @@ public void registerHandler(String name, MessageHandler handler, Subscription su
     </para>
     <para>
       The bus creates and manages dispatchers that pull messages from a channel in order to push those messages to
-      handlers registered on that channel. The <classname>DispatcherPolicy</classname> contains metadata for
+      handlers subscribed to that channel. The <classname>DispatcherPolicy</classname> contains metadata for
       configuring those dispatchers:
       <table id="api-messagebus-dispatcherpolicy">
         <title>Properties of the DispatcherPolicy</title>
@@ -281,6 +281,11 @@ public void registerHandler(String name, MessageHandler handler, Subscription su
     Subscription getSubscription();
     ConcurrencyPolicy getConcurrencyPolicy();
 }</programlisting>
+    </para>
+    <para>
+      When using the API, it's simpler to register handlers with metadata and leave the message endpoint as an internal
+      responsibility of the bus. However, it is possible to create endpoints directly. Spring Integration provides a
+      single implementation: <classname>DefaultMessageEndpoint</classname>.
     </para>
   </section>
 </chapter>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter id="samples">
+  <title>Spring Integration Samples</title>
+
+  <section id="samples-intro">
+    <title>Introduction</title>
+    <para>
+      The Spring Integration 1.0 Milestone 1 release includes a limited number of sample applications. Several more
+      interesting and comprehensive samples are in the works for upcoming releases.
+    </para>
+  </section>
+</chapter>

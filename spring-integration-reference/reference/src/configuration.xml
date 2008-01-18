@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter id="config">
+  <title>Configuration</title>
+
+  <section id="config-intro">
+    <title>Introduction</title>
+    <para>
+      Following the Spring philosophy, Spring Integration offers a number of configuration options. Which option you
+      choose depends upon your particular needs and at what level you prefer to work. As with the Spring framework in
+      general, it is also possible to mix and match the various techniques according to the particular problem at hand.
+      For example, you may choose the XSD-based namespace for the majority of configuration combined with a handful of
+      objects that are configured with annotations. Of course, it is also possible to always follow a single approach.
+      The main point is that these are <emphasis>options</emphasis> for configuration - none of which are required.
+      The goal is to support a user community with a wide range of needs and preferences. That said, there has also
+      been a concerted effort to provide consistent naming so that, for example, the XML elements defined by the XSD
+      schema will match the names of annotations, and the attributes of those XML elements will match the names of
+      annotation properties. Direct usage of the API is of course always an option and is described in detail in
+      <xref linkend="api"/>. We expect that most users will choose one of the higher-level options, such as the
+      namespace-based or annotation-driven configuration.
+    </para>
+  </section>
+</chapter>

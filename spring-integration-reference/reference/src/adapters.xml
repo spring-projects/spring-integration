@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter id="adapters">
+  <title>Channel Adapters</title>
+
+  <section id="adapters-intro">
+    <title>Introduction</title>
+    <para>
+      Channel Adapters are the components responsible for interacting with external systems or other components that
+      are external to the messaging system. As the name implies, the interaction consists of adapting the external
+      system or component to send to and/or receive from a <interfacename>MessageChannel</interfacename>. Within
+      Spring Integration, there is a distinction between <emphasis>source adapters</emphasis> and <emphasis>target
+      adapters</emphasis>.
+    </para>
+  </section>
+</chapter>
