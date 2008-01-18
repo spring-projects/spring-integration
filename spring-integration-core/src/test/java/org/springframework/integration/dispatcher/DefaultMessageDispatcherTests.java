@@ -64,7 +64,7 @@ public class DefaultMessageDispatcherTests {
 		scheduler.start();
 		dispatcher.setMessagingTaskScheduler(scheduler);
 		dispatcher.start();
-		latch.await(500, TimeUnit.MILLISECONDS);
+		latch.await(2000, TimeUnit.MILLISECONDS);
 		assertEquals("messages should have been dispatched within allotted time", 0, latch.getCount());
 		assertEquals("exactly one handler should have received message", 1, counter1.get() + counter2.get());
 	}
@@ -83,7 +83,7 @@ public class DefaultMessageDispatcherTests {
 		dispatcher.addHandler(new ConcurrentHandler(handler1, 1, 1));
 		dispatcher.addHandler(new ConcurrentHandler(handler2, 1, 1));
 		dispatcher.start();
-		latch.await(500, TimeUnit.MILLISECONDS);
+		latch.await(2000, TimeUnit.MILLISECONDS);
 		assertEquals("messages should have been dispatched within allotted time", 0, latch.getCount());
 		assertEquals("both handlers should have received message", 2, counter1.get() + counter2.get());
 	}
@@ -108,7 +108,7 @@ public class DefaultMessageDispatcherTests {
 		dispatcher.addHandler(new ConcurrentHandler(handler2, 1, 1));
 		dispatcher.addHandler(new ConcurrentHandler(handler3, 1, 1));
 		dispatcher.start();
-		latch.await(500, TimeUnit.MILLISECONDS);
+		latch.await(2000, TimeUnit.MILLISECONDS);
 		assertEquals("messages should have been dispatched within allotted time", 0, latch.getCount());
 		assertEquals("inactive handler should not have received message", 0, counter1.get());
 		assertEquals("exactly one handler should have received message", 1, counter2.get() + counter3.get());
@@ -135,7 +135,7 @@ public class DefaultMessageDispatcherTests {
 		});
 		dispatcher.addHandler(new ConcurrentHandler(handler3, 1, 1));
 		dispatcher.start();
-		latch.await(500, TimeUnit.MILLISECONDS);
+		latch.await(2000, TimeUnit.MILLISECONDS);
 		assertEquals("messages should have been dispatched within allotted time", 0, latch.getCount());
 		assertEquals("inactive handler should not have received message", 0, counter2.get());
 		assertEquals("both active handlers should have received message", 2, counter1.get() + counter3.get());
@@ -177,7 +177,7 @@ public class DefaultMessageDispatcherTests {
 		scheduler.setErrorHandler(new MessagePublishingErrorHandler(errorChannel));
 		dispatcher.setMessagingTaskScheduler(scheduler);
 		dispatcher.start();
-		latch.await(500, TimeUnit.MILLISECONDS);
+		latch.await(2000, TimeUnit.MILLISECONDS);
 		assertEquals("messages should have been dispatched within allotted time", 0, latch.getCount());
 		Message<?> errorMessage = errorChannel.receive(500);
 		assertNotNull(errorMessage);
@@ -208,7 +208,7 @@ public class DefaultMessageDispatcherTests {
 		});
 		dispatcher.addHandler(handler2);
 		dispatcher.start();
-		latch.await(500, TimeUnit.MILLISECONDS);
+		latch.await(2000, TimeUnit.MILLISECONDS);
 		assertEquals("messages should have been dispatched within allotted time", 0, latch.getCount());
 		assertEquals("both non-rejecting handlers should have received message", 2, counter1.get() + counter2.get());
 	}
@@ -244,7 +244,7 @@ public class DefaultMessageDispatcherTests {
 		scheduler.setErrorHandler(new MessagePublishingErrorHandler(errorChannel));
 		dispatcher.setMessagingTaskScheduler(scheduler);
 		dispatcher.start();
-		latch.await(500, TimeUnit.MILLISECONDS);
+		latch.await(2000, TimeUnit.MILLISECONDS);
 		assertEquals("messages should have been dispatched within allotted time", 0, latch.getCount());
 		Message<?> errorMessage = errorChannel.receive(500);
 		assertNotNull(errorMessage);
@@ -284,7 +284,7 @@ public class DefaultMessageDispatcherTests {
 			}
 		});
 		dispatcher.start();
-		latch.await(500, TimeUnit.MILLISECONDS);
+		latch.await(2000, TimeUnit.MILLISECONDS);
 		assertEquals("messages should have been dispatched within allotted time", 0, latch.getCount());
 		assertEquals("latch should have counted down within allotted time", 0, latch.getCount());
 		assertEquals("rejecting handlers should not have received message", 0, counter1.get() + counter2.get());
@@ -338,7 +338,7 @@ public class DefaultMessageDispatcherTests {
 			}
 		});
 		dispatcher.start();
-		latch.await(500, TimeUnit.MILLISECONDS);
+		latch.await(2000, TimeUnit.MILLISECONDS);
 		assertEquals("messages should have been dispatched within allotted time", 0, latch.getCount());
 		assertEquals("handler1 should not have received message", 0, counter1.get());
 		assertEquals("handler2 should have received message the second time", 1, counter2.get());
@@ -387,7 +387,7 @@ public class DefaultMessageDispatcherTests {
 			}
 		});
 		dispatcher.start();
-		latch.await(500, TimeUnit.MILLISECONDS);
+		latch.await(2000, TimeUnit.MILLISECONDS);
 		assertEquals("messages should have been dispatched within allotted time", 0, latch.getCount());
 		assertEquals("handler1 should have received one message", 1, counter1.get());
 		assertEquals("handler2 should have received one message", 1, counter2.get());
@@ -412,7 +412,7 @@ public class DefaultMessageDispatcherTests {
 		dispatcher.addHandler(endpoint1);
 		dispatcher.addHandler(endpoint2);
 		dispatcher.start();
-		latch.await(500, TimeUnit.MILLISECONDS);
+		latch.await(2000, TimeUnit.MILLISECONDS);
 		assertEquals("messages should have been dispatched within allotted time", 0, latch.getCount());
 		assertEquals("handler1 should not have accepted the message", 0, counter1.get());
 		assertEquals("handler2 should have accepted the message", 1, counter2.get());
@@ -454,7 +454,7 @@ public class DefaultMessageDispatcherTests {
 		dispatcher.addHandler(interceptor1);
 		dispatcher.addHandler(interceptor2);
 		dispatcher.start();
-		attemptedLatch.await(500, TimeUnit.MILLISECONDS);
+		attemptedLatch.await(2000, TimeUnit.MILLISECONDS);
 		assertEquals("messages should have been dispatched within allotted time", 0, attemptedLatch.getCount());
 		assertEquals("handler1 should not have accepted the message", 0, counter1.get());
 		assertEquals("handler2 should not have accepted the message", 0, counter2.get());
@@ -486,7 +486,7 @@ public class DefaultMessageDispatcherTests {
 		dispatcher.addHandler(endpoint1);
 		dispatcher.addHandler(endpoint2);
 		dispatcher.start();
-		latch.await(500, TimeUnit.MILLISECONDS);
+		latch.await(2000, TimeUnit.MILLISECONDS);
 		assertEquals("messages should have been dispatched within allotted time", 0, latch.getCount());
 		assertEquals("endpoint1 should not have accepted the message", 0, counter1.get());
 		assertEquals("endpoint2 should have accepted the message", 1, counter2.get());
