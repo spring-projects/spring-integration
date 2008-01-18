@@ -19,9 +19,6 @@ package org.springframework.integration.endpoint;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
@@ -46,8 +43,6 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  */
 public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryAware, InitializingBean, BeanNameAware {
-
-	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private String name;
 
@@ -171,6 +166,9 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 	public void start() {
 		if (this.isRunning()) {
 			return;
+		}
+		if (!initialized) {
+			this.afterPropertiesSet();
 		}
 		if (this.handler instanceof Lifecycle) {
 			((Lifecycle) handler).start();

@@ -26,9 +26,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
 import org.springframework.integration.channel.SimpleChannel;
-import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.handler.MessageHandler;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.scheduling.PollingSchedule;
 
@@ -39,34 +38,24 @@ public class FixedDelayConsumerTests {
 
 	@Test
 	public void testAllSentMessagesAreReceivedWithinTimeLimit() throws Exception {
-		int messagesToSend = 20;
+		int messagesToSend = 10;
 		final AtomicInteger counter = new AtomicInteger(0);
 		final CountDownLatch latch = new CountDownLatch(messagesToSend);
 		SimpleChannel channel = new SimpleChannel();
-		MessageHandler handler = new MessageHandler() {
-			public Message<?> handle(Message<?> message) {
-				counter.incrementAndGet();
-				latch.countDown();
-				return null;
-			}
-		};
+		MessageHandler handler = TestHandlers.countingCountDownHandler(counter, latch);
 		MessageBus bus = new MessageBus();
 		bus.initialize();
 		bus.registerChannel("testChannel", channel);
-		PollingSchedule schedule = new PollingSchedule(10);
+		PollingSchedule schedule = new PollingSchedule(5);
 		schedule.setFixedRate(false);
-		ConcurrencyPolicy concurrencyPolicy = new ConcurrencyPolicy();
-		concurrencyPolicy.setCoreSize(1);
-		concurrencyPolicy.setMaxSize(1);
-		Subscription subscription = new Subscription();
+		Subscription subscription = new Subscription(channel);
 		subscription.setSchedule(schedule);
-		subscription.setChannelName("testChannel");
-		bus.registerHandler("testHandler", handler, subscription, concurrencyPolicy);
+		bus.registerHandler("testHandler", handler, subscription);
 		bus.start();
 		for (int i = 0; i < messagesToSend; i++) {
 			channel.send(new GenericMessage<String>(1, "test " + (i+1)));
 		}
-		latch.await(3000, TimeUnit.MILLISECONDS);
+		latch.await(100, TimeUnit.MILLISECONDS);
 		assertEquals(messagesToSend, counter.get());
 	}
 
@@ -76,30 +65,22 @@ public class FixedDelayConsumerTests {
 		final AtomicInteger counter = new AtomicInteger(0);
 		final CountDownLatch latch = new CountDownLatch(messagesToSend);
 		SimpleChannel channel = new SimpleChannel();
-		MessageHandler handler = new MessageHandler() {
-			public Message<?> handle(Message<?> message) {
-				counter.incrementAndGet();
-				latch.countDown();
-				return null;
-			}
-		};
+		MessageHandler handler = TestHandlers.countingCountDownHandler(counter, latch);
 		MessageBus bus = new MessageBus();
 		bus.initialize();
 		bus.registerChannel("testChannel", channel);
 		PollingSchedule schedule = new PollingSchedule(10);
 		schedule.setFixedRate(false);
 		Subscription subscription = new Subscription(channel);
-		subscription.setChannelName("testChannel");
 		subscription.setSchedule(schedule);
 		bus.registerHandler("testHandler", handler, subscription);
 		for (int i = 0; i < messagesToSend; i++) {
 			channel.send(new GenericMessage<String>(1, "test " + (i+1)));
 		}
 		bus.start();
-		latch.await(80, TimeUnit.MILLISECONDS);
+		latch.await(100, TimeUnit.MILLISECONDS);
 		int count = counter.get();
-		assertTrue("received " + count + ", expected less than 11", counter.get() < 11);
-		assertTrue("received " + count + ", expected more than 5", counter.get() > 5);
+		assertTrue("received " + count + ", expected less than 20", counter.get() < 20);
 		bus.stop();
 	}
 
