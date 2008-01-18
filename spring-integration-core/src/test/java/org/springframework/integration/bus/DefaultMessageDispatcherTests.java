@@ -179,7 +179,7 @@ public class DefaultMessageDispatcherTests {
 		dispatcher.start();
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals("messages should have been dispatched within allotted time", 0, latch.getCount());
-		Message<?> errorMessage = errorChannel.receive(100);
+		Message<?> errorMessage = errorChannel.receive(500);
 		assertNotNull(errorMessage);
 		assertTrue(errorMessage instanceof ErrorMessage);
 		assertEquals(MessageDeliveryException.class, ((ErrorMessage) errorMessage).getPayload().getClass());
@@ -249,7 +249,7 @@ public class DefaultMessageDispatcherTests {
 		dispatcher.start();
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals("messages should have been dispatched within allotted time", 0, latch.getCount());
-		Message<?> errorMessage = errorChannel.receive(200);
+		Message<?> errorMessage = errorChannel.receive(500);
 		assertNotNull(errorMessage);
 		assertTrue(errorMessage instanceof ErrorMessage);
 		assertEquals(MessageDeliveryException.class, ((ErrorMessage) errorMessage).getPayload().getClass());
