@@ -20,7 +20,7 @@
         <imagedata align="center" fileref="images/logo.png" format="PNG"/>
       </imageobject>
       <imageobject role="html">
-        <imagedata align="right" fileref="images/small-logo.png" format="PNG"/>
+        <imagedata align="right" fileref="images/logo.png" format="PNG"/>
       </imageobject>
     </mediaobject>
 

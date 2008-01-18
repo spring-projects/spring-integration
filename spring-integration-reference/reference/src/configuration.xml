@@ -9,14 +9,85 @@
       choose depends upon your particular needs and at what level you prefer to work. As with the Spring framework in
       general, it is also possible to mix and match the various techniques according to the particular problem at hand.
       For example, you may choose the XSD-based namespace for the majority of configuration combined with a handful of
-      objects that are configured with annotations. Of course, it is also possible to always follow a single approach.
-      The main point is that these are <emphasis>options</emphasis> for configuration - none of which are required.
-      The goal is to support a user community with a wide range of needs and preferences. That said, there has also
-      been a concerted effort to provide consistent naming so that, for example, the XML elements defined by the XSD
-      schema will match the names of annotations, and the attributes of those XML elements will match the names of
-      annotation properties. Direct usage of the API is of course always an option and is described in detail in
-      <xref linkend="api"/>. We expect that most users will choose one of the higher-level options, such as the
-      namespace-based or annotation-driven configuration.
+      objects that are configured with annotations. Of course, it is also possible to always stick with a single
+      approach. The main point is that these are <emphasis>options</emphasis> for configuration motivated by the need
+      to support a user community with a wide range of preferences. That said, there has also been a concerted effort
+      to provide consistent naming so that, for example, the XML elements defined by the XSD schema will match the
+      names of annotations, and the attributes of those XML elements will match the names of annotation properties.
+      Direct usage of the API is yet another option and is described in detail in <xref linkend="api"/>. We expect that
+      most users will choose one of the higher-level options, such as the namespace-based or annotation-driven
+      configuration.
+    </para>
+  </section>
+
+  <section id="namespace">
+    <title>Namespace Support</title>
+    <para>
+      Spring Integration components can be configured with XML elements that map directly to the terminology and
+      concepts of enterprise integration. In many cases, the element names match those of the
+      <ulink url="http://www.eaipatterns.com">Enterprise Integration Patterns</ulink>.
+    </para>
+    <para>
+      To enable Spring Integration's namespace support within your Spring configuration files, add the following
+      namespace reference and schema mapping in your top-level 'beans' element:
+      <programlisting><![CDATA[<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       ]]><emphasis>xmlns:integration="http://www.springframework.org/schema/integration"</emphasis><![CDATA[
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           ]]><emphasis>http://www.springframework.org/schema/integration
+                           http://www.springframework.org/schema/integration/spring-integration-1.0.xsd"</emphasis>&gt;</programlisting>
+    </para>
+    <para>
+	  You can choose any name after "xmlns:"; <emphasis>integration</emphasis> is used here for clarity, but you might
+      prefer a shorter abbreviation. Of course if you are using an XML-editor or IDE support, then the availability of
+      auto-completion may convince you to keep the longer name for clarity. Alternatively, you can create configuration
+      files that use the Spring Integration schema as the primary namespace:
+      <programlisting><emphasis>&lt;beans:beans xmlns="http://www.springframework.org/schema/integration"</emphasis><![CDATA[
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       ]]><emphasis>xmlns:beans="http://www.springframework.org/schema/beans"</emphasis><![CDATA[
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/integration
+                           http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">]]></programlisting>
+    </para>
+    <para>
+      When using this alternative, no prefix is necessary for the Spring Integration elements. On the other hand, if
+      you want to define a generic Spring "bean" within the same configuration file, then a prefix would be required
+      for the bean element (&lt;beans:bean ... /&gt;). Since it is generally a good idea to modularize the
+      configuration files themselves based on responsibility and/or architectural layer, you may find it appropriate to
+      use the latter approach in the integration-focused configuration files, since generic beans are seldom necessary
+      within those same files. For purposes of this documentation, we will assume the "integration" namespace is
+      primary.
+    </para>
+
+    <section id="namespace-channel">
+      <title>Configuring Message Channels</title>
+      <para>
+        To create a Message Channel instance, use the 'channel' element:
+        <programlisting>&lt;channel/&gt;</programlisting>
+      </para>
+      <para>
+        You can also specify the channel's capacity: <programlisting>&lt;channel capacity="100"/&gt;</programlisting>
+      </para>
+      <para>
+        The default channel type is <emphasis>Point to Point</emphasis>. To create a
+        <emphasis>Publish Subscribe</emphasis> channel, provide a value of <emphasis>true</emphasis> for the
+        'publish-subscribe' attribute of the channel element:
+        <programlisting>&lt;channel publish-subscribe="true"/&gt;</programlisting>
+      </para>
+    </section>
+
+    <section id="endpoint">
+      <title>Configuring Message Endpoints</title>
+      <para>
+      </para>
+    </section>
+  </section>
+
+  <section id="annotations">
+    <title>Annotations</title>
+    <para>
     </para>
   </section>
 </chapter>

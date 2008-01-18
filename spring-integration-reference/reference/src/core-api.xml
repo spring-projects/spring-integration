@@ -154,7 +154,7 @@ public void registerHandler(String name, MessageHandler handler, Subscription su
       <table id="api-messagebus-dispatcherpolicy">
         <title>Properties of the DispatcherPolicy</title>
         <tgroup cols="3">
-          <colspec align="left" />
+          <colspec align="left"/>
           <thead>
             <row>
               <entry align="center">Property Name</entry>
@@ -221,8 +221,8 @@ public void registerHandler(String name, MessageHandler handler, Subscription su
       a single implementation called <classname>PollingSchedule</classname> that provides the following properties:
       <table id="api-messagebus-pollingschedule">
         <title>Properties of the PollingSchedule</title>
-        <tgroup cols="2">
-          <colspec align="left" />
+        <tgroup cols="3">
+          <colspec align="left"/>
           <thead>
             <row>
               <entry align="center">Property Name</entry>
