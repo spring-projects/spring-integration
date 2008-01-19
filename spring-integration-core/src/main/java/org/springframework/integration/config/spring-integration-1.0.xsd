@@ -26,6 +26,7 @@
 			</xsd:annotation>
 			<xsd:attribute name="auto-create-channels" type="xsd:boolean"/>
 			<xsd:attribute name="error-channel" type="xsd:string"/>
+			<xsd:attribute name="dispatcher-pool-size" type="xsd:int"/>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -101,7 +102,7 @@
 				<xsd:extension base="beans:identifiedType">
 					<xsd:sequence>
 						<xsd:element ref="schedule" minOccurs="0" maxOccurs="1"/>
-						<xsd:element ref="concurrency-policy" minOccurs="0" maxOccurs="1"/>
+						<xsd:element ref="concurrency" minOccurs="0" maxOccurs="1"/>
 						<xsd:element ref="handler" minOccurs="0" maxOccurs="unbounded"/>
 					</xsd:sequence>
 					<xsd:attribute name="input-channel" type="xsd:string"/>
@@ -124,7 +125,7 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="concurrency-policy">
+	<xsd:element name="concurrency">
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
