@@ -19,6 +19,7 @@ package org.springframework.integration.handler;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.springframework.integration.dispatcher.MessageHandlerRejectedExecutionException;
 import org.springframework.integration.message.Message;
 
 /**
@@ -36,6 +37,30 @@ public abstract class TestHandlers {
 		return new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				return null;
+			}
+		};
+	}
+
+	/**
+	 * Create a {@link MessageHandler} that throws a {@link MessageHandlerRejectedExecutionException}.
+	 */
+	public final static MessageHandler rejectingHandler() {
+		return new MessageHandler() {
+			public Message<?> handle(Message<?> message) {
+				throw new MessageHandlerRejectedExecutionException();
+			}
+		};
+	}
+
+	/**
+	 * Create a {@link MessageHandler} that counts down on the provided latch and 
+	 * then throws a {@link MessageHandlerRejectedExecutionException}.
+	 */
+	public final static MessageHandler rejectingCountDownHandler(final CountDownLatch latch) {
+		return new MessageHandler() {
+			public Message<?> handle(Message<?> message) {
+				latch.countDown();
+				throw new MessageHandlerRejectedExecutionException();
 			}
 		};
 	}

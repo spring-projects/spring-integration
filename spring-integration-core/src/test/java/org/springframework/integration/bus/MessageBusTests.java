@@ -33,6 +33,7 @@ import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.adapter.SourceAdapter;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.dispatcher.DispatcherPolicy;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
@@ -127,8 +128,8 @@ public class MessageBusTests {
 
 	@Test
 	public void testBothHandlersReceivePublishSubscribeMessage() {
-		SimpleChannel inputChannel = new SimpleChannel();
-		inputChannel.setPublishSubscribe(true);
+		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy(true);
+		SimpleChannel inputChannel = new SimpleChannel(dispatcherPolicy);
 		SimpleChannel outputChannel1 = new SimpleChannel();
 		SimpleChannel outputChannel2 = new SimpleChannel();
 		MessageHandler handler1 = new MessageHandler() {

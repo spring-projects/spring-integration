@@ -36,7 +36,6 @@ import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.dispatcher.DefaultMessageDispatcher;
-import org.springframework.integration.dispatcher.DispatcherPolicy;
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
@@ -179,22 +178,12 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 	}
 
 	public void registerChannel(String name, MessageChannel channel) {
-		this.registerChannel(name, channel, null);
-	}
-
-	public void registerChannel(String name, MessageChannel channel, DispatcherPolicy dispatcherPolicy) {
 		if (!this.initialized) {
 			this.initialize();
 		}
 		channel.setName(name);
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
 		dispatcher.setMessagingTaskScheduler(this.taskScheduler);
-		if (dispatcherPolicy != null) {
-			dispatcher.setMaxMessagesPerTask(dispatcherPolicy.getMaxMessagesPerTask());
-			dispatcher.setReceiveTimeout(dispatcherPolicy.getReceiveTimeout());
-			dispatcher.setRejectionLimit(dispatcherPolicy.getRejectionLimit());
-			dispatcher.setRetryInterval(dispatcherPolicy.getRetryInterval());
-		}
 		this.dispatchers.put(channel, dispatcher);
 		this.channelRegistry.registerChannel(name, channel);
 		if (logger.isInfoEnabled()) {

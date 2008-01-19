@@ -27,7 +27,8 @@ import org.springframework.util.Assert;
 /**
  * Message retriever that polls a {@link MessageChannel}. The number of
  * messages retrieved per poll is limited by the '<em>maxMessagesPerTask</em>'
- * property, and the timeout for each receive call is determined by the '<em>receiveTimeout</em>'
+ * property of the channel's dispatcher policy, and the timeout for each receive
+ * call is determined by the dispatcher policy's '<em>receiveTimeout</em>'
  * property. In general, it is recommended to use a value of 1 for
  * 'maxMessagesPerTask' whenever a significant timeout is provided. Otherwise the
  * retriever may be holding on to available messages while waiting for
@@ -39,10 +40,6 @@ public class ChannelPollingMessageRetriever implements MessageRetriever {
 
 	private MessageChannel channel;
 
-	private int maxMessagesPerTask = DispatcherPolicy.DEFAULT_MAX_MESSAGES_PER_TASK;
-
-	private long receiveTimeout = DispatcherPolicy.DEFAULT_RECEIVE_TIMEOUT;
-
 
 	public ChannelPollingMessageRetriever(MessageChannel channel) {
 		Assert.notNull(channel, "'channel' must not be null");
@@ -50,28 +47,20 @@ public class ChannelPollingMessageRetriever implements MessageRetriever {
 	}
 
 
-	public void setMaxMessagesPerTask(int maxMessagesPerTask) {
-		Assert.isTrue(maxMessagesPerTask > 0, "'maxMessagesPerTask' must be at least 1");
-		this.maxMessagesPerTask = maxMessagesPerTask;
-	}
-
-	public void setReceiveTimeout(long receiveTimeout) {
-		this.receiveTimeout = receiveTimeout;
-	}
-
 	public MessageChannel getChannel() {
 		return this.channel;
 	}
 
 	public Collection<Message<?>> retrieveMessages() {
 		List<Message<?>> messages = new LinkedList<Message<?>>();
-		while (messages.size() < this.maxMessagesPerTask) {
+		while (messages.size() < this.channel.getDispatcherPolicy().getMaxMessagesPerTask()) {
 			Message<?> message = null;
-			if (this.receiveTimeout < 0) {
+			long timeout = this.channel.getDispatcherPolicy().getReceiveTimeout();
+			if (timeout < 0) {
 				message = this.channel.receive();
 			}
 			else {
-				message = this.channel.receive(this.receiveTimeout);
+				message = this.channel.receive(timeout);
 			}
 			if (message == null) {
 				return messages;

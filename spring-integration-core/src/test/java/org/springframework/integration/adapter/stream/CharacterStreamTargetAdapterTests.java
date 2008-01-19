@@ -24,7 +24,7 @@ import org.junit.Test;
 
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
-import org.springframework.integration.dispatcher.ChannelPollingMessageRetriever;
+import org.springframework.integration.dispatcher.DispatcherPolicy;
 import org.springframework.integration.dispatcher.DispatcherTask;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.StringMessage;
@@ -87,11 +87,11 @@ public class CharacterStreamTargetAdapterTests {
 	@Test
 	public void testMaxMessagesPerTaskSameAsMessageCount() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		MessageChannel channel = new SimpleChannel();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
-		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel);
-		retriever.setMaxMessagesPerTask(2);
-		DispatcherTask dispatcherTask = new DispatcherTask(retriever);
+		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
+		dispatcherPolicy.setMaxMessagesPerTask(2);
+		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
+		DispatcherTask dispatcherTask = new DispatcherTask(channel);
 		dispatcherTask.addHandler(adapter);
 		channel.send(new StringMessage("foo"));
 		channel.send(new StringMessage("bar"));
@@ -103,13 +103,13 @@ public class CharacterStreamTargetAdapterTests {
 	@Test
 	public void testMaxMessagesPerTaskExceedsMessageCountWithAppendedNewLines() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		MessageChannel channel = new SimpleChannel();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
+		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
+		dispatcherPolicy.setMaxMessagesPerTask(10);
+		dispatcherPolicy.setReceiveTimeout(0);
+		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
+		DispatcherTask dispatcherTask = new DispatcherTask(channel);
 		adapter.setShouldAppendNewLine(true);
-		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel);
-		retriever.setReceiveTimeout(0);
-		retriever.setMaxMessagesPerTask(10);
-		DispatcherTask dispatcherTask = new DispatcherTask(retriever);
 		dispatcherTask.addHandler(adapter);
 		channel.send(new StringMessage("foo"));
 		channel.send(new StringMessage("bar"));
@@ -137,12 +137,12 @@ public class CharacterStreamTargetAdapterTests {
 	@Test
 	public void testTwoNonStringObjectWithOutNewLines() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		MessageChannel channel = new SimpleChannel();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
-		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel);
-		retriever.setReceiveTimeout(0);
-		retriever.setMaxMessagesPerTask(2);
-		DispatcherTask dispatcherTask = new DispatcherTask(retriever);
+		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
+		dispatcherPolicy.setReceiveTimeout(0);
+		dispatcherPolicy.setMaxMessagesPerTask(2);
+		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
+		DispatcherTask dispatcherTask = new DispatcherTask(channel);
 		dispatcherTask.addHandler(adapter);
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
@@ -156,13 +156,13 @@ public class CharacterStreamTargetAdapterTests {
 	@Test
 	public void testTwoNonStringObjectWithNewLines() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		MessageChannel channel = new SimpleChannel();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
+		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
+		dispatcherPolicy.setReceiveTimeout(0);
+		dispatcherPolicy.setMaxMessagesPerTask(2);
+		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
+		DispatcherTask dispatcherTask = new DispatcherTask(channel);
 		adapter.setShouldAppendNewLine(true);
-		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel);
-		retriever.setReceiveTimeout(0);
-		retriever.setMaxMessagesPerTask(2);
-		DispatcherTask dispatcherTask = new DispatcherTask(retriever);
 		dispatcherTask.addHandler(adapter);
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");

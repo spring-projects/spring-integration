@@ -34,6 +34,8 @@ public class DispatcherPolicy {
 	public final static long DEFAULT_RETRY_INTERVAL = 1000;
 
 
+	private final boolean publishSubscribe;
+
 	private int maxMessagesPerTask = DEFAULT_MAX_MESSAGES_PER_TASK;
 
 	private long receiveTimeout = DEFAULT_RECEIVE_TIMEOUT;
@@ -42,40 +44,106 @@ public class DispatcherPolicy {
 
 	private long retryInterval = DEFAULT_RETRY_INTERVAL;
 
+	private boolean shouldFailOnRejectionLimit = true;
 
+
+	public DispatcherPolicy() {
+		this.publishSubscribe = false;
+	}
+
+	/**
+	 * Create a DispatcherPolicy.
+	 * 
+	 * @param publishSubscribe whether the dispatcher should attempt to publish
+	 * to all of its subscribed handlers. If '<code>false</code>' it will attempt
+	 * to send to a single handler (point-to-point).
+	 */
+	public DispatcherPolicy(boolean publishSubscribe) {
+		this.publishSubscribe = publishSubscribe;
+	}
+
+
+	/**
+	 * Return whether the dispatcher should attempt to publish to all of its handlers.
+	 * This property is immutable.
+	 */
+	public boolean isPublishSubscribe() {
+		return this.publishSubscribe;
+	}
+
+	/**
+	 * Return the maximum number of messages for each retrieval attempt.
+	 */
 	public int getMaxMessagesPerTask() {
 		return this.maxMessagesPerTask;
 	}
 
+	/**
+	 * Set the maximum number of messages for each retrieval attempt.
+	 */
 	public void setMaxMessagesPerTask(int maxMessagesPerTask) {
 		Assert.isTrue(maxMessagesPerTask > 0, "'maxMessagePerTask' must be at least 1");
 		this.maxMessagesPerTask = maxMessagesPerTask;
 	}
 
+	/**
+	 * Return the maximum amount of time in milliseconds to wait for a message to be available. 
+	 */
 	public long getReceiveTimeout() {
 		return this.receiveTimeout;
 	}
 
+	/**
+	 * Set the maximum amount of time in milliseconds to wait for a message to be available. 
+	 */
 	public void setReceiveTimeout(long receiveTimeout) {
 		this.receiveTimeout = receiveTimeout;
 	}
 
+	/**
+	 * Return the maximum number of retries upon rejection. 
+	 */
 	public int getRejectionLimit() {
 		return this.rejectionLimit;
 	}
 
+	/**
+	 * Set the maximum number of retries upon rejection. 
+	 */
 	public void setRejectionLimit(int rejectionLimit) {
 		Assert.isTrue(rejectionLimit > 0, "'rejectionLimit' must be at least 1");
 		this.rejectionLimit = rejectionLimit;
 	}
 
+	/**
+	 * Return the amount of time in milliseconds to wait between rejections.
+	 */
 	public long getRetryInterval() {
 		return this.retryInterval;
 	}
 
+	/**
+	 * Set the amount of time in milliseconds to wait between rejections.
+	 */
 	public void setRetryInterval(long retryInterval) {
 		Assert.isTrue(retryInterval >= 0, "'retryInterval' must not be negative");
 		this.retryInterval = retryInterval;
+	}
+
+	/**
+	 * Return whether an exception should be thrown when this dispatcher's
+	 * {@link #rejectionLimit} is reached.
+	 */
+	public boolean getShouldFailOnRejectionLimit() {
+		return this.shouldFailOnRejectionLimit;
+	}
+
+	/**
+	 * Specify whether an exception should be thrown when this dispatcher's
+	 * {@link #rejectionLimit} is reached. The default value is 'true'.
+	 */
+	public void setShouldFailOnRejectionLimit(boolean shouldFailOnRejectionLimit) {
+		this.shouldFailOnRejectionLimit = shouldFailOnRejectionLimit;
 	}
 
 }

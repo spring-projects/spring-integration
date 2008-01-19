@@ -24,6 +24,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.dispatcher.DispatcherPolicy;
 import org.springframework.util.StringUtils;
 
 /**
@@ -39,8 +40,6 @@ public class ChannelParser implements BeanDefinitionParser {
 
 	private static final String PUBLISH_SUBSCRIBE_ATTRIBUTE = "publish-subscribe";
 
-	private static final String PUBLISH_SUBSCRIBE_PROPERTY = "publishSubscribe";
-
 
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
 		RootBeanDefinition channelDef = new RootBeanDefinition(SimpleChannel.class);
@@ -51,7 +50,7 @@ public class ChannelParser implements BeanDefinitionParser {
 		}
 		String isPublishSubscribe = element.getAttribute(PUBLISH_SUBSCRIBE_ATTRIBUTE);
 		if ("true".equals(isPublishSubscribe)) {
-			channelDef.getPropertyValues().addPropertyValue(PUBLISH_SUBSCRIBE_PROPERTY, Boolean.TRUE);
+			channelDef.getConstructorArgumentValues().addGenericArgumentValue(new DispatcherPolicy(true));
 		}
 		String beanName = element.getAttribute(ID_ATTRIBUTE);
 		if (!StringUtils.hasText(beanName)) {

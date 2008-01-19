@@ -21,6 +21,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.integration.dispatcher.DispatcherPolicy;
 import org.springframework.integration.message.Message;
 
 /**
@@ -36,23 +37,38 @@ public class SimpleChannel implements MessageChannel, BeanNameAware {
 
 	private String name;
 
-	private boolean publishSubscribe = false;
+	private final DispatcherPolicy dispatcherPolicy;
 
 	private BlockingQueue<Message<?>> queue;
 
 
 	/**
+	 * Create a channel with the specified queue capacity and dispatcher policy.
+	 */
+	public SimpleChannel(int capacity, DispatcherPolicy dispatcherPolicy) {
+		this.queue = new LinkedBlockingQueue<Message<?>>(capacity);
+		this.dispatcherPolicy = (dispatcherPolicy != null) ? dispatcherPolicy : new DispatcherPolicy();
+	}
+
+	/**
 	 * Create a channel with the specified queue capacity.
 	 */
 	public SimpleChannel(int capacity) {
-		queue = new LinkedBlockingQueue<Message<?>>(capacity);
+		this(capacity, null);
+	}
+
+	/**
+	 * Create a channel with the default queue capacity and the specified dispatcher policy.
+	 */
+	public SimpleChannel(DispatcherPolicy dispatcherPolicy) {
+		this(DEFAULT_CAPACITY, dispatcherPolicy);
 	}
 
 	/**
 	 * Create a channel with the default queue capacity.
 	 */
 	public SimpleChannel() {
-		this(DEFAULT_CAPACITY);
+		this(DEFAULT_CAPACITY, null);
 	}
 
 
@@ -70,12 +86,8 @@ public class SimpleChannel implements MessageChannel, BeanNameAware {
 		return this.name;
 	}
 
-	public boolean isPublishSubscribe() {
-		return this.publishSubscribe;
-	}
-
-	public void setPublishSubscribe(boolean publishSubscribe) {
-		this.publishSubscribe = publishSubscribe;
+	public DispatcherPolicy getDispatcherPolicy() {
+		return this.dispatcherPolicy;
 	}
 
 	/**

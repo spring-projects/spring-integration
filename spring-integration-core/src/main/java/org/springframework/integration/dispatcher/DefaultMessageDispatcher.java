@@ -50,16 +50,6 @@ public class DefaultMessageDispatcher implements MessageDispatcher, MessagingTas
 
 	private MessageChannel channel;
 
-	private int maxMessagesPerTask = DispatcherPolicy.DEFAULT_MAX_MESSAGES_PER_TASK;
-
-	private long receiveTimeout = DispatcherPolicy.DEFAULT_RECEIVE_TIMEOUT;
-
-	private int rejectionLimit = DispatcherPolicy.DEFAULT_REJECTION_LIMIT;
-
-	private long retryInterval = DispatcherPolicy.DEFAULT_RETRY_INTERVAL;
-
-	private boolean shouldFailOnRejectionLimit = true;
-
 	private MessagingTaskScheduler scheduler;
 
 	private Schedule defaultSchedule = new PollingSchedule(5);
@@ -78,29 +68,6 @@ public class DefaultMessageDispatcher implements MessageDispatcher, MessagingTas
 		this.channel = channel;
 	}
 
-
-	public void setMaxMessagesPerTask(int maxMessagesPerTask) {
-		Assert.isTrue(maxMessagesPerTask > 0, "'maxMessagesPerTask' must be at least 1");
-		this.maxMessagesPerTask = maxMessagesPerTask;
-	}
-
-	public void setReceiveTimeout(long receiveTimeout) {
-		this.receiveTimeout = receiveTimeout;
-	}
-
-	public void setRejectionLimit(int rejectionLimit) {
-		Assert.isTrue(rejectionLimit > 0, "'rejectionLimit' must be at least 1");
-		this.rejectionLimit = rejectionLimit;
-	}
-
-	public void setShouldFailOnRejectionLimit(boolean shouldFailOnRejectionLimit) {
-		this.shouldFailOnRejectionLimit = shouldFailOnRejectionLimit;
-	}
-
-	public void setRetryInterval(long retryInterval) {
-		Assert.isTrue(retryInterval >= 0, "'retryInterval' must not be negative");
-		this.retryInterval = retryInterval;
-	}
 
 	public void setMessagingTaskScheduler(MessagingTaskScheduler scheduler) {
 		Assert.notNull(scheduler, "'scheduler' must not be null");
@@ -121,7 +88,7 @@ public class DefaultMessageDispatcher implements MessageDispatcher, MessagingTas
 		if (schedule == null) {
 			schedule = this.defaultSchedule;
 		}
-		else if (this.channel.isPublishSubscribe()) {
+		else if (this.channel.getDispatcherPolicy().isPublishSubscribe()) {
 			if (logger.isInfoEnabled()) {
 				logger.info("This dispatcher broadcasts messages for a publish-subscribe channel. " + 
 						"Therefore all handlers are scheduled with its 'defaultSchedule', " +
@@ -163,15 +130,8 @@ public class DefaultMessageDispatcher implements MessageDispatcher, MessagingTas
 			for (Map.Entry<Schedule, List<MessageHandler>> entry : this.scheduledHandlers.entrySet()) {
 				Schedule schedule = entry.getKey();
 				List<MessageHandler> handlers = entry.getValue();
-				ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel);
-				retriever.setMaxMessagesPerTask(this.maxMessagesPerTask);
-				retriever.setReceiveTimeout(this.receiveTimeout);
-				DispatcherTask task = new DispatcherTask(retriever);
+				DispatcherTask task = new DispatcherTask(channel);
 				task.setSchedule(schedule);
-				task.setRejectionLimit(this.rejectionLimit);
-				task.setRetryInterval(this.retryInterval);
-				task.setPublishSubscribe(channel.isPublishSubscribe());
-				task.setShouldFailOnRejectionLimit(this.shouldFailOnRejectionLimit);
 				for (MessageHandler handler : handlers) {
 					if (handler instanceof Lifecycle) {
 						((Lifecycle) handler).start();

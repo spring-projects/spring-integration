@@ -46,15 +46,9 @@ public class DispatcherTask implements MessagingTask {
 
 	private Log logger = LogFactory.getLog(this.getClass());
 
-	private boolean publishSubscribe = false;
-
 	private Schedule schedule;
 
-	private int rejectionLimit = 5;
-
-	private long retryInterval = 1000;
-
-	private boolean shouldFailOnRejectionLimit = true;
+	private DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 
 	private MessageRetriever retriever;
 
@@ -64,20 +58,18 @@ public class DispatcherTask implements MessagingTask {
 	public DispatcherTask(MessageChannel channel) {
 		Assert.notNull(channel, "'channel' must not be null");
 		this.retriever = new ChannelPollingMessageRetriever(channel);
-		this.publishSubscribe = channel.isPublishSubscribe();
+		DispatcherPolicy dispatcherPolicy = channel.getDispatcherPolicy();
+		if (dispatcherPolicy != null) {
+			this.dispatcherPolicy = dispatcherPolicy;
+		}
 	}
 
 	public DispatcherTask(MessageRetriever retriever) {
 		Assert.notNull(retriever, "'retriever' must not be null");
 		if (retriever instanceof ChannelPollingMessageRetriever) {
-			this.publishSubscribe = ((ChannelPollingMessageRetriever) retriever).getChannel().isPublishSubscribe();
+			this.dispatcherPolicy = ((ChannelPollingMessageRetriever) retriever).getChannel().getDispatcherPolicy();
 		}
 		this.retriever = retriever;
-	}
-
-
-	public void setPublishSubscribe(boolean publishSubscribe) {
-		this.publishSubscribe = publishSubscribe;
 	}
 
 	public void setSchedule(Schedule schedule) {
@@ -87,24 +79,6 @@ public class DispatcherTask implements MessagingTask {
 
 	public Schedule getSchedule() {
 		return this.schedule;
-	}
-
-	public void setRejectionLimit(int rejectionLimit) {
-		Assert.isTrue(rejectionLimit > 0, "'rejectionLimit' must be at least 1");
-		this.rejectionLimit = rejectionLimit;
-	}
-
-	public void setRetryInterval(long retryInterval) {
-		Assert.isTrue(retryInterval > 0, "'retryInterval' must not be negative");
-		this.retryInterval = retryInterval;
-	}
-
-	/**
-	 * Specify whether an exception should be thrown when this dispatcher's
-	 * {@link #rejectionLimit} is reached. The default value is 'true'.
-	 */
-	public void setShouldFailOnRejectionLimit(boolean shouldFailOnRejectionLimit) {
-		this.shouldFailOnRejectionLimit = shouldFailOnRejectionLimit;
 	}
 
 	public void addHandler(MessageHandler handler) {
@@ -134,15 +108,15 @@ public class DispatcherTask implements MessagingTask {
 	protected boolean dispatchMessage(Message<?> message) {
 		int attempts = 0;
 		List<MessageHandler> targets = new ArrayList<MessageHandler>(this.handlers);
-		while (attempts < this.rejectionLimit) {
+		while (attempts < this.dispatcherPolicy.getRejectionLimit()) {
 			if (attempts > 0) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("handler(s) rejected message after " + attempts
-							+ " attempt(s), will try again after 'retryInterval' of " + this.retryInterval
-							+ " milliseconds");
+							+ " attempt(s), will try again after 'retryInterval' of " +
+							this.dispatcherPolicy.getRetryInterval() + " milliseconds");
 				}
 				try {
-					Thread.sleep(this.retryInterval);
+					Thread.sleep(this.dispatcherPolicy.getRetryInterval());
 				}
 				catch (InterruptedException iex) {
 					Thread.currentThread().interrupt();
@@ -161,7 +135,7 @@ public class DispatcherTask implements MessagingTask {
 				MessageHandler handler = iter.next();
 				try {
 					handler.handle(message);
-					if (!this.publishSubscribe) {
+					if (!this.dispatcherPolicy.isPublishSubscribe()) {
 						return true;
 					}
 					iter.remove();
@@ -188,9 +162,9 @@ public class DispatcherTask implements MessagingTask {
 			}
 			attempts++;
 		}
-		if (this.shouldFailOnRejectionLimit) {
-			throw new MessageDeliveryException("Dispatcher reached rejection limit of " + this.rejectionLimit
-					+ ". Consider increasing the executor's concurrency and/or raising the 'rejectionLimit'.");
+		if (this.dispatcherPolicy.getShouldFailOnRejectionLimit()) {
+			throw new MessageDeliveryException("Dispatcher reached rejection limit of " + this.dispatcherPolicy.getRejectionLimit()
+					+ ". Consider increasing the handler's concurrency and/or the dispatcherPolicy's 'rejectionLimit'.");
 		}
 		return false;
 	}
