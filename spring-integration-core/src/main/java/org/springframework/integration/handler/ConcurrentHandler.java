@@ -16,8 +16,6 @@
 
 package org.springframework.integration.handler;
 
-import java.util.concurrent.RejectedExecutionException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -164,7 +162,7 @@ public class ConcurrentHandler implements MessageHandler, Lifecycle, Initializin
 			this.executor.execute(new HandlerTask(message));
 			return null;
 		}
-		catch (RejectedExecutionException e) {
+		catch (RuntimeException e) {
 			throw new MessageHandlerRejectedExecutionException(e);
 		}
 	}

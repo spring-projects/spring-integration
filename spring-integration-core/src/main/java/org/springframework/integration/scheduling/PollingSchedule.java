@@ -83,4 +83,21 @@ public class PollingSchedule implements Schedule {
 		this.fixedRate = fixedRate;
 	}
 
+	public int hashCode() {
+		return toString().hashCode() * 23;
+	}
+
+	public boolean equals(Object other) {
+		if (other == null) {
+			return false;
+		}
+		return (other instanceof PollingSchedule && 
+				this.toString().equals(((PollingSchedule) other).toString()));
+	}
+
+	public String toString() {
+		return "initialDelay=" + this.initialDelay + ", period=" + this.period +
+				", timeUnit=" + this.timeUnit + ", fixedRate=" + this.fixedRate;
+	}
+
 }

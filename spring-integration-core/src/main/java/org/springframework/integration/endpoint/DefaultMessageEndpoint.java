@@ -29,6 +29,7 @@ import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.dispatcher.MessageHandlerNotRunningException;
+import org.springframework.integration.dispatcher.MessageHandlerRejectedExecutionException;
 import org.springframework.integration.dispatcher.MessageSelectorRejectedException;
 import org.springframework.integration.handler.ConcurrentHandler;
 import org.springframework.integration.handler.MessageHandler;
@@ -215,6 +216,9 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 				}
 				replyChannel.send(replyMessage);
 			}
+		}
+		catch (MessageHandlerRejectedExecutionException e) {
+			throw e;
 		}
 		catch (Throwable t) {
 			if (this.errorHandler == null) {
