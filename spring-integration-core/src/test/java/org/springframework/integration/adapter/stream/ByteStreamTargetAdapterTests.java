@@ -25,7 +25,6 @@ import org.junit.Test;
 
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
-import org.springframework.integration.dispatcher.ChannelPollingMessageRetriever;
 import org.springframework.integration.dispatcher.DispatcherPolicy;
 import org.springframework.integration.dispatcher.DispatcherTask;
 import org.springframework.integration.message.GenericMessage;
@@ -75,8 +74,7 @@ public class ByteStreamTargetAdapterTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(3);
 		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
-		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel);
-		DispatcherTask dispatcherTask = new DispatcherTask(retriever);
+		DispatcherTask dispatcherTask = new DispatcherTask(channel);
 		dispatcherTask.addHandler(adapter);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}));
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}));
@@ -95,8 +93,7 @@ public class ByteStreamTargetAdapterTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
-		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel);
-		DispatcherTask dispatcherTask = new DispatcherTask(retriever);
+		DispatcherTask dispatcherTask = new DispatcherTask(channel);
 		dispatcherTask.addHandler(adapter);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}));
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}));
@@ -181,8 +178,7 @@ public class ByteStreamTargetAdapterTests {
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		dispatcherPolicy.setReceiveTimeout(0);
 		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
-		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel);
-		DispatcherTask dispatcherTask = new DispatcherTask(retriever);
+		DispatcherTask dispatcherTask = new DispatcherTask(channel);
 		dispatcherTask.addHandler(adapter);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}));
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}));

@@ -64,13 +64,6 @@ public class DispatcherTask implements MessagingTask {
 		}
 	}
 
-	public DispatcherTask(MessageRetriever retriever) {
-		Assert.notNull(retriever, "'retriever' must not be null");
-		if (retriever instanceof ChannelPollingMessageRetriever) {
-			this.dispatcherPolicy = ((ChannelPollingMessageRetriever) retriever).getChannel().getDispatcherPolicy();
-		}
-		this.retriever = retriever;
-	}
 
 	public void setSchedule(Schedule schedule) {
 		Assert.notNull(schedule, "'schedule' must not be null");
