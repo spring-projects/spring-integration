@@ -25,6 +25,8 @@ import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.endpoint.ConcurrencyPolicy;
+import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.integration.message.GenericMessage;
 
 /**
@@ -56,6 +58,30 @@ public class EndpointParserTests {
 		channel.send(new GenericMessage<String>(1, "test"));
 		bean.getLatch().await(500, TimeUnit.MILLISECONDS);
 		assertEquals("test", bean.getMessage());
+	}
+
+	@Test
+	public void testDefaultConcurrency() throws InterruptedException {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"endpointConcurrencyTests.xml", this.getClass());
+		DefaultMessageEndpoint endpoint = (DefaultMessageEndpoint) context.getBean("defaultConcurrencyEndpoint");
+		ConcurrencyPolicy concurrencyPolicy = endpoint.getConcurrencyPolicy();
+		assertEquals(ConcurrencyPolicy.DEFAULT_CORE_SIZE, concurrencyPolicy.getCoreSize());
+		assertEquals(ConcurrencyPolicy.DEFAULT_MAX_SIZE, concurrencyPolicy.getMaxSize());
+		assertEquals(ConcurrencyPolicy.DEFAULT_QUEUE_CAPACITY, concurrencyPolicy.getQueueCapacity());
+		assertEquals(ConcurrencyPolicy.DEFAULT_KEEP_ALIVE_SECONDS, concurrencyPolicy.getKeepAliveSeconds());
+	}
+
+	@Test
+	public void testConfiguredConcurrency() throws InterruptedException {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"endpointConcurrencyTests.xml", this.getClass());
+		DefaultMessageEndpoint endpoint = (DefaultMessageEndpoint) context.getBean("configuredConcurrencyEndpoint");
+		ConcurrencyPolicy concurrencyPolicy = endpoint.getConcurrencyPolicy();
+		assertEquals(7, concurrencyPolicy.getCoreSize());
+		assertEquals(77, concurrencyPolicy.getMaxSize());
+		assertEquals(777, concurrencyPolicy.getQueueCapacity());
+		assertEquals(7777, concurrencyPolicy.getKeepAliveSeconds());
 	}
 
 }

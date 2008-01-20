@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.dispatcher.DefaultMessageDispatcher;
+import org.springframework.integration.dispatcher.DispatcherPolicy;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
@@ -106,6 +107,32 @@ public class ChannelParserTests {
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
 		assertEquals(2, counter.get());
+	}
+
+	@Test
+	public void testDefaultDispatcherPolicy() throws InterruptedException {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"channelParserTests.xml", this.getClass());
+		MessageChannel channel = (MessageChannel) context.getBean("pointToPointChannelByDefault");
+		DispatcherPolicy dispatcherPolicy = channel.getDispatcherPolicy();
+		assertFalse(dispatcherPolicy.isPublishSubscribe());
+		assertEquals(DispatcherPolicy.DEFAULT_MAX_MESSAGES_PER_TASK, dispatcherPolicy.getMaxMessagesPerTask());
+		assertEquals(DispatcherPolicy.DEFAULT_RECEIVE_TIMEOUT, dispatcherPolicy.getReceiveTimeout());
+		assertEquals(DispatcherPolicy.DEFAULT_REJECTION_LIMIT, dispatcherPolicy.getRejectionLimit());
+		assertEquals(DispatcherPolicy.DEFAULT_RETRY_INTERVAL, dispatcherPolicy.getRetryInterval());
+	}
+
+	@Test
+	public void testDispatcherPolicyConfiguration() throws InterruptedException {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"channelParserTests.xml", this.getClass());
+		MessageChannel channel = (MessageChannel) context.getBean("channelWithDispatcherPolicy");
+		DispatcherPolicy dispatcherPolicy = channel.getDispatcherPolicy();
+		assertTrue(dispatcherPolicy.isPublishSubscribe());
+		assertEquals(7, dispatcherPolicy.getMaxMessagesPerTask());
+		assertEquals(77, dispatcherPolicy.getReceiveTimeout());
+		assertEquals(777, dispatcherPolicy.getRejectionLimit());
+		assertEquals(7777, dispatcherPolicy.getRetryInterval());
 	}
 
 
