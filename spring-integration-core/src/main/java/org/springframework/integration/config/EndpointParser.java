@@ -88,6 +88,10 @@ public class EndpointParser implements BeanDefinitionParser {
 
 	private static final String MAX_SIZE_ATTRIBUTE = "max";
 
+	private static final String QUEUE_CAPACITY_ATTRIBUTE = "queue-capacity";
+
+	private static final String KEEP_ALIVE_ATTRIBUTE = "keep-alive";
+
 	private static final String CONCURRENCY_POLICY_PROPERTY = "concurrencyPolicy";
 
 
@@ -166,14 +170,22 @@ public class EndpointParser implements BeanDefinitionParser {
 	}
 
 	private void parseConcurrencyPolicy(Element concurrencyElement, RootBeanDefinition endpointDef) {
-		ConcurrencyPolicy policy = new ConcurrencyPolicy();
 		String coreSize = concurrencyElement.getAttribute(CORE_SIZE_ATTRIBUTE);
 		String maxSize = concurrencyElement.getAttribute(MAX_SIZE_ATTRIBUTE);
+		String queueCapacity = concurrencyElement.getAttribute(QUEUE_CAPACITY_ATTRIBUTE);
+		String keepAlive = concurrencyElement.getAttribute(KEEP_ALIVE_ATTRIBUTE);
+		ConcurrencyPolicy policy = new ConcurrencyPolicy();
 		if (StringUtils.hasText(coreSize)) {
 			policy.setCoreSize(Integer.parseInt(coreSize));
 		}
 		if (StringUtils.hasText(maxSize)) {
 			policy.setMaxSize(Integer.parseInt(maxSize));
+		}
+		if (StringUtils.hasText(queueCapacity)) {
+			policy.setQueueCapacity(Integer.parseInt(queueCapacity));
+		}
+		if (StringUtils.hasText(keepAlive)) {
+			policy.setKeepAliveSeconds(Integer.parseInt(keepAlive));
 		}
 		endpointDef.getPropertyValues().addPropertyValue(CONCURRENCY_POLICY_PROPERTY, policy);
 	}

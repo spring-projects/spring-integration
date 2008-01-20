@@ -147,11 +147,9 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 	public void afterPropertiesSet() {
 		if (this.concurrencyPolicy != null) {
 			if (!(this.handler instanceof ConcurrentHandler)) {
-				this.handler = new ConcurrentHandler(this.handler);
+				this.handler = new ConcurrentHandler(this.handler, this.concurrencyPolicy);
 			}
 			ConcurrentHandler concurrentHandler = (ConcurrentHandler) this.handler;
-			concurrentHandler.setCorePoolSize(this.concurrencyPolicy.getCoreSize());
-			concurrentHandler.setMaxPoolSize(this.concurrencyPolicy.getMaxSize());
 			if (this.errorHandler != null) {
 				concurrentHandler.setErrorHandler(this.errorHandler);
 			}

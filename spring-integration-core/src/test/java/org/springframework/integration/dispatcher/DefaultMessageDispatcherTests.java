@@ -58,8 +58,8 @@ public class DefaultMessageDispatcherTests {
 		SimpleChannel channel = new SimpleChannel();
 		channel.send(new StringMessage(1, "test"));
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
-		dispatcher.addHandler(new ConcurrentHandler(handler1, 1, 1));
-		dispatcher.addHandler(new ConcurrentHandler(handler2, 1, 1));
+		dispatcher.addHandler(new ConcurrentHandler(handler1, new ConcurrencyPolicy(1, 1)));
+		dispatcher.addHandler(new ConcurrentHandler(handler2, new ConcurrencyPolicy(1, 1)));
 		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler();
 		scheduler.start();
 		dispatcher.setMessagingTaskScheduler(scheduler);
@@ -79,8 +79,8 @@ public class DefaultMessageDispatcherTests {
 		SimpleChannel channel = new SimpleChannel(new DispatcherPolicy(true));
 		channel.send(new StringMessage(1, "test"));
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
-		dispatcher.addHandler(new ConcurrentHandler(handler1, 1, 1));
-		dispatcher.addHandler(new ConcurrentHandler(handler2, 1, 1));
+		dispatcher.addHandler(new ConcurrentHandler(handler1, new ConcurrencyPolicy(1, 1)));
+		dispatcher.addHandler(new ConcurrentHandler(handler2, new ConcurrencyPolicy(1, 1)));
 		dispatcher.start();
 		latch.await(2000, TimeUnit.MILLISECONDS);
 		assertEquals("messages should have been dispatched within allotted time", 0, latch.getCount());
@@ -99,13 +99,13 @@ public class DefaultMessageDispatcherTests {
 		SimpleChannel channel = new SimpleChannel();
 		channel.send(new StringMessage(1, "test"));
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
-		dispatcher.addHandler(new ConcurrentHandler(handler1, 1, 1) {
+		dispatcher.addHandler(new ConcurrentHandler(handler1, new ConcurrencyPolicy(1, 1)) {
 			@Override
 			public void start() {
 			}
 		});
-		dispatcher.addHandler(new ConcurrentHandler(handler2, 1, 1));
-		dispatcher.addHandler(new ConcurrentHandler(handler3, 1, 1));
+		dispatcher.addHandler(new ConcurrentHandler(handler2, new ConcurrencyPolicy(1, 1)));
+		dispatcher.addHandler(new ConcurrentHandler(handler3, new ConcurrencyPolicy(1, 1)));
 		dispatcher.start();
 		latch.await(2000, TimeUnit.MILLISECONDS);
 		assertEquals("messages should have been dispatched within allotted time", 0, latch.getCount());
@@ -125,13 +125,13 @@ public class DefaultMessageDispatcherTests {
 		SimpleChannel channel = new SimpleChannel(new DispatcherPolicy(true));
 		channel.send(new StringMessage(1, "test"));
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
-		dispatcher.addHandler(new ConcurrentHandler(handler1, 1, 1));
-		dispatcher.addHandler(new ConcurrentHandler(handler2, 1, 1) {
+		dispatcher.addHandler(new ConcurrentHandler(handler1, new ConcurrencyPolicy(1, 1)));
+		dispatcher.addHandler(new ConcurrentHandler(handler2, new ConcurrencyPolicy(1, 1)) {
 			@Override
 			public void start() {
 			}
 		});
-		dispatcher.addHandler(new ConcurrentHandler(handler3, 1, 1));
+		dispatcher.addHandler(new ConcurrentHandler(handler3, new ConcurrencyPolicy(1, 1)));
 		dispatcher.start();
 		latch.await(2000, TimeUnit.MILLISECONDS);
 		assertEquals("messages should have been dispatched within allotted time", 0, latch.getCount());
@@ -161,14 +161,14 @@ public class DefaultMessageDispatcherTests {
 		channel.getDispatcherPolicy().setRetryInterval(3);
 		channel.send(new StringMessage(1, "test"));
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
-		dispatcher.addHandler(new ConcurrentHandler(handler1, 1, 1));
-		dispatcher.addHandler(new ConcurrentHandler(handler2, 1, 1) {
+		dispatcher.addHandler(new ConcurrentHandler(handler1, new ConcurrencyPolicy(1, 1)));
+		dispatcher.addHandler(new ConcurrentHandler(handler2, new ConcurrencyPolicy(1, 1)) {
 			@Override
 			public Message<?> handle(Message<?> message) {
 				throw new MessageHandlerRejectedExecutionException();
 			}
 		});
-		dispatcher.addHandler(new ConcurrentHandler(handler3, 1, 1));
+		dispatcher.addHandler(new ConcurrentHandler(handler3, new ConcurrencyPolicy(1, 1)));
 		SimpleChannel errorChannel = new SimpleChannel();
 		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler();
 		scheduler.setErrorHandler(new MessagePublishingErrorHandler(errorChannel));
@@ -249,7 +249,7 @@ public class DefaultMessageDispatcherTests {
 		channel.getDispatcherPolicy().setShouldFailOnRejectionLimit(false);
 		channel.send(new StringMessage(1, "test"));
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
-		dispatcher.addHandler(new ConcurrentHandler(handler1, 1, 1) {
+		dispatcher.addHandler(new ConcurrentHandler(handler1, new ConcurrencyPolicy(1, 1)) {
 			@Override
 			public Message<?> handle(Message<?> message) {
 				rejectedCounter1.incrementAndGet();
@@ -257,7 +257,7 @@ public class DefaultMessageDispatcherTests {
 				throw new MessageHandlerRejectedExecutionException();
 			}
 		});
-		dispatcher.addHandler(new ConcurrentHandler(handler2, 1, 1) {
+		dispatcher.addHandler(new ConcurrentHandler(handler2, new ConcurrencyPolicy(1, 1)) {
 			@Override
 			public Message<?> handle(Message<?> message) {
 				rejectedCounter2.incrementAndGet();
@@ -293,7 +293,7 @@ public class DefaultMessageDispatcherTests {
 		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
 		channel.send(new StringMessage(1, "test"));
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
-		dispatcher.addHandler(new ConcurrentHandler(handler1, 1, 1) {
+		dispatcher.addHandler(new ConcurrentHandler(handler1, new ConcurrencyPolicy(1, 1)) {
 			@Override
 			public Message<?> handle(Message<?> message) {
 				rejectedCounter1.incrementAndGet();
@@ -301,7 +301,7 @@ public class DefaultMessageDispatcherTests {
 				throw new MessageHandlerRejectedExecutionException();
 			}
 		});
-		dispatcher.addHandler(new ConcurrentHandler(handler2, 1, 1) {
+		dispatcher.addHandler(new ConcurrentHandler(handler2, new ConcurrencyPolicy(1, 1)) {
 			@Override
 			public Message<?> handle(Message<?> message) {
 				if (rejectedCounter2.get() == 1) {
@@ -312,7 +312,7 @@ public class DefaultMessageDispatcherTests {
 				throw new MessageHandlerRejectedExecutionException();
 			}
 		});
-		dispatcher.addHandler(new ConcurrentHandler(handler3, 1, 1) {
+		dispatcher.addHandler(new ConcurrentHandler(handler3, new ConcurrencyPolicy(1, 1)) {
 			@Override
 			public Message<?> handle(Message<?> message) {
 				rejectedCounter3.incrementAndGet();
@@ -347,7 +347,7 @@ public class DefaultMessageDispatcherTests {
 		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
 		channel.send(new StringMessage(1, "test"));
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
-		dispatcher.addHandler(new ConcurrentHandler(handler1, 1, 1) {
+		dispatcher.addHandler(new ConcurrentHandler(handler1, new ConcurrencyPolicy(1, 1)) {
 			@Override
 			public Message<?> handle(Message<?> message) {
 				if (rejectedCounter1.get() == 2) {
@@ -358,7 +358,7 @@ public class DefaultMessageDispatcherTests {
 				throw new MessageHandlerRejectedExecutionException();
 			}
 		});
-		dispatcher.addHandler(new ConcurrentHandler(handler2, 1, 1) {
+		dispatcher.addHandler(new ConcurrentHandler(handler2, new ConcurrencyPolicy(1, 1)) {
 			@Override
 			public Message<?> handle(Message<?> message) {
 				if (rejectedCounter2.get() == 4) {

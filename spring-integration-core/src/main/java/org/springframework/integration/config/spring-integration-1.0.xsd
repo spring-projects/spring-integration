@@ -49,6 +49,9 @@
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="beans:identifiedType">
+					<xsd:sequence>
+						<xsd:element ref="dispatcher-policy" minOccurs="0" maxOccurs="1"/>
+					</xsd:sequence>
 					<xsd:attribute name="capacity" type="xsd:integer"/>
 					<xsd:attribute name="publish-subscribe" type="xsd:boolean" default="false"/>
 				</xsd:extension>
@@ -134,6 +137,8 @@
 			</xsd:annotation>
 			<xsd:attribute name="core" type="xsd:int"/>
 			<xsd:attribute name="max" type="xsd:int"/>
+			<xsd:attribute name="queue-capacity" type="xsd:int"/>
+			<xsd:attribute name="keep-alive" type="xsd:int"/>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -146,6 +151,21 @@
 			</xsd:annotation>
 			<xsd:attribute name="ref" type="xsd:string" use="required"/>
 			<xsd:attribute name="method" type="xsd:string"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="dispatcher-policy">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a dispatcher policy.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="max-messages-per-task" type="xsd:int"/>
+			<xsd:attribute name="receive-timeout" type="xsd:long"/>
+			<xsd:attribute name="rejection-limit" type="xsd:int"/>
+			<xsd:attribute name="retry-interval" type="xsd:long"/>
+			<xsd:attribute name="should-fail-on-rejection-limit" type="xsd:boolean"/>
 		</xsd:complexType>
 	</xsd:element>
 

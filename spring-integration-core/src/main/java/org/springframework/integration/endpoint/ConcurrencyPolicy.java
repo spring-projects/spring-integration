@@ -25,15 +25,29 @@ import org.springframework.util.Assert;
  */
 public class ConcurrencyPolicy implements EndpointPolicy {
 
-	private int coreSize;
+	public static final int DEFAULT_CORE_SIZE = 1;
 
-	private int maxSize;
+	public static final int DEFAULT_MAX_SIZE = 10;
+
+	public static final int DEFAULT_QUEUE_CAPACITY = 0;
+
+	public static final int DEFAULT_KEEP_ALIVE_SECONDS = 60;
+
+
+	private int coreSize = DEFAULT_CORE_SIZE;
+
+	private int maxSize = DEFAULT_MAX_SIZE;
+
+	private int queueCapacity = DEFAULT_QUEUE_CAPACITY;
+
+	private int keepAliveSeconds = DEFAULT_KEEP_ALIVE_SECONDS;
 
 
 	public ConcurrencyPolicy() {
 	}
 
 	public ConcurrencyPolicy(int coreSize, int maxSize) {
+		Assert.isTrue(maxSize >= coreSize, "'coreSize' must not exceed 'maxSize'");
 		this.setCoreSize(coreSize);
 		this.setMaxSize(maxSize);
 	}
@@ -55,6 +69,24 @@ public class ConcurrencyPolicy implements EndpointPolicy {
 	public void setMaxSize(int maxSize) {
 		Assert.isTrue(maxSize > 0, "'maxSize' must be at least 1");
 		this.maxSize = maxSize;
+	}
+
+	public int getQueueCapacity() {
+		return this.queueCapacity;
+	}
+
+	public void setQueueCapacity(int queueCapacity) {
+		Assert.isTrue(queueCapacity >= 0, "'queueCapacity' must not be negative");
+		this.queueCapacity = queueCapacity;
+	}
+
+	public int getKeepAliveSeconds() {
+		return this.keepAliveSeconds;
+	}
+
+	public void setKeepAliveSeconds(int keepAliveSeconds) {
+		Assert.isTrue(keepAliveSeconds >= 0, "'keepAliveSeconds' must not be negative");
+		this.keepAliveSeconds = keepAliveSeconds;
 	}
 
 }

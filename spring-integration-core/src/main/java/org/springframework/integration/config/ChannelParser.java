@@ -17,6 +17,8 @@
 package org.springframework.integration.config;
 
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
@@ -40,6 +42,8 @@ public class ChannelParser implements BeanDefinitionParser {
 
 	private static final String PUBLISH_SUBSCRIBE_ATTRIBUTE = "publish-subscribe";
 
+	private static final String DISPATCHER_POLICY_ELEMENT = "dispatcher-policy";
+
 
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
 		RootBeanDefinition channelDef = new RootBeanDefinition(SimpleChannel.class);
@@ -48,16 +52,48 @@ public class ChannelParser implements BeanDefinitionParser {
 		if (StringUtils.hasText(capacity)) {
 			channelDef.getConstructorArgumentValues().addGenericArgumentValue(Integer.parseInt(capacity));
 		}
-		String isPublishSubscribe = element.getAttribute(PUBLISH_SUBSCRIBE_ATTRIBUTE);
-		if ("true".equals(isPublishSubscribe)) {
-			channelDef.getConstructorArgumentValues().addGenericArgumentValue(new DispatcherPolicy(true));
+		boolean isPublishSubscribe = "true".equals(element.getAttribute(PUBLISH_SUBSCRIBE_ATTRIBUTE));
+		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy(isPublishSubscribe);
+		NodeList childNodes = element.getChildNodes();
+		for (int i = 0; i < childNodes.getLength(); i++) {
+			Node child = childNodes.item(i);
+			if (child.getNodeType() == Node.ELEMENT_NODE) {
+				String localName = child.getLocalName();
+				if (DISPATCHER_POLICY_ELEMENT.equals(localName)) {
+					configureDispatcherPolicy((Element) child, dispatcherPolicy);
+				}
+			}
 		}
+		channelDef.getConstructorArgumentValues().addGenericArgumentValue(dispatcherPolicy);
 		String beanName = element.getAttribute(ID_ATTRIBUTE);
 		if (!StringUtils.hasText(beanName)) {
 			beanName = parserContext.getReaderContext().generateBeanName(channelDef);
 		}
 		parserContext.registerBeanComponent(new BeanComponentDefinition(channelDef, beanName));
 		return channelDef;
+	}
+
+	private void configureDispatcherPolicy(Element element, DispatcherPolicy dispatcherPolicy) {
+		String maxMessagesPerTask = element.getAttribute("max-messages-per-task");
+		if (StringUtils.hasText(maxMessagesPerTask)) {
+			dispatcherPolicy.setMaxMessagesPerTask(Integer.parseInt(maxMessagesPerTask));
+		}
+		String receiveTimeout = element.getAttribute("receive-timeout");
+		if (StringUtils.hasText(receiveTimeout)) {
+			dispatcherPolicy.setReceiveTimeout(Long.parseLong(receiveTimeout));
+		}
+		String rejectionLimit = element.getAttribute("rejection-limit");
+		if (StringUtils.hasText(rejectionLimit)) {
+			dispatcherPolicy.setRejectionLimit(Integer.parseInt(rejectionLimit));
+		}
+		String retryInterval = element.getAttribute("retry-interval");
+		if (StringUtils.hasText(retryInterval)) {
+			dispatcherPolicy.setRetryInterval(Long.parseLong(retryInterval));
+		}
+		String shouldFailOnRejectionLimit = element.getAttribute("should-fail-on-rejection-limit");
+		if (StringUtils.hasText(shouldFailOnRejectionLimit)) {
+			dispatcherPolicy.setShouldFailOnRejectionLimit("true".equals(shouldFailOnRejectionLimit));
+		}
 	}
 
 }
