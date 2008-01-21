@@ -21,8 +21,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.dispatcher.MessageHandlerNotRunningException;
-import org.springframework.integration.dispatcher.MessageHandlerRejectedExecutionException;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.util.ErrorHandler;
@@ -50,6 +48,8 @@ public class ConcurrentHandler implements MessageHandler, Lifecycle, Initializin
 	private final ConcurrencyPolicy concurrencyPolicy;
 
 	private ErrorHandler errorHandler;
+
+	private ReplyHandler replyHandler;
 
 	private volatile boolean running;
 
@@ -81,6 +81,10 @@ public class ConcurrentHandler implements MessageHandler, Lifecycle, Initializin
 
 	public void setErrorHandler(ErrorHandler errorHandler) {
 		this.errorHandler = errorHandler;
+	}
+
+	public void setReplyHandler(ReplyHandler replyHandler) {
+		this.replyHandler = replyHandler;
 	}
 
 	public void afterPropertiesSet() {
@@ -173,7 +177,10 @@ public class ConcurrentHandler implements MessageHandler, Lifecycle, Initializin
 
 		public void run() {
 			try {
-				handler.handle(this.message);
+				Message<?> reply = handler.handle(this.message);
+				if (replyHandler != null) {
+					replyHandler.handle(reply, this.message.getHeader());
+				}
 			}
 			catch (Throwable t) {
 				if (errorHandler != null) {

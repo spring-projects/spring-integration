@@ -19,7 +19,6 @@ package org.springframework.integration.handler;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.integration.dispatcher.MessageHandlerRejectedExecutionException;
 import org.springframework.integration.message.Message;
 
 /**

@@ -14,28 +14,18 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.dispatcher;
+package org.springframework.integration.handler;
 
-import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageHeader;
 
 /**
- * An exception indicating that a message was rejected by a handler; typically
- * this would be the result of a thread pool executor rejecting a handler task.
+ * Strategy interface for handling reply messages.
  * 
  * @author Mark Fisher
  */
-public class MessageHandlerRejectedExecutionException extends MessageHandlingException {
+public interface ReplyHandler {
 
-	public MessageHandlerRejectedExecutionException() {
-		super();
-	}
-
-	public MessageHandlerRejectedExecutionException(Throwable cause) {
-		super("handler rejected execution", cause);
-	}
-
-	public MessageHandlerRejectedExecutionException(String message, Throwable cause) {
-		super(message, cause);
-	}
+	void handle(Message<?> replyMessage, MessageHeader originalMessageHeader);
 
 }

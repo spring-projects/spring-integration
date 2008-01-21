@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.dispatcher.DispatcherPolicy;
 import org.springframework.integration.message.Message;
+import org.springframework.util.Assert;
 
 /**
  * Simple implementation of a message channel. Each {@link Message} is
@@ -33,7 +34,7 @@ import org.springframework.integration.message.Message;
  */
 public class SimpleChannel implements MessageChannel, BeanNameAware {
 
-	private static final int DEFAULT_CAPACITY = 25;
+	private static final int DEFAULT_CAPACITY = 100;
 
 	private String name;
 
@@ -110,6 +111,7 @@ public class SimpleChannel implements MessageChannel, BeanNameAware {
 	 * <code>false</code> if the sending thread is interrupted.
 	 */
 	public boolean send(Message message) {
+		Assert.notNull(message, "'message' must not be null");
 		try {
 			queue.put(message);
 			return true;
@@ -134,6 +136,7 @@ public class SimpleChannel implements MessageChannel, BeanNameAware {
 	 * time or the sending thread is interrupted.
 	 */
 	public boolean send(Message message, long timeout) {
+		Assert.notNull(message, "'message' must not be null");
 		try {
 			if (timeout > 0) {
 				return this.queue.offer(message, timeout, TimeUnit.MILLISECONDS);

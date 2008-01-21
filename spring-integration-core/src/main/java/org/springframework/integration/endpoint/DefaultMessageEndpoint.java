@@ -28,15 +28,18 @@ import org.springframework.integration.bus.Subscription;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.dispatcher.MessageHandlerNotRunningException;
-import org.springframework.integration.dispatcher.MessageHandlerRejectedExecutionException;
-import org.springframework.integration.dispatcher.MessageSelectorRejectedException;
 import org.springframework.integration.handler.ConcurrentHandler;
 import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.handler.MessageHandlerNotRunningException;
+import org.springframework.integration.handler.MessageHandlerRejectedExecutionException;
+import org.springframework.integration.handler.ReplyHandler;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageHeader;
 import org.springframework.integration.message.selector.MessageSelector;
+import org.springframework.integration.message.selector.MessageSelectorRejectedException;
 import org.springframework.integration.util.ErrorHandler;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Default implementation of the {@link MessageEndpoint} interface.
@@ -56,6 +59,8 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 	private ConcurrencyPolicy concurrencyPolicy;
 
 	private ErrorHandler errorHandler;
+
+	private ReplyHandler replyHandler = new EndpointReplyHandler();
 
 	private String defaultOutputChannelName;
 
@@ -145,7 +150,7 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 	}
 
 	public void afterPropertiesSet() {
-		if (this.concurrencyPolicy != null) {
+		if (this.concurrencyPolicy != null || this.handler instanceof ConcurrentHandler) {
 			if (!(this.handler instanceof ConcurrentHandler)) {
 				this.handler = new ConcurrentHandler(this.handler, this.concurrencyPolicy);
 			}
@@ -153,6 +158,7 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 			if (this.errorHandler != null) {
 				concurrentHandler.setErrorHandler(this.errorHandler);
 			}
+			concurrentHandler.setReplyHandler(this.replyHandler);
 			concurrentHandler.afterPropertiesSet();
 		}
 		this.initialized = true;
@@ -206,13 +212,7 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 		try {
 			Message<?> replyMessage = handler.handle(message);
 			if (replyMessage != null) {
-				MessageChannel replyChannel = this.resolveReplyChannel(message);
-				if (replyChannel == null) {
-					throw new MessageHandlingException("Unable to determine reply channel for message. "
-							+ "Provide a 'replyChannelName' in the message header or a 'defaultOutputChannelName' "
-							+ "on the message endpoint.");
-				}
-				replyChannel.send(replyMessage);
+				this.replyHandler.handle(replyMessage, message.getHeader());
 			}
 		}
 		catch (MessageHandlerRejectedExecutionException e) {
@@ -228,18 +228,35 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 		return null;
 	}
 
-	private MessageChannel resolveReplyChannel(Message<?> message) {
+	private MessageChannel resolveReplyChannel(String replyChannelName) {
 		if (this.channelRegistry == null) {
 			return null;
 		}
-		String replyChannelName = message.getHeader().getReplyChannelName();
-		if (replyChannelName != null && replyChannelName.trim().length() > 0) {
+		if (StringUtils.hasText(replyChannelName)) {
 			return this.channelRegistry.lookupChannel(replyChannelName);
 		}
 		if (this.defaultOutputChannelName != null) {
 			return this.channelRegistry.lookupChannel(this.defaultOutputChannelName);
 		}
 		return null;
+	}
+
+
+	private class EndpointReplyHandler implements ReplyHandler {
+
+		public void handle(Message<?> replyMessage, MessageHeader originalMessageHeader) {
+			if (replyMessage == null) {
+				return;
+			}
+			String replyChannelName = originalMessageHeader.getReplyChannelName();
+			MessageChannel replyChannel = resolveReplyChannel(replyChannelName);
+			if (replyChannel == null) {
+				throw new MessageHandlingException("Unable to determine reply channel for message. "
+						+ "Provide a 'replyChannelName' in the message header or a 'defaultOutputChannelName' "
+						+ "on the message endpoint.");
+			}
+			replyChannel.send(replyMessage);
+		}
 	}
 
 }

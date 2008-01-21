@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.dispatcher;
+package org.springframework.integration.message.selector;
 
 import org.springframework.integration.MessageHandlingException;
 
