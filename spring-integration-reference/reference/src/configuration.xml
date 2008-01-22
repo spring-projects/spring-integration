@@ -186,6 +186,24 @@
       </para>
     </section>
 
+    <section id="namespace-adapters">
+      <title>Configuring Channel Adapters</title>
+      <para>
+        The most convenient way to configure Channel Adapters is by using the namespace support. The following examples
+        demonstrate the namespace-based configuration of source and target adapters (Spring Integration 1.0 M1 includes
+        namespace support for JMS and Files):
+        <programlisting><![CDATA[
+<jms-source connection-factory="connectionFactory" destination="inputQueue" channel="inputChannel1"/
+
+<jms-target connection-factory="connectionFactory" destination="outputQueue" channel="outputChannel1"/>
+
+<file-source directory="/tmp/input" channel="inputChannel2" poll-period="10000"/>
+
+<file-target directory="/tmp/output" channel="outputChannel2"/>
+]]></programlisting>
+      </para>
+    </section>
+
     <section id="namespace-annotationdriven">
       <title>Enabling Annotation-Driven Configuration</title>
       <para>
