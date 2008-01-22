@@ -65,22 +65,133 @@
       <title>Configuring Message Channels</title>
       <para>
         To create a Message Channel instance, use the 'channel' element:
-        <programlisting>&lt;channel/&gt;</programlisting>
+        <programlisting>&lt;channel id="exampleChannel"/&gt;</programlisting>
       </para>
       <para>
-        You can also specify the channel's capacity: <programlisting>&lt;channel capacity="100"/&gt;</programlisting>
+        You can also specify the channel's capacity: <programlisting>&lt;channel id="exampleChannel" capacity="100"/&gt;</programlisting>
       </para>
       <para>
         The default channel type is <emphasis>Point to Point</emphasis>. To create a
         <emphasis>Publish Subscribe</emphasis> channel, provide a value of <emphasis>true</emphasis> for the
         'publish-subscribe' attribute of the channel element:
-        <programlisting>&lt;channel publish-subscribe="true"/&gt;</programlisting>
+        <programlisting>&lt;channel id="exampleChannel" publish-subscribe="true"/&gt;</programlisting>
+      </para>
+      <para>
+        When the <classname>MessageBus</classname> detects and registers channels, it will establish a dispatcher for
+        each channel. The default dispatcher settings were previously displayed in
+        <xref linkend="api-messagebus-dispatcherpolicy"/>. To customize these settings for a particular channel, add
+        the 'dispatcher-policy' sub-element and provide one or more of the attributes shown below:
+        <programlisting><![CDATA[<channel id="exampleChannel" publish-subscribe="true">
+    <dispatcher-policy max-messages-per-task="25"
+                       receive-timeout="10"
+                       rejection-limit="3"
+                       retry-interval="500"
+                       should-fail-on-rejection-limit="false"/>
+</channel>]]></programlisting>
       </para>
     </section>
 
-    <section id="endpoint">
+    <section id="namespace-endpoint">
       <title>Configuring Message Endpoints</title>
       <para>
+        To create a Message Endpoint instance, use the 'endpoint' element with the 'input-channel' and 'handler-ref'
+        attributes:
+        <programlisting>&lt;endpoint input-channel="exampleChannel" handler-ref="exampleHandler"/&gt;</programlisting>
+      </para>
+      <para>
+        The configuration above assumes that "exampleHandler" is an actual implementation of the
+        <interfacename>MessageHandler</interfacename> interface as described in <xref linkend="api-messagehandler"/>.
+        To delegate to an arbitrary method of any object, simply add the "handler-method" attribute.
+        <programlisting>&lt;endpoint input-channel="exampleChannel" handler-ref="somePojo" handler-method="someMethod"/&gt;</programlisting>
+      </para>
+      <para>
+        In either case (<interfacename>MessageHandler</interfacename> or arbitrary object/method), when the handling
+        method returns a non-null value, the endpoint will attempt to send the reply message to an appropriate reply
+        channel. To determine the reply channel, it will first check for a value in the message header's
+        'replyChannelName' property. If that value is available, it will attempt to resolve the channel by performing a
+        lookup in the <interfacename>ChannelRegistry</interfacename>. If the message header does not contain a
+        'replyChannelName' property, then it will fallback to its own 'defaultOutputChannel' property. If neither is
+        available, then a <classname>MessageHandlingException</classname> will be thrown. To configure the default
+        output channel when using the XML namespace, provide the 'default-output-channel' attribute:
+        <programlisting>&lt;endpoint input-channel="exampleChannel"
+          handler-ref="somePojo"
+          handler-method="someMethod"
+          default-output-channel="replyChannel"/&gt;</programlisting>
+      </para>
+      <para>
+        When the <interfacename>MessageBus</interfacename> registers the endpoint, it will activate the subscription
+        by assigning the endpoint to the input channel's dispatcher. The dispatcher is capable of handling multiple
+        endpoint subscriptions for its channel and delegates to a scheduler for managing the tasks that pull messages
+        from the channel and push them to the endpoints. To configure the polling period for an individual endpoint's
+        schedule, provide a 'schedule' sub-element with the 'period' in milliseconds:
+        <programlisting><![CDATA[<endpoint input-channel="exampleChannel" handler-ref="exampleHandler"/>
+    ]]><emphasis><![CDATA[<schedule period="3000"/>]]></emphasis><![CDATA[
+</endpoint>]]></programlisting>
+      </para>
+      <note>
+        Individual endpoint schedules only apply for "Point-to-Point" channels, since in that case only a single
+        subscriber needs to receive the message. On the other hand, when a Spring Integration channel is configured as
+        a "Publish-Subscribe" channel, then the dispatcher will drive all endpoint notifications according to its own
+        default schedule, and any 'schedule' element configured for those endpoints will be ignored.
+      </note>
+      <para>
+        One of the most important configuration options for endpoints is the concurrency policy. Each endpoint is
+        capable of managing a thread pool for its handler, and the values you provide for that pool's core and max
+        size can make a substantial difference in how the handler performs under load. These settings are available
+        per-endpoint since the performance characteristics of an endpoint's handler is one of the major factors to
+        consider (the other major factor being the expected volume on the channel to which the endpoint subscribes).
+        To enable concurrency for an endpoint that is configured with the XML namespace support, provide the
+        'concurrency' sub-element and one or more of the properties shown below:
+        <programlisting><![CDATA[<endpoint input-channel="exampleChannel" handler-ref="exampleHandler"/>
+    ]]><emphasis><![CDATA[<concurrency core="5" max="25" queue-capacity="20" keep-alive="120"/>]]></emphasis><![CDATA[
+</endpoint>]]></programlisting>
+        Recall the default concurrency policy values as listed in <xref linkend="api-messagebus-concurrencypolicy"/>.
+      </para>
+      <tip>
+        The default queue capacity of 0 triggers the creation of a <classname>SynchronousQueue</classname>. In many
+        cases, this is preferable since the direct handoff eliminates the chance of a message handling task being
+        "stuck" in the queue (thread pool executors will favor adding to the queue rather than increasing the pool
+        size). Specifically, whenever a dispatcher for a Point-to-Point channel has more than one subscribed endpoint,
+        a task that is rejected due to an exhausted thread pool can be handled immediately by another endpoint whose
+        pool has one or more threads available. On the other hand, when a particular channel/endpoint may be expecting
+        bursts of activity, setting a queue capacity value might be the best way to accommodate the volume.
+      </tip>
+    </section>
+
+    <section id="namespace-messagebus">
+      <title>Configuring the Message Bus</title>
+      <para>
+        As described in <xref linkend="api-messagebus"/>, the <classname>MessageBus</classname> plays a central role.
+        Nevertheless, its configuration is quite simple since it is primarily concerned with managing internal details
+        based on the configuration of channels and endpoints. The bus is aware of its host application context, and
+        therefore is also capable of auto-detecting the channels and endpoints. Typically, the
+        <classname>MessageBus</classname> can be configured with a single empty element:
+        <programlisting>&lt;message-bus/&gt;</programlisting>
+      </para>
+      <para>
+        The Message Bus provides default error handling for its components in the form of a configurable error channel,
+        and the 'message-bus' element accepts a reference with its 'error-channel' attribute:
+        <programlisting><![CDATA[<message-bus error-channel="errorChannel"/>
+
+<channel id="errorChannel" publish-subscribe="true" capacity="500"/>]]></programlisting>
+	  </para>
+      <para>
+        The 'message-bus' element accepts two more optional attributes. First is the size of the dispatcher thread
+        pool. The dispatcher threads are responsible for polling channels and then passing the messages to handlers.
+        When the endpoints are concurrency-enabled as described in the previous section, the invocation of the handling
+        methods will happen within the handler thread pool and not the dispatcher pool. Finally, the Message Bus is
+        capable of automatically creating channel instances (with default settings) if an endpoint registers a
+        subscription by providing the name of a channel that the bus does not recognize.
+        <programlisting><![CDATA[<message-bus dispatcher-pool-size="25" auto-create-channels="true"/>]]></programlisting>
+      </para>
+    </section>
+
+    <section id="namespace-annotationdriven">
+      <title>Enabling Annotation-Driven Configuration</title>
+      <para>
+        The next section will describe Spring Integration's support for annotation-driven configuration. To enable
+        those features, add this single element to the XML-based configuration:
+        <programlisting>&lt;annotation-driven/&gt;</programlisting>
       </para>
     </section>
   </section>

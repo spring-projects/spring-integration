@@ -90,7 +90,7 @@ new GenericMessage&lt;T&gt;(T payload);</programlisting>
       Spring Integration's <interfacename>MessageChannel</interfacename> interface is defined as follows.
       <programlisting>public interface MessageChannel {
     String getName();
-    boolean isPublishSubscribe();
+    DispatcherPolicy getDispatcherPolicy();
     boolean send(Message message);
     boolean send(Message message, long timeout);
     Message receive();
@@ -138,7 +138,6 @@ new GenericMessage&lt;T&gt;(T payload);</programlisting>
       <interfacename>MessageChannels</interfacename> and <interfacename>MessageHandlers</interfacename>. It provides
       the following methods:
       <programlisting>public void registerChannel(String name, MessageChannel channel)
-public void registerChannel(String name, MessageChannel channel, DispatcherPolicy dispatcherPolicy)
 public void registerHandler(String name, MessageHandler handler, Subscription subscription)
 public void registerHandler(String name, MessageHandler handler, Subscription subscription, ConcurrencyPolicy concurrencyPolicy)</programlisting>
       As those method signatures reveal, the message bus is handling several of the concerns here so that the channel
@@ -149,8 +148,8 @@ public void registerHandler(String name, MessageHandler handler, Subscription su
     </para>
     <para>
       The bus creates and manages dispatchers that pull messages from a channel in order to push those messages to
-      handlers subscribed to that channel. The <classname>DispatcherPolicy</classname> contains metadata for
-      configuring those dispatchers:
+      handlers subscribed to that channel. Each channel has a <classname>DispatcherPolicy</classname> that contains
+      metadata for configuring those dispatchers:
       <table id="api-messagebus-dispatcherpolicy">
         <title>Properties of the DispatcherPolicy</title>
         <tgroup cols="3">
@@ -182,6 +181,12 @@ public void registerHandler(String name, MessageHandler handler, Subscription su
               <entry>retryInterval</entry>
               <entry>1000 (milliseconds)</entry>
               <entry>amount of time to wait between successive attempts to invoke handlers</entry>
+            </row>
+            <row>
+              <entry>shouldFailOnRejectionLimit</entry>
+              <entry>true</entry>
+              <entry>whether to throw a <classname>MessageDeliveryException</classname> if the 'rejectionLimit' is
+              reached - if this is set to 'false', then such undeliverable messages would be dropped silently</entry>
             </row>
           </tbody>
         </tgroup>
@@ -258,10 +263,45 @@ public void registerHandler(String name, MessageHandler handler, Subscription su
     </para>
     <para>
       The <classname>ConcurrencyPolicy</classname> is an optional parameter to provide when registering a handler.
-      It encapsulates two properties: 'coreSize' and 'maxSize'. When the <interfacename>MessageBus</interfacename>
-      registers a handler, it will use these properties to configure that handler's thread pool. These pool size
-      parameters are configurable on a per-handler basis since handlers may have differences in performance and
-      may have different expectations with regard to the volume of throughput.
+      When the <interfacename>MessageBus</interfacename> registers a handler, it will use these properties to configure
+      that handler's thread pool. These parameters are configurable on a per-handler basis since handlers may have
+      different performance characteristics and may have different expectations with regard to the volume of
+      throughput. The following table lists the available properties and their default values:
+      <table id="api-messagebus-concurrencypolicy">
+        <title>Properties of the ConcurrencyPolicy</title>
+        <tgroup cols="3">
+          <colspec align="left"/>
+          <thead>
+            <row>
+              <entry align="center">Property Name</entry>
+              <entry align="center">Default Value</entry>
+              <entry align="center">Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>coreSize</entry>
+              <entry>1</entry>
+              <entry>the core size of the thread pool</entry>
+            </row>
+            <row>
+              <entry>maxSize</entry>
+              <entry>10</entry>
+              <entry>the maximum size the thread pool can reach when under demand</entry>
+            </row>
+            <row>
+              <entry>queueCapacity</entry>
+              <entry>0</entry>
+              <entry>capacity of the queue which defers an increase of the pool size</entry>
+            </row>
+            <row>
+              <entry>keepAliveSeconds</entry>
+              <entry>60</entry>
+              <entry>how long added threads (beyond core size) should remain idle before being removed from the pool</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
     </para>
   </section>
 
