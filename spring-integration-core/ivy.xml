@@ -14,6 +14,11 @@
 		<include file="${spring.build.dir}/common/default-ivy-configurations.xml"/>
 	</configurations>
 
+	<publications>
+		<artifact name="${ant.project.name}"/>
+		<artifact name="${ant.project.name}-sources" type="src" ext="jar"/>
+	</publications>
+
 	<dependencies>
 		<dependency org="javax.jms" name="jms" rev="1.1" conf="compile->default"/>
 		<dependency org="org.junit" name="junit" rev="4.4" conf="test->default"/>
