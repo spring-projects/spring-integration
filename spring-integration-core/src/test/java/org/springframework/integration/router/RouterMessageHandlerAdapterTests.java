@@ -21,6 +21,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -29,9 +31,11 @@ import org.junit.Test;
 import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.DefaultChannelRegistry;
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -40,10 +44,10 @@ public class RouterMessageHandlerAdapterTests {
 
 	@Test
 	public void testChannelNameResolutionByPayload() throws Exception {
-		RoutingTestBean testBean = new RoutingTestBean();
-		Method fooMethod = testBean.getClass().getMethod("foo", String.class);
+		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
+		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
 		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
-		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, fooMethod, attribs);
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
 		Message<String> message = new GenericMessage<String>("123", "bar");
 		SimpleChannel barChannel = new SimpleChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
@@ -58,11 +62,11 @@ public class RouterMessageHandlerAdapterTests {
 
 	@Test
 	public void testChannelNameResolutionByProperty() throws Exception {
-		RoutingTestBean testBean = new RoutingTestBean();
-		Method fooMethod = testBean.getClass().getMethod("foo", String.class);
+		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
+		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
 		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
 		attribs.put("property", "returnAddress");
-		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, fooMethod, attribs);
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
 		Message<String> message = new GenericMessage<String>("123", "bar");
 		message.getHeader().setProperty("returnAddress", "baz");
 		SimpleChannel barChannel = new SimpleChannel();
@@ -82,11 +86,11 @@ public class RouterMessageHandlerAdapterTests {
 
 	@Test
 	public void testChannelNameResolutionByAttribute() throws Exception {
-		RoutingTestBean testBean = new RoutingTestBean();
-		Method fooMethod = testBean.getClass().getMethod("foo", String.class);
+		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
+		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
 		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
 		attribs.put("attribute", "returnAddress");
-		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, fooMethod, attribs);
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
 		Message<String> message = new GenericMessage<String>("123", "bar");
 		message.getHeader().setProperty("returnAddress", "bad");
 		message.getHeader().setAttribute("returnAddress", "baz");
@@ -111,21 +115,346 @@ public class RouterMessageHandlerAdapterTests {
 
 	@Test(expected=MessagingConfigurationException.class)
 	public void testFailsWhenPropertyAndAttributeAreBothProvided() throws Exception {
-		RoutingTestBean testBean = new RoutingTestBean();
-		Method fooMethod = testBean.getClass().getMethod("foo", String.class);
+		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
+		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
 		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
 		attribs.put("property", "targetChannel");
 		attribs.put("attribute", "returnAddress");
-		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, fooMethod, attribs);
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
 		adapter.afterPropertiesSet();
 		adapter.handle(new GenericMessage<String>("123", "testing"));
 	}
 
+	@Test
+	public void testChannelNameResolutionByMessage() throws Exception {
+		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
+		Method routingMethod = testBean.getClass().getMethod("routeMessage", Message.class);
+		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
+		Message<String> fooMessage = new StringMessage("foo");
+		Message<String> barMessage = new StringMessage("bar");
+		Message<String> badMessage = new StringMessage("bad");
+		SimpleChannel fooChannel = new SimpleChannel();
+		SimpleChannel barChannel = new SimpleChannel();
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		channelRegistry.registerChannel("foo-channel", fooChannel);
+		channelRegistry.registerChannel("bar-channel", barChannel);
+		adapter.setChannelRegistry(channelRegistry);
+		adapter.afterPropertiesSet();
+		adapter.handle(fooMessage);
+		Message<?> result1 = fooChannel.receive(0);
+		assertNotNull(result1);
+		assertEquals("foo", result1.getPayload());
+		adapter.handle(barMessage);
+		Message<?> result2 = barChannel.receive(0);
+		assertNotNull(result2);
+		assertEquals("bar", result2.getPayload());
+		adapter.handle(badMessage);
+		Message<?> result4 = fooChannel.receive(0);
+		assertNull(result4);
+		Message<?> result5 = barChannel.receive(0);
+		assertNull(result5);
+	}
 
-	public static class RoutingTestBean {
+	@Test
+	public void testChannelInstanceResolutionByPayload() throws Exception {
+		SimpleChannel fooChannel = new SimpleChannel();
+		SimpleChannel barChannel = new SimpleChannel();
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		channelRegistry.registerChannel("foo-channel", fooChannel);
+		channelRegistry.registerChannel("bar-channel", barChannel);
+		SingleChannelInstanceRoutingTestBean testBean = new SingleChannelInstanceRoutingTestBean(channelRegistry);
+		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
+		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
+		Message<String> fooMessage = new StringMessage("foo");
+		Message<String> barMessage = new StringMessage("bar");
+		Message<String> badMessage = new StringMessage("bad");
+		adapter.setChannelRegistry(channelRegistry);
+		adapter.afterPropertiesSet();
+		adapter.handle(fooMessage);
+		Message<?> result1 = fooChannel.receive(0);
+		assertNotNull(result1);
+		assertEquals("foo", result1.getPayload());
+		adapter.handle(barMessage);
+		Message<?> result2 = barChannel.receive(0);
+		assertNotNull(result2);
+		assertEquals("bar", result2.getPayload());
+		adapter.handle(badMessage);
+		Message<?> result3 = fooChannel.receive(0);
+		assertNull(result3);
+		Message<?> result4 = barChannel.receive(0);
+		assertNull(result4);
+	}
 
-		public String foo(String name) {
+	@Test
+	public void testChannelInstanceResolutionByMessage() throws Exception {
+		SimpleChannel fooChannel = new SimpleChannel();
+		SimpleChannel barChannel = new SimpleChannel();
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		channelRegistry.registerChannel("foo-channel", fooChannel);
+		channelRegistry.registerChannel("bar-channel", barChannel);
+		SingleChannelInstanceRoutingTestBean testBean = new SingleChannelInstanceRoutingTestBean(channelRegistry);
+		Method routingMethod = testBean.getClass().getMethod("routeMessage", Message.class);
+		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
+		Message<String> fooMessage = new StringMessage("foo");
+		Message<String> barMessage = new StringMessage("bar");
+		Message<String> badMessage = new StringMessage("bad");
+		adapter.setChannelRegistry(channelRegistry);
+		adapter.afterPropertiesSet();
+		adapter.handle(fooMessage);
+		Message<?> result1 = fooChannel.receive(0);
+		assertNotNull(result1);
+		assertEquals("foo", result1.getPayload());
+		adapter.handle(barMessage);
+		Message<?> result2 = barChannel.receive(0);
+		assertNotNull(result2);
+		assertEquals("bar", result2.getPayload());
+		adapter.handle(badMessage);
+		Message<?> result3 = fooChannel.receive(0);
+		assertNull(result3);
+		Message<?> result4 = barChannel.receive(0);
+		assertNull(result4);
+	}
+
+	@Test
+	public void testMultiChannelNameResolutionByPayload() throws Exception {
+		SimpleChannel fooChannel = new SimpleChannel();
+		SimpleChannel barChannel = new SimpleChannel();
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		channelRegistry.registerChannel("foo-channel", fooChannel);
+		channelRegistry.registerChannel("bar-channel", barChannel);
+		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
+		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
+		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
+		Message<String> fooMessage = new StringMessage("foo");
+		Message<String> barMessage = new StringMessage("bar");
+		Message<String> badMessage = new StringMessage("bad");
+		adapter.setChannelRegistry(channelRegistry);
+		adapter.afterPropertiesSet();
+		adapter.handle(fooMessage);
+		Message<?> result1 = fooChannel.receive(0);
+		assertNotNull(result1);
+		assertEquals("foo", result1.getPayload());
+		Message<?> result2 = barChannel.receive(0);
+		assertNotNull(result2);
+		assertEquals("foo", result2.getPayload());
+		adapter.handle(barMessage);
+		Message<?> result3 = fooChannel.receive(0);
+		assertNotNull(result3);
+		assertEquals("bar", result3.getPayload());
+		Message<?> result4 = barChannel.receive(0);
+		assertNotNull(result4);
+		assertEquals("bar", result4.getPayload());
+		adapter.handle(badMessage);
+		Message<?> result5 = fooChannel.receive(0);
+		assertNull(result5);
+		Message<?> result6 = barChannel.receive(0);
+		assertNull(result6);
+	}
+
+	@Test
+	public void testMultiChannelNameResolutionByMessage() throws Exception {
+		SimpleChannel fooChannel = new SimpleChannel();
+		SimpleChannel barChannel = new SimpleChannel();
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		channelRegistry.registerChannel("foo-channel", fooChannel);
+		channelRegistry.registerChannel("bar-channel", barChannel);
+		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
+		Method routingMethod = testBean.getClass().getMethod("routeMessage", Message.class);
+		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
+		Message<String> fooMessage = new StringMessage("foo");
+		Message<String> barMessage = new StringMessage("bar");
+		Message<String> badMessage = new StringMessage("bad");
+		adapter.setChannelRegistry(channelRegistry);
+		adapter.afterPropertiesSet();
+		adapter.handle(fooMessage);
+		Message<?> result1 = fooChannel.receive(0);
+		assertNotNull(result1);
+		assertEquals("foo", result1.getPayload());
+		Message<?> result2 = barChannel.receive(0);
+		assertNotNull(result2);
+		assertEquals("foo", result2.getPayload());
+		adapter.handle(barMessage);
+		Message<?> result3 = fooChannel.receive(0);
+		assertNotNull(result3);
+		assertEquals("bar", result3.getPayload());
+		Message<?> result4 = barChannel.receive(0);
+		assertNotNull(result4);
+		assertEquals("bar", result4.getPayload());
+		adapter.handle(badMessage);
+		Message<?> result5 = fooChannel.receive(0);
+		assertNull(result5);
+		Message<?> result6 = barChannel.receive(0);
+		assertNull(result6);
+	}
+
+	@Test
+	public void testMultiChannelInstanceResolutionByPayload() throws Exception {
+		SimpleChannel fooChannel = new SimpleChannel();
+		SimpleChannel barChannel = new SimpleChannel();
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		channelRegistry.registerChannel("foo-channel", fooChannel);
+		channelRegistry.registerChannel("bar-channel", barChannel);
+		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelRegistry);
+		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
+		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
+		Message<String> fooMessage = new StringMessage("foo");
+		Message<String> barMessage = new StringMessage("bar");
+		Message<String> badMessage = new StringMessage("bad");
+		adapter.setChannelRegistry(channelRegistry);
+		adapter.afterPropertiesSet();
+		adapter.handle(fooMessage);
+		Message<?> result1 = fooChannel.receive(0);
+		assertNotNull(result1);
+		assertEquals("foo", result1.getPayload());
+		Message<?> result2 = barChannel.receive(0);
+		assertNotNull(result2);
+		assertEquals("foo", result2.getPayload());
+		adapter.handle(barMessage);
+		Message<?> result3 = fooChannel.receive(0);
+		assertNotNull(result3);
+		assertEquals("bar", result3.getPayload());
+		Message<?> result4 = barChannel.receive(0);
+		assertNotNull(result4);
+		assertEquals("bar", result4.getPayload());
+		adapter.handle(badMessage);
+		Message<?> result5 = fooChannel.receive(0);
+		assertNull(result5);
+		Message<?> result6 = barChannel.receive(0);
+		assertNull(result6);
+	}
+
+	@Test
+	public void testMultiChannelInstanceResolutionByMessage() throws Exception {
+		SimpleChannel fooChannel = new SimpleChannel();
+		SimpleChannel barChannel = new SimpleChannel();
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		channelRegistry.registerChannel("foo-channel", fooChannel);
+		channelRegistry.registerChannel("bar-channel", barChannel);
+		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelRegistry);
+		Method routingMethod = testBean.getClass().getMethod("routeMessage", Message.class);
+		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
+		Message<String> fooMessage = new StringMessage("foo");
+		Message<String> barMessage = new StringMessage("bar");
+		Message<String> badMessage = new StringMessage("bad");
+		adapter.setChannelRegistry(channelRegistry);
+		adapter.afterPropertiesSet();
+		adapter.handle(fooMessage);
+		Message<?> result1 = fooChannel.receive(0);
+		assertNotNull(result1);
+		assertEquals("foo", result1.getPayload());
+		Message<?> result2 = barChannel.receive(0);
+		assertNotNull(result2);
+		assertEquals("foo", result2.getPayload());
+		adapter.handle(barMessage);
+		Message<?> result3 = fooChannel.receive(0);
+		assertNotNull(result3);
+		assertEquals("bar", result3.getPayload());
+		Message<?> result4 = barChannel.receive(0);
+		assertNotNull(result4);
+		assertEquals("bar", result4.getPayload());
+		adapter.handle(badMessage);
+		Message<?> result5 = fooChannel.receive(0);
+		assertNull(result5);
+		Message<?> result6 = barChannel.receive(0);
+		assertNull(result6);
+	}
+
+
+	public static class SingleChannelNameRoutingTestBean {
+
+		public String routePayload(String name) {
 			return name + "-channel";
+		}
+
+		public String routeMessage(Message<?> message) {
+			if (message.getPayload().equals("foo")) {
+				return "foo-channel";
+			}
+			else if (message.getPayload().equals("bar")) {
+				return "bar-channel";
+			}
+			return null;
+		}
+	}
+
+
+	public static class MultiChannelNameRoutingTestBean {
+
+		public List<String> routePayload(String name) {
+			List<String> results = new ArrayList<String>();
+			if (name.equals("foo") || name.equals("bar")) {
+				results.add("foo-channel");
+				results.add("bar-channel");
+			}
+			return results;
+		}
+
+		public List<String> routeMessage(Message<?> message) {
+			List<String> results = new ArrayList<String>();
+			if (message.getPayload().equals("foo") || message.getPayload().equals("bar")) {
+				results.add("foo-channel");
+				results.add("bar-channel");
+			}
+			return results;
+		}
+	}
+
+
+	public static class SingleChannelInstanceRoutingTestBean {
+
+		private ChannelRegistry registry;
+
+		public SingleChannelInstanceRoutingTestBean(ChannelRegistry registry) {
+			this.registry = registry;
+		}
+
+		public MessageChannel routePayload(String name) {
+			return registry.lookupChannel(name + "-channel");
+		}
+
+		public MessageChannel routeMessage(Message<?> message) {
+			if (message.getPayload().equals("foo")) {
+				return registry.lookupChannel("foo-channel");
+			}
+			else if (message.getPayload().equals("bar")) {
+				return registry.lookupChannel("bar-channel");
+			}
+			return null;
+		}
+	}
+
+
+	public static class MultiChannelInstanceRoutingTestBean {
+
+		private ChannelRegistry registry;
+
+		public MultiChannelInstanceRoutingTestBean(ChannelRegistry registry) {
+			this.registry = registry;
+		}
+
+		public List<MessageChannel> routePayload(String name) {
+			List<MessageChannel> results = new ArrayList<MessageChannel>();
+			if (name.equals("foo") || name.equals("bar")) {
+				results.add(registry.lookupChannel("foo-channel"));
+				results.add(registry.lookupChannel("bar-channel"));
+			}
+			return results;
+		}
+
+		public List<MessageChannel> routeMessage(Message<?> message) {
+			List<MessageChannel> results = new ArrayList<MessageChannel>();
+			if (message.getPayload().equals("foo") || message.getPayload().equals("bar")) {
+				results.add(registry.lookupChannel("foo-channel"));
+				results.add(registry.lookupChannel("bar-channel"));
+			}
+			return results;
 		}
 	}
 

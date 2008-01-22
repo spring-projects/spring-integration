@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
 
+import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.channel.ChannelRegistry;
@@ -82,10 +83,16 @@ public class RouterMessageHandlerAdapter extends AbstractMessageHandlerAdapter i
 						"cannot accept both 'property' and 'attribute'");
 			}
 			String property = message.getHeader().getProperty(propertyName);
+			if (!StringUtils.hasText(property)) {
+				throw new MessageHandlingException("no '" + propertyName + "' property available for router method");
+			}
 			retval = this.invokeMethod(invoker, property);
 		}
 		else if (StringUtils.hasText(attributeName)) {
 			Object attribute = message.getHeader().getAttribute(attributeName);
+			if (attribute == null) {
+				throw new MessageHandlingException("no '" + attributeName + "' attribute available for router method");
+			}
 			retval = this.invokeMethod(invoker, attribute);
 		}
 		else {
@@ -93,7 +100,9 @@ public class RouterMessageHandlerAdapter extends AbstractMessageHandlerAdapter i
 			if (type.equals(Message.class)) {
 				retval = this.invokeMethod(invoker, message);
 			}
-			retval = this.invokeMethod(invoker, message.getPayload());
+			else {
+				retval = this.invokeMethod(invoker, message.getPayload());
+			}
 		}
 		if (retval != null) {
 			if (retval instanceof Collection) {
