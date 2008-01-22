@@ -48,10 +48,6 @@ public class ChannelParser implements BeanDefinitionParser {
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
 		RootBeanDefinition channelDef = new RootBeanDefinition(SimpleChannel.class);
 		channelDef.setSource(parserContext.extractSource(element));
-		String capacity = element.getAttribute(CAPACITY_ATTRIBUTE);
-		if (StringUtils.hasText(capacity)) {
-			channelDef.getConstructorArgumentValues().addGenericArgumentValue(Integer.parseInt(capacity));
-		}
 		boolean isPublishSubscribe = "true".equals(element.getAttribute(PUBLISH_SUBSCRIBE_ATTRIBUTE));
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy(isPublishSubscribe);
 		NodeList childNodes = element.getChildNodes();
@@ -63,8 +59,11 @@ public class ChannelParser implements BeanDefinitionParser {
 					configureDispatcherPolicy((Element) child, dispatcherPolicy);
 				}
 			}
-		}
-		channelDef.getConstructorArgumentValues().addGenericArgumentValue(dispatcherPolicy);
+		} 
+		String capAttr = element.getAttribute(CAPACITY_ATTRIBUTE);
+		int capacity = (StringUtils.hasText(capAttr)) ? Integer.parseInt(capAttr) : SimpleChannel.DEFAULT_CAPACITY;
+		channelDef.getConstructorArgumentValues().addIndexedArgumentValue(0, capacity);
+		channelDef.getConstructorArgumentValues().addIndexedArgumentValue(1, dispatcherPolicy);
 		String beanName = element.getAttribute(ID_ATTRIBUTE);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(channelDef, beanName));
 		return channelDef;

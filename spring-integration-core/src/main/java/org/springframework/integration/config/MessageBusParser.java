@@ -34,7 +34,7 @@ import org.springframework.util.StringUtils;
  */
 public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 
-	public static final String MESSAGE_BUS_BEAN_NAME = "org.springframework.integration.bus.internalMessageBus";
+	public static final String MESSAGE_BUS_BEAN_NAME = "internal.MessageBus";
 
 	private static final String ERROR_CHANNEL_ATTRIBUTE = "error-channel";
 

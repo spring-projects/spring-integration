@@ -34,7 +34,8 @@ import org.springframework.util.Assert;
  */
 public class SimpleChannel implements MessageChannel, BeanNameAware {
 
-	private static final int DEFAULT_CAPACITY = 100;
+	public static final int DEFAULT_CAPACITY = 100;
+
 
 	private String name;
 
