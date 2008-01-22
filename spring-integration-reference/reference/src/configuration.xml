@@ -199,6 +199,88 @@
   <section id="annotations">
     <title>Annotations</title>
     <para>
+      In addition to the XML namespace support for configuring Message Endpoints, it is also possible to use
+      annotations. The class-level <interfacename>@MessageEndpoint</interfacename> annotation indicates that the
+      annotated class is capable of being registered as an endpoint, and the method-level
+      <interfacename>@Handler</interfacename> annotation indicates that the annotated method is capable of handling
+      a message.
+      <programlisting>@MessageEndpoint(input="fooChannel")
+public class FooService {
+
+    @Handler
+    public void processMessage(Message message) {
+        ...
+    }
+}</programlisting>
+    </para>
+    <para>
+      In most cases, the annotated handler method should not require the <classname>Message</classname> type as its
+      parameter. Instead, the method parameter type can match the message's payload type.
+      <programlisting>@MessageEndpoint(input="fooChannel")
+public class FooService {
+
+    @Handler
+    public void processFoo(<emphasis>Foo foo</emphasis>) {
+        ...
+    }
+}</programlisting>
+    </para>
+    <para>
+      As described in the previous section, when the handler method returns a non-null value, the endpoint will
+      attempt to send a reply. This is consistent across both configuration options (namespace and annotations) in that
+      the message header's 'replyChannelName' property will be used if available, and the endpoint's default output is
+      the fallback. To configure the default output for an annotation-driven endpoint, provide the 'defaultOutput'
+      attribute on the <interfacename>@MessageEndpoint</interfacename>.
+      <programlisting>@MessageEndpoint(input="exampleChannel", defaultOutput="replyChannel")</programlisting>
+    </para>
+    <para>
+      Finally, just as the 'schedule' sub-element and its 'period' attribute can be provided for a namespace-based
+      endpoint, the 'pollPeriod' attribute can be provided on the <interfacename>@MessageEndpoint</interfacename>.
+      <programlisting>@MessageEndpoint(input="exampleChannel", pollPeriod=3000)</programlisting>
+    </para>
+    <para>
+      Two additional annotations are supported, and both act as a special form of handler method:
+      <interfacename>@Router</interfacename> and <interfacename>@Splitter</interfacename>. As with the
+      <interfacename>@Handler</interfacename> annotation, methods annotated with either of these two annotations can
+      either accept the <classname>Message</classname> itself or the message payload type as the parameter.
+      When using the <interfacename>@Router</interfacename> annotation, the annotated method can return either the
+      <interfacename>MessageChannel</interfacename> or <classname>String</classname> type. In the case of the latter,
+      the endpoint will resolve the channel name as it does for the default output. Additionally, the method can return
+      either a single value or a collection. When a collection is returned, the reply message will be sent to multiple
+      channels. To summarize, the following method signatures are all valid.
+      <programlisting>@Router
+public MessageChannel route(Message message) {...}
+
+@Router
+public List&lt;MessageChannel&gt; route(Message message) {...}
+
+@Router
+public String route(Foo payload) {...}
+
+@Router
+public List&lt;String&gt; route(Foo payload) {...}</programlisting>
+    </para>
+    <para>
+      In addition to payload-based routing, a common requirement is to route based on metadata available within the
+      message header as either a property or attribute. Rather than requiring use of the
+      <interfacename>Message</interfacename> type as the method parameter, the <interfacename>@Router</interfacename>
+      annotation may also map to either a property or attribute name.
+      <programlisting>@Router(property="customerType")
+public String route(String customerType)
+
+@Router(attribute="orderStatus")
+public List&lt;String&gt; route(OrderStatus status)</programlisting>
+    </para>
+    <para>
+      The <interfacename>@Splitter</interfacename> annotation is also applicable to methods that expect either the
+      <interfacename>Message</interfacename> type or the message payload type, and the return values of the method
+      should be a collection of any type. If the returned values are not actual <interfacename>Message</interfacename>
+      objects, then each of them will be sent as the payload of a message. The <interfacename>@Splitter</interfacename>
+      annotation expects a 'channel' attribute that specifies the channel name to which those messages should be sent.
+      <programlisting>@Splitter(channel="exampleChannel")
+List&lt;LineItem&gt; extractItems(Order order) {
+    return order.getItems()
+}</programlisting>
     </para>
   </section>
 </chapter>
