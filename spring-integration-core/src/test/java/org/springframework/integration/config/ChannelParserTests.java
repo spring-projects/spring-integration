@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
+import org.springframework.beans.FatalBeanException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.dispatcher.DefaultMessageDispatcher;
@@ -39,6 +40,11 @@ import org.springframework.integration.message.StringMessage;
  * @author Mark Fisher
  */
 public class ChannelParserTests {
+
+	@Test(expected=FatalBeanException.class)
+	public void testChannelWithoutId() {
+		new ClassPathXmlApplicationContext("channelWithoutId.xml", this.getClass());
+	}
 
 	@Test
 	public void testChannelWithCapacity() {

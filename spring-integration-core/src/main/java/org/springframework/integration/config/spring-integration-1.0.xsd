@@ -47,15 +47,12 @@
 	Defines a message channel.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:complexContent>
-				<xsd:extension base="beans:identifiedType">
-					<xsd:sequence>
-						<xsd:element ref="dispatcher-policy" minOccurs="0" maxOccurs="1"/>
-					</xsd:sequence>
-					<xsd:attribute name="capacity" type="xsd:integer"/>
-					<xsd:attribute name="publish-subscribe" type="xsd:boolean" default="false"/>
-				</xsd:extension>
-			</xsd:complexContent>
+			<xsd:sequence>
+				<xsd:element ref="dispatcher-policy" minOccurs="0" maxOccurs="1"/>
+			</xsd:sequence>
+			<xsd:attribute name="id" type="xsd:ID" use="required"/>
+			<xsd:attribute name="capacity" type="xsd:integer"/>
+			<xsd:attribute name="publish-subscribe" type="xsd:boolean" default="false"/>
 		</xsd:complexType>
 	</xsd:element>
 

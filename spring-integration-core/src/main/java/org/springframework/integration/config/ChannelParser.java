@@ -66,9 +66,6 @@ public class ChannelParser implements BeanDefinitionParser {
 		}
 		channelDef.getConstructorArgumentValues().addGenericArgumentValue(dispatcherPolicy);
 		String beanName = element.getAttribute(ID_ATTRIBUTE);
-		if (!StringUtils.hasText(beanName)) {
-			beanName = parserContext.getReaderContext().generateBeanName(channelDef);
-		}
 		parserContext.registerBeanComponent(new BeanComponentDefinition(channelDef, beanName));
 		return channelDef;
 	}

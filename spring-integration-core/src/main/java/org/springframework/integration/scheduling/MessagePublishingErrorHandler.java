@@ -53,9 +53,7 @@ public class MessagePublishingErrorHandler implements ErrorHandler {
 	public void handle(Throwable t) {
 		if (this.errorChannel != null) {
 			try {
-				if(this.errorChannel.send(new ErrorMessage(t), this.sendTimeout)) {
-					return;
-				}
+				this.errorChannel.send(new ErrorMessage(t), this.sendTimeout);
 			}
 			catch (Throwable ignore) { // message will be logged only
 			}
