@@ -14,17 +14,34 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.router;
-
-import java.util.Collection;
+package org.springframework.integration.samples.cafe;
 
 /**
- * Base interface for splitters.
- * 
  * @author Mark Fisher
  */
-public interface Splitter<T> {
+public class Drink {
 
-	Collection<T> split(T t);
+	private DrinkType type;
+
+	private int shots = 1;
+
+	private boolean iced = false;
+
+
+	public Drink(DrinkType type, int shots, boolean iced) {
+		this.type = type;
+		this.shots = shots;
+		this.iced = iced;
+	}
+
+
+	public boolean isIced() {
+		return this.iced;
+	}
+
+	public String toString() {
+		return ((this.iced) ? "iced " : "hot " ) + 
+				this.shots + " shot " + this.type;
+	}
 
 }
