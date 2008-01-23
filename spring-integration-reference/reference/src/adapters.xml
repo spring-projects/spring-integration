@@ -10,7 +10,7 @@
       system or component to send-to and/or receive-from a <interfacename>MessageChannel</interfacename>. Within
       Spring Integration, there is a distinction between <emphasis>source adapters</emphasis> and <emphasis>target
       adapters</emphasis>. In the 1.0 Milestone 1 release, Spring Integration includes adapters for JMS, Files,
-      Streams, Spring ApplicationEvents, as well as general purpose Method-invoking adapters.
+      Streams, and Spring ApplicationEvents.
     </para>
   </section>
 
@@ -51,9 +51,10 @@
 </bean>]]></programlisting>
     </para>
     <para>
-      In both cases, Spring's <interfacename>MessageConverter</interfacename> strategy is used to convert the JMS
-      message into a plain Java object, and then Spring Integration's <interfacename>MessageMapper</interfacename>
-      strategy is used to convert from the plain object to a <interfacename>Message</interfacename>.
+      For both source adapter types, Spring's <interfacename>MessageConverter</interfacename> strategy is used to
+      convert the JMS message into a plain Java object, and then Spring Integration's
+      <interfacename>MessageMapper</interfacename> strategy is used to convert from the plain object to a
+      <interfacename>Message</interfacename>.
     </para>
     <para>
       The <classname>JmsTargetAdapter</classname> is a <interfacename>MessageHandler</interfacename> implementation
@@ -61,6 +62,63 @@
       sending to a JMS destination. It requires either a 'jmsTemplate' reference or both 'connectionFactory' and
       'destination' references. In <xref linkend="namespace-adapters"/>, you will see how to configure a JMS target
       adapter with Spring Integration's namespace support.
+    </para>
+  </section>
+  <section id="adapters-file">
+    <title>File Adapters</title>
+    <para>
+      The <classname>FileSourceAdapter</classname> extends the generic <classname>PollingSourceAdapter</classname>
+      (just as the polling JMS adapter does). It requires the following constructor arguments:
+      <programlisting>public FileSourceAdapter(File directory, MessageChannel channel, int period)</programlisting>
+      Optional properties include 'initialDelay' and 'maxMessagesPerTask'.
+    </para>
+    <para>
+      The <classname>FileTargetAdapter</classname> constructor only requires the 'directory' argument. The target
+      adapter also accepts an implementation of the <interfacename>FileNameGenerator</interfacename> strategy that
+      defines the following method: <programlisting>String generateFileName(Message message)</programlisting>
+    </para>
+    <para>
+      As with the JMS adapters, the most convenient way to configure File adapters is with the namespace support. For
+      examples, see <xref linkend="namespace-adapters"/>.
+    </para>
+  </section>
+  <section id="adapters-stream">
+    <title>Stream Adapters</title>
+    <para>
+      Spring Integration also provides adapters for streams. Both <classname>ByteStreamSourceAdapter</classname> and
+      <classname>CharacterStreamSourceAdapter</classname> extend the <classname>PolllingSourceAdapter</classname> so
+      that the polling period can be configured, and the Message Bus can automatically detect and schedule them. Both
+      require an <classname>InputStream</classname> as the single constructor argument. The
+      <classname>ByteStreamSourceAdapter</classname> also accepts the 'bytesPerMessage' property to determine how many
+      bytes it will attempt to read into each <interfacename>Message</interfacename>.
+    </para>
+    <para>
+      For target streams, there are also two implementations: <classname>ByteStreamTargetAdapter</classname> and
+      <classname>CharacterStreamTargetAdapter</classname>. Each defines a constructor that requires an
+      <classname>OutputStream</classname>, and each provides a second constructor that adds the optional
+      'bufferSize' property. Since both of these ultimately implement the <interfacename>MessageHandler</interfacename>
+      interface, they can be referenced from an endpoint configuration as will be described in more detail in
+      <xref linkend="namespace-endpoint"/>.
+    </para>
+  </section>
+  <section id="adapters-applicationevents">
+    <title>ApplicationEvent Adapters</title>
+    <para>
+      Spring <classname>ApplicationEvents</classname> can also be integrated as either a source or target for Spring
+      Integration message channels. To receive the events and send to a channel, simply define an instance of Spring
+      Integration's <classname>ApplicationEventSourceAdapter</classname> (as with all source adapters, if a
+      <classname>MessageBus</classname> is defined, it will automatically detect the event source adapter). The
+      <classname>ApplicationEventSourceAdapter</classname> implements Spring's
+      <interfacename>ApplicationListener</interfacename> interface. By default it will pass all received events as
+      Spring Integration Messages. To limit based on the type of event, configure the list of event types that you
+      want to receive with the 'eventTypes' property.
+    </para>
+    <para>
+      To send Spring <classname>ApplicationEvents</classname>, register an instance of the
+      <classname>ApplicationEventTargetAdapter</classname> class as the handler of an endpoint (such configuration
+      will be described in detail in <xref linkend="namespace-endpoint"/>). This adapter implements Spring's
+      <interfacename>ApplicationEventPublisherAware</interfacename> and thus acts as a bridge between Spring
+      Integration <classname>Messages</classname> and <classname>ApplicationEvents</classname>.
     </para>
   </section>
 </chapter>

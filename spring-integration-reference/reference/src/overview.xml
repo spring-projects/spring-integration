@@ -105,8 +105,10 @@
       <para>
         A Message Channel represents the "pipe" of a pipes-and-filters architecture. Producers send Messages to
         a MessageChannel, and consumers receive Messages from a MessageChannel. The send and receive methods both come
-        in two forms: one that blocks indefinitely and one that accepts a timeout. For an immediate return, specify a
-        timeout value of 0.
+        in two forms: one that blocks indefinitely and one that accepts a timeout (for an immediate return, specify a
+        timeout value of 0). There are two main types of channels: <emphasis>Point-to-Point</emphasis> channels where
+        typically a single consumer will receive the Message and <emphasis>Publish-Subscribe</emphasis> channels where
+        all subscribers should receive the Message.
       </para>
     </section>
     <section id="overview-components-endpoint">
@@ -120,6 +122,26 @@
         both cases: isolate application code from the infrastructure. In Spring Integration, the Message Endpoint
         invokes a <interfacename>MessageHandler</interfacename> callback interface as described in
         <xref linkend="api-messagehandler"/>.
+      </para>
+    </section>
+    <section id="overview-component-router">
+      <title>Message Router</title>
+      <para>
+        A Message Router is a particular type of endpoint that is capable of receiving a Message and then deciding what
+        channel or channels should receive the Message next. Typically the decision is based upon the Message's content
+        and/or metadata. A Message Router is often used as a dynamic alternative to configuring the input and output
+        channels for an endpoint.
+      </para>
+    </section>
+    <section id="overview-component-channeladapter">
+      <title>Channel Adapter</title>
+      <para>
+        A Channel Adapter is used to connect components to a Message Channel when those components are not themselves
+        Message Endpoints. These adapters provide a mechanism for connecting to external systems, such as JMS queues
+        or a File system. Channel Adapters may be configured for input and/or output. An input (source) adapter will
+        receive (or poll for) data, convert that data to a Message, and then send that Message to its Message Channel.
+        An output (target) adapter is simply another type of Message Endpoint, but when it receives a Message, it will
+        convert it to the target's expected type and then "send" it (publish to a JMS queue, write to a File, etc.).
       </para>
     </section>
     <section id="overview-component-bus">
