@@ -116,6 +116,7 @@ public class JmsMessageDrivenSourceAdapter extends AbstractSourceAdapter<Object>
 		dmlc.setMaxConcurrentConsumers(this.maxConcurrentConsumers);
 		dmlc.setMaxMessagesPerTask(this.maxMessagesPerTask);
 		dmlc.setIdleTaskExecutionLimit(this.idleTaskExecutionLimit);
+		dmlc.setSessionTransacted(true);
 		dmlc.setAutoStartup(false);
 		ChannelPublishingJmsListener listener = new ChannelPublishingJmsListener(this.getChannel());
 		listener.setMessageConverter(this.messageConverter);

@@ -27,12 +27,7 @@ public class DrinkRouter {
 
 	@Router
 	public String resolveDrinkChannel(Drink drink) {
-		if (drink.isIced()) {
-			return "coldDrinks";
-		}
-		else {
-			return "hotDrinks";
-		}
+		return (drink.isIced()) ? "coldDrinks" : "hotDrinks";
 	}
 
 }
