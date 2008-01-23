@@ -5,18 +5,17 @@
   <section id="config-intro">
     <title>Introduction</title>
     <para>
-      Following the Spring philosophy, Spring Integration offers a number of configuration options. Which option you
-      choose depends upon your particular needs and at what level you prefer to work. As with the Spring framework in
-      general, it is also possible to mix and match the various techniques according to the particular problem at hand.
-      For example, you may choose the XSD-based namespace for the majority of configuration combined with a handful of
-      objects that are configured with annotations. Of course, it is also possible to always stick with a single
-      approach. The main point is that these are <emphasis>options</emphasis> for configuration motivated by the need
-      to support a user community with a wide range of preferences. That said, there has also been a concerted effort
-      to provide consistent naming so that, for example, the XML elements defined by the XSD schema will match the
-      names of annotations, and the attributes of those XML elements will match the names of annotation properties.
-      Direct usage of the API is yet another option and is described in detail in <xref linkend="api"/>. We expect that
-      most users will choose one of the higher-level options, such as the namespace-based or annotation-driven
-      configuration.
+      Spring Integration offers a number of configuration options. Which option you choose depends upon your particular
+      needs and at what level you prefer to work. As with the Spring framework in general, it is also possible to mix
+      and match the various techniques according to the particular problem at hand. For example, you may choose the
+      XSD-based namespace for the majority of configuration combined with a handful of objects that are configured with
+      annotations. Of course, it is also possible to always stick with a single approach. The main point is that these
+      are <emphasis>options</emphasis> for configuration motivated by the need to support a user community with a wide
+      range of preferences. That said, there has also been a concerted effort to provide consistent naming so that, for
+      example, the XML elements defined by the XSD schema will match the names of annotations, and the attributes of
+      those XML elements will match the names of annotation properties. Direct usage of the API is yet another option
+      and is described in detail in <xref linkend="api"/>. We expect that most users will choose one of the
+      higher-level options, such as the namespace-based or annotation-driven configuration.
     </para>
   </section>
 
@@ -174,6 +173,12 @@
         <programlisting><![CDATA[<message-bus error-channel="errorChannel"/>
 
 <channel id="errorChannel" publish-subscribe="true" capacity="500"/>]]></programlisting>
+        When exceptions occur in an endpoint's execution of its <interfacename>MessageHandler</interfacename> callback,
+        those exceptions will be wrapped in <classname>ErrorMessages</classname> and sent to the Message Bus'
+        'errorChannel' by default. To enable global error handling, simply register a handler on that channel. For
+        example, you can configure Spring Integration's <classname>PayloadTypeRouter</classname> as the handler of
+        an endpoint that is subscribed to the 'errorChannel'. That router can then spread the error messages across
+        multiple channels based on <classname>Exception</classname> type.
 	  </para>
       <para>
         The 'message-bus' element accepts two more optional attributes. First is the size of the dispatcher thread
@@ -299,6 +304,23 @@ public List&lt;String&gt; route(OrderStatus status)</programlisting>
 List&lt;LineItem&gt; extractItems(Order order) {
     return order.getItems()
 }</programlisting>
+    </para>
+    <para>
+      The <interfacename>@Publisher</interfacename> annotation is a convenience for sending messages with AOP after
+      advice. For example, each time the following method is invoked, its return will be sent to the "fooChannel":
+      <programlisting><![CDATA[@Publisher(channel="fooChannel")
+public String foo() {
+    return "bar";
+}]]></programlisting>
+    </para>
+    <para>
+      Similarly, the <interfacename>@Subscriber</interfacename> annotation triggers the retrieval of messages from a
+      channel, and the payload of each message will then be sent as input to an arbitrary method. This is one of the
+      simplest ways to configure asynchronous, event-driven behavior:
+      <programlisting><![CDATA[@Subscriber(channel="fooChannel")
+public void log(String foo) {
+    System.out.println(foo);
+}]]></programlisting>
     </para>
   </section>
 </chapter>

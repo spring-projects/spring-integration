@@ -22,13 +22,14 @@
     </para>
     <para>
       Spring Integration is a new member of the Spring portfolio motivated by these same goals and principles. It
-      extends the Spring programming model into the messaging domain and builds upon the core enterprise integration
-      support to provide an even higher level of abstraction. It supports message-driven architectures where inversion
-      of control applies to runtime concerns, such as <emphasis>when</emphasis> certain business logic should execute
-      and <emphasis>where</emphasis> the response should be sent. It supports routing and transformation of messages so
-      that different transports and different data formats can be integrated without impacting testability. In other
-      words, the messaging and integration concerns are handled by the framework, so business components are further
-      isolated from the infrastructure and developers are relieved of complex integration responsibilities.
+      extends the Spring programming model into the messaging domain and builds upon Spring's existing enterprise
+      integration support to provide an even higher level of abstraction. It supports message-driven architectures
+      where inversion of control applies to runtime concerns, such as <emphasis>when</emphasis> certain business logic
+      should execute and <emphasis>where</emphasis> the response should be sent. It supports routing and transformation
+      of messages so that different transports and different data formats can be integrated without impacting
+      testability. In other words, the messaging and integration concerns are handled by the framework, so business
+      components are further isolated from the infrastructure and developers are relieved of complex integration
+      responsibilities.
     </para>
     <para>
       As an extension of the Spring programming model, Spring Integration provides a wide variety of configuration

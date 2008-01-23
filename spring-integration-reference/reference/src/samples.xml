@@ -2,11 +2,158 @@
 <chapter id="samples">
   <title>Spring Integration Samples</title>
 
-  <section id="samples-intro">
-    <title>Introduction</title>
+  <section id="samples-cafe">
+    <title>The Cafe Sample</title>
     <para>
-      The Spring Integration 1.0 Milestone 1 release includes a limited number of sample applications. Several more
-      interesting and comprehensive samples are in the works for upcoming releases.
+      In this section, we will review a sample application that is included in the Spring Integration Milestone 1
+      release (see the "spring-integration-samples" JAR and source JAR). This sample is inspired by one of the samples
+      featured in Gregor Hohpe's <ulink url="http://www.eaipatterns.com/ramblings.html">Ramblings</ulink>.
+    </para>
+    <para>
+      The domain is that of a Cafe, and the basic flow is depicted in the following diagram:
+    </para>
+    <para>
+      <mediaobject>
+        <imageobject>
+          <imagedata align="center" fileref="images/cafe-demo.png" format="PNG"/>
+        </imageobject>
+      </mediaobject>
+    </para>
+    <para>
+      The <classname>DrinkOrder</classname> object may contain multiple <classname>Drinks</classname>. Once the order
+      is placed, a <emphasis>Splitter</emphasis> will break the composite order message into a single message per
+      drink. Each of these is then processed by a <emphasis>Router</emphasis> that determines whether the drink is hot
+      or cold (checking the <classname>Drink</classname> object's 'isIced' property). Finally the
+      <classname>Barista</classname> prepares each drink, but hot and cold drink preparation are handled by two
+      distinct methods: 'prepareHotDrink' and 'prepareColdDrink'.
+    </para>
+    <para>
+      Here is the XML configuration:
+      <programlisting><![CDATA[<beans:beans xmlns="http://www.springframework.org/schema/integration"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:context="http://www.springframework.org/schema/context"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans
+                                 http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                                 http://www.springframework.org/schema/integration
+                                 http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
+                                 http://www.springframework.org/schema/context
+                                 http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+
+    <message-bus/>
+    <annotation-driven/>
+
+    <context:component-scan base-package="org.springframework.integration.samples.cafe"/>
+
+    <channel id="orders"/>
+    <channel id="drinks"/>
+    <channel id="coldDrinks"/>
+    <channel id="hotDrinks"/>
+
+    <endpoint input-channel="coldDrinks" handler-ref="barista" handler-method="prepareColdDrink"/>
+    <endpoint input-channel="hotDrinks" handler-ref="barista" handler-method="prepareHotDrink"/>
+
+    <beans:bean id="cafe" class="org.springframework.integration.samples.cafe.Cafe">
+        <beans:property name="orderChannel" ref="orders"/>
+    </beans:bean>
+
+</beans:beans>]]></programlisting>
+      Notice that the Message Bus is defined. It will automatically detect and register all channels and endpoints.
+      The 'annotation-driven' element will enable the detection of the splitter and router - both of which carry
+      the <interfacename>@MessageEndpoint</interfacename> annotation. That annotation extends Spring's
+      "stereotype" annotations (by relying on the @Component meta-annotation), and so all classes carrying the
+      endpoint annotation are capable of being detected by the component-scanner.
+      <programlisting><![CDATA[@MessageEndpoint(input="orders")
+public class OrderSplitter {
+
+    @Splitter(channel="drinks")
+    public List<Drink> split(DrinkOrder order) {
+        return order.getDrinks();
+    }
+}]]></programlisting>
+      <programlisting><![CDATA[@MessageEndpoint(input="drinks")
+public class DrinkRouter {
+
+    @Router
+    public String resolveDrinkChannel(Drink drink) {
+        return (drink.isIced()) ? "coldDrinks" : "hotDrinks";
+    }
+}]]></programlisting>
+    </para>
+    <para>
+      Now turning back to the XML, you see that there are two &lt;endpoint&gt; elements. Each of these is delegating
+      to the same <classname>Barista</classname> instance but different methods. The 'barista' could have been
+      defined in the XML, but instead the <interfacename>@Component</interfacename> annotation is applied:
+      <programlisting><![CDATA[@Component
+public class Barista {
+
+    private long hotDrinkDelay = 1000;
+    private long coldDrinkDelay = 700; 
+
+    private AtomicInteger hotDrinkCounter = new AtomicInteger();
+    private AtomicInteger coldDrinkCounter = new AtomicInteger();
+
+    public void setHotDrinkDelay(long hotDrinkDelay) {
+        this.hotDrinkDelay = hotDrinkDelay;
+    }
+
+    public void setColdDrinkDelay(long coldDrinkDelay) {
+        this.coldDrinkDelay = coldDrinkDelay;
+    }
+
+    public void prepareHotDrink(Drink drink) {
+        try {
+            Thread.sleep(this.hotDrinkDelay);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        System.out.println("prepared hot drink #" + hotDrinkCounter.incrementAndGet() + ": " + drink);
+    }
+
+    public void prepareColdDrink(Drink drink) {
+        try {
+            Thread.sleep(this.coldDrinkDelay);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        System.out.println("prepared cold drink #" + coldDrinkCounter.incrementAndGet() + ": " + drink);
+    }
+}]]></programlisting>
+    </para>
+    <para>
+      As you can see from the code excerpt above, the barista methods have different delays. This simulates work being
+      completed at different rates. When the <classname>CafeDemo</classname> 'main' method runs, it will loop 100
+      times sending a single hot drink and a single cold drink each time.
+      <programlisting><![CDATA[public static void main(String[] args) {
+    ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("cafeDemo.xml", CafeDemo.class);
+    context.start();
+    Cafe cafe = (Cafe) context.getBean("cafe");
+    DrinkOrder order = new DrinkOrder();
+    Drink hotDoubleLatte = new Drink(DrinkType.LATTE, 2, false);
+    Drink icedTripleMocha = new Drink(DrinkType.MOCHA, 3, true);
+    order.addDrink(hotDoubleLatte);
+    order.addDrink(icedTripleMocha);
+    for (int i = 0; i < 100; i++) {
+        cafe.placeOrder(order);
+    }
+}]]></programlisting>
+    </para>
+    <para>
+      If you run the CafeDemo, you will see that all 100 cold drinks are prepared in roughly the same amount of time as
+      only 70 of the hot drinks. This is to be expected based on their respective delays of 700 and 1000 milliseconds.
+      However, by configuring the endpoint concurrency, you can dramatically change the results. For example, on my
+      machine, the following single modification causes all 100 hot drinks to be prepared before the 4th cold drink is
+      ready:
+      <programlisting><![CDATA[<endpoint input-channel="coldDrinks" handler-ref="barista" handler-method="prepareColdDrink"/>
+
+<endpoint input-channel="hotDrinks" handler-ref="barista" handler-method="prepareHotDrink">
+    ]]><emphasis><![CDATA[<concurrency core="25" max="50"/>]]></emphasis><![CDATA[
+</endpoint>]]></programlisting>
+    </para>
+    <para>
+      In addition to experimenting with the 'concurrency' settings, you can also try adding the 'schedule' sub-element
+      as described in <xref linkend="namespace-endpoint"/>. Additionally, you can experiment with the channel's
+      configuration, such as adding a 'dispatcher-policy' as described in <xref linkend="namespace-channel"/>.
     </para>
   </section>
 </chapter>
