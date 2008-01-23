@@ -49,3 +49,8 @@ div.table table {
   display:       table;
   width:         100%;
 }
+
+div.table td {
+  padding-left:  7px;
+  padding-right: 7px;
+}

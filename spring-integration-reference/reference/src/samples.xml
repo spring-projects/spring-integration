@@ -6,8 +6,8 @@
     <title>The Cafe Sample</title>
     <para>
       In this section, we will review a sample application that is included in the Spring Integration Milestone 1
-      release (see the "spring-integration-samples" JAR and source JAR). This sample is inspired by one of the samples
-      featured in Gregor Hohpe's <ulink url="http://www.eaipatterns.com/ramblings.html">Ramblings</ulink>.
+      release. This sample is inspired by one of the samples featured in Gregor Hohpe's
+      <ulink url="http://www.eaipatterns.com/ramblings.html">Ramblings</ulink>.
     </para>
     <para>
       The domain is that of a Cafe, and the basic flow is depicted in the following diagram:
@@ -125,7 +125,13 @@ public class Barista {
       completed at different rates. When the <classname>CafeDemo</classname> 'main' method runs, it will loop 100
       times sending a single hot drink and a single cold drink each time.
       <programlisting><![CDATA[public static void main(String[] args) {
-    ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("cafeDemo.xml", CafeDemo.class);
+    AbstractApplicationContext context = null;
+    if(args.length > 0) {
+        context = new FileSystemXmlApplicationContext(args);
+    }
+    else {
+        context = new ClassPathXmlApplicationContext("cafeDemo.xml", CafeDemo.class);
+    }
     context.start();
     Cafe cafe = (Cafe) context.getBean("cafe");
     DrinkOrder order = new DrinkOrder();
@@ -139,7 +145,17 @@ public class Barista {
 }]]></programlisting>
     </para>
     <para>
-      If you run the CafeDemo, you will see that all 100 cold drinks are prepared in roughly the same amount of time as
+      To run this demo, go to the "samples" directory within the root of the Spring Integration distribution. On
+      Unix/Mac you can run 'cafeDemo.sh', and on Windows you can run 'cafeDemo.bat'. Each of these will by default
+      create a Spring <interfacename>ApplicationContext</interfacename> from the 'cafeDemo.xml' file that is
+      in the "spring-integration-samples" JAR and hence on the classpath (it is the same as the XML above). However, a
+      copy of that file is also available within the "samples" directory, so that you can provide the file name as a
+      command line argument to either 'cafeDemo.sh' or 'cafeDemo.bat'. This will allow you to experiment with the
+      configuration and immediately run the demo with your changes. It is probably a good idea to first copy the
+      original file so that you can make as many changes as you want and still refer back to the original to compare.
+    </para>
+    <para>
+      When you run cafeDemo, you will see that all 100 cold drinks are prepared in roughly the same amount of time as
       only 70 of the hot drinks. This is to be expected based on their respective delays of 700 and 1000 milliseconds.
       However, by configuring the endpoint concurrency, you can dramatically change the results. For example, on my
       machine, the following single modification causes all 100 hot drinks to be prepared before the 4th cold drink is
@@ -153,7 +169,9 @@ public class Barista {
     <para>
       In addition to experimenting with the 'concurrency' settings, you can also try adding the 'schedule' sub-element
       as described in <xref linkend="namespace-endpoint"/>. Additionally, you can experiment with the channel's
-      configuration, such as adding a 'dispatcher-policy' as described in <xref linkend="namespace-channel"/>.
+      configuration, such as adding a 'dispatcher-policy' as described in <xref linkend="namespace-channel"/>. If you
+      want to explore the sample in more detail, the source JAR is available in the "dist" directory:
+      'spring-integration-samples-sources-1.0.0.m1.jar'.
     </para>
   </section>
 </chapter>
