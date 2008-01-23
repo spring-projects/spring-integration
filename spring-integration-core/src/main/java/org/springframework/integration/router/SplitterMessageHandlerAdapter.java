@@ -29,6 +29,7 @@ import org.springframework.integration.handler.AbstractMessageHandlerAdapter;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.util.SimpleMethodInvoker;
+import org.springframework.util.Assert;
 
 /**
  * MessageHandler adapter for methods annotated with {@link Splitter @Splitter}.
@@ -37,7 +38,8 @@ import org.springframework.integration.util.SimpleMethodInvoker;
  */
 public class SplitterMessageHandlerAdapter extends AbstractMessageHandlerAdapter implements ChannelRegistryAware {
 
-	private static final String CHANNEL_KEY = "channel";
+	public static final String CHANNEL_KEY = "channel";
+
 
 	private Map<String, ?> attributes;
 
@@ -47,7 +49,12 @@ public class SplitterMessageHandlerAdapter extends AbstractMessageHandlerAdapter
 
 
 	public SplitterMessageHandlerAdapter(Object object, Method method, Map<String, ?> attributes) {
+		Assert.notNull(object, "'object' must not be null");
+		Assert.notNull(method, "'method' must not be null");
+		Assert.isTrue(attributes != null && attributes.get(CHANNEL_KEY) != null,
+				"the 'channel' attribute is required");
 		this.setObject(object);
+		this.setMethodName(method.getName());
 		this.method = method;
 		this.attributes = attributes;
 	}

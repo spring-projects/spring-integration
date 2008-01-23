@@ -92,6 +92,7 @@ public class SingleChannelRouterTests {
 		router.afterPropertiesSet();
 	}
 
+	@Test
 	public void testChannelResolutionFailureIgnoredByDefault() {
 		ChannelResolver channelResolver = new ChannelResolver() {
 			public MessageChannel resolve(Message<?> message) {
@@ -100,7 +101,6 @@ public class SingleChannelRouterTests {
 		};
 		SingleChannelRouter router = new SingleChannelRouter();
 		router.setChannelResolver(channelResolver);
-		router.setResolutionRequired(true);
 		router.afterPropertiesSet();
 		Message<String> message = new StringMessage("123", "test");
 		router.handle(message);
@@ -121,6 +121,7 @@ public class SingleChannelRouterTests {
 		router.handle(message);
 	}
 
+	@Test
 	public void testChannelNameResolutionFailureIgnoredByDefault() {
 		ChannelNameResolver channelNameResolver = new ChannelNameResolver() {
 			public String resolve(Message<?> message) {
@@ -151,6 +152,38 @@ public class SingleChannelRouterTests {
 		router.afterPropertiesSet();
 		Message<String> message = new StringMessage("123", "test");
 		router.handle(message);
+	}
+
+	@Test(expected=MessagingConfigurationException.class)
+	public void testChannelRegistryIsRequiredWhenUsingChannelNameResolver() {
+		ChannelNameResolver channelNameResolver = new ChannelNameResolver() {
+			public String resolve(Message<?> message) {
+				return "notImportant";
+			}
+		};
+		SingleChannelRouter router = new SingleChannelRouter();
+		router.setChannelNameResolver(channelNameResolver);
+		router.resolveChannels(new StringMessage("this should fail"));
+	}
+
+	@Test(expected=MessagingConfigurationException.class)
+	public void testValidateChannelRegistryIsPresentWhenUsingChannelNameResolver() {
+		ChannelNameResolver channelNameResolver = new ChannelNameResolver() {
+			public String resolve(Message<?> message) {
+				return "notImportant";
+			}
+		};
+		SingleChannelRouter router = new SingleChannelRouter();
+		router.setChannelNameResolver(channelNameResolver);
+		router.afterPropertiesSet();
+	}
+
+	@Test(expected=MessagingConfigurationException.class)
+	public void testChannelResolverIsRequired() {
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		SingleChannelRouter router = new SingleChannelRouter();
+		router.setChannelRegistry(channelRegistry);
+		router.afterPropertiesSet();
 	}
 
 }

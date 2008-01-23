@@ -76,6 +76,12 @@ public class SubscriberAnnotationPostProcessor implements BeanPostProcessor {
 		if (targetClass == null) {
 			return bean;
 		}
+		if (this.messageBus == null) {
+			if (logger.isWarnEnabled()) {
+				logger.warn(this.getClass().getSimpleName() + " is disabled since no 'messageBus' was provided");
+			}
+			return bean;
+		}
 		ReflectionUtils.doWithMethods(targetClass, new ReflectionUtils.MethodCallback() {
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
 				Annotation annotation = method.getAnnotation(subscriberAnnotationType);

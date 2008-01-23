@@ -47,10 +47,6 @@ public class ChannelPollingMessageRetriever implements MessageRetriever {
 	}
 
 
-	public MessageChannel getChannel() {
-		return this.channel;
-	}
-
 	public Collection<Message<?>> retrieveMessages() {
 		List<Message<?>> messages = new LinkedList<Message<?>>();
 		while (messages.size() < this.channel.getDispatcherPolicy().getMaxMessagesPerTask()) {
