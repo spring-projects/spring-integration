@@ -16,7 +16,9 @@
 
 package org.springframework.integration.samples.cafe;
 
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 /**
  * Provides the 'main' method for running the Cafe Demo application. When an
@@ -30,7 +32,13 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class CafeDemo {
 
 	public static void main(String[] args) {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("cafeDemo.xml", CafeDemo.class);
+		AbstractApplicationContext context = null;
+		if(args.length > 0) {
+			context = new FileSystemXmlApplicationContext(args);
+		}
+		else {
+			context = new ClassPathXmlApplicationContext("cafeDemo.xml", CafeDemo.class);
+		}
 		context.start();
 		Cafe cafe = (Cafe) context.getBean("cafe");
 		DrinkOrder order = new DrinkOrder();
