@@ -1,5 +1,5 @@
-SPRING INTEGRATION 1.0 M1 (JAN 23 2008)
----------------------------------------
+SPRING INTEGRATION 1.0.0.m1 (JAN 23, 2008)
+------------------------------------------
 
 This is the initial release of Spring Integration.
 

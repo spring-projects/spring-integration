@@ -1,8 +1,8 @@
 SPRING INTEGRATION CHANGELOG
 ============================
 
-Changes in version 1.0 M1 (Jan 23, 2008)
-----------------------------------------
+Changes in version 1.0.0.m1 (Jan 23, 2008)
+------------------------------------------
 
 This is the initial release of Spring Integration.
 
