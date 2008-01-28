@@ -152,8 +152,8 @@ public class MessageBusTests {
 		bus.registerHandler("handler2", handler2, new Subscription(inputChannel));
 		bus.start();
 		inputChannel.send(new StringMessage(1, "testing"));
-		Message<?> message1 = outputChannel1.receive(100);
-		Message<?> message2 = outputChannel2.receive(0);
+		Message<?> message1 = outputChannel1.receive(200);
+		Message<?> message2 = outputChannel2.receive(200);
 		bus.stop();
 		assertTrue("both handlers should have received and replied to the message",
 				(message1 != null && message2 != null));

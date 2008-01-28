@@ -176,7 +176,7 @@ public class DefaultMessageDispatcherTests {
 		dispatcher.start();
 		latch.await(2000, TimeUnit.MILLISECONDS);
 		assertEquals("messages should have been dispatched within allotted time", 0, latch.getCount());
-		Message<?> errorMessage = errorChannel.receive(500);
+		Message<?> errorMessage = errorChannel.receive(1000);
 		assertNotNull(errorMessage);
 		assertTrue(errorMessage instanceof ErrorMessage);
 		assertEquals(MessageDeliveryException.class, ((ErrorMessage) errorMessage).getPayload().getClass());
