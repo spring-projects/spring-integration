@@ -29,4 +29,6 @@ public interface Message<T> {
 
 	T getPayload();
 
+	boolean isExpired();
+
 }

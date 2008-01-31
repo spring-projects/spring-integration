@@ -16,6 +16,8 @@
 
 package org.springframework.integration.message;
 
+import java.util.Date;
+
 import org.springframework.integration.util.RandomGuidUidGenerator;
 import org.springframework.integration.util.UidGenerator;
 import org.springframework.util.Assert;
@@ -80,6 +82,11 @@ public class GenericMessage<T> implements Message<T> {
 
 	protected void setPayload(T newPayload) {
 		this.payload = newPayload;
+	}
+
+	public boolean isExpired() {
+		Date expiration = this.header.getExpiration();
+		return (expiration != null) ? expiration.getTime() < System.currentTimeMillis() : false;
 	}
 
 }

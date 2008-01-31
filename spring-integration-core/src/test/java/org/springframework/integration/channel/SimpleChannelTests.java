@@ -16,9 +16,13 @@
 
 package org.springframework.integration.channel;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Date;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -27,8 +31,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 
-import org.springframework.integration.message.Message;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -187,6 +192,49 @@ public class SimpleChannelTests {
 		t.interrupt();
 		latch.await();
 		assertTrue(sendInterrupted.get());
+	}
+
+	@Test
+	public void testClear() {
+		SimpleChannel channel = new SimpleChannel(2);
+		StringMessage message1 = new StringMessage("test1");
+		StringMessage message2 = new StringMessage("test2");
+		StringMessage message3 = new StringMessage("test3");
+		assertTrue(channel.send(message1));
+		assertTrue(channel.send(message2));
+		assertFalse(channel.send(message3, 0));
+		List<Message> clearedMessages = channel.clear();
+		assertNotNull(clearedMessages);
+		assertEquals(2, clearedMessages.size());
+		assertTrue(channel.send(message3));
+	}
+
+	@Test
+	public void testClearEmptyChannel() {
+		SimpleChannel channel = new SimpleChannel();
+		List<Message> clearedMessages = channel.clear();
+		assertNotNull(clearedMessages);
+		assertEquals(0, clearedMessages.size());
+	}
+
+	@Test
+	public void testPurge() {
+		SimpleChannel channel = new SimpleChannel(2);
+		long minute = 60 * 1000;
+		long time = System.currentTimeMillis();
+		Date past = new Date(time - minute);
+		Date future = new Date(time + minute);
+		StringMessage expiredMessage = new StringMessage("test1");
+		expiredMessage.getHeader().setExpiration(past);
+		StringMessage unexpiredMessage = new StringMessage("test2");
+		unexpiredMessage.getHeader().setExpiration(future);
+		assertTrue(channel.send(expiredMessage, 0));
+		assertTrue(channel.send(unexpiredMessage, 0));
+		assertFalse(channel.send(new StringMessage("atCapacity"), 0));
+		List<Message> purgedMessages = channel.purge();
+		assertNotNull(purgedMessages);
+		assertEquals(1, purgedMessages.size());
+		assertTrue(channel.send(new StringMessage("roomAvailable"), 0));
 	}
 
 }

@@ -16,6 +16,8 @@
 
 package org.springframework.integration.channel;
 
+import java.util.List;
+
 import org.springframework.integration.dispatcher.DispatcherPolicy;
 import org.springframework.integration.message.Message;
 
@@ -82,5 +84,15 @@ public interface MessageChannel {
 	 * specified timeout period elapses or the message reception is interrupted
 	 */
 	Message receive(long timeout);
+
+	/**
+	 * Remove all {@link Message Messages} from this channel.
+	 */
+	List<Message> clear();
+
+	/**
+	 * Remove any expired {@link Message Messages} from this channel.
+	 */
+	List<Message> purge();
 
 }

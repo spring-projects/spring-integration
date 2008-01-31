@@ -16,6 +16,8 @@
 
 package org.springframework.integration.channel;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -101,6 +103,26 @@ public class SimpleChannel extends AbstractMessageChannel {
 			Thread.currentThread().interrupt();
 			return null;
 		}
+	}
+
+	public List<Message> clear() {
+		List<Message> clearedMessages = new ArrayList<Message>();
+		this.queue.drainTo(clearedMessages);
+		return clearedMessages;
+	}
+
+	public List<Message> purge() {
+		List<Message> purgedMessages = new ArrayList<Message>();
+		// take a snapshot
+		Object[] array = this.queue.toArray();
+		for (Object o : array) {
+			Message message = (Message) o;
+			if (message.isExpired() && this.queue.remove(message)) {
+				// message was still in the queue
+				purgedMessages.add(message);
+			}
+		}
+		return purgedMessages;
 	}
 
 }
