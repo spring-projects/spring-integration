@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.integration.dispatcher.DispatcherPolicy;
@@ -46,7 +47,12 @@ public class SimpleChannel extends AbstractMessageChannel {
 	 */
 	public SimpleChannel(int capacity, DispatcherPolicy dispatcherPolicy) {
 		super((dispatcherPolicy != null) ? dispatcherPolicy : new DispatcherPolicy());
-		this.queue = new LinkedBlockingQueue<Message<?>>(capacity);
+		if (capacity > 0) {
+			this.queue = new LinkedBlockingQueue<Message<?>>(capacity);
+		}
+		else {
+			this.queue = new SynchronousQueue<Message<?>>(true);
+		}
 	}
 
 	/**

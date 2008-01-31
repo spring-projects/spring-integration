@@ -47,6 +47,8 @@ public class SplitterMessageHandlerAdapter extends AbstractMessageHandlerAdapter
 
 	private ChannelRegistry channelRegistry;
 
+	private long sendTimeout = -1;
+
 
 	public SplitterMessageHandlerAdapter(Object object, Method method, Map<String, ?> attributes) {
 		Assert.notNull(object, "'object' must not be null");
@@ -61,6 +63,10 @@ public class SplitterMessageHandlerAdapter extends AbstractMessageHandlerAdapter
 
 	public void setChannelRegistry(ChannelRegistry channelRegistry) {
 		this.channelRegistry = channelRegistry;
+	}
+
+	public void setSendTimeout(long sendTimeout) {
+		this.sendTimeout = sendTimeout;
 	}
 
 	@Override
@@ -139,7 +145,7 @@ public class SplitterMessageHandlerAdapter extends AbstractMessageHandlerAdapter
 		if (logger.isDebugEnabled()) {
 			logger.debug("sending message to channel '" + channelName + "'");
 		}
-		return channel.send(message);
+		return (this.sendTimeout < 0) ? channel.send(message) : channel.send(message, this.sendTimeout);
 	}
 
 }

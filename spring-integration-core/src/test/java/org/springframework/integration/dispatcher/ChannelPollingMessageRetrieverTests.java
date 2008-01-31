@@ -42,8 +42,8 @@ public class ChannelPollingMessageRetrieverTests {
 		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel);
 		Collection<Message<?>> results = retriever.retrieveMessages();
 		assertTrue(results.isEmpty());
-		channel.send(new StringMessage("test1"));
-		channel.send(new StringMessage("test2"));
+		channel.send(new StringMessage("test1"), 0);
+		channel.send(new StringMessage("test2"), 0);
 		results = retriever.retrieveMessages();
 		assertEquals(1, results.size());
 		assertEquals("test1", results.iterator().next().getPayload());
@@ -61,9 +61,9 @@ public class ChannelPollingMessageRetrieverTests {
 		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel);
 		Collection<Message<?>> results = retriever.retrieveMessages();
 		assertTrue(results.isEmpty());
-		channel.send(new StringMessage("test1"));
-		channel.send(new StringMessage("test2"));
-		channel.send(new StringMessage("test3"));
+		channel.send(new StringMessage("test1"), 0);
+		channel.send(new StringMessage("test2"), 0);
+		channel.send(new StringMessage("test3"), 0);
 		results = retriever.retrieveMessages();
 		assertEquals(2, results.size());
 		Iterator<Message<?>> iter = results.iterator();
@@ -83,9 +83,9 @@ public class ChannelPollingMessageRetrieverTests {
 		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel);
 		Collection<Message<?>> results = retriever.retrieveMessages();
 		assertTrue(results.isEmpty());
-		channel.send(new StringMessage("test1"));
-		channel.send(new StringMessage("test2"));
-		channel.send(new StringMessage("test3"));
+		channel.send(new StringMessage("test1"), 0);
+		channel.send(new StringMessage("test2"), 0);
+		channel.send(new StringMessage("test3"), 0);
 		results = retriever.retrieveMessages();
 		assertEquals(1, results.size());
 		assertEquals("test1", results.iterator().next().getPayload());
