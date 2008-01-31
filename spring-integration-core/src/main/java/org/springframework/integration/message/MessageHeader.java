@@ -23,6 +23,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.integration.channel.MessageChannel;
+
 /**
  * A holder for Message metadata. This includes information that may be used by
  * the messaging system (such as <i>correlationId</i>) as well as information
@@ -39,6 +41,8 @@ public class MessageHeader {
 	private Date expiration;
 
 	private Object correlationId;
+
+	private MessageChannel replyChannel;
 
 	private String replyChannelName;
 
@@ -80,6 +84,14 @@ public class MessageHeader {
 
 	public void setCorrelationId(Object correlationId) {
 		this.correlationId = correlationId;
+	}
+
+	public MessageChannel getReplyChannel() {
+		return this.replyChannel;
+	}
+
+	public void setReplyChannel(MessageChannel replyChannel) {
+		this.replyChannel = replyChannel;
 	}
 
 	public String getReplyChannelName() {

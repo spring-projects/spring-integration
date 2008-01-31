@@ -228,10 +228,15 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 		return null;
 	}
 
-	private MessageChannel resolveReplyChannel(String replyChannelName) {
+	private MessageChannel resolveReplyChannel(MessageHeader originalMessageHeader) {
+		MessageChannel replyChannel = originalMessageHeader.getReplyChannel();
+		if (replyChannel != null) {
+			return replyChannel;
+		}
 		if (this.channelRegistry == null) {
 			return null;
 		}
+		String replyChannelName = originalMessageHeader.getReplyChannelName();
 		if (StringUtils.hasText(replyChannelName)) {
 			return this.channelRegistry.lookupChannel(replyChannelName);
 		}
@@ -248,12 +253,11 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 			if (replyMessage == null) {
 				return;
 			}
-			String replyChannelName = originalMessageHeader.getReplyChannelName();
-			MessageChannel replyChannel = resolveReplyChannel(replyChannelName);
+			MessageChannel replyChannel = resolveReplyChannel(originalMessageHeader);
 			if (replyChannel == null) {
-				throw new MessageHandlingException("Unable to determine reply channel for message. "
-						+ "Provide a 'replyChannelName' in the message header or a 'defaultOutputChannelName' "
-						+ "on the message endpoint.");
+				throw new MessageHandlingException("Unable to determine reply channel for message. " +
+						"Provide a 'replyChannel' or 'replyChannelName' in the message header " +
+						"or a 'defaultOutputChannelName' on the message endpoint.");
 			}
 			replyChannel.send(replyMessage);
 		}

@@ -71,6 +71,26 @@ public class DefaultMessageEndpointTests {
 	@Test
 	public void testExplicitReplyChannel() throws Exception {
 		final MessageChannel replyChannel = new SimpleChannel();
+		MessageHandler handler = new MessageHandler() {
+			public Message<?> handle(Message<?> message) {
+				return new StringMessage("123", "hello " + message.getPayload());
+			}
+		};
+		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint();
+		endpoint.setHandler(handler);
+		endpoint.start();
+		StringMessage testMessage = new StringMessage(1, "test");
+		testMessage.getHeader().setReplyChannel(replyChannel);
+		endpoint.handle(testMessage);
+		endpoint.stop();
+		Message<?> reply = replyChannel.receive(50);
+		assertNotNull(reply);
+		assertEquals("hello test", reply.getPayload());
+	}
+
+	@Test
+	public void testExplicitReplyChannelName() throws Exception {
+		final MessageChannel replyChannel = new SimpleChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("replyChannel", replyChannel);
 		MessageHandler handler = new MessageHandler() {
@@ -89,6 +109,32 @@ public class DefaultMessageEndpointTests {
 		Message<?> reply = replyChannel.receive(50);
 		assertNotNull(reply);
 		assertEquals("hello test", reply.getPayload());
+	}
+
+	@Test
+	public void testReplyChannelTakesPrecedenceOverReplyChannelName() throws Exception {
+		final MessageChannel replyChannel1 = new SimpleChannel();
+		final MessageChannel replyChannel2 = new SimpleChannel();
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		channelRegistry.registerChannel("replyChannel2", replyChannel2);
+		MessageHandler handler = new MessageHandler() {
+			public Message<?> handle(Message<?> message) {
+				return new StringMessage("123", "hello " + message.getPayload());
+			}
+		};
+		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint();
+		endpoint.setHandler(handler);
+		endpoint.start();
+		StringMessage testMessage = new StringMessage(1, "test");
+		testMessage.getHeader().setReplyChannel(replyChannel1);
+		testMessage.getHeader().setReplyChannelName("replyChannel2");
+		endpoint.handle(testMessage);
+		endpoint.stop();
+		Message<?> reply1 = replyChannel1.receive(50);
+		assertNotNull(reply1);
+		assertEquals("hello test", reply1.getPayload());
+		Message<?> reply2 = replyChannel2.receive(0);
+		assertNull(reply2);
 	}
 
 	@Test
