@@ -191,6 +191,17 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		}
 	}
 
+	public MessageChannel unregisterChannel(String name) {
+		MessageChannel removedChannel = this.channelRegistry.unregisterChannel(name);
+		if (removedChannel != null) {
+			MessageDispatcher removedDispatcher = this.dispatchers.remove(removedChannel);
+			if (removedDispatcher != null && removedDispatcher.isRunning()) {
+				removedDispatcher.stop();
+			}
+		}
+		return removedChannel;
+	}
+
 	public void registerHandler(String name, MessageHandler handler, Subscription subscription) {
 		this.registerHandler(name, handler, subscription, null);
 	}

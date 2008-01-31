@@ -16,21 +16,28 @@
 
 package org.springframework.integration.channel;
 
+import org.springframework.integration.message.Message;
+
 /**
- * A strategy interface for registration and lookup of message channels by name.
+ * A {@link ChannelInterceptor} with no-op method implementations so that
+ * subclasses do not have to implement all of the interface's methods.
  * 
  * @author Mark Fisher
  */
-public interface ChannelRegistry {
+public class ChannelInterceptorAdapter implements ChannelInterceptor {
 
-	void registerChannel(String name, MessageChannel channel);
+	public boolean preSend(Message message, MessageChannel channel) {
+		return true;
+	}
 
-	MessageChannel unregisterChannel(String name);
+	public void postSend(Message message, MessageChannel channel, boolean sent) {
+	}
 
-	MessageChannel lookupChannel(String channelName);
+	public boolean preReceive(MessageChannel channel) {
+		return true;
+	}
 
-	void setErrorChannel(MessageChannel errorChannel);
-
-	MessageChannel getErrorChannel();
+	public void postReceive(Message message, MessageChannel channel) {
+	}
 
 }

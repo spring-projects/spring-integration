@@ -20,7 +20,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.dispatcher.DispatcherPolicy;
 import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
@@ -32,14 +31,10 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class SimpleChannel implements MessageChannel, BeanNameAware {
+public class SimpleChannel extends AbstractMessageChannel {
 
 	public static final int DEFAULT_CAPACITY = 100;
 
-
-	private String name;
-
-	private final DispatcherPolicy dispatcherPolicy;
 
 	private BlockingQueue<Message<?>> queue;
 
@@ -48,8 +43,8 @@ public class SimpleChannel implements MessageChannel, BeanNameAware {
 	 * Create a channel with the specified queue capacity and dispatcher policy.
 	 */
 	public SimpleChannel(int capacity, DispatcherPolicy dispatcherPolicy) {
+		super((dispatcherPolicy != null) ? dispatcherPolicy : new DispatcherPolicy());
 		this.queue = new LinkedBlockingQueue<Message<?>>(capacity);
-		this.dispatcherPolicy = (dispatcherPolicy != null) ? dispatcherPolicy : new DispatcherPolicy();
 	}
 
 	/**
@@ -74,46 +69,15 @@ public class SimpleChannel implements MessageChannel, BeanNameAware {
 	}
 
 
-	/**
-	 * Set the name of this channel.
-	 */
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	/**
-	 * Return the name of this channel.
-	 */
-	public String getName() {
-		return this.name;
-	}
-
-	public DispatcherPolicy getDispatcherPolicy() {
-		return this.dispatcherPolicy;
-	}
-
-	/**
-	 * Set the name of this channel to its bean name. This will be invoked
-	 * automatically whenever the channel is configured explicitly with a bean
-	 * definition.
-	 */
-	public void setBeanName(String beanName) {
-		this.setName(beanName);
-	}
-
-	/**
-	 * Send a message on this channel. If the queue is full, this method will
-	 * block until either space becomes available or the sending thread is
-	 * interrupted.
-	 * 
-	 * @param message the Message to send
-	 * 
-	 * @return <code>true</code> if the message is sent successfully or
-	 * <code>false</code> if the sending thread is interrupted.
-	 */
-	public boolean send(Message message) {
+	public boolean doSend(Message message, long timeout) {
 		Assert.notNull(message, "'message' must not be null");
 		try {
+			if (timeout > 0) {
+				return this.queue.offer(message, timeout, TimeUnit.MILLISECONDS);
+			}
+			if (timeout == 0) {
+				return this.queue.offer(message);
+			}
 			queue.put(message);
 			return true;
 		}
@@ -123,67 +87,15 @@ public class SimpleChannel implements MessageChannel, BeanNameAware {
 		}
 	}
 
-	/**
-	 * Send a message on this channel. If the queue is full, this method will
-	 * block until either the timeout occurs or the sending thread is
-	 * interrupted. If the specified timeout is less than 1, the method will
-	 * return immediately.
-	 * 
-	 * @param message the Message to send
-	 * @param timeout the timeout in milliseconds
-	 * 
-	 * @return <code>true</code> if the message is sent successfully,
-	 * <code>false</code> if the message cannot be sent within the allotted
-	 * time or the sending thread is interrupted.
-	 */
-	public boolean send(Message message, long timeout) {
-		Assert.notNull(message, "'message' must not be null");
-		try {
-			if (timeout > 0) {
-				return this.queue.offer(message, timeout, TimeUnit.MILLISECONDS);
-			}
-			return this.queue.offer(message);
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			return false;
-		}
-	}
-
-	/**
-	 * Receive the message at the head of the queue. If the queue is empty, this
-	 * method will block.
-	 * 
-	 * @return the Message at the head of the queue or <code>null</code> if
-	 * the receiving thread is interrupted.
-	 */
-	public Message receive() {
-		try {
-			return queue.take();
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			return null;
-		}
-	}
-
-	/**
-	 * Receive the message at the head of the queue. If the queue is empty, this
-	 * method will block until the allotted timeout elapses. If the specified
-	 * timeout is less than 1, the method will return immediately.
-	 * 
-	 * @param timeout the timeout in milliseconds
-	 * 
-	 * @return the message at the head of the queue or <code>null</code> in
-	 * case no message is available within the allotted time or the receiving
-	 * thread is interrupted.
-	 */
-	public Message receive(long timeout) {
+	public Message doReceive(long timeout) {
 		try {
 			if (timeout > 0) {
 				return queue.poll(timeout, TimeUnit.MILLISECONDS);
 			}
-			return queue.poll();
+			if (timeout == 0) {
+				return queue.poll();
+			}
+			return queue.take();
 		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();

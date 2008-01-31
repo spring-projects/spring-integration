@@ -16,21 +16,23 @@
 
 package org.springframework.integration.channel;
 
+import org.springframework.integration.message.Message;
+
 /**
- * A strategy interface for registration and lookup of message channels by name.
+ * Interface for interceptors that are able to view and/or modify the
+ * {@link Message Messages} being sent-to and/or received-from a
+ * {@link MessageChannel}.
  * 
  * @author Mark Fisher
  */
-public interface ChannelRegistry {
+public interface ChannelInterceptor {
 
-	void registerChannel(String name, MessageChannel channel);
+	boolean preSend(Message message, MessageChannel channel);
 
-	MessageChannel unregisterChannel(String name);
+	void postSend(Message message, MessageChannel channel, boolean sent);
 
-	MessageChannel lookupChannel(String channelName);
+	boolean preReceive(MessageChannel channel);
 
-	void setErrorChannel(MessageChannel errorChannel);
-
-	MessageChannel getErrorChannel();
+	void postReceive(Message message, MessageChannel channel);
 
 }
