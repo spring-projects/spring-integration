@@ -173,7 +173,7 @@ public class DefaultMessageEndpointTests {
 		endpoint.start();
 		endpoint.handle(new StringMessage(1, "test"));
 		endpoint.stop();
-		latch.await(200, TimeUnit.MILLISECONDS);
+		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals("handler should have been invoked within allotted time", 0, latch.getCount());
 		Message<?> reply = replyChannel.receive(100);
 		assertNotNull(reply);
@@ -199,7 +199,7 @@ public class DefaultMessageEndpointTests {
 		endpoint.start();
 		endpoint.handle(new StringMessage(1, "test"));
 		endpoint.stop();
-		latch.await(200, TimeUnit.MILLISECONDS);
+		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals("handler should have been invoked within allotted time", 0, latch.getCount());
 		Message<?> reply = replyChannel.receive(0);
 		assertNull(reply);
@@ -224,7 +224,7 @@ public class DefaultMessageEndpointTests {
 		endpoint.start();
 		endpoint.handle(new StringMessage(1, "test"));
 		endpoint.stop();
-		latch.await(200, TimeUnit.MILLISECONDS);
+		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals("handler should have been invoked within allotted time", 0, latch.getCount());
 		Message<?> reply = replyChannel.receive(0);
 		assertNull(reply);
@@ -250,7 +250,7 @@ public class DefaultMessageEndpointTests {
 		message.getHeader().setReplyChannelName("replyChannel");
 		endpoint.handle(message);
 		endpoint.stop();
-		latch.await(200, TimeUnit.MILLISECONDS);
+		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals("handler should have been invoked within allotted time", 0, latch.getCount());
 		Message<?> reply = replyChannel.receive(100);
 		assertNotNull(reply);
@@ -277,7 +277,7 @@ public class DefaultMessageEndpointTests {
 		endpoint.start();
 		endpoint.handle(new StringMessage(1, "test"));
 		endpoint.stop();
-		latch.await(200, TimeUnit.MILLISECONDS);
+		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals("handler should have been invoked within allotted time", 0, latch.getCount());
 		Message<?> reply = replyChannel.receive(100);
 		assertNotNull(reply);
@@ -305,7 +305,7 @@ public class DefaultMessageEndpointTests {
 		message.getHeader().setReplyChannelName("replyChannel");
 		endpoint.handle(message);
 		endpoint.stop();
-		latch.await(200, TimeUnit.MILLISECONDS);
+		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals("handler should have been invoked within allotted time", 0, latch.getCount());
 		Message<?> reply = replyChannel.receive(100);
 		assertNotNull(reply);

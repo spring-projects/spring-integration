@@ -16,6 +16,8 @@
 
 package org.springframework.integration;
 
+import org.springframework.integration.message.Message;
+
 /**
  * Exception that indicates an error during message delivery.
  * 
@@ -24,16 +26,36 @@ package org.springframework.integration;
 @SuppressWarnings("serial")
 public class MessageDeliveryException extends MessagingException {
 
+	private Message<?> undeliveredMessage;
+
+
 	public MessageDeliveryException() {
 		super();
 	}
 
-	public MessageDeliveryException(String message) {
-		super(message);
+	public MessageDeliveryException(Message<?> undeliveredMessage) {
+		this.undeliveredMessage = undeliveredMessage;
 	}
 
-	public MessageDeliveryException(String message, Throwable cause) {
-		super(message, cause);
+	public MessageDeliveryException(String description) {
+		super(description);
+	}
+
+	public MessageDeliveryException(Message<?> undeliveredMessage, String description) {
+		super(description);
+		this.undeliveredMessage = undeliveredMessage;
+	}
+
+	public MessageDeliveryException(String description, Throwable cause) {
+		super(description, cause);
+	}
+
+
+	/**
+	 * Return the undelivered {@link Message} if available, may be null.
+	 */
+	public Message<?> getUndeliveredMessage() {
+		return this.undeliveredMessage;
 	}
 
 }
