@@ -62,7 +62,7 @@ public class AggregatingMessageHandlerTests {
 		executor.execute(new AggregatorTestTask(aggregator, message2, latch));
 		executor.execute(new AggregatorTestTask(aggregator, message3, latch));
 		latch.await(1000, TimeUnit.MILLISECONDS);
-		Message<?> reply = replyChannel.receive(100);
+		Message<?> reply = replyChannel.receive(500);
 		assertNotNull(reply);
 		assertEquals("123456789", reply.getPayload());
 	}
@@ -76,7 +76,7 @@ public class AggregatingMessageHandlerTests {
 		CountDownLatch latch = new CountDownLatch(1);
 		AggregatorTestTask task = new AggregatorTestTask(aggregator, message1, latch);
 		executor.execute(task);
-		latch.await(500, TimeUnit.MILLISECONDS);
+		latch.await(1000, TimeUnit.MILLISECONDS);
 		Message<?> reply = replyChannel.receive(0);
 		assertNull(reply);
 		assertNotNull(task.getException());
@@ -96,8 +96,8 @@ public class AggregatingMessageHandlerTests {
 		AggregatorTestTask task2 = new AggregatorTestTask(aggregator, message2, latch);
 		executor.execute(task1);
 		executor.execute(task2);
-		latch.await(500, TimeUnit.MILLISECONDS);
-		Message<?> reply = replyChannel.receive(100);
+		latch.await(1000, TimeUnit.MILLISECONDS);
+		Message<?> reply = replyChannel.receive(500);
 		assertNotNull(reply);
 		assertEquals("123456", reply.getPayload());
 		assertNull(task1.getException());
