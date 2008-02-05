@@ -47,7 +47,11 @@ public class JmsTargetAdapterParser extends AbstractSingleBeanDefinitionParser {
 
 	private static final String DESTINATION_ATTRIBUTE = "destination";
 
+	private static final String DESTINATION_NAME_ATTRIBUTE = "destination-name";
+
 	private static final String DESTINATION_PROPERTY = "destination";
+
+	private static final String DESTINATION_NAME_PROPERTY = "destinationName";
 
 	private static final String CHANNEL_ATTRIBUTE = "channel";
 
@@ -72,21 +76,27 @@ public class JmsTargetAdapterParser extends AbstractSingleBeanDefinitionParser {
 		String jmsTemplate = element.getAttribute(JMS_TEMPLATE_ATTRIBUTE);
 		String connectionFactory = element.getAttribute(CONNECTION_FACTORY_ATTRIBUTE);
 		String destination = element.getAttribute(DESTINATION_ATTRIBUTE);
+		String destinationName = element.getAttribute(DESTINATION_NAME_ATTRIBUTE);
 		RootBeanDefinition adapterDef = new RootBeanDefinition(JmsTargetAdapter.class);
 		if (StringUtils.hasText(jmsTemplate)) {
-			if (StringUtils.hasText(connectionFactory) || StringUtils.hasText(destination)) {
-				throw new BeanCreationException("when providing a 'jms-template' reference, neither " +
-						"'connection-factory' or 'destination' should be provided.");
+			if (StringUtils.hasText(connectionFactory) || StringUtils.hasText(destination) || StringUtils.hasText(destinationName)) {
+				throw new BeanCreationException("when providing a 'jms-template' reference, none of " +
+						"'connection-factory', 'destination', or 'destination-name' should be provided.");
 			}
 			adapterDef.getPropertyValues().addPropertyValue(JMS_TEMPLATE_PROPERTY, new RuntimeBeanReference(jmsTemplate));
 		}
-		else if (StringUtils.hasText(connectionFactory) && StringUtils.hasText(destination)) {
+		else if (StringUtils.hasText(connectionFactory) && (StringUtils.hasText(destination) ^ StringUtils.hasText(destinationName))) {
 			adapterDef.getPropertyValues().addPropertyValue(CONNECTION_FACTORY_PROPERTY, new RuntimeBeanReference(connectionFactory));
-			adapterDef.getPropertyValues().addPropertyValue(DESTINATION_PROPERTY, new RuntimeBeanReference(destination));
+			if (StringUtils.hasText(destination)) {
+				adapterDef.getPropertyValues().addPropertyValue(DESTINATION_PROPERTY, new RuntimeBeanReference(destination));
+			}
+			else {
+				adapterDef.getPropertyValues().addPropertyValue(DESTINATION_NAME_PROPERTY, destinationName);
+			}
 		}
 		else {
 			throw new BeanCreationException("either a 'jms-template' reference or both " +
-			"'connection-factory' and 'destination' references must be provided.");
+			"'connection-factory' and 'destination' (or 'destination-name') references must be provided.");
 		}
 		String channel = element.getAttribute(CHANNEL_ATTRIBUTE);
 		Subscription subscription = new Subscription(channel);

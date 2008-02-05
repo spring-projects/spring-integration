@@ -221,6 +221,7 @@
 			<xsd:attribute name="jms-template" type="xsd:string"/>
 			<xsd:attribute name="connection-factory" type="xsd:string"/>
 			<xsd:attribute name="destination" type="xsd:string"/>
+			<xsd:attribute name="destination-name" type="xsd:string"/>
 			<xsd:attribute name="channel" type="xsd:string" use="required"/>
 		</xsd:complexType>
 	</xsd:element>

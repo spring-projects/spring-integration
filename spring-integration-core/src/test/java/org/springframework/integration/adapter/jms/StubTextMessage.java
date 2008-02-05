@@ -10,6 +10,13 @@ public class StubTextMessage implements TextMessage {
 
 	private String text;
 
+	private Destination replyTo;
+
+	private String correlationID;
+
+	private String type;
+
+
 	public String getText() throws JMSException {
 		return this.text;
 	}
@@ -48,7 +55,7 @@ public class StubTextMessage implements TextMessage {
 	}
 
 	public String getJMSCorrelationID() throws JMSException {
-		return null;
+		return this.correlationID;
 	}
 
 	public byte[] getJMSCorrelationIDAsBytes() throws JMSException {
@@ -80,7 +87,7 @@ public class StubTextMessage implements TextMessage {
 	}
 
 	public Destination getJMSReplyTo() throws JMSException {
-		return null;
+		return this.replyTo;
 	}
 
 	public long getJMSTimestamp() throws JMSException {
@@ -88,7 +95,7 @@ public class StubTextMessage implements TextMessage {
 	}
 
 	public String getJMSType() throws JMSException {
-		return null;
+		return this.type;
 	}
 
 	public long getLongProperty(String name) throws JMSException {
@@ -131,6 +138,7 @@ public class StubTextMessage implements TextMessage {
 	}
 
 	public void setJMSCorrelationID(String correlationID) throws JMSException {
+		this.correlationID = correlationID;
 	}
 
 	public void setJMSCorrelationIDAsBytes(byte[] correlationID) throws JMSException {
@@ -155,12 +163,14 @@ public class StubTextMessage implements TextMessage {
 	}
 
 	public void setJMSReplyTo(Destination replyTo) throws JMSException {
+		this.replyTo = replyTo;
 	}
 
 	public void setJMSTimestamp(long timestamp) throws JMSException {
 	}
 
 	public void setJMSType(String type) throws JMSException {
+		this.type = type;
 	}
 
 	public void setLongProperty(String name, long value) throws JMSException {

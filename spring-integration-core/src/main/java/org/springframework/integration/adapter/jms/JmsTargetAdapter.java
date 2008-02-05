@@ -18,24 +18,39 @@ package org.springframework.integration.adapter.jms;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
+import javax.jms.JMSException;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.MessagingConfigurationException;
-import org.springframework.integration.adapter.AbstractTargetAdapter;
+import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.message.Message;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.core.MessagePostProcessor;
+import org.springframework.jms.support.converter.SimpleMessageConverter;
 
 /**
  * A target adapter for sending JMS Messages.
  * 
  * @author Mark Fisher
  */
-public class JmsTargetAdapter extends AbstractTargetAdapter<Object> implements InitializingBean {
+public class JmsTargetAdapter implements MessageHandler, InitializingBean {
+
+	public static final String JMS_CORRELATION_ID = "JMSCorrelationID";
+
+	public static final String JMS_REPLY_TO = "JMSReplyTo";
+
+	public static final String JMS_TYPE = "JMSType";
+
 
 	private ConnectionFactory connectionFactory;
 
 	private Destination destination;
 
+	private String destinationName;
+
 	private JmsTemplate jmsTemplate;
+
+	private JmsMessagePostProcessor jmsMessagePostProcessor = new DefaultJmsMessagePostProcessor();
 
 
 	public JmsTargetAdapter(JmsTemplate jmsTemplate) {
@@ -45,6 +60,12 @@ public class JmsTargetAdapter extends AbstractTargetAdapter<Object> implements I
 	public JmsTargetAdapter(ConnectionFactory connectionFactory, Destination destination) {
 		this.connectionFactory = connectionFactory;
 		this.destination = destination;
+		this.initJmsTemplate();
+	}
+
+	public JmsTargetAdapter(ConnectionFactory connectionFactory, String destinationName) {
+		this.connectionFactory = connectionFactory;
+		this.destinationName = destinationName;
 		this.initJmsTemplate();
 	}
 
@@ -64,30 +85,55 @@ public class JmsTargetAdapter extends AbstractTargetAdapter<Object> implements I
 		this.destination = destination;
 	}
 
+	public void setDestinationName(String destinationName) {
+		this.destinationName = destinationName;
+	}
+
 	public void setJmsTemplate(JmsTemplate jmsTemplate) {
 		this.jmsTemplate = jmsTemplate;
 	}
 
+	public void setJmsMessagePostProcessor(JmsMessagePostProcessor jmsMessagePostProcessor) {
+		this.jmsMessagePostProcessor = jmsMessagePostProcessor;
+	}
+
 	public void afterPropertiesSet() {
 		if (this.jmsTemplate == null) {
-			if (this.connectionFactory == null || this.destination == null) {
+			if (this.connectionFactory == null || (this.destination == null && this.destinationName == null)) {
 				throw new MessagingConfigurationException("Either a 'jmsTemplate' or " +
-						"*both* 'connectionFactory' and 'destination' are required.");
+						"*both* 'connectionFactory' and 'destination' (or 'destination-name') are required.");
 			}
 			this.initJmsTemplate();
+		}
+		if (this.jmsTemplate.getMessageConverter() == null) {
+			this.jmsTemplate.setMessageConverter(new SimpleMessageConverter());
 		}
 	}
 
 	private void initJmsTemplate() {
 		this.jmsTemplate = new JmsTemplate();
 		this.jmsTemplate.setConnectionFactory(this.connectionFactory);
-		this.jmsTemplate.setDefaultDestination(this.destination);
+		if (this.destination != null) {
+			this.jmsTemplate.setDefaultDestination(this.destination);
+		}
+		else {
+			this.jmsTemplate.setDefaultDestinationName(this.destinationName);
+		}
 	}
 
-	@Override
-	protected boolean sendToTarget(Object object) {
-		this.jmsTemplate.convertAndSend(object);
-		return true;
+	public final Message<?> handle(final Message<?> message) {
+		if (message == null) {
+			return null;
+		}
+		this.jmsTemplate.convertAndSend(message.getPayload(), new MessagePostProcessor() {
+			public javax.jms.Message postProcessMessage(javax.jms.Message jmsMessage) throws JMSException {
+				if (jmsMessagePostProcessor != null) {
+					jmsMessagePostProcessor.postProcessJmsMessage(jmsMessage, message.getHeader());
+				}
+				return jmsMessage;
+			}
+		});
+		return null;
 	}
 
 }

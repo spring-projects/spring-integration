@@ -39,4 +39,14 @@ public class JmsTargetAdapterParserTests {
 		assertEquals("testChannel", endpoint.getSubscription().getChannelName());
 	}
 
+	@Test
+	public void testTargetAdapterWithConnectionFactoryAndDestinationName() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"targetAdapterWithConnectionFactoryAndDestinationName.xml", this.getClass());
+		DefaultMessageEndpoint endpoint = (DefaultMessageEndpoint) context.getBean("adapter");
+		assertEquals(JmsTargetAdapter.class, endpoint.getHandler().getClass());
+		assertEquals("adapter", endpoint.getName());
+		assertEquals("testChannel", endpoint.getSubscription().getChannelName());
+	}
+
 }
