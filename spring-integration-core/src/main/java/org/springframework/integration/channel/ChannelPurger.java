@@ -1,0 +1,64 @@
+/*
+ * Copyright 2002-2007 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.integration.channel;
+
+import java.util.List;
+
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.selector.MessageSelector;
+
+/**
+ * A utility class for purging {@link Message Messages} from a
+ * {@link MessageChannel}. Any message that does <em>not</em> match the
+ * provided {@link MessageSelector} will be removed from the channel. If no
+ * {@link MessageSelector} is provided, then <em>all</em> messages will be
+ * cleared from the channel.
+ * <p>
+ * Note that the {@link #purge()} method operates on a snapshot of the messages
+ * within a channel at the time that the method is invoked. It is therefore
+ * possible that new messages will arrive on the channel during the purge
+ * operation and thus will <em>not</em> be removed. Likewise, messages to be
+ * purged may have been removed from the channel while the operation is taking
+ * place. Such messages will not be included in the returned list.
+ * 
+ * @author Mark Fisher
+ */
+public class ChannelPurger {
+
+	private MessageChannel channel;
+
+	private MessageSelector selector;
+
+
+	public ChannelPurger(MessageChannel channel) {
+		this.channel = channel;
+	}
+
+	public ChannelPurger(MessageChannel channel, MessageSelector selector) {
+		this(channel);
+		this.selector = selector;
+	}
+
+
+	public final List<Message<?>> purge() {
+		if (this.selector == null) {
+			return this.channel.clear();
+		}
+		return this.channel.purge(this.selector);
+	}
+
+}

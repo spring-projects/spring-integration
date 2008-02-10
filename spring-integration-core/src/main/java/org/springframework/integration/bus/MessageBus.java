@@ -36,7 +36,7 @@ import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.dispatcher.DefaultMessageDispatcher;
-import org.springframework.integration.dispatcher.MessageDispatcher;
+import org.springframework.integration.dispatcher.SchedulingMessageDispatcher;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.integration.endpoint.MessageEndpoint;
@@ -63,7 +63,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 
 	private Map<String, MessageEndpoint> endpoints = new ConcurrentHashMap<String, MessageEndpoint>();
 
-	private Map<MessageChannel, MessageDispatcher> dispatchers = new ConcurrentHashMap<MessageChannel, MessageDispatcher>();
+	private Map<MessageChannel, SchedulingMessageDispatcher> dispatchers = new ConcurrentHashMap<MessageChannel, SchedulingMessageDispatcher>();
 
 	private List<Lifecycle> lifecycleSourceAdapters = new CopyOnWriteArrayList<Lifecycle>();
 
@@ -194,7 +194,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 	public MessageChannel unregisterChannel(String name) {
 		MessageChannel removedChannel = this.channelRegistry.unregisterChannel(name);
 		if (removedChannel != null) {
-			MessageDispatcher removedDispatcher = this.dispatchers.remove(removedChannel);
+			SchedulingMessageDispatcher removedDispatcher = this.dispatchers.remove(removedChannel);
 			if (removedDispatcher != null && removedDispatcher.isRunning()) {
 				removedDispatcher.stop();
 			}
@@ -300,7 +300,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 	}
 
 	private void registerWithDispatcher(MessageChannel channel, MessageHandler handler, Schedule schedule) {
-		MessageDispatcher dispatcher = dispatchers.get(channel);
+		SchedulingMessageDispatcher dispatcher = dispatchers.get(channel);
 		if (dispatcher == null) {
 			if (logger.isWarnEnabled()) {
 				logger.warn("no dispatcher available for channel '" + channel.getName() + "', be sure to register the channel");
@@ -329,7 +329,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		synchronized (this.lifecycleMonitor) {
 			this.activateEndpoints();
 			this.taskScheduler.start();
-			for (MessageDispatcher dispatcher : this.dispatchers.values()) {
+			for (SchedulingMessageDispatcher dispatcher : this.dispatchers.values()) {
 				dispatcher.start();
 				if (logger.isInfoEnabled()) {
 					logger.info("started dispatcher '" + dispatcher + "'");
@@ -362,7 +362,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 					logger.info("stopped source adapter '" + adapter + "'");
 				}
 			}
-			for (MessageDispatcher dispatcher : this.dispatchers.values()) {
+			for (SchedulingMessageDispatcher dispatcher : this.dispatchers.values()) {
 				dispatcher.stop();
 				if (logger.isInfoEnabled()) {
 					logger.info("stopped dispatcher '" + dispatcher + "'");

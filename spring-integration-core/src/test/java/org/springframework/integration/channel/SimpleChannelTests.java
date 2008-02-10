@@ -34,6 +34,7 @@ import org.junit.Test;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.message.selector.UnexpiredMessageSelector;
 
 /**
  * @author Mark Fisher
@@ -203,7 +204,7 @@ public class SimpleChannelTests {
 		assertTrue(channel.send(message1));
 		assertTrue(channel.send(message2));
 		assertFalse(channel.send(message3, 0));
-		List<Message> clearedMessages = channel.clear();
+		List<Message<?>> clearedMessages = channel.clear();
 		assertNotNull(clearedMessages);
 		assertEquals(2, clearedMessages.size());
 		assertTrue(channel.send(message3));
@@ -212,7 +213,7 @@ public class SimpleChannelTests {
 	@Test
 	public void testClearEmptyChannel() {
 		SimpleChannel channel = new SimpleChannel();
-		List<Message> clearedMessages = channel.clear();
+		List<Message<?>> clearedMessages = channel.clear();
 		assertNotNull(clearedMessages);
 		assertEquals(0, clearedMessages.size());
 	}
@@ -231,7 +232,7 @@ public class SimpleChannelTests {
 		assertTrue(channel.send(expiredMessage, 0));
 		assertTrue(channel.send(unexpiredMessage, 0));
 		assertFalse(channel.send(new StringMessage("atCapacity"), 0));
-		List<Message> purgedMessages = channel.purge();
+		List<Message<?>> purgedMessages = channel.purge(new UnexpiredMessageSelector());
 		assertNotNull(purgedMessages);
 		assertEquals(1, purgedMessages.size());
 		assertTrue(channel.send(new StringMessage("roomAvailable"), 0));

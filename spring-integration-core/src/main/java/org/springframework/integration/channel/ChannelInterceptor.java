@@ -27,12 +27,12 @@ import org.springframework.integration.message.Message;
  */
 public interface ChannelInterceptor {
 
-	boolean preSend(Message message, MessageChannel channel);
+	boolean preSend(Message<?> message, MessageChannel channel);
 
-	void postSend(Message message, MessageChannel channel, boolean sent);
+	void postSend(Message<?> message, MessageChannel channel, boolean sent);
 
 	boolean preReceive(MessageChannel channel);
 
-	void postReceive(Message message, MessageChannel channel);
+	void postReceive(Message<?> message, MessageChannel channel);
 
 }

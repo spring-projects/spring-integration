@@ -16,17 +16,20 @@
 
 package org.springframework.integration.dispatcher;
 
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.scheduling.Schedule;
 
 /**
- * Strategy interface for dispatching messages.
+ * An extension to the {@link MessageDispatcher} strategy for handlers that may
+ * be scheduled.
  * 
  * @author Mark Fisher
  */
-public interface MessageDispatcher {
+public interface SchedulingMessageDispatcher extends MessageDispatcher, Lifecycle {
 
-	void addHandler(MessageHandler handler);
+	void setDefaultSchedule(Schedule defaultSchedule);
 
-	int dispatch();
+	void addHandler(MessageHandler handler, Schedule schedule);
 
 }

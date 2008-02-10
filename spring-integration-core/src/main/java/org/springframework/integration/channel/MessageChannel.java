@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.springframework.integration.dispatcher.DispatcherPolicy;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.selector.MessageSelector;
 
 /**
  * Base channel interface defining common behavior for message sending and receiving.
@@ -88,11 +89,11 @@ public interface MessageChannel {
 	/**
 	 * Remove all {@link Message Messages} from this channel.
 	 */
-	List<Message> clear();
+	List<Message<?>> clear();
 
 	/**
-	 * Remove any expired {@link Message Messages} from this channel.
+	 * Remove any {@link Message Messages} that are not accepted by the provided selector.
 	 */
-	List<Message> purge();
+	List<Message<?>> purge(MessageSelector selector);
 
 }

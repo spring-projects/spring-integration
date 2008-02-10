@@ -28,6 +28,7 @@ import org.junit.Test;
 
 import org.springframework.beans.FatalBeanException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.dispatcher.DefaultMessageDispatcher;
 import org.springframework.integration.dispatcher.DispatcherPolicy;
@@ -141,6 +142,48 @@ public class ChannelParserTests {
 		assertEquals(777, dispatcherPolicy.getRejectionLimit());
 		assertEquals(7777, dispatcherPolicy.getRetryInterval());
 		assertFalse(dispatcherPolicy.getShouldFailOnRejectionLimit());
+	}
+
+	@Test
+	public void testDatatypeChannelWithCorrectType() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"channelParserTests.xml", this.getClass());
+		MessageChannel channel = (MessageChannel) context.getBean("integerChannel");
+		assertTrue(channel.send(new GenericMessage<Integer>(123)));
+	}
+
+	@Test(expected=MessageDeliveryException.class)
+	public void testDatatypeChannelWithIncorrectType() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"channelParserTests.xml", this.getClass());
+		MessageChannel channel = (MessageChannel) context.getBean("integerChannel");
+		channel.send(new StringMessage("incorrect type"));
+	}
+
+	@Test
+	public void testDatatypeChannelWithAssignableSubTypes() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"channelParserTests.xml", this.getClass());
+		MessageChannel channel = (MessageChannel) context.getBean("numberChannel");
+		assertTrue(channel.send(new GenericMessage<Integer>(123)));
+		assertTrue(channel.send(new GenericMessage<Double>(123.45)));
+	}
+
+	@Test
+	public void testMultipleDatatypeChannelWithCorrectTypes() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"channelParserTests.xml", this.getClass());
+		MessageChannel channel = (MessageChannel) context.getBean("stringOrNumberChannel");
+		assertTrue(channel.send(new GenericMessage<Integer>(123)));
+		assertTrue(channel.send(new StringMessage("accepted type")));
+	}
+
+	@Test(expected=MessageDeliveryException.class)
+	public void testMultipleDatatypeChannelWithIncorrectType() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"channelParserTests.xml", this.getClass());
+		MessageChannel channel = (MessageChannel) context.getBean("stringOrNumberChannel");
+		channel.send(new GenericMessage<Boolean>(true));
 	}
 
 

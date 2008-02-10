@@ -53,6 +53,7 @@
 			<xsd:attribute name="id" type="xsd:ID" use="required"/>
 			<xsd:attribute name="capacity" type="xsd:integer"/>
 			<xsd:attribute name="publish-subscribe" type="xsd:boolean" default="false"/>
+			<xsd:attribute name="datatype" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
 

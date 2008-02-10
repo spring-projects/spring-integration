@@ -17,7 +17,6 @@
 package org.springframework.integration.dispatcher;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -27,87 +26,44 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessageHandlingException;
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerNotRunningException;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.selector.MessageSelectorRejectedException;
-import org.springframework.integration.scheduling.MessagingTask;
-import org.springframework.integration.scheduling.Schedule;
 import org.springframework.util.Assert;
 
 /**
- * A task for polling {@link MessageDispatcher MessageDispatchers}. If
- * {@link #broadcast} is set to <code>false</code> (the default), each message
- * will be sent to a single {@link MessageHandler}. Otherwise, each
- * retrieved {@link Message} will be sent to all of the handlers.
+ * Default implementation of the {@link MessageDistributor} interface.
  * 
  * @author Mark Fisher
  */
-public class DispatcherTask implements MessagingTask {
+public class DefaultMessageDistributor implements MessageDistributor {
 
-	private Log logger = LogFactory.getLog(this.getClass());
+	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private Schedule schedule;
+	private final List<MessageHandler> handlers = new CopyOnWriteArrayList<MessageHandler>();
 
-	private DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
-
-	private MessageRetriever retriever;
-
-	private List<MessageHandler> handlers = new CopyOnWriteArrayList<MessageHandler>();
+	private final DispatcherPolicy dispatcherPolicy;
 
 
-	public DispatcherTask(MessageChannel channel) {
-		Assert.notNull(channel, "'channel' must not be null");
-		this.retriever = new ChannelPollingMessageRetriever(channel);
-		DispatcherPolicy dispatcherPolicy = channel.getDispatcherPolicy();
-		if (dispatcherPolicy != null) {
-			this.dispatcherPolicy = dispatcherPolicy;
-		}
+	public DefaultMessageDistributor(DispatcherPolicy dispatcherPolicy) {
+		Assert.notNull(dispatcherPolicy, "'dispatcherPolicy' must not be null");
+		this.dispatcherPolicy = dispatcherPolicy;
 	}
 
-
-	public void setSchedule(Schedule schedule) {
-		Assert.notNull(schedule, "'schedule' must not be null");
-		this.schedule = schedule;
-	}
-
-	public Schedule getSchedule() {
-		return this.schedule;
-	}
 
 	public void addHandler(MessageHandler handler) {
-		Assert.notNull(handler, "'handler' must not be null");
 		this.handlers.add(handler);
 	}
 
-	/**
-	 * Retrieves messages and dispatches to the executors.
-	 * 
-	 * @return the number of messages processed
-	 */
-	public int dispatch() {
-		int messagesProcessed = 0;
-		Collection<Message<?>> messages = this.retriever.retrieveMessages();
-		if (messages == null) {
-			return 0;
-		}
-		for (Message<?> message : messages) {
-			if (dispatchMessage(message)) {
-				messagesProcessed++;
-			}
-		}
-		return messagesProcessed;
-	}
-
-	protected boolean dispatchMessage(Message<?> message) {
+	public boolean distribute(Message<?> message) {
 		int attempts = 0;
 		List<MessageHandler> targets = new ArrayList<MessageHandler>(this.handlers);
 		while (attempts < this.dispatcherPolicy.getRejectionLimit()) {
 			if (attempts > 0) {
 				if (logger.isDebugEnabled()) {
-					logger.debug("handler(s) rejected message after " + attempts
-							+ " attempt(s), will try again after 'retryInterval' of " +
+					logger.debug("handler(s) rejected message after " + attempts +
+							" attempt(s), will try again after 'retryInterval' of " +
 							this.dispatcherPolicy.getRetryInterval() + " milliseconds");
 				}
 				try {
@@ -162,10 +118,6 @@ public class DispatcherTask implements MessagingTask {
 					+ ". Consider increasing the handler's concurrency and/or the dispatcherPolicy's 'rejectionLimit'.");
 		}
 		return false;
-	}
-
-	public void run() {
-		this.dispatch();
 	}
 
 }

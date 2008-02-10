@@ -24,52 +24,47 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
-import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
  */
-public class DispatcherTaskTests {
+public class DefaultMessageDistributorTests {
 
 	@Test
-	public void testSimpleDispatch() throws InterruptedException {
-		MessageChannel channel = new SimpleChannel();
-		DispatcherTask task = new DispatcherTask(channel);
+	public void testSingleMessage() throws InterruptedException {
+		MessageDistributor distributor = new DefaultMessageDistributor(new DispatcherPolicy());
 		final CountDownLatch latch = new CountDownLatch(1);
-		task.addHandler(TestHandlers.countDownHandler(latch));
-		task.dispatchMessage(new StringMessage("test"));
+		distributor.addHandler(TestHandlers.countDownHandler(latch));
+		distributor.distribute(new StringMessage("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
 	}
 
 	@Test
-	public void testDispatchWithPointToPointChannel() throws InterruptedException {
-		MessageChannel channel = new SimpleChannel(new DispatcherPolicy(false));
-		DispatcherTask task = new DispatcherTask(channel);
+	public void testPointToPoint() throws InterruptedException {
+		MessageDistributor distributor = new DefaultMessageDistributor(new DispatcherPolicy(false));
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicInteger counter1 = new AtomicInteger();
 		final AtomicInteger counter2 = new AtomicInteger();
-		task.addHandler(TestHandlers.countingCountDownHandler(counter1, latch));
-		task.addHandler(TestHandlers.countingCountDownHandler(counter2, latch));
-		task.dispatchMessage(new StringMessage("test"));
+		distributor.addHandler(TestHandlers.countingCountDownHandler(counter1, latch));
+		distributor.addHandler(TestHandlers.countingCountDownHandler(counter2, latch));
+		distributor.distribute(new StringMessage("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
 		assertEquals("only 1 handler should have received the message", 1, counter1.get() + counter2.get());
 	}
 
 	@Test
-	public void testDispatchWithPublishSubscribeChannel() throws InterruptedException {
-		MessageChannel channel = new SimpleChannel(new DispatcherPolicy(true));
-		DispatcherTask task = new DispatcherTask(channel);
+	public void testPublishSubscribe() throws InterruptedException {
+		MessageDistributor distributor = new DefaultMessageDistributor(new DispatcherPolicy(true));
 		final CountDownLatch latch = new CountDownLatch(2);
 		final AtomicInteger counter1 = new AtomicInteger();
 		final AtomicInteger counter2 = new AtomicInteger();
-		task.addHandler(TestHandlers.countingCountDownHandler(counter1, latch));
-		task.addHandler(TestHandlers.countingCountDownHandler(counter2, latch));
-		task.dispatchMessage(new StringMessage("test"));
+		distributor.addHandler(TestHandlers.countingCountDownHandler(counter1, latch));
+		distributor.addHandler(TestHandlers.countingCountDownHandler(counter2, latch));
+		distributor.distribute(new StringMessage("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
 		assertEquals(1, counter1.get());

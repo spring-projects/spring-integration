@@ -16,11 +16,12 @@
 
 package org.springframework.integration.dispatcher;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,6 +29,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.message.Message;
+import org.springframework.integration.scheduling.MessagingTask;
 import org.springframework.integration.scheduling.MessagingTaskScheduler;
 import org.springframework.integration.scheduling.MessagingTaskSchedulerAware;
 import org.springframework.integration.scheduling.PollingSchedule;
@@ -44,11 +47,13 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class DefaultMessageDispatcher implements MessageDispatcher, MessagingTaskSchedulerAware {
+public class DefaultMessageDispatcher implements SchedulingMessageDispatcher, MessagingTaskSchedulerAware {
 
 	protected Log logger = LogFactory.getLog(this.getClass());
 
-	private MessageChannel channel;
+	private final MessageChannel channel;
+
+	private final MessageRetriever retriever;
 
 	private MessagingTaskScheduler scheduler;
 
@@ -56,7 +61,7 @@ public class DefaultMessageDispatcher implements MessageDispatcher, MessagingTas
 
 	private Map<Schedule, List<MessageHandler>> scheduledHandlers = new ConcurrentHashMap<Schedule, List<MessageHandler>>();
 
-	private List<ScheduledFuture<?>> futures = new CopyOnWriteArrayList<ScheduledFuture<?>>();
+	private AtomicLong totalMessagesProcessed = new AtomicLong();
 
 	private volatile boolean running;
 
@@ -66,6 +71,7 @@ public class DefaultMessageDispatcher implements MessageDispatcher, MessagingTas
 	public DefaultMessageDispatcher(MessageChannel channel) {
 		Assert.notNull(channel, "'channel' must not be null");
 		this.channel = channel;
+		this.retriever = new ChannelPollingMessageRetriever(this.channel);
 	}
 
 
@@ -127,21 +133,14 @@ public class DefaultMessageDispatcher implements MessageDispatcher, MessagingTas
 			return;
 		}
 		synchronized (this.lifecycleMonitor) {
-			for (Map.Entry<Schedule, List<MessageHandler>> entry : this.scheduledHandlers.entrySet()) {
-				Schedule schedule = entry.getKey();
-				List<MessageHandler> handlers = entry.getValue();
-				DispatcherTask task = new DispatcherTask(channel);
-				task.setSchedule(schedule);
+			for (Schedule schedule : this.scheduledHandlers.keySet()) {
+				List<MessageHandler> handlers = this.scheduledHandlers.get(schedule);
 				for (MessageHandler handler : handlers) {
 					if (handler instanceof Lifecycle) {
 						((Lifecycle) handler).start();
 					}
-					task.addHandler(handler);
 				}
-				ScheduledFuture<?> future = this.scheduler.schedule(task);
-				if (future != null) {
-					futures.add(future);
-				}
+				this.scheduler.schedule(new DispatcherTask(schedule));
 			}
 			this.running = true;
 		}
@@ -152,17 +151,67 @@ public class DefaultMessageDispatcher implements MessageDispatcher, MessagingTas
 			return;
 		}
 		synchronized (this.lifecycleMonitor) {
-			for (ScheduledFuture<?> future : this.futures) {
-				future.cancel(true);
-				for (List<MessageHandler> handlerList : scheduledHandlers.values()) {
-					for (MessageHandler handler : handlerList) {
-						if (handler instanceof Lifecycle) {
-							((Lifecycle) handler).stop();
-						}
+			for (List<MessageHandler> handlerList : scheduledHandlers.values()) {
+				for (MessageHandler handler : handlerList) {
+					if (handler instanceof Lifecycle) {
+						((Lifecycle) handler).stop();
 					}
 				}
 			}
 			this.running = false;
+		}
+	}
+
+	public int dispatch() {
+		MessageDistributor distributor = this.getDistributor(this.defaultSchedule);
+		return this.doDispatch(distributor);
+	}
+
+	private int doDispatch(MessageDistributor distributor) {
+		int messagesProcessed = 0;
+		Collection<Message<?>> messages = this.retriever.retrieveMessages();
+		if (messages == null) {
+			return 0;
+		}
+		for (Message<?> message : messages) {
+			if (distributor.distribute(message)) {
+				messagesProcessed++;
+			}
+		}
+		totalMessagesProcessed.addAndGet(messagesProcessed);
+		return messagesProcessed;
+	}
+
+	private MessageDistributor getDistributor(Schedule schedule) {
+		if (schedule == null) {
+			schedule = this.defaultSchedule;
+		}
+		MessageDistributor distributor = new DefaultMessageDistributor(this.channel.getDispatcherPolicy());
+		for (MessageHandler handler : this.scheduledHandlers.get(schedule)) {
+			distributor.addHandler(handler);
+		}
+		return distributor;
+	}
+
+
+	private class DispatcherTask implements MessagingTask {
+
+		private Schedule schedule;
+
+		private MessageDistributor distributor;
+
+
+		public DispatcherTask(Schedule schedule) {
+			this.schedule = (schedule != null) ? schedule : defaultSchedule;
+			this.distributor = getDistributor(this.schedule);
+		}
+
+		public Schedule getSchedule() {
+			return this.schedule;
+		}
+
+		public void run() {
+			doDispatch(this.distributor);
 		}
 	}
 

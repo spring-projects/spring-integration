@@ -17,16 +17,18 @@
 package org.springframework.integration.dispatcher;
 
 import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.message.Message;
 
 /**
- * Strategy interface for dispatching messages.
+ * Strategy interface for distributing a {@link Message} to one or more
+ * {@link MessageHandler MessageHandlers}.
  * 
  * @author Mark Fisher
  */
-public interface MessageDispatcher {
+public interface MessageDistributor {
 
 	void addHandler(MessageHandler handler);
 
-	int dispatch();
+	boolean distribute(Message<?> message);
 
 }

@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.channel;
+package org.springframework.integration.channel.interceptor;
 
+import org.springframework.integration.channel.ChannelInterceptor;
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 
 /**
@@ -26,18 +28,18 @@ import org.springframework.integration.message.Message;
  */
 public class ChannelInterceptorAdapter implements ChannelInterceptor {
 
-	public boolean preSend(Message message, MessageChannel channel) {
+	public boolean preSend(Message<?> message, MessageChannel channel) {
 		return true;
 	}
 
-	public void postSend(Message message, MessageChannel channel, boolean sent) {
+	public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
 	}
 
 	public boolean preReceive(MessageChannel channel) {
 		return true;
 	}
 
-	public void postReceive(Message message, MessageChannel channel) {
+	public void postReceive(Message<?> message, MessageChannel channel) {
 	}
 
 }

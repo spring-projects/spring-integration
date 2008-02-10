@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.integration.dispatcher.DispatcherPolicy;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.util.Assert;
 
 /**
@@ -111,20 +112,21 @@ public class SimpleChannel extends AbstractMessageChannel {
 		}
 	}
 
-	public List<Message> clear() {
-		List<Message> clearedMessages = new ArrayList<Message>();
+	public List<Message<?>> clear() {
+		List<Message<?>> clearedMessages = new ArrayList<Message<?>>();
 		this.queue.drainTo(clearedMessages);
 		return clearedMessages;
 	}
 
-	public List<Message> purge() {
-		List<Message> purgedMessages = new ArrayList<Message>();
-		// take a snapshot
+	public List<Message<?>> purge(MessageSelector selector) {
+		if (selector == null) {
+			return this.clear();
+		}
+		List<Message<?>> purgedMessages = new ArrayList<Message<?>>();
 		Object[] array = this.queue.toArray();
 		for (Object o : array) {
-			Message message = (Message) o;
-			if (message.isExpired() && this.queue.remove(message)) {
-				// message was still in the queue
+			Message<?> message = (Message<?>) o;
+			if (!selector.accept(message) && this.queue.remove(message)) {
 				purgedMessages.add(message);
 			}
 		}

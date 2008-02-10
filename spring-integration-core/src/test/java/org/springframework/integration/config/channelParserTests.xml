@@ -23,4 +23,10 @@
 		                   should-fail-on-rejection-limit="false"/>
 	</channel>
 
+	<channel id="integerChannel" datatype="java.lang.Integer"/>
+
+	<channel id="numberChannel" datatype="java.lang.Number"/>
+
+	<channel id="stringOrNumberChannel" datatype="java.lang.String,java.lang.Number"/>
+
 </beans:beans>

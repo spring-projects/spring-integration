@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.dispatcher;
+package org.springframework.integration.message.selector;
 
-import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.message.Message;
 
 /**
- * Strategy interface for dispatching messages.
+ * A {@link MessageSelector} that accepts {@link Message Messages} that are
+ * <em>not</em> expired.
  * 
  * @author Mark Fisher
  */
-public interface MessageDispatcher {
+public class UnexpiredMessageSelector implements MessageSelector {
 
-	void addHandler(MessageHandler handler);
-
-	int dispatch();
+	public boolean accept(Message<?> message) {
+		return (!message.isExpired());
+	}
 
 }

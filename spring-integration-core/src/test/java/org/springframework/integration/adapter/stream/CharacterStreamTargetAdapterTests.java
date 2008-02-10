@@ -24,8 +24,9 @@ import org.junit.Test;
 
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.dispatcher.DefaultMessageDispatcher;
 import org.springframework.integration.dispatcher.DispatcherPolicy;
-import org.springframework.integration.dispatcher.DispatcherTask;
+import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.StringMessage;
 
@@ -37,13 +38,8 @@ public class CharacterStreamTargetAdapterTests {
 	@Test
 	public void testSingleString() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		MessageChannel channel = new SimpleChannel();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
-		DispatcherTask dispatcherTask = new DispatcherTask(channel);
-		dispatcherTask.addHandler(adapter);
-		channel.send(new StringMessage("foo"));
-		int count = dispatcherTask.dispatch();
-		assertEquals(1, count);
+		adapter.handle(new StringMessage("foo"));
 		String result = new String(stream.toByteArray());
 		assertEquals("foo", result);
 	}
@@ -53,14 +49,14 @@ public class CharacterStreamTargetAdapterTests {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		MessageChannel channel = new SimpleChannel();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
-		DispatcherTask dispatcherTask = new DispatcherTask(channel);
-		dispatcherTask.addHandler(adapter);
+		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
+		dispatcher.addHandler(adapter);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
-		assertEquals(1, dispatcherTask.dispatch());
+		assertEquals(1, dispatcher.dispatch());
 		String result1 = new String(stream.toByteArray());
 		assertEquals("foo", result1);
-		assertEquals(1, dispatcherTask.dispatch());
+		assertEquals(1, dispatcher.dispatch());
 		String result2 = new String(stream.toByteArray());
 		assertEquals("foobar", result2);
 	}
@@ -71,15 +67,15 @@ public class CharacterStreamTargetAdapterTests {
 		MessageChannel channel = new SimpleChannel();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
 		adapter.setShouldAppendNewLine(true);
-		DispatcherTask dispatcherTask = new DispatcherTask(channel);
-		dispatcherTask.addHandler(adapter);
+		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
+		dispatcher.addHandler(adapter);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
-		assertEquals(1, dispatcherTask.dispatch());
+		assertEquals(1, dispatcher.dispatch());
 		String result1 = new String(stream.toByteArray());
 		String newLine = System.getProperty("line.separator");
 		assertEquals("foo" + newLine, result1);
-		assertEquals(1, dispatcherTask.dispatch());
+		assertEquals(1, dispatcher.dispatch());
 		String result2 = new String(stream.toByteArray());
 		assertEquals("foo" + newLine + "bar" + newLine, result2);
 	}
@@ -91,11 +87,11 @@ public class CharacterStreamTargetAdapterTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
-		DispatcherTask dispatcherTask = new DispatcherTask(channel);
-		dispatcherTask.addHandler(adapter);
+		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
+		dispatcher.addHandler(adapter);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
-		assertEquals(2, dispatcherTask.dispatch());
+		assertEquals(2, dispatcher.dispatch());
 		String result = new String(stream.toByteArray());
 		assertEquals("foobar", result);
 	}
@@ -108,12 +104,12 @@ public class CharacterStreamTargetAdapterTests {
 		dispatcherPolicy.setMaxMessagesPerTask(10);
 		dispatcherPolicy.setReceiveTimeout(0);
 		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
-		DispatcherTask dispatcherTask = new DispatcherTask(channel);
+		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
 		adapter.setShouldAppendNewLine(true);
-		dispatcherTask.addHandler(adapter);
+		dispatcher.addHandler(adapter);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
-		assertEquals(2, dispatcherTask.dispatch());
+		assertEquals(2, dispatcher.dispatch());
 		String result = new String(stream.toByteArray());
 		String newLine = System.getProperty("line.separator");
 		assertEquals("foo" + newLine + "bar" + newLine, result);
@@ -124,11 +120,11 @@ public class CharacterStreamTargetAdapterTests {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		MessageChannel channel = new SimpleChannel();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
-		DispatcherTask dispatcherTask = new DispatcherTask(channel);
-		dispatcherTask.addHandler(adapter);
+		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
+		dispatcher.addHandler(adapter);
 		TestObject testObject = new TestObject("foo");
 		channel.send(new GenericMessage<TestObject>(testObject));
-		int count = dispatcherTask.dispatch();
+		int count = dispatcher.dispatch();
 		assertEquals(1, count);
 		String result = new String(stream.toByteArray());
 		assertEquals("foo", result);
@@ -142,13 +138,13 @@ public class CharacterStreamTargetAdapterTests {
 		dispatcherPolicy.setReceiveTimeout(0);
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
-		DispatcherTask dispatcherTask = new DispatcherTask(channel);
-		dispatcherTask.addHandler(adapter);
+		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
+		dispatcher.addHandler(adapter);
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
 		channel.send(new GenericMessage<TestObject>(testObject1), 0);
 		channel.send(new GenericMessage<TestObject>(testObject2), 0);
-		assertEquals(2, dispatcherTask.dispatch());
+		assertEquals(2, dispatcher.dispatch());
 		String result = new String(stream.toByteArray());
 		assertEquals("foobar", result);
 	}
@@ -161,14 +157,14 @@ public class CharacterStreamTargetAdapterTests {
 		dispatcherPolicy.setReceiveTimeout(0);
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
-		DispatcherTask dispatcherTask = new DispatcherTask(channel);
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
 		adapter.setShouldAppendNewLine(true);
-		dispatcherTask.addHandler(adapter);
+		dispatcher.addHandler(adapter);
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
 		channel.send(new GenericMessage<TestObject>(testObject1), 0);
 		channel.send(new GenericMessage<TestObject>(testObject2), 0);
-		assertEquals(2, dispatcherTask.dispatch());
+		dispatcher.dispatch();
 		String result = new String(stream.toByteArray());
 		String newLine = System.getProperty("line.separator");
 		assertEquals("foo" + newLine + "bar" + newLine, result);
