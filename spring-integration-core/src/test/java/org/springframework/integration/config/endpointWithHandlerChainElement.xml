@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
+
+	<message-bus/>
+
+	<channel id="testChannel" capacity="50"/>
+
+	<channel id="replyChannel"/>
+
+	<handler-chain id="chain">
+		<handler ref="handler1"/>
+		<handler ref="handler2"/>
+		<handler ref="handler3"/>
+	</handler-chain>
+
+	<endpoint input-channel="testChannel" handler-ref="chain" default-output-channel="replyChannel">
+		<schedule period="100"/>
+	</endpoint>
+
+	<beans:bean id="handler1" class="org.springframework.integration.config.TestConcatenatingHandler">
+		<beans:constructor-arg value="-1"/>
+	</beans:bean>
+
+	<beans:bean id="handler2" class="org.springframework.integration.config.TestConcatenatingHandler">
+		<beans:constructor-arg value="-2"/>
+	</beans:bean>
+
+	<beans:bean id="handler3" class="org.springframework.integration.config.TestConcatenatingHandler">
+		<beans:constructor-arg value="-3"/>
+	</beans:bean>
+
+</beans:beans>

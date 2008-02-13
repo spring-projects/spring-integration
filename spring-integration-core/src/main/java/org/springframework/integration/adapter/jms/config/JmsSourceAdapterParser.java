@@ -54,6 +54,10 @@ public class JmsSourceAdapterParser extends AbstractSingleBeanDefinitionParser {
 
 	private static final String POLL_PERIOD_PROPERTY = "period";
 
+	private static final String MESSAGE_CONVERTER_ATTRIBUTE = "message-converter";
+
+	private static final String MESSAGE_CONVERTER_PROPERTY = "messageConverter";
+
 
 	protected Class<?> getBeanClass(Element element) {
 		if (StringUtils.hasText(element.getAttribute(POLL_PERIOD_ATTRIBUTE))) {
@@ -86,6 +90,11 @@ public class JmsSourceAdapterParser extends AbstractSingleBeanDefinitionParser {
 		if (!StringUtils.hasText(pollPeriod)) {
 			throw new BeanCreationException("'" + POLL_PERIOD_ATTRIBUTE +
 					"' is required for a " + JmsPollingSourceAdapter.class.getSimpleName());
+		}
+		if (StringUtils.hasText(element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE))) {
+			throw new BeanCreationException("The '" + MESSAGE_CONVERTER_ATTRIBUTE + "' attribute is not supported for a " +
+					JmsPollingSourceAdapter.class.getSimpleName() + ". Consider providing a '" + JMS_TEMPLATE_ATTRIBUTE + 
+					"' reference where the template contains a 'messageConverter' property instead.");
 		}
 		builder.addPropertyValue(POLL_PERIOD_PROPERTY, pollPeriod);
 		String jmsTemplate = element.getAttribute(JMS_TEMPLATE_ATTRIBUTE);
@@ -121,9 +130,10 @@ public class JmsSourceAdapterParser extends AbstractSingleBeanDefinitionParser {
 		String connectionFactory = element.getAttribute(CONNECTION_FACTORY_ATTRIBUTE);
 		String destination = element.getAttribute(DESTINATION_ATTRIBUTE);
 		String destinationName = element.getAttribute(DESTINATION_NAME_ATTRIBUTE);
+		String messageConverter = element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE);
 		if (StringUtils.hasText(element.getAttribute(JMS_TEMPLATE_ATTRIBUTE))) {
 			throw new BeanCreationException(JmsMessageDrivenSourceAdapter.class.getSimpleName() +
-					" does not accept a '" + JMS_TEMPLATE_ATTRIBUTE + "' reference, both " +
+					" does not accept a '" + JMS_TEMPLATE_ATTRIBUTE + "' reference. Both " +
 					"'" + CONNECTION_FACTORY_ATTRIBUTE + "' and '" + DESTINATION_ATTRIBUTE +
 					"' (or '" + DESTINATION_NAME_ATTRIBUTE + "') must be provided.");
 		}
@@ -139,7 +149,10 @@ public class JmsSourceAdapterParser extends AbstractSingleBeanDefinitionParser {
 		else {
 			throw new BeanCreationException("Both '" + CONNECTION_FACTORY_ATTRIBUTE + "' and '" +
 					DESTINATION_ATTRIBUTE + "' (or '" + DESTINATION_NAME_ATTRIBUTE + "') must be provided.");
-		}	
+		}
+		if (StringUtils.hasText(messageConverter)) {
+			builder.addPropertyReference(MESSAGE_CONVERTER_PROPERTY, messageConverter);
+		}
 	}
 
 }

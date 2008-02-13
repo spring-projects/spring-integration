@@ -81,6 +81,18 @@ public class EndpointParserTests {
 	}
 
 	@Test
+	public void testHandlerChainEndpoint() throws InterruptedException {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"endpointWithHandlerChainElement.xml", this.getClass());
+		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
+		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
+		channel.send(new StringMessage("test"));
+		Message<?> reply = replyChannel.receive(500);
+		assertNotNull(reply);
+		assertEquals("test-1-2-3", reply.getPayload());
+	}
+
+	@Test
 	public void testDefaultConcurrency() throws InterruptedException {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"endpointConcurrencyTests.xml", this.getClass());

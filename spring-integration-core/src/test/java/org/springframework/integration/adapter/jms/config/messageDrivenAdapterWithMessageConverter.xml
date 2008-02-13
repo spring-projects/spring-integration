@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:si="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
+
+	<si:message-bus/>
+
+	<si:channel id="channel"/>
+
+	<si:jms-source id="adapter"
+	               connection-factory="connectionFactory"
+	               destination="testDestination"
+	               channel="channel"
+	               message-converter="converter"/>
+
+	<bean id="converter" class="org.springframework.integration.adapter.jms.config.JmsSourceAdapterParserTests$TestMessageConverter"/>
+
+	<bean id="connectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
+		<constructor-arg>
+			<bean class="org.springframework.integration.adapter.jms.StubConnection">
+				<constructor-arg value="test-message"/>
+			</bean>
+		</constructor-arg>
+	</bean>
+
+	<bean id="testDestination" class="org.springframework.integration.adapter.jms.StubDestination"/>
+
+</beans>

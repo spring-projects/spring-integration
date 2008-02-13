@@ -248,6 +248,7 @@
 			<xsd:attribute name="destination-name" type="xsd:string"/>
 			<xsd:attribute name="channel" type="xsd:string" use="required"/>
 			<xsd:attribute name="poll-period" type="xsd:int"/>
+			<xsd:attribute name="message-converter" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
 

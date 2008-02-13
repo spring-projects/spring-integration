@@ -19,6 +19,10 @@ package org.springframework.integration.adapter.jms.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import javax.jms.JMSException;
+import javax.jms.Session;
+import javax.jms.TextMessage;
+
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
@@ -28,6 +32,8 @@ import org.springframework.integration.adapter.jms.JmsMessageDrivenSourceAdapter
 import org.springframework.integration.adapter.jms.JmsPollingSourceAdapter;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
+import org.springframework.jms.support.converter.MessageConversionException;
+import org.springframework.jms.support.converter.MessageConverter;
 
 /**
  * @author Mark Fisher
@@ -104,6 +110,19 @@ public class JmsSourceAdapterParserTests {
 		context.stop();
 	}
 
+	@Test
+	public void testMessageDrivenAdapterWithMessageConverter() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"messageDrivenAdapterWithMessageConverter.xml", this.getClass());
+		JmsMessageDrivenSourceAdapter adapter = (JmsMessageDrivenSourceAdapter) context.getBean("adapter");
+		assertEquals(JmsMessageDrivenSourceAdapter.class, adapter.getClass());
+		MessageChannel channel = (MessageChannel) context.getBean("channel");
+		Message<?> message = channel.receive(3000);
+		assertNotNull("message should not be null", message);
+		assertEquals("converted-test-message", message.getPayload());
+		context.stop();
+	}
+
 	@Test(expected=BeanDefinitionStoreException.class)
 	public void testPollingAdapterWithConnectionFactoryOnly() {
 		try {
@@ -157,6 +176,21 @@ public class JmsSourceAdapterParserTests {
 			assertEquals(BeanCreationException.class, e.getCause().getClass());
 			throw e;
 		}
+	}
+
+
+	public static class TestMessageConverter implements MessageConverter {
+
+		public Object fromMessage(javax.jms.Message message) throws JMSException, MessageConversionException {
+			String original = ((TextMessage) message).getText();
+			return "converted-" + original;
+		}
+
+		public javax.jms.Message toMessage(Object object, Session session) throws JMSException,
+				MessageConversionException {
+			return null;
+		}
+
 	}
 
 }
