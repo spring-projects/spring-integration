@@ -4,7 +4,9 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
 
-	<bean id="bus" class="org.springframework.integration.bus.MessageBus"/>
+	<bean id="bus" class="org.springframework.integration.bus.MessageBus">
+		<property name="autoStartup" value="false"/>
+	</bean>
 
 	<bean id="inputChannel" class="org.springframework.integration.channel.SimpleChannel"/>
 

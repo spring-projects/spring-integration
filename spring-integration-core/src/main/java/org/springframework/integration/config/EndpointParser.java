@@ -58,6 +58,10 @@ public class EndpointParser implements BeanDefinitionParser {
 
 	private static final String DEFAULT_OUTPUT_CHANNEL_PROPERTY = "defaultOutputChannelName";
 
+	private static final String SELECTOR_ELEMENT = "selector";
+
+	private static final String SELECTORS_PROPERTY = "messageSelectors";
+
 	private static final String HANDLER_ELEMENT = "handler";
 
 	private static final String REF_ATTRIBUTE = "ref";
@@ -107,6 +111,7 @@ public class EndpointParser implements BeanDefinitionParser {
 		if (StringUtils.hasText(defaultOutputChannel)) {
 			endpointDef.getPropertyValues().addPropertyValue(DEFAULT_OUTPUT_CHANNEL_PROPERTY, defaultOutputChannel);
 		}
+		ManagedList selectors = new ManagedList();
 		List<String> childHandlerRefs = new ArrayList<String>();
 		NodeList childNodes = element.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); i++) {
@@ -116,10 +121,19 @@ public class EndpointParser implements BeanDefinitionParser {
 				if (CONCURRENCY_ELEMENT.equals(localName)) {
 					parseConcurrencyPolicy((Element) child, endpointDef);
 				}
+				else if (SELECTOR_ELEMENT.equals(localName)) {
+					String ref = ((Element) child).getAttribute(REF_ATTRIBUTE);
+					selectors.add(new RuntimeBeanReference(ref));
+				}
 				else if (HANDLER_ELEMENT.equals(localName)) {
 					String ref = ((Element) child).getAttribute(REF_ATTRIBUTE);
 					String method = ((Element) child).getAttribute(METHOD_ATTRIBUTE);
-					childHandlerRefs.add(this.parseHandlerAdapter(ref, method, parserContext));
+					if (StringUtils.hasText(method)) {
+						childHandlerRefs.add(this.parseHandlerAdapter(ref, method, parserContext));
+					}
+					else {
+						childHandlerRefs.add(ref);
+					}
 				}
 				else if (SCHEDULE_ELEMENT.equals(localName)) {
 					this.parseSchedule((Element) child, subscriptionDef);
@@ -129,6 +143,9 @@ public class EndpointParser implements BeanDefinitionParser {
 		String subscriptionBeanName = parserContext.getReaderContext().generateBeanName(subscriptionDef);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(subscriptionDef, subscriptionBeanName));
 		endpointDef.getPropertyValues().addPropertyValue(SUBSCRIPTION_PROPERTY, new RuntimeBeanReference(subscriptionBeanName));
+		if (selectors.size() > 0) {
+			endpointDef.getPropertyValues().addPropertyValue(SELECTORS_PROPERTY, selectors);
+		}
 		if (childHandlerRefs.size() > 0) {
 			if (childHandlerRefs.size() == 1) {
 				endpointDef.getPropertyValues().addPropertyValue(

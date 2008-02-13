@@ -102,6 +102,10 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 		this.handler = handler;
 	}
 
+	public void setMessageSelectors(List<MessageSelector> selectors) {
+		this.selectors = new CopyOnWriteArrayList<MessageSelector>(selectors);
+	}
+
 	public void addMessageSelector(MessageSelector messageSelector) {
 		Assert.notNull(messageSelector, "'messageSelector' must not be null");
 		this.selectors.add(messageSelector);
@@ -210,7 +214,7 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 			return null;
 		}
 		try {
-			Message<?> replyMessage = handler.handle(message);
+			Message<?> replyMessage = this.handler.handle(message);
 			if (replyMessage != null) {
 				this.replyHandler.handle(replyMessage, message.getHeader());
 			}

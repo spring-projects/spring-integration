@@ -18,9 +18,12 @@ package org.springframework.integration.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessagingConfigurationException;
@@ -58,7 +61,6 @@ public class MessageBusParserTests {
 		MessageBus bus = (MessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		Subscription subscription = new Subscription("unknownChannel");
 		bus.registerHandler("handler", TestHandlers.nullHandler(), subscription);
-		bus.start();
 	}
 
 	@Test
@@ -70,6 +72,41 @@ public class MessageBusParserTests {
 		bus.registerHandler("handler", TestHandlers.nullHandler(), subscription);
 		bus.start();
 		assertNotNull(bus.lookupChannel("channelToCreate"));
+		bus.stop();
+	}
+
+	@Test
+	public void testMultipleMessageBusElements() {
+		boolean exceptionThrown = false;
+		try {
+			new ClassPathXmlApplicationContext("multipleMessageBusElements.xml", this.getClass());
+		}
+		catch (BeanDefinitionStoreException e) {
+			exceptionThrown = true;
+			assertEquals(MessagingConfigurationException.class, e.getCause().getClass());
+		}
+		assertTrue(exceptionThrown);
+	}
+
+	@Test
+	public void testMessageBusElementAndBean() {
+		boolean exceptionThrown = false;
+		try {
+			new ClassPathXmlApplicationContext("messageBusElementAndBean.xml", this.getClass());
+		}
+		catch (BeanCreationException e) {
+			exceptionThrown = true;
+			assertEquals(MessagingConfigurationException.class, e.getCause().getClass());
+		}
+		assertTrue(exceptionThrown);
+	}
+
+	@Test
+	public void testAutoStartup() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"messageBusWithAutoStartup.xml", this.getClass());
+		MessageBus bus = (MessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
+		assertTrue(bus.isRunning());
 		bus.stop();
 	}
 

@@ -18,8 +18,8 @@ package org.springframework.integration.dispatcher;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -59,9 +59,11 @@ public class DefaultMessageDispatcher implements SchedulingMessageDispatcher, Me
 
 	private Schedule defaultSchedule = new PollingSchedule(5);
 
-	private Map<Schedule, List<MessageHandler>> scheduledHandlers = new ConcurrentHashMap<Schedule, List<MessageHandler>>();
+	private ConcurrentMap<Schedule, List<MessageHandler>> scheduledHandlers = new ConcurrentHashMap<Schedule, List<MessageHandler>>();
 
 	private AtomicLong totalMessagesProcessed = new AtomicLong();
+
+	private volatile boolean starting;
 
 	private volatile boolean running;
 
@@ -105,13 +107,13 @@ public class DefaultMessageDispatcher implements SchedulingMessageDispatcher, Me
 		if (this.isRunning() && handler instanceof Lifecycle) {
 			((Lifecycle) handler).start();
 		}
-		if (this.scheduledHandlers.containsKey(schedule)) {
-			this.scheduledHandlers.get(schedule).add(handler);
+		List<MessageHandler> handlers = this.scheduledHandlers.get(schedule);
+		if (handlers == null) {
+			handlers = this.scheduledHandlers.putIfAbsent(schedule, new CopyOnWriteArrayList<MessageHandler>());
 		}
-		else {
-			List<MessageHandler> handlerList = new CopyOnWriteArrayList<MessageHandler>();
-			handlerList.add(handler);
-			this.scheduledHandlers.put(schedule, handlerList);
+		this.scheduledHandlers.get(schedule).add(handler);
+		if (handlers == null && this.isRunning()) {
+			this.scheduleDispatcherTask(schedule);
 		}
 	}
 
@@ -120,6 +122,12 @@ public class DefaultMessageDispatcher implements SchedulingMessageDispatcher, Me
 	}
 
 	public void start() {
+		synchronized (this.lifecycleMonitor) {
+			if (this.isRunning() || this.starting) {
+				return;
+			}
+			this.starting = true;
+		}
 		if (this.scheduler == null) {
 			if (logger.isInfoEnabled()) {
 				logger.info("no scheduler was provided, will create one");
@@ -129,21 +137,26 @@ public class DefaultMessageDispatcher implements SchedulingMessageDispatcher, Me
 		if (!this.scheduler.isRunning()) {
 			this.scheduler.start();
 		}
-		if (this.isRunning()) {
-			return;
-		}
 		synchronized (this.lifecycleMonitor) {
 			for (Schedule schedule : this.scheduledHandlers.keySet()) {
-				List<MessageHandler> handlers = this.scheduledHandlers.get(schedule);
-				for (MessageHandler handler : handlers) {
-					if (handler instanceof Lifecycle) {
-						((Lifecycle) handler).start();
-					}
-				}
-				this.scheduler.schedule(new DispatcherTask(schedule));
+				scheduleDispatcherTask(schedule);
 			}
 			this.running = true;
+			this.starting = false;
 		}
+	}
+
+	private void scheduleDispatcherTask(Schedule schedule) {
+		if (!this.isRunning()) {
+			this.start();
+		}
+		List<MessageHandler> handlers = this.scheduledHandlers.get(schedule);
+		for (MessageHandler handler : handlers) {
+			if (handler instanceof Lifecycle) {
+				((Lifecycle) handler).start();
+			}
+		}
+		this.scheduler.schedule(new DispatcherTask(schedule));
 	}
 
 	public void stop() {
@@ -198,12 +211,9 @@ public class DefaultMessageDispatcher implements SchedulingMessageDispatcher, Me
 
 		private Schedule schedule;
 
-		private MessageDistributor distributor;
-
 
 		public DispatcherTask(Schedule schedule) {
 			this.schedule = (schedule != null) ? schedule : defaultSchedule;
-			this.distributor = getDistributor(this.schedule);
 		}
 
 		public Schedule getSchedule() {
@@ -211,7 +221,7 @@ public class DefaultMessageDispatcher implements SchedulingMessageDispatcher, Me
 		}
 
 		public void run() {
-			doDispatch(this.distributor);
+			doDispatch(getDistributor(this.schedule));
 		}
 	}
 

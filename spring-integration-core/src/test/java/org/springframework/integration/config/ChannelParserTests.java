@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
 import org.springframework.beans.FatalBeanException;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.channel.MessageChannel;
@@ -184,6 +185,20 @@ public class ChannelParserTests {
 				"channelParserTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("stringOrNumberChannel");
 		channel.send(new GenericMessage<Boolean>(true));
+	}
+
+	@Test
+	public void testChannelInteceptors() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"channelInterceptorParserTests.xml", this.getClass());
+		MessageChannel channel = (MessageChannel) context.getBean("channel");
+		TestChannelInterceptor interceptor = (TestChannelInterceptor) context.getBean("interceptor");
+		assertEquals(0, interceptor.getSendCount());
+		channel.send(new StringMessage("test"));
+		assertEquals(1, interceptor.getSendCount());
+		assertEquals(0, interceptor.getReceiveCount());
+		channel.receive();
+		assertEquals(1, interceptor.getReceiveCount());
 	}
 
 

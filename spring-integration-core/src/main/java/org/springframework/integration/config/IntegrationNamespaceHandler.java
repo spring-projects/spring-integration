@@ -36,6 +36,8 @@ public class IntegrationNamespaceHandler extends NamespaceHandlerSupport {
 		registerBeanDefinitionParser("source-adapter", new ChannelAdapterParser(true));
 		registerBeanDefinitionParser("target-adapter", new ChannelAdapterParser(false));
 		registerBeanDefinitionParser("endpoint", new EndpointParser());
+		registerBeanDefinitionParser("handler", new HandlerParser());
+		registerBeanDefinitionParser("handler-chain", new HandlerParser());
 		registerBeanDefinitionParser("file-source", new FileSourceAdapterParser());
 		registerBeanDefinitionParser("file-target", new FileTargetAdapterParser());
 		registerBeanDefinitionParser("jms-source", new JmsSourceAdapterParser());

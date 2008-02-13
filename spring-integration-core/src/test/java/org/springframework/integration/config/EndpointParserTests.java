@@ -17,17 +17,24 @@
 package org.springframework.integration.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
+import org.springframework.context.Lifecycle;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
+import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.message.selector.MessageSelectorRejectedException;
 
 /**
  * @author Mark Fisher
@@ -38,6 +45,19 @@ public class EndpointParserTests {
 	public void testSimpleEndpoint() throws InterruptedException {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"simpleEndpointTests.xml", this.getClass());
+		context.start();
+		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
+		TestHandler handler = (TestHandler) context.getBean("testHandler");
+		assertNull(handler.getMessageString());
+		channel.send(new GenericMessage<String>(1, "test"));
+		handler.getLatch().await(50, TimeUnit.MILLISECONDS);
+		assertEquals("test", handler.getMessageString());
+	}
+
+	@Test
+	public void testEndpointWithChildHandler() throws InterruptedException {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"endpointWithHandlerChildElement.xml", this.getClass());
 		context.start();
 		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
 		TestHandler handler = (TestHandler) context.getBean("testHandler");
@@ -82,6 +102,30 @@ public class EndpointParserTests {
 		assertEquals(77, concurrencyPolicy.getMaxSize());
 		assertEquals(777, concurrencyPolicy.getQueueCapacity());
 		assertEquals(7777, concurrencyPolicy.getKeepAliveSeconds());
+	}
+
+	@Test
+	public void testEndpointWithSelectorAccepts() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"endpointWithSelectors.xml", this.getClass());		
+		MessageHandler endpoint = (MessageHandler) context.getBean("endpoint");
+		((Lifecycle) endpoint).start();
+		Message<?> message = new StringMessage("test");
+		MessageChannel replyChannel = new SimpleChannel();
+		message.getHeader().setReplyChannel(replyChannel);
+		endpoint.handle(message);
+		Message<?> reply = replyChannel.receive(500);
+		assertNotNull(reply);
+		assertEquals("foo", reply.getPayload());
+	}
+
+	@Test(expected=MessageSelectorRejectedException.class)
+	public void testEndpointWithSelectorRejects() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"endpointWithSelectors.xml", this.getClass());		
+		MessageHandler endpoint = (MessageHandler) context.getBean("endpoint");
+		((Lifecycle) endpoint).start();
+		endpoint.handle(new GenericMessage<Integer>(123));
 	}
 
 }

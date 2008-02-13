@@ -7,16 +7,11 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<beans:bean class="org.springframework.integration.bus.MessageBus"/>
+	<handler id="handlerAdapter" ref="testBean" method="store"/>
 
-	<channel id="testChannel" capacity="50"/>
-
-	<endpoint input-channel="testChannel" handler-ref="testHandler">
-		<schedule period="100"/>
-	</endpoint>
-
-	<beans:bean id="testHandler" class="org.springframework.integration.config.TestHandler">
+	<beans:bean id="testBean" class="org.springframework.integration.config.TestBean">
 		<beans:constructor-arg value="1"/>
+		<beans:property name="replyMessageText" value="bar"/>
 	</beans:bean>
 
 </beans:beans>

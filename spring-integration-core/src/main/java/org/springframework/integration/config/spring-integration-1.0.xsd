@@ -24,6 +24,7 @@
 	Defines a message bus.
 				</xsd:documentation>
 			</xsd:annotation>
+			<xsd:attribute name="auto-startup" type="xsd:boolean"/>
 			<xsd:attribute name="auto-create-channels" type="xsd:boolean"/>
 			<xsd:attribute name="error-channel" type="xsd:string"/>
 			<xsd:attribute name="dispatcher-pool-size" type="xsd:int"/>
@@ -49,11 +50,23 @@
 			</xsd:annotation>
 			<xsd:sequence>
 				<xsd:element ref="dispatcher-policy" minOccurs="0" maxOccurs="1"/>
+				<xsd:element ref="interceptor" minOccurs="0" maxOccurs="unbounded"/>
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:ID" use="required"/>
 			<xsd:attribute name="capacity" type="xsd:integer"/>
 			<xsd:attribute name="publish-subscribe" type="xsd:boolean" default="false"/>
 			<xsd:attribute name="datatype" type="xsd:string"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="interceptor">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Provides a channel interceptor reference.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="ref" type="xsd:string" use="required"/>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -104,6 +117,7 @@
 					<xsd:sequence>
 						<xsd:element ref="schedule" minOccurs="0" maxOccurs="1"/>
 						<xsd:element ref="concurrency" minOccurs="0" maxOccurs="1"/>
+						<xsd:element ref="selector" minOccurs="0" maxOccurs="unbounded"/>
 						<xsd:element ref="handler" minOccurs="0" maxOccurs="unbounded"/>
 					</xsd:sequence>
 					<xsd:attribute name="input-channel" type="xsd:string"/>
@@ -140,6 +154,31 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="selector">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Provides a message selector reference.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="ref" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="handler-chain">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a MessageHandler chain.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:sequence>
+				<xsd:element ref="handler" minOccurs="1" maxOccurs="unbounded"/>
+			</xsd:sequence>
+			<xsd:attribute name="id" type="xsd:ID"/>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:element name="handler">
 		<xsd:complexType>
 			<xsd:annotation>
@@ -147,6 +186,7 @@
 	Defines a handler.
 				</xsd:documentation>
 			</xsd:annotation>
+			<xsd:attribute name="id" type="xsd:ID"/>
 			<xsd:attribute name="ref" type="xsd:string" use="required"/>
 			<xsd:attribute name="method" type="xsd:string"/>
 		</xsd:complexType>

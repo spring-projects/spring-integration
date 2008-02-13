@@ -73,6 +73,8 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 
 	private boolean autoCreateChannels;
 
+	private volatile boolean autoStartup = true;
+
 	private volatile boolean initialized;
 
 	private volatile boolean starting;
@@ -84,9 +86,16 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		Assert.notNull(applicationContext, "'applicationContext' must not be null");
+		if (applicationContext.getBeanNamesForType(this.getClass()).length > 1) {
+			throw new MessagingConfigurationException("Only one instance of '" + this.getClass().getSimpleName()
+					+ "' is allowed per ApplicationContext.");
+		}
 		this.registerChannels(applicationContext);
 		this.registerEndpoints(applicationContext);
 		this.registerSourceAdapters(applicationContext);
+		if (this.autoStartup) {
+			this.start();
+		}
 	}
 
 	public void setMessagingTaskScheduler(MessagingTaskScheduler taskScheduler) {
@@ -106,6 +115,15 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		if (this.taskScheduler != null && this.taskScheduler instanceof SimpleMessagingTaskScheduler) {
 			((SimpleMessagingTaskScheduler) this.taskScheduler).setCorePoolSize(dispatcherPoolSize);
 		}
+	}
+
+	/**
+	 * Set whether to automatically start the bus after initialization.
+	 * <p>Default is 'true'; set this to 'false' to allow for manual startup
+	 * through the {@link #start()} method.
+	 */
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
 	}
 
 	/**
@@ -226,6 +244,9 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			((ChannelRegistryAware) endpoint).setChannelRegistry(this.channelRegistry);
 		}
 		this.endpoints.put(name, endpoint);
+		if (this.isRunning()) {
+			activateEndpoint(endpoint);
+		}
 		if (logger.isInfoEnabled()) {
 			logger.info("registered endpoint '" + name + "'");
 		}

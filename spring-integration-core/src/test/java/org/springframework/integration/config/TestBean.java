@@ -27,21 +27,30 @@ public class TestBean {
 
 	private CountDownLatch latch;
 
+	private String replyMessageText = null;
+
 
 	public TestBean(int countdown) {
 		this.latch = new CountDownLatch(countdown);
+	}
+
+
+	public void setReplyMessageText(String replyMessageText) {
+		this.replyMessageText = replyMessageText;
 	}
 
 	public CountDownLatch getLatch() {
 		return this.latch;
 	}
 
-	public void store(String message) {
+	public String store(String message) {
 		this.message = message;
 		latch.countDown();
+		return this.replyMessageText;
 	}
 
 	public String getMessage() {
 		return this.message;
 	}
+
 }

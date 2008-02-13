@@ -24,6 +24,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
+import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.util.StringUtils;
 
@@ -36,18 +37,24 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 
 	public static final String MESSAGE_BUS_BEAN_NAME = "internal.MessageBus";
 
+	private static final Class<?> MESSAGE_BUS_CLASS = MessageBus.class;
+
 	private static final String ERROR_CHANNEL_ATTRIBUTE = "error-channel";
 
 
 	@Override
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
 			throws BeanDefinitionStoreException {
+		if (parserContext.getRegistry().containsBeanDefinition(MESSAGE_BUS_BEAN_NAME)) {
+			throw new MessagingConfigurationException("Only one instance of '" + MESSAGE_BUS_CLASS.getSimpleName()
+					+ "' is allowed per ApplicationContext.");
+		}
 		return MESSAGE_BUS_BEAN_NAME;
 	}
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
-		return MessageBus.class;
+		return MESSAGE_BUS_CLASS;
 	}
 
 	@Override

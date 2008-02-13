@@ -52,6 +52,8 @@ public class ChannelParser implements BeanDefinitionParser {
 
 	private static final String DATATYPE_ATTRIBUTE = "datatype";
 
+	private static final String INTERCEPTOR_ELEMENT = "interceptor";
+
 	private static final String INTERCEPTORS_PROPERTY = "interceptors";
 
 
@@ -60,6 +62,7 @@ public class ChannelParser implements BeanDefinitionParser {
 		channelDef.setSource(parserContext.extractSource(element));
 		boolean isPublishSubscribe = "true".equals(element.getAttribute(PUBLISH_SUBSCRIBE_ATTRIBUTE));
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy(isPublishSubscribe);
+		ManagedList interceptors = new ManagedList();
 		NodeList childNodes = element.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); i++) {
 			Node child = childNodes.item(i);
@@ -68,13 +71,16 @@ public class ChannelParser implements BeanDefinitionParser {
 				if (DISPATCHER_POLICY_ELEMENT.equals(localName)) {
 					configureDispatcherPolicy((Element) child, dispatcherPolicy);
 				}
+				else if (INTERCEPTOR_ELEMENT.equals(localName)) {
+					String ref = ((Element) child).getAttribute("ref");
+					interceptors.add(new RuntimeBeanReference(ref));
+				}
 			}
 		} 
 		String capAttr = element.getAttribute(CAPACITY_ATTRIBUTE);
 		int capacity = (StringUtils.hasText(capAttr)) ? Integer.parseInt(capAttr) : SimpleChannel.DEFAULT_CAPACITY;
 		channelDef.getConstructorArgumentValues().addIndexedArgumentValue(0, capacity);
 		channelDef.getConstructorArgumentValues().addIndexedArgumentValue(1, dispatcherPolicy);
-		ManagedList interceptors = new ManagedList();
 		String datatypeAttr = element.getAttribute(DATATYPE_ATTRIBUTE);
 		if (StringUtils.hasText(datatypeAttr)) {
 			String[] datatypes = StringUtils.commaDelimitedListToStringArray(datatypeAttr);
@@ -90,7 +96,6 @@ public class ChannelParser implements BeanDefinitionParser {
 			parserContext.registerBeanComponent(interceptorComponent);
 			interceptors.add(new RuntimeBeanReference(interceptorBeanName));
 		}
-		// TODO: parse interceptor sub-elements
 		channelDef.getPropertyValues().addPropertyValue(INTERCEPTORS_PROPERTY, interceptors);
 		String beanName = element.getAttribute(ID_ATTRIBUTE);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(channelDef, beanName));

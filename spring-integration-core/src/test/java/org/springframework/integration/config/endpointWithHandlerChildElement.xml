@@ -7,12 +7,13 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<beans:bean class="org.springframework.integration.bus.MessageBus"/>
+	<message-bus/>
 
 	<channel id="testChannel" capacity="50"/>
 
-	<endpoint input-channel="testChannel" handler-ref="testHandler">
+	<endpoint input-channel="testChannel">
 		<schedule period="100"/>
+		<handler ref="testHandler"/>
 	</endpoint>
 
 	<beans:bean id="testHandler" class="org.springframework.integration.config.TestHandler">

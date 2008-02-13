@@ -134,7 +134,10 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
 				Annotation annotation = AnnotationUtils.getAnnotation(method, Polled.class);
 				if (annotation != null) {
-					int period = ((Polled) annotation).period();
+					Polled polledAnnotation = (Polled) annotation;
+					int period = polledAnnotation.period();
+					long initialDelay = polledAnnotation.initialDelay();
+					boolean fixedRate = polledAnnotation.fixedRate();
 					MethodInvokingSource<Object> source = new MethodInvokingSource<Object>();
 					source.setObject(bean);
 					source.setMethod(method.getName());
@@ -146,7 +149,9 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 					messageBus.registerChannel(channelName, channel);
 					messageBus.registerSourceAdapter(beanName + "-sourceAdapter", adapter);
 					Subscription subscription = new Subscription(channel);
-					Schedule schedule = new PollingSchedule(period);
+					PollingSchedule schedule = new PollingSchedule(period);
+					schedule.setInitialDelay(initialDelay);
+					schedule.setFixedRate(fixedRate);
 					subscription.setSchedule(schedule);
 					endpoint.setSubscription(subscription);
 				}

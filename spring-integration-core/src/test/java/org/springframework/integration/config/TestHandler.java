@@ -20,6 +20,7 @@ import java.util.concurrent.CountDownLatch;
 
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -30,15 +31,22 @@ public class TestHandler implements MessageHandler {
 
 	private CountDownLatch latch;
 
+	private String replyMessageText = null;
+
 
 	public TestHandler(int countdown) {
 		this.latch = new CountDownLatch(countdown);
 	}
 
+
+	public void setReplyMessageText(String replyMessageText) {
+		this.replyMessageText = replyMessageText;
+	}
+
 	public Message handle(Message message) {
 		this.messageString = (String) message.getPayload();
 		this.latch.countDown();
-		return null;
+		return (this.replyMessageText != null) ? new StringMessage(this.replyMessageText) : null;
 	}
 
 	public String getMessageString() {

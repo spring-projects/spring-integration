@@ -27,13 +27,18 @@ import org.springframework.util.Assert;
  */
 public class PollingSchedule implements Schedule {
 
+	public static final long DEFAULT_INITIAL_DELAY = 0;
+
+	public static final boolean DEFAULT_FIXED_RATE = false;
+
+
 	private long period;
 
-	private long initialDelay = 0;
+	private long initialDelay = DEFAULT_INITIAL_DELAY;
 
 	private TimeUnit timeUnit = TimeUnit.MILLISECONDS;
 
-	private boolean fixedRate = false;
+	private boolean fixedRate = DEFAULT_FIXED_RATE;
 
 
 	/**

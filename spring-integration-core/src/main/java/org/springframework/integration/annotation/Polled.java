@@ -23,6 +23,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.integration.scheduling.PollingSchedule;
+
 /**
  * Indicates that a method is capable of providing messages. The method must not
  * accept any parameters but can return either a single object or collection.
@@ -38,5 +40,9 @@ import java.lang.annotation.Target;
 public @interface Polled {
 
 	int period() default 1000;
+
+	long initialDelay() default PollingSchedule.DEFAULT_INITIAL_DELAY;
+
+	boolean fixedRate() default PollingSchedule.DEFAULT_FIXED_RATE;
 
 }

@@ -27,7 +27,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.adapter.PollableSource;
 import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.adapter.SourceAdapter;
@@ -173,6 +175,19 @@ public class MessageBusTests {
 		assertTrue(message instanceof ErrorMessage);
 		assertEquals("intentional test failure", ((ErrorMessage) message).getPayload().getMessage());
 		bus.stop();
+	}
+
+	@Test
+	public void testMultipleMessageBusBeans() {
+		boolean exceptionThrown = false;
+		try {
+			new ClassPathXmlApplicationContext("multipleMessageBusBeans.xml", this.getClass());
+		}
+		catch (BeanCreationException e) {
+			exceptionThrown = true;
+			assertEquals(MessagingConfigurationException.class, e.getCause().getClass());
+		}
+		assertTrue(exceptionThrown);
 	}
 
 
