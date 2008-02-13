@@ -12,7 +12,7 @@
 
 	<context:component-scan base-package="org.springframework.integration.samples.oddeven"/>
 
-	<message-bus auto-create-channels="true"/>
+	<message-bus auto-create-channels="true" auto-startup="false"/>
 
 	<annotation-driven/>	
 
