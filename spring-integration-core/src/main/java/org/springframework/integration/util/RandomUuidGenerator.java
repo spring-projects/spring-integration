@@ -16,20 +16,20 @@
 
 package org.springframework.integration.util;
 
-import static org.junit.Assert.assertNotNull;
-
-import org.junit.Test;
+import java.io.Serializable;
+import java.util.UUID;
 
 /**
+ * An id generator that generates random UUIDs. This is the default
+ * implementation used by the integration system.
+ * 
  * @author Mark Fisher
  */
-public class RandomGuidUidGeneratorTests {
+@SuppressWarnings("serial")
+public class RandomUuidGenerator implements IdGenerator {
 
-	@Test
-	public void testGeneratedIdIsNotNull() {
-		UidGenerator generator = new RandomGuidUidGenerator();
-		Object id = generator.generateUid();
-		assertNotNull(id);
+	public Serializable generateId() {
+		return UUID.randomUUID();
 	}
 
 }

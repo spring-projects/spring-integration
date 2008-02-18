@@ -14,28 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration.util;
+
+import java.io.Serializable;
 
 /**
- * A {@link MessageMapper} implementation that simply wraps and unwraps a
- * payload object in a {@link Message}.
+ * A strategy for generating unique ids.
  * 
  * @author Mark Fisher
  */
-public class SimplePayloadMessageMapper<T> extends AbstractMessageMapper<T,T> {
+public interface IdGenerator {
 
 	/**
-	 * Return the payload of the given Message.
+	 * Generate a new unique id.
 	 */
-	public T fromMessage(Message<T> message) {
-		return message.getPayload();
-	}
-
-	/**
-	 * Return a {@link Message} with the given object as its payload.
-	 */
-	public Message<T> toMessage(T source) {
-		return new GenericMessage<T>(this.getIdGenerator().generateId(), source);
-	}
+	public Serializable generateId();
 
 }

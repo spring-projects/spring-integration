@@ -162,13 +162,18 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 	}
 
 	public void initialize() {
-		if (this.getErrorChannel() == null) {
-			this.setErrorChannel(new SimpleChannel(Integer.MAX_VALUE));
+		synchronized (this.lifecycleMonitor) {
+			if (this.initialized) {
+				return;
+			}
+			if (this.getErrorChannel() == null) {
+				this.setErrorChannel(new SimpleChannel(Integer.MAX_VALUE));
+			}
+			if (this.taskScheduler == null) {
+				this.setMessagingTaskScheduler(createDefaultScheduler());
+			}
+			this.initialized = true;
 		}
-		if (this.taskScheduler == null) {
-			this.setMessagingTaskScheduler(createDefaultScheduler());
-		}
-		this.initialized = true;
 	}
 
 	private MessagingTaskScheduler createDefaultScheduler() {

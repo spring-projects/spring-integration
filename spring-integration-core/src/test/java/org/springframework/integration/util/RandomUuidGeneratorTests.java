@@ -16,27 +16,20 @@
 
 package org.springframework.integration.util;
 
-import java.io.Serializable;
+import static org.junit.Assert.assertNotNull;
+
+import org.junit.Test;
 
 /**
- * A strategy for generating ids to uniquely identify integration artifacts such
- * as Messages.
- * 
- * @author Keith Donald
+ * @author Mark Fisher
  */
-public interface UidGenerator {
+public class RandomUuidGeneratorTests {
 
-	/**
-	 * Generate a new unique id.
-	 * @return a serializable id, guaranteed to be unique in some context
-	 */
-	public Serializable generateUid();
-
-	/**
-	 * Convert the string-encoded uid into its original object form.
-	 * @param encodedUid the string encoded uid
-	 * @return the converted uid
-	 */
-	public Serializable parseUid(String encodedUid);
+	@Test
+	public void testGeneratedIdIsNotNull() {
+		IdGenerator generator = new RandomUuidGenerator();
+		Object id = generator.generateId();
+		assertNotNull(id);
+	}
 
 }

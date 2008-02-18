@@ -49,7 +49,7 @@ import org.springframework.util.Assert;
  */
 public class DefaultMessageDispatcher implements SchedulingMessageDispatcher, MessagingTaskSchedulerAware {
 
-	protected Log logger = LogFactory.getLog(this.getClass());
+	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private final MessageChannel channel;
 
@@ -59,15 +59,15 @@ public class DefaultMessageDispatcher implements SchedulingMessageDispatcher, Me
 
 	private Schedule defaultSchedule = new PollingSchedule(5);
 
-	private ConcurrentMap<Schedule, List<MessageHandler>> scheduledHandlers = new ConcurrentHashMap<Schedule, List<MessageHandler>>();
+	private final ConcurrentMap<Schedule, List<MessageHandler>> scheduledHandlers = new ConcurrentHashMap<Schedule, List<MessageHandler>>();
 
-	private AtomicLong totalMessagesProcessed = new AtomicLong();
+	private final AtomicLong totalMessagesProcessed = new AtomicLong();
 
 	private volatile boolean starting;
 
 	private volatile boolean running;
 
-	private Object lifecycleMonitor = new Object();
+	private final Object lifecycleMonitor = new Object();
 
 
 	public DefaultMessageDispatcher(MessageChannel channel) {

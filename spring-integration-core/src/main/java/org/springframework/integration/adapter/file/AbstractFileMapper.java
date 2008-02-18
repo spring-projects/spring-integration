@@ -76,7 +76,7 @@ public abstract class AbstractFileMapper<T> extends AbstractMessageMapper<T, Fil
 			if (payload == null) {
 				return null;
 			}
-			Message<T> message = new GenericMessage<T>(this.getUidGenerator().generateUid(), payload);
+			Message<T> message = new GenericMessage<T>(this.getIdGenerator().generateId(), payload);
 			if (this.backupDirectory != null) {
 				FileWriter writer = new FileWriter(this.backupDirectory.getAbsolutePath() +
 						File.separator + file.getName());

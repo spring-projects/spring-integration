@@ -16,28 +16,28 @@
 
 package org.springframework.integration.message;
 
-import org.springframework.integration.util.RandomGuidUidGenerator;
-import org.springframework.integration.util.UidGenerator;
+import org.springframework.integration.util.RandomUuidGenerator;
+import org.springframework.integration.util.IdGenerator;
 import org.springframework.util.Assert;
 
 /**
- * Base class that provides the default {@link UidGenerator} as well as a setter
+ * Base class that provides the default {@link IdGenerator} as well as a setter
  * for providing a custom id generator implementation.
  * 
  * @author Mark Fisher
  */
 public abstract class AbstractMessageMapper<M, O> implements MessageMapper<M, O> {
 
-	private UidGenerator uidGenerator = new RandomGuidUidGenerator();
+	private IdGenerator idGenerator = new RandomUuidGenerator();
 
 
-	public void setUidGenerator(UidGenerator uidGenerator) {
-		Assert.notNull(uidGenerator, "'uidGenerator' must not be null");
-		this.uidGenerator = uidGenerator;
+	public void setIdGenerator(IdGenerator idGenerator) {
+		Assert.notNull(idGenerator, "'idGenerator' must not be null");
+		this.idGenerator = idGenerator;
 	}
 
-	public UidGenerator getUidGenerator() {
-		return this.uidGenerator;
+	protected IdGenerator getIdGenerator() {
+		return this.idGenerator;
 	}
 
 }
