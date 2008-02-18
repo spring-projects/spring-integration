@@ -27,15 +27,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.context.Lifecycle;
+import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.scheduling.MessagingTask;
 import org.springframework.integration.scheduling.MessagingTaskScheduler;
-import org.springframework.integration.scheduling.MessagingTaskSchedulerAware;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
-import org.springframework.integration.scheduling.SimpleMessagingTaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -47,7 +46,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class DefaultMessageDispatcher implements SchedulingMessageDispatcher, MessagingTaskSchedulerAware {
+public class DefaultMessageDispatcher implements SchedulingMessageDispatcher {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
@@ -55,32 +54,27 @@ public class DefaultMessageDispatcher implements SchedulingMessageDispatcher, Me
 
 	private final MessageRetriever retriever;
 
-	private MessagingTaskScheduler scheduler;
+	private final MessagingTaskScheduler scheduler;
 
-	private Schedule defaultSchedule = new PollingSchedule(5);
+	private volatile Schedule defaultSchedule = new PollingSchedule(5);
 
 	private final ConcurrentMap<Schedule, List<MessageHandler>> scheduledHandlers = new ConcurrentHashMap<Schedule, List<MessageHandler>>();
 
 	private final AtomicLong totalMessagesProcessed = new AtomicLong();
-
-	private volatile boolean starting;
 
 	private volatile boolean running;
 
 	private final Object lifecycleMonitor = new Object();
 
 
-	public DefaultMessageDispatcher(MessageChannel channel) {
+	public DefaultMessageDispatcher(MessageChannel channel, MessagingTaskScheduler scheduler) {
 		Assert.notNull(channel, "'channel' must not be null");
+		Assert.notNull(scheduler, "'scheduler' must not be null");
 		this.channel = channel;
+		this.scheduler = scheduler;
 		this.retriever = new ChannelPollingMessageRetriever(this.channel);
 	}
 
-
-	public void setMessagingTaskScheduler(MessagingTaskScheduler scheduler) {
-		Assert.notNull(scheduler, "'scheduler' must not be null");
-		this.scheduler = scheduler;
-	}
 
 	public void setDefaultSchedule(Schedule defaultSchedule) {
 		Assert.notNull(defaultSchedule, "'defaultSchedule' must not be null");
@@ -123,33 +117,23 @@ public class DefaultMessageDispatcher implements SchedulingMessageDispatcher, Me
 
 	public void start() {
 		synchronized (this.lifecycleMonitor) {
-			if (this.isRunning() || this.starting) {
+			if (this.running) {
 				return;
 			}
-			this.starting = true;
-		}
-		if (this.scheduler == null) {
-			if (logger.isInfoEnabled()) {
-				logger.info("no scheduler was provided, will create one");
+			if (this.scheduler == null) {
+				throw new MessagingConfigurationException("'scheduler' is required");
 			}
-			this.scheduler = new SimpleMessagingTaskScheduler();
-		}
-		if (!this.scheduler.isRunning()) {
-			this.scheduler.start();
-		}
-		synchronized (this.lifecycleMonitor) {
+			if (!this.scheduler.isRunning()) {
+				this.scheduler.start();
+			}
 			for (Schedule schedule : this.scheduledHandlers.keySet()) {
 				scheduleDispatcherTask(schedule);
 			}
 			this.running = true;
-			this.starting = false;
 		}
 	}
 
 	private void scheduleDispatcherTask(Schedule schedule) {
-		if (!this.isRunning()) {
-			this.start();
-		}
 		List<MessageHandler> handlers = this.scheduledHandlers.get(schedule);
 		for (MessageHandler handler : handlers) {
 			if (handler instanceof Lifecycle) {
@@ -160,7 +144,7 @@ public class DefaultMessageDispatcher implements SchedulingMessageDispatcher, Me
 	}
 
 	public void stop() {
-		if (!this.isRunning()) {
+		if (!this.running) {
 			return;
 		}
 		synchronized (this.lifecycleMonitor) {

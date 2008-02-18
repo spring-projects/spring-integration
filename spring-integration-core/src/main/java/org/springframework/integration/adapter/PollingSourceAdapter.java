@@ -17,6 +17,7 @@
 package org.springframework.integration.adapter;
 
 import java.util.Collection;
+import java.util.concurrent.Executors;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.MessageChannel;
@@ -97,9 +98,7 @@ public class PollingSourceAdapter<T> extends AbstractSourceAdapter<T> implements
 			if (logger.isInfoEnabled()) {
 				logger.info("no task scheduler has been provided, will create one");
 			}
-			SimpleMessagingTaskScheduler taskScheduler = new SimpleMessagingTaskScheduler();
-			taskScheduler.setCorePoolSize(1);
-			this.scheduler = taskScheduler;
+			this.scheduler = new SimpleMessagingTaskScheduler(Executors.newSingleThreadScheduledExecutor());
 		}
 		if (!this.scheduler.isRunning()) {
 			this.scheduler.start();

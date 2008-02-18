@@ -21,12 +21,9 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.util.ErrorHandler;
-import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 
 /**
@@ -35,55 +32,33 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class SimpleMessagingTaskScheduler extends AbstractMessagingTaskScheduler implements InitializingBean {
+public class SimpleMessagingTaskScheduler extends AbstractMessagingTaskScheduler {
 
-	private ScheduledExecutorService executor;
+	private final ScheduledExecutorService executor;
 
-	private int corePoolSize = 10;
+	private volatile ErrorHandler errorHandler;
 
-	private ThreadFactory threadFactory;
+	private final Set<Runnable> pendingTasks = new CopyOnWriteArraySet<Runnable>();
 
-	private String threadNamePrefix = this.getClass().getSimpleName() + "-";
-
-	private ErrorHandler errorHandler;
-
-	private Set<Runnable> pendingTasks = new CopyOnWriteArraySet<Runnable>();
+	private volatile boolean starting;
 
 	private volatile boolean running;
 
-	private Object lifecycleMonitor = new Object();
+	private final Object lifecycleMonitor = new Object();
 
 
-	public void setExecutor(ScheduledExecutorService executor) {
+	public SimpleMessagingTaskScheduler(int corePoolSize) {
+		this(new ScheduledThreadPoolExecutor(corePoolSize));
+	}
+
+	public SimpleMessagingTaskScheduler(ScheduledExecutorService executor) {
 		Assert.notNull(executor, "'executor' must not be null");
 		this.executor = executor;
 	}
 
-	public void setCorePoolSize(int corePoolSize) {
-		Assert.isTrue(corePoolSize > 0, "'corePoolSize' must be greater than 0");
-		this.corePoolSize = corePoolSize;
-	}
-
-	public void setThreadFactory(ThreadFactory threadFactory) {
-		this.threadFactory = threadFactory;
-	}
-
-	public void setThreadNamePrefix(String threadNamePrefix) {
-		Assert.notNull(threadNamePrefix, "'threadNamePrefix' must not be null");
-		this.threadNamePrefix = threadNamePrefix;
-	}
 
 	public void setErrorHandler(ErrorHandler errorHandler) {
 		this.errorHandler = errorHandler;
-	}
-
-	public void afterPropertiesSet() {
-		if (this.executor == null) {
-			if (this.threadFactory == null) {
-				this.threadFactory = new CustomizableThreadFactory(this.threadNamePrefix);
-			}
-			this.executor = new ScheduledThreadPoolExecutor(this.corePoolSize, this.threadFactory);
-		}
 	}
 
 	public boolean isRunning() {
@@ -91,22 +66,26 @@ public class SimpleMessagingTaskScheduler extends AbstractMessagingTaskScheduler
 	}
 
 	public void start() {
-		if (this.executor == null) {
-			this.afterPropertiesSet();
-		}
 		synchronized (this.lifecycleMonitor) {
-			this.running = true;
-			for (Runnable task : this.pendingTasks) {
-				this.schedule(task);
+			if (this.running || this.starting) {
+				return;
 			}
-			this.pendingTasks.clear();
+			this.starting = true;
 		}
+		for (Runnable task : this.pendingTasks) {
+			this.schedule(task);
+		}
+		this.pendingTasks.clear();
+		this.running = true;
+		this.starting = false;
 	}
 
 	public void stop() {
-		if (this.isRunning()) {
-			this.running = false;
-			this.executor.shutdownNow();
+		synchronized (this.lifecycleMonitor) {
+			if (this.running) {
+				this.executor.shutdownNow();
+				this.running = false;
+			}
 		}
 	}
 

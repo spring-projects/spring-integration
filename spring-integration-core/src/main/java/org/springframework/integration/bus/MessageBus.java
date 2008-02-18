@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -47,7 +49,6 @@ import org.springframework.integration.scheduling.MessagingTaskSchedulerAware;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.integration.scheduling.SimpleMessagingTaskScheduler;
 import org.springframework.integration.scheduling.Subscription;
-import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 
 /**
@@ -58,21 +59,24 @@ import org.springframework.util.Assert;
  */
 public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lifecycle {
 
-	private Log logger = LogFactory.getLog(this.getClass());
+	private static final int DEFAULT_DISPATCHER_POOL_SIZE = 10;
 
-	private ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 
-	private Map<String, MessageEndpoint> endpoints = new ConcurrentHashMap<String, MessageEndpoint>();
+	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private Map<MessageChannel, SchedulingMessageDispatcher> dispatchers = new ConcurrentHashMap<MessageChannel, SchedulingMessageDispatcher>();
+	private final ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 
-	private List<Lifecycle> lifecycleSourceAdapters = new CopyOnWriteArrayList<Lifecycle>();
+	private final Map<String, MessageEndpoint> endpoints = new ConcurrentHashMap<String, MessageEndpoint>();
 
-	private MessagingTaskScheduler taskScheduler;
+	private final Map<MessageChannel, SchedulingMessageDispatcher> dispatchers = new ConcurrentHashMap<MessageChannel, SchedulingMessageDispatcher>();
 
-	private int dispatcherPoolSize = 10;
+	private final List<Lifecycle> lifecycleSourceAdapters = new CopyOnWriteArrayList<Lifecycle>();
 
-	private boolean autoCreateChannels;
+	private volatile MessagingTaskScheduler taskScheduler;
+
+	private volatile ScheduledExecutorService executor;
+
+	private volatile boolean autoCreateChannels;
 
 	private volatile boolean autoStartup = true;
 
@@ -82,7 +86,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 
 	private volatile boolean running;
 
-	private Object lifecycleMonitor = new Object();
+	private final Object lifecycleMonitor = new Object();
 
 
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -99,23 +103,11 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		}
 	}
 
-	public void setMessagingTaskScheduler(MessagingTaskScheduler taskScheduler) {
-		Assert.notNull(taskScheduler, "task scheduler must not be null");
-		if (taskScheduler instanceof SimpleMessagingTaskScheduler) {
-			((SimpleMessagingTaskScheduler) taskScheduler).setCorePoolSize(dispatcherPoolSize);
-		}
-		this.taskScheduler = taskScheduler;
-	}
-
 	/**
-	 * Set the size for the dispatcher thread pool.
+	 * Set the {@link ScheduledExecutorService} to use for scheduling message dispatchers.
 	 */
-	public void setDispatcherPoolSize(int dispatcherPoolSize) {
-		Assert.isTrue(dispatcherPoolSize > 0, "'dispatcherPoolSize' must be at least 1");
-		this.dispatcherPoolSize = dispatcherPoolSize;
-		if (this.taskScheduler != null && this.taskScheduler instanceof SimpleMessagingTaskScheduler) {
-			((SimpleMessagingTaskScheduler) this.taskScheduler).setCorePoolSize(dispatcherPoolSize);
-		}
+	public void setScheduledExecutorService(ScheduledExecutorService executor) {
+		this.executor = executor;
 	}
 
 	/**
@@ -170,23 +162,14 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			if (this.getErrorChannel() == null) {
 				this.setErrorChannel(new SimpleChannel(Integer.MAX_VALUE));
 			}
-			if (this.taskScheduler == null) {
-				this.setMessagingTaskScheduler(createDefaultScheduler());
+			if (this.executor == null) {
+				this.executor = new ScheduledThreadPoolExecutor(DEFAULT_DISPATCHER_POOL_SIZE);
 			}
+			SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(this.executor);
+			scheduler.setErrorHandler(new MessagePublishingErrorHandler(this.getErrorChannel()));
+			this.taskScheduler = scheduler;
 			this.initialized = true;
 		}
-	}
-
-	private MessagingTaskScheduler createDefaultScheduler() {
-		CustomizableThreadFactory threadFactory = new CustomizableThreadFactory();
-		threadFactory.setThreadNamePrefix("dispatcher-executor-");
-		threadFactory.setThreadGroup(new ThreadGroup("dispatcher-executors"));
-		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler();
-		scheduler.setCorePoolSize(this.dispatcherPoolSize);
-		scheduler.setThreadFactory(threadFactory);
-		scheduler.setErrorHandler(new MessagePublishingErrorHandler(this.getErrorChannel()));
-		scheduler.afterPropertiesSet();
-		return scheduler;
 	}
 
 	public MessageChannel getErrorChannel() {
@@ -206,8 +189,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			this.initialize();
 		}
 		channel.setName(name);
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
-		dispatcher.setMessagingTaskScheduler(this.taskScheduler);
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, this.taskScheduler);
 		this.dispatchers.put(channel, dispatcher);
 		this.channelRegistry.registerChannel(name, channel);
 		if (logger.isInfoEnabled()) {

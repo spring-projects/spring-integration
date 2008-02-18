@@ -37,6 +37,7 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.scheduling.SimpleMessagingTaskScheduler;
 
 /**
  * @author Mark Fisher
@@ -66,7 +67,8 @@ public class ChannelParserTests {
 				"channelParserTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("pointToPointChannelByDefault");
 		channel.send(new StringMessage("test"));
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
+		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(1);
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		AtomicInteger counter = new AtomicInteger();
 		CountDownLatch latch = new CountDownLatch(1);
 		TestHandler handler1 = new TestHandler(counter, latch);
@@ -85,7 +87,8 @@ public class ChannelParserTests {
 				"channelParserTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("pointToPointChannelExplicitlyConfigured");
 		channel.send(new StringMessage("test"));
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
+		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(1);
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		AtomicInteger counter = new AtomicInteger();
 		CountDownLatch latch = new CountDownLatch(1);
 		TestHandler handler1 = new TestHandler(counter, latch);
@@ -104,7 +107,8 @@ public class ChannelParserTests {
 				"channelParserTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("publishSubscribeChannel");
 		channel.send(new StringMessage("test"));
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
+		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(1);
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		AtomicInteger counter = new AtomicInteger();
 		CountDownLatch latch = new CountDownLatch(2);
 		TestHandler handler1 = new TestHandler(counter, latch);

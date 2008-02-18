@@ -29,6 +29,7 @@ import org.springframework.integration.dispatcher.DefaultMessageDispatcher;
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.scheduling.SimpleMessagingTaskScheduler;
 
 /**
  * @author Mark Fisher
@@ -64,7 +65,8 @@ public class ByteStreamTargetAdapterTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(3);
 		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
-		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
+		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(1);
+		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		dispatcher.addHandler(adapter);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
@@ -83,7 +85,8 @@ public class ByteStreamTargetAdapterTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
-		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
+		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(1);
+		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		dispatcher.addHandler(adapter);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
@@ -102,7 +105,8 @@ public class ByteStreamTargetAdapterTests {
 		dispatcherPolicy.setMaxMessagesPerTask(5);
 		dispatcherPolicy.setReceiveTimeout(0);
 		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
-		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
+		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(1);
+		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		dispatcher.addHandler(adapter);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
@@ -121,7 +125,8 @@ public class ByteStreamTargetAdapterTests {
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		dispatcherPolicy.setReceiveTimeout(0);
 		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
-		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
+		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(1);
+		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		dispatcher.addHandler(adapter);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
@@ -145,7 +150,8 @@ public class ByteStreamTargetAdapterTests {
 		dispatcherPolicy.setMaxMessagesPerTask(5);
 		dispatcherPolicy.setReceiveTimeout(0);
 		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
-		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
+		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(1);
+		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		dispatcher.addHandler(adapter);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
@@ -168,7 +174,8 @@ public class ByteStreamTargetAdapterTests {
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		dispatcherPolicy.setReceiveTimeout(0);
 		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
-		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
+		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(1);
+		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		dispatcher.addHandler(adapter);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
@@ -191,7 +198,8 @@ public class ByteStreamTargetAdapterTests {
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		dispatcherPolicy.setReceiveTimeout(0);
 		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
-		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
+		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(1);
+		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		dispatcher.addHandler(adapter);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);

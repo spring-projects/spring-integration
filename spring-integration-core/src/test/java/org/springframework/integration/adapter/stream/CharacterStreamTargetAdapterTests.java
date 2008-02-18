@@ -29,11 +29,15 @@ import org.springframework.integration.dispatcher.DefaultMessageDispatcher;
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.scheduling.SimpleMessagingTaskScheduler;
 
 /**
  * @author Mark Fisher
  */
 public class CharacterStreamTargetAdapterTests {
+
+	private SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(1);
+
 
 	@Test
 	public void testSingleString() {
@@ -49,7 +53,7 @@ public class CharacterStreamTargetAdapterTests {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		MessageChannel channel = new SimpleChannel();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
-		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
+		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		dispatcher.addHandler(adapter);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
@@ -67,7 +71,7 @@ public class CharacterStreamTargetAdapterTests {
 		MessageChannel channel = new SimpleChannel();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
 		adapter.setShouldAppendNewLine(true);
-		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
+		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		dispatcher.addHandler(adapter);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
@@ -87,7 +91,7 @@ public class CharacterStreamTargetAdapterTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
-		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
+		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		dispatcher.addHandler(adapter);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
@@ -104,7 +108,7 @@ public class CharacterStreamTargetAdapterTests {
 		dispatcherPolicy.setMaxMessagesPerTask(10);
 		dispatcherPolicy.setReceiveTimeout(0);
 		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
-		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
+		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		adapter.setShouldAppendNewLine(true);
 		dispatcher.addHandler(adapter);
 		channel.send(new StringMessage("foo"), 0);
@@ -120,7 +124,7 @@ public class CharacterStreamTargetAdapterTests {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		MessageChannel channel = new SimpleChannel();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
-		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
+		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		dispatcher.addHandler(adapter);
 		TestObject testObject = new TestObject("foo");
 		channel.send(new GenericMessage<TestObject>(testObject));
@@ -138,7 +142,7 @@ public class CharacterStreamTargetAdapterTests {
 		dispatcherPolicy.setReceiveTimeout(0);
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
-		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
+		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		dispatcher.addHandler(adapter);
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
@@ -157,7 +161,7 @@ public class CharacterStreamTargetAdapterTests {
 		dispatcherPolicy.setReceiveTimeout(0);
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel);
+		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		adapter.setShouldAppendNewLine(true);
 		dispatcher.addHandler(adapter);
 		TestObject testObject1 = new TestObject("foo");
