@@ -20,7 +20,6 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
 
-import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.channel.ChannelRegistry;
@@ -28,6 +27,7 @@ import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.AbstractMessageHandlerAdapter;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.util.SimpleMethodInvoker;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;

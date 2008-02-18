@@ -20,7 +20,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.message.MessageDeliveryException;
 
 /**
  * @author Mark Fisher

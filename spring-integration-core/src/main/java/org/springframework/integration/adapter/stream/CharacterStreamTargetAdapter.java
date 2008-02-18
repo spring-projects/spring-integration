@@ -21,8 +21,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 
-import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.adapter.AbstractTargetAdapter;
+import org.springframework.integration.message.MessageHandlingException;
 
 /**
  * A target adapter that writes to an {@link OutputStream}. String-based

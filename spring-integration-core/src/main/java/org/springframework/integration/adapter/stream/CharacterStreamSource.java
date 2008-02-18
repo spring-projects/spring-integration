@@ -24,8 +24,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.adapter.PollableSource;
+import org.springframework.integration.message.MessageDeliveryException;
 
 /**
  * A pollable source for text-based {@link InputStream InputStreams}.

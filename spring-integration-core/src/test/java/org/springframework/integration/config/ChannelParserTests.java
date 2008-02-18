@@ -29,13 +29,13 @@ import org.junit.Test;
 import org.springframework.beans.FatalBeanException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.dispatcher.DefaultMessageDispatcher;
 import org.springframework.integration.dispatcher.DispatcherPolicy;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.StringMessage;
 
 /**

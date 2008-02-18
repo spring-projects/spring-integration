@@ -19,10 +19,10 @@ package org.springframework.integration.adapter.jms;
 import javax.jms.JMSException;
 import javax.jms.MessageListener;
 
-import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageMapper;
 import org.springframework.integration.message.SimplePayloadMessageMapper;
 import org.springframework.jms.support.converter.MessageConverter;

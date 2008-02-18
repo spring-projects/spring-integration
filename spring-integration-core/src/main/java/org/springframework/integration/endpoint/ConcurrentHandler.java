@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler;
+package org.springframework.integration.endpoint;
 
 import java.util.concurrent.ExecutorService;
 
@@ -22,6 +22,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.handler.MessageHandlerNotRunningException;
+import org.springframework.integration.handler.MessageHandlerRejectedExecutionException;
+import org.springframework.integration.handler.ReplyHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.util.ErrorHandler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;

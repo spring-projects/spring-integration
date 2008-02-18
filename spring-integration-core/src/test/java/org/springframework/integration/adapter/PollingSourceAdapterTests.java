@@ -27,9 +27,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
-import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageHandlingException;
 
 /**
  * @author Mark Fisher

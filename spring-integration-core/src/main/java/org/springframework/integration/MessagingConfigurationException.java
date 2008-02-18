@@ -24,12 +24,12 @@ package org.springframework.integration;
 @SuppressWarnings("serial")
 public class MessagingConfigurationException extends MessagingException {
 
-	public MessagingConfigurationException(String message) {
-		super(message);
+	public MessagingConfigurationException(String description) {
+		super(description);
 	}
 
-	public MessagingConfigurationException(String message, Throwable cause) {
-		super(message, cause);
+	public MessagingConfigurationException(String description, Throwable cause) {
+		super(description, cause);
 	}
 
 }

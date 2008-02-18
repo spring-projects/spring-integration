@@ -16,7 +16,7 @@
 
 package org.springframework.integration.handler;
 
-import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.message.MessageHandlingException;
 
 /**
  * An exception indicating that a handler is not currently running.

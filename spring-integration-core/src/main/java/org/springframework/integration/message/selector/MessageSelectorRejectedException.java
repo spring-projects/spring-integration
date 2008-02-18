@@ -16,7 +16,7 @@
 
 package org.springframework.integration.message.selector;
 
-import org.springframework.integration.MessageHandlingException;
+import org.springframework.integration.message.MessageHandlingException;
 
 /**
  * An exception indicating that a message was rejected by an implementation of

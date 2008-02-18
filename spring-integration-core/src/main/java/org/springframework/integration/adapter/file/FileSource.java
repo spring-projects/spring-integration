@@ -23,8 +23,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.adapter.PollableSource;
+import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.util.Assert;
 
 /**

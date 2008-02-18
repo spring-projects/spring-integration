@@ -23,13 +23,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
-import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.StringMessage;
 
 /**

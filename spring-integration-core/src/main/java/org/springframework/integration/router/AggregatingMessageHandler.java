@@ -18,9 +18,9 @@ package org.springframework.integration.router;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.util.Assert;
 
 /**

@@ -24,11 +24,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.integration.MessageDeliveryException;
-import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerNotRunningException;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.selector.MessageSelectorRejectedException;
 import org.springframework.util.Assert;
 

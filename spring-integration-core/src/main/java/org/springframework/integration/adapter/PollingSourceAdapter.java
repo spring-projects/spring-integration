@@ -19,8 +19,8 @@ package org.springframework.integration.adapter;
 import java.util.Collection;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageMapper;
 import org.springframework.integration.scheduling.MessagingTask;
 import org.springframework.integration.scheduling.MessagingTaskScheduler;

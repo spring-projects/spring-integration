@@ -29,18 +29,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
-import org.springframework.integration.MessageDeliveryException;
 import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.dispatcher.DefaultMessageDispatcher;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
+import org.springframework.integration.endpoint.ConcurrentHandler;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
-import org.springframework.integration.handler.ConcurrentHandler;
 import org.springframework.integration.handler.InterceptingMessageHandler;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerRejectedExecutionException;
 import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.selector.PayloadTypeSelector;
 import org.springframework.integration.scheduling.MessagePublishingErrorHandler;

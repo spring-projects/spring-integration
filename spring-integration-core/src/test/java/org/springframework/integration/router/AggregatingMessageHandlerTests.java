@@ -28,10 +28,10 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
-import org.springframework.integration.MessageHandlingException;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 

@@ -28,12 +28,12 @@ public class MessagingException extends RuntimeException {
 		super();
 	}
 
-	public MessagingException(String message) {
-		super(message);
+	public MessagingException(String description) {
+		super(description);
 	}
 
-	public MessagingException(String message, Throwable cause) {
-		super(message, cause);
+	public MessagingException(String description, Throwable cause) {
+		super(description, cause);
 	}
 
 }

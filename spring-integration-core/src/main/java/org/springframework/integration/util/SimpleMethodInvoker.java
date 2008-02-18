@@ -18,7 +18,7 @@ package org.springframework.integration.util;
 
 import java.lang.reflect.InvocationTargetException;
 
-import org.springframework.integration.MessageDeliveryException;
+import org.springframework.integration.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.MethodInvoker;
 import org.springframework.util.ObjectUtils;
@@ -62,11 +62,11 @@ public class SimpleMethodInvoker<T> {
 			return methodInvoker.invoke();
 		}
 		catch (InvocationTargetException e) {
-			throw new MessageDeliveryException(
+			throw new MessagingException(
 					"Method '" + this.method + "' threw exception", e.getTargetException());
 		}
 		catch (Throwable e) {
-			throw new MessageDeliveryException("Failed to invoke method '" + this.method +
+			throw new MessagingException("Failed to invoke method '" + this.method +
 					"' with arguments " + ObjectUtils.nullSafeToString(args), e);
 		}
 	}
