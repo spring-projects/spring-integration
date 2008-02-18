@@ -138,7 +138,7 @@ public class AggregatingMessageHandlerTests {
 		message.getHeader().setCorrelationId(correlationId);
 		message.getHeader().setSequenceSize(sequenceSize);
 		message.getHeader().setSequenceNumber(sequenceNumber);
-		message.getHeader().setReplyChannel(replyChannel);
+		message.getHeader().setReturnAddress(replyChannel);
 		return message;
 	}
 
@@ -182,7 +182,13 @@ public class AggregatingMessageHandlerTests {
 			try {
 				Message<?> result = this.aggregator.handle(message);
 				if (result != null) {
-					message.getHeader().getReplyChannel().send(result);
+					Object returnAddress = message.getHeader().getReturnAddress();
+					if (returnAddress instanceof MessageChannel) {
+						((MessageChannel) returnAddress).send(result);
+					}
+					else {
+						throw new IllegalStateException("'returnAddress' was not a MessageChannel instance");
+					}
 				}
 			}
 			catch (Exception e) {

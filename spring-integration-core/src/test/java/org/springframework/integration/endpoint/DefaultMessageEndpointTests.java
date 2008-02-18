@@ -82,7 +82,7 @@ public class DefaultMessageEndpointTests {
 		endpoint.setHandler(handler);
 		endpoint.start();
 		StringMessage testMessage = new StringMessage(1, "test");
-		testMessage.getHeader().setReplyChannel(replyChannel);
+		testMessage.getHeader().setReturnAddress(replyChannel);
 		endpoint.handle(testMessage);
 		endpoint.stop();
 		Message<?> reply = replyChannel.receive(50);
@@ -105,7 +105,7 @@ public class DefaultMessageEndpointTests {
 		endpoint.setHandler(handler);
 		endpoint.start();
 		StringMessage testMessage = new StringMessage(1, "test");
-		testMessage.getHeader().setReplyChannelName("replyChannel");
+		testMessage.getHeader().setReturnAddress("replyChannel");
 		endpoint.handle(testMessage);
 		endpoint.stop();
 		Message<?> reply = replyChannel.receive(50);
@@ -114,7 +114,7 @@ public class DefaultMessageEndpointTests {
 	}
 
 	@Test
-	public void testReplyChannelTakesPrecedenceOverReplyChannelName() throws Exception {
+	public void testDynamicReplyChannel() throws Exception {
 		final MessageChannel replyChannel1 = new SimpleChannel();
 		final MessageChannel replyChannel2 = new SimpleChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
@@ -125,18 +125,25 @@ public class DefaultMessageEndpointTests {
 			}
 		};
 		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint();
+		endpoint.setChannelRegistry(channelRegistry);
 		endpoint.setHandler(handler);
 		endpoint.start();
-		StringMessage testMessage = new StringMessage(1, "test");
-		testMessage.getHeader().setReplyChannel(replyChannel1);
-		testMessage.getHeader().setReplyChannelName("replyChannel2");
+		StringMessage testMessage = new StringMessage("test");
+		testMessage.getHeader().setReturnAddress(replyChannel1);
 		endpoint.handle(testMessage);
-		endpoint.stop();
 		Message<?> reply1 = replyChannel1.receive(50);
 		assertNotNull(reply1);
 		assertEquals("hello test", reply1.getPayload());
 		Message<?> reply2 = replyChannel2.receive(0);
 		assertNull(reply2);
+		testMessage.getHeader().setReturnAddress("replyChannel2");
+		endpoint.handle(testMessage);
+		reply1 = replyChannel1.receive(0);
+		assertNull(reply1);
+		reply2 = replyChannel2.receive(0);
+		assertNotNull(reply2);	
+		assertEquals("hello test", reply2.getPayload());	
+		endpoint.stop();
 	}
 
 	@Test
@@ -249,7 +256,7 @@ public class DefaultMessageEndpointTests {
 		endpoint.setHandler(new ConcurrentHandler(handler, createExecutor()));
 		endpoint.start();
 		StringMessage message = new StringMessage(1, "test");
-		message.getHeader().setReplyChannelName("replyChannel");
+		message.getHeader().setReturnAddress("replyChannel");
 		endpoint.handle(message);
 		endpoint.stop();
 		latch.await(500, TimeUnit.MILLISECONDS);
@@ -304,7 +311,7 @@ public class DefaultMessageEndpointTests {
 		endpoint.setConcurrencyPolicy(new ConcurrencyPolicy(3, 14));
 		endpoint.start();
 		StringMessage message = new StringMessage(1, "test");
-		message.getHeader().setReplyChannelName("replyChannel");
+		message.getHeader().setReturnAddress("replyChannel");
 		endpoint.handle(message);
 		endpoint.stop();
 		latch.await(500, TimeUnit.MILLISECONDS);

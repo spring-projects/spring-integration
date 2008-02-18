@@ -23,8 +23,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.integration.channel.MessageChannel;
-
 /**
  * A holder for Message metadata. This includes information that may be used by
  * the messaging system (such as <i>correlationId</i>) as well as information
@@ -36,23 +34,21 @@ import org.springframework.integration.channel.MessageChannel;
  */
 public class MessageHeader {
 
-	private Date timestamp = new Date();
+	private final Date timestamp = new Date();
 
-	private Date expiration;
+	private volatile Date expiration;
 
-	private Object correlationId;
+	private volatile Object correlationId;
 
-	private MessageChannel replyChannel;
+	private volatile Object returnAddress;
 
-	private String replyChannelName;
+	private volatile int sequenceNumber = 1;
 
-	private int sequenceNumber = 1;
+	private volatile int sequenceSize = 1;
 
-	private int sequenceSize = 1;
+	private final Properties properties = new Properties();
 
-	private Properties properties = new Properties();
-
-	private Map<String, Object> attributes = new ConcurrentHashMap<String, Object>();
+	private final Map<String, Object> attributes = new ConcurrentHashMap<String, Object>();
 
 
 	/**
@@ -86,20 +82,12 @@ public class MessageHeader {
 		this.correlationId = correlationId;
 	}
 
-	public MessageChannel getReplyChannel() {
-		return this.replyChannel;
+	public Object getReturnAddress() {
+		return this.returnAddress;
 	}
 
-	public void setReplyChannel(MessageChannel replyChannel) {
-		this.replyChannel = replyChannel;
-	}
-
-	public String getReplyChannelName() {
-		return this.replyChannelName;
-	}
-
-	public void setReplyChannelName(String replyChannelName) {
-		this.replyChannelName = replyChannelName;
+	public void setReturnAddress(Object returnAddress) {
+		this.returnAddress = returnAddress;
 	}
 
 	public int getSequenceNumber() {

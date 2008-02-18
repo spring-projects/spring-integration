@@ -243,18 +243,17 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 	}
 
 	private MessageChannel resolveReplyChannel(MessageHeader originalMessageHeader) {
-		MessageChannel replyChannel = originalMessageHeader.getReplyChannel();
-		if (replyChannel != null) {
-			return replyChannel;
+		Object returnAddress = originalMessageHeader.getReturnAddress();
+		if (returnAddress instanceof MessageChannel) {
+			return (MessageChannel) returnAddress;
 		}
-		if (this.channelRegistry == null) {
-			return null;
+		if (returnAddress instanceof String && this.channelRegistry != null) {
+			String channelName = (String) returnAddress;
+			if (StringUtils.hasText(channelName)) {
+				return this.channelRegistry.lookupChannel(channelName);
+			}
 		}
-		String replyChannelName = originalMessageHeader.getReplyChannelName();
-		if (StringUtils.hasText(replyChannelName)) {
-			return this.channelRegistry.lookupChannel(replyChannelName);
-		}
-		if (this.defaultOutputChannelName != null) {
+		if (this.defaultOutputChannelName != null && this.channelRegistry != null) {
 			return this.channelRegistry.lookupChannel(this.defaultOutputChannelName);
 		}
 		return null;

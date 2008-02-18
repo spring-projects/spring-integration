@@ -55,7 +55,7 @@ public class MessageBusTests {
 		MessageChannel targetChannel = new SimpleChannel();
 		bus.registerChannel("sourceChannel", sourceChannel);
 		StringMessage message = new StringMessage("test");
-		message.getHeader().setReplyChannelName("targetChannel");
+		message.getHeader().setReturnAddress("targetChannel");
 		sourceChannel.send(message);
 		bus.registerChannel("targetChannel", targetChannel);
 		MessageHandler handler = new MessageHandler() {
@@ -105,13 +105,13 @@ public class MessageBusTests {
 		SimpleChannel outputChannel2 = new SimpleChannel();
 		MessageHandler handler1 = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
-				message.getHeader().setReplyChannelName("output1");
+				message.getHeader().setReturnAddress("output1");
 				return message;
 			}
 		};
 		MessageHandler handler2 = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
-				message.getHeader().setReplyChannelName("output2");
+				message.getHeader().setReturnAddress("output2");
 				return message;
 			}
 		};
@@ -137,13 +137,13 @@ public class MessageBusTests {
 		SimpleChannel outputChannel2 = new SimpleChannel();
 		MessageHandler handler1 = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
-				message.getHeader().setReplyChannelName("output1");
+				message.getHeader().setReturnAddress("output1");
 				return message;
 			}
 		};
 		MessageHandler handler2 = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
-				message.getHeader().setReplyChannelName("output2");
+				message.getHeader().setReturnAddress("output2");
 				return message;
 			}
 		};

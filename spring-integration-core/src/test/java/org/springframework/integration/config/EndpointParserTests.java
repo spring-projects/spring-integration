@@ -124,7 +124,7 @@ public class EndpointParserTests {
 		((Lifecycle) endpoint).start();
 		Message<?> message = new StringMessage("test");
 		MessageChannel replyChannel = new SimpleChannel();
-		message.getHeader().setReplyChannel(replyChannel);
+		message.getHeader().setReturnAddress(replyChannel);
 		endpoint.handle(message);
 		Message<?> reply = replyChannel.receive(500);
 		assertNotNull(reply);
