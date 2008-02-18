@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.integration.dispatcher.DispatcherPolicy;
 import org.springframework.integration.message.Message;
 
 /**

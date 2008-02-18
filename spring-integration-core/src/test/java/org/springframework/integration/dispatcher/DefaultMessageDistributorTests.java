@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
+import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.message.StringMessage;
 

@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.dispatcher;
+package org.springframework.integration.channel;
 
+import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.util.Assert;
 
 /**

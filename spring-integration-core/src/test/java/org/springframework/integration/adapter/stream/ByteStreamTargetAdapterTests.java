@@ -23,9 +23,9 @@ import java.io.IOException;
 
 import org.junit.Test;
 
+import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.dispatcher.DefaultMessageDispatcher;
-import org.springframework.integration.dispatcher.DispatcherPolicy;
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.StringMessage;
