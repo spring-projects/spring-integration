@@ -41,6 +41,7 @@ import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.scheduling.Subscription;
 
 /**
  * @author Mark Fisher

@@ -26,8 +26,8 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.adapter.jms.JmsTargetAdapter;
-import org.springframework.integration.bus.Subscription;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
+import org.springframework.integration.scheduling.Subscription;
 import org.springframework.util.StringUtils;
 
 /**

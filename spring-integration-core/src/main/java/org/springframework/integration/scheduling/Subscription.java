@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.bus;
+package org.springframework.integration.scheduling;
 
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.scheduling.Schedule;
 
 /**
  * Configuration metadata for activating a subscription.

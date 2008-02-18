@@ -31,12 +31,12 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.MessagingConfigurationException;
-import org.springframework.integration.bus.Subscription;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
 import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.integration.scheduling.PollingSchedule;
+import org.springframework.integration.scheduling.Subscription;
 import org.springframework.util.StringUtils;
 
 /**

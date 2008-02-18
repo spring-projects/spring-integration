@@ -46,6 +46,7 @@ import org.springframework.integration.scheduling.MessagingTaskScheduler;
 import org.springframework.integration.scheduling.MessagingTaskSchedulerAware;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.integration.scheduling.SimpleMessagingTaskScheduler;
+import org.springframework.integration.scheduling.Subscription;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 

@@ -44,7 +44,6 @@ import org.springframework.integration.annotation.Polled;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.bus.MessageBus;
-import org.springframework.integration.bus.Subscription;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
@@ -57,6 +56,7 @@ import org.springframework.integration.handler.config.RouterMessageHandlerCreato
 import org.springframework.integration.handler.config.SplitterMessageHandlerCreator;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
+import org.springframework.integration.scheduling.Subscription;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;

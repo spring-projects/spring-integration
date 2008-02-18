@@ -24,8 +24,8 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.adapter.file.FileTargetAdapter;
-import org.springframework.integration.bus.Subscription;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
+import org.springframework.integration.scheduling.Subscription;
 
 /**
  * Parser for the &lt;file-target/&gt; element. 

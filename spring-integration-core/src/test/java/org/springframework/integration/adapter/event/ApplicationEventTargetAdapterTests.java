@@ -26,10 +26,10 @@ import org.junit.Test;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.bus.MessageBus;
-import org.springframework.integration.bus.Subscription;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.scheduling.Subscription;
 
 /**
  * @author Mark Fisher

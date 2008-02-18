@@ -17,8 +17,8 @@
 package org.springframework.integration.endpoint;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.bus.Subscription;
 import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.scheduling.Subscription;
 
 /**
  * Base interface for message endpoints.

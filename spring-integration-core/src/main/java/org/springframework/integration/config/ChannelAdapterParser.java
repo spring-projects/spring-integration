@@ -29,8 +29,8 @@ import org.springframework.integration.adapter.DefaultTargetAdapter;
 import org.springframework.integration.adapter.MethodInvokingSource;
 import org.springframework.integration.adapter.MethodInvokingTarget;
 import org.springframework.integration.adapter.PollingSourceAdapter;
-import org.springframework.integration.bus.Subscription;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
+import org.springframework.integration.scheduling.Subscription;
 import org.springframework.util.StringUtils;
 
 /**

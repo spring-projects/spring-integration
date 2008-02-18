@@ -28,8 +28,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.bus.MessageBus;
-import org.springframework.integration.bus.Subscription;
 import org.springframework.integration.handler.TestHandlers;
+import org.springframework.integration.scheduling.Subscription;
 
 /**
  * @author Mark Fisher
