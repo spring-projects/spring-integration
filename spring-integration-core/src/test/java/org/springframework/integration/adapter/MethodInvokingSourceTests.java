@@ -23,7 +23,7 @@ import java.util.Collection;
 
 import org.junit.Test;
 
-import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.MessagingException;
 
 /**
  * @author Mark Fisher
@@ -40,7 +40,7 @@ public class MethodInvokingSourceTests {
 		assertEquals("valid", result.iterator().next());
 	}
 
-	@Test(expected=MessageDeliveryException.class)
+	@Test(expected=MessagingException.class)
 	public void testNoMatchingMethodName() {
 		MethodInvokingSource<TestBean> source = new MethodInvokingSource<TestBean>();
 		source.setObject(new TestBean());
@@ -48,7 +48,7 @@ public class MethodInvokingSourceTests {
 		source.poll(5);
 	}
 
-	@Test(expected=MessageDeliveryException.class)
+	@Test(expected=MessagingException.class)
 	public void testInvalidMethodWithArg() {
 		MethodInvokingSource<TestBean> source = new MethodInvokingSource<TestBean>();
 		source.setObject(new TestBean());
@@ -56,7 +56,7 @@ public class MethodInvokingSourceTests {
 		source.poll(5);
 	}
 
-	@Test(expected=MessageDeliveryException.class)
+	@Test(expected=MessagingException.class)
 	public void testInvalidMethodWithNoReturnValue() {
 		MethodInvokingSource<TestBean> source = new MethodInvokingSource<TestBean>();
 		source.setObject(new TestBean());

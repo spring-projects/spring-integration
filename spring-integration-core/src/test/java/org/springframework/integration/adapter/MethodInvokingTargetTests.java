@@ -20,7 +20,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.MessagingException;
 
 /**
  * @author Mark Fisher
@@ -37,7 +37,7 @@ public class MethodInvokingTargetTests {
 		assertTrue(result);
 	}
 
-	@Test(expected=MessageDeliveryException.class)
+	@Test(expected=MessagingException.class)
 	public void testInvalidMethodWithNoArgs() {
 		MethodInvokingTarget<TestSink> target = new MethodInvokingTarget<TestSink>();
 		target.setObject(new TestSink());
@@ -56,7 +56,7 @@ public class MethodInvokingTargetTests {
 		assertTrue(result);
 	}
 
-	@Test(expected=MessageDeliveryException.class)
+	@Test(expected=MessagingException.class)
 	public void testNoMatchingMethodName() {
 		MethodInvokingTarget<TestSink> target = new MethodInvokingTarget<TestSink>();
 		target.setObject(new TestSink());
