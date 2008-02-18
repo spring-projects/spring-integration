@@ -12,7 +12,7 @@
 
 	<bean id="endpoint" class="org.springframework.integration.endpoint.DefaultMessageEndpoint">
 		<property name="subscription">
-			<bean class="org.springframework.integration.bus.Subscription">
+			<bean class="org.springframework.integration.scheduling.Subscription">
 				<constructor-arg ref="sourceChannel"/>
 			</bean>
 		</property>
