@@ -14,22 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler.config;
+package org.springframework.integration.router.config;
 
 import java.lang.reflect.Method;
 import java.util.Map;
 
 import org.springframework.integration.handler.MessageHandler;
-import org.springframework.integration.router.SplitterMessageHandlerAdapter;
+import org.springframework.integration.handler.config.AbstractMessageHandlerCreator;
+import org.springframework.integration.router.RouterMessageHandlerAdapter;
 
 /**
- * Creates a {@link MessageHandler} adapter for splitter methods.
+ * Creates a {@link MessageHandler} adapter for router methods.
  * 
  * @author Mark Fisher
  */
-public class SplitterMessageHandlerCreator extends AbstractMessageHandlerCreator {
+public class RouterMessageHandlerCreator extends AbstractMessageHandlerCreator {
 
 	public MessageHandler doCreateHandler(Object object, Method method, Map<String, ?> attributes) {
-		return new SplitterMessageHandlerAdapter(object, method, attributes);
+		return new RouterMessageHandlerAdapter(object, method, attributes);
 	}
+
 }
