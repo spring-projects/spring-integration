@@ -16,15 +16,14 @@
 
 package org.springframework.integration.handler;
 
+import java.util.concurrent.ExecutorService;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.Lifecycle;
-import org.springframework.integration.endpoint.ConcurrencyPolicy;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.util.ErrorHandler;
-import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.Assert;
 
@@ -35,49 +34,26 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class ConcurrentHandler implements MessageHandler, Lifecycle, InitializingBean {
+public class ConcurrentHandler implements MessageHandler, DisposableBean {
 
-	private Log logger = LogFactory.getLog(this.getClass());
+	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private MessageHandler handler;
+	private final MessageHandler handler;
 
-	private ThreadPoolTaskExecutor executor;
+	private final ExecutorService executor;
 
-	private volatile int currentQueueCapacity;
+	private volatile ErrorHandler errorHandler;
 
-	private final ConcurrencyPolicy concurrencyPolicy;
-
-	private ErrorHandler errorHandler;
-
-	private ReplyHandler replyHandler;
-
-	private volatile boolean running;
-
-	private Object lifecycleMonitor = new Object();
+	private volatile ReplyHandler replyHandler;
 
 
-	public ConcurrentHandler(MessageHandler handler) {
-		this(handler, null);
-	}
-
-	public ConcurrentHandler(MessageHandler handler, ConcurrencyPolicy concurrencyPolicy) {
+	public ConcurrentHandler(MessageHandler handler, ExecutorService executor) {
 		Assert.notNull(handler, "'handler' must not be null");
-		if (concurrencyPolicy != null) {
-			Assert.isTrue(concurrencyPolicy.getMaxSize() >= concurrencyPolicy.getCoreSize(),
-					"'coreSize' must not exceed 'maxSize'");
-			this.concurrencyPolicy = concurrencyPolicy;
-		}
-		else {
-			this.concurrencyPolicy = new ConcurrencyPolicy();
-		}
-		this.handler = handler;
-	}
-
-
-	public void setExecutor(ThreadPoolTaskExecutor executor) {
 		Assert.notNull(executor, "'executor' must not be null");
+		this.handler = handler;
 		this.executor = executor;
 	}
+
 
 	public void setErrorHandler(ErrorHandler errorHandler) {
 		this.errorHandler = errorHandler;
@@ -87,74 +63,12 @@ public class ConcurrentHandler implements MessageHandler, Lifecycle, Initializin
 		this.replyHandler = replyHandler;
 	}
 
-	public void afterPropertiesSet() {
-		refreshExecutor();
-	}
-
-	public void refreshExecutor() {
-		if (this.executor == null || currentQueueCapacity != this.concurrencyPolicy.getQueueCapacity()) {
-			this.initializeExecutor();
-		}
-		else {
-			this.refreshRuntimeModifiableExecutorProperties();
-		}
-	}
-
-	private void initializeExecutor() {
-		synchronized (this.lifecycleMonitor) {
-			if (this.executor != null) {
-				this.executor.shutdown();
-			}
-			this.executor = new ThreadPoolTaskExecutor();
-			this.currentQueueCapacity = this.concurrencyPolicy.getQueueCapacity();
-			this.executor.setQueueCapacity(this.currentQueueCapacity);
-			CustomizableThreadFactory threadFactory = new CustomizableThreadFactory();
-			threadFactory.setThreadNamePrefix("handler-");
-			this.executor.setThreadFactory(threadFactory);
-			this.refreshRuntimeModifiableExecutorProperties();
-		}
-		this.executor.afterPropertiesSet();
-	}
-
-	private void refreshRuntimeModifiableExecutorProperties() {
-		int coreSize = this.concurrencyPolicy.getCoreSize();
-		int maxSize = this.concurrencyPolicy.getMaxSize();
-		int keepAlive = this.concurrencyPolicy.getKeepAliveSeconds();
-		if (this.executor.getCorePoolSize() != coreSize) {
-			this.executor.setCorePoolSize(coreSize);
-		}
-		if (this.executor.getMaxPoolSize() != maxSize) {
-			this.executor.setMaxPoolSize(maxSize);
-		}
-		if (this.executor.getKeepAliveSeconds() != keepAlive) {
-			this.executor.setKeepAliveSeconds(keepAlive);
-		}
-	}
-
-	public boolean isRunning() {
-		return this.running;
-	}
-
-	public void start() {
-		synchronized (this.lifecycleMonitor) {
-			if (!this.running) {
-				this.afterPropertiesSet();
-			}
-			this.running = true;
-		}
-	}
-
-	public void stop() {
-		synchronized (this.lifecycleMonitor) {
-			if (this.isRunning()) {
-				this.executor.shutdown();
-			}
-			this.running = false;
-		}
+	public void destroy() {
+		this.executor.shutdown();
 	}
 
 	public Message<?> handle(Message<?> message) {
-		if (!this.isRunning()) {
+		if (this.executor.isShutdown()) {
 			throw new MessageHandlerNotRunningException();
 		}
 		try {

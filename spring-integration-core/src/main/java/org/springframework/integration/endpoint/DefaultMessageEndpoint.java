@@ -17,7 +17,13 @@
 package org.springframework.integration.endpoint;
 
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
@@ -156,14 +162,19 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 	public void afterPropertiesSet() {
 		if (this.concurrencyPolicy != null || this.handler instanceof ConcurrentHandler) {
 			if (!(this.handler instanceof ConcurrentHandler)) {
-				this.handler = new ConcurrentHandler(this.handler, this.concurrencyPolicy);
+				int capacity = concurrencyPolicy.getQueueCapacity();
+				BlockingQueue<Runnable> queue = (capacity < 1) ? new SynchronousQueue<Runnable>() :
+						new ArrayBlockingQueue<Runnable>(capacity);
+				ExecutorService executor = new ThreadPoolExecutor(concurrencyPolicy.getCoreSize(),
+						concurrencyPolicy.getMaxSize(), concurrencyPolicy.getKeepAliveSeconds(),
+						TimeUnit.SECONDS, queue);
+				this.handler = new ConcurrentHandler(this.handler, executor);
 			}
 			ConcurrentHandler concurrentHandler = (ConcurrentHandler) this.handler;
 			if (this.errorHandler != null) {
 				concurrentHandler.setErrorHandler(this.errorHandler);
 			}
 			concurrentHandler.setReplyHandler(this.replyHandler);
-			concurrentHandler.afterPropertiesSet();
 		}
 		this.initialized = true;
 	}

@@ -22,6 +22,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -168,7 +171,7 @@ public class DefaultMessageEndpointTests {
 		};
 		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint();
 		endpoint.setChannelRegistry(channelRegistry);
-		endpoint.setHandler(new ConcurrentHandler(handler));
+		endpoint.setHandler(new ConcurrentHandler(handler, createExecutor()));
 		endpoint.setDefaultOutputChannelName("replyChannel");
 		endpoint.start();
 		endpoint.handle(new StringMessage(1, "test"));
@@ -219,7 +222,7 @@ public class DefaultMessageEndpointTests {
 		};
 		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint();
 		endpoint.setChannelRegistry(channelRegistry);
-		endpoint.setHandler(new ConcurrentHandler(handler));
+		endpoint.setHandler(new ConcurrentHandler(handler, createExecutor()));
 		endpoint.setDefaultOutputChannelName("replyChannel");
 		endpoint.start();
 		endpoint.handle(new StringMessage(1, "test"));
@@ -244,7 +247,7 @@ public class DefaultMessageEndpointTests {
 		};
 		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint();
 		endpoint.setChannelRegistry(channelRegistry);
-		endpoint.setHandler(new ConcurrentHandler(handler));
+		endpoint.setHandler(new ConcurrentHandler(handler, createExecutor()));
 		endpoint.start();
 		StringMessage message = new StringMessage(1, "test");
 		message.getHeader().setReplyChannelName("replyChannel");
@@ -447,6 +450,11 @@ public class DefaultMessageEndpointTests {
 		endpoint.handle(new StringMessage("test"));
 		assertEquals("both selectors and handler should have been invoked", 3, counter.get());
 		endpoint.stop();
+	}
+
+
+	private static ExecutorService createExecutor() {
+		return new ThreadPoolExecutor(1, 1, 60, TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
 	}
 
 }
