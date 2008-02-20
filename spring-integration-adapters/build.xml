@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="spring-integration-adapters">
+
+	<property file="${basedir}/../build.properties"/>
+	<import file="../spring-build/standard/default.xml"/>
+
+</project>

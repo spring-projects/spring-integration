@@ -3,6 +3,7 @@
 
 	<path id="bundles">
 		<pathelement location="../spring-integration-core"/>
+		<pathelement location="../spring-integration-adapters"/>
 		<pathelement location="../spring-integration-samples"/>
 	</path>
 
