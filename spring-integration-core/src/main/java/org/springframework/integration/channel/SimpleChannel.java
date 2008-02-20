@@ -77,7 +77,7 @@ public class SimpleChannel extends AbstractMessageChannel {
 	}
 
 
-	public boolean doSend(Message message, long timeout) {
+	protected boolean doSend(Message message, long timeout) {
 		Assert.notNull(message, "'message' must not be null");
 		try {
 			if (timeout > 0) {
@@ -95,7 +95,7 @@ public class SimpleChannel extends AbstractMessageChannel {
 		}
 	}
 
-	public Message doReceive(long timeout) {
+	protected Message doReceive(long timeout) {
 		try {
 			if (timeout > 0) {
 				return queue.poll(timeout, TimeUnit.MILLISECONDS);
