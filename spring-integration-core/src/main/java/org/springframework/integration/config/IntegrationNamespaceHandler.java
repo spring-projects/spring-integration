@@ -16,11 +16,19 @@
 
 package org.springframework.integration.config;
 
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
-import org.springframework.integration.adapter.file.config.FileSourceAdapterParser;
-import org.springframework.integration.adapter.file.config.FileTargetAdapterParser;
-import org.springframework.integration.adapter.jms.config.JmsSourceAdapterParser;
-import org.springframework.integration.adapter.jms.config.JmsTargetAdapterParser;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
+import org.springframework.util.ClassUtils;
 
 /**
  * Namespace handler for the integration namespace.
@@ -28,6 +36,12 @@ import org.springframework.integration.adapter.jms.config.JmsTargetAdapterParser
  * @author Mark Fisher
  */
 public class IntegrationNamespaceHandler extends NamespaceHandlerSupport {
+
+	private static final String ADAPTER_PARSER_MAPPINGS_LOCATION = "META-INF/spring-integration.parsers";
+
+
+	private final Log logger = LogFactory.getLog(this.getClass()); 
+
 
 	public void init() {
 		registerBeanDefinitionParser("message-bus", new MessageBusParser());
@@ -38,10 +52,48 @@ public class IntegrationNamespaceHandler extends NamespaceHandlerSupport {
 		registerBeanDefinitionParser("endpoint", new EndpointParser());
 		registerBeanDefinitionParser("handler", new HandlerParser());
 		registerBeanDefinitionParser("handler-chain", new HandlerParser());
-		registerBeanDefinitionParser("file-source", new FileSourceAdapterParser());
-		registerBeanDefinitionParser("file-target", new FileTargetAdapterParser());
-		registerBeanDefinitionParser("jms-source", new JmsSourceAdapterParser());
-		registerBeanDefinitionParser("jms-target", new JmsTargetAdapterParser());
+		Map<String, Class<? extends BeanDefinitionParser>> parserMappings = this.loadAdapterParserMappings();
+		try {
+			for (Map.Entry<String, Class<? extends BeanDefinitionParser>> entry : parserMappings.entrySet()) {
+				registerBeanDefinitionParser(entry.getKey(), (BeanDefinitionParser) entry.getValue().newInstance());
+			}
+		}
+		catch (Exception e) {
+			throw new IllegalStateException("Failed to instantiate BeanDefinitionParser.", e);
+		}
+	}
+
+	private Map<String, Class<? extends BeanDefinitionParser>> loadAdapterParserMappings() {
+		Map<String, Class<? extends BeanDefinitionParser>> parserMappings =
+				new HashMap<String, Class<? extends BeanDefinitionParser>>();
+		ClassLoader classLoader = getClass().getClassLoader();
+		try {
+			Properties mappings =
+					PropertiesLoaderUtils.loadAllProperties(ADAPTER_PARSER_MAPPINGS_LOCATION, classLoader);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Loaded parser mappings [" + mappings + "]");
+			}
+			Enumeration<?> propertyNames = mappings.propertyNames();
+			while (propertyNames.hasMoreElements()) {
+				String name = (String) propertyNames.nextElement();
+				String classname = mappings.getProperty(name);
+				Class<?> parserClass = ClassUtils.forName(classname, classLoader);
+				if (!BeanDefinitionParser.class.isAssignableFrom(parserClass)) {
+					throw new IllegalStateException("Expected class of type BeanDefinitionParser, but '" +
+							name + "' was of type '" + parserClass.getSimpleName() + "'");
+				}
+				parserMappings.put(name, (Class<? extends BeanDefinitionParser>) parserClass);
+			}
+			return parserMappings;
+		}
+		catch (IOException e) {
+			throw new IllegalStateException(
+					"Unable to load BeanDefinitionParser mappings from location [" +
+					ADAPTER_PARSER_MAPPINGS_LOCATION + "]. Root cause: " + e);
+		}
+		catch (ClassNotFoundException e) {
+			throw new IllegalStateException("Failed to load BeanDefinitionParser.", e);
+		}
 	}
 
 }

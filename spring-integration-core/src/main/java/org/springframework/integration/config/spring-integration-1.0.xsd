@@ -13,7 +13,7 @@
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
-	Defines the configuration elements for Spring Integration.
+	Defines the core configuration elements for Spring Integration.
 		]]></xsd:documentation>
 	</xsd:annotation>
 
@@ -204,67 +204,6 @@
 			<xsd:attribute name="rejection-limit" type="xsd:int"/>
 			<xsd:attribute name="retry-interval" type="xsd:long"/>
 			<xsd:attribute name="should-fail-on-rejection-limit" type="xsd:boolean"/>
-		</xsd:complexType>
-	</xsd:element>
-
-	<xsd:element name="file-source">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-	Defines a file-based source channel adapter.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="directory" type="xsd:string" use="required"/>
-			<xsd:attribute name="channel" type="xsd:string" use="required"/>
-			<xsd:attribute name="poll-period" type="xsd:int" use="required"/>
-		</xsd:complexType>
-	</xsd:element>
-
-	<xsd:element name="file-target">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-	Defines a file-based target channel adapter.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="directory" type="xsd:string" use="required"/>
-			<xsd:attribute name="channel" type="xsd:string" use="required"/>
-		</xsd:complexType>
-	</xsd:element>
-
-	<xsd:element name="jms-source">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-	Defines a jms-based source channel adapter.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="jms-template" type="xsd:string"/>
-			<xsd:attribute name="connection-factory" type="xsd:string"/>
-			<xsd:attribute name="destination" type="xsd:string"/>
-			<xsd:attribute name="destination-name" type="xsd:string"/>
-			<xsd:attribute name="channel" type="xsd:string" use="required"/>
-			<xsd:attribute name="poll-period" type="xsd:int"/>
-			<xsd:attribute name="message-converter" type="xsd:string"/>
-		</xsd:complexType>
-	</xsd:element>
-
-	<xsd:element name="jms-target">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-	Defines a jms-based target channel adapter.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="jms-template" type="xsd:string"/>
-			<xsd:attribute name="connection-factory" type="xsd:string"/>
-			<xsd:attribute name="destination" type="xsd:string"/>
-			<xsd:attribute name="destination-name" type="xsd:string"/>
-			<xsd:attribute name="channel" type="xsd:string" use="required"/>
 		</xsd:complexType>
 	</xsd:element>
 
