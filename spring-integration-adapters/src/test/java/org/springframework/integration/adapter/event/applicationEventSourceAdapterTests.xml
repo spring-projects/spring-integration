@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+	<bean id="bus" class="org.springframework.integration.bus.MessageBus"/>
+
+	<bean id="channel" class="org.springframework.integration.channel.SimpleChannel"/>
+
+	<bean id="adapter" class="org.springframework.integration.adapter.event.ApplicationEventSourceAdapter">
+		<property name="channel" ref="channel"/>
+	</bean>
+
+</beans>
