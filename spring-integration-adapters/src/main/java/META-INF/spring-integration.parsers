@@ -1,0 +1,4 @@
+file-source=org.springframework.integration.adapter.file.config.FileSourceAdapterParser
+file-target=org.springframework.integration.adapter.file.config.FileTargetAdapterParser
+jms-source=org.springframework.integration.adapter.jms.config.JmsSourceAdapterParser
+jms-target=org.springframework.integration.adapter.jms.config.JmsTargetAdapterParser
