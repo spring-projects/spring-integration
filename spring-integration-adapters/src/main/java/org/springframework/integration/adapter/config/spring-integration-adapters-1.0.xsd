@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration"
+		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+		xmlns:beans="http://www.springframework.org/schema/beans"
+		xmlns:tool="http://www.springframework.org/schema/tool"
+		targetNamespace="http://www.springframework.org/schema/integration"
+		elementFormDefault="qualified"
+		attributeFormDefault="unqualified">
+
+	<xsd:include schemaLocation="http://www.springframework.org/schema/integration/spring-integration-1.0.xsd"/>
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
+	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
+
+	<xsd:annotation>
+		<xsd:documentation><![CDATA[
+	Defines the configuration elements for Spring Integration adapters.
+		]]></xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:element name="file-source">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a file-based source channel adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="directory" type="xsd:string" use="required"/>
+			<xsd:attribute name="channel" type="xsd:string" use="required"/>
+			<xsd:attribute name="poll-period" type="xsd:int" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="file-target">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a file-based target channel adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="directory" type="xsd:string" use="required"/>
+			<xsd:attribute name="channel" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="jms-source">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a jms-based source channel adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="jms-template" type="xsd:string"/>
+			<xsd:attribute name="connection-factory" type="xsd:string"/>
+			<xsd:attribute name="destination" type="xsd:string"/>
+			<xsd:attribute name="destination-name" type="xsd:string"/>
+			<xsd:attribute name="channel" type="xsd:string" use="required"/>
+			<xsd:attribute name="poll-period" type="xsd:int"/>
+			<xsd:attribute name="message-converter" type="xsd:string"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="jms-target">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a jms-based target channel adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="jms-template" type="xsd:string"/>
+			<xsd:attribute name="connection-factory" type="xsd:string"/>
+			<xsd:attribute name="destination" type="xsd:string"/>
+			<xsd:attribute name="destination-name" type="xsd:string"/>
+			<xsd:attribute name="channel" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+</xsd:schema>
