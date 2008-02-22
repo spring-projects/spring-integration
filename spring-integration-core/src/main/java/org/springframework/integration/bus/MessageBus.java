@@ -59,6 +59,8 @@ import org.springframework.util.Assert;
  */
 public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lifecycle {
 
+	public static final String ERROR_CHANNEL_NAME = "errorChannel";
+
 	private static final int DEFAULT_DISPATCHER_POOL_SIZE = 10;
 
 
@@ -160,7 +162,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 				return;
 			}
 			if (this.getErrorChannel() == null) {
-				this.setErrorChannel(new SimpleChannel(Integer.MAX_VALUE));
+				this.setErrorChannel(new DefaultErrorChannel());
 			}
 			if (this.executor == null) {
 				this.executor = new ScheduledThreadPoolExecutor(DEFAULT_DISPATCHER_POOL_SIZE);
@@ -173,11 +175,11 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 	}
 
 	public MessageChannel getErrorChannel() {
-		return this.channelRegistry.getErrorChannel();
+		return this.channelRegistry.lookupChannel(ERROR_CHANNEL_NAME);
 	}
 
 	public void setErrorChannel(MessageChannel errorChannel) {
-		this.channelRegistry.setErrorChannel(errorChannel);
+		this.channelRegistry.registerChannel(ERROR_CHANNEL_NAME, errorChannel);
 	}
 
 	public MessageChannel lookupChannel(String channelName) {
