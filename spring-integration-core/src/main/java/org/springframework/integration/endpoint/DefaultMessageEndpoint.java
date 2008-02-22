@@ -25,6 +25,9 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
@@ -53,23 +56,25 @@ import org.springframework.util.StringUtils;
  */
 public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryAware, InitializingBean, BeanNameAware {
 
-	private String name;
+	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private MessageHandler handler;
+	private volatile String name;
 
-	private List<MessageSelector> selectors = new CopyOnWriteArrayList<MessageSelector>();
+	private volatile MessageHandler handler;
 
-	private Subscription subscription;
+	private volatile Subscription subscription;
 
-	private ConcurrencyPolicy concurrencyPolicy;
+	private volatile ConcurrencyPolicy concurrencyPolicy;
 
-	private ErrorHandler errorHandler;
+	private volatile ErrorHandler errorHandler;
 
-	private ReplyHandler replyHandler = new EndpointReplyHandler();
+	private final List<MessageSelector> selectors = new CopyOnWriteArrayList<MessageSelector>();
 
-	private String defaultOutputChannelName;
+	private final ReplyHandler replyHandler = new EndpointReplyHandler();
 
-	private ChannelRegistry channelRegistry;
+	private volatile String defaultOutputChannelName;
+
+	private volatile ChannelRegistry channelRegistry;
 
 	private volatile boolean initialized;
 
@@ -108,7 +113,8 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 	}
 
 	public void setMessageSelectors(List<MessageSelector> selectors) {
-		this.selectors = new CopyOnWriteArrayList<MessageSelector>(selectors);
+		this.selectors.clear();
+		this.selectors.addAll(selectors);
 	}
 
 	public void addMessageSelector(MessageSelector messageSelector) {
@@ -206,6 +212,9 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 	}
 
 	public final Message<?> handle(Message<?> message) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("endpoint '" + this + "' handling message: " + message);
+		}
 		if (!this.isRunning()) {
 			throw new MessageHandlerNotRunningException();
 		}
@@ -219,8 +228,11 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 				throw new MessagingConfigurationException(
 						"endpoint must have either a 'handler' or 'defaultOutputChannelName'");
 			}
-			MessageChannel replyChannel = this.channelRegistry.lookupChannel(this.defaultOutputChannelName);
-			replyChannel.send(message);
+			MessageChannel outputChannel = this.channelRegistry.lookupChannel(this.defaultOutputChannelName);
+			if (logger.isDebugEnabled()) {
+				logger.debug("endpoint '" + this + "' sending to output channel '" + outputChannel + "', message: " + message);
+			}
+			outputChannel.send(message);
 			return null;
 		}
 		try {
@@ -240,6 +252,10 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 			this.errorHandler.handle(t);
 		}
 		return null;
+	}
+
+	public String toString() {
+		return (this.name != null) ? this.name : super.toString();
 	}
 
 	private MessageChannel resolveReplyChannel(MessageHeader originalMessageHeader) {
@@ -271,6 +287,9 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 				throw new MessageHandlingException("Unable to determine reply channel for message. " +
 						"Provide a 'replyChannel' or 'replyChannelName' in the message header " +
 						"or a 'defaultOutputChannelName' on the message endpoint.");
+			}
+			if (logger.isDebugEnabled()) {
+				logger.debug("endpoint '" + DefaultMessageEndpoint.this + "' replying to channel '" + replyChannel + "' with message: " + replyMessage);
 			}
 			replyChannel.send(replyMessage);
 		}
