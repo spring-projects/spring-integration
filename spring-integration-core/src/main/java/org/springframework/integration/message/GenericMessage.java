@@ -17,9 +17,10 @@
 package org.springframework.integration.message;
 
 import java.util.Date;
+import java.util.Set;
 
-import org.springframework.integration.util.RandomUuidGenerator;
 import org.springframework.integration.util.IdGenerator;
+import org.springframework.integration.util.RandomUuidGenerator;
 import org.springframework.util.Assert;
 
 /**
@@ -63,6 +64,11 @@ public class GenericMessage<T> implements Message<T> {
 		this.payload = payload;
 	}
 
+	public GenericMessage(T payload, MessageHeader headerToCopy) {
+		this(payload);
+		this.copyHeader(headerToCopy);
+	}
+
 
 	public Object getId() {
 		return this.id;
@@ -83,6 +89,18 @@ public class GenericMessage<T> implements Message<T> {
 
 	public String toString() {
 		return "[ID=" + this.id + "][Header=" + this.header + "][Payload='" + this.payload + "']";
+	}
+
+	private void copyHeader(final MessageHeader headerToCopy) {
+		Set<String> propertyNames = headerToCopy.getPropertyNames();
+		for (String key : propertyNames) {
+			this.header.setProperty(key, headerToCopy.getProperty(key));
+		}
+		Set<String> attributeNames = headerToCopy.getAttributeNames();
+		for (String key : attributeNames) {
+			this.header.setAttribute(key, headerToCopy.getAttribute(key));
+		}
+		this.header.setReturnAddress(headerToCopy.getReturnAddress());
 	}
 
 }

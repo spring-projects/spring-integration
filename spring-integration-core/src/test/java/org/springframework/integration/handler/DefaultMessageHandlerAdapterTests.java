@@ -51,7 +51,7 @@ public class DefaultMessageHandlerAdapterTests {
 	@Test
 	public void testMessageAsMethodParameterAndObjectAsReturnValue() {
 		DefaultMessageHandlerAdapter<TestHandler> adapter = new DefaultMessageHandlerAdapter<TestHandler>();
-		adapter.setShouldUseMapperOnInvocation(false);
+		adapter.setExpectsMessage(true);
 		adapter.setObject(new TestHandler());
 		adapter.setMethodName("acceptMessageAndReturnObject");
 		adapter.afterPropertiesSet();
@@ -62,7 +62,7 @@ public class DefaultMessageHandlerAdapterTests {
 	@Test
 	public void testMessageAsMethodParameterAndMessageAsReturnValue() {
 		DefaultMessageHandlerAdapter<TestHandler> adapter = new DefaultMessageHandlerAdapter<TestHandler>();
-		adapter.setShouldUseMapperOnInvocation(false);
+		adapter.setExpectsMessage(true);
 		adapter.setObject(new TestHandler());
 		adapter.setMethodName("acceptMessageAndReturnMessage");
 		adapter.afterPropertiesSet();
@@ -73,7 +73,7 @@ public class DefaultMessageHandlerAdapterTests {
 	@Test
 	public void testMessageSubclassAsMethodParameterAndMessageAsReturnValue() {
 		DefaultMessageHandlerAdapter<TestHandler> adapter = new DefaultMessageHandlerAdapter<TestHandler>();
-		adapter.setShouldUseMapperOnInvocation(false);
+		adapter.setExpectsMessage(true);
 		adapter.setObject(new TestHandler());
 		adapter.setMethodName("acceptMessageSubclassAndReturnMessage");
 		adapter.afterPropertiesSet();
@@ -84,7 +84,7 @@ public class DefaultMessageHandlerAdapterTests {
 	@Test
 	public void testMessageSubclassAsMethodParameterAndMessageSubclassAsReturnValue() {
 		DefaultMessageHandlerAdapter<TestHandler> adapter = new DefaultMessageHandlerAdapter<TestHandler>();
-		adapter.setShouldUseMapperOnInvocation(false);
+		adapter.setExpectsMessage(true);
 		adapter.setObject(new TestHandler());
 		adapter.setMethodName("acceptMessageSubclassAndReturnMessageSubclass");
 		adapter.afterPropertiesSet();

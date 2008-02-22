@@ -18,10 +18,10 @@ package org.springframework.integration.message;
 
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * A holder for Message metadata. This includes information that may be used by
@@ -48,7 +48,7 @@ public class MessageHeader {
 
 	private final Properties properties = new Properties();
 
-	private final Map<String, Object> attributes = new ConcurrentHashMap<String, Object>();
+	private final ConcurrentMap<String, Object> attributes = new ConcurrentHashMap<String, Object>();
 
 
 	/**
@@ -110,8 +110,8 @@ public class MessageHeader {
 		return this.properties.getProperty(key);
 	}
 
-	public void setProperty(String key, String value) {
-		this.properties.setProperty(key, value);
+	public String setProperty(String key, String value) {
+		return (String) this.properties.setProperty(key, value);
 	}
 
 	public Set<String> getPropertyNames() {
@@ -126,8 +126,12 @@ public class MessageHeader {
 		return this.attributes.get(key);
 	}
 
-	public void setAttribute(String key, Object value) {
-		this.attributes.put(key, value);
+	public Object setAttribute(String key, Object value) {
+		return this.attributes.put(key, value);
+	}
+
+	public Object setAttributeIfAbsent(String key, Object value) {
+		return this.attributes.putIfAbsent(key, value);
 	}
 
 	public Set<String> getAttributeNames() {

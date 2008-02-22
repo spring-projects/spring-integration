@@ -41,8 +41,7 @@ public class DefaultMessageHandlerCreator extends AbstractMessageHandlerCreator 
 			throw new MessagingConfigurationException("exactly one method parameter is required");
 		}
 		DefaultMessageHandlerAdapter<Object> adapter = new DefaultMessageHandlerAdapter<Object>();
-		boolean expectsMessage = (Message.class.isAssignableFrom(types[0]));
-		adapter.setShouldUseMapperOnInvocation(!expectsMessage);
+		adapter.setExpectsMessage(Message.class.isAssignableFrom(types[0]));
 		return adapter;
 	}
 

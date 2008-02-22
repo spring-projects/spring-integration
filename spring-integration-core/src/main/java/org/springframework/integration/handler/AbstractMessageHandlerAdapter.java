@@ -21,9 +21,10 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.Ordered;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageHeader;
 import org.springframework.integration.message.MessageMapper;
-import org.springframework.integration.message.SimplePayloadMessageMapper;
 import org.springframework.integration.util.SimpleMethodInvoker;
 import org.springframework.util.Assert;
 
@@ -45,8 +46,6 @@ public abstract class AbstractMessageHandlerAdapter<T> implements MessageHandler
 
 	private volatile String methodName;
 
-	private volatile MessageMapper mapper = new SimplePayloadMessageMapper();
-
 	private volatile SimpleMethodInvoker<T> invoker;
 
 	private volatile int order = Integer.MAX_VALUE;
@@ -61,26 +60,9 @@ public abstract class AbstractMessageHandlerAdapter<T> implements MessageHandler
 		this.object = object;
 	}
 
-	protected Object getObject() {
-		return this.object;
-	}
-
 	public void setMethodName(String methodName) {
 		Assert.notNull(methodName, "'methodName' must not be null");
 		this.methodName = methodName;
-	}
-
-	public String getMethodName() {
-		return this.methodName;
-	}
-
-	public void setMapper(MessageMapper mapper) {
-		Assert.notNull(mapper, "'mapper' must not be null");
-		this.mapper = mapper;
-	}
-
-	protected MessageMapper getMapper() {
-		return this.mapper;
 	}
 
 	public void setOrder(int order) {
@@ -94,22 +76,22 @@ public abstract class AbstractMessageHandlerAdapter<T> implements MessageHandler
 	public final void afterPropertiesSet() {
 		this.validate();
 		synchronized (this.lifecycleMonitor) {
+			if (this.initialized) {
+				return;
+			}
 			this.invoker = new SimpleMethodInvoker<T>(this.object, this.methodName);
 			this.initialized = true;
 		}
 	}
 
-	public final boolean isInitialized() {
-		synchronized (this.lifecycleMonitor) {
-			return this.initialized;
-		}
-	}
-
 	public final Message<?> handle(Message<?> message) {
+		if (!this.initialized) {
+			this.afterPropertiesSet();
+		}
 		Object result = this.doHandle(message, invoker);
 		if (result != null) {
 			Message<?> reply = (result instanceof Message) ? (Message<?>) result :
-					this.mapper.toMessage(result);
+					this.createReplyMessage(result, message.getHeader());
 			Object correlationId = reply.getHeader().getCorrelationId();
 			if (correlationId == null) {
 				Object orginalCorrelationId = message.getHeader().getCorrelationId();
@@ -125,6 +107,10 @@ public abstract class AbstractMessageHandlerAdapter<T> implements MessageHandler
 	 * Subclasses may override this method to provide validation upon initialization.
 	 */
 	protected void validate() {
+	}
+
+	protected Message<?> createReplyMessage(Object payload, MessageHeader originalMessageHeader) {
+		return new GenericMessage(payload, originalMessageHeader);
 	}
 
 	/**

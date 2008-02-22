@@ -33,24 +33,23 @@ import org.springframework.integration.util.SimpleMethodInvoker;
  */
 public class DefaultMessageHandlerAdapter<T> extends AbstractMessageHandlerAdapter<T> implements Ordered {
 
-	private boolean shouldUseMapperOnInvocation = true;
-
+	private boolean expectsMessage = false;
 
 	/**
-	 * Specify whether the handler method should use the
-	 * {@link org.springframework.integration.message.MessageMapper} when
-	 * invoking the target method. Default is <code>true</code>. To force
-	 * passing the {@link Message} directly, set this to <code>false</code>.
+	 * Specify whether the handler should pass the message when invoking the
+	 * target method. The default is <code>false</code> indicating that the
+	 * message's <em>payload</em> should be passed as the argument. To force
+	 * passing the {@link Message} directly, set this to <code>true</code>.
 	 */
-	public void setShouldUseMapperOnInvocation(boolean shouldUseMapperOnInvocation) {
-		this.shouldUseMapperOnInvocation = shouldUseMapperOnInvocation;
+	public void setExpectsMessage(boolean expectsMessage) {
+		this.expectsMessage = expectsMessage;
 	}
 
 	public Object doHandle(Message message, SimpleMethodInvoker invoker) {
-		if (this.shouldUseMapperOnInvocation) {
-			return invoker.invokeMethod(this.getMapper().fromMessage(message));
+		if (this.expectsMessage) {
+			return invoker.invokeMethod(message);
 		}
-		return invoker.invokeMethod(message);
+		return invoker.invokeMethod(message.getPayload());
 	}
 
 }

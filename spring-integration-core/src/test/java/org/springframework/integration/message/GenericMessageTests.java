@@ -16,6 +16,7 @@
 
 package org.springframework.integration.message;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -53,6 +54,16 @@ public class GenericMessageTests {
 		GenericMessage<Integer> message = new GenericMessage<Integer>(1);
 		assertNull(message.getHeader().getExpiration());
 		assertFalse(message.isExpired());
+	}
+
+	@Test
+	public void testMessageHeaderCopied() {
+		MessageHeader header = new MessageHeader();
+		header.setAttribute("testAttribute", new Integer(123));
+		header.setProperty("testProperty", "foo");
+		GenericMessage<String> message = new GenericMessage<String>("test", header);
+		assertEquals(new Integer(123), message.getHeader().getAttribute("testAttribute"));
+		assertEquals("foo", message.getHeader().getProperty("testProperty"));
 	}
 
 }

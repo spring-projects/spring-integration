@@ -67,9 +67,6 @@ public class RouterMessageHandlerAdapter extends AbstractMessageHandlerAdapter i
 
 	@Override
 	protected Object doHandle(Message message, SimpleMethodInvoker invoker) {
-		if (!this.isInitialized()) {
-			this.afterPropertiesSet();
-		}
 		if (method.getParameterTypes().length != 1) {
 			throw new MessagingConfigurationException(
 					"method must accept exactly one parameter");
