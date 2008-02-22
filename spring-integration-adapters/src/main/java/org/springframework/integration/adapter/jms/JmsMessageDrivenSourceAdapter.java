@@ -18,6 +18,7 @@ package org.springframework.integration.adapter.jms;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
+import javax.jms.Session;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
@@ -37,29 +38,33 @@ import org.springframework.util.Assert;
  */
 public class JmsMessageDrivenSourceAdapter extends AbstractSourceAdapter<Object> implements Lifecycle, DisposableBean {
 
-	private AbstractJmsListeningContainer container;
+	private volatile AbstractJmsListeningContainer container;
 
-	private ConnectionFactory connectionFactory;
+	private volatile ConnectionFactory connectionFactory;
 
-	private Destination destination;
+	private volatile Destination destination;
 
-	private String destinationName;
+	private volatile String destinationName;
 
-	private MessageConverter messageConverter = new SimpleMessageConverter();
+	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
 
-	private TaskExecutor taskExecutor;
+	private volatile TaskExecutor taskExecutor;
 
-	private long receiveTimeout = 1000;
+	private volatile boolean sessionTransacted;
 
-	private int concurrentConsumers = 1;
+	private volatile int sessionAcknowledgeMode = Session.AUTO_ACKNOWLEDGE;
 
-	private int maxConcurrentConsumers = 1;
+	private volatile long receiveTimeout = 1000;
 
-	private int maxMessagesPerTask = Integer.MIN_VALUE;
+	private volatile int concurrentConsumers = 1;
 
-	private int idleTaskExecutionLimit = 1;
+	private volatile int maxConcurrentConsumers = 1;
 
-	private long sendTimeout = -1;
+	private volatile int maxMessagesPerTask = Integer.MIN_VALUE;
+
+	private volatile int idleTaskExecutionLimit = 1;
+
+	private volatile long sendTimeout = -1;
 
 
 	public void setContainer(AbstractJmsListeningContainer container) {
@@ -91,6 +96,14 @@ public class JmsMessageDrivenSourceAdapter extends AbstractSourceAdapter<Object>
 		this.taskExecutor = taskExecutor;
 	}
 
+	public void setSessionTransacted(boolean sessionTransacted) {
+		this.sessionTransacted = sessionTransacted;
+	}
+
+	public void setSessionAcknowledgeMode(int sessionAcknowledgeMode) {
+		this.sessionAcknowledgeMode = sessionAcknowledgeMode;
+	}
+
 	@Override
 	public void initialize() {
 		if (this.container == null) {
@@ -116,7 +129,8 @@ public class JmsMessageDrivenSourceAdapter extends AbstractSourceAdapter<Object>
 		dmlc.setMaxConcurrentConsumers(this.maxConcurrentConsumers);
 		dmlc.setMaxMessagesPerTask(this.maxMessagesPerTask);
 		dmlc.setIdleTaskExecutionLimit(this.idleTaskExecutionLimit);
-		dmlc.setSessionTransacted(true);
+		dmlc.setSessionTransacted(this.sessionTransacted);
+		dmlc.setSessionAcknowledgeMode(this.sessionAcknowledgeMode);
 		dmlc.setAutoStartup(false);
 		ChannelPublishingJmsListener listener = new ChannelPublishingJmsListener(this.getChannel());
 		listener.setMessageConverter(this.messageConverter);

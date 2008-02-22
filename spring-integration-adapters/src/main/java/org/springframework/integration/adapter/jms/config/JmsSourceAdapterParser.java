@@ -16,6 +16,8 @@
 
 package org.springframework.integration.adapter.jms.config;
 
+import javax.jms.Session;
+
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.BeanCreationException;
@@ -57,6 +59,16 @@ public class JmsSourceAdapterParser extends AbstractSingleBeanDefinitionParser {
 	private static final String MESSAGE_CONVERTER_ATTRIBUTE = "message-converter";
 
 	private static final String MESSAGE_CONVERTER_PROPERTY = "messageConverter";
+
+	private static final String ACKNOWLEDGE_ATTRIBUTE = "acknowledge";
+
+	private static final String ACKNOWLEDGE_AUTO = "auto";
+
+	private static final String ACKNOWLEDGE_CLIENT = "client";
+
+	private static final String ACKNOWLEDGE_DUPS_OK = "dups-ok";
+
+	private static final String ACKNOWLEDGE_TRANSACTED = "transacted";
 
 
 	protected Class<?> getBeanClass(Element element) {
@@ -152,6 +164,39 @@ public class JmsSourceAdapterParser extends AbstractSingleBeanDefinitionParser {
 		}
 		if (StringUtils.hasText(messageConverter)) {
 			builder.addPropertyReference(MESSAGE_CONVERTER_PROPERTY, messageConverter);
+		}
+		Integer acknowledgeMode = parseAcknowledgeMode(element);
+		if (acknowledgeMode != null) {
+			if (acknowledgeMode.intValue() == Session.SESSION_TRANSACTED) {
+				builder.addPropertyValue("sessionTransacted", Boolean.TRUE);
+			}
+			else {
+				builder.addPropertyValue("sessionAcknowledgeMode", acknowledgeMode);
+			}
+		}
+	}
+
+	private Integer parseAcknowledgeMode(Element element) {
+		String acknowledge = element.getAttribute(ACKNOWLEDGE_ATTRIBUTE);
+		if (StringUtils.hasText(acknowledge)) {
+			int acknowledgeMode = Session.AUTO_ACKNOWLEDGE;
+			if (ACKNOWLEDGE_TRANSACTED.equals(acknowledge)) {
+				acknowledgeMode = Session.SESSION_TRANSACTED;
+			}
+			else if (ACKNOWLEDGE_DUPS_OK.equals(acknowledge)) {
+				acknowledgeMode = Session.DUPS_OK_ACKNOWLEDGE;
+			}
+			else if (ACKNOWLEDGE_CLIENT.equals(acknowledge)) {
+				acknowledgeMode = Session.CLIENT_ACKNOWLEDGE;
+			}
+			else if (!ACKNOWLEDGE_AUTO.equals(acknowledge)) {
+				throw new BeanCreationException("Invalid jms-source 'acknowledge' setting: " +
+						"only \"auto\", \"client\", \"dups-ok\" and \"transacted\" supported.");
+			}
+			return acknowledgeMode;
+		}
+		else {
+			return null;
 		}
 	}
 
