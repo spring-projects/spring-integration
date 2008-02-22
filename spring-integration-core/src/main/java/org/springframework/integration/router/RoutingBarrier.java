@@ -34,15 +34,15 @@ import org.springframework.util.Assert;
  */
 public class RoutingBarrier {
 
-	private List<Message<?>> messages = new CopyOnWriteArrayList<Message<?>>();
+	private final List<Message<?>> messages = new CopyOnWriteArrayList<Message<?>>();
 
 	private final RoutingBarrierCompletionStrategy completionStrategy;
 
 	private volatile boolean complete = false;
 
-	private ReentrantLock lock = new ReentrantLock();
+	private final ReentrantLock lock = new ReentrantLock();
 
-	private Condition condition = lock.newCondition();
+	private final Condition condition = lock.newCondition();
 
 
 	public RoutingBarrier(RoutingBarrierCompletionStrategy completionStrategy) {

@@ -35,22 +35,23 @@ import org.springframework.util.Assert;
  * MessageHandler adapter for methods annotated with {@link Splitter @Splitter}.
  * 
  * @author Mark Fisher
+ * @author Marius Bogoevici
  */
-public class SplitterMessageHandlerAdapter extends AbstractMessageHandlerAdapter implements ChannelRegistryAware {
+public class SplitterMessageHandlerAdapter<T> extends AbstractMessageHandlerAdapter<T> implements ChannelRegistryAware {
 
 	public static final String CHANNEL_KEY = "channel";
 
 
-	private Map<String, ?> attributes;
+	private final Method method;
 
-	private Method method;
+	private final Map<String, ?> attributes;
 
-	private ChannelRegistry channelRegistry;
+	private volatile ChannelRegistry channelRegistry;
 
-	private long sendTimeout = -1;
+	private volatile long sendTimeout = -1;
 
 
-	public SplitterMessageHandlerAdapter(Object object, Method method, Map<String, ?> attributes) {
+	public SplitterMessageHandlerAdapter(T object, Method method, Map<String, ?> attributes) {
 		Assert.notNull(object, "'object' must not be null");
 		Assert.notNull(method, "'method' must not be null");
 		Assert.isTrue(attributes != null && attributes.get(CHANNEL_KEY) != null,
@@ -70,10 +71,10 @@ public class SplitterMessageHandlerAdapter extends AbstractMessageHandlerAdapter
 	}
 
 	@Override
-	protected Object doHandle(Message message, SimpleMethodInvoker invoker) {
+	protected final Object doHandle(Message<?> message, SimpleMethodInvoker<T> invoker) {
 		if (method.getParameterTypes().length != 1) {
 			throw new MessagingConfigurationException(
-					"method must accept exactly one parameter");
+					"Splitter method must accept exactly one parameter");
 		}
 		String channelName = (String) attributes.get(CHANNEL_KEY);
 		Object retval = null;
@@ -98,33 +99,20 @@ public class SplitterMessageHandlerAdapter extends AbstractMessageHandlerAdapter
 		}
 		if (retval instanceof Collection) {
 			Collection<?> items = (Collection<?>) retval;
-			int counter = 0;
+			int sequenceNumber = 0;
+			int sequenceSize = items.size();
 			for (Object item : items) {
-				if (item instanceof Message) {
-					Message splitMessage = (Message) item;
-					splitMessage.getHeader().setCorrelationId(message.getId());
-					this.sendMessage(splitMessage, channelName);
-				}
-				else {
-					Message splitMessage = new GenericMessage(message.getId() + "#" + (counter++), item);
-					splitMessage.getHeader().setCorrelationId(message.getId());
-					this.sendMessage(splitMessage, channelName);
-				}
+				Message<?> splitMessage = prepareMessage(item, message.getId(), ++sequenceNumber, sequenceSize);
+				this.sendMessage(splitMessage, channelName);
 			}
 		}
 		else if (retval.getClass().isArray()) {
-			int counter = 0;
-			for (Object item : (Object[]) retval) {
-				if (item instanceof Message) {
-					Message splitMessage = (Message) item;
-					splitMessage.getHeader().setCorrelationId(message.getId());
-					this.sendMessage(splitMessage, channelName);
-				}
-				else {
-					Message splitMessage = new GenericMessage(message.getId() + "#" + (counter++), item);
-					splitMessage.getHeader().setCorrelationId(message.getId());
-					this.sendMessage(splitMessage, channelName);
-				}
+			Object[] array = (Object[]) retval;
+			int sequenceNumber = 0;
+			int sequenceSize = array.length;
+			for (Object item : array) {
+				Message<?> splitMessage = prepareMessage(item, message.getId(), ++sequenceNumber, sequenceSize);
+				this.sendMessage(splitMessage, channelName);
 			}
 		}
 		else {
@@ -134,7 +122,18 @@ public class SplitterMessageHandlerAdapter extends AbstractMessageHandlerAdapter
 		return null;
 	}
 
+	private Message<?> prepareMessage(Object item, Object correlationId, int sequenceNumber, int sequenceSize) {
+		Message<?> message = (item instanceof Message) ? (Message<?>) item : new GenericMessage(item);
+		message.getHeader().setCorrelationId(correlationId);
+		message.getHeader().setSequenceNumber(sequenceNumber);
+		message.getHeader().setSequenceSize(sequenceSize);
+		return message;
+	}
+
 	private boolean sendMessage(Message<?> message, String channelName) {
+		if (this.channelRegistry == null) {
+			throw new IllegalStateException(this.getClass().getSimpleName() + " requires a ChannelRegistry reference.");
+		}
 		MessageChannel channel = this.channelRegistry.lookupChannel(channelName);
 		if (channel == null) {
 			if (logger.isWarnEnabled()) {

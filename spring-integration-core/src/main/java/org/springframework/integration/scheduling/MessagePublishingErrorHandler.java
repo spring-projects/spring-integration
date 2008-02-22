@@ -31,11 +31,11 @@ import org.springframework.integration.util.ErrorHandler;
  */
 public class MessagePublishingErrorHandler implements ErrorHandler {
 
-	private Log logger = LogFactory.getLog(this.getClass());
+	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private MessageChannel errorChannel;
+	private volatile MessageChannel errorChannel;
 
-	private long sendTimeout = 1000;
+	private final long sendTimeout = 1000;
 
 
 	public MessagePublishingErrorHandler() {
@@ -50,16 +50,16 @@ public class MessagePublishingErrorHandler implements ErrorHandler {
 		this.errorChannel = errorChannel;
 	}
 
-	public void handle(Throwable t) {
+	public final void handle(Throwable t) {
+		if (logger.isWarnEnabled()) {
+			logger.warn("failure occurred in messaging task", t);
+		}
 		if (this.errorChannel != null) {
 			try {
 				this.errorChannel.send(new ErrorMessage(t), this.sendTimeout);
 			}
 			catch (Throwable ignore) { // message will be logged only
 			}
-		}
-		if (logger.isWarnEnabled()) {
-			logger.warn("failure occurred in messaging task", t);
 		}
 	}
 

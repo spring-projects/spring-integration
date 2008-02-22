@@ -30,7 +30,7 @@ import org.springframework.integration.message.Message;
  */
 public class MessageHandlerChain implements MessageHandler {
 
-	private List<MessageHandler> handlers = new CopyOnWriteArrayList<MessageHandler>();
+	private final List<MessageHandler> handlers = new CopyOnWriteArrayList<MessageHandler>();
 
 
 	/**
@@ -52,7 +52,7 @@ public class MessageHandlerChain implements MessageHandler {
 		this.handlers.addAll(handlers);
 	}
 
-	public Message<?> handle(Message<?> message) {
+	public final Message<?> handle(Message<?> message) {
 		for (MessageHandler next : handlers) {
 			message = next.handle(message);
 			if (message == null) {

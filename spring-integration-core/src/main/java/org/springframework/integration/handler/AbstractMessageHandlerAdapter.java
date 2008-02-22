@@ -39,21 +39,21 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractMessageHandlerAdapter<T> implements MessageHandler, Ordered, InitializingBean {
 
-	protected Log logger = LogFactory.getLog(this.getClass());
+	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	private T object;
+	private volatile T object;
 
-	private String methodName;
+	private volatile String methodName;
 
-	private MessageMapper mapper = new SimplePayloadMessageMapper();
+	private volatile MessageMapper mapper = new SimplePayloadMessageMapper();
 
-	private SimpleMethodInvoker<T> invoker;
+	private volatile SimpleMethodInvoker<T> invoker;
 
-	private int order = Integer.MAX_VALUE;
+	private volatile int order = Integer.MAX_VALUE;
 
 	private volatile boolean initialized;
 
-	private Object lifecycleMonitor = new Object();
+	private final Object lifecycleMonitor = new Object();
 
 
 	public void setObject(T object) {
@@ -108,10 +108,15 @@ public abstract class AbstractMessageHandlerAdapter<T> implements MessageHandler
 	public final Message<?> handle(Message<?> message) {
 		Object result = this.doHandle(message, invoker);
 		if (result != null) {
-			if (result instanceof Message) {
-				return (Message<?>) result;
+			Message<?> reply = (result instanceof Message) ? (Message<?>) result :
+					this.mapper.toMessage(result);
+			Object correlationId = reply.getHeader().getCorrelationId();
+			if (correlationId == null) {
+				Object orginalCorrelationId = message.getHeader().getCorrelationId();
+				reply.getHeader().setCorrelationId((orginalCorrelationId != null) ?
+						orginalCorrelationId : message.getId());
 			}
-			return this.mapper.toMessage(result);
+			return reply;
 		}
 		return null;
 	}
@@ -127,6 +132,6 @@ public abstract class AbstractMessageHandlerAdapter<T> implements MessageHandler
 	 * the provided target object and method. May return an object of type
 	 * {@link Message}, else rely on the message mapper to convert.
 	 */
-	protected abstract Object doHandle(Message message, SimpleMethodInvoker invoker);
+	protected abstract Object doHandle(Message<?> message, SimpleMethodInvoker<T> invoker);
 
 }
