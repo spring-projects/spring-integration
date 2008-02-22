@@ -19,8 +19,12 @@ package org.springframework.integration.channel;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.message.Message;
+import org.springframework.util.StringUtils;
 
 /**
  * Base class for {@link MessageChannel} implementations providing common
@@ -33,7 +37,10 @@ import org.springframework.integration.message.Message;
  */
 public abstract class AbstractMessageChannel implements MessageChannel, BeanNameAware {
 
-	private String name;
+	private final Log logger = LogFactory.getLog(this.getClass());
+
+
+	private volatile String name;
 
 	private final ChannelInterceptorList interceptors = new ChannelInterceptorList();
 
@@ -163,6 +170,10 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 		return message;
 	}
 
+	public String toString() {
+		return (this.name != null) ? this.name : super.toString();
+	}
+
 
 	/**
 	 * Subclasses must implement this method. A non-negative timeout indicates
@@ -186,7 +197,7 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 	/**
 	 * A convenience wrapper class for the list of ChannelInterceptors.
 	 */
-	private static class ChannelInterceptorList {
+	private class ChannelInterceptorList {
 
 		private final List<ChannelInterceptor> interceptors = new CopyOnWriteArrayList<ChannelInterceptor>();
 
@@ -203,6 +214,9 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 		}
 
 		public boolean preSend(Message message, MessageChannel channel) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("preSend on channel '" + channel + "', message: " + message);
+			}
 			for (ChannelInterceptor interceptor : interceptors) {
 				if (!interceptor.preSend(message, channel)) {
 					return false;
@@ -212,12 +226,18 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 		}
 
 		public void postSend(Message message, MessageChannel channel, boolean sent) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("postSend (sent=" + sent + ") on channel '" + channel + "', message: " + message);
+			}
 			for (ChannelInterceptor interceptor : interceptors) {
 				interceptor.postSend(message, channel, sent);
 			}
 		}
 
 		public boolean preReceive(MessageChannel channel) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("preReceive on channel '" + channel + "'");
+			}
 			for (ChannelInterceptor interceptor : interceptors) {
 				if (!interceptor.preReceive(channel)) {
 					return false;
@@ -227,6 +247,9 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 		}
 
 		public void postReceive(Message message, MessageChannel channel) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("postReceive on channel '" + channel + "', message: " + message);
+			}
 			for (ChannelInterceptor interceptor : interceptors) {
 				interceptor.postReceive(message, channel);
 			}
