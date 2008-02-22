@@ -134,4 +134,8 @@ public class MessageHeader {
 		return this.attributes.keySet();
 	}
 
+	public String toString() {
+		return "[Properties=" + this.properties + "][Attributes=" + this.attributes + "]";
+	}
+
 }

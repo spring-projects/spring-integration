@@ -81,4 +81,8 @@ public class GenericMessage<T> implements Message<T> {
 		return (expiration != null) ? expiration.getTime() < System.currentTimeMillis() : false;
 	}
 
+	public String toString() {
+		return "[ID=" + this.id + "][Header=" + this.header + "][Payload='" + this.payload + "']";
+	}
+
 }
