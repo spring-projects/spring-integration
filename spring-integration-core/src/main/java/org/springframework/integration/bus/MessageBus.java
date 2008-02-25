@@ -78,7 +78,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 
 	private volatile ScheduledExecutorService executor;
 
-	private volatile ConcurrencyPolicy defaultConcurrencyPolicy = new ConcurrencyPolicy(1, 10);
+	private volatile ConcurrencyPolicy defaultConcurrencyPolicy;
 
 	private volatile boolean autoCreateChannels;
 
@@ -175,6 +175,9 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 			if (this.getErrorChannel() == null) {
 				this.setErrorChannel(new DefaultErrorChannel());
 			}
+			if (this.defaultConcurrencyPolicy == null) {
+				this.defaultConcurrencyPolicy = new ConcurrencyPolicy();
+			}
 			if (this.executor == null) {
 				this.executor = new ScheduledThreadPoolExecutor(DEFAULT_DISPATCHER_POOL_SIZE);
 			}
@@ -241,8 +244,14 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 	}
 
 	public void registerEndpoint(String name, MessageEndpoint endpoint) {
+		if (!this.initialized) {
+			this.initialize();
+		}
 		if (endpoint instanceof ChannelRegistryAware) {
 			((ChannelRegistryAware) endpoint).setChannelRegistry(this.channelRegistry);
+		}
+		if (endpoint.getConcurrencyPolicy() == null && endpoint instanceof DefaultMessageEndpoint) {
+			((DefaultMessageEndpoint) endpoint).setConcurrencyPolicy(this.defaultConcurrencyPolicy);
 		}
 		this.endpoints.put(name, endpoint);
 		if (this.isRunning()) {

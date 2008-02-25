@@ -24,6 +24,9 @@
 	Defines a message bus.
 				</xsd:documentation>
 			</xsd:annotation>
+			<xsd:sequence>
+				<xsd:element name="default-concurrency" type="concurrencyType" minOccurs="0" maxOccurs="1"/>
+			</xsd:sequence>
 			<xsd:attribute name="auto-startup" type="xsd:boolean"/>
 			<xsd:attribute name="auto-create-channels" type="xsd:boolean"/>
 			<xsd:attribute name="error-channel" type="xsd:string"/>
@@ -116,7 +119,7 @@
 				<xsd:extension base="beans:identifiedType">
 					<xsd:sequence>
 						<xsd:element ref="schedule" minOccurs="0" maxOccurs="1"/>
-						<xsd:element ref="concurrency" minOccurs="0" maxOccurs="1"/>
+						<xsd:element name="concurrency" type="concurrencyType" minOccurs="0" maxOccurs="1"/>
 						<xsd:element ref="selector" minOccurs="0" maxOccurs="unbounded"/>
 						<xsd:element ref="handler" minOccurs="0" maxOccurs="unbounded"/>
 					</xsd:sequence>
@@ -137,20 +140,6 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:attribute name="period" type="xsd:int"/>
-		</xsd:complexType>
-	</xsd:element>
-
-	<xsd:element name="concurrency">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-	Defines a concurrency policy.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:attribute name="core" type="xsd:int"/>
-			<xsd:attribute name="max" type="xsd:int"/>
-			<xsd:attribute name="queue-capacity" type="xsd:int"/>
-			<xsd:attribute name="keep-alive" type="xsd:int"/>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -206,5 +195,17 @@
 			<xsd:attribute name="should-fail-on-rejection-limit" type="xsd:boolean"/>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:complexType name="concurrencyType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a concurrency policy.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="core" type="xsd:int"/>
+		<xsd:attribute name="max" type="xsd:int"/>
+		<xsd:attribute name="queue-capacity" type="xsd:int"/>
+		<xsd:attribute name="keep-alive" type="xsd:int"/>
+	</xsd:complexType>
 
 </xsd:schema>

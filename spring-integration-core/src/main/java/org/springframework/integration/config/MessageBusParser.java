@@ -17,6 +17,8 @@
 package org.springframework.integration.config;
 
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -26,6 +28,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
 import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.util.StringUtils;
 
 /**
@@ -40,6 +43,10 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 	private static final Class<?> MESSAGE_BUS_CLASS = MessageBus.class;
 
 	private static final String ERROR_CHANNEL_ATTRIBUTE = "error-channel";
+
+	private static final String DEFAULT_CONCURRENCY_ELEMENT = "default-concurrency";
+
+	private static final String DEFAULT_CONCURRENCY_PROPERTY = "defaultConcurrencyPolicy";
 
 
 	@Override
@@ -68,6 +75,21 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 		if (StringUtils.hasText(errorChannelRef)) {
 			beanDefinition.addPropertyReference(Conventions.attributeNameToPropertyName(
 					ERROR_CHANNEL_ATTRIBUTE), errorChannelRef);
+		}
+		this.registerDefaultConcurrencyIfAvailable(beanDefinition, element);
+	}
+
+	private void registerDefaultConcurrencyIfAvailable(BeanDefinitionBuilder beanDefinition, Element element) {
+		NodeList childNodes = element.getChildNodes();
+		for (int i = 0; i < childNodes.getLength(); i++) {
+			Node child = childNodes.item(i);
+			if (child.getNodeType() == Node.ELEMENT_NODE) {
+				String localName = child.getLocalName();
+				if (DEFAULT_CONCURRENCY_ELEMENT.equals(localName)) {
+					ConcurrencyPolicy policy = IntegrationNamespaceUtils.parseConcurrencyPolicy((Element) child);
+					beanDefinition.addPropertyValue(DEFAULT_CONCURRENCY_PROPERTY, policy);
+				}
+			}
 		}
 	}
 

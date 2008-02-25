@@ -28,6 +28,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.scheduling.Subscription;
 
@@ -108,6 +109,24 @@ public class MessageBusParserTests {
 		MessageBus bus = (MessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		assertTrue(bus.isRunning());
 		bus.stop();
+	}
+
+	@Test
+	public void testDefaultConcurrency() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"messageBusWithDefaultConcurrencyTests.xml", this.getClass());
+		MessageEndpoint endpoint1 = (MessageEndpoint) context.getBean("endpoint1");
+		assertEquals(4, endpoint1.getConcurrencyPolicy().getCoreSize());
+		assertEquals(7, endpoint1.getConcurrencyPolicy().getMaxSize());
+	}
+
+	@Test
+	public void testExplicitConcurrencyTakesPrecedence() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"messageBusWithDefaultConcurrencyTests.xml", this.getClass());
+		MessageEndpoint endpoint2 = (MessageEndpoint) context.getBean("endpoint2");
+		assertEquals(14, endpoint2.getConcurrencyPolicy().getCoreSize());
+		assertEquals(17, endpoint2.getConcurrencyPolicy().getMaxSize());	
 	}
 
 }
