@@ -33,8 +33,10 @@ import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.selector.MessageSelectorRejectedException;
+import org.springframework.integration.util.ErrorHandler;
 
 /**
  * @author Mark Fisher
@@ -138,6 +140,21 @@ public class EndpointParserTests {
 		MessageHandler endpoint = (MessageHandler) context.getBean("endpoint");
 		((Lifecycle) endpoint).start();
 		endpoint.handle(new GenericMessage<Integer>(123));
+	}
+
+	@Test
+	public void testCustomErrorHandler() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"endpointWithErrorHandler.xml", this.getClass());
+		MessageHandler endpoint = (MessageHandler) context.getBean("endpoint");
+		TestErrorHandler errorHandler = (TestErrorHandler) context.getBean("errorHandler");
+		assertNull(errorHandler.getLastError());
+		Message<?> message = new StringMessage("test");
+		endpoint.handle(message);
+		Throwable error = errorHandler.getLastError();
+		assertEquals(MessageHandlingException.class, error.getClass());
+		MessageHandlingException exception = (MessageHandlingException) error;
+		assertEquals(message, exception.getFailedMessage());
 	}
 
 }

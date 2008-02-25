@@ -26,16 +26,36 @@ import org.springframework.integration.MessagingException;
 @SuppressWarnings("serial")
 public class MessageHandlingException extends MessagingException {
 
+	private Message<?> failedMessage;
+
+
 	public MessageHandlingException() {
 		super();
 	}
 
-	public MessageHandlingException(String message) {
-		super(message);
+	public MessageHandlingException(Message<?> failedMessage) {
+		this.failedMessage = failedMessage;
 	}
 
-	public MessageHandlingException(String message, Throwable cause) {
-		super(message, cause);
+	public MessageHandlingException(String description) {
+		super(description);
+	}
+
+	public MessageHandlingException(Message<?> failedMessage, String description) {
+		super(description);
+		this.failedMessage = failedMessage;
+	}
+
+	public MessageHandlingException(String description, Throwable cause) {
+		super(description, cause);
+	}
+
+
+	/**
+	 * Return the failed {@link Message} if available, may be null.
+	 */
+	public Message<?> getFailedMessage() {
+		return this.failedMessage;
 	}
 
 }

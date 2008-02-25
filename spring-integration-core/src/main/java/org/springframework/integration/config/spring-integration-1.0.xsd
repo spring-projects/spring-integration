@@ -127,6 +127,7 @@
 					<xsd:attribute name="default-output-channel" type="xsd:string"/>
 					<xsd:attribute name="handler-ref" type="xsd:string"/>
 					<xsd:attribute name="handler-method" type="xsd:string"/>
+					<xsd:attribute name="error-handler" type="xsd:string"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
