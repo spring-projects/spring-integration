@@ -1,1 +1,8 @@
-@java -classpath ..\dist\spring-integration-core-1.0.0.m1.jar;..\dist\spring-integration-samples-1.0.0.m1.jar;..\lib\aopalliance-1.0.jar;..\lib\commons-logging-1.1.jar;..\lib\spring-aop-2.5.0.jar;..\lib\spring-beans-2.5.0.jar;..\lib\spring-context-2.5.0.jar;..\lib\spring-context-support-2.5.0.jar;..\lib\spring-core-2.5.0.jar org.springframework.integration.samples.cafe.CafeDemo %1 %2 %3 %4 %5 %6 %7 %8 %9
+@echo off
+
+setlocal ENABLEDELAYEDEXPANSION
+
+for /r ..\dist %%j IN (*.jar) do set CP=!CP!;%%j
+for /r ..\lib %%j IN (*.jar) do set CP=!CP!;%%j
+
+@java -cp %CP% org.springframework.integration.samples.cafe.CafeDemo %1
