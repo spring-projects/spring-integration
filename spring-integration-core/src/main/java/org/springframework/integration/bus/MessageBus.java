@@ -115,6 +115,15 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 	}
 
 	/**
+	 * Specify the default concurrency policy to be used for any endpoint that
+	 * is registered without an explicitly provided policy of its own.
+	 */
+	public void setDefaultConcurrencyPolicy(ConcurrencyPolicy defaultConcurrencyPolicy) {
+		Assert.notNull(defaultConcurrencyPolicy, "'defaultConcurrencyPolicy' must not be null");
+		this.defaultConcurrencyPolicy = defaultConcurrencyPolicy;
+	}
+
+	/**
 	 * Set whether to automatically start the bus after initialization.
 	 * <p>Default is 'true'; set this to 'false' to allow for manual startup
 	 * through the {@link #start()} method.

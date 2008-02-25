@@ -36,10 +36,12 @@ import org.springframework.integration.adapter.SourceAdapter;
 import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.scheduling.Subscription;
 
@@ -176,6 +178,41 @@ public class MessageBusTests {
 		assertTrue(message instanceof ErrorMessage);
 		assertEquals("intentional test failure", ((ErrorMessage) message).getPayload().getMessage());
 		bus.stop();
+	}
+
+	@Test
+	public void testDefaultConcurrencyPolicy() throws InterruptedException {
+		MessageBus bus = new MessageBus();
+		bus.setDefaultConcurrencyPolicy(new ConcurrencyPolicy(1, 3));
+		final CountDownLatch latch = new CountDownLatch(3);
+		MessageHandler testHandler = new MessageHandler() {
+			public Message<?> handle(Message<?> message) {
+				latch.countDown();
+				try {
+					Thread.sleep(5000);
+				}
+				catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+				return null;
+			}
+		};
+		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
+		dispatcherPolicy.setRejectionLimit(1);
+		dispatcherPolicy.setRetryInterval(0);
+		SimpleChannel testChannel = new SimpleChannel(0, dispatcherPolicy);
+		bus.registerChannel("testChannel", testChannel);
+		bus.registerHandler("testHandler", testHandler, new Subscription(testChannel));
+		bus.start();
+		for (int i = 0; i < 4; i++) {
+			assertTrue(testChannel.send(new StringMessage("test-"+ i), 100));
+		}
+		latch.await(1000, TimeUnit.MILLISECONDS);
+		assertEquals(0, latch.getCount());
+		MessageChannel errorChannel = bus.getErrorChannel();
+		Message<?> errorMessage = errorChannel.receive(500);
+		assertNotNull(errorMessage);
+		assertEquals(MessageDeliveryException.class, errorMessage.getPayload().getClass());
 	}
 
 	@Test
