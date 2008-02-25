@@ -38,6 +38,7 @@ import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerNotRunningException;
 import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.integration.message.selector.MessageSelectorRejectedException;
@@ -442,9 +443,102 @@ public class DefaultMessageEndpointTests {
 		endpoint.stop();
 	}
 
+	@Test
+	public void testDefaultOutputChannelTimeoutSendsToErrorHandler() {
+		SimpleChannel output = new SimpleChannel(1);
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		channelRegistry.registerChannel("output", output);
+		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(new MessageHandler() {
+			public Message<?> handle(Message<?> message) {
+				return message;
+			}
+		});
+		endpoint.setDefaultOutputChannelName("output");
+		endpoint.setChannelRegistry(channelRegistry);
+		TestErrorHandler errorHandler = new TestErrorHandler();
+		endpoint.setErrorHandler(errorHandler);
+		endpoint.setReplyTimeout(0);
+		endpoint.start();
+		endpoint.handle(new StringMessage("test1"));
+		assertNull(errorHandler.getLastError());
+		endpoint.handle(new StringMessage("test2"));
+		Throwable error = errorHandler.getLastError();
+		assertNotNull(error);
+		assertEquals(MessageDeliveryException.class, error.getClass());
+		assertEquals("test2", ((MessageDeliveryException) error).getUndeliveredMessage().getPayload());
+	}
+
+	@Test
+	public void testReturnAddressChannelTimeoutSendsToErrorHandler() {
+		SimpleChannel replyChannel = new SimpleChannel(1);
+		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(new MessageHandler() {
+			public Message<?> handle(Message<?> message) {
+				return message;
+			}
+		});
+		TestErrorHandler errorHandler = new TestErrorHandler();
+		endpoint.setErrorHandler(errorHandler);
+		endpoint.setReplyTimeout(0);
+		endpoint.start();
+		Message<?> message1 = new StringMessage("test1");
+		message1.getHeader().setReturnAddress(replyChannel);
+		endpoint.handle(message1);
+		assertNull(errorHandler.getLastError());
+		Message<?> message2 = new StringMessage("test2");
+		message2.getHeader().setReturnAddress(replyChannel);
+		endpoint.handle(message2);
+		Throwable error = errorHandler.getLastError();
+		assertNotNull(error);
+		assertEquals(MessageDeliveryException.class, error.getClass());
+		assertEquals(message2, ((MessageDeliveryException) error).getUndeliveredMessage());
+	}
+
+	@Test
+	public void testReturnAddressChannelNameTimeoutSendsToErrorHandler() {
+		SimpleChannel replyChannel = new SimpleChannel(1);
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		channelRegistry.registerChannel("replyChannel", replyChannel);
+		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(new MessageHandler() {
+			public Message<?> handle(Message<?> message) {
+				return message;
+			}
+		});
+		endpoint.setChannelRegistry(channelRegistry);
+		TestErrorHandler errorHandler = new TestErrorHandler();
+		endpoint.setErrorHandler(errorHandler);
+		endpoint.setReplyTimeout(10);
+		endpoint.start();
+		Message<?> message1 = new StringMessage("test1");
+		message1.getHeader().setReturnAddress("replyChannel");
+		endpoint.handle(message1);
+		assertNull(errorHandler.getLastError());
+		Message<?> message2 = new StringMessage("test2");
+		message2.getHeader().setReturnAddress("replyChannel");
+		endpoint.handle(message2);
+		Throwable error = errorHandler.getLastError();
+		assertNotNull(error);
+		assertEquals(MessageDeliveryException.class, error.getClass());
+		assertEquals(message2, ((MessageDeliveryException) error).getUndeliveredMessage());
+	}
+
 
 	private static ExecutorService createExecutor() {
 		return new ThreadPoolExecutor(1, 1, 60, TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
+	}
+
+
+	private static class TestErrorHandler implements ErrorHandler {
+
+		private volatile Throwable lastError;
+
+
+		public void handle(Throwable t) {
+			this.lastError = t;
+		}
+
+		Throwable getLastError() {
+			return this.lastError;
+		}
 	}
 
 }

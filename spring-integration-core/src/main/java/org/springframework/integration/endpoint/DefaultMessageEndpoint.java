@@ -40,6 +40,7 @@ import org.springframework.integration.handler.MessageHandlerNotRunningException
 import org.springframework.integration.handler.MessageHandlerRejectedExecutionException;
 import org.springframework.integration.handler.ReplyHandler;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageHeader;
 import org.springframework.integration.message.selector.MessageSelector;
@@ -71,6 +72,8 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 	private final List<MessageSelector> selectors = new CopyOnWriteArrayList<MessageSelector>();
 
 	private final ReplyHandler replyHandler = new EndpointReplyHandler();
+
+	private volatile long replyTimeout = 1000;
 
 	private volatile String defaultOutputChannelName;
 
@@ -146,12 +149,24 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 		return (this.errorHandler != null);
 	}
 
+	/**
+	 * Set the timeout in milliseconds to be enforced when this endpoint sends a
+	 * reply message. If the message is not sent successfully within the
+	 * allotted time, then it will be sent within a MessageDeliveryException to
+	 * the error handler instead. The default <code>replyTimeout</code> value
+	 * is 1000 milliseconds.
+	 */
+	public void setReplyTimeout(long replyTimeout) {
+		this.replyTimeout = replyTimeout;
+	}
+
 	public String getDefaultOutputChannelName() {
 		return this.defaultOutputChannelName;
 	}
 
 	/**
-	 * Set the name of the channel to which this endpoint can send reply messages by default.
+	 * Set the name of the channel to which this endpoint should send reply
+	 * messages by default.
 	 */
 	public void setDefaultOutputChannelName(String defaultOutputChannelName) {
 		this.defaultOutputChannelName = defaultOutputChannelName;
@@ -170,9 +185,9 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 				int capacity = concurrencyPolicy.getQueueCapacity();
 				BlockingQueue<Runnable> queue = (capacity < 1) ? new SynchronousQueue<Runnable>() :
 						new ArrayBlockingQueue<Runnable>(capacity);
-				ExecutorService executor = new ThreadPoolExecutor(concurrencyPolicy.getCoreSize(),
-						concurrencyPolicy.getMaxSize(), concurrencyPolicy.getKeepAliveSeconds(),
-						TimeUnit.SECONDS, queue);
+				ExecutorService executor = new ThreadPoolExecutor(
+						concurrencyPolicy.getCoreSize(), concurrencyPolicy.getMaxSize(),
+						concurrencyPolicy.getKeepAliveSeconds(), TimeUnit.SECONDS, queue);
 				this.handler = new ConcurrentHandler(this.handler, executor);
 			}
 			ConcurrentHandler concurrentHandler = (ConcurrentHandler) this.handler;
@@ -232,7 +247,10 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 			if (logger.isDebugEnabled()) {
 				logger.debug("endpoint '" + this + "' sending to output channel '" + outputChannel + "', message: " + message);
 			}
-			outputChannel.send(message);
+			if (!outputChannel.send(message, this.replyTimeout)) {
+				this.errorHandler.handle(new MessageDeliveryException(message,
+						"unable to send output message within alloted timeout of " + replyTimeout + " milliseconds"));
+			}
 			return null;
 		}
 		try {
@@ -291,7 +309,10 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 			if (logger.isDebugEnabled()) {
 				logger.debug("endpoint '" + DefaultMessageEndpoint.this + "' replying to channel '" + replyChannel + "' with message: " + replyMessage);
 			}
-			replyChannel.send(replyMessage);
+			if (!replyChannel.send(replyMessage, replyTimeout)) {
+				errorHandler.handle(new MessageDeliveryException(replyMessage,
+						"unable to send reply message within alloted timeout of " + replyTimeout + " milliseconds"));
+			}
 		}
 	}
 
