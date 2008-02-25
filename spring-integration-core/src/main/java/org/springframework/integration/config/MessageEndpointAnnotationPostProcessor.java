@@ -52,6 +52,7 @@ import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.integration.handler.config.DefaultMessageHandlerCreator;
 import org.springframework.integration.handler.config.MessageHandlerCreator;
+import org.springframework.integration.message.Message;
 import org.springframework.integration.router.config.RouterMessageHandlerCreator;
 import org.springframework.integration.router.config.SplitterMessageHandlerCreator;
 import org.springframework.integration.scheduling.PollingSchedule;
@@ -115,6 +116,13 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(handlerChain);
 		this.configureInput(bean, beanName, endpointAnnotation, endpoint);
 		this.configureDefaultOutput(bean, beanName, endpointAnnotation, endpoint);
+		if (endpoint.getHandler() == null) {
+			endpoint.setHandler(new MessageHandler() {
+				public Message<?> handle(Message<?> message) {
+					return message;
+				}
+			});
+		}
 		this.messageBus.registerEndpoint(beanName + "-endpoint", endpoint);
 		return bean;
 	}
@@ -178,12 +186,18 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 					target.setMethod(method.getName());
 					target.afterPropertiesSet();
 					DefaultTargetAdapter adapter = new DefaultTargetAdapter(target);
-					SimpleChannel channel = new SimpleChannel();
-					String channelName = beanName + "-defaultOutputChannel";
-					Subscription subscription = new Subscription(channel);
-					messageBus.registerChannel(channelName, channel);
-					messageBus.registerHandler(beanName + "-targetAdapter", adapter, subscription);
-					endpoint.setDefaultOutputChannelName(channelName);
+					MessageHandler handler = endpoint.getHandler();
+					if (handler == null) {
+						endpoint.setHandler(adapter);
+					}
+					else if (handler instanceof MessageHandlerChain) {
+						((MessageHandlerChain) handler).add(adapter);
+					}
+					else {
+						MessageHandlerChain chain = new MessageHandlerChain();
+						chain.add(handler);
+						chain.add(adapter);
+					}
 					foundDefaultOutput = true;
 					return;
 				}
