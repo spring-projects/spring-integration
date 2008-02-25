@@ -34,7 +34,7 @@
 	</bean>
 
 	<bean id="targetEndpoint" class="org.springframework.integration.endpoint.DefaultMessageEndpoint">
-		<property name="handler" ref="targetAdapter"/>
+		<constructor-arg ref="targetAdapter"/>
 		<property name="subscription">
 			<bean class="org.springframework.integration.scheduling.Subscription">
 				<constructor-arg ref="outputChannel"/>

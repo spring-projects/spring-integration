@@ -111,10 +111,9 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 			}
 			return bean;
 		}
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint();
-		this.configureInput(bean, beanName, endpointAnnotation, endpoint);
 		MessageHandlerChain handlerChain = this.createHandlerChain(bean);
-		endpoint.setHandler(handlerChain);
+		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(handlerChain);
+		this.configureInput(bean, beanName, endpointAnnotation, endpoint);
 		this.configureDefaultOutput(bean, beanName, endpointAnnotation, endpoint);
 		this.messageBus.registerEndpoint(beanName + "-endpoint", endpoint);
 		return bean;

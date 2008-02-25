@@ -78,6 +78,8 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 
 	private volatile ScheduledExecutorService executor;
 
+	private volatile ConcurrencyPolicy defaultConcurrencyPolicy = new ConcurrencyPolicy(1, 10);
+
 	private volatile boolean autoCreateChannels;
 
 	private volatile boolean autoStartup = true;
@@ -211,7 +213,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 	}
 
 	public void registerHandler(String name, MessageHandler handler, Subscription subscription) {
-		this.registerHandler(name, handler, subscription, null);
+		this.registerHandler(name, handler, subscription, this.defaultConcurrencyPolicy);
 	}
 
 	public void registerHandler(String name, MessageHandler handler, Subscription subscription, ConcurrencyPolicy concurrencyPolicy) {

@@ -454,11 +454,9 @@ public class DefaultMessageDispatcherTests {
 		SimpleChannel channel = new SimpleChannel(new DispatcherPolicy(true));
 		channel.send(new StringMessage(1, "test"));
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
-		DefaultMessageEndpoint endpoint1 = new DefaultMessageEndpoint();
-		endpoint1.setHandler(handler1);
+		DefaultMessageEndpoint endpoint1 = new DefaultMessageEndpoint(handler1);
 		endpoint1.setConcurrencyPolicy(new ConcurrencyPolicy(1, 1));
-		DefaultMessageEndpoint endpoint2 = new DefaultMessageEndpoint();
-		endpoint2.setHandler(handler2);
+		DefaultMessageEndpoint endpoint2 = new DefaultMessageEndpoint(handler2);
 		endpoint2.setConcurrencyPolicy(new ConcurrencyPolicy(1, 1));
 		endpoint1.addMessageSelector(new PayloadTypeSelector(Integer.class));
 		endpoint2.addMessageSelector(new PayloadTypeSelector(String.class));

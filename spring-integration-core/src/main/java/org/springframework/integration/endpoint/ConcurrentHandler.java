@@ -101,10 +101,13 @@ public class ConcurrentHandler implements MessageHandler, DisposableBean {
 				}
 			}
 			catch (Throwable t) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("error occurred in handler execution", t);
+				}
 				if (errorHandler != null) {
 					errorHandler.handle(t);
 				}
-				else if (logger.isWarnEnabled()) {
+				else if (logger.isWarnEnabled() && !logger.isDebugEnabled()) {
 					logger.warn("error occurred in handler execution", t);
 				}
 			}
