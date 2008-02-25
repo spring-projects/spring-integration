@@ -43,15 +43,21 @@ public class DefaultErrorChannel extends SimpleChannel {
 
 		@Override
 		public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
-			Object payload = message.getPayload();
 			if (!sent) {
 				if (logger.isWarnEnabled()) {
 					logger.warn("DefaultErrorChannel has reached capacity. Are any handlers subscribed?");
 				}
 			}
-			// if error channel has no subscribers, then errors are at least visible at debug level
+		}
+
+		/**
+		 * Even if the error channel has no subscribers, errors are at least visible at debug level.
+		 */
+		@Override
+		public boolean preSend(Message<?> message, MessageChannel channel) {
 			if (logger.isDebugEnabled()) {
-				String errorMessage = "Error Received. Message: " + message.toString(); 
+				String errorMessage = "Error Received. Message: " + message.toString();
+				Object payload = message.getPayload();
 				if (payload instanceof Throwable) {
 					logger.debug(errorMessage, (Throwable) payload);
 				}
@@ -59,6 +65,7 @@ public class DefaultErrorChannel extends SimpleChannel {
 					logger.debug(errorMessage);
 				}
 			}
+			return true;
 		}
 	}
 
