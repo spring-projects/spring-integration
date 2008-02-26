@@ -34,6 +34,10 @@ public class TestHandler implements MessageHandler {
 	private String replyMessageText = null;
 
 
+	public TestHandler() {
+		this(1);
+	}
+
 	public TestHandler(int countdown) {
 		this.latch = new CountDownLatch(countdown);
 	}

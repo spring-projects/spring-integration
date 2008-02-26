@@ -157,4 +157,18 @@ public class EndpointParserTests {
 		assertEquals(message, exception.getFailedMessage());
 	}
 
+	@Test
+	public void testCustomReplyHandler() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"endpointWithReplyHandler.xml", this.getClass());
+		MessageHandler endpoint = (MessageHandler) context.getBean("endpoint");
+		TestReplyHandler replyHandler = (TestReplyHandler) context.getBean("replyHandler");
+		assertNull(replyHandler.getLastMessage());
+		Message<?> message = new StringMessage("test");
+		endpoint.handle(message);
+		Message<?> reply = replyHandler.getLastMessage();
+		assertNotNull(reply);
+		assertEquals("foo", reply.getPayload());
+	}
+
 }

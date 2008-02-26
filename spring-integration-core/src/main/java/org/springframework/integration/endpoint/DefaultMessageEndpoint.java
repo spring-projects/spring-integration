@@ -71,7 +71,7 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 
 	private final List<MessageSelector> selectors = new CopyOnWriteArrayList<MessageSelector>();
 
-	private final ReplyHandler replyHandler = new EndpointReplyHandler();
+	private volatile ReplyHandler replyHandler = new EndpointReplyHandler();
 
 	private volatile long replyTimeout = 1000;
 
@@ -147,6 +147,11 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 
 	public boolean hasErrorHandler() {
 		return (this.errorHandler != null);
+	}
+
+	public void setReplyHandler(ReplyHandler replyHandler) {
+		Assert.notNull(replyHandler, "'replyHandler' must not be null");
+		this.replyHandler = replyHandler;
 	}
 
 	/**

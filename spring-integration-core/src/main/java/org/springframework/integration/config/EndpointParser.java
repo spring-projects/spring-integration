@@ -80,6 +80,10 @@ public class EndpointParser implements BeanDefinitionParser {
 
 	private static final String ERROR_HANDLER_PROPERTY = "errorHandler";
 
+	private static final String REPLY_HANDLER_ATTRIBUTE = "reply-handler";
+
+	private static final String REPLY_HANDLER_PROPERTY = "replyHandler";
+
 	private static final String OBJECT_PROPERTY = "object";
 
 	private static final String METHOD_NAME_PROPERTY = "methodName";
@@ -177,6 +181,10 @@ public class EndpointParser implements BeanDefinitionParser {
 		String errorHandlerRef = element.getAttribute(ERROR_HANDLER_ATTRIBUTE);
 		if (StringUtils.hasText(errorHandlerRef)) {
 			endpointDef.getPropertyValues().addPropertyValue(ERROR_HANDLER_PROPERTY, new RuntimeBeanReference(errorHandlerRef));
+		}
+		String replyHandlerRef = element.getAttribute(REPLY_HANDLER_ATTRIBUTE);
+		if (StringUtils.hasText(replyHandlerRef)) {
+			endpointDef.getPropertyValues().addPropertyValue(REPLY_HANDLER_PROPERTY, new RuntimeBeanReference(replyHandlerRef));
 		}
 		String beanName = element.getAttribute(ID_ATTRIBUTE);
 		if (!StringUtils.hasText(beanName)) {
