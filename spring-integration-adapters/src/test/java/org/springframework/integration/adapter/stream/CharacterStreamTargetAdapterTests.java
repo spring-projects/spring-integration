@@ -90,7 +90,7 @@ public class CharacterStreamTargetAdapterTests {
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(2);
-		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
+		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
 		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		dispatcher.addHandler(adapter);
 		channel.send(new StringMessage("foo"), 0);
@@ -107,7 +107,7 @@ public class CharacterStreamTargetAdapterTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(10);
 		dispatcherPolicy.setReceiveTimeout(0);
-		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
+		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
 		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		adapter.setShouldAppendNewLine(true);
 		dispatcher.addHandler(adapter);
@@ -141,7 +141,7 @@ public class CharacterStreamTargetAdapterTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setReceiveTimeout(0);
 		dispatcherPolicy.setMaxMessagesPerTask(2);
-		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
+		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
 		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		dispatcher.addHandler(adapter);
 		TestObject testObject1 = new TestObject("foo");
@@ -160,7 +160,7 @@ public class CharacterStreamTargetAdapterTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setReceiveTimeout(0);
 		dispatcherPolicy.setMaxMessagesPerTask(2);
-		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
+		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		adapter.setShouldAppendNewLine(true);
 		dispatcher.addHandler(adapter);

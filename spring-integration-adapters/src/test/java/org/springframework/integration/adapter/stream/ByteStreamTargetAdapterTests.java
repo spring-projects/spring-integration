@@ -64,7 +64,7 @@ public class ByteStreamTargetAdapterTests {
 		ByteStreamTargetAdapter adapter = new ByteStreamTargetAdapter(stream);
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(3);
-		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
+		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
 		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(1);
 		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		dispatcher.addHandler(adapter);
@@ -84,7 +84,7 @@ public class ByteStreamTargetAdapterTests {
 		ByteStreamTargetAdapter adapter = new ByteStreamTargetAdapter(stream);
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(2);
-		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
+		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
 		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(1);
 		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		dispatcher.addHandler(adapter);
@@ -104,7 +104,7 @@ public class ByteStreamTargetAdapterTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(5);
 		dispatcherPolicy.setReceiveTimeout(0);
-		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
+		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
 		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(1);
 		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		dispatcher.addHandler(adapter);
@@ -124,7 +124,7 @@ public class ByteStreamTargetAdapterTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		dispatcherPolicy.setReceiveTimeout(0);
-		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
+		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
 		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(1);
 		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		dispatcher.addHandler(adapter);
@@ -149,7 +149,7 @@ public class ByteStreamTargetAdapterTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(5);
 		dispatcherPolicy.setReceiveTimeout(0);
-		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
+		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
 		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(1);
 		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		dispatcher.addHandler(adapter);
@@ -173,7 +173,7 @@ public class ByteStreamTargetAdapterTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		dispatcherPolicy.setReceiveTimeout(0);
-		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
+		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
 		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(1);
 		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		dispatcher.addHandler(adapter);
@@ -197,7 +197,7 @@ public class ByteStreamTargetAdapterTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		dispatcherPolicy.setReceiveTimeout(0);
-		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
+		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
 		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(1);
 		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		dispatcher.addHandler(adapter);
