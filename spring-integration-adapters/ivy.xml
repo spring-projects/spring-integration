@@ -20,7 +20,9 @@
 	</publications>
 
 	<dependencies>
+		<dependency org="javax.activation" name="activation" rev="1.1" conf="compile->default"/>
 		<dependency org="javax.jms" name="jms" rev="1.1" conf="compile->default"/>
+		<dependency org="javax.mail" name="mail" rev="1.4" conf="compile->default"/>
 		<dependency org="org.junit" name="junit" rev="4.4" conf="test->default"/>
 		<dependency org="org.springframework.integration" name="spring-integration-core" rev="latest.integration" conf="compile"/>
 		<dependency org="org.springframework" name="spring-context" rev="2.5.0" conf="compile->default"/>
