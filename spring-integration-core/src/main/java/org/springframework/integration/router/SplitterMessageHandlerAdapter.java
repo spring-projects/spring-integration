@@ -28,6 +28,7 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.AbstractMessageHandlerAdapter;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageHeader;
 import org.springframework.integration.util.SimpleMethodInvoker;
 import org.springframework.util.Assert;
 
@@ -72,6 +73,7 @@ public class SplitterMessageHandlerAdapter<T> extends AbstractMessageHandlerAdap
 
 	@Override
 	protected final Object doHandle(Message<?> message, SimpleMethodInvoker<T> invoker) {
+		final MessageHeader originalMessageHeader = message.getHeader();
 		if (method.getParameterTypes().length != 1) {
 			throw new MessagingConfigurationException(
 					"Splitter method must accept exactly one parameter");
@@ -102,7 +104,9 @@ public class SplitterMessageHandlerAdapter<T> extends AbstractMessageHandlerAdap
 			int sequenceNumber = 0;
 			int sequenceSize = items.size();
 			for (Object item : items) {
-				Message<?> splitMessage = prepareMessage(item, message.getId(), ++sequenceNumber, sequenceSize);
+				Message<?> splitMessage = (item instanceof Message<?>) ? (Message<?>) item :
+						this.createReplyMessage(item, originalMessageHeader);
+				this.prepareMessage(splitMessage, message.getId(), ++sequenceNumber, sequenceSize);
 				this.sendMessage(splitMessage, channelName);
 			}
 		}
@@ -111,7 +115,9 @@ public class SplitterMessageHandlerAdapter<T> extends AbstractMessageHandlerAdap
 			int sequenceNumber = 0;
 			int sequenceSize = array.length;
 			for (Object item : array) {
-				Message<?> splitMessage = prepareMessage(item, message.getId(), ++sequenceNumber, sequenceSize);
+				Message<?> splitMessage = (item instanceof Message<?>) ? (Message<?>) item :
+						this.createReplyMessage(item, originalMessageHeader);
+				this.prepareMessage(splitMessage, message.getId(), ++sequenceNumber, sequenceSize);
 				this.sendMessage(splitMessage, channelName);
 			}
 		}
@@ -122,12 +128,10 @@ public class SplitterMessageHandlerAdapter<T> extends AbstractMessageHandlerAdap
 		return null;
 	}
 
-	private Message<?> prepareMessage(Object item, Object correlationId, int sequenceNumber, int sequenceSize) {
-		Message<?> message = (item instanceof Message) ? (Message<?>) item : new GenericMessage(item);
+	private void prepareMessage(Message<?> message, Object correlationId, int sequenceNumber, int sequenceSize) {
 		message.getHeader().setCorrelationId(correlationId);
 		message.getHeader().setSequenceNumber(sequenceNumber);
 		message.getHeader().setSequenceSize(sequenceSize);
-		return message;
 	}
 
 	private boolean sendMessage(Message<?> message, String channelName) {

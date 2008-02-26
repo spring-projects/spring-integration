@@ -169,6 +169,40 @@ public class SplitterMessageHandlerAdapterTests {
 		adapter.handle(message);
 	}
 
+	@Test
+	public void testHeaderForObjectReturnValues() throws Exception {
+		StringMessage message = new StringMessage("foo.bar");
+		SplitterMessageHandlerAdapter adapter = this.getAdapter("stringToStringArray");
+		adapter.handle(message);
+		Message<?> reply1 = testChannel.receive(0);
+		assertNotNull(reply1);
+		assertEquals(2, reply1.getHeader().getSequenceSize());
+		assertEquals(1, reply1.getHeader().getSequenceNumber());
+		assertEquals(message.getId(), reply1.getHeader().getCorrelationId());
+		Message<?> reply2 = testChannel.receive(0);
+		assertNotNull(reply2);
+		assertEquals(2, reply2.getHeader().getSequenceSize());
+		assertEquals(2, reply2.getHeader().getSequenceNumber());
+		assertEquals(message.getId(), reply2.getHeader().getCorrelationId());
+	}
+
+	@Test
+	public void testHeaderForMessageReturnValues() throws Exception {
+		StringMessage message = new StringMessage("foo.bar");
+		SplitterMessageHandlerAdapter adapter = this.getAdapter("messageToMessageList");
+		adapter.handle(message);
+		Message<?> reply1 = testChannel.receive(0);
+		assertNotNull(reply1);
+		assertEquals(2, reply1.getHeader().getSequenceSize());
+		assertEquals(1, reply1.getHeader().getSequenceNumber());
+		assertEquals(message.getId(), reply1.getHeader().getCorrelationId());
+		Message<?> reply2 = testChannel.receive(0);
+		assertNotNull(reply2);
+		assertEquals(2, reply2.getHeader().getSequenceSize());
+		assertEquals(2, reply2.getHeader().getSequenceNumber());
+		assertEquals(message.getId(), reply2.getHeader().getCorrelationId());
+	}
+
 
 	private SplitterMessageHandlerAdapter getAdapter(String methodName) throws Exception {
 		Class<?> paramType = methodName.startsWith("message") ? Message.class : String.class;
