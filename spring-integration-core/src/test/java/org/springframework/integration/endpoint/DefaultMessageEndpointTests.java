@@ -17,6 +17,7 @@
 package org.springframework.integration.endpoint;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -519,6 +520,41 @@ public class DefaultMessageEndpointTests {
 		assertNotNull(error);
 		assertEquals(MessageDeliveryException.class, error.getClass());
 		assertEquals(message2, ((MessageDeliveryException) error).getUndeliveredMessage());
+	}
+
+	@Test
+	public void testCorrelationId() {
+		SimpleChannel replyChannel = new SimpleChannel(1);
+		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(new MessageHandler() {
+			public Message<?> handle(Message<?> message) {
+				return message;
+			}
+		});
+		endpoint.start();
+		Message<?> message = new StringMessage("test");
+		message.getHeader().setReturnAddress(replyChannel);
+		endpoint.handle(message);
+		Message<?> reply = replyChannel.receive(500);
+		assertEquals(message.getId(), reply.getHeader().getCorrelationId());
+	}
+
+	@Test
+	public void testCorrelationIdSetByHandlerTakesPrecedence() {
+		SimpleChannel replyChannel = new SimpleChannel(1);
+		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(new MessageHandler() {
+			public Message<?> handle(Message<?> message) {
+				message.getHeader().setCorrelationId("ABC-123");
+				return message;
+			}
+		});
+		endpoint.start();
+		Message<?> message = new StringMessage("test");
+		message.getHeader().setReturnAddress(replyChannel);
+		endpoint.handle(message);
+		Message<?> reply = replyChannel.receive(500);
+		Object correlationId = reply.getHeader().getCorrelationId();
+		assertFalse(message.getId().equals(correlationId));
+		assertEquals("ABC-123", correlationId);
 	}
 
 

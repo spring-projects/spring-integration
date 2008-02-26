@@ -261,6 +261,9 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 		try {
 			Message<?> replyMessage = this.handler.handle(message);
 			if (replyMessage != null) {
+				if (replyMessage.getHeader().getCorrelationId() == null) {
+					replyMessage.getHeader().setCorrelationId(message.getId());
+				}
 				this.replyHandler.handle(replyMessage, message.getHeader());
 			}
 		}
