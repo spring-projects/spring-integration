@@ -46,6 +46,8 @@ public class MessageHeader {
 
 	private volatile int sequenceSize = 1;
 
+	private volatile int priority = 0;
+
 	private final Properties properties = new Properties();
 
 	private final ConcurrentMap<String, Object> attributes = new ConcurrentHashMap<String, Object>();
@@ -104,6 +106,14 @@ public class MessageHeader {
 
 	public void setSequenceSize(int sequenceSize) {
 		this.sequenceSize = sequenceSize;
+	}
+
+	public int getPriority() {
+		return this.priority;
+	}
+
+	public void setPriority(int priority) {
+		this.priority = priority;
 	}
 
 	public String getProperty(String key) {

@@ -39,7 +39,7 @@ public class ChannelPollingMessageRetrieverTests {
 	public void testSingleMessagePerRetrieval() {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setReceiveTimeout(0);
-		MessageChannel channel = new SimpleChannel(dispatcherPolicy);
+		MessageChannel channel = new SimpleChannel(5, dispatcherPolicy);
 		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel);
 		Collection<Message<?>> results = retriever.retrieveMessages();
 		assertTrue(results.isEmpty());
@@ -58,7 +58,7 @@ public class ChannelPollingMessageRetrieverTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setReceiveTimeout(0);
 		dispatcherPolicy.setMaxMessagesPerTask(2);
-		MessageChannel channel = new SimpleChannel(dispatcherPolicy);
+		MessageChannel channel = new SimpleChannel(5, dispatcherPolicy);
 		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel);
 		Collection<Message<?>> results = retriever.retrieveMessages();
 		assertTrue(results.isEmpty());
@@ -80,7 +80,7 @@ public class ChannelPollingMessageRetrieverTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setReceiveTimeout(0);
 		dispatcherPolicy.setMaxMessagesPerTask(1);
-		MessageChannel channel = new SimpleChannel(dispatcherPolicy);
+		MessageChannel channel = new SimpleChannel(5, dispatcherPolicy);
 		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel);
 		Collection<Message<?>> results = retriever.retrieveMessages();
 		assertTrue(results.isEmpty());

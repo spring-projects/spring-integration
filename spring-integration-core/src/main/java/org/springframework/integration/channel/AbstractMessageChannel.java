@@ -39,7 +39,6 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-
 	private volatile String name;
 
 	private final ChannelInterceptorList interceptors = new ChannelInterceptorList();
@@ -182,7 +181,7 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 	 * value indicates that the method should block until either the message is
 	 * accepted or the blocking thread is interrupted.
 	 */
-	protected abstract boolean doSend(Message message, long timeout);
+	protected abstract boolean doSend(Message<?> message, long timeout);
 
 	/**
 	 * Subclasses must implement this method. A non-negative timeout indicates
@@ -191,7 +190,7 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 	 * indicates that the method should block until either a message is
 	 * available or the blocking thread is interrupted.
 	 */
-	protected abstract Message doReceive(long timeout);
+	protected abstract Message<?> doReceive(long timeout);
 
 
 	/**

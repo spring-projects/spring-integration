@@ -132,20 +132,23 @@ public class MessageBusTests {
 	}
 
 	@Test
-	public void testBothHandlersReceivePublishSubscribeMessage() {
+	public void testBothHandlersReceivePublishSubscribeMessage() throws InterruptedException {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy(true);
-		SimpleChannel inputChannel = new SimpleChannel(dispatcherPolicy);
+		SimpleChannel inputChannel = new SimpleChannel(10, dispatcherPolicy);
 		SimpleChannel outputChannel1 = new SimpleChannel();
 		SimpleChannel outputChannel2 = new SimpleChannel();
+		final CountDownLatch latch = new CountDownLatch(2);
 		MessageHandler handler1 = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				message.getHeader().setReturnAddress("output1");
+				latch.countDown();
 				return message;
 			}
 		};
 		MessageHandler handler2 = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				message.getHeader().setReturnAddress("output2");
+				latch.countDown();
 				return message;
 			}
 		};
@@ -157,8 +160,9 @@ public class MessageBusTests {
 		bus.registerHandler("handler2", handler2, new Subscription(inputChannel));
 		bus.start();
 		inputChannel.send(new StringMessage(1, "testing"));
-		Message<?> message1 = outputChannel1.receive(500);
-		Message<?> message2 = outputChannel2.receive(500);
+		latch.await(500, TimeUnit.MILLISECONDS);
+		Message<?> message1 = outputChannel1.receive(100);
+		Message<?> message2 = outputChannel2.receive(100);
 		bus.stop();
 		assertTrue("both handlers should have received and replied to the message",
 				(message1 != null && message2 != null));

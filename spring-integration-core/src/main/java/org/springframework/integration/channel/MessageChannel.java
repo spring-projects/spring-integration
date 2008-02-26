@@ -28,6 +28,9 @@ import org.springframework.integration.message.selector.MessageSelector;
  */
 public interface MessageChannel {
 
+	static final int DEFAULT_CAPACITY = 100;
+
+
 	/**
 	 * Return the name of this channel.
 	 */

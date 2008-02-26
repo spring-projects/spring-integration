@@ -81,7 +81,7 @@ public class DefaultMessageDispatcherTests {
 		final CountDownLatch latch = new CountDownLatch(2);
 		MessageHandler handler1 = TestHandlers.countingCountDownHandler(counter1, latch);
 		MessageHandler handler2 = TestHandlers.countingCountDownHandler(counter2, latch);
-		SimpleChannel channel = new SimpleChannel(new DispatcherPolicy(true));
+		SimpleChannel channel = new SimpleChannel(5, new DispatcherPolicy(true));
 		channel.send(new StringMessage(1, "test"));
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		dispatcher.addHandler(new ConcurrentHandler(handler1, createExecutor()));
@@ -125,7 +125,7 @@ public class DefaultMessageDispatcherTests {
 		MessageHandler handler1 = TestHandlers.countingCountDownHandler(counter1, latch);
 		MessageHandler handler2 = TestHandlers.countingCountDownHandler(counter2, latch);
 		MessageHandler handler3 = TestHandlers.countingCountDownHandler(counter3, latch);
-		SimpleChannel channel = new SimpleChannel(new DispatcherPolicy(true));
+		SimpleChannel channel = new SimpleChannel(5, new DispatcherPolicy(true));
 		channel.send(new StringMessage(1, "test"));
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		ConcurrentHandler inactiveHandler = new ConcurrentHandler(handler2, createExecutor());
@@ -157,7 +157,7 @@ public class DefaultMessageDispatcherTests {
 		MessageHandler handler1 = TestHandlers.countingCountDownHandler(counter1, latch);
 		MessageHandler handler2 = TestHandlers.countingCountDownHandler(counter2, latch);
 		MessageHandler handler3 = TestHandlers.countingCountDownHandler(counter3, latch);
-		SimpleChannel channel = new SimpleChannel(new DispatcherPolicy(true));
+		SimpleChannel channel = new SimpleChannel(5, new DispatcherPolicy(true));
 		channel.getDispatcherPolicy().setRejectionLimit(2);
 		channel.getDispatcherPolicy().setRetryInterval(3);
 		channel.send(new StringMessage(1, "test"));
@@ -188,7 +188,7 @@ public class DefaultMessageDispatcherTests {
 		final CountDownLatch latch = new CountDownLatch(3);
 		MessageHandler handler1 = TestHandlers.countingCountDownHandler(counter1, latch);
 		MessageHandler handler2 = TestHandlers.countingCountDownHandler(counter2, latch);
-		SimpleChannel channel = new SimpleChannel(new DispatcherPolicy(true));
+		SimpleChannel channel = new SimpleChannel(5, new DispatcherPolicy(true));
 		channel.getDispatcherPolicy().setRejectionLimit(2);
 		channel.getDispatcherPolicy().setRetryInterval(3);
 		channel.getDispatcherPolicy().setShouldFailOnRejectionLimit(false);
@@ -213,7 +213,7 @@ public class DefaultMessageDispatcherTests {
 		final CountDownLatch latch = new CountDownLatch(4);
 		MessageHandler handler1 = TestHandlers.rejectingCountDownHandler(latch);
 		MessageHandler handler2 = TestHandlers.rejectingCountDownHandler(latch);
-		SimpleChannel channel = new SimpleChannel(new DispatcherPolicy(false));
+		SimpleChannel channel = new SimpleChannel(5, new DispatcherPolicy(false));
 		channel.send(new StringMessage(1, "test"));
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		channel.getDispatcherPolicy().setRejectionLimit(2);
@@ -287,7 +287,7 @@ public class DefaultMessageDispatcherTests {
 		dispatcherPolicy.setRejectionLimit(2);
 		dispatcherPolicy.setRetryInterval(3);
 		dispatcherPolicy.setShouldFailOnRejectionLimit(false);
-		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
+		SimpleChannel channel = new SimpleChannel(25, dispatcherPolicy);
 		channel.send(new StringMessage(1, "test"));
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		dispatcher.addHandler(new ConcurrentHandler(handler1, createExecutor()) {
@@ -341,7 +341,7 @@ public class DefaultMessageDispatcherTests {
 		dispatcherPolicy.setRejectionLimit(5);
 		dispatcherPolicy.setRetryInterval(3);
 		dispatcherPolicy.setShouldFailOnRejectionLimit(false);
-		SimpleChannel channel = new SimpleChannel(dispatcherPolicy);
+		SimpleChannel channel = new SimpleChannel(25, dispatcherPolicy);
 		channel.send(new StringMessage(1, "test"));
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		dispatcher.addHandler(new ConcurrentHandler(handler1, createExecutor()) {
@@ -451,7 +451,7 @@ public class DefaultMessageDispatcherTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		MessageHandler handler1 = TestHandlers.countingCountDownHandler(counter1, latch);
 		MessageHandler handler2 = TestHandlers.countingCountDownHandler(counter2, latch);
-		SimpleChannel channel = new SimpleChannel(new DispatcherPolicy(true));
+		SimpleChannel channel = new SimpleChannel(5, new DispatcherPolicy(true));
 		channel.send(new StringMessage(1, "test"));
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		DefaultMessageEndpoint endpoint1 = new DefaultMessageEndpoint(handler1);
