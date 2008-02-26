@@ -28,6 +28,7 @@
 		<dependency org="org.springframework" name="spring-context" rev="2.5.0" conf="compile->default"/>
 		<dependency org="org.springframework" name="spring-aop" rev="2.5.0" conf="compile->default"/>
 		<dependency org="org.springframework" name="spring-jms" rev="2.5.0" conf="compile->default"/>
+		<dependency org="org.springframework" name="spring-test" rev="2.5.0" conf="test->default"/>
 		<dependency org="org.springframework" name="spring-tx" rev="2.5.0" conf="compile->default"/>
 	</dependencies>
 

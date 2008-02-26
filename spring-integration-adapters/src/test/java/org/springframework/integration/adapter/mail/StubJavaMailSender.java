@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.mail;
+package org.springframework.integration.adapter.mail;
 
 import java.io.InputStream;
 import java.util.ArrayList;

@@ -16,6 +16,7 @@
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework/spring-context-support/spring-context-support-2.5.0.jar" sourcepath="/IVY_CACHE/org.springframework/spring-context-support/spring-context-support-sources-2.5.0.jar"/>
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework/spring-core/spring-core-2.5.0.jar" sourcepath="/IVY_CACHE/org.springframework/spring-core/spring-core-sources-2.5.0.jar"/>
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework/spring-jms/spring-jms-2.5.0.jar" sourcepath="/IVY_CACHE/org.springframework/spring-jms/spring-jms-sources-2.5.0.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.springframework/spring-test/spring-test-2.5.0.jar" sourcepath="/IVY_CACHE/org.springframework/spring-test/spring-test-sources-2.5.0.jar"/>
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework/spring-tx/spring-tx-2.5.0.jar" sourcepath="/IVY_CACHE/org.springframework/spring-tx/spring-tx-sources-2.5.0.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/spring-integration-core"/>
 	<classpathentry kind="output" path="target/classes"/>

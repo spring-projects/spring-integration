@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.mail;
+package org.springframework.integration.adapter.mail;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -67,7 +67,7 @@ public class MailTargetAdapterTests {
 	public void testTextMessage() {
 		this.mailTargetAdapter.handle(new StringMessage(MailTestsHelper.MESSAGE_TEXT));
 		SimpleMailMessage message = MailTestsHelper.createSimpleMailMessage();
-		assertEquals("no messages should have been sent yet",
+		assertEquals("no mime message should have been sent",
 				0, mailSender.getSentMimeMessages().size());
 		assertEquals("only one simple message must be sent",
 				1, mailSender.getSentSimpleMailMessages().size());
@@ -77,7 +77,7 @@ public class MailTargetAdapterTests {
 
 	@Test
 	public void testByteArrayMessage() throws Exception {
-		byte[] payload = {1,2,3};
+		byte[] payload = {1, 2, 3};
 		this.mailTargetAdapter.handle(new GenericMessage<byte[]>(payload));
 		byte[] buffer = new byte[1024];
 		MimeMessage mimeMessage = this.mailSender.getSentMimeMessages().get(0);
