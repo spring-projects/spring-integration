@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-
 package org.springframework.integration.config;
 
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
@@ -32,7 +32,8 @@ import org.springframework.integration.router.MessageSequenceComparator;
  */
 public class TestAggregator implements Aggregator {
 
-	ConcurrentHashMap<Object, Message<?>> aggregatedMessages = new ConcurrentHashMap<Object, Message<?>>();
+	private final ConcurrentMap<Object, Message<?>> aggregatedMessages = new ConcurrentHashMap<Object, Message<?>>();
+
 
 	public Message<?> aggregate(List<Message<?>> messages) {
 		List<Message<?>> sortableList = new ArrayList<Message<?>>(messages);
@@ -46,10 +47,8 @@ public class TestAggregator implements Aggregator {
 		return returnedMessage;
 	}
 
-	public ConcurrentHashMap<Object, Message<?>> getAggregatedMessages() {
+	public ConcurrentMap<Object, Message<?>> getAggregatedMessages() {
 		return aggregatedMessages;
 	}
-	
+
 }
-	
-	

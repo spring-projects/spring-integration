@@ -23,6 +23,7 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
@@ -39,6 +40,7 @@ import org.springframework.util.ReflectionUtils;
 public class AggregatorParserTests {
 
 	private ApplicationContext context;
+
 
 	@Before
 	public void setUp() {
@@ -98,6 +100,7 @@ public class AggregatorParserTests {
 				99, getPropertyValue(completeAggregatingMessageHandler, "trackedCorrelationIdCapacity", int.class));
 	}
 
+
 	private static Message<?> createMessage(String payload, Object correlationId, int sequenceSize, int sequenceNumber,
 			MessageChannel replyChannel) {
 		StringMessage message = new StringMessage(payload);
@@ -120,4 +123,5 @@ public class AggregatorParserTests {
 		ReflectionUtils.makeAccessible(field);
 		return field.get(beanUnderTest);
 	}
+
 }

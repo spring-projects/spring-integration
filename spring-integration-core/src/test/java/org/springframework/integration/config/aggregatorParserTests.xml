@@ -9,8 +9,8 @@
 
 	<aggregator id="aggregatorWithReference" ref="aggregatorBean"/>
 
-	<aggregator id="completelyDefinedAggregator" 
-				ref="aggregatorBean" 
+	<aggregator id="completelyDefinedAggregator"
+				ref="aggregatorBean"
 				completion-strategy="completionStrategy"
 				default-reply-channel="replyChannel"
 				discard-channel="discardChannel"
@@ -18,9 +18,13 @@
 				send-partial-result-on-timeout="true"
 				reaper-interval="135"
 				tracked-correlation-id-capacity="99"/>
-	
+
 	<channel id="replyChannel"/>
+
 	<channel id="discardChannel"/>
+
 	<beans:bean id="aggregatorBean" class="org.springframework.integration.config.TestAggregator"/>
+
 	<beans:bean id="completionStrategy" class="org.springframework.integration.config.TestCompletionStrategy"/>
+
 </beans:beans>

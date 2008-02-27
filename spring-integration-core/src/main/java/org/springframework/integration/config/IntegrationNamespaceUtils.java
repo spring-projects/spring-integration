@@ -39,6 +39,7 @@ public abstract class IntegrationNamespaceUtils {
 
 	private static final String KEEP_ALIVE_ATTRIBUTE = "keep-alive";
 
+
 	public static ConcurrencyPolicy parseConcurrencyPolicy(Element element) {
 		ConcurrencyPolicy policy = new ConcurrencyPolicy();
 		String coreSize = element.getAttribute(CORE_SIZE_ATTRIBUTE);

@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
@@ -25,7 +27,6 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.router.AggregatingMessageHandler;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the <em>aggregator</em> element of the integration namespace.
@@ -68,6 +69,7 @@ public class AggregatorParser implements BeanDefinitionParser {
 	private static final String REAPER_INTERVAL_PROPERTY = "reaperInterval";
 
 	public static final String TRACKED_CORRELATION_ID_CAPACITY_PROPERTY = "trackedCorrelationIdCapacity";
+
 
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
 		return parseAggregatorElement(element, parserContext, true);
