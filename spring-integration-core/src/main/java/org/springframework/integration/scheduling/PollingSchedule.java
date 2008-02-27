@@ -32,13 +32,13 @@ public class PollingSchedule implements Schedule {
 	public static final boolean DEFAULT_FIXED_RATE = false;
 
 
-	private long period;
+	private volatile long period;
 
-	private long initialDelay = DEFAULT_INITIAL_DELAY;
+	private volatile long initialDelay = DEFAULT_INITIAL_DELAY;
 
-	private TimeUnit timeUnit = TimeUnit.MILLISECONDS;
+	private volatile TimeUnit timeUnit = TimeUnit.MILLISECONDS;
 
-	private boolean fixedRate = DEFAULT_FIXED_RATE;
+	private volatile boolean fixedRate = DEFAULT_FIXED_RATE;
 
 
 	/**
