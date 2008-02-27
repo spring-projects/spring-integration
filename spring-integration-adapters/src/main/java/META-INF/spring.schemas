@@ -1,1 +1,2 @@
 http\://www.springframework.org/schema/integration/spring-integration-adapters-1.0.xsd=org/springframework/integration/adapter/config/spring-integration-adapters-1.0.xsd
+http\://www.springframework.org/schema/integration/spring-integration-1.0.xsd=org/springframework/integration/adapter/config/spring-integration-1.0.xsd

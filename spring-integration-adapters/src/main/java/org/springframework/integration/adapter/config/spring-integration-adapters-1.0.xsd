@@ -7,8 +7,6 @@
 		elementFormDefault="qualified"
 		attributeFormDefault="unqualified">
 
-	<xsd:include schemaLocation="http://www.springframework.org/schema/integration/spring-integration-1.0.xsd"/>
-
 	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
 	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
 

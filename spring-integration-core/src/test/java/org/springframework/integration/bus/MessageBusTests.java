@@ -161,11 +161,12 @@ public class MessageBusTests {
 		bus.start();
 		inputChannel.send(new StringMessage(1, "testing"));
 		latch.await(500, TimeUnit.MILLISECONDS);
-		Message<?> message1 = outputChannel1.receive(100);
-		Message<?> message2 = outputChannel2.receive(100);
+		assertEquals("both handlers should have been invoked", 0, latch.getCount());
+		Message<?> message1 = outputChannel1.receive(500);
+		Message<?> message2 = outputChannel2.receive(500);
 		bus.stop();
-		assertTrue("both handlers should have received and replied to the message",
-				(message1 != null && message2 != null));
+		assertNotNull("both handlers should have replied to the message", message1);
+		assertNotNull("both handlers should have replied to the message", message2);
 	}
 
 	@Test

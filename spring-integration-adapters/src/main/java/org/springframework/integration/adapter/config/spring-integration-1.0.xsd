@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration"
+		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+		targetNamespace="http://www.springframework.org/schema/integration"
+		elementFormDefault="qualified"
+		attributeFormDefault="unqualified">
+
+	<xsd:include schemaLocation="http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd"/>
+	<xsd:include schemaLocation="http://www.springframework.org/schema/integration/spring-integration-adapters-1.0.xsd"/>
+
+</xsd:schema>
