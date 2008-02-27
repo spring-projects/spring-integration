@@ -34,6 +34,7 @@ import org.springframework.util.ClassUtils;
  * Namespace handler for the integration namespace.
  * 
  * @author Mark Fisher
+ * @author Marius Bogoevici
  */
 public class IntegrationNamespaceHandler extends NamespaceHandlerSupport {
 
@@ -52,6 +53,7 @@ public class IntegrationNamespaceHandler extends NamespaceHandlerSupport {
 		registerBeanDefinitionParser("endpoint", new EndpointParser());
 		registerBeanDefinitionParser("handler", new HandlerParser());
 		registerBeanDefinitionParser("handler-chain", new HandlerParser());
+		registerBeanDefinitionParser("aggregator", new AggregatorParser());
 		Map<String, Class<? extends BeanDefinitionParser>> parserMappings = this.loadAdapterParserMappings();
 		try {
 			for (Map.Entry<String, Class<? extends BeanDefinitionParser>> entry : parserMappings.entrySet()) {
