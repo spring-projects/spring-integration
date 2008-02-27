@@ -8,31 +8,10 @@
 	</path>
 
 	<property file="${basedir}/../build.properties"/>
+	<import file="${basedir}/package-top-level.xml"/>
 	<import file="../spring-build/multi-bundle/default.xml"/>
 
 
 	<target name="precommit" depends="clean,clean-integration,jar,test"/>
-
-	<target name="package.pre">
-		<delete quiet="true" dir="${package.output.dir}"/>
-		<mkdir dir="${package.output.dir}"/>
-	</target>
-
-	<target name="package.post" depends="resources, reference">
-		<mkdir dir="${target.dir}"/>
-		<zip destfile="${package.output.file}" basedir="${package.dir}"/>
-	</target>
-
-	<target name="resources">
-		<copy todir="${package.output.dir}">
-			<fileset dir="${basedir}/resources"/>
-		</copy>
-	</target>
-
-	<target name="reference">
-		<ant dir="${basedir}/../spring-integration-reference" target="reference" inheritAll="false">
-			<property name="target.dir" value="${package.output.dir}/docs"/>
-		</ant>
-	</target>
 
 </project>
