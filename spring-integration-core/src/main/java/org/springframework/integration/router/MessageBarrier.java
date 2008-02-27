@@ -21,14 +21,14 @@ import java.util.List;
 import org.springframework.integration.message.Message;
 
 /**
- * Strategy for determining when a group of messages reaches a state of
- * completion (i.e. can trip a barrier).
+ * Common interface for routing components that release a list of
+ * {@link Message Messages} based upon a condition that is met when a
+ * {@link Message} arrives.
  * 
  * @author Mark Fisher
- * @see RoutingBarrier
  */
-public interface RoutingBarrierCompletionStrategy {
+public interface MessageBarrier {
 
-	boolean isComplete(List<Message<?>> messages);
+	List<Message<?>> addAndRelease(Message<?> message);
 
 }

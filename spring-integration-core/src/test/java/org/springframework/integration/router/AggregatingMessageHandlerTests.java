@@ -68,26 +68,31 @@ public class AggregatingMessageHandlerTests {
 	}
 
 	@Test
-	public void testShouldFailOnTimeoutByDefault() throws InterruptedException {
+	public void testShouldNotSendPartialResultOnTimeoutByDefault() throws InterruptedException {
+		SimpleChannel discardChannel = new SimpleChannel();
 		AggregatingMessageHandler aggregator = new AggregatingMessageHandler(new TestAggregator());
-		aggregator.setTimeout(10);
+		aggregator.setTimeout(50);
+		aggregator.setReaperInterval(10);
+		aggregator.setDiscardChannel(discardChannel);
 		SimpleChannel replyChannel = new SimpleChannel();
-		Message<?> message1 = createMessage("123", "ABC", 2, 1, replyChannel);
+		Message<?> message = createMessage("123", "ABC", 2, 1, replyChannel);
 		CountDownLatch latch = new CountDownLatch(1);
-		AggregatorTestTask task = new AggregatorTestTask(aggregator, message1, latch);
+		AggregatorTestTask task = new AggregatorTestTask(aggregator, message, latch);
 		executor.execute(task);
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		Message<?> reply = replyChannel.receive(0);
 		assertNull(reply);
-		assertNotNull(task.getException());
-		assertEquals(MessageHandlingException.class, task.getException().getClass());
+		Message<?> discardedMessage = discardChannel.receive(500);
+		assertNotNull(discardedMessage);
+		assertEquals(message, discardedMessage);
 	}
 
 	@Test
-	public void testShouldFailOnTimeoutFalse() throws InterruptedException {
+	public void testShouldSendPartialResultOnTimeoutTrue() throws InterruptedException {
 		AggregatingMessageHandler aggregator = new AggregatingMessageHandler(new TestAggregator());
-		aggregator.setTimeout(10);
-		aggregator.setShouldFailOnTimeout(false);
+		aggregator.setTimeout(50);
+		aggregator.setReaperInterval(10);
+		aggregator.setSendPartialResultOnTimeout(true);
 		SimpleChannel replyChannel = new SimpleChannel();
 		Message<?> message1 = createMessage("123", "ABC", 3, 1, replyChannel);
 		Message<?> message2 = createMessage("456", "ABC", 3, 2, replyChannel);
@@ -129,6 +134,62 @@ public class AggregatingMessageHandlerTests {
 		Message<?> reply2 = replyChannel2.receive(500);
 		assertNotNull(reply2);
 		assertEquals("abcdefghi", reply2.getPayload());
+	}
+
+	@Test
+	public void testDiscardChannelForTrackedCorrelationId() {
+		SimpleChannel replyChannel = new SimpleChannel();
+		SimpleChannel discardChannel = new SimpleChannel();
+		AggregatingMessageHandler aggregator = new AggregatingMessageHandler(new TestAggregator());
+		aggregator.setDiscardChannel(discardChannel);
+		aggregator.handle(createMessage("test-1a", 1, 1, 1, replyChannel));
+		assertEquals("test-1a", replyChannel.receive(100).getPayload());
+		aggregator.handle(createMessage("test-1b", 1, 1, 1, replyChannel));
+		assertEquals("test-1b", discardChannel.receive(100).getPayload());
+	}
+
+	@Test
+	public void testTrackedCorrelationIdsCapacityAtLimit() {
+		SimpleChannel replyChannel = new SimpleChannel();
+		SimpleChannel discardChannel = new SimpleChannel();
+		AggregatingMessageHandler aggregator = new AggregatingMessageHandler(new TestAggregator());
+		aggregator.setTrackedCorrelationIdCapacity(3);
+		aggregator.setDiscardChannel(discardChannel);
+		aggregator.handle(createMessage("test-1a", 1, 1, 1, replyChannel));
+		assertEquals("test-1a", replyChannel.receive(100).getPayload());
+		aggregator.handle(createMessage("test-2", 2, 1, 1, replyChannel));
+		assertEquals("test-2", replyChannel.receive(100).getPayload());
+		aggregator.handle(createMessage("test-3", 3, 1, 1, replyChannel));
+		assertEquals("test-3", replyChannel.receive(100).getPayload());
+		aggregator.handle(createMessage("test-1b", 1, 1, 1, replyChannel));
+		assertEquals("test-1b", discardChannel.receive(100).getPayload());
+	}
+
+	@Test
+	public void testTrackedCorrelationIdsCapacityPassesLimit() {
+		SimpleChannel replyChannel = new SimpleChannel();
+		SimpleChannel discardChannel = new SimpleChannel();
+		AggregatingMessageHandler aggregator = new AggregatingMessageHandler(new TestAggregator());
+		aggregator.setTrackedCorrelationIdCapacity(3);
+		aggregator.setDiscardChannel(discardChannel);
+		aggregator.handle(createMessage("test-1a", 1, 1, 1, replyChannel));
+		assertEquals("test-1a", replyChannel.receive(100).getPayload());
+		aggregator.handle(createMessage("test-2", 2, 1, 1, replyChannel));
+		assertEquals("test-2", replyChannel.receive(100).getPayload());
+		aggregator.handle(createMessage("test-3", 3, 1, 1, replyChannel));
+		assertEquals("test-3", replyChannel.receive(100).getPayload());
+		aggregator.handle(createMessage("test-4", 4, 1, 1, replyChannel));
+		assertEquals("test-4", replyChannel.receive(100).getPayload());
+		aggregator.handle(createMessage("test-1b", 1, 1, 1, replyChannel));
+		assertEquals("test-1b", replyChannel.receive(100).getPayload());
+		assertNull(discardChannel.receive(0));
+	}
+
+	@Test(expected=MessageHandlingException.class)
+	public void testExceptionThrownIfNoCorrelationId() throws InterruptedException {
+		AggregatingMessageHandler aggregator = new AggregatingMessageHandler(new TestAggregator());
+		Message<?> message = createMessage("123", null, 2, 1, new SimpleChannel());
+		aggregator.handle(message);
 	}
 
 
