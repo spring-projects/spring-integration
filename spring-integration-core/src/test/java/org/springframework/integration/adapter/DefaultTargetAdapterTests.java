@@ -47,8 +47,7 @@ public class DefaultTargetAdapterTests {
 		target.afterPropertiesSet();
 		DefaultTargetAdapter adapter = new DefaultTargetAdapter(target);
 		SimpleChannel channel = new SimpleChannel();
-		Subscription subscription = new Subscription();
-		subscription.setChannel(channel);
+		Subscription subscription = new Subscription(channel);
 		Message<String> message = new GenericMessage<String>("123", "testing");
 		channel.send(message);
 		assertNull(queue.poll());

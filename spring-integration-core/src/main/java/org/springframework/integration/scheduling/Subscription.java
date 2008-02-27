@@ -17,30 +17,42 @@
 package org.springframework.integration.scheduling;
 
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.util.Assert;
 
 /**
- * Configuration metadata for activating a subscription.
+ * Configuration metadata for activating a subscription. Immutable.
  * 
  * @author Mark Fisher
  */
 public class Subscription {
 
-	private MessageChannel channel;
+	private final MessageChannel channel;
 
-	private String channelName;
+	private final String channelName;
 
-	private Schedule schedule;
+	private final Schedule schedule;
 
-
-	public Subscription() {
-	}
 
 	public Subscription(MessageChannel channel) {
-		this.channel = channel;
+		this(channel, null);
 	}
 
 	public Subscription(String channelName) {
+		this(channelName, null);
+	}
+
+	public Subscription(MessageChannel channel, Schedule schedule) {
+		Assert.notNull(channel, "'channel' must not be null");
+		this.channel = channel;
+		this.schedule = schedule;
+		this.channelName = this.channel.getName();
+	}
+
+	public Subscription(String channelName, Schedule schedule) {
+		Assert.notNull(channelName, "'channelName' must not be null");
 		this.channelName = channelName;
+		this.schedule = schedule;
+		this.channel = null;
 	}
 
 
@@ -48,24 +60,12 @@ public class Subscription {
 		return this.channel;
 	}
 
-	public void setChannel(MessageChannel channel) {
-		this.channel = channel;
-	}
-
 	public String getChannelName() {
 		return (this.channel != null) ? this.channel.getName() : this.channelName;
 	}
 
-	public void setChannelName(String channelName) {
-		this.channelName = channelName;
-	}
-
 	public Schedule getSchedule() {
 		return this.schedule;
-	}
-
-	public void setSchedule(Schedule schedule) {
-		this.schedule = schedule;
 	}
 
 }

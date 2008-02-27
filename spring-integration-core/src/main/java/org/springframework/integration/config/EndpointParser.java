@@ -36,6 +36,7 @@ import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
 import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.integration.scheduling.PollingSchedule;
+import org.springframework.integration.scheduling.Schedule;
 import org.springframework.integration.scheduling.Subscription;
 import org.springframework.util.StringUtils;
 
@@ -51,8 +52,6 @@ public class EndpointParser implements BeanDefinitionParser {
 	private static final String INPUT_CHANNEL_ATTRIBUTE = "input-channel";
 
 	private static final String SUBSCRIPTION_PROPERTY = "subscription";
-
-	private static final String CHANNEL_NAME_PROPERTY = "channelName";
 
 	private static final String DEFAULT_OUTPUT_CHANNEL_ATTRIBUTE = "default-output-channel";
 
@@ -92,8 +91,6 @@ public class EndpointParser implements BeanDefinitionParser {
 
 	private static final String SCHEDULE_ELEMENT = "schedule";
 
-	private static final String SCHEDULE_PROPERTY = "schedule";
-
 	private static final String CONCURRENCY_ELEMENT = "concurrency";
 
 	private static final String CONCURRENCY_POLICY_PROPERTY = "concurrencyPolicy";
@@ -103,11 +100,8 @@ public class EndpointParser implements BeanDefinitionParser {
 		RootBeanDefinition endpointDef = new RootBeanDefinition(DefaultMessageEndpoint.class);
 		endpointDef.setSource(parserContext.extractSource(element));
 		String inputChannel = element.getAttribute(INPUT_CHANNEL_ATTRIBUTE);
-		RootBeanDefinition subscriptionDef = new RootBeanDefinition(Subscription.class);
-		if (StringUtils.hasText(inputChannel)) {
-			subscriptionDef.getPropertyValues().addPropertyValue(CHANNEL_NAME_PROPERTY, inputChannel);
-		}
 		String defaultOutputChannel = element.getAttribute(DEFAULT_OUTPUT_CHANNEL_ATTRIBUTE);
+		Schedule schedule = null;
 		if (StringUtils.hasText(defaultOutputChannel)) {
 			endpointDef.getPropertyValues().addPropertyValue(DEFAULT_OUTPUT_CHANNEL_PROPERTY, defaultOutputChannel);
 		}
@@ -136,13 +130,20 @@ public class EndpointParser implements BeanDefinitionParser {
 					}
 				}
 				else if (SCHEDULE_ELEMENT.equals(localName)) {
-					this.parseSchedule((Element) child, subscriptionDef);
+					schedule = this.parseSchedule((Element) child);
 				}
 			}
 		}
-		String subscriptionBeanName = parserContext.getReaderContext().generateBeanName(subscriptionDef);
-		parserContext.registerBeanComponent(new BeanComponentDefinition(subscriptionDef, subscriptionBeanName));
-		endpointDef.getPropertyValues().addPropertyValue(SUBSCRIPTION_PROPERTY, new RuntimeBeanReference(subscriptionBeanName));
+		if (StringUtils.hasText(inputChannel)) {
+			RootBeanDefinition subscriptionDef = new RootBeanDefinition(Subscription.class);
+			subscriptionDef.getConstructorArgumentValues().addGenericArgumentValue(inputChannel);
+			if (schedule != null) {
+				subscriptionDef.getConstructorArgumentValues().addGenericArgumentValue(schedule);
+			}
+			String subscriptionBeanName = parserContext.getReaderContext().generateBeanName(subscriptionDef);
+			parserContext.registerBeanComponent(new BeanComponentDefinition(subscriptionDef, subscriptionBeanName));
+			endpointDef.getPropertyValues().addPropertyValue(SUBSCRIPTION_PROPERTY, new RuntimeBeanReference(subscriptionBeanName));
+		}
 		if (selectors.size() > 0) {
 			endpointDef.getPropertyValues().addPropertyValue(SELECTORS_PROPERTY, selectors);
 		}
@@ -199,13 +200,13 @@ public class EndpointParser implements BeanDefinitionParser {
 		endpointDef.getPropertyValues().addPropertyValue(CONCURRENCY_POLICY_PROPERTY, policy);
 	}
 
-	private void parseSchedule(Element scheduleElement, RootBeanDefinition subscriptionDef) {
+	private Schedule parseSchedule(Element scheduleElement) {
 		PollingSchedule schedule = new PollingSchedule(5);
 		String period = scheduleElement.getAttribute(PERIOD_ATTRIBUTE);
 		if (StringUtils.hasText(period)) {
 			schedule.setPeriod(Integer.parseInt(period));
 		}
-		subscriptionDef.getPropertyValues().addPropertyValue(SCHEDULE_PROPERTY, schedule);
+		return schedule;
 	}
 
 	private String parseHandlerAdapter(String handlerRef, String handlerMethod, ParserContext parserContext) {

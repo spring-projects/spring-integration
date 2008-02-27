@@ -37,15 +37,15 @@ public class DispatcherPolicy {
 
 	private final boolean publishSubscribe;
 
-	private int maxMessagesPerTask = DEFAULT_MAX_MESSAGES_PER_TASK;
+	private volatile int maxMessagesPerTask = DEFAULT_MAX_MESSAGES_PER_TASK;
 
-	private long receiveTimeout = DEFAULT_RECEIVE_TIMEOUT;
+	private volatile long receiveTimeout = DEFAULT_RECEIVE_TIMEOUT;
 
-	private int rejectionLimit = DEFAULT_REJECTION_LIMIT;
+	private volatile int rejectionLimit = DEFAULT_REJECTION_LIMIT;
 
-	private long retryInterval = DEFAULT_RETRY_INTERVAL;
+	private volatile long retryInterval = DEFAULT_RETRY_INTERVAL;
 
-	private boolean shouldFailOnRejectionLimit = true;
+	private volatile boolean shouldFailOnRejectionLimit = true;
 
 
 	public DispatcherPolicy() {

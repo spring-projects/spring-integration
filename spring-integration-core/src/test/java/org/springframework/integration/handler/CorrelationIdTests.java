@@ -64,7 +64,6 @@ public class CorrelationIdTests {
 		assertEquals(message.getId(), reply.getHeader().getCorrelationId());
 	}
 
-	
 	@Test
 	public void testCorrelationIdCopiedFromMessageCorrelationIdIfAvailable() {
 		Message<?> message = new StringMessage("messageId","test");
@@ -77,7 +76,7 @@ public class CorrelationIdTests {
 		assertEquals(message.getHeader().getCorrelationId(), reply.getHeader().getCorrelationId());
 		assertTrue(message.getHeader().getCorrelationId().equals(reply.getHeader().getCorrelationId()));
 	}
-	
+
 	@Test
 	public void testCorrelationNotPassedIfAlreadySetByHandler() throws Exception {
 		Object correlationId = "123-ABC";
@@ -85,7 +84,7 @@ public class CorrelationIdTests {
 		message.getHeader().setCorrelationId(correlationId);
 		AbstractMessageHandlerAdapter<TestBean> adapter = new AbstractMessageHandlerAdapter<TestBean>() {
 			@Override
-			protected Object doHandle(Message message, SimpleMethodInvoker invoker) {
+			protected Object doHandle(Message<?> message, SimpleMethodInvoker<TestBean> invoker) {
 				Object result = invoker.invokeMethod(message.getPayload());
 				Message<?> resultMessage = new GenericMessage<Object>(result);
 				resultMessage.getHeader().setCorrelationId("456-XYZ");
@@ -104,7 +103,7 @@ public class CorrelationIdTests {
 		Message<?> message = new StringMessage("test");
 		AbstractMessageHandlerAdapter<TestBean> adapter = new AbstractMessageHandlerAdapter<TestBean>() {
 			@Override
-			protected Object doHandle(Message message, SimpleMethodInvoker invoker) {
+			protected Object doHandle(Message<?> message, SimpleMethodInvoker<TestBean> invoker) {
 				Object result = invoker.invokeMethod(message.getPayload());
 				Message<?> resultMessage = new GenericMessage<Object>(result);
 				resultMessage.getHeader().setCorrelationId("456-XYZ");

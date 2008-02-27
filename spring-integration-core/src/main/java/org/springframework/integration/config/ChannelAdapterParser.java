@@ -100,7 +100,7 @@ public class ChannelAdapterParser implements BeanDefinitionParser {
 		if (!this.isInbound) {
 			RootBeanDefinition endpointDef = new RootBeanDefinition(DefaultMessageEndpoint.class);
 			RootBeanDefinition subscriptionDef = new RootBeanDefinition(Subscription.class);
-			subscriptionDef.getPropertyValues().addPropertyValue("channel", new RuntimeBeanReference(channel));
+			subscriptionDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(channel));
 			String subscriptionBeanName = parserContext.getReaderContext().generateBeanName(subscriptionDef);
 			parserContext.registerBeanComponent(new BeanComponentDefinition(subscriptionDef, subscriptionBeanName));
 			endpointDef.getPropertyValues().addPropertyValue("subscription", new RuntimeBeanReference(subscriptionBeanName));

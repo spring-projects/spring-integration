@@ -131,10 +131,8 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 			final DefaultMessageEndpoint endpoint) {
 		String channelName = annotation.input();
 		if (StringUtils.hasText(channelName)) {
-			Subscription subscription = new Subscription();
-			subscription.setChannelName(channelName);
 			Schedule schedule = new PollingSchedule(annotation.pollPeriod());
-			subscription.setSchedule(schedule);
+			Subscription subscription = new Subscription(channelName, schedule);
 			endpoint.setSubscription(subscription);
 		}
 		ReflectionUtils.doWithMethods(bean.getClass(), new ReflectionUtils.MethodCallback() {
@@ -155,11 +153,10 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 					String channelName = beanName + "-inputChannel";
 					messageBus.registerChannel(channelName, channel);
 					messageBus.registerSourceAdapter(beanName + "-sourceAdapter", adapter);
-					Subscription subscription = new Subscription(channel);
 					PollingSchedule schedule = new PollingSchedule(period);
 					schedule.setInitialDelay(initialDelay);
 					schedule.setFixedRate(fixedRate);
-					subscription.setSchedule(schedule);
+					Subscription subscription = new Subscription(channel, schedule);
 					endpoint.setSubscription(subscription);
 				}
 			}
