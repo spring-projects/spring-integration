@@ -17,6 +17,7 @@
 package org.springframework.integration.handler;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +36,7 @@ import org.springframework.integration.util.SimpleMethodInvoker;
 
 /**
  * @author Mark Fisher
+ * @author Marius Bogoevici
  */
 public class CorrelationIdTests {
 
@@ -62,6 +64,20 @@ public class CorrelationIdTests {
 		assertEquals(message.getId(), reply.getHeader().getCorrelationId());
 	}
 
+	
+	@Test
+	public void testCorrelationIdCopiedFromMessageCorrelationIdIfAvailable() {
+		Message<?> message = new StringMessage("messageId","test");
+		message.getHeader().setCorrelationId("correlationId");
+		DefaultMessageHandlerAdapter<TestBean> adapter = new DefaultMessageHandlerAdapter<TestBean>();
+		adapter.setObject(new TestBean());
+		adapter.setMethodName("upperCase");
+		adapter.afterPropertiesSet();
+		Message<?> reply = adapter.handle(message);
+		assertEquals(message.getHeader().getCorrelationId(), reply.getHeader().getCorrelationId());
+		assertTrue(message.getHeader().getCorrelationId().equals(reply.getHeader().getCorrelationId()));
+	}
+	
 	@Test
 	public void testCorrelationNotPassedIfAlreadySetByHandler() throws Exception {
 		Object correlationId = "123-ABC";
