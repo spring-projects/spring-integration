@@ -13,7 +13,7 @@
     <title>Spring Integration Reference Manual</title>
 
     <productname>Spring Integration</productname>
-    <releaseinfo>1.0.0.m1 (Milestone 1)</releaseinfo>
+    <releaseinfo>1.0.0.m2 (Milestone 2)</releaseinfo>
 
     <mediaobject>
       <imageobject role="fo">
@@ -31,7 +31,7 @@
       </author>
     </authorgroup>
 
-    <legalnotice>Copyright &copy; SpringSource Inc., 2007</legalnotice>
+    <legalnotice>Copyright &copy; SpringSource Inc., 2008</legalnotice>
   </bookinfo>
 
   <toc></toc>

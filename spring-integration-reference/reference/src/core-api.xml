@@ -13,6 +13,7 @@
     Object getId();
     MessageHeader getHeader();
     T getPayload();
+    boolean isExpired();
 }</programlisting>
       And the header provides the following properties:
       <table id="api-message-headerproperties">
@@ -39,8 +40,8 @@
               <entry>java.lang.Object</entry>
             </row>
             <row>
-              <entry>replyChannelName</entry>
-              <entry>java.lang.String</entry>
+              <entry>returnAddress</entry>
+              <entry>java.lang.Object (can be a String or MessageChannel)</entry>
             </row>
             <row>
               <entry>sequenceNumber</entry>
@@ -48,6 +49,10 @@
             </row>
             <row>
               <entry>sequenceSize</entry>
+              <entry>int</entry>
+            </row>
+            <row>
+              <entry>priority</entry>
               <entry>int</entry>
             </row>
             <row>
@@ -64,11 +69,14 @@
     </para>
     <para>
       The base implementation of the <interfacename>Message</interfacename> interface is
-      <classname>GenericMessage&lt;T&gt;</classname>, and it provides two constructors:
+      <classname>GenericMessage&lt;T&gt;</classname>, and it provides three constructors:
       <programlisting>new GenericMessage&lt;T&gt;(Object id, T payload);
-new GenericMessage&lt;T&gt;(T payload);</programlisting>
-      When no id is provided, a random unique id will be generated. There are also two convenient subclasses available
-      currently: <classname>StringMessage</classname> and <classname>ErrorMessage</classname>. The latter accepts any
+new GenericMessage&lt;T&gt;(T payload);
+new GenericMessage&lt;T&gt;(T payload, MessageHeader headerToCopy)</programlisting>
+      When no id is provided, a random unique id will be generated. The constructor that accepts a
+      <classname>MessageHeader</classname> will copy properties, attributes, and any 'returnAddress' from the
+      provided header. There are also two convenient subclasses available currently:
+      <classname>StringMessage</classname> and <classname>ErrorMessage</classname>. The latter accepts any
       <classname>Throwable</classname> object as its payload.
     </para>
     <para>
@@ -88,20 +96,35 @@ new GenericMessage&lt;T&gt;(T payload);</programlisting>
       While the <interfacename>Message</interfacename> plays the crucial role of encapsulating data, it is the
       <interfacename>MessageChannel</interfacename> that decouples message producers from message consumers.
       Spring Integration's <interfacename>MessageChannel</interfacename> interface is defined as follows.
-      <programlisting>public interface MessageChannel {
+      <programlisting><![CDATA[public interface MessageChannel {
     String getName();
+    void setName(String name);
     DispatcherPolicy getDispatcherPolicy();
     boolean send(Message message);
     boolean send(Message message, long timeout);
     Message receive();
     Message receive(long timeout);
-}</programlisting>
-    The <classname>SimpleChannel</classname> implementation wraps a queue. It provides a no-argument constructor as
-    well as a constructor that accepts the queue capacity:
-    <programlisting>public SimpleChannel(int capacity)</programlisting>
+    List<Message<?>> clear();
+    List<Message<?>> purge(MessageSelector selector);
+}]]></programlisting>
       When sending a message, the return value will be <emphasis>true</emphasis> if the message is sent successfully.
       If the send call times out or is interrupted, then it will return <emphasis>false</emphasis>. Likewise when
       receiving a message, the return value will be <emphasis>null</emphasis> in the case of a timeout or interrupt.
+      The <classname>SimpleChannel</classname> implementation wraps a queue. It provides a no-argument constructor as
+      well as a constructor that accepts the queue capacity:
+      <programlisting>public SimpleChannel(int capacity)</programlisting>
+      Specifying a capacity of 0 will create a "direct-handoff" channel where a sender will block until the channel's
+      <methodname>receive()</methodname> method is called. Otherwise a channel that has not reached its capacity limit
+      will store messages in its internal queue, and the <methodname>send()</methodname> method will return immediately
+      even if no receiver is ready to handle the message.
+    </para>
+    <para>
+      Whereas the <classname>SimpleChannel</classname> enforces first-in/first-out (FIFO) ordering, the
+      <classname>PriorityChannel</classname> is an alternative implementation that allows for messages to be ordered
+      within the channel based upon a priority. By default the priority is determined by the
+      '<literal>priority</literal>' property within each message's header. However, for custom priority determination
+      logic, a comparator of type <classname>Comparator&lt;Message&lt;?&gt;&gt;</classname> can be provided to the
+      <classname>PriorityChannel</classname>'s constructor.
     </para>
   </section>
 
@@ -114,10 +137,10 @@ new GenericMessage&lt;T&gt;(T payload);</programlisting>
     Message&lt;?&gt; handle(Message&lt;?&gt; message);
 }</programlisting>
       The handler plays an important role, since it is typically responsible for translating between the generic
-      <interfacename>Message</interfacename> objects and the business components that consume the message payload.
-      That said, developers will rarely need to implement this callback directly. While that option will always be
-      available, we will soon discuss the higher-level configuration options including both annotation-driven
-      techniques and XML-based configuration with convenient namespace support.
+      <interfacename>Message</interfacename> objects and the domain objects or primitive values expected by business
+      components that consume the message payload. That said, developers will rarely need to implement this interface
+      directly. While that option will always be available, we will soon discuss the higher-level configuration options
+      including both annotation-driven techniques and XML-based configuration with convenient namespace support.
     </para>
   </section>
 
@@ -139,12 +162,14 @@ new GenericMessage&lt;T&gt;(T payload);</programlisting>
       the following methods:
       <programlisting>public void registerChannel(String name, MessageChannel channel)
 public void registerHandler(String name, MessageHandler handler, Subscription subscription)
-public void registerHandler(String name, MessageHandler handler, Subscription subscription, ConcurrencyPolicy concurrencyPolicy)</programlisting>
+public void registerHandler(String name, MessageHandler handler, Subscription subscription,
+                            ConcurrencyPolicy concurrencyPolicy)</programlisting>
       As those method signatures reveal, the message bus is handling several of the concerns here so that the channel
       and handler objects can be as simple as possible. These responsibilities include the creation and lifecycle
       management of message dispatchers, the activation of handler subscriptions, and the configuration of thread
-      pools. The bus coordinates all of that behavior based upon the metadata provided via these registration methods.
-      We will briefly take a look at each of those metadata objects.
+      pools. The bus coordinates all of that behavior based upon the metadata provided via these registration methods,
+      and typically developers will not even use this API directly since the metadata can be provided in XML and/or
+      annotations. We will briefly take a look at each of those metadata objects.
     </para>
     <para>
       The bus creates and manages dispatchers that pull messages from a channel in order to push those messages to
@@ -162,6 +187,11 @@ public void registerHandler(String name, MessageHandler handler, Subscription su
             </row>
           </thead>
           <tbody>
+            <row>
+              <entry>publishSubscribe</entry>
+              <entry>false</entry>
+              <entry>whether the dispatcher should attempt to publish to all of its handlers (rather than just one)</entry>
+            </row>
             <row>
               <entry>maxMessagesPerTask</entry>
               <entry>1</entry>
@@ -221,9 +251,10 @@ public void registerHandler(String name, MessageHandler handler, Subscription su
           </tbody>
         </tgroup>
       </table>
-      The scheduling metadata is provided with an instance of the <interfacename>Schedule</interfacename> interface.
-      This is an abstraction designed to allow extensibility of schedulers for messaging tasks. Currently, there is
-      a single implementation called <classname>PollingSchedule</classname> that provides the following properties:
+      The scheduling metadata is provided as an implementation of the <interfacename>Schedule</interfacename>
+      interface. This is an abstraction designed to allow extensibility of schedulers for messaging tasks. Currently,
+      there is a single implementation called <classname>PollingSchedule</classname> that provides the following
+      properties:
       <table id="api-messagebus-pollingschedule">
         <title>Properties of the PollingSchedule</title>
         <tgroup cols="3">

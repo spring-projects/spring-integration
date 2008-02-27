@@ -121,17 +121,17 @@
         Controller in the MVC paradigm. Just as a Controller handles HTTP requests, the endpoint handles Messages. Just
         as Controllers are mapped to URL patterns, endpoints are mapped to Message Channels. The goal is the same in
         both cases: isolate application code from the infrastructure. In Spring Integration, the Message Endpoint
-        invokes a <interfacename>MessageHandler</interfacename> callback interface as described in
+        "hosts" and delegates to a <interfacename>MessageHandler</interfacename> strategy interface as described in
         <xref linkend="api-messagehandler"/>.
       </para>
     </section>
     <section id="overview-component-router">
       <title>Message Router</title>
       <para>
-        A Message Router is a particular type of endpoint that is capable of receiving a Message and then deciding what
-        channel or channels should receive the Message next. Typically the decision is based upon the Message's content
-        and/or metadata. A Message Router is often used as a dynamic alternative to configuring the input and output
-        channels for an endpoint.
+        A Message Router is a particular type of <interfacename>MessageHandler</interfacename> that is capable of
+        receiving a Message and then deciding what channel or channels should receive the Message next. Typically the
+        decision is based upon the Message's content and/or metadata. A Message Router is often used as a dynamic
+        alternative to configuring the input and output channels for an endpoint.
       </para>
     </section>
     <section id="overview-component-channeladapter">
@@ -141,8 +141,9 @@
         Message Endpoints. These adapters provide a mechanism for connecting to external systems, such as JMS queues
         or a File system. Channel Adapters may be configured for input and/or output. An input (source) adapter will
         receive (or poll for) data, convert that data to a Message, and then send that Message to its Message Channel.
-        An output (target) adapter is simply another type of Message Endpoint, but when it receives a Message, it will
-        convert it to the target's expected type and then "send" it (publish to a JMS queue, write to a File, etc.).
+        An output (target) adapter is simply another type of <interfacename>MessageHandler</interfacename>, but when it
+        receives a Message, it will convert it to the target's expected type and then "send" it (publish to a JMS
+        queue, write to a File, etc.).
       </para>
     </section>
     <section id="overview-component-bus">
