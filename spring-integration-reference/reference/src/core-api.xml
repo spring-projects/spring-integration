@@ -128,6 +128,45 @@ new GenericMessage&lt;T&gt;(T payload, MessageHeader headerToCopy)</programlisti
     </para>
   </section>
 
+  <section id="api-channelinterceptor">
+    <title>ChannelInterceptor</title>
+    <para>
+      One of the advantages of a messaging architecture is the ability to provide common behavior and capture
+      meaningful information about the messages passing through the system in a non-invasive way. Since the
+      <interfacename>Messages</interfacename> are being sent to and received from
+      <interfacename>MessageChannels</interfacename>, those channels provide an opportunity for intercepting
+      the send and receive operations. The <interfacename>ChannelInterceptor</interfacename> strategy interface
+      provides methods for each of those operations:
+      <programlisting><![CDATA[public interface ChannelInterceptor {
+    boolean preSend(Message<?> message, MessageChannel channel);
+    void postSend(Message<?> message, MessageChannel channel, boolean sent);
+    boolean preReceive(MessageChannel channel);
+    void postReceive(Message<?> message, MessageChannel channel);
+}]]></programlisting>
+      After implementing the interface, registering the interceptor with a channel is just a matter of calling:
+      <programlisting>channel.addInterceptor(someChannelInterceptor);</programlisting>
+      The methods that return a <literal>boolean</literal> value can return '<literal>false</literal>' to prevent the
+      send or receive operation from proceeding (send would return 'false' and receive would return 'null').
+    </para>
+    <para>
+      Because it is rarely necessary to implement all of the interceptor methods, a
+      <classname>ChannelInterceptorAdapter</classname> class is also available for sub-classing. It provides no-op
+      methods (the <literal>void</literal> methods are empty, and the <literal>boolean</literal> methods return
+      <literal>true</literal>). Therefore, it is often easiest to extend that class and just implement the method(s)
+      that you need as in the following example.
+      <programlisting><![CDATA[public class CountingChannelInterceptor extends ChannelInterceptorAdapter {
+
+    private final AtomicInteger sendCount = new AtomicInteger();
+
+    @Override
+    public boolean preSend(Message<?> message, MessageChannel channel) {
+        sendCount.incrementAndGet();
+        return true;
+    }
+}]]></programlisting>
+    </para>
+  </section>
+
   <section id="api-messagehandler">
     <title>MessageHandler</title>
     <para>

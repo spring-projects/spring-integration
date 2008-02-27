@@ -9,8 +9,8 @@
       are external to the messaging system. As the name implies, the interaction consists of adapting the external
       system or component to send-to and/or receive-from a <interfacename>MessageChannel</interfacename>. Within
       Spring Integration, there is a distinction between <emphasis>source adapters</emphasis> and <emphasis>target
-      adapters</emphasis>. In the 1.0 Milestone 1 release, Spring Integration includes adapters for JMS, Files,
-      Streams, and Spring ApplicationEvents.
+      adapters</emphasis>. In the 1.0 Milestone 2 release, Spring Integration includes source and target adapters
+      for JMS, Files, Streams, and Spring ApplicationEvents as well as a target adapter for sending e-mail.
     </para>
   </section>
 
@@ -60,8 +60,9 @@
       The <classname>JmsTargetAdapter</classname> is a <interfacename>MessageHandler</interfacename> implementation
       that is capable of mapping Spring Integration <interfacename>Messages</interfacename> to JMS messages and then
       sending to a JMS destination. It requires either a 'jmsTemplate' reference or both 'connectionFactory' and
-      'destination' references. In <xref linkend="namespace-adapters"/>, you will see how to configure a JMS target
-      adapter with Spring Integration's namespace support.
+      'destination' references (again, the 'destinationName' may be provided in place of the 'destination). In
+      <xref linkend="namespace-adapters"/>, you will see how to configure a JMS target adapter with Spring
+      Integration's namespace support.
     </para>
   </section>
   <section id="adapters-file">
@@ -117,8 +118,8 @@
       To send Spring <classname>ApplicationEvents</classname>, register an instance of the
       <classname>ApplicationEventTargetAdapter</classname> class as the handler of an endpoint (such configuration
       will be described in detail in <xref linkend="namespace-endpoint"/>). This adapter implements Spring's
-      <interfacename>ApplicationEventPublisherAware</interfacename> and thus acts as a bridge between Spring
-      Integration <classname>Messages</classname> and <classname>ApplicationEvents</classname>.
+      <interfacename>ApplicationEventPublisherAware</interfacename> interface and thus acts as a bridge between
+      Spring Integration <classname>Messages</classname> and <classname>ApplicationEvents</classname>.
     </para>
   </section>
 </chapter>
