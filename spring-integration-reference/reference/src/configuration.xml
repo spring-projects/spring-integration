@@ -105,10 +105,10 @@
         to reference any Spring-managed object that implements the <interfacename>ChannelInterceptor</interfacename>
         interface:
         <programlisting><![CDATA[<channel id="exampleChannel">
-    <interceptor ref="trafficMonitoringInterceptor"/>
+    ]]><emphasis><![CDATA[<interceptor ref="trafficMonitoringInterceptor"/>]]></emphasis><![CDATA[
 </channel>]]></programlisting>
-        In general, it is a good idea to define the interceptors in a separate location since they usually provide
-        common behavior that can be reused across multiple channels.
+        In general, it is a good idea to define the interceptor implementations in a separate location since they
+        usually provide common behavior that can be reused across multiple channels.
       </para>
     </section>
 
@@ -129,15 +129,25 @@
         In either case (<interfacename>MessageHandler</interfacename> or arbitrary object/method), when the handling
         method returns a non-null value, the endpoint will attempt to send the reply message to an appropriate reply
         channel. To determine the reply channel, it will first check for a value in the message header's
-        'replyChannelName' property. If that value is available, it will attempt to resolve the channel by performing a
+        '<literal>returnAddress</literal>' property. If that value is available, it will then check its type. If it is
+        a <classname>MessageChannel</classname>, the reply message will be sent to that channel. If it is a
+        <classname>String</classname>, then the endpoint will attempt to resolve the channel by performing a
         lookup in the <interfacename>ChannelRegistry</interfacename>. If the message header does not contain a
-        'replyChannelName' property, then it will fallback to its own 'defaultOutputChannel' property. If neither is
-        available, then a <classname>MessageHandlingException</classname> will be thrown. To configure the default
-        output channel when using the XML namespace, provide the 'default-output-channel' attribute:
+        'returnAddress' property at all, then it will fallback to its own 'defaultOutputChannelName' property. If
+        neither is available, then a <classname>MessageHandlingException</classname> will be thrown. To configure the
+        default output channel when using the XML namespace, provide the 'default-output-channel' attribute:
         <programlisting>&lt;endpoint input-channel="exampleChannel"
           handler-ref="somePojo"
           handler-method="someMethod"
           default-output-channel="replyChannel"/&gt;</programlisting>
+      </para>
+      <para>
+        Endpoint's also support <interfacename>MessageSelectors</interfacename> as described in
+        <xref linkend="api-messageselector"/>. To configure selectors with namespace support, simply add one or more
+        &lt;selector&gt; sub-elements to the endpoint definition:
+        <programlisting><![CDATA[<endpoint id="endpoint" input-channel="channel" handler-ref="handler">
+    ]]><emphasis><![CDATA[<selector ref="exampleSelector"/>]]></emphasis><![CDATA[
+</endpoint>]]></programlisting>
       </para>
       <para>
         When the <interfacename>MessageBus</interfacename> registers the endpoint, it will activate the subscription

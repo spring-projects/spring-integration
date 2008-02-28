@@ -398,4 +398,47 @@ public void registerHandler(String name, MessageHandler handler, Subscription su
       single implementation: <classname>DefaultMessageEndpoint</classname>.
     </para>
   </section>
+
+  <section id="api-messageselector">
+    <title>MessageSelector</title>
+    <para>
+      As described above, when a <interfacename>MessageHandler</interfacename> is registered with the message bus, it
+      is hosted by an endpoint and thereby subscribed to a channel. Often it is necessary to provide additional
+      <emphasis>dynamic</emphasis> logic to determine what messages the handler should receive. The
+      <interfacename>MessageSelector</interfacename> strategy interface fulfills that role.
+      <programlisting><![CDATA[public interface MessageSelector {
+    boolean accept(Message<?> message);
+}]]></programlisting>
+      A <interfacename>MessageEndpoint</interfacename> can be configured with zero or more selectors, and will only
+      receive messages that are accepted by each selector. Even though the interface is simple to implement, a couple
+      common selector implementations are provided. For example, the <classname>PayloadTypeSelector</classname>
+      provides similar functionality to Datatype Channels (as described in <xref linkend="namespace-channel"/>)
+      except that in this case the type-matching can be done by the endpoint rather than the channel.
+      <programlisting><![CDATA[PayloadTypeSelector selector = new PayloadTypeSelector(String.class, Integer.class);
+assertTrue(selector.accept(new StringMessage("example")));
+assertTrue(selector.accept(new GenericMessage<Integer>(123)));
+assertFalse(selector.accept(new GenericMessage<SomeObject>(someObject)));
+]]></programlisting>
+      Another simple but useful <interfacename>MessageSelector</interfacename> provided out-of-the-box is the
+      <classname>UnexpiredMessageSelector</classname>. As the name suggests, it only accepts messages that have
+      not yet expired.
+    </para>
+    <para>
+      Essentially, using a selector provides <emphasis>reactive</emphasis> routing whereas the Datatype Channel
+      and Message Router provide <emphasis>proactive</emphasis> routing. However, selectors accommodate additional
+      uses. For example, the <interfacename>MessageChannel</interfacename>'s 'purge' method accepts a selector:
+      <programlisting>channel.purge(someSelector);</programlisting>
+      There is even a <classname>ChannelPurger</classname> utility class whose purge operation is a good candidate for
+      Spring's JMX support:
+      <programlisting>ChannelPurger purger = new ChannelPurger(channel, new ExampleMessageSelector());
+purger.purge();</programlisting>
+    </para>
+    <para>
+      Implementations of <interfacename>MessageSelector</interfacename> might provide opportunities for reuse on
+      channels in addition to endpoints. For that reason, Spring Integration provides a simple selector-wrapping
+      <interfacename>ChannelInterceptor</interfacename> that accepts one or more selectors in its constructor.
+      <programlisting>MessageSelectingInterceptor interceptor = new MessageSelectingInterceptor(selector1, selector2);
+channel.addInterceptor(interceptor);</programlisting>
+    </para>
+  </section>
 </chapter>
