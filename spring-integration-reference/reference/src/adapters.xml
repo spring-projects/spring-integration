@@ -83,6 +83,31 @@
       examples, see <xref linkend="namespace-adapters"/>.
     </para>
   </section>
+  <section id="adapters-email">
+    <title>Mail Adapters</title>
+    <para>
+      Spring Integration currently provides support for <emphasis>outbound</emphasis> email only with the
+      <classname>MailTargetAdapter</classname>. This adapter delegates to a configured instance of Spring's
+      <interfacename>JavaMailSender</interfacename>, and its various mapping strategies use Spring's
+      <interfacename>MailMessage</interfacename> abstraction. By default text-based mails are created when
+      the handled message has a String-based payload. If the message payload is a byte array, then that will
+      be mapped to an attachment.
+    </para>
+    <para>
+      The adapter also delegates to a <interfacename>MailHeaderGenerator</interfacename> for providing the
+      mail's properties, such as the recipients (TO, CC, and BCC), the from/reply-to, and the subject.
+      <programlisting><![CDATA[public interface MailHeaderGenerator {
+    void populateMailMessageHeader(MailMessage mailMessage, Message<?> message);
+}]]></programlisting>
+      A static implementation is available out-of-the-box, but typically most of the properties would need to be
+      dynamically generated based on the message itself. The following is an example of a configured
+      mail adapter.
+      <programlisting><![CDATA[<bean id="mailTargetAdapter" class="org.springframework.integration.adapter.mail.MailTargetAdapter">
+    <property name="mailSender" ref="javaMailSender"/>
+    <property name="headerGenerator" ref="dynamicMailMessageHeaderGenerator"/>
+</bean>]]></programlisting>
+    </para>
+  </section>
   <section id="adapters-stream">
     <title>Stream Adapters</title>
     <para>
