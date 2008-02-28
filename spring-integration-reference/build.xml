@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="spring-integration-reference" default="reference">
+<project name="spring-integration-reference" default="doc">
 
 	<property name="doc.type" value="reference"/>
 
