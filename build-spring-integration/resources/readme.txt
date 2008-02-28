@@ -1,7 +1,9 @@
-SPRING INTEGRATION 1.0.0.m1 (JAN 23, 2008)
+SPRING INTEGRATION 1.0.0.m2 (Feb 28, 2008)
 ------------------------------------------
 
-This is the initial release of Spring Integration.
+This is the 1.0 Milestone 2 release of Spring Integration.
+
+To find out what has changed since Milestone 1.0, see 'changelog.txt'
 
 The following are the key messaging components defined in this release:
   org.springframework.integration.message.Message
@@ -18,6 +20,7 @@ The following adapters are also available in this release:
   org.springframework.integration.adapter.jms.JmsMessageDrivenSourceAdapter
   org.springframework.integration.adapter.jms.JmsPollingSourceAdapter
   org.springframework.integration.adapter.jms.JmsTargetAdapter
+  org.springframework.integration.adapter.mail.MailTargetAdapter
   org.springframework.integration.adapter.stream.ByteStreamSourceAdapter
   org.springframework.integration.adapter.stream.ByteStreamTargetAdapter
   org.springframework.integration.adapter.stream.CharacterStreamSourceAdapter

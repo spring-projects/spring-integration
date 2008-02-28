@@ -1,35 +1,56 @@
 SPRING INTEGRATION CHANGELOG
 ============================
 
-Changes in version 1.0.0.m1 (Jan 23, 2008)
+Changes in version 1.0.0.m2 (Feb 28, 2008)
 ------------------------------------------
 
-This is the initial release of Spring Integration.
+*** CORE API ***
 
-The following are the key messaging components defined in this release:
-  org.springframework.integration.message.Message
-  org.springframework.integration.channel.MessageChannel
-  org.springframework.integration.endpoint.MessageEndpoint
-  org.springframework.integration.handler.MessageHandler
-  org.springframework.integration.bus.MessageBus
+Defined the ChannelInterceptor strategy interface
+Implemented new priority-based MessageChannel (PriorityChannel)
+Created a MessageSelectingInterceptor, a ChannelInterceptor that delegates to a MessageSelector
+Added clear and purge methods to MessageChannel (purge accepts a MessageSelector)
+Implemented a ChannelPurger that delegates to one or more MessageSelectors
+ChannelRegistry now provides 'unregister' method for runtime removal of channels
+Added RequestReplyTemplate for synchronous, blocking request/reply behavior over an asynchronous channel
+Added isExpired() method to Message
+Added a constructor to GenericMessage that copies MessageHeader properties and attributes
+Using the header-copying constructor in MessageHandler adapters to preserve header information
+Undeliverable replies from endpoint are passed to its ErrorHandler
+ErrorHandler is now a configurable strategy for MessageEndpoints
+ReplyHandler is now a configurable strategy for MessageEndpoints
+Subscription is now immutable
+Errors in ConcurrentHandler are now always logged at DEBUG level, and at WARN level if no 'errorHandler' is available
+Endpoints now set the 'correlationId' on reply Messages
+Defined Aggregator and CompletionStrategy and implemented an AggregatingMessageHandler
+SplitterMessageHandlerAdapter now sets sequenceNumber and sequenceSize header properties automatically
+Added 'sendTimeout' property to SplitterMessageHandlerAdapter
 
-The following adapters are also available in this release:
-  org.springframework.integration.adapter.event.ApplicationEventSourceAdapter
-  org.springframework.integration.adapter.event.ApplicationEventTargetAdapter
-  org.springframework.integration.adapter.file.FileSourceAdapter
-  org.springframework.integration.adapter.file.FileTargetAdapter
-  org.springframework.integration.adapter.jms.JmsMessageDrivenSourceAdapter
-  org.springframework.integration.adapter.jms.JmsPollingSourceAdapter
-  org.springframework.integration.adapter.jms.JmsTargetAdapter
-  org.springframework.integration.adapter.stream.ByteStreamSourceAdapter
-  org.springframework.integration.adapter.stream.ByteStreamTargetAdapter
-  org.springframework.integration.adapter.stream.CharacterStreamSourceAdapter
-  org.springframework.integration.adapter.stream.CharacterStreamTargetAdapter
+*** ADAPTERS ***
 
-Many of these components and adapters may be configured with either XML namespace
-support or annotations. Some additional components may be configured with annotations,
-such as: @Router, @Splitter, @Publisher, and @Subscriber.
+Added Mail target adapter
+Acknowledge modes are now configurable for JmsMessageDrivenSourceAdapter
+JMS attributes are now set from the MessageHeader prior to sending via JmsTargetAdapter
+The <jms-source/> element now accepts a 'message-converter' attribute
 
-Please consult the documentation located within the 'docs/reference' directory of this
-release for more information and also visit the official Spring Integration home at:
-http://www.springframework.org/spring-integration
+*** CONFIGURATION ***
+
+Added <interceptor/> sub-element for <channel/>
+Added <selector/> sub-element for <endpoint/>
+Added <handler-chain> element that accepts <handler/> sub-elements for creating a MessageHandlerChain
+Added <aggregator/> element to the namespace for creating AggregatingMessageHandlers
+Added "dataype" attribute to the <channel/> element for message payload datatype enforcement
+Added 'initialDelay' and 'fixedRate' attributes to the @Polled annotation
+Added 'destination-name' attribute for JmsTargetAdapter
+Added 'autoStartup' property to MessageBus (and corresponding XML attribute) with a default value of 'true'
+Added 'defaultConcurrencyPolicy' property to MessageBus (and corresponding XML sub-element)
+Defined default error channel key as "errorChannel" (also added ERROR_CHANNEL_NAME constant in MessageBus)
+
+*** GENERAL ***
+
+Separated "spring-integration-core" from "spring-integration-adapters"
+Added manifest properties for OSGi-compliance
+Refactored package structure to remove all cycles
+Using java.util.UUID for default ID generation strategy
+Increased DEBUG logging throughout, especially for channel and endpoint
+Components delegating to (Scheduled)ExecutorService are now configurable through standard injection
