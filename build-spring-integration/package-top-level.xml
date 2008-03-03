@@ -11,7 +11,7 @@
 			<property name="package.output.dir" value="${package.output.dir}"/>
 		</all-bundles>
 
-		<ant dir="../spring-integration-reference" target="doc">
+		<ant dir="../spring-integration-reference" target="doc" inheritAll="false">
 			<property name="package.output.dir" value="${package.output.dir}"/>
 			<propertyset>
 				<propertyref builtin="commandline"/>
