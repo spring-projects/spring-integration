@@ -18,12 +18,16 @@
 				send-partial-result-on-timeout="true"
 				reaper-interval="135"
 				tracked-correlation-id-capacity="99"/>
+				
+	<aggregator id="aggregatorWithReferenceAndMethod" ref="adderBean" method="add" default-reply-channel="replyChannel"/>
 
 	<channel id="replyChannel"/>
 
 	<channel id="discardChannel"/>
 
 	<beans:bean id="aggregatorBean" class="org.springframework.integration.config.TestAggregator"/>
+	
+	<beans:bean id="adderBean" class="org.springframework.integration.config.Adder"/>
 
 	<beans:bean id="completionStrategy" class="org.springframework.integration.config.TestCompletionStrategy"/>
 

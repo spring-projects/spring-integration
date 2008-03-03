@@ -24,9 +24,11 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.router.AggregatingMessageHandler;
@@ -40,7 +42,6 @@ import org.springframework.util.ReflectionUtils;
 public class AggregatorParserTests {
 
 	private ApplicationContext context;
-
 
 	@Before
 	public void setUp() {
@@ -100,10 +101,29 @@ public class AggregatorParserTests {
 				99, getPropertyValue(completeAggregatingMessageHandler, "trackedCorrelationIdCapacity", int.class));
 	}
 
+	@Test
+	public void testSimpleJavaBeanAggregator() {
+		AggregatingMessageHandler addingAggregator = (AggregatingMessageHandler) context.getBean("aggregatorWithReferenceAndMethod");
+		List<Message<?>> outboundMessages = new ArrayList<Message<?>>();
+		outboundMessages.add(createMessage(1l, "id1", 3, 1, null));
+		outboundMessages.add(createMessage(2l, "id1", 3, 3, null));
+		outboundMessages.add(createMessage(3l, "id1", 3, 2, null));
+		for (Message<?> message : outboundMessages) {
+			addingAggregator.handle(message);
+		}
+		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
+		Message response = replyChannel.receive();
+		Assert.assertEquals(6l, response.getPayload());
+	}
+	
+	@Test(expected=BeanCreationException.class)
+	public void testMissingMethodOnAggregator() {
+		context = new ClassPathXmlApplicationContext("invalidMethodNameAggregator.xml", this.getClass());		
+	}
 
-	private static Message<?> createMessage(String payload, Object correlationId, int sequenceSize, int sequenceNumber,
+	private static <T> Message<T> createMessage(T payload, Object correlationId, int sequenceSize, int sequenceNumber,
 			MessageChannel replyChannel) {
-		StringMessage message = new StringMessage(payload);
+		GenericMessage<T> message = new GenericMessage<T>(payload);
 		message.getHeader().setCorrelationId(correlationId);
 		message.getHeader().setSequenceSize(sequenceSize);
 		message.getHeader().setSequenceNumber(sequenceNumber);

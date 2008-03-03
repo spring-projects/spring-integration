@@ -13,21 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.springframework.integration.router;
+ 
+package org.springframework.integration.config;
 
 import java.util.Collection;
 
-import org.springframework.integration.message.Message;
-
 /**
- * Strategy interface for aggregating a list of {@link Message Messages} into a
- * single {@link Message}.
- * 
- * @author Mark Fisher
+ * @author Marius Bogoevici
  */
-public interface Aggregator {
-
-	Message<?> aggregate(Collection<Message<?>> messages);
-
+public class Adder {
+	
+	public Long add(Collection<Long> results) {
+		long total = 0;
+		for (long partialResult: results) {
+			total += partialResult;
+		}
+		return total;
+	}
+	
 }

@@ -17,6 +17,7 @@
 package org.springframework.integration.config;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,16 +35,19 @@ public class TestAggregator implements Aggregator {
 
 	private final ConcurrentMap<Object, Message<?>> aggregatedMessages = new ConcurrentHashMap<Object, Message<?>>();
 
-
-	public Message<?> aggregate(List<Message<?>> messages) {
+	public Message<?> aggregate(Collection<Message<?>> messages) {
 		List<Message<?>> sortableList = new ArrayList<Message<?>>(messages);
 		Collections.sort(sortableList, new MessageSequenceComparator());
 		StringBuffer buffer = new StringBuffer();
+		Object correlationId = null;
 		for (Message<?> message : sortableList) {
 			buffer.append(message.getPayload().toString());
+			if (null == correlationId) {
+				correlationId = message.getHeader().getCorrelationId();
+			}
 		}
 		Message<?> returnedMessage =  new StringMessage(buffer.toString());
-		aggregatedMessages.put(messages.get(0).getHeader().getCorrelationId(), returnedMessage);
+		aggregatedMessages.put(correlationId, returnedMessage);
 		return returnedMessage;
 	}
 

@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -207,7 +208,7 @@ public class AggregatingMessageHandlerTests {
 
 	private static class TestAggregator implements Aggregator {
 
-		public Message<?> aggregate(List<Message<?>> messages) {
+		public Message<?> aggregate(Collection<Message<?>> messages) {
 			List<Message<?>> sortableList = new ArrayList<Message<?>>(messages);
 			Collections.sort(sortableList, new MessageSequenceComparator());
 			StringBuffer buffer = new StringBuffer();
