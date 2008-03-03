@@ -149,7 +149,8 @@ public class MessageHeader {
 	}
 
 	public String toString() {
-		return "[Properties=" + this.properties + "][Attributes=" + this.attributes + "]";
+		return "[Properties=" + this.properties + "][Attributes=" + this.attributes +
+				"][Timestamp=" + this.timestamp + "]";
 	}
 
 }
