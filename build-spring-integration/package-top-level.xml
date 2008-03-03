@@ -11,6 +11,14 @@
 			<property name="package.output.dir" value="${package.output.dir}"/>
 		</all-bundles>
 
+		<ant dir="../spring-integration-reference" target="doc">
+			<property name="package.output.dir" value="${package.output.dir}"/>
+			<propertyset>
+				<propertyref builtin="commandline"/>
+			</propertyset>
+			<property name="timestamp" value="${timestamp}"/>
+		</ant>
+
 		<subant target="package" verbose="true" buildpath="../spring-integration-reference">
 			<property name="package.output.dir" value="${package.output.dir}"/>
 			<propertyset>
