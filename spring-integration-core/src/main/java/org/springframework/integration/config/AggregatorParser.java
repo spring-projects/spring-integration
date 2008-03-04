@@ -26,6 +26,7 @@ import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.router.AggregatingMessageHandler;
+import org.springframework.integration.router.AggregatorAdapter;
 import org.springframework.util.StringUtils;
 
 /**
@@ -80,6 +81,8 @@ public class AggregatorParser implements BeanDefinitionParser {
 		aggregatorDef.setSource(parserContext.extractSource(element));
 		final String id = element.getAttribute(ID_ATTRIBUTE);
 		final String ref = element.getAttribute(REF_ATTRIBUTE);
+		final String method = element.getAttribute(METHOD_ATTRIBUTE);
+		
 		if (!StringUtils.hasText(ref)) {
 			throw new MessagingConfigurationException("The 'ref' attribute must be present");
 		}
@@ -88,7 +91,18 @@ public class AggregatorParser implements BeanDefinitionParser {
 					"The 'id' attribute is only supported for top-level <aggregator> elements.",
 					parserContext.extractSource(element));
 		}
-		aggregatorDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(ref));
+		if (!StringUtils.hasText(method)) {
+			aggregatorDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(ref));
+		}
+		else {
+			BeanDefinition adapterDefinition = new RootBeanDefinition(AggregatorAdapter.class);
+			adapterDefinition.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(ref));
+			adapterDefinition.getConstructorArgumentValues().addGenericArgumentValue(method);
+			String adapterBeanName = parserContext.getReaderContext().generateBeanName(adapterDefinition);
+			parserContext.registerBeanComponent(new BeanComponentDefinition(adapterDefinition, adapterBeanName));
+			aggregatorDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(adapterBeanName));
+
+		}
 		IntegrationNamespaceUtils.setBeanReferenceIfAttributeDefined(aggregatorDef, COMPLETION_STRATEGY_PROPERTY,
 				element, COMPLETION_STRATEGY_ATTRIBUTE);
 		IntegrationNamespaceUtils.setBeanReferenceIfAttributeDefined(aggregatorDef, DEFAULT_REPLY_CHANNEL_PROPERTY,
