@@ -42,7 +42,6 @@ import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
-import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
@@ -67,18 +66,19 @@ import org.springframework.util.StringUtils;
  */
 public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor, InitializingBean {
 
-	private Log logger = LogFactory.getLog(this.getClass());
+	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private Map<Class<? extends Annotation>, MessageHandlerCreator> handlerCreators =
+	private final Map<Class<? extends Annotation>, MessageHandlerCreator> handlerCreators =
 			new ConcurrentHashMap<Class<? extends Annotation>, MessageHandlerCreator>();
 
-	private MessageBus messageBus;
+	private final MessageBus messageBus;
 
 
-	public void setMessageBus(MessageBus messageBus) {
-		Assert.notNull(messageBus, "messageBus must not be null");
+	public MessageEndpointAnnotationPostProcessor(MessageBus messageBus) {
+		Assert.notNull(messageBus, "'messageBus' must not be null");
 		this.messageBus = messageBus;
 	}
+
 
 	public void setCustomHandlerCreators(
 			Map<Class<? extends Annotation>, MessageHandlerCreator> customHandlerCreators) {
@@ -88,7 +88,6 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 	}
 
 	public void afterPropertiesSet() {
-		Assert.notNull(this.messageBus, "messageBus is required");
 		this.handlerCreators.put(Handler.class, new DefaultMessageHandlerCreator());
 		this.handlerCreators.put(Router.class, new RouterMessageHandlerCreator());
 		this.handlerCreators.put(Splitter.class, new SplitterMessageHandlerCreator());
@@ -180,7 +179,7 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 					target.setObject(bean);
 					target.setMethod(method.getName());
 					target.afterPropertiesSet();
-					DefaultTargetAdapter adapter = new DefaultTargetAdapter(target);
+					DefaultTargetAdapter<Object> adapter = new DefaultTargetAdapter<Object>(target);
 					MessageHandler handler = endpoint.getHandler();
 					if (handler == null) {
 						endpoint.setHandler(adapter);

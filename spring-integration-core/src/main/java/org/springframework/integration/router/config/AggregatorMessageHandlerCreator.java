@@ -19,7 +19,7 @@ package org.springframework.integration.router.config;
 import java.lang.reflect.Method;
 import java.util.Map;
 
-import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.config.AbstractMessageHandlerCreator;
 import org.springframework.integration.router.AggregatingMessageHandler;
@@ -47,27 +47,30 @@ public class AggregatorMessageHandlerCreator extends AbstractMessageHandlerCreat
 	private static final String TRACKED_CORRELATION_ID_CAPACITY = "trackedCorrelationIdCapacity";
 
 
-	private final MessageBus messageBus;
+	private final ChannelRegistry channelRegistry;
 
 
-	public AggregatorMessageHandlerCreator(MessageBus messageBus) {
-		this.messageBus = messageBus;
+	public AggregatorMessageHandlerCreator(ChannelRegistry channelRegistry) {
+		this.channelRegistry = channelRegistry;
 	}
 
 
 	public MessageHandler doCreateHandler(Object object, Method method, Map<String, ?> attributes) {
 		AggregatingMessageHandler messageHandler = new AggregatingMessageHandler(new AggregatorAdapter(object, method));
 		if (attributes.containsKey(DEFAULT_REPLY_CHANNEL)) {
-			messageHandler.setDefaultReplyChannel(this.messageBus.lookupChannel((String) attributes.get(DEFAULT_REPLY_CHANNEL)));
+			messageHandler.setDefaultReplyChannel(this.channelRegistry.lookupChannel(
+					(String) attributes.get(DEFAULT_REPLY_CHANNEL)));
 		}
 		if (attributes.containsKey(DISCARD_CHANNEL)) {
-			messageHandler.setDiscardChannel(this.messageBus.lookupChannel((String) attributes.get(DISCARD_CHANNEL)));
+			messageHandler.setDiscardChannel(this.channelRegistry.lookupChannel(
+					(String) attributes.get(DISCARD_CHANNEL)));
 		}
 		if (attributes.containsKey(SEND_TIMEOUT)) {
 			messageHandler.setSendTimeout((Long) attributes.get(SEND_TIMEOUT));
 		}
 		if (attributes.containsKey(SEND_PARTIAL_RESULTS_ON_TIMEOUT)) {
-			messageHandler.setSendPartialResultOnTimeout((Boolean) attributes.get(SEND_PARTIAL_RESULTS_ON_TIMEOUT));
+			messageHandler.setSendPartialResultOnTimeout(
+					(Boolean) attributes.get(SEND_PARTIAL_RESULTS_ON_TIMEOUT));
 		}
 		if (attributes.containsKey(REAPER_INTERVAL)) {
 			messageHandler.setReaperInterval((Long) attributes.get(REAPER_INTERVAL));
@@ -76,7 +79,8 @@ public class AggregatorMessageHandlerCreator extends AbstractMessageHandlerCreat
 			messageHandler.setTimeout((Long) attributes.get(TIMEOUT));
 		}
 		if (attributes.containsKey(TRACKED_CORRELATION_ID_CAPACITY)) {
-			messageHandler.setTrackedCorrelationIdCapacity((Integer) attributes.get(TRACKED_CORRELATION_ID_CAPACITY));
+			messageHandler.setTrackedCorrelationIdCapacity(
+					(Integer) attributes.get(TRACKED_CORRELATION_ID_CAPACITY));
 		}
 		return messageHandler;
 	}

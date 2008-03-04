@@ -17,7 +17,6 @@
 package org.springframework.integration.endpoint.annotation;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -48,7 +47,7 @@ public class MessageEndpointAnnotationPostProcessorTests {
 		MessageChannel inputChannel = (MessageChannel) context.getBean("inputChannel");
 		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
 		inputChannel.send(new StringMessage("world"));
-		Message<String> message = outputChannel.receive(1000);
+		Message<?> message = outputChannel.receive(1000);
 		assertEquals("hello world", message.getPayload());
 		context.stop();
 	}
@@ -60,7 +59,7 @@ public class MessageEndpointAnnotationPostProcessorTests {
 		MessageChannel inputChannel = (MessageChannel) context.getBean("inputChannel");
 		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
 		inputChannel.send(new StringMessage("world"));
-		Message<String> message = outputChannel.receive(1000);
+		Message<?> message = outputChannel.receive(1000);
 		assertEquals("hello world", message.getPayload());
 		context.stop();
 	}
@@ -70,8 +69,8 @@ public class MessageEndpointAnnotationPostProcessorTests {
 		MessageBus messageBus = new MessageBus();
 		SimpleChannel testChannel = new SimpleChannel();
 		messageBus.registerChannel("testChannel", testChannel);
-		MessageEndpointAnnotationPostProcessor postProcessor = new MessageEndpointAnnotationPostProcessor();
-		postProcessor.setMessageBus(messageBus);
+		MessageEndpointAnnotationPostProcessor postProcessor =
+				new MessageEndpointAnnotationPostProcessor(messageBus);
 		PolledAnnotationTestBean testBean = new PolledAnnotationTestBean();
 		postProcessor.postProcessAfterInitialization(testBean, "testBean");
 		messageBus.start();
@@ -85,8 +84,8 @@ public class MessageEndpointAnnotationPostProcessorTests {
 		MessageBus messageBus = new MessageBus();
 		SimpleChannel testChannel = new SimpleChannel();
 		messageBus.registerChannel("testChannel", testChannel);
-		MessageEndpointAnnotationPostProcessor postProcessor = new MessageEndpointAnnotationPostProcessor();
-		postProcessor.setMessageBus(messageBus);
+		MessageEndpointAnnotationPostProcessor postProcessor =
+				new MessageEndpointAnnotationPostProcessor(messageBus);
 		CountDownLatch latch = new CountDownLatch(1);
 		DefaultOutputAnnotationTestBean testBean = new DefaultOutputAnnotationTestBean(latch);
 		postProcessor.postProcessAfterInitialization(testBean, "testBean");
@@ -98,12 +97,9 @@ public class MessageEndpointAnnotationPostProcessorTests {
 		messageBus.stop();
 	}
 
-	@Test
-	public void testPostProcessorWithNoMessageBus() {
-		MessageEndpointAnnotationPostProcessor postProcessor = new MessageEndpointAnnotationPostProcessor();
-		PolledAnnotationTestBean testBean = new PolledAnnotationTestBean();
-		Object result = postProcessor.postProcessAfterInitialization(testBean, "testBean");
-		assertSame(testBean, result);
+	@Test(expected=IllegalArgumentException.class)
+	public void testPostProcessorWithNullMessageBus() {
+		new MessageEndpointAnnotationPostProcessor(null);
 	}
 
 
