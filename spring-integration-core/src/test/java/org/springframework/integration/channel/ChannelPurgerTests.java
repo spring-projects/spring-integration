@@ -51,11 +51,11 @@ public class ChannelPurgerTests {
 		channel.send(new StringMessage("test1"));
 		channel.send(new StringMessage("test2"));
 		channel.send(new StringMessage("test3"));
-		ChannelPurger purger = new ChannelPurger(channel, new MessageSelector() {
+		ChannelPurger purger = new ChannelPurger(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return false;
 			}
-		});
+		}, channel);
 		List<Message<?>> purgedMessages = purger.purge();
 		assertEquals(3, purgedMessages.size());
 		assertNull(channel.receive(0));
@@ -67,11 +67,11 @@ public class ChannelPurgerTests {
 		channel.send(new StringMessage("test1"));
 		channel.send(new StringMessage("test2"));
 		channel.send(new StringMessage("test3"));
-		ChannelPurger purger = new ChannelPurger(channel, new MessageSelector() {
+		ChannelPurger purger = new ChannelPurger(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return true;
 			}
-		});
+		}, channel);
 		List<Message<?>> purgedMessages = purger.purge();
 		assertEquals(0, purgedMessages.size());
 		assertNotNull(channel.receive(0));
@@ -85,17 +85,92 @@ public class ChannelPurgerTests {
 		channel.send(new StringMessage("test1"));
 		channel.send(new StringMessage("test2"));
 		channel.send(new StringMessage("test3"));
-		ChannelPurger purger = new ChannelPurger(channel, new MessageSelector() {
+		ChannelPurger purger = new ChannelPurger(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return (message.getPayload().equals("test2"));
 			}
-		});
+		}, channel);
 		List<Message<?>> purgedMessages = purger.purge();
 		assertEquals(2, purgedMessages.size());
 		Message<?> message = channel.receive(0);
 		assertNotNull(message);
 		assertEquals("test2", message.getPayload());
 		assertNull(channel.receive(0));
+	}
+
+	@Test
+	public void testMultipleChannelsWithNoSelector() {
+		MessageChannel channel1 = new SimpleChannel();
+		MessageChannel channel2 = new SimpleChannel();
+		channel1.send(new StringMessage("test1"));
+		channel1.send(new StringMessage("test2"));
+		channel2.send(new StringMessage("test1"));
+		channel2.send(new StringMessage("test2"));
+		ChannelPurger purger = new ChannelPurger(channel1, channel2);
+		List<Message<?>> purgedMessages = purger.purge();
+		assertEquals(4, purgedMessages.size());
+		assertNull(channel1.receive(0));
+		assertNull(channel2.receive(0));
+	}
+
+	@Test
+	public void testMultipleChannelsWithSelector() {
+		MessageChannel channel1 = new SimpleChannel();
+		MessageChannel channel2 = new SimpleChannel();
+		channel1.send(new StringMessage("test1"));
+		channel1.send(new StringMessage("test2"));
+		channel1.send(new StringMessage("test3"));
+		channel2.send(new StringMessage("test1"));
+		channel2.send(new StringMessage("test2"));
+		channel2.send(new StringMessage("test3"));		
+		ChannelPurger purger = new ChannelPurger(new MessageSelector() {
+			public boolean accept(Message<?> message) {
+				return (message.getPayload().equals("test2"));
+			}
+		}, channel1, channel2);
+		List<Message<?>> purgedMessages = purger.purge();
+		assertEquals(4, purgedMessages.size());
+		Message<?> message1 = channel1.receive(0);
+		assertNotNull(message1);
+		assertEquals("test2", message1.getPayload());
+		assertNull(channel1.receive(0));
+		Message<?> message2 = channel2.receive(0);
+		assertNotNull(message2);
+		assertEquals("test2", message2.getPayload());
+		assertNull(channel2.receive(0));		
+	}
+
+	@Test
+	public void testPurgeNoneWithSelectorAndMultipleChannels() {
+		MessageChannel channel1 = new SimpleChannel();
+		MessageChannel channel2 = new SimpleChannel();
+		channel1.send(new StringMessage("test1"));
+		channel1.send(new StringMessage("test2"));
+		channel2.send(new StringMessage("test1"));
+		channel2.send(new StringMessage("test2"));
+		ChannelPurger purger = new ChannelPurger(new MessageSelector() {
+			public boolean accept(Message<?> message) {
+				return true;
+			}
+		}, channel1, channel2);
+		List<Message<?>> purgedMessages = purger.purge();
+		assertEquals(0, purgedMessages.size());
+		assertNotNull(channel1.receive(0));
+		assertNotNull(channel1.receive(0));
+		assertNotNull(channel2.receive(0));
+		assertNotNull(channel2.receive(0));
+	}
+
+	@Test(expected=IllegalArgumentException.class)
+	public void testNullChannel() {
+		MessageChannel channel = null;
+		new ChannelPurger(channel);
+	}
+
+	@Test(expected=IllegalArgumentException.class)
+	public void testEmptyChannelArray() {
+		MessageChannel[] channels = new MessageChannel[0];
+		new ChannelPurger(channels);
 	}
 
 }

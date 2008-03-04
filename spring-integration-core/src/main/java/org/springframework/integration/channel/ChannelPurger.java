@@ -16,16 +16,18 @@
 
 package org.springframework.integration.channel;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.selector.MessageSelector;
+import org.springframework.util.Assert;
 
 /**
- * A utility class for purging {@link Message Messages} from a
- * {@link MessageChannel}. Any message that does <em>not</em> match the
- * provided {@link MessageSelector} will be removed from the channel. If no
- * {@link MessageSelector} is provided, then <em>all</em> messages will be
+ * A utility class for purging {@link Message Messages} from one or more
+ * {@link MessageChannel MessageChannels}. Any message that does <em>not</em>
+ * match the provided {@link MessageSelector} will be removed from the channel.
+ * If no {@link MessageSelector} is provided, then <em>all</em> messages will be
  * cleared from the channel.
  * <p>
  * Note that the {@link #purge()} method operates on a snapshot of the messages
@@ -39,26 +41,35 @@ import org.springframework.integration.message.selector.MessageSelector;
  */
 public class ChannelPurger {
 
-	private MessageChannel channel;
+	private final MessageChannel[] channels;
 
-	private MessageSelector selector;
+	private final MessageSelector selector;
 
 
-	public ChannelPurger(MessageChannel channel) {
-		this.channel = channel;
+	public ChannelPurger(MessageChannel ... channels) {
+		this(null, channels);
 	}
 
-	public ChannelPurger(MessageChannel channel, MessageSelector selector) {
-		this(channel);
+	public ChannelPurger(MessageSelector selector, MessageChannel ... channels) {
+		Assert.notEmpty(channels, "at least one channel is required");
+		if (channels.length == 1) {
+			Assert.notNull(channels[0], "channel must not be null");
+		}
 		this.selector = selector;
+		this.channels = channels;
 	}
 
 
 	public final List<Message<?>> purge() {
-		if (this.selector == null) {
-			return this.channel.clear();
+		List<Message<?>> purgedMessages = new ArrayList<Message<?>>();
+		for (MessageChannel channel : this.channels) {
+			List<Message<?>> results = (this.selector == null) ?
+					channel.clear() : channel.purge(this.selector);
+			if (results != null) {
+				purgedMessages.addAll(results);
+			}
 		}
-		return this.channel.purge(this.selector);
+		return purgedMessages;
 	}
 
 }
