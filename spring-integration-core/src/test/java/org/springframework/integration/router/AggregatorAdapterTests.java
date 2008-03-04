@@ -19,6 +19,7 @@ package org.springframework.integration.router;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -108,6 +109,11 @@ public class AggregatorAdapterTests {
 	}
 
 	@Test(expected=MessagingConfigurationException.class)
+	public void testCollectionSubclassParameterUsingMethodName() {
+		new AggregatorAdapter(simpleAggregator, "collectionSubclassParameter");
+	}
+
+	@Test(expected=MessagingConfigurationException.class)
 	public void testInvalidParameterTypeUsingMethodObject() throws SecurityException, NoSuchMethodException {
 		new AggregatorAdapter(simpleAggregator, simpleAggregator.getClass().getMethod(
 				"invalidParameterType", String.class));
@@ -123,6 +129,12 @@ public class AggregatorAdapterTests {
 	public void testNotEnoughParametersUsingMethodObject() throws SecurityException, NoSuchMethodException {
 		new AggregatorAdapter(simpleAggregator, simpleAggregator.getClass().getMethod(
 				"notEnoughParameters", new Class[] {} ));
+	}
+
+	@Test(expected= MessagingConfigurationException.class)
+	public void testCollectionSubclassParameterUsingMethodObject() throws SecurityException, NoSuchMethodException {
+		new AggregatorAdapter(simpleAggregator, simpleAggregator.getClass().getMethod(
+				"collectionSubclassParameter", new Class[] {List.class} ));
 	}
 
 	@Test(expected=IllegalArgumentException.class)
@@ -220,6 +232,10 @@ public class AggregatorAdapterTests {
 		}
 
 		public Message<?> notEnoughParameters() {
+			return null;
+		}
+
+		public Message<?> collectionSubclassParameter(List<?> l1){
 			return null;
 		}
 	}
