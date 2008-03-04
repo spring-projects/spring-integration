@@ -30,8 +30,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
 /**
- * Aggregator adapter for methods used through <aggregator
- * ref="beanReference"method="methodName"/>
+ * Aggregator adapter for methods annotated with {@link org.springframework.integration.annotation.Aggregator @Aggregator} and for
+ * &lt;aggregator ref="beanReference"method="methodName"/&gt;
  * 
  * @author Marius Bogoevici
  */
@@ -54,16 +54,12 @@ public class AggregatorAdapter implements Aggregator {
 	public AggregatorAdapter(Object object, Method method) {
 		Assert.notNull(object, "'object' must not be null");
 		Assert.notNull(method, "'method' must not be null.");
-		assertMethodCanBeAdapted();
-		this.method = method;
-		this.invoker = new SimpleMethodInvoker<Object>(object, method.getName());
-	}
-
-	private void assertMethodCanBeAdapted() {
-		if (this.method.getParameterTypes().length != 1 && this.method.getParameterTypes()[0].equals(Collection.class)) {
+		if (method.getParameterTypes().length != 1 && method.getParameterTypes()[0].equals(Collection.class)) {
 			throw new MessagingConfigurationException(
 					"Aggregator method must accept exactly one parameter, and it must be a Collection.");
 		}
+		this.method = method;
+		this.invoker = new SimpleMethodInvoker<Object>(object, method.getName());
 	}
 
 	public Message<?> aggregate(Collection<Message<?>> messages) {

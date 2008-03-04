@@ -37,16 +37,12 @@ import org.springframework.integration.adapter.DefaultTargetAdapter;
 import org.springframework.integration.adapter.MethodInvokingSource;
 import org.springframework.integration.adapter.MethodInvokingTarget;
 import org.springframework.integration.adapter.PollingSourceAdapter;
-import org.springframework.integration.annotation.DefaultOutput;
-import org.springframework.integration.annotation.Handler;
-import org.springframework.integration.annotation.MessageEndpoint;
-import org.springframework.integration.annotation.Polled;
-import org.springframework.integration.annotation.Router;
-import org.springframework.integration.annotation.Splitter;
+import org.springframework.integration.annotation.*;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
@@ -55,6 +51,7 @@ import org.springframework.integration.handler.config.MessageHandlerCreator;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.router.config.RouterMessageHandlerCreator;
 import org.springframework.integration.router.config.SplitterMessageHandlerCreator;
+import org.springframework.integration.router.config.AggregatorMessageHandlerCreator;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.integration.scheduling.Subscription;
@@ -95,6 +92,7 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 		this.handlerCreators.put(Handler.class, new DefaultMessageHandlerCreator());
 		this.handlerCreators.put(Router.class, new RouterMessageHandlerCreator());
 		this.handlerCreators.put(Splitter.class, new SplitterMessageHandlerCreator());
+		this.handlerCreators.put(Aggregator.class, new AggregatorMessageHandlerCreator(messageBus));
 	}
 
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {

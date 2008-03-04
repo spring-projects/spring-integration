@@ -62,6 +62,14 @@ import org.springframework.util.CollectionUtils;
  */
 public class AggregatingMessageHandler implements MessageHandler, InitializingBean {
 
+	public final static long DEFAULT_SEND_TIMEOUT = 1000;
+	
+	public final static long DEFAULT_TIMEOUT = 60000;
+	
+	public final static long DEFAULT_REAPER_INTERVAL = 1000;
+	
+	public final static int DEFAULT_TRACKED_CORRRELATION_ID_CAPACITY = 1000;
+	
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final Aggregator aggregator;
@@ -70,19 +78,19 @@ public class AggregatingMessageHandler implements MessageHandler, InitializingBe
 
 	private volatile MessageChannel discardChannel;
 
-	private volatile long sendTimeout = 1000;
+	private volatile long sendTimeout = DEFAULT_SEND_TIMEOUT;
 
 	private volatile CompletionStrategy completionStrategy = new SequenceSizeCompletionStrategy();
 
 	private final ConcurrentMap<Object, AggregationBarrier> barriers = new ConcurrentHashMap<Object, AggregationBarrier>();
 
-	private volatile long timeout = 60000;
+	private volatile long timeout = DEFAULT_TIMEOUT;
 
 	private volatile boolean sendPartialResultOnTimeout = false;
 
-	private volatile long reaperInterval = 1000;
+	private volatile long reaperInterval = DEFAULT_REAPER_INTERVAL;
 
-	private volatile int trackedCorrelationIdCapacity = 1000;
+	private volatile int trackedCorrelationIdCapacity = DEFAULT_TRACKED_CORRRELATION_ID_CAPACITY;
 
 	private volatile BlockingQueue<Object> trackedCorrelationIds;
 
