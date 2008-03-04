@@ -69,10 +69,12 @@ public class FileSource implements PollableSource<File> {
 			throw new MessageHandlingException("Problem occurred while polling for files. " +
 					"Is '" + directory.getAbsolutePath() + "' a directory?");
 		}
+		List<File> results = new ArrayList<File>();
 		int size = Math.min(limit, files.length);
-		List<File> results = new ArrayList<File>(size);
 		for (int i = 0; i < size; i++) {
-			results.add(files[i]);
+			if (files[i].isFile()) {
+				results.add(files[i]);
+			}
 		}
 		return results;
 	}
