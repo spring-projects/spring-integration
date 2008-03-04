@@ -76,13 +76,13 @@ public class AggregatorParser implements BeanDefinitionParser {
 		return parseAggregatorElement(element, parserContext, true);
 	}
 
-	public static BeanDefinition parseAggregatorElement(Element element, ParserContext parserContext, boolean topLevel) {
+
+	private BeanDefinition parseAggregatorElement(Element element, ParserContext parserContext, boolean topLevel) {
 		final RootBeanDefinition aggregatorDef = new RootBeanDefinition(AggregatingMessageHandler.class);
 		aggregatorDef.setSource(parserContext.extractSource(element));
 		final String id = element.getAttribute(ID_ATTRIBUTE);
 		final String ref = element.getAttribute(REF_ATTRIBUTE);
 		final String method = element.getAttribute(METHOD_ATTRIBUTE);
-		
 		if (!StringUtils.hasText(ref)) {
 			throw new MessagingConfigurationException("The 'ref' attribute must be present");
 		}
@@ -101,7 +101,6 @@ public class AggregatorParser implements BeanDefinitionParser {
 			String adapterBeanName = parserContext.getReaderContext().generateBeanName(adapterDefinition);
 			parserContext.registerBeanComponent(new BeanComponentDefinition(adapterDefinition, adapterBeanName));
 			aggregatorDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(adapterBeanName));
-
 		}
 		IntegrationNamespaceUtils.setBeanReferenceIfAttributeDefined(aggregatorDef, COMPLETION_STRATEGY_PROPERTY,
 				element, COMPLETION_STRATEGY_ATTRIBUTE);

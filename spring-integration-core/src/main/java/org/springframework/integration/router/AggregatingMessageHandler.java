@@ -63,13 +63,14 @@ import org.springframework.util.CollectionUtils;
 public class AggregatingMessageHandler implements MessageHandler, InitializingBean {
 
 	public final static long DEFAULT_SEND_TIMEOUT = 1000;
-	
+
 	public final static long DEFAULT_TIMEOUT = 60000;
-	
+
 	public final static long DEFAULT_REAPER_INTERVAL = 1000;
-	
+
 	public final static int DEFAULT_TRACKED_CORRRELATION_ID_CAPACITY = 1000;
-	
+
+
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final Aggregator aggregator;

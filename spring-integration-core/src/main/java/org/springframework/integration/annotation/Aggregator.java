@@ -34,11 +34,19 @@ import org.springframework.integration.router.AggregatingMessageHandler;
 @Documented
 @Handler
 public @interface Aggregator {
-   String defaultReplyChannel() default "";
-   String discardChannel() default "";
-   long sendTimeout() default AggregatingMessageHandler.DEFAULT_SEND_TIMEOUT;
-   long timeout() default AggregatingMessageHandler.DEFAULT_TIMEOUT;
-   boolean sendPartialResultsOnTimeout() default false;
-   long reaperInterval() default AggregatingMessageHandler.DEFAULT_REAPER_INTERVAL;
-   int trackedCorrelationIdCapacity() default AggregatingMessageHandler.DEFAULT_TRACKED_CORRRELATION_ID_CAPACITY; 
+
+	String defaultReplyChannel() default "";
+
+	String discardChannel() default "";
+
+	long sendTimeout() default AggregatingMessageHandler.DEFAULT_SEND_TIMEOUT;
+
+	long timeout() default AggregatingMessageHandler.DEFAULT_TIMEOUT;
+
+	boolean sendPartialResultsOnTimeout() default false;
+
+	long reaperInterval() default AggregatingMessageHandler.DEFAULT_REAPER_INTERVAL;
+
+	int trackedCorrelationIdCapacity() default AggregatingMessageHandler.DEFAULT_TRACKED_CORRRELATION_ID_CAPACITY; 
+
 }

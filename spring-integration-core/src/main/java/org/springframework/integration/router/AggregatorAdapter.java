@@ -21,8 +21,8 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
-import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.util.SimpleMethodInvoker;
@@ -30,10 +30,12 @@ import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
 /**
- * Aggregator adapter for methods annotated with {@link org.springframework.integration.annotation.Aggregator @Aggregator} and for
- * &lt;aggregator ref="beanReference"method="methodName"/&gt;
+ * Aggregator adapter for methods annotated with {@link org.springframework.integration.annotation.Aggregator @Aggregator}
+ * and for '<code>aggregator</code>' elements that include a '<code>method</code>' attribute
+ * (e.g. &lt;aggregator ref="beanReference" method="methodName"/&gt;).
  * 
  * @author Marius Bogoevici
+ * @author Mark Fisher
  */
 public class AggregatorAdapter implements Aggregator {
 
@@ -41,46 +43,52 @@ public class AggregatorAdapter implements Aggregator {
 
 	private final Method method;
 
+
 	public AggregatorAdapter(Object object, String methodName) {
 		Assert.notNull(object, "'object' must not be null");
-		Assert.notNull(methodName, "'methodName' must not be null.");
+		Assert.notNull(methodName, "'methodName' must not be null");
 		this.method = ReflectionUtils.findMethod(object.getClass(), methodName, new Class<?>[] { Collection.class });
-		Assert
-				.notNull(this.method, "Method '" + methodName + "'(Collection<?> args) not found on "
-						+ object.getClass());
-		this.invoker = new SimpleMethodInvoker<Object>(object, method.getName());
+		Assert.notNull(this.method, "Method '" + methodName + "(Collection<?> args)' not found on '" +
+				object.getClass().getName() + "'.");
+		this.invoker = new SimpleMethodInvoker<Object>(object, this.method.getName());
 	}
 
 	public AggregatorAdapter(Object object, Method method) {
 		Assert.notNull(object, "'object' must not be null");
-		Assert.notNull(method, "'method' must not be null.");
-		if (method.getParameterTypes().length != 1 && method.getParameterTypes()[0].equals(Collection.class)) {
-			throw new MessagingConfigurationException(
+		Assert.notNull(method, "'method' must not be null");
+		if (method.getParameterTypes().length != 1 || !method.getParameterTypes()[0].equals(Collection.class)) {
+			throw new IllegalArgumentException(
 					"Aggregator method must accept exactly one parameter, and it must be a Collection.");
 		}
 		this.method = method;
-		this.invoker = new SimpleMethodInvoker<Object>(object, method.getName());
+		this.invoker = new SimpleMethodInvoker<Object>(object, this.method.getName());
 	}
+
 
 	public Message<?> aggregate(Collection<Message<?>> messages) {
 		Object returnedValue = null;
-
-		if (isMethodParameterParametrized(method) && isHavingActualTypeArguments(method)
-				&& (isActualTypeRawMessage(method) || isActualTypeParametrizedMessage(method))) {
-			returnedValue = invoker.invokeMethod(messages);
+		if (isMethodParameterParametrized(this.method) && isHavingActualTypeArguments(this.method)
+				&& (isActualTypeRawMessage(this.method) || isActualTypeParametrizedMessage(this.method))) {
+			returnedValue = this.invoker.invokeMethod(messages);
 		}
 		else {
-			returnedValue = invoker.invokeMethod(extractPayloadsFromMessages(messages));
+			returnedValue = this.invoker.invokeMethod(extractPayloadsFromMessages(messages));
 		}
 		if (returnedValue == null) {
 			return null;
 		}
-		else if (returnedValue instanceof Message) {
+		if (returnedValue instanceof Message) {
 			return (Message<?>) returnedValue;
 		}
-		else {
-			return new GenericMessage<Object>(returnedValue);
+		return new GenericMessage<Object>(returnedValue);
+	}
+
+	private Collection<?> extractPayloadsFromMessages(Collection<Message<?>> messages) {
+		List<Object> payloadList = new ArrayList<Object>();
+		for (Message<?> message : messages) {
+			payloadList.add(message.getPayload());
 		}
+		return payloadList;
 	}
 
 	private static boolean isActualTypeParametrizedMessage(Method method) {
@@ -104,14 +112,6 @@ public class AggregatorAdapter implements Aggregator {
 	private static boolean isMethodParameterParametrized(Method method) {
 		return method.getGenericParameterTypes().length == 1
 				&& method.getGenericParameterTypes()[0] instanceof ParameterizedType;
-	}
-
-	private Collection<?> extractPayloadsFromMessages(Collection<Message<?>> messages) {
-		ArrayList payloadList = new ArrayList<Object>();
-		for (Message<?> message : messages) {
-			payloadList.add(message.getPayload());
-		}
-		return payloadList;
 	}
 
 }
