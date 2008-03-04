@@ -29,6 +29,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.channel.DispatcherPolicy;
+import org.springframework.integration.channel.PriorityChannel;
 import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.channel.interceptor.MessageSelectingInterceptor;
 import org.springframework.integration.message.selector.MessageSelector;
@@ -56,9 +57,13 @@ public class ChannelParser implements BeanDefinitionParser {
 
 	private static final String INTERCEPTORS_PROPERTY = "interceptors";
 
+	private static final String COMPARATOR_REF_ATTRIBUTE = "comparator-ref";
+
 
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
-		RootBeanDefinition channelDef = new RootBeanDefinition(SimpleChannel.class);
+		boolean isPriorityChannel = (element.getLocalName().equals("priority-channel"));
+		Class<?> channelClass = (isPriorityChannel) ? PriorityChannel.class : SimpleChannel.class;
+		RootBeanDefinition channelDef = new RootBeanDefinition(channelClass);
 		channelDef.setSource(parserContext.extractSource(element));
 		boolean isPublishSubscribe = "true".equals(element.getAttribute(PUBLISH_SUBSCRIBE_ATTRIBUTE));
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy(isPublishSubscribe);
@@ -81,6 +86,12 @@ public class ChannelParser implements BeanDefinitionParser {
 		int capacity = (StringUtils.hasText(capAttr)) ? Integer.parseInt(capAttr) : SimpleChannel.DEFAULT_CAPACITY;
 		channelDef.getConstructorArgumentValues().addIndexedArgumentValue(0, capacity);
 		channelDef.getConstructorArgumentValues().addIndexedArgumentValue(1, dispatcherPolicy);
+		if (isPriorityChannel) {
+			String comparatorRef = element.getAttribute(COMPARATOR_REF_ATTRIBUTE);
+			if (StringUtils.hasText(comparatorRef)) {
+				channelDef.getConstructorArgumentValues().addIndexedArgumentValue(2, new RuntimeBeanReference(comparatorRef));
+			}
+		}
 		String datatypeAttr = element.getAttribute(DATATYPE_ATTRIBUTE);
 		if (StringUtils.hasText(datatypeAttr)) {
 			String[] datatypes = StringUtils.commaDelimitedListToStringArray(datatypeAttr);

@@ -205,6 +205,47 @@ public class ChannelParserTests {
 		assertEquals(1, interceptor.getReceiveCount());
 	}
 
+	@Test
+	public void testPriorityChannelWithDefaultComparator() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"priorityChannelParserTests.xml", this.getClass());
+		MessageChannel channel = (MessageChannel) context.getBean("priorityChannelWithDefaultComparator");
+		Message<?> lowPriorityMessage = new StringMessage("low");
+		lowPriorityMessage.getHeader().setPriority(777);
+		Message<?> midPriorityMessage = new StringMessage("mid");
+		midPriorityMessage.getHeader().setPriority(77);
+		Message<?> highPriorityMessage = new StringMessage("high");
+		highPriorityMessage.getHeader().setPriority(7);
+		channel.send(lowPriorityMessage);
+		channel.send(highPriorityMessage);
+		channel.send(midPriorityMessage);
+		Message<?> reply1 = channel.receive(0);
+		Message<?> reply2 = channel.receive(0);
+		Message<?> reply3 = channel.receive(0);
+		assertEquals("high", reply1.getPayload());
+		assertEquals("mid", reply2.getPayload());
+		assertEquals("low", reply3.getPayload());
+	}
+
+	@Test
+	public void testPriorityChannelWithCustomComparator() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"priorityChannelParserTests.xml", this.getClass());
+		MessageChannel channel = (MessageChannel) context.getBean("priorityChannelWithCustomComparator");
+		channel.send(new StringMessage("C"));
+		channel.send(new StringMessage("A"));
+		channel.send(new StringMessage("D"));
+		channel.send(new StringMessage("B"));
+		Message<?> reply1 = channel.receive(0);
+		Message<?> reply2 = channel.receive(0);
+		Message<?> reply3 = channel.receive(0);
+		Message<?> reply4 = channel.receive(0);
+		assertEquals("A", reply1.getPayload());
+		assertEquals("B", reply2.getPayload());
+		assertEquals("C", reply3.getPayload());
+		assertEquals("D", reply4.getPayload());
+	}
+
 
 	private static class TestHandler implements MessageHandler {
 

@@ -91,7 +91,7 @@ public class PriorityChannelTests {
 	}
 
 
-	private static class StringPayloadComparator implements Comparator<Message<?>> {
+	public static class StringPayloadComparator implements Comparator<Message<?>> {
 
 		public int compare(Message<?> message1, Message<?> message2) {
 			String s1 = (String) message1.getPayload();
