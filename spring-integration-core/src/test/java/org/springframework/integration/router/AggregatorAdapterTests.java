@@ -16,6 +16,7 @@
 
 package org.springframework.integration.router;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -23,6 +24,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 
@@ -41,8 +43,8 @@ public class AggregatorAdapterTests {
 	}
 
 	@Test
-	public void testAdapterWithMessageCollectionBasedMethod() {
-		Aggregator aggregator = new AggregatorAdapter(simpleAggregator, "doAggregationOnCollectionOfMessages");
+	public void testAdapterWithNonParameterizedMessageCollectionBasedMethod() {
+		Aggregator aggregator = new AggregatorAdapter(simpleAggregator, "doAggregationOnNonParameterizedCollectionOfMessages");
 		Collection<Message<?>> messages = createCollectionOfMessages();	
 		Message<?> returnedMessge = aggregator.aggregate(messages);
 		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
@@ -85,42 +87,59 @@ public class AggregatorAdapterTests {
 		Assert.assertEquals(123456789l, returnedMessge.getPayload());
 	}
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected=MessagingConfigurationException.class)
 	public void testAdapterWithWrongMethodName() {
 		new AggregatorAdapter(simpleAggregator, "methodThatDoesNotExist");
 	}
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected=MessagingConfigurationException.class)
 	public void testInvalidParameterTypeUsingMethodName() {
 		new AggregatorAdapter(simpleAggregator, "invalidParameterType");
 	}
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected=MessagingConfigurationException.class)
 	public void testTooManyParametersUsingMethodName() {
 		new AggregatorAdapter(simpleAggregator, "tooManyParameters");
 	}
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected=MessagingConfigurationException.class)
 	public void testNotEnoughParametersUsingMethodName() {
 		new AggregatorAdapter(simpleAggregator, "notEnoughParameters");
 	}
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected=MessagingConfigurationException.class)
 	public void testInvalidParameterTypeUsingMethodObject() throws SecurityException, NoSuchMethodException {
 		new AggregatorAdapter(simpleAggregator, simpleAggregator.getClass().getMethod(
 				"invalidParameterType", String.class));
 	}
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected=MessagingConfigurationException.class)
 	public void testTooManyParametersUsingMethodObject() throws SecurityException, NoSuchMethodException {
 		new AggregatorAdapter(simpleAggregator, simpleAggregator.getClass().getMethod(
 				"tooManyParameters", Collection.class, Collection.class));
 	}
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test(expected=MessagingConfigurationException.class)
 	public void testNotEnoughParametersUsingMethodObject() throws SecurityException, NoSuchMethodException {
 		new AggregatorAdapter(simpleAggregator, simpleAggregator.getClass().getMethod(
-				"notEnoughParameters", null));
+				"notEnoughParameters", new Class[] {} ));
+	}
+
+	@Test(expected=IllegalArgumentException.class)
+	public void testNullObject() {
+		new AggregatorAdapter(null, "doesNotMatter");
+	}
+
+	@Test(expected=IllegalArgumentException.class)
+	public void testNullMethodName() {
+		String methodName = null;
+		new AggregatorAdapter(simpleAggregator, methodName);
+	}
+
+	@Test(expected=IllegalArgumentException.class)
+	public void testNullMethodObject() {
+		Method method = null;
+		new AggregatorAdapter(simpleAggregator, method);
 	}
 
 
@@ -146,7 +165,8 @@ public class AggregatorAdapterTests {
 			return this.aggregationPerformed;
 		}
 
-		public Message<?> doAggregationOnCollectionOfMessages(Collection<Message> messages) {
+		@SuppressWarnings("unchecked")
+		public Message<?> doAggregationOnNonParameterizedCollectionOfMessages(Collection<Message> messages) {
 			this.aggregationPerformed = true;
 			StringBuffer buffer = new StringBuffer();
 			for (Message<?> message : messages) {

@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.util.SimpleMethodInvoker;
@@ -48,8 +49,10 @@ public class AggregatorAdapter implements Aggregator {
 		Assert.notNull(object, "'object' must not be null");
 		Assert.notNull(methodName, "'methodName' must not be null");
 		this.method = ReflectionUtils.findMethod(object.getClass(), methodName, new Class<?>[] { Collection.class });
-		Assert.notNull(this.method, "Method '" + methodName + "(Collection<?> args)' not found on '" +
-				object.getClass().getName() + "'.");
+		if (this.method == null) {
+			throw new MessagingConfigurationException("Method '" + methodName +
+					"(Collection<?> args)' not found on '" + object.getClass().getName() + "'.");
+		}
 		this.invoker = new SimpleMethodInvoker<Object>(object, this.method.getName());
 	}
 
@@ -57,7 +60,7 @@ public class AggregatorAdapter implements Aggregator {
 		Assert.notNull(object, "'object' must not be null");
 		Assert.notNull(method, "'method' must not be null");
 		if (method.getParameterTypes().length != 1 || !method.getParameterTypes()[0].equals(Collection.class)) {
-			throw new IllegalArgumentException(
+			throw new MessagingConfigurationException(
 					"Aggregator method must accept exactly one parameter, and it must be a Collection.");
 		}
 		this.method = method;
