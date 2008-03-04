@@ -246,6 +246,28 @@ public class ChannelParserTests {
 		assertEquals("D", reply4.getPayload());
 	}
 
+	@Test
+	public void testPriorityChannelWithIntegerDatatypeEnforced() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"priorityChannelParserTests.xml", this.getClass());
+		MessageChannel channel = (MessageChannel) context.getBean("integerOnlyPriorityChannel");
+		channel.send(new GenericMessage<Integer>(3));
+		channel.send(new GenericMessage<Integer>(2));
+		channel.send(new GenericMessage<Integer>(1));
+		assertEquals(1, channel.receive(0).getPayload());
+		assertEquals(2, channel.receive(0).getPayload());
+		assertEquals(3, channel.receive(0).getPayload());
+		boolean threwException = false;
+		try {
+			channel.send(new StringMessage("wrong type"));
+		}
+		catch (MessageDeliveryException e) {
+			assertEquals("wrong type", e.getUndeliveredMessage().getPayload());
+			threwException = true;
+		}
+		assertTrue(threwException);
+	}
+
 
 	private static class TestHandler implements MessageHandler {
 

@@ -9,9 +9,11 @@
 
 	<priority-channel id="priorityChannelWithDefaultComparator"/>
 
-	<priority-channel id="priorityChannelWithCustomComparator" comparator-ref="stringPayloadComparator"/>
+	<priority-channel id="priorityChannelWithCustomComparator" comparator-ref="payloadComparator"/>
 
-	<beans:bean id="stringPayloadComparator"
-			class="org.springframework.integration.channel.PriorityChannelTests$StringPayloadComparator"/>
+	<priority-channel id="integerOnlyPriorityChannel" datatype="java.lang.Integer" comparator-ref="payloadComparator"/>
+
+	<beans:bean id="payloadComparator"
+			class="org.springframework.integration.channel.MessagePayloadTestComparator"/>
 
 </beans:beans>
