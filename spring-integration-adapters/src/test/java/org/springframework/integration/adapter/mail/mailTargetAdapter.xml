@@ -16,7 +16,7 @@
 	</bean>
 
 	<bean id="mailTargetAdapter" class="org.springframework.integration.adapter.mail.MailTargetAdapter">
-		<property name="mailSender" ref="javaMailSender"/>
+		<constructor-arg ref="javaMailSender"/>
 		<property name="headerGenerator">
 			<bean class="org.springframework.integration.adapter.mail.StaticMailHeaderGenerator">
 				<property name="subject">
