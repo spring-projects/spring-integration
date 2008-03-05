@@ -36,6 +36,7 @@ import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.message.MessagePriority;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.scheduling.SimpleMessagingTaskScheduler;
 
@@ -211,11 +212,11 @@ public class ChannelParserTests {
 				"priorityChannelParserTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("priorityChannelWithDefaultComparator");
 		Message<?> lowPriorityMessage = new StringMessage("low");
-		lowPriorityMessage.getHeader().setPriority(777);
+		lowPriorityMessage.getHeader().setPriority(MessagePriority.LOW);
 		Message<?> midPriorityMessage = new StringMessage("mid");
-		midPriorityMessage.getHeader().setPriority(77);
+		midPriorityMessage.getHeader().setPriority(MessagePriority.NORMAL);
 		Message<?> highPriorityMessage = new StringMessage("high");
-		highPriorityMessage.getHeader().setPriority(7);
+		highPriorityMessage.getHeader().setPriority(MessagePriority.HIGH);
 		channel.send(lowPriorityMessage);
 		channel.send(highPriorityMessage);
 		channel.send(midPriorityMessage);

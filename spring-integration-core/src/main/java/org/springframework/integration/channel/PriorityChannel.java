@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHeader;
+import org.springframework.integration.message.MessagePriority;
 
 /**
  * A message channel that prioritizes messages based on a {@link Comparator}.
@@ -97,8 +98,8 @@ public class PriorityChannel extends BaseBlockingQueueChannel {
 	private static class MessagePriorityComparator implements Comparator<Message<?>> {
 
 		public int compare(Message<?> message1, Message<?> message2) {
-			Integer priority1 = message1.getHeader().getPriority();
-			Integer priority2 = message2.getHeader().getPriority();
+			MessagePriority priority1 = message1.getHeader().getPriority();
+			MessagePriority priority2 = message2.getHeader().getPriority();
 			return priority1.compareTo(priority2);
 		}
 	}

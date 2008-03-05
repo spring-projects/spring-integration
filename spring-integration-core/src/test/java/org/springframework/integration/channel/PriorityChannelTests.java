@@ -25,6 +25,7 @@ import java.util.Comparator;
 import org.junit.Test;
 
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessagePriority;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -46,21 +47,21 @@ public class PriorityChannelTests {
 	@Test
 	public void testDefaultComparator() {
 		PriorityChannel channel = new PriorityChannel(5);
-		Message<?> priority1 = createPriorityMessage(1);
-		Message<?> priority2 = createPriorityMessage(2);
-		Message<?> priority3 = createPriorityMessage(3);
-		Message<?> priority4 = createPriorityMessage(4);
-		Message<?> priority5 = createPriorityMessage(5);
+		Message<?> priority1 = createPriorityMessage(MessagePriority.HIGHEST);
+		Message<?> priority2 = createPriorityMessage(MessagePriority.HIGH);
+		Message<?> priority3 = createPriorityMessage(MessagePriority.NORMAL);
+		Message<?> priority4 = createPriorityMessage(MessagePriority.LOW);
+		Message<?> priority5 = createPriorityMessage(MessagePriority.LOWEST);
 		channel.send(priority4);
 		channel.send(priority3);
 		channel.send(priority5);
 		channel.send(priority1);
 		channel.send(priority2);
-		assertEquals("test-1", channel.receive(0).getPayload());
-		assertEquals("test-2", channel.receive(0).getPayload());
-		assertEquals("test-3", channel.receive(0).getPayload());
-		assertEquals("test-4", channel.receive(0).getPayload());
-		assertEquals("test-5", channel.receive(0).getPayload());
+		assertEquals("test-HIGHEST", channel.receive(0).getPayload());
+		assertEquals("test-HIGH", channel.receive(0).getPayload());
+		assertEquals("test-NORMAL", channel.receive(0).getPayload());
+		assertEquals("test-LOW", channel.receive(0).getPayload());
+		assertEquals("test-LOWEST", channel.receive(0).getPayload());
 	}
 
 	@Test
@@ -84,7 +85,7 @@ public class PriorityChannelTests {
 	}
 
 
-	private static Message<?> createPriorityMessage(int priority) {
+	private static Message<?> createPriorityMessage(MessagePriority priority) {
 		Message<?> message = new StringMessage("test-" + priority);
 		message.getHeader().setPriority(priority);
 		return message;

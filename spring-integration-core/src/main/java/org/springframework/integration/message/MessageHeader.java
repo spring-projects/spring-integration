@@ -46,7 +46,7 @@ public class MessageHeader {
 
 	private volatile int sequenceSize = 1;
 
-	private volatile int priority = 0;
+	private volatile MessagePriority priority = MessagePriority.NORMAL;
 
 	private final Properties properties = new Properties();
 
@@ -108,11 +108,11 @@ public class MessageHeader {
 		this.sequenceSize = sequenceSize;
 	}
 
-	public int getPriority() {
+	public MessagePriority getPriority() {
 		return this.priority;
 	}
 
-	public void setPriority(int priority) {
+	public void setPriority(MessagePriority priority) {
 		this.priority = priority;
 	}
 
