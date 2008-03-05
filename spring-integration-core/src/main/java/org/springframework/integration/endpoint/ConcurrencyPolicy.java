@@ -89,4 +89,9 @@ public class ConcurrencyPolicy implements EndpointPolicy {
 		this.keepAliveSeconds = keepAliveSeconds;
 	}
 
+	public String toString() {
+		return "[coreSize=" + this.coreSize + ", maxSize=" + this.maxSize +
+				", queueCapacity=" + this.queueCapacity + ", keepAliveSeconds=" + this.keepAliveSeconds + "]";
+	}
+
 }

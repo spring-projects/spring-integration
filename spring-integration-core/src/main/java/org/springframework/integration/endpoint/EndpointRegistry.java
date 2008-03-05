@@ -14,21 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.dispatcher;
+package org.springframework.integration.endpoint;
 
-import org.springframework.integration.handler.MessageHandler;
+import java.util.Set;
 
 /**
- * Strategy interface for dispatching messages.
+ * A strategy interface for registration and lookup of message endpoints by name.
  * 
  * @author Mark Fisher
  */
-public interface MessageDispatcher {
+public interface EndpointRegistry {
 
-	void addHandler(MessageHandler handler);
+	void registerEndpoint(String name, MessageEndpoint endpoint);
 
-	boolean removeHandler(MessageHandler handler);
+	MessageEndpoint unregisterEndpoint(String name);
 
-	int dispatch();
+	MessageEndpoint lookupEndpoint(String endpointName);
+
+	Set<String> getEndpointNames();
 
 }

@@ -25,6 +25,7 @@ import org.junit.Test;
 
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.annotation.Concurrency;
 import org.springframework.integration.annotation.DefaultOutput;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Polled;
@@ -32,6 +33,8 @@ import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.config.MessageEndpointAnnotationPostProcessor;
+import org.springframework.integration.endpoint.ConcurrencyPolicy;
+import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 
@@ -97,6 +100,21 @@ public class MessageEndpointAnnotationPostProcessorTests {
 		messageBus.stop();
 	}
 
+	@Test
+	public void testConcurrencyAnnotationWithValues() {
+		MessageBus messageBus = new MessageBus();
+		MessageEndpointAnnotationPostProcessor postProcessor =
+				new MessageEndpointAnnotationPostProcessor(messageBus);
+		ConcurrencyAnnotationTestBean testBean = new ConcurrencyAnnotationTestBean();
+		postProcessor.postProcessAfterInitialization(testBean, "testBean");
+		DefaultMessageEndpoint endpoint = (DefaultMessageEndpoint) messageBus.lookupEndpoint("testBean-endpoint");
+		ConcurrencyPolicy concurrencyPolicy = endpoint.getConcurrencyPolicy();
+		assertEquals(17, concurrencyPolicy.getCoreSize());
+		assertEquals(42, concurrencyPolicy.getMaxSize());
+		assertEquals(11, concurrencyPolicy.getQueueCapacity());
+		assertEquals(123, concurrencyPolicy.getKeepAliveSeconds());
+	}
+
 	@Test(expected=IllegalArgumentException.class)
 	public void testPostProcessorWithNullMessageBus() {
 		new MessageEndpointAnnotationPostProcessor(null);
@@ -134,6 +152,12 @@ public class MessageEndpointAnnotationPostProcessorTests {
 			this.messageText = input;
 			latch.countDown();
 		}
+	}
+
+
+	@MessageEndpoint(input="inputChannel")
+	@Concurrency(coreSize=17, maxSize=42, keepAliveSeconds=123, queueCapacity=11)
+	private static class ConcurrencyAnnotationTestBean {
 	}
 
 }

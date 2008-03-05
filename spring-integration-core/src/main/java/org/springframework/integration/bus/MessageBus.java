@@ -16,8 +16,10 @@
 
 package org.springframework.integration.bus;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledExecutorService;
@@ -40,7 +42,9 @@ import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.dispatcher.DefaultMessageDispatcher;
 import org.springframework.integration.dispatcher.SchedulingMessageDispatcher;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
+import org.springframework.integration.endpoint.DefaultEndpointRegistry;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
+import org.springframework.integration.endpoint.EndpointRegistry;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.scheduling.MessagePublishingErrorHandler;
@@ -57,7 +61,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lifecycle {
+public class MessageBus implements ChannelRegistry, EndpointRegistry, ApplicationContextAware, Lifecycle {
 
 	public static final String ERROR_CHANNEL_NAME = "errorChannel";
 
@@ -68,7 +72,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 
 	private final ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 
-	private final Map<String, MessageEndpoint> endpoints = new ConcurrentHashMap<String, MessageEndpoint>();
+	private final EndpointRegistry endpointRegistry = new DefaultEndpointRegistry();
 
 	private final Map<MessageChannel, SchedulingMessageDispatcher> dispatchers = new ConcurrentHashMap<MessageChannel, SchedulingMessageDispatcher>();
 
@@ -253,7 +257,7 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		if (endpoint.getConcurrencyPolicy() == null && endpoint instanceof DefaultMessageEndpoint) {
 			((DefaultMessageEndpoint) endpoint).setConcurrencyPolicy(this.defaultConcurrencyPolicy);
 		}
-		this.endpoints.put(name, endpoint);
+		this.endpointRegistry.registerEndpoint(name, endpoint);
 		if (this.isRunning()) {
 			activateEndpoint(endpoint);
 		}
@@ -262,9 +266,37 @@ public class MessageBus implements ChannelRegistry, ApplicationContextAware, Lif
 		}
 	}
 
+	public MessageEndpoint unregisterEndpoint(String name) {
+		MessageEndpoint endpoint = this.endpointRegistry.unregisterEndpoint(name);
+		if (endpoint == null) {
+			return null;
+		}
+		Collection<SchedulingMessageDispatcher> dispatchers = this.dispatchers.values();
+		boolean removed = false;
+		for (SchedulingMessageDispatcher dispatcher : dispatchers) {
+			removed = (removed || dispatcher.removeHandler(endpoint));
+		}
+		if (removed) {
+			return endpoint;
+		}
+		return null;
+	}
+
+	public MessageEndpoint lookupEndpoint(String endpointName) {
+		return this.endpointRegistry.lookupEndpoint(endpointName);
+	}
+
+	public Set<String> getEndpointNames() {
+		return this.endpointRegistry.getEndpointNames();
+	}
+
 	private void activateEndpoints() {
-		for (MessageEndpoint endpoint : this.endpoints.values()) {
-			this.activateEndpoint(endpoint);
+		Set<String> endpointNames = this.endpointRegistry.getEndpointNames();
+		for (String name : endpointNames) {
+			MessageEndpoint endpoint = this.endpointRegistry.lookupEndpoint(name);
+			if (endpoint != null) {
+				this.activateEndpoint(endpoint);
+			}
 		}
 	}
 

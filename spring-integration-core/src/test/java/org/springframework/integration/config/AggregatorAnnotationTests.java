@@ -17,17 +17,16 @@
 package org.springframework.integration.config;
 
 import java.util.List;
-import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.endpoint.ConcurrentHandler;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
-import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.integration.router.AggregatingMessageHandler;
 import org.springframework.integration.router.SequenceSizeCompletionStrategy;
@@ -85,10 +84,7 @@ public class AggregatorAnnotationTests {
 	private DirectFieldAccessor getDirectFieldAccessorForAggregatingHandler(ApplicationContext context,
 			final String endpointName) {
 		MessageBus messageBus = getMessageBus(context);
-		DirectFieldAccessor messageBusAccessor = new DirectFieldAccessor(messageBus);
-		Map<String, MessageEndpoint> endpoints = (Map<String, MessageEndpoint>) messageBusAccessor
-				.getPropertyValue("endpoints");
-		DefaultMessageEndpoint endpoint = (DefaultMessageEndpoint) endpoints.get(endpointName + "-endpoint");
+		DefaultMessageEndpoint endpoint = (DefaultMessageEndpoint) messageBus.lookupEndpoint(endpointName +  "-endpoint");
 		ConcurrentHandler handler = (ConcurrentHandler) endpoint.getHandler();
 		DirectFieldAccessor concurrentHandlerAccessor = new DirectFieldAccessor(handler);
 		MessageHandlerChain messageHandlerChain = (MessageHandlerChain) concurrentHandlerAccessor

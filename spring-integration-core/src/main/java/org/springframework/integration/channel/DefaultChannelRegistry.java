@@ -28,9 +28,9 @@ import org.springframework.util.Assert;
  */
 public class DefaultChannelRegistry implements ChannelRegistry {
 
-	private Map<String, MessageChannel> channels = new ConcurrentHashMap<String, MessageChannel>();
+	private final Map<String, MessageChannel> channels = new ConcurrentHashMap<String, MessageChannel>();
 
-	private MessageChannel errorChannel;
+	private volatile MessageChannel errorChannel;
 
 
 	public void setErrorChannel(MessageChannel errorChannel) {

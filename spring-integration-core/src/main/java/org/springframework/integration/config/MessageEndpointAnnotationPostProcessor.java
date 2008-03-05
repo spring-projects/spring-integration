@@ -42,6 +42,7 @@ import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
@@ -103,16 +104,18 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 		if (endpointAnnotation == null) {
 			return bean;
 		}
-		if (this.messageBus == null) {
-			if (logger.isWarnEnabled()) {
-				logger.warn(this.getClass().getSimpleName() + " is disabled since no 'messageBus' was provided");
-			}
-			return bean;
-		}
 		MessageHandlerChain handlerChain = this.createHandlerChain(bean);
 		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(handlerChain);
 		this.configureInput(bean, beanName, endpointAnnotation, endpoint);
 		this.configureDefaultOutput(bean, beanName, endpointAnnotation, endpoint);
+		Concurrency concurrencyAnnotation = bean.getClass().getAnnotation(Concurrency.class);
+		if (concurrencyAnnotation != null) {
+			ConcurrencyPolicy concurrencyPolicy = new ConcurrencyPolicy(
+					concurrencyAnnotation.coreSize(), concurrencyAnnotation.maxSize());
+			concurrencyPolicy.setKeepAliveSeconds(concurrencyAnnotation.keepAliveSeconds());
+			concurrencyPolicy.setQueueCapacity(concurrencyAnnotation.queueCapacity());
+			endpoint.setConcurrencyPolicy(concurrencyPolicy);
+		}
 		if (endpoint.getHandler() == null) {
 			endpoint.setHandler(new MessageHandler() {
 				public Message<?> handle(Message<?> message) {

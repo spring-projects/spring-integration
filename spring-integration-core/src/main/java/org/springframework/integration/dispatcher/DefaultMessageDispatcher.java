@@ -111,6 +111,15 @@ public class DefaultMessageDispatcher implements SchedulingMessageDispatcher {
 		}
 	}
 
+	public boolean removeHandler(MessageHandler handler) {
+		boolean removed = false;
+		Collection<List<MessageHandler>> handlerLists = this.scheduledHandlers.values();
+		for (List<MessageHandler> handlers : handlerLists) {
+			removed = (removed || handlers.remove(handler));
+		}
+		return removed;
+	}
+
 	public boolean isRunning() {
 		return this.running;
 	}
