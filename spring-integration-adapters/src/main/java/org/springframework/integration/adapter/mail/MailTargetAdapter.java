@@ -35,9 +35,22 @@ import org.springframework.util.Assert;
  */
 public class MailTargetAdapter implements MessageHandler, InitializingBean {
 
-	private volatile JavaMailSender mailSender;
+	public static final String SUBJECT = "_mail.SUBJECT";
 
-	private volatile MailHeaderGenerator mailHeaderGenerator;
+	public static final String TO = "_mail.TO";
+
+	public static final String CC = "_mail.CC";
+
+	public static final String BCC = "_mail.BCC";
+
+	public static final String FROM = "_mail.FROM";
+
+	public static final String REPLY_TO = "_mail.REPLY_TO";
+
+
+	private final JavaMailSender mailSender;
+
+	private volatile MailHeaderGenerator mailHeaderGenerator = new DefaultMailHeaderGenerator();
 
 	private volatile MessageMapper<String, MailMessage> textMessageMapper;
 
@@ -46,20 +59,25 @@ public class MailTargetAdapter implements MessageHandler, InitializingBean {
 	private volatile MessageMapper<Object, MailMessage> objectMessageMapper;
 
 
+	/**
+	 * Create a MailTargetAdapter.
+	 * 
+	 * @param mailSender the {@link JavaMailSender} instance to which this
+	 * adapter will delegate.
+	 */
+	public MailTargetAdapter(JavaMailSender mailSender) {
+		Assert.notNull(mailSender, "'mailSender' must not be null");
+		this.mailSender = mailSender;
+	}
+
+
 	public void afterPropertiesSet() throws Exception {
-		Assert.notNull(this.mailSender, "'mailSender' must not be null");
-		Assert.notNull(this.mailHeaderGenerator, "'mailHeaderGenerator' must not be null");
 		this.textMessageMapper = (this.textMessageMapper != null) ?
 				this.textMessageMapper : new TextMailMessageMapper();
 		this.byteArrayMessageMapper = (byteArrayMessageMapper != null) ?
 				this.byteArrayMessageMapper : new ByteArrayMailMessageMapper(this.mailSender);
 		this.objectMessageMapper = (objectMessageMapper != null) ?
 				this.objectMessageMapper : new DefaultObjectMailMessageMapper();
-	}
-
-	public void setMailSender(JavaMailSender mailSender) {
-		Assert.notNull(mailSender, "'mailSender' must not be null");
-		this.mailSender = mailSender;
 	}
 
 	public void setHeaderGenerator(MailHeaderGenerator mailHeaderGenerator) {

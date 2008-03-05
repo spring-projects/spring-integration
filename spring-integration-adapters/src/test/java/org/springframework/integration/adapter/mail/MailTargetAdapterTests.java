@@ -57,8 +57,7 @@ public class MailTargetAdapterTests {
 		mailHeaderGenerator.setReplyTo(MailTestsHelper.REPLY_TO);
 		mailHeaderGenerator.setSubject(MailTestsHelper.SUBJECT);
 		mailHeaderGenerator.setTo(MailTestsHelper.TO);
-		this.mailTargetAdapter = new MailTargetAdapter();
-		this.mailTargetAdapter.setMailSender(this.mailSender);
+		this.mailTargetAdapter = new MailTargetAdapter(this.mailSender);
 		this.mailTargetAdapter.setHeaderGenerator(mailHeaderGenerator);
 		this.mailTargetAdapter.afterPropertiesSet();
 	}
