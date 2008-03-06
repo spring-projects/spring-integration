@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:si="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
+
+	<si:message-bus/>
+
+	<si:channel id="testChannel"/>
+
+	<si:mail-target id="adapterWithMailSenderReference" mail-sender="mailSender" channel="testChannel"/>
+
+	<si:mail-target id="adapterWithHostProperty" host="somehost" username="someuser" password="somepassword"
+			channel="testChannel"/>
+
+	<bean id="mailSender" class="org.springframework.integration.adapter.mail.StubJavaMailSender">
+		<constructor-arg>
+			<bean class="javax.mail.internet.MimeMessage">
+				<constructor-arg type="javax.mail.Session"><null/></constructor-arg>
+			</bean>
+		</constructor-arg>
+	</bean>
+
+</beans>

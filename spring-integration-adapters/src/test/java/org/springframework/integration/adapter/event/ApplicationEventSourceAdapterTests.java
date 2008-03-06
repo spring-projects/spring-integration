@@ -86,14 +86,15 @@ public class ApplicationEventSourceAdapterTests {
 		context.start();
 		Message<?> startedEventMessage = channel.receive(0);
 		assertNotNull(startedEventMessage);
-		assertEquals(ContextStartedEvent.class, startedEventMessage.getPayload().getClass());		
+		assertEquals(ContextStartedEvent.class, startedEventMessage.getPayload().getClass());
+		context.stop();
+		Message<?> stoppedEventMessage = channel.receive(0);
+		assertNotNull(stoppedEventMessage);
+		assertEquals(ContextStoppedEvent.class, stoppedEventMessage.getPayload().getClass());		
 		context.close();
 		Message<?> closedEventMessage = channel.receive(0);
 		assertNotNull(closedEventMessage);
 		assertEquals(ContextClosedEvent.class, closedEventMessage.getPayload().getClass());
-		Message<?> stoppedEventMessage = channel.receive(0);
-		assertNotNull(stoppedEventMessage);
-		assertEquals(ContextStoppedEvent.class, stoppedEventMessage.getPayload().getClass());
 	}
 
 
