@@ -31,8 +31,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.integration.adapter.mail.MailTargetAdapter;
-import org.springframework.integration.adapter.mail.StaticMailHeaderGenerator;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.mail.SimpleMailMessage;
@@ -46,24 +44,26 @@ public class MailTargetAdapterTests {
 
 	private StubJavaMailSender mailSender;
 
+	private StaticMailHeaderGenerator staticMailHeaderGenerator;
+
 
 	@Before
 	public void setUp() throws Exception {
 		this.mailSender = new StubJavaMailSender(new MimeMessage((Session) null));
-		StaticMailHeaderGenerator mailHeaderGenerator = new StaticMailHeaderGenerator();
-		mailHeaderGenerator.setBcc(MailTestsHelper.BCC);
-		mailHeaderGenerator.setCc(MailTestsHelper.CC);
-		mailHeaderGenerator.setFrom(MailTestsHelper.FROM);
-		mailHeaderGenerator.setReplyTo(MailTestsHelper.REPLY_TO);
-		mailHeaderGenerator.setSubject(MailTestsHelper.SUBJECT);
-		mailHeaderGenerator.setTo(MailTestsHelper.TO);
+		this.staticMailHeaderGenerator = new StaticMailHeaderGenerator();
+		this.staticMailHeaderGenerator.setBcc(MailTestsHelper.BCC);
+		this.staticMailHeaderGenerator.setCc(MailTestsHelper.CC);
+		this.staticMailHeaderGenerator.setFrom(MailTestsHelper.FROM);
+		this.staticMailHeaderGenerator.setReplyTo(MailTestsHelper.REPLY_TO);
+		this.staticMailHeaderGenerator.setSubject(MailTestsHelper.SUBJECT);
+		this.staticMailHeaderGenerator.setTo(MailTestsHelper.TO);
 		this.mailTargetAdapter = new MailTargetAdapter(this.mailSender);
-		this.mailTargetAdapter.setHeaderGenerator(mailHeaderGenerator);
 		this.mailTargetAdapter.afterPropertiesSet();
 	}
 
 	@Test
 	public void testTextMessage() {
+		this.mailTargetAdapter.setHeaderGenerator(this.staticMailHeaderGenerator);
 		this.mailTargetAdapter.handle(new StringMessage(MailTestsHelper.MESSAGE_TEXT));
 		SimpleMailMessage message = MailTestsHelper.createSimpleMailMessage();
 		assertEquals("no mime message should have been sent",
@@ -76,6 +76,7 @@ public class MailTargetAdapterTests {
 
 	@Test
 	public void testByteArrayMessage() throws Exception {
+		this.mailTargetAdapter.setHeaderGenerator(this.staticMailHeaderGenerator);
 		byte[] payload = {1, 2, 3};
 		this.mailTargetAdapter.handle(new GenericMessage<byte[]>(payload));
 		byte[] buffer = new byte[1024];
@@ -87,6 +88,25 @@ public class MailTargetAdapterTests {
 		System.arraycopy(buffer, 0, messageContent, 0, payload.length);
 		assertArrayEquals("buffer content does not match", payload, messageContent);
 		assertEquals(mimeMessage.getRecipients(Message.RecipientType.TO).length, MailTestsHelper.TO.length);
+	}
+
+	@Test
+	public void testDefaultMailHeaderGenerator() {
+		StringMessage message = new StringMessage(MailTestsHelper.MESSAGE_TEXT);
+		message.getHeader().setAttribute(MailTargetAdapter.SUBJECT, MailTestsHelper.SUBJECT);
+		message.getHeader().setAttribute(MailTargetAdapter.TO, MailTestsHelper.TO);
+		message.getHeader().setAttribute(MailTargetAdapter.CC, MailTestsHelper.CC);
+		message.getHeader().setAttribute(MailTargetAdapter.BCC, MailTestsHelper.BCC);
+		message.getHeader().setAttribute(MailTargetAdapter.FROM, MailTestsHelper.FROM);
+		message.getHeader().setAttribute(MailTargetAdapter.REPLY_TO, MailTestsHelper.REPLY_TO);
+		this.mailTargetAdapter.handle(message);
+		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
+		assertEquals("no mime message should have been sent",
+				0, mailSender.getSentMimeMessages().size());
+		assertEquals("only one simple message must be sent",
+				1, mailSender.getSentSimpleMailMessages().size());
+		assertEquals("message content different from expected",
+				mailMessage, mailSender.getSentSimpleMailMessages().get(0));
 	}
 
 	@After

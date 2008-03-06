@@ -93,4 +93,20 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="mail-target">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a mail-sending target channel adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="mail-sender" type="xsd:string"/>
+			<xsd:attribute name="host" type="xsd:string"/>
+			<xsd:attribute name="username" type="xsd:string"/>
+			<xsd:attribute name="password" type="xsd:string"/>
+			<xsd:attribute name="channel" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
 </xsd:schema>

@@ -2,3 +2,4 @@ file-source=org.springframework.integration.adapter.file.config.FileSourceAdapte
 file-target=org.springframework.integration.adapter.file.config.FileTargetAdapterParser
 jms-source=org.springframework.integration.adapter.jms.config.JmsSourceAdapterParser
 jms-target=org.springframework.integration.adapter.jms.config.JmsTargetAdapterParser
+mail-target=org.springframework.integration.adapter.mail.config.MailTargetAdapterParser

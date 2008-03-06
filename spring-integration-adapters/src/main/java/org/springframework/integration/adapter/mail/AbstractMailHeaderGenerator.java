@@ -16,6 +16,9 @@
 
 package org.springframework.integration.adapter.mail;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.message.Message;
 import org.springframework.mail.MailMessage;
 
@@ -26,8 +29,12 @@ import org.springframework.mail.MailMessage;
  * and from/reply-to addresses based on the integration {@link Message}.
  * 
  * @author Marius Bogoevici
+ * @author Mark Fisher
  */
 public abstract class AbstractMailHeaderGenerator implements MailHeaderGenerator {
+
+	private final Log logger = LogFactory.getLog(this.getClass());
+
 
 	/**
 	 * Retrieve the subject of an e-mail message from an integration message.
@@ -90,8 +97,14 @@ public abstract class AbstractMailHeaderGenerator implements MailHeaderGenerator
 		if (subject != null) {
 			mailMessage.setSubject(subject);
 		}
+		else if (logger.isWarnEnabled()) {
+			logger.warn("no 'SUBJECT' property available for mail message");
+		}
 		if (to != null) {
 			mailMessage.setTo(to);
+		}
+		else if (logger.isWarnEnabled()) {
+			logger.warn("no 'TO' property available for mail message");
 		}
 		if (cc != null) {
 			mailMessage.setCc(cc);
@@ -101,6 +114,9 @@ public abstract class AbstractMailHeaderGenerator implements MailHeaderGenerator
 		}
 		if (from != null) {
 			mailMessage.setFrom(from);
+		}
+		else if (logger.isWarnEnabled()) {
+			logger.warn("no 'FROM' property available for mail message");
 		}
 		if (replyTo != null) {
 			mailMessage.setReplyTo(replyTo);
