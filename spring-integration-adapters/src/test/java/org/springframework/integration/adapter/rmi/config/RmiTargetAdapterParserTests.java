@@ -19,8 +19,6 @@ package org.springframework.integration.adapter.rmi.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import java.rmi.RemoteException;
-
 import org.junit.Before;
 import org.junit.Test;
 
@@ -41,7 +39,7 @@ public class RmiTargetAdapterParserTests {
 
 
 	@Before
-	public void exportRemoteHandler() throws RemoteException {
+	public void exportRemoteHandler() throws Exception {
 		testChannel.setBeanName("testChannel");
 		RmiSourceAdapter sourceAdapter = new RmiSourceAdapter();
 		sourceAdapter.setChannel(testChannel);

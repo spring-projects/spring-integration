@@ -26,7 +26,6 @@ import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.AbstractMessageHandlerAdapter;
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHeader;
 import org.springframework.integration.util.SimpleMethodInvoker;
