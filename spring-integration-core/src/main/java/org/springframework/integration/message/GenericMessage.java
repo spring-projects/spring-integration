@@ -36,7 +36,7 @@ public class GenericMessage<T> implements Message<T> {
 
 	private final T payload;
 
-	private final IdGenerator defaultIdGenerator = new RandomUuidGenerator();
+	private transient final IdGenerator defaultIdGenerator = new RandomUuidGenerator();
 
 
 	/**

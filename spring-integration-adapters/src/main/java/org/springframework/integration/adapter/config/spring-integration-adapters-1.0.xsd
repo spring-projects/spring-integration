@@ -93,6 +93,33 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="rmi-source">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines an rmi-based source channel adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="expect-reply" type="xsd:boolean" default="true"/>
+			<xsd:attribute name="channel" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="rmi-target">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines an rmi-based target channel adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="host" type="xsd:string" use="required"/>
+			<xsd:attribute name="local-channel" type="xsd:string" use="required"/>
+			<xsd:attribute name="remote-channel" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:element name="mail-target">
 		<xsd:complexType>
 			<xsd:annotation>

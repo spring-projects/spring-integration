@@ -16,6 +16,7 @@
 
 package org.springframework.integration.message;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Properties;
@@ -32,7 +33,7 @@ import java.util.concurrent.ConcurrentMap;
  * 
  * @author Mark Fisher
  */
-public class MessageHeader {
+public class MessageHeader implements Serializable {
 
 	private final Date timestamp = new Date();
 
@@ -40,7 +41,7 @@ public class MessageHeader {
 
 	private volatile Object correlationId;
 
-	private volatile Object returnAddress;
+	private transient volatile Object returnAddress;
 
 	private volatile int sequenceNumber = 1;
 

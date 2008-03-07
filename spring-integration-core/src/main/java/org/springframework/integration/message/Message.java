@@ -16,12 +16,14 @@
 
 package org.springframework.integration.message;
 
+import java.io.Serializable;
+
 /**
  * The central interface that any Message type must implement.
  * 
  * @author Mark Fisher
  */
-public interface Message<T> {
+public interface Message<T> extends Serializable {
 
 	Object getId();
 
