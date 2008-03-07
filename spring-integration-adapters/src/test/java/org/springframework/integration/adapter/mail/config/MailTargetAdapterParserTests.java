@@ -16,16 +16,21 @@
 
 package org.springframework.integration.adapter.mail.config;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.adapter.mail.MailHeaderGenerator;
 import org.springframework.integration.adapter.mail.MailTargetAdapter;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.message.Message;
+import org.springframework.mail.MailMessage;
 
 /**
  * @author Mark Fisher
@@ -50,6 +55,27 @@ public class MailTargetAdapterParserTests {
 		MessageHandler handler = endpoint.getHandler();
 		assertNotNull(handler);
 		assertTrue(handler instanceof MailTargetAdapter);
+	}
+
+	@Test
+	public void testAdapterWithHeaderGeneratorReference() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"mailTargetAdapterParserTests.xml", this.getClass());
+		DefaultMessageEndpoint endpoint = (DefaultMessageEndpoint) context.getBean("adapterWithHeaderGeneratorReference");
+		MessageHandler handler = endpoint.getHandler();
+		assertNotNull(handler);
+		assertTrue(handler instanceof MailTargetAdapter);
+		DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(handler);
+		MailHeaderGenerator headerGenerator =
+				(MailHeaderGenerator) fieldAccessor.getPropertyValue("mailHeaderGenerator");
+		assertEquals(TestHeaderGenerator.class, headerGenerator.getClass());
+	}
+
+
+	public static class TestHeaderGenerator implements MailHeaderGenerator {
+
+		public void populateMailMessageHeader(MailMessage mailMessage, Message<?> message) {
+		}
 	}
 
 }

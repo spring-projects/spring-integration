@@ -102,6 +102,7 @@
 			</xsd:annotation>
 			<xsd:attribute name="id" type="xsd:string"/>
 			<xsd:attribute name="mail-sender" type="xsd:string"/>
+			<xsd:attribute name="header-generator" type="xsd:string"/>
 			<xsd:attribute name="host" type="xsd:string"/>
 			<xsd:attribute name="username" type="xsd:string"/>
 			<xsd:attribute name="password" type="xsd:string"/>

@@ -56,6 +56,7 @@ public class MailTargetAdapterParser extends AbstractSingleBeanDefinitionParser 
 		String host = element.getAttribute("host");
 		String username = element.getAttribute("username");
 		String password = element.getAttribute("password");
+		String headerGeneratorRef = element.getAttribute("header-generator");
 		if (StringUtils.hasText(mailSenderRef)) {
 			if (StringUtils.hasText(host) || StringUtils.hasText(username) || StringUtils.hasText(password)) {
 				throw new MessagingConfigurationException("The 'host', 'username', and 'password' properties " +
@@ -76,6 +77,10 @@ public class MailTargetAdapterParser extends AbstractSingleBeanDefinitionParser 
 		}
 		else {
 			throw new MessagingConfigurationException("Either a 'mail-sender' reference or 'host' property is required.");
+		}
+		if (StringUtils.hasText(headerGeneratorRef)) {
+			adapterDef.getPropertyValues().addPropertyValue(
+					"headerGenerator", new RuntimeBeanReference(headerGeneratorRef));
 		}
 		String adapterBeanName = parserContext.getReaderContext().generateBeanName(adapterDef);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(adapterDef, adapterBeanName));
