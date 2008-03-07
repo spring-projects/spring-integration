@@ -99,6 +99,8 @@ public class AggregatorParserTests {
 		Assert.assertEquals(
 				"The AggregatingMessageHandler is not configured with the appropriate tracked correlationId capacity",
 				99, getPropertyValue(completeAggregatingMessageHandler, "trackedCorrelationIdCapacity", int.class));
+		Assert.assertEquals("The AggregatingMessageHandler is not configured with the appropriate timeout",
+				42l, getPropertyValue(completeAggregatingMessageHandler, "timeout", long.class));
 	}
 
 	@Test

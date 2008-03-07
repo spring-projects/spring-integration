@@ -57,6 +57,8 @@ public class AggregatorParser implements BeanDefinitionParser {
 
 	public static final String TRACKED_CORRELATION_ID_CAPACITY_ATTRIBUTE = "tracked-correlation-id-capacity";
 
+	public static final String TIMEOUT_ATTRIBUTE = "timeout";
+
 	private static final String COMPLETION_STRATEGY_PROPERTY = "completionStrategy";
 
 	private static final String DEFAULT_REPLY_CHANNEL_PROPERTY = "defaultReplyChannel";
@@ -71,11 +73,12 @@ public class AggregatorParser implements BeanDefinitionParser {
 
 	public static final String TRACKED_CORRELATION_ID_CAPACITY_PROPERTY = "trackedCorrelationIdCapacity";
 
+	public static final String TIMEOUT = "timeout";
+
 
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
 		return parseAggregatorElement(element, parserContext, true);
 	}
-
 
 	private BeanDefinition parseAggregatorElement(Element element, ParserContext parserContext, boolean topLevel) {
 		final RootBeanDefinition aggregatorDef = new RootBeanDefinition(AggregatingMessageHandler.class);
@@ -116,6 +119,7 @@ public class AggregatorParser implements BeanDefinitionParser {
 				REAPER_INTERVAL_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(aggregatorDef, TRACKED_CORRELATION_ID_CAPACITY_PROPERTY,
 				element, TRACKED_CORRELATION_ID_CAPACITY_ATTRIBUTE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(aggregatorDef, TIMEOUT, element, TIMEOUT_ATTRIBUTE);
 		String beanName = StringUtils.hasText(id) ? id : parserContext.getReaderContext().generateBeanName(
 				aggregatorDef);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(aggregatorDef, beanName));
