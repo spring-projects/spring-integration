@@ -50,6 +50,14 @@ public class RmiSourceAdapterParser extends AbstractSingleBeanDefinitionParser {
 		}
 		builder.addPropertyReference("channel", channelRef);
 		builder.addPropertyValue("expectReply", element.getAttribute("expect-reply").equals("true"));
+		String sendTimeout = element.getAttribute("send-timeout");
+		if (StringUtils.hasText(sendTimeout)) {
+			builder.addPropertyValue("sendTimeout", Long.parseLong(sendTimeout));
+		}
+		String receiveTimeout = element.getAttribute("receive-timeout");
+		if (StringUtils.hasText(receiveTimeout)) {
+			builder.addPropertyValue("receiveTimeout", Long.parseLong(receiveTimeout));
+		}
 	}
 
 }

@@ -102,6 +102,8 @@
 			</xsd:annotation>
 			<xsd:attribute name="id" type="xsd:string"/>
 			<xsd:attribute name="expect-reply" type="xsd:boolean" default="true"/>
+			<xsd:attribute name="send-timeout" type="xsd:long"/>
+			<xsd:attribute name="receive-timeout" type="xsd:long"/>
 			<xsd:attribute name="channel" type="xsd:string" use="required"/>
 		</xsd:complexType>
 	</xsd:element>
