@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="package-top-level">
+<project name="publish-top-level">
 
-	<target name="publish" depends="publish-multi-bundle.publish, publish-multi-bundle.publish-package"/>
+	<target name="publish" depends="publish-multi-bundle.publish, publish-package"/>
 
 </project>
