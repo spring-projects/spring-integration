@@ -21,7 +21,7 @@
 
 	<dependencies>
 		<dependency org="javax.jms" name="jms" rev="1.1" conf="compile->default"/>
-		<dependency org="org.junit" name="junit" rev="4.4" conf="test->default"/>
+		<dependency org="junit" name="junit" rev="4.4" conf="test->default"/>
 		<dependency org="org.springframework.integration" name="spring-integration-core" rev="latest.integration" conf="compile"/>
 		<dependency org="org.springframework" name="spring-context" rev="2.5.2" conf="compile->default"/>
 		<dependency org="org.springframework" name="spring-aop" rev="2.5.2" conf="compile->default"/>
