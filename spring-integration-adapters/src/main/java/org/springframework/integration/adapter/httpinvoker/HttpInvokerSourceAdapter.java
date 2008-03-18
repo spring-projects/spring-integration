@@ -31,7 +31,32 @@ import org.springframework.util.Assert;
 import org.springframework.web.HttpRequestHandler;
 
 /**
- * A source channel adapter for HttpInvoker-based remoting.
+ * A source channel adapter for HttpInvoker-based remoting. Since this class implements
+ * {@link HttpRequestHandler}, it can be configured with a delegating Servlet where the
+ * servlet-name matches this adapter's bean name. For example, the following servlet can
+ * be defined in web.xml:
+ * 
+ * <pre class="code">
+ * &lt;servlet&gt;
+ *     &lt;servlet-name&gt;httpInvokerSourceAdapter&lt;/servlet-name&gt;
+ *     &lt;servlet-class&gt;org.springframework.web.context.support.HttpRequestHandlerServlet&lt;/servlet-class&gt;
+ * &lt;/servlet&gt;
+ * </pre>
+ * 
+ * And, this would match the following bean definition in the application context loaded
+ * by a {@link org.springframework.web.contextContextLoaderListener}:
+ * 
+ * <pre class="code">
+ * &lt;bean id="httpInvokerSourceAdapter" class="org.springframework.integration.adapter.httpinvoker.HttpInvokerSourceAdapter"&gt;
+ *     &lt;constructor-arg ref="exampleChannel"/&gt;
+ * &lt;/bean&gt;
+ * </pre>
+ * 
+ * <p>
+ * Alternatively, in a Spring MVC application, the DispatcherServlet can delegate to the
+ * "httpInvokerSourceAdapter" bean based on a handler mapping configuration. In that case,
+ * the HttpRequestHandlerServlet would not be necessary.
+ * </p>
  * 
  * @author Mark Fisher
  */
