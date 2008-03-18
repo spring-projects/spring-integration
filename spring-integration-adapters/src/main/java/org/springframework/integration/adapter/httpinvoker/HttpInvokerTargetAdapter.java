@@ -14,32 +14,29 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.rmi;
+package org.springframework.integration.adapter.httpinvoker;
 
 import org.springframework.integration.adapter.AbstractRemotingTargetAdapter;
 import org.springframework.integration.handler.MessageHandler;
-import org.springframework.remoting.rmi.RmiProxyFactoryBean;
+import org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean;
 
 /**
- * A target channel adapter for RMI-based remoting.
+ * A target channel adapter for HttpInvoker-based remoting.
  * 
  * @author Mark Fisher
  */
-public class RmiTargetAdapter extends AbstractRemotingTargetAdapter {
+public class HttpInvokerTargetAdapter extends AbstractRemotingTargetAdapter {
 
-
-	public RmiTargetAdapter(String url) {
+	public HttpInvokerTargetAdapter(String url) {
 		super(url);
 	}
 
 
 	@Override
-	public MessageHandler createHandlerProxy(String url) {
-		RmiProxyFactoryBean proxyFactory = new RmiProxyFactoryBean();
+	protected MessageHandler createHandlerProxy(String url) {
+		HttpInvokerProxyFactoryBean proxyFactory = new HttpInvokerProxyFactoryBean();
 		proxyFactory.setServiceInterface(MessageHandler.class);
 		proxyFactory.setServiceUrl(url);
-		proxyFactory.setLookupStubOnStartup(false);
-		proxyFactory.setRefreshStubOnConnectFailure(true);
 		proxyFactory.afterPropertiesSet();
 		return (MessageHandler) proxyFactory.getObject();
 	}
