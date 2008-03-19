@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,9 +132,8 @@ public class JmsMessageDrivenSourceAdapter extends AbstractSourceAdapter<Object>
 		dmlc.setSessionTransacted(this.sessionTransacted);
 		dmlc.setSessionAcknowledgeMode(this.sessionAcknowledgeMode);
 		dmlc.setAutoStartup(false);
-		ChannelPublishingJmsListener listener = new ChannelPublishingJmsListener(this.getChannel());
-		listener.setMessageConverter(this.messageConverter);
-		listener.setMessageMapper(this.getMessageMapper());
+		ChannelPublishingJmsListener listener = new ChannelPublishingJmsListener(
+				this.getChannel(), this.messageConverter);
 		listener.setTimeout(this.sendTimeout);
 		dmlc.setMessageListener(listener);
 		if (this.taskExecutor != null) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,12 +93,12 @@ public class MailTargetAdapterTests {
 	@Test
 	public void testDefaultMailHeaderGenerator() {
 		StringMessage message = new StringMessage(MailTestsHelper.MESSAGE_TEXT);
-		message.getHeader().setAttribute(MailTargetAdapter.SUBJECT, MailTestsHelper.SUBJECT);
-		message.getHeader().setAttribute(MailTargetAdapter.TO, MailTestsHelper.TO);
-		message.getHeader().setAttribute(MailTargetAdapter.CC, MailTestsHelper.CC);
-		message.getHeader().setAttribute(MailTargetAdapter.BCC, MailTestsHelper.BCC);
-		message.getHeader().setAttribute(MailTargetAdapter.FROM, MailTestsHelper.FROM);
-		message.getHeader().setAttribute(MailTargetAdapter.REPLY_TO, MailTestsHelper.REPLY_TO);
+		message.getHeader().setAttribute(MailAttributeKeys.SUBJECT, MailTestsHelper.SUBJECT);
+		message.getHeader().setAttribute(MailAttributeKeys.TO, MailTestsHelper.TO);
+		message.getHeader().setAttribute(MailAttributeKeys.CC, MailTestsHelper.CC);
+		message.getHeader().setAttribute(MailAttributeKeys.BCC, MailTestsHelper.BCC);
+		message.getHeader().setAttribute(MailAttributeKeys.FROM, MailTestsHelper.FROM);
+		message.getHeader().setAttribute(MailAttributeKeys.REPLY_TO, MailTestsHelper.REPLY_TO);
 		this.mailTargetAdapter.handle(message);
 		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
 		assertEquals("no mime message should have been sent",

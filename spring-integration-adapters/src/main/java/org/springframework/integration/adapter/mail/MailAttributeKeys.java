@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,26 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.jms;
-
-import javax.jms.JMSException;
-import javax.jms.Message;
-
-import org.springframework.integration.message.MessageHeader;
+package org.springframework.integration.adapter.mail;
 
 /**
- * Strategy interface for post-processing a JMS Message before it is sent to its
- * destination.
+ * Keys to be used for setting and/or retrieving mail attributes stored in the
+ * integration message header.
  * 
  * @author Mark Fisher
  */
-public interface JmsMessagePostProcessor {
+public class MailAttributeKeys {
 
-	void postProcessJmsMessage(Message jmsMessage, MessageHeader header) throws JMSException;
+	public static final String SUBJECT = "_mail.SUBJECT";
+
+	public static final String TO = "_mail.TO";
+
+	public static final String CC = "_mail.CC";
+
+	public static final String BCC = "_mail.BCC";
+
+	public static final String FROM = "_mail.FROM";
+
+	public static final String REPLY_TO = "_mail.REPLY_TO";
 
 }

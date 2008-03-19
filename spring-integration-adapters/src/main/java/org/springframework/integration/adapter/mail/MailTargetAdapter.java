@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,19 +34,6 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  */
 public class MailTargetAdapter implements MessageHandler, InitializingBean {
-
-	public static final String SUBJECT = "_mail.SUBJECT";
-
-	public static final String TO = "_mail.TO";
-
-	public static final String CC = "_mail.CC";
-
-	public static final String BCC = "_mail.BCC";
-
-	public static final String FROM = "_mail.FROM";
-
-	public static final String REPLY_TO = "_mail.REPLY_TO";
-
 
 	private final JavaMailSender mailSender;
 
@@ -104,7 +91,8 @@ public class MailTargetAdapter implements MessageHandler, InitializingBean {
 		return null;
 	}
 
-	public MailMessage convertMessageToMailMessage(Message<?> message) {
+	@SuppressWarnings("unchecked")
+	private MailMessage convertMessageToMailMessage(Message<?> message) {
 		if (message.getPayload() instanceof String) {
 			return this.textMessageMapper.fromMessage((Message<String>) message);
 		}

@@ -1,6 +1,23 @@
+/*
+ * Copyright 2002-2008 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.springframework.integration.adapter.jms;
 
 import java.util.Enumeration;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.jms.Destination;
 import javax.jms.JMSException;
@@ -15,6 +32,8 @@ public class StubTextMessage implements TextMessage {
 	private String correlationID;
 
 	private String type;
+
+	private ConcurrentHashMap<String, Object> properties = new ConcurrentHashMap<String, Object>();
 
 
 	public String getText() throws JMSException {
@@ -103,11 +122,11 @@ public class StubTextMessage implements TextMessage {
 	}
 
 	public Object getObjectProperty(String name) throws JMSException {
-		return null;
+		return this.properties.get(name);
 	}
 
 	public Enumeration getPropertyNames() throws JMSException {
-		return null;
+		return this.properties.keys();
 	}
 
 	public short getShortProperty(String name) throws JMSException {
@@ -119,22 +138,27 @@ public class StubTextMessage implements TextMessage {
 	}
 
 	public boolean propertyExists(String name) throws JMSException {
-		return false;
+		return this.properties.containsKey(name);
 	}
 
 	public void setBooleanProperty(String name, boolean value) throws JMSException {
+		this.properties.put(name, value);
 	}
 
 	public void setByteProperty(String name, byte value) throws JMSException {
+		this.properties.put(name, value);
 	}
 
 	public void setDoubleProperty(String name, double value) throws JMSException {
+		this.properties.put(name, value);
 	}
 
 	public void setFloatProperty(String name, float value) throws JMSException {
+		this.properties.put(name, value);
 	}
 
 	public void setIntProperty(String name, int value) throws JMSException {
+		this.properties.put(name, value);
 	}
 
 	public void setJMSCorrelationID(String correlationID) throws JMSException {
@@ -174,15 +198,19 @@ public class StubTextMessage implements TextMessage {
 	}
 
 	public void setLongProperty(String name, long value) throws JMSException {
+		this.properties.put(name, value);
 	}
 
 	public void setObjectProperty(String name, Object value) throws JMSException {
+		this.properties.put(name, value);
 	}
 
 	public void setShortProperty(String name, short value) throws JMSException {
+		this.properties.put(name, value);
 	}
 
 	public void setStringProperty(String name, String value) throws JMSException {
+		this.properties.put(name, value);
 	}
 
 }

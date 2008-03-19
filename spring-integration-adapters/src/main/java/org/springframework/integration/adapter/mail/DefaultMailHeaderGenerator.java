@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,32 +29,32 @@ public class DefaultMailHeaderGenerator extends AbstractMailHeaderGenerator {
 
 	@Override
 	protected String getSubject(Message<?> message) {
-		return this.retrieveAsString(message, MailTargetAdapter.SUBJECT);
+		return this.retrieveAsString(message, MailAttributeKeys.SUBJECT);
 	}
 
 	@Override
 	protected String[] getTo(Message<?> message) {
-		return this.retrieveAsStringArray(message, MailTargetAdapter.TO);
+		return this.retrieveAsStringArray(message, MailAttributeKeys.TO);
 	}
 
 	@Override
 	protected String[] getCc(Message<?> message) {
-		return this.retrieveAsStringArray(message, MailTargetAdapter.CC);
+		return this.retrieveAsStringArray(message, MailAttributeKeys.CC);
 	}
 
 	@Override
 	protected String[] getBcc(Message<?> message) {
-		return this.retrieveAsStringArray(message, MailTargetAdapter.BCC);
+		return this.retrieveAsStringArray(message, MailAttributeKeys.BCC);
 	}
 
 	@Override
 	protected String getFrom(Message<?> message) {
-		return this.retrieveAsString(message, MailTargetAdapter.FROM);
+		return this.retrieveAsString(message, MailAttributeKeys.FROM);
 	}
 
 	@Override
 	protected String getReplyTo(Message<?> message) {
-		return this.retrieveAsString(message, MailTargetAdapter.REPLY_TO);
+		return this.retrieveAsString(message, MailAttributeKeys.REPLY_TO);
 	}
 
 

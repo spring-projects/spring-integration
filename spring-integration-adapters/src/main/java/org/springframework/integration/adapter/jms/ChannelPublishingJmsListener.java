@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,13 @@
 
 package org.springframework.integration.adapter.jms;
 
-import javax.jms.JMSException;
 import javax.jms.MessageListener;
 
 import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
-import org.springframework.integration.message.MessageMapper;
-import org.springframework.integration.message.SimplePayloadMessageMapper;
 import org.springframework.jms.support.converter.MessageConverter;
-import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.util.Assert;
 
 /**
@@ -37,41 +33,23 @@ import org.springframework.util.Assert;
  */
 public class ChannelPublishingJmsListener implements MessageListener {
 
-	private MessageChannel channel;
+	private final MessageChannel channel;
 
-	private long timeout = -1;
+	private final MessageConverter converter;
 
-	private MessageConverter converter = new SimpleMessageConverter();
-
-	private MessageMapper mapper = new SimplePayloadMessageMapper();
+	private volatile long timeout = -1;
 
 
-	public ChannelPublishingJmsListener() {
-	}
-
-	public ChannelPublishingJmsListener(MessageChannel channel) {
+	public ChannelPublishingJmsListener(MessageChannel channel, MessageConverter converter) {
 		Assert.notNull(channel, "'channel' must not be null");
 		this.channel = channel;
+		this.converter = (converter != null && converter instanceof HeaderMappingMessageConverter) ?
+				converter : new HeaderMappingMessageConverter(converter);
 	}
 
-
-	public void setChannel(MessageChannel channel) {
-		Assert.notNull(channel, "'channel' must not be null");
-		this.channel = channel;
-	}
 
 	public void setTimeout(long timeout) {
 		this.timeout = timeout;
-	}
-
-	public void setMessageConverter(MessageConverter messageConverter) {
-		Assert.notNull(messageConverter, "'messageConverter' must not be null");
-		this.converter = messageConverter;
-	}
-
-	public void setMessageMapper(MessageMapper messageMapper) {
-		Assert.notNull(messageMapper, "'messageMapper' must not be null");
-		this.mapper = messageMapper;
 	}
 
 	public void onMessage(javax.jms.Message jmsMessage) {
@@ -79,8 +57,7 @@ public class ChannelPublishingJmsListener implements MessageListener {
 			throw new MessagingConfigurationException("'channel' must not be null");
 		}
 		try {
-			Object payload = converter.fromMessage(jmsMessage);
-			Message messageToSend = mapper.toMessage(payload);
+			Message<?> messageToSend = (Message<?>) this.converter.fromMessage(jmsMessage);
 			if (this.timeout < 0) {
 				this.channel.send(messageToSend);
 			}
@@ -88,7 +65,7 @@ public class ChannelPublishingJmsListener implements MessageListener {
 				this.channel.send(messageToSend, timeout);
 			}
 		}
-		catch (JMSException e) {
+		catch (Exception e) {
 			throw new MessageDeliveryException("failed to convert JMS Message", e);
 		}
 	}

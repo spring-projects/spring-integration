@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,6 @@ import java.util.Collection;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.adapter.PollableSource;
 import org.springframework.jms.core.JmsTemplate;
 
@@ -35,82 +33,27 @@ import org.springframework.jms.core.JmsTemplate;
  * 
  * @author Mark Fisher
  */
-public class JmsPollableSource implements PollableSource<Object>, InitializingBean {
-
-	private ConnectionFactory connectionFactory;
-
-	private Destination destination;
-
-	private String destinationName;
-
-	private JmsTemplate jmsTemplate;
-
+public class JmsPollableSource extends AbstractJmsTemplateBasedAdapter implements PollableSource<Object> {
 
 	public JmsPollableSource(JmsTemplate jmsTemplate) {
-		this.jmsTemplate = jmsTemplate;
+		super(jmsTemplate);
 	}
 
 	public JmsPollableSource(ConnectionFactory connectionFactory, Destination destination) {
-		this.connectionFactory = connectionFactory;
-		this.destination = destination;
-		this.initJmsTemplate();
+		super(connectionFactory, destination);
 	}
 
 	public JmsPollableSource(ConnectionFactory connectionFactory, String destinationName) {
-		this.connectionFactory = connectionFactory;
-		this.destinationName = destinationName;
-		this.initJmsTemplate();
+		super(connectionFactory, destinationName);
 	}
 
-	/**
-	 * No-arg constructor provided for convenience when configuring with
-	 * setters. Note that the initialization callback will validate.
-	 */
 	public JmsPollableSource() {
+		super();
 	}
 
-	public void setConnectionFactory(ConnectionFactory connectionFactory) {
-		this.connectionFactory = connectionFactory;
-	}
-
-	public void setDestination(Destination destination) {
-		this.destination = destination;
-	}
-
-	public void setDestinationName(String destinationName) {
-		this.destinationName = destinationName;
-	}
-
-	public void setJmsTemplate(JmsTemplate jmsTemplate) {
-		this.jmsTemplate = jmsTemplate;
-	}
-
-	public void afterPropertiesSet() {
-		if (this.jmsTemplate == null) {
-			if (this.connectionFactory == null || (this.destination == null && this.destinationName == null)) {
-				throw new MessagingConfigurationException("Either a 'jmsTemplate' or "
-						+ "both 'connectionFactory' and 'destination' (or 'destinationName') are required.");
-			}
-			this.initJmsTemplate();
-		}
-	}
-
-	private void initJmsTemplate() {
-		this.jmsTemplate = new JmsTemplate();
-		this.jmsTemplate.setConnectionFactory(this.connectionFactory);
-		if (this.destination != null) {
-			this.jmsTemplate.setDefaultDestination(this.destination);
-		}
-		else if (this.destinationName != null) {
-			this.jmsTemplate.setDefaultDestinationName(this.destinationName);
-		}
-		else {
-			throw new MessagingConfigurationException("either 'destination' or 'destinationName' is required");
-		}
-	}
 
 	public Collection<Object> poll(int limit) {
-		return Arrays.asList(this.jmsTemplate.receiveAndConvert());
+		return Arrays.asList(this.getJmsTemplate().receiveAndConvert());
 	}
 
 }
