@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.rmi.RemoteException;
 
 import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.adapter.AbstractMessageHandlingSourceAdapter;
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.remoting.rmi.RmiServiceExporter;
 
@@ -31,6 +32,16 @@ import org.springframework.remoting.rmi.RmiServiceExporter;
 public class RmiSourceAdapter extends AbstractMessageHandlingSourceAdapter {
 
 	public static final String SERVICE_NAME_PREFIX = "internal.rmiSourceAdapter.";
+
+
+	public RmiSourceAdapter() {
+		super();
+	}
+
+	public RmiSourceAdapter(MessageChannel channel) {
+		this();
+		this.setChannel(channel);
+	}
 
 
 	public void initialize() throws RemoteException {

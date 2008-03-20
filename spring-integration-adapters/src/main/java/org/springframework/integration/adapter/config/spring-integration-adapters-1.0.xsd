@@ -93,19 +93,12 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="rmi-source">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
+	<xsd:element name="rmi-source" type="requestReplySource">
+		<xsd:annotation>
+			<xsd:documentation>
 	Defines an rmi-based source channel adapter.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="expect-reply" type="xsd:boolean" default="true"/>
-			<xsd:attribute name="send-timeout" type="xsd:long"/>
-			<xsd:attribute name="receive-timeout" type="xsd:long"/>
-			<xsd:attribute name="channel" type="xsd:string" use="required"/>
-		</xsd:complexType>
+			</xsd:documentation>
+		</xsd:annotation>
 	</xsd:element>
 
 	<xsd:element name="rmi-target">
@@ -119,6 +112,27 @@
 			<xsd:attribute name="host" type="xsd:string" use="required"/>
 			<xsd:attribute name="local-channel" type="xsd:string" use="required"/>
 			<xsd:attribute name="remote-channel" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="httpinvoker-source" type="requestReplySource">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines an httpinvoker-based source channel adapter.
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:element name="httpinvoker-target">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines an httpinvoker-based target channel adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="channel" type="xsd:string" use="required"/>
+			<xsd:attribute name="url" type="xsd:string" use="required"/>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -138,5 +152,19 @@
 			<xsd:attribute name="channel" type="xsd:string" use="required"/>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:complexType name="requestReplySource">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines common configuration for request-reply source adapters.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="id" type="xsd:ID"/>
+		<xsd:attribute name="name" type="xsd:string"/>
+		<xsd:attribute name="expect-reply" type="xsd:boolean" default="true"/>
+		<xsd:attribute name="send-timeout" type="xsd:long"/>
+		<xsd:attribute name="receive-timeout" type="xsd:long"/>
+		<xsd:attribute name="channel" type="xsd:string" use="required"/>
+	</xsd:complexType>
 
 </xsd:schema>

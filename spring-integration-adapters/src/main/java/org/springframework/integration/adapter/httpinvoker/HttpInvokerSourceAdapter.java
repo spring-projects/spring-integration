@@ -27,7 +27,6 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter;
-import org.springframework.util.Assert;
 import org.springframework.web.HttpRequestHandler;
 
 /**
@@ -65,8 +64,12 @@ public class HttpInvokerSourceAdapter extends AbstractMessageHandlingSourceAdapt
 	private volatile HttpInvokerServiceExporter exporter;
 
 
+	public HttpInvokerSourceAdapter() {
+		super();
+	}
+
 	public HttpInvokerSourceAdapter(MessageChannel channel) {
-		Assert.notNull(channel, "'channel' must not be null");
+		this();
 		this.setChannel(channel);
 	}
 

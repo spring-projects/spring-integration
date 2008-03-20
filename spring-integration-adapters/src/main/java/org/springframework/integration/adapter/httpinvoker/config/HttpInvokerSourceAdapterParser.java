@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.rmi.config;
+package org.springframework.integration.adapter.httpinvoker.config;
 
 import org.w3c.dom.Element;
 
 import org.springframework.integration.adapter.config.AbstractRequestReplySourceAdapterParser;
-import org.springframework.integration.adapter.rmi.RmiSourceAdapter;
+import org.springframework.integration.adapter.httpinvoker.HttpInvokerSourceAdapter;
 
 /**
- * Parser for the &lt;rmi-source/&gt; element. 
+ * Parser for the &lt;httpinvoker-source/&gt; element. 
  * 
  * @author Mark Fisher
  */
-public class RmiSourceAdapterParser extends AbstractRequestReplySourceAdapterParser {
+public class HttpInvokerSourceAdapterParser extends AbstractRequestReplySourceAdapterParser {
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
-		return RmiSourceAdapter.class;
+		return HttpInvokerSourceAdapter.class;
 	}
 
 }

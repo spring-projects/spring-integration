@@ -4,4 +4,6 @@ jms-source=org.springframework.integration.adapter.jms.config.JmsSourceAdapterPa
 jms-target=org.springframework.integration.adapter.jms.config.JmsTargetAdapterParser
 rmi-source=org.springframework.integration.adapter.rmi.config.RmiSourceAdapterParser
 rmi-target=org.springframework.integration.adapter.rmi.config.RmiTargetAdapterParser
+httpinvoker-source=org.springframework.integration.adapter.httpinvoker.config.HttpInvokerSourceAdapterParser
+httpinvoker-target=org.springframework.integration.adapter.httpinvoker.config.HttpInvokerTargetAdapterParser
 mail-target=org.springframework.integration.adapter.mail.config.MailTargetAdapterParser
