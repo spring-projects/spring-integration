@@ -32,8 +32,8 @@
 		</copy>
 
 		<zip destfile="${package.output.file}">
-			<zipfileset dir="${package.dir}" includes="**/samples/**"/>
-			<zipfileset dir="${package.dir}" excludes="**/samples/**"/>
+			<zipfileset dir="${package.dir}" includes="${package.basename}/samples/**" filemode="755"/>
+			<zipfileset dir="${package.dir}" excludes="${package.basename}/samples/**"/>
 		</zip>
 	</target>
 
