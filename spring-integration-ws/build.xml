@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="spring-integration-ws">
+
+	<property file="${basedir}/../build.properties"/>
+	<import file="${basedir}/../build-spring-integration/package-bundle.xml"/>
+	<import file="../spring-build/standard/default.xml"/>
+
+</project>

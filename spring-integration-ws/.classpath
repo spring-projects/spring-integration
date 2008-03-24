@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src/main/java"/>
+	<classpathentry kind="src" output="target/test-classes" path="src/test/java"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.apache/commons-logging/commons-logging-1.1.jar" sourcepath="/IVY_CACHE/org.apache/commons-logging/commons-logging-sources-1.1.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.junit/junit/junit-4.4.jar" sourcepath="/IVY_CACHE/org.junit/junit/junit-sources-4.4.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.springframework/spring-beans/spring-beans-2.5.2.jar" sourcepath="/IVY_CACHE/org.springframework/spring-beans/spring-beans-sources-2.5.2.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.springframework/spring-context/spring-context-2.5.2.jar" sourcepath="/IVY_CACHE/org.springframework/spring-context/spring-context-sources-2.5.2.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.springframework/spring-core/spring-core-2.5.2.jar" sourcepath="/IVY_CACHE/org.springframework/spring-core/spring-core-sources-2.5.2.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/spring-integration-core"/>
+	<classpathentry kind="output" path="target/classes"/>
+</classpath>
