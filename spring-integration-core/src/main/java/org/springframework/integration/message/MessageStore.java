@@ -14,32 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.util;
-
-import java.util.LinkedHashMap;
-import java.util.Map.Entry;
-
-import org.springframework.util.Assert;
+package org.springframework.integration.message;
 
 /**
- * A Map implementation that enforces the specified capacity.
- *  
+ * Strategy interface for storing and retrieving messages.
+ * 
  * @author Mark Fisher
  */
-public class BoundedHashMap<K, V> extends LinkedHashMap<K, V> {
+public interface MessageStore {
 
-	private final int capacity;
+	Message<?> put(Object key, Message<?> message);
 
+	Message<?> get(Object key);
 
-	public BoundedHashMap(int capacity) {
-		Assert.isTrue(capacity > 0, "capacity must be a positive value");
-		this.capacity = capacity;
-	}
+	Message<?> remove(Object key);
 
-
-	@Override
-	protected boolean removeEldestEntry(Entry<K, V> eldest) {
-		return this.size() > this.capacity;
-	}
+	int size();
 
 }

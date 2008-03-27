@@ -16,30 +16,33 @@
 
 package org.springframework.integration.util;
 
-import java.util.LinkedHashMap;
-import java.util.Map.Entry;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-import org.springframework.util.Assert;
+import org.junit.Test;
 
 /**
- * A Map implementation that enforces the specified capacity.
- *  
  * @author Mark Fisher
  */
-public class BoundedHashMap<K, V> extends LinkedHashMap<K, V> {
+public class BoundedHashMapTests {
 
-	private final int capacity;
-
-
-	public BoundedHashMap(int capacity) {
-		Assert.isTrue(capacity > 0, "capacity must be a positive value");
-		this.capacity = capacity;
-	}
-
-
-	@Override
-	protected boolean removeEldestEntry(Entry<K, V> eldest) {
-		return this.size() > this.capacity;
+	@Test
+	public void testCapacityEnforced() {
+		BoundedHashMap<String, Integer> map = new BoundedHashMap<String, Integer>(3);
+		map.put("A", 1);
+		map.put("B", 2);
+		map.put("C", 3);
+		assertEquals(3, map.size());
+		assertTrue(map.containsKey("A"));
+		assertTrue(map.containsKey("B"));
+		assertTrue(map.containsKey("C"));
+		map.put("D", 4);
+		assertEquals(3, map.size());
+		assertFalse(map.containsKey("A"));
+		assertTrue(map.containsKey("B"));
+		assertTrue(map.containsKey("C"));
+		assertTrue(map.containsKey("D"));
 	}
 
 }
