@@ -100,7 +100,7 @@ public class RetrievalBlockingMessageStore extends SimpleMessageStore implements
 			if (holder != null) {
 				message = holder.getMessage();
 				if (message != null && shouldRemove) {
-					super.remove(key);
+					return super.remove(key);
 				}
 			}
 		}
