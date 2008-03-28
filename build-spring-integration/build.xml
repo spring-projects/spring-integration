@@ -6,6 +6,7 @@
 		<pathelement location="../spring-integration-adapters"/>
 		<pathelement location="../spring-integration-samples"/>
 		<pathelement location="../spring-integration-test"/>
+		<pathelement location="../spring-integration-ws"/>
 	</path>
 
 	<property file="${basedir}/../build.properties"/>
