@@ -28,15 +28,8 @@ import org.springframework.util.Assert;
  */
 public class SimpleMessageStore implements MessageStore {
 
-	private static final int DEFAULT_CAPACITY = 1000;
-
-
 	private final Map<Object, Message<?>> map;
 
-
-	public SimpleMessageStore() {
-		this(DEFAULT_CAPACITY);
-	}
 
 	public SimpleMessageStore(int capacity) {
 		this.map = new BoundedHashMap<Object, Message<?>>(capacity);

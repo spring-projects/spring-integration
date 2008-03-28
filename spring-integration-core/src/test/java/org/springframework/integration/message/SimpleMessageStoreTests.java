@@ -29,7 +29,7 @@ public class SimpleMessageStoreTests {
 
 	@Test
 	public void testPut() {
-		SimpleMessageStore store = new SimpleMessageStore();
+		SimpleMessageStore store = new SimpleMessageStore(5);
 		Message<?> message1 = new StringMessage("message-1");
 		Message<?> previous = store.put(1, message1);
 		assertNull(previous);
@@ -39,7 +39,7 @@ public class SimpleMessageStoreTests {
 
 	@Test
 	public void testReplace() {
-		SimpleMessageStore store = new SimpleMessageStore();
+		SimpleMessageStore store = new SimpleMessageStore(5);
 		Message<?> messageA = new StringMessage("message-a");
 		Message<?> messageB = new StringMessage("message-b");
 		store.put(1, messageA);
@@ -50,7 +50,7 @@ public class SimpleMessageStoreTests {
 
 	@Test
 	public void testRemove() {
-		SimpleMessageStore store = new SimpleMessageStore();
+		SimpleMessageStore store = new SimpleMessageStore(5);
 		Message<?> message = new StringMessage("message");
 		assertNull(store.remove(1));
 		store.put(1, message);
