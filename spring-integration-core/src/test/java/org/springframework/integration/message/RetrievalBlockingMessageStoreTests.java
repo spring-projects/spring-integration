@@ -38,8 +38,28 @@ public class RetrievalBlockingMessageStoreTests {
 	}
 
 	@Test
+	public void testWrappedTargetGetWithElapsedTimeout() {
+		MessageStore target = new SimpleMessageStore(10);
+		final RetrievalBlockingMessageStore store = new RetrievalBlockingMessageStore(target);
+		publishWithDelay(store, "foo", "bar", 100);
+		Message<?> message = store.get("foo", 5);
+		assertNull(message);
+	}
+
+	@Test
 	public void testGetWithinTimeout() {
 		final RetrievalBlockingMessageStore store = new RetrievalBlockingMessageStore(10);
+		publishWithDelay(store, "foo", "bar", 50);
+		Message<?> message = store.get("foo", 500);
+		assertNotNull(message);
+		assertEquals("bar", message.getPayload());
+		assertNotNull(store.get("foo", 0));
+	}
+
+	@Test
+	public void testWrappedTargetGetWithinTimeout() {
+		MessageStore target = new SimpleMessageStore(10);
+		final RetrievalBlockingMessageStore store = new RetrievalBlockingMessageStore(target);
 		publishWithDelay(store, "foo", "bar", 50);
 		Message<?> message = store.get("foo", 500);
 		assertNotNull(message);
@@ -56,8 +76,28 @@ public class RetrievalBlockingMessageStoreTests {
 	}
 
 	@Test
+	public void testWrappedMessageStoreRemoveWithElapsedTimeout() {
+		MessageStore target = new SimpleMessageStore(10);
+		final RetrievalBlockingMessageStore store = new RetrievalBlockingMessageStore(target);
+		publishWithDelay(store, "foo", "bar", 100);
+		Message<?> message = store.remove("foo", 5);
+		assertNull(message);
+	}
+
+	@Test
 	public void testRemoveWithinTimeout() {
 		final RetrievalBlockingMessageStore store = new RetrievalBlockingMessageStore(10);
+		publishWithDelay(store, "foo", "bar", 50);
+		Message<?> message = store.remove("foo", 500);
+		assertNotNull(message);
+		assertEquals("bar", message.getPayload());
+		assertNull(store.get("foo", 0));
+	}
+
+	@Test
+	public void testWrappedMessageStoreRemoveWithinTimeout() {
+		MessageStore target = new SimpleMessageStore(10);
+		final RetrievalBlockingMessageStore store = new RetrievalBlockingMessageStore(target);
 		publishWithDelay(store, "foo", "bar", 50);
 		Message<?> message = store.remove("foo", 500);
 		assertNotNull(message);

@@ -24,6 +24,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.util.Assert;
+
 /**
  * A {@link MessageStore} implementation whose <code>get</code> and
  * <code>remove</code> methods block until a message is available.
@@ -32,7 +34,9 @@ import java.util.concurrent.TimeUnit;
  * 
  * @author Mark Fisher
  */
-public class RetrievalBlockingMessageStore extends SimpleMessageStore implements MessageStore {
+public class RetrievalBlockingMessageStore implements MessageStore {
+
+	private final MessageStore targetMessageStore;
 
 	private final ConcurrentMap<Object, List<SynchronousQueue<MessageHolder>>> listeners =
 			new ConcurrentHashMap<Object, List<SynchronousQueue<MessageHolder>>>();
@@ -40,13 +44,36 @@ public class RetrievalBlockingMessageStore extends SimpleMessageStore implements
 	private final Object listenerMonitor = new Object();
 
 
+	/**
+	 * Create a wrapper for the provided {@link MessageStore} so that its
+	 * retrieval methods will block.
+	 * 
+	 * @param messageStore the MessageStore instance to wrap
+	 */
+	public RetrievalBlockingMessageStore(MessageStore messageStore) {
+		Assert.notNull(messageStore, "messageStore must not be null");
+		Assert.isTrue(!(messageStore instanceof RetrievalBlockingMessageStore),
+				"target MessageStore must not be an instance of '" + this.getClass().getName() + "'");
+		this.targetMessageStore = messageStore;
+	}
+
+	/**
+	 * Create a wrapper for a {@link SimpleMessageStore} so that its
+	 * retrieval methods will block.
+	 * 
+	 * @param capacity the capacity of the MessageStore
+	 */
 	public RetrievalBlockingMessageStore(int capacity) {
-		super(capacity);
+		this.targetMessageStore = new SimpleMessageStore(capacity);
 	}
 
 
+	public int size() {
+		return this.targetMessageStore.size();
+	}
+
 	public Message<?> put(Object key, Message<?> message) {
-		Message<?> previousMessage = super.put(key, message);
+		Message<?> previousMessage = this.targetMessageStore.put(key, message);
 		boolean sentReply = false;
 		List<SynchronousQueue<MessageHolder>> listenerList = null;
 		synchronized (this.listenerMonitor) {
@@ -71,7 +98,7 @@ public class RetrievalBlockingMessageStore extends SimpleMessageStore implements
 	}
 
 	public Message<?> get(Object key, long timeout) {
-		Message<?> message = super.get(key);
+		Message<?> message = this.targetMessageStore.get(key);
 		return (message != null) ? message : waitForMessage(key, timeout, false);
 	}
 
@@ -80,7 +107,7 @@ public class RetrievalBlockingMessageStore extends SimpleMessageStore implements
 	}
 
 	public Message<?> remove(Object key, long timeout) {
-		Message<?> message = super.remove(key);
+		Message<?> message = this.targetMessageStore.remove(key);
 		return (message != null) ? message : waitForMessage(key, timeout, true);
 	}
 
@@ -100,7 +127,7 @@ public class RetrievalBlockingMessageStore extends SimpleMessageStore implements
 			if (holder != null) {
 				message = holder.getMessage();
 				if (message != null && shouldRemove) {
-					return super.remove(key);
+					return this.targetMessageStore.remove(key);
 				}
 			}
 		}
