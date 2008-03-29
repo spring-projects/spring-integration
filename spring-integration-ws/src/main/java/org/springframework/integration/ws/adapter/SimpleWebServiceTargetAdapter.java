@@ -17,15 +17,19 @@
 package org.springframework.integration.ws.adapter;
 
 import java.io.IOException;
+import java.net.URI;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.TransformerException;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.dom.DOMSource;
 
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.ws.client.core.SourceExtractor;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
 import org.springframework.xml.transform.StringResult;
 import org.springframework.xml.transform.StringSource;
+import org.springframework.xml.transform.TransformerObjectSupport;
 
 /**
  * A target channel adapter for calling out to a Web Service.
@@ -37,11 +41,11 @@ public class SimpleWebServiceTargetAdapter extends AbstractWebServiceTargetAdapt
 	private final SourceExtractor sourceExtractor;
 
 
-	public SimpleWebServiceTargetAdapter(String uri) {
+	public SimpleWebServiceTargetAdapter(URI uri) {
 		this(uri, null);
 	}
 
-	public SimpleWebServiceTargetAdapter(String uri, SourceExtractor sourceExtractor) {
+	public SimpleWebServiceTargetAdapter(URI uri, SourceExtractor sourceExtractor) {
 		super(uri);
 		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
 	}
@@ -65,10 +69,15 @@ public class SimpleWebServiceTargetAdapter extends AbstractWebServiceTargetAdapt
 	}
 
 
-	private static class DefaultSourceExtractor implements SourceExtractor {
+	private static class DefaultSourceExtractor extends TransformerObjectSupport implements SourceExtractor {
 
 		public Object extractData(Source source) throws IOException, TransformerException {
-			return source;
+			if (source instanceof DOMSource) {
+				return source;
+			}
+			DOMResult result = new DOMResult();
+			this.transform(source, result);
+			return new DOMSource(result.getNode());
 		}
 	}
 

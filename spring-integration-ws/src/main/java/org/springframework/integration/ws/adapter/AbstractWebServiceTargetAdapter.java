@@ -17,6 +17,7 @@
 package org.springframework.integration.ws.adapter;
 
 import java.io.IOException;
+import java.net.URI;
 
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.GenericMessage;
@@ -45,9 +46,9 @@ public abstract class AbstractWebServiceTargetAdapter implements MessageHandler 
 	private volatile WebServiceMessageCallback requestCallback;
 
 
-	public AbstractWebServiceTargetAdapter(String uri) {
-		Assert.hasText(uri, "'uri' must not be empty or null");
-		this.webServiceTemplate.setDefaultUri(uri);
+	public AbstractWebServiceTargetAdapter(URI uri) {
+		Assert.notNull(uri, "'uri' must not be null");
+		this.webServiceTemplate.setDefaultUri(uri.toString());
 	}
 
 

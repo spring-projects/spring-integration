@@ -16,6 +16,8 @@
 
 package org.springframework.integration.ws.adapter;
 
+import java.net.URI;
+
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.util.Assert;
@@ -30,7 +32,7 @@ import org.springframework.ws.client.core.WebServiceMessageCallback;
  */
 public class MarshallingWebServiceTargetAdapter extends AbstractWebServiceTargetAdapter {
 
-	public MarshallingWebServiceTargetAdapter(String uri, Marshaller marshaller, Unmarshaller unmarshaller) {
+	public MarshallingWebServiceTargetAdapter(URI uri, Marshaller marshaller, Unmarshaller unmarshaller) {
 		super(uri);
 		Assert.notNull(marshaller, "marshaller must not be null");
 		Assert.notNull(unmarshaller, "unmarshaller must not be null");
@@ -38,10 +40,10 @@ public class MarshallingWebServiceTargetAdapter extends AbstractWebServiceTarget
 		this.getWebServiceTemplate().setUnmarshaller(unmarshaller);
 	}
 
-	public MarshallingWebServiceTargetAdapter(String uri, Marshaller marshaller) {
+	public MarshallingWebServiceTargetAdapter(URI uri, Marshaller marshaller) {
 		super(uri);
 		Assert.notNull(marshaller, "marshaller must not be null");
-		Assert.isTrue(marshaller instanceof Unmarshaller,
+		Assert.isInstanceOf(Unmarshaller.class, marshaller,
 				"Marshaller [" + marshaller + "] does not implement the Unmarshaller interface. " +
 				"Please set an Unmarshaller explicitly by using the " + this.getClass().getName() +
 				"(String uri, Marshaller marshaller, Unmarshaller unmarshaller) constructor.");
