@@ -22,7 +22,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.integration.adapter.AbstractMessageHandlingSourceAdapter;
+import org.springframework.integration.adapter.MessageHandlingSourceAdapter;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
@@ -59,7 +59,7 @@ import org.springframework.web.HttpRequestHandler;
  * 
  * @author Mark Fisher
  */
-public class HttpInvokerSourceAdapter extends AbstractMessageHandlingSourceAdapter implements HttpRequestHandler {
+public class HttpInvokerSourceAdapter extends MessageHandlingSourceAdapter implements HttpRequestHandler {
 
 	private volatile HttpInvokerServiceExporter exporter;
 

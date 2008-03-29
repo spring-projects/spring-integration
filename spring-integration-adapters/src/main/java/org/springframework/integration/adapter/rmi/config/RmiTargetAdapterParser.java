@@ -58,7 +58,9 @@ public class RmiTargetAdapterParser extends AbstractSingleBeanDefinitionParser {
 			throw new MessagingConfigurationException(
 					"The 'host', 'local-channel', and 'remote-channel' attributes are all required");
 		}
-		String url = "rmi://" + host + "/" + RmiSourceAdapter.SERVICE_NAME_PREFIX + remoteChannel;
+		String portAttribute = element.getAttribute("port");
+		String port = StringUtils.hasText(portAttribute) ? portAttribute : "1099";
+		String url = "rmi://" + host + ":" + port + "/" + RmiSourceAdapter.SERVICE_NAME_PREFIX + remoteChannel;
 		adapterDef.getConstructorArgumentValues().addGenericArgumentValue(url);
 		String adapterBeanName = parserContext.getReaderContext().generateBeanName(adapterDef);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(adapterDef, adapterBeanName));

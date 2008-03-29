@@ -25,13 +25,15 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.RequestReplyTemplate;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
+import org.springframework.util.Assert;
 
 /**
- * Abstract base class for source adapters that handle request Messages.
+ * A source adapter that implements the {@link MessageHandler} interface. It may
+ * be used as a base class for source adapters with request-reply behavior.
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractMessageHandlingSourceAdapter implements SourceAdapter, MessageHandler, InitializingBean {
+public class MessageHandlingSourceAdapter implements SourceAdapter, MessageHandler, InitializingBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -48,6 +50,28 @@ public abstract class AbstractMessageHandlingSourceAdapter implements SourceAdap
 	protected final Object lifecycleMonitor = new Object();
 
 	private volatile boolean initialized;
+
+
+	/**
+	 * Create an adapter that sends to the provided channel.
+	 * 
+	 * @param channel the channel where messages will be sent, must not be
+	 * <code>null</code>.
+	 */
+	public MessageHandlingSourceAdapter(MessageChannel channel) {
+		Assert.notNull(channel, "'channel' must not be null");
+		this.channel = channel;
+	}
+
+	/**
+	 * No-arg constructor for configuration via setters. Note that upon
+	 * initialization, this adapter will throw an exception if a
+	 * {@link MessageChannel} has not been provided.
+	 * 
+	 * @see #setChannel(MessageChannel)
+	 */
+	public MessageHandlingSourceAdapter() {
+	}
 
 
 	public void setChannel(MessageChannel channel) {
@@ -76,8 +100,8 @@ public abstract class AbstractMessageHandlingSourceAdapter implements SourceAdap
 
 	public final void afterPropertiesSet() throws Exception {
 		if (this.channel == null) {
-			throw new MessagingConfigurationException("The 'channel' property of '" +
-					this.getClass().getName() + "' must not be null.");
+			throw new MessagingConfigurationException("The 'channel' property of '" + this.getClass().getName()
+					+ "' must not be null.");
 		}
 		synchronized (this.lifecycleMonitor) {
 			if (this.initialized) {
@@ -115,8 +139,8 @@ public abstract class AbstractMessageHandlingSourceAdapter implements SourceAdap
 		}
 		if (!this.expectReply) {
 			if (!this.channel.send(message, this.sendTimeout) && logger.isWarnEnabled()) {
-				logger.warn("failed to send message to channel '" + this.channel +
-						"' within timeout of " + this.sendTimeout + " milliseconds");
+				logger.warn("failed to send message to channel '" + this.channel + "' within timeout of "
+						+ this.sendTimeout + " milliseconds");
 			}
 			return null;
 		}

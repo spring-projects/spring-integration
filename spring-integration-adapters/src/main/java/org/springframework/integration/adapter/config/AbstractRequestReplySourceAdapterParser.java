@@ -21,7 +21,7 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
+import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.util.StringUtils;
@@ -31,7 +31,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractRequestReplySourceAdapterParser extends AbstractSingleBeanDefinitionParser {
+public abstract class AbstractRequestReplySourceAdapterParser extends AbstractSimpleBeanDefinitionParser {
 
 	protected abstract Class<?> getBeanClass(Element element);
 
@@ -48,7 +48,13 @@ public abstract class AbstractRequestReplySourceAdapterParser extends AbstractSi
 		return id;
 	}
 
-	protected void doParse(Element element, BeanDefinitionBuilder builder) {
+	@Override
+	protected boolean isEligibleAttribute(String attributeName) {
+		return !attributeName.equals("name") && super.isEligibleAttribute(attributeName);
+	}
+
+	@Override
+	protected void postProcess(BeanDefinitionBuilder builder, Element element) {
 		String channelRef = element.getAttribute("channel");
 		if (!StringUtils.hasText(channelRef)) {
 			throw new MessagingConfigurationException("a 'channel' reference is required");
@@ -63,6 +69,13 @@ public abstract class AbstractRequestReplySourceAdapterParser extends AbstractSi
 		if (StringUtils.hasText(receiveTimeout)) {
 			builder.addPropertyValue("receiveTimeout", Long.parseLong(receiveTimeout));
 		}
+		this.doPostProcess(builder, element);
+	}
+
+	/**
+	 * Subclasses may add to the bean definition by overriding this method.
+	 */
+	protected void doPostProcess(BeanDefinitionBuilder builder, Element element) {
 	}
 
 }

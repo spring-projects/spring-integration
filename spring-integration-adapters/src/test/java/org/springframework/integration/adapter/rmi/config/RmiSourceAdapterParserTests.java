@@ -17,6 +17,7 @@
 package org.springframework.integration.adapter.rmi.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
@@ -55,6 +56,35 @@ public class RmiSourceAdapterParserTests {
 		assertEquals(false, accessor.getPropertyValue("expectReply"));
 		assertEquals(123L, accessor.getPropertyValue("sendTimeout"));
 		assertEquals(456L, accessor.getPropertyValue("receiveTimeout"));
+	}
+
+	@Test
+	public void testAdapterWithHost() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"rmiSourceAdapterParserTests.xml", this.getClass());
+		RmiSourceAdapter adapter = (RmiSourceAdapter) context.getBean("adapterWithHost");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(adapter);
+		assertEquals("localhost", accessor.getPropertyValue("registryHost"));
+	}
+
+	@Test
+	public void testAdapterWithPort() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"rmiSourceAdapterParserTests.xml", this.getClass());
+		RmiSourceAdapter adapter = (RmiSourceAdapter) context.getBean("adapterWithPort");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(adapter);
+		assertEquals(1234, accessor.getPropertyValue("registryPort"));
+	}
+
+	@Test
+	public void testAdapterWithRemoteInvocationExecutorReference() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"rmiSourceAdapterParserTests.xml", this.getClass());
+		RmiSourceAdapter adapter = (RmiSourceAdapter) context.getBean("adapterWithExecutorRef");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(adapter);
+		Object remoteInvocationExecutor = accessor.getPropertyValue("remoteInvocationExecutor");
+		assertNotNull(remoteInvocationExecutor);
+		assertEquals(StubRemoteInvocationExecutor.class, remoteInvocationExecutor.getClass());
 	}
 
 }
