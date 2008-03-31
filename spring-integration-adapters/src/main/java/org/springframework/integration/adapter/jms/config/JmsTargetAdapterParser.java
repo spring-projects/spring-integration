@@ -37,24 +37,6 @@ import org.springframework.util.StringUtils;
  */
 public class JmsTargetAdapterParser extends AbstractSingleBeanDefinitionParser {
 
-	private static final String JMS_TEMPLATE_ATTRIBUTE = "jms-template";
-
-	private static final String JMS_TEMPLATE_PROPERTY = "jmsTemplate";
-
-	private static final String CONNECTION_FACTORY_ATTRIBUTE = "connection-factory";
-
-	private static final String CONNECTION_FACTORY_PROPERTY = "connectionFactory";
-
-	private static final String DESTINATION_ATTRIBUTE = "destination";
-
-	private static final String DESTINATION_NAME_ATTRIBUTE = "destination-name";
-
-	private static final String DESTINATION_PROPERTY = "destination";
-
-	private static final String DESTINATION_NAME_PROPERTY = "destinationName";
-
-	private static final String CHANNEL_ATTRIBUTE = "channel";
-
 	private static final String HANDLER_PROPERTY = "handler";
 
 	private static final String SUBSCRIPTION_PROPERTY = "subscription";
@@ -73,32 +55,37 @@ public class JmsTargetAdapterParser extends AbstractSingleBeanDefinitionParser {
 	}
 
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		String jmsTemplate = element.getAttribute(JMS_TEMPLATE_ATTRIBUTE);
-		String connectionFactory = element.getAttribute(CONNECTION_FACTORY_ATTRIBUTE);
-		String destination = element.getAttribute(DESTINATION_ATTRIBUTE);
-		String destinationName = element.getAttribute(DESTINATION_NAME_ATTRIBUTE);
+		String jmsTemplate = element.getAttribute(JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE);
+		String destination = element.getAttribute(JmsAdapterParserUtils.DESTINATION_ATTRIBUTE);
+		String destinationName = element.getAttribute(JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE);
 		RootBeanDefinition adapterDef = new RootBeanDefinition(JmsTargetAdapter.class);
 		if (StringUtils.hasText(jmsTemplate)) {
-			if (StringUtils.hasText(connectionFactory) || StringUtils.hasText(destination) || StringUtils.hasText(destinationName)) {
+			if (element.hasAttribute(JmsAdapterParserUtils.CONNECTION_FACTORY_ATTRIBUTE) ||
+					element.hasAttribute(JmsAdapterParserUtils.DESTINATION_ATTRIBUTE) ||
+					element.hasAttribute(JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE)) {
 				throw new BeanCreationException("when providing a 'jms-template' reference, none of " +
 						"'connection-factory', 'destination', or 'destination-name' should be provided.");
 			}
-			adapterDef.getPropertyValues().addPropertyValue(JMS_TEMPLATE_PROPERTY, new RuntimeBeanReference(jmsTemplate));
+			adapterDef.getPropertyValues().addPropertyValue(
+					JmsAdapterParserUtils.JMS_TEMPLATE_PROPERTY, new RuntimeBeanReference(jmsTemplate));
 		}
-		else if (StringUtils.hasText(connectionFactory) && (StringUtils.hasText(destination) ^ StringUtils.hasText(destinationName))) {
-			adapterDef.getPropertyValues().addPropertyValue(CONNECTION_FACTORY_PROPERTY, new RuntimeBeanReference(connectionFactory));
+		else if (StringUtils.hasText(destination) ^ StringUtils.hasText(destinationName)) {
+			adapterDef.getPropertyValues().addPropertyValue(JmsAdapterParserUtils.CONNECTION_FACTORY_PROPERTY,
+					new RuntimeBeanReference(JmsAdapterParserUtils.determineConnectionFactoryBeanName(element)));
 			if (StringUtils.hasText(destination)) {
-				adapterDef.getPropertyValues().addPropertyValue(DESTINATION_PROPERTY, new RuntimeBeanReference(destination));
+				adapterDef.getPropertyValues().addPropertyValue(
+						JmsAdapterParserUtils.DESTINATION_PROPERTY, new RuntimeBeanReference(destination));
 			}
 			else {
-				adapterDef.getPropertyValues().addPropertyValue(DESTINATION_NAME_PROPERTY, destinationName);
+				adapterDef.getPropertyValues().addPropertyValue(
+						JmsAdapterParserUtils.DESTINATION_NAME_PROPERTY, destinationName);
 			}
 		}
 		else {
-			throw new BeanCreationException("either a 'jms-template' reference or both " +
-			"'connection-factory' and 'destination' (or 'destination-name') references must be provided.");
+			throw new BeanCreationException("Either a 'jms-template' reference or " +
+			"one of 'destination' or 'destination-name' attributes must be provided.");
 		}
-		String channel = element.getAttribute(CHANNEL_ATTRIBUTE);
+		String channel = element.getAttribute(JmsAdapterParserUtils.CHANNEL_ATTRIBUTE);
 		Subscription subscription = new Subscription(channel);
 		String adapterBeanName = parserContext.getReaderContext().generateBeanName(adapterDef);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(adapterDef, adapterBeanName));

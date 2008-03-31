@@ -11,9 +11,9 @@
 
 	<si:channel id="channel"/>
 
-	<si:jms-source id="adapter" connection-factory="connectionFactory" channel="channel"/>
+	<si:jms-source id="adapter" connection-factory="testConnectionFactory" channel="channel"/>
 
-	<bean id="connectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
+	<bean id="testConnectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
 		<constructor-arg>
 			<bean class="org.springframework.integration.adapter.jms.StubConnection">
 				<constructor-arg value="message-driven-test"/>

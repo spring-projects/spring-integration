@@ -134,7 +134,7 @@ public class JmsSourceAdapterParserTests {
 		}
 	}
 
-	@Test(expected=BeanDefinitionStoreException.class)
+	@Test(expected=BeanCreationException.class)
 	public void testPollingAdapterWithDestinationOnly() {
 		try {
 			new ClassPathXmlApplicationContext("pollingAdapterWithDestinationOnly.xml", this.getClass());
@@ -145,15 +145,37 @@ public class JmsSourceAdapterParserTests {
 		}
 	}
 
-	@Test(expected=BeanDefinitionStoreException.class)
+	@Test
+	public void testPollingAdapterWithDestinationAndDefaultConnectionFactory() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"pollingAdapterWithDestinationAndDefaultConnectionFactory.xml", this.getClass());
+		context.start();
+		JmsPollingSourceAdapter adapter = (JmsPollingSourceAdapter) context.getBean("adapter");
+		adapter.processMessages();
+		MessageChannel channel = (MessageChannel) context.getBean("channel");
+		Message<?> message = channel.receive(500);
+		assertNotNull("message should not be null", message);
+		assertEquals("polling-test", message.getPayload());
+		context.stop();
+	}
+
+	@Test(expected=BeanCreationException.class)
 	public void testPollingAdapterWithDestinationNameOnly() {
-		try {
-			new ClassPathXmlApplicationContext("pollingAdapterWithDestinationNameOnly.xml", this.getClass());
-		}
-		catch (RuntimeException e) {
-			assertEquals(BeanCreationException.class, e.getCause().getClass());
-			throw e;
-		}
+		new ClassPathXmlApplicationContext("pollingAdapterWithDestinationNameOnly.xml", this.getClass());
+	}
+
+	@Test
+	public void testPollingAdapterWithDestinationNameAndDefaultConnectionFactory() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+					"pollingAdapterWithDestinationNameAndDefaultConnectionFactory.xml", this.getClass());
+		context.start();
+		JmsPollingSourceAdapter adapter = (JmsPollingSourceAdapter) context.getBean("adapter");
+		adapter.processMessages();
+		MessageChannel channel = (MessageChannel) context.getBean("channel");
+		Message<?> message = channel.receive(500);
+		assertNotNull("message should not be null", message);
+		assertEquals("polling-test", message.getPayload());
+		context.stop();
 	}
 
 	@Test(expected=BeanDefinitionStoreException.class)
@@ -176,6 +198,31 @@ public class JmsSourceAdapterParserTests {
 			assertEquals(BeanCreationException.class, e.getCause().getClass());
 			throw e;
 		}
+	}
+
+	@Test(expected=BeanDefinitionStoreException.class)
+	public void testMessageDrivenAdapterWithEmptyConnectionFactory() {
+		try {
+			new ClassPathXmlApplicationContext("messageDrivenAdapterWithEmptyConnectionFactory.xml", this.getClass());
+		}
+		catch (RuntimeException e) {
+			assertEquals(BeanCreationException.class, e.getCause().getClass());
+			throw e;
+		}
+	}
+
+	@Test
+	public void testMessageDrivenAdapterWithDefaultConnectionFactory() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"messageDrivenAdapterWithDefaultConnectionFactory.xml", this.getClass());
+		context.start();
+		JmsMessageDrivenSourceAdapter adapter = (JmsMessageDrivenSourceAdapter) context.getBean("adapter");
+		assertEquals(JmsMessageDrivenSourceAdapter.class, adapter.getClass());
+		MessageChannel channel = (MessageChannel) context.getBean("channel");
+		Message<?> message = channel.receive(3000);
+		assertNotNull("message should not be null", message);
+		assertEquals("message-driven-test", message.getPayload());
+		context.stop();
 	}
 
 

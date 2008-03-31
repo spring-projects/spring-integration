@@ -34,24 +34,6 @@ import org.springframework.util.StringUtils;
  */
 public class JmsSourceAdapterParser extends AbstractSingleBeanDefinitionParser {
 
-	private static final String JMS_TEMPLATE_ATTRIBUTE = "jms-template";
-
-	private static final String CONNECTION_FACTORY_ATTRIBUTE = "connection-factory";
-
-	private static final String CONNECTION_FACTORY_PROPERTY = "connectionFactory";
-
-	private static final String DESTINATION_ATTRIBUTE = "destination";
-
-	private static final String DESTINATION_PROPERTY = "destination";
-
-	private static final String DESTINATION_NAME_ATTRIBUTE = "destination-name";
-
-	private static final String DESTINATION_NAME_PROPERTY = "destinationName";
-
-	private static final String CHANNEL_ATTRIBUTE = "channel";
-
-	private static final String CHANNEL_PROPERTY = "channel";
-
 	private static final String POLL_PERIOD_ATTRIBUTE = "poll-period";
 
 	private static final String POLL_PERIOD_PROPERTY = "period";
@@ -93,8 +75,8 @@ public class JmsSourceAdapterParser extends AbstractSingleBeanDefinitionParser {
 		else {
 			parseMessageDrivenSourceAdapter(element, builder);
 		}
-		String channel = element.getAttribute(CHANNEL_ATTRIBUTE);
-		builder.addPropertyReference(CHANNEL_PROPERTY, channel);
+		String channel = element.getAttribute(JmsAdapterParserUtils.CHANNEL_ATTRIBUTE);
+		builder.addPropertyReference(JmsAdapterParserUtils.CHANNEL_PROPERTY, channel);
 	}
 
 	private void parsePollingSourceAdapter(Element element, BeanDefinitionBuilder builder) { 
@@ -104,63 +86,68 @@ public class JmsSourceAdapterParser extends AbstractSingleBeanDefinitionParser {
 					"' is required for a " + JmsPollingSourceAdapter.class.getSimpleName());
 		}
 		if (StringUtils.hasText(element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE))) {
-			throw new BeanCreationException("The '" + MESSAGE_CONVERTER_ATTRIBUTE + "' attribute is not supported for a " +
-					JmsPollingSourceAdapter.class.getSimpleName() + ". Consider providing a '" + JMS_TEMPLATE_ATTRIBUTE + 
+			throw new BeanCreationException(
+					"The '" + MESSAGE_CONVERTER_ATTRIBUTE + "' attribute is not supported for a " +
+					JmsPollingSourceAdapter.class.getSimpleName() + ". Consider providing a '" +
+					JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE + 
 					"' reference where the template contains a 'messageConverter' property instead.");
 		}
 		builder.addPropertyValue(POLL_PERIOD_PROPERTY, pollPeriod);
-		String jmsTemplate = element.getAttribute(JMS_TEMPLATE_ATTRIBUTE);
-		String connectionFactory = element.getAttribute(CONNECTION_FACTORY_ATTRIBUTE);
-		String destination = element.getAttribute(DESTINATION_ATTRIBUTE);
-		String destinationName = element.getAttribute(DESTINATION_NAME_ATTRIBUTE);
+		String jmsTemplate = element.getAttribute(JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE);
+		String destination = element.getAttribute(JmsAdapterParserUtils.DESTINATION_ATTRIBUTE);
+		String destinationName = element.getAttribute(JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE);
 		if (StringUtils.hasText(jmsTemplate)) {
-			if (StringUtils.hasText(connectionFactory) || StringUtils.hasText(destination) || StringUtils.hasText(destinationName)) {
-				throw new BeanCreationException("when providing '" + JMS_TEMPLATE_ATTRIBUTE +
-						"', none of '" + CONNECTION_FACTORY_ATTRIBUTE + "', '" + DESTINATION_ATTRIBUTE + 
-						"', or '" + DESTINATION_NAME_ATTRIBUTE + "' should be provided.");
+			if (element.hasAttribute(JmsAdapterParserUtils.CONNECTION_FACTORY_ATTRIBUTE) ||
+					element.hasAttribute(JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE) ||
+					element.hasAttribute(JmsAdapterParserUtils.DESTINATION_ATTRIBUTE)) {
+				throw new BeanCreationException(
+						"When providing '" + JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE +
+						"', none of '" + JmsAdapterParserUtils.CONNECTION_FACTORY_ATTRIBUTE +
+						"', '" + JmsAdapterParserUtils.DESTINATION_ATTRIBUTE + "', or '" +
+						JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE + "' should be provided.");
 			}
 			builder.addConstructorArgReference(jmsTemplate);
 		}
-		else if (StringUtils.hasText(connectionFactory) && (StringUtils.hasText(destination) || StringUtils.hasText(destinationName))) {
-			builder.addConstructorArgReference(connectionFactory);
+		else if (StringUtils.hasText(destination) || StringUtils.hasText(destinationName)) {
+			builder.addConstructorArgReference(JmsAdapterParserUtils.determineConnectionFactoryBeanName(element));
 			if (StringUtils.hasText(destination)) {
 				builder.addConstructorArgReference(destination);
 			}
 			else if (StringUtils.hasText(destinationName)) {
-				builder.addConstructorArg(destinationName);
+				builder.addConstructorArgValue(destinationName);
 			}
 		}
 		else {
-			throw new BeanCreationException("either a '" + JMS_TEMPLATE_ATTRIBUTE + "' or both '" + 
-					CONNECTION_FACTORY_ATTRIBUTE + "' and '" + DESTINATION_ATTRIBUTE + "' (or '" +
-					DESTINATION_NAME_ATTRIBUTE + "') attributes must be provided for a " +
-					JmsPollingSourceAdapter.class.getSimpleName());
+			throw new BeanCreationException("either a '" + JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE +
+					"' or one of '" + JmsAdapterParserUtils.DESTINATION_ATTRIBUTE + "' or '" +
+					JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE + "' attributes " +
+					"must be provided for a " + JmsPollingSourceAdapter.class.getSimpleName());
 		}
 	}
 
 	private void parseMessageDrivenSourceAdapter(Element element, BeanDefinitionBuilder builder) {
-		String connectionFactory = element.getAttribute(CONNECTION_FACTORY_ATTRIBUTE);
-		String destination = element.getAttribute(DESTINATION_ATTRIBUTE);
-		String destinationName = element.getAttribute(DESTINATION_NAME_ATTRIBUTE);
+		String destination = element.getAttribute(JmsAdapterParserUtils.DESTINATION_ATTRIBUTE);
+		String destinationName = element.getAttribute(JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE);
 		String messageConverter = element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE);
-		if (StringUtils.hasText(element.getAttribute(JMS_TEMPLATE_ATTRIBUTE))) {
+		if (StringUtils.hasText(element.getAttribute(JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE))) {
 			throw new BeanCreationException(JmsMessageDrivenSourceAdapter.class.getSimpleName() +
-					" does not accept a '" + JMS_TEMPLATE_ATTRIBUTE + "' reference. Both " +
-					"'" + CONNECTION_FACTORY_ATTRIBUTE + "' and '" + DESTINATION_ATTRIBUTE +
-					"' (or '" + DESTINATION_NAME_ATTRIBUTE + "') must be provided.");
+					" does not accept a '" + JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE +
+					"' reference. One of '" + JmsAdapterParserUtils.DESTINATION_ATTRIBUTE + "' or '" +
+					JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE + "' must be provided.");
 		}
-		if (StringUtils.hasText(connectionFactory) && (StringUtils.hasText(destination) || StringUtils.hasText(destinationName))) {
-			builder.addPropertyReference(CONNECTION_FACTORY_PROPERTY, connectionFactory);
+		if (StringUtils.hasText(destination) || StringUtils.hasText(destinationName)) {
+			builder.addPropertyReference(JmsAdapterParserUtils.CONNECTION_FACTORY_PROPERTY,
+					JmsAdapterParserUtils.determineConnectionFactoryBeanName(element));
 			if (StringUtils.hasText(destination)) {
-				builder.addPropertyReference(DESTINATION_PROPERTY, destination);
+				builder.addPropertyReference(JmsAdapterParserUtils.DESTINATION_PROPERTY, destination);
 			}
 			else {
-				builder.addPropertyValue(DESTINATION_NAME_PROPERTY, destinationName);
+				builder.addPropertyValue(JmsAdapterParserUtils.DESTINATION_NAME_PROPERTY, destinationName);
 			}
 		}
 		else {
-			throw new BeanCreationException("Both '" + CONNECTION_FACTORY_ATTRIBUTE + "' and '" +
-					DESTINATION_ATTRIBUTE + "' (or '" + DESTINATION_NAME_ATTRIBUTE + "') must be provided.");
+			throw new BeanCreationException("One of '" + JmsAdapterParserUtils.DESTINATION_ATTRIBUTE +
+					"' or '" + JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE + "' must be provided.");
 		}
 		if (StringUtils.hasText(messageConverter)) {
 			builder.addPropertyReference(MESSAGE_CONVERTER_PROPERTY, messageConverter);

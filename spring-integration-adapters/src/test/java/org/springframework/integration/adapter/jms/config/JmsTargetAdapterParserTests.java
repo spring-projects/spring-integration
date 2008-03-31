@@ -20,6 +20,8 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.adapter.jms.JmsTargetAdapter;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
@@ -47,6 +49,27 @@ public class JmsTargetAdapterParserTests {
 		assertEquals(JmsTargetAdapter.class, endpoint.getHandler().getClass());
 		assertEquals("adapter", endpoint.getName());
 		assertEquals("testChannel", endpoint.getSubscription().getChannelName());
+	}
+
+	@Test
+	public void testTargetAdapterWithDefaultConnectionFactory() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"targetAdapterWithDefaultConnectionFactory.xml", this.getClass());
+		DefaultMessageEndpoint endpoint = (DefaultMessageEndpoint) context.getBean("adapter");
+		assertEquals(JmsTargetAdapter.class, endpoint.getHandler().getClass());
+		assertEquals("adapter", endpoint.getName());
+		assertEquals("testChannel", endpoint.getSubscription().getChannelName());
+	}
+
+	@Test(expected=BeanDefinitionStoreException.class)
+	public void testTargetAdapterWithEmptyConnectionFactory() {
+		try {
+			new ClassPathXmlApplicationContext("targetAdapterWithEmptyConnectionFactory.xml", this.getClass());
+		}
+		catch (RuntimeException e) {
+			assertEquals(BeanCreationException.class, e.getCause().getClass());
+			throw e;
+		}
 	}
 
 }
