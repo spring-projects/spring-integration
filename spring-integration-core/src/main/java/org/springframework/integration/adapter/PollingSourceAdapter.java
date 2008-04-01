@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.concurrent.Executors;
 
 import org.springframework.context.Lifecycle;
+import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageMapper;
@@ -40,24 +41,37 @@ import org.springframework.util.Assert;
  */
 public class PollingSourceAdapter<T> extends AbstractSourceAdapter<T> implements MessagingTaskSchedulerAware, Lifecycle {
 
-	private PollableSource<T> source;
+	private volatile PollableSource<T> source;
 
-	private PollingSchedule schedule = new PollingSchedule(1000);
+	private volatile PollingSchedule schedule = new PollingSchedule(1000);
 
-	private MessagingTaskScheduler scheduler;
+	private volatile MessagingTaskScheduler scheduler;
 
-	private int maxMessagesPerTask = 1;
+	private volatile int maxMessagesPerTask = 1;
 
 	private volatile boolean starting;
 
 	private volatile boolean running;
 
 
+	/**
+	 * Create a new adapter for the given source.
+	 */
 	public PollingSourceAdapter(PollableSource<T> source) {
+		this.setSource(source);
+	}
+
+	/**
+	 * No-arg constructor for providing source after construction.
+	 */
+	public PollingSourceAdapter() {
+	}
+
+
+	public void setSource(PollableSource<T> source) {
 		Assert.notNull(source, "'source' must not be null");
 		this.source = source;
 	}
-
 
 	public void setInitialDelay(long intialDelay) {
 		Assert.isTrue(intialDelay >= 0, "'intialDelay' must not be negative");
@@ -84,6 +98,13 @@ public class PollingSourceAdapter<T> extends AbstractSourceAdapter<T> implements
 
 	public boolean isRunning() {
 		return this.running;
+	}
+
+	@Override
+	protected void initialize() {
+		if (this.source == null) {
+			throw new MessagingConfigurationException("source must not be null");
+		}
 	}
 
 	public void start() {
@@ -129,10 +150,19 @@ public class PollingSourceAdapter<T> extends AbstractSourceAdapter<T> implements
 			for (T next : results) {
 				if (this.sendToChannel(next)) {
 					messagesProcessed++;
+					this.onSend(next);
 				}
 			}
 		}
 		return messagesProcessed;
+	}
+
+	/**
+	 * Callback method invoked after an item is sent to the channel.
+	 * <p>
+	 * Subclasses may override. The default implementation does nothing.
+	 */
+	protected void onSend(T sentItem) {
 	}
 
 

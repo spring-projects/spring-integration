@@ -24,6 +24,8 @@
 		<dependency org="javax.jms" name="jms" rev="1.1" conf="compile->default"/>
 		<dependency org="javax.mail" name="mail" rev="1.4" conf="compile->default"/>
 		<dependency org="javax.servlet" name="servlet-api" rev="2.4" conf="compile->default"/>
+		<dependency org="org.apache.commons" name="commons-net" rev="1.4.1" conf="compile->default"/>
+		<dependency org="org.apache.oro" name="oro" rev="2.0.8" conf="compile->default"/>
 		<dependency org="org.junit" name="junit" rev="4.4" conf="test->default"/>
 		<dependency org="org.springframework.integration" name="spring-integration-core" rev="latest.integration" conf="compile"/>
 		<dependency org="org.springframework" name="spring-context" rev="2.5.2" conf="compile->default"/>

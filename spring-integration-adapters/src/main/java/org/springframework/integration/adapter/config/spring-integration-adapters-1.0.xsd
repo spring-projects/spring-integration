@@ -43,6 +43,26 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="ftp-source">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines an ftp-receiving target channel adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="username" type="xsd:string" use="optional"/>
+			<xsd:attribute name="password" type="xsd:string" use="optional"/>
+			<xsd:attribute name="host" type="xsd:string" use="required"/>
+			<xsd:attribute name="port" type="xsd:int" use="optional"/>
+			<xsd:attribute name="local-working-directory" type="xsd:string" use="required"/>
+			<xsd:attribute name="remote-working-directory" type="xsd:string" use="optional"/>
+			<xsd:attribute name="channel" type="xsd:string" use="required"/>
+			<xsd:attribute name="period" type="xsd:long" use="required"/>
+			<xsd:attribute name="text-based" type="xsd:boolean" use="optional"/>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:element name="jms-source">
 		<xsd:complexType>
 			<xsd:annotation>

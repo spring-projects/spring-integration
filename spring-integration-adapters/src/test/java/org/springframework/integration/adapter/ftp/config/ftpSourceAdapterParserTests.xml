@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:si="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
+
+	<si:message-bus/>
+
+	<si:channel id="testChannel"/>
+
+	<si:ftp-source id="ftpAdapter" channel="testChannel" 
+				   period="12345"
+				   host="localhost"
+				   port="2121"
+				   local-working-directory="${java.io.tmpdir}/spring-integration-samples/input"
+				   remote-working-directory="/remote"
+			       username="myUser"
+			       password="myPassword"/>
+</beans>
