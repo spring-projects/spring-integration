@@ -104,6 +104,9 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 		if (endpointAnnotation == null) {
 			return bean;
 		}
+		if (bean instanceof ChannelRegistryAware) {
+			((ChannelRegistryAware) bean).setChannelRegistry(this.messageBus);
+		}
 		MessageHandlerChain handlerChain = this.createHandlerChain(bean);
 		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(handlerChain);
 		this.configureInput(bean, beanName, endpointAnnotation, endpoint);

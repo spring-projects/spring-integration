@@ -17,6 +17,8 @@
 package org.springframework.integration.endpoint.annotation;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +32,8 @@ import org.springframework.integration.annotation.DefaultOutput;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Polled;
 import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.config.MessageEndpointAnnotationPostProcessor;
@@ -120,6 +124,19 @@ public class MessageEndpointAnnotationPostProcessorTests {
 		new MessageEndpointAnnotationPostProcessor(null);
 	}
 
+	@Test
+	public void testChannelRegistryAwareBean() {
+		MessageBus messageBus = new MessageBus();
+		MessageEndpointAnnotationPostProcessor postProcessor =
+				new MessageEndpointAnnotationPostProcessor(messageBus);
+		ChannelRegistryAwareTestBean testBean = new ChannelRegistryAwareTestBean();
+		assertNull(testBean.getChannelRegistry());
+		postProcessor.postProcessAfterInitialization(testBean, "testBean");
+		ChannelRegistry channelRegistry = testBean.getChannelRegistry();
+		assertNotNull(channelRegistry);
+		assertEquals(messageBus, channelRegistry);
+	}
+
 
 	@MessageEndpoint(defaultOutput="testChannel")
 	private static class PolledAnnotationTestBean {
@@ -158,6 +175,21 @@ public class MessageEndpointAnnotationPostProcessorTests {
 	@MessageEndpoint(input="inputChannel")
 	@Concurrency(coreSize=17, maxSize=42, keepAliveSeconds=123, queueCapacity=11)
 	private static class ConcurrencyAnnotationTestBean {
+	}
+
+
+	@MessageEndpoint(input="inputChannel")
+	private static class ChannelRegistryAwareTestBean implements ChannelRegistryAware {
+
+		private ChannelRegistry channelRegistry;
+
+		public void setChannelRegistry(ChannelRegistry channelRegistry) {
+			this.channelRegistry = channelRegistry;
+		}
+
+		public ChannelRegistry getChannelRegistry() {
+			return this.channelRegistry;
+		}
 	}
 
 }
