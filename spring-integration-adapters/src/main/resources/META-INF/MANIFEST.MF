@@ -62,4 +62,5 @@ Export-Package: org.springframework.integration.adapter.file;uses:="or
  ramework.integration.adapter,org.springframework.context,org.springfr
  amework.util,org.springframework.integration.message",org.springframe
  work.integration.adapter.config
+Bundle-Name: Spring Integration Adapters
 

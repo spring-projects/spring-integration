@@ -114,4 +114,5 @@ Export-Package: org.springframework.integration.handler;uses:="org.spr
  age;uses:="org.springframework.integration,org.springframework.util,o
  rg.springframework.integration.util",org.springframework.integration.
  util;uses:="org.springframework.integration,org.springframework.util"
+Bundle-Name: Spring Integration Core
 
