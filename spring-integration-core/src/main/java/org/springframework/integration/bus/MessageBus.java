@@ -368,6 +368,7 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 			if (logger.isWarnEnabled()) {
 				logger.warn("no dispatcher available for channel '" + channel.getName() + "', be sure to register the channel");
 			}
+			return;
 		}
 		dispatcher.addHandler(handler, schedule);
 		if (this.isRunning() && !dispatcher.isRunning()) {
