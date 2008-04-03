@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.junit.Test;
 
 import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
@@ -440,6 +441,26 @@ public class RouterMessageHandlerAdapterTests {
 		assertNull(result6);
 	}
 
+	@Test
+	public void testChannelRegistryAwareTarget() throws Exception {
+		SimpleChannel fooChannel = new SimpleChannel();
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		channelRegistry.registerChannel("foo-channel", fooChannel);
+		ChannelRegistryAwareTestBean testBean = new ChannelRegistryAwareTestBean();
+		Method routingMethod = testBean.getClass().getMethod("route", String.class);
+		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
+		adapter.setChannelRegistry(channelRegistry);
+		assertNull(testBean.getChannelRegistry());
+		adapter.afterPropertiesSet();
+		assertNotNull(testBean.getChannelRegistry());
+		Message<String> message = new StringMessage("foo-channel");
+		adapter.handle(message);
+		Message<?> result = fooChannel.receive(0);
+		assertNotNull(result);
+		assertEquals("foo-channel", result.getPayload());
+	}
+
 
 	public static class SingleChannelNameRoutingTestBean {
 
@@ -549,6 +570,24 @@ public class RouterMessageHandlerAdapterTests {
 				results[1] = registry.lookupChannel("bar-channel");
 			}
 			return results;
+		}
+	}
+
+
+	public static class ChannelRegistryAwareTestBean implements ChannelRegistryAware {
+
+		private ChannelRegistry channelRegistry;
+
+		public void setChannelRegistry(ChannelRegistry channelRegistry) {
+			this.channelRegistry = channelRegistry;
+		}
+
+		public ChannelRegistry getChannelRegistry() {
+			return this.channelRegistry;
+		}
+
+		public MessageChannel route(String channelName) {
+			return this.channelRegistry.lookupChannel(channelName);
 		}
 	}
 

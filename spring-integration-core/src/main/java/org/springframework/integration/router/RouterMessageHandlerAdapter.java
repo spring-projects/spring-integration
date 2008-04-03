@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,6 +63,14 @@ public class RouterMessageHandlerAdapter extends AbstractMessageHandlerAdapter i
 
 	public void setChannelRegistry(ChannelRegistry channelRegistry) {
 		this.channelRegistry = channelRegistry;
+	}
+
+	@Override
+	protected void initialize() {
+		Object target = this.getObject();
+		if (target != null && this.channelRegistry != null && (target instanceof ChannelRegistryAware)) {
+			((ChannelRegistryAware) target).setChannelRegistry(this.channelRegistry);
+		}
 	}
 
 	@Override

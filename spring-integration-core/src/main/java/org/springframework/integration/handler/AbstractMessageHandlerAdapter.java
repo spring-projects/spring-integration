@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,10 @@ public abstract class AbstractMessageHandlerAdapter<T> implements MessageHandler
 		this.object = object;
 	}
 
+	protected Object getObject() {
+		return this.object;
+	}
+
 	public void setMethodName(String methodName) {
 		Assert.notNull(methodName, "'methodName' must not be null");
 		this.methodName = methodName;
@@ -82,6 +86,7 @@ public abstract class AbstractMessageHandlerAdapter<T> implements MessageHandler
 			this.invoker = new SimpleMethodInvoker<T>(this.object, this.methodName);
 			this.initialized = true;
 		}
+		this.initialize();
 	}
 
 	public final Message<?> handle(Message<?> message) {
@@ -107,6 +112,12 @@ public abstract class AbstractMessageHandlerAdapter<T> implements MessageHandler
 	 * Subclasses may override this method to provide validation upon initialization.
 	 */
 	protected void validate() {
+	}
+
+	/**
+	 * Subclasses may override this method to provide additional initialization.
+	 */
+	protected void initialize() {
 	}
 
 	protected Message<?> createReplyMessage(Object payload, MessageHeader originalMessageHeader) {
