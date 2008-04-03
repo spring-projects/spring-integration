@@ -18,9 +18,12 @@ package org.springframework.integration.adapter.stream;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 
+import org.springframework.integration.MessagingConfigurationException;
 import org.springframework.integration.adapter.AbstractTargetAdapter;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.util.Assert;
@@ -61,17 +64,47 @@ public class CharacterStreamTargetAdapter extends AbstractTargetAdapter {
 
 
 	/**
-	 * Factory method that creates an adapter for stdout (System.out).
+	 * Factory method that creates an adapter for stdout (System.out) with the
+	 * default charset encoding.
 	 */
 	public static CharacterStreamTargetAdapter stdoutAdapter() {
-		return new CharacterStreamTargetAdapter(new OutputStreamWriter(System.out));
+		return stdoutAdapter(null);
 	}
 
 	/**
-	 * Factory method that creates an adapter for stderr (System.err).
+	 * Factory method that creates an adapter for stdout (System.out) with the
+	 * specified charset encoding.
+	 */
+	public static CharacterStreamTargetAdapter stdoutAdapter(String charsetName) {
+		return createAdapterForStream(System.out, charsetName);
+	}
+
+	/**
+	 * Factory method that creates an adapter for stderr (System.err) with the
+	 * default charset encoding.
 	 */
 	public static CharacterStreamTargetAdapter stderrAdapter() {
-		return new CharacterStreamTargetAdapter(new OutputStreamWriter(System.err));
+		return stderrAdapter(null);
+	}
+
+	/**
+	 * Factory method that creates an adapter for stderr (System.err) with the
+	 * specified charset encoding.
+	 */	
+	public static CharacterStreamTargetAdapter stderrAdapter(String charsetName) {
+		return createAdapterForStream(System.err, charsetName);
+	}
+
+	private static CharacterStreamTargetAdapter createAdapterForStream(OutputStream stream, String charsetName) {
+		if (charsetName == null) {
+			return new CharacterStreamTargetAdapter(new OutputStreamWriter(stream));
+		}
+		try {
+			return new CharacterStreamTargetAdapter(new OutputStreamWriter(stream, charsetName));
+		}
+		catch (UnsupportedEncodingException e) {
+			throw new MessagingConfigurationException("unsupported encoding: " + charsetName, e);
+		}
 	}
 
 
@@ -90,6 +123,12 @@ public class CharacterStreamTargetAdapter extends AbstractTargetAdapter {
 		try {
 			if (object instanceof String) {
 				writer.write((String) object);
+			}
+			else if (object instanceof char[]) {
+				this.writer.write((char[]) object);
+			}
+			else if (object instanceof byte[]) {
+				this.writer.write(new String((byte[]) object));
 			}
 			else {
 				writer.write(object.toString());
