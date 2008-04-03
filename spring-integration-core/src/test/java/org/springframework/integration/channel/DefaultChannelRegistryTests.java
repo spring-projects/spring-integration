@@ -73,20 +73,4 @@ public class DefaultChannelRegistryTests {
 		assertNull(unregisteredChannel);
 	}
 
-	@Test
-	public void testNoErrorChannelByDefault() {
-		DefaultChannelRegistry registry = new DefaultChannelRegistry();
-		assertNull(registry.getErrorChannel());
-	}
-
-	@Test
-	public void testRegisteredErrorChannel() {
-		SimpleChannel errorChannel = new SimpleChannel();
-		DefaultChannelRegistry registry = new DefaultChannelRegistry();
-		registry.setErrorChannel(errorChannel);
-		MessageChannel result = registry.getErrorChannel();
-		assertNotNull(result);
-		assertSame(errorChannel, result);
-	}
-
 }

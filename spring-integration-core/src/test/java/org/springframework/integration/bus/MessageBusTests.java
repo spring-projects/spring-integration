@@ -233,6 +233,33 @@ public class MessageBusTests {
 		assertTrue(exceptionThrown);
 	}
 
+	@Test
+	public void testErrorChannelRegistration() {
+		MessageChannel errorChannel = new SimpleChannel();
+		MessageBus bus = new MessageBus();
+		bus.setErrorChannel(errorChannel);
+		assertEquals(errorChannel, bus.getErrorChannel());
+	}
+
+	@Test
+	public void testHandlerSubscribedToErrorChannel() throws InterruptedException {
+		MessageChannel errorChannel = new SimpleChannel();
+		MessageBus bus = new MessageBus();
+		bus.setErrorChannel(errorChannel);
+		final CountDownLatch latch = new CountDownLatch(1);
+		MessageHandler handler = new MessageHandler() {
+			public Message<?> handle(Message<?> message) {
+				latch.countDown();
+				return null;
+			}
+		};
+		bus.registerHandler("testHandler", handler, new Subscription(MessageBus.ERROR_CHANNEL_NAME));
+		bus.start();
+		errorChannel.send(new ErrorMessage(new RuntimeException("test-exception")));
+		latch.await(1000, TimeUnit.MILLISECONDS);
+		assertEquals("handler should have received error message", 0, latch.getCount());
+	}
+
 
 	private static class FailingSource implements PollableSource<Object> {
 

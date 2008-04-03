@@ -90,6 +90,8 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 
 	private volatile boolean initialized;
 
+	private volatile boolean initializing;
+
 	private volatile boolean starting;
 
 	private volatile boolean running;
@@ -173,31 +175,32 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 
 	public void initialize() {
 		synchronized (this.lifecycleMonitor) {
-			if (this.initialized) {
+			if (this.initialized || this.initializing) {
 				return;
 			}
-			if (this.getErrorChannel() == null) {
-				this.setErrorChannel(new DefaultErrorChannel());
-			}
+			this.initializing = true;
 			if (this.defaultConcurrencyPolicy == null) {
 				this.defaultConcurrencyPolicy = new ConcurrencyPolicy();
 			}
 			if (this.executor == null) {
 				this.executor = new ScheduledThreadPoolExecutor(DEFAULT_DISPATCHER_POOL_SIZE);
 			}
-			SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(this.executor);
-			scheduler.setErrorHandler(new MessagePublishingErrorHandler(this.getErrorChannel()));
-			this.taskScheduler = scheduler;
+			this.taskScheduler = new SimpleMessagingTaskScheduler(this.executor);
+			if (this.getErrorChannel() == null) {
+				this.setErrorChannel(new DefaultErrorChannel());
+			}
+			this.taskScheduler.setErrorHandler(new MessagePublishingErrorHandler(this.getErrorChannel()));
 			this.initialized = true;
+			this.initializing = false;
 		}
 	}
 
 	public MessageChannel getErrorChannel() {
-		return this.channelRegistry.lookupChannel(ERROR_CHANNEL_NAME);
+		return this.lookupChannel(ERROR_CHANNEL_NAME);
 	}
 
 	public void setErrorChannel(MessageChannel errorChannel) {
-		this.channelRegistry.registerChannel(ERROR_CHANNEL_NAME, errorChannel);
+		this.registerChannel(ERROR_CHANNEL_NAME, errorChannel);
 	}
 
 	public MessageChannel lookupChannel(String channelName) {

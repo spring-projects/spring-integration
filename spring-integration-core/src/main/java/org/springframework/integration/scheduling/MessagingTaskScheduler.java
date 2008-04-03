@@ -19,6 +19,7 @@ package org.springframework.integration.scheduling;
 import java.util.concurrent.ScheduledFuture;
 
 import org.springframework.context.Lifecycle;
+import org.springframework.integration.util.ErrorHandler;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 
 /**
@@ -29,5 +30,7 @@ import org.springframework.scheduling.SchedulingTaskExecutor;
 public interface MessagingTaskScheduler extends SchedulingTaskExecutor, Lifecycle {
 
 	ScheduledFuture<?> schedule(Runnable task);
+
+	void setErrorHandler(ErrorHandler errorHandler);
 
 }
