@@ -72,6 +72,18 @@ public class MessageEndpointAnnotationPostProcessorTests {
 	}
 
 	@Test
+	public void testTypeConvertingHandler() throws InterruptedException {
+		AbstractApplicationContext context = new ClassPathXmlApplicationContext("typeConvertingEndpointTests.xml", this.getClass());
+		context.start();
+		MessageChannel inputChannel = (MessageChannel) context.getBean("inputChannel");
+		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
+		inputChannel.send(new StringMessage("123"));
+		Message<?> message = outputChannel.receive(1000);
+		assertEquals(246, message.getPayload());
+		context.stop();
+	}
+
+	@Test
 	public void testPolledAnnotation() throws InterruptedException {
 		MessageBus messageBus = new MessageBus();
 		SimpleChannel testChannel = new SimpleChannel();

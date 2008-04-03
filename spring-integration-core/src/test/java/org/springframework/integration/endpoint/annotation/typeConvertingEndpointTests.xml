@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:integration="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
+
+	<bean id="bus" class="org.springframework.integration.bus.MessageBus"/>
+
+	<integration:channel id="inputChannel"/>
+
+	<integration:channel id="outputChannel"/>
+
+	<bean id="endpoint" class="org.springframework.integration.endpoint.annotation.TypeConvertingTestEndpoint"/>
+
+	<bean class="org.springframework.integration.config.MessageEndpointAnnotationPostProcessor">
+		<constructor-arg ref="bus"/>
+	</bean>
+
+</beans>

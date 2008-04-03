@@ -18,6 +18,7 @@ package org.springframework.integration.util;
 
 import java.lang.reflect.InvocationTargetException;
 
+import org.springframework.beans.support.ArgumentConvertingMethodInvoker;
 import org.springframework.integration.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.MethodInvoker;
@@ -50,7 +51,7 @@ public class SimpleMethodInvoker<T> {
 
 	public Object invokeMethod(Object ... args) {
 		try {
-			MethodInvoker methodInvoker = new MethodInvoker();
+			MethodInvoker methodInvoker = new ArgumentConvertingMethodInvoker();
 			methodInvoker.setTargetObject(this.object);
 			methodInvoker.setTargetMethod(this.method);
 			methodInvoker.setArguments(args);
@@ -63,11 +64,11 @@ public class SimpleMethodInvoker<T> {
 		}
 		catch (InvocationTargetException e) {
 			throw new MessagingException(
-					"Method '" + this.method + "' threw exception", e.getTargetException());
+					"Method '" + this.method + "' threw an Exception.", e.getTargetException());
 		}
 		catch (Throwable e) {
 			throw new MessagingException("Failed to invoke method '" + this.method +
-					"' with arguments " + ObjectUtils.nullSafeToString(args), e);
+					"' with arguments: " + ObjectUtils.nullSafeToString(args), e);
 		}
 	}
 
