@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.springframework.integration.adapter.stream;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import java.io.ByteArrayInputStream;
+import java.io.StringReader;
 
 import org.junit.Test;
 
@@ -34,10 +34,9 @@ public class CharacterStreamSourceAdapterTests {
 
 	@Test
 	public void testEndOfStream() {
-		byte[] bytes = "test".getBytes();
-		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
+		StringReader reader = new StringReader("test");
 		MessageChannel channel = new SimpleChannel();
-		CharacterStreamSourceAdapter adapter = new CharacterStreamSourceAdapter(stream);
+		CharacterStreamSourceAdapter adapter = new CharacterStreamSourceAdapter(reader);
 		adapter.setChannel(channel);
 		adapter.start();
 		int count = adapter.processMessages();
@@ -53,10 +52,9 @@ public class CharacterStreamSourceAdapterTests {
 
 	@Test
 	public void testEndOfStreamWithMaxMessagesPerTask() {
-		byte[] bytes = "test".getBytes();
-		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
+		StringReader reader = new StringReader("test");
 		MessageChannel channel = new SimpleChannel();
-		CharacterStreamSourceAdapter adapter = new CharacterStreamSourceAdapter(stream);
+		CharacterStreamSourceAdapter adapter = new CharacterStreamSourceAdapter(reader);
 		adapter.setChannel(channel);
 		adapter.setMaxMessagesPerTask(5);
 		adapter.start();
@@ -71,9 +69,9 @@ public class CharacterStreamSourceAdapterTests {
 	@Test
 	public void testMultipleLinesWithSingleMessagePerTask() {
 		String s = "test1" + System.getProperty("line.separator") + "test2";
-		ByteArrayInputStream stream = new ByteArrayInputStream(s.getBytes());
+		StringReader reader = new StringReader(s);
 		MessageChannel channel = new SimpleChannel();
-		CharacterStreamSourceAdapter adapter = new CharacterStreamSourceAdapter(stream);
+		CharacterStreamSourceAdapter adapter = new CharacterStreamSourceAdapter(reader);
 		adapter.setInitialDelay(10000);
 		adapter.setMaxMessagesPerTask(1);
 		adapter.setChannel(channel);
@@ -92,9 +90,9 @@ public class CharacterStreamSourceAdapterTests {
 	@Test
 	public void testLessThanMaxMessagesAvailable() {
 		String s = "test1" + System.getProperty("line.separator") + "test2";
-		ByteArrayInputStream stream = new ByteArrayInputStream(s.getBytes());
+		StringReader reader = new StringReader(s);
 		MessageChannel channel = new SimpleChannel();
-		CharacterStreamSourceAdapter adapter = new CharacterStreamSourceAdapter(stream);
+		CharacterStreamSourceAdapter adapter = new CharacterStreamSourceAdapter(reader);
 		adapter.setChannel(channel);
 		adapter.setMaxMessagesPerTask(5);
 		adapter.start();

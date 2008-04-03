@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.springframework.integration.adapter.stream;
 
-import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 
 import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.channel.MessageChannel;
@@ -28,8 +29,8 @@ import org.springframework.integration.channel.MessageChannel;
  */
 public class CharacterStreamSourceAdapter extends PollingSourceAdapter<String> {
 
-	public CharacterStreamSourceAdapter(InputStream stream) {
-		super(new CharacterStreamSource(stream));
+	public CharacterStreamSourceAdapter(Reader reader) {
+		super(new CharacterStreamSource(reader));
 	}
 
 
@@ -37,7 +38,8 @@ public class CharacterStreamSourceAdapter extends PollingSourceAdapter<String> {
 	 * Factory method that creates an adapter for stdin (System.in).
 	 */
 	public static CharacterStreamSourceAdapter stdinAdapter(MessageChannel channel) {
-		CharacterStreamSourceAdapter adapter = new CharacterStreamSourceAdapter(System.in);
+		CharacterStreamSourceAdapter adapter =
+				new CharacterStreamSourceAdapter(new InputStreamReader(System.in));
 		adapter.setChannel(channel);
 		return adapter;
 	}

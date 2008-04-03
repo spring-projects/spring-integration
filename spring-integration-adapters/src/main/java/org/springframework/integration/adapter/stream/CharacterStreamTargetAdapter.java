@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,15 @@ package org.springframework.integration.adapter.stream;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Writer;
 
 import org.springframework.integration.adapter.AbstractTargetAdapter;
 import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.util.Assert;
 
 /**
- * A target adapter that writes to an {@link OutputStream}. String-based
+ * A target adapter that writes to a {@link Writer}. String-based
  * objects will be written directly, but if the object is not itself a
  * {@link String}, the adapter will write the result of the object's
  * {@link #toString()} method. To append a new-line after each write, set the
@@ -36,21 +37,25 @@ import org.springframework.integration.message.MessageHandlingException;
  */
 public class CharacterStreamTargetAdapter extends AbstractTargetAdapter {
 
-	private BufferedWriter writer;
+	private final BufferedWriter writer;
 
-	private boolean shouldAppendNewLine = false;
+	private volatile boolean shouldAppendNewLine = false;
 
 
-	public CharacterStreamTargetAdapter(OutputStream stream) {
-		this(stream, -1);
+	public CharacterStreamTargetAdapter(Writer writer) {
+		this(writer, -1);
 	}
 
-	public CharacterStreamTargetAdapter(OutputStream stream, int bufferSize) {
-		if (bufferSize > 0) {
-			this.writer = new BufferedWriter(new OutputStreamWriter(stream), bufferSize);
+	public CharacterStreamTargetAdapter(Writer writer, int bufferSize) {
+		Assert.notNull(writer, "writer must not be null");
+		if (writer instanceof BufferedWriter) {
+			this.writer = (BufferedWriter) writer;
+		}
+		else if (bufferSize > 0) {
+			this.writer = new BufferedWriter(writer, bufferSize);
 		}
 		else {
-			this.writer = new BufferedWriter(new OutputStreamWriter(stream));
+			this.writer = new BufferedWriter(writer);
 		}
 	}
 
@@ -59,14 +64,14 @@ public class CharacterStreamTargetAdapter extends AbstractTargetAdapter {
 	 * Factory method that creates an adapter for stdout (System.out).
 	 */
 	public static CharacterStreamTargetAdapter stdoutAdapter() {
-		return new CharacterStreamTargetAdapter(System.out);
+		return new CharacterStreamTargetAdapter(new OutputStreamWriter(System.out));
 	}
 
 	/**
 	 * Factory method that creates an adapter for stderr (System.err).
 	 */
 	public static CharacterStreamTargetAdapter stderrAdapter() {
-		return new CharacterStreamTargetAdapter(System.err);
+		return new CharacterStreamTargetAdapter(new OutputStreamWriter(System.err));
 	}
 
 

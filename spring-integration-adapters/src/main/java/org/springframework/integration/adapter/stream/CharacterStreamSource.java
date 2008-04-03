@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,38 +18,42 @@ package org.springframework.integration.adapter.stream;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import org.springframework.integration.adapter.PollableSource;
 import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.util.Assert;
 
 /**
- * A pollable source for text-based {@link InputStream InputStreams}.
+ * A pollable source for {@link Reader Readers}.
  * 
  * @author Mark Fisher
  */
 public class CharacterStreamSource implements PollableSource<String> {
 
-	private BufferedReader reader;
+	private final BufferedReader reader;
 
-	private Object streamMonitor;
+	private final Object monitor;
 
 
-	public CharacterStreamSource(InputStream stream) {
-		this(stream, -1);
+	public CharacterStreamSource(Reader reader) {
+		this(reader, -1);
 	}
 
-	public CharacterStreamSource(InputStream stream, int bufferSize) {
-		this.streamMonitor = stream;
-		if (bufferSize > 0) {
-			this.reader = new BufferedReader(new InputStreamReader(stream), bufferSize);
+	public CharacterStreamSource(Reader reader, int bufferSize) {
+		Assert.notNull(reader, "reader must not be null");
+		this.monitor = reader;
+		if (reader instanceof BufferedReader) {
+			this.reader = (BufferedReader) reader;
+		}
+		else if (bufferSize > 0) {
+			this.reader = new BufferedReader(reader, bufferSize);
 		}
 		else {
-			this.reader = new BufferedReader(new InputStreamReader(stream));
+			this.reader = new BufferedReader(reader);
 		}
 	}
 
@@ -59,12 +63,12 @@ public class CharacterStreamSource implements PollableSource<String> {
 		while (results.size() < limit) {
 			try {
 				String line = null;
-				synchronized (this.streamMonitor) {
-					boolean isReady = reader.ready();
+				synchronized (this.monitor) {
+					boolean isReady = this.reader.ready();
 					if (!isReady) {
 						return results;
 					}
-					line = reader.readLine();
+					line = this.reader.readLine();
 				}
 				if (line == null) {
 					return results;

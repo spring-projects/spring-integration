@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.springframework.integration.adapter.stream;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.ByteArrayOutputStream;
+import java.io.StringWriter;
 
 import org.junit.Test;
 
@@ -41,53 +41,48 @@ public class CharacterStreamTargetAdapterTests {
 
 	@Test
 	public void testSingleString() {
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
+		StringWriter writer = new StringWriter();
+		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(writer);
 		adapter.handle(new StringMessage("foo"));
-		String result = new String(stream.toByteArray());
-		assertEquals("foo", result);
+		assertEquals("foo", writer.toString());
 	}
 
 	@Test
 	public void testTwoStringsAndNoNewLinesByDefault() {
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		MessageChannel channel = new SimpleChannel();
-		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
+		StringWriter writer = new StringWriter();
+		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(writer);
 		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		dispatcher.addHandler(adapter);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
 		assertEquals(1, dispatcher.dispatch());
-		String result1 = new String(stream.toByteArray());
-		assertEquals("foo", result1);
+		assertEquals("foo", writer.toString());
 		assertEquals(1, dispatcher.dispatch());
-		String result2 = new String(stream.toByteArray());
-		assertEquals("foobar", result2);
+		assertEquals("foobar", writer.toString());
 	}
 
 	@Test
 	public void testTwoStringsWithNewLines() {
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		MessageChannel channel = new SimpleChannel();
-		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
+		StringWriter writer = new StringWriter();
+		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(writer);
 		adapter.setShouldAppendNewLine(true);
 		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		dispatcher.addHandler(adapter);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
 		assertEquals(1, dispatcher.dispatch());
-		String result1 = new String(stream.toByteArray());
 		String newLine = System.getProperty("line.separator");
-		assertEquals("foo" + newLine, result1);
+		assertEquals("foo" + newLine, writer.toString());
 		assertEquals(1, dispatcher.dispatch());
-		String result2 = new String(stream.toByteArray());
-		assertEquals("foo" + newLine + "bar" + newLine, result2);
+		assertEquals("foo" + newLine + "bar" + newLine, writer.toString());
 	}
 
 	@Test
 	public void testMaxMessagesPerTaskSameAsMessageCount() {
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
+		StringWriter writer = new StringWriter();
+		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(writer);
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
@@ -96,14 +91,13 @@ public class CharacterStreamTargetAdapterTests {
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
 		assertEquals(2, dispatcher.dispatch());
-		String result = new String(stream.toByteArray());
-		assertEquals("foobar", result);
+		assertEquals("foobar", writer.toString());
 	}
 
 	@Test
 	public void testMaxMessagesPerTaskExceedsMessageCountWithAppendedNewLines() {
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
+		StringWriter writer = new StringWriter();
+		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(writer);
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(10);
 		dispatcherPolicy.setReceiveTimeout(0);
@@ -114,30 +108,28 @@ public class CharacterStreamTargetAdapterTests {
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
 		assertEquals(2, dispatcher.dispatch());
-		String result = new String(stream.toByteArray());
 		String newLine = System.getProperty("line.separator");
-		assertEquals("foo" + newLine + "bar" + newLine, result);
+		assertEquals("foo" + newLine + "bar" + newLine, writer.toString());
 	}
 
 	@Test
 	public void testSingleNonStringObject() {
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		MessageChannel channel = new SimpleChannel();
-		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
+		StringWriter writer = new StringWriter();
+		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(writer);
 		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		dispatcher.addHandler(adapter);
 		TestObject testObject = new TestObject("foo");
 		channel.send(new GenericMessage<TestObject>(testObject));
 		int count = dispatcher.dispatch();
 		assertEquals(1, count);
-		String result = new String(stream.toByteArray());
-		assertEquals("foo", result);
+		assertEquals("foo", writer.toString());
 	}
 
 	@Test
 	public void testTwoNonStringObjectWithOutNewLines() {
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
+		StringWriter writer = new StringWriter();
+		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(writer);
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setReceiveTimeout(0);
 		dispatcherPolicy.setMaxMessagesPerTask(2);
@@ -149,14 +141,13 @@ public class CharacterStreamTargetAdapterTests {
 		channel.send(new GenericMessage<TestObject>(testObject1), 0);
 		channel.send(new GenericMessage<TestObject>(testObject2), 0);
 		assertEquals(2, dispatcher.dispatch());
-		String result = new String(stream.toByteArray());
-		assertEquals("foobar", result);
+		assertEquals("foobar", writer.toString());
 	}
 
 	@Test
 	public void testTwoNonStringObjectWithNewLines() {
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(stream);
+		StringWriter writer = new StringWriter();
+		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(writer);
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setReceiveTimeout(0);
 		dispatcherPolicy.setMaxMessagesPerTask(2);
@@ -169,9 +160,8 @@ public class CharacterStreamTargetAdapterTests {
 		channel.send(new GenericMessage<TestObject>(testObject1), 0);
 		channel.send(new GenericMessage<TestObject>(testObject2), 0);
 		dispatcher.dispatch();
-		String result = new String(stream.toByteArray());
 		String newLine = System.getProperty("line.separator");
-		assertEquals("foo" + newLine + "bar" + newLine, result);
+		assertEquals("foo" + newLine + "bar" + newLine, writer.toString());
 	}
 
 
