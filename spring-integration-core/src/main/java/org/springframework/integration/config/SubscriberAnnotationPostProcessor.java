@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import java.lang.reflect.Method;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.aop.framework.Advised;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -71,8 +71,7 @@ public class SubscriberAnnotationPostProcessor implements BeanPostProcessor {
 	}
 
 	public Object postProcessAfterInitialization(final Object bean, String beanName) throws BeansException {
-		final Class<?> targetClass = bean instanceof Advised ? 
-				((Advised) bean).getTargetSource().getTargetClass() : bean.getClass();
+		final Class<?> targetClass = AopUtils.getTargetClass(bean);
 		if (targetClass == null) {
 			return bean;
 		}

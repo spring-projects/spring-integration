@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -100,7 +101,8 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 	}
 
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-		MessageEndpoint endpointAnnotation = bean.getClass().getAnnotation(MessageEndpoint.class);
+		Class<?> beanClass = this.getBeanClass(bean);
+		MessageEndpoint endpointAnnotation = AnnotationUtils.findAnnotation(beanClass, MessageEndpoint.class);
 		if (endpointAnnotation == null) {
 			return bean;
 		}
@@ -111,7 +113,7 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(handlerChain);
 		this.configureInput(bean, beanName, endpointAnnotation, endpoint);
 		this.configureDefaultOutput(bean, beanName, endpointAnnotation, endpoint);
-		Concurrency concurrencyAnnotation = bean.getClass().getAnnotation(Concurrency.class);
+		Concurrency concurrencyAnnotation = AnnotationUtils.findAnnotation(beanClass, Concurrency.class);
 		if (concurrencyAnnotation != null) {
 			ConcurrencyPolicy concurrencyPolicy = new ConcurrencyPolicy(
 					concurrencyAnnotation.coreSize(), concurrencyAnnotation.maxSize());
@@ -138,7 +140,7 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 			Subscription subscription = new Subscription(channelName, schedule);
 			endpoint.setSubscription(subscription);
 		}
-		ReflectionUtils.doWithMethods(bean.getClass(), new ReflectionUtils.MethodCallback() {
+		ReflectionUtils.doWithMethods(this.getBeanClass(bean), new ReflectionUtils.MethodCallback() {
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
 				Annotation annotation = AnnotationUtils.getAnnotation(method, Polled.class);
 				if (annotation != null) {
@@ -173,7 +175,7 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 			endpoint.setDefaultOutputChannelName(channelName);
 			return;
 		}
-		ReflectionUtils.doWithMethods(bean.getClass(), new ReflectionUtils.MethodCallback() {
+		ReflectionUtils.doWithMethods(this.getBeanClass(bean), new ReflectionUtils.MethodCallback() {
 			boolean foundDefaultOutput = false;
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
 				Annotation annotation = AnnotationUtils.getAnnotation(method, DefaultOutput.class);
@@ -208,7 +210,7 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 	@SuppressWarnings("unchecked")
 	private MessageHandlerChain createHandlerChain(final Object bean) {
 		final List<MessageHandler> handlers = new ArrayList<MessageHandler>();
-		ReflectionUtils.doWithMethods(bean.getClass(), new ReflectionUtils.MethodCallback() {
+		ReflectionUtils.doWithMethods(this.getBeanClass(bean), new ReflectionUtils.MethodCallback() {
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
 				Annotation[] annotations = AnnotationUtils.getAnnotations(method);
 				for (Annotation annotation : annotations) {
@@ -251,6 +253,10 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 			return handlerChain;
 		}
 		return null;
+	}
+
+	private Class<?> getBeanClass(Object bean) {
+		return AopUtils.getTargetClass(bean);
 	}
 
 	private boolean isHandlerAnnotation(Annotation annotation) {

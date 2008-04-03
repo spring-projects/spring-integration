@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,12 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
+import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.annotation.Concurrency;
 import org.springframework.integration.annotation.DefaultOutput;
+import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Polled;
 import org.springframework.integration.bus.MessageBus;
@@ -149,6 +151,110 @@ public class MessageEndpointAnnotationPostProcessorTests {
 		assertEquals(messageBus, channelRegistry);
 	}
 
+	@Test
+	public void testProxiedMessageEndpointAnnotation() {
+		MessageBus messageBus = new MessageBus();
+		messageBus.setAutoCreateChannels(true);
+		MessageEndpointAnnotationPostProcessor postProcessor =
+				new MessageEndpointAnnotationPostProcessor(messageBus);
+		postProcessor.afterPropertiesSet();
+		ProxyFactory proxyFactory = new ProxyFactory(new SimpleAnnotatedEndpoint());
+		Object proxy = proxyFactory.getProxy();
+		postProcessor.postProcessAfterInitialization(proxy, "proxy");
+		messageBus.start();
+		MessageChannel inputChannel = messageBus.lookupChannel("inputChannel");
+		MessageChannel outputChannel = messageBus.lookupChannel("outputChannel");
+		inputChannel.send(new StringMessage("world"));
+		Message<?> message = outputChannel.receive(1000);
+		assertEquals("hello world", message.getPayload());
+	}
+
+	@Test
+	public void testMessageEndpointAnnotationInherited() {
+		MessageBus messageBus = new MessageBus();
+		messageBus.setAutoCreateChannels(true);
+		MessageEndpointAnnotationPostProcessor postProcessor =
+				new MessageEndpointAnnotationPostProcessor(messageBus);
+		postProcessor.afterPropertiesSet();
+		postProcessor.postProcessAfterInitialization(new SimpleAnnotatedEndpointSubclass(), "subclass");
+		messageBus.start();
+		MessageChannel inputChannel = messageBus.lookupChannel("inputChannel");
+		MessageChannel outputChannel = messageBus.lookupChannel("outputChannel");
+		inputChannel.send(new StringMessage("world"));
+		Message<?> message = outputChannel.receive(1000);
+		assertEquals("hello world", message.getPayload());
+	}
+
+	@Test
+	public void testMessageEndpointAnnotationInheritedWithProxy() {
+		MessageBus messageBus = new MessageBus();
+		messageBus.setAutoCreateChannels(true);
+		MessageEndpointAnnotationPostProcessor postProcessor =
+				new MessageEndpointAnnotationPostProcessor(messageBus);
+		postProcessor.afterPropertiesSet();
+		ProxyFactory proxyFactory = new ProxyFactory(new SimpleAnnotatedEndpointSubclass());
+		Object proxy = proxyFactory.getProxy();
+		postProcessor.postProcessAfterInitialization(proxy, "proxy");
+		messageBus.start();
+		MessageChannel inputChannel = messageBus.lookupChannel("inputChannel");
+		MessageChannel outputChannel = messageBus.lookupChannel("outputChannel");
+		inputChannel.send(new StringMessage("world"));
+		Message<?> message = outputChannel.receive(1000);
+		assertEquals("hello world", message.getPayload());
+	}
+
+	@Test
+	public void testMessageEndpointAnnotationInheritedFromInterface() {
+		MessageBus messageBus = new MessageBus();
+		MessageChannel inputChannel = new SimpleChannel();
+		MessageChannel outputChannel = new SimpleChannel();
+		messageBus.registerChannel("inputChannel", inputChannel);
+		messageBus.registerChannel("outputChannel", outputChannel);
+		MessageEndpointAnnotationPostProcessor postProcessor =
+				new MessageEndpointAnnotationPostProcessor(messageBus);
+		postProcessor.afterPropertiesSet();
+		postProcessor.postProcessAfterInitialization(new SimpleAnnotatedEndpointImplementation(), "impl");
+		messageBus.start();
+		inputChannel.send(new StringMessage("ABC"));
+		Message<?> message = outputChannel.receive(1000);
+		assertEquals("test-ABC", message.getPayload());
+	}
+
+	@Test
+	public void testMessageEndpointAnnotationInheritedFromInterfaceWithAutoCreatedChannels() {
+		MessageBus messageBus = new MessageBus();
+		messageBus.setAutoCreateChannels(true);
+		MessageEndpointAnnotationPostProcessor postProcessor =
+				new MessageEndpointAnnotationPostProcessor(messageBus);
+		postProcessor.afterPropertiesSet();
+		postProcessor.postProcessAfterInitialization(new SimpleAnnotatedEndpointImplementation(), "impl");
+		messageBus.start();
+		MessageChannel inputChannel = messageBus.lookupChannel("inputChannel");
+		MessageChannel outputChannel = messageBus.lookupChannel("outputChannel");
+		inputChannel.send(new StringMessage("ABC"));
+		Message<?> message = outputChannel.receive(1000);
+		assertEquals("test-ABC", message.getPayload());
+	}
+
+	@Test
+	public void testMessageEndpointAnnotationInheritedFromInterfaceWithProxy() {
+		MessageBus messageBus = new MessageBus();
+		MessageChannel inputChannel = new SimpleChannel();
+		MessageChannel outputChannel = new SimpleChannel();
+		messageBus.registerChannel("inputChannel", inputChannel);
+		messageBus.registerChannel("outputChannel", outputChannel);
+		MessageEndpointAnnotationPostProcessor postProcessor =
+				new MessageEndpointAnnotationPostProcessor(messageBus);
+		postProcessor.afterPropertiesSet();
+		ProxyFactory proxyFactory = new ProxyFactory(new SimpleAnnotatedEndpointImplementation());
+		Object proxy = proxyFactory.getProxy();
+		postProcessor.postProcessAfterInitialization(proxy, "proxy");
+		messageBus.start();
+		inputChannel.send(new StringMessage("ABC"));
+		Message<?> message = outputChannel.receive(1000);
+		assertEquals("test-ABC", message.getPayload());
+	}
+
 
 	@MessageEndpoint(defaultOutput="testChannel")
 	private static class PolledAnnotationTestBean {
@@ -201,6 +307,25 @@ public class MessageEndpointAnnotationPostProcessorTests {
 
 		public ChannelRegistry getChannelRegistry() {
 			return this.channelRegistry;
+		}
+	}
+
+
+	private static class SimpleAnnotatedEndpointSubclass extends SimpleAnnotatedEndpoint {
+	}
+
+
+	@MessageEndpoint(input="inputChannel", defaultOutput="outputChannel", pollPeriod=25)
+	private static interface SimpleAnnotatedEndpointInterface {
+		String test(String input);
+	}
+
+
+	private static class SimpleAnnotatedEndpointImplementation implements SimpleAnnotatedEndpointInterface {
+
+		@Handler
+		public String test(String input) {
+			return "test-"  + input;
 		}
 	}
 

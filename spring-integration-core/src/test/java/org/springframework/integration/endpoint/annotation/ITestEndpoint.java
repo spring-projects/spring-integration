@@ -16,18 +16,11 @@
 
 package org.springframework.integration.endpoint.annotation;
 
-import org.springframework.integration.annotation.Handler;
-import org.springframework.integration.annotation.MessageEndpoint;
-
 /**
  * @author Mark Fisher
  */
-@MessageEndpoint(input="inputChannel", defaultOutput="outputChannel", pollPeriod=10)
-public class SimpleAnnotatedEndpoint implements ITestEndpoint {
+public interface ITestEndpoint {
 
-	@Handler
-	public String sayHello(String name) {
-		return "hello " + name;
-	}
+	String sayHello(String name);
 
 }
