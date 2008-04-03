@@ -44,11 +44,11 @@ public class RouterMessageHandlerAdapter extends AbstractMessageHandlerAdapter i
 	private static final String ATTRIBUTE_KEY = "attribute";
 
 
-	private Method method;
+	private final Method method;
 
-	private Map<String, ?> attributes;
+	private final Map<String, ?> attributes;
 
-	private ChannelRegistry channelRegistry;
+	private volatile ChannelRegistry channelRegistry;
 
 
 	public RouterMessageHandlerAdapter(Object object, Method method, Map<String, ?> attributes) {
