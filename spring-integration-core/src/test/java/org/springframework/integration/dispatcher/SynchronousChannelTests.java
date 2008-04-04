@@ -17,13 +17,13 @@
 package org.springframework.integration.dispatcher;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
@@ -54,10 +54,30 @@ public class SynchronousChannelTests {
 	}
 
 	@Test
-	public void testSendWithNoHandler() {
+	public void testSendAndReceiveWithNoHandler() {
 		SynchronousChannel channel = new SynchronousChannel();
 		StringMessage message = new StringMessage("test");
-		assertFalse(channel.send(message));
+		assertNull(channel.receive());
+		assertTrue(channel.send(message));
+		Message<?> response = channel.receive();
+		assertNotNull(response);
+		assertEquals(response, message);
+		assertNull(channel.receive());
+	}
+
+	@Test
+	public void testSendAndClearWithNoHandler() {
+		SynchronousChannel channel = new SynchronousChannel();
+		StringMessage message1 = new StringMessage("test1");
+		StringMessage message2 = new StringMessage("test2");
+		assertNull(channel.receive());
+		assertTrue(channel.send(message1));
+		assertTrue(channel.send(message2));
+		List<Message<?>> clearedMessages = channel.clear();
+		assertEquals(2, clearedMessages.size());
+		assertEquals(message1, clearedMessages.get(0));
+		assertEquals(message2, clearedMessages.get(1));
+		assertNull(channel.receive());
 	}
 
 	@Test
@@ -78,8 +98,7 @@ public class SynchronousChannelTests {
 
 	@Test
 	public void testReceive() {
-		SynchronousChannel channel = new SynchronousChannel();
-		channel.setSource(new PollableSource<String>() {
+		SynchronousChannel channel = new SynchronousChannel(new PollableSource<String>() {
 			public Collection<String> poll(int limit) {
 				return Collections.singleton("foo");
 			}
@@ -93,8 +112,7 @@ public class SynchronousChannelTests {
 
 	@Test
 	public void testReceiveWithMessageResult() {
-		SynchronousChannel channel = new SynchronousChannel();
-		channel.setSource(new MessageReturningTestSource("foo"));
+		SynchronousChannel channel = new SynchronousChannel(new MessageReturningTestSource("foo"));
 		Message<?> message = channel.receive();
 		assertNotNull(message);
 		assertNotNull(message.getPayload());
@@ -106,8 +124,7 @@ public class SynchronousChannelTests {
 
 	@Test
 	public void testReceiveInSeparateThread() throws InterruptedException {
-		final SynchronousChannel channel = new SynchronousChannel();
-		channel.setSource(new MessageReturningTestSource("foo"));
+		final SynchronousChannel channel = new SynchronousChannel(new MessageReturningTestSource("foo"));
 		final SynchronousQueue<Message<?>> messageHolder = new SynchronousQueue<Message<?>>();
 		new Thread(new Runnable() {
 			public void run() {

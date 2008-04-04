@@ -57,6 +57,10 @@ public class DefaultMessageDistributor implements MessageDistributor {
 		this.handlers.add(handler);
 	}
 
+	public boolean removeHandler(MessageHandler handler) {
+		return this.handlers.remove(handler);
+	}
+
 	public boolean distribute(Message<?> message) {
 		int attempts = 0;
 		List<MessageHandler> targets = new ArrayList<MessageHandler>(this.handlers);

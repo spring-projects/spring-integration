@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.bus.MessageBus;
-import org.springframework.integration.endpoint.ConcurrentHandler;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.integration.router.AggregatingMessageHandler;
@@ -85,10 +84,7 @@ public class AggregatorAnnotationTests {
 			final String endpointName) {
 		MessageBus messageBus = getMessageBus(context);
 		DefaultMessageEndpoint endpoint = (DefaultMessageEndpoint) messageBus.lookupEndpoint(endpointName +  "-endpoint");
-		ConcurrentHandler handler = (ConcurrentHandler) endpoint.getHandler();
-		DirectFieldAccessor concurrentHandlerAccessor = new DirectFieldAccessor(handler);
-		MessageHandlerChain messageHandlerChain = (MessageHandlerChain) concurrentHandlerAccessor
-				.getPropertyValue("handler");
+		MessageHandlerChain messageHandlerChain = (MessageHandlerChain) endpoint.getHandler();
 		AggregatingMessageHandler aggregatingMessageHandler = (AggregatingMessageHandler) ((List) new DirectFieldAccessor(
 				messageHandlerChain).getPropertyValue("handlers")).get(0);
 		DirectFieldAccessor aggregatingMessageHandlerAccessor = new DirectFieldAccessor(aggregatingMessageHandler);

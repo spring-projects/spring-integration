@@ -19,6 +19,9 @@ package org.springframework.integration.dispatcher;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.integration.adapter.PollableSource;
 import org.springframework.integration.channel.AbstractMessageChannel;
@@ -30,37 +33,55 @@ import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.util.CollectionUtils;
 
 /**
- * A channel that invokes any subscribed {@link MessageHandler handler(s)} in a
- * sender's thread. If a {@link PollableSource} is provided, then that source
- * will likewise be polled within a receiver's thread. If no source is provided,
- * then receive() will always return null.
+ * A channel that invokes the subscribed {@link MessageHandler handler(s)} in a
+ * sender's thread (returning after at most one handles the message). If a
+ * {@link PollableSource} is provided, then that source will likewise be polled
+ * within a receiver's thread.
+ * <p>
+ * If the channel has no subscribed handlers and no configured source, then it
+ * will store messages in a thread-bound queue. In other words, send() will put
+ * a message at the tail of the queue for the current thread, and receive() will
+ * retrieve a message from the head of the queue.
  * 
+ * @author Dave Syer
  * @author Mark Fisher
  */
 public class SynchronousChannel extends AbstractMessageChannel {
 
+	private static final ThreadLocalMessageHolder messageHolder = new ThreadLocalMessageHolder();
+
+
+	private final PollableSource<?> source;
+
 	private final MessageDistributor distributor;
 
-	private volatile PollableSource<?> source;
+	private final AtomicInteger handlerCount = new AtomicInteger();
 
 
 	public SynchronousChannel() {
 		this(null);
 	}
 
-	public SynchronousChannel(DispatcherPolicy dispatcherPolicy) {
-		super(dispatcherPolicy != null ? dispatcherPolicy : new DispatcherPolicy());
+	public SynchronousChannel(PollableSource<?> source) {
+		super(defaultDispatcherPolicy());
+		this.source = source;
 		this.distributor = new DefaultMessageDistributor(this.getDispatcherPolicy());
 	}
 
 
-	public void setSource(PollableSource<?> source) {
-		this.source = source;
-	}
-
 	public void addHandler(MessageHandler handler) {
 		this.distributor.addHandler(handler);
+		this.handlerCount.incrementAndGet();
 	}
+
+	public boolean removeHandler(MessageHandler handler) {
+		if (this.distributor.removeHandler(handler)) {
+			this.handlerCount.decrementAndGet();
+			return true;
+		}
+		return false;
+	}
+
 
 	@Override
 	protected Message<?> doReceive(long timeout) {
@@ -72,20 +93,70 @@ public class SynchronousChannel extends AbstractMessageChannel {
 						new SimplePayloadMessageMapper<Object>().toMessage(result);
 			}
 		}
-		return null;
+		return messageHolder.get().poll();
 	}
 
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
-		return this.distributor.distribute(message);
+		if (message == null) {
+			return false;
+		}
+		if (this.handlerCount.get() > 0) {
+			return this.distributor.distribute(message);
+		}
+		else if (this.source == null) {
+			return messageHolder.get().add(message);
+		}
+		return false;
 	}
 
+	/**
+	 * Remove and return any messages that are stored for the current thread.
+	 */
 	public List<Message<?>> clear() {
-		return new ArrayList<Message<?>>();
+		List<Message<?>> removedMessages = new ArrayList<Message<?>>();
+		Message<?> next = messageHolder.get().poll();
+		while (next != null) {
+			removedMessages.add(next);
+			next = messageHolder.get().poll();
+		}
+		return removedMessages;
 	}
 
+	/**
+	 * Remove and return any messages that are stored for the current thread
+	 * and do not match the provided selector.
+	 */
 	public List<Message<?>> purge(MessageSelector selector) {
-		return new ArrayList<Message<?>>();
+		List<Message<?>> removedMessages = new ArrayList<Message<?>>();
+		Object[] allMessages = messageHolder.get().toArray();
+		for (Object next : allMessages) {
+			Message<?> message = (Message<?>) next;
+			if (!selector.accept(message) && messageHolder.get().remove(message)) {
+				removedMessages.add(message);
+			}
+		}
+		return removedMessages;
+	}
+
+
+	private static DispatcherPolicy defaultDispatcherPolicy() {
+		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy(false);
+		dispatcherPolicy.setMaxMessagesPerTask(1);
+		dispatcherPolicy.setReceiveTimeout(0);
+		dispatcherPolicy.setRejectionLimit(1);
+		dispatcherPolicy.setRetryInterval(0);
+		dispatcherPolicy.setShouldFailOnRejectionLimit(false);
+		return dispatcherPolicy;
+	}
+
+
+	private static class ThreadLocalMessageHolder extends ThreadLocal<Queue<Message<?>>> {
+
+		@Override
+		protected Queue<Message<?>> initialValue() {
+			return new LinkedBlockingQueue<Message<?>>();
+		}
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.dispatcher.DefaultMessageDispatcher;
 import org.springframework.integration.dispatcher.SchedulingMessageDispatcher;
+import org.springframework.integration.dispatcher.SynchronousChannel;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.DefaultEndpointRegistry;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
@@ -125,7 +126,6 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 	 * is registered without an explicitly provided policy of its own.
 	 */
 	public void setDefaultConcurrencyPolicy(ConcurrencyPolicy defaultConcurrencyPolicy) {
-		Assert.notNull(defaultConcurrencyPolicy, "'defaultConcurrencyPolicy' must not be null");
 		this.defaultConcurrencyPolicy = defaultConcurrencyPolicy;
 	}
 
@@ -179,9 +179,6 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 				return;
 			}
 			this.initializing = true;
-			if (this.defaultConcurrencyPolicy == null) {
-				this.defaultConcurrencyPolicy = new ConcurrencyPolicy();
-			}
 			if (this.executor == null) {
 				this.executor = new ScheduledThreadPoolExecutor(DEFAULT_DISPATCHER_POOL_SIZE);
 			}
@@ -257,7 +254,8 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 		if (endpoint instanceof ChannelRegistryAware) {
 			((ChannelRegistryAware) endpoint).setChannelRegistry(this.channelRegistry);
 		}
-		if (endpoint.getConcurrencyPolicy() == null && endpoint instanceof DefaultMessageEndpoint) {
+		if (endpoint.getConcurrencyPolicy() == null && this.defaultConcurrencyPolicy != null
+				&& endpoint instanceof DefaultMessageEndpoint) {
 			((DefaultMessageEndpoint) endpoint).setConcurrencyPolicy(this.defaultConcurrencyPolicy);
 		}
 		this.endpointRegistry.registerEndpoint(name, endpoint);
@@ -366,6 +364,13 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 	}
 
 	private void registerWithDispatcher(MessageChannel channel, MessageHandler handler, Schedule schedule) {
+		if (schedule == null && (channel instanceof SynchronousChannel)) {
+			((SynchronousChannel) channel).addHandler(handler);
+			if (handler instanceof Lifecycle) {
+				((Lifecycle) handler).start();
+			}
+			return;
+		}
 		SchedulingMessageDispatcher dispatcher = dispatchers.get(channel);
 		if (dispatcher == null) {
 			if (logger.isWarnEnabled()) {
