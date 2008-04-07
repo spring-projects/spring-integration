@@ -53,7 +53,7 @@
             </row>
             <row>
               <entry>priority</entry>
-              <entry>int</entry>
+              <entry>MessagePriority (an <emphasis>enum</emphasis>)</entry>
             </row>
             <row>
               <entry>properties</entry>
@@ -78,6 +78,17 @@ new GenericMessage&lt;T&gt;(T payload, MessageHeader headerToCopy)</programlisti
       provided header. There are also two convenient subclasses available currently:
       <classname>StringMessage</classname> and <classname>ErrorMessage</classname>. The latter accepts any
       <classname>Throwable</classname> object as its payload.
+    </para>
+    <para>
+      The <classname>MessagePriority</classname> is only considered when using a <classname>PriorityChannel</classname>
+      (as described in the next section). It is defined as an <emphasis>enum</emphasis> with five possible values:
+      <programlisting>public enum MessagePriority {
+    HIGHEST,
+    HIGH,
+    NORMAL,
+    LOW,
+    LOWEST
+}</programlisting>
     </para>
     <para>
       The <interfacename>Message</interfacename> is obviously a very important part of the API. By encapsulating the
@@ -200,8 +211,12 @@ new GenericMessage&lt;T&gt;(T payload, MessageHeader headerToCopy)</programlisti
       <interfacename>MessageChannels</interfacename> and <interfacename>MessageHandlers</interfacename>. It provides
       the following methods:
       <programlisting>public void registerChannel(String name, MessageChannel channel)
-public void registerHandler(String name, MessageHandler handler, Subscription subscription)
-public void registerHandler(String name, MessageHandler handler, Subscription subscription,
+
+public void registerHandler(String name, MessageHandler handler,
+                            Subscription subscription)
+
+public void registerHandler(String name, MessageHandler handler,
+                            Subscription subscription,
                             ConcurrencyPolicy concurrencyPolicy)</programlisting>
       As those method signatures reveal, the message bus is handling several of the concerns here so that the channel
       and handler objects can be as simple as possible. These responsibilities include the creation and lifecycle
@@ -292,7 +307,7 @@ public void registerHandler(String name, MessageHandler handler, Subscription su
       </table>
       The scheduling metadata is provided as an implementation of the <interfacename>Schedule</interfacename>
       interface. This is an abstraction designed to allow extensibility of schedulers for messaging tasks. Currently,
-      there is a single implementation called <classname>PollingSchedule</classname> that provides the following
+      there is a single implementation named <classname>PollingSchedule</classname> that provides the following
       properties:
       <table id="api-messagebus-pollingschedule">
         <title>Properties of the PollingSchedule</title>
@@ -430,14 +445,15 @@ assertFalse(selector.accept(new GenericMessage<SomeObject>(someObject)));
       <programlisting>channel.purge(someSelector);</programlisting>
       There is even a <classname>ChannelPurger</classname> utility class whose purge operation is a good candidate for
       Spring's JMX support:
-      <programlisting>ChannelPurger purger = new ChannelPurger(channel, new ExampleMessageSelector());
+      <programlisting>ChannelPurger purger = new ChannelPurger(new ExampleMessageSelector(), channel);
 purger.purge();</programlisting>
     </para>
     <para>
       Implementations of <interfacename>MessageSelector</interfacename> might provide opportunities for reuse on
       channels in addition to endpoints. For that reason, Spring Integration provides a simple selector-wrapping
       <interfacename>ChannelInterceptor</interfacename> that accepts one or more selectors in its constructor.
-      <programlisting>MessageSelectingInterceptor interceptor = new MessageSelectingInterceptor(selector1, selector2);
+      <programlisting>MessageSelectingInterceptor interceptor =
+        new MessageSelectingInterceptor(selector1, selector2);
 channel.addInterceptor(interceptor);</programlisting>
     </para>
   </section>

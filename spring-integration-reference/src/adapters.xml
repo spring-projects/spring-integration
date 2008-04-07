@@ -9,8 +9,14 @@
       are external to the messaging system. As the name implies, the interaction consists of adapting the external
       system or component to send-to and/or receive-from a <interfacename>MessageChannel</interfacename>. Within
       Spring Integration, there is a distinction between <emphasis>source adapters</emphasis> and <emphasis>target
-      adapters</emphasis>. In the 1.0 Milestone 2 release, Spring Integration includes source and target adapters
-      for JMS, Files, Streams, and Spring ApplicationEvents as well as a target adapter for sending e-mail.
+      adapters</emphasis>. In the 1.0 Milestone 3 release, Spring Integration includes source and target adapters
+      for JMS, RMI, Files, Streams, Spring's HttpInvoker and Spring ApplicationEvents. A source adapter for FTP is
+      also available as well as target adapters for sending e-mail and invoking Web Services.
+    </para>
+    <para>
+      All of these adapters are discussed in this section. However, namespace support is provided for many of them
+      and is typically the most convenient option for configuration. For examples, see
+      <xref linkend="namespace-adapters"/>.
     </para>
   </section>
 
@@ -65,6 +71,47 @@
       Integration's namespace support.
     </para>
   </section>
+  <section id="adapters-rmi">
+    <title>RMI Adapters</title>
+    <para>
+      The <classname>RmiSourceAdapter</classname> is built upon Spring's <classname>RmiServiceExporter</classname>.
+      However, since it is adapting a <interfacename>MessageChannel</interfacename>, there is no need to specify
+      the <emphasis>serviceInterface</emphasis>. Likewise, the <emphasis>serviceName</emphasis> is automatically
+      generated based on the channel name. Therefore, creating the adapter is as simple as providing a reference
+      to its channel: <programlisting>RmiSourceAdapter rmiSourceAdapter = new RmiSourceAdapter(channel);
+</programlisting>
+    </para>
+    <para>
+      The <classname>RmiTargetAdapter</classname> encapsulates the creation of a proxy that is capable of
+      communicating with an <classname>RmiSourceAdapter</classname> running in another process. Since the interface
+      is already known, the only required information is the URL. The URL should include the host, port (default is
+      '1099'), and 'serviceName'. The 'serviceName' must match that created by the
+      <classname>RmiSourceAdapter</classname> (the prefix is available as a constant).
+      <programlisting>String url = "http://somehost:1099/" + RmiSourceAdapter.SERVICE_NAME_PREFIX + "someChannel";
+RmiTargetAdapter rmiTargetAdapter = new RmiTargetAdapter(url);
+</programlisting>
+    </para>
+  </section>
+  <section id="adapters-httpinvoker">
+    <title>HttpInvoker Adapters</title>
+    <para>
+      The source and target adapters for HttpInvoker are very similar to the RMI adapters. For a source, only the
+      channel needs to be provided, and for a target, only the URL. If running in a Spring MVC environment, then
+      the <classname>HttpInvokerSourceAdapter</classname> simply needs to be defined and provided in a
+      <interfacename>HandlerMapping</interfacename>. For example, the following would be exposed at the path
+      "http://somehost/path-mapped-to-dispatcher-servlet/httpInvokerAdapter" when a simple
+      <classname>BeanNameUrlHandlerMapping</classname> strategy is enabled:
+      <programlisting><![CDATA[<bean name="/httpInvokerAdapter"
+    class="org.springframework.integration.adapter.httpinvoker.HttpInvokerSourceAdapter">
+    <constructor-arg ref="someChannel"/>
+</bean>]]></programlisting>
+      When not running in a Spring MVC application, simply define a servlet in 'web.xml' whose type is
+      <classname>HttpRequestHandlerServlet</classname> and whose name matches the bean name of the source
+      adapter. As with the <classname>RmiTargetAdapter</classname>, the
+      <classname>HttpInvokerTargetAdapter</classname> only requires the URL that matches an instance of
+      <classname>HttpInvokerSourceAdapter</classname> running in a web application.
+    </para>
+  </section>
   <section id="adapters-file">
     <title>File Adapters</title>
     <para>
@@ -78,9 +125,23 @@
       adapter also accepts an implementation of the <interfacename>FileNameGenerator</interfacename> strategy that
       defines the following method: <programlisting>String generateFileName(Message message)</programlisting>
     </para>
+  </section>
+  <section id="adapters-ftp">
+    <title>FTP Adapters</title>
     <para>
-      As with the JMS adapters, the most convenient way to configure File adapters is with the namespace support. For
-      examples, see <xref linkend="namespace-adapters"/>.
+      To poll a directory with FTP, configure an instance of <classname>FtpSourceAdapter</classname>. The adapter
+      expects a number of properties for connecting to the FTP server (as shown below) as well as the
+      'channel' and the 'period' for polling. For example, the following adapter would poll every 30 seconds:
+<programlisting><![CDATA[<bean id="ftpSource"
+    class="org.springframework.integration.adapter.ftp.FtpSourceAdapter">
+    <property name="host" value="example.org"/>
+    <property name="username" value="someuser"/>
+    <property name="password" value="somepassword"/>
+    <property name="localWorkingDirectory" value="/some/path"/>
+    <property name="remoteWorkingDirectory" value="/some/path"/>
+    <property name="channel" ref="someChannel"/>
+    <property name="period" value="30000"/>
+</bean>]]></programlisting>
     </para>
   </section>
   <section id="adapters-email">
@@ -99,13 +160,49 @@
       <programlisting><![CDATA[public interface MailHeaderGenerator {
     void populateMailMessageHeader(MailMessage mailMessage, Message<?> message);
 }]]></programlisting>
-      A static implementation is available out-of-the-box, but typically most of the properties would need to be
-      dynamically generated based on the message itself. The following is an example of a configured
-      mail adapter.
-      <programlisting><![CDATA[<bean id="mailTargetAdapter" class="org.springframework.integration.adapter.mail.MailTargetAdapter">
+      The default implementation will look for attributes in the <classname>MessageHeader</classname> with
+      the following constants defining the keys:
+      <programlisting>MailAttributeKeys.SUBJECT
+MailAttributeKeys.TO
+MailAttributeKeys.CC
+MailAttributeKeys.BCC
+MailAttributeKeys.FROM
+MailAttributeKeys.REPLY_TO</programlisting>
+    </para>
+    <para>
+      A static implementation is also available out-of-the-box and may be useful for testing. However, when
+      customizing, the properties would typically be generated dynamically based on the message itself. The
+      following is an example of a configured mail adapter.
+      <programlisting><![CDATA[<bean id="mailTargetAdapter"
+    class="org.springframework.integration.adapter.mail.MailTargetAdapter">
     <property name="mailSender" ref="javaMailSender"/>
     <property name="headerGenerator" ref="dynamicMailMessageHeaderGenerator"/>
 </bean>]]></programlisting>
+    </para>
+  </section>
+  <section id="adapters-webservices">
+    <title>Web Service Adapters</title>
+    <para>
+      To invoke a Web Service upon sending a message to a channel, there are two options:
+      <classname>SimpleWebServiceTargetAdapter</classname> and
+      <classname>MarshallingWebServiceTargetAdapter</classname>. The former will accept either a
+      <classname>String</classname> or <interfacename>javax.xml.transform.Source</interfacename> as the message
+      payload. The latter provides support for any implementation of the <interfacename>Marshaller</interfacename>
+      and <interfacename>Unmarshaller</interfacename> interfaces. Both require the URI of the Web Service to be
+      called.<programlisting>simpleAdapter = new SimpleWebServiceTargetAdapter(uri);
+
+marshallingAdapter = new MarshallingWebServiceTargetAdapter(uri, marshaller);
+</programlisting>
+      As with the other target adapters, this can then be referenced from a <classname>MessageEndpoint</classname>
+      that is subscribed to a channel. The endpoint is then responsible for passing the response to the proper
+      channel. It will first check for a <emphasis>returnAddress</emphasis> on the original message's header, and it
+      will fallback to the endpoint's own default output channel.
+    </para>
+    <para>
+      For more detail on the inner workings, see the Spring Web Services reference guide's chapter covering 
+      <ulink url="http://static.springframework.org/spring-ws/site/reference/html/client.html">client access</ulink>
+      as well as the chapter covering 
+      <ulink url="http://static.springframework.org/spring-ws/site/reference/html/oxm.html">Object/XML mapping</ulink>.
     </para>
   </section>
   <section id="adapters-stream">
@@ -113,18 +210,19 @@
     <para>
       Spring Integration also provides adapters for streams. Both <classname>ByteStreamSourceAdapter</classname> and
       <classname>CharacterStreamSourceAdapter</classname> extend the <classname>PolllingSourceAdapter</classname> so
-      that the polling period can be configured, and the Message Bus can automatically detect and schedule them. Both
-      require an <classname>InputStream</classname> as the single constructor argument. The
+      that the polling period can be configured, and the Message Bus can automatically detect and schedule them. The
+      byte stream version requires an <classname>InputStream</classname>, and the character stream version requires a
+      <classname>Reader</classname> as the single constructor argument. The
       <classname>ByteStreamSourceAdapter</classname> also accepts the 'bytesPerMessage' property to determine how many
       bytes it will attempt to read into each <interfacename>Message</interfacename>.
     </para>
     <para>
       For target streams, there are also two implementations: <classname>ByteStreamTargetAdapter</classname> and
-      <classname>CharacterStreamTargetAdapter</classname>. Each defines a constructor that requires an
-      <classname>OutputStream</classname>, and each provides a second constructor that adds the optional
-      'bufferSize' property. Since both of these ultimately implement the <interfacename>MessageHandler</interfacename>
-      interface, they can be referenced from an endpoint configuration as will be described in more detail in
-      <xref linkend="namespace-endpoint"/>.
+      <classname>CharacterStreamTargetAdapter</classname>. Each requires a single constructor argument -
+      <classname>OutputStream</classname> for byte streams or <classname>Writer</classname> for character streams,
+      and each provides a second constructor that adds the optional 'bufferSize' property. Since both of these
+      ultimately implement the <interfacename>MessageHandler</interfacename> interface, they can be referenced from an
+      endpoint configuration as will be described in more detail in <xref linkend="namespace-endpoint"/>.
     </para>
   </section>
   <section id="adapters-applicationevents">

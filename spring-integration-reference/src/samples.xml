@@ -5,8 +5,8 @@
   <section id="samples-cafe">
     <title>The Cafe Sample</title>
     <para>
-      In this section, we will review a sample application that is included in the Spring Integration Milestone 1
-      release. This sample is inspired by one of the samples featured in Gregor Hohpe's
+      In this section, we will review a sample application that is included in the Spring Integration
+      distribution. This sample is inspired by one of the samples featured in Gregor Hohpe's
       <ulink url="http://www.eaipatterns.com/ramblings.html">Ramblings</ulink>.
     </para>
     <para>
@@ -30,19 +30,18 @@
     <para>
       Here is the XML configuration:
       <programlisting><![CDATA[<beans:beans xmlns="http://www.springframework.org/schema/integration"
-             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-             xmlns:beans="http://www.springframework.org/schema/beans"
-             xmlns:context="http://www.springframework.org/schema/context"
-             xsi:schemaLocation="http://www.springframework.org/schema/beans
-                                 http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
-                                 http://www.springframework.org/schema/integration
-                                 http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
-                                 http://www.springframework.org/schema/context
-                                 http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:beans="http://www.springframework.org/schema/beans"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+        http://www.springframework.org/schema/integration
+        http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-2.5.xsd">
 
     <message-bus/>
     <annotation-driven/>
-
     <context:component-scan base-package="org.springframework.integration.samples.cafe"/>
 
     <channel id="orders"/>
@@ -50,13 +49,15 @@
     <channel id="coldDrinks"/>
     <channel id="hotDrinks"/>
 
-    <endpoint input-channel="coldDrinks" handler-ref="barista" handler-method="prepareColdDrink"/>
-    <endpoint input-channel="hotDrinks" handler-ref="barista" handler-method="prepareHotDrink"/>
+    <endpoint input-channel="coldDrinks" handler-ref="barista"
+                                         handler-method="prepareColdDrink"/>
+
+    <endpoint input-channel="hotDrinks" handler-ref="barista"
+                                        handler-method="prepareHotDrink"/>
 
     <beans:bean id="cafe" class="org.springframework.integration.samples.cafe.Cafe">
         <beans:property name="orderChannel" ref="orders"/>
     </beans:bean>
-
 </beans:beans>]]></programlisting>
       Notice that the Message Bus is defined. It will automatically detect and register all channels and endpoints.
       The 'annotation-driven' element will enable the detection of the splitter and router - both of which carry
@@ -107,7 +108,8 @@ public class Barista {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-        System.out.println("prepared hot drink #" + hotDrinkCounter.incrementAndGet() + ": " + drink);
+        System.out.println("prepared hot drink #" +
+                hotDrinkCounter.incrementAndGet() + ": " + drink);
     }
 
     public void prepareColdDrink(Drink drink) {
@@ -116,7 +118,8 @@ public class Barista {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-        System.out.println("prepared cold drink #" + coldDrinkCounter.incrementAndGet() + ": " + drink);
+        System.out.println("prepared cold drink #" +
+                coldDrinkCounter.incrementAndGet() + ": " + drink);
     }
 }]]></programlisting>
     </para>
@@ -171,7 +174,7 @@ public class Barista {
       as described in <xref linkend="namespace-endpoint"/>. Additionally, you can experiment with the channel's
       configuration, such as adding a 'dispatcher-policy' as described in <xref linkend="namespace-channel"/>. If you
       want to explore the sample in more detail, the source JAR is available in the "dist" directory:
-      'spring-integration-samples-sources-1.0.0.m1.jar'.
+      'spring-integration-samples-sources-1.0.0.M3.jar'.
     </para>
   </section>
 </chapter>

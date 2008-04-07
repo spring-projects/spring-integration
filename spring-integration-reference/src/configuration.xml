@@ -9,13 +9,11 @@
       needs and at what level you prefer to work. As with the Spring framework in general, it is also possible to mix
       and match the various techniques according to the particular problem at hand. For example, you may choose the
       XSD-based namespace for the majority of configuration combined with a handful of objects that are configured with
-      annotations. Of course, it is also possible to always stick with a single approach. The main point is that these
-      are <emphasis>options</emphasis> for configuration motivated by the need to support a user community with a wide
-      range of preferences. That said, there has also been a concerted effort to provide consistent naming so that, for
-      example, the XML elements defined by the XSD schema will match the names of annotations, and the attributes of
-      those XML elements will match the names of annotation properties. Direct usage of the API is yet another option
-      and is described in detail in <xref linkend="api"/>. We expect that most users will choose one of the
-      higher-level options, such as the namespace-based or annotation-driven configuration.
+      annotations. As much as possible, the two provide consistent naming. XML elements defined by the XSD schema will
+      match the names of annotations, and the attributes of those XML elements will match the names of annotation
+      properties. Direct usage of the API is yet another option and is described in detail in <xref linkend="api"/>.
+      We expect that most users will choose one of the higher-level options, such as the namespace-based or
+      annotation-driven configuration.
     </para>
   </section>
 
@@ -33,9 +31,9 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        ]]><emphasis>xmlns:integration="http://www.springframework.org/schema/integration"</emphasis><![CDATA[
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-                           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
-                           ]]><emphasis>http://www.springframework.org/schema/integration
-                           http://www.springframework.org/schema/integration/spring-integration-1.0.xsd"</emphasis>&gt;</programlisting>
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+           ]]><emphasis>http://www.springframework.org/schema/integration
+           http://www.springframework.org/schema/integration/spring-integration-1.0.xsd"</emphasis>&gt;</programlisting>
     </para>
     <para>
 	  You can choose any name after "xmlns:"; <emphasis>integration</emphasis> is used here for clarity, but you might
@@ -46,9 +44,9 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        ]]><emphasis>xmlns:beans="http://www.springframework.org/schema/beans"</emphasis><![CDATA[
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-                           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
-                           http://www.springframework.org/schema/integration
-                           http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">]]></programlisting>
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+           http://www.springframework.org/schema/integration
+           http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">]]></programlisting>
     </para>
     <para>
       When using this alternative, no prefix is necessary for the Spring Integration elements. On the other hand, if
@@ -98,6 +96,17 @@
         <classname>java.lang.Integer</classname> or <classname>java.lang.Double</classname>. Multiple types can be
         provided as a comma-delimited list:
         <programlisting><![CDATA[<channel id="stringOrNumberChannel" datatype="java.lang.String,java.lang.Number"/>]]></programlisting> 
+      </para>
+      <para>
+        To create a <classname>PriorityChannel</classname>, use the "priority-channel" element:
+        <programlisting><![CDATA[<priority-channel id="exampleChannel"/>]]></programlisting>
+        By default, the channel will consult the <classname>MessagePriority</classname> value in the 
+        message's header. However, a custom <interfacename>Comparator</interfacename> reference may be
+        provided instead. Also, the <classname>PriorityChannel</classname> does support the "datatype"
+        attribute. The following example demonstrates both:
+        <programlisting><![CDATA[<priority-channel id="exampleChannel"
+    datatype="example.Widget" comparator-ref="widgetComparator"/>
+]]></programlisting>
       </para>
       <para>
         Message channels may also have interceptors as described in <xref linkend="api-channelinterceptor"/>. One or
@@ -177,6 +186,8 @@
     ]]><emphasis><![CDATA[<concurrency core="5" max="25" queue-capacity="20" keep-alive="120"/>]]></emphasis><![CDATA[
 </endpoint>]]></programlisting>
         Recall the default concurrency policy values as listed in <xref linkend="api-messagebus-concurrencypolicy"/>.
+        If no concurrency settings are provided (i.e. a <emphasis>null</emphasis>
+        <classname>ConcurrencyPolicy</classname>), the endpoint's handler will be invoked in the caller's thread.
       </para>
       <tip>
         The default queue capacity of 0 triggers the creation of a <classname>SynchronousQueue</classname>. In many
@@ -227,16 +238,36 @@
       <title>Configuring Channel Adapters</title>
       <para>
         The most convenient way to configure Channel Adapters is by using the namespace support. The following examples
-        demonstrate the namespace-based configuration of source and target adapters (Spring Integration 1.0 M1 includes
-        namespace support for JMS and Files):
+        demonstrate the namespace-based configuration of several source and target adapters:
         <programlisting><![CDATA[
-<jms-source connection-factory="connectionFactory" destination="inputQueue" channel="inputChannel1"/
+<jms-source connection-factory="connFactory" destination="inQueue" channel="in1"/>
 
-<jms-target connection-factory="connectionFactory" destination="outputQueue" channel="outputChannel1"/>
+<!-- using the default "connectionFactory" reference --> 
+<jms-target destination="outQueue" channel="out1"/>
 
-<file-source directory="/tmp/input" channel="inputChannel2" poll-period="10000"/>
+<file-source directory="/tmp/in" channel="in2" poll-period="10000"/>
 
-<file-target directory="/tmp/output" channel="outputChannel2"/>
+<file-target directory="/tmp/out" channel="out2"/>
+
+<rmi-source id="rmiSource" channel="in3"/>
+
+<rmi-target id="rmiTarget" local-channel="out3"
+    remote-channel="someRemoteChannel" host="somehost"/>
+
+<httpinvoker-source name="/some/path" channel="in4"/>
+
+<httpinvoker-target id="httpTarget" channel="out4" url="http://somehost/test"/>
+
+<mail-target id="mailTarget" channel="out5"
+    host="somehost" username="someuser" password="somepassword"/>
+
+<ws-target id="wsTarget" uri="http://example.org" channel="out6"/>
+
+<ftp-source id="ftpAdapter" channel="in5" 
+    period="60000" host="example.org"
+    username="someuser" password="somepassword"
+    local-working-directory="/some/path"
+    remote-working-directory="/some/path"/>
 ]]></programlisting>
       </para>
     </section>
@@ -275,7 +306,7 @@ public class FooService {
 public class FooService {
 
     @Handler
-    public void processFoo(<emphasis>Foo foo</emphasis>) {
+    public void bar(<emphasis>Foo foo</emphasis>) {
         ...
     }
 }</programlisting>
@@ -289,9 +320,20 @@ public class FooService {
       <programlisting>@MessageEndpoint(input="exampleChannel", defaultOutput="replyChannel")</programlisting>
     </para>
     <para>
-      Finally, just as the 'schedule' sub-element and its 'period' attribute can be provided for a namespace-based
+      Just as the 'schedule' sub-element and its 'period' attribute can be provided for a namespace-based
       endpoint, the 'pollPeriod' attribute can be provided on the <interfacename>@MessageEndpoint</interfacename>.
       <programlisting>@MessageEndpoint(input="exampleChannel", pollPeriod=3000)</programlisting>
+      Likewise, <interfacename>@Concurrency</interfacename> provides an annotation-based equivalent of the
+      &lt;concurrency/&gt; element:
+      <programlisting>@MessageEndpoint(input="fooChannel")
+@Concurrency(coreSize=5, maxSize=20)
+public class FooService {
+
+    @Handler
+    public void bar(Foo foo) {
+        ...
+    }
+}</programlisting>
     </para>
     <para>
       Two additional annotations are supported, and both act as a special form of handler method:
