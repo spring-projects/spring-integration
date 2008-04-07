@@ -303,11 +303,15 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 
 	private void activateEndpoint(MessageEndpoint endpoint) {
 		Subscription subscription = endpoint.getSubscription();
+		if (subscription == null) {
+			throw new MessagingConfigurationException("Unable to register endpoint '" +
+					endpoint + "'. No subscription information is available.");
+		}
 		MessageChannel channel = subscription.getChannel();
 		if (channel == null) {
 			String channelName = subscription.getChannelName();
 			if (channelName == null) {
-				throw new MessagingConfigurationException("endpoint '" + endpoint.getName() +
+				throw new MessagingConfigurationException("endpoint '" + endpoint +
 						"' must provide either 'channel' or 'channelName' in its subscription metadata");
 			}
 			channel = this.lookupChannel(channelName);
@@ -329,7 +333,7 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 			if (outputChannelName != null && this.lookupChannel(outputChannelName) == null) {
 				if (!this.autoCreateChannels) {
 					throw new MessagingConfigurationException("Unknown channel '" + outputChannelName +
-							"' configured as 'default-output' for endpoint '" + endpoint.getName() +
+							"' configured as 'default-output' for endpoint '" + endpoint +
 							"'. Consider enabling the 'autoCreateChannels' option for the message bus.");
 				}
 				this.registerChannel(outputChannelName, new SimpleChannel());
@@ -341,7 +345,7 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 		this.registerWithDispatcher(channel, endpoint, subscription.getSchedule());
 		if (logger.isInfoEnabled()) {
 			logger.info("activated subscription to channel '" + channel.getName() + 
-					"' for endpoint '" + endpoint.getName() + "'");
+					"' for endpoint '" + endpoint + "'");
 		}
 	}
 

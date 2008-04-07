@@ -54,7 +54,6 @@ import org.springframework.integration.router.config.RouterMessageHandlerCreator
 import org.springframework.integration.router.config.SplitterMessageHandlerCreator;
 import org.springframework.integration.router.config.AggregatorMessageHandlerCreator;
 import org.springframework.integration.scheduling.PollingSchedule;
-import org.springframework.integration.scheduling.Schedule;
 import org.springframework.integration.scheduling.Subscription;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
@@ -136,8 +135,7 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 			final DefaultMessageEndpoint endpoint) {
 		String channelName = annotation.input();
 		if (StringUtils.hasText(channelName)) {
-			Schedule schedule = new PollingSchedule(annotation.pollPeriod());
-			Subscription subscription = new Subscription(channelName, schedule);
+			Subscription subscription = new Subscription(channelName);
 			endpoint.setSubscription(subscription);
 		}
 		ReflectionUtils.doWithMethods(this.getBeanClass(bean), new ReflectionUtils.MethodCallback() {

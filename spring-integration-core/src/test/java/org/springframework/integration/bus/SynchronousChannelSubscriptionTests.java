@@ -21,7 +21,10 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.integration.annotation.Handler;
+import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.config.MessageEndpointAnnotationPostProcessor;
 import org.springframework.integration.dispatcher.SynchronousChannel;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.integration.handler.MessageHandler;
@@ -49,7 +52,7 @@ public class SynchronousChannelSubscriptionTests {
 
 
 	@Test
-	public void testSendAndReceive() throws InterruptedException {
+	public void testSendAndReceiveForRegisteredEndpoint() {
 		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(new TestHandler());
 		endpoint.setSubscription(new Subscription("sourceChannel"));
 		endpoint.setDefaultOutputChannelName("targetChannel");
@@ -58,6 +61,20 @@ public class SynchronousChannelSubscriptionTests {
 		this.sourceChannel.send(new StringMessage("foo"));
 		Message<?> response = this.targetChannel.receive();
 		assertEquals("foo!", response.getPayload());
+		bus.stop();
+	}
+
+	@Test
+	public void testSendAndReceiveForAnnotatedEndpoint() {
+		MessageEndpointAnnotationPostProcessor postProcessor = new MessageEndpointAnnotationPostProcessor(bus);
+		postProcessor.afterPropertiesSet();
+		TestEndpoint endpoint = new TestEndpoint();
+		postProcessor.postProcessAfterInitialization(endpoint, "testEndpoint");
+		bus.start();
+		this.sourceChannel.send(new StringMessage("foo"));
+		Message<?> response = this.targetChannel.receive();
+		assertEquals("foo-from-annotated-endpoint", response.getPayload());
+		bus.stop();
 	}
 
 
@@ -65,6 +82,16 @@ public class SynchronousChannelSubscriptionTests {
 
 		public Message<?> handle(Message<?> message) {
 			return new StringMessage(message.getPayload() + "!");
+		}
+	}
+
+
+	@MessageEndpoint(input="sourceChannel", defaultOutput="targetChannel")
+	public static class TestEndpoint {
+
+		@Handler
+		public Message<?> handle(Message<?> message) {
+			return new StringMessage(message.getPayload() + "-from-annotated-endpoint");
 		}
 	}
 
