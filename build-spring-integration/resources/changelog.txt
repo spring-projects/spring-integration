@@ -1,6 +1,62 @@
 SPRING INTEGRATION CHANGELOG
 ============================
 
+Changes in version 1.0.0.M3 (Apr 07, 2008)
+------------------------------------------
+
+*** CORE API ***
+
+Handler method invocation now uses Spring's default type-conversion strategies
+Message priorities are now defined in the MessagePriority enum
+Added ResponseCorrelator for polling a reply channel with a correlationId
+Added SynchronousChannel that invokes handlers on the sender's thread
+        or receives from a PollableSource on the receiver's thread
+Implemented the WireTap pattern with a ChannelInterceptor that publishes to a secondary channel
+Calling setErrorChannel on MessageBus no longer throws NullPointerException upon activation
+ChannelPurger now accepts multiple MessageChannels (as varargs) in its constructors
+RouterMessageHandlerAdapter now sets the ChannelRegistry on its target Object if it is ChannelRegistryAware
+DefaultMessageEndpoint now sets the ChannelRegistry on any ChannelRegistryAware handler 
+MessageEndpointAnnotationPostProcessor now sets the ChannelRegistry for any annotated ChannelRegistryAware Object
+
+*** ADAPTERS ***
+
+Added FtpSourceAdapter
+Added HttpInvokerSourceAdapter
+Added HttpInvokerTargetAdapter
+Added RmiSourceAdapter
+Added RmiTargetAdapter
+Added SimpleWebServiceTargetAdapter
+Added MarshallingWebServiceTargetAdapter
+Added a DefaultMailHeaderGenerator and defined constants in MailAttributeKeys
+CharacterStreamSourceAdapter now requires a Reader (not InputStream)
+CharacterStreamTargetAdapter now requires a Writer (not OutputStream)
+The stdoutAdapter and stderrAdapter factory methods now accept a 'charsetName'
+JMS source adapters now copy properties from the received JMS Message header
+JMS source and target adapter parsers now consider "connectionFactory" as the default bean-name reference
+
+*** CONFIGURATION ***
+
+Added namespace support for PriorityChannel with the <priority-channel/> element
+Added @Concurrency annotation for configuring a @MessageEndpoint's ConcurrencyPolicy
+Added @Aggregator annotation for specifying aggregating handler methods
+Added <aggregator/> element for defining an aggregating handler in XML
+Annotation-based BeanPostProcessors now handle proxies correctly
+Annotation-based BeanPostProcessors now recognize inherited class-level annotations
+        even if they are not explicitly @Inherited and even if they are on an interface
+Added support for <rmi-source/> and <rmi-target/> elements
+Added support for <httpinvoker-source/> and <httpinvoker-target/> elements
+Added support for the <ftp-source/> element
+Added support for the <ws-target/> element
+Added support for the <mail-target/> element
+
+*** GENERAL ***
+
+The Spring Web Services support is included in a new 'spring-integration-ws' module 
+Updated manifest properties for OSGi-compliance in "core" and "adapters"
+Added manifest properties for OSGi-compliance for "ws" and "samples"
+Added "Bundle-Name" to each manifest file
+
+
 Changes in version 1.0.0.m2 (Feb 28, 2008)
 ------------------------------------------
 
