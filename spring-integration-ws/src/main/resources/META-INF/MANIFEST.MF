@@ -1,0 +1,31 @@
+Import-Package: javax.xml.transform;resolution:=optional,javax.xml.tra
+ nsform.dom;resolution:=optional,org.springframework.beans.factory.con
+ fig;resolution:=optional,org.springframework.beans.factory.parsing;re
+ solution:=optional,org.springframework.beans.factory.support;resoluti
+ on:=optional,org.springframework.beans.factory.xml;resolution:=option
+ al,org.springframework.integration;resolution:=optional,org.springfra
+ mework.integration.endpoint;resolution:=optional,org.springframework.
+ integration.handler;resolution:=optional,org.springframework.integrat
+ ion.message;resolution:=optional,org.springframework.integration.sche
+ duling;resolution:=optional,org.springframework.integration.ws.adapte
+ r;resolution:=optional,org.springframework.integration.ws.config;reso
+ lution:=optional,org.springframework.oxm;resolution:=optional,org.spr
+ ingframework.util;resolution:=optional,org.springframework.ws;resolut
+ ion:=optional,org.springframework.ws.client.core;resolution:=optional
+ ,org.springframework.ws.soap;resolution:=optional,org.springframework
+ .ws.soap.client.core;resolution:=optional,org.springframework.xml.tra
+ nsform;resolution:=optional,org.w3c.dom;resolution:=optional
+Export-Package: org.springframework.integration.ws.adapter;uses:="org.
+ springframework.ws.client.core,org.springframework.integration.handle
+ r,org.springframework.ws.soap.client.core,org.w3c.dom,org.springframe
+ work.oxm,javax.xml.transform,javax.xml.transform.dom,org.springframew
+ ork.ws,org.springframework.ws.soap,org.springframework.util,org.sprin
+ gframework.xml.transform,org.springframework.integration.message",org
+ .springframework.integration.ws.config;uses:="org.springframework.bea
+ ns.factory.support,org.springframework.integration.endpoint,org.sprin
+ gframework.beans.factory.config,org.springframework.beans.factory.xml
+ ,org.springframework.integration,org.springframework.beans.factory.pa
+ rsing,org.w3c.dom,org.springframework.integration.scheduling,org.spri
+ ngframework.integration.ws.adapter,org.springframework.util"
+Bundle-Name: Spring Integration Web Services Support
+

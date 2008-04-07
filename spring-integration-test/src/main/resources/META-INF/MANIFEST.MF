@@ -1,0 +1,6 @@
+Import-Package: org.springframework.integration.message;resolution:=op
+ tional,org.springframework.integration.test;resolution:=optional
+Export-Package: org.springframework.integration.test;uses:="org.spring
+ framework.integration.message"
+Bundle-Name: Spring Integration Test Support
+
