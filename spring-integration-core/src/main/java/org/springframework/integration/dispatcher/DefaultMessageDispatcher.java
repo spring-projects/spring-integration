@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
@@ -130,7 +130,7 @@ public class DefaultMessageDispatcher implements SchedulingMessageDispatcher {
 				return;
 			}
 			if (this.scheduler == null) {
-				throw new MessagingConfigurationException("'scheduler' is required");
+				throw new ConfigurationException("'scheduler' is required");
 			}
 			if (!this.scheduler.isRunning()) {
 				this.scheduler.start();

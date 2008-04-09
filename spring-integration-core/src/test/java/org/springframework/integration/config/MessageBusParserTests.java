@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.handler.TestHandlers;
@@ -55,7 +55,7 @@ public class MessageBusParserTests {
 		assertNotNull("bus should have created a default error channel", bus.getErrorChannel());
 	}
 
-	@Test(expected=MessagingConfigurationException.class)
+	@Test(expected=ConfigurationException.class)
 	public void testAutoCreateChannelsDisabledByDefault() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageBusWithDefaults.xml", this.getClass());
@@ -84,7 +84,7 @@ public class MessageBusParserTests {
 		}
 		catch (BeanDefinitionStoreException e) {
 			exceptionThrown = true;
-			assertEquals(MessagingConfigurationException.class, e.getCause().getClass());
+			assertEquals(ConfigurationException.class, e.getCause().getClass());
 		}
 		assertTrue(exceptionThrown);
 	}
@@ -97,7 +97,7 @@ public class MessageBusParserTests {
 		}
 		catch (BeanCreationException e) {
 			exceptionThrown = true;
-			assertEquals(MessagingConfigurationException.class, e.getCause().getClass());
+			assertEquals(ConfigurationException.class, e.getCause().getClass());
 		}
 		assertTrue(exceptionThrown);
 	}

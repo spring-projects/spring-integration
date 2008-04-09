@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import java.util.Map;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.handler.AbstractMessageHandlerAdapter;
 import org.springframework.integration.handler.MessageHandler;
 
@@ -50,7 +50,7 @@ public abstract class AbstractMessageHandlerCreator implements MessageHandlerCre
 				((InitializingBean) handler).afterPropertiesSet();
 			}
 			catch (Exception e) {
-				throw new MessagingConfigurationException("failed to initialize handler", e);
+				throw new ConfigurationException("failed to initialize handler", e);
 			}
 		}
 		return handler;

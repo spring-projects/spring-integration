@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.springframework.integration.handler;
 
 import org.springframework.core.Ordered;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.util.SimpleMethodInvoker;
 
 /**
  * An implementation of {@link MessageHandler} that invokes the specified method
@@ -45,7 +44,7 @@ public class DefaultMessageHandlerAdapter<T> extends AbstractMessageHandlerAdapt
 		this.expectsMessage = expectsMessage;
 	}
 
-	public Object doHandle(Message message, SimpleMethodInvoker invoker) {
+	public Object doHandle(Message message, HandlerMethodInvoker invoker) {
 		if (this.expectsMessage) {
 			return invoker.invokeMethod(message);
 		}

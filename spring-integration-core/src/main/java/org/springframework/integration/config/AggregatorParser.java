@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.router.AggregatingMessageHandler;
 import org.springframework.integration.router.AggregatorAdapter;
 import org.springframework.util.StringUtils;
@@ -87,7 +87,7 @@ public class AggregatorParser implements BeanDefinitionParser {
 		final String ref = element.getAttribute(REF_ATTRIBUTE);
 		final String method = element.getAttribute(METHOD_ATTRIBUTE);
 		if (!StringUtils.hasText(ref)) {
-			throw new MessagingConfigurationException("The 'ref' attribute must be present");
+			throw new ConfigurationException("The 'ref' attribute must be present");
 		}
 		if (!topLevel && StringUtils.hasText(id)) {
 			parserContext.getReaderContext().error(

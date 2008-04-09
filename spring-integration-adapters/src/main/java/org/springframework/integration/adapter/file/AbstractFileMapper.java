@@ -27,6 +27,7 @@ import org.springframework.integration.message.AbstractMessageMapper;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.message.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
@@ -66,7 +67,7 @@ public abstract class AbstractFileMapper<T> extends AbstractMessageMapper<T, Fil
 			return file;
 		}
 		catch (Exception e) {
-			throw new MessageHandlingException("failure occurred mapping file to message", e);
+			throw new MessageHandlingException(message, "failure occurred mapping file to message", e);
 		}
 	}
 
@@ -86,11 +87,11 @@ public abstract class AbstractFileMapper<T> extends AbstractMessageMapper<T, Fil
 			return message;
 		}
 		catch (Exception e) {
-			String errorMessage = "failure occurred mapping file to message";
+			String description = "failure occurred mapping file to message";
 			if (logger.isWarnEnabled()) {
-				logger.warn(errorMessage, e);
+				logger.warn(description, e);
 			}
-			throw new MessageHandlingException(errorMessage, e);
+			throw new MessagingException(description, e);
 		}
 	}
 

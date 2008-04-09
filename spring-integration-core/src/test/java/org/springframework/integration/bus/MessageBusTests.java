@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.adapter.PollableSource;
 import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.adapter.SourceAdapter;
@@ -228,7 +228,7 @@ public class MessageBusTests {
 		}
 		catch (BeanCreationException e) {
 			exceptionThrown = true;
-			assertEquals(MessagingConfigurationException.class, e.getCause().getClass());
+			assertEquals(ConfigurationException.class, e.getCause().getClass());
 		}
 		assertTrue(exceptionThrown);
 	}

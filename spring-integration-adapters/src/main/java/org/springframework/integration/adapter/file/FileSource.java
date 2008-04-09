@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.springframework.integration.adapter.PollableSource;
-import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.message.MessagingException;
 import org.springframework.util.Assert;
 
 /**
@@ -66,7 +66,7 @@ public class FileSource implements PollableSource<File> {
 			files = this.directory.listFiles();
 		}
 		if (files == null) {
-			throw new MessageHandlingException("Problem occurred while polling for files. " +
+			throw new MessagingException("Problem occurred while polling for files. " +
 					"Is '" + directory.getAbsolutePath() + "' a directory?");
 		}
 		List<File> results = new ArrayList<File>();

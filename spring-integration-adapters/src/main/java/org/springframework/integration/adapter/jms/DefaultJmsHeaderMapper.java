@@ -25,8 +25,8 @@ import javax.jms.Destination;
 import javax.jms.JMSException;
 
 import org.springframework.integration.adapter.MessageHeaderMapper;
-import org.springframework.integration.adapter.MessageMappingException;
 import org.springframework.integration.message.MessageHeader;
+import org.springframework.integration.message.MessagingException;
 import org.springframework.util.StringUtils;
 
 /**
@@ -69,7 +69,7 @@ public class DefaultJmsHeaderMapper implements MessageHeaderMapper<javax.jms.Mes
 			}
 		}
 		catch (JMSException e) {
-			throw new MessageMappingException("failed to map from MessageHeader", e);
+			throw new MessagingException("failed to map from MessageHeader", e);
 		}
 	}
 
@@ -97,7 +97,7 @@ public class DefaultJmsHeaderMapper implements MessageHeaderMapper<javax.jms.Mes
 			}
 		}
 		catch (JMSException e) {
-			throw new MessageMappingException("failed to map to MessageHeader", e);
+			throw new MessagingException("failed to map to MessageHeader", e);
 		}
 	}
 

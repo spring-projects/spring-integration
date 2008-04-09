@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
@@ -74,7 +74,7 @@ public class SingleChannelRouterTests {
 		assertEquals("test", result.getPayload());
 	}
 
-	@Test(expected=MessagingConfigurationException.class)
+	@Test(expected=ConfigurationException.class)
 	public void testConfiguringBothChannelResolverAndChannelNameResolverIsNotAllowed() {
 		ChannelResolver channelResolver = new ChannelResolver() {
 			public MessageChannel resolve(Message<?> message) {
@@ -154,7 +154,7 @@ public class SingleChannelRouterTests {
 		router.handle(message);
 	}
 
-	@Test(expected=MessagingConfigurationException.class)
+	@Test(expected=ConfigurationException.class)
 	public void testChannelRegistryIsRequiredWhenUsingChannelNameResolver() {
 		ChannelNameResolver channelNameResolver = new ChannelNameResolver() {
 			public String resolve(Message<?> message) {
@@ -166,7 +166,7 @@ public class SingleChannelRouterTests {
 		router.resolveChannels(new StringMessage("this should fail"));
 	}
 
-	@Test(expected=MessagingConfigurationException.class)
+	@Test(expected=ConfigurationException.class)
 	public void testValidateChannelRegistryIsPresentWhenUsingChannelNameResolver() {
 		ChannelNameResolver channelNameResolver = new ChannelNameResolver() {
 			public String resolve(Message<?> message) {
@@ -178,7 +178,7 @@ public class SingleChannelRouterTests {
 		router.afterPropertiesSet();
 	}
 
-	@Test(expected=MessagingConfigurationException.class)
+	@Test(expected=ConfigurationException.class)
 	public void testChannelResolverIsRequired() {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		SingleChannelRouter router = new SingleChannelRouter();

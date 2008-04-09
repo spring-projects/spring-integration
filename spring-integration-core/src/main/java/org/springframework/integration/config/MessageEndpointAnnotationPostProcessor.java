@@ -33,7 +33,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.OrderComparator;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.adapter.DefaultTargetAdapter;
 import org.springframework.integration.adapter.MethodInvokingSource;
 import org.springframework.integration.adapter.MethodInvokingTarget;
@@ -179,7 +179,7 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 				Annotation annotation = AnnotationUtils.getAnnotation(method, DefaultOutput.class);
 				if (annotation != null) {
 					if (foundDefaultOutput) {
-						throw new MessagingConfigurationException("only one @DefaultOutput allowed per endpoint");
+						throw new ConfigurationException("only one @DefaultOutput allowed per endpoint");
 					}
 					MethodInvokingTarget<Object> target = new MethodInvokingTarget<Object>();
 					target.setObject(bean);
@@ -231,7 +231,7 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 									((InitializingBean) handler).afterPropertiesSet();
 								}
 								catch (Exception e) {
-									throw new MessagingConfigurationException("failed to create handler", e);
+									throw new ConfigurationException("failed to create handler", e);
 								}
 							}
 							if (handler != null) {

@@ -19,7 +19,7 @@ package org.springframework.integration.adapter.rmi;
 import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.adapter.MessageHandlingSourceAdapter;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandler;
@@ -68,7 +68,7 @@ public class RmiSourceAdapter extends MessageHandlingSourceAdapter {
 	public void initialize() throws RemoteException {
 		String channelName = this.getChannel().getName();
 		if (channelName == null) {
-			throw new MessagingConfigurationException("RmiSourceAdapter's MessageChannel must have a 'name'");
+			throw new ConfigurationException("RmiSourceAdapter's MessageChannel must have a 'name'");
 		}
 		RmiServiceExporter exporter = new RmiServiceExporter();
 		if (this.registryHost != null) {

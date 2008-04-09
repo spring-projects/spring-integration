@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
@@ -78,12 +78,12 @@ public abstract class AbstractRoutingMessageHandler implements MessageHandler, C
 	public final Message<?> handle(Message<?> message) {
 		List<MessageChannel> channels = this.resolveChannels(message);
 		if (channels == null || channels.size() == 0) {
-			String errorMessage = "failed to resolve any channel for message";
+			String description = "failed to resolve any channel for message";
 			if (this.resolutionRequired) {
-				throw new MessageHandlingException(errorMessage);
+				throw new MessageHandlingException(message, description);
 			}
 			if (logger.isWarnEnabled()) {
-				logger.warn(errorMessage);
+				logger.warn(description);
 			}
 			return null;
 		}
@@ -102,11 +102,12 @@ public abstract class AbstractRoutingMessageHandler implements MessageHandler, C
 			sent = channel.send(message, timeout);
 		}
 		if (!sent) {
-			throw new MessageHandlingException("failed to send message to channel '" + channel.getName() + "'");
+			throw new MessageHandlingException(message,
+					"failed to send message to channel '" + channel.getName() + "'");
 		}
 	}
 
-	protected abstract void validate() throws MessagingConfigurationException;
+	protected abstract void validate() throws ConfigurationException;
 
 	protected abstract List<MessageChannel> resolveChannels(Message<?> message);
 

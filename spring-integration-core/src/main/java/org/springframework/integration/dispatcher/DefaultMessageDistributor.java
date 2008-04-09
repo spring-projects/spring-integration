@@ -119,8 +119,10 @@ public class DefaultMessageDistributor implements MessageDistributor {
 			attempts++;
 		}
 		if (this.dispatcherPolicy.getShouldFailOnRejectionLimit()) {
-			throw new MessageDeliveryException("Dispatcher reached rejection limit of " + this.dispatcherPolicy.getRejectionLimit()
-					+ ". Consider increasing the handler's concurrency and/or the dispatcherPolicy's 'rejectionLimit'.");
+			throw new MessageDeliveryException(message, "Dispatcher reached rejection limit of "
+					+ this.dispatcherPolicy.getRejectionLimit()
+					+ ". Consider increasing the handler's concurrency and/or "
+					+ "the dispatcherPolicy's 'rejectionLimit'.");
 		}
 		return false;
 	}

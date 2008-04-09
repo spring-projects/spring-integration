@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.lang.reflect.Method;
 import java.util.Map;
 
 import org.springframework.core.annotation.Order;
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
@@ -38,7 +38,7 @@ public class DefaultMessageHandlerCreator extends AbstractMessageHandlerCreator 
 	public MessageHandler doCreateHandler(Object object, Method method, Map<String, ?> attributes) {
 		Class<?>[] types = method.getParameterTypes();
 		if (types.length != 1) {
-			throw new MessagingConfigurationException("exactly one method parameter is required");
+			throw new ConfigurationException("exactly one method parameter is required");
 		}
 		DefaultMessageHandlerAdapter<Object> adapter = new DefaultMessageHandlerAdapter<Object>();
 		adapter.setExpectsMessage(Message.class.isAssignableFrom(types[0]));

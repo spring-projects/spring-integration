@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.message;
 
-import org.springframework.integration.MessagingException;
-
 /**
  * Exception that indicates an error during message handling.
  * 
@@ -26,36 +24,16 @@ import org.springframework.integration.MessagingException;
 @SuppressWarnings("serial")
 public class MessageHandlingException extends MessagingException {
 
-	private Message<?> failedMessage;
-
-
-	public MessageHandlingException() {
-		super();
-	}
-
 	public MessageHandlingException(Message<?> failedMessage) {
-		this.failedMessage = failedMessage;
-	}
-
-	public MessageHandlingException(String description) {
-		super(description);
+		super(failedMessage);
 	}
 
 	public MessageHandlingException(Message<?> failedMessage, String description) {
-		super(description);
-		this.failedMessage = failedMessage;
+		super(failedMessage, description);
 	}
 
-	public MessageHandlingException(String description, Throwable cause) {
-		super(description, cause);
-	}
-
-
-	/**
-	 * Return the failed {@link Message} if available, may be null.
-	 */
-	public Message<?> getFailedMessage() {
-		return this.failedMessage;
+	public MessageHandlingException(Message<?> failedMessage, String description, Throwable cause) {
+		super(failedMessage, description, cause);
 	}
 
 }

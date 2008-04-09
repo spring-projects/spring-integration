@@ -31,7 +31,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
@@ -242,16 +242,16 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 			logger.debug("endpoint '" + this + "' handling message: " + message);
 		}
 		if (!this.isRunning()) {
-			throw new MessageHandlerNotRunningException();
+			throw new MessageHandlerNotRunningException(message);
 		}
 		for (MessageSelector selector : this.selectors) {
 			if (!selector.accept(message)) {
-				throw new MessageSelectorRejectedException();
+				throw new MessageSelectorRejectedException(message);
 			}
 		}
 		if (this.handler == null) {
 			if (this.defaultOutputChannelName == null) {
-				throw new MessagingConfigurationException(
+				throw new ConfigurationException(
 						"endpoint must have either a 'handler' or 'defaultOutputChannelName'");
 			}
 			MessageChannel outputChannel = this.channelRegistry.lookupChannel(this.defaultOutputChannelName);
@@ -278,7 +278,7 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 		}
 		catch (Throwable t) {
 			if (this.errorHandler == null) {
-				throw new MessageHandlingException(
+				throw new MessageHandlingException(message,
 						"error occurred in endpoint, and no 'errorHandler' available", t);
 			}
 			this.errorHandler.handle(t);
@@ -316,7 +316,8 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 			}
 			MessageChannel replyChannel = resolveReplyChannel(originalMessageHeader);
 			if (replyChannel == null) {
-				throw new MessageHandlingException("Unable to determine reply channel for message. " +
+				throw new MessageHandlingException(replyMessage, 
+						"Unable to determine reply channel for message. " +
 						"Provide a 'replyChannel' or 'replyChannelName' in the message header " +
 						"or a 'defaultOutputChannelName' on the message endpoint.");
 			}

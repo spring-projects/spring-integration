@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.message.Message;
-import org.springframework.util.StringUtils;
 
 /**
  * Base class for {@link MessageChannel} implementations providing common
@@ -109,7 +108,7 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 	 * @return <code>true</code> if the message is sent successfully or
 	 * <code>false</code> if the sending thread is interrupted.
 	 */
-	public final boolean send(Message message) {
+	public final boolean send(Message<?> message) {
 		return this.send(message, -1);
 	}
 
@@ -127,7 +126,7 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 	 * <code>false</code> if the message cannot be sent within the allotted
 	 * time or the sending thread is interrupted.
 	 */
-	public final boolean send(Message message, long timeout) {
+	public final boolean send(Message<?> message, long timeout) {
 		if (!this.interceptors.preSend(message, this)) {
 			return false;
 		}
@@ -143,7 +142,7 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 	 * @return the first available message or <code>null</code> if the
 	 * receiving thread is interrupted.
 	 */
-	public final Message receive() {
+	public final Message<?> receive() {
 		return this.receive(-1);
 	}
 
@@ -160,11 +159,11 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 	 * is available within the allotted time or the receiving thread is
 	 * interrupted.
 	 */
-	public final Message receive(long timeout) {
+	public final Message<?> receive(long timeout) {
 		if (!this.interceptors.preReceive(this)) {
 			return null;
 		}
-		Message message = this.doReceive(timeout);
+		Message<?> message = this.doReceive(timeout);
 		this.interceptors.postReceive(message, this);
 		return message;
 	}
@@ -212,7 +211,7 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 			return this.interceptors.add(interceptor);
 		}
 
-		public boolean preSend(Message message, MessageChannel channel) {
+		public boolean preSend(Message<?> message, MessageChannel channel) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("preSend on channel '" + channel + "', message: " + message);
 			}
@@ -224,7 +223,7 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 			return true;
 		}
 
-		public void postSend(Message message, MessageChannel channel, boolean sent) {
+		public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("postSend (sent=" + sent + ") on channel '" + channel + "', message: " + message);
 			}
@@ -245,7 +244,7 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 			return true;
 		}
 
-		public void postReceive(Message message, MessageChannel channel) {
+		public void postReceive(Message<?> message, MessageChannel channel) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("postReceive on channel '" + channel + "', message: " + message);
 			}

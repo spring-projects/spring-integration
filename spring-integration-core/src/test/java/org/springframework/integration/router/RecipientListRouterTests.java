@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
@@ -99,7 +99,7 @@ public class RecipientListRouterTests {
 		assertNull(result2);
 	}
 
-	@Test(expected=MessagingConfigurationException.class)
+	@Test(expected=ConfigurationException.class)
 	public void testConfigurationExceptionWhenBothChannelsAndNamesAreProvided() {
 		SimpleChannel channel1 = new SimpleChannel();
 		SimpleChannel channel2 = new SimpleChannel();

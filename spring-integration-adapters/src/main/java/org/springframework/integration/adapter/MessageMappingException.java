@@ -31,8 +31,8 @@ public class MessageMappingException extends MessageHandlingException {
 		super(failedMessage, description);
 	}
 
-	public MessageMappingException(String description, Throwable cause) {
-		super(description, cause);
+	public MessageMappingException(Message<?> failedMessage, String description, Throwable cause) {
+		super(failedMessage, description, cause);
 	}
 
 }

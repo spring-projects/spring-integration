@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.router.SplitterMessageHandlerAdapter;
-import org.springframework.integration.util.SimpleMethodInvoker;
 
 /**
  * @author Mark Fisher
@@ -84,7 +83,7 @@ public class CorrelationIdTests {
 		message.getHeader().setCorrelationId(correlationId);
 		AbstractMessageHandlerAdapter<TestBean> adapter = new AbstractMessageHandlerAdapter<TestBean>() {
 			@Override
-			protected Object doHandle(Message<?> message, SimpleMethodInvoker<TestBean> invoker) {
+			protected Object doHandle(Message<?> message, HandlerMethodInvoker<TestBean> invoker) {
 				Object result = invoker.invokeMethod(message.getPayload());
 				Message<?> resultMessage = new GenericMessage<Object>(result);
 				resultMessage.getHeader().setCorrelationId("456-XYZ");
@@ -103,7 +102,7 @@ public class CorrelationIdTests {
 		Message<?> message = new StringMessage("test");
 		AbstractMessageHandlerAdapter<TestBean> adapter = new AbstractMessageHandlerAdapter<TestBean>() {
 			@Override
-			protected Object doHandle(Message<?> message, SimpleMethodInvoker<TestBean> invoker) {
+			protected Object doHandle(Message<?> message, HandlerMethodInvoker<TestBean> invoker) {
 				Object result = invoker.invokeMethod(message.getPayload());
 				Message<?> resultMessage = new GenericMessage<Object>(result);
 				resultMessage.getHeader().setCorrelationId("456-XYZ");

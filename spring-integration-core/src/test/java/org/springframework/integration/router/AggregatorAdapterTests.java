@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 
@@ -88,50 +88,50 @@ public class AggregatorAdapterTests {
 		Assert.assertEquals(123456789l, returnedMessge.getPayload());
 	}
 
-	@Test(expected=MessagingConfigurationException.class)
+	@Test(expected=ConfigurationException.class)
 	public void testAdapterWithWrongMethodName() {
 		new AggregatorAdapter(simpleAggregator, "methodThatDoesNotExist");
 	}
 
-	@Test(expected=MessagingConfigurationException.class)
+	@Test(expected=ConfigurationException.class)
 	public void testInvalidParameterTypeUsingMethodName() {
 		new AggregatorAdapter(simpleAggregator, "invalidParameterType");
 	}
 
-	@Test(expected=MessagingConfigurationException.class)
+	@Test(expected=ConfigurationException.class)
 	public void testTooManyParametersUsingMethodName() {
 		new AggregatorAdapter(simpleAggregator, "tooManyParameters");
 	}
 
-	@Test(expected=MessagingConfigurationException.class)
+	@Test(expected=ConfigurationException.class)
 	public void testNotEnoughParametersUsingMethodName() {
 		new AggregatorAdapter(simpleAggregator, "notEnoughParameters");
 	}
 
-	@Test(expected=MessagingConfigurationException.class)
+	@Test(expected=ConfigurationException.class)
 	public void testCollectionSubclassParameterUsingMethodName() {
 		new AggregatorAdapter(simpleAggregator, "collectionSubclassParameter");
 	}
 
-	@Test(expected=MessagingConfigurationException.class)
+	@Test(expected=ConfigurationException.class)
 	public void testInvalidParameterTypeUsingMethodObject() throws SecurityException, NoSuchMethodException {
 		new AggregatorAdapter(simpleAggregator, simpleAggregator.getClass().getMethod(
 				"invalidParameterType", String.class));
 	}
 
-	@Test(expected=MessagingConfigurationException.class)
+	@Test(expected=ConfigurationException.class)
 	public void testTooManyParametersUsingMethodObject() throws SecurityException, NoSuchMethodException {
 		new AggregatorAdapter(simpleAggregator, simpleAggregator.getClass().getMethod(
 				"tooManyParameters", Collection.class, Collection.class));
 	}
 
-	@Test(expected=MessagingConfigurationException.class)
+	@Test(expected=ConfigurationException.class)
 	public void testNotEnoughParametersUsingMethodObject() throws SecurityException, NoSuchMethodException {
 		new AggregatorAdapter(simpleAggregator, simpleAggregator.getClass().getMethod(
 				"notEnoughParameters", new Class[] {} ));
 	}
 
-	@Test(expected= MessagingConfigurationException.class)
+	@Test(expected= ConfigurationException.class)
 	public void testCollectionSubclassParameterUsingMethodObject() throws SecurityException, NoSuchMethodException {
 		new AggregatorAdapter(simpleAggregator, simpleAggregator.getClass().getMethod(
 				"collectionSubclassParameter", new Class[] {List.class} ));

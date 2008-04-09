@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.adapter.mail.MailTargetAdapter;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.integration.scheduling.Subscription;
@@ -59,7 +59,7 @@ public class MailTargetAdapterParser extends AbstractSingleBeanDefinitionParser 
 		String headerGeneratorRef = element.getAttribute("header-generator");
 		if (StringUtils.hasText(mailSenderRef)) {
 			if (StringUtils.hasText(host) || StringUtils.hasText(username) || StringUtils.hasText(password)) {
-				throw new MessagingConfigurationException("The 'host', 'username', and 'password' properties " +
+				throw new ConfigurationException("The 'host', 'username', and 'password' properties " +
 						"should not be provided when using a 'mail-sender' reference.");
 			}
 			adapterDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(mailSenderRef));
@@ -76,7 +76,7 @@ public class MailTargetAdapterParser extends AbstractSingleBeanDefinitionParser 
 			adapterDef.getConstructorArgumentValues().addGenericArgumentValue(mailSender);
 		}
 		else {
-			throw new MessagingConfigurationException("Either a 'mail-sender' reference or 'host' property is required.");
+			throw new ConfigurationException("Either a 'mail-sender' reference or 'host' property is required.");
 		}
 		if (StringUtils.hasText(headerGeneratorRef)) {
 			adapterDef.getPropertyValues().addPropertyValue(

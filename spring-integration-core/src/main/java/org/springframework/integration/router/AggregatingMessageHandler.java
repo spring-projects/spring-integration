@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -198,8 +198,8 @@ public class AggregatingMessageHandler implements MessageHandler, InitializingBe
 		}
 		Object correlationId = message.getHeader().getCorrelationId();
 		if (correlationId == null) {
-			throw new MessageHandlingException(this.getClass().getSimpleName() +
-					" requires the 'correlationId' property");
+			throw new MessageHandlingException(message,
+					this.getClass().getSimpleName() + " requires the 'correlationId' property");
 		}
 		if (this.trackedCorrelationIds.contains(correlationId)) {
 			if (logger.isDebugEnabled()) {

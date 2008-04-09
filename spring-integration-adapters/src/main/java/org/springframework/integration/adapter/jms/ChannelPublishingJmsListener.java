@@ -18,10 +18,10 @@ package org.springframework.integration.adapter.jms;
 
 import javax.jms.MessageListener;
 
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.message.MessagingException;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.util.Assert;
 
@@ -54,7 +54,7 @@ public class ChannelPublishingJmsListener implements MessageListener {
 
 	public void onMessage(javax.jms.Message jmsMessage) {
 		if (this.channel == null) {
-			throw new MessagingConfigurationException("'channel' must not be null");
+			throw new ConfigurationException("'channel' must not be null");
 		}
 		try {
 			Message<?> messageToSend = (Message<?>) this.converter.fromMessage(jmsMessage);
@@ -66,7 +66,7 @@ public class ChannelPublishingJmsListener implements MessageListener {
 			}
 		}
 		catch (Exception e) {
-			throw new MessageDeliveryException("failed to convert JMS Message", e);
+			throw new MessagingException("failed to convert and send JMS Message", e);
 		}
 	}
 

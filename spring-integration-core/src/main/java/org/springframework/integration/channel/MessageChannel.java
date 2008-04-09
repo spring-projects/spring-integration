@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ public interface MessageChannel {
 	 * @return <code>true</code> if the message is sent successfully,
 	 * <code>false</false> if interrupted
 	 */
-	boolean send(Message message);
+	boolean send(Message<?> message);
 
 	/**
 	 * Send a message, blocking until either the message is accepted or the
@@ -67,7 +67,7 @@ public interface MessageChannel {
 	 * <code>false</false> if the specified timeout period elapses or
 	 * the send is interrupted
 	 */
-	boolean send(Message message, long timeout);
+	boolean send(Message<?> message, long timeout);
 
 	/**
 	 * Receive a message, blocking indefinitely if necessary.
@@ -75,7 +75,7 @@ public interface MessageChannel {
 	 * @return the next available {@link Message} or <code>null</code> if
 	 * interrupted
 	 */
-	Message receive();
+	Message<?> receive();
 
 	/**
 	 * Receive a message, blocking until either a message is available or the
@@ -86,7 +86,7 @@ public interface MessageChannel {
 	 * @return the next available {@link Message} or <code>null</code> if the
 	 * specified timeout period elapses or the message reception is interrupted
 	 */
-	Message receive(long timeout);
+	Message<?> receive(long timeout);
 
 	/**
 	 * Remove all {@link Message Messages} from this channel.

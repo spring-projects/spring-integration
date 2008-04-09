@@ -47,7 +47,8 @@ public class ResponseCorrelator implements MessageHandler {
 	public Message<?> handle(Message<?> message) {
 		Object correlationId = this.getCorrelationId(message);
 		if (correlationId == null) {
-			throw new MessageHandlingException("unable to handle response, message has no correlationId: " + message);
+			throw new MessageHandlingException(message, 
+					"unable to handle response, message has no correlationId: " + message);
 		}
 		this.messageStore.put(correlationId, message);
 		return null;

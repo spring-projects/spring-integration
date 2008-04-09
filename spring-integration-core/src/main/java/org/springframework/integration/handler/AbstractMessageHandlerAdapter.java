@@ -25,7 +25,6 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHeader;
 import org.springframework.integration.message.MessageMapper;
-import org.springframework.integration.util.SimpleMethodInvoker;
 import org.springframework.util.Assert;
 
 /**
@@ -46,7 +45,7 @@ public abstract class AbstractMessageHandlerAdapter<T> implements MessageHandler
 
 	private volatile String methodName;
 
-	private volatile SimpleMethodInvoker<T> invoker;
+	private volatile HandlerMethodInvoker<T> invoker;
 
 	private volatile int order = Integer.MAX_VALUE;
 
@@ -83,7 +82,7 @@ public abstract class AbstractMessageHandlerAdapter<T> implements MessageHandler
 			if (this.initialized) {
 				return;
 			}
-			this.invoker = new SimpleMethodInvoker<T>(this.object, this.methodName);
+			this.invoker = new HandlerMethodInvoker<T>(this.object, this.methodName);
 			this.initialized = true;
 		}
 		this.initialize();
@@ -129,6 +128,6 @@ public abstract class AbstractMessageHandlerAdapter<T> implements MessageHandler
 	 * the provided target object and method. May return an object of type
 	 * {@link Message}, else rely on the message mapper to convert.
 	 */
-	protected abstract Object doHandle(Message<?> message, SimpleMethodInvoker<T> invoker);
+	protected abstract Object doHandle(Message<?> message, HandlerMethodInvoker<T> invoker);
 
 }

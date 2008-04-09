@@ -28,7 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.junit.Test;
 
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.DefaultChannelRegistry;
@@ -114,7 +114,7 @@ public class RouterMessageHandlerAdapterTests {
 		assertEquals("bar", message3.getPayload());
 	}
 
-	@Test(expected=MessagingConfigurationException.class)
+	@Test(expected=ConfigurationException.class)
 	public void testFailsWhenPropertyAndAttributeAreBothProvided() throws Exception {
 		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);

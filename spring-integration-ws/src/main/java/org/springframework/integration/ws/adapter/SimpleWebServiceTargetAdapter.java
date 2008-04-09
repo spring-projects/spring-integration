@@ -24,7 +24,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 
-import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.message.MessagingException;
 import org.springframework.ws.client.core.SourceExtractor;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
 import org.springframework.xml.transform.StringResult;
@@ -63,7 +63,7 @@ public class SimpleWebServiceTargetAdapter extends AbstractWebServiceTargetAdapt
 					new StringSource((String) requestPayload), requestCallback, result);
 			return result.toString();
 		}
-		throw new MessageHandlingException("Unsupported payload type '" + requestPayload.getClass() +
+		throw new MessagingException("Unsupported payload type '" + requestPayload.getClass() +
 				"'. " + this.getClass().getName() + " only supports 'java.lang.String' and '" + Source.class.getName() +
 				"'. Consider using the '" + MarshallingWebServiceTargetAdapter.class.getName() + "' instead.");
 	}

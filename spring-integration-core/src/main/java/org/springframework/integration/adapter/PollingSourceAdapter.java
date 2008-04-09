@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,10 @@ import java.util.Collection;
 import java.util.concurrent.Executors;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageMapper;
+import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.scheduling.MessagingTask;
 import org.springframework.integration.scheduling.MessagingTaskScheduler;
 import org.springframework.integration.scheduling.MessagingTaskSchedulerAware;
@@ -103,7 +103,7 @@ public class PollingSourceAdapter<T> extends AbstractSourceAdapter<T> implements
 	@Override
 	protected void initialize() {
 		if (this.source == null) {
-			throw new MessagingConfigurationException("source must not be null");
+			throw new ConfigurationException("source must not be null");
 		}
 	}
 
@@ -145,7 +145,7 @@ public class PollingSourceAdapter<T> extends AbstractSourceAdapter<T> implements
 		Collection<T> results = this.source.poll(limit);
 		if (results != null) {
 			if (results.size() > limit) {
-				throw new MessageHandlingException("source returned too many results, the limit is " + limit);
+				throw new MessagingException("source returned too many results, the limit is " + limit);
 			}
 			for (T next : results) {
 				if (this.sendToChannel(next)) {

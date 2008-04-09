@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,9 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.handler.HandlerMethodInvoker;
 import org.springframework.integration.util.MethodValidator;
-import org.springframework.integration.util.SimpleMethodInvoker;
 import org.springframework.util.Assert;
 
 /**
@@ -38,7 +38,7 @@ public class MethodInvokingSource<T> implements PollableSource<Object>, Initiali
 
 	private String method;
 
-	private SimpleMethodInvoker<T> invoker;
+	private HandlerMethodInvoker<T> invoker;
 
 
 	public void setObject(T object) {
@@ -52,7 +52,7 @@ public class MethodInvokingSource<T> implements PollableSource<Object>, Initiali
 	}
 
 	public void afterPropertiesSet() {
-		this.invoker = new SimpleMethodInvoker<T>(this.object, this.method);
+		this.invoker = new HandlerMethodInvoker<T>(this.object, this.method);
 		this.invoker.setMethodValidator(new MessageReceivingMethodValidator());
 	}
 
@@ -68,7 +68,7 @@ public class MethodInvokingSource<T> implements PollableSource<Object>, Initiali
 
 		public void validate(Method method) {
 			if (method.getReturnType().equals(void.class)) {
-				throw new MessagingConfigurationException("MethodInvokingSource requires a non-void returning method.");
+				throw new ConfigurationException("MethodInvokingSource requires a non-void returning method.");
 			}
 		}
 	}

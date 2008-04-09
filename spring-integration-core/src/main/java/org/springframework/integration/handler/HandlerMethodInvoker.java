@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.util;
+package org.springframework.integration.handler;
 
 import java.lang.reflect.InvocationTargetException;
 
 import org.springframework.beans.support.ArgumentConvertingMethodInvoker;
-import org.springframework.integration.MessagingException;
+import org.springframework.integration.message.MessagingException;
+import org.springframework.integration.util.MethodValidator;
 import org.springframework.util.Assert;
 import org.springframework.util.MethodInvoker;
 import org.springframework.util.ObjectUtils;
@@ -29,7 +30,7 @@ import org.springframework.util.ObjectUtils;
  * 
  * @author Mark Fisher
  */
-public class SimpleMethodInvoker<T> {
+public class HandlerMethodInvoker<T> {
 
 	private T object;
 
@@ -38,7 +39,7 @@ public class SimpleMethodInvoker<T> {
 	private MethodValidator methodValidator;
 
 
-	public SimpleMethodInvoker(T object, String method) {
+	public HandlerMethodInvoker(T object, String method) {
 		Assert.notNull(object, "'object' must not be null");
 		Assert.notNull(method, "'method' must not be null");
 		this.object = object;

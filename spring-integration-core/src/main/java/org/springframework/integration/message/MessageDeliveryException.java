@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.message;
 
-import org.springframework.integration.MessagingException;
-
 /**
  * Exception that indicates an error during message delivery.
  * 
@@ -26,36 +24,12 @@ import org.springframework.integration.MessagingException;
 @SuppressWarnings("serial")
 public class MessageDeliveryException extends MessagingException {
 
-	private Message<?> undeliveredMessage;
-
-
-	public MessageDeliveryException() {
-		super();
-	}
-
 	public MessageDeliveryException(Message<?> undeliveredMessage) {
-		this.undeliveredMessage = undeliveredMessage;
-	}
-
-	public MessageDeliveryException(String description) {
-		super(description);
+		super(undeliveredMessage);
 	}
 
 	public MessageDeliveryException(Message<?> undeliveredMessage, String description) {
-		super(description);
-		this.undeliveredMessage = undeliveredMessage;
-	}
-
-	public MessageDeliveryException(String description, Throwable cause) {
-		super(description, cause);
-	}
-
-
-	/**
-	 * Return the undelivered {@link Message} if available, may be null.
-	 */
-	public Message<?> getUndeliveredMessage() {
-		return this.undeliveredMessage;
+		super(undeliveredMessage, description);
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ public class MessageHandlerChainTests {
 		chain.add(new TestHandler("b"));
 		chain.add(new TestHandler("c"));
 		chain.add(new TestHandler("d"));
-		Message result = chain.handle(new StringMessage(1, "!"));
+		Message<?> result = chain.handle(new StringMessage(1, "!"));
 		assertEquals("!abcd", result.getPayload());
 	}
 
@@ -49,7 +49,7 @@ public class MessageHandlerChainTests {
 		chain.add(new TestHandler("a"));
 		chain.add(handler4);
 		chain.add(new TestHandler("b"));		
-		Message result = chain.handle(new StringMessage(1, "!"));
+		Message<?> result = chain.handle(new StringMessage(1, "!"));
 		assertEquals("234!a*234b", result.getPayload());
 	}
 
@@ -62,7 +62,7 @@ public class MessageHandlerChainTests {
 			this.text = text;
 		}
 
-		public Message handle(Message message) {
+		public Message<?> handle(Message<?> message) {
 			return new StringMessage(1, message.getPayload() + text);
 		}
 	}
@@ -77,7 +77,7 @@ public class MessageHandlerChainTests {
 			this.text = text;
 		}
 
-		public Message handle(Message message, MessageHandler target) {
+		public Message<?> handle(Message<?> message, MessageHandler target) {
 			message = target.handle(new StringMessage(1, text + message.getPayload()));
 			return new StringMessage(1, message.getPayload() + text);
 		}

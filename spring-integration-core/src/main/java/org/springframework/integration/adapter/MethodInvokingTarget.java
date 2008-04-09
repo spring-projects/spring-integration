@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.util.SimpleMethodInvoker;
+import org.springframework.integration.handler.HandlerMethodInvoker;
 import org.springframework.util.Assert;
 
 /**
@@ -36,7 +36,7 @@ public class MethodInvokingTarget<T> implements Target<Object>, InitializingBean
 
 	private String method;
 
-	private SimpleMethodInvoker<T> invoker;
+	private HandlerMethodInvoker<T> invoker;
 
 	private ArgumentListPreparer argumentListPreparer;
 
@@ -56,7 +56,7 @@ public class MethodInvokingTarget<T> implements Target<Object>, InitializingBean
 	}
 
 	public void afterPropertiesSet() {
-		this.invoker = new SimpleMethodInvoker<T>(this.object, this.method);
+		this.invoker = new HandlerMethodInvoker<T>(this.object, this.method);
 	}
 
 	public boolean send(Object object) {

@@ -20,15 +20,15 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
 
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.AbstractMessageHandlerAdapter;
+import org.springframework.integration.handler.HandlerMethodInvoker;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.util.SimpleMethodInvoker;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -74,9 +74,9 @@ public class RouterMessageHandlerAdapter extends AbstractMessageHandlerAdapter i
 	}
 
 	@Override
-	protected Object doHandle(Message message, SimpleMethodInvoker invoker) {
+	protected Object doHandle(Message message, HandlerMethodInvoker invoker) {
 		if (method.getParameterTypes().length != 1) {
-			throw new MessagingConfigurationException(
+			throw new ConfigurationException(
 					"method must accept exactly one parameter");
 		}
 		String propertyName = (String) attributes.get(PROPERTY_KEY);
@@ -84,19 +84,21 @@ public class RouterMessageHandlerAdapter extends AbstractMessageHandlerAdapter i
 		Object retval = null;
 		if (StringUtils.hasText(propertyName)) {
 			if (StringUtils.hasText(attributeName)) {
-				throw new MessagingConfigurationException(
+				throw new ConfigurationException(
 						"cannot accept both 'property' and 'attribute'");
 			}
 			String property = message.getHeader().getProperty(propertyName);
 			if (!StringUtils.hasText(property)) {
-				throw new MessageHandlingException("no '" + propertyName + "' property available for router method");
+				throw new MessageHandlingException(message,
+						"no '" + propertyName + "' property available for router method");
 			}
 			retval = this.invokeMethod(invoker, property);
 		}
 		else if (StringUtils.hasText(attributeName)) {
 			Object attribute = message.getHeader().getAttribute(attributeName);
 			if (attribute == null) {
-				throw new MessageHandlingException("no '" + attributeName + "' attribute available for router method");
+				throw new MessageHandlingException(message,
+						"no '" + attributeName + "' attribute available for router method");
 			}
 			retval = this.invokeMethod(invoker, attribute);
 		}
@@ -120,7 +122,7 @@ public class RouterMessageHandlerAdapter extends AbstractMessageHandlerAdapter i
 						this.sendMessage(message, (String) channel);
 					}
 					else {
-						throw new MessagingConfigurationException(
+						throw new ConfigurationException(
 								"router method must return type 'MessageChannel' or 'String'");
 					}
 				}
@@ -142,14 +144,14 @@ public class RouterMessageHandlerAdapter extends AbstractMessageHandlerAdapter i
 				this.sendMessage(message, (String) retval);
 			}
 			else {
-				throw new MessagingConfigurationException(
+				throw new ConfigurationException(
 						"router method must return type 'MessageChannel' or 'String'");
 			}
 		}
 		return null;
 	}
 
-	private Object invokeMethod(SimpleMethodInvoker<?> invoker, Object parameter) {
+	private Object invokeMethod(HandlerMethodInvoker<?> invoker, Object parameter) {
 		if (this.logger.isDebugEnabled()) {
 			logger.debug("invoking method '" + method.getName() + "' with parameter of type '" +
 					parameter.getClass().getName() + "'");

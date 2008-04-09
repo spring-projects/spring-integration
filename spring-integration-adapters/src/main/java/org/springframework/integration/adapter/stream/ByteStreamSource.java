@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.springframework.integration.adapter.PollableSource;
-import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.message.MessagingException;
 
 /**
  * A pollable source for receiving bytes from an {@link InputStream}.
@@ -94,7 +94,7 @@ public class ByteStreamSource implements PollableSource<byte[]> {
 				}
 			}
 			catch (IOException e) {
-				throw new MessageDeliveryException("IO failure occurred in adapter", e);
+				throw new MessagingException("IO failure occurred in adapter", e);
 			}
 		}
 		return results;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,14 +73,14 @@ public class ConcurrentHandler implements MessageHandler, DisposableBean {
 
 	public Message<?> handle(Message<?> message) {
 		if (this.executor.isShutdown()) {
-			throw new MessageHandlerNotRunningException();
+			throw new MessageHandlerNotRunningException(message);
 		}
 		try {
 			this.executor.execute(new HandlerTask(message));
 			return null;
 		}
 		catch (RuntimeException e) {
-			throw new MessageHandlerRejectedExecutionException(e);
+			throw new MessageHandlerRejectedExecutionException(message, e);
 		}
 	}
 

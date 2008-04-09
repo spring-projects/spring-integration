@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.integration.adapter.MessageMappingException;
 import org.springframework.integration.message.AbstractMessageMapper;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.mail.MailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMailMessage;
@@ -71,7 +71,7 @@ public class ByteArrayMailMessageMapper extends AbstractMessageMapper<byte[], Ma
 			return new MimeMailMessage(helper);
 		}
 		catch (MessagingException e) {
-			throw new MessageHandlingException("failed to create MimeMessage", e);
+			throw new MessageMappingException(message, "failed to create MimeMessage", e);
 		}
 	}
 

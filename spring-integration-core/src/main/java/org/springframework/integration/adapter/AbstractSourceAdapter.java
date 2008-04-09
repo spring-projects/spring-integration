@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageMapper;
@@ -69,7 +69,7 @@ public abstract class AbstractSourceAdapter<T> implements SourceAdapter, Initial
 
 	public final void afterPropertiesSet() {
 		if (this.channel == null) {
-			throw new MessagingConfigurationException("'channel' is required");
+			throw new ConfigurationException("'channel' is required");
 		}
 		this.initialize();
 		this.initialized = true;

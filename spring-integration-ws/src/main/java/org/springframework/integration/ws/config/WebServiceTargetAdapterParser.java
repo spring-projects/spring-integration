@@ -24,7 +24,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.integration.scheduling.Subscription;
 import org.springframework.integration.ws.adapter.MarshallingWebServiceTargetAdapter;
@@ -54,10 +54,10 @@ public class WebServiceTargetAdapterParser extends AbstractSingleBeanDefinitionP
 		String channel = element.getAttribute("channel");
 		String uri = element.getAttribute("uri");
 		if (!StringUtils.hasText(channel)) {
-			throw new MessagingConfigurationException("The 'channel' attribute is required.");
+			throw new ConfigurationException("The 'channel' attribute is required.");
 		}
 		if (!StringUtils.hasText(uri)) {
-			throw new MessagingConfigurationException("The 'uri' attribute is required.");
+			throw new ConfigurationException("The 'uri' attribute is required.");
 		}
 		String marshallerRef = element.getAttribute("marshaller");
 		String unmarshallerRef = element.getAttribute("unmarshaller");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.adapter.DefaultTargetAdapter;
 import org.springframework.integration.adapter.MethodInvokingSource;
 import org.springframework.integration.adapter.MethodInvokingTarget;
@@ -64,13 +64,13 @@ public class ChannelAdapterParser implements BeanDefinitionParser {
 		String method = element.getAttribute(METHOD_ATTRIBUTE);
 		String channel = element.getAttribute(CHANNEL_ATTRIBUTE);
 		if (!StringUtils.hasText(ref)) {
-			throw new MessagingConfigurationException("'ref' is required");
+			throw new ConfigurationException("'ref' is required");
 		}
 		if (!StringUtils.hasText(method)) {
-			throw new MessagingConfigurationException("'method' is required");
+			throw new ConfigurationException("'method' is required");
 		}
 		if (!StringUtils.hasText(channel)) {
-			throw new MessagingConfigurationException("'channel' is required");
+			throw new ConfigurationException("'channel' is required");
 		}
 		RootBeanDefinition adapterDef = null;
 		RootBeanDefinition invokerDef = null;

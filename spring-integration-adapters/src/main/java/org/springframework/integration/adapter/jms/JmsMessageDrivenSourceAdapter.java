@@ -23,7 +23,7 @@ import javax.jms.Session;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.adapter.AbstractSourceAdapter;
 import org.springframework.jms.listener.AbstractJmsListeningContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
@@ -113,7 +113,7 @@ public class JmsMessageDrivenSourceAdapter extends AbstractSourceAdapter<Object>
 
 	private void initDefaultContainer() {
 		if (this.connectionFactory == null || (this.destination == null && this.destinationName == null)) {
-			throw new MessagingConfigurationException("If a 'container' reference is not provided, then "
+			throw new ConfigurationException("If a 'container' reference is not provided, then "
 					+ "'connectionFactory' and 'destination' (or 'destinationName') are required.");
 		}
 		DefaultMessageListenerContainer dmlc = new DefaultMessageListenerContainer();

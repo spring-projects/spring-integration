@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.handler.HandlerMethodInvoker;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.util.SimpleMethodInvoker;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
@@ -40,7 +40,7 @@ import org.springframework.util.ReflectionUtils;
  */
 public class AggregatorAdapter implements Aggregator {
 
-	private final SimpleMethodInvoker<Object> invoker;
+	private final HandlerMethodInvoker<Object> invoker;
 
 	private final Method method;
 
@@ -50,21 +50,21 @@ public class AggregatorAdapter implements Aggregator {
 		Assert.notNull(methodName, "'methodName' must not be null");
 		this.method = ReflectionUtils.findMethod(object.getClass(), methodName, new Class<?>[] { Collection.class });
 		if (this.method == null) {
-			throw new MessagingConfigurationException("Method '" + methodName +
+			throw new ConfigurationException("Method '" + methodName +
 					"(Collection<?> args)' not found on '" + object.getClass().getName() + "'.");
 		}
-		this.invoker = new SimpleMethodInvoker<Object>(object, this.method.getName());
+		this.invoker = new HandlerMethodInvoker<Object>(object, this.method.getName());
 	}
 
 	public AggregatorAdapter(Object object, Method method) {
 		Assert.notNull(object, "'object' must not be null");
 		Assert.notNull(method, "'method' must not be null");
 		if (method.getParameterTypes().length != 1 || !method.getParameterTypes()[0].equals(Collection.class)) {
-			throw new MessagingConfigurationException(
+			throw new ConfigurationException(
 					"Aggregator method must accept exactly one parameter, and it must be a Collection.");
 		}
 		this.method = method;
-		this.invoker = new SimpleMethodInvoker<Object>(object, this.method.getName());
+		this.invoker = new HandlerMethodInvoker<Object>(object, this.method.getName());
 	}
 
 

@@ -24,7 +24,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.springframework.integration.adapter.PollableSource;
-import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.message.MessagingException;
 import org.springframework.util.Assert;
 
 /**
@@ -76,7 +76,7 @@ public class CharacterStreamSource implements PollableSource<String> {
 				results.add(line);
 			}
 			catch (IOException e) {
-				throw new MessageDeliveryException("IO failure occurred in adapter", e);
+				throw new MessagingException("IO failure occurred in adapter", e);
 			}
 		}
 		return results;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
-import org.springframework.integration.MessagingConfigurationException;
+
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
@@ -88,7 +89,7 @@ public class MultiChannelRouterTests {
 		assertEquals("test", result2.getPayload());
 	}
 
-	@Test(expected=MessagingConfigurationException.class)
+	@Test(expected=ConfigurationException.class)
 	public void testConfiguringBothChannelResolverAndChannelNameResolverIsNotAllowed() {
 		MultiChannelResolver channelResolver = new MultiChannelResolver() {
 			public List<MessageChannel> resolve(Message<?> message) {
@@ -168,7 +169,7 @@ public class MultiChannelRouterTests {
 		router.handle(message);
 	}
 
-	@Test(expected=MessagingConfigurationException.class)
+	@Test(expected=ConfigurationException.class)
 	public void testChannelRegistryIsRequiredWhenUsingChannelNameResolver() {
 		MultiChannelNameResolver channelNameResolver = new MultiChannelNameResolver() {
 			public String[] resolve(Message<?> message) {
@@ -180,7 +181,7 @@ public class MultiChannelRouterTests {
 		router.resolveChannels(new StringMessage("this should fail"));
 	}
 
-	@Test(expected=MessagingConfigurationException.class)
+	@Test(expected=ConfigurationException.class)
 	public void testValidateChannelRegistryIsPresentWhenUsingChannelNameResolver() {
 		MultiChannelNameResolver channelNameResolver = new MultiChannelNameResolver() {
 			public String[] resolve(Message<?> message) {
@@ -192,7 +193,7 @@ public class MultiChannelRouterTests {
 		router.afterPropertiesSet();
 	}
 
-	@Test(expected=MessagingConfigurationException.class)
+	@Test(expected=ConfigurationException.class)
 	public void testChannelResolverIsRequired() {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		MultiChannelRouter router = new MultiChannelRouter();

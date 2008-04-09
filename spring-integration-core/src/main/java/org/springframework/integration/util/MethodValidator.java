@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package org.springframework.integration.util;
 
 import java.lang.reflect.Method;
 
-import org.springframework.integration.MessagingConfigurationException;
-
 /**
  * Interface for method validation. Implementations should throw an exception if
  * the method is invalid for its purpose.
@@ -28,6 +26,6 @@ import org.springframework.integration.MessagingConfigurationException;
  */
 public interface MethodValidator {
 
-	void validate(Method method) throws MessagingConfigurationException;
+	void validate(Method method) throws Exception;
 
 }

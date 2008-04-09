@@ -33,7 +33,7 @@ import org.springframework.integration.adapter.PollableSource;
 import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.adapter.file.ByteArrayFileMapper;
 import org.springframework.integration.adapter.file.TextFileMapper;
-import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.message.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -129,10 +129,10 @@ public class FtpSourceAdapter extends PollingSourceAdapter<File> implements Poll
 			LinkedList<File> localFileList = new LinkedList<File>();
 			this.client.connect(this.host, this.port);
 			if (!StringUtils.hasText(this.username)) {
-				throw new MessageHandlingException("username is required");
+				throw new MessagingException("username is required");
 			}
 			if (!this.client.login(this.username, this.password)) {
-				throw new MessageHandlingException("Login failed. Please check the username and password.");				
+				throw new MessagingException("Login failed. Please check the username and password.");				
 			}
 			if (logger.isDebugEnabled()) {
 				logger.debug("login successful");
@@ -140,7 +140,7 @@ public class FtpSourceAdapter extends PollingSourceAdapter<File> implements Poll
 			this.client.setFileType(FTP.IMAGE_FILE_TYPE);
 			if (!this.remoteWorkingDirectory.equals(this.client.printWorkingDirectory())
 					&& !this.client.changeWorkingDirectory(this.remoteWorkingDirectory)) {
-					throw new MessageHandlingException("Could not change directory to '" +
+					throw new MessagingException("Could not change directory to '" +
 							remoteWorkingDirectory + "'. Please check the path.");
 			}
 			if (logger.isDebugEnabled()) {
@@ -176,9 +176,9 @@ public class FtpSourceAdapter extends PollingSourceAdapter<File> implements Poll
 				}
 			}
 			catch (IOException ioe) {
-				throw new MessageHandlingException("Error when disconnecting from ftp.", ioe);
+				throw new MessagingException("Error when disconnecting from ftp.", ioe);
 			}
-			throw new MessageHandlingException("Error while polling for messages.", e);
+			throw new MessagingException("Error while polling for messages.", e);
 		}
 	}
 

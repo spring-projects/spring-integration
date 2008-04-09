@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -166,7 +166,7 @@ public class DefaultMessageDispatcherTests {
 		dispatcher.addHandler(new ConcurrentHandler(handler2, createExecutor()) {
 			@Override
 			public Message<?> handle(Message<?> message) {
-				throw new MessageHandlerRejectedExecutionException();
+				throw new MessageHandlerRejectedExecutionException(message);
 			}
 		});
 		dispatcher.addHandler(new ConcurrentHandler(handler3, createExecutor()));
@@ -198,7 +198,7 @@ public class DefaultMessageDispatcherTests {
 		dispatcher.addHandler(new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				latch.countDown();
-				throw new MessageHandlerRejectedExecutionException();
+				throw new MessageHandlerRejectedExecutionException(message);
 			}
 		});
 		dispatcher.addHandler(handler2);
@@ -251,7 +251,7 @@ public class DefaultMessageDispatcherTests {
 			public Message<?> handle(Message<?> message) {
 				rejectedCounter1.incrementAndGet();
 				latch.countDown();
-				throw new MessageHandlerRejectedExecutionException();
+				throw new MessageHandlerRejectedExecutionException(message);
 			}
 		});
 		dispatcher.addHandler(new ConcurrentHandler(handler2, createExecutor()) {
@@ -259,7 +259,7 @@ public class DefaultMessageDispatcherTests {
 			public Message<?> handle(Message<?> message) {
 				rejectedCounter2.incrementAndGet();
 				latch.countDown();
-				throw new MessageHandlerRejectedExecutionException();
+				throw new MessageHandlerRejectedExecutionException(message);
 			}
 		});
 		dispatcher.start();
@@ -295,7 +295,7 @@ public class DefaultMessageDispatcherTests {
 			public Message<?> handle(Message<?> message) {
 				rejectedCounter1.incrementAndGet();
 				latch.countDown();
-				throw new MessageHandlerRejectedExecutionException();
+				throw new MessageHandlerRejectedExecutionException(message);
 			}
 		});
 		dispatcher.addHandler(new ConcurrentHandler(handler2, createExecutor()) {
@@ -306,7 +306,7 @@ public class DefaultMessageDispatcherTests {
 				}
 				rejectedCounter2.incrementAndGet();
 				latch.countDown();
-				throw new MessageHandlerRejectedExecutionException();
+				throw new MessageHandlerRejectedExecutionException(message);
 			}
 		});
 		dispatcher.addHandler(new ConcurrentHandler(handler3, createExecutor()) {
@@ -314,7 +314,7 @@ public class DefaultMessageDispatcherTests {
 			public Message<?> handle(Message<?> message) {
 				rejectedCounter3.incrementAndGet();
 				latch.countDown();
-				throw new MessageHandlerRejectedExecutionException();
+				throw new MessageHandlerRejectedExecutionException(message);
 			}
 		});
 		dispatcher.start();
@@ -352,7 +352,7 @@ public class DefaultMessageDispatcherTests {
 				}
 				rejectedCounter1.incrementAndGet();
 				latch.countDown();
-				throw new MessageHandlerRejectedExecutionException();
+				throw new MessageHandlerRejectedExecutionException(message);
 			}
 		});
 		dispatcher.addHandler(new ConcurrentHandler(handler2, createExecutor()) {
@@ -363,7 +363,7 @@ public class DefaultMessageDispatcherTests {
 				}
 				rejectedCounter2.incrementAndGet();
 				latch.countDown();
-				throw new MessageHandlerRejectedExecutionException();
+				throw new MessageHandlerRejectedExecutionException(message);
 			}
 		});
 		dispatcher.start();

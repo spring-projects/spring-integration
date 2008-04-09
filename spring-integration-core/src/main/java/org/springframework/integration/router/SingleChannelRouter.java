@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.springframework.integration.router;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 
@@ -51,11 +51,11 @@ public class SingleChannelRouter extends AbstractRoutingMessageHandler {
 	@Override
 	public void validate() {
 		if (!(this.channelResolver != null ^ this.channelNameResolver != null)) {
-			throw new MessagingConfigurationException(
+			throw new ConfigurationException(
 					"exactly one of 'channelResolver' or 'channelNameResolver' must be provided");
 		}
 		if (this.channelNameResolver != null && this.getChannelRegistry() == null) {
-			throw new MessagingConfigurationException("'channelRegistry' is required when resolving by channel name");
+			throw new ConfigurationException("'channelRegistry' is required when resolving by channel name");
 		}
 	}
 
@@ -74,7 +74,7 @@ public class SingleChannelRouter extends AbstractRoutingMessageHandler {
 			return this.channelResolver.resolve(message);
 		}
 		if (this.channelNameResolver == null || this.getChannelRegistry() == null) {
-			throw new MessagingConfigurationException("router configuration requires either "
+			throw new ConfigurationException("router configuration requires either "
 					+ "a 'channelResolver' or both 'channelNameResolver' and 'channelRegistry'");
 		}
 		String channelName = this.channelNameResolver.resolve(message);

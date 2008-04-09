@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
@@ -167,7 +167,7 @@ public class EndpointParser implements BeanDefinitionParser {
 		String handlerRef = element.getAttribute(HANDLER_REF_ATTRIBUTE);
 		if (StringUtils.hasText(handlerRef)) {
 			if (childHandlerRefs.size() > 0) {
-				throw new MessagingConfigurationException(
+				throw new ConfigurationException(
 						"The 'handler-ref' attribute is only supported when no 'handler' child elements are present");
 			}
 			String handlerMethod = element.getAttribute(HANDLER_METHOD_ATTRIBUTE);

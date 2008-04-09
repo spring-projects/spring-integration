@@ -25,7 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.integration.adapter.MessageHandlingSourceAdapter;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandler;
-import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.message.MessagingException;
 import org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter;
 import org.springframework.web.HttpRequestHandler;
 
@@ -85,7 +85,7 @@ public class HttpInvokerSourceAdapter extends MessageHandlingSourceAdapter imple
 	public void handleRequest(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		if (this.exporter == null) {
-			throw new MessageHandlingException("adapter has not been initialized");
+			throw new MessagingException("adapter has not been initialized");
 		}
 		this.exporter.handleRequest(request, response);
 	}

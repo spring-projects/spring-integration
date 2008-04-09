@@ -23,7 +23,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.adapter.httpinvoker.HttpInvokerTargetAdapter;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.integration.scheduling.Subscription;
@@ -53,10 +53,10 @@ public class HttpInvokerTargetAdapterParser extends AbstractSingleBeanDefinition
 		String channel = element.getAttribute("channel");
 		String url = element.getAttribute("url");
 		if (!StringUtils.hasText(channel)) {
-			throw new MessagingConfigurationException("The 'channel' attribute is required.");
+			throw new ConfigurationException("The 'channel' attribute is required.");
 		}
 		if (!StringUtils.hasText(url)) {
-			throw new MessagingConfigurationException("The 'url' attribute is required.");
+			throw new ConfigurationException("The 'url' attribute is required.");
 		}
 		adapterDef.getConstructorArgumentValues().addGenericArgumentValue(url);
 		String adapterBeanName = parserContext.getReaderContext().generateBeanName(adapterDef);

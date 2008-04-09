@@ -23,9 +23,9 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.adapter.AbstractTargetAdapter;
-import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.message.MessagingException;
 import org.springframework.util.Assert;
 
 /**
@@ -103,7 +103,7 @@ public class CharacterStreamTargetAdapter extends AbstractTargetAdapter {
 			return new CharacterStreamTargetAdapter(new OutputStreamWriter(stream, charsetName));
 		}
 		catch (UnsupportedEncodingException e) {
-			throw new MessagingConfigurationException("unsupported encoding: " + charsetName, e);
+			throw new ConfigurationException("unsupported encoding: " + charsetName, e);
 		}
 	}
 
@@ -140,7 +140,7 @@ public class CharacterStreamTargetAdapter extends AbstractTargetAdapter {
 			return true;
 		}
 		catch (IOException e) {
-			throw new MessageHandlingException("IO failure occurred in adapter", e);
+			throw new MessagingException("IO failure occurred in adapter", e);
 		}
 	}
 

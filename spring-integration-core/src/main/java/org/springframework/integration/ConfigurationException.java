@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,18 @@
 package org.springframework.integration;
 
 /**
- * Exception that indicates an incorrectly configured messaging component.
+ * Exception that indicates an incorrectly configured integration component.
  * 
  * @author Mark Fisher
  */
 @SuppressWarnings("serial")
-public class MessagingConfigurationException extends MessagingException {
+public class ConfigurationException extends RuntimeException {
 
-	public MessagingConfigurationException(String description) {
+	public ConfigurationException(String description) {
 		super(description);
 	}
 
-	public MessagingConfigurationException(String description, Throwable cause) {
+	public ConfigurationException(String description, Throwable cause) {
 		super(description, cause);
 	}
 

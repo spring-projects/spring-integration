@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.adapter.rmi.RmiSourceAdapter;
 import org.springframework.integration.adapter.rmi.RmiTargetAdapter;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
@@ -55,7 +55,7 @@ public class RmiTargetAdapterParser extends AbstractSingleBeanDefinitionParser {
 		String localChannel = element.getAttribute("local-channel");
 		String remoteChannel = element.getAttribute("remote-channel");
 		if (!(StringUtils.hasText(host) && StringUtils.hasText(localChannel) && StringUtils.hasText(remoteChannel))) {
-			throw new MessagingConfigurationException(
+			throw new ConfigurationException(
 					"The 'host', 'local-channel', and 'remote-channel' attributes are all required");
 		}
 		String portAttribute = element.getAttribute("port");

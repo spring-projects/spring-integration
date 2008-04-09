@@ -22,7 +22,7 @@ import javax.jms.Session;
 import org.springframework.integration.adapter.MessageHeaderMapper;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.message.MessagingException;
 import org.springframework.jms.support.converter.MessageConversionException;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
@@ -59,7 +59,7 @@ public class HeaderMappingMessageConverter implements MessageConverter {
 
 	public javax.jms.Message toMessage(Object object, Session session) throws JMSException, MessageConversionException {
 		if (!(object instanceof Message<?>)) {
-			throw new MessageHandlingException("expected a '" + Message.class.getName() +
+			throw new MessagingException("expected a '" + Message.class.getName() +
 					"', but received '" + object.getClass() + "'");
 		}
 		Message<?> message = (Message<?>) object;

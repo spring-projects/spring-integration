@@ -50,7 +50,7 @@ public abstract class AbstractRemotingTargetAdapter implements MessageHandler {
 			return this.handlerProxy.handle(message);
 		}
 		catch (RemoteAccessException e) {
-			throw new MessageHandlingException("unable to handle message remotely", e);
+			throw new MessageHandlingException(message, "unable to handle message remotely", e);
 		}
 	}
 

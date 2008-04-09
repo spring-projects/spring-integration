@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.springframework.integration.handler;
 
+import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
 
 /**
@@ -23,10 +24,11 @@ import org.springframework.integration.message.MessageHandlingException;
  * 
  * @author Mark Fisher
  */
+@SuppressWarnings("serial")
 public class MessageHandlerNotRunningException extends MessageHandlingException {
 
-	public MessageHandlerNotRunningException() {
-		super("handler is not running");
+	public MessageHandlerNotRunningException(Message<?> message) {
+		super(message, "handler is not running");
 	}
 
 }

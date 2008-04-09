@@ -32,7 +32,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.adapter.SourceAdapter;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
@@ -103,7 +103,7 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		Assert.notNull(applicationContext, "'applicationContext' must not be null");
 		if (applicationContext.getBeanNamesForType(this.getClass()).length > 1) {
-			throw new MessagingConfigurationException("Only one instance of '" + this.getClass().getSimpleName()
+			throw new ConfigurationException("Only one instance of '" + this.getClass().getSimpleName()
 					+ "' is allowed per ApplicationContext.");
 		}
 		this.registerChannels(applicationContext);
@@ -304,20 +304,20 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 	private void activateEndpoint(MessageEndpoint endpoint) {
 		Subscription subscription = endpoint.getSubscription();
 		if (subscription == null) {
-			throw new MessagingConfigurationException("Unable to register endpoint '" +
+			throw new ConfigurationException("Unable to register endpoint '" +
 					endpoint + "'. No subscription information is available.");
 		}
 		MessageChannel channel = subscription.getChannel();
 		if (channel == null) {
 			String channelName = subscription.getChannelName();
 			if (channelName == null) {
-				throw new MessagingConfigurationException("endpoint '" + endpoint +
+				throw new ConfigurationException("endpoint '" + endpoint +
 						"' must provide either 'channel' or 'channelName' in its subscription metadata");
 			}
 			channel = this.lookupChannel(channelName);
 			if (channel == null) {
 				if (this.autoCreateChannels == false) {
-					throw new MessagingConfigurationException("Cannot activate subscription, unknown channel '" + channelName +
+					throw new ConfigurationException("Cannot activate subscription, unknown channel '" + channelName +
 							"'. Consider enabling the 'autoCreateChannels' option for the message bus.");
 				}
 				if (this.logger.isInfoEnabled()) {
@@ -332,7 +332,7 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 			String outputChannelName = dme.getDefaultOutputChannelName();
 			if (outputChannelName != null && this.lookupChannel(outputChannelName) == null) {
 				if (!this.autoCreateChannels) {
-					throw new MessagingConfigurationException("Unknown channel '" + outputChannelName +
+					throw new ConfigurationException("Unknown channel '" + outputChannelName +
 							"' configured as 'default-output' for endpoint '" + endpoint +
 							"'. Consider enabling the 'autoCreateChannels' option for the message bus.");
 				}

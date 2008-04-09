@@ -23,7 +23,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.util.StringUtils;
 
 /**
@@ -57,7 +57,7 @@ public abstract class AbstractRequestReplySourceAdapterParser extends AbstractSi
 	protected void postProcess(BeanDefinitionBuilder builder, Element element) {
 		String channelRef = element.getAttribute("channel");
 		if (!StringUtils.hasText(channelRef)) {
-			throw new MessagingConfigurationException("a 'channel' reference is required");
+			throw new ConfigurationException("a 'channel' reference is required");
 		}
 		builder.addPropertyReference("channel", channelRef);
 		builder.addPropertyValue("expectReply", element.getAttribute("expect-reply").equals("true"));

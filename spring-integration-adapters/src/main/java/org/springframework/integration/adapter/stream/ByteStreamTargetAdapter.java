@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import org.springframework.integration.adapter.AbstractTargetAdapter;
-import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.message.MessagingException;
 
 /**
  * A target adapter that writes a byte array to an {@link OutputStream}.
@@ -63,14 +63,14 @@ public class ByteStreamTargetAdapter extends AbstractTargetAdapter {
 				this.stream.write((byte[]) object);
 			}
 			else {
-				throw new MessageHandlingException(this.getClass().getSimpleName() +
+				throw new MessagingException(this.getClass().getSimpleName() +
 						" only supports byte array and String-based messages");
 			}
 			this.stream.flush();
 			return true;
 		}
 		catch (IOException e) {
-			throw new MessageHandlingException("IO failure occurred in adapter", e);
+			throw new MessagingException("IO failure occurred in adapter", e);
 		}
 	}
 

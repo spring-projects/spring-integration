@@ -20,7 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.MessagingConfigurationException;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.RequestReplyTemplate;
 import org.springframework.integration.handler.MessageHandler;
@@ -100,7 +100,7 @@ public class MessageHandlingSourceAdapter implements SourceAdapter, MessageHandl
 
 	public final void afterPropertiesSet() throws Exception {
 		if (this.channel == null) {
-			throw new MessagingConfigurationException("The 'channel' property of '" + this.getClass().getName()
+			throw new ConfigurationException("The 'channel' property of '" + this.getClass().getName()
 					+ "' must not be null.");
 		}
 		synchronized (this.lifecycleMonitor) {
@@ -134,7 +134,7 @@ public class MessageHandlingSourceAdapter implements SourceAdapter, MessageHandl
 				this.afterPropertiesSet();
 			}
 			catch (Exception e) {
-				throw new MessagingConfigurationException("unable to initialize " + this.getClass().getName(), e);
+				throw new ConfigurationException("unable to initialize " + this.getClass().getName(), e);
 			}
 		}
 		if (!this.expectReply) {
