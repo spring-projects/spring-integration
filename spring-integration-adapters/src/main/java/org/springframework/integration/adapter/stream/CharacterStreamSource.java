@@ -19,9 +19,6 @@ package org.springframework.integration.adapter.stream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 import org.springframework.integration.adapter.PollableSource;
 import org.springframework.integration.message.MessagingException;
@@ -58,28 +55,18 @@ public class CharacterStreamSource implements PollableSource<String> {
 	}
 
 
-	public Collection<String> poll(int limit) {
-		List<String> results = new ArrayList<String>();
-		while (results.size() < limit) {
-			try {
-				String line = null;
-				synchronized (this.monitor) {
-					boolean isReady = this.reader.ready();
-					if (!isReady) {
-						return results;
-					}
-					line = this.reader.readLine();
+	public String poll() {
+		try {
+			synchronized (this.monitor) {
+				if (!this.reader.ready()) {
+					return null;
 				}
-				if (line == null) {
-					return results;
-				}
-				results.add(line);
-			}
-			catch (IOException e) {
-				throw new MessagingException("IO failure occurred in adapter", e);
+				return this.reader.readLine();
 			}
 		}
-		return results;
+		catch (IOException e) {
+			throw new MessagingException("IO failure occurred in adapter", e);
+		}
 	}
 
 }

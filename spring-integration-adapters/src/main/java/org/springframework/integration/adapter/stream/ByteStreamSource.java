@@ -19,9 +19,6 @@ package org.springframework.integration.adapter.stream;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 import org.springframework.integration.adapter.PollableSource;
 import org.springframework.integration.message.MessagingException;
@@ -68,36 +65,32 @@ public class ByteStreamSource implements PollableSource<byte[]> {
 		this.shouldTruncate = shouldTruncate;
 	}
 
-	public Collection<byte[]> poll(int limit) {
-		List<byte[]> results = new ArrayList<byte[]>();
-		while (results.size() < limit) {
-			try {
-				byte[] bytes;
-				int bytesRead = 0;
-				synchronized (this.streamMonitor) {
-					if (stream.available() == 0) {
-						return results;
-					}
-					bytes = new byte[bytesPerMessage];
-					bytesRead = stream.read(bytes, 0, bytes.length);
+	public byte[] poll() {
+		try {
+			byte[] bytes;
+			int bytesRead = 0;
+			synchronized (this.streamMonitor) {
+				if (stream.available() == 0) {
+					return null;
 				}
-				if (bytesRead <= 0) {
-					return results;
-				}
-				if (!this.shouldTruncate) {
-					results.add(bytes);
-				}
-				else {
-					byte[] result = new byte[bytesRead];
-					System.arraycopy(bytes, 0, result, 0, result.length);
-					results.add(result);
-				}
+				bytes = new byte[bytesPerMessage];
+				bytesRead = stream.read(bytes, 0, bytes.length);
 			}
-			catch (IOException e) {
-				throw new MessagingException("IO failure occurred in adapter", e);
+			if (bytesRead <= 0) {
+				return null;
+			}
+			if (!this.shouldTruncate) {
+				return bytes;
+			}
+			else {
+				byte[] result = new byte[bytesRead];
+				System.arraycopy(bytes, 0, result, 0, result.length);
+				return result;
 			}
 		}
-		return results;
+		catch (IOException e) {
+			throw new MessagingException("IO failure occurred in adapter", e);
+		}
 	}
 
 }

@@ -16,9 +16,6 @@
 
 package org.springframework.integration.adapter.jms;
 
-import java.util.Arrays;
-import java.util.Collection;
-
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 
@@ -52,8 +49,8 @@ public class JmsPollableSource extends AbstractJmsTemplateBasedAdapter implement
 	}
 
 
-	public Collection<Object> poll(int limit) {
-		return Arrays.asList(this.getJmsTemplate().receiveAndConvert());
+	public Object poll() {
+		return this.getJmsTemplate().receiveAndConvert();
 	}
 
 }

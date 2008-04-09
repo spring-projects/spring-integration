@@ -17,8 +17,6 @@
 package org.springframework.integration.adapter;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Collection;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.ConfigurationException;
@@ -56,11 +54,11 @@ public class MethodInvokingSource<T> implements PollableSource<Object>, Initiali
 		this.invoker.setMethodValidator(new MessageReceivingMethodValidator());
 	}
 
-	public Collection<Object> poll(int limit) {
+	public Object poll() {
 		if (this.invoker == null) {
 			this.afterPropertiesSet();
 		}
-		return Arrays.asList(this.invoker.invokeMethod(new Object[] {}));
+		return this.invoker.invokeMethod(new Object[] {});
 	}
 
 

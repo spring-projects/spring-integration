@@ -19,8 +19,6 @@ package org.springframework.integration.adapter;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import java.util.Collection;
-
 import org.junit.Test;
 
 import org.springframework.integration.message.MessagingException;
@@ -35,9 +33,9 @@ public class MethodInvokingSourceTests {
 		MethodInvokingSource<TestBean> source = new MethodInvokingSource<TestBean>();
 		source.setObject(new TestBean());
 		source.setMethod("validMethod");
-		Collection<Object> result = source.poll(5);
+		Object result = source.poll();
 		assertNotNull(result);
-		assertEquals("valid", result.iterator().next());
+		assertEquals("valid", result);
 	}
 
 	@Test(expected=MessagingException.class)
@@ -45,7 +43,7 @@ public class MethodInvokingSourceTests {
 		MethodInvokingSource<TestBean> source = new MethodInvokingSource<TestBean>();
 		source.setObject(new TestBean());
 		source.setMethod("noMatchingMethod");
-		source.poll(5);
+		source.poll();
 	}
 
 	@Test(expected=MessagingException.class)
@@ -53,7 +51,7 @@ public class MethodInvokingSourceTests {
 		MethodInvokingSource<TestBean> source = new MethodInvokingSource<TestBean>();
 		source.setObject(new TestBean());
 		source.setMethod("invalidMethodWithArg");
-		source.poll(5);
+		source.poll();
 	}
 
 	@Test(expected=MessagingException.class)
@@ -61,7 +59,7 @@ public class MethodInvokingSourceTests {
 		MethodInvokingSource<TestBean> source = new MethodInvokingSource<TestBean>();
 		source.setObject(new TestBean());
 		source.setMethod("invalidMethodWithNoReturnValue");
-		source.poll(5);
+		source.poll();
 	}
 
 

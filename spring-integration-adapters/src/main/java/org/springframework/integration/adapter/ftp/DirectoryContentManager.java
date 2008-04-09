@@ -22,7 +22,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 /**
- * Tracks changes in the context. This implementation is thread-safe as it
+ * Tracks changes in a directory. This implementation is thread-safe as it
  * allows to synchronously process a new directory structure.
  * 
  * @author Marius Bogoevici
@@ -30,26 +30,26 @@ import java.util.Map;
  */
 public class DirectoryContentManager {
 
-	private Map<String, FileInfo> snapshot = new HashMap<String, FileInfo>();
+	private Map<String, FileInfo> previousSnapshot = new HashMap<String, FileInfo>();
 
 	private final Map<String, FileInfo> backlog = new HashMap<String, FileInfo>();
 
 
-	public synchronized void processSnapshot(Map<String, FileInfo> remoteSnapshot) {
+	public synchronized void processSnapshot(Map<String, FileInfo> currentSnapshot) {
 		Iterator<Map.Entry<String, FileInfo>> iter = this.backlog.entrySet().iterator();
 		while (iter.hasNext()) {
 			String fileName = iter.next().getKey();
-			if (!remoteSnapshot.containsKey(fileName)) {
+			if (!currentSnapshot.containsKey(fileName)) {
 				iter.remove();
 			}
 		}
-		for (String fileName : remoteSnapshot.keySet()) {
-			if (!this.snapshot.containsKey(fileName)
-					|| (!this.snapshot.get(fileName).equals(remoteSnapshot.get(fileName)))) {
-				this.backlog.put(fileName, remoteSnapshot.get(fileName));
+		for (String fileName : currentSnapshot.keySet()) {
+			if (!this.previousSnapshot.containsKey(fileName)
+					|| (!this.previousSnapshot.get(fileName).equals(currentSnapshot.get(fileName)))) {
+				this.backlog.put(fileName, currentSnapshot.get(fileName));
 			}
 		}
-		this.snapshot = new HashMap<String, FileInfo>(remoteSnapshot);
+		this.previousSnapshot = new HashMap<String, FileInfo>(currentSnapshot);
 	}
 
 	public synchronized void fileProcessed(String fileName) {

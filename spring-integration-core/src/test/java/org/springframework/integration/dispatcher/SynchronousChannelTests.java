@@ -21,8 +21,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.SynchronousQueue;
@@ -99,8 +97,8 @@ public class SynchronousChannelTests {
 	@Test
 	public void testReceive() {
 		SynchronousChannel channel = new SynchronousChannel(new PollableSource<String>() {
-			public Collection<String> poll(int limit) {
-				return Collections.singleton("foo");
+			public String poll() {
+				return "foo";
 			}
 		});
 		Message<?> message = channel.receive();
@@ -186,10 +184,10 @@ public class SynchronousChannelTests {
 			this.messageText = messageText;
 		}
 
-		public Collection<StringMessage> poll(int limit) {
+		public StringMessage poll() {
 			StringMessage message = new StringMessage(messageText);
 			message.getHeader().setProperty(HANDLER_THREAD, Thread.currentThread().getName());
-			return Collections.singleton(message);
+			return message;
 		}
 	}
 

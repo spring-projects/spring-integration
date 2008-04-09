@@ -16,14 +16,12 @@
 
 package org.springframework.integration.adapter;
 
-import java.util.Collection;
 import java.util.concurrent.Executors;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.MessageMapper;
-import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.scheduling.MessagingTask;
 import org.springframework.integration.scheduling.MessagingTaskScheduler;
 import org.springframework.integration.scheduling.MessagingTaskSchedulerAware;
@@ -142,16 +140,14 @@ public class PollingSourceAdapter<T> extends AbstractSourceAdapter<T> implements
 		}
 		int messagesProcessed = 0;
 		int limit = this.maxMessagesPerTask;
-		Collection<T> results = this.source.poll(limit);
-		if (results != null) {
-			if (results.size() > limit) {
-				throw new MessagingException("source returned too many results, the limit is " + limit);
+		while (messagesProcessed < limit) {
+			T result = this.source.poll();
+			if (result != null && this.sendToChannel(result)) {
+				messagesProcessed++;
+				this.onSend(result);
 			}
-			for (T next : results) {
-				if (this.sendToChannel(next)) {
-					messagesProcessed++;
-					this.onSend(next);
-				}
+			else {
+				return messagesProcessed;
 			}
 		}
 		return messagesProcessed;

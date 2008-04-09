@@ -17,7 +17,6 @@
 package org.springframework.integration.dispatcher;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -30,7 +29,6 @@ import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.SimplePayloadMessageMapper;
 import org.springframework.integration.message.selector.MessageSelector;
-import org.springframework.util.CollectionUtils;
 
 /**
  * A channel that invokes the subscribed {@link MessageHandler handler(s)} in a
@@ -86,9 +84,8 @@ public class SynchronousChannel extends AbstractMessageChannel {
 	@Override
 	protected Message<?> doReceive(long timeout) {
 		if (this.source != null) {
-			Collection<?> results = this.source.poll(1);
-			if (!CollectionUtils.isEmpty(results)) {
-				Object result = results.iterator().next();
+			Object result = this.source.poll();
+			if (result != null) {
 				return (result instanceof Message<?>) ? (Message<?>) result :
 						new SimplePayloadMessageMapper<Object>().toMessage(result);
 			}

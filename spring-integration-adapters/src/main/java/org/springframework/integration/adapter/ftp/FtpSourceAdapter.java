@@ -19,9 +19,8 @@ package org.springframework.integration.adapter.ftp;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -124,50 +123,30 @@ public class FtpSourceAdapter extends PollingSourceAdapter<File> implements Poll
 	}
 
 
-	public final Collection<File> poll(int limit) {
+	public final File poll() {
 		try {
-			LinkedList<File> localFileList = new LinkedList<File>();
-			this.client.connect(this.host, this.port);
-			if (!StringUtils.hasText(this.username)) {
-				throw new MessagingException("username is required");
-			}
-			if (!this.client.login(this.username, this.password)) {
-				throw new MessagingException("Login failed. Please check the username and password.");				
-			}
-			if (logger.isDebugEnabled()) {
-				logger.debug("login successful");
-			}
-			this.client.setFileType(FTP.IMAGE_FILE_TYPE);
-			if (!this.remoteWorkingDirectory.equals(this.client.printWorkingDirectory())
-					&& !this.client.changeWorkingDirectory(this.remoteWorkingDirectory)) {
-					throw new MessagingException("Could not change directory to '" +
-							remoteWorkingDirectory + "'. Please check the path.");
-			}
-			if (logger.isDebugEnabled()) {
-				logger.debug("working directory is: " + this.client.printWorkingDirectory());
-			}
+			this.establishConnection();
 			FTPFile[] fileList = this.client.listFiles();
 			HashMap<String, FileInfo> snapshot = new HashMap<String, FileInfo>();
 			for (FTPFile ftpFile : fileList) {
-				FileInfo fileInfo = new FileInfo(ftpFile.getName(), ftpFile.getTimestamp().getTimeInMillis(),
-						ftpFile.getSize());
+				FileInfo fileInfo = new FileInfo(
+						ftpFile.getName(), ftpFile.getTimestamp().getTimeInMillis(), ftpFile.getSize());
 				snapshot.put(ftpFile.getName(), fileInfo);
 			}
 			this.directoryContentManager.processSnapshot(snapshot);
-			for (String fileName : this.directoryContentManager.getBacklog().keySet()) {
-				File file = new File(this.localWorkingDirectory, fileName);
-				if (file.exists()) {
-					file.delete();
-				}
-				FileOutputStream fileOutputStream = new FileOutputStream(file);
-				this.client.retrieveFile(fileName, fileOutputStream);
-				fileOutputStream.close();
-				localFileList.add(file);
-				if (limit >= localFileList.size()) {
-					break;
-				}
+			Map<String, FileInfo> backlog = this.directoryContentManager.getBacklog();
+			if (backlog.isEmpty()) {
+				return null;
 			}
-			return localFileList;
+			String fileName = backlog.keySet().iterator().next();
+			File file = new File(this.localWorkingDirectory, fileName);
+			if (file.exists()) {
+				file.delete();
+			}
+			FileOutputStream fileOutputStream = new FileOutputStream(file);
+			this.client.retrieveFile(fileName, fileOutputStream);
+			fileOutputStream.close();
+			return file;
 		}
 		catch (Exception e) {
 			try {
@@ -179,6 +158,28 @@ public class FtpSourceAdapter extends PollingSourceAdapter<File> implements Poll
 				throw new MessagingException("Error when disconnecting from ftp.", ioe);
 			}
 			throw new MessagingException("Error while polling for messages.", e);
+		}
+	}
+
+	private void establishConnection() throws IOException {
+		if (!StringUtils.hasText(this.username)) {
+			throw new MessagingException("username is required");
+		}
+		this.client.connect(this.host, this.port);
+		if (!this.client.login(this.username, this.password)) {
+			throw new MessagingException("Login failed. Please check the username and password.");
+		}
+		if (logger.isDebugEnabled()) {
+			logger.debug("login successful");
+		}
+		this.client.setFileType(FTP.IMAGE_FILE_TYPE);
+		if (!this.remoteWorkingDirectory.equals(this.client.printWorkingDirectory())
+				&& !this.client.changeWorkingDirectory(this.remoteWorkingDirectory)) {
+				throw new MessagingException("Could not change directory to '" +
+						remoteWorkingDirectory + "'. Please check the path.");
+		}
+		if (logger.isDebugEnabled()) {
+			logger.debug("working directory is: " + this.client.printWorkingDirectory());
 		}
 	}
 

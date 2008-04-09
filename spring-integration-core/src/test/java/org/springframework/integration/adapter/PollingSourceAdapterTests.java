@@ -20,16 +20,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
 import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessagingException;
 
 /**
  * @author Mark Fisher
@@ -66,11 +62,12 @@ public class PollingSourceAdapterTests {
 		assertEquals("testing.1", message1.getPayload());
 		Message<?> message2 = channel.receive(0);
 		assertNull("second message should be null", message2);
+		source.resetCounter();
 		adapter.start();
 		adapter.processMessages();
 		Message<?> message3 = channel.receive(100);
 		assertNotNull("third message should not be null", message3);
-		assertEquals("testing.3", message3.getPayload());
+		assertEquals("testing.1", message3.getPayload());
 	}
 
 	@Test
@@ -96,38 +93,29 @@ public class PollingSourceAdapterTests {
 		assertNull("message should be null", message4);
 	}
 
-	@Test(expected=MessagingException.class)
-	public void testResultSizeExceedsLimit() {
-		TestSource source = new TestSource("testing", 3);
-		SimpleChannel channel = new SimpleChannel();
-		PollingSourceAdapter<String> adapter = new PollingSourceAdapter<String>(source);
-		adapter.setChannel(channel);
-		adapter.setPeriod(1000);
-		adapter.setMaxMessagesPerTask(2);
-		adapter.start();
-		adapter.processMessages();
-	}
-
 
 	private static class TestSource implements PollableSource<String> {
 
 		private String message;
 
-		private int messagesPerPoll;
+		private int limit;
 
 		private AtomicInteger count = new AtomicInteger();
 
-		public TestSource(String message, int messagesPerPoll) {
+		public TestSource(String message, int limit) {
 			this.message = message;
-			this.messagesPerPoll = messagesPerPoll;
+			this.limit = limit;
 		}
 
-		public Collection<String> poll(int limit) {
-			List<String> results = new ArrayList<String>(this.messagesPerPoll);
-			for (int i = 0; i < this.messagesPerPoll; i++) {
-				results.add(message + "." + count.incrementAndGet());
+		public void resetCounter() {
+			this.count.set(0);
+		}
+
+		public String poll() {
+			if (count.get() >= limit) {
+				return null;
 			}
-			return results;
+			return message + "." + count.incrementAndGet();
 		}
 	}
 
