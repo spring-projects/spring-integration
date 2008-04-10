@@ -98,9 +98,9 @@ public class CharacterStreamSourceAdapterTests {
 		adapter.start();
 		int count = adapter.processMessages();
 		assertEquals(2, count);
-		Message<?> message1 = channel.receive(0);
+		Message<?> message1 = channel.receive(500);
 		assertEquals("test1", message1.getPayload());
-		Message<?> message2 = channel.receive(0);
+		Message<?> message2 = channel.receive(500);
 		assertEquals("test2", message2.getPayload());
 		Message<?> message3 = channel.receive(0);
 		assertNull(message3);
