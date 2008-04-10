@@ -30,6 +30,8 @@ public abstract class JmsAttributeKeys {
 
 	public static final String REPLY_TO = "_jms.JMSReplyTo";
 
+	public static final String REDELIVERED = "_jms.JMSRedelivered";
+
 	public static final String TYPE = "_jms.JMSType";
 
 }

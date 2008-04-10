@@ -83,6 +83,7 @@ public class DefaultJmsHeaderMapper implements MessageHeaderMapper<javax.jms.Mes
 			if (replyTo != null) {
 				header.setAttribute(JmsAttributeKeys.REPLY_TO, replyTo);
 			}
+			header.setAttribute(JmsAttributeKeys.REDELIVERED, jmsMessage.getJMSRedelivered());
 			String type = jmsMessage.getJMSType();
 			if (type != null) {
 				header.setAttribute(JmsAttributeKeys.TYPE, type);
