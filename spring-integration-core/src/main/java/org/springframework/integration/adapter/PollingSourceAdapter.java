@@ -16,6 +16,8 @@
 
 package org.springframework.integration.adapter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Executors;
 
 import org.springframework.context.Lifecycle;
@@ -132,6 +134,20 @@ public class PollingSourceAdapter<T> extends AbstractSourceAdapter<T> implements
 		this.running = false;
 	}
 
+	public List<Message<T>> poll(int limit) {
+		List<Message<T>> results = new ArrayList<Message<T>>();
+		int count = 0;
+		while (count < limit) {
+			Message<T> message = this.source.poll();
+			if (message == null) {
+				break;
+			}
+			results.add(message);
+			count++;
+		}
+		return results;
+	}
+
 	public int processMessages() {
 		if (!this.isRunning()) {
 			if (logger.isDebugEnabled()) {
@@ -140,12 +156,11 @@ public class PollingSourceAdapter<T> extends AbstractSourceAdapter<T> implements
 			return 0;
 		}
 		int messagesProcessed = 0;
-		int limit = this.maxMessagesPerTask;
-		while (messagesProcessed < limit) {
-			Message<T> result = this.source.poll();
-			if (result != null && this.sendToChannel(result)) {
+		List<Message<T>> messages = this.poll(this.maxMessagesPerTask);
+		for (Message<T> message : messages) {
+			if (this.sendToChannel(message)) {
 				messagesProcessed++;
-				this.onSend(result);
+				this.onSend(message);
 			}
 			else {
 				return messagesProcessed;

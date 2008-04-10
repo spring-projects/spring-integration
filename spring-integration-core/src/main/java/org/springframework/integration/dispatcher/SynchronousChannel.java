@@ -27,7 +27,6 @@ import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.SimplePayloadMessageMapper;
 import org.springframework.integration.message.selector.MessageSelector;
 
 /**
@@ -84,10 +83,9 @@ public class SynchronousChannel extends AbstractMessageChannel {
 	@Override
 	protected Message<?> doReceive(long timeout) {
 		if (this.source != null) {
-			Object result = this.source.poll();
+			Message<?> result = this.source.poll();
 			if (result != null) {
-				return (result instanceof Message<?>) ? (Message<?>) result :
-						new SimplePayloadMessageMapper<Object>().toMessage(result);
+				return result;
 			}
 		}
 		return messageHolder.get().poll();
