@@ -14,7 +14,7 @@
 
 	<si:channel id="testChannel"/>
 
-	<si:file-target id="adapter" directory="${java.io.tmpdir}" channel="testChannel"/>
+	<si:file-source id="adapter" directory="${java.io.tmpdir}" channel="testChannel" poll-period="1234"/>
 
 	<context:property-placeholder/>
 

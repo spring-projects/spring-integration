@@ -16,13 +16,15 @@
 
 package org.springframework.integration.adapter;
 
+import org.springframework.integration.message.Message;
+
 /**
- * Interface for any external data source that can be polled.
+ * Interface for any external message source that can be polled.
  * 
  * @author Mark Fisher
  */
 public interface PollableSource<T> {
 
-	T poll();
+	Message<T> poll();
 
 }

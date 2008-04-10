@@ -94,6 +94,7 @@ public class CharacterStreamSourceAdapterTests {
 		MessageChannel channel = new SimpleChannel();
 		CharacterStreamSourceAdapter adapter = new CharacterStreamSourceAdapter(reader);
 		adapter.setChannel(channel);
+		adapter.setInitialDelay(5000);
 		adapter.setMaxMessagesPerTask(5);
 		adapter.start();
 		int count = adapter.processMessages();

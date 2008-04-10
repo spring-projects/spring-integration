@@ -21,6 +21,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /**
  * Tracks changes in a directory. This implementation is thread-safe as it
  * allows to synchronously process a new directory structure.
@@ -29,6 +32,8 @@ import java.util.Map;
  * @author Mark Fisher
  */
 public class DirectoryContentManager {
+
+	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private Map<String, FileInfo> previousSnapshot = new HashMap<String, FileInfo>();
 
@@ -40,12 +45,18 @@ public class DirectoryContentManager {
 		while (iter.hasNext()) {
 			String fileName = iter.next().getKey();
 			if (!currentSnapshot.containsKey(fileName)) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Removing file '" + fileName + "' from backlog. It no longer exists in remote directory.");
+				}
 				iter.remove();
 			}
 		}
 		for (String fileName : currentSnapshot.keySet()) {
 			if (!this.previousSnapshot.containsKey(fileName)
 					|| (!this.previousSnapshot.get(fileName).equals(currentSnapshot.get(fileName)))) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Adding new or modified file '" + fileName + "' to backlog.");
+				}
 				this.backlog.put(fileName, currentSnapshot.get(fileName));
 			}
 		}
@@ -53,7 +64,12 @@ public class DirectoryContentManager {
 	}
 
 	public synchronized void fileProcessed(String fileName) {
-		this.backlog.remove(fileName);
+		if (fileName != null) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Removing file '" + fileName + "' from the backlog. It has been processed.");
+			}
+			this.backlog.remove(fileName);
+		}
 	}
 
 	public Map<String, FileInfo> getBacklog() {

@@ -31,7 +31,10 @@ import org.apache.commons.net.ftp.FTPFile;
 import org.springframework.integration.adapter.PollableSource;
 import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.adapter.file.ByteArrayFileMapper;
+import org.springframework.integration.adapter.file.FileNameGenerator;
 import org.springframework.integration.adapter.file.TextFileMapper;
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageMapper;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -42,7 +45,7 @@ import org.springframework.util.StringUtils;
  * @author Marius Bogoevici
  * @author Mark Fisher
  */
-public class FtpSourceAdapter extends PollingSourceAdapter<File> implements PollableSource<File> {
+public class FtpSourceAdapter extends PollingSourceAdapter<Object> implements PollableSource<Object> {
 
 	private final static String DEFAULT_HOST = "localhost";
 
@@ -66,6 +69,8 @@ public class FtpSourceAdapter extends PollingSourceAdapter<File> implements Poll
 	private volatile File localWorkingDirectory;
 
 	private volatile boolean textBased = true;
+
+	private volatile MessageMapper mapper;
 
 	private final DirectoryContentManager directoryContentManager = new DirectoryContentManager();
 
@@ -110,20 +115,26 @@ public class FtpSourceAdapter extends PollingSourceAdapter<File> implements Poll
 	protected void initialize() {
 		this.setSource(this);
 		if (this.isTextBased()) {
-			this.setMessageMapper(new TextFileMapper(this.localWorkingDirectory));
+			this.mapper = new TextFileMapper(this.localWorkingDirectory);
 		}
 		else {
-			this.setMessageMapper(new ByteArrayFileMapper(this.localWorkingDirectory));
+			this.mapper = new ByteArrayFileMapper(this.localWorkingDirectory);
 		}
 	}
 
 	@Override
-	protected void onSend(File file) {
-		this.directoryContentManager.fileProcessed(file.getName());
+	protected void onSend(Message<Object> message) {
+		String filename = message.getHeader().getProperty(FileNameGenerator.FILENAME_PROPERTY_KEY);
+		if (StringUtils.hasText(filename)) {
+			this.directoryContentManager.fileProcessed(filename);
+		}
+		else if (this.logger.isWarnEnabled()) {
+			logger.warn("No filename in Message header, cannot send notification of processing.");
+		}
 	}
 
 
-	public final File poll() {
+	public final Message<Object> poll() {
 		try {
 			this.establishConnection();
 			FTPFile[] fileList = this.client.listFiles();
@@ -146,7 +157,7 @@ public class FtpSourceAdapter extends PollingSourceAdapter<File> implements Poll
 			FileOutputStream fileOutputStream = new FileOutputStream(file);
 			this.client.retrieveFile(fileName, fileOutputStream);
 			fileOutputStream.close();
-			return file;
+			return this.mapper.toMessage(file);
 		}
 		catch (Exception e) {
 			try {

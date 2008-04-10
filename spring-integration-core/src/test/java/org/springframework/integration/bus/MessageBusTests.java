@@ -21,7 +21,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -269,7 +268,7 @@ public class MessageBusTests {
 			this.latch = latch;
 		}
 
-		public Collection<Object> poll() {
+		public Message<Object> poll() {
 			latch.countDown();
 			throw new RuntimeException("intentional test failure");
 		}

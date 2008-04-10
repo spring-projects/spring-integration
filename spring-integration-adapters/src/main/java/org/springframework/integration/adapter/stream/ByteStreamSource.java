@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.springframework.integration.adapter.PollableSource;
+import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
 
 /**
@@ -65,7 +67,7 @@ public class ByteStreamSource implements PollableSource<byte[]> {
 		this.shouldTruncate = shouldTruncate;
 	}
 
-	public byte[] poll() {
+	public Message<byte[]> poll() {
 		try {
 			byte[] bytes;
 			int bytesRead = 0;
@@ -80,12 +82,12 @@ public class ByteStreamSource implements PollableSource<byte[]> {
 				return null;
 			}
 			if (!this.shouldTruncate) {
-				return bytes;
+				return new GenericMessage<byte[]>(bytes);
 			}
 			else {
 				byte[] result = new byte[bytesRead];
 				System.arraycopy(bytes, 0, result, 0, result.length);
-				return result;
+				return new GenericMessage<byte[]>(result);
 			}
 		}
 		catch (IOException e) {

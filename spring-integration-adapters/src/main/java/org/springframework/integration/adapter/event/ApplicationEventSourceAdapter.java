@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.List;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.integration.adapter.AbstractSourceAdapter;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -49,15 +50,19 @@ public class ApplicationEventSourceAdapter extends AbstractSourceAdapter<Applica
 
 	public void onApplicationEvent(ApplicationEvent event) {
 		if (CollectionUtils.isEmpty(this.eventTypes)) {
-			this.sendToChannel(event);
+			this.sendMessage(event);
 			return;
 		}
 		for (Class<? extends ApplicationEvent> eventType : this.eventTypes) {
 			if (eventType.isAssignableFrom(event.getClass())) {
-				this.sendToChannel(event);
+				this.sendMessage(event);
 				return;
 			}
 		}
+	}
+
+	private void sendMessage(ApplicationEvent event) {
+		this.sendToChannel(new GenericMessage<ApplicationEvent>(event));
 	}
 
 }

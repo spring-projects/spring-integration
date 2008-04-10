@@ -22,6 +22,7 @@ import java.io.Reader;
 
 import org.springframework.integration.adapter.PollableSource;
 import org.springframework.integration.message.MessagingException;
+import org.springframework.integration.message.StringMessage;
 import org.springframework.util.Assert;
 
 /**
@@ -55,13 +56,14 @@ public class CharacterStreamSource implements PollableSource<String> {
 	}
 
 
-	public String poll() {
+	public StringMessage poll() {
 		try {
 			synchronized (this.monitor) {
 				if (!this.reader.ready()) {
 					return null;
 				}
-				return this.reader.readLine();
+				String line = this.reader.readLine();
+				return (line != null) ? new StringMessage(line) : null;
 			}
 		}
 		catch (IOException e) {

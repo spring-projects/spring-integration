@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,49 +17,96 @@
 package org.springframework.integration.adapter.file;
 
 import java.io.File;
+import java.io.FileFilter;
+import java.io.FilenameFilter;
 
+import org.springframework.integration.adapter.PollableSource;
 import org.springframework.integration.adapter.PollingSourceAdapter;
-import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.MessageMapper;
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessagingException;
 import org.springframework.util.Assert;
 
 /**
- * Channel adapter for polling a directory and creating messages from its files.
+ * A messaging source that polls a directory to retrieve files.
  * 
  * @author Mark Fisher
  */
-public class FileSourceAdapter extends PollingSourceAdapter<File> {
+public class FileSourceAdapter extends PollingSourceAdapter<Object> implements PollableSource<Object> {
 
-	public FileSourceAdapter(File directory, MessageChannel channel, int period) {
-		this(directory, channel, period, true);
+	private final File directory;
+
+	private volatile boolean textBased = true;
+
+	private volatile AbstractFileMapper mapper;
+
+	private volatile FileNameGenerator fileNameGenerator;
+
+	private volatile FileFilter fileFilter;
+
+	private volatile FilenameFilter filenameFilter;
+
+
+	public FileSourceAdapter(File directory) {
+		Assert.notNull(directory, "directory must not be null");
+		this.directory = directory;
 	}
 
-	public FileSourceAdapter(File directory, MessageChannel channel, int period, boolean isTextBased) {
-		super(new FileSource(directory));
-		this.setChannel(channel);
-		this.setPeriod(period);
-		if (isTextBased) {
-			this.setMessageMapper(new TextFileMapper(directory));
-		}
-		else {
-			this.setMessageMapper(new ByteArrayFileMapper(directory));
-		}
+
+	public boolean isTextBased() {
+		return this.textBased;
+	}
+
+	public void setTextBased(boolean textBased) {
+		this.textBased = textBased;
+	}
+
+	public void setFileFilter(FileFilter fileFilter) {
+		this.fileFilter = fileFilter;
+	}
+
+	public void setFilenameFilter(FilenameFilter filenameFilter) {
+		this.filenameFilter = filenameFilter;
 	}
 
 	public void setFileNameGenerator(FileNameGenerator fileNameGenerator) {
-		Assert.notNull(fileNameGenerator, "'fileNameGenerator' must not be null");
-		MessageMapper<?,?> mapper = this.getMessageMapper();
-		if (mapper instanceof AbstractFileMapper<?>) {
-			((AbstractFileMapper<?>) mapper).setFileNameGenerator(fileNameGenerator);
+		this.fileNameGenerator = fileNameGenerator;
+	}
+
+	@Override
+	protected void initialize() {
+		this.setSource(this);
+		if (this.isTextBased()) {
+			this.mapper = new TextFileMapper(this.directory);
+		}
+		else {
+			this.mapper = new ByteArrayFileMapper(this.directory);
+		}
+		if (this.fileNameGenerator != null) {
+			this.mapper.setFileNameGenerator(this.fileNameGenerator);
 		}
 	}
 
-	public void setBackupDirectory(File backupDirectory) {
-		Assert.notNull(backupDirectory, "'backupDirectory' must not be null");
-		MessageMapper<?, File> mapper = this.getMessageMapper();
-		if (mapper != null && (mapper instanceof AbstractFileMapper<?>)) {
-			((AbstractFileMapper<?>) mapper).setBackupDirectory(backupDirectory);
+	public Message<Object> poll() {
+		File[] files = null;
+		if (this.fileFilter != null) {
+			files = this.directory.listFiles(this.fileFilter);
 		}
+		else if (this.filenameFilter != null) {
+			files = this.directory.listFiles(this.filenameFilter);
+		}
+		else {
+			files = this.directory.listFiles();
+		}
+		if (files == null) {
+			throw new MessagingException("Problem occurred while polling for files. " +
+					"Is '" + directory.getAbsolutePath() + "' a directory?");
+		}
+		for (int i = 0; i < files.length; i++) {
+			if (files[i].isFile()) {
+				return this.mapper.toMessage(files[i]);
+			}
+		}
+		return null;
 	}
 
 }

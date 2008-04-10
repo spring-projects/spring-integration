@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
+import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
 
 /**
@@ -33,9 +34,10 @@ public class MethodInvokingSourceTests {
 		MethodInvokingSource<TestBean> source = new MethodInvokingSource<TestBean>();
 		source.setObject(new TestBean());
 		source.setMethod("validMethod");
-		Object result = source.poll();
+		Message<?> result = source.poll();
 		assertNotNull(result);
-		assertEquals("valid", result);
+		assertNotNull(result.getPayload());
+		assertEquals("valid", result.getPayload());
 	}
 
 	@Test(expected=MessagingException.class)

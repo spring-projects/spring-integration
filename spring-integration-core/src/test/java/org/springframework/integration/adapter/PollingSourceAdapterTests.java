@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
 import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 
 /**
@@ -40,7 +41,7 @@ public class PollingSourceAdapterTests {
 		adapter.setChannel(channel);
 		adapter.setPeriod(100);
 		adapter.start();
-		Message<?> message = channel.receive();
+		Message<?> message = channel.receive(1000);
 		assertNotNull("message should not be null", message);
 		assertEquals("testing.1", message.getPayload());
 	}
@@ -57,7 +58,7 @@ public class PollingSourceAdapterTests {
 		adapter.processMessages();
 		adapter.processMessages();
 		adapter.stop();
-		Message<?> message1 = channel.receive();
+		Message<?> message1 = channel.receive(1000);
 		assertNotNull("message should not be null", message1);
 		assertEquals("testing.1", message1.getPayload());
 		Message<?> message2 = channel.receive(0);
@@ -111,11 +112,11 @@ public class PollingSourceAdapterTests {
 			this.count.set(0);
 		}
 
-		public String poll() {
+		public Message<String> poll() {
 			if (count.get() >= limit) {
 				return null;
 			}
-			return message + "." + count.incrementAndGet();
+			return new GenericMessage<String>(message + "." + count.incrementAndGet());
 		}
 	}
 

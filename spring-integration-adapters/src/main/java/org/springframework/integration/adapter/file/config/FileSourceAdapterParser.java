@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,9 +45,9 @@ public class FileSourceAdapterParser extends AbstractSingleBeanDefinitionParser 
 		String directory = element.getAttribute("directory");
 		String channel = element.getAttribute("channel");
 		String pollPeriod = element.getAttribute("poll-period");
-		builder.addConstructorArg(directory);
-		builder.addConstructorArgReference(channel);
-		builder.addConstructorArg(pollPeriod);
+		builder.addConstructorArgValue(directory);
+		builder.addPropertyReference("channel", channel);
+		builder.addPropertyValue("period", pollPeriod);
 	}
 
 }

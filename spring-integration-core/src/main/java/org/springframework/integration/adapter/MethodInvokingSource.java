@@ -21,6 +21,8 @@ import java.lang.reflect.Method;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.handler.HandlerMethodInvoker;
+import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.message.Message;
 import org.springframework.integration.util.MethodValidator;
 import org.springframework.util.Assert;
 
@@ -54,11 +56,11 @@ public class MethodInvokingSource<T> implements PollableSource<Object>, Initiali
 		this.invoker.setMethodValidator(new MessageReceivingMethodValidator());
 	}
 
-	public Object poll() {
+	public Message<Object> poll() {
 		if (this.invoker == null) {
 			this.afterPropertiesSet();
 		}
-		return this.invoker.invokeMethod(new Object[] {});
+		return new GenericMessage<Object>(this.invoker.invokeMethod(new Object[] {}));
 	}
 
 

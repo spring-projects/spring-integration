@@ -21,6 +21,7 @@ import java.util.concurrent.Executors;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageMapper;
 import org.springframework.integration.scheduling.MessagingTask;
 import org.springframework.integration.scheduling.MessagingTaskScheduler;
@@ -141,7 +142,7 @@ public class PollingSourceAdapter<T> extends AbstractSourceAdapter<T> implements
 		int messagesProcessed = 0;
 		int limit = this.maxMessagesPerTask;
 		while (messagesProcessed < limit) {
-			T result = this.source.poll();
+			Message<T> result = this.source.poll();
 			if (result != null && this.sendToChannel(result)) {
 				messagesProcessed++;
 				this.onSend(result);
@@ -154,11 +155,11 @@ public class PollingSourceAdapter<T> extends AbstractSourceAdapter<T> implements
 	}
 
 	/**
-	 * Callback method invoked after an item is sent to the channel.
+	 * Callback method invoked after a message is sent to the channel.
 	 * <p>
 	 * Subclasses may override. The default implementation does nothing.
 	 */
-	protected void onSend(T sentItem) {
+	protected void onSend(Message<T> sentMessage) {
 	}
 
 

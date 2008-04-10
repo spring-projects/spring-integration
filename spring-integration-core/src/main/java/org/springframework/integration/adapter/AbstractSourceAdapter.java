@@ -23,8 +23,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageMapper;
-import org.springframework.integration.message.SimplePayloadMessageMapper;
 import org.springframework.util.Assert;
 
 /**
@@ -37,8 +35,6 @@ public abstract class AbstractSourceAdapter<T> implements SourceAdapter, Initial
 	protected Log logger = LogFactory.getLog(this.getClass());
 
 	private MessageChannel channel;
-
-	private MessageMapper<?,T> mapper = new SimplePayloadMessageMapper<T>();
 
 	private long sendTimeout = -1;
 
@@ -56,15 +52,6 @@ public abstract class AbstractSourceAdapter<T> implements SourceAdapter, Initial
 
 	public void setSendTimeout(long sendTimeout) {
 		this.sendTimeout = sendTimeout;
-	}
-
-	public void setMessageMapper(MessageMapper<?,T> mapper) {
-		Assert.notNull(mapper, "'mapper' must not be null");
-		this.mapper = mapper;
-	}
-
-	protected MessageMapper<?,T> getMessageMapper() {
-		return this.mapper;
 	}
 
 	public final void afterPropertiesSet() {
@@ -85,26 +72,13 @@ public abstract class AbstractSourceAdapter<T> implements SourceAdapter, Initial
 	protected void initialize() {		
 	}
 
-	protected boolean sendToChannel(T object) {
+	protected boolean sendToChannel(Message<T> message) {
 		if (!this.initialized) {
 			this.afterPropertiesSet();
 		}
-		if (object == null) {
+		if (message == null) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("adapter attempted to send a null object");
-			}
-			return false;
-		}
-		Message<?> message = null;
-		if (object instanceof Message<?>) {
-			message = (Message<?>) object;
-		}
-		else {
-			message = this.mapper.toMessage(object);
-		}
-		if (message == null) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("unable to create Message from source object: " + object);
 			}
 			return false;
 		}

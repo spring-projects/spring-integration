@@ -20,6 +20,8 @@ import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 
 import org.springframework.integration.adapter.PollableSource;
+import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.message.Message;
 import org.springframework.jms.core.JmsTemplate;
 
 /**
@@ -49,8 +51,8 @@ public class JmsPollableSource extends AbstractJmsTemplateBasedAdapter implement
 	}
 
 
-	public Object poll() {
-		return this.getJmsTemplate().receiveAndConvert();
+	public Message<Object> poll() {
+		return new GenericMessage<Object>(this.getJmsTemplate().receiveAndConvert());
 	}
 
 }

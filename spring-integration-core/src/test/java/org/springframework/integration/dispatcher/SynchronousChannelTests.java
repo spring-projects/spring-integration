@@ -97,8 +97,8 @@ public class SynchronousChannelTests {
 	@Test
 	public void testReceive() {
 		SynchronousChannel channel = new SynchronousChannel(new PollableSource<String>() {
-			public String poll() {
-				return "foo";
+			public Message<String> poll() {
+				return new StringMessage("foo");
 			}
 		});
 		Message<?> message = channel.receive();
@@ -175,7 +175,7 @@ public class SynchronousChannelTests {
 	}
 
 
-	private static class MessageReturningTestSource implements PollableSource<StringMessage> {
+	private static class MessageReturningTestSource implements PollableSource<String> {
 
 		private final String messageText;
 
