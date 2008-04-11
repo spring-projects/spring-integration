@@ -21,11 +21,13 @@ import javax.jms.Destination;
 import javax.jms.Session;
 
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.adapter.AbstractSourceAdapter;
-import org.springframework.jms.listener.AbstractJmsListeningContainer;
+import org.springframework.integration.adapter.SourceAdapter;
+import org.springframework.integration.channel.MessageChannel;
+import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
@@ -36,9 +38,11 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class JmsMessageDrivenSourceAdapter extends AbstractSourceAdapter<Object> implements Lifecycle, DisposableBean {
+public class JmsMessageDrivenSourceAdapter implements SourceAdapter, Lifecycle, InitializingBean, DisposableBean {
 
-	private volatile AbstractJmsListeningContainer container;
+	private volatile MessageChannel channel;
+
+	private volatile AbstractMessageListenerContainer container;
 
 	private volatile ConnectionFactory connectionFactory;
 
@@ -67,7 +71,15 @@ public class JmsMessageDrivenSourceAdapter extends AbstractSourceAdapter<Object>
 	private volatile long sendTimeout = -1;
 
 
-	public void setContainer(AbstractJmsListeningContainer container) {
+	public void setChannel(MessageChannel channel) {
+		this.channel = channel;
+	}
+
+	public MessageChannel getChannel() {
+		return this.channel;
+	}
+
+	public void setContainer(AbstractMessageListenerContainer container) {
 		this.container = container;
 	}
 
@@ -104,19 +116,33 @@ public class JmsMessageDrivenSourceAdapter extends AbstractSourceAdapter<Object>
 		this.sessionAcknowledgeMode = sessionAcknowledgeMode;
 	}
 
-	@Override
-	public void initialize() {
-		if (this.container == null) {
-			initDefaultContainer();
+	public void afterPropertiesSet() {
+		if (this.channel == null) {
+			throw new ConfigurationException("channel must not be null");
 		}
+		this.initContainer();
 	}
 
-	private void initDefaultContainer() {
+	private void initContainer() {
+		if (this.container == null) {
+			this.container = createDefaultContainer();
+		}
+		ChannelPublishingJmsListener listener = new ChannelPublishingJmsListener(this.getChannel(), this.messageConverter);
+		listener.setTimeout(this.sendTimeout);
+		this.container.setMessageListener(listener);
+		this.container.afterPropertiesSet();
+	}
+
+	private AbstractMessageListenerContainer createDefaultContainer() {
 		if (this.connectionFactory == null || (this.destination == null && this.destinationName == null)) {
 			throw new ConfigurationException("If a 'container' reference is not provided, then "
 					+ "'connectionFactory' and 'destination' (or 'destinationName') are required.");
 		}
 		DefaultMessageListenerContainer dmlc = new DefaultMessageListenerContainer();
+		dmlc.setConcurrentConsumers(this.concurrentConsumers);
+		dmlc.setMaxConcurrentConsumers(this.maxConcurrentConsumers);
+		dmlc.setMaxMessagesPerTask(this.maxMessagesPerTask);
+		dmlc.setIdleTaskExecutionLimit(this.idleTaskExecutionLimit);
 		dmlc.setConnectionFactory(this.connectionFactory);
 		if (this.destination != null) {
 			dmlc.setDestination(this.destination);
@@ -125,22 +151,13 @@ public class JmsMessageDrivenSourceAdapter extends AbstractSourceAdapter<Object>
 			dmlc.setDestinationName(this.destinationName);
 		}
 		dmlc.setReceiveTimeout(this.receiveTimeout);
-		dmlc.setConcurrentConsumers(this.concurrentConsumers);
-		dmlc.setMaxConcurrentConsumers(this.maxConcurrentConsumers);
-		dmlc.setMaxMessagesPerTask(this.maxMessagesPerTask);
-		dmlc.setIdleTaskExecutionLimit(this.idleTaskExecutionLimit);
 		dmlc.setSessionTransacted(this.sessionTransacted);
 		dmlc.setSessionAcknowledgeMode(this.sessionAcknowledgeMode);
 		dmlc.setAutoStartup(false);
-		ChannelPublishingJmsListener listener = new ChannelPublishingJmsListener(
-				this.getChannel(), this.messageConverter);
-		listener.setTimeout(this.sendTimeout);
-		dmlc.setMessageListener(listener);
 		if (this.taskExecutor != null) {
 			dmlc.setTaskExecutor(this.taskExecutor);
 		}
-		dmlc.afterPropertiesSet();
-		this.container = dmlc;
+		return dmlc;
 	}
 
 	public boolean isRunning() {
