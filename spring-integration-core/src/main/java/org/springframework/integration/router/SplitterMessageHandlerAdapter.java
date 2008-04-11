@@ -83,14 +83,8 @@ public class SplitterMessageHandlerAdapter<T> extends AbstractMessageHandlerAdap
 		if (type.equals(Message.class)) {
 			retval = invoker.invokeMethod(message);
 		}
-		else if (type.equals(message.getPayload().getClass())) {
-			retval = invoker.invokeMethod(message.getPayload());
-		}
 		else {
-			if (logger.isWarnEnabled()) {
-				logger.warn("Message payload type did not match expected type of Splitter method '" + this.method.getName() + "'");
-			}
-			return message;
+			retval = invoker.invokeMethod(message.getPayload());
 		}
 		if (retval == null) {
 			if (logger.isWarnEnabled()) {
