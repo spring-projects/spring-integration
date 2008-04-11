@@ -340,7 +340,7 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 				}
 				this.registerChannel(outputChannelName, new SimpleChannel());
 			}
-			if (!dme.hasErrorHandler() && this.getErrorChannel() != null) {
+			if (!dme.hasErrorHandler() && this.getErrorChannel() != null && !this.getErrorChannel().equals(channel)) {
 				dme.setErrorHandler(new MessagePublishingErrorHandler(this.getErrorChannel()));
 			}
 		}
