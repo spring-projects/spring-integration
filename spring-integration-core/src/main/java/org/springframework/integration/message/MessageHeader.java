@@ -150,8 +150,9 @@ public class MessageHeader implements Serializable {
 	}
 
 	public String toString() {
-		return "[Properties=" + this.properties + "][Attributes=" + this.attributes +
-				"][Timestamp=" + this.timestamp + "]";
+		return "[CorrelationID=" + this.correlationId + "][Properties=" + this.properties + "][Attributes=" + this.attributes +
+				"][Timestamp=" + this.timestamp + "][Expiration=" + this.expiration + "][Priority=" + this.priority + 
+				"][Sequence #" + this.sequenceNumber + " (of " + this.sequenceSize + ")]";
 	}
 
 }
