@@ -26,7 +26,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
@@ -38,7 +37,15 @@ import org.springframework.integration.adapter.DefaultTargetAdapter;
 import org.springframework.integration.adapter.MethodInvokingSource;
 import org.springframework.integration.adapter.MethodInvokingTarget;
 import org.springframework.integration.adapter.PollingSourceAdapter;
-import org.springframework.integration.annotation.*;
+import org.springframework.integration.annotation.Aggregator;
+import org.springframework.integration.annotation.CompletionStrategy;
+import org.springframework.integration.annotation.Concurrency;
+import org.springframework.integration.annotation.DefaultOutput;
+import org.springframework.integration.annotation.Handler;
+import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.annotation.Polled;
+import org.springframework.integration.annotation.Router;
+import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
@@ -50,9 +57,11 @@ import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.integration.handler.config.DefaultMessageHandlerCreator;
 import org.springframework.integration.handler.config.MessageHandlerCreator;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.router.AggregatingMessageHandler;
+import org.springframework.integration.router.CompletionStrategyAdapter;
+import org.springframework.integration.router.config.AggregatorMessageHandlerCreator;
 import org.springframework.integration.router.config.RouterMessageHandlerCreator;
 import org.springframework.integration.router.config.SplitterMessageHandlerCreator;
-import org.springframework.integration.router.config.AggregatorMessageHandlerCreator;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Subscription;
 import org.springframework.util.Assert;
@@ -64,25 +73,22 @@ import org.springframework.util.StringUtils;
  * classes annotated with {@link MessageEndpoint @MessageEndpoint}.
  * 
  * @author Mark Fisher
+ * @author Marius Bogoevici
  */
 public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor, InitializingBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private final Map<Class<? extends Annotation>, MessageHandlerCreator> handlerCreators =
-			new ConcurrentHashMap<Class<? extends Annotation>, MessageHandlerCreator>();
+	private final Map<Class<? extends Annotation>, MessageHandlerCreator> handlerCreators = new ConcurrentHashMap<Class<? extends Annotation>, MessageHandlerCreator>();
 
 	private final MessageBus messageBus;
-
 
 	public MessageEndpointAnnotationPostProcessor(MessageBus messageBus) {
 		Assert.notNull(messageBus, "'messageBus' must not be null");
 		this.messageBus = messageBus;
 	}
 
-
-	public void setCustomHandlerCreators(
-			Map<Class<? extends Annotation>, MessageHandlerCreator> customHandlerCreators) {
+	public void setCustomHandlerCreators(Map<Class<? extends Annotation>, MessageHandlerCreator> customHandlerCreators) {
 		for (Map.Entry<Class<? extends Annotation>, MessageHandlerCreator> entry : customHandlerCreators.entrySet()) {
 			this.handlerCreators.put(entry.getKey(), entry.getValue());
 		}
@@ -114,8 +120,8 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 		this.configureDefaultOutput(bean, beanName, endpointAnnotation, endpoint);
 		Concurrency concurrencyAnnotation = AnnotationUtils.findAnnotation(beanClass, Concurrency.class);
 		if (concurrencyAnnotation != null) {
-			ConcurrencyPolicy concurrencyPolicy = new ConcurrencyPolicy(
-					concurrencyAnnotation.coreSize(), concurrencyAnnotation.maxSize());
+			ConcurrencyPolicy concurrencyPolicy = new ConcurrencyPolicy(concurrencyAnnotation.coreSize(),
+					concurrencyAnnotation.maxSize());
 			concurrencyPolicy.setKeepAliveSeconds(concurrencyAnnotation.keepAliveSeconds());
 			concurrencyPolicy.setQueueCapacity(concurrencyAnnotation.queueCapacity());
 			endpoint.setConcurrencyPolicy(concurrencyPolicy);
@@ -127,6 +133,7 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 				}
 			});
 		}
+		this.configureCompletionStrategy(bean, endpoint);
 		this.messageBus.registerEndpoint(beanName + "-endpoint", endpoint);
 		return bean;
 	}
@@ -166,8 +173,8 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 		});
 	}
 
-	private void configureDefaultOutput(final Object bean, final String beanName,
-			final MessageEndpoint annotation, final DefaultMessageEndpoint endpoint) {
+	private void configureDefaultOutput(final Object bean, final String beanName, final MessageEndpoint annotation,
+			final DefaultMessageEndpoint endpoint) {
 		String channelName = annotation.defaultOutput();
 		if (StringUtils.hasText(channelName)) {
 			endpoint.setDefaultOutputChannelName(channelName);
@@ -175,6 +182,7 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 		}
 		ReflectionUtils.doWithMethods(this.getBeanClass(bean), new ReflectionUtils.MethodCallback() {
 			boolean foundDefaultOutput = false;
+
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
 				Annotation annotation = AnnotationUtils.getAnnotation(method, DefaultOutput.class);
 				if (annotation != null) {
@@ -205,6 +213,38 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 		});
 	}
 
+	private void configureCompletionStrategy(final Object bean, final DefaultMessageEndpoint endpoint) {
+		ReflectionUtils.doWithMethods(bean.getClass(), new ReflectionUtils.MethodCallback() {
+			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
+				Annotation annotation = AnnotationUtils.getAnnotation(method, CompletionStrategy.class);
+				if (annotation != null) {
+					final MessageHandler endpointHandler = endpoint.getHandler();
+					AggregatingMessageHandler aggregatingMessageHandler = null;
+					if (endpointHandler != null) {
+						if (endpointHandler instanceof MessageHandlerChain) {
+							for (MessageHandler handlerInChain : ((MessageHandlerChain) endpointHandler).getHandlers()) {
+								if (handlerInChain instanceof AggregatingMessageHandler) {
+									aggregatingMessageHandler = (AggregatingMessageHandler) handlerInChain;
+									break;
+								}
+							}
+						}
+						else if (endpointHandler instanceof AggregatingMessageHandler) {
+							aggregatingMessageHandler = (AggregatingMessageHandler) endpointHandler;
+						}
+					}
+					if (aggregatingMessageHandler == null) {
+						throw new ConfigurationException(
+								"@CompletionStrategy supported only when @Aggregator is present");
+					}
+					else {
+						aggregatingMessageHandler.setCompletionStrategy(new CompletionStrategyAdapter(bean, method));
+					}
+				}
+			}
+		});
+	}
+
 	@SuppressWarnings("unchecked")
 	private MessageHandlerChain createHandlerChain(final Object bean) {
 		final List<MessageHandler> handlers = new ArrayList<MessageHandler>();
@@ -217,8 +257,8 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 						MessageHandlerCreator handlerCreator = handlerCreators.get(annotation.annotationType());
 						if (handlerCreator == null) {
 							if (logger.isWarnEnabled()) {
-								logger.warn("No handler creator has been registered for handler annotation '" +
-										annotation.annotationType() + "'");
+								logger.warn("No handler creator has been registered for handler annotation '"
+										+ annotation.annotationType() + "'");
 							}
 						}
 						else {

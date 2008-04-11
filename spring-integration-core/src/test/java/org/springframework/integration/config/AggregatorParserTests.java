@@ -16,25 +16,25 @@
 
 package org.springframework.integration.config;
 
-import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.handler.HandlerMethodInvoker;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.router.AggregatingMessageHandler;
-import org.springframework.integration.router.Aggregator;
 import org.springframework.integration.router.CompletionStrategy;
-import org.springframework.util.ReflectionUtils;
+import org.springframework.integration.router.CompletionStrategyAdapter;
 
 /**
  * @author Marius Bogoevici
@@ -75,32 +75,28 @@ public class AggregatorParserTests {
 		CompletionStrategy completionStrategy = (CompletionStrategy) context.getBean("completionStrategy");
 		MessageChannel defaultReplyChannel = (MessageChannel) context.getBean("replyChannel");
 		MessageChannel discardChannel = (MessageChannel) context.getBean("discardChannel");
-
+		DirectFieldAccessor messageHandlerFieldAccessor = new DirectFieldAccessor(completeAggregatingMessageHandler);
 		Assert.assertEquals("The AggregatingMessageHandler is not injected with the appropriate Aggregator instance",
-				testAggregator, getPropertyValue(completeAggregatingMessageHandler, "aggregator", Aggregator.class));
+				testAggregator, messageHandlerFieldAccessor.getPropertyValue("aggregator"));
 		Assert.assertEquals(
 				"The AggregatingMessageHandler is not injected with the appropriate CompletionStrategy instance",
-				completionStrategy, getPropertyValue(completeAggregatingMessageHandler, "completionStrategy",
-						CompletionStrategy.class));
+				completionStrategy, messageHandlerFieldAccessor.getPropertyValue("completionStrategy"));
 		Assert.assertEquals("The AggregatingMessageHandler is not injected with the appropriate default reply channel",
-				defaultReplyChannel, getPropertyValue(completeAggregatingMessageHandler, "defaultReplyChannel",
-						MessageChannel.class));
+				defaultReplyChannel, messageHandlerFieldAccessor.getPropertyValue("defaultReplyChannel"));
 		Assert.assertEquals("The AggregatingMessageHandler is not injected with the appropriate discard channel",
-				discardChannel, getPropertyValue(completeAggregatingMessageHandler, "discardChannel",
-						MessageChannel.class));
+				discardChannel, messageHandlerFieldAccessor.getPropertyValue("discardChannel"));
 		Assert.assertEquals("The AggregatingMessageHandler is not set with the appropriate timeout value", 86420000l,
-				getPropertyValue(completeAggregatingMessageHandler, "sendTimeout", long.class));
+				messageHandlerFieldAccessor.getPropertyValue("sendTimeout"));
 		Assert.assertEquals(
 						"The AggregatingMessageHandler is not configured with the appropriate 'send partial results on timeout' flag",
-						true, getPropertyValue(completeAggregatingMessageHandler, "sendPartialResultOnTimeout",
-								boolean.class));
+						true, messageHandlerFieldAccessor.getPropertyValue("sendPartialResultOnTimeout"));
 		Assert.assertEquals("The AggregatingMessageHandler is not configured with the appropriate reaper interval",
-				135l, getPropertyValue(completeAggregatingMessageHandler, "reaperInterval", long.class));
+				135l, messageHandlerFieldAccessor.getPropertyValue("reaperInterval"));
 		Assert.assertEquals(
 				"The AggregatingMessageHandler is not configured with the appropriate tracked correlationId capacity",
-				99, getPropertyValue(completeAggregatingMessageHandler, "trackedCorrelationIdCapacity", int.class));
+				99, messageHandlerFieldAccessor.getPropertyValue("trackedCorrelationIdCapacity"));
 		Assert.assertEquals("The AggregatingMessageHandler is not configured with the appropriate timeout",
-				42l, getPropertyValue(completeAggregatingMessageHandler, "timeout", long.class));
+				42l, messageHandlerFieldAccessor.getPropertyValue("timeout"));
 	}
 
 	@Test
@@ -122,7 +118,39 @@ public class AggregatorParserTests {
 	public void testMissingMethodOnAggregator() {
 		context = new ClassPathXmlApplicationContext("invalidMethodNameAggregator.xml", this.getClass());		
 	}
-
+	
+	@Test(expected=BeanDefinitionParsingException.class)
+	public void testDuplicateCompletionStrategyDefinition() {
+		context = new ClassPathXmlApplicationContext("completionStrategyMethodWithMissingReference.xml", this.getClass());		
+	}
+	
+	@Test
+	public void testAggregatorWithPojoCompletionStrategy(){
+		AggregatingMessageHandler aggregatorWithPojoCompletionStrategy = (AggregatingMessageHandler) context.getBean("aggregatorWithPojoCompletionStrategy");
+		CompletionStrategy completionStrategy = (CompletionStrategy)new DirectFieldAccessor(aggregatorWithPojoCompletionStrategy).getPropertyValue("completionStrategy");
+		Assert.assertTrue(completionStrategy instanceof CompletionStrategyAdapter);
+		DirectFieldAccessor completionStrategyAccessor = new DirectFieldAccessor(completionStrategy);
+		HandlerMethodInvoker<?> invoker = (HandlerMethodInvoker<?>)completionStrategyAccessor.getPropertyValue("invoker");
+		Assert.assertTrue(new DirectFieldAccessor(invoker).getPropertyValue("object") instanceof MaxValueCompletionStrategy);
+		Assert.assertTrue(((Method)completionStrategyAccessor.getPropertyValue("method")).getName().equals("checkCompleteness"));
+		
+		aggregatorWithPojoCompletionStrategy.handle(createMessage(1l, "id1", 0 , 0, null));
+		aggregatorWithPojoCompletionStrategy.handle(createMessage(2l, "id1", 0 , 0, null));
+		aggregatorWithPojoCompletionStrategy.handle(createMessage(3l, "id1", 0 , 0, null));
+		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
+		Message<?> reply = replyChannel.receive(0);
+		Assert.assertNull(reply);
+		aggregatorWithPojoCompletionStrategy.handle(createMessage(5l, "id1", 0 , 0, null));
+		reply = replyChannel.receive(0);
+		Assert.assertNotNull(reply);		
+		Assert.assertEquals(11l, reply.getPayload());
+	}
+	
+	@Test(expected=BeanDefinitionParsingException.class)
+	public void testAggregatorWithDuplicateCompletionStrategy() {
+		context = new ClassPathXmlApplicationContext("duplicateCompletionStrategy.xml", this.getClass());		
+	}
+	
 	private static <T> Message<T> createMessage(T payload, Object correlationId, int sequenceSize, int sequenceNumber,
 			MessageChannel replyChannel) {
 		GenericMessage<T> message = new GenericMessage<T>(payload);
@@ -131,19 +159,6 @@ public class AggregatorParserTests {
 		message.getHeader().setSequenceNumber(sequenceNumber);
 		message.getHeader().setReturnAddress(replyChannel);
 		return message;
-	}
-
-	/**
-	 * Reading private fields through reflection, since they don't have setters
-	 * @param beanUnderTest
-	 * @param fieldName
-	 * @return the value of the field
-	 * @throws Exception
-	 */
-	private static Object getPropertyValue(Object beanUnderTest, String fieldName, Class<?> type) throws Exception {
-		Field field = ReflectionUtils.findField(beanUnderTest.getClass(), fieldName, type);
-		ReflectionUtils.makeAccessible(field);
-		return field.get(beanUnderTest);
 	}
 
 }

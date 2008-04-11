@@ -22,11 +22,12 @@ import org.springframework.integration.message.Message;
 import org.springframework.util.CollectionUtils;
 
 /**
- * An implementation of {@link CompletionStrategy} that simply
- * compares the current size of the message list to the expected 'sequenceSize'
- * according to the first {@link Message} in the list.
+ * An implementation of {@link CompletionStrategy} that simply compares the
+ * current size of the message list to the expected 'sequenceSize' according to
+ * the first {@link Message} in the list.
  * 
  * @author Mark Fisher
+ * @author Marius Bogoevici
  */
 public class SequenceSizeCompletionStrategy implements CompletionStrategy {
 
@@ -34,7 +35,7 @@ public class SequenceSizeCompletionStrategy implements CompletionStrategy {
 		if (CollectionUtils.isEmpty(messages)) {
 			return false;
 		}
-		return (messages.size() >= messages.get(0).getHeader().getSequenceSize());
+		return messages.size() != 0 && (messages.size() >= messages.get(0).getHeader().getSequenceSize());
 	}
 
 }

@@ -6,13 +6,17 @@
 			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
-			
-	<message-bus/>		
-			
-	<aggregator id="aggregatorWithReferenceAndMethod" ref="adderBean" method="substract" default-reply-channel="replyChannel"/>
+				
+	<message-bus/>
+	
+	<aggregator id="aggregator" ref="adderBean" method="add" completion-strategy="testCompletionStrategy" default-reply-channel="replyChannel">
+		<completion-strategy ref="testCompletionStrategy"/>
+	</aggregator>
 
 	<channel id="replyChannel"/>
 
 	<beans:bean id="adderBean" class="org.springframework.integration.config.Adder"/>
+	
+	<beans:bean id="completionStrategyBean" class="org.springframework.integration.config.TestCompletionStrategy"></beans:bean>
 
 </beans:beans>

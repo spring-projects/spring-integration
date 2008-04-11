@@ -16,7 +16,7 @@
 
 package org.springframework.integration.router;
 
-import java.util.Collection;
+import java.util.List;
 
 import org.springframework.integration.message.Message;
 
@@ -28,6 +28,6 @@ import org.springframework.integration.message.Message;
  */
 public interface Aggregator {
 
-	Message<?> aggregate(Collection<Message<?>> messages);
+	Message<?> aggregate(List<Message<?>> messages);
 
 }

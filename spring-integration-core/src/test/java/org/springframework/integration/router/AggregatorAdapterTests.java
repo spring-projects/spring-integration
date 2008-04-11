@@ -18,13 +18,12 @@ package org.springframework.integration.router;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
@@ -44,9 +43,9 @@ public class AggregatorAdapterTests {
 	}
 
 	@Test
-	public void testAdapterWithNonParameterizedMessageCollectionBasedMethod() {
-		Aggregator aggregator = new AggregatorAdapter(simpleAggregator, "doAggregationOnNonParameterizedCollectionOfMessages");
-		Collection<Message<?>> messages = createCollectionOfMessages();	
+	public void testAdapterWithNonParameterizedMessageListBasedMethod() {
+		Aggregator aggregator = new AggregatorAdapter(simpleAggregator, "doAggregationOnNonParameterizedListOfMessages");
+		List<Message<?>> messages = createListOfMessages();	
 		Message<?> returnedMessge = aggregator.aggregate(messages);
 		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
 		Assert.assertEquals("123456789", returnedMessge.getPayload());
@@ -54,8 +53,8 @@ public class AggregatorAdapterTests {
 
 	@Test
 	public void testAdapterWithWildcardParametrizedMessageBasedMethod() {
-		Aggregator aggregator = new AggregatorAdapter(simpleAggregator, "doAggregationOnCollectionOfMessagesParametrizedWithWildcard");
-		Collection<Message<?>> messages = createCollectionOfMessages();	
+		Aggregator aggregator = new AggregatorAdapter(simpleAggregator, "doAggregationOnListOfMessagesParametrizedWithWildcard");
+		List<Message<?>> messages = createListOfMessages();	
 		Message<?> returnedMessge = aggregator.aggregate(messages);
 		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
 		Assert.assertEquals("123456789", returnedMessge.getPayload());
@@ -63,8 +62,8 @@ public class AggregatorAdapterTests {
 
 	@Test
 	public void testAdapterWithTypeParametrizedMessageBasedMethod() {
-		Aggregator aggregator = new AggregatorAdapter(simpleAggregator, "doAggregationOnCollectionOfMessagesParametrizedWithString");
-		Collection<Message<?>> messages = createCollectionOfMessages();	
+		Aggregator aggregator = new AggregatorAdapter(simpleAggregator, "doAggregationOnListOfMessagesParametrizedWithString");
+		List<Message<?>> messages = createListOfMessages();	
 		Message<?> returnedMessge = aggregator.aggregate(messages);
 		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
 		Assert.assertEquals("123456789", returnedMessge.getPayload());
@@ -72,8 +71,8 @@ public class AggregatorAdapterTests {
 	
 	@Test
 	public void testAdapterWithPojoBasedMethod() {
-		Aggregator aggregator = new AggregatorAdapter(simpleAggregator, "doAggregationOnCollectionOfStrings");
-		Collection<Message<?>> messages = createCollectionOfMessages();	
+		Aggregator aggregator = new AggregatorAdapter(simpleAggregator, "doAggregationOnListOfStrings");
+		List<Message<?>> messages = createListOfMessages();	
 		Message<?> returnedMessge = aggregator.aggregate(messages);
 		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
 		Assert.assertEquals("123456789", returnedMessge.getPayload());
@@ -81,8 +80,8 @@ public class AggregatorAdapterTests {
 
 	@Test
 	public void testAdapterWithPojoBasedMethodReturningObject() {
-		Aggregator aggregator = new AggregatorAdapter(simpleAggregator, "doAggregationOnCollectionOfStringsReturningLong");
-		Collection<Message<?>> messages = createCollectionOfMessages();	
+		Aggregator aggregator = new AggregatorAdapter(simpleAggregator, "doAggregationOnListOfStringsReturningLong");
+		List<Message<?>> messages = createListOfMessages();	
 		Message<?> returnedMessge = aggregator.aggregate(messages);
 		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
 		Assert.assertEquals(123456789l, returnedMessge.getPayload());
@@ -109,8 +108,8 @@ public class AggregatorAdapterTests {
 	}
 
 	@Test(expected=ConfigurationException.class)
-	public void testCollectionSubclassParameterUsingMethodName() {
-		new AggregatorAdapter(simpleAggregator, "collectionSubclassParameter");
+	public void testListSubclassParameterUsingMethodName() {
+		new AggregatorAdapter(simpleAggregator, "ListSubclassParameter");
 	}
 
 	@Test(expected=ConfigurationException.class)
@@ -122,7 +121,7 @@ public class AggregatorAdapterTests {
 	@Test(expected=ConfigurationException.class)
 	public void testTooManyParametersUsingMethodObject() throws SecurityException, NoSuchMethodException {
 		new AggregatorAdapter(simpleAggregator, simpleAggregator.getClass().getMethod(
-				"tooManyParameters", Collection.class, Collection.class));
+				"tooManyParameters", List.class, List.class));
 	}
 
 	@Test(expected=ConfigurationException.class)
@@ -132,9 +131,9 @@ public class AggregatorAdapterTests {
 	}
 
 	@Test(expected= ConfigurationException.class)
-	public void testCollectionSubclassParameterUsingMethodObject() throws SecurityException, NoSuchMethodException {
+	public void testListSubclassParameterUsingMethodObject() throws SecurityException, NoSuchMethodException {
 		new AggregatorAdapter(simpleAggregator, simpleAggregator.getClass().getMethod(
-				"collectionSubclassParameter", new Class[] {List.class} ));
+				"listSubclassParameter", new Class[] {LinkedList.class} ));
 	}
 
 	@Test(expected=IllegalArgumentException.class)
@@ -155,8 +154,8 @@ public class AggregatorAdapterTests {
 	}
 
 
-	private static Collection<Message<?>> createCollectionOfMessages() {
-		Collection<Message<?>> messages =  new ArrayList<Message<?>>();
+	private static List<Message<?>> createListOfMessages() {
+		List<Message<?>> messages =  new ArrayList<Message<?>>();
 		messages.add(new GenericMessage<String>("123"));
 		messages.add(new GenericMessage<String>("456"));  
 		messages.add(new GenericMessage<String>("789"));
@@ -178,7 +177,7 @@ public class AggregatorAdapterTests {
 		}
 
 		@SuppressWarnings("unchecked")
-		public Message<?> doAggregationOnNonParameterizedCollectionOfMessages(Collection<Message> messages) {
+		public Message<?> doAggregationOnNonParameterizedListOfMessages(List<Message> messages) {
 			this.aggregationPerformed = true;
 			StringBuffer buffer = new StringBuffer();
 			for (Message<?> message : messages) {
@@ -187,7 +186,7 @@ public class AggregatorAdapterTests {
 			return new GenericMessage<String>(buffer.toString());
 		}
 
-		public Message<?> doAggregationOnCollectionOfMessagesParametrizedWithWildcard(Collection<Message<?>> messages) {
+		public Message<?> doAggregationOnListOfMessagesParametrizedWithWildcard(List<Message<?>> messages) {
 			this.aggregationPerformed = true;
 			StringBuffer buffer = new StringBuffer();
 			for (Message<?> message : messages) {
@@ -196,7 +195,7 @@ public class AggregatorAdapterTests {
 			return new GenericMessage<String>(buffer.toString());
 		}
 
-		public Message<?> doAggregationOnCollectionOfMessagesParametrizedWithString(Collection<Message<String>> messages) {
+		public Message<?> doAggregationOnListOfMessagesParametrizedWithString(List<Message<String>> messages) {
 			this.aggregationPerformed = true;
 			StringBuffer buffer = new StringBuffer();
 			for (Message<String> message : messages) {
@@ -205,7 +204,7 @@ public class AggregatorAdapterTests {
 			return new GenericMessage<String>(buffer.toString());
 		}
 
-		public Message<?> doAggregationOnCollectionOfStrings(Collection<String> messages) {
+		public Message<?> doAggregationOnListOfStrings(List<String> messages) {
 			this.aggregationPerformed = true;
 			StringBuffer buffer = new StringBuffer();
 			for (String payload : messages) {
@@ -214,7 +213,7 @@ public class AggregatorAdapterTests {
 			return new GenericMessage<String>(buffer.toString());
 		}
 
-		public Long doAggregationOnCollectionOfStringsReturningLong(Collection<String> messages) {
+		public Long doAggregationOnListOfStringsReturningLong(List<String> messages) {
 			this.aggregationPerformed = true;
 			StringBuffer buffer = new StringBuffer();
 			for (String payload : messages) {
@@ -227,7 +226,7 @@ public class AggregatorAdapterTests {
 			return null;
 		}
 
-		public Message<?> tooManyParameters(Collection<?> c1, Collection<?> c2) {
+		public Message<?> tooManyParameters(List<?> c1, List<?> c2) {
 			return null;
 		}
 
@@ -235,7 +234,7 @@ public class AggregatorAdapterTests {
 			return null;
 		}
 
-		public Message<?> collectionSubclassParameter(List<?> l1){
+		public Message<?> listSubclassParameter(LinkedList<?> l1){
 			return null;
 		}
 	}

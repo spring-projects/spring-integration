@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-package org.springframework.integration.config;
 
-import java.util.List;
+package org.springframework.integration.annotation;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
+ * Indicates that a method is capable of asserting if a list of messages or
+ * payload objects is complete.
+ * 
  * @author Marius Bogoevici
  */
-public class Adder {
-	
-	public Long add(List<Long> results) {
-		long total = 0l;
-		for (long partialResult: results) {
-			total += partialResult;
-		}
-		return total;
-	}
-	
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+@Documented
+public @interface CompletionStrategy {
+
 }

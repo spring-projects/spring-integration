@@ -90,6 +90,8 @@ public class AggregatorAnnotationTests {
 		DirectFieldAccessor aggregatingMessageHandlerAccessor = new DirectFieldAccessor(aggregatingMessageHandler);
 		return aggregatingMessageHandlerAccessor;
 	}
+	
+	
 
 	private MessageBus getMessageBus(ApplicationContext context) {
 		MessageBus messageBus = (MessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);

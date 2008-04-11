@@ -208,7 +208,7 @@ public class AggregatingMessageHandlerTests {
 
 	private static class TestAggregator implements Aggregator {
 
-		public Message<?> aggregate(Collection<Message<?>> messages) {
+		public Message<?> aggregate(List<Message<?>> messages) {
 			List<Message<?>> sortableList = new ArrayList<Message<?>>(messages);
 			Collections.sort(sortableList, new MessageSequenceComparator());
 			StringBuffer buffer = new StringBuffer();

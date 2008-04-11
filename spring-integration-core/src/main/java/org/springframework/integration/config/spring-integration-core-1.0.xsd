@@ -234,9 +234,13 @@
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="beans:identifiedType">
+					<xsd:sequence>
+						<xsd:element name="completion-strategy" minOccurs="0" maxOccurs="1"/>
+					</xsd:sequence>
 					<xsd:attribute name="ref" type="xsd:string" use="required"/>
 					<xsd:attribute name="method" type="xsd:string" use="optional"/>
 					<xsd:attribute name="completion-strategy" type="xsd:string" use="optional"/>
+					<xsd:attribute name="completion-strategy-method" type="xsd:string" use="optional"/>					
 					<xsd:attribute name="default-reply-channel" type="xsd:string" use="optional"/>
 					<xsd:attribute name="discard-channel" type="xsd:string" use="optional"/>
 					<xsd:attribute name="send-timeout" type="xsd:long" use="optional"/>
@@ -246,6 +250,18 @@
 					<xsd:attribute name="timeout" type="xsd:long" use="optional"/>
 				</xsd:extension>
 			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+	
+	<xsd:element name="completion-strategy">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+					Defines a completion strategy.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="ref" type="xsd:string" use="required"/>
+			<xsd:attribute name="method" type="xsd:string" use="optional"/>
 		</xsd:complexType>
 	</xsd:element>
 

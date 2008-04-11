@@ -17,7 +17,6 @@
 package org.springframework.integration.config;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,7 +41,7 @@ public class TestAnnotatedEndpointWithCustomizedAggregator {
 	@Aggregator(defaultReplyChannel = "replyChannel", discardChannel = "discardChannel", 
 			reaperInterval = 1234, sendPartialResultsOnTimeout = true, 
 			sendTimeout = 98765432, timeout = 4567890, trackedCorrelationIdCapacity = 42)
-	public Message<?> aggregatingMethod(Collection<Message<?>> messages) {
+	public Message<?> aggregatingMethod(List<Message<?>> messages) {
 		List<Message<?>> sortableList = new ArrayList<Message<?>>(messages);
 		Collections.sort(sortableList, new MessageSequenceComparator());
 		StringBuffer buffer = new StringBuffer();

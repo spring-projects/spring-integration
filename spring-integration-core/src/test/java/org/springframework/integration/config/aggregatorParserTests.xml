@@ -7,29 +7,41 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
 
-	<aggregator id="aggregatorWithReference" ref="aggregatorBean"/>
+	<aggregator id="aggregatorWithReference" ref="aggregatorBean" />
 
-	<aggregator id="completelyDefinedAggregator"
-				ref="aggregatorBean"
-				completion-strategy="completionStrategy"
-				default-reply-channel="replyChannel"
-				discard-channel="discardChannel"
-				send-timeout="86420000"
-				send-partial-result-on-timeout="true"
-				reaper-interval="135"
-				tracked-correlation-id-capacity="99"
-				timeout="42"/>
-				
-	<aggregator id="aggregatorWithReferenceAndMethod" ref="adderBean" method="add" default-reply-channel="replyChannel"/>
+	<aggregator id="completelyDefinedAggregator" ref="aggregatorBean"
+		completion-strategy="completionStrategy"
+		default-reply-channel="replyChannel" discard-channel="discardChannel"
+		send-timeout="86420000" send-partial-result-on-timeout="true"
+		reaper-interval="135" tracked-correlation-id-capacity="99"
+		timeout="42" />
 
-	<channel id="replyChannel"/>
 
-	<channel id="discardChannel"/>
+	<aggregator id="aggregatorWithReferenceAndMethod" ref="adderBean"
+		method="add" default-reply-channel="replyChannel" />
 
-	<beans:bean id="aggregatorBean" class="org.springframework.integration.config.TestAggregator"/>
-	
-	<beans:bean id="adderBean" class="org.springframework.integration.config.Adder"/>
+	<aggregator id="aggregatorWithPojoCompletionStrategy"
+		ref="adderBean" method="add" default-reply-channel="replyChannel">
+		<completion-strategy ref="pojoCompletionStrategy"
+			method="checkCompleteness" />
+	</aggregator>
 
-	<beans:bean id="completionStrategy" class="org.springframework.integration.config.TestCompletionStrategy"/>
+	<channel id="replyChannel" />
+
+	<channel id="discardChannel" />
+
+	<beans:bean id="aggregatorBean"
+		class="org.springframework.integration.config.TestAggregator" />
+
+	<beans:bean id="adderBean"
+		class="org.springframework.integration.config.Adder" />
+
+	<beans:bean id="completionStrategy"
+		class="org.springframework.integration.config.TestCompletionStrategy" />
+
+	<beans:bean id="pojoCompletionStrategy"
+		class="org.springframework.integration.config.MaxValueCompletionStrategy">
+		<beans:constructor-arg value="10" />
+	</beans:bean>
 
 </beans:beans>

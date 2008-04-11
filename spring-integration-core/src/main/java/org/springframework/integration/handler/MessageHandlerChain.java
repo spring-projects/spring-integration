@@ -16,6 +16,7 @@
 
 package org.springframework.integration.handler;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -31,7 +32,6 @@ import org.springframework.integration.message.Message;
 public class MessageHandlerChain implements MessageHandler {
 
 	private final List<MessageHandler> handlers = new CopyOnWriteArrayList<MessageHandler>();
-
 
 	/**
 	 * Add a handler to the end of the chain.
@@ -50,6 +50,13 @@ public class MessageHandlerChain implements MessageHandler {
 	public void setHandlers(List<MessageHandler> handlers) {
 		this.handlers.clear();
 		this.handlers.addAll(handlers);
+	}
+
+	/**
+	 * Get an immutable list of handlers
+	 */
+	public List<MessageHandler> getHandlers() {
+		return Collections.unmodifiableList(handlers);
 	}
 
 	public final Message<?> handle(Message<?> message) {
