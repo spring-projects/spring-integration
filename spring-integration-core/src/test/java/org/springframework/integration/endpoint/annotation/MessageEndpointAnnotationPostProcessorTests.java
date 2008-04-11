@@ -33,6 +33,7 @@ import org.springframework.integration.annotation.DefaultOutput;
 import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Polled;
+import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
@@ -255,6 +256,35 @@ public class MessageEndpointAnnotationPostProcessorTests {
 		assertEquals("test-ABC", message.getPayload());
 	}
 
+	@Test
+	public void testSplitterAnnotation() throws InterruptedException {
+		MessageBus messageBus = new MessageBus();
+		SimpleChannel input = new SimpleChannel();
+		SimpleChannel output = new SimpleChannel();
+		messageBus.registerChannel("input", input);
+		messageBus.registerChannel("output", output);
+		MessageEndpointAnnotationPostProcessor postProcessor =
+				new MessageEndpointAnnotationPostProcessor(messageBus);
+		postProcessor.afterPropertiesSet();
+		SplitterAnnotationTestEndpoint endpoint = new SplitterAnnotationTestEndpoint();
+		postProcessor.postProcessAfterInitialization(endpoint, "endpoint");
+		messageBus.start();
+		input.send(new StringMessage("this.is.a.test"));
+		Message<?> message1 = output.receive(500);
+		assertNotNull(message1);
+		assertEquals("this", message1.getPayload());
+		Message<?> message2 = output.receive(500);
+		assertNotNull(message2);
+		assertEquals("is", message2.getPayload());
+		Message<?> message3 = output.receive(500);
+		assertNotNull(message3);
+		assertEquals("a", message3.getPayload());
+		Message<?> message4 = output.receive(500);
+		assertNotNull(message4);
+		assertEquals("test", message4.getPayload());
+		assertNull(output.receive(500));
+	}
+
 
 	@MessageEndpoint(defaultOutput="testChannel")
 	private static class PolledAnnotationTestBean {
@@ -326,6 +356,16 @@ public class MessageEndpointAnnotationPostProcessorTests {
 		@Handler
 		public String test(String input) {
 			return "test-"  + input;
+		}
+	}
+
+
+	@MessageEndpoint(input="input", defaultOutput="output")
+	private static class SplitterAnnotationTestEndpoint {
+
+		@Splitter
+		public String[] split(String input) {
+			return input.split("\\.");
 		}
 	}
 
