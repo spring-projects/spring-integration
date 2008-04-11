@@ -24,11 +24,13 @@ import org.junit.Test;
 import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.config.MessageEndpointAnnotationPostProcessor;
 import org.springframework.integration.dispatcher.SynchronousChannel;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.scheduling.Subscription;
 
@@ -77,6 +79,34 @@ public class SynchronousChannelSubscriptionTests {
 		bus.stop();
 	}
 
+	@Test(expected=MessagingException.class)
+	public void testExceptionThrownFromRegisteredEndpoint() {
+		SimpleChannel errorChannel = new SimpleChannel();
+		bus.setErrorChannel(errorChannel);		
+		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(new MessageHandler() {
+			public Message<?> handle(Message<?> message) {
+				throw new RuntimeException("intentional test failure");
+			}
+		});
+		endpoint.setSubscription(new Subscription("sourceChannel"));
+		endpoint.setDefaultOutputChannelName("targetChannel");
+		bus.registerEndpoint("testEndpoint", endpoint);
+		bus.start();
+		this.sourceChannel.send(new StringMessage("foo"));
+	}
+
+	@Test(expected=MessagingException.class)
+	public void testExceptionThrownFromAnnotatedEndpoint() {
+		SimpleChannel errorChannel = new SimpleChannel();
+		bus.setErrorChannel(errorChannel);
+		MessageEndpointAnnotationPostProcessor postProcessor = new MessageEndpointAnnotationPostProcessor(bus);
+		postProcessor.afterPropertiesSet();
+		FailingTestEndpoint endpoint = new FailingTestEndpoint();
+		postProcessor.postProcessAfterInitialization(endpoint, "testEndpoint");
+		bus.start();
+		this.sourceChannel.send(new StringMessage("foo"));
+	}
+
 
 	private static class TestHandler implements MessageHandler {
 
@@ -92,6 +122,16 @@ public class SynchronousChannelSubscriptionTests {
 		@Handler
 		public Message<?> handle(Message<?> message) {
 			return new StringMessage(message.getPayload() + "-from-annotated-endpoint");
+		}
+	}
+
+
+	@MessageEndpoint(input="sourceChannel", defaultOutput="targetChannel")
+	public static class FailingTestEndpoint {
+
+		@Handler
+		public Message<?> handle(Message<?> message) {
+			throw new RuntimeException("intentional test failure");
 		}
 	}
 

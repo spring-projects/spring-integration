@@ -48,12 +48,14 @@ import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.integration.endpoint.EndpointRegistry;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.scheduling.MessagePublishingErrorHandler;
 import org.springframework.integration.scheduling.MessagingTaskScheduler;
 import org.springframework.integration.scheduling.MessagingTaskSchedulerAware;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.integration.scheduling.SimpleMessagingTaskScheduler;
 import org.springframework.integration.scheduling.Subscription;
+import org.springframework.integration.util.ErrorHandler;
 import org.springframework.util.Assert;
 
 /**
@@ -372,6 +374,16 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 			((SynchronousChannel) channel).addHandler(handler);
 			if (handler instanceof Lifecycle) {
 				((Lifecycle) handler).start();
+			}
+			if (handler instanceof DefaultMessageEndpoint) {
+				((DefaultMessageEndpoint) handler).setErrorHandler(new ErrorHandler() {
+					public void handle(Throwable t) {
+						if (t instanceof MessagingException) {
+							throw (MessagingException) t;
+						}
+						throw new MessagingException("error occurred in handler", t);
+					}
+				});
 			}
 			return;
 		}
