@@ -23,31 +23,30 @@ import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.message.Message;
 
 /**
- * Aggregator adapter for methods annotated with
- * {@link org.springframework.integration.annotation.CompletionStrategy @CompletionStrategy}
- * and for '<code>aggregator</code>' elements that include a '<code>method</code>'
- * attribute (e.g. &lt;aggregator ref="beanReference" method="methodName"/&gt;).
+ * Adapter for methods annotated with {@link org.springframework.integration.annotation.CompletionStrategy @CompletionStrategy}
+ * and for '<code>completion-strategy</code>' elements that include a '<code>method</code>'
+ * attribute (e.g. &lt;completion-strategy ref="beanReference" method="methodName"/&gt;).
  * 
  * @author Marius Bogoevici
  */
-
 public class CompletionStrategyAdapter extends MessageListMethodAdapter implements CompletionStrategy {
 
 	public CompletionStrategyAdapter(Object object, Method method) {
 		super(object, method);
-		assertMethodReturnsBoolean();
+		this.assertMethodReturnsBoolean();
 	}
 
 	public CompletionStrategyAdapter(Object object, String methodName) {
 		super(object, methodName);
-		assertMethodReturnsBoolean();
+		this.assertMethodReturnsBoolean();
 	}
+
 
 	private void assertMethodReturnsBoolean() {
 		if (!Boolean.class.equals(this.getMethod().getReturnType())
 				&& !boolean.class.equals(this.getMethod().getReturnType())) {
-			throw new ConfigurationException("Method " + getMethod().getName()
-					+ " does not return a boolean value");
+			throw new ConfigurationException("Method '" + getMethod().getName()
+					+ "' does not return a boolean value");
 		}
 	}
 

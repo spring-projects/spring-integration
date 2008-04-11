@@ -240,7 +240,7 @@
 					<xsd:attribute name="ref" type="xsd:string" use="required"/>
 					<xsd:attribute name="method" type="xsd:string" use="optional"/>
 					<xsd:attribute name="completion-strategy" type="xsd:string" use="optional"/>
-					<xsd:attribute name="completion-strategy-method" type="xsd:string" use="optional"/>					
+					<xsd:attribute name="completion-strategy-method" type="xsd:string" use="optional"/>
 					<xsd:attribute name="default-reply-channel" type="xsd:string" use="optional"/>
 					<xsd:attribute name="discard-channel" type="xsd:string" use="optional"/>
 					<xsd:attribute name="send-timeout" type="xsd:long" use="optional"/>
@@ -252,12 +252,12 @@
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
-	
+
 	<xsd:element name="completion-strategy">
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-					Defines a completion strategy.
+	Defines a completion strategy.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:attribute name="ref" type="xsd:string" use="required"/>

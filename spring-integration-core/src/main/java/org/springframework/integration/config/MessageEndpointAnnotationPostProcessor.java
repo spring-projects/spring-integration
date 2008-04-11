@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
@@ -52,6 +53,7 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
+import org.springframework.integration.handler.AbstractMessageHandlerAdapter;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.integration.handler.config.DefaultMessageHandlerCreator;
@@ -83,10 +85,12 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 
 	private final MessageBus messageBus;
 
+
 	public MessageEndpointAnnotationPostProcessor(MessageBus messageBus) {
 		Assert.notNull(messageBus, "'messageBus' must not be null");
 		this.messageBus = messageBus;
 	}
+
 
 	public void setCustomHandlerCreators(Map<Class<? extends Annotation>, MessageHandlerCreator> customHandlerCreators) {
 		for (Map.Entry<Class<? extends Annotation>, MessageHandlerCreator> entry : customHandlerCreators.entrySet()) {
@@ -114,10 +118,16 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 		if (bean instanceof ChannelRegistryAware) {
 			((ChannelRegistryAware) bean).setChannelRegistry(this.messageBus);
 		}
-		MessageHandlerChain handlerChain = this.createHandlerChain(bean);
+		String defaultOutputChannelName = endpointAnnotation.defaultOutput();
+		MessageHandlerChain handlerChain = this.createHandlerChain(bean, defaultOutputChannelName);
 		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(handlerChain);
 		this.configureInput(bean, beanName, endpointAnnotation, endpoint);
-		this.configureDefaultOutput(bean, beanName, endpointAnnotation, endpoint);
+		if (StringUtils.hasText(defaultOutputChannelName)) {
+			endpoint.setDefaultOutputChannelName(defaultOutputChannelName);
+		}
+		else {
+			this.configureDefaultOutput(bean, beanName, endpoint);
+		}
 		Concurrency concurrencyAnnotation = AnnotationUtils.findAnnotation(beanClass, Concurrency.class);
 		if (concurrencyAnnotation != null) {
 			ConcurrencyPolicy concurrencyPolicy = new ConcurrencyPolicy(concurrencyAnnotation.coreSize(),
@@ -173,16 +183,9 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 		});
 	}
 
-	private void configureDefaultOutput(final Object bean, final String beanName, final MessageEndpoint annotation,
-			final DefaultMessageEndpoint endpoint) {
-		String channelName = annotation.defaultOutput();
-		if (StringUtils.hasText(channelName)) {
-			endpoint.setDefaultOutputChannelName(channelName);
-			return;
-		}
+	private void configureDefaultOutput(final Object bean, final String beanName, final DefaultMessageEndpoint endpoint) {
 		ReflectionUtils.doWithMethods(this.getBeanClass(bean), new ReflectionUtils.MethodCallback() {
 			boolean foundDefaultOutput = false;
-
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
 				Annotation annotation = AnnotationUtils.getAnnotation(method, DefaultOutput.class);
 				if (annotation != null) {
@@ -246,14 +249,15 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 	}
 
 	@SuppressWarnings("unchecked")
-	private MessageHandlerChain createHandlerChain(final Object bean) {
+	private MessageHandlerChain createHandlerChain(final Object bean, final String defaultOutputChannelName) {
 		final List<MessageHandler> handlers = new ArrayList<MessageHandler>();
 		ReflectionUtils.doWithMethods(this.getBeanClass(bean), new ReflectionUtils.MethodCallback() {
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
 				Annotation[] annotations = AnnotationUtils.getAnnotations(method);
 				for (Annotation annotation : annotations) {
 					if (isHandlerAnnotation(annotation)) {
-						Map<String, ?> attributes = AnnotationUtils.getAnnotationAttributes(annotation);
+						Map<String, Object> attributes = AnnotationUtils.getAnnotationAttributes(annotation);
+						attributes.put(AbstractMessageHandlerAdapter.DEFAULT_OUTPUT_CHANNEL_NAME_KEY, defaultOutputChannelName);
 						MessageHandlerCreator handlerCreator = handlerCreators.get(annotation.annotationType());
 						if (handlerCreator == null) {
 							if (logger.isWarnEnabled()) {

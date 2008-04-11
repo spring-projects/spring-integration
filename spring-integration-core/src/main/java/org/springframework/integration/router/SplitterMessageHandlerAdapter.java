@@ -39,12 +39,9 @@ import org.springframework.util.Assert;
  */
 public class SplitterMessageHandlerAdapter<T> extends AbstractMessageHandlerAdapter<T> implements ChannelRegistryAware {
 
-	public static final String CHANNEL_KEY = "channel";
-
-
 	private final Method method;
 
-	private final Map<String, ?> attributes;
+	private final String outputChannelName;
 
 	private volatile ChannelRegistry channelRegistry;
 
@@ -54,12 +51,12 @@ public class SplitterMessageHandlerAdapter<T> extends AbstractMessageHandlerAdap
 	public SplitterMessageHandlerAdapter(T object, Method method, Map<String, ?> attributes) {
 		Assert.notNull(object, "'object' must not be null");
 		Assert.notNull(method, "'method' must not be null");
-		Assert.isTrue(attributes != null && attributes.get(CHANNEL_KEY) != null,
-				"the 'channel' attribute is required");
+		Assert.isTrue(attributes != null && attributes.get(DEFAULT_OUTPUT_CHANNEL_NAME_KEY) != null,
+				"The '" + DEFAULT_OUTPUT_CHANNEL_NAME_KEY + "' attribute is required.");
 		this.setObject(object);
 		this.setMethodName(method.getName());
 		this.method = method;
-		this.attributes = attributes;
+		this.outputChannelName = (String) attributes.get(DEFAULT_OUTPUT_CHANNEL_NAME_KEY);
 	}
 
 	public void setChannelRegistry(ChannelRegistry channelRegistry) {
@@ -77,7 +74,6 @@ public class SplitterMessageHandlerAdapter<T> extends AbstractMessageHandlerAdap
 			throw new ConfigurationException(
 					"Splitter method must accept exactly one parameter");
 		}
-		String channelName = (String) attributes.get(CHANNEL_KEY);
 		Object retval = null;
 		Class<?> type = method.getParameterTypes()[0];
 		if (type.equals(Message.class)) {
@@ -100,7 +96,7 @@ public class SplitterMessageHandlerAdapter<T> extends AbstractMessageHandlerAdap
 				Message<?> splitMessage = (item instanceof Message<?>) ? (Message<?>) item :
 						this.createReplyMessage(item, originalMessageHeader);
 				this.prepareMessage(splitMessage, message.getId(), ++sequenceNumber, sequenceSize);
-				this.sendMessage(splitMessage, channelName);
+				this.sendMessage(splitMessage, this.outputChannelName);
 			}
 		}
 		else if (retval.getClass().isArray()) {
@@ -111,7 +107,7 @@ public class SplitterMessageHandlerAdapter<T> extends AbstractMessageHandlerAdap
 				Message<?> splitMessage = (item instanceof Message<?>) ? (Message<?>) item :
 						this.createReplyMessage(item, originalMessageHeader);
 				this.prepareMessage(splitMessage, message.getId(), ++sequenceNumber, sequenceSize);
-				this.sendMessage(splitMessage, channelName);
+				this.sendMessage(splitMessage, this.outputChannelName);
 			}
 		}
 		else {

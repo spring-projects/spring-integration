@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,7 @@ import java.lang.annotation.Target;
 
 /**
  * Indicates that a method is capable of splitting a single message or message
- * payload to produce multiple messages which are then sent to the channel whose
- * name is provided with the 'channel' attribute.
+ * payload to produce multiple messages or payloads.
  * 
  * @author Mark Fisher
  */
@@ -34,7 +33,5 @@ import java.lang.annotation.Target;
 @Documented
 @Handler
 public @interface Splitter {
-
-	String channel();
 
 }

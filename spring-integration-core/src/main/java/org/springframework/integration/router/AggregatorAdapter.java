@@ -38,7 +38,7 @@ import org.springframework.util.ReflectionUtils;
  * @author Marius Bogoevici
  * @author Mark Fisher
  */
-public class AggregatorAdapter extends MessageListMethodAdapter implements  Aggregator {
+public class AggregatorAdapter extends MessageListMethodAdapter implements Aggregator {
 
 	public AggregatorAdapter(Object object, Method method) {
 		super(object, method);
@@ -47,6 +47,7 @@ public class AggregatorAdapter extends MessageListMethodAdapter implements  Aggr
 	public AggregatorAdapter(Object object, String methodName) {
 		super(object, methodName);
 	}
+
 
 	public Message<?> aggregate(List<Message<?>> messages) {
 		Object returnedValue = this.executeMethod(messages);
@@ -58,7 +59,5 @@ public class AggregatorAdapter extends MessageListMethodAdapter implements  Aggr
 		}
 		return new GenericMessage<Object>(returnedValue);
 	}
-
-	
 
 }

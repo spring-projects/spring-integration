@@ -24,7 +24,6 @@ import java.util.List;
 
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.handler.HandlerMethodInvoker;
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
@@ -39,7 +38,8 @@ public abstract class MessageListMethodAdapter {
 
 	private final HandlerMethodInvoker<Object> invoker;
 
-	protected Method method;
+	protected volatile Method method;
+
 
 	public MessageListMethodAdapter(Object object, String methodName) {
 		Assert.notNull(object, "'object' must not be null");
@@ -57,26 +57,23 @@ public abstract class MessageListMethodAdapter {
 		Assert.notNull(method, "'method' must not be null");
 		if (method.getParameterTypes().length != 1 || !method.getParameterTypes()[0].equals(List.class)) {
 			throw new ConfigurationException(
-					"Method must accept exactly one parameter, and it must be a Collection.");
+					"Method must accept exactly one parameter, and it must be a List.");
 		}
 		this.method = method;
 		this.invoker = new HandlerMethodInvoker<Object>(object, this.method.getName());
 	}
 
-	private static boolean isActualTypeParametrizedMessage(Method method) {
+	private static boolean isActualTypeParameterizedMessage(Method method) {
 		return getCollectionActualType(method) instanceof ParameterizedType
-				&& Message.class.isAssignableFrom((Class<?>) ((ParameterizedType) getCollectionActualType(method))
-						.getRawType());
+				&& Message.class.isAssignableFrom((Class<?>) ((ParameterizedType) getCollectionActualType(method)).getRawType());
 	}
 
 	protected final Object executeMethod(List<Message<?>> messages) {
-		if (isMethodParameterParametrized(this.method) && isHavingActualTypeArguments(this.method)
-				&& (isActualTypeRawMessage(this.method) || isActualTypeParametrizedMessage(this.method))) {
+		if (isMethodParameterParameterized(this.method) && isHavingActualTypeArguments(this.method)
+				&& (isActualTypeRawMessage(this.method) || isActualTypeParameterizedMessage(this.method))) {
 			return this.invoker.invokeMethod(messages);
 		}
-		else {
-			return this.invoker.invokeMethod(extractPayloadsFromMessages(messages));
-		}
+		return this.invoker.invokeMethod(extractPayloadsFromMessages(messages));
 	}
 
 	private List<?> extractPayloadsFromMessages(List<Message<?>> messages) {
@@ -99,7 +96,7 @@ public abstract class MessageListMethodAdapter {
 		return ((ParameterizedType) method.getGenericParameterTypes()[0]).getActualTypeArguments().length == 1;
 	}
 
-	private static boolean isMethodParameterParametrized(Method method) {
+	private static boolean isMethodParameterParameterized(Method method) {
 		return method.getGenericParameterTypes().length == 1
 				&& method.getGenericParameterTypes()[0] instanceof ParameterizedType;
 	}

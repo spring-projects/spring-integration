@@ -33,6 +33,7 @@ public class MessageHandlerChain implements MessageHandler {
 
 	private final List<MessageHandler> handlers = new CopyOnWriteArrayList<MessageHandler>();
 
+
 	/**
 	 * Add a handler to the end of the chain.
 	 */

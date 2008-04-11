@@ -39,6 +39,9 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractMessageHandlerAdapter<T> implements MessageHandler, Ordered, InitializingBean {
 
+	public static final String DEFAULT_OUTPUT_CHANNEL_NAME_KEY = "defaultOutputChannelName";
+
+
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile T object;

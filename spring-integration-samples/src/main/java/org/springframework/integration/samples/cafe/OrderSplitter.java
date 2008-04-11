@@ -24,10 +24,10 @@ import org.springframework.integration.annotation.Splitter;
 /**
  * @author Mark Fisher
  */
-@MessageEndpoint(input="orders")
+@MessageEndpoint(input="orders", defaultOutput="drinks")
 public class OrderSplitter {
 
-	@Splitter(channel="drinks")
+	@Splitter
 	public List<Drink> split(DrinkOrder order) {
 		return order.getDrinks();
 	}
