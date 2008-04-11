@@ -20,8 +20,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 
-import org.springframework.integration.adapter.PollableSource;
 import org.springframework.integration.message.MessagingException;
+import org.springframework.integration.message.PollableSource;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.util.Assert;
 

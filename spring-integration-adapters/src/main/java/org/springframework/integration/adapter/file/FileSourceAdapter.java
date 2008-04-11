@@ -20,10 +20,10 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
 
-import org.springframework.integration.adapter.PollableSource;
 import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
+import org.springframework.integration.message.PollableSource;
 import org.springframework.util.Assert;
 
 /**
@@ -84,6 +84,7 @@ public class FileSourceAdapter extends PollingSourceAdapter<Object> implements P
 		if (this.fileNameGenerator != null) {
 			this.mapper.setFileNameGenerator(this.fileNameGenerator);
 		}
+		super.initialize();
 	}
 
 	public Message<Object> poll() {

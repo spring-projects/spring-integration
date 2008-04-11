@@ -38,6 +38,7 @@ public class CharacterStreamSourceAdapterTests {
 		MessageChannel channel = new SimpleChannel();
 		CharacterStreamSourceAdapter adapter = new CharacterStreamSourceAdapter(reader);
 		adapter.setChannel(channel);
+		adapter.setInitialDelay(10000);
 		adapter.start();
 		int count = adapter.processMessages();
 		assertEquals(1, count);
@@ -55,6 +56,7 @@ public class CharacterStreamSourceAdapterTests {
 		StringReader reader = new StringReader("test");
 		MessageChannel channel = new SimpleChannel();
 		CharacterStreamSourceAdapter adapter = new CharacterStreamSourceAdapter(reader);
+		adapter.setInitialDelay(10000);
 		adapter.setChannel(channel);
 		adapter.setMaxMessagesPerTask(5);
 		adapter.start();

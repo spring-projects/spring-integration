@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter;
-
-import org.springframework.integration.message.Message;
+package org.springframework.integration.message;
 
 /**
  * Interface for any external message source that can be polled.

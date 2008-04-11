@@ -20,10 +20,10 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.springframework.integration.adapter.PollableSource;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
+import org.springframework.integration.message.PollableSource;
 
 /**
  * A pollable source for receiving bytes from an {@link InputStream}.

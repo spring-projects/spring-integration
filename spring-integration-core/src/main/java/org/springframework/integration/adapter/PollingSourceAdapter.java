@@ -23,8 +23,10 @@ import java.util.concurrent.Executors;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.dispatcher.SynchronousChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageMapper;
+import org.springframework.integration.message.PollableSource;
 import org.springframework.integration.scheduling.MessagingTask;
 import org.springframework.integration.scheduling.MessagingTaskScheduler;
 import org.springframework.integration.scheduling.MessagingTaskSchedulerAware;
@@ -50,9 +52,9 @@ public class PollingSourceAdapter<T> extends AbstractSourceAdapter<T> implements
 
 	private volatile int maxMessagesPerTask = 1;
 
-	private volatile boolean starting;
-
 	private volatile boolean running;
+
+	private final Object lifecycleMonitor = new Object();
 
 
 	/**
@@ -106,28 +108,38 @@ public class PollingSourceAdapter<T> extends AbstractSourceAdapter<T> implements
 		if (this.source == null) {
 			throw new ConfigurationException("source must not be null");
 		}
+		if (this.getChannel() instanceof SynchronousChannel) {
+			((SynchronousChannel) this.getChannel()).setSource(this.source);
+		}
 	}
 
 	public void start() {
-		if (this.isRunning() || this.starting) {
-			return;
-		}
-		this.starting = true;
-		if (!this.isInitialized()) {
-			this.afterPropertiesSet();
-		}
-		if (this.scheduler == null) {
-			if (logger.isInfoEnabled()) {
-				logger.info("no task scheduler has been provided, will create one");
+		synchronized (this.lifecycleMonitor) {
+			if (this.isRunning()) {
+				return;
 			}
-			this.scheduler = new SimpleMessagingTaskScheduler(Executors.newSingleThreadScheduledExecutor());
+			if (!this.isInitialized()) {
+				this.afterPropertiesSet();
+			}
+			if (this.getChannel() instanceof SynchronousChannel) {
+				if (logger.isInfoEnabled()) {
+					logger.info("source adapter configured on synchronous channel, not scheduling");
+				}
+				this.running = true;
+				return;
+			}
+			if (this.scheduler == null) {
+				if (logger.isInfoEnabled()) {
+					logger.info("no task scheduler has been provided, will create one");
+				}
+				this.scheduler = new SimpleMessagingTaskScheduler(Executors.newSingleThreadScheduledExecutor());
+			}
+			this.running = true;
 		}
 		if (!this.scheduler.isRunning()) {
 			this.scheduler.start();
 		}
 		this.scheduler.schedule(new PollingSourceAdapterTask());
-		this.running = true;
-		this.starting = false;
 	}
 
 	public void stop() {

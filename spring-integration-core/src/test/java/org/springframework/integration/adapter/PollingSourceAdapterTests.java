@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.PollableSource;
 
 /**
  * @author Mark Fisher

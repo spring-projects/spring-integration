@@ -22,11 +22,11 @@ import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.integration.adapter.PollableSource;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.PollableSource;
 import org.springframework.integration.message.selector.MessageSelector;
 
 /**
@@ -48,7 +48,7 @@ public class SynchronousChannel extends AbstractMessageChannel {
 	private static final ThreadLocalMessageHolder messageHolder = new ThreadLocalMessageHolder();
 
 
-	private final PollableSource<?> source;
+	private volatile PollableSource<?> source;
 
 	private final MessageDistributor distributor;
 
@@ -65,6 +65,10 @@ public class SynchronousChannel extends AbstractMessageChannel {
 		this.distributor = new DefaultMessageDistributor(this.getDispatcherPolicy());
 	}
 
+
+	public void setSource(PollableSource<?> source) {
+		this.source = source;
+	}
 
 	public void addHandler(MessageHandler handler) {
 		this.distributor.addHandler(handler);

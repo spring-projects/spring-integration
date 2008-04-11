@@ -28,7 +28,6 @@ import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 
-import org.springframework.integration.adapter.PollableSource;
 import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.adapter.file.ByteArrayFileMapper;
 import org.springframework.integration.adapter.file.FileNameGenerator;
@@ -36,6 +35,7 @@ import org.springframework.integration.adapter.file.TextFileMapper;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageMapper;
 import org.springframework.integration.message.MessagingException;
+import org.springframework.integration.message.PollableSource;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -120,6 +120,7 @@ public class FtpSourceAdapter extends PollingSourceAdapter<Object> implements Po
 		else {
 			this.mapper = new ByteArrayFileMapper(this.localWorkingDirectory);
 		}
+		super.initialize();
 	}
 
 	@Override

@@ -28,9 +28,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
-import org.springframework.integration.adapter.PollableSource;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.PollableSource;
 import org.springframework.integration.message.StringMessage;
 
 /**

@@ -29,7 +29,6 @@ import org.junit.Test;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.adapter.PollableSource;
 import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.adapter.SourceAdapter;
 import org.springframework.integration.channel.DispatcherPolicy;
@@ -41,6 +40,7 @@ import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.message.PollableSource;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.scheduling.Subscription;
 

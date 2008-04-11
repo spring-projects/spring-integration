@@ -19,9 +19,9 @@ package org.springframework.integration.adapter.jms;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 
-import org.springframework.integration.adapter.PollableSource;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.PollableSource;
 import org.springframework.jms.core.JmsTemplate;
 
 /**
