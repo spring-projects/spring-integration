@@ -209,7 +209,7 @@ public class MessageBusTests {
 		bus.registerHandler("testHandler", testHandler, new Subscription(testChannel));
 		bus.start();
 		for (int i = 0; i < 4; i++) {
-			assertTrue(testChannel.send(new StringMessage("test-"+ i), 100));
+			assertTrue(testChannel.send(new StringMessage("test-"+ i), 1000));
 		}
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
