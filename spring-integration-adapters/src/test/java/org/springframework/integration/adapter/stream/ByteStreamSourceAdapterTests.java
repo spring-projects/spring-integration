@@ -39,6 +39,7 @@ public class ByteStreamSourceAdapterTests {
 		MessageChannel channel = new SimpleChannel();
 		ByteStreamSourceAdapter adapter = new ByteStreamSourceAdapter(stream);
 		adapter.setChannel(channel);
+		adapter.setInitialDelay(10000);
 		adapter.start();
 		int count = adapter.processMessages();
 		assertEquals(1, count);
@@ -62,6 +63,7 @@ public class ByteStreamSourceAdapterTests {
 		MessageChannel channel = new SimpleChannel();
 		ByteStreamSourceAdapter adapter = new ByteStreamSourceAdapter(stream);
 		adapter.setChannel(channel);
+		adapter.setInitialDelay(10000);
 		adapter.setBytesPerMessage(8);
 		adapter.setMaxMessagesPerTask(5);
 		adapter.start();

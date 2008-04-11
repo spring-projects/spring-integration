@@ -121,13 +121,6 @@ public class PollingSourceAdapter<T> extends AbstractSourceAdapter<T> implements
 			if (!this.isInitialized()) {
 				this.afterPropertiesSet();
 			}
-			if (this.getChannel() instanceof SynchronousChannel) {
-				if (logger.isInfoEnabled()) {
-					logger.info("source adapter configured on synchronous channel, not scheduling");
-				}
-				this.running = true;
-				return;
-			}
 			if (this.scheduler == null) {
 				if (logger.isInfoEnabled()) {
 					logger.info("no task scheduler has been provided, will create one");
