@@ -238,6 +238,9 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 	}
 
 	public final Message<?> handle(Message<?> message) {
+		if (this.handler == null) {
+			throw new ConfigurationException("endpoint has no 'handler'");
+		}
 		if (logger.isDebugEnabled()) {
 			logger.debug("endpoint '" + this + "' handling message: " + message);
 		}
@@ -248,21 +251,6 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 			if (!selector.accept(message)) {
 				throw new MessageSelectorRejectedException(message);
 			}
-		}
-		if (this.handler == null) {
-			if (this.defaultOutputChannelName == null) {
-				throw new ConfigurationException(
-						"endpoint must have either a 'handler' or 'defaultOutputChannelName'");
-			}
-			MessageChannel outputChannel = this.channelRegistry.lookupChannel(this.defaultOutputChannelName);
-			if (logger.isDebugEnabled()) {
-				logger.debug("endpoint '" + this + "' sending to output channel '" + outputChannel + "', message: " + message);
-			}
-			if (!outputChannel.send(message, this.replyTimeout)) {
-				this.errorHandler.handle(new MessageDeliveryException(message,
-						"unable to send output message within alloted timeout of " + replyTimeout + " milliseconds"));
-			}
-			return null;
 		}
 		try {
 			Message<?> replyMessage = this.handler.handle(message);
@@ -317,8 +305,7 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 			MessageChannel replyChannel = resolveReplyChannel(originalMessageHeader);
 			if (replyChannel == null) {
 				throw new MessageHandlingException(replyMessage, 
-						"Unable to determine reply channel for message. " +
-						"Provide a 'replyChannel' or 'replyChannelName' in the message header " +
+						"Unable to determine reply channel for message. Provide a 'returnAddress' in the message header " +
 						"or a 'defaultOutputChannelName' on the message endpoint.");
 			}
 			if (logger.isDebugEnabled()) {

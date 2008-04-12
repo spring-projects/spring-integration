@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Random;
 
+import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Polled;
 
@@ -30,17 +31,18 @@ import org.springframework.integration.annotation.Polled;
 public class QuotePublisher {
 
 	@Polled(period=300)
-	public Quote getQuote() {
-		BigDecimal price = new BigDecimal(new Random().nextDouble() * 100);
-		return new Quote(generateTicker(), price.setScale(2, RoundingMode.HALF_EVEN));
-	}
-
-	private String generateTicker() {
+	public String generateTicker() {
 		char[] chars = new char[3];
 		for (int i = 0; i < 3; i++) {
 			chars[i] = (char) (new Random().nextInt(25) + 65);
 		}
-		return new String(chars);	
+		return new String(chars);
+	}
+
+	@Handler
+	public Quote getQuote(String ticker) {
+		BigDecimal price = new BigDecimal(new Random().nextDouble() * 100);		
+		return new Quote(ticker, price.setScale(2, RoundingMode.HALF_EVEN));	
 	}
 
 }

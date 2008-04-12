@@ -9,15 +9,11 @@
 
 	<si:message-bus auto-startup="false"/>
 
-	<si:channel id="inputChannel"/>
+	<si:channel id="channel"/>
 
-	<si:channel id="outputChannel"/>
+	<si:source-adapter ref="source" method="foo" channel="channel" period="100"/>
 
-	<si:source-adapter ref="source" method="foo" channel="inputChannel" period="100"/>
-
-	<si:target-adapter ref="sink" method="store" channel="outputChannel"/>
-
-	<si:endpoint input-channel="inputChannel" default-output-channel="outputChannel"/>
+	<si:target-adapter ref="sink" method="store" channel="channel"/>
 
 	<bean id="source" class="org.springframework.integration.adapter.TestSource"/>
 

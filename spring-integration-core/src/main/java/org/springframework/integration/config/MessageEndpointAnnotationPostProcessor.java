@@ -58,7 +58,6 @@ import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.integration.handler.config.DefaultMessageHandlerCreator;
 import org.springframework.integration.handler.config.MessageHandlerCreator;
-import org.springframework.integration.message.Message;
 import org.springframework.integration.router.AggregatingMessageHandler;
 import org.springframework.integration.router.CompletionStrategyAdapter;
 import org.springframework.integration.router.config.AggregatorMessageHandlerCreator;
@@ -120,6 +119,9 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 		}
 		String defaultOutputChannelName = endpointAnnotation.defaultOutput();
 		MessageHandlerChain handlerChain = this.createHandlerChain(bean, defaultOutputChannelName);
+		if (handlerChain == null) {
+			throw new ConfigurationException("@MessageEndpoint has no handler method");
+		}
 		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(handlerChain);
 		this.configureInput(bean, beanName, endpointAnnotation, endpoint);
 		if (StringUtils.hasText(defaultOutputChannelName)) {
@@ -135,13 +137,6 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 			concurrencyPolicy.setKeepAliveSeconds(concurrencyAnnotation.keepAliveSeconds());
 			concurrencyPolicy.setQueueCapacity(concurrencyAnnotation.queueCapacity());
 			endpoint.setConcurrencyPolicy(concurrencyPolicy);
-		}
-		if (endpoint.getHandler() == null) {
-			endpoint.setHandler(new MessageHandler() {
-				public Message<?> handle(Message<?> message) {
-					return message;
-				}
-			});
 		}
 		this.configureCompletionStrategy(bean, endpoint);
 		this.messageBus.registerEndpoint(beanName + "-endpoint", endpoint);

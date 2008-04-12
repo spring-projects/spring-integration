@@ -11,6 +11,7 @@
 	<bean id="targetChannel" class="org.springframework.integration.channel.SimpleChannel"/>
 
 	<bean id="endpoint" class="org.springframework.integration.endpoint.DefaultMessageEndpoint">
+		<constructor-arg ref="handler"/>
 		<property name="subscription">
 			<bean class="org.springframework.integration.scheduling.Subscription">
 				<constructor-arg ref="sourceChannel"/>
@@ -18,5 +19,7 @@
 		</property>
 		<property name="defaultOutputChannelName" value="targetChannel"/>
 	</bean>
+
+	<bean id="handler" class="org.springframework.integration.handler.TestHandlers" factory-method="echoHandler"/>
 
 </beans>

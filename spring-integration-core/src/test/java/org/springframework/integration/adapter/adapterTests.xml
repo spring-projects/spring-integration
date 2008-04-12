@@ -8,9 +8,7 @@
 		<property name="autoStartup" value="false"/>
 	</bean>
 
-	<bean id="inputChannel" class="org.springframework.integration.channel.SimpleChannel"/>
-
-	<bean id="outputChannel" class="org.springframework.integration.channel.SimpleChannel"/>
+	<bean id="channel" class="org.springframework.integration.channel.SimpleChannel"/>
 
 	<bean id="sourceAdapter" class="org.springframework.integration.adapter.PollingSourceAdapter">
 		<constructor-arg>
@@ -21,7 +19,7 @@
 				<property name="method" value="foo"/>
 			</bean>
 		</constructor-arg>
-		<property name="channel" ref="inputChannel"/>
+		<property name="channel" ref="channel"/>
 	</bean>
 
 	<bean id="targetAdapter" class="org.springframework.integration.adapter.DefaultTargetAdapter">
@@ -37,20 +35,11 @@
 		<constructor-arg ref="targetAdapter"/>
 		<property name="subscription">
 			<bean class="org.springframework.integration.scheduling.Subscription">
-				<constructor-arg ref="outputChannel"/>
+				<constructor-arg ref="channel"/>
 			</bean>
 		</property>
 	</bean>
 
 	<bean id="sink" class="org.springframework.integration.adapter.TestSink"/>
-
-	<bean class="org.springframework.integration.endpoint.DefaultMessageEndpoint">
-		<property name="subscription">
-			<bean class="org.springframework.integration.scheduling.Subscription">
-				<constructor-arg ref="inputChannel"/>
-			</bean>
-		</property>
-		<property name="defaultOutputChannelName" value="outputChannel"/>
-	</bean>
 
 </beans>

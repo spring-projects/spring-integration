@@ -41,6 +41,17 @@ public abstract class TestHandlers {
 	}
 
 	/**
+	 * Create a {@link MessageHandler} that simply returns the {@link Message} it receives.
+	 */
+	public final static MessageHandler echoHandler() {
+		return new MessageHandler() {
+			public Message<?> handle(Message<?> message) {
+				return message;
+			}
+		};
+	}
+
+	/**
 	 * Create a {@link MessageHandler} that throws a {@link MessageHandlerRejectedExecutionException}.
 	 */
 	public final static MessageHandler rejectingHandler() {
