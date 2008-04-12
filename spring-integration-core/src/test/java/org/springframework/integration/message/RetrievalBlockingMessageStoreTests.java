@@ -32,7 +32,7 @@ public class RetrievalBlockingMessageStoreTests {
 	@Test
 	public void testGetWithElapsedTimeout() {
 		final RetrievalBlockingMessageStore store = new RetrievalBlockingMessageStore(10);
-		publishWithDelay(store, "foo", "bar", 100);
+		publishWithDelay(store, "foo", "bar", 500);
 		Message<?> message = store.get("foo", 5);
 		assertNull(message);
 	}
@@ -41,7 +41,7 @@ public class RetrievalBlockingMessageStoreTests {
 	public void testWrappedTargetGetWithElapsedTimeout() {
 		MessageStore target = new SimpleMessageStore(10);
 		final RetrievalBlockingMessageStore store = new RetrievalBlockingMessageStore(target);
-		publishWithDelay(store, "foo", "bar", 100);
+		publishWithDelay(store, "foo", "bar", 500);
 		Message<?> message = store.get("foo", 5);
 		assertNull(message);
 	}
@@ -70,7 +70,7 @@ public class RetrievalBlockingMessageStoreTests {
 	@Test
 	public void testRemoveWithElapsedTimeout() {
 		final RetrievalBlockingMessageStore store = new RetrievalBlockingMessageStore(10);
-		publishWithDelay(store, "foo", "bar", 100);
+		publishWithDelay(store, "foo", "bar", 500);
 		Message<?> message = store.remove("foo", 5);
 		assertNull(message);
 	}
@@ -79,7 +79,7 @@ public class RetrievalBlockingMessageStoreTests {
 	public void testWrappedMessageStoreRemoveWithElapsedTimeout() {
 		MessageStore target = new SimpleMessageStore(10);
 		final RetrievalBlockingMessageStore store = new RetrievalBlockingMessageStore(target);
-		publishWithDelay(store, "foo", "bar", 100);
+		publishWithDelay(store, "foo", "bar", 500);
 		Message<?> message = store.remove("foo", 5);
 		assertNull(message);
 	}
