@@ -88,7 +88,7 @@ public class RetrievalBlockingMessageStoreTests {
 	public void testRemoveWithinTimeout() {
 		final RetrievalBlockingMessageStore store = new RetrievalBlockingMessageStore(10);
 		publishWithDelay(store, "foo", "bar", 50);
-		Message<?> message = store.remove("foo", 500);
+		Message<?> message = store.remove("foo", 1000);
 		assertNotNull(message);
 		assertEquals("bar", message.getPayload());
 		assertNull(store.get("foo", 0));
@@ -99,7 +99,7 @@ public class RetrievalBlockingMessageStoreTests {
 		MessageStore target = new SimpleMessageStore(10);
 		final RetrievalBlockingMessageStore store = new RetrievalBlockingMessageStore(target);
 		publishWithDelay(store, "foo", "bar", 50);
-		Message<?> message = store.remove("foo", 500);
+		Message<?> message = store.remove("foo", 1000);
 		assertNotNull(message);
 		assertEquals("bar", message.getPayload());
 		assertNull(store.get("foo", 0));
