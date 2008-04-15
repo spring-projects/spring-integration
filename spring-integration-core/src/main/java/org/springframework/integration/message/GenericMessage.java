@@ -109,6 +109,8 @@ public class GenericMessage<T> implements Message<T> {
 		for (String key : attributeNames) {
 			this.header.setAttribute(key, headerToCopy.getAttribute(key));
 		}
+		this.header.setSequenceNumber(headerToCopy.getSequenceNumber());
+		this.header.setSequenceSize(headerToCopy.getSequenceSize());
 		this.header.setReturnAddress(headerToCopy.getReturnAddress());
 	}
 

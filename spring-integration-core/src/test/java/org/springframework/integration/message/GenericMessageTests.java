@@ -61,9 +61,13 @@ public class GenericMessageTests {
 		MessageHeader header = new MessageHeader();
 		header.setAttribute("testAttribute", new Integer(123));
 		header.setProperty("testProperty", "foo");
+		header.setSequenceSize(42);
+		header.setSequenceNumber(24);
 		GenericMessage<String> message = new GenericMessage<String>("test", header);
 		assertEquals(new Integer(123), message.getHeader().getAttribute("testAttribute"));
 		assertEquals("foo", message.getHeader().getProperty("testProperty"));
+		assertEquals(42, message.getHeader().getSequenceSize());
+		assertEquals(24, message.getHeader().getSequenceNumber());
 	}
 
 }
