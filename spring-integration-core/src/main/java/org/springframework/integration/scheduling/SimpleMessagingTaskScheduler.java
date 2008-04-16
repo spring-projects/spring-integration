@@ -146,6 +146,9 @@ public class SimpleMessagingTaskScheduler extends AbstractMessagingTaskScheduler
 				if (errorHandler != null) {
 					errorHandler.handle(t);
 				}
+				else if (logger.isWarnEnabled()) {
+					logger.warn("error occurred in task but no 'errorHandler' is available", t);
+				}
 			}
 			if (this.shouldRepeat) {
 				MessagingTaskRunner runner = new MessagingTaskRunner(this.task);
