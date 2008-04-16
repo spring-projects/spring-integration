@@ -27,9 +27,9 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerNotRunningException;
+import org.springframework.integration.handler.MessageHandlerRejectedExecutionException;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
-import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.selector.MessageSelectorRejectedException;
 import org.springframework.util.Assert;
 
@@ -86,7 +86,7 @@ public class DefaultMessageDistributor implements MessageDistributor {
 				}
 				return false;
 			}
-			boolean encounteredHandlerException = false;
+			boolean rejected = false;
 			while (iter.hasNext()) {
 				MessageHandler handler = iter.next();
 				try {
@@ -98,22 +98,22 @@ public class DefaultMessageDistributor implements MessageDistributor {
 				}
 				catch (MessageSelectorRejectedException e) {
 					if (logger.isDebugEnabled()) {
-						logger.debug("selector rejected task, continuing with other handlers if available", e);
+						logger.debug("selector rejected message, continuing with other handlers if available", e);
 					}
 				}
 				catch (MessageHandlerNotRunningException e) {
 					if (logger.isDebugEnabled()) {
 						logger.debug("handler not running, continuing with other handlers if available", e);
-					}					
+					}
 				}
-				catch (MessageHandlingException e) {
-					encounteredHandlerException = true;
+				catch (MessageHandlerRejectedExecutionException e) {
+					rejected = true;
 					if (logger.isDebugEnabled()) {
-						logger.debug("handler threw exception, continuing with other handlers if available", e);
+						logger.debug("handler is busy, continuing with other handlers if available", e);
 					}
 				}
 			}
-			if (!encounteredHandlerException) {
+			if (!rejected) {
 				return true;
 			}
 			attempts++;
