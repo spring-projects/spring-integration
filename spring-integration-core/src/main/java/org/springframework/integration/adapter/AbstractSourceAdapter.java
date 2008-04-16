@@ -16,35 +16,25 @@
 
 package org.springframework.integration.adapter;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
 
 /**
- * A base class providing common behavior for source adapters.
- * 
  * @author Mark Fisher
  */
-public abstract class AbstractSourceAdapter<T> implements SourceAdapter, InitializingBean {
+public abstract class AbstractSourceAdapter implements SourceAdapter {
 
-	protected Log logger = LogFactory.getLog(this.getClass());
+	private final MessageChannel channel;
 
-	private MessageChannel channel;
-
-	private long sendTimeout = -1;
-
-	private volatile boolean initialized = false;
+	private volatile long sendTimeout = -1;
 
 
-	public void setChannel(MessageChannel channel) {
-		Assert.notNull(channel, "'channel' must not be null");
+	public AbstractSourceAdapter(MessageChannel channel) {
+		Assert.notNull(channel, "channel must not be null");
 		this.channel = channel;
 	}
+
 
 	protected MessageChannel getChannel() {
 		return this.channel;
@@ -54,38 +44,11 @@ public abstract class AbstractSourceAdapter<T> implements SourceAdapter, Initial
 		this.sendTimeout = sendTimeout;
 	}
 
-	public final void afterPropertiesSet() {
-		if (this.channel == null) {
-			throw new ConfigurationException("'channel' is required");
-		}
-		this.initialize();
-		this.initialized = true;
-	}
-
-	protected boolean isInitialized() {
-		return this.initialized;
-	}
-
-	/**
-	 * Subclasses may implement this to take advantage of the initialization callback.
-	 */
-	protected void initialize() {		
-	}
-
-	protected boolean sendToChannel(Message<T> message) {
-		if (!this.initialized) {
-			this.afterPropertiesSet();
-		}
+	protected boolean sendToChannel(Message<?> message) {
 		if (message == null) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("adapter attempted to send a null object");
-			}
-			return false;
+			throw new IllegalArgumentException("message must not be null");
 		}
-		if (this.sendTimeout < 0) {
-			return this.channel.send(message);
-		}
-		return this.channel.send(message, this.sendTimeout);
+		return (this.sendTimeout < 0) ? this.channel.send(message) : this.channel.send(message, this.sendTimeout);
 	}
 
 }
