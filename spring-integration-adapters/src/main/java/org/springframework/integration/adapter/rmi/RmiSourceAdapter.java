@@ -43,13 +43,8 @@ public class RmiSourceAdapter extends MessageHandlingSourceAdapter {
 	private volatile RemoteInvocationExecutor remoteInvocationExecutor;
 
 
-	public RmiSourceAdapter() {
-		super();
-	}
-
 	public RmiSourceAdapter(MessageChannel channel) {
-		this();
-		this.setChannel(channel);
+		super(channel);
 	}
 
 

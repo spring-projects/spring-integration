@@ -19,35 +19,30 @@ package org.springframework.integration.adapter.file.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
-import org.springframework.integration.adapter.file.FileSourceAdapter;
+import org.springframework.integration.adapter.config.AbstractPollingSourceAdapterParser;
+import org.springframework.integration.adapter.file.FileSource;
+import org.springframework.integration.message.PollableSource;
 
 /**
  * Parser for the &lt;file-source/&gt; element.
  * 
  * @author Mark Fisher
  */
-public class FileSourceAdapterParser extends AbstractSingleBeanDefinitionParser {
+public class FileSourceAdapterParser extends AbstractPollingSourceAdapterParser {
 
-	protected Class<?> getBeanClass(Element element) {
-		return FileSourceAdapter.class;
+	@Override
+	protected Class<? extends PollableSource<?>> getSourceBeanClass(Element element) {
+		return FileSource.class;
 	}
 
-	protected boolean shouldGenerateId() {
-		return false;
+	@Override
+	protected boolean shouldSkipAttribute(String attributeName) {
+		return "directory".equals(attributeName);
 	}
 
-	protected boolean shouldGenerateIdAsFallback() {
-		return true;
-	}
-
-	protected void doParse(Element element, BeanDefinitionBuilder builder) {
-		String directory = element.getAttribute("directory");
-		String channel = element.getAttribute("channel");
-		String pollPeriod = element.getAttribute("poll-period");
-		builder.addConstructorArgValue(directory);
-		builder.addPropertyReference("channel", channel);
-		builder.addPropertyValue("period", pollPeriod);
+	@Override
+	protected void doPostProcess(BeanDefinitionBuilder builder, Element element) {
+		builder.addConstructorArgValue(element.getAttribute("directory"));
 	}
 
 }

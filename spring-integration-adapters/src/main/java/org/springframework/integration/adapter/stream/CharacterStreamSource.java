@@ -18,8 +18,10 @@ package org.springframework.integration.adapter.stream;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
 
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.PollableSource;
 import org.springframework.integration.message.StringMessage;
@@ -69,6 +71,11 @@ public class CharacterStreamSource implements PollableSource<String> {
 		catch (IOException e) {
 			throw new MessagingException("IO failure occurred in adapter", e);
 		}
+	}
+
+
+	public static final CharacterStreamSource stdin() {
+		return new CharacterStreamSource(new InputStreamReader(System.in));
 	}
 
 }

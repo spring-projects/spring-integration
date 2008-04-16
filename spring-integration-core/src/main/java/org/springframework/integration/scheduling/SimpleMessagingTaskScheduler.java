@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,9 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.util.ErrorHandler;
 import org.springframework.util.Assert;
 
@@ -34,13 +37,13 @@ import org.springframework.util.Assert;
  */
 public class SimpleMessagingTaskScheduler extends AbstractMessagingTaskScheduler {
 
+	private final Log logger = LogFactory.getLog(this.getClass());
+
 	private final ScheduledExecutorService executor;
 
 	private volatile ErrorHandler errorHandler;
 
 	private final Set<Runnable> pendingTasks = new CopyOnWriteArraySet<Runnable>();
-
-	private volatile boolean starting;
 
 	private volatile boolean running;
 
@@ -67,17 +70,21 @@ public class SimpleMessagingTaskScheduler extends AbstractMessagingTaskScheduler
 
 	public void start() {
 		synchronized (this.lifecycleMonitor) {
-			if (this.running || this.starting) {
+			if (this.running) {
 				return;
 			}
-			this.starting = true;
+			this.running = true;
+			for (Runnable task : this.pendingTasks) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("scheduling task: " + task);
+				}
+				this.schedule(task);
+			}
+			this.pendingTasks.clear();
+			if (logger.isInfoEnabled()) {
+				logger.info("task scheduler started successfully");
+			}
 		}
-		for (Runnable task : this.pendingTasks) {
-			this.schedule(task);
-		}
-		this.pendingTasks.clear();
-		this.running = true;
-		this.starting = false;
 	}
 
 	public void stop() {
@@ -91,7 +98,7 @@ public class SimpleMessagingTaskScheduler extends AbstractMessagingTaskScheduler
 
 	@Override
 	public ScheduledFuture<?> schedule(Runnable task) {
-		if (!this.isRunning()) {
+		if (!this.running) {
 			this.pendingTasks.add(task);
 			return null;
 		}
@@ -118,9 +125,9 @@ public class SimpleMessagingTaskScheduler extends AbstractMessagingTaskScheduler
 
 	private class MessagingTaskRunner implements Runnable {
 
-		private Runnable task;
+		private final Runnable task;
 
-		private boolean shouldRepeat;
+		private volatile boolean shouldRepeat;
 
 
 		public MessagingTaskRunner(Runnable task) {

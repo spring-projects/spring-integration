@@ -23,21 +23,24 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.adapter.ftp.FtpSourceAdapter;
+import org.springframework.integration.adapter.PollingSourceAdapter;
+import org.springframework.integration.adapter.ftp.FtpSource;
 import org.springframework.integration.scheduling.PollingSchedule;
 
 /**
  * @author Marius Bogoevici
+ * @author Mark Fisher
  */
 public class FtpSourceAdapterParserTests {
 
 	@Test
 	public void testFtpSourceAdapterParser() {
 		ApplicationContext context = new ClassPathXmlApplicationContext("ftpSourceAdapterParserTests.xml", this.getClass());
-		FtpSourceAdapter ftpAdapter = (FtpSourceAdapter) context.getBean("ftpAdapter");
-		DirectFieldAccessor ftpPollingAdapterAccessor = new DirectFieldAccessor(ftpAdapter);
-		assertEquals(context.getBean("testChannel"), ftpPollingAdapterAccessor.getPropertyValue("channel"));
-		assertEquals(12345L, ((PollingSchedule) ftpPollingAdapterAccessor.getPropertyValue("schedule")).getPeriod());
+		PollingSourceAdapter ftpAdapter = (PollingSourceAdapter) context.getBean("ftpAdapter");
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(ftpAdapter);
+		assertEquals(FtpSource.class, adapterAccessor.getPropertyValue("source").getClass());
+		assertEquals(context.getBean("testChannel"), adapterAccessor.getPropertyValue("channel"));
+		assertEquals(12345L, ((PollingSchedule) adapterAccessor.getPropertyValue("schedule")).getPeriod());
 	}
 
 }

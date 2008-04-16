@@ -25,7 +25,6 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.RequestReplyTemplate;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
-import org.springframework.util.Assert;
 
 /**
  * A source adapter that implements the {@link MessageHandler} interface. It may
@@ -33,11 +32,9 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class MessageHandlingSourceAdapter implements SourceAdapter, MessageHandler, InitializingBean {
+public class MessageHandlingSourceAdapter extends AbstractSourceAdapter implements MessageHandler, InitializingBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
-
-	private volatile MessageChannel channel;
 
 	private volatile RequestReplyTemplate requestReplyTemplate;
 
@@ -59,28 +56,9 @@ public class MessageHandlingSourceAdapter implements SourceAdapter, MessageHandl
 	 * <code>null</code>.
 	 */
 	public MessageHandlingSourceAdapter(MessageChannel channel) {
-		Assert.notNull(channel, "'channel' must not be null");
-		this.channel = channel;
+		super(channel);
 	}
 
-	/**
-	 * No-arg constructor for configuration via setters. Note that upon
-	 * initialization, this adapter will throw an exception if a
-	 * {@link MessageChannel} has not been provided.
-	 * 
-	 * @see #setChannel(MessageChannel)
-	 */
-	public MessageHandlingSourceAdapter() {
-	}
-
-
-	public void setChannel(MessageChannel channel) {
-		this.channel = channel;
-	}
-
-	protected MessageChannel getChannel() {
-		return this.channel;
-	}
 
 	/**
 	 * Specify whether the handle method should be expected to return a reply.
@@ -90,19 +68,11 @@ public class MessageHandlingSourceAdapter implements SourceAdapter, MessageHandl
 		this.expectReply = expectReply;
 	}
 
-	public void setSendTimeout(long sendTimeout) {
-		this.sendTimeout = sendTimeout;
-	}
-
 	public void setReceiveTimeout(long receiveTimeout) {
 		this.receiveTimeout = receiveTimeout;
 	}
 
 	public final void afterPropertiesSet() throws Exception {
-		if (this.channel == null) {
-			throw new ConfigurationException("The 'channel' property of '" + this.getClass().getName()
-					+ "' must not be null.");
-		}
 		synchronized (this.lifecycleMonitor) {
 			if (this.initialized) {
 				return;
@@ -122,7 +92,7 @@ public class MessageHandlingSourceAdapter implements SourceAdapter, MessageHandl
 	}
 
 	private RequestReplyTemplate createRequestReplyTemplate() {
-		RequestReplyTemplate template = new RequestReplyTemplate(this.channel);
+		RequestReplyTemplate template = new RequestReplyTemplate(this.getChannel());
 		template.setDefaultSendTimeout(this.sendTimeout);
 		template.setDefaultReceiveTimeout(this.receiveTimeout);
 		return template;
@@ -138,9 +108,8 @@ public class MessageHandlingSourceAdapter implements SourceAdapter, MessageHandl
 			}
 		}
 		if (!this.expectReply) {
-			if (!this.channel.send(message, this.sendTimeout) && logger.isWarnEnabled()) {
-				logger.warn("failed to send message to channel '" + this.channel + "' within timeout of "
-						+ this.sendTimeout + " milliseconds");
+			if (!this.sendToChannel(message) && logger.isWarnEnabled()) {
+				logger.warn("failed to send message to channel within timeout of " + this.sendTimeout + " milliseconds");
 			}
 			return null;
 		}

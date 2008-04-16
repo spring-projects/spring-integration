@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,11 @@ import java.io.ByteArrayInputStream;
 
 import org.junit.Test;
 
+import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.scheduling.PollingSchedule;
 
 /**
  * @author Mark Fisher
@@ -37,12 +39,11 @@ public class ByteStreamSourceAdapterTests {
 		byte[] bytes = new byte[] {1,2,3};
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
 		MessageChannel channel = new SimpleChannel();
-		ByteStreamSourceAdapter adapter = new ByteStreamSourceAdapter(stream);
-		adapter.setChannel(channel);
-		adapter.setInitialDelay(10000);
-		adapter.start();
-		int count = adapter.processMessages();
-		assertEquals(1, count);
+		ByteStreamSource source = new ByteStreamSource(stream);
+		PollingSchedule schedule = new PollingSchedule(1000);
+		schedule.setInitialDelay(10000);
+		PollingSourceAdapter adapter = new PollingSourceAdapter(source, channel, schedule);
+		adapter.run();
 		Message<?> message1 = channel.receive(500);
 		byte[] payload = (byte[]) message1.getPayload();
 		assertEquals(3, payload.length);
@@ -51,7 +52,7 @@ public class ByteStreamSourceAdapterTests {
 		assertEquals(3, payload[2]);
 		Message<?> message2 = channel.receive(0);
 		assertNull(message2);
-		adapter.processMessages();
+		adapter.run();
 		Message<?> message3 = channel.receive(0);
 		assertNull(message3);
 	}
@@ -61,14 +62,13 @@ public class ByteStreamSourceAdapterTests {
 		byte[] bytes = new byte[] {0,1,2,3,4,5,6,7};
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
 		MessageChannel channel = new SimpleChannel();
-		ByteStreamSourceAdapter adapter = new ByteStreamSourceAdapter(stream);
-		adapter.setChannel(channel);
-		adapter.setInitialDelay(10000);
-		adapter.setBytesPerMessage(8);
+		ByteStreamSource source = new ByteStreamSource(stream);
+		source.setBytesPerMessage(8);
+		PollingSchedule schedule = new PollingSchedule(1000);
+		schedule.setInitialDelay(10000);
+		PollingSourceAdapter adapter = new PollingSourceAdapter(source, channel, schedule);
 		adapter.setMaxMessagesPerTask(5);
-		adapter.start();
-		int count = adapter.processMessages();
-		assertEquals(1, count);
+		adapter.run();
 		Message<?> message1 = channel.receive(500);
 		assertEquals(8, ((byte[]) message1.getPayload()).length);
 		Message<?> message2 = channel.receive(0);
@@ -80,21 +80,20 @@ public class ByteStreamSourceAdapterTests {
 		byte[] bytes = new byte[] {0,1,2,3,4,5,6,7};
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
 		MessageChannel channel = new SimpleChannel();
-		ByteStreamSourceAdapter adapter = new ByteStreamSourceAdapter(stream);
-		adapter.setBytesPerMessage(4);
-		adapter.setInitialDelay(10000);
+		ByteStreamSource source = new ByteStreamSource(stream);
+		source.setBytesPerMessage(4);
+		PollingSchedule schedule = new PollingSchedule(1000);
+		schedule.setInitialDelay(10000);
+		PollingSourceAdapter adapter = new PollingSourceAdapter(source, channel, schedule);
 		adapter.setMaxMessagesPerTask(1);
-		adapter.setChannel(channel);
-		adapter.start();
-		int count = adapter.processMessages();
-		assertEquals(1, count);
+		adapter.run();
 		Message<?> message1 = channel.receive(0);
 		byte[] bytes1 = (byte[]) message1.getPayload();
 		assertEquals(4, bytes1.length);
 		assertEquals(0, bytes1[0]);
 		Message<?> message2 = channel.receive(0);
 		assertNull(message2);
-		adapter.processMessages();
+		adapter.run();
 		Message<?> message3 = channel.receive(0);
 		byte[] bytes3 = (byte[]) message3.getPayload();
 		assertEquals(4, bytes3.length);
@@ -106,14 +105,13 @@ public class ByteStreamSourceAdapterTests {
 		byte[] bytes = new byte[] {0,1,2,3,4,5,6,7};
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
 		MessageChannel channel = new SimpleChannel();
-		ByteStreamSourceAdapter adapter = new ByteStreamSourceAdapter(stream);
-		adapter.setInitialDelay(10000);
-		adapter.setChannel(channel);
-		adapter.setBytesPerMessage(4);
+		ByteStreamSource source = new ByteStreamSource(stream);
+		source.setBytesPerMessage(4);
+		PollingSchedule schedule = new PollingSchedule(1000);
+		schedule.setInitialDelay(10000);
+		PollingSourceAdapter adapter = new PollingSourceAdapter(source, channel, schedule);
 		adapter.setMaxMessagesPerTask(5);
-		adapter.start();
-		int count = adapter.processMessages();
-		assertEquals(2, count);
+		adapter.run();
 		Message<?> message1 = channel.receive(0);
 		byte[] bytes1 = (byte[]) message1.getPayload();
 		assertEquals(4, bytes1.length);
@@ -131,19 +129,18 @@ public class ByteStreamSourceAdapterTests {
 		byte[] bytes = new byte[] {0,1,2,3,4,5};
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
 		MessageChannel channel = new SimpleChannel();
-		ByteStreamSourceAdapter adapter = new ByteStreamSourceAdapter(stream);
-		adapter.setInitialDelay(10000);
-		adapter.setBytesPerMessage(4);
+		ByteStreamSource source = new ByteStreamSource(stream);
+		source.setBytesPerMessage(4);
+		PollingSchedule schedule = new PollingSchedule(1000);
+		schedule.setInitialDelay(10000);
+		PollingSourceAdapter adapter = new PollingSourceAdapter(source, channel, schedule);
 		adapter.setMaxMessagesPerTask(1);
-		adapter.setChannel(channel);
-		adapter.start();
-		int count = adapter.processMessages();
-		assertEquals(1, count);
+		adapter.run();
 		Message<?> message1 = channel.receive(0);
 		assertEquals(4, ((byte[]) message1.getPayload()).length);
 		Message<?> message2 = channel.receive(0);
 		assertNull(message2);
-		adapter.processMessages();
+		adapter.run();
 		Message<?> message3 = channel.receive(0);
 		assertEquals(2, ((byte[]) message3.getPayload()).length);
 	}
@@ -153,20 +150,19 @@ public class ByteStreamSourceAdapterTests {
 		byte[] bytes = new byte[] {0,1,2,3,4,5};
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
 		MessageChannel channel = new SimpleChannel();
-		ByteStreamSourceAdapter adapter = new ByteStreamSourceAdapter(stream);
-		adapter.setInitialDelay(10000);
-		adapter.setBytesPerMessage(4);
-		adapter.setShouldTruncate(false);
+		ByteStreamSource source = new ByteStreamSource(stream);
+		source.setBytesPerMessage(4);
+		source.setShouldTruncate(false);
+		PollingSchedule schedule = new PollingSchedule(1000);
+		schedule.setInitialDelay(10000);
+		PollingSourceAdapter adapter = new PollingSourceAdapter(source, channel, schedule);
 		adapter.setMaxMessagesPerTask(1);
-		adapter.setChannel(channel);
-		adapter.start();
-		int count = adapter.processMessages();
-		assertEquals(1, count);
+		adapter.run();
 		Message<?> message1 = channel.receive(0);
 		assertEquals(4, ((byte[]) message1.getPayload()).length);
 		Message<?> message2 = channel.receive(0);
 		assertNull(message2);
-		adapter.processMessages();
+		adapter.run();
 		Message<?> message3 = channel.receive(0);
 		assertEquals(4, ((byte[]) message3.getPayload()).length);
 		assertEquals(0, ((byte[]) message3.getPayload())[3]);

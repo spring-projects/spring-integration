@@ -19,7 +19,12 @@
 				<property name="method" value="foo"/>
 			</bean>
 		</constructor-arg>
-		<property name="channel" ref="channel"/>
+		<constructor-arg ref="channel"/>
+		<constructor-arg>
+			<bean class="org.springframework.integration.scheduling.PollingSchedule">
+				<constructor-arg value="1000"/>
+			</bean>
+		</constructor-arg>
 	</bean>
 
 	<bean id="targetAdapter" class="org.springframework.integration.adapter.DefaultTargetAdapter">

@@ -9,7 +9,7 @@
 	<bean id="channel" class="org.springframework.integration.channel.SimpleChannel"/>
 
 	<bean id="adapter" class="org.springframework.integration.adapter.event.ApplicationEventSourceAdapter">
-		<property name="channel" ref="channel"/>
+		<constructor-arg ref="channel"/>
 	</bean>
 
 </beans>

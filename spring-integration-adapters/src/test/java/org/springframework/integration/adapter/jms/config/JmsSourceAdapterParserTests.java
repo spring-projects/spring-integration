@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@ import org.junit.Test;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.adapter.jms.JmsMessageDrivenSourceAdapter;
-import org.springframework.integration.adapter.jms.JmsPollingSourceAdapter;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.jms.support.converter.MessageConversionException;
@@ -45,8 +45,8 @@ public class JmsSourceAdapterParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"pollingAdapterWithJmsTemplate.xml", this.getClass());
 		context.start();
-		JmsPollingSourceAdapter adapter = (JmsPollingSourceAdapter) context.getBean("adapter");
-		adapter.processMessages();
+		PollingSourceAdapter adapter = (PollingSourceAdapter) context.getBean("adapter");
+		adapter.run();
 		MessageChannel channel = (MessageChannel) context.getBean("channel");
 		Message<?> message = channel.receive(500);
 		assertNotNull("message should not be null", message);
@@ -59,8 +59,8 @@ public class JmsSourceAdapterParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"pollingAdapterWithConnectionFactoryAndDestination.xml", this.getClass());
 		context.start();
-		JmsPollingSourceAdapter adapter = (JmsPollingSourceAdapter) context.getBean("adapter");
-		adapter.processMessages();
+		PollingSourceAdapter adapter = (PollingSourceAdapter) context.getBean("adapter");
+		adapter.run();
 		MessageChannel channel = (MessageChannel) context.getBean("channel");
 		Message<?> message = channel.receive(500);
 		assertNotNull("message should not be null", message);
@@ -73,8 +73,8 @@ public class JmsSourceAdapterParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"pollingAdapterWithConnectionFactoryAndDestinationName.xml", this.getClass());
 		context.start();
-		JmsPollingSourceAdapter adapter = (JmsPollingSourceAdapter) context.getBean("adapter");
-		adapter.processMessages();
+		PollingSourceAdapter adapter = (PollingSourceAdapter) context.getBean("adapter");
+		adapter.run();
 		MessageChannel channel = (MessageChannel) context.getBean("channel");
 		Message<?> message = channel.receive(500);
 		assertNotNull("message should not be null", message);
@@ -150,8 +150,8 @@ public class JmsSourceAdapterParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"pollingAdapterWithDestinationAndDefaultConnectionFactory.xml", this.getClass());
 		context.start();
-		JmsPollingSourceAdapter adapter = (JmsPollingSourceAdapter) context.getBean("adapter");
-		adapter.processMessages();
+		PollingSourceAdapter adapter = (PollingSourceAdapter) context.getBean("adapter");
+		adapter.run();
 		MessageChannel channel = (MessageChannel) context.getBean("channel");
 		Message<?> message = channel.receive(500);
 		assertNotNull("message should not be null", message);
@@ -169,8 +169,8 @@ public class JmsSourceAdapterParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 					"pollingAdapterWithDestinationNameAndDefaultConnectionFactory.xml", this.getClass());
 		context.start();
-		JmsPollingSourceAdapter adapter = (JmsPollingSourceAdapter) context.getBean("adapter");
-		adapter.processMessages();
+		PollingSourceAdapter adapter = (PollingSourceAdapter) context.getBean("adapter");
+		adapter.run();
 		MessageChannel channel = (MessageChannel) context.getBean("channel");
 		Message<?> message = channel.receive(500);
 		assertNotNull("message should not be null", message);

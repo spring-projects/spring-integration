@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.scheduling;
+package org.springframework.integration.message;
 
 /**
- * Callback interface for components that require the
- * {@link MessagingTaskScheduler}.
+ * Interface that provides callback definitions for components that require
+ * message delivery status notifications.
  * 
  * @author Mark Fisher
  */
-public interface MessagingTaskSchedulerAware {
+public interface MessageDeliveryAware {
 
-	void setMessagingTaskScheduler(MessagingTaskScheduler scheduler);
+	/**
+	 * Callback method invoked after a message is sent successfully.
+	 */
+	void onSend(Message<?> sentMessage);
+
+	/**
+	 * Callback method invoked after a message delivery failure.
+	 */
+	void onFailure(MessagingException exception);
 
 }

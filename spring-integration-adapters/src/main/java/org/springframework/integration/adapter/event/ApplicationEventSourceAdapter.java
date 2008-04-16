@@ -22,20 +22,25 @@ import java.util.List;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.integration.adapter.AbstractSourceAdapter;
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 /**
- * A source adapter for passing Spring
+ * A message source for passing Spring
  * {@link ApplicationEvent ApplicationEvents} within messages.
  * 
  * @author Mark Fisher
  */
-public class ApplicationEventSourceAdapter extends AbstractSourceAdapter<ApplicationEvent> implements
-		ApplicationListener {
+public class ApplicationEventSourceAdapter extends AbstractSourceAdapter implements ApplicationListener {
 
 	private List<Class<? extends ApplicationEvent>> eventTypes = new ArrayList<Class<? extends ApplicationEvent>>();
+
+
+	public ApplicationEventSourceAdapter(MessageChannel channel) {
+		super(channel);
+	}
 
 
 	/**
@@ -61,8 +66,8 @@ public class ApplicationEventSourceAdapter extends AbstractSourceAdapter<Applica
 		}
 	}
 
-	private void sendMessage(ApplicationEvent event) {
-		this.sendToChannel(new GenericMessage<ApplicationEvent>(event));
+	private boolean sendMessage(ApplicationEvent event) {
+		return this.sendToChannel(new GenericMessage<ApplicationEvent>(event));
 	}
 
 }

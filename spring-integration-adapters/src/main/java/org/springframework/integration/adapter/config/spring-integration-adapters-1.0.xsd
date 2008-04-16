@@ -58,7 +58,7 @@
 			<xsd:attribute name="local-working-directory" type="xsd:string" use="required"/>
 			<xsd:attribute name="remote-working-directory" type="xsd:string" use="optional"/>
 			<xsd:attribute name="channel" type="xsd:string" use="required"/>
-			<xsd:attribute name="period" type="xsd:long" use="required"/>
+			<xsd:attribute name="poll-period" type="xsd:long" use="required"/>
 			<xsd:attribute name="text-based" type="xsd:boolean" use="optional"/>
 		</xsd:complexType>
 	</xsd:element>

@@ -18,45 +18,21 @@ package org.springframework.integration.adapter.ftp.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
-import org.springframework.core.Conventions;
-import org.springframework.integration.adapter.ftp.FtpSourceAdapter;
-import org.springframework.util.StringUtils;
+import org.springframework.integration.adapter.config.AbstractPollingSourceAdapterParser;
+import org.springframework.integration.adapter.ftp.FtpSource;
+import org.springframework.integration.message.PollableSource;
 
 /**
  * Parser for the &lt;ftp-source/&gt; element.
  * 
  * @author Marius Bogoevici
+ * @author Mark Fisher
  */
-public class FtpSourceAdapterParser extends AbstractSimpleBeanDefinitionParser {
-
-	private static final String CHANNEL_ATTRIBUTE = "channel";
-
-
-	protected Class<?> getBeanClass(Element element) {
-		return FtpSourceAdapter.class;
-	}
-
-	protected boolean shouldGenerateId() {
-		return false;
-	}
-
-	protected boolean shouldGenerateIdAsFallback() {
-		return true;
-	}
+public class FtpSourceAdapterParser extends AbstractPollingSourceAdapterParser {
 
 	@Override
-	protected boolean isEligibleAttribute(String attributeName) {	
-		return !CHANNEL_ATTRIBUTE.equals(attributeName) && super.isEligibleAttribute(attributeName);
-	}
-
-	protected void postProcess(BeanDefinitionBuilder beanDefinition, Element element) {
-		String channelRef = element.getAttribute(CHANNEL_ATTRIBUTE);
-		if (StringUtils.hasText(channelRef)) {
-			beanDefinition.addPropertyReference(
-					Conventions.attributeNameToPropertyName(CHANNEL_ATTRIBUTE), channelRef);
-		}
+	protected Class<? extends PollableSource<?>> getSourceBeanClass(Element element) {
+		return FtpSource.class;
 	}
 
 }

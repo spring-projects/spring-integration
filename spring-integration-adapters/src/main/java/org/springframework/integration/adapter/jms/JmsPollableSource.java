@@ -46,13 +46,16 @@ public class JmsPollableSource extends AbstractJmsTemplateBasedAdapter implement
 		super(connectionFactory, destinationName);
 	}
 
-	public JmsPollableSource() {
-		super();
-	}
-
 
 	public Message<Object> poll() {
-		return new GenericMessage<Object>(this.getJmsTemplate().receiveAndConvert());
+		Object receivedObject = this.getJmsTemplate().receiveAndConvert();
+		if (receivedObject == null) {
+			return null;
+		}
+		if (receivedObject instanceof Message) {
+			return (Message<Object>) receivedObject;
+		}
+		return new GenericMessage<Object>(receivedObject);
 	}
 
 }

@@ -64,13 +64,8 @@ public class HttpInvokerSourceAdapter extends MessageHandlingSourceAdapter imple
 	private volatile HttpInvokerServiceExporter exporter;
 
 
-	public HttpInvokerSourceAdapter() {
-		super();
-	}
-
 	public HttpInvokerSourceAdapter(MessageChannel channel) {
-		this();
-		this.setChannel(channel);
+		super(channel);
 	}
 
 

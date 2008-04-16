@@ -42,6 +42,7 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.PollableSource;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Subscription;
 
 /**
@@ -172,8 +173,7 @@ public class MessageBusTests {
 	public void testErrorChannelWithFailedDispatch() throws InterruptedException {
 		MessageBus bus = new MessageBus();
 		CountDownLatch latch = new CountDownLatch(1);
-		SourceAdapter sourceAdapter = new PollingSourceAdapter<Object>(new FailingSource(latch));
-		sourceAdapter.setChannel(new SimpleChannel());
+		SourceAdapter sourceAdapter = new PollingSourceAdapter(new FailingSource(latch), new SimpleChannel(), new PollingSchedule(1000));
 		bus.registerSourceAdapter("testAdapter", sourceAdapter);
 		bus.start();
 		latch.await(1000, TimeUnit.MILLISECONDS);

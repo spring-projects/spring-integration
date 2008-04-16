@@ -25,7 +25,8 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.adapter.file.FileSourceAdapter;
+import org.springframework.integration.adapter.PollingSourceAdapter;
+import org.springframework.integration.adapter.file.FileSource;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.scheduling.PollingSchedule;
 
@@ -37,14 +38,17 @@ public class FileSourceAdapterParserTests {
 	@Test
 	public void testFileSourceAdapterParser() {
 		ApplicationContext context = new ClassPathXmlApplicationContext("fileSourceAdapterParserTests.xml", this.getClass());
-		FileSourceAdapter adapter = (FileSourceAdapter) context.getBean("adapter");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(adapter);
-		PollingSchedule schedule = (PollingSchedule) accessor.getPropertyValue("schedule");
+		PollingSourceAdapter adapter = (PollingSourceAdapter) context.getBean("adapter");
+		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
+		PollingSchedule schedule = (PollingSchedule) adapterAccessor.getPropertyValue("schedule");
 		assertEquals(1234, schedule.getPeriod());
-		File directory = (File) accessor.getPropertyValue("directory");
-		assertEquals(System.getProperty("java.io.tmpdir"), directory.getAbsolutePath());
 		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
-		assertEquals(channel, accessor.getPropertyValue("channel"));
+		assertEquals(channel, adapterAccessor.getPropertyValue("channel"));
+		Object source = adapterAccessor.getPropertyValue("source");
+		assertEquals(FileSource.class, source.getClass());
+		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(source);
+		File directory = (File) sourceAccessor.getPropertyValue("directory");
+		assertEquals(System.getProperty("java.io.tmpdir"), directory.getAbsolutePath());
 	}
 
 }

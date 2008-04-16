@@ -28,11 +28,11 @@ import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 
-import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.adapter.file.ByteArrayFileMapper;
 import org.springframework.integration.adapter.file.FileNameGenerator;
 import org.springframework.integration.adapter.file.TextFileMapper;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageDeliveryAware;
 import org.springframework.integration.message.MessageMapper;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.PollableSource;
@@ -45,7 +45,7 @@ import org.springframework.util.StringUtils;
  * @author Marius Bogoevici
  * @author Mark Fisher
  */
-public class FtpSourceAdapter extends PollingSourceAdapter<Object> implements PollableSource<Object> {
+public class FtpSource implements PollableSource<Object>, MessageDeliveryAware {
 
 	private final static String DEFAULT_HOST = "localhost";
 
@@ -104,36 +104,21 @@ public class FtpSourceAdapter extends PollingSourceAdapter<Object> implements Po
 	}
 
 	public boolean isTextBased() {
-		return textBased;
+		return this.textBased;
 	}
 
 	public void setTextBased(boolean textBased) {
 		this.textBased = textBased;
 	}
 
-	@Override
-	protected void initialize() {
-		this.setSource(this);
+	public void afterPropertiesSet() {
 		if (this.isTextBased()) {
 			this.mapper = new TextFileMapper(this.localWorkingDirectory);
 		}
 		else {
 			this.mapper = new ByteArrayFileMapper(this.localWorkingDirectory);
 		}
-		super.initialize();
 	}
-
-	@Override
-	protected void onSend(Message<Object> message) {
-		String filename = message.getHeader().getProperty(FileNameGenerator.FILENAME_PROPERTY_KEY);
-		if (StringUtils.hasText(filename)) {
-			this.directoryContentManager.fileProcessed(filename);
-		}
-		else if (this.logger.isWarnEnabled()) {
-			logger.warn("No filename in Message header, cannot send notification of processing.");
-		}
-	}
-
 
 	public final Message<Object> poll() {
 		try {
@@ -192,6 +177,22 @@ public class FtpSourceAdapter extends PollingSourceAdapter<Object> implements Po
 		}
 		if (logger.isDebugEnabled()) {
 			logger.debug("working directory is: " + this.client.printWorkingDirectory());
+		}
+	}
+
+	public void onSend(Message<?> message) {
+		String filename = message.getHeader().getProperty(FileNameGenerator.FILENAME_PROPERTY_KEY);
+		if (StringUtils.hasText(filename)) {
+			this.directoryContentManager.fileProcessed(filename);
+		}
+		else if (this.logger.isWarnEnabled()) {
+			logger.warn("No filename in Message header, cannot send notification of processing.");
+		}
+	}
+
+	public void onFailure(MessagingException exception) {
+		if (this.logger.isWarnEnabled()) {
+			logger.warn("FtpSource received failure notifcation", exception);
 		}
 	}
 

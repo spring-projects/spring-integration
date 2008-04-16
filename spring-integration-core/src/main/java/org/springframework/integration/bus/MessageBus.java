@@ -50,8 +50,8 @@ import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.scheduling.MessagePublishingErrorHandler;
+import org.springframework.integration.scheduling.MessagingTask;
 import org.springframework.integration.scheduling.MessagingTaskScheduler;
-import org.springframework.integration.scheduling.MessagingTaskSchedulerAware;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.integration.scheduling.SimpleMessagingTaskScheduler;
 import org.springframework.integration.scheduling.Subscription;
@@ -355,8 +355,8 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 		if (!this.initialized) {
 			this.initialize();
 		}
-		if (adapter instanceof MessagingTaskSchedulerAware) {
-			((MessagingTaskSchedulerAware) adapter).setMessagingTaskScheduler(this.taskScheduler);
+		if (adapter instanceof MessagingTask) {
+			this.taskScheduler.schedule((MessagingTask) adapter);
 		}
 		if (adapter instanceof Lifecycle) {
 			this.lifecycleSourceAdapters.add((Lifecycle) adapter);

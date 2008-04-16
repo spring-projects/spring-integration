@@ -30,6 +30,7 @@ import org.springframework.integration.adapter.MethodInvokingSource;
 import org.springframework.integration.adapter.MethodInvokingTarget;
 import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.endpoint.DefaultMessageEndpoint;
+import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Subscription;
 import org.springframework.util.StringUtils;
 
@@ -77,21 +78,22 @@ public class ChannelAdapterParser implements BeanDefinitionParser {
 		if (this.isInbound) {
 			adapterDef = new RootBeanDefinition(PollingSourceAdapter.class);
 			invokerDef = new RootBeanDefinition(MethodInvokingSource.class);
+			String invokerBeanName = this.configureAndRegisterInvoker(invokerDef, ref, method, parserContext);
 			String period = element.getAttribute(PERIOD_ATTRIBUTE);
-			if (StringUtils.hasText(period)) {
-				adapterDef.getPropertyValues().addPropertyValue("period", period);
+			if (!StringUtils.hasText(period)) {
+				throw new ConfigurationException("'period' is required");
 			}
-			adapterDef.getPropertyValues().addPropertyValue("channel", new RuntimeBeanReference(channel));
+			PollingSchedule schedule = new PollingSchedule(Integer.valueOf(period));
+			adapterDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(invokerBeanName));
+			adapterDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(channel));
+			adapterDef.getConstructorArgumentValues().addGenericArgumentValue(schedule);
 		}
 		else {
 			adapterDef = new RootBeanDefinition(DefaultTargetAdapter.class);
 			invokerDef = new RootBeanDefinition(MethodInvokingTarget.class);
+			String invokerBeanName = this.configureAndRegisterInvoker(invokerDef, ref, method, parserContext);
+			adapterDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(invokerBeanName));
 		}
-		invokerDef.getPropertyValues().addPropertyValue("object", new RuntimeBeanReference(ref));
-		invokerDef.getPropertyValues().addPropertyValue("method", method);
-		String invokerBeanName = parserContext.getReaderContext().generateBeanName(invokerDef);
-		parserContext.registerBeanComponent(new BeanComponentDefinition(invokerDef, invokerBeanName));
-		adapterDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(invokerBeanName));
 		adapterDef.setSource(parserContext.extractSource(element));
 		String beanName = element.getAttribute(ID_ATTRIBUTE);
 		if (!StringUtils.hasText(beanName)) {
@@ -110,6 +112,14 @@ public class ChannelAdapterParser implements BeanDefinitionParser {
 		}
 		parserContext.registerBeanComponent(new BeanComponentDefinition(adapterDef, beanName));
 		return adapterDef;
+	}
+
+	private String configureAndRegisterInvoker(RootBeanDefinition invokerDef, String objectRef, String methodName, ParserContext parserContext) {
+		invokerDef.getPropertyValues().addPropertyValue("object", new RuntimeBeanReference(objectRef));
+		invokerDef.getPropertyValues().addPropertyValue("method", methodName);
+		String invokerBeanName = parserContext.getReaderContext().generateBeanName(invokerDef);
+		parserContext.registerBeanComponent(new BeanComponentDefinition(invokerDef, invokerBeanName));
+		return invokerBeanName;
 	}
 
 }

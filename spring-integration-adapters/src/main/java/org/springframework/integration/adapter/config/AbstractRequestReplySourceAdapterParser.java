@@ -50,7 +50,7 @@ public abstract class AbstractRequestReplySourceAdapterParser extends AbstractSi
 
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
-		return !attributeName.equals("name") && super.isEligibleAttribute(attributeName);
+		return !attributeName.equals("name") && !attributeName.equals("channel") && super.isEligibleAttribute(attributeName);
 	}
 
 	@Override
@@ -59,7 +59,7 @@ public abstract class AbstractRequestReplySourceAdapterParser extends AbstractSi
 		if (!StringUtils.hasText(channelRef)) {
 			throw new ConfigurationException("a 'channel' reference is required");
 		}
-		builder.addPropertyReference("channel", channelRef);
+		builder.addConstructorArgReference(channelRef);
 		builder.addPropertyValue("expectReply", element.getAttribute("expect-reply").equals("true"));
 		String sendTimeout = element.getAttribute("send-timeout");
 		if (StringUtils.hasText(sendTimeout)) {

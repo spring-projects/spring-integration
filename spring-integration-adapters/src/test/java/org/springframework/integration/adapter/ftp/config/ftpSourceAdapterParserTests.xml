@@ -12,7 +12,7 @@
 	<si:channel id="testChannel"/>
 
 	<si:ftp-source id="ftpAdapter" channel="testChannel" 
-				   period="12345"
+				   poll-period="12345"
 				   host="localhost"
 				   port="2121"
 				   local-working-directory="${java.io.tmpdir}/spring-integration-samples/input"

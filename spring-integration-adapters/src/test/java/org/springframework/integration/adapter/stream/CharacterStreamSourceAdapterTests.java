@@ -23,9 +23,11 @@ import java.io.StringReader;
 
 import org.junit.Test;
 
+import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.scheduling.PollingSchedule;
 
 /**
  * @author Mark Fisher
@@ -36,17 +38,16 @@ public class CharacterStreamSourceAdapterTests {
 	public void testEndOfStream() {
 		StringReader reader = new StringReader("test");
 		MessageChannel channel = new SimpleChannel();
-		CharacterStreamSourceAdapter adapter = new CharacterStreamSourceAdapter(reader);
-		adapter.setChannel(channel);
-		adapter.setInitialDelay(10000);
-		adapter.start();
-		int count = adapter.processMessages();
-		assertEquals(1, count);
+		CharacterStreamSource source = new CharacterStreamSource(reader);
+		PollingSchedule schedule = new PollingSchedule(1000);
+		schedule.setInitialDelay(10000);
+		PollingSourceAdapter adapter = new PollingSourceAdapter(source, channel, schedule);
+		adapter.run();
 		Message<?> message1 = channel.receive(0);
 		assertEquals("test", message1.getPayload());
 		Message<?> message2 = channel.receive(0);
 		assertNull(message2);
-		adapter.processMessages();
+		adapter.run();
 		Message<?> message3 = channel.receive(0);
 		assertNull(message3);
 	}
@@ -55,13 +56,12 @@ public class CharacterStreamSourceAdapterTests {
 	public void testEndOfStreamWithMaxMessagesPerTask() {
 		StringReader reader = new StringReader("test");
 		MessageChannel channel = new SimpleChannel();
-		CharacterStreamSourceAdapter adapter = new CharacterStreamSourceAdapter(reader);
-		adapter.setInitialDelay(10000);
-		adapter.setChannel(channel);
+		CharacterStreamSource source = new CharacterStreamSource(reader);
+		PollingSchedule schedule = new PollingSchedule(1000);
+		schedule.setInitialDelay(10000);
+		PollingSourceAdapter adapter = new PollingSourceAdapter(source, channel, schedule);
 		adapter.setMaxMessagesPerTask(5);
-		adapter.start();
-		int count = adapter.processMessages();
-		assertEquals(1, count);
+		adapter.run();
 		Message<?> message1 = channel.receive(0);
 		assertEquals("test", message1.getPayload());
 		Message<?> message2 = channel.receive(0);
@@ -73,18 +73,17 @@ public class CharacterStreamSourceAdapterTests {
 		String s = "test1" + System.getProperty("line.separator") + "test2";
 		StringReader reader = new StringReader(s);
 		MessageChannel channel = new SimpleChannel();
-		CharacterStreamSourceAdapter adapter = new CharacterStreamSourceAdapter(reader);
-		adapter.setInitialDelay(10000);
+		CharacterStreamSource source = new CharacterStreamSource(reader);
+		PollingSchedule schedule = new PollingSchedule(1000);
+		schedule.setInitialDelay(10000);
+		PollingSourceAdapter adapter = new PollingSourceAdapter(source, channel, schedule);
 		adapter.setMaxMessagesPerTask(1);
-		adapter.setChannel(channel);
-		adapter.start();
-		int count = adapter.processMessages();
-		assertEquals(1, count);
+		adapter.run();
 		Message<?> message1 = channel.receive(0);
 		assertEquals("test1", message1.getPayload());
 		Message<?> message2 = channel.receive(0);
 		assertNull(message2);
-		adapter.processMessages();
+		adapter.run();
 		Message<?> message3 = channel.receive(0);
 		assertEquals("test2", message3.getPayload());
 	}
@@ -94,13 +93,12 @@ public class CharacterStreamSourceAdapterTests {
 		String s = "test1" + System.getProperty("line.separator") + "test2";
 		StringReader reader = new StringReader(s);
 		MessageChannel channel = new SimpleChannel();
-		CharacterStreamSourceAdapter adapter = new CharacterStreamSourceAdapter(reader);
-		adapter.setChannel(channel);
-		adapter.setInitialDelay(5000);
+		CharacterStreamSource source = new CharacterStreamSource(reader);
+		PollingSchedule schedule = new PollingSchedule(1000);
+		schedule.setInitialDelay(5000);
+		PollingSourceAdapter adapter = new PollingSourceAdapter(source, channel, schedule);
 		adapter.setMaxMessagesPerTask(5);
-		adapter.start();
-		int count = adapter.processMessages();
-		assertEquals(2, count);
+		adapter.run();
 		Message<?> message1 = channel.receive(500);
 		assertEquals("test1", message1.getPayload());
 		Message<?> message2 = channel.receive(500);

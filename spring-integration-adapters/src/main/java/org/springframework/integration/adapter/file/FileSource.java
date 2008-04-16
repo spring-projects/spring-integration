@@ -20,7 +20,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
 
-import org.springframework.integration.adapter.PollingSourceAdapter;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.PollableSource;
@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class FileSourceAdapter extends PollingSourceAdapter<Object> implements PollableSource<Object> {
+public class FileSource implements PollableSource<Object>, InitializingBean {
 
 	private final File directory;
 
@@ -46,7 +46,7 @@ public class FileSourceAdapter extends PollingSourceAdapter<Object> implements P
 	private volatile FilenameFilter filenameFilter;
 
 
-	public FileSourceAdapter(File directory) {
+	public FileSource(File directory) {
 		Assert.notNull(directory, "directory must not be null");
 		this.directory = directory;
 	}
@@ -72,9 +72,7 @@ public class FileSourceAdapter extends PollingSourceAdapter<Object> implements P
 		this.fileNameGenerator = fileNameGenerator;
 	}
 
-	@Override
-	protected void initialize() {
-		this.setSource(this);
+	public void afterPropertiesSet() {
 		if (this.isTextBased()) {
 			this.mapper = new TextFileMapper(this.directory);
 		}
@@ -84,7 +82,6 @@ public class FileSourceAdapter extends PollingSourceAdapter<Object> implements P
 		if (this.fileNameGenerator != null) {
 			this.mapper.setFileNameGenerator(this.fileNameGenerator);
 		}
-		super.initialize();
 	}
 
 	public Message<Object> poll() {

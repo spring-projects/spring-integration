@@ -18,132 +18,74 @@ package org.springframework.integration.adapter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
 
-import org.springframework.context.Lifecycle;
-import org.springframework.integration.ConfigurationException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.dispatcher.SynchronousChannel;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageMapper;
+import org.springframework.integration.message.MessageDeliveryAware;
+import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.PollableSource;
 import org.springframework.integration.scheduling.MessagingTask;
-import org.springframework.integration.scheduling.MessagingTaskScheduler;
-import org.springframework.integration.scheduling.MessagingTaskSchedulerAware;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
-import org.springframework.integration.scheduling.SimpleMessagingTaskScheduler;
 import org.springframework.util.Assert;
 
 /**
- * A channel adapter that retrieves objects from a {@link PollableSource},
- * delegates to a {@link MessageMapper} to create messages from those objects,
+ * A channel adapter that retrieves messages from a {@link PollableSource}
  * and then sends the resulting messages to the provided {@link MessageChannel}.
  * 
  * @author Mark Fisher
  */
-public class PollingSourceAdapter<T> extends AbstractSourceAdapter<T> implements MessagingTaskSchedulerAware, Lifecycle {
+public class PollingSourceAdapter extends AbstractSourceAdapter implements MessagingTask, InitializingBean {
 
-	private volatile PollableSource<T> source;
+	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private volatile PollingSchedule schedule = new PollingSchedule(1000);
+	private final PollableSource<?> source;
 
-	private volatile MessagingTaskScheduler scheduler;
+	private final PollingSchedule schedule;
 
 	private volatile int maxMessagesPerTask = 1;
 
-	private volatile boolean running;
-
-	private final Object lifecycleMonitor = new Object();
+	private volatile boolean initialized;
 
 
 	/**
 	 * Create a new adapter for the given source.
 	 */
-	public PollingSourceAdapter(PollableSource<T> source) {
-		this.setSource(source);
-	}
-
-	/**
-	 * No-arg constructor for providing source after construction.
-	 */
-	public PollingSourceAdapter() {
-	}
-
-
-	public void setSource(PollableSource<T> source) {
-		Assert.notNull(source, "'source' must not be null");
+	public PollingSourceAdapter(PollableSource<?> source, MessageChannel channel, PollingSchedule schedule) {
+		super(channel);
+		Assert.notNull(source, "source must not be null");
+		Assert.notNull(schedule, "schedule must not be null");
 		this.source = source;
+		this.schedule = schedule;
 	}
 
-	public void setInitialDelay(long intialDelay) {
-		Assert.isTrue(intialDelay >= 0, "'intialDelay' must not be negative");
-		this.schedule.setInitialDelay(intialDelay);
-	}
-
-	public void setPeriod(long period) {
-		this.schedule.setPeriod(period);
-	}
 
 	public void setMaxMessagesPerTask(int maxMessagesPerTask) {
 		Assert.isTrue(maxMessagesPerTask > 0, "'maxMessagesPerTask' must be at least one");
 		this.maxMessagesPerTask = maxMessagesPerTask;
 	}
 
-	public void setMessagingTaskScheduler(MessagingTaskScheduler scheduler) {
-		Assert.notNull(scheduler, "scheduler must not be null");
-		this.scheduler = scheduler;
+	public Schedule getSchedule() {
+		return this.schedule;
 	}
 
-	protected PollableSource<T> getSource() {
-		return this.source;
-	}
-
-	public boolean isRunning() {
-		return this.running;
-	}
-
-	@Override
-	protected void initialize() {
-		if (this.source == null) {
-			throw new ConfigurationException("source must not be null");
-		}
+	public void afterPropertiesSet() {
 		if (this.getChannel() instanceof SynchronousChannel) {
 			((SynchronousChannel) this.getChannel()).setSource(this.source);
 		}
+		this.initialized = true;
 	}
 
-	public void start() {
-		synchronized (this.lifecycleMonitor) {
-			if (this.isRunning()) {
-				return;
-			}
-			if (!this.isInitialized()) {
-				this.afterPropertiesSet();
-			}
-			if (this.scheduler == null) {
-				if (logger.isInfoEnabled()) {
-					logger.info("no task scheduler has been provided, will create one");
-				}
-				this.scheduler = new SimpleMessagingTaskScheduler(Executors.newSingleThreadScheduledExecutor());
-			}
-			this.running = true;
-		}
-		if (!this.scheduler.isRunning()) {
-			this.scheduler.start();
-		}
-		this.scheduler.schedule(new PollingSourceAdapterTask());
-	}
-
-	public void stop() {
-		this.running = false;
-	}
-
-	public List<Message<T>> poll(int limit) {
-		List<Message<T>> results = new ArrayList<Message<T>>();
+	public List<Message<?>> poll(int limit) {
+		List<Message<?>> results = new ArrayList<Message<?>>();
 		int count = 0;
 		while (count < limit) {
-			Message<T> message = this.source.poll();
+			Message<?> message = this.source.poll();
 			if (message == null) {
 				break;
 			}
@@ -153,44 +95,35 @@ public class PollingSourceAdapter<T> extends AbstractSourceAdapter<T> implements
 		return results;
 	}
 
-	public int processMessages() {
-		if (!this.isRunning()) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("source adapter not polling since it has not yet been started");
-			}
-			return 0;
+	protected boolean sendMessage(Message<?> message) {
+		if (!this.initialized) {
+			this.afterPropertiesSet();
 		}
-		int messagesProcessed = 0;
-		List<Message<T>> messages = this.poll(this.maxMessagesPerTask);
-		for (Message<T> message : messages) {
-			if (this.sendToChannel(message)) {
-				messagesProcessed++;
-				this.onSend(message);
+		boolean sent = super.sendToChannel(message);
+		if (this.source instanceof MessageDeliveryAware) {
+			if (sent) {
+				((MessageDeliveryAware) this.source).onSend(message);
 			}
 			else {
-				return messagesProcessed;
+				((MessageDeliveryAware) this.source).onFailure(new MessageDeliveryException(message, "failed to send message"));
 			}
 		}
-		return messagesProcessed;
+		return sent;
 	}
 
-	/**
-	 * Callback method invoked after a message is sent to the channel.
-	 * <p>
-	 * Subclasses may override. The default implementation does nothing.
-	 */
-	protected void onSend(Message<T> sentMessage) {
-	}
-
-
-	private class PollingSourceAdapterTask implements MessagingTask {
-
-		public void run() {
-			processMessages();
+	public void run() {
+		int messagesProcessed = 0;
+		List<Message<?>> messages = this.poll(this.maxMessagesPerTask);
+		for (Message<?> message : messages) {
+			if (this.sendMessage(message)) {
+				messagesProcessed++;
+			}
+			else {
+				break;
+			}
 		}
-
-		public Schedule getSchedule() {
-			return schedule;
+		if (logger.isDebugEnabled()) {
+			logger.debug("polling source task processed " + messagesProcessed + " messages");
 		}
 	}
 
