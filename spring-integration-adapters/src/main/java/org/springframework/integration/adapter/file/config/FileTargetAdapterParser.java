@@ -51,7 +51,7 @@ public class FileTargetAdapterParser extends AbstractSingleBeanDefinitionParser 
 		adapterDef.getConstructorArgumentValues().addGenericArgumentValue(element.getAttribute("directory"));
 		String adapterBeanName = parserContext.getReaderContext().generateBeanName(adapterDef);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(adapterDef, adapterBeanName));
-		builder.addPropertyReference("handler", adapterBeanName);
+		builder.addConstructorArgReference(adapterBeanName);
 		String channel = element.getAttribute("channel");
 		Subscription subscription = new Subscription(channel);
 		builder.addPropertyValue("subscription", subscription);

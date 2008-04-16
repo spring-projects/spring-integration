@@ -61,7 +61,7 @@ public class HttpInvokerTargetAdapterParser extends AbstractSingleBeanDefinition
 		adapterDef.getConstructorArgumentValues().addGenericArgumentValue(url);
 		String adapterBeanName = parserContext.getReaderContext().generateBeanName(adapterDef);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(adapterDef, adapterBeanName));
-		builder.addPropertyReference("handler", adapterBeanName);
+		builder.addConstructorArgReference(adapterBeanName);
 		Subscription subscription = new Subscription(channel);
 		builder.addPropertyValue("subscription", subscription);
 	}

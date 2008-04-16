@@ -30,8 +30,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.Lifecycle;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
@@ -84,10 +82,8 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 	private volatile boolean running;
 
 
-	public DefaultMessageEndpoint() {
-	}
-
 	public DefaultMessageEndpoint(MessageHandler handler) {
+		Assert.notNull(handler, "handler must not be null");
 		this.handler = handler;
 	}
 
@@ -185,9 +181,6 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 	}
 
 	public void afterPropertiesSet() {
-		if (this.handler == null) {
-			return;
-		}
 		if (this.handler instanceof ChannelRegistryAware) {
 			((ChannelRegistryAware) this.handler).setChannelRegistry(this.channelRegistry);
 		}
@@ -221,9 +214,6 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 		if (!initialized) {
 			this.afterPropertiesSet();
 		}
-		if (this.handler instanceof Lifecycle) {
-			((Lifecycle) handler).start();
-		}
 		this.running = true;
 	}
 
@@ -231,16 +221,10 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 		if (!this.isRunning()) {
 			return;
 		}
-		if (this.handler instanceof Lifecycle) {
-			((Lifecycle) handler).stop();
-		}
 		this.running = false;
 	}
 
 	public final Message<?> handle(Message<?> message) {
-		if (this.handler == null) {
-			throw new ConfigurationException("endpoint has no 'handler'");
-		}
 		if (logger.isDebugEnabled()) {
 			logger.debug("endpoint '" + this + "' handling message: " + message);
 		}
@@ -312,8 +296,8 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 				logger.debug("endpoint '" + DefaultMessageEndpoint.this + "' replying to channel '" + replyChannel + "' with message: " + replyMessage);
 			}
 			if (!replyChannel.send(replyMessage, replyTimeout)) {
-				errorHandler.handle(new MessageDeliveryException(replyMessage,
-						"unable to send reply message within alloted timeout of " + replyTimeout + " milliseconds"));
+				throw new MessageDeliveryException(replyMessage,
+						"unable to send reply message within alloted timeout of " + replyTimeout + " milliseconds");
 			}
 		}
 	}

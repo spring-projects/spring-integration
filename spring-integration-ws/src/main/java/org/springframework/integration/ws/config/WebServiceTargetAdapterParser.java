@@ -67,7 +67,7 @@ public class WebServiceTargetAdapterParser extends AbstractSingleBeanDefinitionP
 				this.parseSimpleAdapter(uri, sourceExtractorRef);
 		String adapterBeanName = parserContext.getReaderContext().generateBeanName(adapterDef);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(adapterDef, adapterBeanName));
-		builder.addPropertyReference("handler", adapterBeanName);
+		builder.addConstructorArgReference(adapterBeanName);
 		Subscription subscription = new Subscription(channel);
 		builder.addPropertyValue("subscription", subscription);
 	}

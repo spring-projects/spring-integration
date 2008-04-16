@@ -73,8 +73,6 @@ public class EndpointParser implements BeanDefinitionParser {
 
 	private static final String HANDLER_METHOD_ATTRIBUTE = "handler-method";
 
-	private static final String HANDLER_PROPERTY = "handler";
-
 	private static final String ERROR_HANDLER_ATTRIBUTE = "error-handler";
 
 	private static final String ERROR_HANDLER_PROPERTY = "errorHandler";
@@ -149,8 +147,7 @@ public class EndpointParser implements BeanDefinitionParser {
 		}
 		if (childHandlerRefs.size() > 0) {
 			if (childHandlerRefs.size() == 1) {
-				endpointDef.getPropertyValues().addPropertyValue(
-						HANDLER_PROPERTY, new RuntimeBeanReference(childHandlerRefs.get(0)));
+				endpointDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(childHandlerRefs.get(0)));
 			}
 			else {
 				RootBeanDefinition handlerChainDef = new RootBeanDefinition(MessageHandlerChain.class);
@@ -161,7 +158,7 @@ public class EndpointParser implements BeanDefinitionParser {
 				handlerChainDef.getPropertyValues().addPropertyValue(HANDLERS_PROPERTY, handlerList);
 				String chainBeanName = parserContext.getReaderContext().generateBeanName(handlerChainDef);
 				parserContext.registerBeanComponent(new BeanComponentDefinition(handlerChainDef, chainBeanName));
-				endpointDef.getPropertyValues().addPropertyValue(HANDLER_PROPERTY, new RuntimeBeanReference(chainBeanName));
+				endpointDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(chainBeanName));
 			}
 		}
 		String handlerRef = element.getAttribute(HANDLER_REF_ATTRIBUTE);
@@ -173,10 +170,10 @@ public class EndpointParser implements BeanDefinitionParser {
 			String handlerMethod = element.getAttribute(HANDLER_METHOD_ATTRIBUTE);
 			if (StringUtils.hasText(handlerMethod)) {
 				String adapterBeanName = this.parseHandlerAdapter(handlerRef, handlerMethod, parserContext);
-				endpointDef.getPropertyValues().addPropertyValue(HANDLER_PROPERTY, new RuntimeBeanReference(adapterBeanName));
+				endpointDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(adapterBeanName));
 			}
 			else {
-				endpointDef.getPropertyValues().addPropertyValue(HANDLER_PROPERTY, new RuntimeBeanReference(handlerRef));
+				endpointDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(handlerRef));
 			}
 		}
 		String errorHandlerRef = element.getAttribute(ERROR_HANDLER_ATTRIBUTE);

@@ -37,8 +37,6 @@ import org.springframework.util.StringUtils;
  */
 public class JmsTargetAdapterParser extends AbstractSingleBeanDefinitionParser {
 
-	private static final String HANDLER_PROPERTY = "handler";
-
 	private static final String SUBSCRIPTION_PROPERTY = "subscription";
 
 
@@ -89,7 +87,7 @@ public class JmsTargetAdapterParser extends AbstractSingleBeanDefinitionParser {
 		Subscription subscription = new Subscription(channel);
 		String adapterBeanName = parserContext.getReaderContext().generateBeanName(adapterDef);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(adapterDef, adapterBeanName));
-		builder.addPropertyReference(HANDLER_PROPERTY, adapterBeanName);
+		builder.addConstructorArgReference(adapterBeanName);
 		builder.addPropertyValue(SUBSCRIPTION_PROPERTY, subscription);
 	}
 

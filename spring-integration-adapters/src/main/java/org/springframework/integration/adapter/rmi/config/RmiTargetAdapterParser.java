@@ -64,7 +64,7 @@ public class RmiTargetAdapterParser extends AbstractSingleBeanDefinitionParser {
 		adapterDef.getConstructorArgumentValues().addGenericArgumentValue(url);
 		String adapterBeanName = parserContext.getReaderContext().generateBeanName(adapterDef);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(adapterDef, adapterBeanName));
-		builder.addPropertyReference("handler", adapterBeanName);
+		builder.addConstructorArgReference(adapterBeanName);
 		Subscription subscription = new Subscription(localChannel);
 		builder.addPropertyValue("subscription", subscription);
 	}
