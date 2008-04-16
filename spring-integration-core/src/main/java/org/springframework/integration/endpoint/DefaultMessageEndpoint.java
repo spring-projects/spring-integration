@@ -184,21 +184,19 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 		if (this.handler instanceof ChannelRegistryAware) {
 			((ChannelRegistryAware) this.handler).setChannelRegistry(this.channelRegistry);
 		}
-		if (this.concurrencyPolicy != null || this.handler instanceof ConcurrentHandler) {
-			if (!(this.handler instanceof ConcurrentHandler)) {
-				int capacity = concurrencyPolicy.getQueueCapacity();
-				BlockingQueue<Runnable> queue = (capacity < 1) ? new SynchronousQueue<Runnable>() :
-						new ArrayBlockingQueue<Runnable>(capacity);
-				ExecutorService executor = new ThreadPoolExecutor(
-						concurrencyPolicy.getCoreSize(), concurrencyPolicy.getMaxSize(),
-						concurrencyPolicy.getKeepAliveSeconds(), TimeUnit.SECONDS, queue);
-				this.handler = new ConcurrentHandler(this.handler, executor);
-			}
-			ConcurrentHandler concurrentHandler = (ConcurrentHandler) this.handler;
+		if (this.concurrencyPolicy != null && !(this.handler instanceof ConcurrentHandler)) {
+			int capacity = this.concurrencyPolicy.getQueueCapacity();
+			BlockingQueue<Runnable> queue = (capacity < 1) ? new SynchronousQueue<Runnable>() : new ArrayBlockingQueue<Runnable>(capacity);
+			ExecutorService executor = new ThreadPoolExecutor(
+					this.concurrencyPolicy.getCoreSize(), this.concurrencyPolicy.getMaxSize(),
+					this.concurrencyPolicy.getKeepAliveSeconds(), TimeUnit.SECONDS, queue);
+			this.handler = new ConcurrentHandler(this.handler, executor);
+		}
+		if (this.handler instanceof ConcurrentHandler) {
 			if (this.errorHandler != null) {
-				concurrentHandler.setErrorHandler(this.errorHandler);
+				((ConcurrentHandler) this.handler).setErrorHandler(this.errorHandler);
 			}
-			concurrentHandler.setReplyHandler(this.replyHandler);
+			((ConcurrentHandler) this.handler).setReplyHandler(this.replyHandler);
 		}
 		this.initialized = true;
 	}

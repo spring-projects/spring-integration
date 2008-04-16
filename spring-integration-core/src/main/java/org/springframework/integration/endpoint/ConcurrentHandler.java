@@ -68,7 +68,7 @@ public class ConcurrentHandler implements MessageHandler, DisposableBean {
 	}
 
 	public void destroy() {
-		this.executor.shutdown();
+		this.executor.shutdownNow();
 	}
 
 	public Message<?> handle(Message<?> message) {
