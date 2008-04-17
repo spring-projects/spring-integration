@@ -14,22 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message.selector;
-
-import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageHandlingException;
+package org.springframework.integration.message;
 
 /**
- * An exception indicating that a message was rejected by an implementation of
- * {@link org.springframework.integration.message.selector.MessageSelector}.
+ * Base interface for any source of {@link Message Messages}. 
  * 
  * @author Mark Fisher
  */
-@SuppressWarnings("serial")
-public class MessageSelectorRejectedException extends MessageHandlingException {
-
-	public MessageSelectorRejectedException(Message<?> rejectedMessage) {
-		super(rejectedMessage);
-	}
+public interface Source {
 
 }

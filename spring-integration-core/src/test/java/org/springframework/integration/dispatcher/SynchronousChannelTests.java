@@ -97,7 +97,7 @@ public class SynchronousChannelTests {
 	@Test
 	public void testReceive() {
 		SynchronousChannel channel = new SynchronousChannel(new PollableSource<String>() {
-			public Message<String> poll() {
+			public Message<String> receive() {
 				return new StringMessage("foo");
 			}
 		});
@@ -184,7 +184,7 @@ public class SynchronousChannelTests {
 			this.messageText = messageText;
 		}
 
-		public StringMessage poll() {
+		public StringMessage receive() {
 			StringMessage message = new StringMessage(messageText);
 			message.getHeader().setProperty(HANDLER_THREAD, Thread.currentThread().getName());
 			return message;

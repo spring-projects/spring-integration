@@ -17,15 +17,29 @@
 package org.springframework.integration.message;
 
 /**
- * Interface for any external message source that can be polled.
+ * Extends {@link PollableSource} and provides a timeout-aware receive method. 
  * 
  * @author Mark Fisher
  */
-public interface PollableSource<T> extends Source {
+public interface BlockingSource<T> extends PollableSource<T> {
 
 	/**
-	 * Retrieve a message from this source or <code>null</code> if no message is available.
+	 * Receive a message, blocking indefinitely if necessary.
+	 * 
+	 * @return the next available {@link Message} or <code>null</code> if
+	 * interrupted
 	 */
 	Message<T> receive();
+
+	/**
+	 * Receive a message, blocking until either a message is available or the
+	 * specified timeout period elapses.
+	 * 
+	 * @param timeout the timeout in milliseconds
+	 * 
+	 * @return the next available {@link Message} or <code>null</code> if the
+	 * specified timeout period elapses or the message reception is interrupted
+	 */
+	Message<T> receive(long timeout);
 
 }

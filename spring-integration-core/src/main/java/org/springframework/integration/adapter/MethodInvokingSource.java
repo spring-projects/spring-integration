@@ -57,7 +57,7 @@ public class MethodInvokingSource<T> implements PollableSource<Object>, Initiali
 		this.invoker.setMethodValidator(new MessageReceivingMethodValidator());
 	}
 
-	public Message<Object> poll() {
+	public Message<Object> receive() {
 		if (this.invoker == null) {
 			this.afterPropertiesSet();
 		}

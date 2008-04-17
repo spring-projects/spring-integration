@@ -30,7 +30,6 @@ import org.springframework.integration.handler.MessageHandlerRejectedExecutionEx
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.Target;
-import org.springframework.integration.message.selector.MessageSelectorRejectedException;
 import org.springframework.util.Assert;
 
 /**
@@ -94,16 +93,14 @@ public class DefaultMessageDistributor implements MessageDistributor {
 					if (!this.dispatcherPolicy.isPublishSubscribe() && sent) {
 						return true;
 					}
-					iter.remove();
-				}
-				catch (MessageSelectorRejectedException e) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("selector rejected message, continuing with other targets if available", e);
+					if (!sent && logger.isDebugEnabled()) {
+						logger.debug("endpoint rejected message, continuing with other targets if available");
 					}
+					iter.remove();
 				}
 				catch (MessageHandlerNotRunningException e) {
 					if (logger.isDebugEnabled()) {
-						logger.debug("target not running, continuing with other targets if available", e);
+						logger.debug("target is not running, continuing with other targets if available", e);
 					}
 				}
 				catch (MessageHandlerRejectedExecutionException e) {

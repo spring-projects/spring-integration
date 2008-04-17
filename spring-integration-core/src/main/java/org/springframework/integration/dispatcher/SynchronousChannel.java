@@ -88,7 +88,7 @@ public class SynchronousChannel extends AbstractMessageChannel {
 	@Override
 	protected Message<?> doReceive(long timeout) {
 		if (this.source != null) {
-			Message<?> result = this.source.poll();
+			Message<?> result = this.source.receive();
 			if (result != null) {
 				return result;
 			}

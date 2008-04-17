@@ -47,7 +47,7 @@ public class JmsPollableSource extends AbstractJmsTemplateBasedAdapter implement
 	}
 
 
-	public Message<Object> poll() {
+	public Message<Object> receive() {
 		Object receivedObject = this.getJmsTemplate().receiveAndConvert();
 		if (receivedObject == null) {
 			return null;

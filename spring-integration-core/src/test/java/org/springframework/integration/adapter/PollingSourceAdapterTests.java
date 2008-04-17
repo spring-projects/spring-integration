@@ -108,7 +108,7 @@ public class PollingSourceAdapterTests {
 			this.count.set(0);
 		}
 
-		public Message<String> poll() {
+		public Message<String> receive() {
 			if (count.get() >= limit) {
 				return null;
 			}

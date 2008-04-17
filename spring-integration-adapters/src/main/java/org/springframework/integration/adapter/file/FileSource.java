@@ -84,7 +84,7 @@ public class FileSource implements PollableSource<Object>, InitializingBean {
 		}
 	}
 
-	public Message poll() {
+	public Message receive() {
 		File[] files = null;
 		if (this.fileFilter != null) {
 			files = this.directory.listFiles(this.fileFilter);

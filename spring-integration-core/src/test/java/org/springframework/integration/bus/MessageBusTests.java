@@ -268,7 +268,7 @@ public class MessageBusTests {
 			this.latch = latch;
 		}
 
-		public Message<Object> poll() {
+		public Message<Object> receive() {
 			latch.countDown();
 			throw new RuntimeException("intentional test failure");
 		}

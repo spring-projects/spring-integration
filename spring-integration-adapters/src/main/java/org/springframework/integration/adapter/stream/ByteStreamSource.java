@@ -67,7 +67,7 @@ public class ByteStreamSource implements PollableSource<byte[]> {
 		this.shouldTruncate = shouldTruncate;
 	}
 
-	public Message<byte[]> poll() {
+	public Message<byte[]> receive() {
 		try {
 			byte[] bytes;
 			int bytesRead = 0;

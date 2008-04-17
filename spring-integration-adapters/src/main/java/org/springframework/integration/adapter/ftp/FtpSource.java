@@ -120,7 +120,7 @@ public class FtpSource implements PollableSource<Object>, MessageDeliveryAware {
 		}
 	}
 
-	public final Message poll() {
+	public final Message receive() {
 		try {
 			this.establishConnection();
 			FTPFile[] fileList = this.client.listFiles();

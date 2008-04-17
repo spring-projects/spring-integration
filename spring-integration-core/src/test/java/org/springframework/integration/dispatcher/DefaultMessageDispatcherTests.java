@@ -384,48 +384,43 @@ public class DefaultMessageDispatcherTests {
 	public void testTwoExecutorsWithSelectorsAndNeitherAccepts() throws InterruptedException {
 		final AtomicInteger counter1 = new AtomicInteger();
 		final AtomicInteger counter2 = new AtomicInteger();
-		final AtomicInteger attemptedCounter1 = new AtomicInteger();
-		final AtomicInteger attemptedCounter2 = new AtomicInteger();
-		final CountDownLatch attemptedLatch = new CountDownLatch(2);
+		final AtomicInteger selectorCounter1 = new AtomicInteger();
+		final AtomicInteger selectorCounter2 = new AtomicInteger();
+		final CountDownLatch selectorLatch = new CountDownLatch(2);
 		final CountDownLatch handlerLatch = new CountDownLatch(1);
-		MessageHandler handler1 = TestHandlers.countingCountDownHandler(counter1, attemptedLatch);
-		MessageHandler handler2 = TestHandlers.countingCountDownHandler(counter2, attemptedLatch);
+		MessageHandler handler1 = TestHandlers.countingCountDownHandler(counter1, handlerLatch);
+		MessageHandler handler2 = TestHandlers.countingCountDownHandler(counter2, handlerLatch);
 		SimpleChannel channel = new SimpleChannel();
 		channel.send(new StringMessage(1, "test"));
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		final HandlerEndpoint endpoint1 = new HandlerEndpoint(handler1);
 		final HandlerEndpoint endpoint2 = new HandlerEndpoint(handler2);
-		endpoint1.addMessageSelector(new PayloadTypeSelector(Integer.class));
-		endpoint2.addMessageSelector(new PayloadTypeSelector(Integer.class));
-		endpoint1.start();
-		endpoint2.start();
-		MessageHandler interceptor1 = new MessageHandler() {
-			public Message<?> handle(Message<?> message) {
-				attemptedCounter1.incrementAndGet();
-				attemptedLatch.countDown();
-				endpoint1.send(message);
-				return null;
+		endpoint1.addMessageSelector(new PayloadTypeSelector(Integer.class) {
+			@Override
+			public boolean accept(Message<?> message) {
+				selectorCounter1.incrementAndGet();
+				selectorLatch.countDown();
+				return super.accept(message);
 			}
-		};
-		MessageHandler interceptor2 = new MessageHandler() {
-			public Message<?> handle(Message<?> message) {
-				attemptedCounter2.incrementAndGet();
-				attemptedLatch.countDown();
-				endpoint2.send(message);
-				return null;
+		});
+		endpoint2.addMessageSelector(new PayloadTypeSelector(Integer.class) {
+			@Override
+			public boolean accept(Message<?> message) {
+				selectorCounter2.incrementAndGet();
+				selectorLatch.countDown();
+				return super.accept(message);
 			}
-		};
-		dispatcher.addTarget(createEndpoint(interceptor1, false));
-		dispatcher.addTarget(createEndpoint(interceptor2, false));
+		});
+		dispatcher.addTarget(endpoint1);
+		dispatcher.addTarget(endpoint2);
 		dispatcher.start();
-		attemptedLatch.await(2000, TimeUnit.MILLISECONDS);
-		assertEquals("messages should have been dispatched within allotted time", 0, attemptedLatch.getCount());
+		selectorLatch.await(2000, TimeUnit.MILLISECONDS);
+		assertEquals("messages should have been dispatched within allotted time", 0, selectorLatch.getCount());
 		assertEquals("handler1 should not have accepted the message", 0, counter1.get());
 		assertEquals("handler2 should not have accepted the message", 0, counter2.get());
-		assertEquals("executor1 should have had exactly one attempt", 1, attemptedCounter1.get());
-		assertEquals("executor2 should have had exactly one attempt", 1, attemptedCounter2.get());
+		assertEquals("executor1 should have had exactly one attempt", 1, selectorCounter1.get());
+		assertEquals("executor2 should have had exactly one attempt", 1, selectorCounter2.get());
 		assertEquals("handlerLatch should not have counted down", 1, handlerLatch.getCount());
-		assertEquals("attemptedLatch should have counted down", 0, attemptedLatch.getCount());
 	}
 
 	@Test

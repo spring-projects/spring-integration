@@ -85,7 +85,7 @@ public class PollingSourceAdapter extends AbstractSourceAdapter implements Messa
 		List<Message<?>> results = new ArrayList<Message<?>>();
 		int count = 0;
 		while (count < limit) {
-			Message<?> message = this.source.poll();
+			Message<?> message = this.source.receive();
 			if (message == null) {
 				break;
 			}

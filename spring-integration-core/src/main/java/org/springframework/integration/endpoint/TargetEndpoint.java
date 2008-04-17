@@ -38,7 +38,6 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.Target;
 import org.springframework.integration.message.selector.MessageSelector;
-import org.springframework.integration.message.selector.MessageSelectorRejectedException;
 import org.springframework.integration.scheduling.Subscription;
 import org.springframework.integration.util.ErrorHandler;
 import org.springframework.util.Assert;
@@ -205,7 +204,7 @@ public class TargetEndpoint implements MessageEndpoint, BeanNameAware {
 		}
 		for (MessageSelector selector : this.selectors) {
 			if (!selector.accept(message)) {
-				throw new MessageSelectorRejectedException(message);
+				return false;
 			}
 		}
 		try {

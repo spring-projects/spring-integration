@@ -17,6 +17,7 @@
 package org.springframework.integration.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
@@ -35,7 +36,6 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.Target;
-import org.springframework.integration.message.selector.MessageSelectorRejectedException;
 
 /**
  * @author Mark Fisher
@@ -132,13 +132,13 @@ public class EndpointParserTests {
 		assertEquals("foo", reply.getPayload());
 	}
 
-	@Test(expected=MessageSelectorRejectedException.class)
+	@Test
 	public void testEndpointWithSelectorRejects() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"endpointWithSelectors.xml", this.getClass());		
 		Target endpoint = (Target) context.getBean("endpoint");
 		((Lifecycle) endpoint).start();
-		endpoint.send(new GenericMessage<Integer>(123));
+		assertFalse(endpoint.send(new GenericMessage<Integer>(123)));
 	}
 
 	@Test

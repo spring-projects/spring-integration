@@ -18,6 +18,8 @@ package org.springframework.integration.channel;
 
 import java.util.List;
 
+import org.springframework.integration.message.BlockingSource;
+import org.springframework.integration.message.BlockingTarget;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.selector.MessageSelector;
 
@@ -26,7 +28,7 @@ import org.springframework.integration.message.selector.MessageSelector;
  * 
  * @author Mark Fisher
  */
-public interface MessageChannel {
+public interface MessageChannel extends BlockingSource, BlockingTarget {
 
 	static final int DEFAULT_CAPACITY = 100;
 
@@ -45,48 +47,6 @@ public interface MessageChannel {
 	 * Return this channel's dispatcher policy
 	 */
 	DispatcherPolicy getDispatcherPolicy();
-
-	/**
-	 * Send a message, blocking indefinitely if necessary.
-	 * 
-	 * @param message the {@link Message} to send
-	 * 
-	 * @return <code>true</code> if the message is sent successfully,
-	 * <code>false</false> if interrupted
-	 */
-	boolean send(Message<?> message);
-
-	/**
-	 * Send a message, blocking until either the message is accepted or the
-	 * specified timeout period elapses.
-	 * 
-	 * @param message the {@link Message} to send
-	 * @param timeout the timeout in milliseconds
-	 * 
-	 * @return <code>true</code> if the message is sent successfully,
-	 * <code>false</false> if the specified timeout period elapses or
-	 * the send is interrupted
-	 */
-	boolean send(Message<?> message, long timeout);
-
-	/**
-	 * Receive a message, blocking indefinitely if necessary.
-	 * 
-	 * @return the next available {@link Message} or <code>null</code> if
-	 * interrupted
-	 */
-	Message<?> receive();
-
-	/**
-	 * Receive a message, blocking until either a message is available or the
-	 * specified timeout period elapses.
-	 * 
-	 * @param timeout the timeout in milliseconds
-	 * 
-	 * @return the next available {@link Message} or <code>null</code> if the
-	 * specified timeout period elapses or the message reception is interrupted
-	 */
-	Message<?> receive(long timeout);
 
 	/**
 	 * Remove all {@link Message Messages} from this channel.

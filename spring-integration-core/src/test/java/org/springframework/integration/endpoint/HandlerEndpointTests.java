@@ -39,7 +39,6 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.selector.MessageSelector;
-import org.springframework.integration.message.selector.MessageSelectorRejectedException;
 import org.springframework.integration.util.ErrorHandler;
 
 /**
@@ -336,7 +335,7 @@ public class HandlerEndpointTests {
 		assertTrue(exceptionThrown);
 	}
 
-	@Test(expected=MessageSelectorRejectedException.class)
+	@Test
 	public void testEndpointWithSelectorRejecting() {
 		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.nullHandler());
 		endpoint.addMessageSelector(new MessageSelector() {
@@ -345,7 +344,7 @@ public class HandlerEndpointTests {
 			}
 		});
 		endpoint.start();
-		endpoint.send(new StringMessage("test"));
+		assertFalse(endpoint.send(new StringMessage("test")));
 	}
 
 	@Test
@@ -368,7 +367,6 @@ public class HandlerEndpointTests {
 	public void testEndpointWithMultipleSelectorsAndFirstRejects() {
 		final AtomicInteger counter = new AtomicInteger();
 		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.countingHandler(counter));
-		boolean exceptionThrown = false;
 		endpoint.addMessageSelector(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				counter.incrementAndGet();
@@ -382,43 +380,32 @@ public class HandlerEndpointTests {
 			}
 		});
 		endpoint.start();
-		try {
-			endpoint.send(new StringMessage("test"));
-		}
-		catch (MessageSelectorRejectedException e) {
-			exceptionThrown = true;
-		}
+		assertFalse(endpoint.send(new StringMessage("test")));
 		assertEquals("only the first selector should have been invoked", 1, counter.get());
-		assertTrue(exceptionThrown);
 		endpoint.stop();
 	}
 
 	@Test
 	public void testEndpointWithMultipleSelectorsAndFirstAccepts() {
-		final AtomicInteger counter = new AtomicInteger();
-		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.countingHandler(counter));
-		boolean exceptionThrown = false;
+		final AtomicInteger selectorCounter = new AtomicInteger();
+		AtomicInteger handlerCounter = new AtomicInteger();
+		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.countingHandler(handlerCounter));
 		endpoint.addMessageSelector(new MessageSelector() {
 			public boolean accept(Message<?> message) {
-				counter.incrementAndGet();
+				selectorCounter.incrementAndGet();
 				return true;
 			}
 		});
 		endpoint.addMessageSelector(new MessageSelector() {
 			public boolean accept(Message<?> message) {
-				counter.incrementAndGet();
+				selectorCounter.incrementAndGet();
 				return false;
 			}
 		});
 		endpoint.start();
-		try {
-			endpoint.send(new StringMessage("test"));
-		}
-		catch (MessageSelectorRejectedException e) {
-			exceptionThrown = true;
-		}
-		assertEquals("both selectors should have been invoked but not the handler", 2, counter.get());
-		assertTrue(exceptionThrown);
+		assertFalse(endpoint.send(new StringMessage("test")));
+		assertEquals("both selectors should have been invoked", 2, selectorCounter.get());
+		assertEquals("the handler should not have been invoked", 0, handlerCounter.get());
 		endpoint.stop();
 	}
 
@@ -439,7 +426,7 @@ public class HandlerEndpointTests {
 			}
 		});
 		endpoint.start();
-		endpoint.send(new StringMessage("test"));
+		assertTrue(endpoint.send(new StringMessage("test")));
 		assertEquals("both selectors and handler should have been invoked", 3, counter.get());
 		endpoint.stop();
 	}

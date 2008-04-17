@@ -58,7 +58,7 @@ public class CharacterStreamSource implements PollableSource<String> {
 	}
 
 
-	public StringMessage poll() {
+	public StringMessage receive() {
 		try {
 			synchronized (this.monitor) {
 				if (!this.reader.ready()) {
