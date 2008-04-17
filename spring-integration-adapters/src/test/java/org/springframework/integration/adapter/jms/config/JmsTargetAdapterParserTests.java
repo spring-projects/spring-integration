@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.adapter.jms.JmsTargetAdapter;
-import org.springframework.integration.endpoint.DefaultMessageEndpoint;
+import org.springframework.integration.endpoint.TargetEndpoint;
 
 /**
  * @author Mark Fisher
@@ -35,8 +35,8 @@ public class JmsTargetAdapterParserTests {
 	public void testTargetAdapterWithConnectionFactoryAndDestination() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"targetAdapterWithConnectionFactoryAndDestination.xml", this.getClass());
-		DefaultMessageEndpoint endpoint = (DefaultMessageEndpoint) context.getBean("adapter");
-		assertEquals(JmsTargetAdapter.class, endpoint.getHandler().getClass());
+		TargetEndpoint endpoint = (TargetEndpoint) context.getBean("adapter");
+		assertEquals(JmsTargetAdapter.class, endpoint.getTarget().getClass());
 		assertEquals("adapter", endpoint.getName());
 		assertEquals("testChannel", endpoint.getSubscription().getChannelName());
 	}
@@ -45,8 +45,8 @@ public class JmsTargetAdapterParserTests {
 	public void testTargetAdapterWithConnectionFactoryAndDestinationName() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"targetAdapterWithConnectionFactoryAndDestinationName.xml", this.getClass());
-		DefaultMessageEndpoint endpoint = (DefaultMessageEndpoint) context.getBean("adapter");
-		assertEquals(JmsTargetAdapter.class, endpoint.getHandler().getClass());
+		TargetEndpoint endpoint = (TargetEndpoint) context.getBean("adapter");
+		assertEquals(JmsTargetAdapter.class, endpoint.getTarget().getClass());
 		assertEquals("adapter", endpoint.getName());
 		assertEquals("testChannel", endpoint.getSubscription().getChannelName());
 	}
@@ -55,8 +55,8 @@ public class JmsTargetAdapterParserTests {
 	public void testTargetAdapterWithDefaultConnectionFactory() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"targetAdapterWithDefaultConnectionFactory.xml", this.getClass());
-		DefaultMessageEndpoint endpoint = (DefaultMessageEndpoint) context.getBean("adapter");
-		assertEquals(JmsTargetAdapter.class, endpoint.getHandler().getClass());
+		TargetEndpoint endpoint = (TargetEndpoint) context.getBean("adapter");
+		assertEquals(JmsTargetAdapter.class, endpoint.getTarget().getClass());
 		assertEquals("adapter", endpoint.getName());
 		assertEquals("testChannel", endpoint.getSubscription().getChannelName());
 	}

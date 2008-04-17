@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ public class ByteStreamTargetAdapterTests {
 	public void testSingleByteArray() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		ByteStreamTargetAdapter adapter = new ByteStreamTargetAdapter(stream);
-		adapter.handle(new GenericMessage<byte[]>(new byte[] {1,2,3}));
+		adapter.send(new GenericMessage<byte[]>(new byte[] {1,2,3}));
 		byte[] result = stream.toByteArray();
 		assertEquals(3, result.length);
 		assertEquals(1, result[0]);
@@ -52,7 +52,7 @@ public class ByteStreamTargetAdapterTests {
 	public void testSingleString() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		ByteStreamTargetAdapter adapter = new ByteStreamTargetAdapter(stream);
-		adapter.handle(new StringMessage("foo"));
+		adapter.send(new StringMessage("foo"));
 		byte[] result = stream.toByteArray();
 		assertEquals(3, result.length);
 		assertEquals("foo", new String(result));
@@ -67,7 +67,7 @@ public class ByteStreamTargetAdapterTests {
 		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
 		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(1);
 		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
-		dispatcher.addHandler(adapter);
+		dispatcher.addTarget(adapter);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -87,7 +87,7 @@ public class ByteStreamTargetAdapterTests {
 		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
 		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(1);
 		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
-		dispatcher.addHandler(adapter);
+		dispatcher.addTarget(adapter);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -107,7 +107,7 @@ public class ByteStreamTargetAdapterTests {
 		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
 		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(1);
 		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
-		dispatcher.addHandler(adapter);
+		dispatcher.addTarget(adapter);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -127,7 +127,7 @@ public class ByteStreamTargetAdapterTests {
 		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
 		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(1);
 		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
-		dispatcher.addHandler(adapter);
+		dispatcher.addTarget(adapter);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -152,7 +152,7 @@ public class ByteStreamTargetAdapterTests {
 		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
 		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(1);
 		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
-		dispatcher.addHandler(adapter);
+		dispatcher.addTarget(adapter);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -176,7 +176,7 @@ public class ByteStreamTargetAdapterTests {
 		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
 		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(1);
 		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
-		dispatcher.addHandler(adapter);
+		dispatcher.addTarget(adapter);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -200,7 +200,7 @@ public class ByteStreamTargetAdapterTests {
 		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
 		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(1);
 		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
-		dispatcher.addHandler(adapter);
+		dispatcher.addTarget(adapter);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);

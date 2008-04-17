@@ -27,17 +27,13 @@
 		</constructor-arg>
 	</bean>
 
-	<bean id="targetAdapter" class="org.springframework.integration.adapter.DefaultTargetAdapter">
-		<constructor-arg>
-			<bean class="org.springframework.integration.adapter.MethodInvokingTarget">
-				<property name="object" ref="sink"/>
-				<property name="method" value="store"/>
-			</bean>
-		</constructor-arg>
+	<bean id="target" class="org.springframework.integration.adapter.MethodInvokingTarget">
+		<property name="object" ref="sink"/>
+		<property name="method" value="store"/>
 	</bean>
 
-	<bean id="targetEndpoint" class="org.springframework.integration.endpoint.DefaultMessageEndpoint">
-		<constructor-arg ref="targetAdapter"/>
+	<bean id="targetEndpoint" class="org.springframework.integration.endpoint.TargetEndpoint">
+		<constructor-arg ref="target"/>
 		<property name="subscription">
 			<bean class="org.springframework.integration.scheduling.Subscription">
 				<constructor-arg ref="channel"/>

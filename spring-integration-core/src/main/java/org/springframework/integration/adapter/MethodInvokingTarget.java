@@ -16,61 +16,34 @@
 
 package org.springframework.integration.adapter;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.lang.reflect.Method;
 
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.handler.HandlerMethodInvoker;
-import org.springframework.util.Assert;
+import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.Target;
+import org.springframework.integration.util.MethodValidator;
 
 /**
  * A messaging target that invokes the specified method on the provided object.
  * 
  * @author Mark Fisher
  */
-public class MethodInvokingTarget<T> implements Target<Object>, InitializingBean {
+public class MethodInvokingTarget extends MethodInvokingHandler implements Target {
 
-	private Log logger = LogFactory.getLog(this.getClass());
-
-	private T object;
-
-	private String method;
-
-	private HandlerMethodInvoker<T> invoker;
-
-	private ArgumentListPreparer argumentListPreparer;
-
-
-	public void setObject(T object) {
-		Assert.notNull(object, "'object' must not be null");
-		this.object = object;
-	}
-
-	public void setMethod(String method) {
-		Assert.notNull(method, "'method' must not be null");
-		this.method = method;
-	}
-
-	public void setArgumentListPreparer(ArgumentListPreparer argumentListPreparer) {
-		this.argumentListPreparer = argumentListPreparer;
-	}
-
+	@Override
 	public void afterPropertiesSet() {
-		this.invoker = new HandlerMethodInvoker<T>(this.object, this.method);
+		super.afterPropertiesSet();
+		this.invoker.setMethodValidator(new MethodValidator() {
+			public void validate(Method method) throws Exception {
+				if (!method.getReturnType().equals(void.class)) {
+					throw new ConfigurationException("target method must have a void return");
+				}
+			}
+		});
 	}
 
-	public boolean send(Object object) {
-		Object args[] = null;
-		if (this.argumentListPreparer != null) {
-			args = this.argumentListPreparer.prepare(object);
-		}
-		else {
-			args = new Object[] { object };
-		}
-		Object result = this.invoker.invokeMethod(args);
-		if (result != null && logger.isWarnEnabled()) {
-			logger.warn("ignoring outbound channel adapter's return value");
-		}
+	public boolean send(Message<?> message) {
+		this.handle(message);
 		return true;
 	}
 

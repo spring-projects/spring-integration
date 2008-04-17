@@ -44,11 +44,13 @@ import org.springframework.integration.dispatcher.SchedulingMessageDispatcher;
 import org.springframework.integration.dispatcher.SynchronousChannel;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.DefaultEndpointRegistry;
-import org.springframework.integration.endpoint.DefaultMessageEndpoint;
 import org.springframework.integration.endpoint.EndpointRegistry;
+import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.endpoint.MessageEndpoint;
+import org.springframework.integration.endpoint.TargetEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.MessagingException;
+import org.springframework.integration.message.Target;
 import org.springframework.integration.scheduling.MessagePublishingErrorHandler;
 import org.springframework.integration.scheduling.MessagingTask;
 import org.springframework.integration.scheduling.MessagingTaskScheduler;
@@ -235,17 +237,25 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 	}
 
 	public void registerHandler(String name, MessageHandler handler, Subscription subscription, ConcurrencyPolicy concurrencyPolicy) {
-		if (!this.initialized) {
-			this.initialize();
-		}
-		Assert.notNull(name, "'name' must not be null");
 		Assert.notNull(handler, "'handler' must not be null");
-		Assert.notNull(subscription, "'subscription' must not be null");
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(handler);
+		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
+		this.doRegisterEndpoint(name, endpoint, subscription, concurrencyPolicy);
+	}
+
+	public void registerTarget(String name, Target target, Subscription subscription) {
+		this.registerTarget(name, target, subscription, this.defaultConcurrencyPolicy);
+	}
+
+	public void registerTarget(String name, Target target, Subscription subscription, ConcurrencyPolicy concurrencyPolicy) {
+		Assert.notNull(target, "'target' must not be null");
+		TargetEndpoint endpoint = new TargetEndpoint(target);
+		this.doRegisterEndpoint(name, endpoint, subscription, concurrencyPolicy);
+	}
+
+	private void doRegisterEndpoint(String name, TargetEndpoint endpoint, Subscription subscription, ConcurrencyPolicy concurrencyPolicy) {
 		endpoint.setName(name);
 		endpoint.setSubscription(subscription);
 		endpoint.setConcurrencyPolicy(concurrencyPolicy);
-		endpoint.afterPropertiesSet();
 		this.registerEndpoint(name, endpoint);
 	}
 
@@ -257,8 +267,11 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 			((ChannelRegistryAware) endpoint).setChannelRegistry(this.channelRegistry);
 		}
 		if (endpoint.getConcurrencyPolicy() == null && this.defaultConcurrencyPolicy != null
-				&& endpoint instanceof DefaultMessageEndpoint) {
-			((DefaultMessageEndpoint) endpoint).setConcurrencyPolicy(this.defaultConcurrencyPolicy);
+				&& endpoint instanceof TargetEndpoint) {
+			((TargetEndpoint) endpoint).setConcurrencyPolicy(this.defaultConcurrencyPolicy);
+		}
+		if (endpoint instanceof TargetEndpoint) {
+			((TargetEndpoint) endpoint).afterPropertiesSet();
 		}
 		this.endpointRegistry.registerEndpoint(name, endpoint);
 		if (this.isRunning()) {
@@ -277,7 +290,7 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 		Collection<SchedulingMessageDispatcher> dispatchers = this.dispatchers.values();
 		boolean removed = false;
 		for (SchedulingMessageDispatcher dispatcher : dispatchers) {
-			removed = (removed || dispatcher.removeHandler(endpoint));
+			removed = (removed || dispatcher.removeTarget(endpoint));
 		}
 		if (removed) {
 			return endpoint;
@@ -329,9 +342,9 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 				this.registerChannel(channelName, channel);
 			}
 		}
-		if (endpoint instanceof DefaultMessageEndpoint) {
-			DefaultMessageEndpoint dme = (DefaultMessageEndpoint) endpoint;
-			String outputChannelName = dme.getDefaultOutputChannelName();
+		if (endpoint instanceof HandlerEndpoint) {
+			HandlerEndpoint handlerEndpoint = (HandlerEndpoint) endpoint;
+			String outputChannelName = handlerEndpoint.getDefaultOutputChannelName();
 			if (outputChannelName != null && this.lookupChannel(outputChannelName) == null) {
 				if (!this.autoCreateChannels) {
 					throw new ConfigurationException("Unknown channel '" + outputChannelName +
@@ -340,8 +353,11 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 				}
 				this.registerChannel(outputChannelName, new SimpleChannel());
 			}
-			if (!dme.hasErrorHandler() && this.getErrorChannel() != null && !this.getErrorChannel().equals(channel)) {
-				dme.setErrorHandler(new MessagePublishingErrorHandler(this.getErrorChannel()));
+		}
+		if (endpoint instanceof TargetEndpoint) {
+			TargetEndpoint targetEndpoint = (TargetEndpoint) endpoint;
+			if (!targetEndpoint.hasErrorHandler() && this.getErrorChannel() != null && !this.getErrorChannel().equals(channel)) {
+				targetEndpoint.setErrorHandler(new MessagePublishingErrorHandler(this.getErrorChannel()));
 			}
 		}
 		this.registerWithDispatcher(channel, endpoint, subscription.getSchedule());
@@ -369,14 +385,14 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 		}
 	}
 
-	private void registerWithDispatcher(MessageChannel channel, MessageHandler handler, Schedule schedule) {
+	private void registerWithDispatcher(MessageChannel channel, Target target, Schedule schedule) {
 		if (schedule == null && (channel instanceof SynchronousChannel)) {
-			((SynchronousChannel) channel).addHandler(handler);
-			if (handler instanceof Lifecycle) {
-				((Lifecycle) handler).start();
+			((SynchronousChannel) channel).addTarget(target);
+			if (target instanceof Lifecycle) {
+				((Lifecycle) target).start();
 			}
-			if (handler instanceof DefaultMessageEndpoint) {
-				((DefaultMessageEndpoint) handler).setErrorHandler(new ErrorHandler() {
+			if (target instanceof TargetEndpoint) {
+				((TargetEndpoint) target).setErrorHandler(new ErrorHandler() {
 					public void handle(Throwable t) {
 						if (t instanceof MessagingException) {
 							throw (MessagingException) t;
@@ -394,7 +410,7 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 			}
 			return;
 		}
-		dispatcher.addHandler(handler, schedule);
+		dispatcher.addTarget(target, schedule);
 		if (this.isRunning() && !dispatcher.isRunning()) {
 			dispatcher.start();
 		}

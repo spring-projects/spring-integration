@@ -17,20 +17,15 @@
 package org.springframework.integration.message;
 
 /**
- * Strategy interface for mapping between messages and objects.
+ * Strategy interface for mapping from a {@link Message} to an Object.
  * 
  * @author Mark Fisher
  */
-public interface MessageMapper<M,O> {
+public interface MessageMapper<P, O> {
 
 	/**
-	 * Map to a {@link Message} from the given object.
+	 * Map from the given {@link Message} to an Object.
 	 */
-	Message<M> toMessage(O source);
-
-	/**
-	 * Map from the given {@link Message} to an object.
-	 */
-	O fromMessage(Message<M> message);
+	O mapMessage(Message<P> message);
 
 }

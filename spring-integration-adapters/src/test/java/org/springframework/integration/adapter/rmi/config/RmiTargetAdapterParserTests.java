@@ -27,7 +27,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.adapter.rmi.RmiSourceAdapter;
 import org.springframework.integration.adapter.rmi.RmiTargetAdapter;
 import org.springframework.integration.channel.SimpleChannel;
-import org.springframework.integration.endpoint.DefaultMessageEndpoint;
+import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -50,7 +50,7 @@ public class RmiTargetAdapterParserTests {
 	public void testRmiTargetAdapter() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"rmiTargetAdapterParserTests.xml", this.getClass());
-		DefaultMessageEndpoint endpoint = (DefaultMessageEndpoint) context.getBean("adapter");
+		HandlerEndpoint endpoint = (HandlerEndpoint) context.getBean("adapter");
 		assertNotNull(endpoint);
 		assertEquals(RmiTargetAdapter.class, endpoint.getHandler().getClass());
 		RmiTargetAdapter adapter = (RmiTargetAdapter) endpoint.getHandler();

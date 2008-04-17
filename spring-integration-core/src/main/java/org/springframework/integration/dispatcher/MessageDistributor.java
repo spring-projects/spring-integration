@@ -16,20 +16,19 @@
 
 package org.springframework.integration.dispatcher;
 
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.Target;
 
 /**
- * Strategy interface for distributing a {@link Message} to one or more
- * {@link MessageHandler MessageHandlers}.
+ * Strategy interface for distributing a {@link Message} to one or more {@link Target targets}.
  * 
  * @author Mark Fisher
  */
 public interface MessageDistributor {
 
-	void addHandler(MessageHandler handler);
+	void addTarget(Target target);
 
-	boolean removeHandler(MessageHandler handler);
+	boolean removeTarget(Target target);
 
 	boolean distribute(Message<?> message);
 

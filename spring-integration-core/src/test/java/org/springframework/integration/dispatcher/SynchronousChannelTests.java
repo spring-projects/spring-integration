@@ -28,10 +28,10 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.PollableSource;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.message.Target;
 
 /**
  * @author Mark Fisher
@@ -44,7 +44,7 @@ public class SynchronousChannelTests {
 	@Test
 	public void testSend() {
 		SynchronousChannel channel = new SynchronousChannel();
-		channel.addHandler(new ThreadNameSettingTestHandler());
+		channel.addTarget(new ThreadNameSettingTestTarget());
 		StringMessage message = new StringMessage("test");
 		assertTrue(channel.send(message));
 		String handlerThreadName = message.getHeader().getProperty(HANDLER_THREAD);
@@ -82,7 +82,7 @@ public class SynchronousChannelTests {
 	public void testSendInSeparateThread() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
 		final SynchronousChannel channel = new SynchronousChannel();
-		channel.addHandler(new ThreadNameSettingTestHandler(latch));
+		channel.addTarget(new ThreadNameSettingTestTarget(latch));
 		final StringMessage message = new StringMessage("test");
 		new Thread(new Runnable() {
 			public void run() {
@@ -152,25 +152,25 @@ public class SynchronousChannelTests {
 	}
 
 
-	private static class ThreadNameSettingTestHandler implements MessageHandler {
+	private static class ThreadNameSettingTestTarget implements Target {
 
 		private final CountDownLatch latch;
 
 
-		ThreadNameSettingTestHandler() {
+		ThreadNameSettingTestTarget() {
 			this(null);
 		}
 
-		ThreadNameSettingTestHandler(CountDownLatch latch) {
+		ThreadNameSettingTestTarget(CountDownLatch latch) {
 			this.latch = latch;
 		}
 
-		public Message<?> handle(Message<?> message) {
+		public boolean send(Message<?> message) {
 			message.getHeader().setProperty(HANDLER_THREAD, Thread.currentThread().getName());
 			if (this.latch != null) {
 				this.latch.countDown();
 			}
-			return null;
+			return true;
 		}
 	}
 

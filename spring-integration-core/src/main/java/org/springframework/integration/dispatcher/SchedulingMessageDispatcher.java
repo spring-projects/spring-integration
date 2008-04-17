@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,11 @@
 package org.springframework.integration.dispatcher;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.message.Target;
 import org.springframework.integration.scheduling.Schedule;
 
 /**
- * An extension to the {@link MessageDispatcher} strategy for handlers that may
+ * An extension to the {@link MessageDispatcher} strategy for targets that may
  * be scheduled.
  * 
  * @author Mark Fisher
@@ -30,6 +30,6 @@ public interface SchedulingMessageDispatcher extends MessageDispatcher, Lifecycl
 
 	void setDefaultSchedule(Schedule defaultSchedule);
 
-	void addHandler(MessageHandler handler, Schedule schedule);
+	void addTarget(Target target, Schedule schedule);
 
 }

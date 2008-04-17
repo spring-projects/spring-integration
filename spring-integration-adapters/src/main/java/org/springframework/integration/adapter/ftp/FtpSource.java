@@ -32,8 +32,8 @@ import org.springframework.integration.adapter.file.ByteArrayFileMapper;
 import org.springframework.integration.adapter.file.FileNameGenerator;
 import org.springframework.integration.adapter.file.TextFileMapper;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageCreator;
 import org.springframework.integration.message.MessageDeliveryAware;
-import org.springframework.integration.message.MessageMapper;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.PollableSource;
 import org.springframework.util.Assert;
@@ -70,7 +70,7 @@ public class FtpSource implements PollableSource<Object>, MessageDeliveryAware {
 
 	private volatile boolean textBased = true;
 
-	private volatile MessageMapper mapper;
+	private volatile MessageCreator<File, ?> messageCreator;
 
 	private final DirectoryContentManager directoryContentManager = new DirectoryContentManager();
 
@@ -113,14 +113,14 @@ public class FtpSource implements PollableSource<Object>, MessageDeliveryAware {
 
 	public void afterPropertiesSet() {
 		if (this.isTextBased()) {
-			this.mapper = new TextFileMapper(this.localWorkingDirectory);
+			this.messageCreator = new TextFileMapper(this.localWorkingDirectory);
 		}
 		else {
-			this.mapper = new ByteArrayFileMapper(this.localWorkingDirectory);
+			this.messageCreator = new ByteArrayFileMapper(this.localWorkingDirectory);
 		}
 	}
 
-	public final Message<Object> poll() {
+	public final Message poll() {
 		try {
 			this.establishConnection();
 			FTPFile[] fileList = this.client.listFiles();
@@ -143,7 +143,7 @@ public class FtpSource implements PollableSource<Object>, MessageDeliveryAware {
 			FileOutputStream fileOutputStream = new FileOutputStream(file);
 			this.client.retrieveFile(fileName, fileOutputStream);
 			fileOutputStream.close();
-			return this.mapper.toMessage(file);
+			return this.messageCreator.createMessage(file);
 		}
 		catch (Exception e) {
 			try {

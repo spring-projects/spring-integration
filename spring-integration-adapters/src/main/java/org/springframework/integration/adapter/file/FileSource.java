@@ -37,7 +37,7 @@ public class FileSource implements PollableSource<Object>, InitializingBean {
 
 	private volatile boolean textBased = true;
 
-	private volatile AbstractFileMapper mapper;
+	private volatile AbstractFileMapper<?> mapper;
 
 	private volatile FileNameGenerator fileNameGenerator;
 
@@ -84,7 +84,7 @@ public class FileSource implements PollableSource<Object>, InitializingBean {
 		}
 	}
 
-	public Message<Object> poll() {
+	public Message poll() {
 		File[] files = null;
 		if (this.fileFilter != null) {
 			files = this.directory.listFiles(this.fileFilter);
@@ -101,7 +101,7 @@ public class FileSource implements PollableSource<Object>, InitializingBean {
 		}
 		for (int i = 0; i < files.length; i++) {
 			if (files[i].isFile()) {
-				return this.mapper.toMessage(files[i]);
+				return this.mapper.createMessage(files[i]);
 			}
 		}
 		return null;

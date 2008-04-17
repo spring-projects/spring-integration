@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,35 +16,33 @@
 
 package org.springframework.integration.adapter.event;
 
+import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.integration.adapter.AbstractTargetAdapter;
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageMapper;
+import org.springframework.integration.message.Target;
 
 /**
  * A target adapter for publishing {@link MessagingEvent MessagingEvents}. The
  * {@link MessagingEvent} is a subclass of Spring's {@link ApplicationEvent}
- * used by this adapter to wrap any {@link Message} received on its channel.
+ * used by this adapter to wrap any {@link Message} sent to this target.
  * 
  * @author Mark Fisher
  */
-public class ApplicationEventTargetAdapter extends AbstractTargetAdapter<MessagingEvent> implements
-		ApplicationEventPublisherAware {
+public class ApplicationEventTargetAdapter<T> implements Target, ApplicationEventPublisherAware {
+
+	private final MessageMapper<T, MessagingEvent<T>> mapper = new MessagingEventMapper<T>();
 
 	private ApplicationEventPublisher applicationEventPublisher;
-
-
-	public ApplicationEventTargetAdapter() {
-		this.setMessageMapper(new MessagingEventMapper());
-	}
 
 
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
-	@Override
-	protected boolean sendToTarget(MessagingEvent event) {
-		this.applicationEventPublisher.publishEvent(event);
+	public boolean send(Message<?> message) {
+		this.applicationEventPublisher.publishEvent(this.mapper.mapMessage((Message<T>) message));
 		return true;
 	}
 

@@ -29,8 +29,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.Target;
 import org.springframework.integration.scheduling.MessagingTask;
 import org.springframework.integration.scheduling.MessagingTaskScheduler;
 import org.springframework.integration.scheduling.PollingSchedule;
@@ -58,7 +58,7 @@ public class DefaultMessageDispatcher implements SchedulingMessageDispatcher {
 
 	private volatile Schedule defaultSchedule = new PollingSchedule(5);
 
-	private final ConcurrentMap<Schedule, List<MessageHandler>> scheduledHandlers = new ConcurrentHashMap<Schedule, List<MessageHandler>>();
+	private final ConcurrentMap<Schedule, List<Target>> scheduledTargets = new ConcurrentHashMap<Schedule, List<Target>>();
 
 	private final AtomicLong totalMessagesProcessed = new AtomicLong();
 
@@ -81,41 +81,41 @@ public class DefaultMessageDispatcher implements SchedulingMessageDispatcher {
 		this.defaultSchedule = defaultSchedule;
 	}
 
-	public void addHandler(MessageHandler handler) {
-		this.addHandler(handler, null);
+	public void addTarget(Target target) {
+		this.addTarget(target, null);
 	}
 
-	public void addHandler(MessageHandler handler, Schedule schedule) {
-		Assert.notNull(handler, "'handler' must not be null");
+	public void addTarget(Target target, Schedule schedule) {
+		Assert.notNull(target, "'target' must not be null");
 		if (schedule == null) {
 			schedule = this.defaultSchedule;
 		}
 		else if (this.channel.getDispatcherPolicy().isPublishSubscribe()) {
 			if (logger.isInfoEnabled()) {
 				logger.info("This dispatcher broadcasts messages for a publish-subscribe channel. " + 
-						"Therefore all handlers are scheduled with its 'defaultSchedule', " +
+						"Therefore all targets are scheduled with its 'defaultSchedule', " +
 						"and the provided schedule will be ignored.");
 			}
 			schedule = this.defaultSchedule;
 		}
-		if (this.isRunning() && handler instanceof Lifecycle) {
-			((Lifecycle) handler).start();
+		if (this.isRunning() && target instanceof Lifecycle) {
+			((Lifecycle) target).start();
 		}
-		List<MessageHandler> handlers = this.scheduledHandlers.get(schedule);
-		if (handlers == null) {
-			handlers = this.scheduledHandlers.putIfAbsent(schedule, new CopyOnWriteArrayList<MessageHandler>());
+		List<Target> targets = this.scheduledTargets.get(schedule);
+		if (targets == null) {
+			targets = this.scheduledTargets.putIfAbsent(schedule, new CopyOnWriteArrayList<Target>());
 		}
-		this.scheduledHandlers.get(schedule).add(handler);
-		if (handlers == null && this.isRunning()) {
+		this.scheduledTargets.get(schedule).add(target);
+		if (targets == null && this.isRunning()) {
 			this.scheduleDispatcherTask(schedule);
 		}
 	}
 
-	public boolean removeHandler(MessageHandler handler) {
+	public boolean removeTarget(Target target) {
 		boolean removed = false;
-		Collection<List<MessageHandler>> handlerLists = this.scheduledHandlers.values();
-		for (List<MessageHandler> handlers : handlerLists) {
-			removed = (removed || handlers.remove(handler));
+		Collection<List<Target>> targetLists = this.scheduledTargets.values();
+		for (List<Target> targets : targetLists) {
+			removed = (removed || targets.remove(target));
 		}
 		return removed;
 	}
@@ -135,7 +135,7 @@ public class DefaultMessageDispatcher implements SchedulingMessageDispatcher {
 			if (!this.scheduler.isRunning()) {
 				this.scheduler.start();
 			}
-			for (Schedule schedule : this.scheduledHandlers.keySet()) {
+			for (Schedule schedule : this.scheduledTargets.keySet()) {
 				scheduleDispatcherTask(schedule);
 			}
 			this.running = true;
@@ -143,10 +143,10 @@ public class DefaultMessageDispatcher implements SchedulingMessageDispatcher {
 	}
 
 	private void scheduleDispatcherTask(Schedule schedule) {
-		List<MessageHandler> handlers = this.scheduledHandlers.get(schedule);
-		for (MessageHandler handler : handlers) {
-			if (handler instanceof Lifecycle) {
-				((Lifecycle) handler).start();
+		List<Target> targets = this.scheduledTargets.get(schedule);
+		for (Target target : targets) {
+			if (target instanceof Lifecycle) {
+				((Lifecycle) target).start();
 			}
 		}
 		this.scheduler.schedule(new DispatcherTask(schedule));
@@ -157,10 +157,10 @@ public class DefaultMessageDispatcher implements SchedulingMessageDispatcher {
 			return;
 		}
 		synchronized (this.lifecycleMonitor) {
-			for (List<MessageHandler> handlerList : scheduledHandlers.values()) {
-				for (MessageHandler handler : handlerList) {
-					if (handler instanceof Lifecycle) {
-						((Lifecycle) handler).stop();
+			for (List<Target> targetList : this.scheduledTargets.values()) {
+				for (Target target : targetList) {
+					if (target instanceof Lifecycle) {
+						((Lifecycle) target).stop();
 					}
 				}
 			}
@@ -193,8 +193,8 @@ public class DefaultMessageDispatcher implements SchedulingMessageDispatcher {
 			schedule = this.defaultSchedule;
 		}
 		MessageDistributor distributor = new DefaultMessageDistributor(this.channel.getDispatcherPolicy());
-		for (MessageHandler handler : this.scheduledHandlers.get(schedule)) {
-			distributor.addHandler(handler);
+		for (Target target : this.scheduledTargets.get(schedule)) {
+			distributor.addTarget(target);
 		}
 		return distributor;
 	}

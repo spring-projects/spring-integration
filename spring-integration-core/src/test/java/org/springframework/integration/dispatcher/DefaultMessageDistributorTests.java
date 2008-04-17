@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
 import org.springframework.integration.channel.DispatcherPolicy;
+import org.springframework.integration.endpoint.HandlerEndpoint;
+import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.message.Target;
 
 /**
  * @author Mark Fisher
@@ -37,7 +40,7 @@ public class DefaultMessageDistributorTests {
 	public void testSingleMessage() throws InterruptedException {
 		MessageDistributor distributor = new DefaultMessageDistributor(new DispatcherPolicy());
 		final CountDownLatch latch = new CountDownLatch(1);
-		distributor.addHandler(TestHandlers.countDownHandler(latch));
+		distributor.addTarget(createEndpoint(TestHandlers.countDownHandler(latch)));
 		distributor.distribute(new StringMessage("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
@@ -49,8 +52,8 @@ public class DefaultMessageDistributorTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicInteger counter1 = new AtomicInteger();
 		final AtomicInteger counter2 = new AtomicInteger();
-		distributor.addHandler(TestHandlers.countingCountDownHandler(counter1, latch));
-		distributor.addHandler(TestHandlers.countingCountDownHandler(counter2, latch));
+		distributor.addTarget(createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch)));
+		distributor.addTarget(createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch)));
 		distributor.distribute(new StringMessage("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
@@ -63,13 +66,20 @@ public class DefaultMessageDistributorTests {
 		final CountDownLatch latch = new CountDownLatch(2);
 		final AtomicInteger counter1 = new AtomicInteger();
 		final AtomicInteger counter2 = new AtomicInteger();
-		distributor.addHandler(TestHandlers.countingCountDownHandler(counter1, latch));
-		distributor.addHandler(TestHandlers.countingCountDownHandler(counter2, latch));
+		distributor.addTarget(createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch)));
+		distributor.addTarget(createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch)));
 		distributor.distribute(new StringMessage("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
 		assertEquals(1, counter1.get());
 		assertEquals(1, counter2.get());
+	}
+
+
+	private static Target createEndpoint(MessageHandler handler) {
+		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
+		endpoint.start();
+		return endpoint;
 	}
 
 }

@@ -19,8 +19,8 @@ package org.springframework.integration.adapter.jms;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.Target;
 import org.springframework.jms.core.JmsTemplate;
 
 /**
@@ -28,7 +28,7 @@ import org.springframework.jms.core.JmsTemplate;
  * 
  * @author Mark Fisher
  */
-public class JmsTargetAdapter extends AbstractJmsTemplateBasedAdapter implements MessageHandler {
+public class JmsTargetAdapter extends AbstractJmsTemplateBasedAdapter implements Target {
 
 	public JmsTargetAdapter(JmsTemplate jmsTemplate) {
 		super(jmsTemplate);
@@ -47,11 +47,12 @@ public class JmsTargetAdapter extends AbstractJmsTemplateBasedAdapter implements
 	}
 
 
-	public final Message<?> handle(final Message<?> message) {
-		if (message != null) {
-			this.getJmsTemplate().convertAndSend(message);
+	public final boolean send(final Message<?> message) {
+		if (message == null) {
+			throw new IllegalArgumentException("message must not be null");
 		}
-		return null;
+		this.getJmsTemplate().convertAndSend(message);
+		return true;
 	}
 
 }

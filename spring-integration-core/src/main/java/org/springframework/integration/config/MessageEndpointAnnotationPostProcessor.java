@@ -34,7 +34,6 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.OrderComparator;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.adapter.DefaultTargetAdapter;
 import org.springframework.integration.adapter.MethodInvokingSource;
 import org.springframework.integration.adapter.MethodInvokingTarget;
 import org.springframework.integration.adapter.PollingSourceAdapter;
@@ -51,7 +50,7 @@ import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.dispatcher.SynchronousChannel;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
-import org.springframework.integration.endpoint.DefaultMessageEndpoint;
+import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.handler.AbstractMessageHandlerAdapter;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
@@ -121,7 +120,7 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 		if (handlerChain == null) {
 			throw new ConfigurationException("@MessageEndpoint has no handler method");
 		}
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(handlerChain);
+		HandlerEndpoint endpoint = new HandlerEndpoint(handlerChain);
 		this.configureInput(bean, beanName, endpointAnnotation, endpoint);
 		if (StringUtils.hasText(defaultOutputChannelName)) {
 			endpoint.setDefaultOutputChannelName(defaultOutputChannelName);
@@ -143,7 +142,7 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 	}
 
 	private void configureInput(final Object bean, final String beanName, MessageEndpoint annotation,
-			final DefaultMessageEndpoint endpoint) {
+			final HandlerEndpoint endpoint) {
 		String channelName = annotation.input();
 		if (StringUtils.hasText(channelName)) {
 			Subscription subscription = new Subscription(channelName);
@@ -175,7 +174,7 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 		});
 	}
 
-	private void configureDefaultOutput(final Object bean, final String beanName, final DefaultMessageEndpoint endpoint) {
+	private void configureDefaultOutput(final Object bean, final String beanName, final HandlerEndpoint endpoint) {
 		ReflectionUtils.doWithMethods(this.getBeanClass(bean), new ReflectionUtils.MethodCallback() {
 			boolean foundDefaultOutput = false;
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
@@ -184,23 +183,12 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 					if (foundDefaultOutput) {
 						throw new ConfigurationException("only one @DefaultOutput allowed per endpoint");
 					}
-					MethodInvokingTarget<Object> target = new MethodInvokingTarget<Object>();
+					MethodInvokingTarget target = new MethodInvokingTarget();
 					target.setObject(bean);
 					target.setMethod(method.getName());
 					target.afterPropertiesSet();
-					DefaultTargetAdapter<Object> adapter = new DefaultTargetAdapter<Object>(target);
 					MessageHandler handler = endpoint.getHandler();
-					if (handler == null) {
-						endpoint.setHandler(adapter);
-					}
-					else if (handler instanceof MessageHandlerChain) {
-						((MessageHandlerChain) handler).add(adapter);
-					}
-					else {
-						MessageHandlerChain chain = new MessageHandlerChain();
-						chain.add(handler);
-						chain.add(adapter);
-					}
+					((MessageHandlerChain) handler).add(target);
 					foundDefaultOutput = true;
 					return;
 				}
@@ -208,7 +196,7 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 		});
 	}
 
-	private void configureCompletionStrategy(final Object bean, final DefaultMessageEndpoint endpoint) {
+	private void configureCompletionStrategy(final Object bean, final HandlerEndpoint endpoint) {
 		ReflectionUtils.doWithMethods(bean.getClass(), new ReflectionUtils.MethodCallback() {
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
 				Annotation annotation = AnnotationUtils.getAnnotation(method, CompletionStrategy.class);

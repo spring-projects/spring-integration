@@ -26,7 +26,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.adapter.rmi.RmiSourceAdapter;
 import org.springframework.integration.adapter.rmi.RmiTargetAdapter;
-import org.springframework.integration.endpoint.DefaultMessageEndpoint;
+import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.scheduling.Subscription;
 import org.springframework.util.StringUtils;
 
@@ -38,7 +38,7 @@ import org.springframework.util.StringUtils;
 public class RmiTargetAdapterParser extends AbstractSingleBeanDefinitionParser {
 
 	protected Class<?> getBeanClass(Element element) {
-		return DefaultMessageEndpoint.class;
+		return HandlerEndpoint.class;
 	}
 
 	protected boolean shouldGenerateId() {

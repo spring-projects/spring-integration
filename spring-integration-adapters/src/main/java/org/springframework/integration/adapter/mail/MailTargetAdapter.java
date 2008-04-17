@@ -17,10 +17,9 @@
 package org.springframework.integration.adapter.mail;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.handler.MessageHandler;
-import org.springframework.integration.message.AbstractMessageMapper;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageMapper;
+import org.springframework.integration.message.Target;
 import org.springframework.mail.MailMessage;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -33,7 +32,7 @@ import org.springframework.util.Assert;
  * @author Marius Bogoevici
  * @author Mark Fisher
  */
-public class MailTargetAdapter implements MessageHandler, InitializingBean {
+public class MailTargetAdapter implements Target, InitializingBean {
 
 	private final JavaMailSender mailSender;
 
@@ -84,22 +83,22 @@ public class MailTargetAdapter implements MessageHandler, InitializingBean {
 		this.objectMessageMapper = objectMessageMapper;
 	}
 
-	public Message<?> handle(Message<?> message) {
+	public final boolean send(Message<?> message) {
 		MailMessage mailMessage = this.convertMessageToMailMessage(message);
 		this.mailHeaderGenerator.populateMailMessageHeader(mailMessage, message);
 		this.sendMailMessage(mailMessage);
-		return null;
+		return true;
 	}
 
 	@SuppressWarnings("unchecked")
 	private MailMessage convertMessageToMailMessage(Message<?> message) {
 		if (message.getPayload() instanceof String) {
-			return this.textMessageMapper.fromMessage((Message<String>) message);
+			return this.textMessageMapper.mapMessage((Message<String>) message);
 		}
 		else if (message.getPayload() instanceof byte[]) {
-			return this.byteArrayMessageMapper.fromMessage((Message<byte[]>) message);
+			return this.byteArrayMessageMapper.mapMessage((Message<byte[]>) message);
 		}
-		return this.objectMessageMapper.fromMessage((Message<Object>) message);
+		return this.objectMessageMapper.mapMessage((Message<Object>) message);
 	}
 
 	private void sendMailMessage(MailMessage mailMessage) {
@@ -116,17 +115,18 @@ public class MailTargetAdapter implements MessageHandler, InitializingBean {
 	}
 
 
-	private static class DefaultObjectMailMessageMapper extends AbstractMessageMapper<Object, MailMessage> {
+	private static class DefaultObjectMailMessageMapper implements MessageMapper<Object, MailMessage> {
 
 		public Message<Object> toMessage(MailMessage source) {
 			throw new UnsupportedOperationException("mapping from MailMessage to Object not supported");
 		}
 
-		public MailMessage fromMessage(Message<Object> objectMessage) {
+		public MailMessage mapMessage(Message<Object> objectMessage) {
 			SimpleMailMessage message = new SimpleMailMessage();
 			message.setText(objectMessage.getPayload().toString());
 			return message;
 		}
+
 	}
 
 }

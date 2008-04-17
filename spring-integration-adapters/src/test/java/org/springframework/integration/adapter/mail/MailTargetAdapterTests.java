@@ -64,7 +64,7 @@ public class MailTargetAdapterTests {
 	@Test
 	public void testTextMessage() {
 		this.mailTargetAdapter.setHeaderGenerator(this.staticMailHeaderGenerator);
-		this.mailTargetAdapter.handle(new StringMessage(MailTestsHelper.MESSAGE_TEXT));
+		this.mailTargetAdapter.send(new StringMessage(MailTestsHelper.MESSAGE_TEXT));
 		SimpleMailMessage message = MailTestsHelper.createSimpleMailMessage();
 		assertEquals("no mime message should have been sent",
 				0, mailSender.getSentMimeMessages().size());
@@ -78,7 +78,7 @@ public class MailTargetAdapterTests {
 	public void testByteArrayMessage() throws Exception {
 		this.mailTargetAdapter.setHeaderGenerator(this.staticMailHeaderGenerator);
 		byte[] payload = {1, 2, 3};
-		this.mailTargetAdapter.handle(new GenericMessage<byte[]>(payload));
+		this.mailTargetAdapter.send(new GenericMessage<byte[]>(payload));
 		byte[] buffer = new byte[1024];
 		MimeMessage mimeMessage = this.mailSender.getSentMimeMessages().get(0);
 		assertTrue("message must be multipart", mimeMessage.getContent() instanceof Multipart);
@@ -99,7 +99,7 @@ public class MailTargetAdapterTests {
 		message.getHeader().setAttribute(MailAttributeKeys.BCC, MailTestsHelper.BCC);
 		message.getHeader().setAttribute(MailAttributeKeys.FROM, MailTestsHelper.FROM);
 		message.getHeader().setAttribute(MailAttributeKeys.REPLY_TO, MailTestsHelper.REPLY_TO);
-		this.mailTargetAdapter.handle(message);
+		this.mailTargetAdapter.send(message);
 		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
 		assertEquals("no mime message should have been sent",
 				0, mailSender.getSentMimeMessages().size());

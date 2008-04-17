@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.springframework.integration.dispatcher;
 
-import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.message.Target;
 
 /**
  * Strategy interface for dispatching messages.
@@ -25,9 +25,9 @@ import org.springframework.integration.handler.MessageHandler;
  */
 public interface MessageDispatcher {
 
-	void addHandler(MessageHandler handler);
+	void addTarget(Target target);
 
-	boolean removeHandler(MessageHandler handler);
+	boolean removeTarget(Target target);
 
 	int dispatch();
 

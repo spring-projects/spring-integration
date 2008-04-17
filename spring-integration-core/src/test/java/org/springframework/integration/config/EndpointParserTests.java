@@ -29,14 +29,13 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
-import org.springframework.integration.endpoint.DefaultMessageEndpoint;
-import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.message.Target;
 import org.springframework.integration.message.selector.MessageSelectorRejectedException;
-import org.springframework.integration.util.ErrorHandler;
 
 /**
  * @author Mark Fisher
@@ -98,7 +97,7 @@ public class EndpointParserTests {
 	public void testDefaultConcurrency() throws InterruptedException {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"endpointConcurrencyTests.xml", this.getClass());
-		DefaultMessageEndpoint endpoint = (DefaultMessageEndpoint) context.getBean("defaultConcurrencyEndpoint");
+		HandlerEndpoint endpoint = (HandlerEndpoint) context.getBean("defaultConcurrencyEndpoint");
 		ConcurrencyPolicy concurrencyPolicy = endpoint.getConcurrencyPolicy();
 		assertEquals(ConcurrencyPolicy.DEFAULT_CORE_SIZE, concurrencyPolicy.getCoreSize());
 		assertEquals(ConcurrencyPolicy.DEFAULT_MAX_SIZE, concurrencyPolicy.getMaxSize());
@@ -110,7 +109,7 @@ public class EndpointParserTests {
 	public void testConfiguredConcurrency() throws InterruptedException {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"endpointConcurrencyTests.xml", this.getClass());
-		DefaultMessageEndpoint endpoint = (DefaultMessageEndpoint) context.getBean("configuredConcurrencyEndpoint");
+		HandlerEndpoint endpoint = (HandlerEndpoint) context.getBean("configuredConcurrencyEndpoint");
 		ConcurrencyPolicy concurrencyPolicy = endpoint.getConcurrencyPolicy();
 		assertEquals(7, concurrencyPolicy.getCoreSize());
 		assertEquals(77, concurrencyPolicy.getMaxSize());
@@ -122,12 +121,12 @@ public class EndpointParserTests {
 	public void testEndpointWithSelectorAccepts() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"endpointWithSelectors.xml", this.getClass());		
-		MessageHandler endpoint = (MessageHandler) context.getBean("endpoint");
+		Target endpoint = (Target) context.getBean("endpoint");
 		((Lifecycle) endpoint).start();
 		Message<?> message = new StringMessage("test");
 		MessageChannel replyChannel = new SimpleChannel();
 		message.getHeader().setReturnAddress(replyChannel);
-		endpoint.handle(message);
+		endpoint.send(message);
 		Message<?> reply = replyChannel.receive(500);
 		assertNotNull(reply);
 		assertEquals("foo", reply.getPayload());
@@ -137,20 +136,20 @@ public class EndpointParserTests {
 	public void testEndpointWithSelectorRejects() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"endpointWithSelectors.xml", this.getClass());		
-		MessageHandler endpoint = (MessageHandler) context.getBean("endpoint");
+		Target endpoint = (Target) context.getBean("endpoint");
 		((Lifecycle) endpoint).start();
-		endpoint.handle(new GenericMessage<Integer>(123));
+		endpoint.send(new GenericMessage<Integer>(123));
 	}
 
 	@Test
 	public void testCustomErrorHandler() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"endpointWithErrorHandler.xml", this.getClass());
-		MessageHandler endpoint = (MessageHandler) context.getBean("endpoint");
+		Target endpoint = (Target) context.getBean("endpoint");
 		TestErrorHandler errorHandler = (TestErrorHandler) context.getBean("errorHandler");
 		assertNull(errorHandler.getLastError());
 		Message<?> message = new StringMessage("test");
-		endpoint.handle(message);
+		endpoint.send(message);
 		Throwable error = errorHandler.getLastError();
 		assertEquals(MessageHandlingException.class, error.getClass());
 		MessageHandlingException exception = (MessageHandlingException) error;
@@ -161,11 +160,11 @@ public class EndpointParserTests {
 	public void testCustomReplyHandler() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"endpointWithReplyHandler.xml", this.getClass());
-		MessageHandler endpoint = (MessageHandler) context.getBean("endpoint");
+		Target endpoint = (Target) context.getBean("endpoint");
 		TestReplyHandler replyHandler = (TestReplyHandler) context.getBean("replyHandler");
 		assertNull(replyHandler.getLastMessage());
 		Message<?> message = new StringMessage("test");
-		endpoint.handle(message);
+		endpoint.send(message);
 		Message<?> reply = replyHandler.getLastMessage();
 		assertNotNull(reply);
 		assertEquals("foo", reply.getPayload());

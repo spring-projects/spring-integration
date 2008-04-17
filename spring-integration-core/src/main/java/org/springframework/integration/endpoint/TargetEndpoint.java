@@ -29,37 +29,32 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
-import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerNotRunningException;
 import org.springframework.integration.handler.MessageHandlerRejectedExecutionException;
-import org.springframework.integration.handler.ReplyHandler;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.message.MessageHeader;
+import org.springframework.integration.message.Target;
 import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.integration.message.selector.MessageSelectorRejectedException;
 import org.springframework.integration.scheduling.Subscription;
 import org.springframework.integration.util.ErrorHandler;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
- * Default implementation of the {@link MessageEndpoint} interface.
+ * Base class for {@link MessageEndpoint} implementations.
  * 
  * @author Mark Fisher
  */
-public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryAware, InitializingBean, BeanNameAware {
+public class TargetEndpoint implements MessageEndpoint, BeanNameAware {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
+	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile String name;
 
-	private volatile MessageHandler handler;
+	private volatile Target target;
 
 	private volatile Subscription subscription;
 
@@ -69,12 +64,6 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 
 	private final List<MessageSelector> selectors = new CopyOnWriteArrayList<MessageSelector>();
 
-	private volatile ReplyHandler replyHandler = new EndpointReplyHandler();
-
-	private volatile long replyTimeout = 1000;
-
-	private volatile String defaultOutputChannelName;
-
 	private volatile ChannelRegistry channelRegistry;
 
 	private volatile boolean initialized;
@@ -82,9 +71,12 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 	private volatile boolean running;
 
 
-	public DefaultMessageEndpoint(MessageHandler handler) {
-		Assert.notNull(handler, "handler must not be null");
-		this.handler = handler;
+	public TargetEndpoint() {
+	}
+
+	public TargetEndpoint(Target target) {
+		Assert.notNull(target, "target must not be null");
+		this.target = target;
 	}
 
 
@@ -100,15 +92,13 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 		this.setName(beanName);
 	}
 
-	public MessageHandler getHandler() {
-		return this.handler;
+	public Target getTarget() {
+		return this.target;
 	}
 
-	/**
-	 * Set the handler to be invoked for each consumed message.
-	 */
-	public void setHandler(MessageHandler handler) {
-		this.handler = handler;
+	public void setTarget(Target target) {
+		Assert.notNull(target, "target must not be null");
+		this.target = target;
 	}
 
 	public void setMessageSelectors(List<MessageSelector> selectors) {
@@ -145,34 +135,6 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 		return (this.errorHandler != null);
 	}
 
-	public void setReplyHandler(ReplyHandler replyHandler) {
-		Assert.notNull(replyHandler, "'replyHandler' must not be null");
-		this.replyHandler = replyHandler;
-	}
-
-	/**
-	 * Set the timeout in milliseconds to be enforced when this endpoint sends a
-	 * reply message. If the message is not sent successfully within the
-	 * allotted time, then it will be sent within a MessageDeliveryException to
-	 * the error handler instead. The default <code>replyTimeout</code> value
-	 * is 1000 milliseconds.
-	 */
-	public void setReplyTimeout(long replyTimeout) {
-		this.replyTimeout = replyTimeout;
-	}
-
-	public String getDefaultOutputChannelName() {
-		return this.defaultOutputChannelName;
-	}
-
-	/**
-	 * Set the name of the channel to which this endpoint should send reply
-	 * messages by default.
-	 */
-	public void setDefaultOutputChannelName(String defaultOutputChannelName) {
-		this.defaultOutputChannelName = defaultOutputChannelName;
-	}
-
 	/**
 	 * Set the channel registry to use for looking up channels by name.
 	 */
@@ -180,23 +142,25 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 		this.channelRegistry = channelRegistry;
 	}
 
+	protected ChannelRegistry getChannelRegistry() {
+		return this.channelRegistry;
+	}
+
 	public void afterPropertiesSet() {
-		if (this.handler instanceof ChannelRegistryAware) {
-			((ChannelRegistryAware) this.handler).setChannelRegistry(this.channelRegistry);
+		if (this.target instanceof ChannelRegistryAware) {
+			((ChannelRegistryAware) this.target).setChannelRegistry(this.channelRegistry);
 		}
-		if (this.concurrencyPolicy != null && !(this.handler instanceof ConcurrentHandler)) {
+		if (this.concurrencyPolicy != null && !(this.target instanceof ConcurrentTarget)) {
 			int capacity = this.concurrencyPolicy.getQueueCapacity();
 			BlockingQueue<Runnable> queue = (capacity < 1) ? new SynchronousQueue<Runnable>() : new ArrayBlockingQueue<Runnable>(capacity);
-			ExecutorService executor = new ThreadPoolExecutor(
-					this.concurrencyPolicy.getCoreSize(), this.concurrencyPolicy.getMaxSize(),
+			ExecutorService executor = new ThreadPoolExecutor(this.concurrencyPolicy.getCoreSize(), this.concurrencyPolicy.getMaxSize(),
 					this.concurrencyPolicy.getKeepAliveSeconds(), TimeUnit.SECONDS, queue);
-			this.handler = new ConcurrentHandler(this.handler, executor);
+			this.target = new ConcurrentTarget(this.target, executor);
 		}
-		if (this.handler instanceof ConcurrentHandler) {
+		if (this.target instanceof ConcurrentTarget) {
 			if (this.errorHandler != null) {
-				((ConcurrentHandler) this.handler).setErrorHandler(this.errorHandler);
+				((ConcurrentTarget) this.target).setErrorHandler(this.errorHandler);
 			}
-			((ConcurrentHandler) this.handler).setReplyHandler(this.replyHandler);
 		}
 		this.initialized = true;
 	}
@@ -209,7 +173,7 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 		if (this.isRunning()) {
 			return;
 		}
-		if (!initialized) {
+		if (!this.initialized) {
 			this.afterPropertiesSet();
 		}
 		this.running = true;
@@ -219,10 +183,20 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 		if (!this.isRunning()) {
 			return;
 		}
+		if (this.target instanceof DisposableBean) {
+			try {
+				((DisposableBean) this.target).destroy();
+			}
+			catch (Exception e) {
+				if (logger.isWarnEnabled()) {
+					logger.warn("exception occurred when destroying target", e);
+				}
+			}
+		}
 		this.running = false;
 	}
 
-	public final Message<?> handle(Message<?> message) {
+	public final boolean send(Message<?> message) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("endpoint '" + this + "' handling message: " + message);
 		}
@@ -235,69 +209,26 @@ public class DefaultMessageEndpoint implements MessageEndpoint, ChannelRegistryA
 			}
 		}
 		try {
-			Message<?> replyMessage = this.handler.handle(message);
-			if (replyMessage != null) {
-				if (replyMessage.getHeader().getCorrelationId() == null) {
-					replyMessage.getHeader().setCorrelationId(message.getId());
-				}
-				this.replyHandler.handle(replyMessage, message.getHeader());
-			}
+			return this.target.send(message);
 		}
 		catch (MessageHandlerRejectedExecutionException e) {
 			throw e;
 		}
 		catch (Throwable t) {
 			if (this.errorHandler == null) {
+				if (t instanceof MessageHandlingException) {
+					throw (MessageHandlingException) t;
+				}
 				throw new MessageHandlingException(message,
 						"error occurred in endpoint, and no 'errorHandler' available", t);
 			}
 			this.errorHandler.handle(t);
+			return false;
 		}
-		return null;
 	}
 
 	public String toString() {
 		return (this.name != null) ? this.name : super.toString();
-	}
-
-	private MessageChannel resolveReplyChannel(MessageHeader originalMessageHeader) {
-		Object returnAddress = originalMessageHeader.getReturnAddress();
-		if (returnAddress instanceof MessageChannel) {
-			return (MessageChannel) returnAddress;
-		}
-		if (returnAddress instanceof String && this.channelRegistry != null) {
-			String channelName = (String) returnAddress;
-			if (StringUtils.hasText(channelName)) {
-				return this.channelRegistry.lookupChannel(channelName);
-			}
-		}
-		if (this.defaultOutputChannelName != null && this.channelRegistry != null) {
-			return this.channelRegistry.lookupChannel(this.defaultOutputChannelName);
-		}
-		return null;
-	}
-
-
-	private class EndpointReplyHandler implements ReplyHandler {
-
-		public void handle(Message<?> replyMessage, MessageHeader originalMessageHeader) {
-			if (replyMessage == null) {
-				return;
-			}
-			MessageChannel replyChannel = resolveReplyChannel(originalMessageHeader);
-			if (replyChannel == null) {
-				throw new MessageHandlingException(replyMessage, 
-						"Unable to determine reply channel for message. Provide a 'returnAddress' in the message header " +
-						"or a 'defaultOutputChannelName' on the message endpoint.");
-			}
-			if (logger.isDebugEnabled()) {
-				logger.debug("endpoint '" + DefaultMessageEndpoint.this + "' replying to channel '" + replyChannel + "' with message: " + replyMessage);
-			}
-			if (!replyChannel.send(replyMessage, replyTimeout)) {
-				throw new MessageDeliveryException(replyMessage,
-						"unable to send reply message within alloted timeout of " + replyTimeout + " milliseconds");
-			}
-		}
 	}
 
 }

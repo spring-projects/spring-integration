@@ -23,10 +23,11 @@ import java.io.FileWriter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.integration.message.AbstractMessageMapper;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageCreator;
 import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.message.MessageMapper;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
@@ -36,7 +37,7 @@ import org.springframework.util.FileCopyUtils;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractFileMapper<T> extends AbstractMessageMapper<T, File> {
+public abstract class AbstractFileMapper<T> implements MessageCreator<File, T>, MessageMapper<T, File> {
 
 	protected Log logger = LogFactory.getLog(this.getClass());
 
@@ -60,7 +61,7 @@ public abstract class AbstractFileMapper<T> extends AbstractMessageMapper<T, Fil
 		this.fileNameGenerator = fileNameGenerator;
 	}
 
-	public File fromMessage(Message<T> message) {
+	public File mapMessage(Message<T> message) {
 		try {
 			File file = new File(parentDirectory, this.fileNameGenerator.generateFileName(message));
 			this.writeToFile(file, message.getPayload());
@@ -71,7 +72,7 @@ public abstract class AbstractFileMapper<T> extends AbstractMessageMapper<T, Fil
 		}
 	}
 
-	public Message<T> toMessage(File file) {
+	public Message<T> createMessage(File file) {
 		try {
 			T payload = this.readMessagePayload(file);
 			if (payload == null) {

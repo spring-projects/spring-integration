@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,22 @@
 package org.springframework.integration.adapter.event;
 
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageCreator;
 import org.springframework.integration.message.MessageMapper;
 
 /**
- * A {@link MessageMapper} implementation for mapping to and from
- * {@link MessagingEvent MessagingEvents}.
+ * Maps between {@link Message Messages} and {@link MessagingEvent MessagingEvents}.
  * 
  * @author Mark Fisher
  */
-public class MessagingEventMapper<T> implements MessageMapper<T, MessagingEvent<T>> {
+public class MessagingEventMapper<T> implements MessageCreator<MessagingEvent<T>, T>, MessageMapper<T, MessagingEvent<T>> {
 
-	public MessagingEvent<T> fromMessage(Message<T> message) {
-		return new MessagingEvent<T>(message);
+	public Message<T> createMessage(MessagingEvent<T> event) {
+		return event.getMessage();
 	}
 
-	public Message<T> toMessage(MessagingEvent<T> event) {
-		return event.getMessage();
+	public MessagingEvent<T> mapMessage(Message<T> message) {
+		return new MessagingEvent<T>(message);
 	}
 
 }

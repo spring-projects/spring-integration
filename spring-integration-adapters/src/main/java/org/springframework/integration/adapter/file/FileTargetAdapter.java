@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package org.springframework.integration.adapter.file;
 
 import java.io.File;
 
-import org.springframework.integration.adapter.AbstractTargetAdapter;
-import org.springframework.integration.message.MessageMapper;
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.Target;
 import org.springframework.util.Assert;
 
 /**
@@ -28,7 +28,10 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class FileTargetAdapter extends AbstractTargetAdapter<File> {
+public class FileTargetAdapter implements Target {
+
+	private AbstractFileMapper<?> mapper;
+
 
 	public FileTargetAdapter(File directory) {
 		this(directory, true);
@@ -36,23 +39,22 @@ public class FileTargetAdapter extends AbstractTargetAdapter<File> {
 
 	public FileTargetAdapter(File directory, boolean isTextBased) {
 		if (isTextBased) {
-			this.setMessageMapper(new TextFileMapper(directory));
+			this.mapper = new TextFileMapper(directory);
 		}
 		else {
-			this.setMessageMapper(new ByteArrayFileMapper(directory));
+			this.mapper = new ByteArrayFileMapper(directory);
 		}
 	}
 
 	public void setFileNameGenerator(FileNameGenerator fileNameGenerator) {
 		Assert.notNull(fileNameGenerator, "'fileNameGenerator' must not be null");
-		MessageMapper<?,?> mapper = this.getMessageMapper();
 		if (mapper instanceof AbstractFileMapper<?>) {
 			((AbstractFileMapper<?>) mapper).setFileNameGenerator(fileNameGenerator);
 		}
 	}
 
-	@Override
-	protected boolean sendToTarget(File file) {
+	public boolean send(Message message) {
+		File file = this.mapper.mapMessage(message);
 		return file.exists();
 	}
 

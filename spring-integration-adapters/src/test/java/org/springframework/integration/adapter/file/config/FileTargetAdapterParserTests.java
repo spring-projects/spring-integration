@@ -23,7 +23,7 @@ import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.adapter.file.FileTargetAdapter;
-import org.springframework.integration.endpoint.DefaultMessageEndpoint;
+import org.springframework.integration.endpoint.TargetEndpoint;
 
 /**
  * @author Mark Fisher
@@ -33,8 +33,8 @@ public class FileTargetAdapterParserTests {
 	@Test
 	public void testFileTargetAdapterParser() {
 		ApplicationContext context = new ClassPathXmlApplicationContext("fileTargetAdapterParserTests.xml", this.getClass());
-		DefaultMessageEndpoint endpoint = (DefaultMessageEndpoint) context.getBean("adapter");
-		assertEquals(FileTargetAdapter.class, endpoint.getHandler().getClass());
+		TargetEndpoint endpoint = (TargetEndpoint) context.getBean("adapter");
+		assertEquals(FileTargetAdapter.class, endpoint.getTarget().getClass());
 		assertEquals("adapter", endpoint.getName());
 		assertEquals("testChannel", endpoint.getSubscription().getChannelName());
 	}

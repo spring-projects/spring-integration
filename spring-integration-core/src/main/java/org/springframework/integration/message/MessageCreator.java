@@ -17,25 +17,12 @@
 package org.springframework.integration.message;
 
 /**
- * A {@link MessageMapper} implementation that simply wraps and unwraps a
- * payload object in a {@link Message}.
+ * Strategy interface for creating a {@link Message} from an Object.
  * 
  * @author Mark Fisher
  */
-public class SimplePayloadMessageMapper<T> extends AbstractMessageMapper<T,T> {
+public interface MessageCreator<O, P> {
 
-	/**
-	 * Return the payload of the given Message.
-	 */
-	public T fromMessage(Message<T> message) {
-		return message.getPayload();
-	}
-
-	/**
-	 * Return a {@link Message} with the given object as its payload.
-	 */
-	public Message<T> toMessage(T source) {
-		return new GenericMessage<T>(this.getIdGenerator().generateId(), source);
-	}
+	Message<P> createMessage(O object);
 
 }

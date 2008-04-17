@@ -20,15 +20,21 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import org.springframework.integration.adapter.AbstractTargetAdapter;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
+import org.springframework.integration.message.Target;
 
 /**
  * A target adapter that writes a byte array to an {@link OutputStream}.
  * 
  * @author Mark Fisher
  */
-public class ByteStreamTargetAdapter extends AbstractTargetAdapter {
+public class ByteStreamTargetAdapter implements Target {
+
+	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private BufferedOutputStream stream;
 
@@ -46,21 +52,20 @@ public class ByteStreamTargetAdapter extends AbstractTargetAdapter {
 		}
 	}
 
-
-	@Override
-	protected boolean sendToTarget(Object object) {
-		if (object == null) {
+	public boolean send(Message message) {
+		Object payload = message.getPayload();
+		if (payload == null) {
 			if (logger.isWarnEnabled()) {
 				logger.warn(this.getClass().getSimpleName() + " received null object");
 			}
 			return false;
 		}
 		try {
-			if (object instanceof String) {
-				this.stream.write(((String) object).getBytes());
+			if (payload instanceof String) {
+				this.stream.write(((String) payload).getBytes());
 			}
-			else if (object instanceof byte[]){
-				this.stream.write((byte[]) object);
+			else if (payload instanceof byte[]){
+				this.stream.write((byte[]) payload);
 			}
 			else {
 				throw new MessagingException(this.getClass().getSimpleName() +

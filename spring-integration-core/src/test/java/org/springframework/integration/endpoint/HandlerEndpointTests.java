@@ -23,9 +23,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -48,7 +45,7 @@ import org.springframework.integration.util.ErrorHandler;
 /**
  * @author Mark Fisher
  */
-public class DefaultMessageEndpointTests {
+public class HandlerEndpointTests {
 
 	@Test
 	public void testDefaultReplyChannel() throws Exception {
@@ -60,11 +57,11 @@ public class DefaultMessageEndpointTests {
 				return new StringMessage("123", "hello " + message.getPayload());
 			}
 		};
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(handler);
+		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
 		endpoint.setChannelRegistry(channelRegistry);
 		endpoint.setDefaultOutputChannelName("replyChannel");
 		endpoint.start();
-		endpoint.handle(new StringMessage(1, "test"));
+		endpoint.send(new StringMessage(1, "test"));
 		endpoint.stop();
 		Message<?> reply = replyChannel.receive(50);
 		assertNotNull(reply);
@@ -79,11 +76,11 @@ public class DefaultMessageEndpointTests {
 				return new StringMessage("123", "hello " + message.getPayload());
 			}
 		};
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(handler);
+		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
 		endpoint.start();
 		StringMessage testMessage = new StringMessage(1, "test");
 		testMessage.getHeader().setReturnAddress(replyChannel);
-		endpoint.handle(testMessage);
+		endpoint.send(testMessage);
 		endpoint.stop();
 		Message<?> reply = replyChannel.receive(50);
 		assertNotNull(reply);
@@ -100,12 +97,12 @@ public class DefaultMessageEndpointTests {
 				return new StringMessage("123", "hello " + message.getPayload());
 			}
 		};
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(handler);
+		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
 		endpoint.setChannelRegistry(channelRegistry);
 		endpoint.start();
 		StringMessage testMessage = new StringMessage(1, "test");
 		testMessage.getHeader().setReturnAddress("replyChannel");
-		endpoint.handle(testMessage);
+		endpoint.send(testMessage);
 		endpoint.stop();
 		Message<?> reply = replyChannel.receive(50);
 		assertNotNull(reply);
@@ -123,19 +120,19 @@ public class DefaultMessageEndpointTests {
 				return new StringMessage("123", "hello " + message.getPayload());
 			}
 		};
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(handler);
+		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
 		endpoint.setChannelRegistry(channelRegistry);
 		endpoint.start();
 		StringMessage testMessage = new StringMessage("test");
 		testMessage.getHeader().setReturnAddress(replyChannel1);
-		endpoint.handle(testMessage);
+		endpoint.send(testMessage);
 		Message<?> reply1 = replyChannel1.receive(50);
 		assertNotNull(reply1);
 		assertEquals("hello test", reply1.getPayload());
 		Message<?> reply2 = replyChannel2.receive(0);
 		assertNull(reply2);
 		testMessage.getHeader().setReturnAddress("replyChannel2");
-		endpoint.handle(testMessage);
+		endpoint.send(testMessage);
 		reply1 = replyChannel1.receive(0);
 		assertNull(reply1);
 		reply2 = replyChannel2.receive(0);
@@ -147,7 +144,7 @@ public class DefaultMessageEndpointTests {
 	@Test
 	public void testCustomErrorHandler() throws InterruptedException {
 		final CountDownLatch latch = new CountDownLatch(2);
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(TestHandlers.rejectingCountDownHandler(latch));
+		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.rejectingCountDownHandler(latch));
 		endpoint.setConcurrencyPolicy(new ConcurrencyPolicy(1, 1));
 		endpoint.setErrorHandler(new ErrorHandler() {
 			public void handle(Throwable t) {
@@ -155,7 +152,7 @@ public class DefaultMessageEndpointTests {
 			}
 		});
 		endpoint.start();
-		endpoint.handle(new StringMessage("test"));
+		endpoint.send(new StringMessage("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals("both handler and errorHandler should have been invoked", 0, latch.getCount());
 	}
@@ -172,13 +169,14 @@ public class DefaultMessageEndpointTests {
 				return new StringMessage("123", "hello " + message.getPayload());
 			}
 		};
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(new ConcurrentHandler(handler, createExecutor()));
+		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
+		endpoint.setConcurrencyPolicy(new ConcurrencyPolicy(1, 1));
 		endpoint.setChannelRegistry(channelRegistry);
 		endpoint.setDefaultOutputChannelName("replyChannel");
 		endpoint.start();
-		endpoint.handle(new StringMessage(1, "test"));
-		endpoint.stop();
+		endpoint.send(new StringMessage(1, "test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
+		endpoint.stop();
 		assertEquals("handler should have been invoked within allotted time", 0, latch.getCount());
 		Message<?> reply = replyChannel.receive(100);
 		assertNotNull(reply);
@@ -197,11 +195,11 @@ public class DefaultMessageEndpointTests {
 				return null;
 			}
 		};
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(handler);
+		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
 		endpoint.setChannelRegistry(channelRegistry);
 		endpoint.setDefaultOutputChannelName("replyChannel");
 		endpoint.start();
-		endpoint.handle(new StringMessage(1, "test"));
+		endpoint.send(new StringMessage(1, "test"));
 		endpoint.stop();
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals("handler should have been invoked within allotted time", 0, latch.getCount());
@@ -221,13 +219,14 @@ public class DefaultMessageEndpointTests {
 				return null;
 			}
 		};
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(new ConcurrentHandler(handler, createExecutor()));
+		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
+		endpoint.setConcurrencyPolicy(new ConcurrencyPolicy(1, 1));
 		endpoint.setChannelRegistry(channelRegistry);
 		endpoint.setDefaultOutputChannelName("replyChannel");
 		endpoint.start();
-		endpoint.handle(new StringMessage(1, "test"));
-		endpoint.stop();
+		endpoint.send(new StringMessage(1, "test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
+		endpoint.stop();
 		assertEquals("handler should have been invoked within allotted time", 0, latch.getCount());
 		Message<?> reply = replyChannel.receive(0);
 		assertNull(reply);
@@ -245,16 +244,17 @@ public class DefaultMessageEndpointTests {
 				return new StringMessage("123", "hello " + message.getPayload());
 			}
 		};
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(new ConcurrentHandler(handler, createExecutor()));
+		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
+		endpoint.setConcurrencyPolicy(new ConcurrencyPolicy(1, 1));
 		endpoint.setChannelRegistry(channelRegistry);
 		endpoint.start();
 		StringMessage message = new StringMessage(1, "test");
 		message.getHeader().setReturnAddress("replyChannel");
-		endpoint.handle(message);
-		endpoint.stop();
+		endpoint.send(message);
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals("handler should have been invoked within allotted time", 0, latch.getCount());
 		Message<?> reply = replyChannel.receive(100);
+		endpoint.stop();
 		assertNotNull(reply);
 		assertEquals("hello test", reply.getPayload());
 	}
@@ -271,14 +271,14 @@ public class DefaultMessageEndpointTests {
 				return new StringMessage("123", "hello " + message.getPayload());
 			}
 		};
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(handler);
+		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
 		endpoint.setChannelRegistry(channelRegistry);
 		endpoint.setConcurrencyPolicy(new ConcurrencyPolicy(3, 14));
 		endpoint.setDefaultOutputChannelName("replyChannel");
 		endpoint.start();
-		endpoint.handle(new StringMessage(1, "test"));
-		endpoint.stop();
+		endpoint.send(new StringMessage(1, "test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
+		endpoint.stop();
 		assertEquals("handler should have been invoked within allotted time", 0, latch.getCount());
 		Message<?> reply = replyChannel.receive(100);
 		assertNotNull(reply);
@@ -297,15 +297,15 @@ public class DefaultMessageEndpointTests {
 				return new StringMessage("123", "hello " + message.getPayload());
 			}
 		};
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(handler);
+		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
 		endpoint.setChannelRegistry(channelRegistry);
 		endpoint.setConcurrencyPolicy(new ConcurrencyPolicy(3, 14));
 		endpoint.start();
 		StringMessage message = new StringMessage(1, "test");
 		message.getHeader().setReturnAddress("replyChannel");
-		endpoint.handle(message);
-		endpoint.stop();
+		endpoint.send(message);
 		latch.await(500, TimeUnit.MILLISECONDS);
+		endpoint.stop();
 		assertEquals("handler should have been invoked within allotted time", 0, latch.getCount());
 		Message<?> reply = replyChannel.receive(100);
 		assertNotNull(reply);
@@ -314,20 +314,20 @@ public class DefaultMessageEndpointTests {
 
 	@Test(expected=MessageHandlerNotRunningException.class)
 	public void testEndpointDoesNotHandleMessagesWhenNotYetStarted() {
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(TestHandlers.nullHandler());
-		endpoint.handle(new StringMessage("test"));
+		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.nullHandler());
+		endpoint.send(new StringMessage("test"));
 	}
 
 	@Test
 	public void testEndpointDoesNotHandleMessagesAfterBeingStopped() {
 		AtomicInteger counter = new AtomicInteger();
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(TestHandlers.countingHandler(counter));
+		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.countingHandler(counter));
 		boolean exceptionThrown = false;
 		try {
 			endpoint.start();
-			endpoint.handle(new StringMessage("test1"));
+			endpoint.send(new StringMessage("test1"));
 			endpoint.stop();
-			endpoint.handle(new StringMessage("test2"));
+			endpoint.send(new StringMessage("test2"));
 		}
 		catch (MessageHandlerNotRunningException e) {
 			exceptionThrown = true;
@@ -338,27 +338,27 @@ public class DefaultMessageEndpointTests {
 
 	@Test(expected=MessageSelectorRejectedException.class)
 	public void testEndpointWithSelectorRejecting() {
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(TestHandlers.nullHandler());
+		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.nullHandler());
 		endpoint.addMessageSelector(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return false;
 			}
 		});
 		endpoint.start();
-		endpoint.handle(new StringMessage("test"));
+		endpoint.send(new StringMessage("test"));
 	}
 
 	@Test
 	public void testEndpointWithSelectorAccepting() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(TestHandlers.countDownHandler(latch));
+		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.countDownHandler(latch));
 		endpoint.addMessageSelector(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return true;
 			}
 		});
 		endpoint.start();
-		endpoint.handle(new StringMessage("test"));
+		endpoint.send(new StringMessage("test"));
 		latch.await(100, TimeUnit.MILLISECONDS);
 		assertEquals("handler should have been invoked", 0, latch.getCount());
 		endpoint.stop();
@@ -367,7 +367,7 @@ public class DefaultMessageEndpointTests {
 	@Test
 	public void testEndpointWithMultipleSelectorsAndFirstRejects() {
 		final AtomicInteger counter = new AtomicInteger();
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(TestHandlers.countingHandler(counter));
+		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.countingHandler(counter));
 		boolean exceptionThrown = false;
 		endpoint.addMessageSelector(new MessageSelector() {
 			public boolean accept(Message<?> message) {
@@ -383,7 +383,7 @@ public class DefaultMessageEndpointTests {
 		});
 		endpoint.start();
 		try {
-			endpoint.handle(new StringMessage("test"));
+			endpoint.send(new StringMessage("test"));
 		}
 		catch (MessageSelectorRejectedException e) {
 			exceptionThrown = true;
@@ -396,7 +396,7 @@ public class DefaultMessageEndpointTests {
 	@Test
 	public void testEndpointWithMultipleSelectorsAndFirstAccepts() {
 		final AtomicInteger counter = new AtomicInteger();
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(TestHandlers.countingHandler(counter));
+		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.countingHandler(counter));
 		boolean exceptionThrown = false;
 		endpoint.addMessageSelector(new MessageSelector() {
 			public boolean accept(Message<?> message) {
@@ -412,7 +412,7 @@ public class DefaultMessageEndpointTests {
 		});
 		endpoint.start();
 		try {
-			endpoint.handle(new StringMessage("test"));
+			endpoint.send(new StringMessage("test"));
 		}
 		catch (MessageSelectorRejectedException e) {
 			exceptionThrown = true;
@@ -425,7 +425,7 @@ public class DefaultMessageEndpointTests {
 	@Test
 	public void testEndpointWithMultipleSelectorsAndBothAccept() {
 		final AtomicInteger counter = new AtomicInteger();
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(TestHandlers.countingHandler(counter));
+		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.countingHandler(counter));
 		endpoint.addMessageSelector(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				counter.incrementAndGet();
@@ -439,7 +439,7 @@ public class DefaultMessageEndpointTests {
 			}
 		});
 		endpoint.start();
-		endpoint.handle(new StringMessage("test"));
+		endpoint.send(new StringMessage("test"));
 		assertEquals("both selectors and handler should have been invoked", 3, counter.get());
 		endpoint.stop();
 	}
@@ -449,7 +449,7 @@ public class DefaultMessageEndpointTests {
 		SimpleChannel output = new SimpleChannel(1);
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("output", output);
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(new MessageHandler() {
+		HandlerEndpoint endpoint = new HandlerEndpoint(new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				return message;
 			}
@@ -460,9 +460,9 @@ public class DefaultMessageEndpointTests {
 		endpoint.setErrorHandler(errorHandler);
 		endpoint.setReplyTimeout(0);
 		endpoint.start();
-		endpoint.handle(new StringMessage("test1"));
+		endpoint.send(new StringMessage("test1"));
 		assertNull(errorHandler.getLastError());
-		endpoint.handle(new StringMessage("test2"));
+		endpoint.send(new StringMessage("test2"));
 		Throwable error = errorHandler.getLastError();
 		assertNotNull(error);
 		assertEquals(MessageDeliveryException.class, error.getClass());
@@ -472,7 +472,7 @@ public class DefaultMessageEndpointTests {
 	@Test
 	public void testReturnAddressChannelTimeoutSendsToErrorHandler() {
 		SimpleChannel replyChannel = new SimpleChannel(1);
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(new MessageHandler() {
+		HandlerEndpoint endpoint = new HandlerEndpoint(new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				return message;
 			}
@@ -483,11 +483,11 @@ public class DefaultMessageEndpointTests {
 		endpoint.start();
 		Message<?> message1 = new StringMessage("test1");
 		message1.getHeader().setReturnAddress(replyChannel);
-		endpoint.handle(message1);
+		endpoint.send(message1);
 		assertNull(errorHandler.getLastError());
 		Message<?> message2 = new StringMessage("test2");
 		message2.getHeader().setReturnAddress(replyChannel);
-		endpoint.handle(message2);
+		endpoint.send(message2);
 		Throwable error = errorHandler.getLastError();
 		assertNotNull(error);
 		assertEquals(MessageDeliveryException.class, error.getClass());
@@ -499,7 +499,7 @@ public class DefaultMessageEndpointTests {
 		SimpleChannel replyChannel = new SimpleChannel(1);
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("replyChannel", replyChannel);
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(new MessageHandler() {
+		HandlerEndpoint endpoint = new HandlerEndpoint(new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				return message;
 			}
@@ -511,11 +511,11 @@ public class DefaultMessageEndpointTests {
 		endpoint.start();
 		Message<?> message1 = new StringMessage("test1");
 		message1.getHeader().setReturnAddress("replyChannel");
-		endpoint.handle(message1);
+		endpoint.send(message1);
 		assertNull(errorHandler.getLastError());
 		Message<?> message2 = new StringMessage("test2");
 		message2.getHeader().setReturnAddress("replyChannel");
-		endpoint.handle(message2);
+		endpoint.send(message2);
 		Throwable error = errorHandler.getLastError();
 		assertNotNull(error);
 		assertEquals(MessageDeliveryException.class, error.getClass());
@@ -525,7 +525,7 @@ public class DefaultMessageEndpointTests {
 	@Test
 	public void testCorrelationId() {
 		SimpleChannel replyChannel = new SimpleChannel(1);
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(new MessageHandler() {
+		HandlerEndpoint endpoint = new HandlerEndpoint(new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				return message;
 			}
@@ -533,7 +533,7 @@ public class DefaultMessageEndpointTests {
 		endpoint.start();
 		Message<?> message = new StringMessage("test");
 		message.getHeader().setReturnAddress(replyChannel);
-		endpoint.handle(message);
+		endpoint.send(message);
 		Message<?> reply = replyChannel.receive(500);
 		assertEquals(message.getId(), reply.getHeader().getCorrelationId());
 	}
@@ -541,7 +541,7 @@ public class DefaultMessageEndpointTests {
 	@Test
 	public void testCorrelationIdSetByHandlerTakesPrecedence() {
 		SimpleChannel replyChannel = new SimpleChannel(1);
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(new MessageHandler() {
+		HandlerEndpoint endpoint = new HandlerEndpoint(new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				message.getHeader().setCorrelationId("ABC-123");
 				return message;
@@ -550,16 +550,11 @@ public class DefaultMessageEndpointTests {
 		endpoint.start();
 		Message<?> message = new StringMessage("test");
 		message.getHeader().setReturnAddress(replyChannel);
-		endpoint.handle(message);
+		endpoint.send(message);
 		Message<?> reply = replyChannel.receive(500);
 		Object correlationId = reply.getHeader().getCorrelationId();
 		assertFalse(message.getId().equals(correlationId));
 		assertEquals("ABC-123", correlationId);
-	}
-
-
-	private static ExecutorService createExecutor() {
-		return new ThreadPoolExecutor(1, 1, 60, TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
 	}
 
 

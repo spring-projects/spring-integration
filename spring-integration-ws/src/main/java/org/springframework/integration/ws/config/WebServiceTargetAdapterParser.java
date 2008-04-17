@@ -25,7 +25,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.endpoint.DefaultMessageEndpoint;
+import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.scheduling.Subscription;
 import org.springframework.integration.ws.adapter.MarshallingWebServiceTargetAdapter;
 import org.springframework.integration.ws.adapter.SimpleWebServiceTargetAdapter;
@@ -39,7 +39,7 @@ import org.springframework.util.StringUtils;
 public class WebServiceTargetAdapterParser extends AbstractSingleBeanDefinitionParser {
 
 	protected Class<?> getBeanClass(Element element) {
-		return DefaultMessageEndpoint.class;
+		return HandlerEndpoint.class;
 	}
 
 	protected boolean shouldGenerateId() {

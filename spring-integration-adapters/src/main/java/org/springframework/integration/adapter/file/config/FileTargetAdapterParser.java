@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.adapter.file.FileTargetAdapter;
-import org.springframework.integration.endpoint.DefaultMessageEndpoint;
+import org.springframework.integration.endpoint.TargetEndpoint;
 import org.springframework.integration.scheduling.Subscription;
 
 /**
@@ -35,7 +35,7 @@ import org.springframework.integration.scheduling.Subscription;
 public class FileTargetAdapterParser extends AbstractSingleBeanDefinitionParser {
 
 	protected Class<?> getBeanClass(Element element) {
-		return DefaultMessageEndpoint.class;
+		return TargetEndpoint.class;
 	}
 
 	protected boolean shouldGenerateId() {

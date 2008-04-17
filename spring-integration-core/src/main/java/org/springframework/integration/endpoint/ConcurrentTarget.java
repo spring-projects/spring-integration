@@ -25,36 +25,34 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerNotRunningException;
 import org.springframework.integration.handler.MessageHandlerRejectedExecutionException;
-import org.springframework.integration.handler.ReplyHandler;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.message.Target;
 import org.springframework.integration.util.ErrorHandler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.Assert;
 
 /**
- * A {@link MessageHandler} implementation that encapsulates a
- * {@link ThreadPoolTaskExecutor} and delegates to a wrapped handler for
- * concurrent, asynchronous message handling.
+ * A {@link Target} implementation that encapsulates an Executor and delegates
+ * to a wrapped target for concurrent, asynchronous message handling.
  * 
  * @author Mark Fisher
  */
-public class ConcurrentHandler implements MessageHandler, DisposableBean {
+public class ConcurrentTarget implements Target, DisposableBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private final MessageHandler handler;
+	private final Target target;
 
 	private final ExecutorService executor;
 
 	private volatile ErrorHandler errorHandler;
 
-	private volatile ReplyHandler replyHandler;
 
-
-	public ConcurrentHandler(MessageHandler handler, ExecutorService executor) {
-		Assert.notNull(handler, "'handler' must not be null");
+	public ConcurrentTarget(Target target, ExecutorService executor) {
+		Assert.notNull(target, "'target' must not be null");
 		Assert.notNull(executor, "'executor' must not be null");
-		this.handler = handler;
+		this.target = target;
 		this.executor = executor;
 	}
 
@@ -63,21 +61,17 @@ public class ConcurrentHandler implements MessageHandler, DisposableBean {
 		this.errorHandler = errorHandler;
 	}
 
-	public void setReplyHandler(ReplyHandler replyHandler) {
-		this.replyHandler = replyHandler;
-	}
-
 	public void destroy() {
-		this.executor.shutdownNow();
+		this.executor.shutdown();
 	}
 
-	public Message<?> handle(Message<?> message) {
+	public boolean send(Message<?> message) {
 		if (this.executor.isShutdown()) {
 			throw new MessageHandlerNotRunningException(message);
 		}
 		try {
-			this.executor.execute(new HandlerTask(message));
-			return null;
+			this.executor.execute(new TargetTask(message));
+			return true;
 		}
 		catch (RuntimeException e) {
 			throw new MessageHandlerRejectedExecutionException(message, e);
@@ -85,19 +79,18 @@ public class ConcurrentHandler implements MessageHandler, DisposableBean {
 	}
 
 
-	private class HandlerTask implements Runnable {
+	private class TargetTask implements Runnable {
 
 		private Message<?> message;
 
-		HandlerTask(Message<?> message) {
+		TargetTask(Message<?> message) {
 			this.message = message;
 		}
 
 		public void run() {
 			try {
-				Message<?> reply = handler.handle(this.message);
-				if (replyHandler != null) {
-					replyHandler.handle(reply, this.message.getHeader());
+				if (!target.send(this.message)) {
+					throw new MessageDeliveryException(message, "failed to send message to target");
 				}
 			}
 			catch (Throwable t) {

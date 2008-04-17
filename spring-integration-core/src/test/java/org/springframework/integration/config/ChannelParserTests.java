@@ -32,12 +32,12 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.dispatcher.DefaultMessageDispatcher;
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessagePriority;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.message.Target;
 import org.springframework.integration.scheduling.SimpleMessagingTaskScheduler;
 
 /**
@@ -72,10 +72,10 @@ public class ChannelParserTests {
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		AtomicInteger counter = new AtomicInteger();
 		CountDownLatch latch = new CountDownLatch(1);
-		TestHandler handler1 = new TestHandler(counter, latch);
-		TestHandler handler2 = new TestHandler(counter, latch);
-		dispatcher.addHandler(handler1);
-		dispatcher.addHandler(handler2);
+		TestTarget target1 = new TestTarget(counter, latch);
+		TestTarget target2 = new TestTarget(counter, latch);
+		dispatcher.addTarget(target1);
+		dispatcher.addTarget(target2);
 		dispatcher.start();
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
@@ -92,10 +92,10 @@ public class ChannelParserTests {
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		AtomicInteger counter = new AtomicInteger();
 		CountDownLatch latch = new CountDownLatch(1);
-		TestHandler handler1 = new TestHandler(counter, latch);
-		TestHandler handler2 = new TestHandler(counter, latch);
-		dispatcher.addHandler(handler1);
-		dispatcher.addHandler(handler2);
+		TestTarget target1 = new TestTarget(counter, latch);
+		TestTarget target2 = new TestTarget(counter, latch);
+		dispatcher.addTarget(target1);
+		dispatcher.addTarget(target2);
 		dispatcher.start();
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
@@ -112,10 +112,10 @@ public class ChannelParserTests {
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		AtomicInteger counter = new AtomicInteger();
 		CountDownLatch latch = new CountDownLatch(2);
-		TestHandler handler1 = new TestHandler(counter, latch);
-		TestHandler handler2 = new TestHandler(counter, latch);
-		dispatcher.addHandler(handler1);
-		dispatcher.addHandler(handler2);
+		TestTarget target1 = new TestTarget(counter, latch);
+		TestTarget target2 = new TestTarget(counter, latch);
+		dispatcher.addTarget(target1);
+		dispatcher.addTarget(target2);
 		dispatcher.start();
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
@@ -270,21 +270,21 @@ public class ChannelParserTests {
 	}
 
 
-	private static class TestHandler implements MessageHandler {
+	private static class TestTarget implements Target {
 
 		private AtomicInteger counter;
 
 		private CountDownLatch latch;
 
-		TestHandler(AtomicInteger counter, CountDownLatch latch) {
+		TestTarget(AtomicInteger counter, CountDownLatch latch) {
 			this.counter = counter;
 			this.latch = latch;
 		}
 
-		public Message<?> handle(Message<?> message) {
+		public boolean send(Message<?> message) {
 			this.counter.incrementAndGet();
 			this.latch.countDown();
-			return null;
+			return true;
 		}
 	}
 

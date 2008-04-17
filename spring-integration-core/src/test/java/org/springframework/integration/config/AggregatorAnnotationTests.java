@@ -25,7 +25,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.bus.MessageBus;
-import org.springframework.integration.endpoint.DefaultMessageEndpoint;
+import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.integration.router.AggregatingMessageHandler;
 import org.springframework.integration.router.SequenceSizeCompletionStrategy;
@@ -83,7 +83,7 @@ public class AggregatorAnnotationTests {
 	private DirectFieldAccessor getDirectFieldAccessorForAggregatingHandler(ApplicationContext context,
 			final String endpointName) {
 		MessageBus messageBus = getMessageBus(context);
-		DefaultMessageEndpoint endpoint = (DefaultMessageEndpoint) messageBus.lookupEndpoint(endpointName +  "-endpoint");
+		HandlerEndpoint endpoint = (HandlerEndpoint) messageBus.lookupEndpoint(endpointName +  "-endpoint");
 		MessageHandlerChain messageHandlerChain = (MessageHandlerChain) endpoint.getHandler();
 		AggregatingMessageHandler aggregatingMessageHandler = (AggregatingMessageHandler) ((List) new DirectFieldAccessor(
 				messageHandlerChain).getPropertyValue("handlers")).get(0);

@@ -24,7 +24,7 @@ import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.adapter.httpinvoker.HttpInvokerTargetAdapter;
-import org.springframework.integration.endpoint.DefaultMessageEndpoint;
+import org.springframework.integration.endpoint.HandlerEndpoint;
 
 /**
  * @author Mark Fisher
@@ -35,7 +35,7 @@ public class HttpInvokerTargetAdapterParserTests {
 	public void testHttpInvokerTargetAdapter() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"httpInvokerTargetAdapterParserTests.xml", this.getClass());
-		DefaultMessageEndpoint endpoint = (DefaultMessageEndpoint) context.getBean("adapter");
+		HandlerEndpoint endpoint = (HandlerEndpoint) context.getBean("adapter");
 		assertNotNull(endpoint);
 		assertEquals(HttpInvokerTargetAdapter.class, endpoint.getHandler().getClass());
 		assertEquals("testChannel", endpoint.getSubscription().getChannelName());

@@ -28,6 +28,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.scheduling.Subscription;
 
@@ -49,7 +50,7 @@ public class ApplicationEventTargetAdapterTests {
 		adapter.setApplicationEventPublisher(publisher);
 		MessageBus bus = new MessageBus();
 		bus.registerChannel("channel", channel);
-		bus.registerHandler("adapter", adapter, new Subscription(channel));
+		bus.registerTarget("adapter", adapter, new Subscription(channel));
 		bus.start();
 		assertEquals(1, latch.getCount());
 		channel.send(new StringMessage("123", "testing"));

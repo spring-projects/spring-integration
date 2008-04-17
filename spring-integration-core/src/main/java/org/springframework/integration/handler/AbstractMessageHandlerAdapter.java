@@ -24,7 +24,6 @@ import org.springframework.core.Ordered;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHeader;
-import org.springframework.integration.message.MessageMapper;
 import org.springframework.util.Assert;
 
 /**
@@ -123,7 +122,7 @@ public abstract class AbstractMessageHandlerAdapter<T> implements MessageHandler
 	}
 
 	protected Message<?> createReplyMessage(Object payload, MessageHeader originalMessageHeader) {
-		return new GenericMessage(payload, originalMessageHeader);
+		return new GenericMessage<Object>(payload, originalMessageHeader);
 	}
 
 	/**

@@ -25,11 +25,10 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.adapter.DefaultTargetAdapter;
 import org.springframework.integration.adapter.MethodInvokingSource;
 import org.springframework.integration.adapter.MethodInvokingTarget;
 import org.springframework.integration.adapter.PollingSourceAdapter;
-import org.springframework.integration.endpoint.DefaultMessageEndpoint;
+import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Subscription;
 import org.springframework.util.StringUtils;
@@ -78,7 +77,10 @@ public class ChannelAdapterParser implements BeanDefinitionParser {
 		if (this.isInbound) {
 			adapterDef = new RootBeanDefinition(PollingSourceAdapter.class);
 			invokerDef = new RootBeanDefinition(MethodInvokingSource.class);
-			String invokerBeanName = this.configureAndRegisterInvoker(invokerDef, ref, method, parserContext);
+			invokerDef.getPropertyValues().addPropertyValue("object", new RuntimeBeanReference(ref));
+			invokerDef.getPropertyValues().addPropertyValue("method", method);
+			String invokerBeanName = parserContext.getReaderContext().generateBeanName(invokerDef);
+			parserContext.registerBeanComponent(new BeanComponentDefinition(invokerDef, invokerBeanName));
 			String period = element.getAttribute(PERIOD_ATTRIBUTE);
 			if (!StringUtils.hasText(period)) {
 				throw new ConfigurationException("'period' is required");
@@ -89,10 +91,9 @@ public class ChannelAdapterParser implements BeanDefinitionParser {
 			adapterDef.getConstructorArgumentValues().addGenericArgumentValue(schedule);
 		}
 		else {
-			adapterDef = new RootBeanDefinition(DefaultTargetAdapter.class);
-			invokerDef = new RootBeanDefinition(MethodInvokingTarget.class);
-			String invokerBeanName = this.configureAndRegisterInvoker(invokerDef, ref, method, parserContext);
-			adapterDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(invokerBeanName));
+			adapterDef = new RootBeanDefinition(MethodInvokingTarget.class);
+			adapterDef.getPropertyValues().addPropertyValue("object", new RuntimeBeanReference(ref));
+			adapterDef.getPropertyValues().addPropertyValue("method", method);
 		}
 		adapterDef.setSource(parserContext.extractSource(element));
 		String beanName = element.getAttribute(ID_ATTRIBUTE);
@@ -100,7 +101,7 @@ public class ChannelAdapterParser implements BeanDefinitionParser {
 			beanName = parserContext.getReaderContext().generateBeanName(adapterDef);
 		}
 		if (!this.isInbound) {
-			RootBeanDefinition endpointDef = new RootBeanDefinition(DefaultMessageEndpoint.class);
+			RootBeanDefinition endpointDef = new RootBeanDefinition(HandlerEndpoint.class);
 			RootBeanDefinition subscriptionDef = new RootBeanDefinition(Subscription.class);
 			subscriptionDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(channel));
 			String subscriptionBeanName = parserContext.getReaderContext().generateBeanName(subscriptionDef);
@@ -112,14 +113,6 @@ public class ChannelAdapterParser implements BeanDefinitionParser {
 		}
 		parserContext.registerBeanComponent(new BeanComponentDefinition(adapterDef, beanName));
 		return adapterDef;
-	}
-
-	private String configureAndRegisterInvoker(RootBeanDefinition invokerDef, String objectRef, String methodName, ParserContext parserContext) {
-		invokerDef.getPropertyValues().addPropertyValue("object", new RuntimeBeanReference(objectRef));
-		invokerDef.getPropertyValues().addPropertyValue("method", methodName);
-		String invokerBeanName = parserContext.getReaderContext().generateBeanName(invokerDef);
-		parserContext.registerBeanComponent(new BeanComponentDefinition(invokerDef, invokerBeanName));
-		return invokerBeanName;
 	}
 
 }

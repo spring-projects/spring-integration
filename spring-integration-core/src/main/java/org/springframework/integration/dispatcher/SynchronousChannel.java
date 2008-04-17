@@ -27,6 +27,7 @@ import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.PollableSource;
+import org.springframework.integration.message.Target;
 import org.springframework.integration.message.selector.MessageSelector;
 
 /**
@@ -70,13 +71,13 @@ public class SynchronousChannel extends AbstractMessageChannel {
 		this.source = source;
 	}
 
-	public void addHandler(MessageHandler handler) {
-		this.distributor.addHandler(handler);
+	public void addTarget(Target target) {
+		this.distributor.addTarget(target);
 		this.handlerCount.incrementAndGet();
 	}
 
-	public boolean removeHandler(MessageHandler handler) {
-		if (this.distributor.removeHandler(handler)) {
+	public boolean removeTarget(Target target) {
+		if (this.distributor.removeTarget(target)) {
 			this.handlerCount.decrementAndGet();
 			return true;
 		}

@@ -32,7 +32,7 @@ import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
-import org.springframework.integration.endpoint.DefaultMessageEndpoint;
+import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
 import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.integration.scheduling.PollingSchedule;
@@ -95,7 +95,7 @@ public class EndpointParser implements BeanDefinitionParser {
 
 
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
-		RootBeanDefinition endpointDef = new RootBeanDefinition(DefaultMessageEndpoint.class);
+		RootBeanDefinition endpointDef = new RootBeanDefinition(HandlerEndpoint.class);
 		endpointDef.setSource(parserContext.extractSource(element));
 		String inputChannel = element.getAttribute(INPUT_CHANNEL_ATTRIBUTE);
 		String defaultOutputChannel = element.getAttribute(DEFAULT_OUTPUT_CHANNEL_ATTRIBUTE);

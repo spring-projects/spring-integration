@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.MessageMapper;
-import org.springframework.integration.message.SimplePayloadMessageMapper;
-import org.springframework.util.Assert;
+import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageCreator;
 
 /**
  * Interceptor that publishes a target method's return value to a channel.
@@ -34,11 +34,11 @@ import org.springframework.util.Assert;
  */
 public class MessagePublishingInterceptor implements MethodInterceptor {
 
-	protected Log logger = LogFactory.getLog(getClass());
+	protected final Log logger = LogFactory.getLog(getClass());
 
-	private MessageMapper mapper = new SimplePayloadMessageMapper();
+	private volatile MessageCreator messageCreator;
 
-	private MessageChannel defaultChannel;
+	private volatile MessageChannel defaultChannel;
 
 
 	public void setDefaultChannel(MessageChannel defaultChannel) {
@@ -46,14 +46,13 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 	}
 
 	/**
-	 * Specify the {@link MessageMapper} to use when creating a message from the
-	 * return value Object. The default is a {@link SimplePayloadMessageMapper}.
+	 * Specify the {@link MessageCreator} to use when creating a message from the
+	 * return value Object.
 	 * 
-	 * @param mapper the mapper to use
+	 * @param messageCreator the MessageCreator to use
 	 */
-	public void setMessageMapper(MessageMapper mapper) {
-		Assert.notNull(mapper, "mapper must not be null");
-		this.mapper = mapper;
+	public void setMessageCreator(MessageCreator messageCreator) {
+		this.messageCreator = messageCreator;
 	}
 
 	/**
@@ -70,7 +69,8 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 				}
 			}
 			else {
-				channel.send(mapper.toMessage(retval));
+				Message<?> message = (this.messageCreator != null) ? this.messageCreator.createMessage(retval) : new GenericMessage<Object>(retval);
+				channel.send(message);
 			}
 		}
 		return retval;

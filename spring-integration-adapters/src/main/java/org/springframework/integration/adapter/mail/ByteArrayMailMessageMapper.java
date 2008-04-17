@@ -21,8 +21,8 @@ import javax.mail.internet.MimeMessage;
 
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.integration.adapter.MessageMappingException;
-import org.springframework.integration.message.AbstractMessageMapper;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageMapper;
 import org.springframework.mail.MailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMailMessage;
@@ -36,7 +36,7 @@ import org.springframework.util.Assert;
  * 
  * @author Marius Bogoevici
  */
-public class ByteArrayMailMessageMapper extends AbstractMessageMapper<byte[], MailMessage> {
+public class ByteArrayMailMessageMapper implements MessageMapper<byte[], MailMessage> {
 
 	private final JavaMailSender mailSender;
 
@@ -63,7 +63,7 @@ public class ByteArrayMailMessageMapper extends AbstractMessageMapper<byte[], Ma
 		throw new UnsupportedOperationException("mapping from MailMessage to byte array not supported");
 	}
 
-	public MailMessage fromMessage(Message<byte[]> message) {
+	public MailMessage mapMessage(Message<byte[]> message) {
 		try {
 			MimeMessage mimeMessage = this.mailSender.createMimeMessage();
 			MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, this.multipartMode);

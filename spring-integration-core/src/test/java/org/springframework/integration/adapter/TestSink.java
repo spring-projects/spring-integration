@@ -38,8 +38,8 @@ public class TestSink {
 	public void invalidMethodWithNoArgs() {
 	}
 
-	public String validMethodWithIgnoredReturnValue(String s) {
-		return "ignored";
+	public String methodWithReturnValue(String s) {
+		return "value";
 	}
 
 	public void store(String s) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ public class MailTargetAdapterContextTests {
 
 	@Test
 	public void testStringMesssagesWithConfiguration() {
-		this.mailTargetAdapter.handle(new StringMessage(MailTestsHelper.MESSAGE_TEXT));
+		this.mailTargetAdapter.send(new StringMessage(MailTestsHelper.MESSAGE_TEXT));
 		SimpleMailMessage message = MailTestsHelper.createSimpleMailMessage();
 		assertEquals("no mime message should have been sent",
 				0, this.mailSender.getSentMimeMessages().size());
@@ -72,7 +72,7 @@ public class MailTargetAdapterContextTests {
 	@Test
 	public void testByteArrayMessage() throws Exception {
 		byte[] payload = {1, 2, 3};
-		mailTargetAdapter.handle(new GenericMessage<byte[]>(payload));
+		mailTargetAdapter.send(new GenericMessage<byte[]>(payload));
 		assertEquals("no mime message should have been sent",
 				1, mailSender.getSentMimeMessages().size());
 		assertEquals("only one simple message must be sent",

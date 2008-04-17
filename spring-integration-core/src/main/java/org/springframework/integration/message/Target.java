@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter;
+package org.springframework.integration.message;
 
 /**
- * A strategy for preparing an argument list from a single source object.
+ * Interface for any target to which {@link Message Messages} can be sent.
  * 
  * @author Mark Fisher
  */
-public interface ArgumentListPreparer {
+public interface Target {
 
-	Object[] prepare(Object source);
+	boolean send(Message<?> message);
 
 }

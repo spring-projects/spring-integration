@@ -16,11 +16,24 @@
 
 package org.springframework.integration.adapter;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
+import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
+import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.scheduling.Subscription;
 
 /**
  * @author Mark Fisher
@@ -29,40 +42,82 @@ public class MethodInvokingTargetTests {
 
 	@Test
 	public void testValidMethod() {
-		MethodInvokingTarget<TestSink> target = new MethodInvokingTarget<TestSink>();
+		MethodInvokingTarget target = new MethodInvokingTarget();
 		target.setObject(new TestSink());
 		target.setMethod("validMethod");
 		target.afterPropertiesSet();
-		boolean result = target.send("test");
+		boolean result = target.send(new GenericMessage<String>("test"));
 		assertTrue(result);
 	}
 
 	@Test(expected=MessagingException.class)
 	public void testInvalidMethodWithNoArgs() {
-		MethodInvokingTarget<TestSink> target = new MethodInvokingTarget<TestSink>();
+		MethodInvokingTarget target = new MethodInvokingTarget();
 		target.setObject(new TestSink());
 		target.setMethod("invalidMethodWithNoArgs");
 		target.afterPropertiesSet();
-		target.send("test");
+		target.send(new StringMessage("test"));
 	}
 
-	@Test
-	public void testValidMethodWithIgnoredReturnValue() {
-		MethodInvokingTarget<TestSink> target = new MethodInvokingTarget<TestSink>();
+	@Test(expected=MessagingException.class)
+	public void testMethodWithReturnValue() {
+		MethodInvokingTarget target = new MethodInvokingTarget();
 		target.setObject(new TestSink());
-		target.setMethod("validMethodWithIgnoredReturnValue");
+		target.setMethod("methodWithReturnValue");
 		target.afterPropertiesSet();
-		boolean result = target.send("test");
+		boolean result = target.send(new StringMessage("test"));
 		assertTrue(result);
 	}
 
 	@Test(expected=MessagingException.class)
 	public void testNoMatchingMethodName() {
-		MethodInvokingTarget<TestSink> target = new MethodInvokingTarget<TestSink>();
+		MethodInvokingTarget target = new MethodInvokingTarget();
 		target.setObject(new TestSink());
 		target.setMethod("noSuchMethod");
 		target.afterPropertiesSet();
-		target.send("test");
+		target.send(new StringMessage("test"));
+	}
+
+	@Test
+	public void testSubscription() throws Exception {
+		SynchronousQueue<String> queue = new SynchronousQueue<String>();
+		TestBean testBean = new TestBean(queue);
+		MethodInvokingTarget target = new MethodInvokingTarget();
+		target.setObject(testBean);
+		target.setMethod("foo");
+		target.afterPropertiesSet();
+		SimpleChannel channel = new SimpleChannel();
+		Subscription subscription = new Subscription(channel);
+		Message<String> message = new GenericMessage<String>("123", "testing");
+		channel.send(message);
+		assertNull(queue.poll());
+		MessageBus bus = new MessageBus();
+		bus.registerChannel("channel", channel);
+		bus.registerHandler("targetAdapter", target, subscription);
+		bus.start();
+		String result = queue.poll(500, TimeUnit.MILLISECONDS);
+		assertNotNull(result);
+		assertEquals("testing", result);
+		bus.stop();
+	}
+
+
+	public static class TestBean {
+
+		private BlockingQueue<String> queue;
+
+		public TestBean(BlockingQueue<String> queue) {
+			this.queue = queue;
+		}
+
+		public void foo(String s) {
+			try {
+				this.queue.put(s);
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
+		}
 	}
 
 }

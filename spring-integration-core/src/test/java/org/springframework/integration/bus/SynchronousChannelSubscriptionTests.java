@@ -27,7 +27,7 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.config.MessageEndpointAnnotationPostProcessor;
 import org.springframework.integration.dispatcher.SynchronousChannel;
-import org.springframework.integration.endpoint.DefaultMessageEndpoint;
+import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
@@ -55,7 +55,7 @@ public class SynchronousChannelSubscriptionTests {
 
 	@Test
 	public void testSendAndReceiveForRegisteredEndpoint() {
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(new TestHandler());
+		HandlerEndpoint endpoint = new HandlerEndpoint(new TestHandler());
 		endpoint.setSubscription(new Subscription("sourceChannel"));
 		endpoint.setDefaultOutputChannelName("targetChannel");
 		bus.registerEndpoint("testEndpoint", endpoint);
@@ -83,7 +83,7 @@ public class SynchronousChannelSubscriptionTests {
 	public void testExceptionThrownFromRegisteredEndpoint() {
 		SimpleChannel errorChannel = new SimpleChannel();
 		bus.setErrorChannel(errorChannel);		
-		DefaultMessageEndpoint endpoint = new DefaultMessageEndpoint(new MessageHandler() {
+		HandlerEndpoint endpoint = new HandlerEndpoint(new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				throw new RuntimeException("intentional test failure");
 			}

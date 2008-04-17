@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.adapter.mail.MailHeaderGenerator;
 import org.springframework.integration.adapter.mail.MailTargetAdapter;
-import org.springframework.integration.endpoint.DefaultMessageEndpoint;
-import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.endpoint.TargetEndpoint;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.Target;
 import org.springframework.mail.MailMessage;
 
 /**
@@ -41,31 +41,31 @@ public class MailTargetAdapterParserTests {
 	public void testAdapterWithMailSenderReference() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"mailTargetAdapterParserTests.xml", this.getClass());
-		DefaultMessageEndpoint endpoint = (DefaultMessageEndpoint) context.getBean("adapterWithMailSenderReference");
-		MessageHandler handler = endpoint.getHandler();
-		assertNotNull(handler);
-		assertTrue(handler instanceof MailTargetAdapter);
+		TargetEndpoint endpoint = (TargetEndpoint) context.getBean("adapterWithMailSenderReference");
+		Target target = endpoint.getTarget();
+		assertNotNull(target);
+		assertTrue(target instanceof MailTargetAdapter);
 	}
 
 	@Test
 	public void testAdapterWithHostProperty() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"mailTargetAdapterParserTests.xml", this.getClass());
-		DefaultMessageEndpoint endpoint = (DefaultMessageEndpoint) context.getBean("adapterWithHostProperty");
-		MessageHandler handler = endpoint.getHandler();
-		assertNotNull(handler);
-		assertTrue(handler instanceof MailTargetAdapter);
+		TargetEndpoint endpoint = (TargetEndpoint) context.getBean("adapterWithHostProperty");
+		Target target = endpoint.getTarget();
+		assertNotNull(target);
+		assertTrue(target instanceof MailTargetAdapter);
 	}
 
 	@Test
 	public void testAdapterWithHeaderGeneratorReference() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"mailTargetAdapterParserTests.xml", this.getClass());
-		DefaultMessageEndpoint endpoint = (DefaultMessageEndpoint) context.getBean("adapterWithHeaderGeneratorReference");
-		MessageHandler handler = endpoint.getHandler();
-		assertNotNull(handler);
-		assertTrue(handler instanceof MailTargetAdapter);
-		DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(handler);
+		TargetEndpoint endpoint = (TargetEndpoint) context.getBean("adapterWithHeaderGeneratorReference");
+		Target target = endpoint.getTarget();
+		assertNotNull(target);
+		assertTrue(target instanceof MailTargetAdapter);
+		DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(target);
 		MailHeaderGenerator headerGenerator =
 				(MailHeaderGenerator) fieldAccessor.getPropertyValue("mailHeaderGenerator");
 		assertEquals(TestHeaderGenerator.class, headerGenerator.getClass());

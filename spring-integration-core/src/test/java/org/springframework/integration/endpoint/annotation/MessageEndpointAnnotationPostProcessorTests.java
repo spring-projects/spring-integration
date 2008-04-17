@@ -42,7 +42,7 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.config.MessageEndpointAnnotationPostProcessor;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
-import org.springframework.integration.endpoint.DefaultMessageEndpoint;
+import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 
@@ -130,7 +130,7 @@ public class MessageEndpointAnnotationPostProcessorTests {
 		postProcessor.afterPropertiesSet();
 		ConcurrencyAnnotationTestBean testBean = new ConcurrencyAnnotationTestBean();
 		postProcessor.postProcessAfterInitialization(testBean, "testBean");
-		DefaultMessageEndpoint endpoint = (DefaultMessageEndpoint) messageBus.lookupEndpoint("testBean-endpoint");
+		HandlerEndpoint endpoint = (HandlerEndpoint) messageBus.lookupEndpoint("testBean-endpoint");
 		ConcurrencyPolicy concurrencyPolicy = endpoint.getConcurrencyPolicy();
 		assertEquals(17, concurrencyPolicy.getCoreSize());
 		assertEquals(42, concurrencyPolicy.getMaxSize());

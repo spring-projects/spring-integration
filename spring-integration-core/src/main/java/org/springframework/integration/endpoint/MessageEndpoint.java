@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,10 @@
 
 package org.springframework.integration.endpoint;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.channel.ChannelRegistryAware;
+import org.springframework.integration.message.Target;
 import org.springframework.integration.scheduling.Subscription;
 
 /**
@@ -25,7 +27,7 @@ import org.springframework.integration.scheduling.Subscription;
  * 
  * @author Mark Fisher
  */
-public interface MessageEndpoint extends MessageHandler, Lifecycle {
+public interface MessageEndpoint extends Target, ChannelRegistryAware, InitializingBean, Lifecycle {
 
 	String getName();
 

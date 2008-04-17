@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.springframework.integration.adapter.mail;
 
-import org.springframework.integration.message.AbstractMessageMapper;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageMapper;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.mail.MailMessage;
 import org.springframework.mail.SimpleMailMessage;
@@ -30,14 +30,14 @@ import org.springframework.util.Assert;
  * 
  * @author Marius Bogoevici
  */
-public class TextMailMessageMapper extends AbstractMessageMapper<String, MailMessage> {
+public class TextMailMessageMapper implements MessageMapper<String, MailMessage> {
 
 	public Message<String> toMessage(MailMessage source) {
 		Assert.isInstanceOf(SimpleMailMessage.class, source, "source must be a SimpleMailMessage");
 		return new StringMessage(((SimpleMailMessage) source).getText());
 	}
 
-	public MailMessage fromMessage(Message<String> stringMessage) {
+	public MailMessage mapMessage(Message<String> stringMessage) {
 		SimpleMailMessage mailMessage = new SimpleMailMessage();
 		mailMessage.setText(stringMessage.getPayload());
 		return mailMessage;

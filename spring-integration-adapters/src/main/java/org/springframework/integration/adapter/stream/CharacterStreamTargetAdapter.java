@@ -23,9 +23,13 @@ import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.adapter.AbstractTargetAdapter;
+import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
+import org.springframework.integration.message.Target;
 import org.springframework.util.Assert;
 
 /**
@@ -38,7 +42,9 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class CharacterStreamTargetAdapter extends AbstractTargetAdapter {
+public class CharacterStreamTargetAdapter implements Target {
+
+	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final BufferedWriter writer;
 
@@ -112,26 +118,26 @@ public class CharacterStreamTargetAdapter extends AbstractTargetAdapter {
 		this.shouldAppendNewLine = shouldAppendNewLine;
 	}
 
-	@Override
-	protected boolean sendToTarget(Object object) {
-		if (object == null) {
+	public boolean send(Message message) {
+		Object payload = message.getPayload();
+		if (payload == null) {
 			if (logger.isWarnEnabled()) {
-				logger.warn("target adapter received null object");
+				logger.warn("target adapter received null payload");
 			}
 			return false;
 		}
 		try {
-			if (object instanceof String) {
-				writer.write((String) object);
+			if (payload instanceof String) {
+				writer.write((String) payload);
 			}
-			else if (object instanceof char[]) {
-				this.writer.write((char[]) object);
+			else if (payload instanceof char[]) {
+				this.writer.write((char[]) payload);
 			}
-			else if (object instanceof byte[]) {
-				this.writer.write(new String((byte[]) object));
+			else if (payload instanceof byte[]) {
+				this.writer.write(new String((byte[]) payload));
 			}
 			else {
-				writer.write(object.toString());
+				writer.write(payload.toString());
 			}
 			if (this.shouldAppendNewLine) {
 				writer.newLine();

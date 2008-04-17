@@ -43,7 +43,7 @@ public class CharacterStreamTargetAdapterTests {
 	public void testSingleString() {
 		StringWriter writer = new StringWriter();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(writer);
-		adapter.handle(new StringMessage("foo"));
+		adapter.send(new StringMessage("foo"));
 		assertEquals("foo", writer.toString());
 	}
 
@@ -53,7 +53,7 @@ public class CharacterStreamTargetAdapterTests {
 		StringWriter writer = new StringWriter();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(writer);
 		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
-		dispatcher.addHandler(adapter);
+		dispatcher.addTarget(adapter);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
 		assertEquals(1, dispatcher.dispatch());
@@ -69,7 +69,7 @@ public class CharacterStreamTargetAdapterTests {
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(writer);
 		adapter.setShouldAppendNewLine(true);
 		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
-		dispatcher.addHandler(adapter);
+		dispatcher.addTarget(adapter);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
 		assertEquals(1, dispatcher.dispatch());
@@ -87,7 +87,7 @@ public class CharacterStreamTargetAdapterTests {
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
 		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
-		dispatcher.addHandler(adapter);
+		dispatcher.addTarget(adapter);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
 		assertEquals(2, dispatcher.dispatch());
@@ -104,7 +104,7 @@ public class CharacterStreamTargetAdapterTests {
 		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
 		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		adapter.setShouldAppendNewLine(true);
-		dispatcher.addHandler(adapter);
+		dispatcher.addTarget(adapter);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
 		assertEquals(2, dispatcher.dispatch());
@@ -118,7 +118,7 @@ public class CharacterStreamTargetAdapterTests {
 		StringWriter writer = new StringWriter();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(writer);
 		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
-		dispatcher.addHandler(adapter);
+		dispatcher.addTarget(adapter);
 		TestObject testObject = new TestObject("foo");
 		channel.send(new GenericMessage<TestObject>(testObject));
 		int count = dispatcher.dispatch();
@@ -135,7 +135,7 @@ public class CharacterStreamTargetAdapterTests {
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
 		MessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
-		dispatcher.addHandler(adapter);
+		dispatcher.addTarget(adapter);
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
 		channel.send(new GenericMessage<TestObject>(testObject1), 0);
@@ -154,7 +154,7 @@ public class CharacterStreamTargetAdapterTests {
 		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
 		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, scheduler);
 		adapter.setShouldAppendNewLine(true);
-		dispatcher.addHandler(adapter);
+		dispatcher.addTarget(adapter);
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
 		channel.send(new GenericMessage<TestObject>(testObject1), 0);
