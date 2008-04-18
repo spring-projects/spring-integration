@@ -11,21 +11,15 @@
 			<property name="package.output.dir" value="${package.output.dir}"/>
 		</all-bundles>
 
-		<ant dir="../spring-integration-reference" target="doc" inheritAll="false">
-			<property name="package.output.dir" value="${package.output.dir}"/>
-			<propertyset>
-				<propertyref builtin="commandline"/>
-			</propertyset>
-			<property name="timestamp" value="${timestamp}"/>
-		</ant>
+		<path id="doc.projects">
+			<path location="${basedir}/../spring-integration-reference"/>
+		</path>
 
-		<subant target="package" verbose="true" buildpath="../spring-integration-reference">
+		<all-bundles target="doc" buildpathRef="doc.projects"/>
+
+		<all-bundles target="package" buildpathRef="doc.projects">
 			<property name="package.output.dir" value="${package.output.dir}"/>
-			<propertyset>
-				<propertyref builtin="commandline"/>
-			</propertyset>
-			<property name="timestamp" value="${timestamp}"/>
-		</subant>
+		</all-bundles>
 
 		<copy todir="${package.output.dir}">
 			<fileset dir="${basedir}/resources"/>
