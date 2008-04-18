@@ -39,8 +39,6 @@ import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.SimpleChannel;
-import org.springframework.integration.dispatcher.DefaultMessageDispatcher;
-import org.springframework.integration.dispatcher.SchedulingMessageDispatcher;
 import org.springframework.integration.dispatcher.SynchronousChannel;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.DefaultEndpointRegistry;
@@ -79,7 +77,7 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 
 	private final EndpointRegistry endpointRegistry = new DefaultEndpointRegistry();
 
-	private final Map<MessageChannel, SchedulingMessageDispatcher> dispatchers = new ConcurrentHashMap<MessageChannel, SchedulingMessageDispatcher>();
+	private final Map<MessageChannel, SubscriptionManager> subscriptionManagers = new ConcurrentHashMap<MessageChannel, SubscriptionManager>();
 
 	private final List<Lifecycle> lifecycleSourceAdapters = new CopyOnWriteArrayList<Lifecycle>();
 
@@ -213,8 +211,8 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 			this.initialize();
 		}
 		channel.setName(name);
-		DefaultMessageDispatcher dispatcher = new DefaultMessageDispatcher(channel, this.taskScheduler);
-		this.dispatchers.put(channel, dispatcher);
+		SubscriptionManager manager = new SubscriptionManager(channel, this.taskScheduler);
+		this.subscriptionManagers.put(channel, manager);
 		this.channelRegistry.registerChannel(name, channel);
 		if (logger.isInfoEnabled()) {
 			logger.info("registered channel '" + name + "'");
@@ -224,9 +222,9 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 	public MessageChannel unregisterChannel(String name) {
 		MessageChannel removedChannel = this.channelRegistry.unregisterChannel(name);
 		if (removedChannel != null) {
-			SchedulingMessageDispatcher removedDispatcher = this.dispatchers.remove(removedChannel);
-			if (removedDispatcher != null && removedDispatcher.isRunning()) {
-				removedDispatcher.stop();
+			SubscriptionManager manager = this.subscriptionManagers.remove(removedChannel);
+			if (manager != null && manager.isRunning()) {
+				manager.stop();
 			}
 		}
 		return removedChannel;
@@ -287,10 +285,10 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 		if (endpoint == null) {
 			return null;
 		}
-		Collection<SchedulingMessageDispatcher> dispatchers = this.dispatchers.values();
+		Collection<SubscriptionManager> managers = this.subscriptionManagers.values();
 		boolean removed = false;
-		for (SchedulingMessageDispatcher dispatcher : dispatchers) {
-			removed = (removed || dispatcher.removeTarget(endpoint));
+		for (SubscriptionManager manager : managers) {
+			removed = (removed || manager.removeTarget(endpoint));
 		}
 		if (removed) {
 			return endpoint;
@@ -387,7 +385,7 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 
 	private void registerWithDispatcher(MessageChannel channel, Target target, Schedule schedule) {
 		if (schedule == null && (channel instanceof SynchronousChannel)) {
-			((SynchronousChannel) channel).addTarget(target);
+			((SynchronousChannel) channel).subscribe(target);
 			if (target instanceof Lifecycle) {
 				((Lifecycle) target).start();
 			}
@@ -403,16 +401,16 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 			}
 			return;
 		}
-		SchedulingMessageDispatcher dispatcher = dispatchers.get(channel);
-		if (dispatcher == null) {
+		SubscriptionManager manager = subscriptionManagers.get(channel);
+		if (manager == null) {
 			if (logger.isWarnEnabled()) {
-				logger.warn("no dispatcher available for channel '" + channel.getName() + "', be sure to register the channel");
+				logger.warn("no subscription manager available for channel '" + channel.getName() + "', be sure to register the channel");
 			}
 			return;
 		}
-		dispatcher.addTarget(target, schedule);
-		if (this.isRunning() && !dispatcher.isRunning()) {
-			dispatcher.start();
+		manager.addTarget(target, schedule);
+		if (this.isRunning() && !manager.isRunning()) {
+			manager.start();
 		}
 	}
 
@@ -433,10 +431,10 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 		synchronized (this.lifecycleMonitor) {
 			this.activateEndpoints();
 			this.taskScheduler.start();
-			for (SchedulingMessageDispatcher dispatcher : this.dispatchers.values()) {
-				dispatcher.start();
+			for (SubscriptionManager manager : this.subscriptionManagers.values()) {
+				manager.start();
 				if (logger.isInfoEnabled()) {
-					logger.info("started dispatcher '" + dispatcher + "'");
+					logger.info("started subscription manager '" + manager + "'");
 				}
 			}
 			for (Lifecycle adapter : this.lifecycleSourceAdapters) {
@@ -466,10 +464,10 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 					logger.info("stopped source adapter '" + adapter + "'");
 				}
 			}
-			for (SchedulingMessageDispatcher dispatcher : this.dispatchers.values()) {
-				dispatcher.stop();
+			for (SubscriptionManager manager : this.subscriptionManagers.values()) {
+				manager.stop();
 				if (logger.isInfoEnabled()) {
-					logger.info("stopped dispatcher '" + dispatcher + "'");
+					logger.info("stopped subscription manager '" + manager + "'");
 				}
 			}
 		}

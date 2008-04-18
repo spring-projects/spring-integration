@@ -33,22 +33,22 @@ import org.springframework.integration.message.StringMessage;
 /**
  * @author Mark Fisher
  */
-public class ChannelPollingMessageRetrieverTests {
+public class SourcePollerTests {
 
 	@Test
 	public void testSingleMessagePerRetrieval() {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setReceiveTimeout(0);
 		MessageChannel channel = new SimpleChannel(5, dispatcherPolicy);
-		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel);
-		Collection<Message<?>> results = retriever.retrieveMessages();
+		SourcePoller poller = new SourcePoller(channel);
+		Collection<Message<?>> results = poller.poll();
 		assertTrue(results.isEmpty());
 		channel.send(new StringMessage("test1"), 0);
 		channel.send(new StringMessage("test2"), 0);
-		results = retriever.retrieveMessages();
+		results = poller.poll();
 		assertEquals(1, results.size());
 		assertEquals("test1", results.iterator().next().getPayload());
-		results = retriever.retrieveMessages();
+		results = poller.poll();
 		assertEquals(1, results.size());
 		assertEquals("test2", results.iterator().next().getPayload());
 	}
@@ -59,18 +59,18 @@ public class ChannelPollingMessageRetrieverTests {
 		dispatcherPolicy.setReceiveTimeout(0);
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		MessageChannel channel = new SimpleChannel(5, dispatcherPolicy);
-		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel);
-		Collection<Message<?>> results = retriever.retrieveMessages();
+		SourcePoller poller = new SourcePoller(channel);
+		Collection<Message<?>> results = poller.poll();
 		assertTrue(results.isEmpty());
 		channel.send(new StringMessage("test1"), 0);
 		channel.send(new StringMessage("test2"), 0);
 		channel.send(new StringMessage("test3"), 0);
-		results = retriever.retrieveMessages();
+		results = poller.poll();
 		assertEquals(2, results.size());
 		Iterator<Message<?>> iter = results.iterator();
 		assertEquals("test1", iter.next().getPayload());
 		assertEquals("test2", iter.next().getPayload());
-		results = retriever.retrieveMessages();
+		results = poller.poll();
 		assertEquals(1, results.size());
 		assertEquals("test3", results.iterator().next().getPayload());
 	}
@@ -81,17 +81,17 @@ public class ChannelPollingMessageRetrieverTests {
 		dispatcherPolicy.setReceiveTimeout(0);
 		dispatcherPolicy.setMaxMessagesPerTask(1);
 		MessageChannel channel = new SimpleChannel(5, dispatcherPolicy);
-		ChannelPollingMessageRetriever retriever = new ChannelPollingMessageRetriever(channel);
-		Collection<Message<?>> results = retriever.retrieveMessages();
+		SourcePoller poller = new SourcePoller(channel);
+		Collection<Message<?>> results = poller.poll();
 		assertTrue(results.isEmpty());
 		channel.send(new StringMessage("test1"), 0);
 		channel.send(new StringMessage("test2"), 0);
 		channel.send(new StringMessage("test3"), 0);
-		results = retriever.retrieveMessages();
+		results = poller.poll();
 		assertEquals(1, results.size());
 		assertEquals("test1", results.iterator().next().getPayload());
-		channel.getDispatcherPolicy().setMaxMessagesPerTask(5);
-		results = retriever.retrieveMessages();
+		poller.setMaxMessagesPerTask(5);
+		results = poller.poll();
 		assertEquals(2, results.size());
 		Iterator<Message<?>> iter = results.iterator();
 		assertEquals("test2", iter.next().getPayload());

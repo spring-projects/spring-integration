@@ -27,6 +27,7 @@ import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.PollableSource;
+import org.springframework.integration.message.SubscribableSource;
 import org.springframework.integration.message.Target;
 import org.springframework.integration.message.selector.MessageSelector;
 
@@ -44,14 +45,14 @@ import org.springframework.integration.message.selector.MessageSelector;
  * @author Dave Syer
  * @author Mark Fisher
  */
-public class SynchronousChannel extends AbstractMessageChannel {
+public class SynchronousChannel extends AbstractMessageChannel implements SubscribableSource {
 
 	private static final ThreadLocalMessageHolder messageHolder = new ThreadLocalMessageHolder();
 
 
 	private volatile PollableSource<?> source;
 
-	private final MessageDistributor distributor;
+	private final SimpleDispatcher dispatcher;
 
 	private final AtomicInteger handlerCount = new AtomicInteger();
 
@@ -63,7 +64,7 @@ public class SynchronousChannel extends AbstractMessageChannel {
 	public SynchronousChannel(PollableSource<?> source) {
 		super(defaultDispatcherPolicy());
 		this.source = source;
-		this.distributor = new DefaultMessageDistributor(this.getDispatcherPolicy());
+		this.dispatcher = new SimpleDispatcher(this.getDispatcherPolicy());
 	}
 
 
@@ -71,17 +72,20 @@ public class SynchronousChannel extends AbstractMessageChannel {
 		this.source = source;
 	}
 
-	public void addTarget(Target target) {
-		this.distributor.addTarget(target);
-		this.handlerCount.incrementAndGet();
+	public boolean subscribe(Target target) {
+		boolean added = this.dispatcher.subscribe(target);
+		if (added) {
+			this.handlerCount.incrementAndGet();
+		}
+		return added;
 	}
 
-	public boolean removeTarget(Target target) {
-		if (this.distributor.removeTarget(target)) {
+	public boolean unsubscribe(Target target) {
+		boolean removed = this.dispatcher.unsubscribe(target);
+		if (removed) {
 			this.handlerCount.decrementAndGet();
-			return true;
 		}
-		return false;
+		return removed;
 	}
 
 
@@ -102,7 +106,7 @@ public class SynchronousChannel extends AbstractMessageChannel {
 			return false;
 		}
 		if (this.handlerCount.get() > 0) {
-			return this.distributor.distribute(message);
+			return this.dispatcher.dispatch(message);
 		}
 		else if (this.source == null) {
 			return messageHolder.get().add(message);

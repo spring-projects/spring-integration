@@ -44,7 +44,7 @@ public class SynchronousChannelTests {
 	@Test
 	public void testSend() {
 		SynchronousChannel channel = new SynchronousChannel();
-		channel.addTarget(new ThreadNameSettingTestTarget());
+		channel.subscribe(new ThreadNameSettingTestTarget());
 		StringMessage message = new StringMessage("test");
 		assertTrue(channel.send(message));
 		String handlerThreadName = message.getHeader().getProperty(HANDLER_THREAD);
@@ -82,7 +82,7 @@ public class SynchronousChannelTests {
 	public void testSendInSeparateThread() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
 		final SynchronousChannel channel = new SynchronousChannel();
-		channel.addTarget(new ThreadNameSettingTestTarget(latch));
+		channel.subscribe(new ThreadNameSettingTestTarget(latch));
 		final StringMessage message = new StringMessage("test");
 		new Thread(new Runnable() {
 			public void run() {

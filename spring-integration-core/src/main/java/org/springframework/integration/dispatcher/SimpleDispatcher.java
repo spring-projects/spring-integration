@@ -29,40 +29,39 @@ import org.springframework.integration.handler.MessageHandlerNotRunningException
 import org.springframework.integration.handler.MessageHandlerRejectedExecutionException;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.message.SubscribableSource;
 import org.springframework.integration.message.Target;
-import org.springframework.util.Assert;
 
 /**
- * Default implementation of the {@link MessageDistributor} interface.
+ * Basic implementation of {@link MessageDispatcher}.
  * 
  * @author Mark Fisher
  */
-public class DefaultMessageDistributor implements MessageDistributor {
+public class SimpleDispatcher implements MessageDispatcher, SubscribableSource {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
+	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private final List<Target> targets = new CopyOnWriteArrayList<Target>();
 
 	private final DispatcherPolicy dispatcherPolicy;
 
 
-	public DefaultMessageDistributor(DispatcherPolicy dispatcherPolicy) {
-		Assert.notNull(dispatcherPolicy, "'dispatcherPolicy' must not be null");
+	public SimpleDispatcher(DispatcherPolicy dispatcherPolicy) {
 		this.dispatcherPolicy = dispatcherPolicy;
 	}
 
 
-	public void addTarget(Target target) {
-		this.targets.add(target);
+	public boolean subscribe(Target target) {
+		return this.targets.add(target);
 	}
 
-	public boolean removeTarget(Target target) {
+	public boolean unsubscribe(Target target) {
 		return this.targets.remove(target);
 	}
 
-	public boolean distribute(Message<?> message) {
+	public boolean dispatch(Message<?> message) {
 		int attempts = 0;
-		List<Target> targets = new ArrayList<Target>(this.targets);
+		List<Target> targetList = new ArrayList<Target>(this.targets);
 		while (attempts < this.dispatcherPolicy.getRejectionLimit()) {
 			if (attempts > 0) {
 				if (logger.isDebugEnabled()) {
@@ -78,7 +77,7 @@ public class DefaultMessageDistributor implements MessageDistributor {
 					return false;
 				}
 			}
-			Iterator<Target> iter = targets.iterator();
+			Iterator<Target> iter = targetList.iterator();
 			if (!iter.hasNext()) {
 				if (logger.isWarnEnabled()) {
 					logger.warn("no active targets");
@@ -94,7 +93,7 @@ public class DefaultMessageDistributor implements MessageDistributor {
 						return true;
 					}
 					if (!sent && logger.isDebugEnabled()) {
-						logger.debug("endpoint rejected message, continuing with other targets if available");
+						logger.debug("target rejected message, continuing with other targets if available");
 					}
 					iter.remove();
 				}

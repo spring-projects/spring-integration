@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.dispatcher;
-
-import java.util.Collection;
-
-import org.springframework.integration.message.Message;
+package org.springframework.integration.message;
 
 /**
- * Strategy interface for retrieving messages.
+ * Interface for any message source that accepts subscribers.
  * 
  * @author Mark Fisher
  */
-public interface MessageRetriever {
+public interface SubscribableSource extends Source {
 
-	Collection<Message<?>> retrieveMessages();
+	/**
+	 * Register a {@link Target} as a subscriber to this source.
+	 */
+	boolean subscribe(Target target);
+
+	/**
+	 * Remove a {@link Target} from the subscribers of this source.
+	 */
+	boolean unsubscribe(Target target);
 
 }

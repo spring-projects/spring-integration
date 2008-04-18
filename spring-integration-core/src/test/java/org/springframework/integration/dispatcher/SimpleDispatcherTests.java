@@ -34,27 +34,27 @@ import org.springframework.integration.message.Target;
 /**
  * @author Mark Fisher
  */
-public class DefaultMessageDistributorTests {
+public class SimpleDispatcherTests {
 
 	@Test
 	public void testSingleMessage() throws InterruptedException {
-		MessageDistributor distributor = new DefaultMessageDistributor(new DispatcherPolicy());
+		SimpleDispatcher dispatcher = new SimpleDispatcher(new DispatcherPolicy());
 		final CountDownLatch latch = new CountDownLatch(1);
-		distributor.addTarget(createEndpoint(TestHandlers.countDownHandler(latch)));
-		distributor.distribute(new StringMessage("test"));
+		dispatcher.subscribe(createEndpoint(TestHandlers.countDownHandler(latch)));
+		dispatcher.dispatch(new StringMessage("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
 	}
 
 	@Test
 	public void testPointToPoint() throws InterruptedException {
-		MessageDistributor distributor = new DefaultMessageDistributor(new DispatcherPolicy(false));
+		SimpleDispatcher dispatcher = new SimpleDispatcher(new DispatcherPolicy(false));
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicInteger counter1 = new AtomicInteger();
 		final AtomicInteger counter2 = new AtomicInteger();
-		distributor.addTarget(createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch)));
-		distributor.addTarget(createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch)));
-		distributor.distribute(new StringMessage("test"));
+		dispatcher.subscribe(createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch)));
+		dispatcher.subscribe(createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch)));
+		dispatcher.dispatch(new StringMessage("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
 		assertEquals("only 1 handler should have received the message", 1, counter1.get() + counter2.get());
@@ -62,13 +62,13 @@ public class DefaultMessageDistributorTests {
 
 	@Test
 	public void testPublishSubscribe() throws InterruptedException {
-		MessageDistributor distributor = new DefaultMessageDistributor(new DispatcherPolicy(true));
+		SimpleDispatcher dispatcher = new SimpleDispatcher(new DispatcherPolicy(true));
 		final CountDownLatch latch = new CountDownLatch(2);
 		final AtomicInteger counter1 = new AtomicInteger();
 		final AtomicInteger counter2 = new AtomicInteger();
-		distributor.addTarget(createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch)));
-		distributor.addTarget(createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch)));
-		distributor.distribute(new StringMessage("test"));
+		dispatcher.subscribe(createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch)));
+		dispatcher.subscribe(createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch)));
+		dispatcher.dispatch(new StringMessage("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
 		assertEquals(1, counter1.get());

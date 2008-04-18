@@ -16,7 +16,7 @@
 
 package org.springframework.integration.dispatcher;
 
-import org.springframework.integration.message.Target;
+import org.springframework.integration.message.Message;
 
 /**
  * Strategy interface for dispatching messages.
@@ -25,10 +25,6 @@ import org.springframework.integration.message.Target;
  */
 public interface MessageDispatcher {
 
-	void addTarget(Target target);
-
-	boolean removeTarget(Target target);
-
-	int dispatch();
+	boolean dispatch(Message<?> message);
 
 }

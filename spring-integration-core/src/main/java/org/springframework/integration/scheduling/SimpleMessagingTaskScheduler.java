@@ -20,7 +20,6 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
@@ -49,10 +48,6 @@ public class SimpleMessagingTaskScheduler extends AbstractMessagingTaskScheduler
 
 	private final Object lifecycleMonitor = new Object();
 
-
-	public SimpleMessagingTaskScheduler(int corePoolSize) {
-		this(new ScheduledThreadPoolExecutor(corePoolSize));
-	}
 
 	public SimpleMessagingTaskScheduler(ScheduledExecutorService executor) {
 		Assert.notNull(executor, "'executor' must not be null");
