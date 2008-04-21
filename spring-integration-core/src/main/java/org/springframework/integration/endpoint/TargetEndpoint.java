@@ -146,7 +146,7 @@ public class TargetEndpoint implements MessageEndpoint, BeanNameAware {
 	}
 
 	public void afterPropertiesSet() {
-		if (this.target instanceof ChannelRegistryAware) {
+		if (this.target instanceof ChannelRegistryAware && this.channelRegistry != null) {
 			((ChannelRegistryAware) this.target).setChannelRegistry(this.channelRegistry);
 		}
 		if (this.concurrencyPolicy != null && !(this.target instanceof ConcurrentTarget)) {
