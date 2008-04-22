@@ -16,9 +16,6 @@
 
 package org.springframework.integration.config;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -34,7 +31,6 @@ import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
-import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.integration.scheduling.Subscription;
@@ -61,13 +57,7 @@ public class EndpointParser implements BeanDefinitionParser {
 
 	private static final String SELECTORS_PROPERTY = "messageSelectors";
 
-	private static final String HANDLER_ELEMENT = "handler";
-
 	private static final String REF_ATTRIBUTE = "ref";
-
-	private static final String METHOD_ATTRIBUTE = "method";
-
-	private static final String HANDLERS_PROPERTY = "handlers";
 
 	private static final String HANDLER_REF_ATTRIBUTE = "handler-ref";
 
@@ -95,6 +85,10 @@ public class EndpointParser implements BeanDefinitionParser {
 
 
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
+		String handlerRef = element.getAttribute(HANDLER_REF_ATTRIBUTE);
+		if (!StringUtils.hasText(handlerRef)) {
+			throw new ConfigurationException("The 'handler-ref' attribute is required.");
+		}
 		RootBeanDefinition endpointDef = new RootBeanDefinition(HandlerEndpoint.class);
 		endpointDef.setSource(parserContext.extractSource(element));
 		String inputChannel = element.getAttribute(INPUT_CHANNEL_ATTRIBUTE);
@@ -104,7 +98,6 @@ public class EndpointParser implements BeanDefinitionParser {
 			endpointDef.getPropertyValues().addPropertyValue(DEFAULT_OUTPUT_CHANNEL_PROPERTY, defaultOutputChannel);
 		}
 		ManagedList selectors = new ManagedList();
-		List<String> childHandlerRefs = new ArrayList<String>();
 		NodeList childNodes = element.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); i++) {
 			Node child = childNodes.item(i);
@@ -116,16 +109,6 @@ public class EndpointParser implements BeanDefinitionParser {
 				else if (SELECTOR_ELEMENT.equals(localName)) {
 					String ref = ((Element) child).getAttribute(REF_ATTRIBUTE);
 					selectors.add(new RuntimeBeanReference(ref));
-				}
-				else if (HANDLER_ELEMENT.equals(localName)) {
-					String ref = ((Element) child).getAttribute(REF_ATTRIBUTE);
-					String method = ((Element) child).getAttribute(METHOD_ATTRIBUTE);
-					if (StringUtils.hasText(method)) {
-						childHandlerRefs.add(this.parseHandlerAdapter(ref, method, parserContext));
-					}
-					else {
-						childHandlerRefs.add(ref);
-					}
 				}
 				else if (SCHEDULE_ELEMENT.equals(localName)) {
 					schedule = this.parseSchedule((Element) child);
@@ -145,36 +128,13 @@ public class EndpointParser implements BeanDefinitionParser {
 		if (selectors.size() > 0) {
 			endpointDef.getPropertyValues().addPropertyValue(SELECTORS_PROPERTY, selectors);
 		}
-		if (childHandlerRefs.size() > 0) {
-			if (childHandlerRefs.size() == 1) {
-				endpointDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(childHandlerRefs.get(0)));
-			}
-			else {
-				RootBeanDefinition handlerChainDef = new RootBeanDefinition(MessageHandlerChain.class);
-				List handlerList = new ManagedList();
-				for (String ref : childHandlerRefs) {
-					handlerList.add(new RuntimeBeanReference(ref));
-				}
-				handlerChainDef.getPropertyValues().addPropertyValue(HANDLERS_PROPERTY, handlerList);
-				String chainBeanName = parserContext.getReaderContext().generateBeanName(handlerChainDef);
-				parserContext.registerBeanComponent(new BeanComponentDefinition(handlerChainDef, chainBeanName));
-				endpointDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(chainBeanName));
-			}
+		String handlerMethod = element.getAttribute(HANDLER_METHOD_ATTRIBUTE);
+		if (StringUtils.hasText(handlerMethod)) {
+			String adapterBeanName = this.parseHandlerAdapter(handlerRef, handlerMethod, parserContext);
+			endpointDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(adapterBeanName));
 		}
-		String handlerRef = element.getAttribute(HANDLER_REF_ATTRIBUTE);
-		if (StringUtils.hasText(handlerRef)) {
-			if (childHandlerRefs.size() > 0) {
-				throw new ConfigurationException(
-						"The 'handler-ref' attribute is only supported when no 'handler' child elements are present");
-			}
-			String handlerMethod = element.getAttribute(HANDLER_METHOD_ATTRIBUTE);
-			if (StringUtils.hasText(handlerMethod)) {
-				String adapterBeanName = this.parseHandlerAdapter(handlerRef, handlerMethod, parserContext);
-				endpointDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(adapterBeanName));
-			}
-			else {
-				endpointDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(handlerRef));
-			}
+		else {
+			endpointDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(handlerRef));
 		}
 		String errorHandlerRef = element.getAttribute(ERROR_HANDLER_ATTRIBUTE);
 		if (StringUtils.hasText(errorHandlerRef)) {

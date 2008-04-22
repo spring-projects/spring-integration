@@ -56,19 +56,6 @@ public class EndpointParserTests {
 	}
 
 	@Test
-	public void testEndpointWithChildHandler() throws InterruptedException {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"endpointWithHandlerChildElement.xml", this.getClass());
-		context.start();
-		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
-		TestHandler handler = (TestHandler) context.getBean("testHandler");
-		assertNull(handler.getMessageString());
-		channel.send(new GenericMessage<String>(1, "test"));
-		handler.getLatch().await(50, TimeUnit.MILLISECONDS);
-		assertEquals("test", handler.getMessageString());
-	}
-
-	@Test
 	public void testHandlerAdapterEndpoint() throws InterruptedException {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"handlerAdapterEndpointTests.xml", this.getClass());
