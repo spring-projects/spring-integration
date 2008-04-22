@@ -125,6 +125,10 @@ public class MessageHeader implements Serializable {
 		return (String) this.properties.setProperty(key, value);
 	}
 
+	public String removeProperty(String key) {
+		return (String) this.properties.remove(key);
+	}
+
 	public Set<String> getPropertyNames() {
 		Set<String> propertyNames = new HashSet<String>();
 		for (Object key : this.properties.keySet()) {
@@ -143,6 +147,10 @@ public class MessageHeader implements Serializable {
 
 	public Object setAttributeIfAbsent(String key, Object value) {
 		return this.attributes.putIfAbsent(key, value);
+	}
+
+	public Object removeAttribute(String key) {
+		return this.attributes.remove(key);
 	}
 
 	public Set<String> getAttributeNames() {
