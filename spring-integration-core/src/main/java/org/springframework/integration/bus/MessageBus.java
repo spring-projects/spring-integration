@@ -31,7 +31,10 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.Lifecycle;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.adapter.SourceAdapter;
 import org.springframework.integration.channel.ChannelRegistry;
@@ -64,7 +67,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class MessageBus implements ChannelRegistry, EndpointRegistry, ApplicationContextAware, Lifecycle {
+public class MessageBus implements ChannelRegistry, EndpointRegistry, ApplicationContextAware, ApplicationListener, Lifecycle {
 
 	public static final String ERROR_CHANNEL_NAME = "errorChannel";
 
@@ -109,11 +112,6 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 					+ "' is allowed per ApplicationContext.");
 		}
 		this.registerChannels(applicationContext);
-		this.registerEndpoints(applicationContext);
-		this.registerSourceAdapters(applicationContext);
-		if (this.autoStartup) {
-			this.start();
-		}
 	}
 
 	/**
@@ -473,6 +471,17 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 		}
 		if (logger.isInfoEnabled()) {
 			logger.info("message bus stopped");
+		}
+	}
+
+	public void onApplicationEvent(ApplicationEvent event) {
+		if (event instanceof ContextRefreshedEvent) {
+			ApplicationContext context = ((ContextRefreshedEvent) event).getApplicationContext();
+			this.registerEndpoints(context);
+			this.registerSourceAdapters(context);
+			if (this.autoStartup) {
+				this.start();
+			}
 		}
 	}
 

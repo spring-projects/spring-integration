@@ -27,6 +27,7 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.adapter.jms.JmsMessageDrivenSourceAdapter;
@@ -140,7 +141,7 @@ public class JmsSourceAdapterParserTests {
 			new ClassPathXmlApplicationContext("pollingAdapterWithDestinationOnly.xml", this.getClass());
 		}
 		catch (RuntimeException e) {
-			assertEquals(BeanCreationException.class, e.getCause().getClass());
+			assertEquals(NoSuchBeanDefinitionException.class, e.getCause().getClass());
 			throw e;
 		}
 	}
