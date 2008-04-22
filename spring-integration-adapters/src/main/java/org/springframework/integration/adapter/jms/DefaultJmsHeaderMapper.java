@@ -22,11 +22,12 @@ import java.util.List;
 import java.util.Set;
 
 import javax.jms.Destination;
-import javax.jms.JMSException;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.adapter.MessageHeaderMapper;
 import org.springframework.integration.message.MessageHeader;
-import org.springframework.integration.message.MessagingException;
 import org.springframework.util.StringUtils;
 
 /**
@@ -38,6 +39,9 @@ public class DefaultJmsHeaderMapper implements MessageHeaderMapper<javax.jms.Mes
 
 	private static List<Class<?>> SUPPORTED_PROPERTY_TYPES = Arrays.asList(new Class<?>[] {
 			Boolean.class, Byte.class, Double.class, Float.class, Integer.class, Long.class, Short.class, String.class });
+
+
+	private final Log logger = LogFactory.getLog(this.getClass());
 
 
 	public void mapFromMessageHeader(MessageHeader header, javax.jms.Message jmsMessage) {
@@ -62,14 +66,23 @@ public class DefaultJmsHeaderMapper implements MessageHeaderMapper<javax.jms.Mes
 					if (StringUtils.hasText(attributeName)) {
 						Object value = header.getAttribute(attributeName);
 						if (value != null && SUPPORTED_PROPERTY_TYPES.contains(value.getClass())) {
-							jmsMessage.setObjectProperty(jmsAttributeName, value);
+							try {
+								jmsMessage.setObjectProperty(jmsAttributeName, value);
+							}
+							catch (Throwable t) {
+								if (logger.isWarnEnabled()) {
+									logger.warn("failed to map property '" + jmsAttributeName + "' from MessageHeader", t);
+								}
+							}
 						}
 					}
 				}
 			}
 		}
-		catch (JMSException e) {
-			throw new MessagingException("failed to map from MessageHeader", e);
+		catch (Throwable t) {
+			if (logger.isWarnEnabled()) {
+				logger.warn("error occurred while mapping properties from MessageHeader", t);
+			}
 		}
 	}
 
@@ -97,8 +110,10 @@ public class DefaultJmsHeaderMapper implements MessageHeaderMapper<javax.jms.Mes
 				}
 			}
 		}
-		catch (JMSException e) {
-			throw new MessagingException("failed to map to MessageHeader", e);
+		catch (Throwable t) {
+			if (logger.isWarnEnabled()) {
+				logger.warn("error occurred while mapping properties to MessageHeader", t);
+			}
 		}
 	}
 

@@ -176,4 +176,54 @@ public class DefaultJmsHeaderMapperTests {
 		assertEquals(123, ((Integer) attrib).intValue());
 	}
 
+	@Test
+	public void testJMSExceptionIsNotFatal() throws JMSException {
+		StringMessage message = new StringMessage("test");
+		message.getHeader().setAttribute(JmsAttributeKeys.USER_DEFINED_ATTRIBUTE_PREFIX + "foo", new Integer(123));
+		message.getHeader().setAttribute(JmsAttributeKeys.USER_DEFINED_ATTRIBUTE_PREFIX + "bad", new Integer(456));
+		message.getHeader().setAttribute(JmsAttributeKeys.USER_DEFINED_ATTRIBUTE_PREFIX + "bar", new Integer(789));
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		javax.jms.Message jmsMessage = new StubTextMessage() {
+            @Override
+            public void setObjectProperty(String name, Object value) throws JMSException {
+            	if (name.equals("bad")) {
+            		throw new JMSException("illegal property");
+            	}
+	            super.setObjectProperty(name, value);
+            }
+		};
+		mapper.mapFromMessageHeader(message.getHeader(), jmsMessage);
+		Object foo = jmsMessage.getObjectProperty("foo");
+		assertNotNull(foo);
+		Object bar = jmsMessage.getObjectProperty("bar");
+		assertNotNull(bar);
+		Object bad = jmsMessage.getObjectProperty("bad");
+		assertNull(bad);
+	}
+
+	@Test
+	public void testIllegalArgumentExceptionIsNotFatal() throws JMSException {
+		StringMessage message = new StringMessage("test");
+		message.getHeader().setAttribute(JmsAttributeKeys.USER_DEFINED_ATTRIBUTE_PREFIX + "foo", new Integer(123));
+		message.getHeader().setAttribute(JmsAttributeKeys.USER_DEFINED_ATTRIBUTE_PREFIX + "bad", new Integer(456));
+		message.getHeader().setAttribute(JmsAttributeKeys.USER_DEFINED_ATTRIBUTE_PREFIX + "bar", new Integer(789));
+		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
+		javax.jms.Message jmsMessage = new StubTextMessage() {
+            @Override
+            public void setObjectProperty(String name, Object value) throws JMSException {
+            	if (name.equals("bad")) {
+            		throw new IllegalArgumentException("illegal property");
+            	}
+	            super.setObjectProperty(name, value);
+            }
+		};
+		mapper.mapFromMessageHeader(message.getHeader(), jmsMessage);
+		Object foo = jmsMessage.getObjectProperty("foo");
+		assertNotNull(foo);
+		Object bar = jmsMessage.getObjectProperty("bar");
+		assertNotNull(bar);
+		Object bad = jmsMessage.getObjectProperty("bad");
+		assertNull(bad);
+	}
+
 }
