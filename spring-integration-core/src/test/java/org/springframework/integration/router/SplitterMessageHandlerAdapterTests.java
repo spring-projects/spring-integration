@@ -31,7 +31,7 @@ import org.junit.Test;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.DefaultChannelRegistry;
-import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.AbstractMessageHandlerAdapter;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
@@ -41,7 +41,7 @@ import org.springframework.integration.message.StringMessage;
  */
 public class SplitterMessageHandlerAdapterTests {
 
-	private SimpleChannel testChannel = new SimpleChannel();
+	private QueueChannel testChannel = new QueueChannel();
 
 	private ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 

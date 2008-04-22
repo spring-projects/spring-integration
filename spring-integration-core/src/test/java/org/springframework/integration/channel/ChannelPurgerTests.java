@@ -35,7 +35,7 @@ public class ChannelPurgerTests {
 
 	@Test
 	public void testPurgeAllWithoutSelector() {
-		MessageChannel channel = new SimpleChannel();
+		MessageChannel channel = new QueueChannel();
 		channel.send(new StringMessage("test1"));
 		channel.send(new StringMessage("test2"));
 		channel.send(new StringMessage("test3"));
@@ -47,7 +47,7 @@ public class ChannelPurgerTests {
 
 	@Test
 	public void testPurgeAllWithSelector() {
-		MessageChannel channel = new SimpleChannel();
+		MessageChannel channel = new QueueChannel();
 		channel.send(new StringMessage("test1"));
 		channel.send(new StringMessage("test2"));
 		channel.send(new StringMessage("test3"));
@@ -63,7 +63,7 @@ public class ChannelPurgerTests {
 
 	@Test
 	public void testPurgeNoneWithSelector() {
-		MessageChannel channel = new SimpleChannel();
+		MessageChannel channel = new QueueChannel();
 		channel.send(new StringMessage("test1"));
 		channel.send(new StringMessage("test2"));
 		channel.send(new StringMessage("test3"));
@@ -81,7 +81,7 @@ public class ChannelPurgerTests {
 
 	@Test
 	public void testPurgeSubsetWithSelector() {
-		MessageChannel channel = new SimpleChannel();
+		MessageChannel channel = new QueueChannel();
 		channel.send(new StringMessage("test1"));
 		channel.send(new StringMessage("test2"));
 		channel.send(new StringMessage("test3"));
@@ -100,8 +100,8 @@ public class ChannelPurgerTests {
 
 	@Test
 	public void testMultipleChannelsWithNoSelector() {
-		MessageChannel channel1 = new SimpleChannel();
-		MessageChannel channel2 = new SimpleChannel();
+		MessageChannel channel1 = new QueueChannel();
+		MessageChannel channel2 = new QueueChannel();
 		channel1.send(new StringMessage("test1"));
 		channel1.send(new StringMessage("test2"));
 		channel2.send(new StringMessage("test1"));
@@ -115,8 +115,8 @@ public class ChannelPurgerTests {
 
 	@Test
 	public void testMultipleChannelsWithSelector() {
-		MessageChannel channel1 = new SimpleChannel();
-		MessageChannel channel2 = new SimpleChannel();
+		MessageChannel channel1 = new QueueChannel();
+		MessageChannel channel2 = new QueueChannel();
 		channel1.send(new StringMessage("test1"));
 		channel1.send(new StringMessage("test2"));
 		channel1.send(new StringMessage("test3"));
@@ -142,8 +142,8 @@ public class ChannelPurgerTests {
 
 	@Test
 	public void testPurgeNoneWithSelectorAndMultipleChannels() {
-		MessageChannel channel1 = new SimpleChannel();
-		MessageChannel channel2 = new SimpleChannel();
+		MessageChannel channel1 = new QueueChannel();
+		MessageChannel channel2 = new QueueChannel();
 		channel1.send(new StringMessage("test1"));
 		channel1.send(new StringMessage("test2"));
 		channel2.send(new StringMessage("test1"));

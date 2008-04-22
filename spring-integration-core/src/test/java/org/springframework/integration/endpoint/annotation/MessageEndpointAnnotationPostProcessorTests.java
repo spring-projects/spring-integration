@@ -39,7 +39,7 @@ import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.MessageEndpointAnnotationPostProcessor;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.HandlerEndpoint;
@@ -57,6 +57,20 @@ public class MessageEndpointAnnotationPostProcessorTests {
 		context.start();
 		MessageChannel inputChannel = (MessageChannel) context.getBean("inputChannel");
 		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
+		inputChannel.send(new StringMessage("world"));
+		Message<?> message = outputChannel.receive(1000);
+		assertEquals("hello world", message.getPayload());
+		context.stop();
+	}
+
+	@Test
+	public void testSimpleHandlerWithAutoCreatedChannels() throws InterruptedException {
+		AbstractApplicationContext context = new ClassPathXmlApplicationContext(
+				"simpleAnnotatedEndpointWithAutoCreateChannelTests.xml", this.getClass());
+		context.start();
+		ChannelRegistry channelRegistry = (ChannelRegistry) context.getBean("bus");
+		MessageChannel inputChannel = channelRegistry.lookupChannel("inputChannel");
+		MessageChannel outputChannel = channelRegistry.lookupChannel("outputChannel");
 		inputChannel.send(new StringMessage("world"));
 		Message<?> message = outputChannel.receive(1000);
 		assertEquals("hello world", message.getPayload());
@@ -90,7 +104,7 @@ public class MessageEndpointAnnotationPostProcessorTests {
 	@Test
 	public void testPolledAnnotation() throws InterruptedException {
 		MessageBus messageBus = new MessageBus();
-		SimpleChannel testChannel = new SimpleChannel();
+		QueueChannel testChannel = new QueueChannel();
 		messageBus.registerChannel("testChannel", testChannel);
 		MessageEndpointAnnotationPostProcessor postProcessor =
 				new MessageEndpointAnnotationPostProcessor(messageBus);
@@ -106,7 +120,7 @@ public class MessageEndpointAnnotationPostProcessorTests {
 	@Test
 	public void testDefaultOutputAnnotation() throws InterruptedException {
 		MessageBus messageBus = new MessageBus();
-		SimpleChannel testChannel = new SimpleChannel();
+		QueueChannel testChannel = new QueueChannel();
 		messageBus.registerChannel("testChannel", testChannel);
 		MessageEndpointAnnotationPostProcessor postProcessor =
 				new MessageEndpointAnnotationPostProcessor(messageBus);
@@ -212,8 +226,8 @@ public class MessageEndpointAnnotationPostProcessorTests {
 	@Test
 	public void testMessageEndpointAnnotationInheritedFromInterface() {
 		MessageBus messageBus = new MessageBus();
-		MessageChannel inputChannel = new SimpleChannel();
-		MessageChannel outputChannel = new SimpleChannel();
+		MessageChannel inputChannel = new QueueChannel();
+		MessageChannel outputChannel = new QueueChannel();
 		messageBus.registerChannel("inputChannel", inputChannel);
 		messageBus.registerChannel("outputChannel", outputChannel);
 		MessageEndpointAnnotationPostProcessor postProcessor =
@@ -245,8 +259,8 @@ public class MessageEndpointAnnotationPostProcessorTests {
 	@Test
 	public void testMessageEndpointAnnotationInheritedFromInterfaceWithProxy() {
 		MessageBus messageBus = new MessageBus();
-		MessageChannel inputChannel = new SimpleChannel();
-		MessageChannel outputChannel = new SimpleChannel();
+		MessageChannel inputChannel = new QueueChannel();
+		MessageChannel outputChannel = new QueueChannel();
 		messageBus.registerChannel("inputChannel", inputChannel);
 		messageBus.registerChannel("outputChannel", outputChannel);
 		MessageEndpointAnnotationPostProcessor postProcessor =
@@ -264,8 +278,8 @@ public class MessageEndpointAnnotationPostProcessorTests {
 	@Test
 	public void testSplitterAnnotation() throws InterruptedException {
 		MessageBus messageBus = new MessageBus();
-		SimpleChannel input = new SimpleChannel();
-		SimpleChannel output = new SimpleChannel();
+		QueueChannel input = new QueueChannel();
+		QueueChannel output = new QueueChannel();
 		messageBus.registerChannel("input", input);
 		messageBus.registerChannel("output", output);
 		MessageEndpointAnnotationPostProcessor postProcessor =
@@ -293,7 +307,7 @@ public class MessageEndpointAnnotationPostProcessorTests {
 	@Test(expected=ConfigurationException.class)
 	public void testEndpointWithNoHandlerMethod() {
 		MessageBus messageBus = new MessageBus();
-		SimpleChannel testChannel = new SimpleChannel();
+		QueueChannel testChannel = new QueueChannel();
 		messageBus.registerChannel("testChannel", testChannel);
 		MessageEndpointAnnotationPostProcessor postProcessor =
 				new MessageEndpointAnnotationPostProcessor(messageBus);

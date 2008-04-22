@@ -31,7 +31,7 @@ import org.springframework.integration.message.MessagePriority;
  * 
  * @author Mark Fisher
  */
-public class PriorityChannel extends BaseBlockingQueueChannel {
+public class PriorityChannel extends QueueChannel {
 
 	private final Semaphore semaphore;
 

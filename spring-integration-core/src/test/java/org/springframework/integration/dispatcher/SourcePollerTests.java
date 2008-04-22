@@ -26,7 +26,7 @@ import org.junit.Test;
 
 import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 
@@ -39,7 +39,7 @@ public class SourcePollerTests {
 	public void testSingleMessagePerRetrieval() {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setReceiveTimeout(0);
-		MessageChannel channel = new SimpleChannel(5, dispatcherPolicy);
+		MessageChannel channel = new QueueChannel(5, dispatcherPolicy);
 		SourcePoller poller = new SourcePoller(channel);
 		Collection<Message<?>> results = poller.poll();
 		assertTrue(results.isEmpty());
@@ -58,7 +58,7 @@ public class SourcePollerTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setReceiveTimeout(0);
 		dispatcherPolicy.setMaxMessagesPerTask(2);
-		MessageChannel channel = new SimpleChannel(5, dispatcherPolicy);
+		MessageChannel channel = new QueueChannel(5, dispatcherPolicy);
 		SourcePoller poller = new SourcePoller(channel);
 		Collection<Message<?>> results = poller.poll();
 		assertTrue(results.isEmpty());
@@ -80,7 +80,7 @@ public class SourcePollerTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setReceiveTimeout(0);
 		dispatcherPolicy.setMaxMessagesPerTask(1);
-		MessageChannel channel = new SimpleChannel(5, dispatcherPolicy);
+		MessageChannel channel = new QueueChannel(5, dispatcherPolicy);
 		SourcePoller poller = new SourcePoller(channel);
 		Collection<Message<?>> results = poller.poll();
 		assertTrue(results.isEmpty());

@@ -8,7 +8,7 @@
 		<property name="autoStartup" value="false"/>
 	</bean>
 
-	<bean id="channel" class="org.springframework.integration.channel.SimpleChannel"/>
+	<bean id="channel" class="org.springframework.integration.channel.QueueChannel"/>
 
 	<bean id="sourceAdapter" class="org.springframework.integration.adapter.PollingSourceAdapter">
 		<constructor-arg>

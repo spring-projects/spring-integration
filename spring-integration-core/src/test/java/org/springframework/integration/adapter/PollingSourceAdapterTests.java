@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
-import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.PollableSource;
@@ -38,7 +38,7 @@ public class PollingSourceAdapterTests {
 	@Test
 	public void testPolledSourceSendsToChannel() {
 		TestSource source = new TestSource("testing", 1);
-		SimpleChannel channel = new SimpleChannel();
+		QueueChannel channel = new QueueChannel();
 		PollingSchedule schedule = new PollingSchedule(100);
 		PollingSourceAdapter adapter = new PollingSourceAdapter(source, channel, schedule);
 		adapter.run();
@@ -50,7 +50,7 @@ public class PollingSourceAdapterTests {
 	@Test
 	public void testSendTimeout() {
 		TestSource source = new TestSource("testing", 1);
-		SimpleChannel channel = new SimpleChannel(1);
+		QueueChannel channel = new QueueChannel(1);
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
 		PollingSourceAdapter adapter = new PollingSourceAdapter(source, channel, schedule);
@@ -71,7 +71,7 @@ public class PollingSourceAdapterTests {
 	@Test
 	public void testMultipleMessagesPerPoll() {
 		TestSource source = new TestSource("testing", 3);
-		SimpleChannel channel = new SimpleChannel();
+		QueueChannel channel = new QueueChannel();
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
 		PollingSourceAdapter adapter = new PollingSourceAdapter(source, channel, schedule);

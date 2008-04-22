@@ -39,13 +39,13 @@ import org.springframework.integration.message.selector.UnexpiredMessageSelector
 /**
  * @author Mark Fisher
  */
-public class SimpleChannelTests {
+public class QueueChannelTests {
 
 	@Test
 	public void testSimpleSendAndReceive() throws Exception {
 		final AtomicBoolean messageReceived = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
-		final SimpleChannel channel = new SimpleChannel();
+		final QueueChannel channel = new QueueChannel();
 		new Thread(new Runnable() {
 			public void run() {
 				Message<?> message = channel.receive();
@@ -64,7 +64,7 @@ public class SimpleChannelTests {
 	@Test
 	public void testImmediateReceive() throws Exception {
 		final AtomicBoolean messageReceived = new AtomicBoolean(false);
-		final SimpleChannel channel = new SimpleChannel();
+		final QueueChannel channel = new QueueChannel();
 		final CountDownLatch latch1 = new CountDownLatch(1);
 		final CountDownLatch latch2 = new CountDownLatch(1);
 		Executor singleThreadExecutor = Executors.newSingleThreadExecutor();
@@ -102,7 +102,7 @@ public class SimpleChannelTests {
 
 	@Test
 	public void testBlockingReceiveWithNoTimeout() throws Exception{
-		final SimpleChannel channel = new SimpleChannel();
+		final QueueChannel channel = new QueueChannel();
 		final AtomicBoolean receiveInterrupted = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
@@ -122,7 +122,7 @@ public class SimpleChannelTests {
 
 	@Test
 	public void testBlockingReceiveWithTimeout() throws Exception{
-		final SimpleChannel channel = new SimpleChannel();
+		final QueueChannel channel = new QueueChannel();
 		final AtomicBoolean receiveInterrupted = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
@@ -142,7 +142,7 @@ public class SimpleChannelTests {
 
 	@Test
 	public void testImmediateSend() {
-		SimpleChannel channel = new SimpleChannel(3);
+		QueueChannel channel = new QueueChannel(3);
 		boolean result1 = channel.send(new GenericMessage<String>(1, "test-1"));
 		assertTrue(result1);
 		boolean result2 = channel.send(new GenericMessage<String>(2, "test-2"), 100);
@@ -155,7 +155,7 @@ public class SimpleChannelTests {
 
 	@Test
 	public void testBlockingSendWithNoTimeout() throws Exception{
-		final SimpleChannel channel = new SimpleChannel(1);
+		final QueueChannel channel = new QueueChannel(1);
 		boolean result1 = channel.send(new GenericMessage<String>(1, "test-1"));
 		assertTrue(result1);
 		final AtomicBoolean sendInterrupted = new AtomicBoolean(false);
@@ -176,7 +176,7 @@ public class SimpleChannelTests {
 
 	@Test
 	public void testBlockingSendWithTimeout() throws Exception{
-		final SimpleChannel channel = new SimpleChannel(1);
+		final QueueChannel channel = new QueueChannel(1);
 		boolean result1 = channel.send(new GenericMessage<String>(1, "test-1"));
 		assertTrue(result1);
 		final AtomicBoolean sendInterrupted = new AtomicBoolean(false);
@@ -197,7 +197,7 @@ public class SimpleChannelTests {
 
 	@Test
 	public void testClear() {
-		SimpleChannel channel = new SimpleChannel(2);
+		QueueChannel channel = new QueueChannel(2);
 		StringMessage message1 = new StringMessage("test1");
 		StringMessage message2 = new StringMessage("test2");
 		StringMessage message3 = new StringMessage("test3");
@@ -212,7 +212,7 @@ public class SimpleChannelTests {
 
 	@Test
 	public void testClearEmptyChannel() {
-		SimpleChannel channel = new SimpleChannel();
+		QueueChannel channel = new QueueChannel();
 		List<Message<?>> clearedMessages = channel.clear();
 		assertNotNull(clearedMessages);
 		assertEquals(0, clearedMessages.size());
@@ -220,7 +220,7 @@ public class SimpleChannelTests {
 
 	@Test
 	public void testPurge() {
-		SimpleChannel channel = new SimpleChannel(2);
+		QueueChannel channel = new QueueChannel(2);
 		long minute = 60 * 1000;
 		long time = System.currentTimeMillis();
 		Date past = new Date(time - minute);

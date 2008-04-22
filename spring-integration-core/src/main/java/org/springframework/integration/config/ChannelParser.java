@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,16 +23,14 @@ import org.w3c.dom.NodeList;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
-import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.PriorityChannel;
-import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.interceptor.MessageSelectingInterceptor;
-import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.integration.message.selector.PayloadTypeSelector;
 import org.springframework.util.StringUtils;
 
@@ -62,7 +60,7 @@ public class ChannelParser implements BeanDefinitionParser {
 
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
 		boolean isPriorityChannel = (element.getLocalName().equals("priority-channel"));
-		Class<?> channelClass = (isPriorityChannel) ? PriorityChannel.class : SimpleChannel.class;
+		Class<?> channelClass = (isPriorityChannel) ? PriorityChannel.class : QueueChannel.class;
 		RootBeanDefinition channelDef = new RootBeanDefinition(channelClass);
 		channelDef.setSource(parserContext.extractSource(element));
 		boolean isPublishSubscribe = "true".equals(element.getAttribute(PUBLISH_SUBSCRIBE_ATTRIBUTE));
@@ -83,7 +81,7 @@ public class ChannelParser implements BeanDefinitionParser {
 			}
 		} 
 		String capAttr = element.getAttribute(CAPACITY_ATTRIBUTE);
-		int capacity = (StringUtils.hasText(capAttr)) ? Integer.parseInt(capAttr) : SimpleChannel.DEFAULT_CAPACITY;
+		int capacity = (StringUtils.hasText(capAttr)) ? Integer.parseInt(capAttr) : QueueChannel.DEFAULT_CAPACITY;
 		channelDef.getConstructorArgumentValues().addIndexedArgumentValue(0, capacity);
 		channelDef.getConstructorArgumentValues().addIndexedArgumentValue(1, dispatcherPolicy);
 		if (isPriorityChannel) {

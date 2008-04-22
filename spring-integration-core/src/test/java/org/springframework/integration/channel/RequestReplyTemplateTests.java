@@ -39,7 +39,7 @@ import org.springframework.integration.scheduling.Subscription;
  */
 public class RequestReplyTemplateTests {
 
-	private final SimpleChannel requestChannel = new SimpleChannel();
+	private final QueueChannel requestChannel = new QueueChannel();
 
 
 	public RequestReplyTemplateTests() {

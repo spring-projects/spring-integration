@@ -24,7 +24,7 @@ import org.junit.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
 
 /**
@@ -34,36 +34,34 @@ public class MessagePublishingInterceptorTests {
 
 	@Test
 	public void testNonNullReturnValuePublishedWithDefaultChannel() {
-		MessageChannel channel = new SimpleChannel();
+		MessageChannel channel = new QueueChannel();
 		MessagePublishingInterceptor interceptor = new MessagePublishingInterceptor();
 		interceptor.setDefaultChannel(channel);
 		TestService proxy = (TestService) this.createProxy(new TestServiceImpl("hello world"), interceptor);
 		proxy.messageTest();
-		Message message = channel.receive(0);
+		Message<?> message = channel.receive(0);
 		assertNotNull(message);
 		assertEquals("hello world", message.getPayload());
 	}
 
 	@Test
 	public void testNullReturnValueNotPublished() {
-		MessageChannel channel = new SimpleChannel();
+		MessageChannel channel = new QueueChannel();
 		MessagePublishingInterceptor interceptor = new MessagePublishingInterceptor();
 		interceptor.setDefaultChannel(channel);
 		TestService proxy = (TestService) this.createProxy(new TestServiceImpl(null), interceptor);
 		proxy.messageTest();
-		Message message = channel.receive(0);
-		assertNull(message);
+		assertNull(channel.receive(0));
 	}
 
 	@Test
 	public void testVoidReturnValueNotPublished() {
-		MessageChannel channel = new SimpleChannel();
+		MessageChannel channel = new QueueChannel();
 		MessagePublishingInterceptor interceptor = new MessagePublishingInterceptor();
 		interceptor.setDefaultChannel(channel);
 		TestService proxy = (TestService) this.createProxy(new TestServiceImpl(null), interceptor);
 		proxy.voidTest();
-		Message message = channel.receive(0);
-		assertNull(message);
+		assertNull(channel.receive(0));
 	}
 
 

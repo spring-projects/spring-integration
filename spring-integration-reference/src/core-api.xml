@@ -121,16 +121,16 @@ new GenericMessage&lt;T&gt;(T payload, MessageHeader headerToCopy)</programlisti
       When sending a message, the return value will be <emphasis>true</emphasis> if the message is sent successfully.
       If the send call times out or is interrupted, then it will return <emphasis>false</emphasis>. Likewise when
       receiving a message, the return value will be <emphasis>null</emphasis> in the case of a timeout or interrupt.
-      The <classname>SimpleChannel</classname> implementation wraps a queue. It provides a no-argument constructor as
+      The <classname>QueueChannel</classname> implementation wraps a queue. It provides a no-argument constructor as
       well as a constructor that accepts the queue capacity:
-      <programlisting>public SimpleChannel(int capacity)</programlisting>
+      <programlisting>public QueueChannel(int capacity)</programlisting>
       Specifying a capacity of 0 will create a "direct-handoff" channel where a sender will block until the channel's
       <methodname>receive()</methodname> method is called. Otherwise a channel that has not reached its capacity limit
       will store messages in its internal queue, and the <methodname>send()</methodname> method will return immediately
       even if no receiver is ready to handle the message.
     </para>
     <para>
-      Whereas the <classname>SimpleChannel</classname> enforces first-in/first-out (FIFO) ordering, the
+      Whereas the <classname>QueueChannel</classname> enforces first-in/first-out (FIFO) ordering, the
       <classname>PriorityChannel</classname> is an alternative implementation that allows for messages to be ordered
       within the channel based upon a priority. By default the priority is determined by the
       '<literal>priority</literal>' property within each message's header. However, for custom priority determination

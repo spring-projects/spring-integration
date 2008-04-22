@@ -19,6 +19,7 @@ package org.springframework.integration.channel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.integration.message.Message;
@@ -26,11 +27,18 @@ import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.util.Assert;
 
 /**
- * Base implementation for message channels that delegate to a {@link BlockingQueue}.
+ * Simple implementation of a message channel. Each {@link Message} is placed in
+ * a {@link BlockingQueue} whose capacity may be specified upon construction.
+ * The capacity must be a positive integer value. For a zero-capacity version
+ * based upon a {@link java.util.concurrent.SynchronousQueue}, consider the
+ * {@link RendezvousChannel}.
  * 
  * @author Mark Fisher
  */
-public class BaseBlockingQueueChannel extends AbstractMessageChannel {
+public class QueueChannel extends AbstractMessageChannel {
+
+	public static final int DEFAULT_CAPACITY = 100;
+
 
 	private final BlockingQueue<Message<?>> queue;
 
@@ -38,10 +46,35 @@ public class BaseBlockingQueueChannel extends AbstractMessageChannel {
 	/**
 	 * Create a channel with the specified queue and dispatcher policy.
 	 */
-	public BaseBlockingQueueChannel(BlockingQueue<Message<?>> queue, DispatcherPolicy dispatcherPolicy) {
+	public QueueChannel(BlockingQueue<Message<?>> queue, DispatcherPolicy dispatcherPolicy) {
 		super((dispatcherPolicy != null) ? dispatcherPolicy : new DispatcherPolicy());
 		Assert.notNull(queue, "'queue' must not be null");
 		this.queue = queue;
+	}
+
+	/**
+	 * Create a channel with the specified queue capacity and dispatcher policy.
+	 */
+	public QueueChannel(int capacity, DispatcherPolicy dispatcherPolicy) {
+		super((dispatcherPolicy != null) ? dispatcherPolicy : new DispatcherPolicy());
+		Assert.isTrue(capacity > 0, "The capacity must be a positive integer. " +
+				"For a zero-capacity alternative, consider '" + RendezvousChannel.class + "'");
+		this.queue = new LinkedBlockingQueue<Message<?>>(capacity);
+	}
+
+	/**
+	 * Create a channel with the specified queue capacity.
+	 */
+	public QueueChannel(int capacity) {
+		this(capacity, null);
+	}
+
+	/**
+	 * Create a channel with the default queue capacity.
+	 * @see #DEFAULT_CAPACITY
+	 */
+	public QueueChannel() {
+		this(DEFAULT_CAPACITY, null);
 	}
 
 

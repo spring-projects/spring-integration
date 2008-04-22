@@ -27,7 +27,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.selector.MessageSelector;
@@ -39,8 +39,8 @@ public class WireTapTests {
 
 	@Test
 	public void testWireTapWithNoSelectors() {
-		SimpleChannel mainChannel = new SimpleChannel();
-		SimpleChannel secondaryChannel = new SimpleChannel();
+		QueueChannel mainChannel = new QueueChannel();
+		QueueChannel secondaryChannel = new QueueChannel();
 		mainChannel.addInterceptor(new WireTap(secondaryChannel));
 		mainChannel.send(new StringMessage("testing"));
 		Message<?> original = mainChannel.receive(0);
@@ -51,8 +51,8 @@ public class WireTapTests {
 
 	@Test
 	public void testWireTapWithRejectingSelector() {
-		SimpleChannel mainChannel = new SimpleChannel();
-		SimpleChannel secondaryChannel = new SimpleChannel();
+		QueueChannel mainChannel = new QueueChannel();
+		QueueChannel secondaryChannel = new QueueChannel();
 		List<MessageSelector> selectors = new ArrayList<MessageSelector>();
 		selectors.add(new TestSelector(true));
 		selectors.add(new TestSelector(false));
@@ -66,8 +66,8 @@ public class WireTapTests {
 
 	@Test
 	public void testWireTapWithAcceptingSelectors() {
-		SimpleChannel mainChannel = new SimpleChannel();
-		SimpleChannel secondaryChannel = new SimpleChannel();
+		QueueChannel mainChannel = new QueueChannel();
+		QueueChannel secondaryChannel = new QueueChannel();
 		List<MessageSelector> selectors = new ArrayList<MessageSelector>();
 		selectors.add(new TestSelector(true));
 		selectors.add(new TestSelector(true));
@@ -81,8 +81,8 @@ public class WireTapTests {
 
 	@Test
 	public void testNewMessageIdGeneratedForDuplicate() {
-		SimpleChannel mainChannel = new SimpleChannel();
-		SimpleChannel secondaryChannel = new SimpleChannel();
+		QueueChannel mainChannel = new QueueChannel();
+		QueueChannel secondaryChannel = new QueueChannel();
 		mainChannel.addInterceptor(new WireTap(secondaryChannel));
 		mainChannel.send(new StringMessage("testing"));
 		Message<?> original = mainChannel.receive(0);
@@ -94,8 +94,8 @@ public class WireTapTests {
 
 	@Test
 	public void testOriginalIdStoredAsAttribute() {
-		SimpleChannel mainChannel = new SimpleChannel();
-		SimpleChannel secondaryChannel = new SimpleChannel();
+		QueueChannel mainChannel = new QueueChannel();
+		QueueChannel secondaryChannel = new QueueChannel();
 		mainChannel.addInterceptor(new WireTap(secondaryChannel));
 		mainChannel.send(new StringMessage("testing"));
 		Message<?> original = mainChannel.receive(0);
@@ -107,8 +107,8 @@ public class WireTapTests {
 
 	@Test
 	public void testNewTimestampGeneratedForDuplicate() throws InterruptedException {
-		SimpleChannel mainChannel = new SimpleChannel();
-		SimpleChannel secondaryChannel = new SimpleChannel();
+		QueueChannel mainChannel = new QueueChannel();
+		QueueChannel secondaryChannel = new QueueChannel();
 		mainChannel.addInterceptor(new WireTap(secondaryChannel));
 		Message<?> message = new StringMessage("testing");
 		Thread.sleep(3);
@@ -120,8 +120,8 @@ public class WireTapTests {
 	}
 
 	public void testDuplicateMessageContainsAttribute() {
-		SimpleChannel mainChannel = new SimpleChannel();
-		SimpleChannel secondaryChannel = new SimpleChannel();
+		QueueChannel mainChannel = new QueueChannel();
+		QueueChannel secondaryChannel = new QueueChannel();
 		mainChannel.addInterceptor(new WireTap(secondaryChannel));
 		Message<?> message = new StringMessage("testing");
 		String attributeKey = "testAttribute";
@@ -139,8 +139,8 @@ public class WireTapTests {
 
 	@Test
 	public void testDuplicateMessageContainsProperty() {
-		SimpleChannel mainChannel = new SimpleChannel();
-		SimpleChannel secondaryChannel = new SimpleChannel();
+		QueueChannel mainChannel = new QueueChannel();
+		QueueChannel secondaryChannel = new QueueChannel();
 		mainChannel.addInterceptor(new WireTap(secondaryChannel));
 		Message<?> message = new StringMessage("testing");
 		String propertyKey = "testProperty";

@@ -41,7 +41,7 @@ import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.dispatcher.SynchronousChannel;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.DefaultEndpointRegistry;
@@ -334,7 +334,7 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 				if (this.logger.isInfoEnabled()) {
 					logger.info("auto-creating channel '" + channelName + "'");
 				}
-				channel = new SimpleChannel(); 
+				channel = new QueueChannel(); 
 				this.registerChannel(channelName, channel);
 			}
 		}
@@ -347,7 +347,7 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 							"' configured as 'default-output' for endpoint '" + endpoint +
 							"'. Consider enabling the 'autoCreateChannels' option for the message bus.");
 				}
-				this.registerChannel(outputChannelName, new SimpleChannel());
+				this.registerChannel(outputChannelName, new QueueChannel());
 			}
 		}
 		if (endpoint instanceof TargetEndpoint) {

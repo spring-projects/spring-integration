@@ -25,7 +25,7 @@ import org.junit.Test;
 
 import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.scheduling.PollingSchedule;
 
@@ -37,7 +37,7 @@ public class CharacterStreamSourceAdapterTests {
 	@Test
 	public void testEndOfStream() {
 		StringReader reader = new StringReader("test");
-		MessageChannel channel = new SimpleChannel();
+		MessageChannel channel = new QueueChannel();
 		CharacterStreamSource source = new CharacterStreamSource(reader);
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
@@ -55,7 +55,7 @@ public class CharacterStreamSourceAdapterTests {
 	@Test
 	public void testEndOfStreamWithMaxMessagesPerTask() {
 		StringReader reader = new StringReader("test");
-		MessageChannel channel = new SimpleChannel();
+		MessageChannel channel = new QueueChannel();
 		CharacterStreamSource source = new CharacterStreamSource(reader);
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
@@ -72,7 +72,7 @@ public class CharacterStreamSourceAdapterTests {
 	public void testMultipleLinesWithSingleMessagePerTask() {
 		String s = "test1" + System.getProperty("line.separator") + "test2";
 		StringReader reader = new StringReader(s);
-		MessageChannel channel = new SimpleChannel();
+		MessageChannel channel = new QueueChannel();
 		CharacterStreamSource source = new CharacterStreamSource(reader);
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
@@ -92,7 +92,7 @@ public class CharacterStreamSourceAdapterTests {
 	public void testLessThanMaxMessagesAvailable() {
 		String s = "test1" + System.getProperty("line.separator") + "test2";
 		StringReader reader = new StringReader(s);
-		MessageChannel channel = new SimpleChannel();
+		MessageChannel channel = new QueueChannel();
 		CharacterStreamSource source = new CharacterStreamSource(reader);
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(5000);

@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.StringMessage;
@@ -54,7 +54,7 @@ public class AggregatingMessageHandlerTests {
 	@Test
 	public void testCompleteGroupWithinTimeout() throws InterruptedException {
 		AggregatingMessageHandler aggregator = new AggregatingMessageHandler(new TestAggregator());
-		SimpleChannel replyChannel = new SimpleChannel();
+		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 3, 1, replyChannel);
 		Message<?> message2 = createMessage("456", "ABC", 3, 2, replyChannel);
 		Message<?> message3 = createMessage("789", "ABC", 3, 3, replyChannel);
@@ -70,12 +70,12 @@ public class AggregatingMessageHandlerTests {
 
 	@Test
 	public void testShouldNotSendPartialResultOnTimeoutByDefault() throws InterruptedException {
-		SimpleChannel discardChannel = new SimpleChannel();
+		QueueChannel discardChannel = new QueueChannel();
 		AggregatingMessageHandler aggregator = new AggregatingMessageHandler(new TestAggregator());
 		aggregator.setTimeout(50);
 		aggregator.setReaperInterval(10);
 		aggregator.setDiscardChannel(discardChannel);
-		SimpleChannel replyChannel = new SimpleChannel();
+		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = createMessage("123", "ABC", 2, 1, replyChannel);
 		CountDownLatch latch = new CountDownLatch(1);
 		AggregatorTestTask task = new AggregatorTestTask(aggregator, message, latch);
@@ -94,7 +94,7 @@ public class AggregatingMessageHandlerTests {
 		aggregator.setTimeout(50);
 		aggregator.setReaperInterval(10);
 		aggregator.setSendPartialResultOnTimeout(true);
-		SimpleChannel replyChannel = new SimpleChannel();
+		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 3, 1, replyChannel);
 		Message<?> message2 = createMessage("456", "ABC", 3, 2, replyChannel);
 		CountDownLatch latch = new CountDownLatch(2);
@@ -114,8 +114,8 @@ public class AggregatingMessageHandlerTests {
 	@Test
 	public void testMultipleGroupsSimultaneously() throws InterruptedException {
 		AggregatingMessageHandler aggregator = new AggregatingMessageHandler(new TestAggregator());
-		SimpleChannel replyChannel1 = new SimpleChannel();
-		SimpleChannel replyChannel2 = new SimpleChannel();
+		QueueChannel replyChannel1 = new QueueChannel();
+		QueueChannel replyChannel2 = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 3, 1, replyChannel1);
 		Message<?> message2 = createMessage("456", "ABC", 3, 2, replyChannel1);
 		Message<?> message3 = createMessage("789", "ABC", 3, 3, replyChannel1);
@@ -140,8 +140,8 @@ public class AggregatingMessageHandlerTests {
 
 	@Test
 	public void testDiscardChannelForTrackedCorrelationId() {
-		SimpleChannel replyChannel = new SimpleChannel();
-		SimpleChannel discardChannel = new SimpleChannel();
+		QueueChannel replyChannel = new QueueChannel();
+		QueueChannel discardChannel = new QueueChannel();
 		AggregatingMessageHandler aggregator = new AggregatingMessageHandler(new TestAggregator());
 		aggregator.setDiscardChannel(discardChannel);
 		aggregator.handle(createMessage("test-1a", 1, 1, 1, replyChannel));
@@ -152,8 +152,8 @@ public class AggregatingMessageHandlerTests {
 
 	@Test
 	public void testTrackedCorrelationIdsCapacityAtLimit() {
-		SimpleChannel replyChannel = new SimpleChannel();
-		SimpleChannel discardChannel = new SimpleChannel();
+		QueueChannel replyChannel = new QueueChannel();
+		QueueChannel discardChannel = new QueueChannel();
 		AggregatingMessageHandler aggregator = new AggregatingMessageHandler(new TestAggregator());
 		aggregator.setTrackedCorrelationIdCapacity(3);
 		aggregator.setDiscardChannel(discardChannel);
@@ -169,8 +169,8 @@ public class AggregatingMessageHandlerTests {
 
 	@Test
 	public void testTrackedCorrelationIdsCapacityPassesLimit() {
-		SimpleChannel replyChannel = new SimpleChannel();
-		SimpleChannel discardChannel = new SimpleChannel();
+		QueueChannel replyChannel = new QueueChannel();
+		QueueChannel discardChannel = new QueueChannel();
 		AggregatingMessageHandler aggregator = new AggregatingMessageHandler(new TestAggregator());
 		aggregator.setTrackedCorrelationIdCapacity(3);
 		aggregator.setDiscardChannel(discardChannel);
@@ -190,7 +190,7 @@ public class AggregatingMessageHandlerTests {
 	@Test(expected=MessageHandlingException.class)
 	public void testExceptionThrownIfNoCorrelationId() throws InterruptedException {
 		AggregatingMessageHandler aggregator = new AggregatingMessageHandler(new TestAggregator());
-		Message<?> message = createMessage("123", null, 2, 1, new SimpleChannel());
+		Message<?> message = createMessage("123", null, 2, 1, new QueueChannel());
 		aggregator.handle(message);
 	}
 

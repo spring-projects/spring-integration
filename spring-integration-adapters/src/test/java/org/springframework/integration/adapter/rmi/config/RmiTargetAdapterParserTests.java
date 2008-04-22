@@ -26,7 +26,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.adapter.rmi.RmiSourceAdapter;
 import org.springframework.integration.adapter.rmi.RmiTargetAdapter;
-import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.message.StringMessage;
 
@@ -35,7 +35,7 @@ import org.springframework.integration.message.StringMessage;
  */
 public class RmiTargetAdapterParserTests {
 
-	private final SimpleChannel testChannel = new SimpleChannel();
+	private final QueueChannel testChannel = new QueueChannel();
 
 
 	@Before

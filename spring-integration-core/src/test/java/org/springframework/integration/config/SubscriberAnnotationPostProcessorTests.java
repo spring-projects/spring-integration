@@ -34,7 +34,7 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.annotation.Subscriber;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -46,7 +46,7 @@ public class SubscriberAnnotationPostProcessorTests {
 	public void testAnnotatedSubscriber() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
 		GenericApplicationContext context = new GenericApplicationContext();
-		context.registerBeanDefinition("testChannel", new RootBeanDefinition(SimpleChannel.class));
+		context.registerBeanDefinition("testChannel", new RootBeanDefinition(QueueChannel.class));
 		RootBeanDefinition subscriberDef = new RootBeanDefinition(SubscriberAnnotationTestBean.class);
 		subscriberDef.getConstructorArgumentValues().addGenericArgumentValue(latch);
 		context.registerBeanDefinition("testBean", subscriberDef);
@@ -72,7 +72,7 @@ public class SubscriberAnnotationPostProcessorTests {
 	public void testCustomAnnotation() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
 		GenericApplicationContext context = new GenericApplicationContext();
-		context.registerBeanDefinition("testChannel", new RootBeanDefinition(SimpleChannel.class));
+		context.registerBeanDefinition("testChannel", new RootBeanDefinition(QueueChannel.class));
 		RootBeanDefinition subscriberDef = new RootBeanDefinition(CustomAnnotationTestBean.class);
 		subscriberDef.getConstructorArgumentValues().addGenericArgumentValue(latch);
 		context.registerBeanDefinition("testBean", subscriberDef);

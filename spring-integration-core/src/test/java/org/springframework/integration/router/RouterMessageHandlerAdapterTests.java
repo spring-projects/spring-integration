@@ -33,7 +33,7 @@ import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
@@ -50,7 +50,7 @@ public class RouterMessageHandlerAdapterTests {
 		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
 		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
 		Message<String> message = new GenericMessage<String>("123", "bar");
-		SimpleChannel barChannel = new SimpleChannel();
+		QueueChannel barChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("bar-channel", barChannel);
 		adapter.setChannelRegistry(channelRegistry);
@@ -70,8 +70,8 @@ public class RouterMessageHandlerAdapterTests {
 		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
 		Message<String> message = new GenericMessage<String>("123", "bar");
 		message.getHeader().setProperty("returnAddress", "baz");
-		SimpleChannel barChannel = new SimpleChannel();
-		SimpleChannel bazChannel = new SimpleChannel();
+		QueueChannel barChannel = new QueueChannel();
+		QueueChannel bazChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("bar-channel", barChannel);
 		channelRegistry.registerChannel("baz-channel", bazChannel);
@@ -95,9 +95,9 @@ public class RouterMessageHandlerAdapterTests {
 		Message<String> message = new GenericMessage<String>("123", "bar");
 		message.getHeader().setProperty("returnAddress", "bad");
 		message.getHeader().setAttribute("returnAddress", "baz");
-		SimpleChannel barChannel = new SimpleChannel();
-		SimpleChannel badChannel = new SimpleChannel();
-		SimpleChannel bazChannel = new SimpleChannel();
+		QueueChannel barChannel = new QueueChannel();
+		QueueChannel badChannel = new QueueChannel();
+		QueueChannel bazChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("bar-channel", barChannel);
 		channelRegistry.registerChannel("bad-channel", badChannel);
@@ -135,8 +135,8 @@ public class RouterMessageHandlerAdapterTests {
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
-		SimpleChannel fooChannel = new SimpleChannel();
-		SimpleChannel barChannel = new SimpleChannel();
+		QueueChannel fooChannel = new QueueChannel();
+		QueueChannel barChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("foo-channel", fooChannel);
 		channelRegistry.registerChannel("bar-channel", barChannel);
@@ -159,8 +159,8 @@ public class RouterMessageHandlerAdapterTests {
 
 	@Test
 	public void testChannelInstanceResolutionByPayload() throws Exception {
-		SimpleChannel fooChannel = new SimpleChannel();
-		SimpleChannel barChannel = new SimpleChannel();
+		QueueChannel fooChannel = new QueueChannel();
+		QueueChannel barChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("foo-channel", fooChannel);
 		channelRegistry.registerChannel("bar-channel", barChannel);
@@ -190,8 +190,8 @@ public class RouterMessageHandlerAdapterTests {
 
 	@Test
 	public void testChannelInstanceResolutionByMessage() throws Exception {
-		SimpleChannel fooChannel = new SimpleChannel();
-		SimpleChannel barChannel = new SimpleChannel();
+		QueueChannel fooChannel = new QueueChannel();
+		QueueChannel barChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("foo-channel", fooChannel);
 		channelRegistry.registerChannel("bar-channel", barChannel);
@@ -221,8 +221,8 @@ public class RouterMessageHandlerAdapterTests {
 
 	@Test
 	public void testMultiChannelNameResolutionByPayload() throws Exception {
-		SimpleChannel fooChannel = new SimpleChannel();
-		SimpleChannel barChannel = new SimpleChannel();
+		QueueChannel fooChannel = new QueueChannel();
+		QueueChannel barChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("foo-channel", fooChannel);
 		channelRegistry.registerChannel("bar-channel", barChannel);
@@ -258,8 +258,8 @@ public class RouterMessageHandlerAdapterTests {
 
 	@Test
 	public void testMultiChannelNameResolutionByMessage() throws Exception {
-		SimpleChannel fooChannel = new SimpleChannel();
-		SimpleChannel barChannel = new SimpleChannel();
+		QueueChannel fooChannel = new QueueChannel();
+		QueueChannel barChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("foo-channel", fooChannel);
 		channelRegistry.registerChannel("bar-channel", barChannel);
@@ -295,8 +295,8 @@ public class RouterMessageHandlerAdapterTests {
 
 	@Test
 	public void testMultiChannelNameArrayResolutionByMessage() throws Exception {
-		SimpleChannel fooChannel = new SimpleChannel();
-		SimpleChannel barChannel = new SimpleChannel();
+		QueueChannel fooChannel = new QueueChannel();
+		QueueChannel barChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("foo-channel", fooChannel);
 		channelRegistry.registerChannel("bar-channel", barChannel);
@@ -332,8 +332,8 @@ public class RouterMessageHandlerAdapterTests {
 
 	@Test
 	public void testMultiChannelListResolutionByPayload() throws Exception {
-		SimpleChannel fooChannel = new SimpleChannel();
-		SimpleChannel barChannel = new SimpleChannel();
+		QueueChannel fooChannel = new QueueChannel();
+		QueueChannel barChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("foo-channel", fooChannel);
 		channelRegistry.registerChannel("bar-channel", barChannel);
@@ -369,8 +369,8 @@ public class RouterMessageHandlerAdapterTests {
 
 	@Test
 	public void testMultiChannelListResolutionByMessage() throws Exception {
-		SimpleChannel fooChannel = new SimpleChannel();
-		SimpleChannel barChannel = new SimpleChannel();
+		QueueChannel fooChannel = new QueueChannel();
+		QueueChannel barChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("foo-channel", fooChannel);
 		channelRegistry.registerChannel("bar-channel", barChannel);
@@ -406,8 +406,8 @@ public class RouterMessageHandlerAdapterTests {
 
 	@Test
 	public void testMultiChannelArrayResolutionByMessage() throws Exception {
-		SimpleChannel fooChannel = new SimpleChannel();
-		SimpleChannel barChannel = new SimpleChannel();
+		QueueChannel fooChannel = new QueueChannel();
+		QueueChannel barChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("foo-channel", fooChannel);
 		channelRegistry.registerChannel("bar-channel", barChannel);
@@ -443,7 +443,7 @@ public class RouterMessageHandlerAdapterTests {
 
 	@Test
 	public void testChannelRegistryAwareTarget() throws Exception {
-		SimpleChannel fooChannel = new SimpleChannel();
+		QueueChannel fooChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("foo-channel", fooChannel);
 		ChannelRegistryAwareTestBean testBean = new ChannelRegistryAwareTestBean();

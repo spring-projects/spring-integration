@@ -33,7 +33,8 @@ import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.adapter.SourceAdapter;
 import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.channel.RendezvousChannel;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.ErrorMessage;
@@ -53,8 +54,8 @@ public class MessageBusTests {
 	@Test
 	public void testOutputChannel() {
 		MessageBus bus = new MessageBus();
-		MessageChannel sourceChannel = new SimpleChannel();
-		MessageChannel targetChannel = new SimpleChannel();
+		MessageChannel sourceChannel = new QueueChannel();
+		MessageChannel targetChannel = new QueueChannel();
 		bus.registerChannel("sourceChannel", sourceChannel);
 		StringMessage message = new StringMessage("test");
 		message.getHeader().setReturnAddress("targetChannel");
@@ -76,9 +77,9 @@ public class MessageBusTests {
 	@Test
 	public void testChannelsWithoutHandlers() {
 		MessageBus bus = new MessageBus();
-		MessageChannel sourceChannel = new SimpleChannel();
+		MessageChannel sourceChannel = new QueueChannel();
 		sourceChannel.send(new StringMessage("123", "test"));
-		MessageChannel targetChannel = new SimpleChannel();
+		MessageChannel targetChannel = new QueueChannel();
 		bus.registerChannel("sourceChannel", sourceChannel);
 		bus.registerChannel("targetChannel", targetChannel);
 		bus.start();
@@ -102,9 +103,9 @@ public class MessageBusTests {
 
 	@Test
 	public void testExactlyOneHandlerReceivesPointToPointMessage() {
-		SimpleChannel inputChannel = new SimpleChannel();
-		SimpleChannel outputChannel1 = new SimpleChannel();
-		SimpleChannel outputChannel2 = new SimpleChannel();
+		QueueChannel inputChannel = new QueueChannel();
+		QueueChannel outputChannel1 = new QueueChannel();
+		QueueChannel outputChannel2 = new QueueChannel();
 		MessageHandler handler1 = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				message.getHeader().setReturnAddress("output1");
@@ -134,9 +135,9 @@ public class MessageBusTests {
 	@Test
 	public void testBothHandlersReceivePublishSubscribeMessage() throws InterruptedException {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy(true);
-		SimpleChannel inputChannel = new SimpleChannel(10, dispatcherPolicy);
-		SimpleChannel outputChannel1 = new SimpleChannel();
-		SimpleChannel outputChannel2 = new SimpleChannel();
+		QueueChannel inputChannel = new QueueChannel(10, dispatcherPolicy);
+		QueueChannel outputChannel1 = new QueueChannel();
+		QueueChannel outputChannel2 = new QueueChannel();
 		final CountDownLatch latch = new CountDownLatch(2);
 		MessageHandler handler1 = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
@@ -173,7 +174,7 @@ public class MessageBusTests {
 	public void testErrorChannelWithFailedDispatch() throws InterruptedException {
 		MessageBus bus = new MessageBus();
 		CountDownLatch latch = new CountDownLatch(1);
-		SourceAdapter sourceAdapter = new PollingSourceAdapter(new FailingSource(latch), new SimpleChannel(), new PollingSchedule(1000));
+		SourceAdapter sourceAdapter = new PollingSourceAdapter(new FailingSource(latch), new QueueChannel(), new PollingSchedule(1000));
 		bus.registerSourceAdapter("testAdapter", sourceAdapter);
 		bus.start();
 		latch.await(1000, TimeUnit.MILLISECONDS);
@@ -204,7 +205,7 @@ public class MessageBusTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setRejectionLimit(1);
 		dispatcherPolicy.setRetryInterval(0);
-		SimpleChannel testChannel = new SimpleChannel(0, dispatcherPolicy);
+		RendezvousChannel testChannel = new RendezvousChannel(dispatcherPolicy);
 		bus.registerChannel("testChannel", testChannel);
 		bus.registerHandler("testHandler", testHandler, new Subscription(testChannel));
 		bus.start();
@@ -234,7 +235,7 @@ public class MessageBusTests {
 
 	@Test
 	public void testErrorChannelRegistration() {
-		MessageChannel errorChannel = new SimpleChannel();
+		MessageChannel errorChannel = new QueueChannel();
 		MessageBus bus = new MessageBus();
 		bus.setErrorChannel(errorChannel);
 		assertEquals(errorChannel, bus.getErrorChannel());
@@ -242,7 +243,7 @@ public class MessageBusTests {
 
 	@Test
 	public void testHandlerSubscribedToErrorChannel() throws InterruptedException {
-		MessageChannel errorChannel = new SimpleChannel();
+		MessageChannel errorChannel = new QueueChannel();
 		MessageBus bus = new MessageBus();
 		bus.setErrorChannel(errorChannel);
 		final CountDownLatch latch = new CountDownLatch(1);

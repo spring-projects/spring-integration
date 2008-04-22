@@ -96,7 +96,7 @@ public class RequestReplyTemplate {
 	 * @return the reply message or <code>null</code>
 	 */
 	public Message<?> request(Message<?> requestMessage, long sendTimeout, long receiveTimeout) {
-		SimpleChannel replyChannel = new SimpleChannel(0);
+		RendezvousChannel replyChannel = new RendezvousChannel();
 		requestMessage.getHeader().setReturnAddress(replyChannel);
 		this.requestChannel.send(requestMessage, sendTimeout);
 		return replyChannel.receive(receiveTimeout);

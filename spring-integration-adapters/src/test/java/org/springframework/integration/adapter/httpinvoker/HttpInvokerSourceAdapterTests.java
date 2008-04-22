@@ -30,7 +30,7 @@ import java.util.concurrent.Executors;
 import org.junit.Test;
 
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -45,7 +45,7 @@ public class HttpInvokerSourceAdapterTests {
 
 	@Test
 	public void testRequestOnly() throws Exception {
-		MessageChannel channel = new SimpleChannel();
+		MessageChannel channel = new QueueChannel();
 		HttpInvokerSourceAdapter adapter = new HttpInvokerSourceAdapter(channel);
 		adapter.setExpectReply(false);
 		adapter.afterPropertiesSet();
@@ -60,7 +60,7 @@ public class HttpInvokerSourceAdapterTests {
 
 	@Test
 	public void testRequestExpectingReply() throws Exception {
-		final MessageChannel channel = new SimpleChannel();
+		final MessageChannel channel = new QueueChannel();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
 			public void run() {
 				Message<?> message = channel.receive();

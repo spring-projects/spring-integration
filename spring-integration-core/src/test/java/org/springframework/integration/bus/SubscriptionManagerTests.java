@@ -29,7 +29,7 @@ import org.junit.Test;
 
 import org.springframework.integration.bus.SubscriptionManager;
 import org.springframework.integration.channel.DispatcherPolicy;
-import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.endpoint.MessageEndpoint;
@@ -60,7 +60,7 @@ public class SubscriptionManagerTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		MessageHandler handler1 = TestHandlers.countingCountDownHandler(counter1, latch);
 		MessageHandler handler2 = TestHandlers.countingCountDownHandler(counter2, latch);
-		SimpleChannel channel = new SimpleChannel();
+		QueueChannel channel = new QueueChannel();
 		channel.send(new StringMessage(1, "test"));
 		SubscriptionManager manager = new SubscriptionManager(channel, scheduler);
 		manager.addTarget(createEndpoint(handler1, true));
@@ -78,7 +78,7 @@ public class SubscriptionManagerTests {
 		final CountDownLatch latch = new CountDownLatch(2);
 		MessageHandler handler1 = TestHandlers.countingCountDownHandler(counter1, latch);
 		MessageHandler handler2 = TestHandlers.countingCountDownHandler(counter2, latch);
-		SimpleChannel channel = new SimpleChannel(5, new DispatcherPolicy(true));
+		QueueChannel channel = new QueueChannel(5, new DispatcherPolicy(true));
 		channel.send(new StringMessage(1, "test"));
 		SubscriptionManager manager = new SubscriptionManager(channel, scheduler);
 		manager.addTarget(createEndpoint(handler1, true));
@@ -98,7 +98,7 @@ public class SubscriptionManagerTests {
 		MessageHandler handler1 = TestHandlers.countingCountDownHandler(counter1, latch);
 		MessageHandler handler2 = TestHandlers.countingCountDownHandler(counter2, latch);
 		MessageHandler handler3 = TestHandlers.countingCountDownHandler(counter3, latch);
-		SimpleChannel channel = new SimpleChannel();
+		QueueChannel channel = new QueueChannel();
 		SubscriptionManager manager = new SubscriptionManager(channel, scheduler);
 		MessageEndpoint inactiveEndpoint = createEndpoint(handler1, true);
 		manager.addTarget(inactiveEndpoint);
@@ -122,7 +122,7 @@ public class SubscriptionManagerTests {
 		MessageHandler handler1 = TestHandlers.countingCountDownHandler(counter1, latch);
 		MessageHandler handler2 = TestHandlers.countingCountDownHandler(counter2, latch);
 		MessageHandler handler3 = TestHandlers.countingCountDownHandler(counter3, latch);
-		SimpleChannel channel = new SimpleChannel(5, new DispatcherPolicy(true));
+		QueueChannel channel = new QueueChannel(5, new DispatcherPolicy(true));
 		SubscriptionManager manager = new SubscriptionManager(channel, scheduler);
 		MessageEndpoint inactiveEndpoint = createEndpoint(handler2, true);
 		manager.addTarget(createEndpoint(handler1, true));
@@ -139,7 +139,7 @@ public class SubscriptionManagerTests {
 
 	@Test
 	public void testDispatcherWithNoExecutorsDoesNotFail() {
-		SimpleChannel channel = new SimpleChannel();
+		QueueChannel channel = new QueueChannel();
 		channel.send(new StringMessage(1, "test"));
 		SubscriptionManager manager = new SubscriptionManager(channel, scheduler);
 		manager.start();
@@ -152,7 +152,7 @@ public class SubscriptionManagerTests {
 		final CountDownLatch latch = new CountDownLatch(2);
 		MessageHandler handler1 = TestHandlers.countingCountDownHandler(counter1, latch);
 		MessageHandler handler3 = TestHandlers.countingCountDownHandler(counter3, latch);
-		SimpleChannel channel = new SimpleChannel(5, new DispatcherPolicy(true));
+		QueueChannel channel = new QueueChannel(5, new DispatcherPolicy(true));
 		channel.getDispatcherPolicy().setRejectionLimit(2);
 		channel.getDispatcherPolicy().setRetryInterval(3);
 		channel.send(new StringMessage(1, "test"));
@@ -164,7 +164,7 @@ public class SubscriptionManagerTests {
 			}
 		});
 		manager.addTarget(createEndpoint(handler3, true));
-		SimpleChannel errorChannel = new SimpleChannel();
+		QueueChannel errorChannel = new QueueChannel();
 		scheduler.setErrorHandler(new MessagePublishingErrorHandler(errorChannel));
 		manager.start();
 		latch.await(2000, TimeUnit.MILLISECONDS);
@@ -182,7 +182,7 @@ public class SubscriptionManagerTests {
 		final CountDownLatch latch = new CountDownLatch(3);
 		MessageHandler handler1 = TestHandlers.countingCountDownHandler(counter1, latch);
 		MessageHandler handler2 = TestHandlers.countingCountDownHandler(counter2, latch);
-		SimpleChannel channel = new SimpleChannel(5, new DispatcherPolicy(true));
+		QueueChannel channel = new QueueChannel(5, new DispatcherPolicy(true));
 		channel.getDispatcherPolicy().setRejectionLimit(2);
 		channel.getDispatcherPolicy().setRetryInterval(3);
 		channel.getDispatcherPolicy().setShouldFailOnRejectionLimit(false);
@@ -207,14 +207,14 @@ public class SubscriptionManagerTests {
 		final CountDownLatch latch = new CountDownLatch(4);
 		MessageHandler handler1 = TestHandlers.rejectingCountDownHandler(latch);
 		MessageHandler handler2 = TestHandlers.rejectingCountDownHandler(latch);
-		SimpleChannel channel = new SimpleChannel(5, new DispatcherPolicy(false));
+		QueueChannel channel = new QueueChannel(5, new DispatcherPolicy(false));
 		channel.send(new StringMessage(1, "test"));
 		SubscriptionManager manager = new SubscriptionManager(channel, scheduler);
 		channel.getDispatcherPolicy().setRejectionLimit(2);
 		channel.getDispatcherPolicy().setRetryInterval(3);
 		manager.addTarget(createEndpoint(handler1, false));
 		manager.addTarget(createEndpoint(handler2, false));
-		SimpleChannel errorChannel = new SimpleChannel();
+		QueueChannel errorChannel = new QueueChannel();
 		scheduler.setErrorHandler(new MessagePublishingErrorHandler(errorChannel));
 		manager.start();
 		latch.await(2000, TimeUnit.MILLISECONDS);
@@ -232,7 +232,7 @@ public class SubscriptionManagerTests {
 		final AtomicInteger rejectedCounter1 = new AtomicInteger();
 		final AtomicInteger rejectedCounter2 = new AtomicInteger();
 		final CountDownLatch latch = new CountDownLatch(4);
-		SimpleChannel channel = new SimpleChannel();
+		QueueChannel channel = new QueueChannel();
 		channel.getDispatcherPolicy().setRejectionLimit(2);
 		channel.getDispatcherPolicy().setRetryInterval(3);
 		channel.getDispatcherPolicy().setShouldFailOnRejectionLimit(false);
@@ -275,7 +275,7 @@ public class SubscriptionManagerTests {
 		dispatcherPolicy.setRejectionLimit(2);
 		dispatcherPolicy.setRetryInterval(3);
 		dispatcherPolicy.setShouldFailOnRejectionLimit(false);
-		SimpleChannel channel = new SimpleChannel(25, dispatcherPolicy);
+		QueueChannel channel = new QueueChannel(25, dispatcherPolicy);
 		channel.send(new StringMessage(1, "test"));
 		SubscriptionManager manager = new SubscriptionManager(channel, scheduler);
 		manager.addTarget(createEndpoint(new MessageHandler() {
@@ -326,7 +326,7 @@ public class SubscriptionManagerTests {
 		dispatcherPolicy.setRejectionLimit(5);
 		dispatcherPolicy.setRetryInterval(3);
 		dispatcherPolicy.setShouldFailOnRejectionLimit(false);
-		SimpleChannel channel = new SimpleChannel(25, dispatcherPolicy);
+		QueueChannel channel = new QueueChannel(25, dispatcherPolicy);
 		channel.send(new StringMessage(1, "test"));
 		SubscriptionManager manager = new SubscriptionManager(channel, scheduler);
 		manager.addTarget(createEndpoint(new MessageHandler() {
@@ -365,7 +365,7 @@ public class SubscriptionManagerTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		MessageHandler handler1 = TestHandlers.countingCountDownHandler(counter1, latch);
 		MessageHandler handler2 = TestHandlers.countingCountDownHandler(counter2, latch);
-		SimpleChannel channel = new SimpleChannel();
+		QueueChannel channel = new QueueChannel();
 		channel.send(new StringMessage(1, "test"));
 		SubscriptionManager manager = new SubscriptionManager(channel, scheduler);
 		HandlerEndpoint endpoint1 = new HandlerEndpoint(handler1);
@@ -391,7 +391,7 @@ public class SubscriptionManagerTests {
 		final CountDownLatch handlerLatch = new CountDownLatch(1);
 		MessageHandler handler1 = TestHandlers.countingCountDownHandler(counter1, handlerLatch);
 		MessageHandler handler2 = TestHandlers.countingCountDownHandler(counter2, handlerLatch);
-		SimpleChannel channel = new SimpleChannel();
+		QueueChannel channel = new QueueChannel();
 		channel.send(new StringMessage(1, "test"));
 		SubscriptionManager manager = new SubscriptionManager(channel, scheduler);
 		final HandlerEndpoint endpoint1 = new HandlerEndpoint(handler1);
@@ -431,7 +431,7 @@ public class SubscriptionManagerTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		MessageHandler handler1 = TestHandlers.countingCountDownHandler(counter1, latch);
 		MessageHandler handler2 = TestHandlers.countingCountDownHandler(counter2, latch);
-		SimpleChannel channel = new SimpleChannel(5, new DispatcherPolicy(true));
+		QueueChannel channel = new QueueChannel(5, new DispatcherPolicy(true));
 		channel.send(new StringMessage(1, "test"));
 		SubscriptionManager manager = new SubscriptionManager(channel, scheduler);
 		HandlerEndpoint endpoint1 = new HandlerEndpoint(handler1);

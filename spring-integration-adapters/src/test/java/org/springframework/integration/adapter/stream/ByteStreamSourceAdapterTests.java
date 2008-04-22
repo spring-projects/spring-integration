@@ -25,7 +25,7 @@ import org.junit.Test;
 
 import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.scheduling.PollingSchedule;
 
@@ -38,7 +38,7 @@ public class ByteStreamSourceAdapterTests {
 	public void testEndOfStream() {
 		byte[] bytes = new byte[] {1,2,3};
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
-		MessageChannel channel = new SimpleChannel();
+		MessageChannel channel = new QueueChannel();
 		ByteStreamSource source = new ByteStreamSource(stream);
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
@@ -61,7 +61,7 @@ public class ByteStreamSourceAdapterTests {
 	public void testEndOfStreamWithMaxMessagesPerTask() throws Exception {
 		byte[] bytes = new byte[] {0,1,2,3,4,5,6,7};
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
-		MessageChannel channel = new SimpleChannel();
+		MessageChannel channel = new QueueChannel();
 		ByteStreamSource source = new ByteStreamSource(stream);
 		source.setBytesPerMessage(8);
 		PollingSchedule schedule = new PollingSchedule(1000);
@@ -79,7 +79,7 @@ public class ByteStreamSourceAdapterTests {
 	public void testMultipleMessagesWithSingleMessagePerTask() {
 		byte[] bytes = new byte[] {0,1,2,3,4,5,6,7};
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
-		MessageChannel channel = new SimpleChannel();
+		MessageChannel channel = new QueueChannel();
 		ByteStreamSource source = new ByteStreamSource(stream);
 		source.setBytesPerMessage(4);
 		PollingSchedule schedule = new PollingSchedule(1000);
@@ -104,7 +104,7 @@ public class ByteStreamSourceAdapterTests {
 	public void testLessThanMaxMessagesAvailable() {
 		byte[] bytes = new byte[] {0,1,2,3,4,5,6,7};
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
-		MessageChannel channel = new SimpleChannel();
+		MessageChannel channel = new QueueChannel();
 		ByteStreamSource source = new ByteStreamSource(stream);
 		source.setBytesPerMessage(4);
 		PollingSchedule schedule = new PollingSchedule(1000);
@@ -128,7 +128,7 @@ public class ByteStreamSourceAdapterTests {
 	public void testByteArrayIsTruncated() {
 		byte[] bytes = new byte[] {0,1,2,3,4,5};
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
-		MessageChannel channel = new SimpleChannel();
+		MessageChannel channel = new QueueChannel();
 		ByteStreamSource source = new ByteStreamSource(stream);
 		source.setBytesPerMessage(4);
 		PollingSchedule schedule = new PollingSchedule(1000);
@@ -149,7 +149,7 @@ public class ByteStreamSourceAdapterTests {
 	public void testByteArrayIsNotTruncated() {
 		byte[] bytes = new byte[] {0,1,2,3,4,5};
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
-		MessageChannel channel = new SimpleChannel();
+		MessageChannel channel = new QueueChannel();
 		ByteStreamSource source = new ByteStreamSource(stream);
 		source.setBytesPerMessage(4);
 		source.setShouldTruncate(false);

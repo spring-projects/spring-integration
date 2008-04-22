@@ -31,7 +31,7 @@ import org.junit.Test;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerNotRunningException;
 import org.springframework.integration.handler.TestHandlers;
@@ -48,7 +48,7 @@ public class HandlerEndpointTests {
 
 	@Test
 	public void testDefaultReplyChannel() throws Exception {
-		MessageChannel replyChannel = new SimpleChannel();
+		MessageChannel replyChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("replyChannel", replyChannel);
 		MessageHandler handler = new MessageHandler() {
@@ -69,7 +69,7 @@ public class HandlerEndpointTests {
 
 	@Test
 	public void testExplicitReplyChannel() throws Exception {
-		final MessageChannel replyChannel = new SimpleChannel();
+		final MessageChannel replyChannel = new QueueChannel();
 		MessageHandler handler = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				return new StringMessage("123", "hello " + message.getPayload());
@@ -88,7 +88,7 @@ public class HandlerEndpointTests {
 
 	@Test
 	public void testExplicitReplyChannelName() throws Exception {
-		final MessageChannel replyChannel = new SimpleChannel();
+		final MessageChannel replyChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("replyChannel", replyChannel);
 		MessageHandler handler = new MessageHandler() {
@@ -110,8 +110,8 @@ public class HandlerEndpointTests {
 
 	@Test
 	public void testDynamicReplyChannel() throws Exception {
-		final MessageChannel replyChannel1 = new SimpleChannel();
-		final MessageChannel replyChannel2 = new SimpleChannel();
+		final MessageChannel replyChannel1 = new QueueChannel();
+		final MessageChannel replyChannel2 = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("replyChannel2", replyChannel2);
 		MessageHandler handler = new MessageHandler() {
@@ -158,7 +158,7 @@ public class HandlerEndpointTests {
 
 	@Test
 	public void testConcurrentHandlerWithDefaultReplyChannel() throws InterruptedException {
-		MessageChannel replyChannel = new SimpleChannel();
+		MessageChannel replyChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("replyChannel", replyChannel);
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -184,7 +184,7 @@ public class HandlerEndpointTests {
 
 	@Test
 	public void testHandlerReturnsNull() throws InterruptedException {
-		MessageChannel replyChannel = new SimpleChannel();
+		MessageChannel replyChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("replyChannel", replyChannel);
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -208,7 +208,7 @@ public class HandlerEndpointTests {
 
 	@Test
 	public void testConcurrentHandlerReturnsNull() throws InterruptedException {
-		MessageChannel replyChannel = new SimpleChannel();
+		MessageChannel replyChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("replyChannel", replyChannel);
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -233,7 +233,7 @@ public class HandlerEndpointTests {
 
 	@Test
 	public void testConcurrentHandlerWithExplicitReplyChannel() throws InterruptedException {
-		MessageChannel replyChannel = new SimpleChannel();
+		MessageChannel replyChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("replyChannel", replyChannel);
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -260,7 +260,7 @@ public class HandlerEndpointTests {
 
 	@Test
 	public void testGeneratedConcurrentHandlerWithDefaultReplyChannel() throws InterruptedException {
-		MessageChannel replyChannel = new SimpleChannel();
+		MessageChannel replyChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("replyChannel", replyChannel);
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -286,7 +286,7 @@ public class HandlerEndpointTests {
 
 	@Test
 	public void testGeneratedConcurrentHandlerWithExplicitReplyChannel() throws InterruptedException {
-		MessageChannel replyChannel = new SimpleChannel();
+		MessageChannel replyChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("replyChannel", replyChannel);
 		final CountDownLatch latch = new CountDownLatch(1);
@@ -433,7 +433,7 @@ public class HandlerEndpointTests {
 
 	@Test
 	public void testDefaultOutputChannelTimeoutSendsToErrorHandler() {
-		SimpleChannel output = new SimpleChannel(1);
+		QueueChannel output = new QueueChannel(1);
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("output", output);
 		HandlerEndpoint endpoint = new HandlerEndpoint(new MessageHandler() {
@@ -458,7 +458,7 @@ public class HandlerEndpointTests {
 
 	@Test
 	public void testReturnAddressChannelTimeoutSendsToErrorHandler() {
-		SimpleChannel replyChannel = new SimpleChannel(1);
+		QueueChannel replyChannel = new QueueChannel(1);
 		HandlerEndpoint endpoint = new HandlerEndpoint(new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				return message;
@@ -483,7 +483,7 @@ public class HandlerEndpointTests {
 
 	@Test
 	public void testReturnAddressChannelNameTimeoutSendsToErrorHandler() {
-		SimpleChannel replyChannel = new SimpleChannel(1);
+		QueueChannel replyChannel = new QueueChannel(1);
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("replyChannel", replyChannel);
 		HandlerEndpoint endpoint = new HandlerEndpoint(new MessageHandler() {
@@ -511,7 +511,7 @@ public class HandlerEndpointTests {
 
 	@Test
 	public void testCorrelationId() {
-		SimpleChannel replyChannel = new SimpleChannel(1);
+		QueueChannel replyChannel = new QueueChannel(1);
 		HandlerEndpoint endpoint = new HandlerEndpoint(new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				return message;
@@ -527,7 +527,7 @@ public class HandlerEndpointTests {
 
 	@Test
 	public void testCorrelationIdSetByHandlerTakesPrecedence() {
-		SimpleChannel replyChannel = new SimpleChannel(1);
+		QueueChannel replyChannel = new QueueChannel(1);
 		HandlerEndpoint endpoint = new HandlerEndpoint(new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				message.getHeader().setCorrelationId("ABC-123");

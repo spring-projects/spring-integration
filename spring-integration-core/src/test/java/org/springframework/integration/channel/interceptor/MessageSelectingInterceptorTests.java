@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
-import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.StringMessage;
@@ -39,7 +39,7 @@ public class MessageSelectingInterceptorTests {
 		final AtomicInteger counter = new AtomicInteger();
 		MessageSelector selector = new TestMessageSelector(true, counter);
 		MessageSelectingInterceptor interceptor = new MessageSelectingInterceptor(selector);
-		SimpleChannel channel = new SimpleChannel();
+		QueueChannel channel = new QueueChannel();
 		channel.addInterceptor(interceptor);
 		assertTrue(channel.send(new StringMessage("test1")));
 	}
@@ -49,7 +49,7 @@ public class MessageSelectingInterceptorTests {
 		final AtomicInteger counter = new AtomicInteger();
 		MessageSelector selector = new TestMessageSelector(false, counter);
 		MessageSelectingInterceptor interceptor = new MessageSelectingInterceptor(selector);
-		SimpleChannel channel = new SimpleChannel();
+		QueueChannel channel = new QueueChannel();
 		channel.addInterceptor(interceptor);
 		channel.send(new StringMessage("test1"));
 	}
@@ -60,7 +60,7 @@ public class MessageSelectingInterceptorTests {
 		MessageSelector selector1 = new TestMessageSelector(true, counter);
 		MessageSelector selector2 = new TestMessageSelector(true, counter);
 		MessageSelectingInterceptor interceptor = new MessageSelectingInterceptor(selector1, selector2);
-		SimpleChannel channel = new SimpleChannel();
+		QueueChannel channel = new QueueChannel();
 		channel.addInterceptor(interceptor);
 		assertTrue(channel.send(new StringMessage("test1")));
 		assertEquals(2, counter.get());
@@ -75,7 +75,7 @@ public class MessageSelectingInterceptorTests {
 		MessageSelector selector3 = new TestMessageSelector(false, counter);
 		MessageSelector selector4 = new TestMessageSelector(true, counter);
 		MessageSelectingInterceptor interceptor = new MessageSelectingInterceptor(selector1, selector2, selector3, selector4);
-		SimpleChannel channel = new SimpleChannel();
+		QueueChannel channel = new QueueChannel();
 		channel.addInterceptor(interceptor);
 		try {
 			channel.send(new StringMessage("test1"));

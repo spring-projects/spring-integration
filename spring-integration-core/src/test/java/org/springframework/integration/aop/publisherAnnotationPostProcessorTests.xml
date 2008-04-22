@@ -6,7 +6,7 @@
 
 	<bean id="messageBus" class="org.springframework.integration.bus.MessageBus"/>
 
-	<bean id="testChannel" class="org.springframework.integration.channel.SimpleChannel"/>
+	<bean id="testChannel" class="org.springframework.integration.channel.QueueChannel"/>
 
 	<bean id="testBean" class="org.springframework.integration.aop.PublisherAnnotationTestBean"/>
 

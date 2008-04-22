@@ -20,7 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.RendezvousChannel;
 import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
 import org.springframework.integration.message.Message;
 
@@ -29,7 +29,7 @@ import org.springframework.integration.message.Message;
  * 
  * @author Mark Fisher
  */
-public class DefaultErrorChannel extends SimpleChannel {
+public class DefaultErrorChannel extends RendezvousChannel {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 

@@ -24,7 +24,7 @@ import java.io.IOException;
 import org.junit.Test;
 
 import org.springframework.integration.channel.DispatcherPolicy;
-import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.dispatcher.PollingDispatcher;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.StringMessage;
@@ -62,7 +62,7 @@ public class ByteStreamTargetAdapterTests {
 		ByteStreamTargetAdapter adapter = new ByteStreamTargetAdapter(stream);
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(3);
-		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
+		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
 		PollingDispatcher dispatcher = new PollingDispatcher(channel, null);
 		dispatcher.subscribe(adapter);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
@@ -81,7 +81,7 @@ public class ByteStreamTargetAdapterTests {
 		ByteStreamTargetAdapter adapter = new ByteStreamTargetAdapter(stream);
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(2);
-		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
+		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
 		PollingDispatcher dispatcher = new PollingDispatcher(channel, null);
 		dispatcher.subscribe(adapter);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
@@ -100,7 +100,7 @@ public class ByteStreamTargetAdapterTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(5);
 		dispatcherPolicy.setReceiveTimeout(0);
-		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
+		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
 		PollingDispatcher dispatcher = new PollingDispatcher(channel, null);
 		dispatcher.subscribe(adapter);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
@@ -119,7 +119,7 @@ public class ByteStreamTargetAdapterTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		dispatcherPolicy.setReceiveTimeout(0);
-		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
+		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
 		PollingDispatcher dispatcher = new PollingDispatcher(channel, null);
 		dispatcher.subscribe(adapter);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
@@ -143,7 +143,7 @@ public class ByteStreamTargetAdapterTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(5);
 		dispatcherPolicy.setReceiveTimeout(0);
-		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
+		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
 		PollingDispatcher dispatcher = new PollingDispatcher(channel, null);
 		dispatcher.subscribe(adapter);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
@@ -166,7 +166,7 @@ public class ByteStreamTargetAdapterTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		dispatcherPolicy.setReceiveTimeout(0);
-		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
+		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
 		PollingDispatcher dispatcher = new PollingDispatcher(channel, null);
 		dispatcher.subscribe(adapter);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
@@ -189,7 +189,7 @@ public class ByteStreamTargetAdapterTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		dispatcherPolicy.setReceiveTimeout(0);
-		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
+		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
 		PollingDispatcher dispatcher = new PollingDispatcher(channel, null);
 		dispatcher.subscribe(adapter);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);

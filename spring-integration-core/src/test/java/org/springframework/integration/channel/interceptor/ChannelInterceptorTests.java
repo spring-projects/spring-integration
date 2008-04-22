@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 
@@ -37,7 +37,7 @@ import org.springframework.integration.message.StringMessage;
  */
 public class ChannelInterceptorTests {
 
-	private final SimpleChannel channel = new SimpleChannel();
+	private final QueueChannel channel = new QueueChannel();
 
 
 	@Test
@@ -81,7 +81,7 @@ public class ChannelInterceptorTests {
 	public void testPostSendInterceptorWithUnsentMessage() {
 		final AtomicInteger invokedCounter = new AtomicInteger(0);
 		final AtomicInteger sentCounter = new AtomicInteger(0);
-		final SimpleChannel singleItemChannel = new SimpleChannel(1);
+		final QueueChannel singleItemChannel = new QueueChannel(1);
 		singleItemChannel.addInterceptor(new ChannelInterceptorAdapter() {
 			@Override
 			public void postSend(Message message, MessageChannel channel, boolean sent) {

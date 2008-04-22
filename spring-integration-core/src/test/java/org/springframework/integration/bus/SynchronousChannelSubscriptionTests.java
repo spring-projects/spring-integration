@@ -24,7 +24,7 @@ import org.junit.Test;
 import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.MessageEndpointAnnotationPostProcessor;
 import org.springframework.integration.dispatcher.SynchronousChannel;
 import org.springframework.integration.endpoint.HandlerEndpoint;
@@ -81,7 +81,7 @@ public class SynchronousChannelSubscriptionTests {
 
 	@Test(expected=MessagingException.class)
 	public void testExceptionThrownFromRegisteredEndpoint() {
-		SimpleChannel errorChannel = new SimpleChannel();
+		QueueChannel errorChannel = new QueueChannel();
 		bus.setErrorChannel(errorChannel);		
 		HandlerEndpoint endpoint = new HandlerEndpoint(new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
@@ -97,7 +97,7 @@ public class SynchronousChannelSubscriptionTests {
 
 	@Test(expected=MessagingException.class)
 	public void testExceptionThrownFromAnnotatedEndpoint() {
-		SimpleChannel errorChannel = new SimpleChannel();
+		QueueChannel errorChannel = new QueueChannel();
 		bus.setErrorChannel(errorChannel);
 		MessageEndpointAnnotationPostProcessor postProcessor = new MessageEndpointAnnotationPostProcessor(bus);
 		postProcessor.afterPropertiesSet();

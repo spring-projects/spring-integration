@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.junit.Test;
 
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
@@ -37,8 +37,8 @@ public class PayloadTypeRouterTests {
 
 	@Test
 	public void testRoutingByPayloadType() {
-		SimpleChannel stringChannel = new SimpleChannel();
-		SimpleChannel integerChannel = new SimpleChannel();
+		QueueChannel stringChannel = new QueueChannel();
+		QueueChannel integerChannel = new QueueChannel();
 		Map<Class<?>, MessageChannel> channelMappings = new ConcurrentHashMap<Class<?>, MessageChannel>();
 		channelMappings.put(String.class, stringChannel);
 		channelMappings.put(Integer.class, integerChannel);
@@ -59,8 +59,8 @@ public class PayloadTypeRouterTests {
 
 	@Test
 	public void testRoutingToDefaultChannelWhenNoTypeMatches() {
-		SimpleChannel stringChannel = new SimpleChannel();
-		SimpleChannel defaultChannel = new SimpleChannel();
+		QueueChannel stringChannel = new QueueChannel();
+		QueueChannel defaultChannel = new QueueChannel();
 		Map<Class<?>, MessageChannel> channelMappings = new ConcurrentHashMap<Class<?>, MessageChannel>();
 		channelMappings.put(String.class, stringChannel);
 		PayloadTypeRouter router = new PayloadTypeRouter();

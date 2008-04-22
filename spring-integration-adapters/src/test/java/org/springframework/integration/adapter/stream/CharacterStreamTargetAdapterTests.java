@@ -24,7 +24,7 @@ import org.junit.Test;
 
 import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.dispatcher.PollingDispatcher;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.StringMessage;
@@ -44,7 +44,7 @@ public class CharacterStreamTargetAdapterTests {
 
 	@Test
 	public void testTwoStringsAndNoNewLinesByDefault() {
-		MessageChannel channel = new SimpleChannel();
+		MessageChannel channel = new QueueChannel();
 		StringWriter writer = new StringWriter();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(writer);
 		PollingDispatcher dispatcher = new PollingDispatcher(channel, null);
@@ -59,7 +59,7 @@ public class CharacterStreamTargetAdapterTests {
 
 	@Test
 	public void testTwoStringsWithNewLines() {
-		MessageChannel channel = new SimpleChannel();
+		MessageChannel channel = new QueueChannel();
 		StringWriter writer = new StringWriter();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(writer);
 		adapter.setShouldAppendNewLine(true);
@@ -80,7 +80,7 @@ public class CharacterStreamTargetAdapterTests {
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(writer);
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(2);
-		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
+		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
 		PollingDispatcher dispatcher = new PollingDispatcher(channel, null);
 		dispatcher.subscribe(adapter);
 		channel.send(new StringMessage("foo"), 0);
@@ -96,7 +96,7 @@ public class CharacterStreamTargetAdapterTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(10);
 		dispatcherPolicy.setReceiveTimeout(0);
-		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
+		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
 		PollingDispatcher dispatcher = new PollingDispatcher(channel, null);
 		adapter.setShouldAppendNewLine(true);
 		dispatcher.subscribe(adapter);
@@ -109,7 +109,7 @@ public class CharacterStreamTargetAdapterTests {
 
 	@Test
 	public void testSingleNonStringObject() {
-		MessageChannel channel = new SimpleChannel();
+		MessageChannel channel = new QueueChannel();
 		StringWriter writer = new StringWriter();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(writer);
 		PollingDispatcher dispatcher = new PollingDispatcher(channel, null);
@@ -127,7 +127,7 @@ public class CharacterStreamTargetAdapterTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setReceiveTimeout(0);
 		dispatcherPolicy.setMaxMessagesPerTask(2);
-		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
+		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
 		PollingDispatcher dispatcher = new PollingDispatcher(channel, null);
 		dispatcher.subscribe(adapter);
 		TestObject testObject1 = new TestObject("foo");
@@ -145,7 +145,7 @@ public class CharacterStreamTargetAdapterTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setReceiveTimeout(0);
 		dispatcherPolicy.setMaxMessagesPerTask(2);
-		SimpleChannel channel = new SimpleChannel(5, dispatcherPolicy);
+		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
 		adapter.setShouldAppendNewLine(true);
 		PollingDispatcher dispatcher = new PollingDispatcher(channel, null);
 		dispatcher.subscribe(adapter);

@@ -25,9 +25,9 @@ import org.junit.Test;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.integration.annotation.Publisher;
 import org.springframework.integration.channel.ChannelRegistry;
-import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.SimpleChannel;
 import org.springframework.integration.channel.DefaultChannelRegistry;
+import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
 
 /**
@@ -37,7 +37,7 @@ public class PublisherAnnotationAdvisorTests {
 
 	@Test
 	public void testPublisherAnnotation() {
-		final MessageChannel channel = new SimpleChannel();
+		final MessageChannel channel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("testChannel", channel);
 		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor(channelRegistry);
@@ -50,7 +50,7 @@ public class PublisherAnnotationAdvisorTests {
 
 	@Test
 	public void testNoPublisherAnnotation() {
-		final MessageChannel channel = new SimpleChannel();
+		final MessageChannel channel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("testChannel", channel);
 		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor(channelRegistry);

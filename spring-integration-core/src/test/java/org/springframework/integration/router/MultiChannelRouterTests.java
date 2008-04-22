@@ -28,7 +28,7 @@ import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.StringMessage;
@@ -40,8 +40,8 @@ public class MultiChannelRouterTests {
 
 	@Test
 	public void testRoutingWithChannelResolver() {
-		final SimpleChannel channel1 = new SimpleChannel();
-		final SimpleChannel channel2 = new SimpleChannel();
+		final QueueChannel channel1 = new QueueChannel();
+		final QueueChannel channel2 = new QueueChannel();
 		MultiChannelResolver channelResolver = new MultiChannelResolver() {
 			public List<MessageChannel> resolve(Message<?> message) {
 				List<MessageChannel> channels = new ArrayList<MessageChannel>();
@@ -70,8 +70,8 @@ public class MultiChannelRouterTests {
 				return new String[] {"channel1", "channel2"};
 			}
 		};
-		SimpleChannel channel1 = new SimpleChannel();
-		SimpleChannel channel2 = new SimpleChannel();
+		QueueChannel channel1 = new QueueChannel();
+		QueueChannel channel2 = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("channel1", channel1);
 		channelRegistry.registerChannel("channel2", channel2);

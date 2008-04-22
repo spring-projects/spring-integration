@@ -28,7 +28,7 @@ import org.junit.Test;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.SimpleChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.message.GenericMessage;
@@ -111,7 +111,7 @@ public class EndpointParserTests {
 		Target endpoint = (Target) context.getBean("endpoint");
 		((Lifecycle) endpoint).start();
 		Message<?> message = new StringMessage("test");
-		MessageChannel replyChannel = new SimpleChannel();
+		MessageChannel replyChannel = new QueueChannel();
 		message.getHeader().setReturnAddress(replyChannel);
 		endpoint.send(message);
 		Message<?> reply = replyChannel.receive(500);
