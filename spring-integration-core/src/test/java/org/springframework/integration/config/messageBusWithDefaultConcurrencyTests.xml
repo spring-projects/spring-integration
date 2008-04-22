@@ -13,9 +13,9 @@
 
 	<channel id="channel"/>
 
-	<endpoint id="endpoint1" handler-ref="testHandler" input-channel="channel"/>
+	<endpoint id="endpoint1" handler="testHandler" input-channel="channel"/>
 
-	<endpoint id="endpoint2" handler-ref="testHandler" input-channel="channel">
+	<endpoint id="endpoint2" handler="testHandler" input-channel="channel">
 		<concurrency core="14" max="17"/>
 	</endpoint>
 

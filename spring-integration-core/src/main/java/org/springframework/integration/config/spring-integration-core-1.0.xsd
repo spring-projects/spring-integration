@@ -139,7 +139,7 @@
 					</xsd:sequence>
 					<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
 					<xsd:attribute name="default-output-channel" type="xsd:string"/>
-					<xsd:attribute name="handler-ref" type="xsd:string" use="required"/>
+					<xsd:attribute name="handler" type="xsd:string" use="required"/>
 					<xsd:attribute name="handler-method" type="xsd:string"/>
 					<xsd:attribute name="error-handler" type="xsd:string"/>
 					<xsd:attribute name="reply-handler" type="xsd:string"/>

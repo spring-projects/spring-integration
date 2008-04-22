@@ -49,10 +49,10 @@
     <channel id="coldDrinks"/>
     <channel id="hotDrinks"/>
 
-    <endpoint input-channel="coldDrinks" handler-ref="barista"
+    <endpoint input-channel="coldDrinks" handler="barista"
                                          handler-method="prepareColdDrink"/>
 
-    <endpoint input-channel="hotDrinks" handler-ref="barista"
+    <endpoint input-channel="hotDrinks" handler="barista"
                                         handler-method="prepareHotDrink"/>
 
     <beans:bean id="cafe" class="org.springframework.integration.samples.cafe.Cafe">
@@ -163,9 +163,9 @@ public class Barista {
       However, by configuring the endpoint concurrency, you can dramatically change the results. For example, on my
       machine, the following single modification causes all 100 hot drinks to be prepared before the 4th cold drink is
       ready:
-      <programlisting><![CDATA[<endpoint input-channel="coldDrinks" handler-ref="barista" handler-method="prepareColdDrink"/>
+      <programlisting><![CDATA[<endpoint input-channel="coldDrinks" handler="barista" handler-method="prepareColdDrink"/>
 
-<endpoint input-channel="hotDrinks" handler-ref="barista" handler-method="prepareHotDrink">
+<endpoint input-channel="hotDrinks" handler="barista" handler-method="prepareHotDrink">
     ]]><emphasis><![CDATA[<concurrency core="25" max="50"/>]]></emphasis><![CDATA[
 </endpoint>]]></programlisting>
     </para>

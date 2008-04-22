@@ -11,7 +11,7 @@
 
 	<channel id="testChannel"/>
 
-	<endpoint id="endpoint" input-channel="testChannel" handler-ref="testHandler" reply-handler="replyHandler"/>
+	<endpoint id="endpoint" input-channel="testChannel" handler="testHandler" reply-handler="replyHandler"/>
 
 	<beans:bean id="testHandler" class="org.springframework.integration.config.TestHandler">
 		<beans:property name="replyMessageText" value="foo"/>

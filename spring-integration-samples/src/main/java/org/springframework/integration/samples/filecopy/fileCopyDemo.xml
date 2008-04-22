@@ -19,7 +19,7 @@
                     channel="channel1" poll-period="10000"/>
 
 	<si:endpoint input-channel="channel1" default-output-channel="channel2"
-                 handler-ref="exclaimer" handler-method="exclaim"/>
+                 handler="exclaimer" handler-method="exclaim"/>
 
 	<si:file-target directory="${java.io.tmpdir}/spring-integration-samples/output"
                     channel="channel2"/>

@@ -11,7 +11,7 @@
 
 	<endpoint input-channel="inputChannel"
 	          default-output-channel="outputChannel"
-	          handler-ref="helloService"
+	          handler="helloService"
 	          handler-method="sayHello"/>
 
 	<beans:bean id="helloService" class="org.springframework.integration.samples.helloworld.HelloService"/>

@@ -59,7 +59,7 @@ public class EndpointParser implements BeanDefinitionParser {
 
 	private static final String REF_ATTRIBUTE = "ref";
 
-	private static final String HANDLER_REF_ATTRIBUTE = "handler-ref";
+	private static final String HANDLER_ATTRIBUTE = "handler";
 
 	private static final String HANDLER_METHOD_ATTRIBUTE = "handler-method";
 
@@ -85,9 +85,9 @@ public class EndpointParser implements BeanDefinitionParser {
 
 
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
-		String handlerRef = element.getAttribute(HANDLER_REF_ATTRIBUTE);
+		String handlerRef = element.getAttribute(HANDLER_ATTRIBUTE);
 		if (!StringUtils.hasText(handlerRef)) {
-			throw new ConfigurationException("The 'handler-ref' attribute is required.");
+			throw new ConfigurationException("The '" + HANDLER_ATTRIBUTE + "' attribute is required.");
 		}
 		RootBeanDefinition endpointDef = new RootBeanDefinition(HandlerEndpoint.class);
 		endpointDef.setSource(parserContext.extractSource(element));
