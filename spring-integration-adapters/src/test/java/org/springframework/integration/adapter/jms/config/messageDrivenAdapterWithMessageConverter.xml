@@ -9,12 +9,9 @@
 
 	<si:message-bus/>
 
-	<si:channel id="channel"/>
-
-	<si:jms-source id="adapter"
+	<si:jms-source id="jmsSource"
 	               connection-factory="testConnectionFactory"
 	               destination="testDestination"
-	               channel="channel"
 	               message-converter="converter"/>
 
 	<bean id="converter" class="org.springframework.integration.adapter.jms.config.JmsSourceAdapterParserTests$TestMessageConverter"/>

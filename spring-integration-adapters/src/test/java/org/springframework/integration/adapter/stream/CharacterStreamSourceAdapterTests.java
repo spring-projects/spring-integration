@@ -23,9 +23,9 @@ import java.io.StringReader;
 
 import org.junit.Test;
 
-import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.endpoint.PollingSourceEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.scheduling.PollingSchedule;
 
@@ -41,13 +41,13 @@ public class CharacterStreamSourceAdapterTests {
 		CharacterStreamSource source = new CharacterStreamSource(reader);
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
-		PollingSourceAdapter adapter = new PollingSourceAdapter(source, channel, schedule);
-		adapter.run();
+		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		endpoint.run();
 		Message<?> message1 = channel.receive(0);
 		assertEquals("test", message1.getPayload());
 		Message<?> message2 = channel.receive(0);
 		assertNull(message2);
-		adapter.run();
+		endpoint.run();
 		Message<?> message3 = channel.receive(0);
 		assertNull(message3);
 	}
@@ -59,9 +59,9 @@ public class CharacterStreamSourceAdapterTests {
 		CharacterStreamSource source = new CharacterStreamSource(reader);
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
-		PollingSourceAdapter adapter = new PollingSourceAdapter(source, channel, schedule);
-		adapter.setMaxMessagesPerTask(5);
-		adapter.run();
+		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		endpoint.setMaxMessagesPerTask(5);
+		endpoint.run();
 		Message<?> message1 = channel.receive(0);
 		assertEquals("test", message1.getPayload());
 		Message<?> message2 = channel.receive(0);
@@ -76,14 +76,14 @@ public class CharacterStreamSourceAdapterTests {
 		CharacterStreamSource source = new CharacterStreamSource(reader);
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
-		PollingSourceAdapter adapter = new PollingSourceAdapter(source, channel, schedule);
-		adapter.setMaxMessagesPerTask(1);
-		adapter.run();
+		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		endpoint.setMaxMessagesPerTask(1);
+		endpoint.run();
 		Message<?> message1 = channel.receive(0);
 		assertEquals("test1", message1.getPayload());
 		Message<?> message2 = channel.receive(0);
 		assertNull(message2);
-		adapter.run();
+		endpoint.run();
 		Message<?> message3 = channel.receive(0);
 		assertEquals("test2", message3.getPayload());
 	}
@@ -96,9 +96,9 @@ public class CharacterStreamSourceAdapterTests {
 		CharacterStreamSource source = new CharacterStreamSource(reader);
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(5000);
-		PollingSourceAdapter adapter = new PollingSourceAdapter(source, channel, schedule);
-		adapter.setMaxMessagesPerTask(5);
-		adapter.run();
+		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		endpoint.setMaxMessagesPerTask(5);
+		endpoint.run();
 		Message<?> message1 = channel.receive(500);
 		assertEquals("test1", message1.getPayload());
 		Message<?> message2 = channel.receive(500);

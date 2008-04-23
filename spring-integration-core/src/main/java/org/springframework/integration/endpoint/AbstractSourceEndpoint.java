@@ -14,41 +14,53 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter;
+package org.springframework.integration.endpoint;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.message.Source;
 import org.springframework.util.Assert;
 
 /**
+ * Base class for {@link SourceEndpoint} implementations.
+ * 
  * @author Mark Fisher
  */
-public abstract class AbstractSourceAdapter implements SourceAdapter {
+public abstract class AbstractSourceEndpoint implements SourceEndpoint {
+
+	protected final Log logger = LogFactory.getLog(this.getClass());
+
+	private final Source source;
 
 	private final MessageChannel channel;
 
-	private volatile long sendTimeout = -1;
+	private volatile String name;
 
 
-	public AbstractSourceAdapter(MessageChannel channel) {
+	public AbstractSourceEndpoint(Source source, MessageChannel channel) {
+		Assert.notNull(source, "source must not be null");
 		Assert.notNull(channel, "channel must not be null");
+		this.source = source;
 		this.channel = channel;
 	}
 
 
+	public Source getSource() {
+		return this.source;
+	}
+
+	public void setBeanName(String name) {
+		this.name = name;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
 	protected MessageChannel getChannel() {
 		return this.channel;
-	}
-
-	public void setSendTimeout(long sendTimeout) {
-		this.sendTimeout = sendTimeout;
-	}
-
-	protected boolean sendToChannel(Message<?> message) {
-		if (message == null) {
-			throw new IllegalArgumentException("message must not be null");
-		}
-		return (this.sendTimeout < 0) ? this.channel.send(message) : this.channel.send(message, this.sendTimeout);
 	}
 
 }

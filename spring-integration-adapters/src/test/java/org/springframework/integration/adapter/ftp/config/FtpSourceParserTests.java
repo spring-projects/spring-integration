@@ -18,29 +18,31 @@ package org.springframework.integration.adapter.ftp.config;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.File;
+
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.adapter.ftp.FtpSource;
-import org.springframework.integration.scheduling.PollingSchedule;
 
 /**
- * @author Marius Bogoevici
  * @author Mark Fisher
  */
-public class FtpSourceAdapterParserTests {
+public class FtpSourceParserTests {
 
 	@Test
 	public void testFtpSourceAdapterParser() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("ftpSourceAdapterParserTests.xml", this.getClass());
-		PollingSourceAdapter ftpAdapter = (PollingSourceAdapter) context.getBean("ftpAdapter");
-		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(ftpAdapter);
-		assertEquals(FtpSource.class, adapterAccessor.getPropertyValue("source").getClass());
-		assertEquals(context.getBean("testChannel"), adapterAccessor.getPropertyValue("channel"));
-		assertEquals(12345L, ((PollingSchedule) adapterAccessor.getPropertyValue("schedule")).getPeriod());
+		ApplicationContext context = new ClassPathXmlApplicationContext("ftpSourceParserTests.xml", this.getClass());
+		FtpSource ftpSource = (FtpSource) context.getBean("ftpSource");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(ftpSource);
+		assertEquals("testHost", accessor.getPropertyValue("host"));
+		assertEquals(2121, accessor.getPropertyValue("port"));
+		assertEquals(new File("/local"), accessor.getPropertyValue("localWorkingDirectory"));
+		assertEquals("/remote", accessor.getPropertyValue("remoteWorkingDirectory"));
+		assertEquals("testUser", accessor.getPropertyValue("username"));
+		assertEquals("testPassword", accessor.getPropertyValue("password"));
 	}
 
 }

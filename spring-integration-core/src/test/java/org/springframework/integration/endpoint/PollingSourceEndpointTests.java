@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter;
+package org.springframework.integration.endpoint;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -33,15 +33,15 @@ import org.springframework.integration.scheduling.PollingSchedule;
 /**
  * @author Mark Fisher
  */
-public class PollingSourceAdapterTests {
+public class PollingSourceEndpointTests {
 
 	@Test
 	public void testPolledSourceSendsToChannel() {
 		TestSource source = new TestSource("testing", 1);
 		QueueChannel channel = new QueueChannel();
 		PollingSchedule schedule = new PollingSchedule(100);
-		PollingSourceAdapter adapter = new PollingSourceAdapter(source, channel, schedule);
-		adapter.run();
+		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		endpoint.run();
 		Message<?> message = channel.receive(1000);
 		assertNotNull("message should not be null", message);
 		assertEquals("testing.1", message.getPayload());
@@ -53,16 +53,16 @@ public class PollingSourceAdapterTests {
 		QueueChannel channel = new QueueChannel(1);
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
-		PollingSourceAdapter adapter = new PollingSourceAdapter(source, channel, schedule);
-		adapter.setSendTimeout(10);
-		adapter.run();
+		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		endpoint.setSendTimeout(10);
+		endpoint.run();
 		Message<?> message1 = channel.receive(1000);
 		assertNotNull("message should not be null", message1);
 		assertEquals("testing.1", message1.getPayload());
 		Message<?> message2 = channel.receive(0);
 		assertNull("second message should be null", message2);
 		source.resetCounter();
-		adapter.run();
+		endpoint.run();
 		Message<?> message3 = channel.receive(100);
 		assertNotNull("third message should not be null", message3);
 		assertEquals("testing.1", message3.getPayload());
@@ -74,9 +74,9 @@ public class PollingSourceAdapterTests {
 		QueueChannel channel = new QueueChannel();
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
-		PollingSourceAdapter adapter = new PollingSourceAdapter(source, channel, schedule);
-		adapter.setMaxMessagesPerTask(5);
-		adapter.run();
+		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		endpoint.setMaxMessagesPerTask(5);
+		endpoint.run();
 		Message<?> message1 = channel.receive(0);
 		assertNotNull("message should not be null", message1);
 		assertEquals("testing.1", message1.getPayload());

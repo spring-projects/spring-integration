@@ -21,7 +21,7 @@ import java.util.List;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
-import org.springframework.integration.adapter.AbstractSourceAdapter;
+import org.springframework.integration.channel.ChannelPublisher;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.util.Assert;
@@ -33,7 +33,7 @@ import org.springframework.util.CollectionUtils;
  * 
  * @author Mark Fisher
  */
-public class ApplicationEventSourceAdapter extends AbstractSourceAdapter implements ApplicationListener {
+public class ApplicationEventSourceAdapter extends ChannelPublisher implements ApplicationListener {
 
 	private List<Class<? extends ApplicationEvent>> eventTypes = new ArrayList<Class<? extends ApplicationEvent>>();
 
@@ -67,7 +67,7 @@ public class ApplicationEventSourceAdapter extends AbstractSourceAdapter impleme
 	}
 
 	private boolean sendMessage(ApplicationEvent event) {
-		return this.sendToChannel(new GenericMessage<ApplicationEvent>(event));
+		return this.publish(new GenericMessage<ApplicationEvent>(event));
 	}
 
 }

@@ -16,23 +16,15 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.Lifecycle;
-import org.springframework.integration.channel.ChannelRegistryAware;
-import org.springframework.integration.message.Target;
-import org.springframework.integration.scheduling.Subscription;
+import org.springframework.beans.factory.BeanNameAware;
 
 /**
  * Base interface for message endpoints.
  * 
  * @author Mark Fisher
  */
-public interface MessageEndpoint extends Target, ChannelRegistryAware, InitializingBean, Lifecycle {
+public interface MessageEndpoint extends BeanNameAware {
 
 	String getName();
-
-	Subscription getSubscription();
-
-	ConcurrencyPolicy getConcurrencyPolicy();
 
 }

@@ -88,6 +88,25 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="source-endpoint">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a source endpoint.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="beans:identifiedType">
+					<xsd:sequence>
+						<xsd:element ref="schedule" minOccurs="0" maxOccurs="1"/>
+					</xsd:sequence>
+					<xsd:attribute name="source" type="xsd:string" use="required"/>
+					<xsd:attribute name="channel" type="xsd:string" use="required"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:element name="source-adapter">
 		<xsd:complexType>
 			<xsd:annotation>

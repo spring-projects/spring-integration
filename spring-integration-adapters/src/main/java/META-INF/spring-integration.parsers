@@ -1,6 +1,6 @@
 file-source=org.springframework.integration.adapter.file.config.FileSourceAdapterParser
 file-target=org.springframework.integration.adapter.file.config.FileTargetAdapterParser
-ftp-source=org.springframework.integration.adapter.ftp.config.FtpSourceAdapterParser
+ftp-source=org.springframework.integration.adapter.ftp.config.FtpSourceParser
 httpinvoker-source=org.springframework.integration.adapter.httpinvoker.config.HttpInvokerSourceAdapterParser
 httpinvoker-target=org.springframework.integration.adapter.httpinvoker.config.HttpInvokerTargetAdapterParser
 jms-source=org.springframework.integration.adapter.jms.config.JmsSourceAdapterParser

@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter;
+package org.springframework.integration.endpoint;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.dispatcher.SynchronousChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryAware;
 import org.springframework.integration.message.MessageDeliveryException;
@@ -40,30 +35,25 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class PollingSourceAdapter extends AbstractSourceAdapter implements MessagingTask, InitializingBean {
-
-	private final Log logger = LogFactory.getLog(this.getClass());
-
-	private final PollableSource<?> source;
+public class PollingSourceEndpoint extends AbstractSourceEndpoint implements MessagingTask {
 
 	private final PollingSchedule schedule;
 
+	private volatile long sendTimeout = 0;
+
 	private volatile int maxMessagesPerTask = 1;
 
-	private volatile boolean initialized;
 
-
-	/**
-	 * Create a new adapter for the given source.
-	 */
-	public PollingSourceAdapter(PollableSource<?> source, MessageChannel channel, PollingSchedule schedule) {
-		super(channel);
-		Assert.notNull(source, "source must not be null");
+	public PollingSourceEndpoint(PollableSource<?> source, MessageChannel channel, PollingSchedule schedule) {
+		super(source, channel);
 		Assert.notNull(schedule, "schedule must not be null");
-		this.source = source;
 		this.schedule = schedule;
 	}
 
+
+	public void setSendTimeout(long sendTimeout) {
+		this.sendTimeout = sendTimeout;
+	}
 
 	public void setMaxMessagesPerTask(int maxMessagesPerTask) {
 		Assert.isTrue(maxMessagesPerTask > 0, "'maxMessagesPerTask' must be at least one");
@@ -74,18 +64,11 @@ public class PollingSourceAdapter extends AbstractSourceAdapter implements Messa
 		return this.schedule;
 	}
 
-	public void afterPropertiesSet() {
-		if (this.getChannel() instanceof SynchronousChannel) {
-			((SynchronousChannel) this.getChannel()).setSource(this.source);
-		}
-		this.initialized = true;
-	}
-
 	public List<Message<?>> poll(int limit) {
 		List<Message<?>> results = new ArrayList<Message<?>>();
 		int count = 0;
 		while (count < limit) {
-			Message<?> message = this.source.receive();
+			Message<?> message = ((PollableSource<?>) this.getSource()).receive();
 			if (message == null) {
 				break;
 			}
@@ -96,16 +79,16 @@ public class PollingSourceAdapter extends AbstractSourceAdapter implements Messa
 	}
 
 	protected boolean sendMessage(Message<?> message) {
-		if (!this.initialized) {
-			this.afterPropertiesSet();
+		if (message == null) {
+			throw new IllegalArgumentException("message must not be null");
 		}
-		boolean sent = super.sendToChannel(message);
-		if (this.source instanceof MessageDeliveryAware) {
+		boolean sent = (this.sendTimeout < 0) ? this.getChannel().send(message) : this.getChannel().send(message, this.sendTimeout);
+		if (this.getSource() instanceof MessageDeliveryAware) {
 			if (sent) {
-				((MessageDeliveryAware) this.source).onSend(message);
+				((MessageDeliveryAware) this.getSource()).onSend(message);
 			}
 			else {
-				((MessageDeliveryAware) this.source).onFailure(new MessageDeliveryException(message, "failed to send message"));
+				((MessageDeliveryAware) this.getSource()).onFailure(new MessageDeliveryException(message, "failed to send message"));
 			}
 		}
 		return sent;

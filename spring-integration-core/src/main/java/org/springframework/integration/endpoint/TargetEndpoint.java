@@ -28,8 +28,9 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.handler.MessageHandlerNotRunningException;
@@ -47,7 +48,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class TargetEndpoint implements MessageEndpoint, BeanNameAware {
+public class TargetEndpoint implements Target, MessageEndpoint, ChannelRegistryAware, InitializingBean, Lifecycle {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 

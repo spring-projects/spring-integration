@@ -21,16 +21,12 @@ import javax.jms.Session;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.adapter.jms.JmsMessageDrivenSourceAdapter;
 import org.springframework.integration.adapter.jms.JmsPollableSource;
-import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.util.StringUtils;
 
 /**
@@ -39,8 +35,6 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  */
 public class JmsSourceAdapterParser extends AbstractBeanDefinitionParser {
-
-	private static final String POLL_PERIOD_ATTRIBUTE = "poll-period";
 
 	private static final String MESSAGE_CONVERTER_ATTRIBUTE = "message-converter";
 
@@ -67,18 +61,14 @@ public class JmsSourceAdapterParser extends AbstractBeanDefinitionParser {
 
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
-		if (StringUtils.hasText(element.getAttribute(POLL_PERIOD_ATTRIBUTE))) {
-			return parsePollingSourceAdapter(element, parserContext);
+		if ("true".equals(element.getAttribute("message-driven"))) {
+			return parseMessageDrivenSource(element, parserContext);
 		}
-		return parseMessageDrivenSourceAdapter(element, parserContext);
+		return parsePollableSource(element, parserContext);
 	}
 
-	private AbstractBeanDefinition parsePollingSourceAdapter(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder sourceBuilder = BeanDefinitionBuilder.genericBeanDefinition(JmsPollableSource.class);
-		String pollPeriod = element.getAttribute(POLL_PERIOD_ATTRIBUTE);
-		if (!StringUtils.hasText(pollPeriod)) {
-			throw new BeanCreationException("'" + POLL_PERIOD_ATTRIBUTE + "' is required for a polling JMS adapter");
-		}
+	private AbstractBeanDefinition parsePollableSource(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(JmsPollableSource.class);
 		if (StringUtils.hasText(element.getAttribute(MESSAGE_CONVERTER_ATTRIBUTE))) {
 			throw new BeanCreationException(
 					"The '" + MESSAGE_CONVERTER_ATTRIBUTE + "' attribute is not supported for a polling JMS adapter. " +
@@ -98,15 +88,15 @@ public class JmsSourceAdapterParser extends AbstractBeanDefinitionParser {
 						"', '" + JmsAdapterParserUtils.DESTINATION_ATTRIBUTE + "', or '" +
 						JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE + "' should be provided.");
 			}
-			sourceBuilder.addConstructorArgReference(jmsTemplate);
+			builder.addConstructorArgReference(jmsTemplate);
 		}
 		else if (StringUtils.hasText(destination) || StringUtils.hasText(destinationName)) {
-			sourceBuilder.addConstructorArgReference(JmsAdapterParserUtils.determineConnectionFactoryBeanName(element));
+			builder.addConstructorArgReference(JmsAdapterParserUtils.determineConnectionFactoryBeanName(element));
 			if (StringUtils.hasText(destination)) {
-				sourceBuilder.addConstructorArgReference(destination);
+				builder.addConstructorArgReference(destination);
 			}
 			else if (StringUtils.hasText(destinationName)) {
-				sourceBuilder.addConstructorArgValue(destinationName);
+				builder.addConstructorArgValue(destinationName);
 			}
 		}
 		else {
@@ -114,20 +104,10 @@ public class JmsSourceAdapterParser extends AbstractBeanDefinitionParser {
 					JmsAdapterParserUtils.DESTINATION_ATTRIBUTE + "' or '" + JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE +
 					"' attributes must be provided for a polling JMS adapter");
 		}
-		String channel = element.getAttribute(JmsAdapterParserUtils.CHANNEL_ATTRIBUTE);
-		PollingSchedule schedule = new PollingSchedule(Long.valueOf(pollPeriod));
-		BeanDefinition sourceDef = sourceBuilder.getBeanDefinition();
-		String sourceBeanName = parserContext.getReaderContext().generateBeanName(sourceDef);
-		BeanComponentDefinition sourceComponent = new BeanComponentDefinition(sourceDef, sourceBeanName);
-		parserContext.registerBeanComponent(sourceComponent);
-		BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder.genericBeanDefinition(PollingSourceAdapter.class);
-		adapterBuilder.addConstructorArgReference(sourceBeanName);
-		adapterBuilder.addConstructorArgReference(channel);
-		adapterBuilder.addConstructorArgValue(schedule);
-		return adapterBuilder.getBeanDefinition();
+		return builder.getBeanDefinition();
 	}
 
-	private AbstractBeanDefinition parseMessageDrivenSourceAdapter(Element element, ParserContext parserContext) {
+	private AbstractBeanDefinition parseMessageDrivenSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(JmsMessageDrivenSourceAdapter.class);
 		String destination = element.getAttribute(JmsAdapterParserUtils.DESTINATION_ATTRIBUTE);
 		String destinationName = element.getAttribute(JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE);
@@ -164,8 +144,6 @@ public class JmsSourceAdapterParser extends AbstractBeanDefinitionParser {
 				builder.addPropertyValue("sessionAcknowledgeMode", acknowledgeMode);
 			}
 		}
-		String channel = element.getAttribute(JmsAdapterParserUtils.CHANNEL_ATTRIBUTE);
-		builder.addPropertyReference(JmsAdapterParserUtils.CHANNEL_PROPERTY, channel);
 		return builder.getBeanDefinition();
 	}
 

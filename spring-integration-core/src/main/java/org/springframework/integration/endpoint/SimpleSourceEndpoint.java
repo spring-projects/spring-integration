@@ -14,25 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.ftp.config;
+package org.springframework.integration.endpoint;
 
-import org.w3c.dom.Element;
-
-import org.springframework.integration.adapter.config.AbstractPollingSourceAdapterParser;
-import org.springframework.integration.adapter.ftp.FtpSource;
-import org.springframework.integration.message.PollableSource;
+import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.message.SubscribableSource;
 
 /**
- * Parser for the &lt;ftp-source/&gt; element.
- * 
- * @author Marius Bogoevici
  * @author Mark Fisher
  */
-public class FtpSourceAdapterParser extends AbstractPollingSourceAdapterParser {
+public class SimpleSourceEndpoint extends AbstractSourceEndpoint {
 
-	@Override
-	protected Class<? extends PollableSource<?>> getSourceBeanClass(Element element) {
-		return FtpSource.class;
+	public SimpleSourceEndpoint(SubscribableSource source, MessageChannel channel) {
+		super(source, channel);
+		source.subscribe(channel);
 	}
 
 }

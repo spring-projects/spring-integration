@@ -18,12 +18,12 @@ package org.springframework.integration.adapter.jms;
 
 import javax.jms.MessageListener;
 
-import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.channel.ChannelPublisher;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.jms.support.converter.MessageConverter;
-import org.springframework.util.Assert;
 
 /**
  * JMS {@link MessageListener} implementation that converts the received JMS
@@ -31,38 +31,23 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class ChannelPublishingJmsListener implements MessageListener {
-
-	private final MessageChannel channel;
+public class ChannelPublishingJmsListener extends ChannelPublisher implements MessageListener {
 
 	private final MessageConverter converter;
 
-	private volatile long timeout = -1;
-
 
 	public ChannelPublishingJmsListener(MessageChannel channel, MessageConverter converter) {
-		Assert.notNull(channel, "'channel' must not be null");
-		this.channel = channel;
+		super(channel);
 		this.converter = (converter != null && converter instanceof HeaderMappingMessageConverter) ?
 				converter : new HeaderMappingMessageConverter(converter);
 	}
 
 
-	public void setTimeout(long timeout) {
-		this.timeout = timeout;
-	}
-
 	public void onMessage(javax.jms.Message jmsMessage) {
-		if (this.channel == null) {
-			throw new ConfigurationException("'channel' must not be null");
-		}
 		try {
 			Message<?> messageToSend = (Message<?>) this.converter.fromMessage(jmsMessage);
-			if (this.timeout < 0) {
-				this.channel.send(messageToSend);
-			}
-			else {
-				this.channel.send(messageToSend, timeout);
+			if (!this.publish(messageToSend)){
+				throw new MessageDeliveryException(messageToSend, "failed to send Message to channel: " + this.getChannel());
 			}
 		}
 		catch (Exception e) {

@@ -25,10 +25,7 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.adapter.file.FileSource;
-import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.scheduling.PollingSchedule;
 
 /**
  * @author Mark Fisher
@@ -38,15 +35,8 @@ public class FileSourceAdapterParserTests {
 	@Test
 	public void testFileSourceAdapterParser() {
 		ApplicationContext context = new ClassPathXmlApplicationContext("fileSourceAdapterParserTests.xml", this.getClass());
-		PollingSourceAdapter adapter = (PollingSourceAdapter) context.getBean("adapter");
-		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapter);
-		PollingSchedule schedule = (PollingSchedule) adapterAccessor.getPropertyValue("schedule");
-		assertEquals(1234, schedule.getPeriod());
-		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
-		assertEquals(channel, adapterAccessor.getPropertyValue("channel"));
-		Object source = adapterAccessor.getPropertyValue("source");
-		assertEquals(FileSource.class, source.getClass());
-		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(source);
+		FileSource fileSource = (FileSource) context.getBean("fileSource");
+		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(fileSource);
 		File directory = (File) sourceAccessor.getPropertyValue("directory");
 		assertEquals(System.getProperty("java.io.tmpdir"), directory.getAbsolutePath());
 	}

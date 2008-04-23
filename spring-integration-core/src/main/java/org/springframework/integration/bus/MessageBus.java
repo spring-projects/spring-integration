@@ -36,7 +36,6 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.adapter.SourceAdapter;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.DefaultChannelRegistry;
@@ -47,6 +46,7 @@ import org.springframework.integration.endpoint.DefaultEndpointRegistry;
 import org.springframework.integration.endpoint.EndpointRegistry;
 import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.endpoint.MessageEndpoint;
+import org.springframework.integration.endpoint.SourceEndpoint;
 import org.springframework.integration.endpoint.TargetEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Target;
@@ -79,7 +79,7 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 
 	private final Map<MessageChannel, SubscriptionManager> subscriptionManagers = new ConcurrentHashMap<MessageChannel, SubscriptionManager>();
 
-	private final List<Lifecycle> lifecycleSourceAdapters = new CopyOnWriteArrayList<Lifecycle>();
+	private final List<Lifecycle> lifecycleEndpoints = new CopyOnWriteArrayList<Lifecycle>();
 
 	private volatile MessagingTaskScheduler taskScheduler;
 
@@ -158,15 +158,6 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 				(Map<String, MessageEndpoint>) context.getBeansOfType(MessageEndpoint.class);
 		for (Map.Entry<String, MessageEndpoint> entry : endpointBeans.entrySet()) {
 			this.registerEndpoint(entry.getKey(), entry.getValue());
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	private void registerSourceAdapters(ApplicationContext context) {
-		Map<String, SourceAdapter> sourceAdapterBeans =
-				(Map<String, SourceAdapter>) context.getBeansOfType(SourceAdapter.class);
-		for (Map.Entry<String, SourceAdapter> entry : sourceAdapterBeans.entrySet()) {
-			this.registerSourceAdapter(entry.getKey(), entry.getValue());
 		}
 	}
 
@@ -259,12 +250,11 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 		if (endpoint instanceof ChannelRegistryAware) {
 			((ChannelRegistryAware) endpoint).setChannelRegistry(this.channelRegistry);
 		}
-		if (endpoint.getConcurrencyPolicy() == null && this.defaultConcurrencyPolicy != null
-				&& endpoint instanceof TargetEndpoint) {
-			((TargetEndpoint) endpoint).setConcurrencyPolicy(this.defaultConcurrencyPolicy);
-		}
 		if (endpoint instanceof TargetEndpoint) {
-			((TargetEndpoint) endpoint).afterPropertiesSet();
+			this.registerTargetEndpoint(name, (TargetEndpoint) endpoint);
+		}
+		else if (endpoint instanceof SourceEndpoint) {
+			this.registerSourceEndpoint(name, (SourceEndpoint) endpoint);
 		}
 		this.endpointRegistry.registerEndpoint(name, endpoint);
 		if (this.isRunning()) {
@@ -275,18 +265,27 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 		}
 	}
 
+	private void registerTargetEndpoint(String name, TargetEndpoint endpoint) {
+		if (endpoint.getConcurrencyPolicy() == null && this.defaultConcurrencyPolicy != null) {
+			endpoint.setConcurrencyPolicy(this.defaultConcurrencyPolicy);
+		}
+		endpoint.afterPropertiesSet();
+	}
+
 	public MessageEndpoint unregisterEndpoint(String name) {
 		MessageEndpoint endpoint = this.endpointRegistry.unregisterEndpoint(name);
 		if (endpoint == null) {
 			return null;
 		}
-		Collection<SubscriptionManager> managers = this.subscriptionManagers.values();
-		boolean removed = false;
-		for (SubscriptionManager manager : managers) {
-			removed = (removed || manager.removeTarget(endpoint));
-		}
-		if (removed) {
-			return endpoint;
+		if (endpoint instanceof TargetEndpoint) {
+			Collection<SubscriptionManager> managers = this.subscriptionManagers.values();
+			boolean removed = false;
+			for (SubscriptionManager manager : managers) {
+				removed = (removed || manager.removeTarget((TargetEndpoint) endpoint));
+			}
+			if (removed) {
+				return endpoint;
+			}
 		}
 		return null;
 	}
@@ -310,6 +309,12 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 	}
 
 	private void activateEndpoint(MessageEndpoint endpoint) {
+		if (endpoint instanceof TargetEndpoint) {
+			this.activateTargetEndpoint((TargetEndpoint) endpoint);
+		}
+	}
+
+	private void activateTargetEndpoint(TargetEndpoint endpoint) {
 		Subscription subscription = endpoint.getSubscription();
 		if (subscription == null) {
 			throw new ConfigurationException("Unable to register endpoint '" +
@@ -360,17 +365,17 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 		}
 	}
 
-	public void registerSourceAdapter(String name, SourceAdapter adapter) {
+	private void registerSourceEndpoint(String name, SourceEndpoint endpoint) {
 		if (!this.initialized) {
 			this.initialize();
 		}
-		if (adapter instanceof MessagingTask) {
-			this.taskScheduler.schedule((MessagingTask) adapter);
+		if (endpoint instanceof MessagingTask) {
+			this.taskScheduler.schedule((MessagingTask) endpoint);
 		}
-		if (adapter instanceof Lifecycle) {
-			this.lifecycleSourceAdapters.add((Lifecycle) adapter);
+		if (endpoint instanceof Lifecycle) {
+			this.lifecycleEndpoints.add((Lifecycle) endpoint);
 			if (this.isRunning()) {
-				((Lifecycle) adapter).start();
+				((Lifecycle) endpoint).start();
 			}
 		}
 		if (logger.isInfoEnabled()) {
@@ -415,10 +420,10 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 					logger.info("started subscription manager '" + manager + "'");
 				}
 			}
-			for (Lifecycle adapter : this.lifecycleSourceAdapters) {
-				adapter.start();
+			for (Lifecycle endpoint : this.lifecycleEndpoints) {
+				endpoint.start();
 				if (logger.isInfoEnabled()) {
-					logger.info("started source adapter '" + adapter + "'");
+					logger.info("started endpoint '" + endpoint + "'");
 				}
 			}
 		}
@@ -436,10 +441,10 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 		synchronized (this.lifecycleMonitor) {
 			this.running = false;
 			this.taskScheduler.stop();
-			for (Lifecycle adapter : this.lifecycleSourceAdapters) {
-				adapter.stop();
+			for (Lifecycle endpoint : this.lifecycleEndpoints) {
+				endpoint.stop();
 				if (logger.isInfoEnabled()) {
-					logger.info("stopped source adapter '" + adapter + "'");
+					logger.info("stopped endpoint '" + endpoint + "'");
 				}
 			}
 			for (SubscriptionManager manager : this.subscriptionManagers.values()) {
@@ -458,7 +463,6 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 		if (event instanceof ContextRefreshedEvent) {
 			ApplicationContext context = ((ContextRefreshedEvent) event).getApplicationContext();
 			this.registerEndpoints(context);
-			this.registerSourceAdapters(context);
 			if (this.autoStartup) {
 				this.start();
 			}

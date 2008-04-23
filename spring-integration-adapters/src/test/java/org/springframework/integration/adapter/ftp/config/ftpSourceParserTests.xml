@@ -7,16 +7,12 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<si:message-bus/>
-
-	<si:channel id="testChannel"/>
-
-	<si:ftp-source id="ftpAdapter" channel="testChannel" 
-				   poll-period="12345"
-				   host="localhost"
+	<si:ftp-source id="ftpSource" 
+				   host="testHost"
 				   port="2121"
-				   local-working-directory="${java.io.tmpdir}/spring-integration-samples/input"
+				   local-working-directory="/local"
 				   remote-working-directory="/remote"
-			       username="myUser"
-			       password="myPassword"/>
+			       username="testUser"
+			       password="testPassword"/>
+
 </beans>

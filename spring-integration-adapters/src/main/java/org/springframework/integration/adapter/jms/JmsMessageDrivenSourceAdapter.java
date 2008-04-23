@@ -21,12 +21,12 @@ import javax.jms.Destination;
 import javax.jms.Session;
 
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.adapter.SourceAdapter;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.message.SubscribableSource;
+import org.springframework.integration.message.Target;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -38,7 +38,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class JmsMessageDrivenSourceAdapter implements SourceAdapter, Lifecycle, InitializingBean, DisposableBean {
+public class JmsMessageDrivenSourceAdapter implements SubscribableSource, Lifecycle, DisposableBean {
 
 	private volatile MessageChannel channel;
 
@@ -70,6 +70,27 @@ public class JmsMessageDrivenSourceAdapter implements SourceAdapter, Lifecycle, 
 
 	private volatile long sendTimeout = -1;
 
+	private volatile boolean initialized;
+
+	private final Object lifecycleMonitor = new Object();
+
+
+	public boolean subscribe(Target target) {
+		if (target instanceof MessageChannel) {
+			this.setChannel((MessageChannel) target);
+			return true;
+		}
+		return false;
+	}
+
+	public boolean unsubscribe(Target target) {
+		if (target.equals(this.channel)) {
+			this.stop();
+			this.channel = null;
+			return true;
+		}
+		return false;
+	}
 
 	public void setChannel(MessageChannel channel) {
 		this.channel = channel;
@@ -116,21 +137,19 @@ public class JmsMessageDrivenSourceAdapter implements SourceAdapter, Lifecycle, 
 		this.sessionAcknowledgeMode = sessionAcknowledgeMode;
 	}
 
-	public void afterPropertiesSet() {
+	private void initialize() {
 		if (this.channel == null) {
 			throw new ConfigurationException("channel must not be null");
 		}
-		this.initContainer();
-	}
-
-	private void initContainer() {
 		if (this.container == null) {
 			this.container = createDefaultContainer();
 		}
 		ChannelPublishingJmsListener listener = new ChannelPublishingJmsListener(this.getChannel(), this.messageConverter);
 		listener.setTimeout(this.sendTimeout);
 		this.container.setMessageListener(listener);
-		this.container.afterPropertiesSet();
+		if (!this.container.isActive()) {
+			this.container.afterPropertiesSet();
+		}
 	}
 
 	private AbstractMessageListenerContainer createDefaultContainer() {
@@ -161,19 +180,24 @@ public class JmsMessageDrivenSourceAdapter implements SourceAdapter, Lifecycle, 
 	}
 
 	public boolean isRunning() {
-		return container.isRunning();
+		return (this.container != null && this.container.isRunning());
 	}
 
 	public void start() {
-		container.start();
+		this.initialize();
+		this.container.start();
 	}
 
 	public void stop() {
-		container.stop();
+		if (this.container != null) {
+			this.container.stop();
+		}
 	}
 
 	public void destroy() {
-		container.destroy();
+		if (this.container != null) {
+			this.container.destroy();
+		}
 	}
 
 }

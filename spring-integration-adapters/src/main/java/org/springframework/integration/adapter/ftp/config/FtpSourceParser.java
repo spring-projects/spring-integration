@@ -14,34 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.file.config;
+package org.springframework.integration.adapter.ftp.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
-import org.springframework.integration.adapter.file.FileSource;
+import org.springframework.integration.adapter.ftp.FtpSource;
 
 /**
- * Parser for the &lt;file-source/&gt; element.
+ * Parser for the &lt;ftp-source/&gt; element.
  * 
  * @author Mark Fisher
  */
-public class FileSourceAdapterParser extends AbstractSimpleBeanDefinitionParser {
+public class FtpSourceParser extends AbstractSimpleBeanDefinitionParser {
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
-		return FileSource.class;
-	}
-
-	@Override
-	protected boolean isEligibleAttribute(String attributeName) {
-		return (!"directory".equals(attributeName)) && super.isEligibleAttribute(attributeName);
-	}
-
-	@Override
-	protected void postProcess(BeanDefinitionBuilder beanDefinition, Element element) {
-		beanDefinition.addConstructorArgValue(element.getAttribute("directory"));
+		return FtpSource.class;
 	}
 
 }

@@ -7,11 +7,7 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<si:message-bus/>
-
-	<si:channel id="channel"/>
-
-	<si:jms-source id="adapter" jms-template="jmsTemplate" channel="channel" poll-period="5000"/>
+	<si:jms-source id="jmsSource" jms-template="jmsTemplate" message-driven="false"/>
 
 	<bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
 		<property name="connectionFactory" ref="connectionFactory"/>

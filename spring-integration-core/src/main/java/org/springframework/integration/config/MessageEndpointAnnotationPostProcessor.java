@@ -36,7 +36,6 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.adapter.MethodInvokingSource;
 import org.springframework.integration.adapter.MethodInvokingTarget;
-import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.CompletionStrategy;
 import org.springframework.integration.annotation.Concurrency;
@@ -51,6 +50,7 @@ import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.dispatcher.SynchronousChannel;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.HandlerEndpoint;
+import org.springframework.integration.endpoint.PollingSourceEndpoint;
 import org.springframework.integration.handler.AbstractMessageHandlerAdapter;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
@@ -163,10 +163,10 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 					PollingSchedule schedule = new PollingSchedule(period);
 					schedule.setInitialDelay(initialDelay);
 					schedule.setFixedRate(fixedRate);
-					PollingSourceAdapter adapter = new PollingSourceAdapter(source, channel, schedule);
+					PollingSourceEndpoint sourceEndpoint = new PollingSourceEndpoint(source, channel, schedule);
 					String channelName = beanName + "-inputChannel";
 					messageBus.registerChannel(channelName, channel);
-					messageBus.registerSourceAdapter(beanName + "-sourceAdapter", adapter);
+					messageBus.registerEndpoint(beanName + "-sourceEndpoint", sourceEndpoint);
 					Subscription subscription = new Subscription(channel);
 					endpoint.setSubscription(subscription);
 				}

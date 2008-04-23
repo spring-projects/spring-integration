@@ -25,6 +25,7 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.RequestReplyTemplate;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
+import org.springframework.util.Assert;
 
 /**
  * A source adapter that implements the {@link MessageHandler} interface. It may
@@ -32,9 +33,11 @@ import org.springframework.integration.message.Message;
  * 
  * @author Mark Fisher
  */
-public class MessageHandlingSourceAdapter extends AbstractSourceAdapter implements MessageHandler, InitializingBean {
+public class MessageHandlingSourceAdapter implements MessageHandler, InitializingBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
+
+	private final MessageChannel channel;
 
 	private volatile RequestReplyTemplate requestReplyTemplate;
 
@@ -56,7 +59,8 @@ public class MessageHandlingSourceAdapter extends AbstractSourceAdapter implemen
 	 * <code>null</code>.
 	 */
 	public MessageHandlingSourceAdapter(MessageChannel channel) {
-		super(channel);
+		Assert.notNull(channel, "channel must not be null");
+		this.channel = channel;
 	}
 
 
@@ -68,8 +72,16 @@ public class MessageHandlingSourceAdapter extends AbstractSourceAdapter implemen
 		this.expectReply = expectReply;
 	}
 
+	public void setSendTimeout(long sendTimeout) {
+		this.sendTimeout = sendTimeout;
+	}
+
 	public void setReceiveTimeout(long receiveTimeout) {
 		this.receiveTimeout = receiveTimeout;
+	}
+
+	protected MessageChannel getChannel() {
+		return this.channel;
 	}
 
 	public final void afterPropertiesSet() throws Exception {
@@ -92,7 +104,7 @@ public class MessageHandlingSourceAdapter extends AbstractSourceAdapter implemen
 	}
 
 	private RequestReplyTemplate createRequestReplyTemplate() {
-		RequestReplyTemplate template = new RequestReplyTemplate(this.getChannel());
+		RequestReplyTemplate template = new RequestReplyTemplate(this.channel);
 		template.setDefaultSendTimeout(this.sendTimeout);
 		template.setDefaultReceiveTimeout(this.receiveTimeout);
 		return template;
@@ -108,7 +120,8 @@ public class MessageHandlingSourceAdapter extends AbstractSourceAdapter implemen
 			}
 		}
 		if (!this.expectReply) {
-			if (!this.sendToChannel(message) && logger.isWarnEnabled()) {
+			boolean sent = (this.sendTimeout < 0) ? this.channel.send(message) : this.channel.send(message, this.sendTimeout);
+			if (!sent && logger.isWarnEnabled()) {
 				logger.warn("failed to send message to channel within timeout of " + this.sendTimeout + " milliseconds");
 			}
 			return null;

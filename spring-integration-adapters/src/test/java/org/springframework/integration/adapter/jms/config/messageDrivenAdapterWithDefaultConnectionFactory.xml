@@ -9,9 +9,7 @@
 
 	<si:message-bus/>
 
-	<si:channel id="channel"/>
-
-	<si:jms-source id="adapter" destination-name="testDestinationName" channel="channel"/>
+	<si:jms-source id="jmsSource" destination-name="testDestinationName"/>
 
 	<bean id="connectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
 		<constructor-arg>

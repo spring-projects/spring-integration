@@ -27,8 +27,8 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.adapter.MethodInvokingSource;
 import org.springframework.integration.adapter.MethodInvokingTarget;
-import org.springframework.integration.adapter.PollingSourceAdapter;
 import org.springframework.integration.endpoint.HandlerEndpoint;
+import org.springframework.integration.endpoint.PollingSourceEndpoint;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Subscription;
 import org.springframework.util.StringUtils;
@@ -75,7 +75,7 @@ public class ChannelAdapterParser implements BeanDefinitionParser {
 		RootBeanDefinition adapterDef = null;
 		RootBeanDefinition invokerDef = null;
 		if (this.isInbound) {
-			adapterDef = new RootBeanDefinition(PollingSourceAdapter.class);
+			adapterDef = new RootBeanDefinition(PollingSourceEndpoint.class);
 			invokerDef = new RootBeanDefinition(MethodInvokingSource.class);
 			invokerDef.getPropertyValues().addPropertyValue("object", new RuntimeBeanReference(ref));
 			invokerDef.getPropertyValues().addPropertyValue("method", method);

@@ -32,7 +32,6 @@ import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.HandlerEndpoint;
-import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerRejectedExecutionException;
 import org.springframework.integration.handler.TestHandlers;
@@ -100,7 +99,7 @@ public class SubscriptionManagerTests {
 		MessageHandler handler3 = TestHandlers.countingCountDownHandler(counter3, latch);
 		QueueChannel channel = new QueueChannel();
 		SubscriptionManager manager = new SubscriptionManager(channel, scheduler);
-		MessageEndpoint inactiveEndpoint = createEndpoint(handler1, true);
+		HandlerEndpoint inactiveEndpoint = createEndpoint(handler1, true);
 		manager.addTarget(inactiveEndpoint);
 		manager.addTarget(createEndpoint(handler2, true));
 		manager.addTarget(createEndpoint(handler3, true));
@@ -124,7 +123,7 @@ public class SubscriptionManagerTests {
 		MessageHandler handler3 = TestHandlers.countingCountDownHandler(counter3, latch);
 		QueueChannel channel = new QueueChannel(5, new DispatcherPolicy(true));
 		SubscriptionManager manager = new SubscriptionManager(channel, scheduler);
-		MessageEndpoint inactiveEndpoint = createEndpoint(handler2, true);
+		HandlerEndpoint inactiveEndpoint = createEndpoint(handler2, true);
 		manager.addTarget(createEndpoint(handler1, true));
 		manager.addTarget(inactiveEndpoint);
 		manager.addTarget(createEndpoint(handler3, true));
@@ -450,7 +449,7 @@ public class SubscriptionManagerTests {
 	}
 
 
-	private static MessageEndpoint createEndpoint(MessageHandler handler, boolean asynchronous) {
+	private static HandlerEndpoint createEndpoint(MessageHandler handler, boolean asynchronous) {
 		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
 		if (asynchronous) {
 			endpoint.setConcurrencyPolicy(new ConcurrencyPolicy(1, 1));

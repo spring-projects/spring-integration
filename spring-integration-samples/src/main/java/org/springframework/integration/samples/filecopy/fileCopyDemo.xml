@@ -1,29 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:si="http://www.springframework.org/schema/integration"
+	xmlns:beans="http://www.springframework.org/schema/beans"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
+	<beans:bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
 
-	<si:message-bus/>
+	<message-bus/>
 
-	<si:channel id="channel1"/>
+	<channel id="channel1"/>
 
-	<si:channel id="channel2"/>
+	<channel id="channel2"/>
 
-	<si:file-source directory="${java.io.tmpdir}/spring-integration-samples/input"
-                    channel="channel1" poll-period="10000"/>
+	<source-endpoint source="fileSource" channel="channel1">
+		<schedule period="30000"/>
+	</source-endpoint>
 
-	<si:endpoint input-channel="channel1" default-output-channel="channel2"
-                 handler="exclaimer" handler-method="exclaim"/>
+	<endpoint input-channel="channel1" default-output-channel="channel2"
+              handler="exclaimer" handler-method="exclaim"/>
 
-	<si:file-target directory="${java.io.tmpdir}/spring-integration-samples/output"
-                    channel="channel2"/>
+	<file-source id="fileSource" directory="${java.io.tmpdir}/spring-integration-samples/input"/>
 
-	<bean id="exclaimer" class="org.springframework.integration.samples.filecopy.Exclaimer"/>
+	<file-target directory="${java.io.tmpdir}/spring-integration-samples/output" channel="channel2"/>
 
-</beans>
+	<beans:bean id="exclaimer" class="org.springframework.integration.samples.filecopy.Exclaimer"/>
+
+</beans:beans>

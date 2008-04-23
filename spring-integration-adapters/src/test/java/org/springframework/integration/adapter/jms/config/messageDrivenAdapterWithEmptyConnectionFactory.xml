@@ -7,10 +7,6 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<si:message-bus/>
-
-	<si:channel id="channel"/>
-
-	<si:jms-source id="adapter" connection-factory="" destination-name="testDestinationName" channel="channel"/>
+	<si:jms-source id="jmsSource" connection-factory="" destination-name="testDestinationName"/>
 
 </beans>

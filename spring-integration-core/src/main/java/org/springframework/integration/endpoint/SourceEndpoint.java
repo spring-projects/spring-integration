@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter;
+package org.springframework.integration.endpoint;
+
+import org.springframework.integration.message.Source;
 
 /**
- * Base interface for source adapters.
+ * Base interface for source endpoints.
  * 
  * @author Mark Fisher
  */
-public interface SourceAdapter {
+public interface SourceEndpoint extends MessageEndpoint {
+
+	Source getSource();
 
 }
