@@ -29,10 +29,14 @@ import org.springframework.context.Lifecycle;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.dispatcher.PollingDispatcher;
+import org.springframework.integration.dispatcher.SynchronousChannel;
+import org.springframework.integration.endpoint.TargetEndpoint;
+import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.Target;
 import org.springframework.integration.scheduling.MessagingTaskScheduler;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
+import org.springframework.integration.util.ErrorHandler;
 import org.springframework.util.Assert;
 
 /**
@@ -82,6 +86,11 @@ public class SubscriptionManager {
 		if (schedule == null) {
 			schedule = this.defaultSchedule;
 		}
+		else if (this.channel instanceof SynchronousChannel) {
+			if (logger.isInfoEnabled()) {
+				logger.info("Subscribing to a SynchronousChannel. The provided schedule will be ignored.");
+			}
+		}
 		else if (this.channel.getDispatcherPolicy().isPublishSubscribe()) {
 			if (logger.isInfoEnabled()) {
 				logger.info("This dispatcher broadcasts messages for a publish-subscribe channel. " +
@@ -95,6 +104,20 @@ public class SubscriptionManager {
 			if (this.isRunning()) {
 				((Lifecycle) target).start();
 			}
+		}
+		if (this.channel instanceof SynchronousChannel) {
+			((SynchronousChannel) this.channel).subscribe(target);
+			if (target instanceof TargetEndpoint) {
+				((TargetEndpoint) target).setErrorHandler(new ErrorHandler() {
+					public void handle(Throwable t) {
+						if (t instanceof MessagingException) {
+							throw (MessagingException) t;
+						}
+						throw new MessagingException("error occurred in handler", t);
+					}
+				});
+			}
+			return;
 		}
 		PollingDispatcher dispatcher = this.dispatchers.get(schedule);
 		if (dispatcher == null) {

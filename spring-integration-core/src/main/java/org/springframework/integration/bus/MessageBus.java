@@ -42,7 +42,6 @@ import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.dispatcher.SynchronousChannel;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.DefaultEndpointRegistry;
 import org.springframework.integration.endpoint.EndpointRegistry;
@@ -50,7 +49,6 @@ import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.TargetEndpoint;
 import org.springframework.integration.handler.MessageHandler;
-import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.Target;
 import org.springframework.integration.scheduling.MessagePublishingErrorHandler;
 import org.springframework.integration.scheduling.MessagingTask;
@@ -58,7 +56,6 @@ import org.springframework.integration.scheduling.MessagingTaskScheduler;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.integration.scheduling.SimpleMessagingTaskScheduler;
 import org.springframework.integration.scheduling.Subscription;
-import org.springframework.integration.util.ErrorHandler;
 import org.springframework.util.Assert;
 
 /**
@@ -356,7 +353,7 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 				targetEndpoint.setErrorHandler(new MessagePublishingErrorHandler(this.getErrorChannel()));
 			}
 		}
-		this.registerWithDispatcher(channel, endpoint, subscription.getSchedule());
+		this.activateSubscription(channel, endpoint, subscription.getSchedule());
 		if (logger.isInfoEnabled()) {
 			logger.info("activated subscription to channel '" + channel.getName() + 
 					"' for endpoint '" + endpoint + "'");
@@ -381,28 +378,11 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 		}
 	}
 
-	private void registerWithDispatcher(MessageChannel channel, Target target, Schedule schedule) {
-		if (schedule == null && (channel instanceof SynchronousChannel)) {
-			((SynchronousChannel) channel).subscribe(target);
-			if (target instanceof Lifecycle) {
-				((Lifecycle) target).start();
-			}
-			if (target instanceof TargetEndpoint) {
-				((TargetEndpoint) target).setErrorHandler(new ErrorHandler() {
-					public void handle(Throwable t) {
-						if (t instanceof MessagingException) {
-							throw (MessagingException) t;
-						}
-						throw new MessagingException("error occurred in handler", t);
-					}
-				});
-			}
-			return;
-		}
-		SubscriptionManager manager = subscriptionManagers.get(channel);
+	private void activateSubscription(MessageChannel channel, Target target, Schedule schedule) {
+		SubscriptionManager manager = this.subscriptionManagers.get(channel);
 		if (manager == null) {
 			if (logger.isWarnEnabled()) {
-				logger.warn("no subscription manager available for channel '" + channel.getName() + "', be sure to register the channel");
+				logger.warn("no subscription manager available for channel '" + channel + "', be sure to register the channel");
 			}
 			return;
 		}
