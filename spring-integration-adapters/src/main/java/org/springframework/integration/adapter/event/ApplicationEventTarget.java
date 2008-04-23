@@ -24,13 +24,13 @@ import org.springframework.integration.message.MessageMapper;
 import org.springframework.integration.message.Target;
 
 /**
- * A target adapter for publishing {@link MessagingEvent MessagingEvents}. The
+ * A message target for publishing {@link MessagingEvent MessagingEvents}. The
  * {@link MessagingEvent} is a subclass of Spring's {@link ApplicationEvent}
  * used by this adapter to wrap any {@link Message} sent to this target.
  * 
  * @author Mark Fisher
  */
-public class ApplicationEventTargetAdapter<T> implements Target, ApplicationEventPublisherAware {
+public class ApplicationEventTarget<T> implements Target, ApplicationEventPublisherAware {
 
 	private final MessageMapper<T, MessagingEvent<T>> mapper = new MessagingEventMapper<T>();
 

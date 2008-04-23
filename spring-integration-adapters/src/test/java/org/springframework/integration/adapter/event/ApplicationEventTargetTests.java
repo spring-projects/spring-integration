@@ -35,7 +35,7 @@ import org.springframework.integration.scheduling.Subscription;
 /**
  * @author Mark Fisher
  */
-public class ApplicationEventTargetAdapterTests {
+public class ApplicationEventTargetTests {
 
 	@Test
 	public void testSendingEvent() throws InterruptedException {
@@ -46,7 +46,7 @@ public class ApplicationEventTargetAdapterTests {
 			}
 		};
 		MessageChannel channel = new QueueChannel();
-		ApplicationEventTargetAdapter adapter = new ApplicationEventTargetAdapter();
+		ApplicationEventTarget adapter = new ApplicationEventTarget();
 		adapter.setApplicationEventPublisher(publisher);
 		MessageBus bus = new MessageBus();
 		bus.registerChannel("channel", channel);

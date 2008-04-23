@@ -38,12 +38,12 @@ import org.springframework.integration.message.Message;
 /**
  * @author Mark Fisher
  */
-public class ApplicationEventSourceAdapterTests {
+public class ApplicationEventSourceTests {
 
 	@Test
 	public void testAnyApplicationEventSentByDefault() {
 		MessageChannel channel = new QueueChannel();
-		ApplicationEventSourceAdapter adapter = new ApplicationEventSourceAdapter(channel);
+		ApplicationEventSource adapter = new ApplicationEventSource(channel);
 		Message<?> message1 = channel.receive(0);
 		assertNull(message1);
 		adapter.onApplicationEvent(new TestApplicationEvent1());
@@ -59,7 +59,7 @@ public class ApplicationEventSourceAdapterTests {
 	@Test
 	public void testOnlyConfiguredEventTypesAreSent() {
 		MessageChannel channel = new QueueChannel();
-		ApplicationEventSourceAdapter adapter = new ApplicationEventSourceAdapter(channel);
+		ApplicationEventSource adapter = new ApplicationEventSource(channel);
 		List<Class<? extends ApplicationEvent>> eventTypes = new ArrayList<Class<? extends ApplicationEvent>>();
 		eventTypes.add(TestApplicationEvent1.class);
 		adapter.setEventTypes(eventTypes);
@@ -76,7 +76,7 @@ public class ApplicationEventSourceAdapterTests {
 
 	@Test
 	public void testApplicationContextEvents() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("applicationEventSourceAdapterTests.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("applicationEventSourceTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("channel");
 		Message<?> refreshedEventMessage = channel.receive(0);
 		assertNotNull(refreshedEventMessage);

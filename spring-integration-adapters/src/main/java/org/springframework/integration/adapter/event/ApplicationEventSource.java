@@ -33,12 +33,12 @@ import org.springframework.util.CollectionUtils;
  * 
  * @author Mark Fisher
  */
-public class ApplicationEventSourceAdapter extends ChannelPublisher implements ApplicationListener {
+public class ApplicationEventSource extends ChannelPublisher implements ApplicationListener {
 
 	private List<Class<? extends ApplicationEvent>> eventTypes = new ArrayList<Class<? extends ApplicationEvent>>();
 
 
-	public ApplicationEventSourceAdapter(MessageChannel channel) {
+	public ApplicationEventSource(MessageChannel channel) {
 		super(channel);
 	}
 

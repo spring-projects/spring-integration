@@ -8,7 +8,7 @@
 
 	<bean id="channel" class="org.springframework.integration.channel.QueueChannel"/>
 
-	<bean id="adapter" class="org.springframework.integration.adapter.event.ApplicationEventSourceAdapter">
+	<bean id="source" class="org.springframework.integration.adapter.event.ApplicationEventSource">
 		<constructor-arg ref="channel"/>
 	</bean>
 
