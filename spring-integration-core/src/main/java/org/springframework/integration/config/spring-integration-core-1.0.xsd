@@ -127,21 +127,14 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a message endpoint.
+	Defines an endpoint for a MessageHandler.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
-				<xsd:extension base="beans:identifiedType">
-					<xsd:sequence>
-						<xsd:element ref="schedule" minOccurs="0" maxOccurs="1"/>
-						<xsd:element name="concurrency" type="concurrencyType" minOccurs="0" maxOccurs="1"/>
-						<xsd:element ref="selector" minOccurs="0" maxOccurs="unbounded"/>
-					</xsd:sequence>
-					<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
+				<xsd:extension base="targetEndpointType">
 					<xsd:attribute name="default-output-channel" type="xsd:string"/>
 					<xsd:attribute name="handler" type="xsd:string" use="required"/>
 					<xsd:attribute name="handler-method" type="xsd:string"/>
-					<xsd:attribute name="error-handler" type="xsd:string"/>
 					<xsd:attribute name="reply-handler" type="xsd:string"/>
 				</xsd:extension>
 			</xsd:complexContent>
@@ -263,5 +256,24 @@
 			<xsd:attribute name="method" type="xsd:string" use="optional"/>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:complexType name="targetEndpointType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines common configuration properties of target message endpoints.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="beans:identifiedType">
+				<xsd:sequence>
+					<xsd:element ref="schedule" minOccurs="0" maxOccurs="1"/>
+					<xsd:element name="concurrency" type="concurrencyType" minOccurs="0" maxOccurs="1"/>
+					<xsd:element ref="selector" minOccurs="0" maxOccurs="unbounded"/>
+				</xsd:sequence>
+				<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
+				<xsd:attribute name="error-handler" type="xsd:string"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
 
 </xsd:schema>
