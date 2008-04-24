@@ -23,21 +23,21 @@ import org.springframework.integration.message.Target;
 import org.springframework.util.Assert;
 
 /**
- * A convenience adapter for writing files. The actual file writing occurs in
+ * A message target for writing files. The actual file writing occurs in
  * the message mapper ({@link TextFileMapper} or {@link ByteArrayFileMapper}).
  * 
  * @author Mark Fisher
  */
-public class FileTargetAdapter implements Target {
+public class FileTarget implements Target {
 
 	private AbstractFileMapper<?> mapper;
 
 
-	public FileTargetAdapter(File directory) {
+	public FileTarget(File directory) {
 		this(directory, true);
 	}
 
-	public FileTargetAdapter(File directory, boolean isTextBased) {
+	public FileTarget(File directory, boolean isTextBased) {
 		if (isTextBased) {
 			this.mapper = new TextFileMapper(directory);
 		}

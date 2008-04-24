@@ -22,7 +22,7 @@ import org.junit.Test;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.adapter.file.FileTargetAdapter;
+import org.springframework.integration.adapter.file.FileTarget;
 import org.springframework.integration.endpoint.TargetEndpoint;
 
 /**
@@ -34,7 +34,7 @@ public class FileTargetAdapterParserTests {
 	public void testFileTargetAdapterParser() {
 		ApplicationContext context = new ClassPathXmlApplicationContext("fileTargetAdapterParserTests.xml", this.getClass());
 		TargetEndpoint endpoint = (TargetEndpoint) context.getBean("adapter");
-		assertEquals(FileTargetAdapter.class, endpoint.getTarget().getClass());
+		assertEquals(FileTarget.class, endpoint.getTarget().getClass());
 		assertEquals("adapter", endpoint.getName());
 		assertEquals("testChannel", endpoint.getSubscription().getChannelName());
 	}

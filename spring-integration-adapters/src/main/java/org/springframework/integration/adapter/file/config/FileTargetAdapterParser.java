@@ -23,7 +23,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.adapter.file.FileTargetAdapter;
+import org.springframework.integration.adapter.file.FileTarget;
 import org.springframework.integration.endpoint.TargetEndpoint;
 import org.springframework.integration.scheduling.Subscription;
 
@@ -47,7 +47,7 @@ public class FileTargetAdapterParser extends AbstractSingleBeanDefinitionParser 
 	}
 
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		RootBeanDefinition adapterDef = new RootBeanDefinition(FileTargetAdapter.class);
+		RootBeanDefinition adapterDef = new RootBeanDefinition(FileTarget.class);
 		adapterDef.getConstructorArgumentValues().addGenericArgumentValue(element.getAttribute("directory"));
 		String adapterBeanName = parserContext.getReaderContext().generateBeanName(adapterDef);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(adapterDef, adapterBeanName));

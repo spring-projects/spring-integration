@@ -27,7 +27,7 @@ import org.springframework.integration.adapter.file.FileSource;
  * 
  * @author Mark Fisher
  */
-public class FileSourceAdapterParser extends AbstractSimpleBeanDefinitionParser {
+public class FileSourceParser extends AbstractSimpleBeanDefinitionParser {
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
