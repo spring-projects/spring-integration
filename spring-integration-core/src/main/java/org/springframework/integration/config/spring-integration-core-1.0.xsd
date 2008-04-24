@@ -136,6 +136,7 @@
 					<xsd:attribute name="handler" type="xsd:string" use="required"/>
 					<xsd:attribute name="handler-method" type="xsd:string"/>
 					<xsd:attribute name="reply-handler" type="xsd:string"/>
+					<xsd:attribute name="return-address-overrides" type="xsd:boolean" default="false"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

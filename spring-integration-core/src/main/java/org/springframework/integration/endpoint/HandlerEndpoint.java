@@ -45,6 +45,8 @@ public class HandlerEndpoint extends TargetEndpoint {
 
 	private volatile String defaultOutputChannelName;
 
+	private volatile boolean returnAddressOverrides = false;
+
 
 	public HandlerEndpoint(MessageHandler handler) {
 		Assert.notNull(handler, "handler must not be null");
@@ -83,6 +85,10 @@ public class HandlerEndpoint extends TargetEndpoint {
 		return this.defaultOutputChannelName;
 	}
 
+	public void setReturnAddressOverrides(boolean returnAddressOverrides) {
+		this.returnAddressOverrides = returnAddressOverrides;
+	}
+
 	public void afterPropertiesSet() {
 		Assert.notNull(this.handler, "handler must not be null");
 		if (this.handler instanceof ChannelRegistryAware) {
@@ -92,19 +98,42 @@ public class HandlerEndpoint extends TargetEndpoint {
 		super.afterPropertiesSet();
 	}
 
-
 	private MessageChannel resolveReplyChannel(MessageHeader originalMessageHeader) {
-		Object returnAddress = originalMessageHeader.getReturnAddress();
-		if (returnAddress instanceof MessageChannel) {
-			return (MessageChannel) returnAddress;
+		if (this.returnAddressOverrides) {
+			MessageChannel channel = this.getReturnAddress(originalMessageHeader);
+			if (channel == null) {
+				channel = this.getOutputChannel();
+			}
+			return channel;
 		}
-		ChannelRegistry registry = this.getChannelRegistry();
-		if (returnAddress instanceof String && registry != null) {
-			String channelName = (String) returnAddress;
-			if (StringUtils.hasText(channelName)) {
-				return registry.lookupChannel(channelName);
+		else {
+			MessageChannel channel = this.getOutputChannel();
+			if (channel == null) {
+				channel = this.getReturnAddress(originalMessageHeader);
+			}
+			return channel;
+		}
+	}
+
+	private MessageChannel getReturnAddress(MessageHeader originalMessageHeader) {
+		Object returnAddress = originalMessageHeader.getReturnAddress();
+		if (returnAddress != null) {
+			if (returnAddress instanceof MessageChannel) {
+				return (MessageChannel) returnAddress;
+			}
+			ChannelRegistry registry = this.getChannelRegistry();
+			if (returnAddress instanceof String && registry != null) {
+				String channelName = (String) returnAddress;
+				if (StringUtils.hasText(channelName)) {
+					return registry.lookupChannel(channelName);
+				}
 			}
 		}
+		return null;
+	}
+
+	private MessageChannel getOutputChannel() {
+		ChannelRegistry registry = this.getChannelRegistry();
 		if (this.defaultOutputChannelName != null && registry != null) {
 			return registry.lookupChannel(this.defaultOutputChannelName);
 		}

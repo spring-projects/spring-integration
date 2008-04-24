@@ -53,6 +53,8 @@ public class EndpointParser implements BeanDefinitionParser {
 
 	private static final String DEFAULT_OUTPUT_CHANNEL_PROPERTY = "defaultOutputChannelName";
 
+	private static final String RETURN_ADDRESS_OVERRIDES_ATTRIBUTE = "return-address-overrides";
+
 	private static final String SELECTOR_ELEMENT = "selector";
 
 	private static final String SELECTORS_PROPERTY = "messageSelectors";
@@ -97,6 +99,9 @@ public class EndpointParser implements BeanDefinitionParser {
 		if (StringUtils.hasText(defaultOutputChannel)) {
 			endpointDef.getPropertyValues().addPropertyValue(DEFAULT_OUTPUT_CHANNEL_PROPERTY, defaultOutputChannel);
 		}
+		String returnAddressOverridesAttribute = element.getAttribute(RETURN_ADDRESS_OVERRIDES_ATTRIBUTE);
+		boolean returnAddressOverrides = "true".equals(returnAddressOverridesAttribute);
+		endpointDef.getPropertyValues().addPropertyValue("returnAddressOverrides", returnAddressOverrides);
 		ManagedList selectors = new ManagedList();
 		NodeList childNodes = element.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); i++) {
