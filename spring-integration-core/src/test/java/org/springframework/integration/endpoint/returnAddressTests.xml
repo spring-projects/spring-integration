@@ -7,16 +7,27 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
 
-	<si:message-bus/>
+	<si:message-bus error-channel="errorChannel"/>
 
 	<si:channel id="channel1"/>
 	<si:channel id="channel2"/>
 	<si:channel id="channel3"/>
+	<si:channel id="channel4"/>
+	<si:channel id="channel1WithOverride"/>
+	<si:channel id="channel3WithOverride"/>
 	<si:channel id="replyChannel"/>
+	<si:channel id="errorChannel"/>
+
+	<si:endpoint input-channel="channel1WithOverride" handler="testBean" handler-method="duplicate"
+                 default-output-channel="channel2" return-address-overrides="true"/>
+
+	<si:endpoint input-channel="channel3WithOverride" handler="testBean" handler-method="duplicate"
+                 return-address-overrides="true"/>
 
 	<si:endpoint input-channel="channel1" handler="testBean" handler-method="duplicate" default-output-channel="channel2"/>
 	<si:endpoint input-channel="channel2" handler="testBean" handler-method="duplicate" default-output-channel="channel3"/>
 	<si:endpoint input-channel="channel3" handler="testBean" handler-method="duplicate"/>
+	<si:endpoint input-channel="channel4" handler="testBean" handler-method="duplicate" default-output-channel="replyChannel"/>
 
 	<bean id="testBean" class="org.springframework.integration.endpoint.TestBean"/>
 

@@ -34,8 +34,8 @@ public class ReturnAddressTests {
 	@Test
 	public void testReturnAddressOverrides() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"returnAddressOverrides.xml", this.getClass());
-		MessageChannel channel1 = (MessageChannel) context.getBean("channel1");
+				"returnAddressTests.xml", this.getClass());
+		MessageChannel channel1 = (MessageChannel) context.getBean("channel1WithOverride");
 		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
 		context.start();
 		StringMessage message = new StringMessage("*");
@@ -47,9 +47,9 @@ public class ReturnAddressTests {
 	}
 
 	@Test
-	public void testReturnAddressIsFallbackByDefault() {
+	public void testOutputTakesPrecedenceByDefault() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"returnAddressIsFallbackByDefault.xml", this.getClass());
+				"returnAddressTests.xml", this.getClass());
 		MessageChannel channel1 = (MessageChannel) context.getBean("channel1");
 		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
 		context.start();
@@ -59,6 +59,46 @@ public class ReturnAddressTests {
 		Message<?> response = replyChannel.receive(1000);
 		assertNotNull(response);
 		assertEquals("********", response.getPayload());
+	}
+
+	@Test
+	public void testOutputTakesPrecedenceAndNoReturnAddress() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"returnAddressTests.xml", this.getClass());
+		MessageChannel channel4 = (MessageChannel) context.getBean("channel4");
+		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
+		context.start();
+		StringMessage message = new StringMessage("*");
+		channel4.send(message);
+		Message<?> response = replyChannel.receive(1000);
+		assertNotNull(response);
+		assertEquals("**", response.getPayload());
+	}
+
+	@Test
+	public void testReturnAddressFallbackButNotAvailable() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"returnAddressTests.xml", this.getClass());
+		MessageChannel channel3 = (MessageChannel) context.getBean("channel3");
+		MessageChannel errorChannel = (MessageChannel) context.getBean("errorChannel");
+		context.start();
+		StringMessage message = new StringMessage("*");
+		channel3.send(message);
+		Message<?> errorMessage = errorChannel.receive(1000);
+		assertNotNull(errorMessage.getPayload());
+	}
+
+	@Test
+	public void testOutputFallbackButNotAvailable() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"returnAddressTests.xml", this.getClass());
+		MessageChannel channel3 = (MessageChannel) context.getBean("channel3WithOverride");
+		MessageChannel errorChannel = (MessageChannel) context.getBean("errorChannel");
+		context.start();
+		StringMessage message = new StringMessage("*");
+		channel3.send(message);
+		Message<?> errorMessage = errorChannel.receive(1000);
+		assertNotNull(errorMessage.getPayload());
 	}
 
 }

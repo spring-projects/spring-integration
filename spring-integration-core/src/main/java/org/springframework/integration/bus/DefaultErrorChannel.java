@@ -45,7 +45,7 @@ public class DefaultErrorChannel extends RendezvousChannel {
 		public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
 			if (!sent) {
 				if (logger.isWarnEnabled()) {
-					logger.warn("DefaultErrorChannel has reached capacity. Are any handlers subscribed?");
+					logger.warn("Error channel rejected Message. Are any handlers subscribed? " + message);
 				}
 			}
 		}
