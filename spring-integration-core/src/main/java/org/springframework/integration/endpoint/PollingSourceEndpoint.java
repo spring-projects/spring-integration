@@ -16,9 +16,19 @@
 
 package org.springframework.integration.endpoint;
 
+import java.lang.reflect.Method;
+import java.util.List;
+
+import org.aopalliance.aop.Advice;
+
+import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.aop.support.StaticMethodMatcherPointcutAdvisor;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.dispatcher.DefaultPollingDispatcher;
 import org.springframework.integration.dispatcher.PollingDispatcher;
+import org.springframework.integration.dispatcher.PollingDispatcherTask;
 import org.springframework.integration.message.PollableSource;
 import org.springframework.integration.scheduling.MessagingTask;
 import org.springframework.integration.scheduling.PollingSchedule;
@@ -31,20 +41,59 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class PollingSourceEndpoint extends AbstractSourceEndpoint implements MessagingTask {
+public class PollingSourceEndpoint extends AbstractSourceEndpoint implements MessagingTask, InitializingBean {
 
 	private final DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 
-	private final PollingDispatcher dispatcher;
+	private volatile PollingDispatcher dispatcher;
+
+	private volatile MessagingTask task;
+
+	private volatile List<Advice> taskAdviceChain;
+
+	private volatile List<Advice> dispatchAdviceChain;
 
 
 	public PollingSourceEndpoint(PollableSource<?> source, MessageChannel channel, PollingSchedule schedule) {
 		super(source, channel);
 		Assert.notNull(schedule, "schedule must not be null");
-		this.dispatcher = new PollingDispatcher(source, this.dispatcherPolicy, schedule);
+		this.dispatcher = new DefaultPollingDispatcher(source, this.dispatcherPolicy);
 		this.dispatcher.subscribe(this.getChannel());
+		this.task = new PollingDispatcherTask(this.dispatcher, schedule);
 	}
 
+
+	public void setTaskAdviceChain(List<Advice> taskAdviceChain) {
+		this.taskAdviceChain = taskAdviceChain;
+	}
+
+	public void setDispatchAdviceChain(List<Advice> dispatchAdviceChain) {
+		this.dispatchAdviceChain = dispatchAdviceChain;
+	}
+
+	public void afterPropertiesSet() {
+		this.initializeProxies();
+	}
+
+	public void initializeProxies() {
+		if (this.dispatchAdviceChain != null && this.dispatchAdviceChain.size() > 0) {
+			ProxyFactory proxyFactory = new ProxyFactory(this.dispatcher);
+			proxyFactory.setInterfaces(new Class[] { PollingDispatcher.class });
+			for (Advice advice : this.dispatchAdviceChain) {
+				proxyFactory.addAdvisor(new DispatchMethodAdvisor(advice));
+			}
+			this.dispatcher = (PollingDispatcher) proxyFactory.getProxy();
+			this.task = new PollingDispatcherTask(this.dispatcher, this.task.getSchedule());
+		}
+		if (this.taskAdviceChain != null && this.taskAdviceChain.size() > 0) {
+			ProxyFactory proxyFactory = new ProxyFactory(this.task);
+			proxyFactory.setInterfaces(new Class[] { MessagingTask.class });
+			for (Advice advice : this.taskAdviceChain) {
+				proxyFactory.addAdvice(advice);
+			}
+			this.task = (MessagingTask) proxyFactory.getProxy();
+		}
+	}
 
 	public void setMaxMessagesPerTask(int maxMessagesPerTask) {
 		this.dispatcherPolicy.setMaxMessagesPerTask(maxMessagesPerTask);
@@ -55,11 +104,25 @@ public class PollingSourceEndpoint extends AbstractSourceEndpoint implements Mes
 	}
 
 	public Schedule getSchedule() {
-		return this.dispatcher.getSchedule();
+		return this.task.getSchedule();
 	}
 
 	public void run() {
-		this.dispatcher.run();
+		this.task.run();
+	}
+
+
+	@SuppressWarnings("serial")
+	private static class DispatchMethodAdvisor extends StaticMethodMatcherPointcutAdvisor {
+
+		DispatchMethodAdvisor(Advice advice) {
+			super(advice);
+		}
+
+		@SuppressWarnings("unchecked")
+		public boolean matches(Method method, Class targetClass) {
+			return method.getName().equals("dispatch");
+		}
 	}
 
 }

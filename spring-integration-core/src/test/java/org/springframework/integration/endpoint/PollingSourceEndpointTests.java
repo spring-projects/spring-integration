@@ -20,10 +20,18 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.aopalliance.aop.Advice;
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
 
 import org.junit.Test;
 
+import org.springframework.aop.MethodBeforeAdvice;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
@@ -88,6 +96,118 @@ public class PollingSourceEndpointTests {
 		assertEquals("testing.3", message3.getPayload());		
 		Message<?> message4 = channel.receive(0);
 		assertNull("message should be null", message4);
+	}
+
+	@Test
+	public void testTaskAdviceChain() {
+		TestSource source = new TestSource("testing", 3);
+		QueueChannel channel = new QueueChannel();
+		PollingSchedule schedule = new PollingSchedule(1000);
+		schedule.setInitialDelay(10000);
+		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		final StringBuffer buffer = new StringBuffer();
+		List<Advice> taskAdviceChain = new ArrayList<Advice>();
+		taskAdviceChain.add(new MethodBeforeAdvice() {
+			public void before(Method method, Object[] args, Object target) throws Throwable {
+				buffer.append(1);
+			}
+		});
+		taskAdviceChain.add(new MethodInterceptor() {
+			public Object invoke(MethodInvocation invocation) throws Throwable {
+				buffer.append(2);
+				Object retval = invocation.proceed();
+				buffer.append(4);
+				return retval;
+			}
+		});
+		taskAdviceChain.add(new MethodBeforeAdvice() {
+			public void before(Method method, Object[] args, Object target) throws Throwable {
+				buffer.append(3);
+			}
+		});
+		endpoint.setTaskAdviceChain(taskAdviceChain);
+		endpoint.afterPropertiesSet();
+		endpoint.setMaxMessagesPerTask(5);
+		endpoint.run();
+		assertEquals("1234", buffer.toString());
+	}
+
+	@Test
+	public void testDispatchAdviceChain() {
+		TestSource source = new TestSource("testing", 2);
+		QueueChannel channel = new QueueChannel();
+		PollingSchedule schedule = new PollingSchedule(1000);
+		schedule.setInitialDelay(10000);
+		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		final StringBuffer buffer = new StringBuffer();
+		List<Advice> dispatchAdviceChain = new ArrayList<Advice>();
+		dispatchAdviceChain.add(new MethodBeforeAdvice() {
+			public void before(Method method, Object[] args, Object target) throws Throwable {
+				buffer.append("a");
+			}
+		});
+		dispatchAdviceChain.add(new MethodInterceptor() {
+			public Object invoke(MethodInvocation invocation) throws Throwable {
+				buffer.append("b");
+				Object retval = invocation.proceed();
+				buffer.append("d");
+				return retval;
+			}
+		});
+		dispatchAdviceChain.add(new MethodBeforeAdvice() {
+			public void before(Method method, Object[] args, Object target) throws Throwable {
+				buffer.append("c");
+			}
+		});
+		endpoint.setDispatchAdviceChain(dispatchAdviceChain);
+		endpoint.afterPropertiesSet();
+		endpoint.setMaxMessagesPerTask(5);
+		endpoint.run();
+		assertEquals("abcdabcd", buffer.toString());
+	}
+
+	@Test
+	public void testTaskAndDispatchAdviceChains() {
+		TestSource source = new TestSource("testing", 3);
+		QueueChannel channel = new QueueChannel();
+		PollingSchedule schedule = new PollingSchedule(1000);
+		schedule.setInitialDelay(10000);
+		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		List<Advice> dispatchAdviceChain = new ArrayList<Advice>();
+		List<Advice> taskAdviceChain = new ArrayList<Advice>();
+		final StringBuffer buffer = new StringBuffer();
+		dispatchAdviceChain.add(new MethodBeforeAdvice() {
+			public void before(Method method, Object[] args, Object target) throws Throwable {
+				buffer.append("a");
+			}
+		});
+		dispatchAdviceChain.add(new MethodInterceptor() {
+			public Object invoke(MethodInvocation invocation) throws Throwable {
+				buffer.append("b");
+				Object retval = invocation.proceed();
+				buffer.append("c");
+				return retval;
+			}
+		});
+		taskAdviceChain.add(new MethodInterceptor() {
+			public Object invoke(MethodInvocation invocation) throws Throwable {
+				buffer.append(1);
+				Object retval = invocation.proceed();
+				buffer.append(3);
+				return retval;
+			}
+		});
+		taskAdviceChain.add(new MethodBeforeAdvice() {
+			public void before(Method method, Object[] args, Object target) throws Throwable {
+				buffer.append(2);
+			}
+		});
+		endpoint.setTaskAdviceChain(taskAdviceChain);
+		endpoint.setDispatchAdviceChain(dispatchAdviceChain);
+		endpoint.afterPropertiesSet();
+		endpoint.setMaxMessagesPerTask(5);
+		endpoint.run();
+		assertEquals("12abcabcabc3", buffer.toString());
 	}
 
 

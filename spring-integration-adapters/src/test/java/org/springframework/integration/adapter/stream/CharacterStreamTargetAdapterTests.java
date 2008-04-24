@@ -25,7 +25,8 @@ import org.junit.Test;
 import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.dispatcher.PollingDispatcher;
+import org.springframework.integration.dispatcher.DefaultPollingDispatcher;
+import org.springframework.integration.dispatcher.PollingDispatcherTask;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.StringMessage;
 
@@ -47,13 +48,13 @@ public class CharacterStreamTargetAdapterTests {
 		MessageChannel channel = new QueueChannel();
 		StringWriter writer = new StringWriter();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(writer);
-		PollingDispatcher dispatcher = new PollingDispatcher(channel, null);
-		dispatcher.subscribe(adapter);
+		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
+		task.getDispatcher().subscribe(adapter);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
-		dispatcher.run();
+		task.run();
 		assertEquals("foo", writer.toString());
-		dispatcher.run();
+		task.run();
 		assertEquals("foobar", writer.toString());
 	}
 
@@ -63,14 +64,14 @@ public class CharacterStreamTargetAdapterTests {
 		StringWriter writer = new StringWriter();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(writer);
 		adapter.setShouldAppendNewLine(true);
-		PollingDispatcher dispatcher = new PollingDispatcher(channel, null);
-		dispatcher.subscribe(adapter);
+		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
+		task.getDispatcher().subscribe(adapter);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
-		dispatcher.run();
+		task.run();
 		String newLine = System.getProperty("line.separator");
 		assertEquals("foo" + newLine, writer.toString());
-		dispatcher.run();
+		task.run();
 		assertEquals("foo" + newLine + "bar" + newLine, writer.toString());
 	}
 
@@ -81,11 +82,11 @@ public class CharacterStreamTargetAdapterTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
-		PollingDispatcher dispatcher = new PollingDispatcher(channel, null);
-		dispatcher.subscribe(adapter);
+		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
+		task.getDispatcher().subscribe(adapter);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
-		dispatcher.run();
+		task.run();
 		assertEquals("foobar", writer.toString());
 	}
 
@@ -97,12 +98,12 @@ public class CharacterStreamTargetAdapterTests {
 		dispatcherPolicy.setMaxMessagesPerTask(10);
 		dispatcherPolicy.setReceiveTimeout(0);
 		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
-		PollingDispatcher dispatcher = new PollingDispatcher(channel, null);
+		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
+		task.getDispatcher().subscribe(adapter);		
 		adapter.setShouldAppendNewLine(true);
-		dispatcher.subscribe(adapter);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
-		dispatcher.run();
+		task.run();
 		String newLine = System.getProperty("line.separator");
 		assertEquals("foo" + newLine + "bar" + newLine, writer.toString());
 	}
@@ -112,11 +113,11 @@ public class CharacterStreamTargetAdapterTests {
 		MessageChannel channel = new QueueChannel();
 		StringWriter writer = new StringWriter();
 		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(writer);
-		PollingDispatcher dispatcher = new PollingDispatcher(channel, null);
-		dispatcher.subscribe(adapter);
+		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
+		task.getDispatcher().subscribe(adapter);
 		TestObject testObject = new TestObject("foo");
 		channel.send(new GenericMessage<TestObject>(testObject));
-		dispatcher.run();
+		task.run();
 		assertEquals("foo", writer.toString());
 	}
 
@@ -128,13 +129,13 @@ public class CharacterStreamTargetAdapterTests {
 		dispatcherPolicy.setReceiveTimeout(0);
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
-		PollingDispatcher dispatcher = new PollingDispatcher(channel, null);
-		dispatcher.subscribe(adapter);
+		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
+		task.getDispatcher().subscribe(adapter);
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
 		channel.send(new GenericMessage<TestObject>(testObject1), 0);
 		channel.send(new GenericMessage<TestObject>(testObject2), 0);
-		dispatcher.run();
+		task.run();
 		assertEquals("foobar", writer.toString());
 	}
 
@@ -147,13 +148,13 @@ public class CharacterStreamTargetAdapterTests {
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
 		adapter.setShouldAppendNewLine(true);
-		PollingDispatcher dispatcher = new PollingDispatcher(channel, null);
-		dispatcher.subscribe(adapter);
+		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
+		task.getDispatcher().subscribe(adapter);
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
 		channel.send(new GenericMessage<TestObject>(testObject1), 0);
 		channel.send(new GenericMessage<TestObject>(testObject2), 0);
-		dispatcher.run();
+		task.run();
 		String newLine = System.getProperty("line.separator");
 		assertEquals("foo" + newLine + "bar" + newLine, writer.toString());
 	}

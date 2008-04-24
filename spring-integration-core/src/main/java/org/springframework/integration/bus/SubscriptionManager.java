@@ -28,7 +28,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.dispatcher.PollingDispatcher;
+import org.springframework.integration.dispatcher.DefaultPollingDispatcher;
+import org.springframework.integration.dispatcher.PollingDispatcherTask;
 import org.springframework.integration.dispatcher.SynchronousChannel;
 import org.springframework.integration.endpoint.TargetEndpoint;
 import org.springframework.integration.message.MessagingException;
@@ -55,7 +56,7 @@ public class SubscriptionManager {
 
 	private volatile Schedule defaultSchedule = new PollingSchedule(5);
 
-	private final ConcurrentMap<Schedule, PollingDispatcher> dispatchers = new ConcurrentHashMap<Schedule, PollingDispatcher>();
+	private final ConcurrentMap<Schedule, PollingDispatcherTask> dispatcherTasks = new ConcurrentHashMap<Schedule, PollingDispatcherTask>();
 
 	private final List<Lifecycle> lifecycleTargets = new CopyOnWriteArrayList<Lifecycle>();
 
@@ -119,21 +120,22 @@ public class SubscriptionManager {
 			}
 			return;
 		}
-		PollingDispatcher dispatcher = this.dispatchers.get(schedule);
-		if (dispatcher == null) {
-			dispatcher = this.dispatchers.putIfAbsent(schedule, new PollingDispatcher(this.channel, schedule));
+		PollingDispatcherTask dispatcherTask = this.dispatcherTasks.get(schedule);
+		if (dispatcherTask == null) {
+			DefaultPollingDispatcher dispatcher = new DefaultPollingDispatcher(this.channel);
+			dispatcherTask = this.dispatcherTasks.putIfAbsent(schedule, new PollingDispatcherTask(dispatcher, schedule));
 		}
-		this.dispatchers.get(schedule).subscribe(target);
-		if (dispatcher == null && this.isRunning()) {
+		this.dispatcherTasks.get(schedule).getDispatcher().subscribe(target);
+		if (dispatcherTask == null && this.isRunning()) {
 			this.scheduleDispatcherTask(schedule);
 		}
 	}
 
 	public boolean removeTarget(Target target) {
 		boolean removed = false;
-		Collection<PollingDispatcher> dispatcherValues = this.dispatchers.values();
-		for (PollingDispatcher dispatcher : dispatcherValues) {
-			removed = (removed || dispatcher.unsubscribe(target));
+		Collection<PollingDispatcherTask> dispatcherTaskValues = this.dispatcherTasks.values();
+		for (PollingDispatcherTask dispatcherTask : dispatcherTaskValues) {
+			removed = (removed || dispatcherTask.getDispatcher().unsubscribe(target));
 		}
 		return removed;
 	}
@@ -156,7 +158,7 @@ public class SubscriptionManager {
 			for (Lifecycle target : lifecycleTargets) {
 				target.start();
 			}
-			for (Schedule schedule : this.dispatchers.keySet()) {
+			for (Schedule schedule : this.dispatcherTasks.keySet()) {
 				this.scheduleDispatcherTask(schedule);
 			}
 			this.running = true;
@@ -164,9 +166,9 @@ public class SubscriptionManager {
 	}
 
 	private void scheduleDispatcherTask(Schedule schedule) {
-		PollingDispatcher dispatcher = this.dispatchers.get(schedule);
-		if (dispatcher != null) {
-			this.scheduler.schedule(dispatcher);
+		PollingDispatcherTask dispatcherTask = this.dispatcherTasks.get(schedule);
+		if (dispatcherTask != null) {
+			this.scheduler.schedule(dispatcherTask);
 		}
 	}
 

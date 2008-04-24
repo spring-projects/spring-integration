@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.dispatcher;
+package org.springframework.integration.message;
 
-import org.springframework.integration.message.Message;
+import java.util.List;
 
 /**
- * Strategy interface for dispatching messages.
- * 
  * @author Mark Fisher
  */
-public interface MessageDispatcher {
+public interface Poller {
 
-	boolean dispatch(Message<?> message);
-
-	void setSendTimeout(long timeout);
+	 List<Message<?>> poll();
 
 }

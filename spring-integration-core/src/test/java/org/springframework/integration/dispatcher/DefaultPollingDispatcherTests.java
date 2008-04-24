@@ -33,14 +33,14 @@ import org.springframework.integration.message.StringMessage;
 /**
  * @author Mark Fisher
  */
-public class PollingDispatcherTests {
+public class DefaultPollingDispatcherTests {
 
 	@Test
 	public void testSingleMessagePerRetrieval() {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setReceiveTimeout(0);
 		MessageChannel channel = new QueueChannel(5, dispatcherPolicy);
-		PollingDispatcher dispatcher = new PollingDispatcher(channel, null);
+		DefaultPollingDispatcher dispatcher = new DefaultPollingDispatcher(channel);
 		Collection<Message<?>> results = dispatcher.poll();
 		assertTrue(results.isEmpty());
 		channel.send(new StringMessage("test1"), 0);
@@ -59,7 +59,7 @@ public class PollingDispatcherTests {
 		dispatcherPolicy.setReceiveTimeout(0);
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		MessageChannel channel = new QueueChannel(5, dispatcherPolicy);
-		PollingDispatcher dispatcher = new PollingDispatcher(channel, null);
+		DefaultPollingDispatcher dispatcher = new DefaultPollingDispatcher(channel);
 		Collection<Message<?>> results = dispatcher.poll();
 		assertTrue(results.isEmpty());
 		channel.send(new StringMessage("test1"), 0);
@@ -81,7 +81,7 @@ public class PollingDispatcherTests {
 		dispatcherPolicy.setReceiveTimeout(0);
 		dispatcherPolicy.setMaxMessagesPerTask(1);
 		MessageChannel channel = new QueueChannel(5, dispatcherPolicy);
-		PollingDispatcher dispatcher = new PollingDispatcher(channel, null);
+		DefaultPollingDispatcher dispatcher = new DefaultPollingDispatcher(channel);
 		Collection<Message<?>> results = dispatcher.poll();
 		assertTrue(results.isEmpty());
 		channel.send(new StringMessage("test1"), 0);
