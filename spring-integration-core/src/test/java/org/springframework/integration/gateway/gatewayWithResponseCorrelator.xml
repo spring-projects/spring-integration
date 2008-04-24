@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
+
+	<message-bus/>
+
+	<channel id="requestChannel"/>
+
+	<channel id="responseChannel">
+		<interceptor ref="interceptor"/>
+	</channel>
+
+	<endpoint handler="handler" input-channel="requestChannel"/>
+
+	<beans:bean id="proxy" class="org.springframework.integration.gateway.GatewayProxyFactoryBean">
+		<beans:property name="serviceInterface" value="org.springframework.integration.gateway.TestService"/>
+		<beans:property name="requestChannel" ref="requestChannel"/>
+		<beans:property name="responseChannel" ref="responseChannel"/>
+	</beans:bean>
+
+	<beans:bean id="handler" class="org.springframework.integration.gateway.TestHandler"/>
+
+	<beans:bean id="interceptor" class="org.springframework.integration.gateway.TestChannelInterceptor"/>
+
+</beans:beans>
