@@ -51,7 +51,7 @@ public class EndpointParserTests {
 		TestHandler handler = (TestHandler) context.getBean("testHandler");
 		assertNull(handler.getMessageString());
 		channel.send(new GenericMessage<String>(1, "test"));
-		handler.getLatch().await(50, TimeUnit.MILLISECONDS);
+		handler.getLatch().await(500, TimeUnit.MILLISECONDS);
 		assertEquals("test", handler.getMessageString());
 	}
 

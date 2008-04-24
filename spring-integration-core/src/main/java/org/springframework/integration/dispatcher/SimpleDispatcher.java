@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.handler.MessageHandlerNotRunningException;
 import org.springframework.integration.handler.MessageHandlerRejectedExecutionException;
+import org.springframework.integration.message.BlockingTarget;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.SubscribableSource;
@@ -43,13 +44,19 @@ public class SimpleDispatcher implements MessageDispatcher, SubscribableSource {
 
 	private final List<Target> targets = new CopyOnWriteArrayList<Target>();
 
-	private final DispatcherPolicy dispatcherPolicy;
+	protected final DispatcherPolicy dispatcherPolicy;
+
+	private volatile long sendTimeout;
 
 
 	public SimpleDispatcher(DispatcherPolicy dispatcherPolicy) {
-		this.dispatcherPolicy = dispatcherPolicy;
+		this.dispatcherPolicy = (dispatcherPolicy != null) ? dispatcherPolicy : new DispatcherPolicy();
 	}
 
+
+	public void setSendTimeout(long sendTimeout) {
+		this.sendTimeout = sendTimeout;
+	}
 
 	public boolean subscribe(Target target) {
 		return this.targets.add(target);
@@ -88,7 +95,8 @@ public class SimpleDispatcher implements MessageDispatcher, SubscribableSource {
 			while (iter.hasNext()) {
 				Target target = iter.next();
 				try {
-					boolean sent = target.send(message);
+					boolean sent = (target instanceof BlockingTarget && this.sendTimeout >= 0) ?
+							((BlockingTarget) target).send(message, this.sendTimeout) : target.send(message);
 					if (!this.dispatcherPolicy.isPublishSubscribe() && sent) {
 						return true;
 					}

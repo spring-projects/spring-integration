@@ -16,13 +16,9 @@
 
 package org.springframework.integration.endpoint;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageDeliveryAware;
-import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.dispatcher.PollingDispatcher;
 import org.springframework.integration.message.PollableSource;
 import org.springframework.integration.scheduling.MessagingTask;
 import org.springframework.integration.scheduling.PollingSchedule;
@@ -37,77 +33,33 @@ import org.springframework.util.Assert;
  */
 public class PollingSourceEndpoint extends AbstractSourceEndpoint implements MessagingTask {
 
-	private final PollingSchedule schedule;
+	private final DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 
-	private volatile long sendTimeout = 0;
-
-	private volatile int maxMessagesPerTask = 1;
+	private final PollingDispatcher dispatcher;
 
 
 	public PollingSourceEndpoint(PollableSource<?> source, MessageChannel channel, PollingSchedule schedule) {
 		super(source, channel);
 		Assert.notNull(schedule, "schedule must not be null");
-		this.schedule = schedule;
+		this.dispatcher = new PollingDispatcher(source, this.dispatcherPolicy, schedule);
+		this.dispatcher.subscribe(this.getChannel());
 	}
 
-
-	public void setSendTimeout(long sendTimeout) {
-		this.sendTimeout = sendTimeout;
-	}
 
 	public void setMaxMessagesPerTask(int maxMessagesPerTask) {
-		Assert.isTrue(maxMessagesPerTask > 0, "'maxMessagesPerTask' must be at least one");
-		this.maxMessagesPerTask = maxMessagesPerTask;
+		this.dispatcherPolicy.setMaxMessagesPerTask(maxMessagesPerTask);
+	}
+
+	public void setSendTimeout(long sendTimeout) {
+		this.dispatcher.setSendTimeout(sendTimeout);
 	}
 
 	public Schedule getSchedule() {
-		return this.schedule;
-	}
-
-	public List<Message<?>> poll(int limit) {
-		List<Message<?>> results = new ArrayList<Message<?>>();
-		int count = 0;
-		while (count < limit) {
-			Message<?> message = ((PollableSource<?>) this.getSource()).receive();
-			if (message == null) {
-				break;
-			}
-			results.add(message);
-			count++;
-		}
-		return results;
-	}
-
-	protected boolean sendMessage(Message<?> message) {
-		if (message == null) {
-			throw new IllegalArgumentException("message must not be null");
-		}
-		boolean sent = (this.sendTimeout < 0) ? this.getChannel().send(message) : this.getChannel().send(message, this.sendTimeout);
-		if (this.getSource() instanceof MessageDeliveryAware) {
-			if (sent) {
-				((MessageDeliveryAware) this.getSource()).onSend(message);
-			}
-			else {
-				((MessageDeliveryAware) this.getSource()).onFailure(new MessageDeliveryException(message, "failed to send message"));
-			}
-		}
-		return sent;
+		return this.dispatcher.getSchedule();
 	}
 
 	public void run() {
-		int messagesProcessed = 0;
-		List<Message<?>> messages = this.poll(this.maxMessagesPerTask);
-		for (Message<?> message : messages) {
-			if (this.sendMessage(message)) {
-				messagesProcessed++;
-			}
-			else {
-				break;
-			}
-		}
-		if (logger.isDebugEnabled()) {
-			logger.debug("polling source task processed " + messagesProcessed + " messages");
-		}
+		this.dispatcher.run();
 	}
 
 }
