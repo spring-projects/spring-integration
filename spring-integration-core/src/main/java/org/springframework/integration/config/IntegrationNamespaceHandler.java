@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,8 +49,8 @@ public class IntegrationNamespaceHandler extends NamespaceHandlerSupport {
 		registerBeanDefinitionParser("annotation-driven", new AnnotationDrivenParser());
 		registerBeanDefinitionParser("channel", new ChannelParser());
 		registerBeanDefinitionParser("priority-channel", new ChannelParser());
-		registerBeanDefinitionParser("source-adapter", new ChannelAdapterParser(true));
-		registerBeanDefinitionParser("target-adapter", new ChannelAdapterParser(false));
+		registerBeanDefinitionParser("source-adapter", new MethodInvokingAdapterParser());
+		registerBeanDefinitionParser("target-adapter", new MethodInvokingAdapterParser());
 		registerBeanDefinitionParser("source-endpoint", new SourceEndpointParser());
 		registerBeanDefinitionParser("endpoint", new EndpointParser());
 		registerBeanDefinitionParser("handler", new HandlerParser());

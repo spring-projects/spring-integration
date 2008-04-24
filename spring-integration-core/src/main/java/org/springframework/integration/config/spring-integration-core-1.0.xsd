@@ -107,39 +107,20 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="source-adapter">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-	Defines a source (inbound) channel adapter.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:complexContent>
-				<xsd:extension base="beans:identifiedType">
-					<xsd:attribute name="ref" type="xsd:string" use="required"/>
-					<xsd:attribute name="method" type="xsd:string" use="required"/>
-					<xsd:attribute name="channel" type="xsd:string" use="required"/>
-					<xsd:attribute name="period" type="xsd:int"/>
-				</xsd:extension>
-			</xsd:complexContent>
-		</xsd:complexType>
+	<xsd:element name="source-adapter" type="methodInvokingAdapterType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a MethodInvokingSource.
+			</xsd:documentation>
+		</xsd:annotation>
 	</xsd:element>
 
-	<xsd:element name="target-adapter">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-	Defines a target (outbound) channel adapter.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:complexContent>
-				<xsd:extension base="beans:identifiedType">
-					<xsd:attribute name="ref" type="xsd:string" use="required"/>
-					<xsd:attribute name="method" type="xsd:string" use="required"/>
-					<xsd:attribute name="channel" type="xsd:string" use="required"/>
-				</xsd:extension>
-			</xsd:complexContent>
-		</xsd:complexType>
+	<xsd:element name="target-adapter" type="methodInvokingAdapterType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a MethodInvokingTarget.
+			</xsd:documentation>
+		</xsd:annotation>
 	</xsd:element>
 
 	<xsd:element name="endpoint">
@@ -291,6 +272,20 @@
 				</xsd:sequence>
 				<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
 				<xsd:attribute name="error-handler" type="xsd:string"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="methodInvokingAdapterType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Base type for method-invoking adapters.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="beans:identifiedType">
+				<xsd:attribute name="ref" type="xsd:string" use="required"/>
+				<xsd:attribute name="method" type="xsd:string" use="required"/>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
