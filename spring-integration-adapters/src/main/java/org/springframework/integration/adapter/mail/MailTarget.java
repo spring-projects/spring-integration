@@ -32,7 +32,7 @@ import org.springframework.util.Assert;
  * @author Marius Bogoevici
  * @author Mark Fisher
  */
-public class MailTargetAdapter implements Target, InitializingBean {
+public class MailTarget implements Target, InitializingBean {
 
 	private final JavaMailSender mailSender;
 
@@ -51,7 +51,7 @@ public class MailTargetAdapter implements Target, InitializingBean {
 	 * @param mailSender the {@link JavaMailSender} instance to which this
 	 * adapter will delegate.
 	 */
-	public MailTargetAdapter(JavaMailSender mailSender) {
+	public MailTarget(JavaMailSender mailSender) {
 		Assert.notNull(mailSender, "'mailSender' must not be null");
 		this.mailSender = mailSender;
 	}

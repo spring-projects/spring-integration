@@ -21,7 +21,7 @@ import org.springframework.integration.message.Message;
 /**
  * The default implementation of {@link MailHeaderGenerator}. Configures the
  * {@link org.springframework.mail.MailMessage} properties based on attributes
- * provided with known attribute keys as defined in {@link MailTargetAdapter}.
+ * provided with known attribute keys as defined in {@link MailAttributeKeys}.
  * 
  * @author Mark Fisher
  */

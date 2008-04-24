@@ -25,7 +25,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.adapter.mail.MailTargetAdapter;
+import org.springframework.integration.adapter.mail.MailTarget;
 import org.springframework.integration.endpoint.TargetEndpoint;
 import org.springframework.integration.scheduling.Subscription;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -51,7 +51,7 @@ public class MailTargetAdapterParser extends AbstractSingleBeanDefinitionParser 
 	}
 
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		RootBeanDefinition adapterDef = new RootBeanDefinition(MailTargetAdapter.class);
+		RootBeanDefinition adapterDef = new RootBeanDefinition(MailTarget.class);
 		String mailSenderRef = element.getAttribute("mail-sender");
 		String host = element.getAttribute("host");
 		String username = element.getAttribute("username");

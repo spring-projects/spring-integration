@@ -26,7 +26,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.adapter.mail.MailHeaderGenerator;
-import org.springframework.integration.adapter.mail.MailTargetAdapter;
+import org.springframework.integration.adapter.mail.MailTarget;
 import org.springframework.integration.endpoint.TargetEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.Target;
@@ -44,7 +44,7 @@ public class MailTargetAdapterParserTests {
 		TargetEndpoint endpoint = (TargetEndpoint) context.getBean("adapterWithMailSenderReference");
 		Target target = endpoint.getTarget();
 		assertNotNull(target);
-		assertTrue(target instanceof MailTargetAdapter);
+		assertTrue(target instanceof MailTarget);
 	}
 
 	@Test
@@ -54,7 +54,7 @@ public class MailTargetAdapterParserTests {
 		TargetEndpoint endpoint = (TargetEndpoint) context.getBean("adapterWithHostProperty");
 		Target target = endpoint.getTarget();
 		assertNotNull(target);
-		assertTrue(target instanceof MailTargetAdapter);
+		assertTrue(target instanceof MailTarget);
 	}
 
 	@Test
@@ -64,7 +64,7 @@ public class MailTargetAdapterParserTests {
 		TargetEndpoint endpoint = (TargetEndpoint) context.getBean("adapterWithHeaderGeneratorReference");
 		Target target = endpoint.getTarget();
 		assertNotNull(target);
-		assertTrue(target instanceof MailTargetAdapter);
+		assertTrue(target instanceof MailTarget);
 		DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(target);
 		MailHeaderGenerator headerGenerator =
 				(MailHeaderGenerator) fieldAccessor.getPropertyValue("mailHeaderGenerator");

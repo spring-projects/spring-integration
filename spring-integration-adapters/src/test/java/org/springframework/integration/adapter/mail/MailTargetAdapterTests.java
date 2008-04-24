@@ -40,7 +40,7 @@ import org.springframework.mail.SimpleMailMessage;
  */
 public class MailTargetAdapterTests {
 
-	private MailTargetAdapter mailTargetAdapter;
+	private MailTarget mailTarget;
 
 	private StubJavaMailSender mailSender;
 
@@ -57,14 +57,14 @@ public class MailTargetAdapterTests {
 		this.staticMailHeaderGenerator.setReplyTo(MailTestsHelper.REPLY_TO);
 		this.staticMailHeaderGenerator.setSubject(MailTestsHelper.SUBJECT);
 		this.staticMailHeaderGenerator.setTo(MailTestsHelper.TO);
-		this.mailTargetAdapter = new MailTargetAdapter(this.mailSender);
-		this.mailTargetAdapter.afterPropertiesSet();
+		this.mailTarget = new MailTarget(this.mailSender);
+		this.mailTarget.afterPropertiesSet();
 	}
 
 	@Test
 	public void testTextMessage() {
-		this.mailTargetAdapter.setHeaderGenerator(this.staticMailHeaderGenerator);
-		this.mailTargetAdapter.send(new StringMessage(MailTestsHelper.MESSAGE_TEXT));
+		this.mailTarget.setHeaderGenerator(this.staticMailHeaderGenerator);
+		this.mailTarget.send(new StringMessage(MailTestsHelper.MESSAGE_TEXT));
 		SimpleMailMessage message = MailTestsHelper.createSimpleMailMessage();
 		assertEquals("no mime message should have been sent",
 				0, mailSender.getSentMimeMessages().size());
@@ -76,9 +76,9 @@ public class MailTargetAdapterTests {
 
 	@Test
 	public void testByteArrayMessage() throws Exception {
-		this.mailTargetAdapter.setHeaderGenerator(this.staticMailHeaderGenerator);
+		this.mailTarget.setHeaderGenerator(this.staticMailHeaderGenerator);
 		byte[] payload = {1, 2, 3};
-		this.mailTargetAdapter.send(new GenericMessage<byte[]>(payload));
+		this.mailTarget.send(new GenericMessage<byte[]>(payload));
 		byte[] buffer = new byte[1024];
 		MimeMessage mimeMessage = this.mailSender.getSentMimeMessages().get(0);
 		assertTrue("message must be multipart", mimeMessage.getContent() instanceof Multipart);
@@ -99,7 +99,7 @@ public class MailTargetAdapterTests {
 		message.getHeader().setAttribute(MailAttributeKeys.BCC, MailTestsHelper.BCC);
 		message.getHeader().setAttribute(MailAttributeKeys.FROM, MailTestsHelper.FROM);
 		message.getHeader().setAttribute(MailAttributeKeys.REPLY_TO, MailTestsHelper.REPLY_TO);
-		this.mailTargetAdapter.send(message);
+		this.mailTarget.send(message);
 		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
 		assertEquals("no mime message should have been sent",
 				0, mailSender.getSentMimeMessages().size());

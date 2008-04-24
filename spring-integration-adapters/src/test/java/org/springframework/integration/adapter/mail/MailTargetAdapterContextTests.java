@@ -31,7 +31,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.integration.adapter.mail.MailTargetAdapter;
+import org.springframework.integration.adapter.mail.MailTarget;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.mail.SimpleMailMessage;
@@ -46,7 +46,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class MailTargetAdapterContextTests {
 
 	@Autowired
-	private MailTargetAdapter mailTargetAdapter;
+	private MailTarget mailTarget;
 
 	@Autowired
 	private StubJavaMailSender mailSender;
@@ -59,7 +59,7 @@ public class MailTargetAdapterContextTests {
 
 	@Test
 	public void testStringMesssagesWithConfiguration() {
-		this.mailTargetAdapter.send(new StringMessage(MailTestsHelper.MESSAGE_TEXT));
+		this.mailTarget.send(new StringMessage(MailTestsHelper.MESSAGE_TEXT));
 		SimpleMailMessage message = MailTestsHelper.createSimpleMailMessage();
 		assertEquals("no mime message should have been sent",
 				0, this.mailSender.getSentMimeMessages().size());
@@ -72,7 +72,7 @@ public class MailTargetAdapterContextTests {
 	@Test
 	public void testByteArrayMessage() throws Exception {
 		byte[] payload = {1, 2, 3};
-		mailTargetAdapter.send(new GenericMessage<byte[]>(payload));
+		mailTarget.send(new GenericMessage<byte[]>(payload));
 		assertEquals("no mime message should have been sent",
 				1, mailSender.getSentMimeMessages().size());
 		assertEquals("only one simple message must be sent",
