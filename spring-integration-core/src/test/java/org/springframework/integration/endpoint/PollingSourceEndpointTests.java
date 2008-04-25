@@ -210,6 +210,224 @@ public class PollingSourceEndpointTests {
 		assertEquals("12abcabcabc3", buffer.toString());
 	}
 
+	@Test
+	public void testRefreshTaskAtRuntime() {
+		TestSource source = new TestSource("testing", 3);
+		QueueChannel channel = new QueueChannel();
+		PollingSchedule schedule = new PollingSchedule(1000);
+		schedule.setInitialDelay(10000);
+		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		List<Advice> dispatchAdviceChain = new ArrayList<Advice>();
+		List<Advice> taskAdviceChain = new ArrayList<Advice>();
+		final StringBuffer buffer = new StringBuffer();
+		dispatchAdviceChain.add(new MethodBeforeAdvice() {
+			public void before(Method method, Object[] args, Object target) throws Throwable {
+				buffer.append("a");
+			}
+		});
+		dispatchAdviceChain.add(new MethodInterceptor() {
+			public Object invoke(MethodInvocation invocation) throws Throwable {
+				buffer.append("b");
+				Object retval = invocation.proceed();
+				buffer.append("c");
+				return retval;
+			}
+		});
+		taskAdviceChain.add(new MethodInterceptor() {
+			public Object invoke(MethodInvocation invocation) throws Throwable {
+				buffer.append(1);
+				Object retval = invocation.proceed();
+				buffer.append(3);
+				return retval;
+			}
+		});
+		taskAdviceChain.add(new MethodBeforeAdvice() {
+			public void before(Method method, Object[] args, Object target) throws Throwable {
+				buffer.append(2);
+			}
+		});
+		endpoint.setDispatchAdviceChain(dispatchAdviceChain);
+		endpoint.afterPropertiesSet();
+		endpoint.setMaxMessagesPerTask(5);
+		endpoint.run();
+		assertEquals("abcabcabc", buffer.toString());
+		buffer.delete(0, buffer.length());
+		source.resetCounter();
+		endpoint.setTaskAdviceChain(taskAdviceChain);
+		endpoint.refreshTask();
+		endpoint.run();
+		assertEquals("12abcabcabc3", buffer.toString());
+		buffer.delete(0, buffer.length());
+		source.resetCounter();
+		endpoint.setDispatchAdviceChain(null);
+		endpoint.refreshTask();
+		endpoint.run();
+		assertEquals("123", buffer.toString());
+		buffer.delete(0, buffer.length());
+		source.resetCounter();
+		endpoint.setTaskAdviceChain(null);
+		endpoint.setDispatchAdviceChain(dispatchAdviceChain);
+		endpoint.refreshTask();
+		endpoint.run();
+		assertEquals("abcabcabc", buffer.toString());
+	}
+
+	@Test
+	public void testInitializeTaskDoesNotRefreshWithDispatchAdviceOnly() {
+		TestSource source = new TestSource("testing", 3);
+		QueueChannel channel = new QueueChannel();
+		PollingSchedule schedule = new PollingSchedule(1000);
+		schedule.setInitialDelay(10000);
+		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		List<Advice> dispatchAdviceChain = new ArrayList<Advice>();
+		List<Advice> taskAdviceChain = new ArrayList<Advice>();
+		final StringBuffer buffer = new StringBuffer();
+		dispatchAdviceChain.add(new MethodBeforeAdvice() {
+			public void before(Method method, Object[] args, Object target) throws Throwable {
+				buffer.append("a");
+			}
+		});
+		taskAdviceChain.add(new MethodBeforeAdvice() {
+			public void before(Method method, Object[] args, Object target) throws Throwable {
+				buffer.append(1);
+			}
+		});
+		endpoint.setDispatchAdviceChain(dispatchAdviceChain);
+		endpoint.afterPropertiesSet();
+		endpoint.setMaxMessagesPerTask(5);
+		endpoint.run();
+		assertEquals("aaa", buffer.toString());
+		buffer.delete(0, buffer.length());
+		source.resetCounter();
+		endpoint.setTaskAdviceChain(taskAdviceChain);
+		endpoint.initializeTask();
+		endpoint.run();
+		assertEquals("aaa", buffer.toString());
+		buffer.delete(0, buffer.length());
+		source.resetCounter();
+		endpoint.setDispatchAdviceChain(null);
+		endpoint.initializeTask();
+		endpoint.run();
+		assertEquals("aaa", buffer.toString());
+	}
+
+	@Test
+	public void testInitializeTaskDoesNotRefreshWithTaskAdviceOnly() {
+		TestSource source = new TestSource("testing", 3);
+		QueueChannel channel = new QueueChannel();
+		PollingSchedule schedule = new PollingSchedule(1000);
+		schedule.setInitialDelay(10000);
+		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		List<Advice> dispatchAdviceChain = new ArrayList<Advice>();
+		List<Advice> taskAdviceChain = new ArrayList<Advice>();
+		final StringBuffer buffer = new StringBuffer();
+		dispatchAdviceChain.add(new MethodBeforeAdvice() {
+			public void before(Method method, Object[] args, Object target) throws Throwable {
+				buffer.append("a");
+			}
+		});
+		taskAdviceChain.add(new MethodBeforeAdvice() {
+			public void before(Method method, Object[] args, Object target) throws Throwable {
+				buffer.append(1);
+			}
+		});
+		endpoint.setTaskAdviceChain(taskAdviceChain);
+		endpoint.afterPropertiesSet();
+		endpoint.setMaxMessagesPerTask(5);
+		endpoint.run();
+		assertEquals("1", buffer.toString());
+		buffer.delete(0, buffer.length());
+		source.resetCounter();
+		endpoint.setDispatchAdviceChain(dispatchAdviceChain);
+		endpoint.initializeTask();
+		endpoint.run();
+		assertEquals("1", buffer.toString());
+		buffer.delete(0, buffer.length());
+		source.resetCounter();
+		endpoint.setTaskAdviceChain(null);
+		endpoint.initializeTask();
+		endpoint.run();
+		assertEquals("1", buffer.toString());
+	}
+
+	@Test
+	public void testInitializeTaskDoesNotRefreshWithTaskAndDispatchAdvice() {
+		TestSource source = new TestSource("testing", 3);
+		QueueChannel channel = new QueueChannel();
+		PollingSchedule schedule = new PollingSchedule(1000);
+		schedule.setInitialDelay(10000);
+		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		List<Advice> dispatchAdviceChain = new ArrayList<Advice>();
+		List<Advice> taskAdviceChain = new ArrayList<Advice>();
+		final StringBuffer buffer = new StringBuffer();
+		dispatchAdviceChain.add(new MethodBeforeAdvice() {
+			public void before(Method method, Object[] args, Object target) throws Throwable {
+				buffer.append("a");
+			}
+		});
+		taskAdviceChain.add(new MethodBeforeAdvice() {
+			public void before(Method method, Object[] args, Object target) throws Throwable {
+				buffer.append(1);
+			}
+		});
+		endpoint.setTaskAdviceChain(taskAdviceChain);
+		endpoint.setDispatchAdviceChain(dispatchAdviceChain);
+		endpoint.afterPropertiesSet();
+		endpoint.setMaxMessagesPerTask(5);
+		endpoint.run();
+		assertEquals("1aaa", buffer.toString());
+		buffer.delete(0, buffer.length());
+		source.resetCounter();
+		endpoint.setDispatchAdviceChain(null);
+		endpoint.initializeTask();
+		endpoint.run();
+		assertEquals("1aaa", buffer.toString());
+		buffer.delete(0, buffer.length());
+		source.resetCounter();
+		endpoint.setTaskAdviceChain(null);
+		endpoint.initializeTask();
+		endpoint.run();
+		assertEquals("1aaa", buffer.toString());
+	}
+
+	@Test
+	public void testInitializeTaskDoesNotRefreshWithNoAdvice() {
+		TestSource source = new TestSource("testing", 3);
+		QueueChannel channel = new QueueChannel();
+		PollingSchedule schedule = new PollingSchedule(1000);
+		schedule.setInitialDelay(10000);
+		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		List<Advice> dispatchAdviceChain = new ArrayList<Advice>();
+		List<Advice> taskAdviceChain = new ArrayList<Advice>();
+		final StringBuffer buffer = new StringBuffer();
+		dispatchAdviceChain.add(new MethodBeforeAdvice() {
+			public void before(Method method, Object[] args, Object target) throws Throwable {
+				buffer.append("a");
+			}
+		});
+		taskAdviceChain.add(new MethodBeforeAdvice() {
+			public void before(Method method, Object[] args, Object target) throws Throwable {
+				buffer.append(1);
+			}
+		});
+		endpoint.afterPropertiesSet();
+		endpoint.setMaxMessagesPerTask(5);
+		endpoint.run();
+		assertEquals("", buffer.toString());
+		buffer.delete(0, buffer.length());
+		source.resetCounter();
+		endpoint.setDispatchAdviceChain(dispatchAdviceChain);
+		endpoint.initializeTask();
+		endpoint.run();
+		assertEquals("", buffer.toString());
+		buffer.delete(0, buffer.length());
+		source.resetCounter();
+		endpoint.setTaskAdviceChain(taskAdviceChain);
+		endpoint.initializeTask();
+		endpoint.run();
+		assertEquals("", buffer.toString());
+	}
+
 
 	private static class TestSource implements PollableSource<String> {
 

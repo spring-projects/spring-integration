@@ -43,19 +43,21 @@ import org.springframework.util.Assert;
  */
 public class PollingSourceEndpoint extends AbstractSourceEndpoint implements MessagingTask, InitializingBean {
 
+	private final Schedule schedule;
+
 	private final DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 
 	private volatile PollingDispatcher dispatcher;
+
+	private volatile List<Advice> dispatchAdviceChain;
 
 	private volatile MessagingTask task;
 
 	private volatile List<Advice> taskAdviceChain;
 
-	private volatile List<Advice> dispatchAdviceChain;
+	private volatile boolean taskInitialized;
 
-	private volatile boolean proxiesInitialized;
-
-	private final Object proxyInitializationMonitor = new Object();
+	private final Object taskMonitor = new Object();
 
 
 	public PollingSourceEndpoint(PollableSource<?> source, MessageChannel channel, PollingSchedule schedule) {
@@ -63,47 +65,9 @@ public class PollingSourceEndpoint extends AbstractSourceEndpoint implements Mes
 		Assert.notNull(schedule, "schedule must not be null");
 		this.dispatcher = new DefaultPollingDispatcher(source, this.dispatcherPolicy);
 		this.dispatcher.subscribe(this.getChannel());
-		this.task = new PollingDispatcherTask(this.dispatcher, schedule);
+		this.schedule = schedule;
 	}
 
-
-	public void setTaskAdviceChain(List<Advice> taskAdviceChain) {
-		this.taskAdviceChain = taskAdviceChain;
-	}
-
-	public void setDispatchAdviceChain(List<Advice> dispatchAdviceChain) {
-		this.dispatchAdviceChain = dispatchAdviceChain;
-	}
-
-	public void afterPropertiesSet() {
-		this.initializeProxies();
-	}
-
-	public void initializeProxies() {
-		synchronized (this.proxyInitializationMonitor) {
-			if (this.proxiesInitialized) {
-				return;
-			}
-			if (this.dispatchAdviceChain != null && this.dispatchAdviceChain.size() > 0) {
-				ProxyFactory proxyFactory = new ProxyFactory(this.dispatcher);
-				proxyFactory.setInterfaces(new Class[] { PollingDispatcher.class });
-				for (Advice advice : this.dispatchAdviceChain) {
-					proxyFactory.addAdvisor(new MethodNameAdvisor(advice, "dispatch"));
-				}
-				this.dispatcher = (PollingDispatcher) proxyFactory.getProxy();
-				this.task = new PollingDispatcherTask(this.dispatcher, this.task.getSchedule());
-			}
-			if (this.taskAdviceChain != null && this.taskAdviceChain.size() > 0) {
-				ProxyFactory proxyFactory = new ProxyFactory(this.task);
-				proxyFactory.setInterfaces(new Class[] { MessagingTask.class });
-				for (Advice advice : this.taskAdviceChain) {
-					proxyFactory.addAdvisor(new MethodNameAdvisor(advice, "run"));
-				}
-				this.task = (MessagingTask) proxyFactory.getProxy();
-			}
-			this.proxiesInitialized = true;
-		}
-	}
 
 	public void setMaxMessagesPerTask(int maxMessagesPerTask) {
 		this.dispatcherPolicy.setMaxMessagesPerTask(maxMessagesPerTask);
@@ -113,12 +77,66 @@ public class PollingSourceEndpoint extends AbstractSourceEndpoint implements Mes
 		this.dispatcher.setSendTimeout(sendTimeout);
 	}
 
+	public void setTaskAdviceChain(List<Advice> taskAdviceChain) {
+		this.taskAdviceChain = taskAdviceChain;
+	}
+
+	public void setDispatchAdviceChain(List<Advice> dispatchAdviceChain) {
+		this.dispatchAdviceChain = dispatchAdviceChain;
+	}
+
 	public Schedule getSchedule() {
-		return this.task.getSchedule();
+		return this.schedule;
+	}
+
+	public void afterPropertiesSet() {
+		this.initializeTask();
+	}
+
+	public void initializeTask() {
+		synchronized (this.taskMonitor) {
+			if (this.taskInitialized) {
+				return;
+			}
+			this.refreshTask();
+			this.taskInitialized = true;
+		}
+	}
+
+	public void refreshTask() {
+		synchronized (this.taskMonitor) {
+			PollingDispatcher dispatcherProxy = null;
+			if (this.dispatchAdviceChain != null && this.dispatchAdviceChain.size() > 0) {
+				ProxyFactory proxyFactory = new ProxyFactory(this.dispatcher);
+				proxyFactory.setInterfaces(new Class[] { PollingDispatcher.class });
+				for (Advice advice : this.dispatchAdviceChain) {
+					proxyFactory.addAdvisor(new MethodNameAdvisor(advice, "dispatch"));
+				}
+				dispatcherProxy = (PollingDispatcher) proxyFactory.getProxy();
+			}
+			this.task = new PollingDispatcherTask((dispatcherProxy != null) ? dispatcherProxy : this.dispatcher, this.schedule);
+			if (this.taskAdviceChain != null && this.taskAdviceChain.size() > 0) {
+				ProxyFactory proxyFactory = new ProxyFactory(this.task);
+				proxyFactory.setInterfaces(new Class[] { MessagingTask.class });
+				for (Advice advice : this.taskAdviceChain) {
+					proxyFactory.addAdvisor(new MethodNameAdvisor(advice, "run"));
+				}
+				this.task = (MessagingTask) proxyFactory.getProxy();
+			}
+		}
+	}
+
+	private MessagingTask getTask() {
+		synchronized (this.taskMonitor) {
+			if (!this.taskInitialized) {
+				this.initializeTask();
+			}
+			return this.task;
+		}
 	}
 
 	public void run() {
-		this.task.run();
+		this.getTask().run();
 	}
 
 
