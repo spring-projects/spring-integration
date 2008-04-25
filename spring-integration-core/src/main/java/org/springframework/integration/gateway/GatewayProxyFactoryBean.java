@@ -21,6 +21,8 @@ import org.aopalliance.intercept.MethodInvocation;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.SimpleTypeConverter;
+import org.springframework.beans.TypeConverter;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -57,7 +59,17 @@ public class GatewayProxyFactoryBean implements FactoryBean, MethodInterceptor, 
 
 	private MessageChannel responseChannel;
 
+	private long requestTimeout = 0;
+
+	private long responseTimeout = 1000;
+
 	private ResponseCorrelator responseCorrelator;
+
+	private MessageCreator messageCreator = new DefaultMessageCreator();
+
+	private MessageMapper messageMapper = new DefaultMessageMapper();
+
+	private TypeConverter typeConverter = new SimpleTypeConverter();
 
 	private EndpointRegistry endpointRegistry;
 
@@ -65,9 +77,7 @@ public class GatewayProxyFactoryBean implements FactoryBean, MethodInterceptor, 
 
 	private Object serviceProxy;
 
-	private MessageCreator messageCreator = new DefaultMessageCreator();
-
-	private MessageMapper messageMapper = new DefaultMessageMapper();
+	private final Object responseCorrelatorMonitor = new Object();
 
 
 	public void setServiceInterface(Class<?> serviceInterface) {
@@ -82,6 +92,14 @@ public class GatewayProxyFactoryBean implements FactoryBean, MethodInterceptor, 
 		this.responseChannel = responseChannel;
 	}
 
+	public void setRequestTimeout(long requestTimeout) {
+		this.requestTimeout = requestTimeout;
+	}
+
+	public void setResponseTimeout(long responseTimeout) {
+		this.responseTimeout = responseTimeout;
+	}
+
 	public void setMessageCreator(MessageCreator<?, ?> messageCreator) {
 		Assert.notNull(messageCreator, "messageCreator must not be null");
 		this.messageCreator = messageCreator;
@@ -90,6 +108,11 @@ public class GatewayProxyFactoryBean implements FactoryBean, MethodInterceptor, 
 	public void setMessageMapper(MessageMapper<?, ?> messageMapper) {
 		Assert.notNull(messageMapper, "messageMapper must not be null");
 		this.messageMapper = messageMapper;
+	}
+
+	public void setTypeConverter(TypeConverter typeConverter) {
+		Assert.notNull(typeConverter, "typeConverter must not be null");
+		this.typeConverter = typeConverter;
 	}
 
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -103,7 +126,6 @@ public class GatewayProxyFactoryBean implements FactoryBean, MethodInterceptor, 
 	}
 
 	public void afterPropertiesSet() {
-		this.registerResponseCorrelatorIfNecessary();
 		this.serviceProxy = new ProxyFactory(this.serviceInterface, this).getProxy(this.beanClassLoader);
 	}
 
@@ -120,38 +142,76 @@ public class GatewayProxyFactoryBean implements FactoryBean, MethodInterceptor, 
 	}
 
 	public Object invoke(MethodInvocation invocation) throws Throwable {
-		boolean returnsVoid = invocation.getMethod().getReturnType().equals(void.class);
+		Class<?> returnType = invocation.getMethod().getReturnType();
 		int params = invocation.getMethod().getParameterTypes().length;
-		if (params == 0) {
-			// TODO: add support for receive-only
-			throw new MessagingException("Method invocation contains no arguments. Cannot send a message.");
-		}
-		if (this.requestChannel == null) {
-			throw new MessagingException("No request channel available. Cannot invoke methods with arguments.");
-		}
-		Object payload = (params == 1) ? invocation.getArguments()[0] : invocation.getArguments();
-		Message<?> message = this.messageCreator.createMessage(payload);
-		if (returnsVoid) {
-			this.requestChannel.send(message);
-			return null;
-		}
 		Message<?> response = null;
-		if (this.responseCorrelator != null) {
-			message.getHeader().setReturnAddress(this.responseChannel);
-			this.requestChannel.send(message);
-			response = this.responseCorrelator.getResponse(message.getId());
+		if (params == 0) {
+			if (this.responseChannel == null) {
+				throw new MessagingException("No response channel available. Cannot support methods with no arguments.");
+			}
+			response = this.receiveResponse(this.responseChannel);
 		}
 		else {
-			RendezvousChannel temporaryChannel = new RendezvousChannel();
-			message.getHeader().setReturnAddress(temporaryChannel);
-			this.requestChannel.send(message);
-			response = temporaryChannel.receive();
+			if (this.requestChannel == null) {
+				throw new MessagingException("No request channel available. Cannot support methods with arguments.");
+			}
+			Object payload = (params == 1) ? invocation.getArguments()[0] : invocation.getArguments();
+			Message<?> message = this.messageCreator.createMessage(payload);
+			if (returnType.equals(void.class)) {
+				this.sendRequest(message);
+				return null;
+			}
+			if (this.responseChannel != null) {
+				response = this.sendAndReceiveWithResponseCorrelator(message);
+			}
+			else {
+				response = this.sendAndReceiveWithTemporaryChannel(message);
+			}
 		}
-		return (response != null) ? this.messageMapper.mapMessage(response) : null;
+		if (returnType.isAssignableFrom(response.getClass())) {
+			return response;
+		}
+		Object responseObject = (response != null) ? this.messageMapper.mapMessage(response) : null;
+		return this.typeConverter.convertIfNecessary(responseObject, returnType);
 	}
 
-	private void registerResponseCorrelatorIfNecessary() {
-		if (this.responseChannel != null) {
+	private Message<?> sendAndReceiveWithResponseCorrelator(Message<?> message) {
+		if (this.responseCorrelator == null) {
+			this.registerResponseCorrelator();
+		}
+		message.getHeader().setReturnAddress(this.responseChannel);
+		this.sendRequest(message);
+		return (this.responseTimeout >= 0) ? this.responseCorrelator.getResponse(message.getId(), this.responseTimeout) :
+			this.responseCorrelator.getResponse(message.getId());
+	}
+
+	private Message<?> sendAndReceiveWithTemporaryChannel(Message<?> message) {
+		RendezvousChannel temporaryChannel = new RendezvousChannel();
+		message.getHeader().setReturnAddress(temporaryChannel);
+		this.sendRequest(message);
+		return this.receiveResponse(temporaryChannel);
+	}
+
+	private void sendRequest(Message<?> message) {
+		if (message == null) {
+			throw new MessagingException("Created Message is null, cannot be sent.");
+		}
+		boolean sent = (this.requestTimeout >= 0) ?
+				this.requestChannel.send(message, this.requestTimeout) : this.requestChannel.send(message);
+		if (!sent) {
+			throw new MessagingException("Failed to send request message.");
+		}
+	}
+
+	private Message<?> receiveResponse(MessageChannel channel) {
+		return (this.responseTimeout >= 0) ? channel.receive(this.responseTimeout) : channel.receive();
+	}
+
+	private void registerResponseCorrelator() {
+		synchronized (this.responseCorrelatorMonitor) {
+			if (this.responseCorrelator != null) {
+				return;
+			}
 			if (this.endpointRegistry == null) {
 				throw new ConfigurationException("No EndpointRegistry available. Cannot register ResponseCorrelator.");
 			}

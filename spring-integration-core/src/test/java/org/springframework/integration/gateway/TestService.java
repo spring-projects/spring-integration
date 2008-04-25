@@ -16,6 +16,8 @@
 
 package org.springframework.integration.gateway;
 
+import org.springframework.integration.message.Message;
+
 /**
  * @author Mark Fisher
  */
@@ -24,5 +26,13 @@ public interface TestService {
 	String requestReply(String input);
 
 	void oneWay(String input);
+
+	String solicitResponse();
+
+	Integer requestReplyWithIntegers(Integer input);
+
+	String requestReplyWithMessageParameter(Message<?> message);
+
+	Message<?> requestReplyWithMessageReturnValue(String input);
 
 }

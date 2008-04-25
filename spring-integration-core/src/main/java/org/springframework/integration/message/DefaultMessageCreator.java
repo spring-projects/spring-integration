@@ -25,6 +25,9 @@ package org.springframework.integration.message;
 public class DefaultMessageCreator implements MessageCreator {
 
 	public Message createMessage(Object object) {
+		if (object instanceof Message) {
+			return (Message) object;
+		}
 		return (object != null) ? new GenericMessage(object) : null;
 	}
 

@@ -42,6 +42,14 @@ public class DefaultMessageCreatorTests {
 	}
 
 	@Test
+	public void testMessage() {
+		DefaultMessageCreator creator = new DefaultMessageCreator();
+		Message<?> inputMessage = new GenericMessage<String>("testing");
+		Message<?> message = creator.createMessage(inputMessage);
+		assertEquals(inputMessage, message);
+	}
+
+	@Test
 	public void testNull() {
 		DefaultMessageCreator creator = new DefaultMessageCreator();
 		Message<?> message = creator.createMessage(null);

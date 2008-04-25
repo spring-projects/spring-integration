@@ -35,13 +35,7 @@ public class GatewayProxyFactoryBeanTests {
 	@Test
 	public void testRequestReplyWithAnonymousChannel() throws Exception {
 		final MessageChannel requestChannel = new QueueChannel();
-		new Thread(new Runnable() {
-			public void run() {
-				Message<?> input = requestChannel.receive();
-				StringMessage response = new StringMessage(input.getPayload() + "bar");
-				((MessageChannel) input.getHeader().getReturnAddress()).send(response);
-			}
-		}).start();
+		startResponder(requestChannel);
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		proxyFactory.setServiceInterface(TestService.class);
 		proxyFactory.setRequestChannel(requestChannel);
@@ -66,6 +60,39 @@ public class GatewayProxyFactoryBeanTests {
 	}
 
 	@Test
+	public void testSolicitResponse() throws Exception {
+		MessageChannel responseChannel = new QueueChannel();
+		responseChannel.send(new StringMessage("foo"));
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		proxyFactory.setServiceInterface(TestService.class);
+		proxyFactory.setResponseChannel(responseChannel);
+		proxyFactory.afterPropertiesSet();
+		TestService service = (TestService) proxyFactory.getObject();
+		String result = service.solicitResponse();
+		assertNotNull(result);
+		assertEquals("foo", result);
+	}
+
+	@Test
+	public void testRequestReplyWithTypeConversion() throws Exception {
+		final MessageChannel requestChannel = new QueueChannel();
+		new Thread(new Runnable() {
+			public void run() {
+				Message<?> input = requestChannel.receive();
+				StringMessage response = new StringMessage(input.getPayload() + "456");
+				((MessageChannel) input.getHeader().getReturnAddress()).send(response);
+			}
+		}).start();
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		proxyFactory.setServiceInterface(TestService.class);
+		proxyFactory.setRequestChannel(requestChannel);
+		proxyFactory.afterPropertiesSet();
+		TestService service = (TestService) proxyFactory.getObject();
+		Integer result = service.requestReplyWithIntegers(123);
+		assertEquals(new Integer(123456), result);
+	}
+
+	@Test
 	public void testRequestReplyWithRendezvousChannelInApplicationContext() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"gatewayWithRendezvousChannel.xml", GatewayProxyFactoryBeanTests.class);
@@ -84,6 +111,49 @@ public class GatewayProxyFactoryBeanTests {
 		TestChannelInterceptor interceptor = (TestChannelInterceptor) context.getBean("interceptor");
 		assertEquals(1, interceptor.getSentCount());
 		assertEquals(1, interceptor.getReceivedCount());
+	}
+
+	@Test
+	public void testMessageAsMethodArgument() throws Exception {
+		final MessageChannel requestChannel = new QueueChannel();
+		startResponder(requestChannel);
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		proxyFactory.setServiceInterface(TestService.class);
+		proxyFactory.setRequestChannel(requestChannel);
+		proxyFactory.afterPropertiesSet();
+		TestService service = (TestService) proxyFactory.getObject();
+		String result = service.requestReplyWithMessageParameter(new StringMessage("foo"));
+		assertEquals("foobar", result);
+	}
+
+	@Test
+	public void testMessageAsReturnValue() throws Exception {
+		final MessageChannel requestChannel = new QueueChannel();
+		new Thread(new Runnable() {
+			public void run() {
+				Message<?> input = requestChannel.receive();
+				StringMessage response = new StringMessage(input.getPayload() + "bar");
+				((MessageChannel) input.getHeader().getReturnAddress()).send(response);
+			}
+		}).start();
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		proxyFactory.setServiceInterface(TestService.class);
+		proxyFactory.setRequestChannel(requestChannel);
+		proxyFactory.afterPropertiesSet();
+		TestService service = (TestService) proxyFactory.getObject();
+		Message<?> result = service.requestReplyWithMessageReturnValue("foo");
+		assertEquals("foobar", result.getPayload());
+	}
+
+
+	private static void startResponder(final MessageChannel requestChannel) {
+		new Thread(new Runnable() {
+			public void run() {
+				Message<?> input = requestChannel.receive();
+				StringMessage response = new StringMessage(input.getPayload() + "bar");
+				((MessageChannel) input.getHeader().getReturnAddress()).send(response);
+			}
+		}).start();
 	}
 
 }
