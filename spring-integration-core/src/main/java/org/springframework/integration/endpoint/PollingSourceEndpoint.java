@@ -53,6 +53,10 @@ public class PollingSourceEndpoint extends AbstractSourceEndpoint implements Mes
 
 	private volatile List<Advice> dispatchAdviceChain;
 
+	private volatile boolean proxiesInitialized;
+
+	private final Object proxyInitializationMonitor = new Object();
+
 
 	public PollingSourceEndpoint(PollableSource<?> source, MessageChannel channel, PollingSchedule schedule) {
 		super(source, channel);
@@ -76,22 +80,28 @@ public class PollingSourceEndpoint extends AbstractSourceEndpoint implements Mes
 	}
 
 	public void initializeProxies() {
-		if (this.dispatchAdviceChain != null && this.dispatchAdviceChain.size() > 0) {
-			ProxyFactory proxyFactory = new ProxyFactory(this.dispatcher);
-			proxyFactory.setInterfaces(new Class[] { PollingDispatcher.class });
-			for (Advice advice : this.dispatchAdviceChain) {
-				proxyFactory.addAdvisor(new DispatchMethodAdvisor(advice));
+		synchronized (this.proxyInitializationMonitor) {
+			if (this.proxiesInitialized) {
+				return;
 			}
-			this.dispatcher = (PollingDispatcher) proxyFactory.getProxy();
-			this.task = new PollingDispatcherTask(this.dispatcher, this.task.getSchedule());
-		}
-		if (this.taskAdviceChain != null && this.taskAdviceChain.size() > 0) {
-			ProxyFactory proxyFactory = new ProxyFactory(this.task);
-			proxyFactory.setInterfaces(new Class[] { MessagingTask.class });
-			for (Advice advice : this.taskAdviceChain) {
-				proxyFactory.addAdvice(advice);
+			if (this.dispatchAdviceChain != null && this.dispatchAdviceChain.size() > 0) {
+				ProxyFactory proxyFactory = new ProxyFactory(this.dispatcher);
+				proxyFactory.setInterfaces(new Class[] { PollingDispatcher.class });
+				for (Advice advice : this.dispatchAdviceChain) {
+					proxyFactory.addAdvisor(new MethodNameAdvisor(advice, "dispatch"));
+				}
+				this.dispatcher = (PollingDispatcher) proxyFactory.getProxy();
+				this.task = new PollingDispatcherTask(this.dispatcher, this.task.getSchedule());
 			}
-			this.task = (MessagingTask) proxyFactory.getProxy();
+			if (this.taskAdviceChain != null && this.taskAdviceChain.size() > 0) {
+				ProxyFactory proxyFactory = new ProxyFactory(this.task);
+				proxyFactory.setInterfaces(new Class[] { MessagingTask.class });
+				for (Advice advice : this.taskAdviceChain) {
+					proxyFactory.addAdvisor(new MethodNameAdvisor(advice, "run"));
+				}
+				this.task = (MessagingTask) proxyFactory.getProxy();
+			}
+			this.proxiesInitialized = true;
 		}
 	}
 
@@ -113,15 +123,18 @@ public class PollingSourceEndpoint extends AbstractSourceEndpoint implements Mes
 
 
 	@SuppressWarnings("serial")
-	private static class DispatchMethodAdvisor extends StaticMethodMatcherPointcutAdvisor {
+	private static class MethodNameAdvisor extends StaticMethodMatcherPointcutAdvisor {
 
-		DispatchMethodAdvisor(Advice advice) {
+		private final String methodName;
+
+		MethodNameAdvisor(Advice advice, String methodName) {
 			super(advice);
+			this.methodName = methodName;
 		}
 
 		@SuppressWarnings("unchecked")
 		public boolean matches(Method method, Class targetClass) {
-			return method.getName().equals("dispatch");
+			return method.getName().equals(methodName);
 		}
 	}
 
