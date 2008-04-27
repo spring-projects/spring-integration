@@ -11,10 +11,10 @@
 
 	<channel id="testChannel" capacity="50"/>
 
-	<endpoint id="endpoint" input-channel="testChannel" handler="testHandler">
+	<handler-endpoint id="endpoint" input-channel="testChannel" handler="testHandler">
 		<schedule period="100"/>
 		<selector ref="typeSelector"/>
-	</endpoint>
+	</handler-endpoint>
 
 	<beans:bean id="typeSelector" class="org.springframework.integration.message.selector.PayloadTypeSelector">
 		<beans:constructor-arg value="java.lang.String"/>

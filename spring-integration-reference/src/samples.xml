@@ -49,11 +49,11 @@
     <channel id="coldDrinks"/>
     <channel id="hotDrinks"/>
 
-    <endpoint input-channel="coldDrinks" handler="barista"
-                                         handler-method="prepareColdDrink"/>
+    <handler-endpoint input-channel="coldDrinks" handler="barista"
+                                         method="prepareColdDrink"/>
 
-    <endpoint input-channel="hotDrinks" handler="barista"
-                                        handler-method="prepareHotDrink"/>
+    <handler-endpoint input-channel="hotDrinks" handler="barista"
+                                        method="prepareHotDrink"/>
 
     <beans:bean id="cafe" class="org.springframework.integration.samples.cafe.Cafe">
         <beans:property name="orderChannel" ref="orders"/>
@@ -163,11 +163,11 @@ public class Barista {
       However, by configuring the endpoint concurrency, you can dramatically change the results. For example, on my
       machine, the following single modification causes all 100 hot drinks to be prepared before the 4th cold drink is
       ready:
-      <programlisting><![CDATA[<endpoint input-channel="coldDrinks" handler="barista" handler-method="prepareColdDrink"/>
+      <programlisting><![CDATA[<handler-endpoint input-channel="coldDrinks" handler="barista" method="prepareColdDrink"/>
 
-<endpoint input-channel="hotDrinks" handler="barista" handler-method="prepareHotDrink">
+<handler-endpoint input-channel="hotDrinks" handler="barista" method="prepareHotDrink">
     ]]><emphasis><![CDATA[<concurrency core="25" max="50"/>]]></emphasis><![CDATA[
-</endpoint>]]></programlisting>
+</handler-endpoint>]]></programlisting>
     </para>
     <para>
       In addition to experimenting with the 'concurrency' settings, you can also try adding the 'schedule' sub-element

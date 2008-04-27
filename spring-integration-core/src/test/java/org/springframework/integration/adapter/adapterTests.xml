@@ -29,7 +29,7 @@
 
 	<bean id="target" class="org.springframework.integration.adapter.MethodInvokingTarget">
 		<property name="object" ref="sink"/>
-		<property name="method" value="store"/>
+		<property name="methodName" value="store"/>
 	</bean>
 
 	<bean id="targetEndpoint" class="org.springframework.integration.endpoint.TargetEndpoint">

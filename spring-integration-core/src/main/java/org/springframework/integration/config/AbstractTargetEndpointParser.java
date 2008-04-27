@@ -134,7 +134,7 @@ public abstract class AbstractTargetEndpointParser extends AbstractSingleBeanDef
 		if (!StringUtils.hasText(ref)) {
 			throw new ConfigurationException("The '" + attribute + "' attribute is required.");
 		}
-		String method = element.getAttribute(attribute + "-method");
+		String method = element.getAttribute("method");
 		if (StringUtils.hasText(method)) {
 			String adapterBeanName = this.parseAdapter(ref, method, parserContext);
 			builder.addConstructorArgReference(adapterBeanName);

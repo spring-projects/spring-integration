@@ -124,15 +124,15 @@
     <section id="namespace-endpoint">
       <title>Configuring Message Endpoints</title>
       <para>
-        To create a Message Endpoint instance, use the 'endpoint' element with the 'input-channel' and 'handler'
+        To create a Message Endpoint instance, use the 'handler-endpoint' element with the 'input-channel' and 'handler'
         attributes:
         <programlisting>&lt;endpoint input-channel="exampleChannel" handler="exampleHandler"/&gt;</programlisting>
       </para>
       <para>
         The configuration above assumes that "exampleHandler" is an actual implementation of the
         <interfacename>MessageHandler</interfacename> interface as described in <xref linkend="api-messagehandler"/>.
-        To delegate to an arbitrary method of any object, simply add the "handler-method" attribute.
-        <programlisting>&lt;endpoint input-channel="exampleChannel" handler="somePojo" handler-method="someMethod"/&gt;</programlisting>
+        To delegate to an arbitrary method of any object, simply add the "method" attribute.
+        <programlisting>&lt;endpoint input-channel="exampleChannel" handler="somePojo" method="someMethod"/&gt;</programlisting>
       </para>
       <para>
         In either case (<interfacename>MessageHandler</interfacename> or arbitrary object/method), when the handling
@@ -147,16 +147,16 @@
         default output channel when using the XML namespace, provide the 'default-output-channel' attribute:
         <programlisting>&lt;endpoint input-channel="exampleChannel"
           handler="somePojo"
-          handler-method="someMethod"
+          method="someMethod"
           default-output-channel="replyChannel"/&gt;</programlisting>
       </para>
       <para>
-        Endpoint's also support <interfacename>MessageSelectors</interfacename> as described in
+        Endpoints also support <interfacename>MessageSelectors</interfacename> as described in
         <xref linkend="api-messageselector"/>. To configure selectors with namespace support, simply add one or more
         &lt;selector&gt; sub-elements to the endpoint definition:
-        <programlisting><![CDATA[<endpoint id="endpoint" input-channel="channel" handler="handler">
+        <programlisting><![CDATA[<handler-endpoint id="endpoint" input-channel="channel" handler="handler">
     ]]><emphasis><![CDATA[<selector ref="exampleSelector"/>]]></emphasis><![CDATA[
-</endpoint>]]></programlisting>
+</handler-endpoint>]]></programlisting>
       </para>
       <para>
         When the <interfacename>MessageBus</interfacename> registers the endpoint, it will activate the subscription
@@ -164,9 +164,9 @@
         endpoint subscriptions for its channel and delegates to a scheduler for managing the tasks that pull messages
         from the channel and push them to the endpoints. To configure the polling period for an individual endpoint's
         schedule, provide a 'schedule' sub-element with the 'period' in milliseconds:
-        <programlisting><![CDATA[<endpoint input-channel="exampleChannel" handler="exampleHandler"/>
+        <programlisting><![CDATA[<handler-endpoint input-channel="exampleChannel" handler="exampleHandler"/>
     ]]><emphasis><![CDATA[<schedule period="3000"/>]]></emphasis><![CDATA[
-</endpoint>]]></programlisting>
+</handler-endpoint>]]></programlisting>
       </para>
       <note>
         Individual endpoint schedules only apply for "Point-to-Point" channels, since in that case only a single
@@ -182,9 +182,9 @@
         consider (the other major factor being the expected volume on the channel to which the endpoint subscribes).
         To enable concurrency for an endpoint that is configured with the XML namespace support, provide the
         'concurrency' sub-element and one or more of the properties shown below:
-        <programlisting><![CDATA[<endpoint input-channel="exampleChannel" handler="exampleHandler"/>
+        <programlisting><![CDATA[<handler-endpoint input-channel="exampleChannel" handler="exampleHandler"/>
     ]]><emphasis><![CDATA[<concurrency core="5" max="25" queue-capacity="20" keep-alive="120"/>]]></emphasis><![CDATA[
-</endpoint>]]></programlisting>
+</handler-endpoint>]]></programlisting>
         Recall the default concurrency policy values as listed in <xref linkend="api-messagebus-concurrencypolicy"/>.
         If no concurrency settings are provided (i.e. a <emphasis>null</emphasis>
         <classname>ConcurrencyPolicy</classname>), the endpoint's handler will be invoked in the caller's thread.

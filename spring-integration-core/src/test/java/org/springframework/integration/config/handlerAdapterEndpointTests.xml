@@ -11,9 +11,9 @@
 
 	<channel id="testChannel" capacity="50"/>
 
-	<endpoint input-channel="testChannel" handler="testBean" handler-method="store">
+	<handler-endpoint input-channel="testChannel" handler="testBean" method="store">
 		<schedule period="100"/>
-	</endpoint>
+	</handler-endpoint>
 
 	<beans:bean id="testBean" class="org.springframework.integration.config.TestBean">
 		<beans:constructor-arg value="1"/>

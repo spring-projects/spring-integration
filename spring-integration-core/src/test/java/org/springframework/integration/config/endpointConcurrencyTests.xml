@@ -11,13 +11,13 @@
 
 	<channel id="testChannel"/>
 
-	<endpoint id="defaultConcurrencyEndpoint" input-channel="testChannel" handler="testHandler">
+	<handler-endpoint id="defaultConcurrencyEndpoint" input-channel="testChannel" handler="testHandler">
 		<concurrency/>
-	</endpoint>
+	</handler-endpoint>
 
-	<endpoint id="configuredConcurrencyEndpoint" input-channel="testChannel" handler="testHandler">
+	<handler-endpoint id="configuredConcurrencyEndpoint" input-channel="testChannel" handler="testHandler">
 		<concurrency core="7" max="77" queue-capacity="777" keep-alive="7777"/>
-	</endpoint>
+	</handler-endpoint>
 
 	<beans:bean id="testHandler" class="org.springframework.integration.config.TestHandler">
 		<beans:constructor-arg value="1"/>

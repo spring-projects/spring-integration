@@ -9,10 +9,10 @@
 
 	<message-bus auto-create-channels="true"/>
 
-	<endpoint input-channel="inputChannel"
+     	<handler-endpoint input-channel="inputChannel"
 	          default-output-channel="outputChannel"
 	          handler="helloService"
-	          handler-method="sayHello"/>
+	          method="sayHello"/>
 
 	<beans:bean id="helloService" class="org.springframework.integration.samples.helloworld.HelloService"/>
 

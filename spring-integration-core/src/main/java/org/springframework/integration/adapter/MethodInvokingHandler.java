@@ -34,7 +34,7 @@ public class MethodInvokingHandler implements MessageHandler, InitializingBean {
 
 	private volatile Object object;
 
-	private volatile String method;
+	private volatile String methodName;
 
 	private volatile MessageMapper messageMapper;
 
@@ -48,9 +48,9 @@ public class MethodInvokingHandler implements MessageHandler, InitializingBean {
 		this.object = object;
 	}
 
-	public void setMethod(String method) {
-		Assert.notNull(method, "'method' must not be null");
-		this.method = method;
+	public void setMethodName(String methodName) {
+		Assert.notNull(methodName, "'methodName' must not be null");
+		this.methodName = methodName;
 	}
 
 	public void setMessageMapper(MessageMapper messageMapper) {
@@ -62,7 +62,7 @@ public class MethodInvokingHandler implements MessageHandler, InitializingBean {
 	}
 
 	public void afterPropertiesSet() {
-		this.invoker = new HandlerMethodInvoker(this.object, this.method);
+		this.invoker = new HandlerMethodInvoker(this.object, this.methodName);
 	}
 
 	public Message<?> handle(Message<?> message) {

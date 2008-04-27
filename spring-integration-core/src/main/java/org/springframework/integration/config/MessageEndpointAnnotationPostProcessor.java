@@ -185,7 +185,7 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 					}
 					MethodInvokingTarget target = new MethodInvokingTarget();
 					target.setObject(bean);
-					target.setMethod(method.getName());
+					target.setMethodName(method.getName());
 					target.afterPropertiesSet();
 					MessageHandler handler = endpoint.getHandler();
 					((MessageHandlerChain) handler).add(target);

@@ -44,7 +44,7 @@ public class MethodInvokingTargetTests {
 	public void testValidMethod() {
 		MethodInvokingTarget target = new MethodInvokingTarget();
 		target.setObject(new TestSink());
-		target.setMethod("validMethod");
+		target.setMethodName("validMethod");
 		target.afterPropertiesSet();
 		boolean result = target.send(new GenericMessage<String>("test"));
 		assertTrue(result);
@@ -54,7 +54,7 @@ public class MethodInvokingTargetTests {
 	public void testInvalidMethodWithNoArgs() {
 		MethodInvokingTarget target = new MethodInvokingTarget();
 		target.setObject(new TestSink());
-		target.setMethod("invalidMethodWithNoArgs");
+		target.setMethodName("invalidMethodWithNoArgs");
 		target.afterPropertiesSet();
 		target.send(new StringMessage("test"));
 	}
@@ -63,7 +63,7 @@ public class MethodInvokingTargetTests {
 	public void testMethodWithReturnValue() {
 		MethodInvokingTarget target = new MethodInvokingTarget();
 		target.setObject(new TestSink());
-		target.setMethod("methodWithReturnValue");
+		target.setMethodName("methodWithReturnValue");
 		target.afterPropertiesSet();
 		boolean result = target.send(new StringMessage("test"));
 		assertTrue(result);
@@ -73,7 +73,7 @@ public class MethodInvokingTargetTests {
 	public void testNoMatchingMethodName() {
 		MethodInvokingTarget target = new MethodInvokingTarget();
 		target.setObject(new TestSink());
-		target.setMethod("noSuchMethod");
+		target.setMethodName("noSuchMethod");
 		target.afterPropertiesSet();
 		target.send(new StringMessage("test"));
 	}
@@ -84,7 +84,7 @@ public class MethodInvokingTargetTests {
 		TestBean testBean = new TestBean(queue);
 		MethodInvokingTarget target = new MethodInvokingTarget();
 		target.setObject(testBean);
-		target.setMethod("foo");
+		target.setMethodName("foo");
 		target.afterPropertiesSet();
 		QueueChannel channel = new QueueChannel();
 		Subscription subscription = new Subscription(channel);

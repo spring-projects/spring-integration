@@ -19,9 +19,9 @@
 		<handler ref="handler3"/>
 	</handler-chain>
 
-	<endpoint input-channel="testChannel" handler="chain" default-output-channel="replyChannel">
+	<handler-endpoint input-channel="testChannel" handler="chain" default-output-channel="replyChannel">
 		<schedule period="100"/>
-	</endpoint>
+	</handler-endpoint>
 
 	<beans:bean id="handler1" class="org.springframework.integration.config.TestConcatenatingHandler">
 		<beans:constructor-arg value="-1"/>

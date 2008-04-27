@@ -15,11 +15,9 @@
 		<si:schedule period="100"/>
 	</si:source-endpoint>
 
-	<si:endpoint handler="targetAdapter" input-channel="channel"/>
+	<si:target-endpoint target="sink" method="store" input-channel="channel"/>
 
 	<si:source-adapter id="sourceAdapter" ref="source" method="foo"/>
-
-	<si:target-adapter id="targetAdapter" ref="sink" method="store"/>
 
 	<bean id="source" class="org.springframework.integration.adapter.TestSource"/>
 
