@@ -115,6 +115,22 @@
 		</xsd:annotation>
 	</xsd:element>
 
+	<xsd:element name="target-endpoint">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a target endpoint.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="targetEndpointType">
+					<xsd:attribute name="target" type="xsd:string" use="required"/>
+					<xsd:attribute name="method" type="xsd:string"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:element name="target-adapter" type="methodInvokingAdapterType">
 		<xsd:annotation>
 			<xsd:documentation>

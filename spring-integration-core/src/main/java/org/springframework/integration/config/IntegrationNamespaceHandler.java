@@ -53,6 +53,7 @@ public class IntegrationNamespaceHandler extends NamespaceHandlerSupport {
 		registerBeanDefinitionParser("target-adapter", new MethodInvokingAdapterParser());
 		registerBeanDefinitionParser("source-endpoint", new SourceEndpointParser());
 		registerBeanDefinitionParser("endpoint", new EndpointParser());
+		registerBeanDefinitionParser("target-endpoint", new TargetEndpointParser());
 		registerBeanDefinitionParser("handler", new HandlerParser());
 		registerBeanDefinitionParser("handler-chain", new HandlerParser());
 		registerBeanDefinitionParser("aggregator", new AggregatorParser());
