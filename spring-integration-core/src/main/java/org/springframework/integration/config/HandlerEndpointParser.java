@@ -29,11 +29,11 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class EndpointParser extends AbstractTargetEndpointParser {
+public class HandlerEndpointParser extends AbstractTargetEndpointParser {
 
 	private static final String OUTPUT_CHANNEL_ATTRIBUTE = "output-channel";
 
-	private static final String DEFAULT_OUTPUT_CHANNEL_PROPERTY = "defaultOutputChannelName";
+	private static final String OUTPUT_CHANNEL_PROPERTY = "outputChannelName";
 
 	private static final String RETURN_ADDRESS_OVERRIDES_ATTRIBUTE = "return-address-overrides";
 
@@ -60,7 +60,7 @@ public class EndpointParser extends AbstractTargetEndpointParser {
 	protected void postProcess(BeanDefinitionBuilder builder, Element element) {
 		String outputChannel = element.getAttribute(OUTPUT_CHANNEL_ATTRIBUTE);
 		if (StringUtils.hasText(outputChannel)) {
-			builder.addPropertyValue(DEFAULT_OUTPUT_CHANNEL_PROPERTY, outputChannel);
+			builder.addPropertyValue(OUTPUT_CHANNEL_PROPERTY, outputChannel);
 		}
 		String returnAddressOverridesAttribute = element.getAttribute(RETURN_ADDRESS_OVERRIDES_ATTRIBUTE);
 		boolean returnAddressOverrides = "true".equals(returnAddressOverridesAttribute);

@@ -27,7 +27,7 @@ import org.springframework.integration.annotation.Polled;
 /**
  * @author Mark Fisher
  */
-@MessageEndpoint(defaultOutput="quotes")
+@MessageEndpoint(output="quotes")
 public class QuotePublisher {
 
 	@Polled(period=300)

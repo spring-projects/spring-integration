@@ -23,7 +23,7 @@ import org.springframework.integration.annotation.Polled;
 /**
  * @author Mark Fisher
  */
-@MessageEndpoint(defaultOutput="outputChannel")
+@MessageEndpoint(output="outputChannel")
 public class InboundChannelAdapterTestBean {
 
 	@Polled(period=100)

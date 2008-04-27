@@ -57,7 +57,7 @@ public class SynchronousChannelSubscriptionTests {
 	public void testSendAndReceiveForRegisteredEndpoint() {
 		HandlerEndpoint endpoint = new HandlerEndpoint(new TestHandler());
 		endpoint.setSubscription(new Subscription("sourceChannel"));
-		endpoint.setDefaultOutputChannelName("targetChannel");
+		endpoint.setOutputChannelName("targetChannel");
 		bus.registerEndpoint("testEndpoint", endpoint);
 		bus.start();
 		this.sourceChannel.send(new StringMessage("foo"));
@@ -89,7 +89,7 @@ public class SynchronousChannelSubscriptionTests {
 			}
 		});
 		endpoint.setSubscription(new Subscription("sourceChannel"));
-		endpoint.setDefaultOutputChannelName("targetChannel");
+		endpoint.setOutputChannelName("targetChannel");
 		bus.registerEndpoint("testEndpoint", endpoint);
 		bus.start();
 		this.sourceChannel.send(new StringMessage("foo"));
@@ -116,7 +116,7 @@ public class SynchronousChannelSubscriptionTests {
 	}
 
 
-	@MessageEndpoint(input="sourceChannel", defaultOutput="targetChannel")
+	@MessageEndpoint(input="sourceChannel", output="targetChannel")
 	public static class TestEndpoint {
 
 		@Handler
@@ -126,7 +126,7 @@ public class SynchronousChannelSubscriptionTests {
 	}
 
 
-	@MessageEndpoint(input="sourceChannel", defaultOutput="targetChannel")
+	@MessageEndpoint(input="sourceChannel", output="targetChannel")
 	public static class FailingTestEndpoint {
 
 		@Handler

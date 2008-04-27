@@ -17,7 +17,7 @@
 				<constructor-arg ref="sourceChannel"/>
 			</bean>
 		</property>
-		<property name="defaultOutputChannelName" value="targetChannel"/>
+		<property name="outputChannelName" value="targetChannel"/>
 	</bean>
 
 	<bean id="handler" class="org.springframework.integration.handler.TestHandlers" factory-method="echoHandler"/>

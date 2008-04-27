@@ -24,7 +24,7 @@ import org.springframework.integration.message.StringMessage;
 /**
  * @author Mark Fisher
  */
-@MessageEndpoint(input="inputChannel", defaultOutput="outputChannel", pollPeriod=10)
+@MessageEndpoint(input="inputChannel", output="outputChannel", pollPeriod=10)
 public class MessageParameterAnnotatedEndpoint {
 
 	@Handler

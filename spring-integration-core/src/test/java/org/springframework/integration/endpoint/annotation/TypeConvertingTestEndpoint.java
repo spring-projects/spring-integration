@@ -22,7 +22,7 @@ import org.springframework.integration.annotation.MessageEndpoint;
 /**
  * @author Mark Fisher
  */
-@MessageEndpoint(input="inputChannel", defaultOutput="outputChannel", pollPeriod=10)
+@MessageEndpoint(input="inputChannel", output="outputChannel", pollPeriod=10)
 public class TypeConvertingTestEndpoint {
 
 	@Handler

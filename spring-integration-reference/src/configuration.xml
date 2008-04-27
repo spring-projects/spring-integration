@@ -142,7 +142,7 @@
         a <classname>MessageChannel</classname>, the reply message will be sent to that channel. If it is a
         <classname>String</classname>, then the endpoint will attempt to resolve the channel by performing a
         lookup in the <interfacename>ChannelRegistry</interfacename>. If the message header does not contain a
-        'returnAddress' property at all, then it will fallback to its own 'defaultOutputChannelName' property. If
+        'returnAddress' property at all, then it will fallback to its own 'outputChannelName' property. If
         neither is available, then a <classname>MessageHandlingException</classname> will be thrown. To configure the
         output channel when using the XML namespace, provide the 'output-channel' attribute:
         <programlisting>&lt;handler-endpoint input-channel="exampleChannel"
@@ -315,9 +315,9 @@ public class FooService {
       As described in the previous section, when the handler method returns a non-null value, the endpoint will
       attempt to send a reply. This is consistent across both configuration options (namespace and annotations) in that
       the message header's 'replyChannelName' property will be used if available, and the endpoint's default output is
-      the fallback. To configure the default output for an annotation-driven endpoint, provide the 'defaultOutput'
+      the fallback. To configure the default output for an annotation-driven endpoint, provide the 'output'
       attribute on the <interfacename>@MessageEndpoint</interfacename>.
-      <programlisting>@MessageEndpoint(input="exampleChannel", defaultOutput="replyChannel")</programlisting>
+      <programlisting>@MessageEndpoint(input="exampleChannel", output="replyChannel")</programlisting>
     </para>
     <para>
       Just as the 'schedule' sub-element and its 'period' attribute can be provided for a namespace-based

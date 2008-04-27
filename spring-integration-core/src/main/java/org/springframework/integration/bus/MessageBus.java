@@ -342,11 +342,11 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 		}
 		if (endpoint instanceof HandlerEndpoint) {
 			HandlerEndpoint handlerEndpoint = (HandlerEndpoint) endpoint;
-			String outputChannelName = handlerEndpoint.getDefaultOutputChannelName();
+			String outputChannelName = handlerEndpoint.getOutputChannelName();
 			if (outputChannelName != null && this.lookupChannel(outputChannelName) == null) {
 				if (!this.autoCreateChannels) {
 					throw new ConfigurationException("Unknown channel '" + outputChannelName +
-							"' configured as 'default-output' for endpoint '" + endpoint +
+							"' configured as output channel for endpoint '" + endpoint +
 							"'. Consider enabling the 'autoCreateChannels' option for the message bus.");
 				}
 				this.registerChannel(outputChannelName, new QueueChannel());

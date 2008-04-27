@@ -39,7 +39,7 @@ public @interface MessageEndpoint {
 
 	String input() default "";
 
-	String defaultOutput() default "";
+	String output() default "";
 
 	int pollPeriod() default 0;
 

@@ -51,12 +51,12 @@ public class SplitterMessageHandlerAdapter<T> extends AbstractMessageHandlerAdap
 	public SplitterMessageHandlerAdapter(T object, Method method, Map<String, ?> attributes) {
 		Assert.notNull(object, "'object' must not be null");
 		Assert.notNull(method, "'method' must not be null");
-		Assert.isTrue(attributes != null && attributes.get(DEFAULT_OUTPUT_CHANNEL_NAME_KEY) != null,
-				"The '" + DEFAULT_OUTPUT_CHANNEL_NAME_KEY + "' attribute is required.");
+		Assert.isTrue(attributes != null && attributes.get(OUTPUT_CHANNEL_NAME_KEY) != null,
+				"The '" + OUTPUT_CHANNEL_NAME_KEY + "' attribute is required.");
 		this.setObject(object);
 		this.setMethodName(method.getName());
 		this.method = method;
-		this.outputChannelName = (String) attributes.get(DEFAULT_OUTPUT_CHANNEL_NAME_KEY);
+		this.outputChannelName = (String) attributes.get(OUTPUT_CHANNEL_NAME_KEY);
 	}
 
 	public void setChannelRegistry(ChannelRegistry channelRegistry) {

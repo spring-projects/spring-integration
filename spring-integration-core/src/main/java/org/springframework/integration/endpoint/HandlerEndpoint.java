@@ -43,7 +43,7 @@ public class HandlerEndpoint extends TargetEndpoint {
 
 	private volatile long replyTimeout = 1000;
 
-	private volatile String defaultOutputChannelName;
+	private volatile String outputChannelName;
 
 	private volatile boolean returnAddressOverrides = false;
 
@@ -75,14 +75,14 @@ public class HandlerEndpoint extends TargetEndpoint {
 
 	/**
 	 * Set the name of the channel to which this endpoint should send reply
-	 * messages by default.
+	 * messages.
 	 */
-	public void setDefaultOutputChannelName(String defaultOutputChannelName) {
-		this.defaultOutputChannelName = defaultOutputChannelName;
+	public void setOutputChannelName(String outputChannelName) {
+		this.outputChannelName = outputChannelName;
 	}
 
-	public String getDefaultOutputChannelName() {
-		return this.defaultOutputChannelName;
+	public String getOutputChannelName() {
+		return this.outputChannelName;
 	}
 
 	public void setReturnAddressOverrides(boolean returnAddressOverrides) {
@@ -134,8 +134,8 @@ public class HandlerEndpoint extends TargetEndpoint {
 
 	private MessageChannel getOutputChannel() {
 		ChannelRegistry registry = this.getChannelRegistry();
-		if (this.defaultOutputChannelName != null && registry != null) {
-			return registry.lookupChannel(this.defaultOutputChannelName);
+		if (this.outputChannelName != null && registry != null) {
+			return registry.lookupChannel(this.outputChannelName);
 		}
 		return null;
 	}
@@ -177,7 +177,7 @@ public class HandlerEndpoint extends TargetEndpoint {
 			MessageChannel replyChannel = resolveReplyChannel(originalMessageHeader);
 			if (replyChannel == null) {
 				throw new MessageHandlingException(replyMessage, "Unable to determine reply channel for message. " +
-						"Provide a 'returnAddress' in the message header or a 'defaultOutputChannelName' on the message endpoint.");
+						"Provide an 'outputChannelName' on the message endpoint or a 'returnAddress' in the message header");
 			}
 			if (logger.isDebugEnabled()) {
 				logger.debug("endpoint '" + HandlerEndpoint.this + "' replying to channel '" + replyChannel + "' with message: " + replyMessage);

@@ -24,7 +24,7 @@ import org.springframework.integration.annotation.Splitter;
 /**
  * @author Mark Fisher
  */
-@MessageEndpoint(input="orders", defaultOutput="drinks")
+@MessageEndpoint(input="orders", output="drinks")
 public class OrderSplitter {
 
 	@Splitter

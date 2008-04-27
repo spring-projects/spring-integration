@@ -58,7 +58,7 @@ public class HandlerEndpointTests {
 		};
 		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
 		endpoint.setChannelRegistry(channelRegistry);
-		endpoint.setDefaultOutputChannelName("replyChannel");
+		endpoint.setOutputChannelName("replyChannel");
 		endpoint.start();
 		endpoint.send(new StringMessage(1, "test"));
 		endpoint.stop();
@@ -171,7 +171,7 @@ public class HandlerEndpointTests {
 		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
 		endpoint.setConcurrencyPolicy(new ConcurrencyPolicy(1, 1));
 		endpoint.setChannelRegistry(channelRegistry);
-		endpoint.setDefaultOutputChannelName("replyChannel");
+		endpoint.setOutputChannelName("replyChannel");
 		endpoint.start();
 		endpoint.send(new StringMessage(1, "test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
@@ -196,7 +196,7 @@ public class HandlerEndpointTests {
 		};
 		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
 		endpoint.setChannelRegistry(channelRegistry);
-		endpoint.setDefaultOutputChannelName("replyChannel");
+		endpoint.setOutputChannelName("replyChannel");
 		endpoint.start();
 		endpoint.send(new StringMessage(1, "test"));
 		endpoint.stop();
@@ -221,7 +221,7 @@ public class HandlerEndpointTests {
 		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
 		endpoint.setConcurrencyPolicy(new ConcurrencyPolicy(1, 1));
 		endpoint.setChannelRegistry(channelRegistry);
-		endpoint.setDefaultOutputChannelName("replyChannel");
+		endpoint.setOutputChannelName("replyChannel");
 		endpoint.start();
 		endpoint.send(new StringMessage(1, "test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
@@ -273,7 +273,7 @@ public class HandlerEndpointTests {
 		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
 		endpoint.setChannelRegistry(channelRegistry);
 		endpoint.setConcurrencyPolicy(new ConcurrencyPolicy(3, 14));
-		endpoint.setDefaultOutputChannelName("replyChannel");
+		endpoint.setOutputChannelName("replyChannel");
 		endpoint.start();
 		endpoint.send(new StringMessage(1, "test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
@@ -441,7 +441,7 @@ public class HandlerEndpointTests {
 				return message;
 			}
 		});
-		endpoint.setDefaultOutputChannelName("output");
+		endpoint.setOutputChannelName("output");
 		endpoint.setChannelRegistry(channelRegistry);
 		TestErrorHandler errorHandler = new TestErrorHandler();
 		endpoint.setErrorHandler(errorHandler);

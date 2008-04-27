@@ -317,7 +317,7 @@ public class MessageEndpointAnnotationPostProcessorTests {
 	}
 
 
-	@MessageEndpoint(defaultOutput="testChannel")
+	@MessageEndpoint(output="testChannel")
 	private static class PolledAnnotationTestBean {
 
 		@Polled(period=100)
@@ -396,7 +396,7 @@ public class MessageEndpointAnnotationPostProcessorTests {
 	}
 
 
-	@MessageEndpoint(input="inputChannel", defaultOutput="outputChannel", pollPeriod=25)
+	@MessageEndpoint(input="inputChannel", output="outputChannel", pollPeriod=25)
 	private static interface SimpleAnnotatedEndpointInterface {
 		String test(String input);
 	}
@@ -411,7 +411,7 @@ public class MessageEndpointAnnotationPostProcessorTests {
 	}
 
 
-	@MessageEndpoint(input="input", defaultOutput="output")
+	@MessageEndpoint(input="input", output="output")
 	private static class SplitterAnnotationTestEndpoint {
 
 		@Splitter

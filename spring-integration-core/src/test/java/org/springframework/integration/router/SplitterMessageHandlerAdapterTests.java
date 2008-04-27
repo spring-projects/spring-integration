@@ -52,7 +52,7 @@ public class SplitterMessageHandlerAdapterTests {
 
 	public SplitterMessageHandlerAdapterTests() {
 		this.channelRegistry.registerChannel("testChannel", testChannel);
-		this.attribs.put(AbstractMessageHandlerAdapter.DEFAULT_OUTPUT_CHANNEL_NAME_KEY, "testChannel");
+		this.attribs.put(AbstractMessageHandlerAdapter.OUTPUT_CHANNEL_NAME_KEY, "testChannel");
 	}
 
 

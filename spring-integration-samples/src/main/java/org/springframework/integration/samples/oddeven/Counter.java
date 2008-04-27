@@ -30,7 +30,7 @@ public class Counter {
 
 	private AtomicInteger count = new AtomicInteger();
 
-	@Polled(period=3000)
+	@Polled(initialDelay=1000, period=3000)
 	public int getNumber() {
 		return count.incrementAndGet();
 	}

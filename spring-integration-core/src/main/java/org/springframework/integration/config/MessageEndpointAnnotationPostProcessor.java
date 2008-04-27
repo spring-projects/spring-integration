@@ -115,18 +115,18 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 		if (bean instanceof ChannelRegistryAware) {
 			((ChannelRegistryAware) bean).setChannelRegistry(this.messageBus);
 		}
-		String defaultOutputChannelName = endpointAnnotation.defaultOutput();
-		MessageHandlerChain handlerChain = this.createHandlerChain(bean, defaultOutputChannelName);
+		String outputChannelName = endpointAnnotation.output();
+		MessageHandlerChain handlerChain = this.createHandlerChain(bean, outputChannelName);
 		if (handlerChain == null) {
 			throw new ConfigurationException("@MessageEndpoint has no handler method");
 		}
 		HandlerEndpoint endpoint = new HandlerEndpoint(handlerChain);
 		this.configureInput(bean, beanName, endpointAnnotation, endpoint);
-		if (StringUtils.hasText(defaultOutputChannelName)) {
-			endpoint.setDefaultOutputChannelName(defaultOutputChannelName);
+		if (StringUtils.hasText(outputChannelName)) {
+			endpoint.setOutputChannelName(outputChannelName);
 		}
 		else {
-			this.configureDefaultOutput(bean, beanName, endpoint);
+			this.configureOutput(bean, beanName, endpoint);
 		}
 		Concurrency concurrencyAnnotation = AnnotationUtils.findAnnotation(beanClass, Concurrency.class);
 		if (concurrencyAnnotation != null) {
@@ -174,13 +174,13 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 		});
 	}
 
-	private void configureDefaultOutput(final Object bean, final String beanName, final HandlerEndpoint endpoint) {
+	private void configureOutput(final Object bean, final String beanName, final HandlerEndpoint endpoint) {
 		ReflectionUtils.doWithMethods(this.getBeanClass(bean), new ReflectionUtils.MethodCallback() {
-			boolean foundDefaultOutput = false;
+			boolean foundOutput = false;
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
 				Annotation annotation = AnnotationUtils.getAnnotation(method, DefaultOutput.class);
 				if (annotation != null) {
-					if (foundDefaultOutput) {
+					if (foundOutput) {
 						throw new ConfigurationException("only one @DefaultOutput allowed per endpoint");
 					}
 					MethodInvokingTarget target = new MethodInvokingTarget();
@@ -189,7 +189,7 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 					target.afterPropertiesSet();
 					MessageHandler handler = endpoint.getHandler();
 					((MessageHandlerChain) handler).add(target);
-					foundDefaultOutput = true;
+					foundOutput = true;
 					return;
 				}
 			}
@@ -229,7 +229,7 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 	}
 
 	@SuppressWarnings("unchecked")
-	private MessageHandlerChain createHandlerChain(final Object bean, final String defaultOutputChannelName) {
+	private MessageHandlerChain createHandlerChain(final Object bean, final String outputChannelName) {
 		final List<MessageHandler> handlers = new ArrayList<MessageHandler>();
 		ReflectionUtils.doWithMethods(this.getBeanClass(bean), new ReflectionUtils.MethodCallback() {
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
@@ -237,7 +237,7 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 				for (Annotation annotation : annotations) {
 					if (isHandlerAnnotation(annotation)) {
 						Map<String, Object> attributes = AnnotationUtils.getAnnotationAttributes(annotation);
-						attributes.put(AbstractMessageHandlerAdapter.DEFAULT_OUTPUT_CHANNEL_NAME_KEY, defaultOutputChannelName);
+						attributes.put(AbstractMessageHandlerAdapter.OUTPUT_CHANNEL_NAME_KEY, outputChannelName);
 						MessageHandlerCreator handlerCreator = handlerCreators.get(annotation.annotationType());
 						if (handlerCreator == null) {
 							if (logger.isWarnEnabled()) {
