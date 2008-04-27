@@ -25,13 +25,13 @@ import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for the <em>endpoint</em> element of the integration namespace.
+ * Parser for the <em>handler-endpoint</em> element of the integration namespace.
  * 
  * @author Mark Fisher
  */
 public class EndpointParser extends AbstractTargetEndpointParser {
 
-	private static final String DEFAULT_OUTPUT_CHANNEL_ATTRIBUTE = "default-output-channel";
+	private static final String OUTPUT_CHANNEL_ATTRIBUTE = "output-channel";
 
 	private static final String DEFAULT_OUTPUT_CHANNEL_PROPERTY = "defaultOutputChannelName";
 
@@ -58,9 +58,9 @@ public class EndpointParser extends AbstractTargetEndpointParser {
 
 	@Override
 	protected void postProcess(BeanDefinitionBuilder builder, Element element) {
-		String defaultOutputChannel = element.getAttribute(DEFAULT_OUTPUT_CHANNEL_ATTRIBUTE);
-		if (StringUtils.hasText(defaultOutputChannel)) {
-			builder.addPropertyValue(DEFAULT_OUTPUT_CHANNEL_PROPERTY, defaultOutputChannel);
+		String outputChannel = element.getAttribute(OUTPUT_CHANNEL_ATTRIBUTE);
+		if (StringUtils.hasText(outputChannel)) {
+			builder.addPropertyValue(DEFAULT_OUTPUT_CHANNEL_PROPERTY, outputChannel);
 		}
 		String returnAddressOverridesAttribute = element.getAttribute(RETURN_ADDRESS_OVERRIDES_ATTRIBUTE);
 		boolean returnAddressOverrides = "true".equals(returnAddressOverridesAttribute);

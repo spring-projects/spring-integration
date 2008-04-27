@@ -126,13 +126,13 @@
       <para>
         To create a Message Endpoint instance, use the 'handler-endpoint' element with the 'input-channel' and 'handler'
         attributes:
-        <programlisting>&lt;endpoint input-channel="exampleChannel" handler="exampleHandler"/&gt;</programlisting>
+        <programlisting>&lt;handler-endpoint input-channel="exampleChannel" handler="exampleHandler"/&gt;</programlisting>
       </para>
       <para>
         The configuration above assumes that "exampleHandler" is an actual implementation of the
         <interfacename>MessageHandler</interfacename> interface as described in <xref linkend="api-messagehandler"/>.
         To delegate to an arbitrary method of any object, simply add the "method" attribute.
-        <programlisting>&lt;endpoint input-channel="exampleChannel" handler="somePojo" method="someMethod"/&gt;</programlisting>
+        <programlisting>&lt;handler-endpoint input-channel="exampleChannel" handler="somePojo" method="someMethod"/&gt;</programlisting>
       </para>
       <para>
         In either case (<interfacename>MessageHandler</interfacename> or arbitrary object/method), when the handling
@@ -144,11 +144,11 @@
         lookup in the <interfacename>ChannelRegistry</interfacename>. If the message header does not contain a
         'returnAddress' property at all, then it will fallback to its own 'defaultOutputChannelName' property. If
         neither is available, then a <classname>MessageHandlingException</classname> will be thrown. To configure the
-        default output channel when using the XML namespace, provide the 'default-output-channel' attribute:
-        <programlisting>&lt;endpoint input-channel="exampleChannel"
+        output channel when using the XML namespace, provide the 'output-channel' attribute:
+        <programlisting>&lt;handler-endpoint input-channel="exampleChannel"
           handler="somePojo"
           method="someMethod"
-          default-output-channel="replyChannel"/&gt;</programlisting>
+          output-channel="replyChannel"/&gt;</programlisting>
       </para>
       <para>
         Endpoints also support <interfacename>MessageSelectors</interfacename> as described in

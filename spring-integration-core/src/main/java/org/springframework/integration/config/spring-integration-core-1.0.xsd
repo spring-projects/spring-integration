@@ -148,9 +148,9 @@
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="targetEndpointType">
-					<xsd:attribute name="default-output-channel" type="xsd:string"/>
 					<xsd:attribute name="handler" type="xsd:string" use="required"/>
 					<xsd:attribute name="method" type="xsd:string"/>
+					<xsd:attribute name="output-channel" type="xsd:string"/>
 					<xsd:attribute name="reply-handler" type="xsd:string"/>
 					<xsd:attribute name="return-address-overrides" type="xsd:boolean" default="false"/>
 				</xsd:extension>

@@ -19,15 +19,15 @@
 	<si:channel id="errorChannel"/>
 
 	<si:handler-endpoint input-channel="channel1WithOverride" handler="testBean" method="duplicate"
-                 default-output-channel="channel2" return-address-overrides="true"/>
+                 output-channel="channel2" return-address-overrides="true"/>
 
 	<si:handler-endpoint input-channel="channel3WithOverride" handler="testBean" method="duplicate"
                  return-address-overrides="true"/>
 
-	<si:handler-endpoint input-channel="channel1" handler="testBean" method="duplicate" default-output-channel="channel2"/>
-	<si:handler-endpoint input-channel="channel2" handler="testBean" method="duplicate" default-output-channel="channel3"/>
+	<si:handler-endpoint input-channel="channel1" handler="testBean" method="duplicate" output-channel="channel2"/>
+	<si:handler-endpoint input-channel="channel2" handler="testBean" method="duplicate" output-channel="channel3"/>
 	<si:handler-endpoint input-channel="channel3" handler="testBean" method="duplicate"/>
-	<si:handler-endpoint input-channel="channel4" handler="testBean" method="duplicate" default-output-channel="replyChannel"/>
+	<si:handler-endpoint input-channel="channel4" handler="testBean" method="duplicate" output-channel="replyChannel"/>
 
 	<bean id="testBean" class="org.springframework.integration.endpoint.TestBean"/>
 
