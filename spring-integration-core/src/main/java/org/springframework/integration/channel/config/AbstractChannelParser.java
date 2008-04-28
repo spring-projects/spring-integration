@@ -14,36 +14,30 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config;
+package org.springframework.integration.channel.config;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
-import org.springframework.beans.factory.xml.BeanDefinitionParser;
+import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.channel.DispatcherPolicy;
-import org.springframework.integration.channel.PriorityChannel;
-import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.interceptor.MessageSelectingInterceptor;
 import org.springframework.integration.message.selector.PayloadTypeSelector;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for the <em>channel</em> element of the integration namespace.
+ * Base class for channel parsers.
  * 
  * @author Mark Fisher
  */
-public class ChannelParser implements BeanDefinitionParser {
-
-	private static final String ID_ATTRIBUTE = "id";
-
-	private static final String CAPACITY_ATTRIBUTE = "capacity";
+public abstract class AbstractChannelParser extends AbstractSingleBeanDefinitionParser {
 
 	private static final String PUBLISH_SUBSCRIBE_ATTRIBUTE = "publish-subscribe";
 
@@ -55,14 +49,25 @@ public class ChannelParser implements BeanDefinitionParser {
 
 	private static final String INTERCEPTORS_PROPERTY = "interceptors";
 
-	private static final String COMPARATOR_REF_ATTRIBUTE = "comparator-ref";
 
+	@Override
+	protected boolean shouldGenerateId() {
+		return false;
+	}
 
-	public BeanDefinition parse(Element element, ParserContext parserContext) {
-		boolean isPriorityChannel = (element.getLocalName().equals("priority-channel"));
-		Class<?> channelClass = (isPriorityChannel) ? PriorityChannel.class : QueueChannel.class;
-		RootBeanDefinition channelDef = new RootBeanDefinition(channelClass);
-		channelDef.setSource(parserContext.extractSource(element));
+	@Override
+	protected boolean shouldGenerateIdAsFallback() {
+		return true;
+	}
+
+	@Override
+	protected abstract Class<?> getBeanClass(Element element);
+
+	protected abstract void configureConstructorArgs(
+			BeanDefinitionBuilder builder, Element element, DispatcherPolicy dispatcherPolicy);
+
+	@Override
+	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		boolean isPublishSubscribe = "true".equals(element.getAttribute(PUBLISH_SUBSCRIBE_ATTRIBUTE));
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy(isPublishSubscribe);
 		ManagedList interceptors = new ManagedList();
@@ -78,16 +83,6 @@ public class ChannelParser implements BeanDefinitionParser {
 					String ref = ((Element) child).getAttribute("ref");
 					interceptors.add(new RuntimeBeanReference(ref));
 				}
-			}
-		} 
-		String capAttr = element.getAttribute(CAPACITY_ATTRIBUTE);
-		int capacity = (StringUtils.hasText(capAttr)) ? Integer.parseInt(capAttr) : QueueChannel.DEFAULT_CAPACITY;
-		channelDef.getConstructorArgumentValues().addIndexedArgumentValue(0, capacity);
-		channelDef.getConstructorArgumentValues().addIndexedArgumentValue(1, dispatcherPolicy);
-		if (isPriorityChannel) {
-			String comparatorRef = element.getAttribute(COMPARATOR_REF_ATTRIBUTE);
-			if (StringUtils.hasText(comparatorRef)) {
-				channelDef.getConstructorArgumentValues().addIndexedArgumentValue(2, new RuntimeBeanReference(comparatorRef));
 			}
 		}
 		String datatypeAttr = element.getAttribute(DATATYPE_ATTRIBUTE);
@@ -105,10 +100,8 @@ public class ChannelParser implements BeanDefinitionParser {
 			parserContext.registerBeanComponent(interceptorComponent);
 			interceptors.add(new RuntimeBeanReference(interceptorBeanName));
 		}
-		channelDef.getPropertyValues().addPropertyValue(INTERCEPTORS_PROPERTY, interceptors);
-		String beanName = element.getAttribute(ID_ATTRIBUTE);
-		parserContext.registerBeanComponent(new BeanComponentDefinition(channelDef, beanName));
-		return channelDef;
+		builder.addPropertyValue(INTERCEPTORS_PROPERTY, interceptors);
+		this.configureConstructorArgs(builder, element, dispatcherPolicy);
 	}
 
 	private void configureDispatcherPolicy(Element element, DispatcherPolicy dispatcherPolicy) {

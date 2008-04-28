@@ -28,6 +28,10 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
+import org.springframework.integration.channel.config.DirectChannelParser;
+import org.springframework.integration.channel.config.PriorityChannelParser;
+import org.springframework.integration.channel.config.QueueChannelParser;
+import org.springframework.integration.channel.config.RendezvousChannelParser;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -47,8 +51,10 @@ public class IntegrationNamespaceHandler extends NamespaceHandlerSupport {
 	public void init() {
 		registerBeanDefinitionParser("message-bus", new MessageBusParser());
 		registerBeanDefinitionParser("annotation-driven", new AnnotationDrivenParser());
-		registerBeanDefinitionParser("channel", new ChannelParser());
-		registerBeanDefinitionParser("priority-channel", new ChannelParser());
+		registerBeanDefinitionParser("channel", new QueueChannelParser());
+		registerBeanDefinitionParser("direct-channel", new DirectChannelParser());
+		registerBeanDefinitionParser("priority-channel", new PriorityChannelParser());
+		registerBeanDefinitionParser("rendezvous-channel", new RendezvousChannelParser());
 		registerBeanDefinitionParser("source-adapter", new MethodInvokingAdapterParser());
 		registerBeanDefinitionParser("target-adapter", new MethodInvokingAdapterParser());
 		registerBeanDefinitionParser("source-endpoint", new SourceEndpointParser());

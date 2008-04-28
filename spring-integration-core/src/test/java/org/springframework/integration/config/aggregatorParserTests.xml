@@ -16,7 +16,6 @@
 		reaper-interval="135" tracked-correlation-id-capacity="99"
 		timeout="42" />
 
-
 	<aggregator id="aggregatorWithReferenceAndMethod" ref="adderBean"
 		method="add" default-reply-channel="replyChannel" />
 

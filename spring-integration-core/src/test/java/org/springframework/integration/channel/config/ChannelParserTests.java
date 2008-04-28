@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config;
+package org.springframework.integration.channel.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -33,6 +33,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.bus.SubscriptionManager;
 import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.config.TestChannelInterceptor;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;

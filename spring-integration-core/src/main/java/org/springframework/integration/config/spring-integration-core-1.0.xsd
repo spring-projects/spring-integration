@@ -44,7 +44,28 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="channel" type="channelType"/>
+	<xsd:element name="channel" type="capacityChannelType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a channel that buffers messages in a queue.
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:element name="direct-channel">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a channel that invokes its handlers directly in the sender's thread.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="channelType">
+					<xsd:attribute name="source" type="xsd:string"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
 
 	<xsd:element name="priority-channel">
 		<xsd:complexType>
@@ -54,12 +75,27 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
-				<xsd:extension base="channelType">
-					<xsd:attribute name="comparator-ref" type="xsd:string"/>
+				<xsd:extension base="capacityChannelType">
+					<xsd:attribute name="comparator" type="xsd:string"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:element name="rendezvous-channel" type="channelType"/>
+
+	<xsd:complexType name="capacityChannelType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a channel with a configurable capacity.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="channelType">
+				<xsd:attribute name="capacity" type="xsd:integer"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
 
 	<xsd:complexType name="channelType">
 		<xsd:annotation>
@@ -72,7 +108,6 @@
 			<xsd:element ref="interceptor" minOccurs="0" maxOccurs="unbounded"/>
 		</xsd:sequence>
 		<xsd:attribute name="id" type="xsd:ID" use="required"/>
-		<xsd:attribute name="capacity" type="xsd:integer"/>
 		<xsd:attribute name="publish-subscribe" type="xsd:boolean" default="false"/>
 		<xsd:attribute name="datatype" type="xsd:string"/>
 	</xsd:complexType>

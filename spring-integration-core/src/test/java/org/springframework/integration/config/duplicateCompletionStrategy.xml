@@ -7,9 +7,6 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
 
-
-
-
 	<aggregator id="aggregatorWithPojoCompletionStrategy" completion-strategy="completionStrategy"
 		ref="adderBean" method="add" default-reply-channel="replyChannel">
 		<completion-strategy ref="pojoCompletionStrategy"

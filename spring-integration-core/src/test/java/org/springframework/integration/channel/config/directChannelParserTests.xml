@@ -7,13 +7,14 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
 
-	<priority-channel id="priorityChannelWithDefaultComparator"/>
+	<direct-channel id="channelWithoutSource"/>
 
-	<priority-channel id="priorityChannelWithCustomComparator" comparator-ref="payloadComparator"/>
+	<direct-channel id="channelWithSource" source="source"/>
 
-	<priority-channel id="integerOnlyPriorityChannel" datatype="java.lang.Integer" comparator-ref="payloadComparator"/>
+	<source-adapter id="source" ref="testSourceBean" method="getText"/>
 
-	<beans:bean id="payloadComparator"
-			class="org.springframework.integration.channel.MessagePayloadTestComparator"/>
+	<beans:bean id="testSourceBean" class="org.springframework.integration.channel.config.TestSourceBean">
+		<beans:constructor-arg value="foo"/>
+	</beans:bean>
 
 </beans:beans>
