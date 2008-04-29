@@ -33,7 +33,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.adapter.stream.CharacterStreamTargetAdapter;
+import org.springframework.integration.adapter.stream.CharacterStreamTarget;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -61,8 +61,8 @@ public class ConsoleTargetParserTests {
 	public void testConsoleTargetWithDefaultCharset() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"consoleTargetParserTests.xml", ConsoleTargetParserTests.class);
-		CharacterStreamTargetAdapter target =
-				(CharacterStreamTargetAdapter) context.getBean("targetWithDefaultCharset");
+		CharacterStreamTarget target =
+				(CharacterStreamTarget) context.getBean("targetWithDefaultCharset");
 		DirectFieldAccessor targetAccessor = new DirectFieldAccessor(target);
 		Writer bufferedWriter = (Writer) targetAccessor.getPropertyValue("writer");
 		assertEquals(BufferedWriter.class, bufferedWriter.getClass());
@@ -81,8 +81,8 @@ public class ConsoleTargetParserTests {
 	public void testConsoleTargetWithProvidedCharset() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"consoleTargetParserTests.xml", ConsoleTargetParserTests.class);
-		CharacterStreamTargetAdapter target =
-				(CharacterStreamTargetAdapter) context.getBean("targetWithProvidedCharset");
+		CharacterStreamTarget target =
+				(CharacterStreamTarget) context.getBean("targetWithProvidedCharset");
 		DirectFieldAccessor targetAccessor = new DirectFieldAccessor(target);
 		Writer bufferedWriter = (Writer) targetAccessor.getPropertyValue("writer");
 		assertEquals(BufferedWriter.class, bufferedWriter.getClass());
@@ -117,8 +117,8 @@ public class ConsoleTargetParserTests {
 	public void testErrorTarget() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"consoleTargetParserTests.xml", ConsoleTargetParserTests.class);
-		CharacterStreamTargetAdapter target =
-				(CharacterStreamTargetAdapter) context.getBean("stderrTarget");
+		CharacterStreamTarget target =
+				(CharacterStreamTarget) context.getBean("stderrTarget");
 		DirectFieldAccessor targetAccessor = new DirectFieldAccessor(target);
 		Writer bufferedWriter = (Writer) targetAccessor.getPropertyValue("writer");
 		assertEquals(BufferedWriter.class, bufferedWriter.getClass());

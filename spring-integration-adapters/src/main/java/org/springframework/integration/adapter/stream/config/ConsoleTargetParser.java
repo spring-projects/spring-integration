@@ -20,7 +20,7 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
-import org.springframework.integration.adapter.stream.CharacterStreamTargetAdapter;
+import org.springframework.integration.adapter.stream.CharacterStreamTarget;
 import org.springframework.util.StringUtils;
 
 /**
@@ -32,7 +32,7 @@ public class ConsoleTargetParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
-		return CharacterStreamTargetAdapter.class;
+		return CharacterStreamTarget.class;
 	}
 
 	@Override
@@ -48,10 +48,10 @@ public class ConsoleTargetParser extends AbstractSingleBeanDefinitionParser {
 	@Override
 	protected void doParse(Element element, BeanDefinitionBuilder builder) {
 		if ("true".equals(element.getAttribute("error"))) {
-			builder.setFactoryMethod("stderrAdapter");
+			builder.setFactoryMethod("stderr");
 		}
 		else {
-			builder.setFactoryMethod("stdoutAdapter");
+			builder.setFactoryMethod("stdout");
 		}
 		String charsetName = element.getAttribute("charset");
 		if (StringUtils.hasText(charsetName)) {

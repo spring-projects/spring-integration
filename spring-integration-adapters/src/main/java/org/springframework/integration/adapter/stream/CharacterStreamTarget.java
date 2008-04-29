@@ -33,16 +33,15 @@ import org.springframework.integration.message.Target;
 import org.springframework.util.Assert;
 
 /**
- * A target adapter that writes to a {@link Writer}. String-based
- * objects will be written directly, but if the object is not itself a
- * {@link String}, the adapter will write the result of the object's
- * {@link #toString()} method. To append a new-line after each write, set the
- * {@link #shouldAppendNewLine} flag to <em>true</em>. It is <em>false</em>
- * by default.
+ * A target that writes to a {@link Writer}. String-based objects will be
+ * written directly, but if the object is not itself a {@link String}, the
+ * target will write the result of the object's {@link #toString()} method.
+ * To append a new-line after each write, set the {@link #shouldAppendNewLine}
+ * flag to <em>true</em>. It is <em>false</em> by default.
  * 
  * @author Mark Fisher
  */
-public class CharacterStreamTargetAdapter implements Target {
+public class CharacterStreamTarget implements Target {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -51,11 +50,11 @@ public class CharacterStreamTargetAdapter implements Target {
 	private volatile boolean shouldAppendNewLine = false;
 
 
-	public CharacterStreamTargetAdapter(Writer writer) {
+	public CharacterStreamTarget(Writer writer) {
 		this(writer, -1);
 	}
 
-	public CharacterStreamTargetAdapter(Writer writer, int bufferSize) {
+	public CharacterStreamTarget(Writer writer, int bufferSize) {
 		Assert.notNull(writer, "writer must not be null");
 		if (writer instanceof BufferedWriter) {
 			this.writer = (BufferedWriter) writer;
@@ -70,43 +69,43 @@ public class CharacterStreamTargetAdapter implements Target {
 
 
 	/**
-	 * Factory method that creates an adapter for stdout (System.out) with the
+	 * Factory method that creates a target for stdout (System.out) with the
 	 * default charset encoding.
 	 */
-	public static CharacterStreamTargetAdapter stdoutAdapter() {
-		return stdoutAdapter(null);
+	public static CharacterStreamTarget stdout() {
+		return stdout(null);
 	}
 
 	/**
-	 * Factory method that creates an adapter for stdout (System.out) with the
+	 * Factory method that creates a target for stdout (System.out) with the
 	 * specified charset encoding.
 	 */
-	public static CharacterStreamTargetAdapter stdoutAdapter(String charsetName) {
-		return createAdapterForStream(System.out, charsetName);
+	public static CharacterStreamTarget stdout(String charsetName) {
+		return createTargetForStream(System.out, charsetName);
 	}
 
 	/**
-	 * Factory method that creates an adapter for stderr (System.err) with the
+	 * Factory method that creates a target for stderr (System.err) with the
 	 * default charset encoding.
 	 */
-	public static CharacterStreamTargetAdapter stderrAdapter() {
-		return stderrAdapter(null);
+	public static CharacterStreamTarget stderr() {
+		return stderr(null);
 	}
 
 	/**
-	 * Factory method that creates an adapter for stderr (System.err) with the
+	 * Factory method that creates a target for stderr (System.err) with the
 	 * specified charset encoding.
 	 */	
-	public static CharacterStreamTargetAdapter stderrAdapter(String charsetName) {
-		return createAdapterForStream(System.err, charsetName);
+	public static CharacterStreamTarget stderr(String charsetName) {
+		return createTargetForStream(System.err, charsetName);
 	}
 
-	private static CharacterStreamTargetAdapter createAdapterForStream(OutputStream stream, String charsetName) {
+	private static CharacterStreamTarget createTargetForStream(OutputStream stream, String charsetName) {
 		if (charsetName == null) {
-			return new CharacterStreamTargetAdapter(new OutputStreamWriter(stream));
+			return new CharacterStreamTarget(new OutputStreamWriter(stream));
 		}
 		try {
-			return new CharacterStreamTargetAdapter(new OutputStreamWriter(stream, charsetName));
+			return new CharacterStreamTarget(new OutputStreamWriter(stream, charsetName));
 		}
 		catch (UnsupportedEncodingException e) {
 			throw new ConfigurationException("unsupported encoding: " + charsetName, e);
@@ -122,7 +121,7 @@ public class CharacterStreamTargetAdapter implements Target {
 		Object payload = message.getPayload();
 		if (payload == null) {
 			if (logger.isWarnEnabled()) {
-				logger.warn("target adapter received null payload");
+				logger.warn("target received null payload");
 			}
 			return false;
 		}
@@ -146,7 +145,7 @@ public class CharacterStreamTargetAdapter implements Target {
 			return true;
 		}
 		catch (IOException e) {
-			throw new MessagingException("IO failure occurred in adapter", e);
+			throw new MessagingException("IO failure occurred in target", e);
 		}
 	}
 

@@ -33,13 +33,13 @@ import org.springframework.integration.message.StringMessage;
 /**
  * @author Mark Fisher
  */
-public class ByteStreamTargetAdapterTests {
+public class ByteStreamTargetTests {
 
 	@Test
 	public void testSingleByteArray() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		ByteStreamTargetAdapter adapter = new ByteStreamTargetAdapter(stream);
-		adapter.send(new GenericMessage<byte[]>(new byte[] {1,2,3}));
+		ByteStreamTarget target = new ByteStreamTarget(stream);
+		target.send(new GenericMessage<byte[]>(new byte[] {1,2,3}));
 		byte[] result = stream.toByteArray();
 		assertEquals(3, result.length);
 		assertEquals(1, result[0]);
@@ -50,8 +50,8 @@ public class ByteStreamTargetAdapterTests {
 	@Test
 	public void testSingleString() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		ByteStreamTargetAdapter adapter = new ByteStreamTargetAdapter(stream);
-		adapter.send(new StringMessage("foo"));
+		ByteStreamTarget target = new ByteStreamTarget(stream);
+		target.send(new StringMessage("foo"));
 		byte[] result = stream.toByteArray();
 		assertEquals(3, result.length);
 		assertEquals("foo", new String(result));
@@ -60,12 +60,12 @@ public class ByteStreamTargetAdapterTests {
 	@Test
 	public void testMaxMessagesPerTaskSameAsMessageCount() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		ByteStreamTargetAdapter adapter = new ByteStreamTargetAdapter(stream);
+		ByteStreamTarget target = new ByteStreamTarget(stream);
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(3);
 		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
 		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
-		task.getDispatcher().subscribe(adapter);
+		task.getDispatcher().subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -79,12 +79,12 @@ public class ByteStreamTargetAdapterTests {
 	@Test
 	public void testMaxMessagesPerTaskLessThanMessageCount() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		ByteStreamTargetAdapter adapter = new ByteStreamTargetAdapter(stream);
+		ByteStreamTarget target = new ByteStreamTarget(stream);
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
 		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
-		task.getDispatcher().subscribe(adapter);
+		task.getDispatcher().subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -97,13 +97,13 @@ public class ByteStreamTargetAdapterTests {
 	@Test
 	public void testMaxMessagesPerTaskExceedsMessageCount() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		ByteStreamTargetAdapter adapter = new ByteStreamTargetAdapter(stream);
+		ByteStreamTarget target = new ByteStreamTarget(stream);
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(5);
 		dispatcherPolicy.setReceiveTimeout(0);
 		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
 		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
-		task.getDispatcher().subscribe(adapter);
+		task.getDispatcher().subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -116,13 +116,13 @@ public class ByteStreamTargetAdapterTests {
 	@Test
 	public void testMaxMessagesLessThanMessageCountWithMultipleDispatches() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		ByteStreamTargetAdapter adapter = new ByteStreamTargetAdapter(stream);
+		ByteStreamTarget target = new ByteStreamTarget(stream);
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		dispatcherPolicy.setReceiveTimeout(0);
 		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
 		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
-		task.getDispatcher().subscribe(adapter);
+		task.getDispatcher().subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -140,13 +140,13 @@ public class ByteStreamTargetAdapterTests {
 	@Test
 	public void testMaxMessagesExceedsMessageCountWithMultipleDispatches() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		ByteStreamTargetAdapter adapter = new ByteStreamTargetAdapter(stream);
+		ByteStreamTarget target = new ByteStreamTarget(stream);
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(5);
 		dispatcherPolicy.setReceiveTimeout(0);
 		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
 		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
-		task.getDispatcher().subscribe(adapter);
+		task.getDispatcher().subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -163,13 +163,13 @@ public class ByteStreamTargetAdapterTests {
 	@Test
 	public void testStreamResetBetweenDispatches() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		ByteStreamTargetAdapter adapter = new ByteStreamTargetAdapter(stream);
+		ByteStreamTarget target = new ByteStreamTarget(stream);
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		dispatcherPolicy.setReceiveTimeout(0);
 		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
 		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
-		task.getDispatcher().subscribe(adapter);
+		task.getDispatcher().subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -186,13 +186,13 @@ public class ByteStreamTargetAdapterTests {
 	@Test
 	public void testStreamWriteBetweenDispatches() throws IOException {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		ByteStreamTargetAdapter adapter = new ByteStreamTargetAdapter(stream);
+		ByteStreamTarget target = new ByteStreamTarget(stream);
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		dispatcherPolicy.setReceiveTimeout(0);
 		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
 		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
-		task.getDispatcher().subscribe(adapter);
+		task.getDispatcher().subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);

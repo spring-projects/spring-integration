@@ -28,22 +28,22 @@ import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.Target;
 
 /**
- * A target adapter that writes a byte array to an {@link OutputStream}.
+ * A target that writes a byte array to an {@link OutputStream}.
  * 
  * @author Mark Fisher
  */
-public class ByteStreamTargetAdapter implements Target {
+public class ByteStreamTarget implements Target {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private BufferedOutputStream stream;
+	private final BufferedOutputStream stream;
 
 
-	public ByteStreamTargetAdapter(OutputStream stream) {
+	public ByteStreamTarget(OutputStream stream) {
 		this(stream, -1);
 	}
 
-	public ByteStreamTargetAdapter(OutputStream stream, int bufferSize) {
+	public ByteStreamTarget(OutputStream stream, int bufferSize) {
 		if (bufferSize > 0) {
 			this.stream = new BufferedOutputStream(stream, bufferSize);
 		}
@@ -51,6 +51,7 @@ public class ByteStreamTargetAdapter implements Target {
 			this.stream = new BufferedOutputStream(stream);
 		}
 	}
+
 
 	public boolean send(Message message) {
 		Object payload = message.getPayload();
@@ -75,7 +76,7 @@ public class ByteStreamTargetAdapter implements Target {
 			return true;
 		}
 		catch (IOException e) {
-			throw new MessagingException("IO failure occurred in adapter", e);
+			throw new MessagingException("IO failure occurred in target", e);
 		}
 	}
 

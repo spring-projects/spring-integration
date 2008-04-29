@@ -33,13 +33,13 @@ import org.springframework.integration.message.StringMessage;
 /**
  * @author Mark Fisher
  */
-public class CharacterStreamTargetAdapterTests {
+public class CharacterStreamTargetTests {
 
 	@Test
 	public void testSingleString() {
 		StringWriter writer = new StringWriter();
-		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(writer);
-		adapter.send(new StringMessage("foo"));
+		CharacterStreamTarget target = new CharacterStreamTarget(writer);
+		target.send(new StringMessage("foo"));
 		assertEquals("foo", writer.toString());
 	}
 
@@ -47,9 +47,9 @@ public class CharacterStreamTargetAdapterTests {
 	public void testTwoStringsAndNoNewLinesByDefault() {
 		MessageChannel channel = new QueueChannel();
 		StringWriter writer = new StringWriter();
-		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(writer);
+		CharacterStreamTarget target = new CharacterStreamTarget(writer);
 		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
-		task.getDispatcher().subscribe(adapter);
+		task.getDispatcher().subscribe(target);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
 		task.run();
@@ -62,10 +62,10 @@ public class CharacterStreamTargetAdapterTests {
 	public void testTwoStringsWithNewLines() {
 		MessageChannel channel = new QueueChannel();
 		StringWriter writer = new StringWriter();
-		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(writer);
-		adapter.setShouldAppendNewLine(true);
+		CharacterStreamTarget target = new CharacterStreamTarget(writer);
+		target.setShouldAppendNewLine(true);
 		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
-		task.getDispatcher().subscribe(adapter);
+		task.getDispatcher().subscribe(target);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
 		task.run();
@@ -78,12 +78,12 @@ public class CharacterStreamTargetAdapterTests {
 	@Test
 	public void testMaxMessagesPerTaskSameAsMessageCount() {
 		StringWriter writer = new StringWriter();
-		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(writer);
+		CharacterStreamTarget target = new CharacterStreamTarget(writer);
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
 		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
-		task.getDispatcher().subscribe(adapter);
+		task.getDispatcher().subscribe(target);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
 		task.run();
@@ -93,14 +93,14 @@ public class CharacterStreamTargetAdapterTests {
 	@Test
 	public void testMaxMessagesPerTaskExceedsMessageCountWithAppendedNewLines() {
 		StringWriter writer = new StringWriter();
-		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(writer);
+		CharacterStreamTarget target = new CharacterStreamTarget(writer);
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(10);
 		dispatcherPolicy.setReceiveTimeout(0);
 		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
 		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
-		task.getDispatcher().subscribe(adapter);		
-		adapter.setShouldAppendNewLine(true);
+		task.getDispatcher().subscribe(target);		
+		target.setShouldAppendNewLine(true);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
 		task.run();
@@ -112,9 +112,9 @@ public class CharacterStreamTargetAdapterTests {
 	public void testSingleNonStringObject() {
 		MessageChannel channel = new QueueChannel();
 		StringWriter writer = new StringWriter();
-		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(writer);
+		CharacterStreamTarget target = new CharacterStreamTarget(writer);
 		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
-		task.getDispatcher().subscribe(adapter);
+		task.getDispatcher().subscribe(target);
 		TestObject testObject = new TestObject("foo");
 		channel.send(new GenericMessage<TestObject>(testObject));
 		task.run();
@@ -124,13 +124,13 @@ public class CharacterStreamTargetAdapterTests {
 	@Test
 	public void testTwoNonStringObjectWithOutNewLines() {
 		StringWriter writer = new StringWriter();
-		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(writer);
+		CharacterStreamTarget target = new CharacterStreamTarget(writer);
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setReceiveTimeout(0);
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
 		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
-		task.getDispatcher().subscribe(adapter);
+		task.getDispatcher().subscribe(target);
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
 		channel.send(new GenericMessage<TestObject>(testObject1), 0);
@@ -142,14 +142,14 @@ public class CharacterStreamTargetAdapterTests {
 	@Test
 	public void testTwoNonStringObjectWithNewLines() {
 		StringWriter writer = new StringWriter();
-		CharacterStreamTargetAdapter adapter = new CharacterStreamTargetAdapter(writer);
+		CharacterStreamTarget target = new CharacterStreamTarget(writer);
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setReceiveTimeout(0);
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
-		adapter.setShouldAppendNewLine(true);
+		target.setShouldAppendNewLine(true);
 		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
-		task.getDispatcher().subscribe(adapter);
+		task.getDispatcher().subscribe(target);
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
 		channel.send(new GenericMessage<TestObject>(testObject1), 0);

@@ -32,7 +32,7 @@ import org.springframework.integration.scheduling.PollingSchedule;
 /**
  * @author Mark Fisher
  */
-public class ByteStreamSourceAdapterTests {
+public class ByteStreamSourceTests {
 
 	@Test
 	public void testEndOfStream() {
