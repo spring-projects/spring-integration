@@ -24,25 +24,25 @@ import org.springframework.integration.message.Target;
 import org.springframework.jms.core.JmsTemplate;
 
 /**
- * A target adapter for sending JMS Messages.
+ * A target for sending JMS Messages.
  * 
  * @author Mark Fisher
  */
-public class JmsTargetAdapter extends AbstractJmsTemplateBasedAdapter implements Target {
+public class JmsTarget extends AbstractJmsTemplateBasedAdapter implements Target {
 
-	public JmsTargetAdapter(JmsTemplate jmsTemplate) {
+	public JmsTarget(JmsTemplate jmsTemplate) {
 		super(jmsTemplate);
 	}
 
-	public JmsTargetAdapter(ConnectionFactory connectionFactory, Destination destination) {
+	public JmsTarget(ConnectionFactory connectionFactory, Destination destination) {
 		super(connectionFactory, destination);
 	}
 
-	public JmsTargetAdapter(ConnectionFactory connectionFactory, String destinationName) {
+	public JmsTarget(ConnectionFactory connectionFactory, String destinationName) {
 		super(connectionFactory, destinationName);
 	}
 
-	public JmsTargetAdapter() {
+	public JmsTarget() {
 		super();
 	}
 

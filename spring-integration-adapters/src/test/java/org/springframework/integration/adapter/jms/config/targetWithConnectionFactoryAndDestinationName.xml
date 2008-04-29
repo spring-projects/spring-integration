@@ -7,14 +7,9 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<si:message-bus/>
-
-	<si:channel id="testChannel"/>
-
-	<si:jms-target id="adapter"
+	<si:jms-target id="target"
 	               connection-factory="testConnectionFactory"
-	               destination-name="queue.test"
-	               channel="testChannel"/>
+	               destination-name="queue.test"/>
 
 	<bean id="testConnectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
 		<constructor-arg>

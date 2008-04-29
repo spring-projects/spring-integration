@@ -7,14 +7,17 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<si:message-bus/>
+	<si:jms-target id="target"
+	               connection-factory="testConnectionFactory"
+	               destination="testDestination"/>
 
-	<si:channel id="testChannel"/>
-
-	<si:jms-target id="adapter"
-	               connection-factory=""
-	               destination="testDestination"
-	               channel="testChannel"/>
+	<bean id="testConnectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
+		<constructor-arg>
+			<bean class="org.springframework.integration.adapter.jms.StubConnection">
+				<constructor-arg value="target-test"/>
+			</bean>
+		</constructor-arg>
+	</bean>
 
 	<bean id="testDestination" class="org.springframework.integration.adapter.jms.StubDestination"/>
 

@@ -44,10 +44,6 @@ public abstract class JmsAdapterParserUtils {
 
 	public static final String DESTINATION_NAME_PROPERTY = "destinationName";
 
-	public static final String CHANNEL_ATTRIBUTE = "channel";
-
-	public static final String CHANNEL_PROPERTY = "channel";
-
 
 	public static String determineConnectionFactoryBeanName(Element element) {
 		String connectionFactoryBeanName = "connectionFactory";

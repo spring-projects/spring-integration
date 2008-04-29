@@ -19,15 +19,10 @@ package org.springframework.integration.adapter.jms.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
-import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.adapter.jms.JmsTargetAdapter;
-import org.springframework.integration.endpoint.TargetEndpoint;
-import org.springframework.integration.scheduling.Subscription;
+import org.springframework.integration.adapter.jms.JmsTarget;
 import org.springframework.util.StringUtils;
 
 /**
@@ -35,13 +30,10 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class JmsTargetAdapterParser extends AbstractSingleBeanDefinitionParser {
-
-	private static final String SUBSCRIPTION_PROPERTY = "subscription";
-
+public class JmsTargetParser extends AbstractSingleBeanDefinitionParser {
 
 	protected Class<?> getBeanClass(Element element) {
-		return TargetEndpoint.class;
+		return JmsTarget.class;
 	}
 
 	protected boolean shouldGenerateId() {
@@ -56,7 +48,6 @@ public class JmsTargetAdapterParser extends AbstractSingleBeanDefinitionParser {
 		String jmsTemplate = element.getAttribute(JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE);
 		String destination = element.getAttribute(JmsAdapterParserUtils.DESTINATION_ATTRIBUTE);
 		String destinationName = element.getAttribute(JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE);
-		RootBeanDefinition adapterDef = new RootBeanDefinition(JmsTargetAdapter.class);
 		if (StringUtils.hasText(jmsTemplate)) {
 			if (element.hasAttribute(JmsAdapterParserUtils.CONNECTION_FACTORY_ATTRIBUTE) ||
 					element.hasAttribute(JmsAdapterParserUtils.DESTINATION_ATTRIBUTE) ||
@@ -64,31 +55,22 @@ public class JmsTargetAdapterParser extends AbstractSingleBeanDefinitionParser {
 				throw new BeanCreationException("when providing a 'jms-template' reference, none of " +
 						"'connection-factory', 'destination', or 'destination-name' should be provided.");
 			}
-			adapterDef.getPropertyValues().addPropertyValue(
-					JmsAdapterParserUtils.JMS_TEMPLATE_PROPERTY, new RuntimeBeanReference(jmsTemplate));
+			builder.addPropertyReference(JmsAdapterParserUtils.JMS_TEMPLATE_PROPERTY, jmsTemplate);
 		}
 		else if (StringUtils.hasText(destination) ^ StringUtils.hasText(destinationName)) {
-			adapterDef.getPropertyValues().addPropertyValue(JmsAdapterParserUtils.CONNECTION_FACTORY_PROPERTY,
-					new RuntimeBeanReference(JmsAdapterParserUtils.determineConnectionFactoryBeanName(element)));
+			builder.addPropertyReference(JmsAdapterParserUtils.CONNECTION_FACTORY_PROPERTY,
+					JmsAdapterParserUtils.determineConnectionFactoryBeanName(element));
 			if (StringUtils.hasText(destination)) {
-				adapterDef.getPropertyValues().addPropertyValue(
-						JmsAdapterParserUtils.DESTINATION_PROPERTY, new RuntimeBeanReference(destination));
+				builder.addPropertyReference(JmsAdapterParserUtils.DESTINATION_PROPERTY, destination);
 			}
 			else {
-				adapterDef.getPropertyValues().addPropertyValue(
-						JmsAdapterParserUtils.DESTINATION_NAME_PROPERTY, destinationName);
+				builder.addPropertyValue(JmsAdapterParserUtils.DESTINATION_NAME_PROPERTY, destinationName);
 			}
 		}
 		else {
 			throw new BeanCreationException("Either a 'jms-template' reference or " +
 			"one of 'destination' or 'destination-name' attributes must be provided.");
 		}
-		String channel = element.getAttribute(JmsAdapterParserUtils.CHANNEL_ATTRIBUTE);
-		Subscription subscription = new Subscription(channel);
-		String adapterBeanName = parserContext.getReaderContext().generateBeanName(adapterDef);
-		parserContext.registerBeanComponent(new BeanComponentDefinition(adapterDef, adapterBeanName));
-		builder.addConstructorArgReference(adapterBeanName);
-		builder.addPropertyValue(SUBSCRIPTION_PROPERTY, subscription);
 	}
 
 }

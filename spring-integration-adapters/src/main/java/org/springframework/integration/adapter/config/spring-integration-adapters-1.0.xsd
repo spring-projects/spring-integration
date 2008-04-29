@@ -95,7 +95,7 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a jms-based target channel adapter.
+	Defines a target that sends JMS Messages.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:attribute name="id" type="xsd:string"/>
@@ -103,7 +103,6 @@
 			<xsd:attribute name="connection-factory" type="xsd:string"/>
 			<xsd:attribute name="destination" type="xsd:string"/>
 			<xsd:attribute name="destination-name" type="xsd:string"/>
-			<xsd:attribute name="channel" type="xsd:string" use="required"/>
 		</xsd:complexType>
 	</xsd:element>
 
