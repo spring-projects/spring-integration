@@ -30,11 +30,11 @@ import org.springframework.integration.adapter.file.FileSource;
 /**
  * @author Mark Fisher
  */
-public class FileSourceAdapterParserTests {
+public class FileSourceParserTests {
 
 	@Test
-	public void testFileSourceAdapterParser() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("fileSourceAdapterParserTests.xml", this.getClass());
+	public void testFileSource() {
+		ApplicationContext context = new ClassPathXmlApplicationContext("fileSourceParserTests.xml", this.getClass());
 		FileSource fileSource = (FileSource) context.getBean("fileSource");
 		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(fileSource);
 		File directory = (File) sourceAccessor.getPropertyValue("directory");

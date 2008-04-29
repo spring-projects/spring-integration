@@ -22,9 +22,11 @@
 	<handler-endpoint input-channel="channel1" output-channel="channel2"
               handler="exclaimer" method="exclaim"/>
 
+	<target-endpoint input-channel="channel2" target="fileTarget"/>
+
 	<file-source id="fileSource" directory="${java.io.tmpdir}/spring-integration-samples/input"/>
 
-	<file-target directory="${java.io.tmpdir}/spring-integration-samples/output" channel="channel2"/>
+	<file-target id="fileTarget" directory="${java.io.tmpdir}/spring-integration-samples/output"/>
 
 	<beans:bean id="exclaimer" class="org.springframework.integration.samples.filecopy.Exclaimer"/>
 

@@ -32,12 +32,11 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a file-based target channel adapter.
+	Defines a file-based target.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:attribute name="id" type="xsd:string"/>
 			<xsd:attribute name="directory" type="xsd:string" use="required"/>
-			<xsd:attribute name="channel" type="xsd:string" use="required"/>
 		</xsd:complexType>
 	</xsd:element>
 

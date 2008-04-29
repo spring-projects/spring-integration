@@ -16,27 +16,34 @@
 
 package org.springframework.integration.adapter.file.config;
 
-import static org.junit.Assert.assertEquals;
+import org.w3c.dom.Element;
 
-import org.junit.Test;
-
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
+import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.adapter.file.FileTarget;
-import org.springframework.integration.endpoint.TargetEndpoint;
 
 /**
+ * Parser for the &lt;file-target/&gt; element. 
+ * 
  * @author Mark Fisher
  */
-public class FileTargetAdapterParserTests {
+public class FileTargetParser extends AbstractSingleBeanDefinitionParser {
 
-	@Test
-	public void testFileTargetAdapterParser() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("fileTargetAdapterParserTests.xml", this.getClass());
-		TargetEndpoint endpoint = (TargetEndpoint) context.getBean("adapter");
-		assertEquals(FileTarget.class, endpoint.getTarget().getClass());
-		assertEquals("adapter", endpoint.getName());
-		assertEquals("testChannel", endpoint.getSubscription().getChannelName());
+	protected Class<?> getBeanClass(Element element) {
+		return FileTarget.class;
+	}
+
+	protected boolean shouldGenerateId() {
+		return false;
+	}
+
+	protected boolean shouldGenerateIdAsFallback() {
+		return true;
+	}
+
+	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+		builder.addConstructorArgValue(element.getAttribute("directory"));
 	}
 
 }
