@@ -7,14 +7,10 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<si:message-bus/>
+	<si:mail-target id="targetWithMailSenderReference" mail-sender="mailSender"/>
 
-	<si:channel id="testChannel"/>
-
-	<si:mail-target id="adapterWithMailSenderReference" mail-sender="mailSender" channel="testChannel"/>
-
-	<si:mail-target id="adapterWithHostProperty" host="somehost" username="someuser" password="somepassword"
-			channel="testChannel"/>
+	<si:mail-target id="targetWithHostProperty"
+			host="somehost" username="someuser" password="somepassword"/>
 
 	<bean id="mailSender" class="org.springframework.integration.adapter.mail.StubJavaMailSender">
 		<constructor-arg>
@@ -24,10 +20,11 @@
 		</constructor-arg>
 	</bean>
 
-	<si:mail-target id="adapterWithHeaderGeneratorReference" mail-sender="mailSender" channel="testChannel"
+	<si:mail-target id="targetWithHeaderGeneratorReference"
+			mail-sender="mailSender"
 			header-generator="testHeaderGenerator"/>
 
 	<bean id="testHeaderGenerator"
-			class="org.springframework.integration.adapter.mail.config.MailTargetAdapterParserTests$TestHeaderGenerator"/>
+			class="org.springframework.integration.adapter.mail.config.MailTargetParserTests$TestHeaderGenerator"/>
 
 </beans>

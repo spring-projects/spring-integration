@@ -38,7 +38,7 @@ import org.springframework.mail.SimpleMailMessage;
 /**
  * @author Marius Bogoevici
  */
-public class MailTargetAdapterTests {
+public class MailTargetTests {
 
 	private MailTarget mailTarget;
 

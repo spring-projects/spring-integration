@@ -42,8 +42,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Marius Bogoevici
  */
 @RunWith(value = SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:/org/springframework/integration/adapter/mail/mailTargetAdapter.xml"})
-public class MailTargetAdapterContextTests {
+@ContextConfiguration(locations = {"classpath:/org/springframework/integration/adapter/mail/mailTarget.xml"})
+public class MailTargetContextTests {
 
 	@Autowired
 	private MailTarget mailTarget;

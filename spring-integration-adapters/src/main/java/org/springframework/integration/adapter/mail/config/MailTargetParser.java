@@ -18,16 +18,11 @@ package org.springframework.integration.adapter.mail.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.config.RuntimeBeanReference;
-import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.adapter.mail.MailTarget;
-import org.springframework.integration.endpoint.TargetEndpoint;
-import org.springframework.integration.scheduling.Subscription;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.util.StringUtils;
 
@@ -36,10 +31,10 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class MailTargetAdapterParser extends AbstractSingleBeanDefinitionParser {
+public class MailTargetParser extends AbstractSingleBeanDefinitionParser {
 
 	protected Class<?> getBeanClass(Element element) {
-		return TargetEndpoint.class;
+		return MailTarget.class;
 	}
 
 	protected boolean shouldGenerateId() {
@@ -51,7 +46,6 @@ public class MailTargetAdapterParser extends AbstractSingleBeanDefinitionParser 
 	}
 
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		RootBeanDefinition adapterDef = new RootBeanDefinition(MailTarget.class);
 		String mailSenderRef = element.getAttribute("mail-sender");
 		String host = element.getAttribute("host");
 		String username = element.getAttribute("username");
@@ -62,7 +56,7 @@ public class MailTargetAdapterParser extends AbstractSingleBeanDefinitionParser 
 				throw new ConfigurationException("The 'host', 'username', and 'password' properties " +
 						"should not be provided when using a 'mail-sender' reference.");
 			}
-			adapterDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(mailSenderRef));
+			builder.addConstructorArgReference(mailSenderRef);
 		}
 		else if (StringUtils.hasText(host)) {
 			JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
@@ -73,21 +67,14 @@ public class MailTargetAdapterParser extends AbstractSingleBeanDefinitionParser 
 			if (StringUtils.hasText(password)) {
 				mailSender.setPassword(password);
 			}
-			adapterDef.getConstructorArgumentValues().addGenericArgumentValue(mailSender);
+			builder.addConstructorArgValue(mailSender);
 		}
 		else {
 			throw new ConfigurationException("Either a 'mail-sender' reference or 'host' property is required.");
 		}
 		if (StringUtils.hasText(headerGeneratorRef)) {
-			adapterDef.getPropertyValues().addPropertyValue(
-					"headerGenerator", new RuntimeBeanReference(headerGeneratorRef));
+			builder.addPropertyReference("headerGenerator", headerGeneratorRef);
 		}
-		String adapterBeanName = parserContext.getReaderContext().generateBeanName(adapterDef);
-		parserContext.registerBeanComponent(new BeanComponentDefinition(adapterDef, adapterBeanName));
-		builder.addConstructorArgReference(adapterBeanName);
-		String channel = element.getAttribute("channel");
-		Subscription subscription = new Subscription(channel);
-		builder.addPropertyValue("subscription", subscription);
 	}
 
 }

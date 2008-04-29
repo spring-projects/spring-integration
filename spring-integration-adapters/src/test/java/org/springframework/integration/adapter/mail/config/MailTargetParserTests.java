@@ -18,7 +18,6 @@ package org.springframework.integration.adapter.mail.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -27,44 +26,40 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.adapter.mail.MailHeaderGenerator;
 import org.springframework.integration.adapter.mail.MailTarget;
-import org.springframework.integration.endpoint.TargetEndpoint;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.Target;
 import org.springframework.mail.MailMessage;
+import org.springframework.mail.MailSender;
 
 /**
  * @author Mark Fisher
  */
-public class MailTargetAdapterParserTests {
+public class MailTargetParserTests {
 
 	@Test
-	public void testAdapterWithMailSenderReference() {
+	public void testTargetWithMailSenderReference() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"mailTargetAdapterParserTests.xml", this.getClass());
-		TargetEndpoint endpoint = (TargetEndpoint) context.getBean("adapterWithMailSenderReference");
-		Target target = endpoint.getTarget();
-		assertNotNull(target);
-		assertTrue(target instanceof MailTarget);
+				"mailTargetParserTests.xml", this.getClass());
+		MailTarget target = (MailTarget) context.getBean("targetWithMailSenderReference");
+		DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(target);
+		MailSender mailSender = (MailSender) fieldAccessor.getPropertyValue("mailSender");
+		assertNotNull(mailSender);
 	}
 
 	@Test
-	public void testAdapterWithHostProperty() {
+	public void testTargetWithHostProperty() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"mailTargetAdapterParserTests.xml", this.getClass());
-		TargetEndpoint endpoint = (TargetEndpoint) context.getBean("adapterWithHostProperty");
-		Target target = endpoint.getTarget();
-		assertNotNull(target);
-		assertTrue(target instanceof MailTarget);
+				"mailTargetParserTests.xml", this.getClass());
+		MailTarget target = (MailTarget) context.getBean("targetWithHostProperty");
+		DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(target);
+		MailSender mailSender = (MailSender) fieldAccessor.getPropertyValue("mailSender");
+		assertNotNull(mailSender);
 	}
 
 	@Test
-	public void testAdapterWithHeaderGeneratorReference() {
+	public void testTargetWithHeaderGeneratorReference() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"mailTargetAdapterParserTests.xml", this.getClass());
-		TargetEndpoint endpoint = (TargetEndpoint) context.getBean("adapterWithHeaderGeneratorReference");
-		Target target = endpoint.getTarget();
-		assertNotNull(target);
-		assertTrue(target instanceof MailTarget);
+				"mailTargetParserTests.xml", this.getClass());
+		MailTarget target = (MailTarget) context.getBean("targetWithHeaderGeneratorReference");
 		DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(target);
 		MailHeaderGenerator headerGenerator =
 				(MailHeaderGenerator) fieldAccessor.getPropertyValue("mailHeaderGenerator");
