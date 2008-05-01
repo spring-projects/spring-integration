@@ -61,11 +61,11 @@ public class GatewayProxyFactoryBeanTests {
 
 	@Test
 	public void testSolicitResponse() throws Exception {
-		MessageChannel responseChannel = new QueueChannel();
-		responseChannel.send(new StringMessage("foo"));
+		MessageChannel replyChannel = new QueueChannel();
+		replyChannel.send(new StringMessage("foo"));
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		proxyFactory.setServiceInterface(TestService.class);
-		proxyFactory.setResponseChannel(responseChannel);
+		proxyFactory.setReplyChannel(replyChannel);
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		String result = service.solicitResponse();

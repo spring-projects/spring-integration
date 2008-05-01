@@ -16,13 +16,21 @@
 
 package org.springframework.integration.channel;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.List;
 
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.config.MessageBusParser;
+import org.springframework.integration.endpoint.EndpointRegistry;
+import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.handler.ReplyHandler;
+import org.springframework.integration.handler.ResponseCorrelator;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageHeader;
-import org.springframework.util.Assert;
+import org.springframework.integration.message.MessagingException;
+import org.springframework.integration.message.selector.MessageSelector;
+import org.springframework.integration.scheduling.Subscription;
 
 /**
  * A template that facilitates the implementation of request-reply usage
@@ -30,121 +38,234 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class RequestReplyTemplate {
+public class RequestReplyTemplate implements ApplicationContextAware {
 
-	private final MessageChannel requestChannel;
+	private MessageChannel requestChannel;
 
-	private final ExecutorService executor;
+	private MessageChannel replyChannel;
 
-	private volatile long defaultSendTimeout = -1;
+	private volatile long requestTimeout = -1;
 
-	private volatile long defaultReceiveTimeout = -1;
+	private volatile long replyTimeout = -1;
+
+	private ResponseCorrelator responseCorrelator;
+
+	private EndpointRegistry endpointRegistry;
+
+	private final Object responseCorrelatorMonitor = new Object();
 
 
 	/**
 	 * Create a RequestReplyTemplate.
 	 * 
 	 * @param requestChannel the channel to which request messages will be sent
-	 * @param executor the executor that will handle asynchronous (non-blocking)
-	 * requests
+	 * @param replyChannel the channel from which reply messages will be received
 	 */
-	public RequestReplyTemplate(MessageChannel requestChannel, ExecutorService executor) {
-		Assert.notNull(requestChannel, "'requestChannel' must not be null");
-		Assert.notNull(executor, "'executor' must not be null");
+	public RequestReplyTemplate(MessageChannel requestChannel, MessageChannel replyChannel) {
 		this.requestChannel = requestChannel;
-		this.executor = executor;
+		this.replyChannel = replyChannel;
 	}
 
 	/**
-	 * Create a RequestReplyTemplate with a default single-threaded executor.
+	 * Create a RequestReplyTemplate that will use anonymous temporary channels for replies.
 	 * 
 	 * @param requestChannel the channel to which request messages will be sent
 	 */
 	public RequestReplyTemplate(MessageChannel requestChannel) {
-		this(requestChannel, Executors.newSingleThreadExecutor());
+		this(requestChannel, null);
+	}
+
+	public RequestReplyTemplate() {
 	}
 
 
 	/**
-	 * Set the default timeout value for sending request messages. If not
-	 * explicitly configured, the default will be an indefinite timeout.
+	 * Set the request channel.
 	 * 
-	 * @param defaultSendTimeout the timeout value in milliseconds
+	 * @param requestChannel the channel to which request messages will be sent
 	 */
-	public void setDefaultSendTimeout(long defaultSendTimeout) {
-		this.defaultSendTimeout = defaultSendTimeout;
+	public void setRequestChannel(MessageChannel requestChannel) {
+		this.requestChannel = requestChannel;
 	}
 
 	/**
-	 * Set the default timeout value for receiving reply messages. If not
-	 * explicitly configured, the default will be an indefinite timeout.
+	 * Set the reply channel. If no reply channel is provided, this template will
+	 * always use an anonymous, temporary channel for handling replies.
 	 * 
-	 * @param defaultReceiveTimeout the timeout value in milliseconds
+	 * @param replyChannel the channel from which reply messages will be received
 	 */
-	public void setDefaultReceiveTimeout(long defaultReceiveTimeout) {
-		this.defaultReceiveTimeout = defaultReceiveTimeout;
+	public void setReplyChannel(MessageChannel replyChannel) {
+		this.replyChannel = replyChannel;
 	}
 
 	/**
-	 * Send a request message and wait for a reply message using the provided
+	 * Set the timeout value for sending request messages. If not
+	 * explicitly configured, the default is an indefinite timeout.
+	 * 
+	 * @param requestTimeout the timeout value in milliseconds
+	 */
+	public void setRequestTimeout(long requestTimeout) {
+		this.requestTimeout = requestTimeout;
+	}
+
+	/**
+	 * Set the timeout value for receiving reply messages. If not
+	 * explicitly configured, the default is an indefinite timeout.
+	 * 
+	 * @param replyTimeout the timeout value in milliseconds
+	 */
+	public void setReplyTimeout(long replyTimeout) {
+		this.replyTimeout = replyTimeout;
+	}
+
+	public void setEndpointRegistry(EndpointRegistry endpointRegistry) {
+		this.endpointRegistry = endpointRegistry;
+	}
+
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+		if (applicationContext.containsBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME)) {
+			this.setEndpointRegistry((EndpointRegistry) applicationContext.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME));
+		}
+	}
+
+	public boolean send(Message<?> message) {
+		if (message == null) {
+			throw new MessagingException("Message must not be null.");
+		}
+		if (this.requestChannel == null) {
+			throw new MessagingException("No request channel has been configured. Cannot send message.");
+		}
+		boolean sent = (this.requestTimeout >= 0) ?
+				this.requestChannel.send(message, this.requestTimeout) : this.requestChannel.send(message);
+		if (!sent) {
+			throw new MessagingException("Failed to send request message.");
+		}
+		return true;
+	}
+
+	public Message<?> receive() {
+		if (this.replyChannel == null) {
+			throw new MessagingException("No reply channel has been configured. Cannot perform receive only operation.");
+		}
+		return this.receiveResponse(this.replyChannel);
+	}
+
+	/**
+	 * Send a request message whose reply should be handled be the provided callback.
+	 */
+	public boolean request(Message<?> message, ReplyHandler replyHandler) {
+		MessageChannel replyChannelAdapter = new ReplyHandlingChannelAdapter(message, replyHandler);
+		message.getHeader().setReturnAddress(replyChannelAdapter);
+		return this.send(message);
+	}
+
+	/**
+	 * Send a request message and wait for a reply message using the configured
 	 * timeout values.
 	 * 
 	 * @param requestMessage the request message to send
-	 * @param sendTimeout the timeout value for sending the request message
-	 * @param receiveTimeout the timeout value for receiving a reply message
 	 * 
 	 * @return the reply message or <code>null</code>
 	 */
-	public Message<?> request(Message<?> requestMessage, long sendTimeout, long receiveTimeout) {
-		RendezvousChannel replyChannel = new RendezvousChannel();
-		requestMessage.getHeader().setReturnAddress(replyChannel);
-		this.requestChannel.send(requestMessage, sendTimeout);
-		return replyChannel.receive(receiveTimeout);
+	public Message<?> request(Message<?> message) {
+		if (this.requestChannel == null) {
+			throw new MessagingException("No request channel available. Cannot send request message.");
+		}
+		if (this.replyChannel != null) {
+			return this.sendAndReceiveWithResponseCorrelator(message);
+		}
+		else {
+			return this.sendAndReceiveWithTemporaryChannel(message);
+		}
 	}
 
-	/**
-	 * Send a request message and wait for a reply message using the default
-	 * timeout values.
-	 * 
-	 * @param requestMessage the request message to send
-	 * 
-	 * @return the reply message or <code>null</code>
-	 */
-	public Message<?> request(Message<?> requestMessage) {
-		return this.request(requestMessage, this.defaultSendTimeout, this.defaultReceiveTimeout);
+	private Message<?> sendAndReceiveWithResponseCorrelator(Message<?> message) {
+		if (this.responseCorrelator == null) {
+			this.registerResponseCorrelator();
+		}
+		message.getHeader().setReturnAddress(this.replyChannel);
+		this.send(message);
+		return (this.replyTimeout >= 0) ? this.responseCorrelator.getResponse(message.getId(), this.replyTimeout) :
+				this.responseCorrelator.getResponse(message.getId());
 	}
 
-	/**
-	 * Send a request message asynchronously to be handled by the provided
-	 * {@link ReplyHandler}. The provided values will be used for the send
-	 * and receive timeouts.
-	 * 
-	 * @param requestMessage the request message to send
-	 * @param replyHandler the callback that will handle a reply message
-	 * @param sendTimeout the timeout value for sending the request message
-	 * @param receiveTimeout the timeout value for receiving the reply message
-	 */
-	public void request(final Message<?> requestMessage, final ReplyHandler replyHandler, final long sendTimeout,
-			final long receiveTimeout) {
-		final MessageHeader header = requestMessage.getHeader();
-		this.executor.submit(new Runnable() {
-			public void run() {
-				Message<?> reply = request(requestMessage, sendTimeout, receiveTimeout);
-				replyHandler.handle(reply, header);
+	private Message<?> sendAndReceiveWithTemporaryChannel(Message<?> message) {
+		RendezvousChannel temporaryChannel = new RendezvousChannel();
+		message.getHeader().setReturnAddress(temporaryChannel);
+		this.send(message);
+		return this.receiveResponse(temporaryChannel);
+	}
+
+	private Message<?> receiveResponse(MessageChannel channel) {
+		return (this.replyTimeout >= 0) ? channel.receive(this.replyTimeout) : channel.receive();
+	}
+
+	private void registerResponseCorrelator() {
+		synchronized (this.responseCorrelatorMonitor) {
+			if (this.responseCorrelator != null) {
+				return;
 			}
-		});
+			if (this.endpointRegistry == null) {
+				throw new ConfigurationException("No EndpointRegistry available. Cannot register ResponseCorrelator.");
+			}
+			ResponseCorrelator correlator = new ResponseCorrelator(10);
+			HandlerEndpoint endpoint = new HandlerEndpoint(correlator);
+			endpoint.setSubscription(new Subscription(this.replyChannel));
+			this.endpointRegistry.registerEndpoint("internal.correlator." + this, endpoint);
+			this.responseCorrelator = correlator;
+		}
 	}
 
-	/**
-	 * Send a request message asynchronously to be handled by the provided
-	 * {@link ReplyHandler}. Default values will be used for the send and
-	 * receive timeouts.
-	 * 
-	 * @param requestMessage the request message to send
-	 * @param replyHandler the callback that will handle a reply message
-	 */
-	public void request(final Message<?> requestMessage, final ReplyHandler replyHandler) {
-		this.request(requestMessage, replyHandler, this.defaultSendTimeout, this.defaultReceiveTimeout);
+
+	private static class ReplyHandlingChannelAdapter implements MessageChannel {
+
+		private final Message<?> originalMessage;
+
+		private final ReplyHandler replyHandler;
+
+
+		ReplyHandlingChannelAdapter(Message<?> originalMessage, ReplyHandler replyHandler) {
+			this.originalMessage = originalMessage;
+			this.replyHandler = replyHandler;
+		}
+
+
+        public List<Message<?>> clear() {
+	        return null;
+        }
+
+        public DispatcherPolicy getDispatcherPolicy() {
+	        return null;
+        }
+
+        public String getName() {
+	        return null;
+        }
+
+        public List<Message<?>> purge(MessageSelector selector) {
+	        return null;
+        }
+
+        public void setName(String name) {
+        }
+
+        public Message receive() {
+	        return null;
+        }
+
+        public Message receive(long timeout) {
+	        return null;
+        }
+
+        public boolean send(Message<?> message) {
+	        this.replyHandler.handle(message, originalMessage.getHeader());
+	        return true;
+        }
+
+        public boolean send(Message<?> message, long timeout) {
+	        return this.send(message);
+        }
+
 	}
 
 }

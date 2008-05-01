@@ -105,8 +105,8 @@ public class MessageHandlingSourceAdapter implements MessageHandler, Initializin
 
 	private RequestReplyTemplate createRequestReplyTemplate() {
 		RequestReplyTemplate template = new RequestReplyTemplate(this.channel);
-		template.setDefaultSendTimeout(this.sendTimeout);
-		template.setDefaultReceiveTimeout(this.receiveTimeout);
+		template.setRequestTimeout(this.sendTimeout);
+		template.setReplyTimeout(this.receiveTimeout);
 		return template;
 	}
 

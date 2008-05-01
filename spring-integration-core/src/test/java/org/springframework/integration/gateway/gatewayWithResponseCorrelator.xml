@@ -11,7 +11,7 @@
 
 	<channel id="requestChannel"/>
 
-	<channel id="responseChannel">
+	<channel id="replyChannel">
 		<interceptor ref="interceptor"/>
 	</channel>
 
@@ -20,7 +20,7 @@
 	<beans:bean id="proxy" class="org.springframework.integration.gateway.GatewayProxyFactoryBean">
 		<beans:property name="serviceInterface" value="org.springframework.integration.gateway.TestService"/>
 		<beans:property name="requestChannel" ref="requestChannel"/>
-		<beans:property name="responseChannel" ref="responseChannel"/>
+		<beans:property name="replyChannel" ref="replyChannel"/>
 	</beans:bean>
 
 	<beans:bean id="handler" class="org.springframework.integration.gateway.TestHandler"/>
