@@ -16,29 +16,35 @@
 
 package org.springframework.integration.config;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import org.springframework.beans.factory.BeanDefinitionStoreException;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.bus.MessageBusAwareBeanPostProcessor;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * Parser for the <em>message-bus</em> element of the integration namespace.
  * 
  * @author Mark Fisher
+ * @author Marius Bogoevici
  */
 public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 
 	public static final String MESSAGE_BUS_BEAN_NAME = "internal.MessageBus";
+
+	public static final String MESSAGE_BUS_AWARE_POST_PROCESSOR_BEAN_NAME = "internal.MessageBusAwareBeanPostProcessor";
 
 	private static final Class<?> MESSAGE_BUS_CLASS = MessageBus.class;
 
@@ -47,7 +53,6 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 	private static final String DEFAULT_CONCURRENCY_ELEMENT = "default-concurrency";
 
 	private static final String DEFAULT_CONCURRENCY_PROPERTY = "defaultConcurrencyPolicy";
-
 
 	@Override
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
@@ -91,6 +96,23 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 				}
 			}
 		}
+	}
+
+	@Override
+	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+		super.doParse(element, parserContext, builder);
+		addPostProcessors(parserContext);
+	}
+
+	/**
+	 * Adds extra post-processors to the context, to inject the objects configured by the MessageBus
+	 */
+	private void addPostProcessors(ParserContext parserContext) {
+		BeanDefinition postProcessorDefinition = new RootBeanDefinition(MessageBusAwareBeanPostProcessor.class);
+		postProcessorDefinition.getConstructorArgumentValues().addGenericArgumentValue(
+				new RuntimeBeanReference(MessageBusParser.MESSAGE_BUS_BEAN_NAME));
+		parserContext.getRegistry().registerBeanDefinition(MESSAGE_BUS_AWARE_POST_PROCESSOR_BEAN_NAME,
+				postProcessorDefinition);
 	}
 
 }
