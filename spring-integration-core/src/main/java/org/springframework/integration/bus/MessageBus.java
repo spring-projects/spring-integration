@@ -27,7 +27,6 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -41,6 +40,8 @@ import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.channel.factory.ChannelFactory;
+import org.springframework.integration.channel.factory.QueueChannelFactory;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.DefaultEndpointRegistry;
 import org.springframework.integration.endpoint.EndpointRegistry;
@@ -63,6 +64,7 @@ import org.springframework.util.Assert;
  * and activates subscriptions.
  * 
  * @author Mark Fisher
+ * @author Marius Bogoevici
  */
 public class MessageBus implements ChannelRegistry, EndpointRegistry, ApplicationContextAware, ApplicationListener, Lifecycle {
 
@@ -72,6 +74,8 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 
 
 	private final Log logger = LogFactory.getLog(this.getClass());
+	
+	private volatile ChannelFactory channelFactory = new QueueChannelFactory();
 
 	private final ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 
@@ -100,6 +104,18 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 	private volatile boolean running;
 
 	private final Object lifecycleMonitor = new Object();
+
+
+	/**
+	 * Set the {@link ChannelFactory} to use for auto-creating channels.
+	 */
+	public void setChannelFactory(ChannelFactory channelFactory) {
+		this.channelFactory = channelFactory;
+	}
+	
+	public ChannelFactory getChannelFactory() {
+		return channelFactory;
+	}
 
 
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -336,7 +352,7 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 				if (this.logger.isInfoEnabled()) {
 					logger.info("auto-creating channel '" + channelName + "'");
 				}
-				channel = new QueueChannel(); 
+				channel = channelFactory.getChannel(null, null); 
 				this.registerChannel(channelName, channel);
 			}
 		}
