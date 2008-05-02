@@ -25,10 +25,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
-
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -219,17 +217,11 @@ public class MessageBusTests {
 		assertEquals(MessageDeliveryException.class, errorMessage.getPayload().getClass());
 	}
 
-	@Test
+	@Test(expected = BeanCreationException.class)
 	public void testMultipleMessageBusBeans() {
-		boolean exceptionThrown = false;
-		try {
-			new ClassPathXmlApplicationContext("multipleMessageBusBeans.xml", this.getClass());
-		}
-		catch (BeanCreationException e) {
-			exceptionThrown = true;
-			assertEquals(ConfigurationException.class, e.getCause().getClass());
-		}
-		assertTrue(exceptionThrown);
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("multipleMessageBusBeans.xml", 
+				this.getClass());
+
 	}
 
 	@Test
@@ -259,6 +251,12 @@ public class MessageBusTests {
 		assertEquals("handler should have received error message", 0, latch.getCount());
 	}
 
+	@Test
+	public void testMessageBusAwareImpl() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("messageBusTests.xml", this.getClass());
+		TestMessageBusAwareImpl messageBusAwareBean = (TestMessageBusAwareImpl) context.getBean("messageBusAwareBean");
+		assertTrue(messageBusAwareBean.getMessageBus() == context.getBean("bus"));
+	}
 
 	private static class FailingSource implements PollableSource<Object> {
 
