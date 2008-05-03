@@ -23,8 +23,12 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.SimpleTypeConverter;
 import org.springframework.beans.TypeConverter;
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.config.MessageBusParser;
 import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -35,7 +39,8 @@ import org.springframework.util.ClassUtils;
  * 
  * @author Mark Fisher
  */
-public class GatewayProxyFactoryBean extends MessagingGateway implements FactoryBean, MethodInterceptor, InitializingBean, BeanClassLoaderAware {
+public class GatewayProxyFactoryBean extends MessagingGateway
+		implements FactoryBean, MethodInterceptor, InitializingBean, BeanClassLoaderAware, BeanFactoryAware {
 
 	private Class<?> serviceInterface;
 
@@ -57,6 +62,11 @@ public class GatewayProxyFactoryBean extends MessagingGateway implements Factory
 
 	public void setBeanClassLoader(ClassLoader beanClassLoader) {
 		this.beanClassLoader = beanClassLoader;
+	}
+
+	public void setBeanFactory(BeanFactory beanFactory) {
+		this.getRequestReplyTemplate().setMessageBus(
+				(MessageBus) beanFactory.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME));
 	}
 
 	public void afterPropertiesSet() {
@@ -84,7 +94,7 @@ public class GatewayProxyFactoryBean extends MessagingGateway implements Factory
 			if (shouldReturnMessage) {
 				return this.receive();
 			}
-			response = this.invoke();
+			response = this.receive();
 		}
 		else {
 			Object payload = (paramCount == 1) ? invocation.getArguments()[0] : invocation.getArguments();
@@ -92,7 +102,7 @@ public class GatewayProxyFactoryBean extends MessagingGateway implements Factory
 				this.send(payload);
 				return null;
 			}
-			response = this.invoke(payload, !shouldReturnMessage);
+			response = shouldReturnMessage ? this.sendAndReceiveMessage(payload) : this.sendAndReceive(payload);
 		}
 		return (response != null) ? this.typeConverter.convertIfNecessary(response, returnType) : null;
 	}

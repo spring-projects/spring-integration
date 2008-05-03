@@ -17,11 +17,11 @@
 package org.springframework.integration.dispatcher;
 
 import org.springframework.integration.message.Poller;
-import org.springframework.integration.message.SubscribableSource;
+import org.springframework.integration.message.Subscribable;
 
 /**
  * @author Mark Fisher
  */
-public interface PollingDispatcher extends Poller, MessageDispatcher, SubscribableSource {
+public interface PollingDispatcher extends Poller, MessageDispatcher, Subscribable {
 
 }

@@ -9,8 +9,7 @@
 
 	<si:jms-source id="jmsSource"
 	               connection-factory="testConnectionFactory"
-	               destination="testDestination"
-	               message-driven="false"/>
+	               destination="testDestination"/>
 
 	<bean id="testConnectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
 		<constructor-arg>

@@ -25,7 +25,7 @@ import org.springframework.integration.message.BlockingSource;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryAware;
 import org.springframework.integration.message.MessageDeliveryException;
-import org.springframework.integration.message.PollableSource;
+import org.springframework.integration.message.Source;
 import org.springframework.util.Assert;
 
 /**
@@ -46,14 +46,14 @@ import org.springframework.util.Assert;
  */
 public class DefaultPollingDispatcher extends SimpleDispatcher implements PollingDispatcher {
 
-	private final PollableSource<?> source;
+	private final Source<?> source;
 
 
 	public DefaultPollingDispatcher(MessageChannel channel) {
 		this(channel, channel.getDispatcherPolicy());
 	}
 
-	public DefaultPollingDispatcher(PollableSource<?> source, DispatcherPolicy dispatcherPolicy) {
+	public DefaultPollingDispatcher(Source<?> source, DispatcherPolicy dispatcherPolicy) {
 		super(dispatcherPolicy);
 		Assert.notNull(source, "source must not be null");
 		this.source = source;

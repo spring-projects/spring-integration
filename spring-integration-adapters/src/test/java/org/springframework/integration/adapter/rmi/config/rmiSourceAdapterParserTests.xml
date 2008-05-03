@@ -11,16 +11,16 @@
 
 	<channel id="testChannel"/>
 
-	<rmi-source id="adapterWithDefaults" channel="testChannel"/>
+	<rmi-source id="adapterWithDefaults" request-channel="testChannel"/>
 
-	<rmi-source id="adapterWithCustomProperties" channel="testChannel"
-			expect-reply="false" send-timeout="123" receive-timeout="456"/>
+	<rmi-source id="adapterWithCustomProperties" request-channel="testChannel"
+			expect-reply="false" request-timeout="123" reply-timeout="456"/>
 
-	<rmi-source id="adapterWithHost" channel="testChannel" registry-host="localhost"/>
+	<rmi-source id="adapterWithHost" request-channel="testChannel" registry-host="localhost"/>
 
-	<rmi-source id="adapterWithPort" channel="testChannel" registry-port="1234"/>
+	<rmi-source id="adapterWithPort" request-channel="testChannel" registry-port="1234"/>
 
-	<rmi-source id="adapterWithExecutorRef" channel="testChannel" remote-invocation-executor="invocationExecutor"/>
+	<rmi-source id="adapterWithExecutorRef" request-channel="testChannel" remote-invocation-executor="invocationExecutor"/>
 
 	<beans:bean id="invocationExecutor" class="org.springframework.integration.adapter.rmi.config.StubRemoteInvocationExecutor"/>
 

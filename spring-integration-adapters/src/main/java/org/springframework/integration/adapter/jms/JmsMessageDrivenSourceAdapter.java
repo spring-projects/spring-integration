@@ -25,10 +25,11 @@ import org.springframework.context.Lifecycle;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.SubscribableSource;
-import org.springframework.integration.message.Target;
+import org.springframework.integration.channel.RequestReplyTemplate;
+import org.springframework.integration.gateway.MessagingGateway;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
+import org.springframework.jms.listener.adapter.MessageListenerAdapter;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.util.Assert;
@@ -38,9 +39,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class JmsMessageDrivenSourceAdapter implements SubscribableSource, Lifecycle, DisposableBean {
-
-	private volatile MessageChannel channel;
+public class JmsMessageDrivenSourceAdapter extends MessagingGateway implements Lifecycle, DisposableBean {
 
 	private volatile AbstractMessageListenerContainer container;
 
@@ -58,8 +57,6 @@ public class JmsMessageDrivenSourceAdapter implements SubscribableSource, Lifecy
 
 	private volatile int sessionAcknowledgeMode = Session.AUTO_ACKNOWLEDGE;
 
-	private volatile long receiveTimeout = 1000;
-
 	private volatile int concurrentConsumers = 1;
 
 	private volatile int maxConcurrentConsumers = 1;
@@ -68,37 +65,8 @@ public class JmsMessageDrivenSourceAdapter implements SubscribableSource, Lifecy
 
 	private volatile int idleTaskExecutionLimit = 1;
 
-	private volatile long sendTimeout = -1;
+	private boolean expectReply = false;
 
-	private volatile boolean initialized;
-
-	private final Object lifecycleMonitor = new Object();
-
-
-	public boolean subscribe(Target target) {
-		if (target instanceof MessageChannel) {
-			this.setChannel((MessageChannel) target);
-			return true;
-		}
-		return false;
-	}
-
-	public boolean unsubscribe(Target target) {
-		if (target.equals(this.channel)) {
-			this.stop();
-			this.channel = null;
-			return true;
-		}
-		return false;
-	}
-
-	public void setChannel(MessageChannel channel) {
-		this.channel = channel;
-	}
-
-	public MessageChannel getChannel() {
-		return this.channel;
-	}
 
 	public void setContainer(AbstractMessageListenerContainer container) {
 		this.container = container;
@@ -121,10 +89,6 @@ public class JmsMessageDrivenSourceAdapter implements SubscribableSource, Lifecy
 		this.messageConverter = messageConverter;
 	}
 
-	public void setSendTimeout(long sendTimeout) {
-		this.sendTimeout = sendTimeout;
-	}
-
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
 		this.taskExecutor = taskExecutor;
 	}
@@ -137,15 +101,18 @@ public class JmsMessageDrivenSourceAdapter implements SubscribableSource, Lifecy
 		this.sessionAcknowledgeMode = sessionAcknowledgeMode;
 	}
 
+	public void setExpectReply(boolean expectReply) {
+		this.expectReply = expectReply;
+	}
+
 	private void initialize() {
-		if (this.channel == null) {
-			throw new ConfigurationException("channel must not be null");
-		}
 		if (this.container == null) {
 			this.container = createDefaultContainer();
 		}
-		ChannelPublishingJmsListener listener = new ChannelPublishingJmsListener(this.getChannel(), this.messageConverter);
-		listener.setTimeout(this.sendTimeout);
+		MessageListenerAdapter listener = new MessageListenerAdapter();
+		listener.setDelegate(this);
+		listener.setDefaultListenerMethod(this.expectReply ? "request" : "send");
+		listener.setMessageConverter(this.messageConverter);
 		this.container.setMessageListener(listener);
 		if (!this.container.isActive()) {
 			this.container.afterPropertiesSet();
@@ -169,7 +136,6 @@ public class JmsMessageDrivenSourceAdapter implements SubscribableSource, Lifecy
 		if (this.destinationName != null) {
 			dmlc.setDestinationName(this.destinationName);
 		}
-		dmlc.setReceiveTimeout(this.receiveTimeout);
 		dmlc.setSessionTransacted(this.sessionTransacted);
 		dmlc.setSessionAcknowledgeMode(this.sessionAcknowledgeMode);
 		dmlc.setAutoStartup(false);

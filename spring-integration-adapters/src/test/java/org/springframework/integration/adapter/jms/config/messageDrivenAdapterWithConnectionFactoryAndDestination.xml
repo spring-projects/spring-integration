@@ -7,9 +7,12 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<si:jms-source id="jmsSource"
-	               connection-factory="testConnectionFactory"
-	               destination="testDestination"/>
+	<si:channel id="requestChannel"/>
+
+	<si:jms-gateway id="jmsSource"
+	                connection-factory="testConnectionFactory"
+	                destination="testDestination"
+	                request-channel="requestChannel"/>
 
 	<bean id="testConnectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
 		<constructor-arg>

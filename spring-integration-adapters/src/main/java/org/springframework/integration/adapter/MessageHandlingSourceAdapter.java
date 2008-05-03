@@ -37,15 +37,11 @@ public class MessageHandlingSourceAdapter implements MessageHandler, Initializin
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private final MessageChannel channel;
+	private final MessageChannel requestChannel;
 
-	private volatile RequestReplyTemplate requestReplyTemplate;
+	private final RequestReplyTemplate requestReplyTemplate = new RequestReplyTemplate();
 
 	private volatile boolean expectReply = true;
-
-	private volatile long sendTimeout = -1;
-
-	private volatile long receiveTimeout = -1;
 
 	protected final Object lifecycleMonitor = new Object();
 
@@ -55,12 +51,13 @@ public class MessageHandlingSourceAdapter implements MessageHandler, Initializin
 	/**
 	 * Create an adapter that sends to the provided channel.
 	 * 
-	 * @param channel the channel where messages will be sent, must not be
+	 * @param requestChannel the channel where messages will be sent, must not be
 	 * <code>null</code>.
 	 */
-	public MessageHandlingSourceAdapter(MessageChannel channel) {
-		Assert.notNull(channel, "channel must not be null");
-		this.channel = channel;
+	public MessageHandlingSourceAdapter(MessageChannel requestChannel) {
+		Assert.notNull(requestChannel, "request channel must not be null");
+		this.requestChannel = requestChannel;
+		this.requestReplyTemplate.setRequestChannel(requestChannel);
 	}
 
 
@@ -72,25 +69,22 @@ public class MessageHandlingSourceAdapter implements MessageHandler, Initializin
 		this.expectReply = expectReply;
 	}
 
-	public void setSendTimeout(long sendTimeout) {
-		this.sendTimeout = sendTimeout;
+	public void setRequestTimeout(long requestTimeout) {
+		this.requestReplyTemplate.setRequestTimeout(requestTimeout);
 	}
 
-	public void setReceiveTimeout(long receiveTimeout) {
-		this.receiveTimeout = receiveTimeout;
+	public void setReplyTimeout(long replyTimeout) {
+		this.requestReplyTemplate.setReplyTimeout(replyTimeout);
 	}
 
 	protected MessageChannel getChannel() {
-		return this.channel;
+		return this.requestChannel;
 	}
 
 	public final void afterPropertiesSet() throws Exception {
 		synchronized (this.lifecycleMonitor) {
 			if (this.initialized) {
 				return;
-			}
-			if (this.requestReplyTemplate == null) {
-				this.requestReplyTemplate = this.createRequestReplyTemplate();
 			}
 		}
 		this.initialize();
@@ -103,13 +97,6 @@ public class MessageHandlingSourceAdapter implements MessageHandler, Initializin
 	protected void initialize() throws Exception {
 	}
 
-	private RequestReplyTemplate createRequestReplyTemplate() {
-		RequestReplyTemplate template = new RequestReplyTemplate(this.channel);
-		template.setRequestTimeout(this.sendTimeout);
-		template.setReplyTimeout(this.receiveTimeout);
-		return template;
-	}
-
 	public final Message<?> handle(Message<?> message) {
 		if (!this.initialized) {
 			try {
@@ -120,9 +107,9 @@ public class MessageHandlingSourceAdapter implements MessageHandler, Initializin
 			}
 		}
 		if (!this.expectReply) {
-			boolean sent = (this.sendTimeout < 0) ? this.channel.send(message) : this.channel.send(message, this.sendTimeout);
+			boolean sent = this.requestReplyTemplate.send(message);
 			if (!sent && logger.isWarnEnabled()) {
-				logger.warn("failed to send message to channel within timeout of " + this.sendTimeout + " milliseconds");
+				logger.warn("failed to send message to channel within timeout");
 			}
 			return null;
 		}

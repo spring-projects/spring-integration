@@ -35,7 +35,7 @@ import org.springframework.aop.MethodBeforeAdvice;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.PollableSource;
+import org.springframework.integration.message.Source;
 import org.springframework.integration.scheduling.PollingSchedule;
 
 /**
@@ -429,7 +429,7 @@ public class PollingSourceEndpointTests {
 	}
 
 
-	private static class TestSource implements PollableSource<String> {
+	private static class TestSource implements Source<String> {
 
 		private String message;
 

@@ -18,11 +18,9 @@ package org.springframework.integration.channel;
 
 import java.util.List;
 
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.config.MessageBusParser;
+import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.bus.MessageBusAware;
 import org.springframework.integration.endpoint.EndpointRegistry;
 import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.handler.ReplyHandler;
@@ -38,7 +36,7 @@ import org.springframework.integration.scheduling.Subscription;
  * 
  * @author Mark Fisher
  */
-public class RequestReplyTemplate implements ApplicationContextAware {
+public class RequestReplyTemplate implements MessageBusAware {
 
 	private MessageChannel requestChannel;
 
@@ -122,9 +120,9 @@ public class RequestReplyTemplate implements ApplicationContextAware {
 		this.endpointRegistry = endpointRegistry;
 	}
 
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		if (applicationContext.containsBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME)) {
-			this.setEndpointRegistry((EndpointRegistry) applicationContext.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME));
+	public void setMessageBus(MessageBus messageBus) {
+		if (this.endpointRegistry == null) {
+			this.setEndpointRegistry(messageBus);
 		}
 	}
 

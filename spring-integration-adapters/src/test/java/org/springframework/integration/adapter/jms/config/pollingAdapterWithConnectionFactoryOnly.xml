@@ -7,7 +7,7 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<si:jms-source id="adapter" connection-factory="testConnectionFactory" message-driven="false"/>
+	<si:jms-source id="adapter" connection-factory="testConnectionFactory"/>
 
 	<bean id="testConnectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
 		<constructor-arg>

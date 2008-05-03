@@ -21,6 +21,11 @@ package org.springframework.integration.message;
  * 
  * @author Mark Fisher
  */
-public interface Source {
+public interface Source<T> {
+
+	/**
+	 * Retrieve a message from this source or <code>null</code> if no message is available.
+	 */
+	Message<T> receive();
 
 }

@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.PollableSource;
+import org.springframework.integration.message.Source;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.Target;
 
@@ -96,7 +96,7 @@ public class SynchronousChannelTests {
 
 	@Test
 	public void testReceive() {
-		SynchronousChannel channel = new SynchronousChannel(new PollableSource<String>() {
+		SynchronousChannel channel = new SynchronousChannel(new Source<String>() {
 			public Message<String> receive() {
 				return new StringMessage("foo");
 			}
@@ -175,7 +175,7 @@ public class SynchronousChannelTests {
 	}
 
 
-	private static class MessageReturningTestSource implements PollableSource<String> {
+	private static class MessageReturningTestSource implements Source<String> {
 
 		private final String messageText;
 

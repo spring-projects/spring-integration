@@ -50,24 +50,24 @@ public abstract class AbstractRequestReplySourceAdapterParser extends AbstractSi
 
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
-		return !attributeName.equals("name") && !attributeName.equals("channel") && super.isEligibleAttribute(attributeName);
+		return !attributeName.equals("name") && !attributeName.equals("request-channel") && super.isEligibleAttribute(attributeName);
 	}
 
 	@Override
 	protected void postProcess(BeanDefinitionBuilder builder, Element element) {
-		String channelRef = element.getAttribute("channel");
+		String channelRef = element.getAttribute("request-channel");
 		if (!StringUtils.hasText(channelRef)) {
-			throw new ConfigurationException("a 'channel' reference is required");
+			throw new ConfigurationException("a 'request-channel' reference is required");
 		}
 		builder.addConstructorArgReference(channelRef);
 		builder.addPropertyValue("expectReply", element.getAttribute("expect-reply").equals("true"));
-		String sendTimeout = element.getAttribute("send-timeout");
-		if (StringUtils.hasText(sendTimeout)) {
-			builder.addPropertyValue("sendTimeout", Long.parseLong(sendTimeout));
+		String requestTimeout = element.getAttribute("request-timeout");
+		if (StringUtils.hasText(requestTimeout)) {
+			builder.addPropertyValue("requestTimeout", Long.parseLong(requestTimeout));
 		}
-		String receiveTimeout = element.getAttribute("receive-timeout");
-		if (StringUtils.hasText(receiveTimeout)) {
-			builder.addPropertyValue("receiveTimeout", Long.parseLong(receiveTimeout));
+		String replyTimeout = element.getAttribute("reply-timeout");
+		if (StringUtils.hasText(replyTimeout)) {
+			builder.addPropertyValue("replyTimeout", Long.parseLong(replyTimeout));
 		}
 		this.doPostProcess(builder, element);
 	}

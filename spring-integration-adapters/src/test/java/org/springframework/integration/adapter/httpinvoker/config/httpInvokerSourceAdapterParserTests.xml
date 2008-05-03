@@ -11,11 +11,12 @@
 
 	<channel id="testChannel"/>
 
-	<httpinvoker-source id="adapterWithDefaults" channel="testChannel"/>
+	<httpinvoker-source id="adapterWithDefaults" request-channel="testChannel"/>
 
-	<httpinvoker-source name="/adapter/with/name" channel="testChannel"/>
+	<httpinvoker-source name="/adapter/with/name" request-channel="testChannel"/>
 
-	<httpinvoker-source id="adapterWithCustomProperties" channel="testChannel"
-			expect-reply="false" send-timeout="123" receive-timeout="456"/>
+	<httpinvoker-source id="adapterWithCustomProperties"
+			request-channel="testChannel" request-timeout="123" 
+			expect-reply="false" reply-timeout="456"/>
 
 </beans:beans>

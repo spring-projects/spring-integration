@@ -81,7 +81,7 @@ public class JmsSourceAdapterParserTests {
 				"messageDrivenAdapterWithConnectionFactoryAndDestination.xml", this.getClass());
 		MessageChannel channel = new QueueChannel(1);
 		JmsMessageDrivenSourceAdapter source = (JmsMessageDrivenSourceAdapter) context.getBean("jmsSource");
-		source.setChannel(channel);
+		source.setRequestChannel(channel);
 		context.start();
 		Message<?> message = channel.receive(3000);
 		assertNotNull("message should not be null", message);
@@ -95,7 +95,7 @@ public class JmsSourceAdapterParserTests {
 				"messageDrivenAdapterWithConnectionFactoryAndDestinationName.xml", this.getClass());
 		MessageChannel channel = new QueueChannel(1);
 		JmsMessageDrivenSourceAdapter source = (JmsMessageDrivenSourceAdapter) context.getBean("jmsSource");
-		source.setChannel(channel);
+		source.setRequestChannel(channel);
 		context.start();
 		assertEquals(JmsMessageDrivenSourceAdapter.class, source.getClass());
 		Message<?> message = channel.receive(3000);
@@ -110,7 +110,7 @@ public class JmsSourceAdapterParserTests {
 				"messageDrivenAdapterWithMessageConverter.xml", this.getClass());
 		MessageChannel channel = new QueueChannel(1);
 		JmsMessageDrivenSourceAdapter source = (JmsMessageDrivenSourceAdapter) context.getBean("jmsSource");
-		source.setChannel(channel);
+		source.setRequestChannel(channel);
 		context.start();
 		Message<?> message = channel.receive(3000);
 		assertNotNull("message should not be null", message);
@@ -194,7 +194,7 @@ public class JmsSourceAdapterParserTests {
 				"messageDrivenAdapterWithDefaultConnectionFactory.xml", this.getClass());
 		MessageChannel channel = new QueueChannel(1);
 		JmsMessageDrivenSourceAdapter source = (JmsMessageDrivenSourceAdapter) context.getBean("jmsSource");
-		source.setChannel(channel);
+		source.setRequestChannel(channel);
 		context.start();
 		Message<?> message = channel.receive(3000);
 		assertNotNull("message should not be null", message);

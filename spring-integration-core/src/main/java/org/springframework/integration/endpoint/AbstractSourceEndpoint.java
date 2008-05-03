@@ -32,14 +32,14 @@ public abstract class AbstractSourceEndpoint implements SourceEndpoint {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	private final Source source;
+	private final Source<?> source;
 
 	private final MessageChannel channel;
 
 	private volatile String name;
 
 
-	public AbstractSourceEndpoint(Source source, MessageChannel channel) {
+	public AbstractSourceEndpoint(Source<?> source, MessageChannel channel) {
 		Assert.notNull(source, "source must not be null");
 		Assert.notNull(channel, "channel must not be null");
 		this.source = source;
@@ -47,7 +47,7 @@ public abstract class AbstractSourceEndpoint implements SourceEndpoint {
 	}
 
 
-	public Source getSource() {
+	public Source<?> getSource() {
 		return this.source;
 	}
 

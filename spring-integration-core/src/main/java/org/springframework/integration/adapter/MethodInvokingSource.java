@@ -23,7 +23,7 @@ import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.handler.HandlerMethodInvoker;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.PollableSource;
+import org.springframework.integration.message.Source;
 import org.springframework.integration.util.MethodValidator;
 import org.springframework.util.Assert;
 
@@ -33,7 +33,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class MethodInvokingSource<T> implements PollableSource<Object>, InitializingBean {
+public class MethodInvokingSource<T> implements Source<Object>, InitializingBean {
 
 	private T object;
 

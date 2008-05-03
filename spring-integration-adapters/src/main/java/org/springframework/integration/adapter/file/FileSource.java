@@ -23,7 +23,7 @@ import java.io.FilenameFilter;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.message.PollableSource;
+import org.springframework.integration.message.Source;
 import org.springframework.util.Assert;
 
 /**
@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class FileSource implements PollableSource<Object>, InitializingBean {
+public class FileSource implements Source<Object>, InitializingBean {
 
 	private final File directory;
 

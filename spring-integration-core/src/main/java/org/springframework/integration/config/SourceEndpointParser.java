@@ -23,7 +23,6 @@ import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.endpoint.PollingSourceEndpoint;
-import org.springframework.integration.endpoint.SimpleSourceEndpoint;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.util.StringUtils;
@@ -37,10 +36,7 @@ import org.springframework.util.xml.DomUtils;
 public class SourceEndpointParser extends AbstractSimpleBeanDefinitionParser {
 
 	protected final Class<?> getBeanClass(Element element) {
-		if (this.getScheduleElement(element) != null) {
-			return PollingSourceEndpoint.class;
-		}
-		return SimpleSourceEndpoint.class;
+		return PollingSourceEndpoint.class;
 	}
 
 	protected boolean shouldGenerateId() {
@@ -68,9 +64,10 @@ public class SourceEndpointParser extends AbstractSimpleBeanDefinitionParser {
 		builder.addConstructorArgReference(source);
 		builder.addConstructorArgReference(output);
 		Element scheduleElement = this.getScheduleElement(element);
-		if (scheduleElement != null) {
-			builder.addConstructorArgValue(this.parseSchedule(scheduleElement));
+		if (scheduleElement == null) {
+			throw new ConfigurationException("The <schedule/> sub-element is required for a <source-endpoint/>.");
 		}
+		builder.addConstructorArgValue(this.parseSchedule(scheduleElement));
 	}
 
 	/**

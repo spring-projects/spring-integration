@@ -26,8 +26,8 @@ import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.PollableSource;
-import org.springframework.integration.message.SubscribableSource;
+import org.springframework.integration.message.Source;
+import org.springframework.integration.message.Subscribable;
 import org.springframework.integration.message.Target;
 import org.springframework.integration.message.selector.MessageSelector;
 
@@ -45,12 +45,12 @@ import org.springframework.integration.message.selector.MessageSelector;
  * @author Dave Syer
  * @author Mark Fisher
  */
-public class SynchronousChannel extends AbstractMessageChannel implements SubscribableSource {
+public class SynchronousChannel extends AbstractMessageChannel implements Subscribable {
 
 	private static final ThreadLocalMessageHolder messageHolder = new ThreadLocalMessageHolder();
 
 
-	private volatile PollableSource<?> source;
+	private volatile Source<?> source;
 
 	private final SimpleDispatcher dispatcher;
 
@@ -61,14 +61,14 @@ public class SynchronousChannel extends AbstractMessageChannel implements Subscr
 		this(null);
 	}
 
-	public SynchronousChannel(PollableSource<?> source) {
+	public SynchronousChannel(Source<?> source) {
 		super(defaultDispatcherPolicy());
 		this.source = source;
 		this.dispatcher = new SimpleDispatcher(this.getDispatcherPolicy());
 	}
 
 
-	public void setSource(PollableSource<?> source) {
+	public void setSource(Source<?> source) {
 		this.source = source;
 	}
 

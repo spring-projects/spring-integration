@@ -37,8 +37,8 @@ public class GatewayProxyFactoryBeanTests {
 		final MessageChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
-		proxyFactory.setServiceInterface(TestService.class);
 		proxyFactory.setRequestChannel(requestChannel);
+		proxyFactory.setServiceInterface(TestService.class);
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		String result = service.requestReply("foo");

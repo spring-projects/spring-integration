@@ -21,7 +21,7 @@ import javax.jms.Destination;
 
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.PollableSource;
+import org.springframework.integration.message.Source;
 import org.springframework.jms.core.JmsTemplate;
 
 /**
@@ -32,7 +32,7 @@ import org.springframework.jms.core.JmsTemplate;
  * 
  * @author Mark Fisher
  */
-public class JmsPollableSource extends AbstractJmsTemplateBasedAdapter implements PollableSource<Object> {
+public class JmsPollableSource extends AbstractJmsTemplateBasedAdapter implements Source<Object> {
 
 	public JmsPollableSource(JmsTemplate jmsTemplate) {
 		super(jmsTemplate);

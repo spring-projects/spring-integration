@@ -7,7 +7,7 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<si:jms-source id="jmsSource" jms-template="jmsTemplate" message-driven="false"/>
+	<si:jms-source id="jmsSource" jms-template="jmsTemplate"/>
 
 	<bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
 		<property name="connectionFactory" ref="connectionFactory"/>

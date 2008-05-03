@@ -35,7 +35,7 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageCreator;
 import org.springframework.integration.message.MessageDeliveryAware;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.message.PollableSource;
+import org.springframework.integration.message.Source;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -45,7 +45,7 @@ import org.springframework.util.StringUtils;
  * @author Marius Bogoevici
  * @author Mark Fisher
  */
-public class FtpSource implements PollableSource<Object>, MessageDeliveryAware {
+public class FtpSource implements Source<Object>, MessageDeliveryAware {
 
 	private final static String DEFAULT_HOST = "localhost";
 

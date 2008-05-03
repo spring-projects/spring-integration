@@ -29,7 +29,7 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.dispatcher.DefaultPollingDispatcher;
 import org.springframework.integration.dispatcher.PollingDispatcher;
 import org.springframework.integration.dispatcher.PollingDispatcherTask;
-import org.springframework.integration.message.PollableSource;
+import org.springframework.integration.message.Source;
 import org.springframework.integration.scheduling.MessagingTask;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
@@ -60,7 +60,7 @@ public class PollingSourceEndpoint extends AbstractSourceEndpoint implements Mes
 	private final Object taskMonitor = new Object();
 
 
-	public PollingSourceEndpoint(PollableSource<?> source, MessageChannel channel, PollingSchedule schedule) {
+	public PollingSourceEndpoint(Source<?> source, MessageChannel channel, PollingSchedule schedule) {
 		super(source, channel);
 		Assert.notNull(schedule, "schedule must not be null");
 		this.dispatcher = new DefaultPollingDispatcher(source, this.dispatcherPolicy);

@@ -25,6 +25,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
+
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.DispatcherPolicy;
@@ -38,7 +39,7 @@ import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
-import org.springframework.integration.message.PollableSource;
+import org.springframework.integration.message.Source;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Subscription;
@@ -219,9 +220,7 @@ public class MessageBusTests {
 
 	@Test(expected = BeanCreationException.class)
 	public void testMultipleMessageBusBeans() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("multipleMessageBusBeans.xml", 
-				this.getClass());
-
+		new ClassPathXmlApplicationContext("multipleMessageBusBeans.xml", this.getClass());
 	}
 
 	@Test
@@ -258,7 +257,7 @@ public class MessageBusTests {
 		assertTrue(messageBusAwareBean.getMessageBus() == context.getBean("bus"));
 	}
 
-	private static class FailingSource implements PollableSource<Object> {
+	private static class FailingSource implements Source<Object> {
 
 		private CountDownLatch latch;
 

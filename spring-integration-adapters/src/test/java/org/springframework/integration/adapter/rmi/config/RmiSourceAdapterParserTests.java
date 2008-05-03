@@ -26,6 +26,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.adapter.rmi.RmiSourceAdapter;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.RequestReplyTemplate;
 
 /**
  * @author Mark Fisher
@@ -39,10 +40,13 @@ public class RmiSourceAdapterParserTests {
 		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
 		RmiSourceAdapter adapter = (RmiSourceAdapter) context.getBean("adapterWithDefaults");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(adapter);
-		assertEquals(channel, accessor.getPropertyValue("channel"));
+		assertEquals(channel, accessor.getPropertyValue("requestChannel"));
 		assertEquals(true, accessor.getPropertyValue("expectReply"));
-		assertEquals(-1L, accessor.getPropertyValue("sendTimeout"));
-		assertEquals(-1L, accessor.getPropertyValue("receiveTimeout"));
+		RequestReplyTemplate template = (RequestReplyTemplate)
+				accessor.getPropertyValue("requestReplyTemplate");
+		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(template);
+		assertEquals(-1L, templateAccessor.getPropertyValue("requestTimeout"));
+		assertEquals(-1L, templateAccessor.getPropertyValue("replyTimeout"));
 	}
 
 	@Test
@@ -52,10 +56,13 @@ public class RmiSourceAdapterParserTests {
 		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
 		RmiSourceAdapter adapter = (RmiSourceAdapter) context.getBean("adapterWithCustomProperties");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(adapter);
-		assertEquals(channel, accessor.getPropertyValue("channel"));
+		assertEquals(channel, accessor.getPropertyValue("requestChannel"));
 		assertEquals(false, accessor.getPropertyValue("expectReply"));
-		assertEquals(123L, accessor.getPropertyValue("sendTimeout"));
-		assertEquals(456L, accessor.getPropertyValue("receiveTimeout"));
+		RequestReplyTemplate template = (RequestReplyTemplate)
+				accessor.getPropertyValue("requestReplyTemplate");
+		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(template);
+		assertEquals(123L, templateAccessor.getPropertyValue("requestTimeout"));
+		assertEquals(456L, templateAccessor.getPropertyValue("replyTimeout"));
 	}
 
 	@Test

@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint;
-
-import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.SubscribableSource;
+package org.springframework.integration.message;
 
 /**
+ * Interface for any component that accepts subscribers.
+ * 
  * @author Mark Fisher
  */
-public class SimpleSourceEndpoint extends AbstractSourceEndpoint {
+public interface Subscribable {
 
-	public SimpleSourceEndpoint(SubscribableSource source, MessageChannel channel) {
-		super(source, channel);
-		source.subscribe(channel);
-	}
+	/**
+	 * Register a {@link Target} as a subscriber to this source.
+	 */
+	boolean subscribe(Target target);
+
+	/**
+	 * Remove a {@link Target} from the subscribers of this source.
+	 */
+	boolean unsubscribe(Target target);
 
 }

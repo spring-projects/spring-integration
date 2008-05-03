@@ -33,25 +33,39 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class MessagingGateway extends RequestReplyTemplate {
+public class MessagingGateway {
+
+	private final RequestReplyTemplate requestReplyTemplate = new RequestReplyTemplate();
 
 	private MessageCreator messageCreator = new DefaultMessageCreator();
 
 	private MessageMapper messageMapper = new DefaultMessageMapper();
 
 
-	public MessagingGateway(MessageChannel requestChannel, MessageChannel replyChannel) {
-		super(requestChannel, replyChannel);
-	}
-
 	public MessagingGateway(MessageChannel requestChannel) {
-		super(requestChannel);
+		this.requestReplyTemplate.setRequestChannel(requestChannel);
 	}
 
 	public MessagingGateway() {
 		super();
 	}
 
+
+	public void setRequestChannel(MessageChannel requestChannel) {
+		this.requestReplyTemplate.setRequestChannel(requestChannel);
+	}
+
+	public void setReplyChannel(MessageChannel replyChannel) {
+		this.requestReplyTemplate.setReplyChannel(replyChannel);
+	}
+
+	public void setRequestTimeout(long requestTimeout) {
+		this.requestReplyTemplate.setRequestTimeout(requestTimeout);
+	}
+
+	public void setReplyTimeout(long replyTimeout) {
+		this.requestReplyTemplate.setReplyTimeout(replyTimeout);
+	}
 
 	public void setMessageCreator(MessageCreator<?, ?> messageCreator) {
 		Assert.notNull(messageCreator, "messageCreator must not be null");
@@ -63,30 +77,38 @@ public class MessagingGateway extends RequestReplyTemplate {
 		this.messageMapper = messageMapper;
 	}
 
+	protected RequestReplyTemplate getRequestReplyTemplate() {
+		return this.requestReplyTemplate;
+	}
+
 	public void send(Object object) {
 		Message<?> message = (object instanceof Message) ? (Message) object :
 				this.messageCreator.createMessage(object);
 		if (message != null) {
-			this.send(message);
+			this.requestReplyTemplate.send(message);
 		}
 	}
 
-	public Object invoke() {
-		Message<?> message = this.receive();
+	public Object receive() {
+		Message<?> message = this.requestReplyTemplate.receive();
 		return (message != null) ? this.messageMapper.mapMessage(message) : null;
 	}
 
-	public Object invoke(Object object) {
-		return this.invoke(object, true);
+	public Object sendAndReceive(Object object) {
+		return this.sendAndReceive(object, true);
 	}
 
-	public Object invoke(Object object, boolean shouldMapMessage) {
+	public Message<?> sendAndReceiveMessage(Object object) {
+		return (Message<?>) this.sendAndReceive(object, false);
+	}
+
+	private Object sendAndReceive(Object object, boolean shouldMapMessage) {
 		Message<?> request = (object instanceof Message) ? (Message) object :
 				this.messageCreator.createMessage(object);
 		if (request == null) {
 			return null;
 		}
-		Message<?> reply = this.request(request);
+		Message<?> reply = this.requestReplyTemplate.request(request);
 		if (!shouldMapMessage) {
 			return reply;
 		}

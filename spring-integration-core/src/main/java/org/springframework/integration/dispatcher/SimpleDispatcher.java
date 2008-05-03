@@ -30,7 +30,7 @@ import org.springframework.integration.handler.MessageHandlerRejectedExecutionEx
 import org.springframework.integration.message.BlockingTarget;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
-import org.springframework.integration.message.SubscribableSource;
+import org.springframework.integration.message.Subscribable;
 import org.springframework.integration.message.Target;
 
 /**
@@ -38,7 +38,7 @@ import org.springframework.integration.message.Target;
  * 
  * @author Mark Fisher
  */
-public class SimpleDispatcher implements MessageDispatcher, SubscribableSource {
+public class SimpleDispatcher implements MessageDispatcher, Subscribable {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
