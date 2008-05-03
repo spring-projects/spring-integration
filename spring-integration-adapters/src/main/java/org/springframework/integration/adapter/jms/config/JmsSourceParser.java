@@ -16,8 +16,6 @@
 
 package org.springframework.integration.adapter.jms.config;
 
-import javax.jms.Session;
-
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.BeanCreationException;
@@ -25,8 +23,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.adapter.jms.JmsMessageDrivenSourceAdapter;
-import org.springframework.integration.adapter.jms.JmsPollableSource;
+import org.springframework.integration.adapter.jms.JmsSource;
 import org.springframework.util.StringUtils;
 
 /**
@@ -34,7 +31,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class JmsSourceAdapterParser extends AbstractBeanDefinitionParser {
+public class JmsSourceParser extends AbstractBeanDefinitionParser {
 
 	protected boolean shouldGenerateId() {
 		return false;
@@ -46,7 +43,7 @@ public class JmsSourceAdapterParser extends AbstractBeanDefinitionParser {
 
 	@Override
 	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(JmsPollableSource.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(JmsSource.class);
 		String jmsTemplate = element.getAttribute(JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE);
 		String destination = element.getAttribute(JmsAdapterParserUtils.DESTINATION_ATTRIBUTE);
 		String destinationName = element.getAttribute(JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE);
