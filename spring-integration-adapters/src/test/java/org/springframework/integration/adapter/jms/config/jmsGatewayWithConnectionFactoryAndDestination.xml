@@ -9,7 +9,7 @@
 
 	<si:channel id="requestChannel"/>
 
-	<si:jms-gateway id="jmsSource"
+	<si:jms-gateway id="jmsGateway"
 	                connection-factory="testConnectionFactory"
 	                destination="testDestination"
 	                request-channel="requestChannel"/>

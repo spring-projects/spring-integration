@@ -7,11 +7,20 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
+	<si:message-bus/>
+
 	<si:channel id="requestChannel"/>
 
-	<si:jms-gateway id="jmsSource"
-					connection-factory=""
+	<si:jms-gateway id="jmsGateway"
 					destination-name="testDestinationName"
 					request-channel="requestChannel"/>
+
+	<bean id="connectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
+		<constructor-arg>
+			<bean class="org.springframework.integration.adapter.jms.StubConnection">
+				<constructor-arg value="message-driven-test"/>
+			</bean>
+		</constructor-arg>
+	</bean>
 
 </beans>

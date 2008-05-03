@@ -11,7 +11,7 @@
 
 	<si:channel id="requestChannel"/>
 
-	<si:jms-gateway id="jmsSource"
+	<si:jms-gateway id="jmsGateway"
 					connection-factory="testConnectionFactory"
 		 			request-channel="requestChannel"/>
 

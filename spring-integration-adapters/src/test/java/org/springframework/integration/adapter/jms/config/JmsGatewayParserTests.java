@@ -37,10 +37,10 @@ public class JmsGatewayParserTests {
 	@Test
 	public void testGatewayWithConnectionFactoryAndDestination() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"messageDrivenAdapterWithConnectionFactoryAndDestination.xml", this.getClass());
+				"jmsGatewayWithConnectionFactoryAndDestination.xml", this.getClass());
 		MessageChannel channel = new QueueChannel(1);
-		JmsGateway source = (JmsGateway) context.getBean("jmsSource");
-		source.setRequestChannel(channel);
+		JmsGateway gateway = (JmsGateway) context.getBean("jmsGateway");
+		gateway.setRequestChannel(channel);
 		context.start();
 		Message<?> message = channel.receive(3000);
 		assertNotNull("message should not be null", message);
@@ -51,12 +51,11 @@ public class JmsGatewayParserTests {
 	@Test
 	public void testGatewayWithConnectionFactoryAndDestinationName() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"messageDrivenAdapterWithConnectionFactoryAndDestinationName.xml", this.getClass());
+				"jmsGatewayWithConnectionFactoryAndDestinationName.xml", this.getClass());
 		MessageChannel channel = new QueueChannel(1);
-		JmsGateway source = (JmsGateway) context.getBean("jmsSource");
-		source.setRequestChannel(channel);
+		JmsGateway gateway = (JmsGateway) context.getBean("jmsGateway");
+		gateway.setRequestChannel(channel);
 		context.start();
-		assertEquals(JmsGateway.class, source.getClass());
 		Message<?> message = channel.receive(3000);
 		assertNotNull("message should not be null", message);
 		assertEquals("message-driven-test", message.getPayload());
@@ -66,10 +65,10 @@ public class JmsGatewayParserTests {
 	@Test
 	public void testGatewayWithMessageConverter() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"messageDrivenAdapterWithMessageConverter.xml", this.getClass());
+				"jmsGatewayWithMessageConverter.xml", this.getClass());
 		MessageChannel channel = new QueueChannel(1);
-		JmsGateway source = (JmsGateway) context.getBean("jmsSource");
-		source.setRequestChannel(channel);
+		JmsGateway gateway = (JmsGateway) context.getBean("jmsGateway");
+		gateway.setRequestChannel(channel);
 		context.start();
 		Message<?> message = channel.receive(3000);
 		assertNotNull("message should not be null", message);
@@ -80,7 +79,7 @@ public class JmsGatewayParserTests {
 	@Test(expected=BeanDefinitionStoreException.class)
 	public void testGatewayWithConnectionFactoryOnly() {
 		try {
-			new ClassPathXmlApplicationContext("messageDrivenAdapterWithConnectionFactoryOnly.xml", this.getClass());
+			new ClassPathXmlApplicationContext("jmsGatewayWithConnectionFactoryOnly.xml", this.getClass());
 		}
 		catch (RuntimeException e) {
 			assertEquals(BeanCreationException.class, e.getCause().getClass());
@@ -91,7 +90,7 @@ public class JmsGatewayParserTests {
 	@Test(expected=BeanDefinitionStoreException.class)
 	public void testGatewayWithEmptyConnectionFactory() {
 		try {
-			new ClassPathXmlApplicationContext("messageDrivenAdapterWithEmptyConnectionFactory.xml", this.getClass());
+			new ClassPathXmlApplicationContext("jmsGatewayWithEmptyConnectionFactory.xml", this.getClass());
 		}
 		catch (RuntimeException e) {
 			assertEquals(BeanCreationException.class, e.getCause().getClass());
@@ -102,10 +101,10 @@ public class JmsGatewayParserTests {
 	@Test
 	public void testGatewayWithDefaultConnectionFactory() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"messageDrivenAdapterWithDefaultConnectionFactory.xml", this.getClass());
+				"jmsGatewayWithDefaultConnectionFactory.xml", this.getClass());
 		MessageChannel channel = new QueueChannel(1);
-		JmsGateway source = (JmsGateway) context.getBean("jmsSource");
-		source.setRequestChannel(channel);
+		JmsGateway gateway = (JmsGateway) context.getBean("jmsGateway");
+		gateway.setRequestChannel(channel);
 		context.start();
 		Message<?> message = channel.receive(3000);
 		assertNotNull("message should not be null", message);

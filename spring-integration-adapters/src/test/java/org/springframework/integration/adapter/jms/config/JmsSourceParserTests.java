@@ -38,7 +38,7 @@ public class JmsSourceParserTests {
 	@Test
 	public void testSourceWithJmsTemplate() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"pollingAdapterWithJmsTemplate.xml", this.getClass());
+				"jmsSourceWithJmsTemplate.xml", this.getClass());
 		JmsSource source = (JmsSource) context.getBean("jmsSource");
 		Message<?> message = source.receive();
 		assertNotNull("message should not be null", message);
@@ -48,7 +48,7 @@ public class JmsSourceParserTests {
 	@Test
 	public void testSourceWithConnectionFactoryAndDestination() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"pollingAdapterWithConnectionFactoryAndDestination.xml", this.getClass());
+				"jmsSourceWithConnectionFactoryAndDestination.xml", this.getClass());
 		JmsSource source = (JmsSource) context.getBean("jmsSource");
 		Message<?> message = source.receive();
 		assertNotNull("message should not be null", message);
@@ -59,7 +59,7 @@ public class JmsSourceParserTests {
 	@Test
 	public void testSourceWithConnectionFactoryAndDestinationName() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"pollingAdapterWithConnectionFactoryAndDestinationName.xml", this.getClass());
+				"jmsSourceWithConnectionFactoryAndDestinationName.xml", this.getClass());
 		JmsSource source = (JmsSource) context.getBean("jmsSource");
 		Message<?> message = source.receive();
 		assertNotNull("message should not be null", message);
@@ -70,7 +70,7 @@ public class JmsSourceParserTests {
 	@Test(expected=BeanDefinitionStoreException.class)
 	public void testSourceWithConnectionFactoryOnly() {
 		try {
-			new ClassPathXmlApplicationContext("pollingAdapterWithConnectionFactoryOnly.xml", this.getClass());
+			new ClassPathXmlApplicationContext("jmsSourceWithConnectionFactoryOnly.xml", this.getClass());
 		}
 		catch (RuntimeException e) {
 			assertEquals(BeanCreationException.class, e.getCause().getClass());
@@ -81,7 +81,7 @@ public class JmsSourceParserTests {
 	@Test(expected=BeanCreationException.class)
 	public void testSourceWithDestinationOnly() {
 		try {
-			new ClassPathXmlApplicationContext("pollingAdapterWithDestinationOnly.xml", this.getClass());
+			new ClassPathXmlApplicationContext("jmsSourceWithDestinationOnly.xml", this.getClass());
 		}
 		catch (RuntimeException e) {
 			assertEquals(NoSuchBeanDefinitionException.class, e.getCause().getClass());
@@ -92,7 +92,7 @@ public class JmsSourceParserTests {
 	@Test
 	public void testSourceWithDestinationAndDefaultConnectionFactory() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"pollingAdapterWithDestinationAndDefaultConnectionFactory.xml", this.getClass());
+				"jmsSourceWithDestinationAndDefaultConnectionFactory.xml", this.getClass());
 		JmsSource source = (JmsSource) context.getBean("jmsSource");
 		Message<?> message = source.receive();
 		assertNotNull("message should not be null", message);
@@ -101,14 +101,14 @@ public class JmsSourceParserTests {
 	}
 
 	@Test(expected=BeanCreationException.class)
-	public void testPollingAdapterWithDestinationNameOnly() {
-		new ClassPathXmlApplicationContext("pollingAdapterWithDestinationNameOnly.xml", this.getClass());
+	public void testSourceWithDestinationNameOnly() {
+		new ClassPathXmlApplicationContext("jmsSourceWithDestinationNameOnly.xml", this.getClass());
 	}
 
 	@Test
-	public void testPollingAdapterWithDestinationNameAndDefaultConnectionFactory() {
+	public void testSourceWithDestinationNameAndDefaultConnectionFactory() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-					"pollingAdapterWithDestinationNameAndDefaultConnectionFactory.xml", this.getClass());
+					"jmsSourceWithDestinationNameAndDefaultConnectionFactory.xml", this.getClass());
 		JmsSource source = (JmsSource) context.getBean("jmsSource");
 		Message<?> message = source.receive();
 		assertNotNull("message should not be null", message);
@@ -118,7 +118,7 @@ public class JmsSourceParserTests {
 	@Test
 	public void testSourceEndpoint() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"pollingJmsSourceEndpoint.xml", this.getClass());
+				"jmsSourceEndpoint.xml", this.getClass());
 		context.start();
 		PollingSourceEndpoint endpoint = (PollingSourceEndpoint) context.getBean("endpoint");
 		assertEquals(JmsSource.class, endpoint.getSource().getClass());
