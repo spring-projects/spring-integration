@@ -19,7 +19,8 @@ package org.springframework.integration.adapter;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.handler.HandlerMethodInvoker;
 import org.springframework.integration.handler.MessageHandler;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.message.DefaultMessageCreator;
+import org.springframework.integration.message.DefaultMessageMapper;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageCreator;
 import org.springframework.integration.message.MessageMapper;
@@ -36,11 +37,15 @@ public class MethodInvokingHandler implements MessageHandler, InitializingBean {
 
 	private volatile String methodName;
 
-	private volatile MessageMapper messageMapper;
+	private volatile MessageMapper messageMapper = new DefaultMessageMapper();
 
-	private volatile MessageCreator messageCreator;
+	private volatile MessageCreator messageCreator = new DefaultMessageCreator();
 
-	protected HandlerMethodInvoker<?> invoker;
+	protected volatile HandlerMethodInvoker<?> invoker;
+
+	private volatile boolean initialized;
+
+	private final Object initMonitor = new Object();
 
 
 	public void setObject(Object object) {
@@ -54,24 +59,35 @@ public class MethodInvokingHandler implements MessageHandler, InitializingBean {
 	}
 
 	public void setMessageMapper(MessageMapper messageMapper) {
+		Assert.notNull(messageMapper, "'messageMapper' must not be null");
 		this.messageMapper = messageMapper;
 	}
 
 	public void setMessageCreator(MessageCreator messageCreator) {
+		Assert.notNull(messageCreator, "'messageCreator' must not be null");
 		this.messageCreator = messageCreator;
 	}
 
 	public void afterPropertiesSet() {
-		this.invoker = new HandlerMethodInvoker(this.object, this.methodName);
+		synchronized (this.initMonitor) {
+			if (this.initialized) {
+				return;
+			}
+			this.invoker = new HandlerMethodInvoker(this.object, this.methodName);
+			this.initialized = true;
+		}
 	}
 
 	public Message<?> handle(Message<?> message) {
-		Object args = (this.messageMapper != null) ? this.messageMapper.mapMessage(message) : message.getPayload();
+		if (!this.initialized) {
+			this.afterPropertiesSet();
+		}
+		Object args = this.messageMapper.mapMessage(message);
 		Object result = this.invoker.invokeMethod(args);
 		if (result == null) {
 			return null;
 		}
-		return (this.messageCreator != null) ? this.messageCreator.createMessage(result) : new GenericMessage<Object>(result);
+		return this.messageCreator.createMessage(result);
 	}
 
 }

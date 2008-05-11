@@ -79,7 +79,6 @@ public abstract class AbstractMessageHandlerAdapter<T> implements MessageHandler
 	}
 
 	public final void afterPropertiesSet() {
-		this.validate();
 		synchronized (this.lifecycleMonitor) {
 			if (this.initialized) {
 				return;
@@ -107,12 +106,6 @@ public abstract class AbstractMessageHandlerAdapter<T> implements MessageHandler
 			return reply;
 		}
 		return null;
-	}
-
-	/**
-	 * Subclasses may override this method to provide validation upon initialization.
-	 */
-	protected void validate() {
 	}
 
 	/**
