@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -74,6 +75,33 @@ public class JmsGatewayParserTests {
 		assertNotNull("message should not be null", message);
 		assertEquals("converted-test-message", message.getPayload());
 		context.stop();
+	}
+
+	@Test
+	public void testGatewayWithDefaultExpectReply() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsGatewaysWithExpectReplyAttributes.xml", this.getClass());
+		JmsGateway gateway = (JmsGateway) context.getBean("defaultGateway");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
+		assertEquals(Boolean.FALSE, accessor.getPropertyValue("expectReply"));
+	}
+
+	@Test
+	public void testGatewayExpectingReply() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsGatewaysWithExpectReplyAttributes.xml", this.getClass());
+		JmsGateway gateway = (JmsGateway) context.getBean("gatewayExpectingReply");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
+		assertEquals(Boolean.TRUE, accessor.getPropertyValue("expectReply"));
+	}
+
+	@Test
+	public void testGatewayNotExpectingReply() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsGatewaysWithExpectReplyAttributes.xml", this.getClass());
+		JmsGateway gateway = (JmsGateway) context.getBean("gatewayNotExpectingReply");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
+		assertEquals(Boolean.FALSE, accessor.getPropertyValue("expectReply"));
 	}
 
 	@Test(expected=BeanDefinitionStoreException.class)
