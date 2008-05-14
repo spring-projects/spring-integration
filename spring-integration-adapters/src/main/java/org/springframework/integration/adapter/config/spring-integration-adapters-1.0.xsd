@@ -76,7 +76,7 @@
 			<xsd:complexContent>
 				<xsd:extension base="jmsInboundAdapterType">
 					<xsd:attribute name="message-converter" type="xsd:string"/>
-					<xsd:attribute name="expect-reply" type="xsd:boolean" default="true"/>
+					<xsd:attribute name="expect-reply" type="xsd:boolean" default="false"/>
 					<xsd:attribute name="request-channel" type="xsd:string" use="required"/>
 					<xsd:attribute name="reply-channel" type="xsd:string"/>
 					<xsd:attribute name="request-timeout" type="xsd:long"/>
@@ -227,6 +227,7 @@
 			<xsd:attribute name="id" type="xsd:string"/>
 			<xsd:attribute name="charset" type="xsd:string"/>
 			<xsd:attribute name="error" type="xsd:boolean" default="false"/>
+			<xsd:attribute name="append-newline" type="xsd:boolean" default="false"/>
 		</xsd:complexType>
 	</xsd:element>
 
