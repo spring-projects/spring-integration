@@ -24,7 +24,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.gateway.MessagingGateway;
+import org.springframework.integration.gateway.SimpleMessagingGateway;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.listener.adapter.MessageListenerAdapter;
@@ -37,7 +37,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class JmsGateway extends MessagingGateway implements Lifecycle, DisposableBean {
+public class JmsGateway extends SimpleMessagingGateway implements Lifecycle, DisposableBean {
 
 	private volatile AbstractMessageListenerContainer container;
 
