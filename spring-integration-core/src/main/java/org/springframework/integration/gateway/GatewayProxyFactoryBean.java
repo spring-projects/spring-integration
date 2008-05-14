@@ -39,7 +39,7 @@ import org.springframework.util.ClassUtils;
  * 
  * @author Mark Fisher
  */
-public class GatewayProxyFactoryBean extends MessagingGateway
+public class GatewayProxyFactoryBean extends SimpleMessagingGateway
 		implements FactoryBean, MethodInterceptor, InitializingBean, BeanClassLoaderAware, BeanFactoryAware {
 
 	private Class<?> serviceInterface;

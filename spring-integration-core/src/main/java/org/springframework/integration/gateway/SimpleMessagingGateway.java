@@ -17,7 +17,6 @@
 package org.springframework.integration.gateway;
 
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.RequestReplyTemplate;
 import org.springframework.integration.message.DefaultMessageCreator;
 import org.springframework.integration.message.DefaultMessageMapper;
 import org.springframework.integration.message.Message;
@@ -27,45 +26,28 @@ import org.springframework.util.Assert;
 
 /**
  * A general purpose class that supports a variety of message exchanges. Useful for connecting application code to
- * {@link MessageChannel MessageChannels} for sending, receiving, or request-reply operations. May be used as a base
- * class for framework components so that the details of messaging are well-encapsulated and hidden from application
- * code. For example, see {@link GatewayProxyFactoryBean}.
+ * {@link MessageChannel MessageChannels} for sending, receiving, or request-reply operations. The sending methods
+ * accept any Object as the parameter value (i.e. it is not required to be a Message). A custom {@link MessageCreator}
+ * may be provided for creating Messages from the Objects. Likewise return values may be any Object and a custom
+ * implementation of the {@link MessageMapper} strategy may be provided for mapping a reply Message to an Object.
  * 
  * @author Mark Fisher
  */
-public class MessagingGateway {
-
-	private final RequestReplyTemplate requestReplyTemplate = new RequestReplyTemplate();
+public class SimpleMessagingGateway extends MessagingGatewaySupport {
 
 	private MessageCreator messageCreator = new DefaultMessageCreator();
 
 	private MessageMapper messageMapper = new DefaultMessageMapper();
 
 
-	public MessagingGateway(MessageChannel requestChannel) {
-		this.requestReplyTemplate.setRequestChannel(requestChannel);
+	public SimpleMessagingGateway(MessageChannel requestChannel) {
+		super(requestChannel);
 	}
 
-	public MessagingGateway() {
+	public SimpleMessagingGateway() {
 		super();
 	}
 
-
-	public void setRequestChannel(MessageChannel requestChannel) {
-		this.requestReplyTemplate.setRequestChannel(requestChannel);
-	}
-
-	public void setReplyChannel(MessageChannel replyChannel) {
-		this.requestReplyTemplate.setReplyChannel(replyChannel);
-	}
-
-	public void setRequestTimeout(long requestTimeout) {
-		this.requestReplyTemplate.setRequestTimeout(requestTimeout);
-	}
-
-	public void setReplyTimeout(long replyTimeout) {
-		this.requestReplyTemplate.setReplyTimeout(replyTimeout);
-	}
 
 	public void setMessageCreator(MessageCreator<?, ?> messageCreator) {
 		Assert.notNull(messageCreator, "messageCreator must not be null");
@@ -77,20 +59,17 @@ public class MessagingGateway {
 		this.messageMapper = messageMapper;
 	}
 
-	protected RequestReplyTemplate getRequestReplyTemplate() {
-		return this.requestReplyTemplate;
-	}
-
-	public void send(Object object) {
+	public boolean send(Object object) {
 		Message<?> message = (object instanceof Message) ? (Message) object :
 				this.messageCreator.createMessage(object);
-		if (message != null) {
-			this.requestReplyTemplate.send(message);
+		if (message == null) {
+			return false;
 		}
+		return this.getRequestReplyTemplate().send(message);
 	}
 
 	public Object receive() {
-		Message<?> message = this.requestReplyTemplate.receive();
+		Message<?> message = this.getRequestReplyTemplate().receive();
 		return (message != null) ? this.messageMapper.mapMessage(message) : null;
 	}
 
@@ -108,7 +87,7 @@ public class MessagingGateway {
 		if (request == null) {
 			return null;
 		}
-		Message<?> reply = this.requestReplyTemplate.request(request);
+		Message<?> reply = this.getRequestReplyTemplate().request(request);
 		if (!shouldMapMessage) {
 			return reply;
 		}
