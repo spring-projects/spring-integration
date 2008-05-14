@@ -102,6 +102,9 @@ public class JmsGatewayParser extends AbstractSingleBeanDefinitionParser {
 		if (StringUtils.hasText(replyTimeout)) {
 			builder.addPropertyValue("replyTimeout", Long.parseLong(replyTimeout));
 		}
+		if ("true".equals(element.getAttribute("expect-reply"))) {
+			builder.addPropertyValue("expectReply", Boolean.TRUE);
+		}
 	}
 
 }

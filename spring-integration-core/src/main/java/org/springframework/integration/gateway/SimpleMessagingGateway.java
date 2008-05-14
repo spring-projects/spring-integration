@@ -21,6 +21,7 @@ import org.springframework.integration.message.DefaultMessageCreator;
 import org.springframework.integration.message.DefaultMessageMapper;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageCreator;
+import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageMapper;
 import org.springframework.util.Assert;
 
@@ -59,13 +60,14 @@ public class SimpleMessagingGateway extends MessagingGatewaySupport {
 		this.messageMapper = messageMapper;
 	}
 
-	public boolean send(Object object) {
+	public void send(Object object) {
 		Message<?> message = (object instanceof Message) ? (Message) object :
 				this.messageCreator.createMessage(object);
-		if (message == null) {
-			return false;
+		if (message != null) {
+			if (!this.getRequestReplyTemplate().send(message)) {
+				throw new MessageDeliveryException(message, "failed to send Message to channel");
+			}
 		}
-		return this.getRequestReplyTemplate().send(message);
 	}
 
 	public Object receive() {

@@ -109,7 +109,7 @@ public class JmsGateway extends SimpleMessagingGateway implements Lifecycle, Dis
 		}
 		MessageListenerAdapter listener = new MessageListenerAdapter();
 		listener.setDelegate(this);
-		listener.setDefaultListenerMethod(this.expectReply ? "request" : "send");
+		listener.setDefaultListenerMethod(this.expectReply ? "sendAndReceive" : "send");
 		listener.setMessageConverter(this.messageConverter);
 		this.container.setMessageListener(listener);
 		if (!this.container.isActive()) {
