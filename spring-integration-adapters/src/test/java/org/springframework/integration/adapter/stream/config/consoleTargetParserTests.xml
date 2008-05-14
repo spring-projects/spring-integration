@@ -13,4 +13,6 @@
 
 	<console-target id="stderrTarget" error="true"/>
 
+	<console-target id="newlineTarget" append-newline="true"/>
+
 </beans:beans>

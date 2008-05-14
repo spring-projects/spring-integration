@@ -133,4 +133,23 @@ public class ConsoleTargetParserTests {
 		assertEquals("bad", err.toString());
 	}
 
+	@Test
+	public void testAppendNewLine() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"consoleTargetParserTests.xml", ConsoleTargetParserTests.class);
+		CharacterStreamTarget target =
+				(CharacterStreamTarget) context.getBean("newlineTarget");
+		DirectFieldAccessor targetAccessor = new DirectFieldAccessor(target);
+		Writer bufferedWriter = (Writer) targetAccessor.getPropertyValue("writer");
+		assertEquals(BufferedWriter.class, bufferedWriter.getClass());
+		DirectFieldAccessor bufferedWriterAccessor = new DirectFieldAccessor(bufferedWriter);
+		Writer writer = (Writer) bufferedWriterAccessor.getPropertyValue("out");
+		assertEquals(OutputStreamWriter.class, writer.getClass());
+		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
+		assertEquals(Charset.defaultCharset(), writerCharset);
+		this.resetStreams();
+		target.send(new StringMessage("foo"));
+		assertEquals("foo\n", out.toString());
+	}
+
 }

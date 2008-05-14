@@ -57,6 +57,9 @@ public class ConsoleTargetParser extends AbstractSingleBeanDefinitionParser {
 		if (StringUtils.hasText(charsetName)) {
 			builder.addConstructorArgValue(charsetName);
 		}
+		if ("true".equals(element.getAttribute("append-newline"))) {
+			builder.addPropertyValue("shouldAppendNewLine", Boolean.TRUE);
+		}
 	}
 
 }
