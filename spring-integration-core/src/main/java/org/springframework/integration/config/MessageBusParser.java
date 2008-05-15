@@ -42,8 +42,6 @@ import org.springframework.util.StringUtils;
  */
 public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 
-	private static final String REFERENCE_ATTRIBUTE = "ref";
-
 	public static final String MESSAGE_BUS_BEAN_NAME = "internal.MessageBus";
 
 	public static final String MESSAGE_BUS_AWARE_POST_PROCESSOR_BEAN_NAME = "internal.MessageBusAwareBeanPostProcessor";
@@ -55,10 +53,9 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 	private static final String DEFAULT_CONCURRENCY_ELEMENT = "default-concurrency";
 
 	private static final String DEFAULT_CONCURRENCY_PROPERTY = "defaultConcurrencyPolicy";
-	
-	private static final String CHANNEL_FACTORY_ELEMENT = "channel-factory";
-	
-	private static final String CHANNEL_FACTORY_PROPERTY = "channelFactory";
+
+	private static final String CHANNEL_FACTORY_ATTRIBUTE = "channel-factory";
+
 
 	@Override
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
@@ -77,7 +74,9 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
-		return !ERROR_CHANNEL_ATTRIBUTE.equals(attributeName) && super.isEligibleAttribute(attributeName);
+		return !ERROR_CHANNEL_ATTRIBUTE.equals(attributeName) &&
+				!CHANNEL_FACTORY_ATTRIBUTE.equals(attributeName) &&
+				super.isEligibleAttribute(attributeName);
 	}
 
 	@Override
@@ -87,10 +86,15 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 			beanDefinition.addPropertyReference(Conventions.attributeNameToPropertyName(
 					ERROR_CHANNEL_ATTRIBUTE), errorChannelRef);
 		}
-		this.processAdditionalChildElements(beanDefinition, element);
+		String channelFactoryRef = element.getAttribute(CHANNEL_FACTORY_ATTRIBUTE);
+		if (StringUtils.hasText(channelFactoryRef)) {
+			beanDefinition.addPropertyReference(Conventions.attributeNameToPropertyName(
+					CHANNEL_FACTORY_ATTRIBUTE), channelFactoryRef);
+		}
+		this.processChildElements(beanDefinition, element);
 	}
 
-	private void processAdditionalChildElements(BeanDefinitionBuilder beanDefinition, Element element) {
+	private void processChildElements(BeanDefinitionBuilder beanDefinition, Element element) {
 		NodeList childNodes = element.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); i++) {
 			Node child = childNodes.item(i);
@@ -99,10 +103,6 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 				if (DEFAULT_CONCURRENCY_ELEMENT.equals(localName)) {
 					beanDefinition.addPropertyValue(DEFAULT_CONCURRENCY_PROPERTY,
 							IntegrationNamespaceUtils.parseConcurrencyPolicy((Element) child));
-				}
-				else if (CHANNEL_FACTORY_ELEMENT.equals(localName)) {
-					beanDefinition.addPropertyReference(CHANNEL_FACTORY_PROPERTY,
-							((Element) child).getAttribute(REFERENCE_ATTRIBUTE));
 				}
 			}
 		}
