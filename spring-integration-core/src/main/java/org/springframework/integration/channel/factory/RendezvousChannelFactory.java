@@ -18,7 +18,6 @@ package org.springframework.integration.channel.factory;
 
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DispatcherPolicy;
-import org.springframework.integration.channel.PriorityChannel;
 import org.springframework.integration.channel.RendezvousChannel;
 
 /**
