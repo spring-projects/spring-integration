@@ -145,16 +145,13 @@ public class MessageBusParserTests {
 		TestMessageBusAwareImpl messageBusAware = (TestMessageBusAwareImpl) context.getBean("messageBusAwareBean");
 		assertTrue(messageBusAware.getMessageBus() == context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME));
 	}
-	
+
 	@Test
 	public void testMessageBusWithChannelFactory() {
 		ApplicationContext context = new ClassPathXmlApplicationContext("messageBusWithChannelFactory.xml", 
 				this.getClass());
-		MessageBus bus = (MessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);		
-		assertTrue (context.getBean("defaultTypeChannel") instanceof SynchronousChannel);
-		assertTrue (context.getBean("specifiedTypeChannel") instanceof QueueChannel);
-		
-
+		assertEquals(SynchronousChannel.class, context.getBean("defaultTypeChannel").getClass());
+		assertEquals(QueueChannel.class, context.getBean("specifiedTypeChannel").getClass());
 	}
 
 }
