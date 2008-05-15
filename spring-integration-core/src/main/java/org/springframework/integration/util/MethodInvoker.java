@@ -14,25 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
-
-import java.io.Serializable;
+package org.springframework.integration.util;
 
 /**
- * The central interface that any Message type must implement.
+ * A strategy interface for invoking a method.
+ * Typically used by adapters.
  * 
  * @author Mark Fisher
  */
-public interface Message<T> extends Serializable {
+public interface MethodInvoker {
 
-	Object getId();
-
-	MessageHeader getHeader();
-
-	T getPayload();
-
-	boolean isExpired();
-
-	void copyHeader(MessageHeader header, boolean overwriteExistingValues);
+	Object invokeMethod(Object ... args) throws Exception;
 
 }

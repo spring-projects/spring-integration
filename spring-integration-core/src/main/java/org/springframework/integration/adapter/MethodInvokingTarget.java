@@ -16,35 +16,30 @@
 
 package org.springframework.integration.adapter;
 
-import java.lang.reflect.Method;
-
-import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.handler.AbstractMessageHandlerAdapter;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.Target;
-import org.springframework.integration.util.MethodValidator;
 
 /**
  * A messaging target that invokes the specified method on the provided object.
  * 
  * @author Mark Fisher
  */
-public class MethodInvokingTarget extends MethodInvokingHandler implements Target {
-
-	@Override
-	public void afterPropertiesSet() {
-		super.afterPropertiesSet();
-		this.invoker.setMethodValidator(new MethodValidator() {
-			public void validate(Method method) throws Exception {
-				if (!method.getReturnType().equals(void.class)) {
-					throw new ConfigurationException("target method must have a void return");
-				}
-			}
-		});
-	}
+public class MethodInvokingTarget extends AbstractMessageHandlerAdapter implements Target {
 
 	public boolean send(Message<?> message) {
 		this.handle(message);
 		return true;
+	}
+
+	@Override
+	protected Message<?> handleReturnValue(Object returnValue, Message<?> originalMessage) {
+		if (returnValue != null) {
+			throw new MessagingException(originalMessage, "The target method returned a non-null Object. " +
+					"MethodInvokingTarget should only be used for methods that return no value (preferably void).");
+		}
+		return null;
 	}
 
 }

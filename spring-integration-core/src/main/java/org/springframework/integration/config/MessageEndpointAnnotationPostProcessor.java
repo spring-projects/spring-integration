@@ -156,7 +156,7 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 					int period = polledAnnotation.period();
 					long initialDelay = polledAnnotation.initialDelay();
 					boolean fixedRate = polledAnnotation.fixedRate();
-					MethodInvokingSource<Object> source = new MethodInvokingSource<Object>();
+					MethodInvokingSource source = new MethodInvokingSource();
 					source.setObject(bean);
 					source.setMethod(method.getName());
 					SynchronousChannel channel = new SynchronousChannel();

@@ -18,7 +18,6 @@ package org.springframework.integration.router;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.Map;
 
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.annotation.Router;
@@ -26,11 +25,8 @@ import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.AbstractMessageHandlerAdapter;
-import org.springframework.integration.handler.HandlerMethodInvoker;
+import org.springframework.integration.handler.annotation.AnnotationMethodMessageMapper;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * MessageHandler adapter for methods annotated with {@link Router @Router}.
@@ -39,27 +35,20 @@ import org.springframework.util.StringUtils;
  */
 public class RouterMessageHandlerAdapter extends AbstractMessageHandlerAdapter implements ChannelRegistryAware {
 
-	private static final String PROPERTY_KEY = "property";
-
-	private static final String ATTRIBUTE_KEY = "attribute";
-
-
-	private final Method method;
-
-	private final Map<String, ?> attributes;
-
 	private volatile ChannelRegistry channelRegistry;
 
 
-	public RouterMessageHandlerAdapter(Object object, Method method, Map<String, ?> attributes) {
-		Assert.notNull(object, "'object' must not be null");
-		Assert.notNull(method, "'method' must not be null");
-		Assert.notNull(attributes, "'attributes' must not be null");
+	public RouterMessageHandlerAdapter(Object object, Method method) {
 		this.setObject(object);
-		this.setMethodName(method.getName());
-		this.method = method;
-		this.attributes = attributes;
+		this.setMethod(method);
+		if (method.getParameterTypes().length < 1) {
+			throw new ConfigurationException("The router method must accept at least one argument.");
+		}
+		if (method.getParameterTypes()[0].equals(Message.class)) {
+			this.setMethodExpectsMessage(true);
+		}
 	}
+
 
 	public void setChannelRegistry(ChannelRegistry channelRegistry) {
 		this.channelRegistry = channelRegistry;
@@ -71,55 +60,20 @@ public class RouterMessageHandlerAdapter extends AbstractMessageHandlerAdapter i
 		if (target != null && this.channelRegistry != null && (target instanceof ChannelRegistryAware)) {
 			((ChannelRegistryAware) target).setChannelRegistry(this.channelRegistry);
 		}
+		this.setMessageMapper(new AnnotationMethodMessageMapper(this.getMethod()));
 	}
 
 	@Override
-	protected Object doHandle(Message message, HandlerMethodInvoker invoker) {
-		if (method.getParameterTypes().length != 1) {
-			throw new ConfigurationException(
-					"method must accept exactly one parameter");
-		}
-		String propertyName = (String) attributes.get(PROPERTY_KEY);
-		String attributeName = (String) attributes.get(ATTRIBUTE_KEY);
-		Object retval = null;
-		if (StringUtils.hasText(propertyName)) {
-			if (StringUtils.hasText(attributeName)) {
-				throw new ConfigurationException(
-						"cannot accept both 'property' and 'attribute'");
-			}
-			String property = message.getHeader().getProperty(propertyName);
-			if (!StringUtils.hasText(property)) {
-				throw new MessageHandlingException(message,
-						"no '" + propertyName + "' property available for router method");
-			}
-			retval = this.invokeMethod(invoker, property);
-		}
-		else if (StringUtils.hasText(attributeName)) {
-			Object attribute = message.getHeader().getAttribute(attributeName);
-			if (attribute == null) {
-				throw new MessageHandlingException(message,
-						"no '" + attributeName + "' attribute available for router method");
-			}
-			retval = this.invokeMethod(invoker, attribute);
-		}
-		else {
-			Class<?> type = method.getParameterTypes()[0];
-			if (type.equals(Message.class)) {
-				retval = this.invokeMethod(invoker, message);
-			}
-			else {
-				retval = this.invokeMethod(invoker, message.getPayload());
-			}
-		}
-		if (retval != null) {
-			if (retval instanceof Collection) {
-				Collection<?> channels = (Collection<?>) retval;
+	protected Message<?> handleReturnValue(Object returnValue, Message<?> originalMessage) {
+		if (returnValue != null) {
+			if (returnValue instanceof Collection) {
+				Collection<?> channels = (Collection<?>) returnValue;
 				for (Object channel : channels) {
 					if (channel instanceof MessageChannel) {
-						this.sendMessage(message, (MessageChannel) channel);
+						this.sendMessage(originalMessage, (MessageChannel) channel);
 					}
 					else if (channel instanceof String) {
-						this.sendMessage(message, (String) channel);
+						this.sendMessage(originalMessage, (String) channel);
 					}
 					else {
 						throw new ConfigurationException(
@@ -127,21 +81,21 @@ public class RouterMessageHandlerAdapter extends AbstractMessageHandlerAdapter i
 					}
 				}
 			}
-			else if (retval instanceof MessageChannel[]) {
-				for (MessageChannel channel : (MessageChannel[]) retval) {
-					this.sendMessage(message, channel);
+			else if (returnValue instanceof MessageChannel[]) {
+				for (MessageChannel channel : (MessageChannel[]) returnValue) {
+					this.sendMessage(originalMessage, channel);
 				}
 			}
-			else if (retval instanceof String[]) {
-				for (String channelName : (String[]) retval) {
-					this.sendMessage(message, channelName);
+			else if (returnValue instanceof String[]) {
+				for (String channelName : (String[]) returnValue) {
+					this.sendMessage(originalMessage, channelName);
 				}
 			}
-			else if (retval instanceof MessageChannel) {
-				this.sendMessage(message, (MessageChannel) retval);
+			else if (returnValue instanceof MessageChannel) {
+				this.sendMessage(originalMessage, (MessageChannel) returnValue);
 			}
-			else if (retval instanceof String) {
-				this.sendMessage(message, (String) retval);
+			else if (returnValue instanceof String) {
+				this.sendMessage(originalMessage, (String) returnValue);
 			}
 			else {
 				throw new ConfigurationException(
@@ -149,14 +103,6 @@ public class RouterMessageHandlerAdapter extends AbstractMessageHandlerAdapter i
 			}
 		}
 		return null;
-	}
-
-	private Object invokeMethod(HandlerMethodInvoker<?> invoker, Object parameter) {
-		if (this.logger.isDebugEnabled()) {
-			logger.debug("invoking method '" + method.getName() + "' with parameter of type '" +
-					parameter.getClass().getName() + "'");
-		}
-		return invoker.invokeMethod(parameter);
 	}
 
 	private boolean sendMessage(Message<?> message, String channelName) {

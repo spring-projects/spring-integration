@@ -16,15 +16,17 @@
 
 package org.springframework.integration.adapter;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.handler.HandlerMethodInvoker;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.Source;
 import org.springframework.integration.util.MethodValidator;
+import org.springframework.integration.util.NameResolvingMethodInvoker;
 import org.springframework.util.Assert;
 
 /**
@@ -33,16 +35,16 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class MethodInvokingSource<T> implements Source<Object>, InitializingBean {
+public class MethodInvokingSource implements Source<Object>, InitializingBean {
 
-	private T object;
+	private Object object;
 
 	private String method;
 
-	private HandlerMethodInvoker<T> invoker;
+	private NameResolvingMethodInvoker invoker;
 
 
-	public void setObject(T object) {
+	public void setObject(Object object) {
 		Assert.notNull(object, "'object' must not be null");
 		this.object = object;
 	}
@@ -53,7 +55,7 @@ public class MethodInvokingSource<T> implements Source<Object>, InitializingBean
 	}
 
 	public void afterPropertiesSet() {
-		this.invoker = new HandlerMethodInvoker<T>(this.object, this.method);
+		this.invoker = new NameResolvingMethodInvoker(this.object, this.method);
 		this.invoker.setMethodValidator(new MessageReceivingMethodValidator());
 	}
 
@@ -61,7 +63,15 @@ public class MethodInvokingSource<T> implements Source<Object>, InitializingBean
 		if (this.invoker == null) {
 			this.afterPropertiesSet();
 		}
-		return new GenericMessage<Object>(this.invoker.invokeMethod(new Object[] {}));
+		try {
+			return new GenericMessage<Object>(this.invoker.invokeMethod(new Object[] {}));
+		} catch (InvocationTargetException e) {
+			throw new MessagingException(
+					"Source method '" + this.method + "' threw an Exception.", e.getTargetException());
+		}
+		catch (Throwable e) {
+			throw new MessagingException("Failed to invoke source method '" + this.method + "'.");
+		}
 	}
 
 

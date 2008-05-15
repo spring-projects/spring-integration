@@ -19,16 +19,12 @@ package org.springframework.integration.handler;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.junit.Test;
 
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.router.SplitterMessageHandlerAdapter;
@@ -44,7 +40,7 @@ public class CorrelationIdTests {
 		Object correlationId = "123-ABC";
 		Message<?> message = new StringMessage("test");
 		message.getHeader().setCorrelationId(correlationId);
-		DefaultMessageHandlerAdapter<TestBean> adapter = new DefaultMessageHandlerAdapter<TestBean>();
+		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
 		adapter.setObject(new TestBean());
 		adapter.setMethodName("upperCase");
 		adapter.afterPropertiesSet();
@@ -55,7 +51,7 @@ public class CorrelationIdTests {
 	@Test
 	public void testCorrelationIdCopiedFromMessageIdByDefault() {
 		Message<?> message = new StringMessage("test");
-		DefaultMessageHandlerAdapter<TestBean> adapter = new DefaultMessageHandlerAdapter<TestBean>();
+		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
 		adapter.setObject(new TestBean());
 		adapter.setMethodName("upperCase");
 		adapter.afterPropertiesSet();
@@ -67,7 +63,7 @@ public class CorrelationIdTests {
 	public void testCorrelationIdCopiedFromMessageCorrelationIdIfAvailable() {
 		Message<?> message = new StringMessage("messageId","test");
 		message.getHeader().setCorrelationId("correlationId");
-		DefaultMessageHandlerAdapter<TestBean> adapter = new DefaultMessageHandlerAdapter<TestBean>();
+		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
 		adapter.setObject(new TestBean());
 		adapter.setMethodName("upperCase");
 		adapter.afterPropertiesSet();
@@ -81,14 +77,13 @@ public class CorrelationIdTests {
 		Object correlationId = "123-ABC";
 		Message<?> message = new StringMessage("test");
 		message.getHeader().setCorrelationId(correlationId);
-		AbstractMessageHandlerAdapter<TestBean> adapter = new AbstractMessageHandlerAdapter<TestBean>() {
+		AbstractMessageHandlerAdapter adapter = new AbstractMessageHandlerAdapter() {
 			@Override
-			protected Object doHandle(Message<?> message, HandlerMethodInvoker<TestBean> invoker) {
-				Object result = invoker.invokeMethod(message.getPayload());
-				Message<?> resultMessage = new GenericMessage<Object>(result);
+            protected Message<?> handleReturnValue(Object returnValue, Message<?> originalMessage) {
+				Message<?> resultMessage = this.createReplyMessage(returnValue, originalMessage);
 				resultMessage.getHeader().setCorrelationId("456-XYZ");
-				return resultMessage;
-			}
+	            return resultMessage;
+            }
 		};
 		adapter.setObject(new TestBean());
 		adapter.setMethodName("upperCase");
@@ -100,14 +95,13 @@ public class CorrelationIdTests {
 	@Test
 	public void testCorrelationNotCopiedIfAlreadySetByHandler() throws Exception {
 		Message<?> message = new StringMessage("test");
-		AbstractMessageHandlerAdapter<TestBean> adapter = new AbstractMessageHandlerAdapter<TestBean>() {
+		AbstractMessageHandlerAdapter adapter = new AbstractMessageHandlerAdapter() {
 			@Override
-			protected Object doHandle(Message<?> message, HandlerMethodInvoker<TestBean> invoker) {
-				Object result = invoker.invokeMethod(message.getPayload());
-				Message<?> resultMessage = new GenericMessage<Object>(result);
+            protected Message<?> handleReturnValue(Object returnValue, Message<?> originalMessage) {
+				Message<?> resultMessage = this.createReplyMessage(returnValue, originalMessage);
 				resultMessage.getHeader().setCorrelationId("456-XYZ");
-				return resultMessage;
-			}
+	            return resultMessage;
+            }
 		};
 		adapter.setObject(new TestBean());
 		adapter.setMethodName("upperCase");
@@ -119,17 +113,15 @@ public class CorrelationIdTests {
 	@Test
 	public void testCorrelationIdWithSplitter() throws Exception {
 		Message<?> message = new StringMessage("test1,test2");
-		DefaultMessageHandlerAdapter<TestBean> adapter = new DefaultMessageHandlerAdapter<TestBean>();
+		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
 		adapter.setObject(new TestBean());
 		adapter.setMethodName("upperCase");
 		adapter.afterPropertiesSet();
 		MessageChannel testChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("testChannel", testChannel);
-		Map<String, String> attributes = new HashMap<String, String>();
-		attributes.put(AbstractMessageHandlerAdapter.OUTPUT_CHANNEL_NAME_KEY, "testChannel");
-		SplitterMessageHandlerAdapter<TestBean> splitter = new SplitterMessageHandlerAdapter<TestBean>(
-				new TestBean(), TestBean.class.getMethod("split", String.class), attributes);
+		SplitterMessageHandlerAdapter splitter = new SplitterMessageHandlerAdapter(
+				new TestBean(), TestBean.class.getMethod("split", String.class), "testChannel");
 		splitter.setChannelRegistry(channelRegistry);
 		splitter.afterPropertiesSet();
 		splitter.handle(message);

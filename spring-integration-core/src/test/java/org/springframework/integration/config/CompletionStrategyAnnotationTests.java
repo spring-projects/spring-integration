@@ -16,6 +16,7 @@
 
 package org.springframework.integration.config;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
 import org.junit.Assert;
@@ -31,6 +32,9 @@ import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.integration.router.AggregatingMessageHandler;
 import org.springframework.integration.router.CompletionStrategyAdapter;
 
+/**
+ * @author Marius Bogoevici
+ */
 public class CompletionStrategyAnnotationTests {
 
 	@Test
@@ -44,7 +48,8 @@ public class CompletionStrategyAnnotationTests {
 		DirectFieldAccessor invokerAccessor = new DirectFieldAccessor(new DirectFieldAccessor(
 				aggregatingMessageHandlerAccessor.getPropertyValue("completionStrategy")).getPropertyValue("invoker"));
 		Assert.assertSame(context.getBean(endpointName), invokerAccessor.getPropertyValue("object"));
-		Assert.assertEquals("completionChecker", invokerAccessor.getPropertyValue("method"));
+		Method completionCheckerMethod = (Method) invokerAccessor.getPropertyValue("method");
+		Assert.assertEquals("completionChecker", completionCheckerMethod.getName());
 
 	}
 	

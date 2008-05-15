@@ -18,7 +18,6 @@ package org.springframework.integration.router;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.Map;
 
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.annotation.Splitter;
@@ -26,9 +25,7 @@ import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.AbstractMessageHandlerAdapter;
-import org.springframework.integration.handler.HandlerMethodInvoker;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageHeader;
 import org.springframework.util.Assert;
 
 /**
@@ -37,9 +34,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class SplitterMessageHandlerAdapter<T> extends AbstractMessageHandlerAdapter<T> implements ChannelRegistryAware {
-
-	private final Method method;
+public class SplitterMessageHandlerAdapter extends AbstractMessageHandlerAdapter implements ChannelRegistryAware {
 
 	private final String outputChannelName;
 
@@ -48,16 +43,19 @@ public class SplitterMessageHandlerAdapter<T> extends AbstractMessageHandlerAdap
 	private volatile long sendTimeout = -1;
 
 
-	public SplitterMessageHandlerAdapter(T object, Method method, Map<String, ?> attributes) {
-		Assert.notNull(object, "'object' must not be null");
-		Assert.notNull(method, "'method' must not be null");
-		Assert.isTrue(attributes != null && attributes.get(OUTPUT_CHANNEL_NAME_KEY) != null,
-				"The '" + OUTPUT_CHANNEL_NAME_KEY + "' attribute is required.");
+	public SplitterMessageHandlerAdapter(Object object, Method method, String outputChannelName) {
+		Assert.hasText(outputChannelName, "output channel name is required");
 		this.setObject(object);
-		this.setMethodName(method.getName());
-		this.method = method;
-		this.outputChannelName = (String) attributes.get(OUTPUT_CHANNEL_NAME_KEY);
+		this.setMethod(method);
+		this.outputChannelName = outputChannelName;
+		if (method.getParameterTypes().length < 1) {
+			throw new ConfigurationException("The splitter method must accept at least one argument.");
+		}
+		if (method.getParameterTypes()[0].equals(Message.class)) {
+			this.setMethodExpectsMessage(true);
+		}
 	}
+
 
 	public void setChannelRegistry(ChannelRegistry channelRegistry) {
 		this.channelRegistry = channelRegistry;
@@ -68,45 +66,32 @@ public class SplitterMessageHandlerAdapter<T> extends AbstractMessageHandlerAdap
 	}
 
 	@Override
-	protected final Object doHandle(Message<?> message, HandlerMethodInvoker<T> invoker) {
-		final MessageHeader originalMessageHeader = message.getHeader();
-		if (method.getParameterTypes().length != 1) {
-			throw new ConfigurationException(
-					"Splitter method must accept exactly one parameter");
-		}
-		Object retval = null;
-		Class<?> type = method.getParameterTypes()[0];
-		if (type.equals(Message.class)) {
-			retval = invoker.invokeMethod(message);
-		}
-		else {
-			retval = invoker.invokeMethod(message.getPayload());
-		}
-		if (retval == null) {
+	protected final Message<?> handleReturnValue(Object returnValue, Message<?> originalMessage) {
+		if (returnValue == null) {
 			if (logger.isWarnEnabled()) {
-				logger.warn("Splitter method '" + this.method.getName() + "' returned null");
+				logger.warn("Splitter method returned null.");
 			}
 			return null;
 		}
-		if (retval instanceof Collection) {
-			Collection<?> items = (Collection<?>) retval;
+		if (returnValue instanceof Collection) {
+			Collection<?> items = (Collection<?>) returnValue;
 			int sequenceNumber = 0;
 			int sequenceSize = items.size();
 			for (Object item : items) {
-				Message<?> splitMessage = (item instanceof Message<?>) ? (Message<?>) item :
-						this.createReplyMessage(item, originalMessageHeader);
-				this.prepareMessage(splitMessage, message.getId(), ++sequenceNumber, sequenceSize);
+				Message<?> splitMessage = (item instanceof Message<?>) ?
+						(Message<?>) item : this.createReplyMessage(item, originalMessage);
+				this.prepareMessage(splitMessage, originalMessage.getId(), ++sequenceNumber, sequenceSize);
 				this.sendMessage(splitMessage, this.outputChannelName);
 			}
 		}
-		else if (retval.getClass().isArray()) {
-			Object[] array = (Object[]) retval;
+		else if (returnValue.getClass().isArray()) {
+			Object[] array = (Object[]) returnValue;
 			int sequenceNumber = 0;
 			int sequenceSize = array.length;
 			for (Object item : array) {
-				Message<?> splitMessage = (item instanceof Message<?>) ? (Message<?>) item :
-						this.createReplyMessage(item, originalMessageHeader);
-				this.prepareMessage(splitMessage, message.getId(), ++sequenceNumber, sequenceSize);
+				Message<?> splitMessage = (item instanceof Message<?>) ?
+						(Message<?>) item : this.createReplyMessage(item, originalMessage);
+				this.prepareMessage(splitMessage, originalMessage.getId(), ++sequenceNumber, sequenceSize);
 				this.sendMessage(splitMessage, this.outputChannelName);
 			}
 		}

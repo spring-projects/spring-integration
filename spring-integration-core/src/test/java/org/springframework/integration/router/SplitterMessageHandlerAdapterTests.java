@@ -23,17 +23,14 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.junit.Test;
 
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.handler.AbstractMessageHandlerAdapter;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -47,12 +44,9 @@ public class SplitterMessageHandlerAdapterTests {
 
 	private SplitterTestBean testBean = new SplitterTestBean();
 
-	private Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
-
 
 	public SplitterMessageHandlerAdapterTests() {
 		this.channelRegistry.registerChannel("testChannel", testChannel);
-		this.attribs.put(AbstractMessageHandlerAdapter.OUTPUT_CHANNEL_NAME_KEY, "testChannel");
 	}
 
 
@@ -160,10 +154,10 @@ public class SplitterMessageHandlerAdapterTests {
 		assertEquals("bar", reply2.getPayload());
 	}
 
-	@Test(expected=ConfigurationException.class)
+	@Test(expected=MessagingException.class)
 	public void testInvalidReturnType() throws Exception {
 		Method splittingMethod = this.testBean.getClass().getMethod("invalidParameterCount", String.class, String.class);
-		SplitterMessageHandlerAdapter adapter = new SplitterMessageHandlerAdapter(testBean, splittingMethod, attribs);
+		SplitterMessageHandlerAdapter adapter = new SplitterMessageHandlerAdapter(testBean, splittingMethod, "testChannel");
 		adapter.setChannelRegistry(channelRegistry);
 		adapter.afterPropertiesSet();
 		StringMessage message = new StringMessage("foo.bar");
@@ -208,7 +202,7 @@ public class SplitterMessageHandlerAdapterTests {
 	private SplitterMessageHandlerAdapter getAdapter(String methodName) throws Exception {
 		Class<?> paramType = methodName.startsWith("message") ? Message.class : String.class;
 		Method splittingMethod = this.testBean.getClass().getMethod(methodName, paramType);
-		SplitterMessageHandlerAdapter adapter = new SplitterMessageHandlerAdapter(testBean, splittingMethod, attribs);
+		SplitterMessageHandlerAdapter adapter = new SplitterMessageHandlerAdapter(testBean, splittingMethod, "testChannel");
 		adapter.setChannelRegistry(channelRegistry);
 		adapter.afterPropertiesSet();
 		return adapter;

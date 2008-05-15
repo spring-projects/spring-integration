@@ -31,7 +31,7 @@ public class MethodInvokingSourceTests {
 
 	@Test
 	public void testValidMethod() {
-		MethodInvokingSource<TestBean> source = new MethodInvokingSource<TestBean>();
+		MethodInvokingSource source = new MethodInvokingSource();
 		source.setObject(new TestBean());
 		source.setMethod("validMethod");
 		Message<?> result = source.receive();
@@ -42,7 +42,7 @@ public class MethodInvokingSourceTests {
 
 	@Test(expected=MessagingException.class)
 	public void testNoMatchingMethodName() {
-		MethodInvokingSource<TestBean> source = new MethodInvokingSource<TestBean>();
+		MethodInvokingSource source = new MethodInvokingSource();
 		source.setObject(new TestBean());
 		source.setMethod("noMatchingMethod");
 		source.receive();
@@ -50,7 +50,7 @@ public class MethodInvokingSourceTests {
 
 	@Test(expected=MessagingException.class)
 	public void testInvalidMethodWithArg() {
-		MethodInvokingSource<TestBean> source = new MethodInvokingSource<TestBean>();
+		MethodInvokingSource source = new MethodInvokingSource();
 		source.setObject(new TestBean());
 		source.setMethod("invalidMethodWithArg");
 		source.receive();
@@ -58,7 +58,7 @@ public class MethodInvokingSourceTests {
 
 	@Test(expected=MessagingException.class)
 	public void testInvalidMethodWithNoReturnValue() {
-		MethodInvokingSource<TestBean> source = new MethodInvokingSource<TestBean>();
+		MethodInvokingSource source = new MethodInvokingSource();
 		source.setObject(new TestBean());
 		source.setMethod("invalidMethodWithNoReturnValue");
 		source.receive();

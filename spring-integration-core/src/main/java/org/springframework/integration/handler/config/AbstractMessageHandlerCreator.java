@@ -20,8 +20,6 @@ import java.lang.reflect.Method;
 import java.util.Map;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.core.annotation.Order;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.handler.AbstractMessageHandlerAdapter;
 import org.springframework.integration.handler.MessageHandler;
@@ -36,14 +34,10 @@ public abstract class AbstractMessageHandlerCreator implements MessageHandlerCre
 
 	public final MessageHandler createHandler(Object object, Method method, Map<String, ?> attributes) {
 		MessageHandler handler = this.doCreateHandler(object, method, attributes);
-		if (handler instanceof AbstractMessageHandlerAdapter<?>) {
+		if (handler instanceof AbstractMessageHandlerAdapter) {
 			AbstractMessageHandlerAdapter adapter = ((AbstractMessageHandlerAdapter) handler);
 			adapter.setObject(object);
 			adapter.setMethodName(method.getName());
-			Order orderAnnotation = (Order) AnnotationUtils.getAnnotation(method, Order.class);
-			if (orderAnnotation != null) {
-				adapter.setOrder(orderAnnotation.value());
-			}
 		}
 		if (handler instanceof InitializingBean) {
 			try {

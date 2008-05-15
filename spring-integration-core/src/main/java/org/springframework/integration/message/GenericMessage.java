@@ -75,7 +75,7 @@ public class GenericMessage<T> implements Message<T> {
 	 */
 	public GenericMessage(T payload, MessageHeader headerToCopy) {
 		this(payload);
-		this.copyHeader(headerToCopy);
+		this.copyHeader(headerToCopy, true);
 	}
 
 
@@ -100,18 +100,39 @@ public class GenericMessage<T> implements Message<T> {
 		return "[ID=" + this.id + "][Header=" + this.header + "][Payload='" + this.payload + "']";
 	}
 
-	private void copyHeader(final MessageHeader headerToCopy) {
+	public void copyHeader(final MessageHeader headerToCopy, boolean overrideExistingValues) {
 		Set<String> propertyNames = headerToCopy.getPropertyNames();
 		for (String key : propertyNames) {
-			this.header.setProperty(key, headerToCopy.getProperty(key));
+			if (overrideExistingValues) {
+				this.header.setProperty(key, headerToCopy.getProperty(key));
+			}
+			else if (this.header.getProperty(key) == null) {
+				this.header.setProperty(key, headerToCopy.getProperty(key));
+			}
 		}
 		Set<String> attributeNames = headerToCopy.getAttributeNames();
 		for (String key : attributeNames) {
-			this.header.setAttribute(key, headerToCopy.getAttribute(key));
+			if (overrideExistingValues) {
+				this.header.setAttribute(key, headerToCopy.getAttribute(key));
+			}
+			else {
+				this.header.setAttributeIfAbsent(key, headerToCopy.getAttribute(key));
+			}
 		}
-		this.header.setSequenceNumber(headerToCopy.getSequenceNumber());
-		this.header.setSequenceSize(headerToCopy.getSequenceSize());
-		this.header.setReturnAddress(headerToCopy.getReturnAddress());
+		if (overrideExistingValues) {
+			this.header.setSequenceNumber(headerToCopy.getSequenceNumber());
+			this.header.setSequenceSize(headerToCopy.getSequenceSize());
+			this.header.setReturnAddress(headerToCopy.getReturnAddress());
+		}
+		else {
+			if (headerToCopy.getSequenceSize() > 1 && this.header.getSequenceSize() == 1) {
+				this.header.setSequenceSize(headerToCopy.getSequenceSize());
+				this.header.setSequenceNumber(headerToCopy.getSequenceNumber());
+			}
+			if (headerToCopy.getReturnAddress() != null && this.header.getReturnAddress() == null) {
+				this.header.setReturnAddress(headerToCopy.getReturnAddress());
+			}
+		}
 	}
 
 }

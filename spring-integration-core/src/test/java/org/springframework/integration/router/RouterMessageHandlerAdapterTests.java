@@ -34,6 +34,8 @@ import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.handler.annotation.HeaderAttribute;
+import org.springframework.integration.handler.annotation.HeaderProperty;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
@@ -47,8 +49,7 @@ public class RouterMessageHandlerAdapterTests {
 	public void testChannelNameResolutionByPayload() throws Exception {
 		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
-		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
-		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
 		Message<String> message = new GenericMessage<String>("123", "bar");
 		QueueChannel barChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
@@ -64,10 +65,8 @@ public class RouterMessageHandlerAdapterTests {
 	@Test
 	public void testChannelNameResolutionByProperty() throws Exception {
 		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
-		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
-		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
-		attribs.put("property", "returnAddress");
-		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
+		Method routingMethod = testBean.getClass().getMethod("routeByProperty", String.class);
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
 		Message<String> message = new GenericMessage<String>("123", "bar");
 		message.getHeader().setProperty("returnAddress", "baz");
 		QueueChannel barChannel = new QueueChannel();
@@ -88,10 +87,8 @@ public class RouterMessageHandlerAdapterTests {
 	@Test
 	public void testChannelNameResolutionByAttribute() throws Exception {
 		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
-		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
-		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
-		attribs.put("attribute", "returnAddress");
-		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
+		Method routingMethod = testBean.getClass().getMethod("routeByAttribute", String.class);
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
 		Message<String> message = new GenericMessage<String>("123", "bar");
 		message.getHeader().setProperty("returnAddress", "bad");
 		message.getHeader().setAttribute("returnAddress", "baz");
@@ -116,12 +113,9 @@ public class RouterMessageHandlerAdapterTests {
 
 	@Test(expected=ConfigurationException.class)
 	public void testFailsWhenPropertyAndAttributeAreBothProvided() throws Exception {
-		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
-		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
-		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
-		attribs.put("property", "targetChannel");
-		attribs.put("attribute", "returnAddress");
-		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
+		InvalidRoutingTestBean testBean = new InvalidRoutingTestBean();
+		Method routingMethod = testBean.getClass().getMethod("tooManyAnnotations", String.class);
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
 		adapter.afterPropertiesSet();
 		adapter.handle(new GenericMessage<String>("123", "testing"));
 	}
@@ -130,8 +124,7 @@ public class RouterMessageHandlerAdapterTests {
 	public void testChannelNameResolutionByMessage() throws Exception {
 		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routeMessage", Message.class);
-		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
-		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
@@ -166,8 +159,7 @@ public class RouterMessageHandlerAdapterTests {
 		channelRegistry.registerChannel("bar-channel", barChannel);
 		SingleChannelInstanceRoutingTestBean testBean = new SingleChannelInstanceRoutingTestBean(channelRegistry);
 		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
-		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
-		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
@@ -197,8 +189,7 @@ public class RouterMessageHandlerAdapterTests {
 		channelRegistry.registerChannel("bar-channel", barChannel);
 		SingleChannelInstanceRoutingTestBean testBean = new SingleChannelInstanceRoutingTestBean(channelRegistry);
 		Method routingMethod = testBean.getClass().getMethod("routeMessage", Message.class);
-		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
-		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
@@ -228,8 +219,7 @@ public class RouterMessageHandlerAdapterTests {
 		channelRegistry.registerChannel("bar-channel", barChannel);
 		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
-		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
-		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
@@ -265,8 +255,7 @@ public class RouterMessageHandlerAdapterTests {
 		channelRegistry.registerChannel("bar-channel", barChannel);
 		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routeMessage", Message.class);
-		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
-		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
@@ -302,8 +291,7 @@ public class RouterMessageHandlerAdapterTests {
 		channelRegistry.registerChannel("bar-channel", barChannel);
 		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routeMessageToArray", Message.class);
-		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
-		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
@@ -339,8 +327,7 @@ public class RouterMessageHandlerAdapterTests {
 		channelRegistry.registerChannel("bar-channel", barChannel);
 		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelRegistry);
 		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
-		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
-		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
@@ -376,8 +363,7 @@ public class RouterMessageHandlerAdapterTests {
 		channelRegistry.registerChannel("bar-channel", barChannel);
 		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelRegistry);
 		Method routingMethod = testBean.getClass().getMethod("routeMessage", Message.class);
-		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
-		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
@@ -413,8 +399,7 @@ public class RouterMessageHandlerAdapterTests {
 		channelRegistry.registerChannel("bar-channel", barChannel);
 		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelRegistry);
 		Method routingMethod = testBean.getClass().getMethod("routeMessageToArray", Message.class);
-		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
-		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
@@ -448,8 +433,7 @@ public class RouterMessageHandlerAdapterTests {
 		channelRegistry.registerChannel("foo-channel", fooChannel);
 		ChannelRegistryAwareTestBean testBean = new ChannelRegistryAwareTestBean();
 		Method routingMethod = testBean.getClass().getMethod("route", String.class);
-		Map<String, Object> attribs = new ConcurrentHashMap<String, Object>();
-		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod, attribs);
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
 		adapter.setChannelRegistry(channelRegistry);
 		assertNull(testBean.getChannelRegistry());
 		adapter.afterPropertiesSet();
@@ -465,6 +449,14 @@ public class RouterMessageHandlerAdapterTests {
 	public static class SingleChannelNameRoutingTestBean {
 
 		public String routePayload(String name) {
+			return name + "-channel";
+		}
+
+		public String routeByProperty(@HeaderProperty("returnAddress") String name) {
+			return name + "-channel";
+		}
+
+		public String routeByAttribute(@HeaderAttribute("returnAddress") String name) {
 			return name + "-channel";
 		}
 
@@ -589,6 +581,14 @@ public class RouterMessageHandlerAdapterTests {
 		public MessageChannel route(String channelName) {
 			return this.channelRegistry.lookupChannel(channelName);
 		}
+	}
+
+	public static class InvalidRoutingTestBean {
+
+		public String tooManyAnnotations(@HeaderProperty("foo") @HeaderAttribute("bar") String name) {
+			return name + "-channel";
+		}
+
 	}
 
 }

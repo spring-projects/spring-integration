@@ -16,6 +16,7 @@
 
 package org.springframework.integration.router;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -23,8 +24,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.handler.HandlerMethodInvoker;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessagingException;
+import org.springframework.integration.util.DefaultMethodInvoker;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
@@ -36,7 +38,7 @@ import org.springframework.util.ReflectionUtils;
  */
 public abstract class MessageListMethodAdapter {
 
-	private final HandlerMethodInvoker<Object> invoker;
+	private final DefaultMethodInvoker invoker;
 
 	protected volatile Method method;
 
@@ -49,31 +51,39 @@ public abstract class MessageListMethodAdapter {
 			throw new ConfigurationException("Method '" + methodName +
 					"(List<?> args)' not found on '" + object.getClass().getName() + "'.");
 		}
-		this.invoker = new HandlerMethodInvoker<Object>(object, this.method.getName());
+		this.invoker = new DefaultMethodInvoker(object, this.method);
 	}
 
 	public MessageListMethodAdapter(Object object, Method method) {
 		Assert.notNull(object, "'object' must not be null");
 		Assert.notNull(method, "'method' must not be null");
 		if (method.getParameterTypes().length != 1 || !method.getParameterTypes()[0].equals(List.class)) {
-			throw new ConfigurationException(
-					"Method must accept exactly one parameter, and it must be a List.");
+			throw new ConfigurationException("Method must accept exactly one parameter, and it must be a List.");
 		}
 		this.method = method;
-		this.invoker = new HandlerMethodInvoker<Object>(object, this.method.getName());
+		this.invoker = new DefaultMethodInvoker(object, this.method);
 	}
 
+
 	private static boolean isActualTypeParameterizedMessage(Method method) {
-		return getCollectionActualType(method) instanceof ParameterizedType
+		return (getCollectionActualType(method) instanceof ParameterizedType)
 				&& Message.class.isAssignableFrom((Class<?>) ((ParameterizedType) getCollectionActualType(method)).getRawType());
 	}
 
 	protected final Object executeMethod(List<Message<?>> messages) {
-		if (isMethodParameterParameterized(this.method) && isHavingActualTypeArguments(this.method)
-				&& (isActualTypeRawMessage(this.method) || isActualTypeParameterizedMessage(this.method))) {
-			return this.invoker.invokeMethod(messages);
+		try {
+			if (isMethodParameterParameterized(this.method) && isHavingActualTypeArguments(this.method)
+					&& (isActualTypeRawMessage(this.method) || isActualTypeParameterizedMessage(this.method))) {
+				return this.invoker.invokeMethod(messages);
+			}
+			return this.invoker.invokeMethod(extractPayloadsFromMessages(messages));
+		} catch (InvocationTargetException e) {
+			throw new MessagingException(
+					"Method '" + this.method + "' threw an Exception.", e.getTargetException());
 		}
-		return this.invoker.invokeMethod(extractPayloadsFromMessages(messages));
+		catch (Throwable e) {
+			throw new MessagingException("Failed to invoke method '" + this.method + "'.");
+		}
 	}
 
 	private List<?> extractPayloadsFromMessages(List<Message<?>> messages) {

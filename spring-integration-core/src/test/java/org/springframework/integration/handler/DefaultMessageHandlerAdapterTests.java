@@ -30,7 +30,7 @@ public class DefaultMessageHandlerAdapterTests {
 
 	@Test
 	public void testPayloadAsMethodParameterAndObjectAsReturnValue() {
-		DefaultMessageHandlerAdapter<TestHandler> adapter = new DefaultMessageHandlerAdapter<TestHandler>();
+		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
 		adapter.setObject(new TestHandler());
 		adapter.setMethodName("acceptPayloadAndReturnObject");
 		adapter.afterPropertiesSet();
@@ -40,7 +40,7 @@ public class DefaultMessageHandlerAdapterTests {
 
 	@Test
 	public void testPayloadAsMethodParameterAndMessageAsReturnValue() {
-		DefaultMessageHandlerAdapter<TestHandler> adapter = new DefaultMessageHandlerAdapter<TestHandler>();
+		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
 		adapter.setObject(new TestHandler());
 		adapter.setMethodName("acceptPayloadAndReturnMessage");
 		adapter.afterPropertiesSet();
@@ -50,8 +50,8 @@ public class DefaultMessageHandlerAdapterTests {
 
 	@Test
 	public void testMessageAsMethodParameterAndObjectAsReturnValue() {
-		DefaultMessageHandlerAdapter<TestHandler> adapter = new DefaultMessageHandlerAdapter<TestHandler>();
-		adapter.setExpectsMessage(true);
+		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
+		adapter.setMethodExpectsMessage(true);
 		adapter.setObject(new TestHandler());
 		adapter.setMethodName("acceptMessageAndReturnObject");
 		adapter.afterPropertiesSet();
@@ -61,8 +61,8 @@ public class DefaultMessageHandlerAdapterTests {
 
 	@Test
 	public void testMessageAsMethodParameterAndMessageAsReturnValue() {
-		DefaultMessageHandlerAdapter<TestHandler> adapter = new DefaultMessageHandlerAdapter<TestHandler>();
-		adapter.setExpectsMessage(true);
+		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
+		adapter.setMethodExpectsMessage(true);
 		adapter.setObject(new TestHandler());
 		adapter.setMethodName("acceptMessageAndReturnMessage");
 		adapter.afterPropertiesSet();
@@ -72,8 +72,8 @@ public class DefaultMessageHandlerAdapterTests {
 
 	@Test
 	public void testMessageSubclassAsMethodParameterAndMessageAsReturnValue() {
-		DefaultMessageHandlerAdapter<TestHandler> adapter = new DefaultMessageHandlerAdapter<TestHandler>();
-		adapter.setExpectsMessage(true);
+		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
+		adapter.setMethodExpectsMessage(true);
 		adapter.setObject(new TestHandler());
 		adapter.setMethodName("acceptMessageSubclassAndReturnMessage");
 		adapter.afterPropertiesSet();
@@ -83,8 +83,8 @@ public class DefaultMessageHandlerAdapterTests {
 
 	@Test
 	public void testMessageSubclassAsMethodParameterAndMessageSubclassAsReturnValue() {
-		DefaultMessageHandlerAdapter<TestHandler> adapter = new DefaultMessageHandlerAdapter<TestHandler>();
-		adapter.setExpectsMessage(true);
+		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
+		adapter.setMethodExpectsMessage(true);
 		adapter.setObject(new TestHandler());
 		adapter.setMethodName("acceptMessageSubclassAndReturnMessageSubclass");
 		adapter.afterPropertiesSet();
