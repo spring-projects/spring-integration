@@ -16,31 +16,25 @@
 
 package org.springframework.integration.channel.config;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.integration.channel.DispatcherPolicy;
-import org.springframework.integration.channel.QueueChannel;
-import org.springframework.util.StringUtils;
+import org.springframework.integration.channel.factory.DefaultChannelFactoryBean;
+import org.w3c.dom.Element;
 
 /**
- * Parser for the &lt;queue-channel&gt; element.
+ * Parser for the &lt;channel&gt; element.
  * 
- * @author Mark Fisher
+ * @author Marius Bogoevici
  */
-public class QueueChannelParser extends AbstractChannelParser {
+public class DefaultChannelParser extends AbstractChannelParser {
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
-		return QueueChannel.class;
+		return DefaultChannelFactoryBean.class;
 	}
 
 	@Override
 	protected void configureConstructorArgs(BeanDefinitionBuilder builder, Element element, DispatcherPolicy dispatcherPolicy) {
-		String capacityAttribute = element.getAttribute("capacity");
-		int capacity = (StringUtils.hasText(capacityAttribute)) ?
-				Integer.parseInt(capacityAttribute) : QueueChannel.DEFAULT_CAPACITY;
-		builder.addConstructorArgValue(capacity);
 		builder.addConstructorArgValue(dispatcherPolicy);
 	}
 

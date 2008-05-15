@@ -7,6 +7,14 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
 
-	<message-bus/>
-    
+
+	<message-bus>
+		<channel-factory ref="synchronousChannelFactory"/>
+	</message-bus>
+	
+	<beans:bean id="synchronousChannelFactory" class="org.springframework.integration.channel.factory.SynchronousChannelFactory"/>	
+
+    <channel id="defaultTypeChannel"/>
+    <queue-channel id="specifiedTypeChannel"/>
+
 </beans:beans>

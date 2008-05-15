@@ -17,48 +17,58 @@
 package org.springframework.integration.channel.factory;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.integration.bus.MessageBus;
-import org.springframework.integration.bus.MessageBusAware;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.util.Assert;
 
 /**
  * Creates a channel by delegating to the current message bus-configured
- * ChannelFactory.
+ * ChannelFactory. Tries to retrieve the {@link ChannelFactory} from the
+ * single {@link MessageBus} defined in the {@link ApplicationContext}. 
+ * As a {@link FactoryBean}, this class is solely intended to be used within 
+ * an ApplicationContext.
  * @author Marius Bogoevici
  */
-public class DefaultChannelFactoryBean implements FactoryBean, MessageBusAware, InitializingBean {
+public class DefaultChannelFactoryBean implements ApplicationContextAware, FactoryBean{
 
 	private volatile ChannelFactory channelFactory;
 
 	private volatile List<ChannelInterceptor> interceptors;
 
 	private volatile DispatcherPolicy dispatcherPolicy;
+	
+	private volatile boolean publisherSubscriber;
 
-	public void setMessageBus(MessageBus messageBus) {
-		this.channelFactory = messageBus.getChannelFactory();
+	
+	public DefaultChannelFactoryBean(DispatcherPolicy dispatcherPolicy) {
+		this.dispatcherPolicy = dispatcherPolicy;
 	}
 
-	public void afterPropertiesSet() throws Exception {
-		if (null == this.channelFactory) {
+	
+	public void setApplicationContext(ApplicationContext applicationContext){
+		Map map = applicationContext.getBeansOfType(MessageBus.class);
+		Assert.state(map.size() <= 1, "There is more than one MessageBus in the ApplicationContext");
+		if (map.isEmpty()) {
 			this.channelFactory = new QueueChannelFactory();
 		}
-
+		else {
+			this.channelFactory = ((MessageBus)map.values().iterator().next()).getChannelFactory();
+		}
 	}
 
 	public void setInterceptors(List<ChannelInterceptor> interceptors) {
 		this.interceptors = interceptors;
 	}
 
-	public void setDispatcherPolicy(DispatcherPolicy dispatcherPolicy) {
-		this.dispatcherPolicy = dispatcherPolicy;
-	}
-
 	public Object getObject() throws Exception {
+		Assert.notNull(channelFactory, "ChannelFactory not set on this instance. Is this used within an ApplicationContext?");
 		return channelFactory.getChannel(dispatcherPolicy, interceptors);
 	}
 

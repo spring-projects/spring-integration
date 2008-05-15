@@ -9,7 +9,7 @@
 
 	<beans:bean class="org.springframework.integration.bus.MessageBus"/>
 
-	<channel id="testChannel" capacity="50"/>
+	<queue-channel id="testChannel" capacity="50"/>
 
 	<handler-endpoint input-channel="testChannel" handler="testHandler">
 		<schedule period="100"/>

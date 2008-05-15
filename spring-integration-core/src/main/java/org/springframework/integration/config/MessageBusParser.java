@@ -42,6 +42,8 @@ import org.w3c.dom.NodeList;
  */
 public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 
+	private static final String REFERENCE_ATTRIBUTE = "ref";
+
 	public static final String MESSAGE_BUS_BEAN_NAME = "internal.MessageBus";
 
 	public static final String MESSAGE_BUS_AWARE_POST_PROCESSOR_BEAN_NAME = "internal.MessageBusAwareBeanPostProcessor";
@@ -53,6 +55,10 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 	private static final String DEFAULT_CONCURRENCY_ELEMENT = "default-concurrency";
 
 	private static final String DEFAULT_CONCURRENCY_PROPERTY = "defaultConcurrencyPolicy";
+	
+	private static final String CHANNEL_FACTORY_ELEMENT = "channel-factory";
+	
+	private static final String CHANNEL_FACTORY_PROPERTY = "channelFactory";
 
 	@Override
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
@@ -81,20 +87,35 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 			beanDefinition.addPropertyReference(Conventions.attributeNameToPropertyName(
 					ERROR_CHANNEL_ATTRIBUTE), errorChannelRef);
 		}
-		this.registerDefaultConcurrencyIfAvailable(beanDefinition, element);
+		this.processAdditionalChildElements(beanDefinition, element);
 	}
 
-	private void registerDefaultConcurrencyIfAvailable(BeanDefinitionBuilder beanDefinition, Element element) {
+	private void processAdditionalChildElements(BeanDefinitionBuilder beanDefinition, Element element) {
 		NodeList childNodes = element.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); i++) {
 			Node child = childNodes.item(i);
 			if (child.getNodeType() == Node.ELEMENT_NODE) {
-				String localName = child.getLocalName();
-				if (DEFAULT_CONCURRENCY_ELEMENT.equals(localName)) {
-					ConcurrencyPolicy policy = IntegrationNamespaceUtils.parseConcurrencyPolicy((Element) child);
-					beanDefinition.addPropertyValue(DEFAULT_CONCURRENCY_PROPERTY, policy);
-				}
+				processIfConcurrencyElement(beanDefinition, child);
+				processIfChannelFactoryElement(beanDefinition, child);
 			}
+		}
+	}
+
+	
+	private void processIfConcurrencyElement(BeanDefinitionBuilder beanDefinition, Node node) {
+		String localName = node.getLocalName();
+		if (DEFAULT_CONCURRENCY_ELEMENT.equals(localName)) {
+			ConcurrencyPolicy policy = IntegrationNamespaceUtils.parseConcurrencyPolicy((Element) node);
+			beanDefinition.addPropertyValue(DEFAULT_CONCURRENCY_PROPERTY, policy);
+		}
+
+	}
+
+	private void processIfChannelFactoryElement(BeanDefinitionBuilder beanDefinition, Node node) {
+		String localName = node.getLocalName();
+		if (CHANNEL_FACTORY_ELEMENT.equals(localName)) {
+			beanDefinition.addPropertyReference(CHANNEL_FACTORY_PROPERTY, ((Element) node)
+					.getAttribute(REFERENCE_ATTRIBUTE));
 		}
 	}
 

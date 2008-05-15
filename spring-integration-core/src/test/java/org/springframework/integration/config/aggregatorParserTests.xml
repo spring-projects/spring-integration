@@ -7,6 +7,8 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
 
+	<message-bus/>
+
 	<aggregator id="aggregatorWithReference" ref="aggregatorBean" />
 
 	<aggregator id="completelyDefinedAggregator" ref="aggregatorBean"

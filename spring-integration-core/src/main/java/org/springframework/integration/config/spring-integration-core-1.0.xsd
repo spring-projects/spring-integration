@@ -26,6 +26,7 @@
 			</xsd:annotation>
 			<xsd:sequence>
 				<xsd:element name="default-concurrency" type="concurrencyType" minOccurs="0" maxOccurs="1"/>
+				<xsd:element name="channel-factory" type="channelFactoryType" minOccurs="0" maxOccurs="1"/>
 			</xsd:sequence>
 			<xsd:attribute name="auto-startup" type="xsd:boolean"/>
 			<xsd:attribute name="auto-create-channels" type="xsd:boolean"/>
@@ -43,8 +44,17 @@
 			</xsd:annotation>
 		</xsd:complexType>
 	</xsd:element>
+	
+	<xsd:element name="channel" type="channelType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a generic channel type. The actual channel type 
+	will be determined by the channel factory set on the message bus.
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
 
-	<xsd:element name="channel" type="capacityChannelType">
+	<xsd:element name="queue-channel" type="capacityChannelType">
 		<xsd:annotation>
 			<xsd:documentation>
 	Defines a channel that buffers messages in a queue.
@@ -256,6 +266,15 @@
 			<xsd:attribute name="should-fail-on-rejection-limit" type="xsd:boolean"/>
 		</xsd:complexType>
 	</xsd:element>
+	
+	<xsd:complexType name="channelFactoryType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a channel factory.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="ref" type="xsd:string" use="optional"/>
+	</xsd:complexType>
 
 	<xsd:complexType name="concurrencyType">
 		<xsd:annotation>

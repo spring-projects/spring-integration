@@ -9,7 +9,7 @@
 
 	<message-bus/>
 
-	<channel id="testChannel" capacity="50"/>
+	<queue-channel id="testChannel" capacity="50"/>
 
 	<channel id="replyChannel"/>
 

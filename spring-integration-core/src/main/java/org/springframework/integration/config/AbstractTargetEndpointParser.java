@@ -111,7 +111,7 @@ public abstract class AbstractTargetEndpointParser extends AbstractSingleBeanDef
 		}
 		if (StringUtils.hasText(inputChannel)) {
 			RootBeanDefinition subscriptionDef = new RootBeanDefinition(Subscription.class);
-			subscriptionDef.getConstructorArgumentValues().addGenericArgumentValue(inputChannel);
+			subscriptionDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(inputChannel));
 			if (schedule != null) {
 				subscriptionDef.getConstructorArgumentValues().addGenericArgumentValue(schedule);
 			}
