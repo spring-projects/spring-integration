@@ -61,10 +61,9 @@
     <section id="namespace-channel">
       <title>Configuring Message Channels</title>
       <para>
-        To create a Message Channel instance, you can use the use the generic 'channel' element:
+        To create a Message Channel instance, you can use the generic 'channel' element:
         <programlisting>&lt;channel id="exampleChannel"/&gt;</programlisting>
       </para>
-
       <para>
         The default channel type is <emphasis>Point to Point</emphasis>. To create a
         <emphasis>Publish Subscribe</emphasis> channel, provide a value of <emphasis>true</emphasis> for the
@@ -112,7 +111,7 @@
         provided instead. Also, the <classname>PriorityChannel</classname> does support the "datatype"
         attribute. The following example demonstrates both:
         <programlisting><![CDATA[<priority-channel id="exampleChannel"
-    datatype="example.Widget" comparator-ref="widgetComparator"/>
+    datatype="example.Widget" comparator="widgetComparator"/>
 ]]></programlisting>
       </para>
       <para>
@@ -235,22 +234,21 @@
         pool. The dispatcher threads are responsible for polling channels and then passing the messages to handlers.
         When the endpoints are concurrency-enabled as described in the previous section, the invocation of the handling
         methods will happen within the handler thread pool and not the dispatcher pool. Finally, the Message Bus is
-        capable of automatically creating channel instances (with default settings) if an endpoint registers a
-        subscription by providing the name of a channel that the bus does not recognize. The type of the automatically
-		created channel will be determined by the 
+        capable of automatically creating channel instances if an endpoint registers a subscription by providing the
+        name of a channel that the bus does not recognize.
         <programlisting><![CDATA[<message-bus dispatcher-pool-size="25" auto-create-channels="true"/>]]></programlisting>
       </para>
 	  <para>
-		The kind of channel that gets created automatically by the bus can be customized by using the "channel-factory"
-		element on the "message-bus" definition as in the following sample:
-		 <programlisting><![CDATA[<message-bus>
+		The type of channel that gets created automatically by the bus can be customized by using the "channel-factory"
+		element on the "message-bus" definition as in the following example:
+		<programlisting><![CDATA[<message-bus>
     <channel-factory ref="channelFactoryBean"/>
 </message-bus>
-			
+
 <beans:bean id="channelFactoryBean" 
-    class="o.s.i.channel.factory.PriorityChannelFactory"/>]]></programlisting> 
+    class="org.springframework.integration.channel.factory.PriorityChannelFactory"/>]]></programlisting> 
 		With this definition, all the channels created automatically will be <classname>PriorityChannel</classname> instances.
-		Without the "channel-factory element, the Message Bus will assume a default <classname>QueueChannelFactory</classname>.
+		Without the "channel-factory" element, the Message Bus will assume a default <classname>QueueChannelFactory</classname>.
 	  </para>
     </section>
 
