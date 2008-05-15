@@ -99,14 +99,17 @@ public class AnnotationMethodMessageMapper implements MessageMapper {
 		if (message == null) {
 			return null;
 		}
+		if (message.getPayload() == null) {
+			throw new IllegalArgumentException("Message payload must not be null.");
+		}
 		if (!this.initialized) {
 			this.initialize();
 		}
 		Object[] args = new Object[this.parameterMetadata.length];
 		for (int i = 0; i < this.parameterMetadata.length; i++) {
 			MethodParameterMetadata metadata = this.parameterMetadata[i];
-			Class<?> type = metadata.type;
-			if (type.equals(HeaderAttribute.class)) {
+			Class<?> expectedType = metadata.type;
+			if (expectedType.equals(HeaderAttribute.class)) {
 				Object value = message.getHeader().getAttribute(metadata.key);
 				if (value == null && metadata.required) {
 					throw new MessageHandlingException(message,
@@ -114,7 +117,7 @@ public class AnnotationMethodMessageMapper implements MessageMapper {
 				}
 				args[i] = value;
 			}
-			else if (type.equals(HeaderProperty.class)) {
+			else if (expectedType.equals(HeaderProperty.class)) {
 				Object value = message.getHeader().getProperty(metadata.key);
 				if (value == null && metadata.required) {
 					throw new MessageHandlingException(message,
@@ -122,13 +125,16 @@ public class AnnotationMethodMessageMapper implements MessageMapper {
 				}
 				args[i] = value;
 			}
-			else if (Message.class.isAssignableFrom(type)) {
+			else if (expectedType.isAssignableFrom(message.getClass())) {
 				args[i] = message;
 			}
-			else if (Map.class.isAssignableFrom(type)) {
+			else if (expectedType.isAssignableFrom(message.getPayload().getClass())) {
+				args[i] = message.getPayload();
+			}
+			else if (expectedType.equals(Map.class)) {
 				args[i] = this.getHeaderAttributes(message);
 			}
-			else if (Properties.class.isAssignableFrom(type)) {
+			else if (expectedType.equals(Properties.class)) {
 				args[i] = this.getHeaderProperties(message);
 			}
 			else {

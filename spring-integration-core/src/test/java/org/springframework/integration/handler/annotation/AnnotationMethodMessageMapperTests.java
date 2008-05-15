@@ -20,13 +20,18 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 import org.junit.Test;
 
 import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -89,6 +94,70 @@ public class AnnotationMethodMessageMapperTests {
 	}
 
 	@Test
+	public void testPropertiesMethodWithNonPropertiesPayload() throws Exception {
+		Method method = TestHandler.class.getMethod("propertiesMethod", Properties.class);
+		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
+		Message<?> message = new StringMessage("test");
+		message.getHeader().setProperty("prop1", "foo");
+		message.getHeader().setProperty("prop2", "bar");
+		Object[] args = (Object[]) mapper.mapMessage(message);
+		Properties result = (Properties) args[0];
+		assertEquals(2, result.size());
+		assertEquals("foo", result.getProperty("prop1"));
+		assertEquals("bar", result.getProperty("prop2"));
+	}
+
+	@Test
+	public void testPropertiesMethodWithPropertiesPayload() throws Exception {
+		Method method = TestHandler.class.getMethod("propertiesMethod", Properties.class);
+		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
+		Properties payload = new Properties();
+		payload.setProperty("prop1", "foo");
+		payload.setProperty("prop2", "bar");
+		Message<?> message = new GenericMessage<Properties>(payload);
+		message.getHeader().setProperty("prop1", "not");
+		message.getHeader().setProperty("prop2", "these");
+		Object[] args = (Object[]) mapper.mapMessage(message);
+		Properties result = (Properties) args[0];
+		assertEquals(2, result.size());
+		assertEquals("foo", result.getProperty("prop1"));
+		assertEquals("bar", result.getProperty("prop2"));
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testMapMethodWithNonMapPayload() throws Exception {
+		Method method = TestHandler.class.getMethod("mapMethod", Map.class);
+		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
+		Message<?> message = new StringMessage("test");
+		message.getHeader().setAttribute("attrib1", new Integer(123));
+		message.getHeader().setAttribute("attrib2", new Integer(456));
+		Object[] args = (Object[]) mapper.mapMessage(message);
+		Map<String, Integer> result = (HashMap<String, Integer>) args[0];
+		assertEquals(2, result.size());
+		assertEquals(new Integer(123), result.get("attrib1"));
+		assertEquals(new Integer(456), result.get("attrib2"));
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testMapMethodWithMapPayload() throws Exception {
+		Method method = TestHandler.class.getMethod("mapMethod", Map.class);
+		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
+		Map<String, Integer> payload = new HashMap<String, Integer>();
+		payload.put("attrib1", new Integer(123));
+		payload.put("attrib2", new Integer(456));
+		Message<?> message = new GenericMessage<Map>(payload);
+		message.getHeader().setAttribute("attrib1", "not");
+		message.getHeader().setProperty("attrib2", "these");
+		Object[] args = (Object[]) mapper.mapMessage(message);
+		Map<String, Integer> result = (Map<String, Integer>) args[0];
+		assertEquals(2, result.size());
+		assertEquals(new Integer(123), result.get("attrib1"));
+		assertEquals(new Integer(456), result.get("attrib2"));
+	}
+
+	@Test
 	public void testMessageOnlyWithAdapter() throws Exception {
 		TestHandler handler = new TestHandler();
 		Method method = handler.getClass().getMethod("messageOnly", Message.class);
@@ -99,6 +168,45 @@ public class AnnotationMethodMessageMapperTests {
 		adapter.setMessageMapper(mapper);
 		Message<?> result = adapter.handle(new StringMessage("foo"));
 		assertEquals("foo", result.getPayload());
+	}
+
+	@Test
+	public void testPayloadWithAdapter() throws Exception {
+		TestHandler handler = new TestHandler();
+		Method method = handler.getClass().getMethod("integerMethod", Integer.class);
+		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
+		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
+		adapter.setObject(handler);
+		adapter.setMethod(method);
+		adapter.setMessageMapper(mapper);
+		Message<?> result = adapter.handle(new GenericMessage<Integer>(new Integer(123)));
+		assertEquals(new Integer(123), result.getPayload());
+	}
+
+	@Test
+	public void testConvertedPayloadWithAdapter() throws Exception {
+		TestHandler handler = new TestHandler();
+		Method method = handler.getClass().getMethod("integerMethod", Integer.class);
+		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
+		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
+		adapter.setObject(handler);
+		adapter.setMethod(method);
+		adapter.setMessageMapper(mapper);
+		Message<?> result = adapter.handle(new StringMessage("456"));
+		assertEquals(new Integer(456), result.getPayload());
+	}
+
+	@Test(expected=MessagingException.class)
+	public void testConversionFailureWithAdapter() throws Exception {
+		TestHandler handler = new TestHandler();
+		Method method = handler.getClass().getMethod("integerMethod", Integer.class);
+		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
+		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
+		adapter.setObject(handler);
+		adapter.setMethod(method);
+		adapter.setMessageMapper(mapper);
+		Message<?> result = adapter.handle(new StringMessage("foo"));
+		assertEquals(new Integer(123), result.getPayload());
 	}
 
 	@Test
@@ -168,6 +276,22 @@ public class AnnotationMethodMessageMapperTests {
 		@Handler
 		public String requiredProperty(@HeaderProperty(value="prop", required=true) String prop) {
 			return prop;
+		}
+
+		@Handler
+		public Properties propertiesMethod(Properties properties) {
+			return properties;
+		}
+
+		@Handler
+		@SuppressWarnings("unchecked")
+		public Map mapMethod(Map map) {
+			return map;
+		}
+
+		@Handler
+		public Integer integerMethod(Integer i) {
+			return i;
 		}
 
 	}
