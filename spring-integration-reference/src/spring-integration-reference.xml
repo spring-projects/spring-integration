@@ -29,6 +29,10 @@
         <firstname>Mark</firstname>
         <surname>Fisher</surname>
       </author>
+      <author>
+        <firstname>Marius</firstname>
+        <surname>Bogoevici</surname>
+      </author>
     </authorgroup>
 
     <legalnotice><para>&copy; SpringSource Inc., 2008</para></legalnotice>
