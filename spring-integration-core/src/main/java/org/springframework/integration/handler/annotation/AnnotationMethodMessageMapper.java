@@ -35,6 +35,20 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
+ * A {@link MessageMapper} implementation for annotated handler methods.
+ * Method parameters are matched against the Message payload as well as its
+ * header attributes and properties. If a method parameter is annotated with
+ * {@link HeaderAttribute @HeaderAttribute} or {@link HeaderProperty @HeaderProperty},
+ * the annotation's value will be used as an attribute/property key. If such an
+ * annotation contains no value, then the parameter name will be used as long as
+ * the information is available in the class file (requires compilation with
+ * debug settings for parameter names). If neither annotation is present, then
+ * the parameter will typically match the Message payload. However, if a Map or
+ * Properties object is expected, and the paylaod is not itself assignable to
+ * that type, then the MessageHeader attributes will be passed in the case of
+ * a Map-typed parameter, or the MessageHeader properties will be passed in the
+ * case of a Properties-typed parameter. 
+ * 
  * @author Mark Fisher
  */
 public class AnnotationMethodMessageMapper implements MessageMapper {
