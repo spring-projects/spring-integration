@@ -23,18 +23,18 @@ import org.springframework.util.Assert;
 
 /**
  * A handler for receiving messages from a "reply channel". Any component that
- * is expecting a response can poll by providing the correlation identifier.
+ * is expecting a reply message can poll by providing the correlation identifier.
  * 
  * @author Mark Fisher
  */
-public class ResponseCorrelator implements MessageHandler {
+public class ReplyMessageCorrelator implements MessageHandler {
 
 	private volatile long defaultTimeout = 5000;
 
 	private final RetrievalBlockingMessageStore messageStore;
 
 
-	public ResponseCorrelator(int capacity) {
+	public ReplyMessageCorrelator(int capacity) {
 		this.messageStore = new RetrievalBlockingMessageStore(capacity);
 	}
 
@@ -54,11 +54,11 @@ public class ResponseCorrelator implements MessageHandler {
 		return null;
 	}
 
-	public Message<?> getResponse(Object correlationId) {
-		return this.getResponse(correlationId, this.defaultTimeout);
+	public Message<?> getReply(Object correlationId) {
+		return this.getReply(correlationId, this.defaultTimeout);
 	}
 
-	public Message<?> getResponse(Object correlationId, long timeout) {
+	public Message<?> getReply(Object correlationId, long timeout) {
 		Assert.notNull(correlationId, "'correlationId' must not be null");
 		return this.messageStore.remove(correlationId, timeout);
 	}

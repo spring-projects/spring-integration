@@ -24,7 +24,7 @@ import org.springframework.integration.bus.MessageBusAware;
 import org.springframework.integration.endpoint.EndpointRegistry;
 import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.handler.ReplyHandler;
-import org.springframework.integration.handler.ResponseCorrelator;
+import org.springframework.integration.handler.ReplyMessageCorrelator;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.selector.MessageSelector;
@@ -46,11 +46,11 @@ public class RequestReplyTemplate implements MessageBusAware {
 
 	private volatile long replyTimeout = -1;
 
-	private ResponseCorrelator responseCorrelator;
+	private ReplyMessageCorrelator replyMessageCorrelator;
 
 	private EndpointRegistry endpointRegistry;
 
-	private final Object responseCorrelatorMonitor = new Object();
+	private final Object replyMessageCorrelatorMonitor = new Object();
 
 
 	/**
@@ -170,21 +170,21 @@ public class RequestReplyTemplate implements MessageBusAware {
 			throw new MessagingException("No request channel available. Cannot send request message.");
 		}
 		if (this.replyChannel != null) {
-			return this.sendAndReceiveWithResponseCorrelator(message);
+			return this.sendAndReceiveWithReplyMessageCorrelator(message);
 		}
 		else {
 			return this.sendAndReceiveWithTemporaryChannel(message);
 		}
 	}
 
-	private Message<?> sendAndReceiveWithResponseCorrelator(Message<?> message) {
-		if (this.responseCorrelator == null) {
-			this.registerResponseCorrelator();
+	private Message<?> sendAndReceiveWithReplyMessageCorrelator(Message<?> message) {
+		if (this.replyMessageCorrelator == null) {
+			this.registerReplyMessageCorrelator();
 		}
 		message.getHeader().setReturnAddress(this.replyChannel);
 		this.send(message);
-		return (this.replyTimeout >= 0) ? this.responseCorrelator.getResponse(message.getId(), this.replyTimeout) :
-				this.responseCorrelator.getResponse(message.getId());
+		return (this.replyTimeout >= 0) ? this.replyMessageCorrelator.getReply(message.getId(), this.replyTimeout) :
+				this.replyMessageCorrelator.getReply(message.getId());
 	}
 
 	private Message<?> sendAndReceiveWithTemporaryChannel(Message<?> message) {
@@ -198,19 +198,19 @@ public class RequestReplyTemplate implements MessageBusAware {
 		return (this.replyTimeout >= 0) ? channel.receive(this.replyTimeout) : channel.receive();
 	}
 
-	private void registerResponseCorrelator() {
-		synchronized (this.responseCorrelatorMonitor) {
-			if (this.responseCorrelator != null) {
+	private void registerReplyMessageCorrelator() {
+		synchronized (this.replyMessageCorrelatorMonitor) {
+			if (this.replyMessageCorrelator != null) {
 				return;
 			}
 			if (this.endpointRegistry == null) {
 				throw new ConfigurationException("No EndpointRegistry available. Cannot register ResponseCorrelator.");
 			}
-			ResponseCorrelator correlator = new ResponseCorrelator(10);
+			ReplyMessageCorrelator correlator = new ReplyMessageCorrelator(10);
 			HandlerEndpoint endpoint = new HandlerEndpoint(correlator);
 			endpoint.setSubscription(new Subscription(this.replyChannel));
 			this.endpointRegistry.registerEndpoint("internal.correlator." + this, endpoint);
-			this.responseCorrelator = correlator;
+			this.replyMessageCorrelator = correlator;
 		}
 	}
 

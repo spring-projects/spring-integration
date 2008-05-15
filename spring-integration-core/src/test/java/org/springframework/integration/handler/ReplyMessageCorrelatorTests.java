@@ -32,45 +32,45 @@ import org.springframework.integration.message.StringMessage;
 /**
  * @author Mark Fisher
  */
-public class ResponseCorrelatorTests {
+public class ReplyMessageCorrelatorTests {
 
 	@Test
-	public void testReceiversPrecedeResponse() throws InterruptedException {
-		final ResponseCorrelator correlator = new ResponseCorrelator(10);
-		final AtomicInteger responseCounter = new AtomicInteger();
-		CountDownLatch latch = startReceivers(correlator, responseCounter, 5, 500);
+	public void testReceiversPrecedeReply() throws InterruptedException {
+		final ReplyMessageCorrelator correlator = new ReplyMessageCorrelator(10);
+		final AtomicInteger replyCounter = new AtomicInteger();
+		CountDownLatch latch = startReceivers(correlator, replyCounter, 5, 500);
 		Message<?> message = new StringMessage("test");
 		message.getHeader().setCorrelationId("123");
 		correlator.handle(message);
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
-		assertEquals(1, responseCounter.get());
+		assertEquals(1, replyCounter.get());
 	}
 
 	@Test
-	public void testResponsePrecedeReceivers() throws InterruptedException {
-		final ResponseCorrelator correlator = new ResponseCorrelator(10);
+	public void testReplyPrecedeReceivers() throws InterruptedException {
+		final ReplyMessageCorrelator correlator = new ReplyMessageCorrelator(10);
 		Message<?> message = new StringMessage("test");
 		message.getHeader().setCorrelationId("123");
 		correlator.handle(message);
-		final AtomicInteger responseCounter = new AtomicInteger();
-		CountDownLatch latch = startReceivers(correlator, responseCounter, 5, 50);
+		final AtomicInteger replyCounter = new AtomicInteger();
+		CountDownLatch latch = startReceivers(correlator, replyCounter, 5, 50);
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
-		assertEquals(1, responseCounter.get());
+		assertEquals(1, replyCounter.get());
 	}
 
 
-	private static CountDownLatch startReceivers(final ResponseCorrelator correlator,
-			final AtomicInteger responseCounter, int numReceivers, final long timeout) {
+	private static CountDownLatch startReceivers(final ReplyMessageCorrelator correlator,
+			final AtomicInteger replyCounter, int numReceivers, final long timeout) {
 		final CountDownLatch latch = new CountDownLatch(numReceivers);
 		Executor executor = Executors.newFixedThreadPool(numReceivers);
 		for (int i = 0; i < numReceivers; i++) {
 			executor.execute(new Runnable() {
 				public void run() {
-					Message<?> response = correlator.getResponse("123", timeout);
-					if (response != null) {
-						responseCounter.incrementAndGet();
+					Message<?> reply = correlator.getReply("123", timeout);
+					if (reply != null) {
+						replyCounter.incrementAndGet();
 					}
 					latch.countDown();
 				}
