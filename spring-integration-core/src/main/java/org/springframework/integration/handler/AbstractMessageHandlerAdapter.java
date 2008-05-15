@@ -150,7 +150,7 @@ public abstract class AbstractMessageHandlerAdapter implements MessageHandler, I
 		}
 		Object args[] = null;
 		Object mappingResult = (this.methodExpectsMessage) ? message : this.messageMapper.mapMessage(message);
-		if (mappingResult.getClass().isArray()) {
+		if (mappingResult != null && mappingResult.getClass().isArray()) {
 			args = (Object[]) mappingResult;
 		}
 		else {

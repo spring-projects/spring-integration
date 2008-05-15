@@ -21,7 +21,6 @@ import java.util.Map;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.handler.AbstractMessageHandlerAdapter;
 import org.springframework.integration.handler.MessageHandler;
 
 /**
@@ -34,11 +33,6 @@ public abstract class AbstractMessageHandlerCreator implements MessageHandlerCre
 
 	public final MessageHandler createHandler(Object object, Method method, Map<String, ?> attributes) {
 		MessageHandler handler = this.doCreateHandler(object, method, attributes);
-		if (handler instanceof AbstractMessageHandlerAdapter) {
-			AbstractMessageHandlerAdapter adapter = ((AbstractMessageHandlerAdapter) handler);
-			adapter.setObject(object);
-			adapter.setMethodName(method.getName());
-		}
 		if (handler instanceof InitializingBean) {
 			try {
 				((InitializingBean) handler).afterPropertiesSet();
