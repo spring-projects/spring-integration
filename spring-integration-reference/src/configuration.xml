@@ -104,8 +104,6 @@
 		By using this element, you can also specify the channel's capacity: 
 		<programlisting>&lt;queue-channel id="exampleChannel" 	capacity="100"/&gt;</programlisting>
       </para>
-    
-	  </para>
       <para>
         To create a <classname>PriorityChannel</classname>, use the "priority-channel" element:
         <programlisting><![CDATA[<priority-channel id="exampleChannel"/>]]></programlisting>
@@ -246,12 +244,11 @@
 		The kind of channel that gets created automatically by the bus can be customized by using the "channel-factory"
 		element on the "message-bus" definition as in the following sample:
 		 <programlisting><![CDATA[<message-bus>
-			<channel-factory ref="channelFactoryBean"/>
-			</message-bus>
+    <channel-factory ref="channelFactoryBean"/>
+</message-bus>
 			
-			<beans:bean id="channelFactoryBean" 
-				class="org.springframework.integration.channel.factory.PriorityChannelFactory"/>
-			]]></programlisting> 
+<beans:bean id="channelFactoryBean" 
+    class="o.s.i.channel.factory.PriorityChannelFactory"/>]]></programlisting> 
 		With this definition, all the channels created automatically will be <classname>PriorityChannel</classname> instances.
 		Without the "channel-factory element, the Message Bus will assume a default <classname>QueueChannelFactory</classname>.
 	  </para>
