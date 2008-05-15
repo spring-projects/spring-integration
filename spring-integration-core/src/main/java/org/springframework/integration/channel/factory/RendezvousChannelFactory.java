@@ -22,8 +22,8 @@ import org.springframework.integration.channel.RendezvousChannel;
 
 /**
  * A {@link ChannelFactory} for creating {@link RendezvousChannel} instances.
+ * 
  * @author Marius Bogoevici
- *
  */
 public class RendezvousChannelFactory extends AbstractChannelFactory {
 

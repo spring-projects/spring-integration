@@ -29,11 +29,12 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.util.Assert;
 
 /**
- * Creates a channel by delegating to the current message bus-configured
+ * Creates a channel by delegating to the current message bus' configured
  * ChannelFactory. Tries to retrieve the {@link ChannelFactory} from the
  * single {@link MessageBus} defined in the {@link ApplicationContext}. 
  * As a {@link FactoryBean}, this class is solely intended to be used within 
  * an ApplicationContext.
+ * 
  * @author Marius Bogoevici
  */
 public class DefaultChannelFactoryBean implements ApplicationContextAware, FactoryBean{
@@ -43,15 +44,14 @@ public class DefaultChannelFactoryBean implements ApplicationContextAware, Facto
 	private volatile List<ChannelInterceptor> interceptors;
 
 	private volatile DispatcherPolicy dispatcherPolicy;
-	
-	private volatile boolean publisherSubscriber;
 
-	
+
 	public DefaultChannelFactoryBean(DispatcherPolicy dispatcherPolicy) {
 		this.dispatcherPolicy = dispatcherPolicy;
 	}
 
-	
+
+	@SuppressWarnings("unchecked")
 	public void setApplicationContext(ApplicationContext applicationContext){
 		Map map = applicationContext.getBeansOfType(MessageBus.class);
 		Assert.state(map.size() <= 1, "There is more than one MessageBus in the ApplicationContext");
@@ -59,7 +59,7 @@ public class DefaultChannelFactoryBean implements ApplicationContextAware, Facto
 			this.channelFactory = new QueueChannelFactory();
 		}
 		else {
-			this.channelFactory = ((MessageBus)map.values().iterator().next()).getChannelFactory();
+			this.channelFactory = ((MessageBus) map.values().iterator().next()).getChannelFactory();
 		}
 	}
 
@@ -72,7 +72,7 @@ public class DefaultChannelFactoryBean implements ApplicationContextAware, Facto
 		return channelFactory.getChannel(dispatcherPolicy, interceptors);
 	}
 
-	public Class getObjectType() {
+	public Class<?> getObjectType() {
 		return MessageChannel.class;
 	}
 

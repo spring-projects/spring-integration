@@ -16,6 +16,10 @@
 
 package org.springframework.integration.config;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
@@ -28,11 +32,7 @@ import org.springframework.core.Conventions;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.bus.MessageBusAwareBeanPostProcessor;
-import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  * Parser for the <em>message-bus</em> element of the integration namespace.
@@ -95,27 +95,16 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 		for (int i = 0; i < childNodes.getLength(); i++) {
 			Node child = childNodes.item(i);
 			if (child.getNodeType() == Node.ELEMENT_NODE) {
-				processIfConcurrencyElement(beanDefinition, child);
-				processIfChannelFactoryElement(beanDefinition, child);
+				String localName = child.getLocalName();
+				if (DEFAULT_CONCURRENCY_ELEMENT.equals(localName)) {
+					beanDefinition.addPropertyValue(DEFAULT_CONCURRENCY_PROPERTY,
+							IntegrationNamespaceUtils.parseConcurrencyPolicy((Element) child));
+				}
+				else if (CHANNEL_FACTORY_ELEMENT.equals(localName)) {
+					beanDefinition.addPropertyReference(CHANNEL_FACTORY_PROPERTY,
+							((Element) child).getAttribute(REFERENCE_ATTRIBUTE));
+				}
 			}
-		}
-	}
-
-	
-	private void processIfConcurrencyElement(BeanDefinitionBuilder beanDefinition, Node node) {
-		String localName = node.getLocalName();
-		if (DEFAULT_CONCURRENCY_ELEMENT.equals(localName)) {
-			ConcurrencyPolicy policy = IntegrationNamespaceUtils.parseConcurrencyPolicy((Element) node);
-			beanDefinition.addPropertyValue(DEFAULT_CONCURRENCY_PROPERTY, policy);
-		}
-
-	}
-
-	private void processIfChannelFactoryElement(BeanDefinitionBuilder beanDefinition, Node node) {
-		String localName = node.getLocalName();
-		if (CHANNEL_FACTORY_ELEMENT.equals(localName)) {
-			beanDefinition.addPropertyReference(CHANNEL_FACTORY_PROPERTY, ((Element) node)
-					.getAttribute(REFERENCE_ATTRIBUTE));
 		}
 	}
 

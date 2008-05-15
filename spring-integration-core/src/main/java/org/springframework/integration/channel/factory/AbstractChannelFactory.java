@@ -42,7 +42,7 @@ public abstract class AbstractChannelFactory implements ChannelFactory {
 		}
 		return channel;
 	}
-	
+
 	/**
 	 * Factory method to be overridden by subclasses. It assumes that subclasses will return
 	 * subclasses of AbstractMessageChannel.
