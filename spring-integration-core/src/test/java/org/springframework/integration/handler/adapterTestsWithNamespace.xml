@@ -19,8 +19,8 @@
 
 	<si:source-adapter id="sourceAdapter" ref="source" method="foo"/>
 
-	<bean id="source" class="org.springframework.integration.adapter.TestSource"/>
+	<bean id="source" class="org.springframework.integration.handler.TestSource"/>
 
-	<bean id="sink" class="org.springframework.integration.adapter.TestSink"/>
+	<bean id="sink" class="org.springframework.integration.handler.TestSink"/>
 
 </beans>

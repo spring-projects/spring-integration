@@ -12,9 +12,9 @@
 
 	<bean id="sourceEndpoint" class="org.springframework.integration.endpoint.PollingSourceEndpoint">
 		<constructor-arg>
-			<bean class="org.springframework.integration.adapter.MethodInvokingSource">
+			<bean class="org.springframework.integration.message.MethodInvokingSource">
 				<property name="object">
-					<bean class="org.springframework.integration.adapter.TestSource"/>
+					<bean class="org.springframework.integration.handler.TestSource"/>
 				</property>
 				<property name="method" value="foo"/>
 			</bean>
@@ -27,7 +27,7 @@
 		</constructor-arg>
 	</bean>
 
-	<bean id="target" class="org.springframework.integration.adapter.MethodInvokingTarget">
+	<bean id="target" class="org.springframework.integration.handler.MethodInvokingTarget">
 		<property name="object" ref="sink"/>
 		<property name="methodName" value="store"/>
 	</bean>
@@ -41,6 +41,6 @@
 		</property>
 	</bean>
 
-	<bean id="sink" class="org.springframework.integration.adapter.TestSink"/>
+	<bean id="sink" class="org.springframework.integration.handler.TestSink"/>
 
 </beans>

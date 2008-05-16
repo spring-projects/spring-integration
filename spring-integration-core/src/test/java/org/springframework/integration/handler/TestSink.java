@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter;
+package org.springframework.integration.handler;
 
 import java.util.concurrent.CountDownLatch;
 

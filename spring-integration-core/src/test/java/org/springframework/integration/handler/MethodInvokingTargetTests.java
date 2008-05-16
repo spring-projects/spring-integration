@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter;
+package org.springframework.integration.handler;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -29,6 +29,7 @@ import org.junit.Test;
 
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.handler.MethodInvokingTarget;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;

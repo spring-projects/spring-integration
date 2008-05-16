@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter;
+package org.springframework.integration.handler;
 
-import org.springframework.integration.handler.AbstractMessageHandlerAdapter;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.Target;

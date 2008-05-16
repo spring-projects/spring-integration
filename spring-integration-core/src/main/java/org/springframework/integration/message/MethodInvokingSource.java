@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter;
+package org.springframework.integration.message;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.message.Source;
 import org.springframework.integration.util.MethodValidator;
 import org.springframework.integration.util.NameResolvingMethodInvoker;
 import org.springframework.util.Assert;

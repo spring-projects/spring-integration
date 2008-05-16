@@ -21,8 +21,8 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.adapter.MethodInvokingSource;
-import org.springframework.integration.adapter.MethodInvokingTarget;
+import org.springframework.integration.handler.MethodInvokingTarget;
+import org.springframework.integration.message.MethodInvokingSource;
 import org.springframework.util.StringUtils;
 
 /**

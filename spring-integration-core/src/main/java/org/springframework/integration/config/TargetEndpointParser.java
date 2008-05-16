@@ -18,8 +18,8 @@ package org.springframework.integration.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.integration.adapter.MethodInvokingTarget;
 import org.springframework.integration.endpoint.TargetEndpoint;
+import org.springframework.integration.handler.MethodInvokingTarget;
 
 /**
  * Parser for the &lt;target-endpoint&gt; element.

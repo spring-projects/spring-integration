@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter;
+package org.springframework.integration.handler;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -32,7 +32,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 /**
  * @author Mark Fisher
  */
-public class AdapterTests {
+public class MethodInvokingAdapterTests {
 
 	@Test
 	public void testAdaptersWithBeanDefinitions() throws IOException, InterruptedException {
