@@ -157,12 +157,20 @@ public abstract class AbstractMessageHandlerAdapter implements MessageHandler, I
 			args = new Object[] { mappingResult }; 
 		}
 		try {
-			Object result = this.invoker.invokeMethod(args);
+			Object result = null;
+			try {
+				result = this.invoker.invokeMethod(args);
+			}
+			catch (NoSuchMethodException e) {
+				result = this.invoker.invokeMethod(message);
+				this.methodExpectsMessage = true;
+			}
 			if (result == null) {
 				return null;
 			}
 			return this.handleReturnValue(result, message);
-		} catch (InvocationTargetException e) {
+		}
+		catch (InvocationTargetException e) {
 			throw new MessagingException(
 					"Handler method '" + this.method + "' threw an Exception.", e.getTargetException());
 		}
