@@ -31,12 +31,11 @@ import org.springframework.integration.dispatcher.PollingDispatcher;
 import org.springframework.integration.dispatcher.PollingDispatcherTask;
 import org.springframework.integration.message.Source;
 import org.springframework.integration.scheduling.MessagingTask;
-import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.util.Assert;
 
 /**
- * A channel adapter that retrieves messages from a {@link PollableSource}
+ * A channel adapter that retrieves messages from a {@link Source}
  * and then sends the resulting messages to the provided {@link MessageChannel}.
  * 
  * @author Mark Fisher
@@ -60,7 +59,7 @@ public class PollingSourceEndpoint extends AbstractSourceEndpoint implements Mes
 	private final Object taskMonitor = new Object();
 
 
-	public PollingSourceEndpoint(Source<?> source, MessageChannel channel, PollingSchedule schedule) {
+	public PollingSourceEndpoint(Source<?> source, MessageChannel channel, Schedule schedule) {
 		super(source, channel);
 		Assert.notNull(schedule, "schedule must not be null");
 		this.dispatcher = new DefaultPollingDispatcher(source, this.dispatcherPolicy);
