@@ -41,7 +41,7 @@ public class ReturnAddressTests {
 		StringMessage message = new StringMessage("*");
 		message.getHeader().setReturnAddress("replyChannel");
 		channel1.send(message);
-		Message<?> response = replyChannel.receive(1000);
+		Message<?> response = replyChannel.receive(3000);
 		assertNotNull(response);
 		assertEquals("**", response.getPayload());
 	}
@@ -56,7 +56,7 @@ public class ReturnAddressTests {
 		StringMessage message = new StringMessage("*");
 		message.getHeader().setReturnAddress("replyChannel");
 		channel1.send(message);
-		Message<?> response = replyChannel.receive(1000);
+		Message<?> response = replyChannel.receive(3000);
 		assertNotNull(response);
 		assertEquals("********", response.getPayload());
 	}
@@ -70,7 +70,7 @@ public class ReturnAddressTests {
 		context.start();
 		StringMessage message = new StringMessage("*");
 		channel4.send(message);
-		Message<?> response = replyChannel.receive(1000);
+		Message<?> response = replyChannel.receive(3000);
 		assertNotNull(response);
 		assertEquals("**", response.getPayload());
 	}
@@ -84,7 +84,7 @@ public class ReturnAddressTests {
 		context.start();
 		StringMessage message = new StringMessage("*");
 		channel3.send(message);
-		Message<?> errorMessage = errorChannel.receive(1000);
+		Message<?> errorMessage = errorChannel.receive(3000);
 		assertNotNull(errorMessage.getPayload());
 	}
 
@@ -97,7 +97,7 @@ public class ReturnAddressTests {
 		context.start();
 		StringMessage message = new StringMessage("*");
 		channel3.send(message);
-		Message<?> errorMessage = errorChannel.receive(1000);
+		Message<?> errorMessage = errorChannel.receive(3000);
 		assertNotNull(errorMessage.getPayload());
 	}
 
