@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.dispatcher;
+package org.springframework.integration.channel;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.channel.DispatcherPolicy;
+import org.springframework.integration.dispatcher.SimpleDispatcher;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.Source;
@@ -34,21 +31,13 @@ import org.springframework.integration.message.selector.MessageSelector;
 /**
  * A channel that invokes the subscribed {@link MessageHandler handler(s)} in a
  * sender's thread (returning after at most one handles the message). If a
- * {@link PollableSource} is provided, then that source will likewise be polled
+ * {@link Source} is provided, then that source will likewise be polled
  * within a receiver's thread.
- * <p>
- * If the channel has no subscribed handlers and no configured source, then it
- * will store messages in a thread-bound queue. In other words, send() will put
- * a message at the tail of the queue for the current thread, and receive() will
- * retrieve a message from the head of the queue.
  * 
  * @author Dave Syer
  * @author Mark Fisher
  */
-public class SynchronousChannel extends AbstractMessageChannel implements Subscribable {
-
-	private static final ThreadLocalMessageHolder messageHolder = new ThreadLocalMessageHolder();
-
+public class DirectChannel extends AbstractMessageChannel implements Subscribable {
 
 	private volatile Source<?> source;
 
@@ -57,20 +46,16 @@ public class SynchronousChannel extends AbstractMessageChannel implements Subscr
 	private final AtomicInteger handlerCount = new AtomicInteger();
 
 
-	public SynchronousChannel() {
+	public DirectChannel() {
 		this(null);
 	}
 
-	public SynchronousChannel(Source<?> source) {
+	public DirectChannel(Source<?> source) {
 		super(defaultDispatcherPolicy());
 		this.source = source;
 		this.dispatcher = new SimpleDispatcher(this.getDispatcherPolicy());
 	}
 
-
-	public void setSource(Source<?> source) {
-		this.source = source;
-	}
 
 	public boolean subscribe(Target target) {
 		boolean added = this.dispatcher.subscribe(target);
@@ -92,55 +77,25 @@ public class SynchronousChannel extends AbstractMessageChannel implements Subscr
 	@Override
 	protected Message<?> doReceive(long timeout) {
 		if (this.source != null) {
-			Message<?> result = this.source.receive();
-			if (result != null) {
-				return result;
-			}
+			return this.source.receive();
 		}
-		return messageHolder.get().poll();
+		return null;
 	}
 
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
-		if (message == null) {
-			return false;
-		}
-		if (this.handlerCount.get() > 0) {
+		if (message != null && this.handlerCount.get() > 0) {
 			return this.dispatcher.dispatch(message);
-		}
-		else if (this.source == null) {
-			return messageHolder.get().add(message);
 		}
 		return false;
 	}
 
-	/**
-	 * Remove and return any messages that are stored for the current thread.
-	 */
 	public List<Message<?>> clear() {
-		List<Message<?>> removedMessages = new ArrayList<Message<?>>();
-		Message<?> next = messageHolder.get().poll();
-		while (next != null) {
-			removedMessages.add(next);
-			next = messageHolder.get().poll();
-		}
-		return removedMessages;
+		return new ArrayList<Message<?>>();
 	}
 
-	/**
-	 * Remove and return any messages that are stored for the current thread
-	 * and do not match the provided selector.
-	 */
 	public List<Message<?>> purge(MessageSelector selector) {
-		List<Message<?>> removedMessages = new ArrayList<Message<?>>();
-		Object[] allMessages = messageHolder.get().toArray();
-		for (Object next : allMessages) {
-			Message<?> message = (Message<?>) next;
-			if (!selector.accept(message) && messageHolder.get().remove(message)) {
-				removedMessages.add(message);
-			}
-		}
-		return removedMessages;
+		return new ArrayList<Message<?>>();
 	}
 
 
@@ -152,15 +107,6 @@ public class SynchronousChannel extends AbstractMessageChannel implements Subscr
 		dispatcherPolicy.setRetryInterval(0);
 		dispatcherPolicy.setShouldFailOnRejectionLimit(false);
 		return dispatcherPolicy;
-	}
-
-
-	private static class ThreadLocalMessageHolder extends ThreadLocal<Queue<Message<?>>> {
-
-		@Override
-		protected Queue<Message<?>> initialValue() {
-			return new LinkedBlockingQueue<Message<?>>();
-		}
 	}
 
 }

@@ -23,10 +23,11 @@ import org.junit.Test;
 
 import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.channel.ThreadLocalChannel;
 import org.springframework.integration.config.MessageEndpointAnnotationPostProcessor;
-import org.springframework.integration.dispatcher.SynchronousChannel;
 import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
@@ -37,13 +38,13 @@ import org.springframework.integration.scheduling.Subscription;
 /**
  * @author Mark Fisher
  */
-public class SynchronousChannelSubscriptionTests {
+public class DirectChannelSubscriptionTests {
 
 	private MessageBus bus = new MessageBus();
 
-	private MessageChannel sourceChannel = new SynchronousChannel();
+	private MessageChannel sourceChannel = new DirectChannel();
 
-	private MessageChannel targetChannel = new SynchronousChannel();
+	private MessageChannel targetChannel = new ThreadLocalChannel();
 
 
 	@Before

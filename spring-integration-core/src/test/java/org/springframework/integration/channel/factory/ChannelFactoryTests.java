@@ -25,29 +25,25 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.RendezvousChannel;
-import org.springframework.integration.config.MessageBusParser;
-import org.springframework.integration.dispatcher.SynchronousChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.selector.MessageSelector;
 
 /**
- * 
  * @author Marius Bogoevici
  */
-public class TestChannelFactory {
+public class ChannelFactoryTests {
 
 	ArrayList<ChannelInterceptor> interceptors = null;
 
@@ -66,6 +62,7 @@ public class TestChannelFactory {
 		dispatcherPolicy.setMaxMessagesPerTask(100);
 	}
 
+
 	@Test
 	public void testQueueChannelFactory() {
 		QueueChannelFactory channelFactory = new QueueChannelFactory();
@@ -75,12 +72,12 @@ public class TestChannelFactory {
 	}
 
 	@Test
-	public void testSynchronousChannelFactory() {
-		SynchronousChannelFactory channelFactory = new SynchronousChannelFactory();
+	public void testDirectChannelFactory() {
+		DirectChannelFactory channelFactory = new DirectChannelFactory();
 		assertNotNull(interceptors);
-		AbstractMessageChannel channel = (AbstractMessageChannel) channelFactory.getChannel(dispatcherPolicy,
-				interceptors);
-		assertEquals(SynchronousChannel.class, channel.getClass());
+		AbstractMessageChannel channel = (AbstractMessageChannel)
+				channelFactory.getChannel(dispatcherPolicy, interceptors);
+		assertEquals(DirectChannel.class, channel.getClass());
 		assertInterceptors(channel);
 	}
 
@@ -113,32 +110,33 @@ public class TestChannelFactory {
 		assertInterceptors(channel);
 	}
 
+
 	private void genericChannelFactoryTests(ChannelFactory channelFactory, Class<?> expectedChannelClass) {
 		assertNotNull(dispatcherPolicy);
 		assertNotNull(interceptors);
-		AbstractMessageChannel channel = (AbstractMessageChannel) channelFactory.getChannel(dispatcherPolicy,
-				interceptors);
+		AbstractMessageChannel channel = (AbstractMessageChannel)
+				channelFactory.getChannel(dispatcherPolicy, interceptors);
 		assertEquals(expectedChannelClass, channel.getClass());
 		assertTrue(channel.getDispatcherPolicy() == dispatcherPolicy);
 		assertInterceptors(channel);
 	}
 
+	@SuppressWarnings("unchecked")
 	private void assertInterceptors(AbstractMessageChannel channel) {
 		Object interceptorsWrapper = new DirectFieldAccessor(channel).getPropertyValue("interceptors");
-		List<ChannelInterceptor> interceptors = (List<ChannelInterceptor>) new DirectFieldAccessor(interceptorsWrapper)
-				.getPropertyValue("interceptors");
+		List<ChannelInterceptor> interceptors = (List<ChannelInterceptor>)
+				new DirectFieldAccessor(interceptorsWrapper).getPropertyValue("interceptors");
 		assertTrue(interceptors.get(0) == interceptors.get(0));
 		assertTrue(interceptors.get(1) == interceptors.get(1));
 	}
 
+
 	static class TestChannelInterceptor implements ChannelInterceptor {
 
 		public void postReceive(Message<?> message, MessageChannel channel) {
-
 		}
 
 		public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
-
 		}
 
 		public boolean preReceive(MessageChannel channel) {
@@ -150,13 +148,14 @@ public class TestChannelFactory {
 		}
 
 	}
-	
+
+
 	static class StubChannel extends AbstractMessageChannel {
 
 		public StubChannel(DispatcherPolicy dispatcherPolicy) {
 			super(dispatcherPolicy);
 		}
-		
+
 		@Override
 		protected Message<?> doReceive(long timeout) {
 			return null;
@@ -174,16 +173,15 @@ public class TestChannelFactory {
 		public List<Message<?>> purge(MessageSelector selector) {
 			return null;
 		}
-		
 	}
-	
+
+
 	static class StubChannelFactory extends AbstractChannelFactory {
 
 		@Override
 		protected AbstractMessageChannel createChannelInternal(DispatcherPolicy dispatcherPolicy) {
 			return new StubChannel(dispatcherPolicy);
 		}
-		
 	}
 
 }

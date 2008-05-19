@@ -29,8 +29,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.bus.TestMessageBusAwareImpl;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.dispatcher.SynchronousChannel;
 import org.springframework.integration.endpoint.TargetEndpoint;
 import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.scheduling.Subscription;
@@ -140,8 +140,8 @@ public class MessageBusParserTests {
 	
 	@Test
 	public void testMessageBusAwareAutomaticallyAddedByNamespace() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("messageBusWithMessageBusAware.xml", 
-				this.getClass());
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"messageBusWithMessageBusAware.xml", this.getClass());
 		TestMessageBusAwareImpl messageBusAware = (TestMessageBusAwareImpl) context.getBean("messageBusAwareBean");
 		assertTrue(messageBusAware.getMessageBus() == context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME));
 	}
@@ -150,7 +150,7 @@ public class MessageBusParserTests {
 	public void testMessageBusWithChannelFactory() {
 		ApplicationContext context = new ClassPathXmlApplicationContext("messageBusWithChannelFactory.xml", 
 				this.getClass());
-		assertEquals(SynchronousChannel.class, context.getBean("defaultTypeChannel").getClass());
+		assertEquals(DirectChannel.class, context.getBean("defaultTypeChannel").getClass());
 		assertEquals(QueueChannel.class, context.getBean("specifiedTypeChannel").getClass());
 	}
 

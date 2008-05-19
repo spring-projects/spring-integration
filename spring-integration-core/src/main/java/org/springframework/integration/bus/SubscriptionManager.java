@@ -27,10 +27,10 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.dispatcher.DefaultPollingDispatcher;
 import org.springframework.integration.dispatcher.PollingDispatcherTask;
-import org.springframework.integration.dispatcher.SynchronousChannel;
 import org.springframework.integration.endpoint.TargetEndpoint;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.Target;
@@ -87,7 +87,7 @@ public class SubscriptionManager {
 		if (schedule == null) {
 			schedule = this.defaultSchedule;
 		}
-		else if (this.channel instanceof SynchronousChannel) {
+		else if (this.channel instanceof DirectChannel) {
 			if (logger.isInfoEnabled()) {
 				logger.info("Subscribing to a SynchronousChannel. The provided schedule will be ignored.");
 			}
@@ -106,8 +106,8 @@ public class SubscriptionManager {
 				((Lifecycle) target).start();
 			}
 		}
-		if (this.channel instanceof SynchronousChannel) {
-			((SynchronousChannel) this.channel).subscribe(target);
+		if (this.channel instanceof DirectChannel) {
+			((DirectChannel) this.channel).subscribe(target);
 			if (target instanceof TargetEndpoint) {
 				((TargetEndpoint) target).setErrorHandler(new ErrorHandler() {
 					public void handle(Throwable t) {

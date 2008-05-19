@@ -20,12 +20,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.dispatcher.SynchronousChannel;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 
@@ -35,23 +34,18 @@ import org.springframework.integration.message.StringMessage;
 public class DirectChannelParserTests {
 
 	@Test
-	public void testChannelWithoutSource() {
+	public void testReceivesNullFromChannelWithoutSource() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"directChannelParserTests.xml", DirectChannelParserTests.class);
-		SynchronousChannel channel = (SynchronousChannel) context.getBean("channelWithoutSource");
+		DirectChannel channel = (DirectChannel) context.getBean("channelWithoutSource");
 		assertNull(channel.receive());
-		Message<?> message = new StringMessage("test");
-		assertTrue(channel.send(message));
-		Message<?> reply = channel.receive();
-		assertNotNull(reply);
-		assertEquals(message, reply);
 	}
 
 	@Test
-	public void testChannelWithSource() {
+	public void testReceivesMessageFromChannelWithSource() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"directChannelParserTests.xml", DirectChannelParserTests.class);
-		SynchronousChannel channel = (SynchronousChannel) context.getBean("channelWithSource");
+		DirectChannel channel = (DirectChannel) context.getBean("channelWithSource");
 		assertFalse(channel.send(new StringMessage("test")));
 		Message<?> reply = channel.receive();
 		assertNotNull(reply);

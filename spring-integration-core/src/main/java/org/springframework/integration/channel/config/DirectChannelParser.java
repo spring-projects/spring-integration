@@ -19,8 +19,8 @@ package org.springframework.integration.channel.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.DispatcherPolicy;
-import org.springframework.integration.dispatcher.SynchronousChannel;
 import org.springframework.util.StringUtils;
 
 /**
@@ -32,7 +32,7 @@ public class DirectChannelParser extends AbstractChannelParser {
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
-		return SynchronousChannel.class;
+		return DirectChannel.class;
 	}
 
 	@Override

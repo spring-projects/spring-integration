@@ -17,20 +17,19 @@
 package org.springframework.integration.channel.factory;
 
 import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.DispatcherPolicy;
-import org.springframework.integration.channel.PriorityChannel;
-import org.springframework.integration.dispatcher.SynchronousChannel;
 
 /**
- * A {@link ChannelFactory} for creating {@link SynchronousChannel} instances.
- * @author Marius Bogoevici
+ * A {@link ChannelFactory} for creating {@link DirectChannel} instances.
  *
+ * @author Marius Bogoevici
  */
-public class SynchronousChannelFactory extends AbstractChannelFactory {
+public class DirectChannelFactory extends AbstractChannelFactory {
 
 	@Override
 	protected AbstractMessageChannel createChannelInternal(DispatcherPolicy dispatcherPolicy) {
-		return new SynchronousChannel(null);
+		return new DirectChannel(null);
 	}
 
 }
