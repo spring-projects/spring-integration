@@ -9,7 +9,7 @@
 
 	<message-bus auto-create-channels="true"/>
 
-     	<handler-endpoint input-channel="inputChannel"
+	<handler-endpoint input-channel="inputChannel"
 	          output-channel="outputChannel"
 	          handler="helloService"
 	          method="sayHello"/>

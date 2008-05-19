@@ -30,7 +30,6 @@ import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
-import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.integration.scheduling.Subscription;
@@ -111,7 +110,7 @@ public abstract class AbstractTargetEndpointParser extends AbstractSingleBeanDef
 		}
 		if (StringUtils.hasText(inputChannel)) {
 			RootBeanDefinition subscriptionDef = new RootBeanDefinition(Subscription.class);
-			subscriptionDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(inputChannel));
+			subscriptionDef.getConstructorArgumentValues().addGenericArgumentValue(inputChannel);
 			if (schedule != null) {
 				subscriptionDef.getConstructorArgumentValues().addGenericArgumentValue(schedule);
 			}
