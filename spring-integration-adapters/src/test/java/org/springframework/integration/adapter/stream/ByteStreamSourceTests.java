@@ -25,7 +25,7 @@ import org.junit.Test;
 
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.endpoint.PollingSourceEndpoint;
+import org.springframework.integration.endpoint.SourceEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.scheduling.PollingSchedule;
 
@@ -42,7 +42,7 @@ public class ByteStreamSourceTests {
 		ByteStreamSource source = new ByteStreamSource(stream);
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
-		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		SourceEndpoint endpoint = new SourceEndpoint(source, channel, schedule);
 		endpoint.run();
 		Message<?> message1 = channel.receive(500);
 		byte[] payload = (byte[]) message1.getPayload();
@@ -66,7 +66,7 @@ public class ByteStreamSourceTests {
 		source.setBytesPerMessage(8);
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
-		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		SourceEndpoint endpoint = new SourceEndpoint(source, channel, schedule);
 		endpoint.setMaxMessagesPerTask(5);
 		endpoint.run();
 		Message<?> message1 = channel.receive(500);
@@ -84,7 +84,7 @@ public class ByteStreamSourceTests {
 		source.setBytesPerMessage(4);
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
-		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		SourceEndpoint endpoint = new SourceEndpoint(source, channel, schedule);
 		endpoint.setMaxMessagesPerTask(1);
 		endpoint.run();
 		Message<?> message1 = channel.receive(0);
@@ -109,7 +109,7 @@ public class ByteStreamSourceTests {
 		source.setBytesPerMessage(4);
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
-		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		SourceEndpoint endpoint = new SourceEndpoint(source, channel, schedule);
 		endpoint.setMaxMessagesPerTask(5);
 		endpoint.run();
 		Message<?> message1 = channel.receive(0);
@@ -133,7 +133,7 @@ public class ByteStreamSourceTests {
 		source.setBytesPerMessage(4);
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
-		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		SourceEndpoint endpoint = new SourceEndpoint(source, channel, schedule);
 		endpoint.setMaxMessagesPerTask(1);
 		endpoint.run();
 		Message<?> message1 = channel.receive(0);
@@ -155,7 +155,7 @@ public class ByteStreamSourceTests {
 		source.setShouldTruncate(false);
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
-		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		SourceEndpoint endpoint = new SourceEndpoint(source, channel, schedule);
 		endpoint.setMaxMessagesPerTask(1);
 		endpoint.run();
 		Message<?> message1 = channel.receive(0);

@@ -26,9 +26,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class Barista {
 
-	private long hotDrinkDelay = 1000;
+	private long hotDrinkDelay = 2000;
 
-	private long coldDrinkDelay = 700; 
+	private long coldDrinkDelay = 1000; 
 
 	private AtomicInteger hotDrinkCounter = new AtomicInteger();
 	

@@ -41,14 +41,14 @@ import org.springframework.integration.scheduling.PollingSchedule;
 /**
  * @author Mark Fisher
  */
-public class PollingSourceEndpointTests {
+public class SourceEndpointTests {
 
 	@Test
 	public void testPolledSourceSendsToChannel() {
 		TestSource source = new TestSource("testing", 1);
 		QueueChannel channel = new QueueChannel();
 		PollingSchedule schedule = new PollingSchedule(100);
-		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		SourceEndpoint endpoint = new SourceEndpoint(source, channel, schedule);
 		endpoint.run();
 		Message<?> message = channel.receive(1000);
 		assertNotNull("message should not be null", message);
@@ -61,7 +61,7 @@ public class PollingSourceEndpointTests {
 		QueueChannel channel = new QueueChannel(1);
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
-		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		SourceEndpoint endpoint = new SourceEndpoint(source, channel, schedule);
 		endpoint.setSendTimeout(10);
 		endpoint.run();
 		Message<?> message1 = channel.receive(1000);
@@ -82,7 +82,7 @@ public class PollingSourceEndpointTests {
 		QueueChannel channel = new QueueChannel();
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
-		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		SourceEndpoint endpoint = new SourceEndpoint(source, channel, schedule);
 		endpoint.setMaxMessagesPerTask(5);
 		endpoint.run();
 		Message<?> message1 = channel.receive(0);
@@ -104,7 +104,7 @@ public class PollingSourceEndpointTests {
 		QueueChannel channel = new QueueChannel();
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
-		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		SourceEndpoint endpoint = new SourceEndpoint(source, channel, schedule);
 		final StringBuffer buffer = new StringBuffer();
 		List<Advice> taskAdviceChain = new ArrayList<Advice>();
 		taskAdviceChain.add(new MethodBeforeAdvice() {
@@ -138,7 +138,7 @@ public class PollingSourceEndpointTests {
 		QueueChannel channel = new QueueChannel();
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
-		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		SourceEndpoint endpoint = new SourceEndpoint(source, channel, schedule);
 		final StringBuffer buffer = new StringBuffer();
 		List<Advice> dispatchAdviceChain = new ArrayList<Advice>();
 		dispatchAdviceChain.add(new MethodBeforeAdvice() {
@@ -172,7 +172,7 @@ public class PollingSourceEndpointTests {
 		QueueChannel channel = new QueueChannel();
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
-		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		SourceEndpoint endpoint = new SourceEndpoint(source, channel, schedule);
 		List<Advice> dispatchAdviceChain = new ArrayList<Advice>();
 		List<Advice> taskAdviceChain = new ArrayList<Advice>();
 		final StringBuffer buffer = new StringBuffer();
@@ -216,7 +216,7 @@ public class PollingSourceEndpointTests {
 		QueueChannel channel = new QueueChannel();
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
-		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		SourceEndpoint endpoint = new SourceEndpoint(source, channel, schedule);
 		List<Advice> dispatchAdviceChain = new ArrayList<Advice>();
 		List<Advice> taskAdviceChain = new ArrayList<Advice>();
 		final StringBuffer buffer = new StringBuffer();
@@ -278,7 +278,7 @@ public class PollingSourceEndpointTests {
 		QueueChannel channel = new QueueChannel();
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
-		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		SourceEndpoint endpoint = new SourceEndpoint(source, channel, schedule);
 		List<Advice> dispatchAdviceChain = new ArrayList<Advice>();
 		List<Advice> taskAdviceChain = new ArrayList<Advice>();
 		final StringBuffer buffer = new StringBuffer();
@@ -317,7 +317,7 @@ public class PollingSourceEndpointTests {
 		QueueChannel channel = new QueueChannel();
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
-		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		SourceEndpoint endpoint = new SourceEndpoint(source, channel, schedule);
 		List<Advice> dispatchAdviceChain = new ArrayList<Advice>();
 		List<Advice> taskAdviceChain = new ArrayList<Advice>();
 		final StringBuffer buffer = new StringBuffer();
@@ -356,7 +356,7 @@ public class PollingSourceEndpointTests {
 		QueueChannel channel = new QueueChannel();
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
-		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		SourceEndpoint endpoint = new SourceEndpoint(source, channel, schedule);
 		List<Advice> dispatchAdviceChain = new ArrayList<Advice>();
 		List<Advice> taskAdviceChain = new ArrayList<Advice>();
 		final StringBuffer buffer = new StringBuffer();
@@ -396,7 +396,7 @@ public class PollingSourceEndpointTests {
 		QueueChannel channel = new QueueChannel();
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
-		PollingSourceEndpoint endpoint = new PollingSourceEndpoint(source, channel, schedule);
+		SourceEndpoint endpoint = new SourceEndpoint(source, channel, schedule);
 		List<Advice> dispatchAdviceChain = new ArrayList<Advice>();
 		List<Advice> taskAdviceChain = new ArrayList<Advice>();
 		final StringBuffer buffer = new StringBuffer();

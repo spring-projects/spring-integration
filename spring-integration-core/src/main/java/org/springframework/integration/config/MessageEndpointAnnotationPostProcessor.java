@@ -48,7 +48,7 @@ import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.dispatcher.SynchronousChannel;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.HandlerEndpoint;
-import org.springframework.integration.endpoint.PollingSourceEndpoint;
+import org.springframework.integration.endpoint.SourceEndpoint;
 import org.springframework.integration.handler.AbstractMessageHandlerAdapter;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
@@ -163,7 +163,7 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 					PollingSchedule schedule = new PollingSchedule(period);
 					schedule.setInitialDelay(initialDelay);
 					schedule.setFixedRate(fixedRate);
-					PollingSourceEndpoint sourceEndpoint = new PollingSourceEndpoint(source, channel, schedule);
+					SourceEndpoint sourceEndpoint = new SourceEndpoint(source, channel, schedule);
 					String channelName = beanName + "-inputChannel";
 					messageBus.registerChannel(channelName, channel);
 					messageBus.registerEndpoint(beanName + "-sourceEndpoint", sourceEndpoint);

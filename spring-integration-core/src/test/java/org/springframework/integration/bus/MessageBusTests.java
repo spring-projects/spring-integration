@@ -33,7 +33,7 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.RendezvousChannel;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
-import org.springframework.integration.endpoint.PollingSourceEndpoint;
+import org.springframework.integration.endpoint.SourceEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
@@ -172,7 +172,7 @@ public class MessageBusTests {
 	public void testErrorChannelWithFailedDispatch() throws InterruptedException {
 		MessageBus bus = new MessageBus();
 		CountDownLatch latch = new CountDownLatch(1);
-		PollingSourceEndpoint sourceEndpoint = new PollingSourceEndpoint(new FailingSource(latch), new QueueChannel(), new PollingSchedule(1000));
+		SourceEndpoint sourceEndpoint = new SourceEndpoint(new FailingSource(latch), new QueueChannel(), new PollingSchedule(1000));
 		bus.registerEndpoint("testEndpoint", sourceEndpoint);
 		bus.start();
 		latch.await(1000, TimeUnit.MILLISECONDS);

@@ -22,7 +22,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.endpoint.PollingSourceEndpoint;
+import org.springframework.integration.endpoint.SourceEndpoint;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.util.StringUtils;
@@ -36,7 +36,7 @@ import org.springframework.util.xml.DomUtils;
 public class SourceEndpointParser extends AbstractSimpleBeanDefinitionParser {
 
 	protected final Class<?> getBeanClass(Element element) {
-		return PollingSourceEndpoint.class;
+		return SourceEndpoint.class;
 	}
 
 	protected boolean shouldGenerateId() {

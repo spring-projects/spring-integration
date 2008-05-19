@@ -10,7 +10,7 @@
 
 	<bean id="channel" class="org.springframework.integration.channel.QueueChannel"/>
 
-	<bean id="sourceEndpoint" class="org.springframework.integration.endpoint.PollingSourceEndpoint">
+	<bean id="sourceEndpoint" class="org.springframework.integration.endpoint.SourceEndpoint">
 		<constructor-arg>
 			<bean class="org.springframework.integration.message.MethodInvokingSource">
 				<property name="object">

@@ -25,9 +25,6 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
@@ -44,15 +41,11 @@ import org.springframework.integration.util.ErrorHandler;
 import org.springframework.util.Assert;
 
 /**
- * Base class for {@link MessageEndpoint} implementations.
+ * Base class for {@link MessageEndpoint} implementations to which Messages may be sent.
  * 
  * @author Mark Fisher
  */
-public class TargetEndpoint implements Target, MessageEndpoint, ChannelRegistryAware, InitializingBean, Lifecycle {
-
-	protected final Log logger = LogFactory.getLog(this.getClass());
-
-	private volatile String name;
+public class TargetEndpoint extends AbstractEndpoint implements Target, ChannelRegistryAware, InitializingBean, Lifecycle {
 
 	private volatile Target target;
 
@@ -79,18 +72,6 @@ public class TargetEndpoint implements Target, MessageEndpoint, ChannelRegistryA
 		this.target = target;
 	}
 
-
-	public String getName() {
-		return this.name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public void setBeanName(String beanName) {
-		this.setName(beanName);
-	}
 
 	public Target getTarget() {
 		return this.target;
@@ -225,10 +206,6 @@ public class TargetEndpoint implements Target, MessageEndpoint, ChannelRegistryA
 			this.errorHandler.handle(t);
 			return false;
 		}
-	}
-
-	public String toString() {
-		return (this.name != null) ? this.name : super.toString();
 	}
 
 }
