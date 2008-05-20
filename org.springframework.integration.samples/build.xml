@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="spring-integration-samples">
+<project name="org.springframework.integration.samples">
 
 	<property file="${basedir}/../build.properties"/>
 	<import file="${basedir}/../build-spring-integration/package-bundle.xml"/>
-	<import file="../spring-build/standard/default.xml"/>
+	<import file="${basedir}/../spring-build/standard/default.xml"/>
 
 	<target name="package" depends="package-bundle.package">
 		<mkdir dir="${package.output.dir}/samples"/>

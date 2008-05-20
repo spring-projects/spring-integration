@@ -14,7 +14,7 @@
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework.ws/org.springframework.ws/1.5.1.A/org.springframework.ws-1.5.1.A.jar" sourcepath="/IVY_CACHE/org.springframework.ws/org.springframework.ws/1.5.1.A/org.springframework.ws-sources-1.5.1.A.jar"/>
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework.ws/org.springframework.oxm/1.5.1.A/org.springframework.oxm-1.5.1.A.jar" sourcepath="/IVY_CACHE/org.springframework.ws/org.springframework.oxm/1.5.1.A/org.springframework.oxm-sources-1.5.1.A.jar"/>
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework.ws/org.springframework.xml/1.5.1.A/org.springframework.xml-1.5.1.A.jar" sourcepath="/IVY_CACHE/org.springframework.ws/org.springframework.xml/1.5.1.A/org.springframework.xml-sources-1.5.1.A.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/spring-integration-adapters"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/spring-integration-core"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/org.springframework.integration.adapter"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/org.springframework.integration"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

@@ -27,7 +27,7 @@
 		<dependency org="org.apache.commons" name="com.springsource.org.apache.commons.net" rev="1.4.1" conf="compile->runtime"/>
 		<dependency org="org.apache.oro" name="com.springsource.org.apache.oro" rev="2.0.8" conf="compile->runtime"/>
 		<dependency org="org.junit" name="com.springsource.org.junit" rev="4.4.0" conf="test->runtime"/>
-		<dependency org="org.springframework.integration" name="spring-integration-core" rev="latest.integration" conf="compile->compile"/>
+		<dependency org="org.springframework.integration" name="org.springframework.integration" rev="latest.integration" conf="compile->compile"/>
 		<dependency org="org.springframework" name="org.springframework.context" rev="2.5.4.A" conf="compile->runtime"/>
 		<dependency org="org.springframework" name="org.springframework.context.support" rev="2.5.4.A" conf="compile->runtime"/>
 		<dependency org="org.springframework" name="org.springframework.aop" rev="2.5.4.A" conf="compile->runtime"/>

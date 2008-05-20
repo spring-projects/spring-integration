@@ -2,11 +2,11 @@
 <project name="build-spring-integration" default="precommit">
 
 	<path id="bundles">
-		<pathelement location="../spring-integration-core"/>
-		<pathelement location="../spring-integration-adapters"/>
-		<pathelement location="../spring-integration-samples"/>
-		<pathelement location="../spring-integration-test"/>
-		<pathelement location="../spring-integration-ws"/>
+		<pathelement location="../org.springframework.integration"/>
+		<pathelement location="../org.springframework.integration.adapter"/>
+		<pathelement location="../org.springframework.integration.samples"/>
+		<pathelement location="../org.springframework.integration.test"/>
+		<pathelement location="../org.springframework.integration.ws"/>
 	</path>
 
 	<property file="${basedir}/../build.properties"/>
