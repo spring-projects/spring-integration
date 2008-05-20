@@ -22,10 +22,14 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.event.SimpleApplicationEventMulticaster;
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.bus.TestMessageBusAwareImpl;
@@ -33,6 +37,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.TargetEndpoint;
 import org.springframework.integration.handler.TestHandlers;
+import org.springframework.integration.scheduling.SimpleMessagingTaskScheduler;
 import org.springframework.integration.scheduling.Subscription;
 
 /**
@@ -152,6 +157,41 @@ public class MessageBusParserTests {
 				this.getClass());
 		assertEquals(DirectChannel.class, context.getBean("defaultTypeChannel").getClass());
 		assertEquals(QueueChannel.class, context.getBean("specifiedTypeChannel").getClass());
+	}
+
+	@Test
+	public void testMulticasterIsSyncByDefault() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"messageBusWithDefaults.xml", this.getClass());
+		SimpleApplicationEventMulticaster multicaster = (SimpleApplicationEventMulticaster)
+				context.getBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME);
+		DirectFieldAccessor accessor = new DirectFieldAccessor(multicaster);
+		Object taskExecutor = accessor.getPropertyValue("taskExecutor");
+		assertEquals(SyncTaskExecutor.class, taskExecutor.getClass());
+	}
+
+	@Test
+	public void testAsyncMulticasterExplicitlySetToFalse() throws Exception {
+		AbstractApplicationContext context = new ClassPathXmlApplicationContext(
+				"messageBusWithoutAsyncEventMulticaster.xml", this.getClass());
+		context.refresh();
+		SimpleApplicationEventMulticaster multicaster = (SimpleApplicationEventMulticaster)
+				context.getBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME);
+		DirectFieldAccessor accessor = new DirectFieldAccessor(multicaster);
+		Object taskExecutor = accessor.getPropertyValue("taskExecutor");
+		assertEquals(SyncTaskExecutor.class, taskExecutor.getClass());
+	}
+
+	@Test
+	public void testAsyncMulticaster() throws Exception {
+		AbstractApplicationContext context = new ClassPathXmlApplicationContext(
+				"messageBusWithAsyncEventMulticaster.xml", this.getClass());
+		context.refresh();
+		SimpleApplicationEventMulticaster multicaster = (SimpleApplicationEventMulticaster)
+				context.getBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME);
+		DirectFieldAccessor accessor = new DirectFieldAccessor(multicaster);
+		Object taskExecutor = accessor.getPropertyValue("taskExecutor");
+		assertEquals(SimpleMessagingTaskScheduler.class, taskExecutor.getClass());
 	}
 
 }

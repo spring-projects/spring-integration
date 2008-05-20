@@ -111,7 +111,7 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		super.doParse(element, parserContext, builder);
-		addPostProcessors(parserContext);
+		this.addPostProcessors(parserContext);
 	}
 
 	/**
