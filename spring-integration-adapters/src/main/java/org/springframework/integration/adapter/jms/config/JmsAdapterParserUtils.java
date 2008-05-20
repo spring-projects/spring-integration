@@ -46,6 +46,10 @@ public abstract class JmsAdapterParserUtils {
 
 	public static final String DESTINATION_NAME_PROPERTY = "destinationName";
 
+	public static final String HEADER_MAPPER_ATTRIBUTE = "header-mapper";
+
+	public static final String HEADER_MAPPER_PROPERTY = "headerMapper";
+
 	public static final String MESSAGE_CONVERTER_ATTRIBUTE = "message-converter";
 
 	public static final String MESSAGE_CONVERTER_PROPERTY = "messageConverter";

@@ -47,6 +47,7 @@ public class JmsSourceParser extends AbstractBeanDefinitionParser {
 		String jmsTemplate = element.getAttribute(JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE);
 		String destination = element.getAttribute(JmsAdapterParserUtils.DESTINATION_ATTRIBUTE);
 		String destinationName = element.getAttribute(JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE);
+		String headerMapper = element.getAttribute(JmsAdapterParserUtils.HEADER_MAPPER_ATTRIBUTE);
 		if (StringUtils.hasText(jmsTemplate)) {
 			if (element.hasAttribute(JmsAdapterParserUtils.CONNECTION_FACTORY_ATTRIBUTE) ||
 					element.hasAttribute(JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE) ||
@@ -72,6 +73,9 @@ public class JmsSourceParser extends AbstractBeanDefinitionParser {
 			throw new BeanCreationException("either a '" + JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE + "' or one of '" +
 					JmsAdapterParserUtils.DESTINATION_ATTRIBUTE + "' or '" + JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE +
 					"' attributes must be provided for a polling JMS adapter");
+		}
+		if (StringUtils.hasText(headerMapper)) {
+			builder.addPropertyReference(JmsAdapterParserUtils.HEADER_MAPPER_PROPERTY, headerMapper);
 		}
 		return builder.getBeanDefinition();
 	}

@@ -25,6 +25,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.adapter.MessageHeaderMapper;
 import org.springframework.integration.adapter.jms.JmsTarget;
 
 /**
@@ -57,6 +58,19 @@ public class JmsTargetParserTests {
 		JmsTarget target = (JmsTarget) context.getBean("target");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(target);
 		assertNotNull(accessor.getPropertyValue("jmsTemplate"));
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testTargetWithHeaderMapper() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"targetWithHeaderMapper.xml", this.getClass());
+		JmsTarget target = (JmsTarget) context.getBean("target");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(target);
+		MessageHeaderMapper headerMapper = (MessageHeaderMapper)
+				accessor.getPropertyValue("headerMapper");
+		assertNotNull(headerMapper);
+		assertEquals(TestMessageHeaderMapper.class, headerMapper.getClass());
 	}
 
 	@Test(expected=BeanDefinitionStoreException.class)

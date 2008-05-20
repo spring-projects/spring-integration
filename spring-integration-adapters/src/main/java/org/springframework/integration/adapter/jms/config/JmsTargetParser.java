@@ -48,6 +48,7 @@ public class JmsTargetParser extends AbstractSingleBeanDefinitionParser {
 		String jmsTemplate = element.getAttribute(JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE);
 		String destination = element.getAttribute(JmsAdapterParserUtils.DESTINATION_ATTRIBUTE);
 		String destinationName = element.getAttribute(JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE);
+		String headerMapper = element.getAttribute(JmsAdapterParserUtils.HEADER_MAPPER_ATTRIBUTE);
 		if (StringUtils.hasText(jmsTemplate)) {
 			if (element.hasAttribute(JmsAdapterParserUtils.CONNECTION_FACTORY_ATTRIBUTE) ||
 					element.hasAttribute(JmsAdapterParserUtils.DESTINATION_ATTRIBUTE) ||
@@ -70,6 +71,9 @@ public class JmsTargetParser extends AbstractSingleBeanDefinitionParser {
 		else {
 			throw new BeanCreationException("Either a 'jms-template' reference or " +
 			"one of 'destination' or 'destination-name' attributes must be provided.");
+		}
+		if (StringUtils.hasText(headerMapper)) {
+			builder.addPropertyReference(JmsAdapterParserUtils.HEADER_MAPPER_PROPERTY, headerMapper);
 		}
 	}
 

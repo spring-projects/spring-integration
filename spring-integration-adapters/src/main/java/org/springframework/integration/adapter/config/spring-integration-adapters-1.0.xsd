@@ -58,12 +58,19 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="jms-source" type="jmsInboundAdapterType">
+	<xsd:element name="jms-source">
 		<xsd:annotation>
 			<xsd:documentation>
 	Defines a JMS-based source channel adapter.
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="jmsInboundAdapterType">
+					<xsd:attribute name="header-mapper" type="xsd:string"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="jms-gateway">
@@ -86,12 +93,19 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="jms-target" type="jmsAdapterType">
+	<xsd:element name="jms-target">
 		<xsd:annotation>
 			<xsd:documentation>
 	Defines a target that sends JMS Messages.
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="jmsAdapterType">
+					<xsd:attribute name="header-mapper" type="xsd:string"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:complexType name="jmsInboundAdapterType">

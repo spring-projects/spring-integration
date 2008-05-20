@@ -115,6 +115,18 @@ public class JmsSourceParserTests {
 	}
 
 	@Test
+	public void testSourceWithHeaderMapper() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsSourceWithHeaderMapper.xml", this.getClass());
+		JmsSource source = (JmsSource) context.getBean("jmsSource");
+		Message<?> message = source.receive();
+		assertNotNull("message should not be null", message);
+		assertEquals("polling-test", message.getPayload());
+		assertEquals("foo", message.getHeader().getProperty("testProperty"));
+		assertEquals(new Integer(123), message.getHeader().getAttribute("testAttribute"));
+	}
+
+	@Test
 	public void testSourceEndpoint() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsSourceEndpoint.xml", this.getClass());
