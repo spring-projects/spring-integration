@@ -22,27 +22,33 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.integration.scheduling.PollingSchedule;
 
 /**
- * Indicates that a method is capable of providing messages. The method must not
- * accept any parameters but can return either a single object or collection.
- * The enclosing class should be annotated with
+ * Annotation that can be specified at class-level alongside a
+ * {@link MessageEndpoint @MessageEndpoint} annotation in order to provide the
+ * scheduling information for that endpoint. Alternatively, as a method-level
+ * annotation, this indicates that a method is capable of providing messages.
+ * The method must not accept any parameters but can return either a single
+ * object or collection. The enclosing class should be annotated with
  * {@link MessageEndpoint @MessageEndpoint}.
  * 
  * @author Mark Fisher
  */
-@Target(ElementType.METHOD)
+@Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
 public @interface Polled {
 
-	int period() default 1000;
+	int period() default 0;
 
 	long initialDelay() default PollingSchedule.DEFAULT_INITIAL_DELAY;
 
 	boolean fixedRate() default PollingSchedule.DEFAULT_FIXED_RATE;
+
+	TimeUnit timeUnit() default TimeUnit.MILLISECONDS;
 
 }

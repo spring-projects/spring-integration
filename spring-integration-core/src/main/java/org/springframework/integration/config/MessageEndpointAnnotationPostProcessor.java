@@ -121,7 +121,8 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 			throw new ConfigurationException("@MessageEndpoint has no handler method");
 		}
 		HandlerEndpoint endpoint = new HandlerEndpoint(handlerChain);
-		this.configureInput(bean, beanName, endpointAnnotation, endpoint);
+		Polled polledAnnotation = AnnotationUtils.findAnnotation(beanClass, Polled.class);
+		this.configureInput(bean, beanName, endpointAnnotation, polledAnnotation, endpoint);
 		if (StringUtils.hasText(outputChannelName)) {
 			endpoint.setOutputChannelName(outputChannelName);
 		}
@@ -142,10 +143,17 @@ public class MessageEndpointAnnotationPostProcessor implements BeanPostProcessor
 	}
 
 	private void configureInput(final Object bean, final String beanName, MessageEndpoint annotation,
-			final HandlerEndpoint endpoint) {
+			Polled polledAnnotation, final HandlerEndpoint endpoint) {
 		String channelName = annotation.input();
 		if (StringUtils.hasText(channelName)) {
-			Subscription subscription = new Subscription(channelName);
+			PollingSchedule schedule = null;
+			if (polledAnnotation != null) {
+				schedule = new PollingSchedule(polledAnnotation.period());
+				schedule.setInitialDelay(polledAnnotation.initialDelay());
+				schedule.setFixedRate(polledAnnotation.fixedRate());
+				schedule.setTimeUnit(polledAnnotation.timeUnit());
+			}
+			Subscription subscription = new Subscription(channelName, schedule);
 			endpoint.setSubscription(subscription);
 		}
 		ReflectionUtils.doWithMethods(this.getBeanClass(bean), new ReflectionUtils.MethodCallback() {

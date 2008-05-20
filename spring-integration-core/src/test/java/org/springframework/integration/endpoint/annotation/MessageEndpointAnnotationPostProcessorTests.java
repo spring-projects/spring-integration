@@ -45,6 +45,8 @@ import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.scheduling.PollingSchedule;
+import org.springframework.integration.scheduling.Schedule;
 
 /**
  * @author Mark Fisher
@@ -316,6 +318,26 @@ public class MessageEndpointAnnotationPostProcessorTests {
 		postProcessor.postProcessAfterInitialization(endpoint, "endpoint");
 	}
 
+	@Test
+	public void testEndpointWithPolledAnnotation() {
+		MessageBus messageBus = new MessageBus();
+		QueueChannel testChannel = new QueueChannel();
+		messageBus.registerChannel("testChannel", testChannel);
+		MessageEndpointAnnotationPostProcessor postProcessor =
+				new MessageEndpointAnnotationPostProcessor(messageBus);
+		postProcessor.afterPropertiesSet();
+		AnnotatedEndpointWithPolledAnnotation endpoint = new AnnotatedEndpointWithPolledAnnotation();
+		postProcessor.postProcessAfterInitialization(endpoint, "testBean");
+		HandlerEndpoint processedEndpoint = (HandlerEndpoint) messageBus.lookupEndpoint("testBean-endpoint");
+		Schedule schedule = processedEndpoint.getSubscription().getSchedule();
+		assertEquals(PollingSchedule.class, schedule.getClass());
+		PollingSchedule pollingSchedule = (PollingSchedule) schedule;
+		assertEquals(1234, pollingSchedule.getPeriod());
+		assertEquals(5678, pollingSchedule.getInitialDelay());
+		assertEquals(true, pollingSchedule.getFixedRate());
+		assertEquals(TimeUnit.SECONDS, pollingSchedule.getTimeUnit());
+	}
+
 
 	@MessageEndpoint(output="testChannel")
 	private static class PolledAnnotationTestBean {
@@ -423,6 +445,17 @@ public class MessageEndpointAnnotationPostProcessorTests {
 
 	@MessageEndpoint(input="testChannel")
 	private static class AnnotatedEndpointWithNoHandlerMethod {
+	}
+
+
+	@MessageEndpoint(input="testChannel")
+	@Polled(period=1234, initialDelay=5678, fixedRate=true, timeUnit=TimeUnit.SECONDS)
+	private static class AnnotatedEndpointWithPolledAnnotation {
+
+		@Handler
+		public String prependFoo(String s) {
+			return "foo" + s;
+		}
 	}
 
 }
