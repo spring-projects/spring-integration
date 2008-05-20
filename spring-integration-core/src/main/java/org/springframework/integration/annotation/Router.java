@@ -36,16 +36,4 @@ import java.lang.annotation.Target;
 @Handler
 public @interface Router {
 
-	/**
-	 * String value representing the name of the property that should be passed
-	 * into the router method. This and 'attribute' should not both be provided.
-	 */
-	String property() default "";
-
-	/**
-	 * String value representing the name of the attribute that should be passed
-	 * into the router method. This and 'property' should not both be provided.
-	 */
-	String attribute() default "";
-
 }
