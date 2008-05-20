@@ -56,6 +56,12 @@ public class SplitterMessageHandlerAdapter extends AbstractMessageHandlerAdapter
 		}
 	}
 
+	public SplitterMessageHandlerAdapter(Object object, String methodName, String outputChannelName) {
+		Assert.hasText(outputChannelName, "output channel name is required");
+		this.setObject(object);
+		this.setMethodName(methodName);
+		this.outputChannelName = outputChannelName;
+	}
 
 	public void setChannelRegistry(ChannelRegistry channelRegistry) {
 		this.channelRegistry = channelRegistry;

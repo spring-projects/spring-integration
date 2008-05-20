@@ -165,6 +165,54 @@ public class SplitterMessageHandlerAdapterTests {
 	}
 
 	@Test
+	public void testSplitPayloadToStringArrayConfiguredByMethodName() throws Exception {
+		StringMessage message = new StringMessage("foo.bar");
+		SplitterMessageHandlerAdapter adapter = new SplitterMessageHandlerAdapter(
+				testBean, "stringToStringArray", "testChannel");
+		adapter.setChannelRegistry(channelRegistry);
+		adapter.afterPropertiesSet();
+		adapter.handle(message);
+		Message<?> reply1 = testChannel.receive(0);
+		assertNotNull(reply1);
+		assertEquals("foo", reply1.getPayload());
+		Message<?> reply2 = testChannel.receive(0);
+		assertNotNull(reply2);
+		assertEquals("bar", reply2.getPayload());
+	}
+
+	@Test
+	public void testSplitMessageToStringArrayConfiguredByMethodName() throws Exception {
+		StringMessage message = new StringMessage("foo.bar");
+		SplitterMessageHandlerAdapter adapter = new SplitterMessageHandlerAdapter(
+				testBean, "messageToStringArray", "testChannel");
+		adapter.setChannelRegistry(channelRegistry);
+		adapter.afterPropertiesSet();
+		adapter.handle(message);
+		Message<?> reply1 = testChannel.receive(0);
+		assertNotNull(reply1);
+		assertEquals("foo", reply1.getPayload());
+		Message<?> reply2 = testChannel.receive(0);
+		assertNotNull(reply2);
+		assertEquals("bar", reply2.getPayload());
+	}
+
+	@Test
+	public void testSplitStringToMessageListConfiguredByMethodName() throws Exception {
+		StringMessage message = new StringMessage("foo.bar");
+		SplitterMessageHandlerAdapter adapter = new SplitterMessageHandlerAdapter(
+				testBean, "stringToMessageList", "testChannel");
+		adapter.setChannelRegistry(channelRegistry);
+		adapter.afterPropertiesSet();
+		adapter.handle(message);
+		Message<?> reply1 = testChannel.receive(0);
+		assertNotNull(reply1);
+		assertEquals("foo", reply1.getPayload());
+		Message<?> reply2 = testChannel.receive(0);
+		assertNotNull(reply2);
+		assertEquals("bar", reply2.getPayload());
+	}
+
+	@Test
 	public void testHeaderForObjectReturnValues() throws Exception {
 		StringMessage message = new StringMessage("foo.bar");
 		SplitterMessageHandlerAdapter adapter = this.getAdapter("stringToStringArray");
