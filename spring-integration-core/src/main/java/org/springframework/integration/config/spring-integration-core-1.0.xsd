@@ -94,6 +94,8 @@
 
 	<xsd:element name="rendezvous-channel" type="channelType"/>
 
+	<xsd:element name="thread-local-channel" type="channelType"/>
+
 	<xsd:complexType name="capacityChannelType">
 		<xsd:annotation>
 			<xsd:documentation>
