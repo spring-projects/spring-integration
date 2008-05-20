@@ -35,30 +35,32 @@ import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PriorityChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.RendezvousChannel;
+import org.springframework.integration.channel.ThreadLocalChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.selector.MessageSelector;
 
 /**
  * @author Marius Bogoevici
+ * @author Mark Fisher
  */
 public class ChannelFactoryTests {
 
-	ArrayList<ChannelInterceptor> interceptors = null;
+	private final ArrayList<ChannelInterceptor> interceptors = new ArrayList<ChannelInterceptor>();
 
-	DispatcherPolicy dispatcherPolicy = null;
+	private final DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
+
 
 	@Before
-	public void createInterceptorsList() {
-		interceptors = new ArrayList<ChannelInterceptor>();
+	public void initInterceptorsList() {
 		interceptors.add(new TestChannelInterceptor());
 		interceptors.add(new TestChannelInterceptor());
 	}
 
 	@Before
-	public void createDispatcherPolicy() {
-		dispatcherPolicy = new DispatcherPolicy();
+	public void initDispatcherPolicy() {
 		dispatcherPolicy.setMaxMessagesPerTask(100);
 	}
 
@@ -89,8 +91,18 @@ public class ChannelFactoryTests {
 
 	@Test
 	public void testPriorityChannelFactory() {
-		RendezvousChannelFactory channelFactory = new RendezvousChannelFactory();
-		genericChannelFactoryTests(channelFactory, RendezvousChannel.class);
+		PriorityChannelFactory channelFactory = new PriorityChannelFactory();
+		genericChannelFactoryTests(channelFactory, PriorityChannel.class);
+	}
+
+	@Test
+	public void testThreadLocalChannelFactory() {
+		ThreadLocalChannelFactory channelFactory = new ThreadLocalChannelFactory();
+		assertNotNull(interceptors);
+		AbstractMessageChannel channel = (AbstractMessageChannel)
+				channelFactory.getChannel(dispatcherPolicy, interceptors);
+		assertEquals(ThreadLocalChannel.class, channel.getClass());
+		assertInterceptors(channel);
 	}
 
 	@Test

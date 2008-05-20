@@ -16,38 +16,20 @@
 
 package org.springframework.integration.channel.factory;
 
-import java.util.Comparator;
-
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DispatcherPolicy;
-import org.springframework.integration.channel.PriorityChannel;
-import org.springframework.integration.message.Message;
-import org.springframework.util.Assert;
+import org.springframework.integration.channel.ThreadLocalChannel;
 
 /**
- * A {@link ChannelFactory} for creating {@link PriorityChannel} instances.
- * @author Marius Bogoevici
- *
+ * A {@link ChannelFactory} implementation for creating {@link ThreadLocalChannel} instances.
+ * 
+ * @author Mark Fisher
  */
-public class PriorityChannelFactory extends AbstractChannelFactory {
-
-	private int capacity = PriorityChannel.DEFAULT_CAPACITY;
-
-	private Comparator<Message<?>> comparator;
-
-
-	public void setCapacity(int capacity) {
-		Assert.isTrue(capacity > 0, "capacity must be a positive value");
-		this.capacity = capacity;
-	}
-
-	public void setComparator(Comparator<Message<?>> comparator) {
-		this.comparator = comparator;
-	}
+public class ThreadLocalChannelFactory extends AbstractChannelFactory {
 
 	@Override
 	protected AbstractMessageChannel createChannelInternal(DispatcherPolicy dispatcherPolicy) {
-		return new PriorityChannel(this.capacity, dispatcherPolicy, this.comparator);
+		return new ThreadLocalChannel();
 	}
 
 }
