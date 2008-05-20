@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
 <chapter id="api">
   <title>The Core API</title>
 
@@ -9,7 +10,7 @@
       be provided as the payload, and each <interfacename>Message</interfacename> also includes a header containing
       user-extensible properties as key-value pairs. Here is the definition of the
       <interfacename>Message</interfacename> interface:
-      <programlisting>public interface Message&lt;T&gt; {
+      <programlisting language="java">public interface Message&lt;T&gt; {
     Object getId();
     MessageHeader getHeader();
     T getPayload();
@@ -70,7 +71,7 @@
     <para>
       The base implementation of the <interfacename>Message</interfacename> interface is
       <classname>GenericMessage&lt;T&gt;</classname>, and it provides three constructors:
-      <programlisting>new GenericMessage&lt;T&gt;(Object id, T payload);
+      <programlisting language="java">new GenericMessage&lt;T&gt;(Object id, T payload);
 new GenericMessage&lt;T&gt;(T payload);
 new GenericMessage&lt;T&gt;(T payload, MessageHeader headerToCopy)</programlisting>
       When no id is provided, a random unique id will be generated. The constructor that accepts a
@@ -82,7 +83,7 @@ new GenericMessage&lt;T&gt;(T payload, MessageHeader headerToCopy)</programlisti
     <para>
       The <classname>MessagePriority</classname> is only considered when using a <classname>PriorityChannel</classname>
       (as described in the next section). It is defined as an <emphasis>enum</emphasis> with five possible values:
-      <programlisting>public enum MessagePriority {
+      <programlisting language="java">public enum MessagePriority {
     HIGHEST,
     HIGH,
     NORMAL,
@@ -107,7 +108,7 @@ new GenericMessage&lt;T&gt;(T payload, MessageHeader headerToCopy)</programlisti
       While the <interfacename>Message</interfacename> plays the crucial role of encapsulating data, it is the
       <interfacename>MessageChannel</interfacename> that decouples message producers from message consumers.
       Spring Integration's <interfacename>MessageChannel</interfacename> interface is defined as follows.
-      <programlisting><![CDATA[public interface MessageChannel {
+      <programlisting language="java"><![CDATA[public interface MessageChannel {
     String getName();
     void setName(String name);
     DispatcherPolicy getDispatcherPolicy();
@@ -123,7 +124,7 @@ new GenericMessage&lt;T&gt;(T payload, MessageHeader headerToCopy)</programlisti
       receiving a message, the return value will be <emphasis>null</emphasis> in the case of a timeout or interrupt.
       The <classname>QueueChannel</classname> implementation wraps a queue. It provides a no-argument constructor as
       well as a constructor that accepts the queue capacity:
-      <programlisting>public QueueChannel(int capacity)</programlisting>
+      <programlisting language="java">public QueueChannel(int capacity)</programlisting>
       Specifying a capacity of 0 will create a "direct-handoff" channel where a sender will block until the channel's
       <methodname>receive()</methodname> method is called. Otherwise a channel that has not reached its capacity limit
       will store messages in its internal queue, and the <methodname>send()</methodname> method will return immediately
@@ -148,14 +149,14 @@ new GenericMessage&lt;T&gt;(T payload, MessageHeader headerToCopy)</programlisti
       <interfacename>MessageChannels</interfacename>, those channels provide an opportunity for intercepting
       the send and receive operations. The <interfacename>ChannelInterceptor</interfacename> strategy interface
       provides methods for each of those operations:
-      <programlisting><![CDATA[public interface ChannelInterceptor {
+      <programlisting language="java"><![CDATA[public interface ChannelInterceptor {
     boolean preSend(Message<?> message, MessageChannel channel);
     void postSend(Message<?> message, MessageChannel channel, boolean sent);
     boolean preReceive(MessageChannel channel);
     void postReceive(Message<?> message, MessageChannel channel);
 }]]></programlisting>
       After implementing the interface, registering the interceptor with a channel is just a matter of calling:
-      <programlisting>channel.addInterceptor(someChannelInterceptor);</programlisting>
+      <programlisting language="java">channel.addInterceptor(someChannelInterceptor);</programlisting>
       The methods that return a <literal>boolean</literal> value can return '<literal>false</literal>' to prevent the
       send or receive operation from proceeding (send would return 'false' and receive would return 'null').
     </para>
@@ -165,7 +166,7 @@ new GenericMessage&lt;T&gt;(T payload, MessageHeader headerToCopy)</programlisti
       methods (the <literal>void</literal> methods are empty, and the <literal>boolean</literal> methods return
       <literal>true</literal>). Therefore, it is often easiest to extend that class and just implement the method(s)
       that you need as in the following example.
-      <programlisting><![CDATA[public class CountingChannelInterceptor extends ChannelInterceptorAdapter {
+      <programlisting language="java"><![CDATA[public class CountingChannelInterceptor extends ChannelInterceptorAdapter {
 
     private final AtomicInteger sendCount = new AtomicInteger();
 
@@ -183,7 +184,7 @@ new GenericMessage&lt;T&gt;(T payload, MessageHeader headerToCopy)</programlisti
     <para>
       So far we have seen that generic message objects are sent-to and received-from simple channel objects. Here is
       Spring Integration's callback interface for handling the <interfacename>Messages</interfacename>:
-      <programlisting>public interface MessageHandler {
+      <programlisting language="java">public interface MessageHandler {
     Message&lt;?&gt; handle(Message&lt;?&gt; message);
 }</programlisting>
       The handler plays an important role, since it is typically responsible for translating between the generic
@@ -210,7 +211,7 @@ new GenericMessage&lt;T&gt;(T payload, MessageHeader headerToCopy)</programlisti
       by delegating to other strategies. One of its fundamental responsibilities is to manage registration of the
       <interfacename>MessageChannels</interfacename> and <interfacename>MessageHandlers</interfacename>. It provides
       the following methods:
-      <programlisting>public void registerChannel(String name, MessageChannel channel)
+      <programlisting language="java">public void registerChannel(String name, MessageChannel channel)
 
 public void registerHandler(String name, MessageHandler handler,
                             Subscription subscription)
@@ -401,7 +402,7 @@ public void registerHandler(String name, MessageHandler handler,
       <interfacename>MessageHandler</interfacename> along with its metadata. In fact, the
       <interfacename>MessageEndpoint</interfacename> does extend the <interfacename>MessageHandler</interfacename>
       interface.
-      <programlisting>public interface MessageEndpoint extends MessageHandler {
+      <programlisting language="java">public interface MessageEndpoint extends MessageHandler {
     String getName();
     Subscription getSubscription();
     ConcurrencyPolicy getConcurrencyPolicy();
@@ -421,7 +422,7 @@ public void registerHandler(String name, MessageHandler handler,
       is hosted by an endpoint and thereby subscribed to a channel. Often it is necessary to provide additional
       <emphasis>dynamic</emphasis> logic to determine what messages the handler should receive. The
       <interfacename>MessageSelector</interfacename> strategy interface fulfills that role.
-      <programlisting><![CDATA[public interface MessageSelector {
+      <programlisting language="java"><![CDATA[public interface MessageSelector {
     boolean accept(Message<?> message);
 }]]></programlisting>
       A <interfacename>MessageEndpoint</interfacename> can be configured with zero or more selectors, and will only
@@ -429,7 +430,7 @@ public void registerHandler(String name, MessageHandler handler,
       common selector implementations are provided. For example, the <classname>PayloadTypeSelector</classname>
       provides similar functionality to Datatype Channels (as described in <xref linkend="namespace-channel"/>)
       except that in this case the type-matching can be done by the endpoint rather than the channel.
-      <programlisting><![CDATA[PayloadTypeSelector selector = new PayloadTypeSelector(String.class, Integer.class);
+      <programlisting language="java"><![CDATA[PayloadTypeSelector selector = new PayloadTypeSelector(String.class, Integer.class);
 assertTrue(selector.accept(new StringMessage("example")));
 assertTrue(selector.accept(new GenericMessage<Integer>(123)));
 assertFalse(selector.accept(new GenericMessage<SomeObject>(someObject)));
@@ -442,17 +443,17 @@ assertFalse(selector.accept(new GenericMessage<SomeObject>(someObject)));
       Essentially, using a selector provides <emphasis>reactive</emphasis> routing whereas the Datatype Channel
       and Message Router provide <emphasis>proactive</emphasis> routing. However, selectors accommodate additional
       uses. For example, the <interfacename>MessageChannel</interfacename>'s 'purge' method accepts a selector:
-      <programlisting>channel.purge(someSelector);</programlisting>
+      <programlisting language="java">channel.purge(someSelector);</programlisting>
       There is even a <classname>ChannelPurger</classname> utility class whose purge operation is a good candidate for
       Spring's JMX support:
-      <programlisting>ChannelPurger purger = new ChannelPurger(new ExampleMessageSelector(), channel);
+      <programlisting language="java">ChannelPurger purger = new ChannelPurger(new ExampleMessageSelector(), channel);
 purger.purge();</programlisting>
     </para>
     <para>
       Implementations of <interfacename>MessageSelector</interfacename> might provide opportunities for reuse on
       channels in addition to endpoints. For that reason, Spring Integration provides a simple selector-wrapping
       <interfacename>ChannelInterceptor</interfacename> that accepts one or more selectors in its constructor.
-      <programlisting>MessageSelectingInterceptor interceptor =
+      <programlisting language="java">MessageSelectingInterceptor interceptor =
         new MessageSelectingInterceptor(selector1, selector2);
 channel.addInterceptor(interceptor);</programlisting>
     </para>

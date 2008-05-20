@@ -14,7 +14,6 @@
 	<import file="${basedir}/publish-top-level.xml"/>
 	<import file="../spring-build/multi-bundle/default.xml"/>
 
-
 	<target name="precommit" depends="clean,clean-integration,jar,test"/>
 
 </project>

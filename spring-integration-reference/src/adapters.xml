@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
 <chapter id="adapters">
   <title>Channel Adapters</title>
 
@@ -36,7 +37,7 @@
       a reference to a <interfacename>MessageChannel</interfacename> instance. The adapter accepts additional
       properties such as: period, initialDelay, maxMessagesPerTask, and sendTimeout. The following example defines a
       JMS source adapter that polls every 5 seconds and then sends to the "exampleChannel":
-      <programlisting><![CDATA[<bean class="org.springframework.integration.adapter.jms.JmsPollingSourceAdapter">
+      <programlisting language="xml"><![CDATA[<bean class="org.springframework.integration.adapter.jms.JmsPollingSourceAdapter">
     <constructor-arg ref="jmsTemplate"/>
     <property name="channel" ref="exampleChannel"/>
     <property name="period" value="5000"/>
@@ -50,7 +51,7 @@
       <interfacename>Destination</interfacename> (or 'destinationName'). The following example defines a JMS
       message-driven source adapter that receives from the JMS queue called "exampleQueue" and then sends to
       the Spring Integration channel named "exampleChannel":
-      <programlisting><![CDATA[<bean class="org.springframework.integration.adapter.jms.JmsMessageDrivenSourceAdapter">
+      <programlisting language="xml"><![CDATA[<bean class="org.springframework.integration.adapter.jms.JmsMessageDrivenSourceAdapter">
     <property name="connectionFactory" ref="connectionFactory"/>
     <property name="destinationName" value="exampleQueue"/>
     <property name="channel" ref="exampleChannel"/>
@@ -78,7 +79,7 @@
       However, since it is adapting a <interfacename>MessageChannel</interfacename>, there is no need to specify
       the <emphasis>serviceInterface</emphasis>. Likewise, the <emphasis>serviceName</emphasis> is automatically
       generated based on the channel name. Therefore, creating the adapter is as simple as providing a reference
-      to its channel: <programlisting>RmiSourceAdapter rmiSourceAdapter = new RmiSourceAdapter(channel);
+      to its channel: <programlisting language="java">RmiSourceAdapter rmiSourceAdapter = new RmiSourceAdapter(channel);
 </programlisting>
     </para>
     <para>
@@ -87,7 +88,7 @@
       is already known, the only required information is the URL. The URL should include the host, port (default is
       '1099'), and 'serviceName'. The 'serviceName' must match that created by the
       <classname>RmiSourceAdapter</classname> (the prefix is available as a constant).
-      <programlisting>String url = "http://somehost:1099/" + RmiSourceAdapter.SERVICE_NAME_PREFIX + "someChannel";
+      <programlisting language="java">String url = "http://somehost:1099/" + RmiSourceAdapter.SERVICE_NAME_PREFIX + "someChannel";
 RmiTargetAdapter rmiTargetAdapter = new RmiTargetAdapter(url);
 </programlisting>
     </para>
@@ -101,7 +102,7 @@ RmiTargetAdapter rmiTargetAdapter = new RmiTargetAdapter(url);
       <interfacename>HandlerMapping</interfacename>. For example, the following would be exposed at the path
       "http://somehost/path-mapped-to-dispatcher-servlet/httpInvokerAdapter" when a simple
       <classname>BeanNameUrlHandlerMapping</classname> strategy is enabled:
-      <programlisting><![CDATA[<bean name="/httpInvokerAdapter"
+      <programlisting language="xml"><![CDATA[<bean name="/httpInvokerAdapter"
     class="org.springframework.integration.adapter.httpinvoker.HttpInvokerSourceAdapter">
     <constructor-arg ref="someChannel"/>
 </bean>]]></programlisting>
@@ -117,13 +118,13 @@ RmiTargetAdapter rmiTargetAdapter = new RmiTargetAdapter(url);
     <para>
       The <classname>FileSourceAdapter</classname> extends the generic <classname>PollingSourceAdapter</classname>
       (just as the polling JMS adapter does). It requires the following constructor arguments:
-      <programlisting>public FileSourceAdapter(File directory, MessageChannel channel, int period)</programlisting>
+      <programlisting language="java">public FileSourceAdapter(File directory, MessageChannel channel, int period)</programlisting>
       Optional properties include 'initialDelay' and 'maxMessagesPerTask'.
     </para>
     <para>
       The <classname>FileTargetAdapter</classname> constructor only requires the 'directory' argument. The target
       adapter also accepts an implementation of the <interfacename>FileNameGenerator</interfacename> strategy that
-      defines the following method: <programlisting>String generateFileName(Message message)</programlisting>
+      defines the following method: <programlisting language="java">String generateFileName(Message message)</programlisting>
     </para>
   </section>
   <section id="adapters-ftp">
@@ -132,7 +133,7 @@ RmiTargetAdapter rmiTargetAdapter = new RmiTargetAdapter(url);
       To poll a directory with FTP, configure an instance of <classname>FtpSourceAdapter</classname>. The adapter
       expects a number of properties for connecting to the FTP server (as shown below) as well as the
       'channel' and the 'period' for polling. For example, the following adapter would poll every 30 seconds:
-<programlisting><![CDATA[<bean id="ftpSource"
+<programlisting language="xml"><![CDATA[<bean id="ftpSource"
     class="org.springframework.integration.adapter.ftp.FtpSourceAdapter">
     <property name="host" value="example.org"/>
     <property name="username" value="someuser"/>
@@ -157,12 +158,12 @@ RmiTargetAdapter rmiTargetAdapter = new RmiTargetAdapter(url);
     <para>
       The adapter also delegates to a <interfacename>MailHeaderGenerator</interfacename> for providing the
       mail's properties, such as the recipients (TO, CC, and BCC), the from/reply-to, and the subject.
-      <programlisting><![CDATA[public interface MailHeaderGenerator {
+      <programlisting  language="java"><![CDATA[public interface MailHeaderGenerator {
     void populateMailMessageHeader(MailMessage mailMessage, Message<?> message);
 }]]></programlisting>
       The default implementation will look for attributes in the <classname>MessageHeader</classname> with
       the following constants defining the keys:
-      <programlisting>MailAttributeKeys.SUBJECT
+      <programlisting language="java">MailAttributeKeys.SUBJECT
 MailAttributeKeys.TO
 MailAttributeKeys.CC
 MailAttributeKeys.BCC
@@ -173,7 +174,7 @@ MailAttributeKeys.REPLY_TO</programlisting>
       A static implementation is also available out-of-the-box and may be useful for testing. However, when
       customizing, the properties would typically be generated dynamically based on the message itself. The
       following is an example of a configured mail adapter.
-      <programlisting><![CDATA[<bean id="mailTargetAdapter"
+      <programlisting language="xml"><![CDATA[<bean id="mailTargetAdapter"
     class="org.springframework.integration.adapter.mail.MailTargetAdapter">
     <property name="mailSender" ref="javaMailSender"/>
     <property name="headerGenerator" ref="dynamicMailMessageHeaderGenerator"/>
@@ -189,7 +190,7 @@ MailAttributeKeys.REPLY_TO</programlisting>
       <classname>String</classname> or <interfacename>javax.xml.transform.Source</interfacename> as the message
       payload. The latter provides support for any implementation of the <interfacename>Marshaller</interfacename>
       and <interfacename>Unmarshaller</interfacename> interfaces. Both require the URI of the Web Service to be
-      called.<programlisting>simpleAdapter = new SimpleWebServiceTargetAdapter(uri);
+      called.<programlisting language="java">simpleAdapter = new SimpleWebServiceTargetAdapter(uri);
 
 marshallingAdapter = new MarshallingWebServiceTargetAdapter(uri, marshaller);
 </programlisting>

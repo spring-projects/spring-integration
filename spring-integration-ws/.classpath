@@ -3,17 +3,17 @@
 	<classpathentry kind="src" path="src/main/java"/>
 	<classpathentry kind="src" output="target/test-classes" path="src/test/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="var" path="IVY_CACHE/com.sun.xml.soap/saaj-impl/saaj-impl-1.3.jar"/>
-	<classpathentry kind="var" path="IVY_CACHE/javax.xml.soap/saaj-api/saaj-api-1.3.jar"/>
-	<classpathentry kind="var" path="IVY_CACHE/javax.xml/stax-api/stax-api-1.0.1.jar"/>
-	<classpathentry kind="var" path="IVY_CACHE/org.apache/commons-logging/commons-logging-1.1.jar" sourcepath="/IVY_CACHE/org.apache/commons-logging/commons-logging-sources-1.1.jar"/>
-	<classpathentry kind="var" path="IVY_CACHE/org.junit/junit/junit-4.4.jar" sourcepath="/IVY_CACHE/org.junit/junit/junit-sources-4.4.jar"/>
-	<classpathentry kind="var" path="IVY_CACHE/org.springframework/spring-beans/spring-beans-2.5.2.jar" sourcepath="/IVY_CACHE/org.springframework/spring-beans/spring-beans-sources-2.5.2.jar"/>
-	<classpathentry kind="var" path="IVY_CACHE/org.springframework/spring-context/spring-context-2.5.2.jar" sourcepath="/IVY_CACHE/org.springframework/spring-context/spring-context-sources-2.5.2.jar"/>
-	<classpathentry kind="var" path="IVY_CACHE/org.springframework/spring-core/spring-core-2.5.2.jar" sourcepath="/IVY_CACHE/org.springframework/spring-core/spring-core-sources-2.5.2.jar"/>
-	<classpathentry kind="var" path="IVY_CACHE/org.springframework.ws/spring-ws-core/spring-ws-core-1.0.3.jar" sourcepath="/IVY_CACHE/org.springframework.ws/spring-ws-core/spring-ws-core-sources-1.0.3.jar"/>
-	<classpathentry kind="var" path="IVY_CACHE/org.springframework.ws/spring-oxm/spring-oxm-1.0.3.jar" sourcepath="/IVY_CACHE/org.springframework.ws/spring-oxm/spring-oxm-sources-1.0.3.jar"/>
-	<classpathentry kind="var" path="IVY_CACHE/org.springframework.ws/spring-xml/spring-xml-1.0.3.jar" sourcepath="/IVY_CACHE/org.springframework.ws/spring-xml/spring-xml-sources-1.0.3.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/com.sun.xml/com.springsource.com.sun.xml.messaging.saaj/1.3.0/com.springsource.com.sun.xml.messaging.saaj-1.3.0.jar" sourcepath="/IVY_CACHE/com.sun.xml/com.springsource.com.sun.xml.messaging.saaj/1.3.0/com.springsource.com.sun.xml.messaging.saaj-sources-1.3.0.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/javax.xml.soap/com.springsource.javax.xml.soap/1.3.0/com.springsource.javax.xml.soap-1.3.0.jar" sourcepath="/IVY_CACHE/javax.xml.soap/com.springsource.javax.xml.soap/1.3.0/com.springsource.javax.xml.soap-sources-1.3.0.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/javax.xml.stream/com.springsource.javax.xml.stream/1.0.1/com.springsource.javax.xml.stream-1.0.1.jar" sourcepath="/IVY_CACHE/javax.xml.stream/com.springsource.javax.xml.stream/1.0.1/com.springsource.javax.xml.stream-sources-1.0.1.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.apache.commons/com.springsource.org.apache.commons.logging/1.1.1/com.springsource.org.apache.commons.logging-1.1.1.jar" sourcepath="/IVY_CACHE/org.apache.commons/com.springsource.org.apache.commons.logging/1.1.1/com.springsource.org.apache.commons.logging-sources-1.1.1.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.junit/com.springsource.org.junit/4.4.0/com.springsource.org.junit-4.4.0.jar" sourcepath="/IVY_CACHE/org.junit/com.springsource.org.junit/4.4.0/com.springsource.org.junit-sources-4.4.0.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.beans/2.5.4.A/org.springframework.beans-2.5.4.A.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.beans/2.5.4.A/org.springframework.beans-sources-2.5.4.A.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.context/2.5.4.A/org.springframework.context-2.5.4.A.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.context/2.5.4.A/org.springframework.context-sources-2.5.4.A.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.core/2.5.4.A/org.springframework.core-2.5.4.A.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.core/2.5.4.A/org.springframework.core-sources-2.5.4.A.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.springframework.ws/org.springframework.ws/1.5.1.A/org.springframework.ws-1.5.1.A.jar" sourcepath="/IVY_CACHE/org.springframework.ws/org.springframework.ws/1.5.1.A/org.springframework.ws-sources-1.5.1.A.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.springframework.ws/org.springframework.oxm/1.5.1.A/org.springframework.oxm-1.5.1.A.jar" sourcepath="/IVY_CACHE/org.springframework.ws/org.springframework.oxm/1.5.1.A/org.springframework.oxm-sources-1.5.1.A.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.springframework.ws/org.springframework.xml/1.5.1.A/org.springframework.xml-1.5.1.A.jar" sourcepath="/IVY_CACHE/org.springframework.ws/org.springframework.xml/1.5.1.A/org.springframework.xml-sources-1.5.1.A.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/spring-integration-adapters"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/spring-integration-core"/>
 	<classpathentry kind="output" path="target/classes"/>

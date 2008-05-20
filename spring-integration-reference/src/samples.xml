@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
 <chapter id="samples">
   <title>Spring Integration Samples</title>
 
@@ -29,7 +30,7 @@
     </para>
     <para>
       Here is the XML configuration:
-      <programlisting><![CDATA[<beans:beans xmlns="http://www.springframework.org/schema/integration"
+      <programlisting language="xml"><![CDATA[<beans:beans xmlns="http://www.springframework.org/schema/integration"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:beans="http://www.springframework.org/schema/beans"
     xmlns:context="http://www.springframework.org/schema/context"
@@ -64,7 +65,7 @@
       the <interfacename>@MessageEndpoint</interfacename> annotation. That annotation extends Spring's
       "stereotype" annotations (by relying on the @Component meta-annotation), and so all classes carrying the
       endpoint annotation are capable of being detected by the component-scanner.
-      <programlisting><![CDATA[@MessageEndpoint(input="orders")
+      <programlisting language="java"><![CDATA[@MessageEndpoint(input="orders")
 public class OrderSplitter {
 
     @Splitter(channel="drinks")
@@ -72,7 +73,7 @@ public class OrderSplitter {
         return order.getDrinks();
     }
 }]]></programlisting>
-      <programlisting><![CDATA[@MessageEndpoint(input="drinks")
+      <programlisting language="java"><![CDATA[@MessageEndpoint(input="drinks")
 public class DrinkRouter {
 
     @Router
@@ -85,7 +86,7 @@ public class DrinkRouter {
       Now turning back to the XML, you see that there are two &lt;endpoint&gt; elements. Each of these is delegating
       to the same <classname>Barista</classname> instance but different methods. The 'barista' could have been
       defined in the XML, but instead the <interfacename>@Component</interfacename> annotation is applied:
-      <programlisting><![CDATA[@Component
+      <programlisting language="java"><![CDATA[@Component
 public class Barista {
 
     private long hotDrinkDelay = 1000;
@@ -127,7 +128,7 @@ public class Barista {
       As you can see from the code excerpt above, the barista methods have different delays. This simulates work being
       completed at different rates. When the <classname>CafeDemo</classname> 'main' method runs, it will loop 100
       times sending a single hot drink and a single cold drink each time.
-      <programlisting><![CDATA[public static void main(String[] args) {
+      <programlisting language="java"><![CDATA[public static void main(String[] args) {
     AbstractApplicationContext context = null;
     if(args.length > 0) {
         context = new FileSystemXmlApplicationContext(args);
@@ -163,7 +164,7 @@ public class Barista {
       However, by configuring the endpoint concurrency, you can dramatically change the results. For example, on my
       machine, the following single modification causes all 100 hot drinks to be prepared before the 4th cold drink is
       ready:
-      <programlisting><![CDATA[<handler-endpoint input-channel="coldDrinks" handler="barista" method="prepareColdDrink"/>
+      <programlisting language="xml"><![CDATA[<handler-endpoint input-channel="coldDrinks" handler="barista" method="prepareColdDrink"/>
 
 <handler-endpoint input-channel="hotDrinks" handler="barista" method="prepareHotDrink">
     ]]><emphasis><![CDATA[<concurrency core="25" max="50"/>]]></emphasis><![CDATA[

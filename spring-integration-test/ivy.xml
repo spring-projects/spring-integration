@@ -20,10 +20,10 @@
 	</publications>
 
 	<dependencies>
-		<dependency org="org.junit" name="junit" rev="4.4" conf="test->default"/>
-		<dependency org="org.springframework.integration" name="spring-integration-core" rev="latest.integration" conf="compile"/>
-		<dependency org="org.springframework.integration" name="spring-integration-adapters" rev="latest.integration" conf="compile"/>
-		<dependency org="org.springframework" name="spring-test" rev="2.5.2" conf="compile->default"/>
+		<dependency org="org.junit" name="com.springsource.org.junit" rev="4.4.0" conf="test->runtime"/>
+		<dependency org="org.springframework.integration" name="spring-integration-core" rev="latest.integration" conf="compile->compile"/>
+		<dependency org="org.springframework.integration" name="spring-integration-adapters" rev="latest.integration" conf="compile->compile"/>
+		<dependency org="org.springframework" name="org.springframework.test" rev="2.5.4.A" conf="compile->runtime"/>
 	</dependencies>
 
 </ivy-module>

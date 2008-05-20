@@ -20,9 +20,9 @@
 	</publications>
 
 	<dependencies>
-		<dependency org="org.junit" name="junit" rev="4.4" conf="test->default"/>
-		<dependency org="org.springframework" name="spring-aop" rev="2.5.2" conf="compile->default"/>
-		<dependency org="org.springframework" name="spring-context" rev="2.5.2" conf="compile->default"/>
+		<dependency org="org.junit" name="com.springsource.org.junit" rev="4.4.0" conf="test->runtime"/>
+		<dependency org="org.springframework" name="org.springframework.aop" rev="2.5.4.A" conf="compile->runtime"/>
+		<dependency org="org.springframework" name="org.springframework.context" rev="2.5.4.A" conf="compile->runtime"/>
 	</dependencies>
 
 </ivy-module>

@@ -1,14 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" 
-"http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
-<!ENTITY overview SYSTEM "overview.xml">
-<!ENTITY core-api SYSTEM "core-api.xml">
-<!ENTITY adapters SYSTEM "adapters.xml">
-<!ENTITY configuration SYSTEM "configuration.xml">
-<!ENTITY samples SYSTEM "samples.xml">
-<!ENTITY resources SYSTEM "resources.xml">
-]>
-<book>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<book xmlns:xi="http://www.w3.org/2001/XInclude">
   <bookinfo>
     <title>Spring Integration Reference Manual</title>
 
@@ -40,11 +32,11 @@
 
   <toc></toc>
 
-  &overview;
-  &core-api;
-  &adapters;
-  &configuration;
-  &samples;
-  &resources;
+  <xi:include href="./overview.xml"/>
+  <xi:include href="./core-api.xml"/>
+  <xi:include href="./adapters.xml"/>
+  <xi:include href="./configuration.xml"/>
+  <xi:include href="./samples.xml"/>
+  <xi:include href="./resources.xml"/>
 
 </book>
