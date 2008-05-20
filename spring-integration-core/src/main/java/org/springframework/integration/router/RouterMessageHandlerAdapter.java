@@ -49,6 +49,11 @@ public class RouterMessageHandlerAdapter extends AbstractMessageHandlerAdapter i
 		}
 	}
 
+	public RouterMessageHandlerAdapter(Object object, String methodName) {
+		this.setObject(object);
+		this.setMethodName(methodName);
+	}
+
 
 	public void setChannelRegistry(ChannelRegistry channelRegistry) {
 		this.channelRegistry = channelRegistry;
@@ -60,7 +65,10 @@ public class RouterMessageHandlerAdapter extends AbstractMessageHandlerAdapter i
 		if (target != null && this.channelRegistry != null && (target instanceof ChannelRegistryAware)) {
 			((ChannelRegistryAware) target).setChannelRegistry(this.channelRegistry);
 		}
-		this.setMessageMapper(new AnnotationMethodMessageMapper(this.getMethod()));
+		Method method = this.getMethod();
+		if (method != null) {
+			this.setMessageMapper(new AnnotationMethodMessageMapper(method));
+		}
 	}
 
 	@Override

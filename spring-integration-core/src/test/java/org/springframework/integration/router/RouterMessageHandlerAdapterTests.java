@@ -23,8 +23,6 @@ import static org.junit.Assert.assertNull;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.junit.Test;
 
@@ -46,10 +44,21 @@ import org.springframework.integration.message.StringMessage;
 public class RouterMessageHandlerAdapterTests {
 
 	@Test
-	public void testChannelNameResolutionByPayload() throws Exception {
+	public void testChannelNameResolutionByPayloadConfiguredByMethodReference() throws Exception {
 		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
 		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
+		this.doTestChannelNameResolutionByPayload(adapter);
+	}
+
+	@Test
+	public void testChannelNameResolutionByPayloadConfiguredByMethodName() {
+		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, "routePayload");
+		this.doTestChannelNameResolutionByPayload(adapter);
+	}
+
+	private void doTestChannelNameResolutionByPayload(RouterMessageHandlerAdapter adapter) {
 		Message<String> message = new GenericMessage<String>("123", "bar");
 		QueueChannel barChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
@@ -121,10 +130,21 @@ public class RouterMessageHandlerAdapterTests {
 	}
 
 	@Test
-	public void testChannelNameResolutionByMessage() throws Exception {
+	public void testChannelNameResolutionByMessageConfiguredByMethodReference() throws Exception {
 		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routeMessage", Message.class);
 		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
+		this.doTestChannelNameResolutionByMessage(adapter);
+	}
+
+	@Test
+	public void testChannelNameResolutionByMessageConfiguredByMethodName() {
+		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, "routeMessage");
+		this.doTestChannelNameResolutionByMessage(adapter);
+	}
+
+	private void doTestChannelNameResolutionByMessage(RouterMessageHandlerAdapter adapter) {
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
@@ -151,15 +171,27 @@ public class RouterMessageHandlerAdapterTests {
 	}
 
 	@Test
-	public void testChannelInstanceResolutionByPayload() throws Exception {
-		QueueChannel fooChannel = new QueueChannel();
-		QueueChannel barChannel = new QueueChannel();
+	public void testChannelInstanceResolutionByPayloadConfiguredByMethodReference() throws Exception {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		channelRegistry.registerChannel("foo-channel", fooChannel);
-		channelRegistry.registerChannel("bar-channel", barChannel);
 		SingleChannelInstanceRoutingTestBean testBean = new SingleChannelInstanceRoutingTestBean(channelRegistry);
 		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
 		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
+		this.doTestChannelInstanceResolutionByPayload(adapter, channelRegistry);
+	}
+
+	@Test
+	public void testChannelInstanceResolutionByPayloadConfiguredByMethodName() {
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		SingleChannelInstanceRoutingTestBean testBean = new SingleChannelInstanceRoutingTestBean(channelRegistry);
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, "routePayload");
+		this.doTestChannelInstanceResolutionByPayload(adapter, channelRegistry);
+	}
+
+	private void doTestChannelInstanceResolutionByPayload(RouterMessageHandlerAdapter adapter, ChannelRegistry channelRegistry) {
+		QueueChannel fooChannel = new QueueChannel();
+		QueueChannel barChannel = new QueueChannel();
+		channelRegistry.registerChannel("foo-channel", fooChannel);
+		channelRegistry.registerChannel("bar-channel", barChannel);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
@@ -181,15 +213,27 @@ public class RouterMessageHandlerAdapterTests {
 	}
 
 	@Test
-	public void testChannelInstanceResolutionByMessage() throws Exception {
-		QueueChannel fooChannel = new QueueChannel();
-		QueueChannel barChannel = new QueueChannel();
+	public void testChannelInstanceResolutionByMessageConfiguredByMethodReference() throws Exception {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		channelRegistry.registerChannel("foo-channel", fooChannel);
-		channelRegistry.registerChannel("bar-channel", barChannel);
 		SingleChannelInstanceRoutingTestBean testBean = new SingleChannelInstanceRoutingTestBean(channelRegistry);
 		Method routingMethod = testBean.getClass().getMethod("routeMessage", Message.class);
 		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
+		this.doTestChannelInstanceResolutionByMessage(adapter, channelRegistry);
+	}
+
+	@Test
+	public void testChannelInstanceResolutionByMessageConfiguredByMethodName() {
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		SingleChannelInstanceRoutingTestBean testBean = new SingleChannelInstanceRoutingTestBean(channelRegistry);
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, "routeMessage");
+		this.doTestChannelInstanceResolutionByMessage(adapter, channelRegistry);
+	}
+
+	private void doTestChannelInstanceResolutionByMessage(RouterMessageHandlerAdapter adapter, ChannelRegistry channelRegistry) {
+		QueueChannel fooChannel = new QueueChannel();
+		QueueChannel barChannel = new QueueChannel();
+		channelRegistry.registerChannel("foo-channel", fooChannel);
+		channelRegistry.registerChannel("bar-channel", barChannel);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
@@ -211,15 +255,27 @@ public class RouterMessageHandlerAdapterTests {
 	}
 
 	@Test
-	public void testMultiChannelNameResolutionByPayload() throws Exception {
-		QueueChannel fooChannel = new QueueChannel();
-		QueueChannel barChannel = new QueueChannel();
+	public void testMultiChannelNameResolutionByPayloadConfiguredByMethodReference() throws Exception {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		channelRegistry.registerChannel("foo-channel", fooChannel);
-		channelRegistry.registerChannel("bar-channel", barChannel);
 		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
 		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
+		this.doTestMultiChannelNameResolutionByPayload(adapter, channelRegistry);
+	}
+
+	@Test
+	public void testMultiChannelNameResolutionByPayloadConfiguredByMethodName() {
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, "routePayload");
+		this.doTestMultiChannelNameResolutionByPayload(adapter, channelRegistry);
+	}
+
+	private void doTestMultiChannelNameResolutionByPayload(RouterMessageHandlerAdapter adapter, ChannelRegistry channelRegistry) {
+		QueueChannel fooChannel = new QueueChannel();
+		QueueChannel barChannel = new QueueChannel();
+		channelRegistry.registerChannel("foo-channel", fooChannel);
+		channelRegistry.registerChannel("bar-channel", barChannel);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
@@ -247,15 +303,27 @@ public class RouterMessageHandlerAdapterTests {
 	}
 
 	@Test
-	public void testMultiChannelNameResolutionByMessage() throws Exception {
-		QueueChannel fooChannel = new QueueChannel();
-		QueueChannel barChannel = new QueueChannel();
+	public void testMultiChannelNameResolutionByMessageConfiguredByMethodReference() throws Exception {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		channelRegistry.registerChannel("foo-channel", fooChannel);
-		channelRegistry.registerChannel("bar-channel", barChannel);
 		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routeMessage", Message.class);
 		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
+		this.doTestMultiChannelNameResolutionByMessage(adapter, channelRegistry);
+	}
+
+	@Test
+	public void testMultiChannelNameResolutionByMessageConfiguredByMethodName() throws Exception {
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, "routeMessage");
+		this.doTestMultiChannelNameResolutionByMessage(adapter, channelRegistry);
+	}
+
+	private void doTestMultiChannelNameResolutionByMessage(RouterMessageHandlerAdapter adapter, ChannelRegistry channelRegistry) {
+		QueueChannel fooChannel = new QueueChannel();
+		QueueChannel barChannel = new QueueChannel();
+		channelRegistry.registerChannel("foo-channel", fooChannel);
+		channelRegistry.registerChannel("bar-channel", barChannel);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
@@ -283,15 +351,27 @@ public class RouterMessageHandlerAdapterTests {
 	}
 
 	@Test
-	public void testMultiChannelNameArrayResolutionByMessage() throws Exception {
-		QueueChannel fooChannel = new QueueChannel();
-		QueueChannel barChannel = new QueueChannel();
+	public void testMultiChannelNameArrayResolutionByMessageConfiguredByMethodReference() throws Exception {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		channelRegistry.registerChannel("foo-channel", fooChannel);
-		channelRegistry.registerChannel("bar-channel", barChannel);
 		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routeMessageToArray", Message.class);
 		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
+		this.doTestMultiChannelNameArrayResolutionByMessage(adapter, channelRegistry);
+	}
+
+	@Test
+	public void testMultiChannelNameArrayResolutionByMessageConfiguredByMethodName() {
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, "routeMessageToArray");
+		this.doTestMultiChannelNameArrayResolutionByMessage(adapter, channelRegistry);
+	}
+
+	private void doTestMultiChannelNameArrayResolutionByMessage(RouterMessageHandlerAdapter adapter, ChannelRegistry channelRegistry) {
+		QueueChannel fooChannel = new QueueChannel();
+		QueueChannel barChannel = new QueueChannel();
+		channelRegistry.registerChannel("foo-channel", fooChannel);
+		channelRegistry.registerChannel("bar-channel", barChannel);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
@@ -319,15 +399,27 @@ public class RouterMessageHandlerAdapterTests {
 	}
 
 	@Test
-	public void testMultiChannelListResolutionByPayload() throws Exception {
-		QueueChannel fooChannel = new QueueChannel();
-		QueueChannel barChannel = new QueueChannel();
+	public void testMultiChannelListResolutionByPayloadConfiguredByMethodReference() throws Exception {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		channelRegistry.registerChannel("foo-channel", fooChannel);
-		channelRegistry.registerChannel("bar-channel", barChannel);
 		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelRegistry);
 		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
 		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
+		this.doTestMultiChannelListResolutionByPayload(adapter, channelRegistry);
+	}
+
+	@Test
+	public void testMultiChannelListResolutionByPayloadConfiguredByMethodName() {
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelRegistry);
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, "routePayload");
+		this.doTestMultiChannelListResolutionByPayload(adapter, channelRegistry);
+	}
+
+	private void doTestMultiChannelListResolutionByPayload(RouterMessageHandlerAdapter adapter, ChannelRegistry channelRegistry) {
+		QueueChannel fooChannel = new QueueChannel();
+		QueueChannel barChannel = new QueueChannel();
+		channelRegistry.registerChannel("foo-channel", fooChannel);
+		channelRegistry.registerChannel("bar-channel", barChannel);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
@@ -355,15 +447,27 @@ public class RouterMessageHandlerAdapterTests {
 	}
 
 	@Test
-	public void testMultiChannelListResolutionByMessage() throws Exception {
-		QueueChannel fooChannel = new QueueChannel();
-		QueueChannel barChannel = new QueueChannel();
+	public void testMultiChannelListResolutionByMessageConfiguredByMethodReference() throws Exception {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		channelRegistry.registerChannel("foo-channel", fooChannel);
-		channelRegistry.registerChannel("bar-channel", barChannel);
 		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelRegistry);
 		Method routingMethod = testBean.getClass().getMethod("routeMessage", Message.class);
 		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
+		this.doTestMultiChannelListResolutionByMessage(adapter, channelRegistry);
+	}
+
+	@Test
+	public void testMultiChannelListResolutionByMessageConfiguredByMethodName() {
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelRegistry);
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, "routeMessage");
+		this.doTestMultiChannelListResolutionByMessage(adapter, channelRegistry);
+	}
+
+	private void doTestMultiChannelListResolutionByMessage(RouterMessageHandlerAdapter adapter, ChannelRegistry channelRegistry) {
+		QueueChannel fooChannel = new QueueChannel();
+		QueueChannel barChannel = new QueueChannel();
+		channelRegistry.registerChannel("foo-channel", fooChannel);
+		channelRegistry.registerChannel("bar-channel", barChannel);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
@@ -391,15 +495,27 @@ public class RouterMessageHandlerAdapterTests {
 	}
 
 	@Test
-	public void testMultiChannelArrayResolutionByMessage() throws Exception {
-		QueueChannel fooChannel = new QueueChannel();
-		QueueChannel barChannel = new QueueChannel();
+	public void testMultiChannelArrayResolutionByMessageConfiguredByMethodReference() throws Exception {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		channelRegistry.registerChannel("foo-channel", fooChannel);
-		channelRegistry.registerChannel("bar-channel", barChannel);
 		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelRegistry);
 		Method routingMethod = testBean.getClass().getMethod("routeMessageToArray", Message.class);
 		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
+		this.doTestMultiChannelArrayResolutionByMessage(adapter, channelRegistry);
+	}
+
+	@Test
+	public void testMultiChannelArrayResolutionByMessageConfiguredByMethodName() {
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelRegistry);
+		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, "routeMessageToArray");
+		this.doTestMultiChannelArrayResolutionByMessage(adapter, channelRegistry);
+	}
+
+	private void doTestMultiChannelArrayResolutionByMessage(RouterMessageHandlerAdapter adapter, ChannelRegistry channelRegistry) {
+		QueueChannel fooChannel = new QueueChannel();
+		QueueChannel barChannel = new QueueChannel();
+		channelRegistry.registerChannel("foo-channel", fooChannel);
+		channelRegistry.registerChannel("bar-channel", barChannel);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");

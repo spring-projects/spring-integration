@@ -34,6 +34,7 @@ import org.springframework.integration.channel.config.PriorityChannelParser;
 import org.springframework.integration.channel.config.QueueChannelParser;
 import org.springframework.integration.channel.config.RendezvousChannelParser;
 import org.springframework.integration.channel.config.ThreadLocalChannelParser;
+import org.springframework.integration.router.config.RouterParser;
 import org.springframework.integration.router.config.SplitterParser;
 import org.springframework.util.ClassUtils;
 
@@ -67,6 +68,7 @@ public class IntegrationNamespaceHandler extends NamespaceHandlerSupport {
 		registerBeanDefinitionParser("target-endpoint", new TargetEndpointParser());
 		registerBeanDefinitionParser("handler", new HandlerParser());
 		registerBeanDefinitionParser("handler-chain", new HandlerParser());
+		registerBeanDefinitionParser("router", new RouterParser());
 		registerBeanDefinitionParser("splitter", new SplitterParser());
 		registerBeanDefinitionParser("aggregator", new AggregatorParser());
 		Map<String, Class<? extends BeanDefinitionParser>> parserMappings = this.loadAdapterParserMappings();

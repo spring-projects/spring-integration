@@ -281,6 +281,19 @@
 		<xsd:attribute name="keep-alive" type="xsd:int"/>
 	</xsd:complexType>
 
+	<xsd:element name="router">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a Router.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="id" type="xsd:ID"/>
+			<xsd:attribute name="ref" type="xsd:string" use="required"/>
+			<xsd:attribute name="method" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:element name="splitter">
 		<xsd:complexType>
 			<xsd:annotation>
