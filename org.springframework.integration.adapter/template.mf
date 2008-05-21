@@ -27,4 +27,4 @@ Excluded-Exports:
  org.springframework.integration.adapter.mail.config,
  org.springframework.integration.adapter.rmi.config,
  org.springframework.integration.adapter.stream.config
-Bundle-Version: 1.0.0.M4
+
