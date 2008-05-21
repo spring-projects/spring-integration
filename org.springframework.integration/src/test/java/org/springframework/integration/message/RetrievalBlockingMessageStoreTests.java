@@ -32,7 +32,7 @@ public class RetrievalBlockingMessageStoreTests {
 	@Test
 	public void testGetWithElapsedTimeout() {
 		final RetrievalBlockingMessageStore store = new RetrievalBlockingMessageStore(10);
-		publishWithDelay(store, "foo", "bar", 500);
+		publishWithDelay(store, "foo", "bar", 1000);
 		Message<?> message = store.get("foo", 5);
 		assertNull(message);
 	}
@@ -41,7 +41,7 @@ public class RetrievalBlockingMessageStoreTests {
 	public void testWrappedTargetGetWithElapsedTimeout() {
 		MessageStore target = new SimpleMessageStore(10);
 		final RetrievalBlockingMessageStore store = new RetrievalBlockingMessageStore(target);
-		publishWithDelay(store, "foo", "bar", 500);
+		publishWithDelay(store, "foo", "bar", 1000);
 		Message<?> message = store.get("foo", 5);
 		assertNull(message);
 	}
@@ -50,7 +50,7 @@ public class RetrievalBlockingMessageStoreTests {
 	public void testGetWithinTimeout() {
 		final RetrievalBlockingMessageStore store = new RetrievalBlockingMessageStore(10);
 		publishWithDelay(store, "foo", "bar", 50);
-		Message<?> message = store.get("foo", 500);
+		Message<?> message = store.get("foo", 1000);
 		assertNotNull(message);
 		assertEquals("bar", message.getPayload());
 		assertNotNull(store.get("foo", 0));
@@ -61,7 +61,7 @@ public class RetrievalBlockingMessageStoreTests {
 		MessageStore target = new SimpleMessageStore(10);
 		final RetrievalBlockingMessageStore store = new RetrievalBlockingMessageStore(target);
 		publishWithDelay(store, "foo", "bar", 50);
-		Message<?> message = store.get("foo", 500);
+		Message<?> message = store.get("foo", 1000);
 		assertNotNull(message);
 		assertEquals("bar", message.getPayload());
 		assertNotNull(store.get("foo", 0));
@@ -70,7 +70,7 @@ public class RetrievalBlockingMessageStoreTests {
 	@Test
 	public void testRemoveWithElapsedTimeout() {
 		final RetrievalBlockingMessageStore store = new RetrievalBlockingMessageStore(10);
-		publishWithDelay(store, "foo", "bar", 500);
+		publishWithDelay(store, "foo", "bar", 1000);
 		Message<?> message = store.remove("foo", 5);
 		assertNull(message);
 	}
@@ -79,7 +79,7 @@ public class RetrievalBlockingMessageStoreTests {
 	public void testWrappedMessageStoreRemoveWithElapsedTimeout() {
 		MessageStore target = new SimpleMessageStore(10);
 		final RetrievalBlockingMessageStore store = new RetrievalBlockingMessageStore(target);
-		publishWithDelay(store, "foo", "bar", 500);
+		publishWithDelay(store, "foo", "bar", 1000);
 		Message<?> message = store.remove("foo", 5);
 		assertNull(message);
 	}
