@@ -16,10 +16,8 @@
 
 package org.springframework.integration.endpoint;
 
-import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -55,7 +53,7 @@ public class TargetEndpoint extends AbstractEndpoint implements Target, ChannelR
 
 	private volatile ErrorHandler errorHandler;
 
-	private final List<MessageSelector> selectors = new CopyOnWriteArrayList<MessageSelector>();
+	private volatile MessageSelector selector;
 
 	private volatile ChannelRegistry channelRegistry;
 
@@ -82,14 +80,8 @@ public class TargetEndpoint extends AbstractEndpoint implements Target, ChannelR
 		this.target = target;
 	}
 
-	public void setMessageSelectors(List<MessageSelector> selectors) {
-		this.selectors.clear();
-		this.selectors.addAll(selectors);
-	}
-
-	public void addMessageSelector(MessageSelector messageSelector) {
-		Assert.notNull(messageSelector, "'messageSelector' must not be null");
-		this.selectors.add(messageSelector);
+	public void setMessageSelector(MessageSelector selector) {
+		this.selector = selector;
 	}
 
 	public Subscription getSubscription() {
@@ -184,10 +176,8 @@ public class TargetEndpoint extends AbstractEndpoint implements Target, ChannelR
 		if (!this.isRunning()) {
 			throw new MessageHandlerNotRunningException(message);
 		}
-		for (MessageSelector selector : this.selectors) {
-			if (!selector.accept(message)) {
-				return false;
-			}
+		if (this.selector != null && !this.selector.accept(message)) {
+			return false;
 		}
 		try {
 			return this.target.send(message);

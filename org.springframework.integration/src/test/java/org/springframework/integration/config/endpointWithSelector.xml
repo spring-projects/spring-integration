@@ -11,9 +11,9 @@
 
 	<queue-channel id="testChannel" capacity="50"/>
 
-	<handler-endpoint id="endpoint" input-channel="testChannel" handler="testHandler">
+	<handler-endpoint id="endpoint" input-channel="testChannel"
+	                  handler="testHandler" selector="typeSelector">
 		<schedule period="100"/>
-		<selector ref="typeSelector"/>
 	</handler-endpoint>
 
 	<beans:bean id="typeSelector" class="org.springframework.integration.message.selector.PayloadTypeSelector">

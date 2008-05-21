@@ -235,17 +235,6 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="selector">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-	Provides a message selector reference.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:attribute name="ref" type="xsd:string" use="required"/>
-		</xsd:complexType>
-	</xsd:element>
-
 	<xsd:element name="handler-chain">
 		<xsd:complexType>
 			<xsd:annotation>
@@ -378,10 +367,10 @@
 				<xsd:sequence>
 					<xsd:element ref="schedule" minOccurs="0" maxOccurs="1"/>
 					<xsd:element name="concurrency" type="concurrencyType" minOccurs="0" maxOccurs="1"/>
-					<xsd:element ref="selector" minOccurs="0" maxOccurs="unbounded"/>
 				</xsd:sequence>
 				<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
 				<xsd:attribute name="error-handler" type="xsd:string"/>
+				<xsd:attribute name="selector" type="xsd:string"/>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>

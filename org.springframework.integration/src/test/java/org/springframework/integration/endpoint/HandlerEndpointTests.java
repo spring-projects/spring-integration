@@ -39,6 +39,7 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.selector.MessageSelector;
+import org.springframework.integration.message.selector.MessageSelectorChain;
 import org.springframework.integration.util.ErrorHandler;
 
 /**
@@ -338,7 +339,7 @@ public class HandlerEndpointTests {
 	@Test
 	public void testEndpointWithSelectorRejecting() {
 		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.nullHandler());
-		endpoint.addMessageSelector(new MessageSelector() {
+		endpoint.setMessageSelector(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return false;
 			}
@@ -351,7 +352,7 @@ public class HandlerEndpointTests {
 	public void testEndpointWithSelectorAccepting() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
 		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.countDownHandler(latch));
-		endpoint.addMessageSelector(new MessageSelector() {
+		endpoint.setMessageSelector(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return true;
 			}
@@ -367,18 +368,20 @@ public class HandlerEndpointTests {
 	public void testEndpointWithMultipleSelectorsAndFirstRejects() {
 		final AtomicInteger counter = new AtomicInteger();
 		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.countingHandler(counter));
-		endpoint.addMessageSelector(new MessageSelector() {
+		MessageSelectorChain selectorChain = new MessageSelectorChain();
+		selectorChain.add(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				counter.incrementAndGet();
 				return false;
 			}
 		});
-		endpoint.addMessageSelector(new MessageSelector() {
+		selectorChain.add(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				counter.incrementAndGet();
 				return true;
 			}
 		});
+		endpoint.setMessageSelector(selectorChain);
 		endpoint.start();
 		assertFalse(endpoint.send(new StringMessage("test")));
 		assertEquals("only the first selector should have been invoked", 1, counter.get());
@@ -390,18 +393,20 @@ public class HandlerEndpointTests {
 		final AtomicInteger selectorCounter = new AtomicInteger();
 		AtomicInteger handlerCounter = new AtomicInteger();
 		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.countingHandler(handlerCounter));
-		endpoint.addMessageSelector(new MessageSelector() {
+		MessageSelectorChain selectorChain = new MessageSelectorChain();
+		selectorChain.add(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				selectorCounter.incrementAndGet();
 				return true;
 			}
 		});
-		endpoint.addMessageSelector(new MessageSelector() {
+		selectorChain.add(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				selectorCounter.incrementAndGet();
 				return false;
 			}
 		});
+		endpoint.setMessageSelector(selectorChain);
 		endpoint.start();
 		assertFalse(endpoint.send(new StringMessage("test")));
 		assertEquals("both selectors should have been invoked", 2, selectorCounter.get());
@@ -413,18 +418,20 @@ public class HandlerEndpointTests {
 	public void testEndpointWithMultipleSelectorsAndBothAccept() {
 		final AtomicInteger counter = new AtomicInteger();
 		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.countingHandler(counter));
-		endpoint.addMessageSelector(new MessageSelector() {
+		MessageSelectorChain selectorChain = new MessageSelectorChain();
+		selectorChain.add(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				counter.incrementAndGet();
 				return true;
 			}
 		});
-		endpoint.addMessageSelector(new MessageSelector() {
+		selectorChain.add(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				counter.incrementAndGet();
 				return true;
 			}
 		});
+		endpoint.setMessageSelector(selectorChain);
 		endpoint.start();
 		assertTrue(endpoint.send(new StringMessage("test")));
 		assertEquals("both selectors and handler should have been invoked", 3, counter.get());

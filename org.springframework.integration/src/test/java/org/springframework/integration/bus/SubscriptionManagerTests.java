@@ -369,8 +369,8 @@ public class SubscriptionManagerTests {
 		SubscriptionManager manager = new SubscriptionManager(channel, scheduler);
 		HandlerEndpoint endpoint1 = new HandlerEndpoint(handler1);
 		HandlerEndpoint endpoint2 = new HandlerEndpoint(handler2);
-		endpoint1.addMessageSelector(new PayloadTypeSelector(Integer.class));
-		endpoint2.addMessageSelector(new PayloadTypeSelector(String.class));
+		endpoint1.setMessageSelector(new PayloadTypeSelector(Integer.class));
+		endpoint2.setMessageSelector(new PayloadTypeSelector(String.class));
 		manager.addTarget(endpoint1);
 		manager.addTarget(endpoint2);
 		manager.start();
@@ -395,7 +395,7 @@ public class SubscriptionManagerTests {
 		SubscriptionManager manager = new SubscriptionManager(channel, scheduler);
 		final HandlerEndpoint endpoint1 = new HandlerEndpoint(handler1);
 		final HandlerEndpoint endpoint2 = new HandlerEndpoint(handler2);
-		endpoint1.addMessageSelector(new PayloadTypeSelector(Integer.class) {
+		endpoint1.setMessageSelector(new PayloadTypeSelector(Integer.class) {
 			@Override
 			public boolean accept(Message<?> message) {
 				selectorCounter1.incrementAndGet();
@@ -403,7 +403,7 @@ public class SubscriptionManagerTests {
 				return super.accept(message);
 			}
 		});
-		endpoint2.addMessageSelector(new PayloadTypeSelector(Integer.class) {
+		endpoint2.setMessageSelector(new PayloadTypeSelector(Integer.class) {
 			@Override
 			public boolean accept(Message<?> message) {
 				selectorCounter2.incrementAndGet();
@@ -437,8 +437,8 @@ public class SubscriptionManagerTests {
 		endpoint1.setConcurrencyPolicy(new ConcurrencyPolicy(1, 1));
 		HandlerEndpoint endpoint2 = new HandlerEndpoint(handler2);
 		endpoint2.setConcurrencyPolicy(new ConcurrencyPolicy(1, 1));
-		endpoint1.addMessageSelector(new PayloadTypeSelector(Integer.class));
-		endpoint2.addMessageSelector(new PayloadTypeSelector(String.class));
+		endpoint1.setMessageSelector(new PayloadTypeSelector(Integer.class));
+		endpoint2.setMessageSelector(new PayloadTypeSelector(String.class));
 		manager.addTarget(endpoint1);
 		manager.addTarget(endpoint2);
 		manager.start();

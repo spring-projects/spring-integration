@@ -20,6 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.TimeUnit;
 
@@ -107,13 +108,13 @@ public class EndpointParserTests {
 	@Test
 	public void testEndpointWithSelectorAccepts() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"endpointWithSelectors.xml", this.getClass());		
+				"endpointWithSelector.xml", this.getClass());		
 		Target endpoint = (Target) context.getBean("endpoint");
 		((Lifecycle) endpoint).start();
 		Message<?> message = new StringMessage("test");
 		MessageChannel replyChannel = new QueueChannel();
 		message.getHeader().setReturnAddress(replyChannel);
-		endpoint.send(message);
+		assertTrue(endpoint.send(message));
 		Message<?> reply = replyChannel.receive(500);
 		assertNotNull(reply);
 		assertEquals("foo", reply.getPayload());
@@ -122,10 +123,13 @@ public class EndpointParserTests {
 	@Test
 	public void testEndpointWithSelectorRejects() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"endpointWithSelectors.xml", this.getClass());		
+				"endpointWithSelector.xml", this.getClass());		
 		Target endpoint = (Target) context.getBean("endpoint");
 		((Lifecycle) endpoint).start();
-		assertFalse(endpoint.send(new GenericMessage<Integer>(123)));
+		Message<?> message = new GenericMessage<Integer>(123);
+		MessageChannel replyChannel = new QueueChannel();
+		message.getHeader().setReturnAddress(replyChannel);
+		assertFalse(endpoint.send(message));
 	}
 
 	@Test

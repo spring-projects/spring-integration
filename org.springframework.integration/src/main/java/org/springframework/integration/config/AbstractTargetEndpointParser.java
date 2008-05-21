@@ -24,7 +24,6 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -46,15 +45,13 @@ public abstract class AbstractTargetEndpointParser extends AbstractSingleBeanDef
 
 	private static final String SUBSCRIPTION_PROPERTY = "subscription";
 
-	private static final String SELECTOR_ELEMENT = "selector";
-
-	private static final String REF_ATTRIBUTE = "ref";
-
-	private static final String SELECTORS_PROPERTY = "messageSelectors";
-
 	private static final String ERROR_HANDLER_ATTRIBUTE = "error-handler";
 
 	private static final String ERROR_HANDLER_PROPERTY = "errorHandler";
+
+	private static final String SELECTOR_ATTRIBUTE = "selector";
+
+	private static final String SELECTOR_PROPERTY = "messageSelector";
 
 	private static final String PERIOD_ATTRIBUTE = "period";
 
@@ -90,7 +87,6 @@ public abstract class AbstractTargetEndpointParser extends AbstractSingleBeanDef
 		this.parseTarget(element, this.getTargetAttributeName(), parserContext, builder);
 		String inputChannel = element.getAttribute(INPUT_CHANNEL_ATTRIBUTE);
 		Schedule schedule = null;
-		ManagedList selectors = new ManagedList();
 		NodeList childNodes = element.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); i++) {
 			Node child = childNodes.item(i);
@@ -98,10 +94,6 @@ public abstract class AbstractTargetEndpointParser extends AbstractSingleBeanDef
 				String localName = child.getLocalName();
 				if (CONCURRENCY_ELEMENT.equals(localName)) {
 					parseConcurrencyPolicy((Element) child, builder);
-				}
-				else if (SELECTOR_ELEMENT.equals(localName)) {
-					String ref = ((Element) child).getAttribute(REF_ATTRIBUTE);
-					selectors.add(new RuntimeBeanReference(ref));
 				}
 				else if (SCHEDULE_ELEMENT.equals(localName)) {
 					schedule = this.parseSchedule((Element) child);
@@ -118,12 +110,13 @@ public abstract class AbstractTargetEndpointParser extends AbstractSingleBeanDef
 			parserContext.registerBeanComponent(new BeanComponentDefinition(subscriptionDef, subscriptionBeanName));
 			builder.addPropertyReference(SUBSCRIPTION_PROPERTY, subscriptionBeanName);
 		}
-		if (selectors.size() > 0) {
-			builder.addPropertyValue(SELECTORS_PROPERTY, selectors);
-		}
 		String errorHandlerRef = element.getAttribute(ERROR_HANDLER_ATTRIBUTE);
 		if (StringUtils.hasText(errorHandlerRef)) {
 			builder.addPropertyReference(ERROR_HANDLER_PROPERTY, errorHandlerRef);
+		}
+		String selectorRef = element.getAttribute(SELECTOR_ATTRIBUTE);
+		if (StringUtils.hasText(selectorRef)) {
+			builder.addPropertyReference(SELECTOR_PROPERTY, selectorRef);
 		}
 		this.postProcess(builder, element);
 	}
