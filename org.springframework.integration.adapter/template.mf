@@ -13,9 +13,18 @@ Import-Template:
  org.springframework.util;version="[2.5.4.A, 3.0.0)",
  org.springframework.web;version="[2.5.4.A, 3.0.0)";resolution:=optional,
  org.apache.commons.logging;version="[1.1.1, 2.0.0)",
- org.apache.commons.net.ftp;version="[1.4.1,2.0.0)";resolution:=optional,
- javax.mail.*;version="[1.4.0,2.0.0)";resolution:=optional,
- javax.jms;version="[1.1.0,2.0.0)";resolution:=optional,
- javax.servlet.*;version="[2.4.0,3.0.0)";resolution:=optional
+ org.apache.commons.net.ftp;version="[1.4.1, 2.0.0)";resolution:=optional,
+ javax.mail.*;version="[1.4.0, 2.0.0)";resolution:=optional,
+ javax.jms;version="[1.1.0, 2.0.0)";resolution:=optional,
+ javax.servlet.*;version="[2.4.0, 3.0.0)";resolution:=optional
 Unversioned-Imports: 
  org.w3c.dom
+Excluded-Exports: 
+ org.springframework.integration.adapter.file.config,
+ org.springframework.integration.adapter.ftp.config,
+ org.springframework.integration.adapter.httpinvoker.config,
+ org.springframework.integration.adapter.jms.config,
+ org.springframework.integration.adapter.mail.config,
+ org.springframework.integration.adapter.rmi.config,
+ org.springframework.integration.adapter.stream.config
+Bundle-Version: 1.0.0.M4
