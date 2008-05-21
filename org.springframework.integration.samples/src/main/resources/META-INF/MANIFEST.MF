@@ -1,24 +1,15 @@
-Import-Package: org.springframework.context.support;resolution:=option
- al,org.springframework.integration.annotation;resolution:=optional,or
- g.springframework.integration.channel;resolution:=optional,org.spring
- framework.integration.message;resolution:=optional,org.springframewor
- k.integration.samples.cafe;resolution:=optional,org.springframework.i
- ntegration.samples.filecopy;resolution:=optional,org.springframework.
- integration.samples.helloworld;resolution:=optional,org.springframewo
- rk.integration.samples.oddeven;resolution:=optional,org.springframewo
- rk.integration.samples.quote;resolution:=optional,org.springframework
- .stereotype;resolution:=optional
-Export-Package: org.springframework.integration.samples.cafe;uses:="or
- g.springframework.stereotype,org.springframework.integration.annotati
- on,org.springframework.context.support,org.springframework.integratio
- n.channel,org.springframework.integration.message",org.springframewor
- k.integration.samples.quote;uses:="org.springframework.integration.an
- notation,org.springframework.context.support",org.springframework.int
- egration.samples.filecopy;uses:="org.springframework.context.support"
- ,org.springframework.integration.samples.oddeven;uses:="org.springfra
- mework.stereotype,org.springframework.integration.annotation,org.spri
- ngframework.context.support",org.springframework.integration.samples.
- helloworld;uses:="org.springframework.context.support,org.springframe
- work.integration.channel,org.springframework.integration.message"
 Bundle-Name: Spring Integration Samples
+Bundle-SymbolicName: org.springframework.integration.samples
+Bundle-Vendor: SpringSource
+Import-Package: org.springframework.context.support;version="[2.5.4.A,
+  3.0.0)",org.springframework.integration.annotation;version="[1.0.0, 
+ 1.0.0]",org.springframework.integration.channel;version="[1.0.0, 1.0.
+ 0]",org.springframework.integration.message;version="[1.0.0, 1.0.0]",
+ org.springframework.stereotype;version="[2.5.4.A, 3.0.0)"
+Export-Package: org.springframework.integration.samples.cafe;version="
+ 1.0.0.M4";uses:="org.springframework.integration.channel",org.springf
+ ramework.integration.samples.filecopy;version="1.0.0.M4",org.springfr
+ amework.integration.samples.helloworld;version="1.0.0.M4",org.springf
+ ramework.integration.samples.oddeven;version="1.0.0.M4",org.springfra
+ mework.integration.samples.quote;version="1.0.0.M4"
 
