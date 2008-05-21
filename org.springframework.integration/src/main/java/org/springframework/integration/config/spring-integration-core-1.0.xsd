@@ -364,10 +364,10 @@
 		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="beans:identifiedType">
-				<xsd:sequence>
+				<xsd:all>
 					<xsd:element ref="schedule" minOccurs="0" maxOccurs="1"/>
 					<xsd:element name="concurrency" type="concurrencyType" minOccurs="0" maxOccurs="1"/>
-				</xsd:sequence>
+				</xsd:all>
 				<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
 				<xsd:attribute name="error-handler" type="xsd:string"/>
 				<xsd:attribute name="selector" type="xsd:string"/>
