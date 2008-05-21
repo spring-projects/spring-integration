@@ -1,123 +1,83 @@
-Import-Package: org.aopalliance.aop;resolution:=optional,org.aopallian
- ce.intercept;resolution:=optional,org.apache.commons.logging;resoluti
- on:=optional,org.springframework.aop;resolution:=optional,org.springf
- ramework.aop.framework;resolution:=optional,org.springframework.aop.s
- upport;resolution:=optional,org.springframework.aop.support.annotatio
- n;resolution:=optional,org.springframework.beans;resolution:=optional
- ,org.springframework.beans.factory;resolution:=optional,org.springfra
- mework.beans.factory.config;resolution:=optional,org.springframework.
- beans.factory.parsing;resolution:=optional,org.springframework.beans.
- factory.support;resolution:=optional,org.springframework.beans.factor
- y.xml;resolution:=optional,org.springframework.beans.support;resoluti
- on:=optional,org.springframework.context;resolution:=optional,org.spr
- ingframework.core;resolution:=optional,org.springframework.core.annot
- ation;resolution:=optional,org.springframework.core.io.support;resolu
- tion:=optional,org.springframework.integration;resolution:=optional,o
- rg.springframework.integration.adapter;resolution:=optional,org.sprin
- gframework.integration.annotation;resolution:=optional,org.springfram
- ework.integration.aop;resolution:=optional,org.springframework.integr
- ation.bus;resolution:=optional,org.springframework.integration.channe
- l;resolution:=optional,org.springframework.integration.channel.interc
- eptor;resolution:=optional,org.springframework.integration.config;res
- olution:=optional,org.springframework.integration.dispatcher;resoluti
- on:=optional,org.springframework.integration.endpoint;resolution:=opt
- ional,org.springframework.integration.handler;resolution:=optional,or
- g.springframework.integration.handler.config;resolution:=optional,org
- .springframework.integration.message;resolution:=optional,org.springf
- ramework.integration.message.selector;resolution:=optional,org.spring
- framework.integration.router;resolution:=optional,org.springframework
- .integration.router.config;resolution:=optional,org.springframework.i
- ntegration.scheduling;resolution:=optional,org.springframework.integr
- ation.transformer;resolution:=optional,org.springframework.integratio
- n.util;resolution:=optional,org.springframework.scheduling;resolution
- :=optional,org.springframework.stereotype;resolution:=optional,org.sp
- ringframework.util;resolution:=optional,org.w3c.dom;resolution:=optio
- nal
-Export-Package: org.springframework.integration.handler;uses:="org.spr
- ingframework.core,org.apache.commons.logging,org.springframework.util
- ,org.springframework.beans.factory,org.springframework.integration.me
- ssage,org.springframework.integration.util",org.springframework.integ
- ration.router.config;uses:="org.springframework.integration.handler.c
- onfig,org.springframework.integration.handler,org.springframework.int
- egration.router,org.springframework.integration.channel",org.springfr
- amework.integration.message.selector;uses:="org.springframework.util,
- org.springframework.integration.message",org.springframework.integrat
- ion.dispatcher;uses:="org.springframework.integration.handler,org.spr
- ingframework.integration.message.selector,org.springframework.integra
- tion.scheduling,org.apache.commons.logging,org.springframework.contex
- t,org.springframework.integration.channel,org.springframework.integra
- tion,org.springframework.integration.adapter,org.springframework.util
- ,org.springframework.integration.message",org.springframework.integra
- tion.scheduling;uses:="org.springframework.scheduling,org.apache.comm
- ons.logging,org.springframework.util,org.springframework.context,org.
- springframework.integration.channel,org.springframework.integration.m
- essage,org.springframework.integration.util",org.springframework.inte
- gration.router;uses:="org.springframework.integration.handler,org.apa
- che.commons.logging,org.springframework.integration.channel,org.sprin
- gframework.integration,org.springframework.util,org.springframework.b
- eans.factory,org.springframework.integration.message,org.springframew
- ork.integration.util",org.springframework.integration.transformer;use
- s:="org.springframework.integration.handler,org.springframework.integ
- ration.message.selector,org.springframework.integration.message",org.
- springframework.integration.aop;uses:="org.apache.commons.logging,org
- .springframework.integration.channel,org.aopalliance.intercept,org.sp
- ringframework.aop,org.springframework.core.annotation,org.springframe
- work.integration.annotation,org.springframework.util,org.springframew
- ork.aop.support,org.springframework.aop.support.annotation,org.aopall
- iance.aop,org.springframework.integration.message",org.springframewor
- k.integration.channel.interceptor;uses:="org.springframework.integrat
- ion.message.selector,org.apache.commons.logging,org.springframework.u
- til,org.springframework.context,org.springframework.integration.chann
- el,org.springframework.integration.message",org.springframework.integ
- ration.channel;uses:="org.springframework.integration.handler,org.spr
- ingframework.integration.message.selector,org.apache.commons.logging,
- org.springframework.util,org.springframework.beans.factory,org.spring
- framework.integration.message",org.springframework.integration.handle
- r.config;uses:="org.springframework.core.annotation,org.springframewo
- rk.integration.handler,org.springframework.integration,org.springfram
- ework.beans.factory,org.springframework.integration.message",org.spri
- ngframework.integration.endpoint;uses:="org.springframework.integrati
- on.handler,org.springframework.integration.message.selector,org.sprin
- gframework.integration.scheduling,org.apache.commons.logging,org.spri
- ngframework.context,org.springframework.integration.channel,org.sprin
- gframework.integration,org.springframework.util,org.springframework.b
- eans.factory,org.springframework.integration.message,org.springframew
- ork.integration.util",org.springframework.integration,org.springframe
- work.integration.bus;uses:="org.springframework.integration.handler,o
- rg.springframework.integration.dispatcher,org.springframework.integra
- tion.scheduling,org.apache.commons.logging,org.springframework.integr
- ation.channel.interceptor,org.springframework.context,org.springframe
- work.integration.channel,org.springframework.integration.endpoint,org
- .springframework.integration,org.springframework.beans,org.springfram
- ework.integration.adapter,org.springframework.util,org.springframewor
- k.integration.message,org.springframework.integration.util",org.sprin
- gframework.integration.config;uses:="org.springframework.integration.
- message.selector,org.springframework.beans.factory.parsing,org.spring
- framework.integration.scheduling,org.springframework.integration.rout
- er,org.springframework.integration.aop,org.springframework.integratio
- n.handler.config,org.springframework.integration,org.springframework.
- integration.annotation,org.springframework.beans.factory,org.springfr
- amework.integration.message,org.springframework.integration.handler,o
- rg.springframework.core.io.support,org.springframework.integration.ro
- uter.config,org.springframework.core,org.w3c.dom,org.apache.commons.l
- ogging,org.springframework.integration.channel.interceptor,org.spring
- framework.integration.channel,org.springframework.aop,org.springframe
- work.beans.factory.support,org.springframework.core.annotation,org.sp
- ringframework.integration.endpoint,org.springframework.beans.factory.
- config,org.springframework.beans.factory.xml,org.springframework.inte
- gration.bus,org.springframework.aop.framework,org.springframework.bea
- ns,org.springframework.integration.adapter,org.springframework.aop.su
- pport,org.springframework.util",org.springframework.integration.adapt
- er;uses:="org.springframework.integration.handler,org.springframework
- .integration.scheduling,org.apache.commons.logging,org.springframewor
- k.context,org.springframework.integration.channel,org.springframework
- .integration,org.springframework.util,org.springframework.beans.facto
- ry,org.springframework.integration.message,org.springframework.integr
- ation.util",org.springframework.integration.annotation;uses:="org.spr
- ingframework.stereotype",org.springframework.integration.message;uses
- :="org.springframework.integration,org.springframework.util,org.sprin
- gframework.integration.util",org.springframework.integration.util;use
- s:="org.springframework.beans.support,org.springframework.integration
- ,org.springframework.util"
 Bundle-Name: Spring Integration Core
+Bundle-SymbolicName: org.springframework.integration
+Bundle-Vendor: SpringSource
+Import-Package: org.aopalliance.aop;version="[1.0.0,2.0.0)",org.aopall
+ iance.intercept;version="[1.0.0,2.0.0)",org.apache.commons.logging;ve
+ rsion="[1.1.1, 2.0.0)",org.springframework.aop;version="[2.5.4.A, 3.0
+ .0)",org.springframework.aop.framework;version="[2.5.4.A, 3.0.0)",org
+ .springframework.aop.support;version="[2.5.4.A, 3.0.0)",org.springfra
+ mework.aop.support.annotation;version="[2.5.4.A, 3.0.0)",org.springfr
+ amework.beans;version="[2.5.4.A, 3.0.0)",org.springframework.beans.fa
+ ctory;version="[2.5.4.A, 3.0.0)",org.springframework.beans.factory.co
+ nfig;version="[2.5.4.A, 3.0.0)",org.springframework.beans.factory.par
+ sing;version="[2.5.4.A, 3.0.0)",org.springframework.beans.factory.sup
+ port;version="[2.5.4.A, 3.0.0)",org.springframework.beans.factory.xml
+ ;version="[2.5.4.A, 3.0.0)",org.springframework.beans.support;version
+ ="[2.5.4.A, 3.0.0)",org.springframework.context;version="[2.5.4.A, 3.
+ 0.0)",org.springframework.context.event;version="[2.5.4.A, 3.0.0)",or
+ g.springframework.core;version="[2.5.4.A, 3.0.0)",org.springframework
+ .core.annotation;version="[2.5.4.A, 3.0.0)",org.springframework.core.
+ io.support;version="[2.5.4.A, 3.0.0)",org.springframework.core.task;v
+ ersion="[2.5.4.A, 3.0.0)",org.springframework.integration.channel.con
+ fig;version="[2.5.4.A, 3.0.0)",org.springframework.integration.gatewa
+ y.config;version="[2.5.4.A, 3.0.0)",org.springframework.integration.r
+ outer.config;version="[2.5.4.A, 3.0.0)",org.springframework.schedulin
+ g;version="[2.5.4.A, 3.0.0)",org.springframework.stereotype;version="
+ [2.5.4.A, 3.0.0)",org.springframework.util;version="[2.5.4.A, 3.0.0)"
+ ,org.springframework.util.xml;version="[2.5.4.A, 3.0.0)",org.w3c.dom
+Export-Package: org.springframework.integration;version="1.0.0.M4",org
+ .springframework.integration.annotation;version="1.0.0.M4",org.spring
+ framework.integration.aop;version="1.0.0.M4";uses:="org.aopalliance.a
+ op,org.aopalliance.intercept,org.springframework.aop,org.springframew
+ ork.integration.channel,org.springframework.integration.message",org.
+ springframework.integration.bus;version="1.0.0.M4";uses:="org.apache.
+ commons.logging,org.springframework.beans,org.springframework.context
+ ,org.springframework.integration.channel,org.springframework.integrat
+ ion.channel.factory,org.springframework.integration.endpoint,org.spri
+ ngframework.integration.handler,org.springframework.integration.messa
+ ge,org.springframework.integration.scheduling",org.springframework.in
+ tegration.channel;version="1.0.0.M4";uses:="org.apache.commons.loggin
+ g,org.springframework.integration.bus,org.springframework.integration
+ .endpoint,org.springframework.integration.handler,org.springframework
+ .integration.message,org.springframework.integration.message.selector
+ ",org.springframework.integration.channel.factory;version="1.0.0.M4";
+ uses:="org.springframework.context,org.springframework.integration.ch
+ annel",org.springframework.integration.channel.interceptor;version="1
+ .0.0.M4";uses:="org.springframework.integration.channel,org.springfra
+ mework.integration.message,org.springframework.integration.message.se
+ lector",org.springframework.integration.config;version="1.0.0.M4";use
+ s:="org.apache.commons.logging,org.springframework.beans,org.springfr
+ amework.beans.factory,org.springframework.beans.factory.config,org.sp
+ ringframework.beans.factory.support,org.springframework.beans.factory
+ .xml,org.springframework.integration.bus,org.springframework.integrat
+ ion.channel,org.springframework.integration.endpoint,org.springframew
+ ork.integration.scheduling,org.w3c.dom",org.springframework.integrati
+ on.dispatcher;version="1.0.0.M4";uses:="org.springframework.integrati
+ on.channel,org.springframework.integration.message,org.springframewor
+ k.integration.scheduling",org.springframework.integration.endpoint;ve
+ rsion="1.0.0.M4";uses:="org.aopalliance.aop,org.apache.commons.loggin
+ g,org.springframework.integration.channel,org.springframework.integra
+ tion.handler,org.springframework.integration.message,org.springframew
+ ork.integration.message.selector,org.springframework.integration.sche
+ duling,org.springframework.integration.util",org.springframework.inte
+ gration.gateway;version="1.0.0.M4";uses:="org.aopalliance.intercept,o
+ rg.springframework.beans,org.springframework.beans.factory,org.spring
+ framework.integration.channel,org.springframework.integration.message
+ ",org.springframework.integration.handler;version="1.0.0.M4";uses:="o
+ rg.springframework.integration.message",org.springframework.integrati
+ on.handler.annotation;version="1.0.0.M4";uses:="org.springframework.i
+ ntegration.message",org.springframework.integration.handler.config;ve
+ rsion="1.0.0.M4";uses:="org.springframework.integration.handler",org.
+ springframework.integration.message;version="1.0.0.M4",org.springfram
+ ework.integration.message.selector;version="1.0.0.M4";uses:="org.spri
+ ngframework.integration.message",org.springframework.integration.rout
+ er;version="1.0.0.M4";uses:="org.springframework.integration,org.spri
+ ngframework.integration.channel,org.springframework.integration.messa
+ ge",org.springframework.integration.scheduling;version="1.0.0.M4";use
+ s:="org.apache.commons.logging,org.springframework.integration.channe
+ l,org.springframework.integration.util",org.springframework.integrati
+ on.transformer;version="1.0.0.M4";uses:="org.springframework.integrat
+ ion.message,org.springframework.integration.message.selector",org.spr
+ ingframework.integration.util;version="1.0.0.M4";uses:="org.springfra
+ mework.beans"
 

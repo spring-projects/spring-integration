@@ -1,6 +1,7 @@
 Bundle-SymbolicName: org.springframework.integration
 Bundle-Name: Spring Integration Core
 Bundle-Vendor: SpringSource
+Bundle-Version: 1.0.0.M4
 Bundle-ManifestVersion: 2
 Import-Template: 
  org.springframework.*;version="[2.5.4.A, 3.0.0)",
@@ -8,3 +9,7 @@ Import-Template:
  org.aopalliance.*;version="[1.0.0,2.0.0)"
 Unversioned-Imports: 
  org.w3c.dom
+Excluded-Exports: 
+ org.springframework.integration.channel.config,
+ org.springframework.integration.gateway.config,
+ org.springframework.integration.router.config
