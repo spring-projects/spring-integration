@@ -136,6 +136,24 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="gateway">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a Messaging Gateway.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="id" type="xsd:ID" use="required"/>
+			<xsd:attribute name="service-interface" type="xsd:string" use="required"/>
+			<xsd:attribute name="request-channel" type="xsd:string"/>
+			<xsd:attribute name="reply-channel" type="xsd:string"/>
+			<xsd:attribute name="request-timeout" type="xsd:long"/>
+			<xsd:attribute name="reply-timeout" type="xsd:long"/>
+			<xsd:attribute name="message-mapper" type="xsd:string"/>
+			<xsd:attribute name="message-creator" type="xsd:string"/>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:element name="source-endpoint">
 		<xsd:complexType>
 			<xsd:annotation>
