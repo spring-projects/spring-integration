@@ -5,7 +5,7 @@
 		<dist-jar/>
 		<src-jar/>
 		<ext-jars/>
-		<copy-provided-jars/>
+		<provided-jars/>
 	</target>
 
 </project>
