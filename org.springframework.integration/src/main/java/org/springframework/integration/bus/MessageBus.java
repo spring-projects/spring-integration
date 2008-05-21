@@ -302,7 +302,6 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 		if (endpoint.getConcurrencyPolicy() == null && this.defaultConcurrencyPolicy != null) {
 			endpoint.setConcurrencyPolicy(this.defaultConcurrencyPolicy);
 		}
-		endpoint.afterPropertiesSet();
 	}
 
 	public MessageEndpoint unregisterEndpoint(String name) {
@@ -391,6 +390,7 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 				targetEndpoint.setErrorHandler(new MessagePublishingErrorHandler(this.getErrorChannel()));
 			}
 		}
+		endpoint.afterPropertiesSet();
 		this.activateSubscription(channel, endpoint, subscription.getSchedule());
 		if (logger.isInfoEnabled()) {
 			logger.info("activated subscription to channel '" + channel.getName() + 
