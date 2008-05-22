@@ -25,7 +25,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.adapter.httpinvoker.HttpInvokerSourceAdapter;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.RequestReplyTemplate;
+import org.springframework.integration.gateway.RequestReplyTemplate;
 
 /**
  * @author Mark Fisher

@@ -17,7 +17,6 @@
 package org.springframework.integration.gateway;
 
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.RequestReplyTemplate;
 
 /**
  * A convenient base class providing access to a {@link RequestReplyTemplate} and exposing setter methods for

@@ -22,7 +22,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.RequestReplyTemplate;
+import org.springframework.integration.gateway.RequestReplyTemplate;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
