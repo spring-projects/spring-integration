@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.context.support.StaticApplicationContext;
+import org.springframework.integration.bus.DefaultChannelFactoryBean;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.ChannelInterceptor;

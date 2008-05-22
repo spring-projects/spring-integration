@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.channel.factory;
+package org.springframework.integration.bus;
 
 import java.util.List;
 import java.util.Map;
@@ -22,10 +22,11 @@ import java.util.Map;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.factory.ChannelFactory;
+import org.springframework.integration.channel.factory.QueueChannelFactory;
 import org.springframework.util.Assert;
 
 /**
@@ -37,7 +38,7 @@ import org.springframework.util.Assert;
  * 
  * @author Marius Bogoevici
  */
-public class DefaultChannelFactoryBean implements ApplicationContextAware, FactoryBean{
+public class DefaultChannelFactoryBean implements ApplicationContextAware, FactoryBean {
 
 	private volatile ChannelFactory channelFactory;
 
