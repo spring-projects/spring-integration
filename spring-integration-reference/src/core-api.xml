@@ -164,22 +164,83 @@ target.send(new StringMessage("test"));</programlisting>
       When sending a message, the return value will be <emphasis>true</emphasis> if the message is sent successfully.
       If the send call times out or is interrupted, then it will return <emphasis>false</emphasis>. Likewise when
       receiving a message, the return value will be <emphasis>null</emphasis> in the case of a timeout or interrupt.
-      The <classname>QueueChannel</classname> implementation wraps a queue. It provides a no-argument constructor as
-      well as a constructor that accepts the queue capacity:
-      <programlisting language="java">public QueueChannel(int capacity)</programlisting>
-      Specifying a capacity of 0 will create a "direct-handoff" channel where a sender will block until the channel's
-      <methodname>receive()</methodname> method is called. Otherwise a channel that has not reached its capacity limit
-      will store messages in its internal queue, and the <methodname>send()</methodname> method will return immediately
-      even if no receiver is ready to handle the message.
     </para>
     <para>
-      Whereas the <classname>QueueChannel</classname> enforces first-in/first-out (FIFO) ordering, the
-      <classname>PriorityChannel</classname> is an alternative implementation that allows for messages to be ordered
-      within the channel based upon a priority. By default the priority is determined by the
-      '<literal>priority</literal>' property within each message's header. However, for custom priority determination
-      logic, a comparator of type <classname>Comparator&lt;Message&lt;?&gt;&gt;</classname> can be provided to the
-      <classname>PriorityChannel</classname>'s constructor.
+      Spring Integration provides several different implementations of the
+      <interfacename>MessageChannel</interfacename> interface. Each is briefly described in the sections below.
     </para>
+    <section>
+      <title>QueueChannel</title>
+      <para>
+        The <classname>QueueChannel</classname> implementation wraps a queue. It provides a no-argument constructor
+        (that uses a default capacity of 100) as well as a constructor that accepts the queue capacity:
+        <programlisting language="java">public QueueChannel(int capacity)</programlisting>
+        A channel that has not reached its capacity limit will store messages in its internal queue, and the
+        <methodname>send()</methodname> method will return immediately even if no receiver is ready to handle the
+        message. If the queue has reached capacity, then the sender will block until room is available. Likewise, a
+        receive call will return immediately if a message is available on the queue, but if the queue is empty, then
+        a receive call may block until either a message is available or the timeout elapses. In either case, it is
+        possible to force an immediate return regardless of the queue's state by passing a timeout value of 0.
+        Note however, that calling the no-arg versions of <methodname>send()</methodname> and
+        <methodname>receive()</methodname> will block indefinitely.
+      </para>
+    </section>
+    <section>
+      <title>PriorityChannel</title>
+      <para>
+        Whereas the <classname>QueueChannel</classname> enforces first-in/first-out (FIFO) ordering, the
+        <classname>PriorityChannel</classname> is an alternative implementation that allows for messages to be ordered
+        within the channel based upon a priority. By default the priority is determined by the
+        '<literal>priority</literal>' property within each message's header. However, for custom priority determination
+        logic, a comparator of type <classname>Comparator&lt;Message&lt;?&gt;&gt;</classname> can be provided to the
+        <classname>PriorityChannel</classname>'s constructor.
+      </para>
+    </section>
+    <section>
+      <title>RendezvousChannel</title>
+      <para>
+        The <classname>RendezvousChannel</classname> enables a "direct-handoff" scenario where a sender will block
+        until another party invokes the channel's <methodname>receive()</methodname> method or vice-versa. Internally,
+        this implementation is quite similar to the <classname>QueueChannel</classname> except that it uses a
+        <classname>SynchronousQueue</classname> (a zero-capacity implementation of
+        <interfacename>BlockingQueue</interfacename>). This works well in situations where the sender and receiver are
+        operating in different threads but simply dropping the message in a queue asynchronously is too dangerous. For
+        example, the sender's thread could roll back a transaction if the send operation times out, whereas with a
+        <classname>QueueChannel</classname>, the message would have been stored to the internal queue and potentially
+        never received.
+      </para>
+      <para>
+        The <classname>RendezvousChannel</classname> is also useful for implementing request-reply
+        operations. The sender can create a temporary, anonymous instance of <classname>RendezvousChannel</classname>
+        which it then sets as the 'returnAddress' on a Message. After sending that Message, the sender can immediately
+        call receive (optionally providing a timeout value) in order to block while waiting for a reply Message.  
+      </para>
+    </section>
+    <section>
+      <title>DirectChannel</title>
+      <para>
+        The <classname>DirectChannel</classname> is significantly different than the channel implementations described
+        thus far. It's primary purpose is to enable a single thread to perform the operations on "both sides" of the
+        channel. For example, if a <classname>HandlerEndpoint</classname> is subscribed to a
+        <classname>DirectChannel</classname>, then sending a Message to that channel will trigger invocation of the
+        handler <emphasis>directly in the sender's thread</emphasis>. The key motivation for providing a channel
+        implementation with this behavior is to support transactions. If the send call is invoked within the scope of a
+        transaction, then the outcome of the handler invocation can play a role in determining the ultimate result of
+        that transaction (commit or rollback).
+      </para>
+    </section>
+    <section>
+      <title>ThreadLocalChannel</title>
+      <para>
+        The final channel implementation type is <classname>ThreadLocalChannel</classname>. This channel also delegates
+        to a queue internally, but the queue is bound to the current thread. That way the thread that sends to the
+        channel will later be able to receive those same Messages, but no other thread would be able to access them.
+        While probably the least common type of channel, this is useful for situations where
+        <classname>DirectChannels</classname> are being used to enforce a single thread of operation but any reply
+        Messages should be sent to a "terminal" channel. If that terminal channel is a
+        <classname>ThreadLocalChannel</classname>, the original sending thread could collect its replies.
+      </para>
+    </section>
   </section>
 
   <section id="api-channelinterceptor">
@@ -455,7 +516,7 @@ public void registerHandler(String name, MessageHandler handler,
     <para>
       Rather than programming to the API directly, it is simpler and more common to register sources, targets, and
       handlers with either XML or annotation-based metadata. Then, the message endpoint is an internal responsibility
-      of the bus. The configuration options are discussed in detail in <xref linkend="configuration"/>.
+      of the bus. The configuration options are discussed in detail in <xref linkend="namespace-endpoint"/>.
     </para>
   </section>
 

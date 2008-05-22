@@ -262,6 +262,11 @@
         and Message Endpoint components from within the application context. It handles the scheduling of pollers, the
         creation of thread pools, and the lifecycle management of all messaging components that can be initialized,
         started, and stopped. The Message Bus is the primary example of inversion of control within Spring Integration.
+        <mediaobject>
+          <imageobject>
+            <imagedata align="center" fileref="images/message-bus.png" format="PNG"/>
+          </imageobject>
+        </mediaobject>
       </para>
     </section>
   </section>
