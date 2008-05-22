@@ -100,31 +100,144 @@
 	    framework while handling that object. It consists of a payload and header and has a unique identifier. The
         payload can be of any type and the header holds commonly required information such as timestamp, expiration,
         and return address. Developers can also store any arbitrary key-value properties or attributes in the header.
+        <mediaobject>
+          <imageobject>
+            <imagedata align="center" fileref="images/message.png" format="PNG"/>
+          </imageobject>
+        </mediaobject>        
+      </para>
+    </section>
+    <section id="overview-components-source">
+      <title>Message Source</title>
+      <para>
+        Since a Spring Integration Message is a generic wrapper for any Object, there is no limit to the number of
+        potential sources for such messages. In fact, a Source implementation can act as an adapter that converts
+        Objects from any other system into Spring Integration Messages.
+        <mediaobject>
+          <imageobject>
+            <imagedata align="center" fileref="images/source.png" format="PNG"/>
+          </imageobject>
+        </mediaobject>
+        To facilitate the conversion of Objects to Messages, Spring Integration also defines a strategy interface
+        for creating Messages called <interfacename>MessageCreator</interfacename>. While it is relatively easy to
+        implement Source directly, an adapter is also available for invoking arbitrary methods on plain Objects. Also,
+        several Source implementations are already available within the Spring Integration Adapters module. For a
+        detailed discussion of the various adapters, see <xref linkend="adapters"/>.
+      </para>
+    </section>
+    <section>
+      <title>Message Target</title>
+      <para>
+        Just as a Source enables Message reception, a Target handles the responsibility of sending Messages. As with
+        a Source, a Target can act as an adapter that converts Messages into the Objects expected by some other system.
+        <mediaobject>
+          <imageobject>
+            <imagedata align="center" fileref="images/target.png" format="PNG"/>
+          </imageobject>
+        </mediaobject>
+        Spring Integration provides a strategy interface for mapping Messages to Objects called
+        <interfacename>MessaegMapper</interfacename>. The Target interface may be implemented directly, but an adapter
+        is also available for invoking arbitrary methods on plain Objects (delegating to the Message-mapping strategy
+        in the process). As with Sources, several Target implementations are already available within the Spring
+        Integration Adapters module as discussed in <xref linkend="adapters"/>.
+      </para>
+    </section>
+    <section id="overview-components-handler">
+      <title>Message Handler</title>
+      <para>
+        As described above, the Source and Target components support conversion between Objects and Messages so that
+        application code and/or external systems can be connected to a Spring Integration application rather easily.
+        However, both Source and Target are unidirectional while the application code or external system to be invoked
+        may provide a return value. The Message Handler interface supports these request-reply scenarios.
+        <mediaobject>
+          <imageobject>
+            <imagedata align="center" fileref="images/handler.png" format="PNG"/>
+          </imageobject>
+        </mediaobject>
+        As with the Source and Target, Spring Integration also provides an adapter that itself implements the Message
+        Handler interface while supporting the invocation of arbitrary methods on plain Objects. The adapter relies
+        upon the message-creating and message-mapping strategies to handle the bidirectional Object/Message conversion.
+        For more information about the Message Handler, see <xref linkend="api-messagehandler"/>.
       </para>
     </section>
     <section id="overview-components-channel">
       <title>Message Channel</title>
       <para>
         A Message Channel represents the "pipe" of a pipes-and-filters architecture. Producers send Messages to
-        a MessageChannel, and consumers receive Messages from a MessageChannel. The send and receive methods both come
-        in two forms: one that blocks indefinitely and one that accepts a timeout (for an immediate return, specify a
-        timeout value of 0). There are two main types of channels: <emphasis>Point-to-Point</emphasis> channels where
-        typically a single consumer will receive the Message and <emphasis>Publish-Subscribe</emphasis> channels where
-        all subscribers should receive the Message.
+        a channel, and consumers receive Messages from a channel. By providing both send and receive operations, a
+        Message Channel basically combines the roles of Source and Target.
+        <mediaobject>
+          <imageobject>
+            <imagedata align="center" fileref="images/channel.png" format="PNG"/>
+          </imageobject>
+        </mediaobject>
+        Spring Integration provides a number of different channel implementations: QueueChannel, PriorityChannel,
+        RendezvousChannel, DirectChannel, and ThreadLocalChannel. These are described in detail in
+        <xref linkend="api-messagechannel"/>.
       </para>
     </section>
     <section id="overview-components-endpoint">
       <title>Message Endpoint</title>
       <para>
-        A Message Endpoint represents the "filter" of a pipes-and-filters architecture. The endpoint's primary role is
-        to connect application code to the messaging framework and to do so in a non-invasive manner. In other words,
-        the application code should have no awareness of the messaging framework. This is similar to the role of a
-        Controller in the MVC paradigm. Just as a Controller handles HTTP requests, the endpoint handles Messages. Just
-        as Controllers are mapped to URL patterns, endpoints are mapped to Message Channels. The goal is the same in
-        both cases: isolate application code from the infrastructure. In Spring Integration, the Message Endpoint
-        "hosts" and delegates to a <interfacename>MessageHandler</interfacename> strategy interface as described in
-        <xref linkend="api-messagehandler"/>.
+        Thus far, the component diagrams show Consumers, Producers, and Requesters invoking the Source, Target, and
+        Message Handlers respectively. However, one of the primary goals of Spring Integration is to simplify the
+        development of enterprise integration solutions through <emphasis>inversion of control</emphasis>. This means
+        that you should not have to implement such Producers, Consumers, and Requesters directly. Instead, you should
+        be able to focus on your domain logic with an implementation based on plain Objects. Then, by providing
+        declarative configuration, you can "connect" your application code to the messaging infrastructure provided by
+        Spring Integration. The components responsible for these connections are Message Endpoints. 
       </para>
+      <para>
+        A Message Endpoint represents the "filter" of a pipes-and-filters architecture. As mentioned above, the
+        endpoint's primary role is to connect application code to the messaging framework and to do so in a
+        non-invasive manner. In other words, the application code should have no awareness of the Message objects or
+        the Message Channels. This is similar to the role of a Controller in the MVC paradigm. Just as a Controller
+        handles HTTP requests, the Message Endpoint handles Messages. Just as Controllers are mapped to URL patterns,
+        Message Endpoints are mapped to Message Channels. The goal is the same in both cases: isolate application code
+        from the infrastructure. Spring Integration provides three types of endpoints - one for each of the component
+        types described above: Source Endpoint, Target Endpoint, and Handler Endpoint.
+      </para>
+      <section>
+        <title>Source Endpoint</title>
+        <para>
+          A Source Endpoint connects any Source implementation to a Message Channel. The invocation of the Source's
+          receive operation is controlled by scheduling information provided within the Source Endpoint's
+          configuration. Any time the receive operation returns a non-null Message, it is sent to the channel.
+          <mediaobject>
+            <imageobject>
+              <imagedata align="center" fileref="images/source-endpoint.png" format="PNG"/>
+            </imageobject>
+          </mediaobject>
+        </para>
+      </section>
+      <section>
+        <title>Target Endpoint</title>
+        <para>
+          A Target Endpoint connects a Message Channel to any Target implementation. The invocation of the Message
+          Channel's receive operation is controlled by scheduling information provided within the Target Endpoint's
+          configuration. Any time a non-null Message is received from the channel, it is sent to the Target.
+          <mediaobject>
+            <imageobject>
+              <imagedata align="center" fileref="images/target-endpoint.png" format="PNG"/>
+            </imageobject>
+          </mediaobject>
+        </para>
+      </section>
+      <section>
+        <title>Handler Endpoint</title>
+        <para>
+          Since Message Handler's are capable of returning reply Messages, the Handler Endpoint has some additional
+          responsibilities. The general behavior is the same as the Target Endpoint, but the Handler Endpoint must
+          make a distinction between "input-channel" and "output-channel". Whenever the Message Handler does return
+          a reply Message, that Message is sent to the output channel. If no output channel has been configured, then
+          the reply will be sent to the channel specified as the Message header's "return address" if available.
+          <mediaobject>
+            <imageobject>
+              <imagedata align="center" fileref="images/handler-endpoint.png" format="PNG"/>
+            </imageobject>
+          </mediaobject>
+        </para>
+      </section>
     </section>
     <section id="overview-component-router">
       <title>Message Router</title>
@@ -133,18 +246,11 @@
         receiving a Message and then deciding what channel or channels should receive the Message next. Typically the
         decision is based upon the Message's content and/or metadata. A Message Router is often used as a dynamic
         alternative to configuring the input and output channels for an endpoint.
-      </para>
-    </section>
-    <section id="overview-component-channeladapter">
-      <title>Channel Adapter</title>
-      <para>
-        A Channel Adapter is used to connect components to a Message Channel when those components are not themselves
-        Message Endpoints. These adapters provide a mechanism for connecting to external systems, such as JMS queues
-        or a File system. Channel Adapters may be configured for input and/or output. An input (source) adapter will
-        receive (or poll for) data, convert that data to a Message, and then send that Message to its Message Channel.
-        An output (target) adapter is simply another type of <interfacename>MessageHandler</interfacename>, but when it
-        receives a Message, it will convert it to the target's expected type and then "send" it (publish to a JMS
-        queue, write to a File, etc.).
+        <mediaobject>
+          <imageobject>
+            <imagedata align="center" fileref="images/router.png" format="PNG"/>
+          </imageobject>
+        </mediaobject>
       </para>
     </section>
     <section id="overview-component-bus">

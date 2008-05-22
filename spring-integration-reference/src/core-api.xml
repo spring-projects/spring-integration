@@ -102,6 +102,48 @@ new GenericMessage&lt;T&gt;(T payload, MessageHeader headerToCopy)</programlisti
     </para>
   </section>
 
+  <section id="api-source">
+    <title>Source</title>
+    <para>
+      The <interfacename>Source</interfacename> interface defines a single method for receiving
+      <interfacename>Message</interfacename> objects.
+      <programlisting language="java">public interface Source&lt;T&gt; {
+    Message&lt;T&gt; receive();
+}</programlisting>
+      Spring Integration also provides a <classname>MethodInvokingSource</classname> implementation that serves as an
+      adapter for invoking any arbitrary method on a plain Object (i.e. there is no need to implement an interface).
+      To use the <classname>MethodInvokingSource</classname>, provide the Object reference and the method name.
+      <programlisting language="java">MethodInvokingSource source = new MethodInvokingSource();
+source.setObject(new SourceObject());
+source.setMethod("sourceMethod");
+Message&lt;?&gt; result = source.receive();</programlisting>
+      It is generally more common to configure a <classname>MethodInvokingSource</classname> in XML by providing a
+      bean reference.
+      <programlisting language="xml"><![CDATA[<source-adapter id="source" ref="sourceObject" method="sourceMethod"/>]]></programlisting>
+	</para>
+  </section>
+
+  <section id="api-target">
+    <title>Target</title>
+    <para>
+      The <interfacename>Target</interfacename> interface defines a single method for sending
+      <interfacename>Message</interfacename> objects.
+      <programlisting language="java">public interface Target {
+    boolean send(Message&lt;?&gt; message);
+}</programlisting>
+      As with the <interfacename>Source</interfacename>, Spring Integration also provides a
+      <classname>MethodInvokingTarget</classname> adapter class.
+      <programlisting language="java">MethodInvokingTarget target = new MethodInvokingTarget();
+target.setObject(new TargetObject());
+target.setMethodName("targetMethod");
+target.afterPropertiesSet();
+target.send(new StringMessage("test"));</programlisting>
+      Likewise, the corresponding XML configuration is very similar to that of
+      <classname>MethodInvokingSource</classname>.
+      <programlisting language="xml"><![CDATA[<target-adapter id="target" ref="targetObject" method="targetMethod"/>]]></programlisting>
+	</para>
+  </section>
+
   <section id="api-messagechannel">
     <title>MessageChannel</title>
     <para>
@@ -198,17 +240,17 @@ new GenericMessage&lt;T&gt;(T payload, MessageHeader headerToCopy)</programlisti
   <section id="api-messagebus">
     <title>MessageBus</title>
     <para>
-      There is a rather obvious gap in what we have reviewed thus far. The
-      <interfacename>MessageChannel</interfacename> provides a <methodname>receive()</methodname> method that returns
-      a <interfacename>Message</interfacename>, and the <interfacename>MessageHandler</interfacename> provides a
-      <methodname>handle()</methodname> method that accepts a <interfacename>Message</interfacename>, but how do the
-      messages get passed from the channel to the handler? As mentioned earlier, the <classname>MessageBus</classname>
-      provides a runtime form of inversion of control, and so the short answer is: you don't need to worry about it.
-      Nevertheless since this is a reference guide, we will explore this in a bit of detail.
+      So far, you have seen that the <interfacename>MessageChannel</interfacename> provides a
+      <methodname>receive()</methodname> method that returns a <interfacename>Message</interfacename>, and the
+      <interfacename>MessageHandler</interfacename> provides a <methodname>handle()</methodname> method that accepts a
+      <interfacename>Message</interfacename>, but how do the messages get passed from the channel to the handler?
+      As mentioned earlier, the <classname>MessageBus</classname> provides a runtime form of inversion of control, and
+      one of the primary responsibilities that it assumes is connecting the channels to the handlers. It also connects
+      Sources and Targets to channels, and it manages the scheduling of pollers and dispatchers.
     </para>
     <para>
       The <interfacename>MessageBus</interfacename> is an example of a mediator. It performs a number of roles - mostly
-      by delegating to other strategies. One of its fundamental responsibilities is to manage registration of the
+      by delegating to other strategies. One of its main responsibilities is to manage registration of the
       <interfacename>MessageChannels</interfacename> and <interfacename>MessageHandlers</interfacename>. It provides
       the following methods:
       <programlisting language="java">public void registerChannel(String name, MessageChannel channel)
@@ -394,24 +436,26 @@ public void registerHandler(String name, MessageHandler handler,
   <section id="api-messageendpoint">
     <title>MessageEndpoint</title>
     <para>
-      When <interfacename>MessageHandlers</interfacename> are registered with the <classname>MessageBus</classname>,
-      the bus assigns the handler to a dispatcher based on the provided schedule as described above. Internally, the
-      bus is creating and registering an instance that implements the <interfacename>MessageEndpoint</interfacename>
-      interface. This is where other handler metadata enters the picture (e.g. the concurrency settings). Basically,
-      you can consider the endpoint to be a composite handler built from a simple implementation of the
-      <interfacename>MessageHandler</interfacename> along with its metadata. In fact, the
-      <interfacename>MessageEndpoint</interfacename> does extend the <interfacename>MessageHandler</interfacename>
-      interface.
-      <programlisting language="java">public interface MessageEndpoint extends MessageHandler {
-    String getName();
-    Subscription getSubscription();
-    ConcurrencyPolicy getConcurrencyPolicy();
-}</programlisting>
+      As described in <xref linkend="overview"/>, there are three implementations of the
+      <interfacename>MessageEndpoint</interfacename> interface: <classname>SourceEndpoint</classname>,
+      <classname>TargetEndpoint</classname>, and <classname>HandlerEndpoint</classname>. These endpoints provide the
+      metadata necessary for the <classname>MessageBus</classname> to manage <interfacename>Sources</interfacename>,
+      <interfacename>Targets</interfacename>, and <interfacename>MessageHandlers</interfacename> respectively.
     </para>
     <para>
-      When using the API, it's simpler to register handlers with metadata and leave the message endpoint as an internal
-      responsibility of the bus. However, it is possible to create endpoints directly. Spring Integration provides a
-      single implementation: <classname>DefaultMessageEndpoint</classname>.
+      For a <interfacename>SourceEndpoint</interfacename>, the <classname>MessageBus</classname> schedules a task for
+      polling the <interfacename>Source</interfacename> based on the provided schedule.
+    </para>
+    <para>
+      When a <interfacename>Target</interfacename> or <interfacename>MessageHandler</interfacename> is registered with
+      the <classname>MessageBus</classname>, the bus assigns it to a dispatcher that polls a
+      <interfacename>MessageChannel</interfacename> based on the provided schedule. Targets and handlers may also
+      provide concurrency settings in which case a thread pool will be created for asynchronous processing of messages.
+    </para>
+    <para>
+      Rather than programming to the API directly, it is simpler and more common to register sources, targets, and
+      handlers with either XML or annotation-based metadata. Then, the message endpoint is an internal responsibility
+      of the bus. The configuration options are discussed in detail in <xref linkend="configuration"/>.
     </para>
   </section>
 

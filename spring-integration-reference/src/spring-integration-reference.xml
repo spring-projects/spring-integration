@@ -5,7 +5,7 @@
     <title>Spring Integration Reference Manual</title>
 
     <productname>Spring Integration</productname>
-    <releaseinfo>1.0.0.M3 (Milestone 3)</releaseinfo>
+    <releaseinfo>1.0.0.M4 (Milestone 4)</releaseinfo>
 
     <mediaobject>
       <imageobject role="fo">
@@ -38,5 +38,6 @@
   <xi:include href="./configuration.xml"/>
   <xi:include href="./samples.xml"/>
   <xi:include href="./resources.xml"/>
+  <xi:include href="./appendix.xml"/>
 
 </book>
