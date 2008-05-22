@@ -28,7 +28,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
-import org.springframework.integration.channel.config.DirectChannelParser;
 import org.springframework.integration.channel.config.PriorityChannelParser;
 import org.springframework.integration.channel.config.QueueChannelParser;
 import org.springframework.integration.channel.config.RendezvousChannelParser;

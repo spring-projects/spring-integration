@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.channel.factory;
+package org.springframework.integration.dispatcher;
 
 import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.DispatcherPolicy;
+import org.springframework.integration.channel.factory.AbstractChannelFactory;
+import org.springframework.integration.channel.factory.ChannelFactory;
 
 /**
  * A {@link ChannelFactory} for creating {@link DirectChannel} instances.

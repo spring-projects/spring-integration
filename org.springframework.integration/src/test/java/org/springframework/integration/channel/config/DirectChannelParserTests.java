@@ -24,7 +24,7 @@ import static org.junit.Assert.assertNull;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.dispatcher.DirectChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 

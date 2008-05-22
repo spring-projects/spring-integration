@@ -9,7 +9,7 @@
 
 	<message-bus channel-factory="directChannelFactory"/>
 
-	<beans:bean id="directChannelFactory" class="org.springframework.integration.channel.factory.DirectChannelFactory"/>	
+	<beans:bean id="directChannelFactory" class="org.springframework.integration.dispatcher.DirectChannelFactory"/>	
 
     <channel id="defaultTypeChannel"/>
 

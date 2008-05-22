@@ -27,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
-import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.Source;
 import org.springframework.integration.message.StringMessage;

@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.channel.config;
+package org.springframework.integration.config;
 
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.DispatcherPolicy;
+import org.springframework.integration.channel.config.AbstractChannelParser;
+import org.springframework.integration.dispatcher.DirectChannel;
 import org.springframework.util.StringUtils;
 
 /**

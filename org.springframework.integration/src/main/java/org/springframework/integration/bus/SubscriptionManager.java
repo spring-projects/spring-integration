@@ -27,9 +27,9 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.dispatcher.DefaultPollingDispatcher;
+import org.springframework.integration.dispatcher.DirectChannel;
 import org.springframework.integration.dispatcher.PollingDispatcherTask;
 import org.springframework.integration.endpoint.TargetEndpoint;
 import org.springframework.integration.message.MessagingException;
