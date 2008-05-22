@@ -169,7 +169,7 @@ target.send(new StringMessage("test"));</programlisting>
       Spring Integration provides several different implementations of the
       <interfacename>MessageChannel</interfacename> interface. Each is briefly described in the sections below.
     </para>
-    <section>
+    <section id="api-messagechannel-queuechannel">
       <title>QueueChannel</title>
       <para>
         The <classname>QueueChannel</classname> implementation wraps a queue. It provides a no-argument constructor
@@ -185,7 +185,7 @@ target.send(new StringMessage("test"));</programlisting>
         <methodname>receive()</methodname> will block indefinitely.
       </para>
     </section>
-    <section>
+    <section id="api-messagechannel-prioritychannel">
       <title>PriorityChannel</title>
       <para>
         Whereas the <classname>QueueChannel</classname> enforces first-in/first-out (FIFO) ordering, the
@@ -196,7 +196,7 @@ target.send(new StringMessage("test"));</programlisting>
         <classname>PriorityChannel</classname>'s constructor.
       </para>
     </section>
-    <section>
+    <section id="api-messagechannel-rendezvouschannel">
       <title>RendezvousChannel</title>
       <para>
         The <classname>RendezvousChannel</classname> enables a "direct-handoff" scenario where a sender will block
@@ -216,7 +216,7 @@ target.send(new StringMessage("test"));</programlisting>
         call receive (optionally providing a timeout value) in order to block while waiting for a reply Message.  
       </para>
     </section>
-    <section>
+    <section id="api-messagechannel-directchannel">
       <title>DirectChannel</title>
       <para>
         The <classname>DirectChannel</classname> is significantly different than the channel implementations described
@@ -229,7 +229,7 @@ target.send(new StringMessage("test"));</programlisting>
         that transaction (commit or rollback).
       </para>
     </section>
-    <section>
+    <section id="api-messagechannel-threadlocalchannel">
       <title>ThreadLocalChannel</title>
       <para>
         The final channel implementation type is <classname>ThreadLocalChannel</classname>. This channel also delegates
