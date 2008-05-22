@@ -176,10 +176,12 @@
 </handler-endpoint>]]></programlisting>
       </para>
       <note>
-        Individual endpoint schedules only apply for "Point-to-Point" channels, since in that case only a single
-        subscriber needs to receive the message. On the other hand, when a Spring Integration channel is configured as
-        a "Publish-Subscribe" channel, then the dispatcher will drive all endpoint notifications according to its own
-        default schedule, and any 'schedule' element configured for those endpoints will be ignored.
+        <para>
+          Individual endpoint schedules only apply for "Point-to-Point" channels, since in that case only a single
+          subscriber needs to receive the message. On the other hand, when a Spring Integration channel is configured as
+          a "Publish-Subscribe" channel, then the dispatcher will drive all endpoint notifications according to its own
+          default schedule, and any 'schedule' element configured for those endpoints will be ignored.
+        </para>
       </note>
       <para>
         One of the most important configuration options for endpoints is the concurrency policy. Each endpoint is
@@ -197,13 +199,16 @@
         <classname>ConcurrencyPolicy</classname>), the endpoint's handler will be invoked in the caller's thread.
       </para>
       <tip>
-        The default queue capacity of 0 triggers the creation of a <classname>SynchronousQueue</classname>. In many
-        cases, this is preferable since the direct handoff eliminates the chance of a message handling task being
-        "stuck" in the queue (thread pool executors will favor adding to the queue rather than increasing the pool
-        size). Specifically, whenever a dispatcher for a Point-to-Point channel has more than one subscribed endpoint,
-        a task that is rejected due to an exhausted thread pool can be handled immediately by another endpoint whose
-        pool has one or more threads available. On the other hand, when a particular channel/endpoint may be expecting
-        bursts of activity, setting a queue capacity value might be the best way to accommodate the volume.
+        <para>
+          The default queue capacity of 0 triggers the creation of a <classname>SynchronousQueue</classname>. In many
+          cases, this is preferable since the direct handoff eliminates the chance of a message handling task being
+          "stuck" in the queue (thread pool executors will favor adding to the queue rather than increasing the pool
+          size). Specifically, whenever a dispatcher for a Point-to-Point channel has more than one subscribed
+          endpoint, a task that is rejected due to an exhausted thread pool can be handled immediately by another
+          endpoint whose pool has one or more threads available. On the other hand, when a particular channel/endpoint
+          may be expecting bursts of activity, setting a queue capacity value might be the best way to accommodate the
+          volume.
+        </para>
       </tip>
     </section>
 

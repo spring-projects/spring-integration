@@ -48,28 +48,28 @@
     <para>Spring Integration is motivated by the following goals:
       <itemizedlist>
         <listitem>
-          Provide a simple model for implementing complex enterprise integration solutions.
+          <para>Provide a simple model for implementing complex enterprise integration solutions.</para>
         </listitem>
         <listitem>
-          Facilitate asynchronous, message-driven behavior within a Spring-based application.
+          <para>Facilitate asynchronous, message-driven behavior within a Spring-based application.</para>
         </listitem>
         <listitem>
-          Promote intuitive, incremental adoption for existing Spring users.
+          <para>Promote intuitive, incremental adoption for existing Spring users.</para>
         </listitem>
       </itemizedlist>
     </para>
     <para>Spring Integration is guided by the following principles:
       <itemizedlist>
         <listitem>
-          Components should be <emphasis>loosely coupled</emphasis> for modularity and testability.
+          <para>Components should be <emphasis>loosely coupled</emphasis> for modularity and testability.</para>
         </listitem>
         <listitem>
-          The framework should enforce <emphasis>separation of concerns</emphasis> between business logic and
-          integration logic.
+          <para>The framework should enforce <emphasis>separation of concerns</emphasis> between business logic and
+          integration logic.</para>
         </listitem>
         <listitem>
-          Extension points should be abstract in nature but within well-defined boundaries to promote
-	      <emphasis>reuse</emphasis> and <emphasis>portability</emphasis>.
+          <para>Extension points should be abstract in nature but within well-defined boundaries to promote
+	      <emphasis>reuse</emphasis> and <emphasis>portability</emphasis>.</para>
         </listitem>
       </itemizedlist>
     </para>
