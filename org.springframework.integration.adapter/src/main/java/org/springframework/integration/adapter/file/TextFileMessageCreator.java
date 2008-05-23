@@ -22,8 +22,8 @@ import java.io.FileReader;
 import org.springframework.util.FileCopyUtils;
 
 /**
- * A {@link org.springframework.integration.message.MessageMapper}
- * implementation for messages with a String payload.
+ * A {@link org.springframework.integration.message.MessageCreator}
+ * implementation for creating messages with a String payload from a File.
  * 
  * @author Mark Fisher
  * @author Marius Bogoevici

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.adapter.file;
 
 import java.io.File;
@@ -27,7 +28,7 @@ import org.springframework.util.FileCopyUtils;
 /**
  * A default {@link MessageMapper} for {@link FileTarget}, converting payloads of the
  * {@link File}, {@code byte[]} and {@link String} types to files. The name of the newly
- * created is defined by the {@link FileNameGenerator} instance configured with it.
+ * created file is defined by the {@link FileNameGenerator} instance configured with it.
  * By default, it uses a {@link DefaultFileNameGenerator}.
  * 
  * @author Marius Bogoevici
@@ -38,12 +39,11 @@ public class SimpleFileMessageMapper implements MessageMapper<Object, File> {
 
 	private final File parentDirectory;
 
-	
+
 	public SimpleFileMessageMapper(String parentDirectoryPath) {
 		this(new File(parentDirectoryPath));
 	}
 
-	
 	public SimpleFileMessageMapper(File parentDirectory) {
 		this.parentDirectory = parentDirectory;
 	}

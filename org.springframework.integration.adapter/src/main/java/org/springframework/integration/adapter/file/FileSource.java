@@ -42,32 +42,32 @@ import org.springframework.util.StringUtils;
  * @author Marius Bogoevici
  */
 public class FileSource implements Source<Object>, InitializingBean, MessageDeliveryAware {
-	
+
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final File directory;
 
 	private volatile MessageCreator<File, ?> messageCreator;
-	
+
 	private volatile FileFilter fileFilter;
 
 	private volatile FilenameFilter filenameFilter;
 
 	private final DirectoryContentManager directoryContentManager = new DirectoryContentManager();
-	
-	
+
+
 	public FileSource(File directory) {
 		this(directory, new FileMessageCreator());
 	}
 
 	public FileSource(File directory, MessageCreator<File, ?> messageCreator) {
 		Assert.notNull(directory, "directory must not be null");
-		this.directory = directory;
 		Assert.notNull(messageCreator, "MessageCreator must not be null");
+		this.directory = directory;
 		this.messageCreator = messageCreator;
 	}
 
-	
+
 	public void setMessageCreator(MessageCreator<File, ?> messageCreator) {
 		this.messageCreator = messageCreator;
 	}
@@ -127,8 +127,8 @@ public class FileSource implements Source<Object>, InitializingBean, MessageDeli
 
 	public void onFailure(MessagingException exception) {
 		if (this.logger.isWarnEnabled()) {
-			logger.warn("FtpSource received failure notifcation", exception);
+			logger.warn("FileSource received failure notifcation", exception);
 		}
 	}
-	
+
 }

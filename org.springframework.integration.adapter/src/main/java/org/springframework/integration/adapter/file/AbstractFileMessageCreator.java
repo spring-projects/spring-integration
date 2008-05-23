@@ -20,6 +20,7 @@ import java.io.File;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageCreator;
@@ -34,6 +35,7 @@ import org.springframework.integration.message.MessagingException;
 public abstract class AbstractFileMessageCreator<T> implements MessageCreator<File, T> {
 
 	protected Log logger = LogFactory.getLog(this.getClass());
+
 
 	public Message<T> createMessage(File file) {
 		try {
