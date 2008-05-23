@@ -38,6 +38,5 @@
   <xi:include href="./configuration.xml"/>
   <xi:include href="./samples.xml"/>
   <xi:include href="./resources.xml"/>
-  <xi:include href="./appendix.xml"/>
 
 </book>
