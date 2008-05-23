@@ -7,42 +7,42 @@ Import-Package: javax.jms;version="[1.1.0, 2.0.0)";resolution:=optiona
  ;version="[2.4.0, 3.0.0)";resolution:=optional,javax.servlet.http;ver
  sion="[2.4.0, 3.0.0)";resolution:=optional,org.apache.commons.logging
  ;version="[1.1.1, 2.0.0)",org.apache.commons.net.ftp;version="[1.4.1,
-  2.0.0)";resolution:=optional,org.springframework.beans.factory;versi
- on="[2.5.4.A, 3.0.0)",org.springframework.beans.factory.config;versio
- n="[2.5.4.A, 3.0.0)",org.springframework.beans.factory.parsing;versio
- n="[2.5.4.A, 3.0.0)",org.springframework.beans.factory.support;versio
- n="[2.5.4.A, 3.0.0)",org.springframework.beans.factory.xml;version="[
- 2.5.4.A, 3.0.0)",org.springframework.context;version="[2.5.4.A, 3.0.0
- )",org.springframework.core.io;version="[2.5.4.A, 3.0.0)",org.springf
- ramework.core.task;version="[2.5.4.A, 3.0.0)",org.springframework.int
- egration;version="[1.0.0, 1.0.0]",org.springframework.integration.ada
- pter.file.config;version="[1.0.0, 1.0.0]",org.springframework.integra
- tion.adapter.ftp.config;version="[1.0.0, 1.0.0]",org.springframework.
- integration.adapter.httpinvoker.config;version="[1.0.0, 1.0.0]",org.s
- pringframework.integration.adapter.jms.config;version="[1.0.0, 1.0.0]
- ",org.springframework.integration.adapter.mail.config;version="[1.0.0
- , 1.0.0]",org.springframework.integration.adapter.rmi.config;version=
- "[1.0.0, 1.0.0]",org.springframework.integration.adapter.stream.confi
- g;version="[1.0.0, 1.0.0]",org.springframework.integration.channel;ve
- rsion="[1.0.0, 1.0.0]",org.springframework.integration.gateway;versio
- n="[1.0.0, 1.0.0]",org.springframework.integration.handler;version="[
- 1.0.0, 1.0.0]",org.springframework.integration.message;version="[1.0.
- 0, 1.0.0]",org.springframework.integration.scheduling;version="[1.0.0
- , 1.0.0]",org.springframework.jms.core;version="[2.5.4.A, 3.0.0)";res
- olution:=optional,org.springframework.jms.listener;version="[2.5.4.A,
-  3.0.0)";resolution:=optional,org.springframework.jms.listener.adapte
- r;version="[2.5.4.A, 3.0.0)";resolution:=optional,org.springframework
- .jms.support.converter;version="[2.5.4.A, 3.0.0)";resolution:=optiona
- l,org.springframework.mail;version="[2.5.4.A, 3.0.0)";resolution:=opt
- ional,org.springframework.mail.javamail;version="[2.5.4.A, 3.0.0)";re
- solution:=optional,org.springframework.remoting;version="[2.5.4.A, 3.
- 0.0)";resolution:=optional,org.springframework.remoting.httpinvoker;v
- ersion="[2.5.4.A, 3.0.0)";resolution:=optional,org.springframework.re
- moting.rmi;version="[2.5.4.A, 3.0.0)";resolution:=optional,org.spring
- framework.remoting.support;version="[2.5.4.A, 3.0.0)";resolution:=opt
- ional,org.springframework.util;version="[2.5.4.A, 3.0.0)",org.springf
- ramework.web;version="[2.5.4.A, 3.0.0)";resolution:=optional,org.w3c.
- dom
+  2.0.0)";resolution:=optional,org.springframework.beans;version="[2.5
+ .4.A, 3.0.0)",org.springframework.beans.factory;version="[2.5.4.A, 3.
+ 0.0)",org.springframework.beans.factory.config;version="[2.5.4.A, 3.0
+ .0)",org.springframework.beans.factory.parsing;version="[2.5.4.A, 3.0
+ .0)",org.springframework.beans.factory.support;version="[2.5.4.A, 3.0
+ .0)",org.springframework.beans.factory.xml;version="[2.5.4.A, 3.0.0)"
+ ,org.springframework.context;version="[2.5.4.A, 3.0.0)",org.springfra
+ mework.core.io;version="[2.5.4.A, 3.0.0)",org.springframework.core.ta
+ sk;version="[2.5.4.A, 3.0.0)",org.springframework.integration;version
+ ="[1.0.0, 1.0.0]",org.springframework.integration.adapter.file.config
+ ;version="[1.0.0, 1.0.0]",org.springframework.integration.adapter.ftp
+ .config;version="[1.0.0, 1.0.0]",org.springframework.integration.adap
+ ter.httpinvoker.config;version="[1.0.0, 1.0.0]",org.springframework.i
+ ntegration.adapter.jms.config;version="[1.0.0, 1.0.0]",org.springfram
+ ework.integration.adapter.mail.config;version="[1.0.0, 1.0.0]",org.sp
+ ringframework.integration.adapter.rmi.config;version="[1.0.0, 1.0.0]"
+ ,org.springframework.integration.adapter.stream.config;version="[1.0.
+ 0, 1.0.0]",org.springframework.integration.channel;version="[1.0.0, 1
+ .0.0]",org.springframework.integration.gateway;version="[1.0.0, 1.0.0
+ ]",org.springframework.integration.handler;version="[1.0.0, 1.0.0]",o
+ rg.springframework.integration.message;version="[1.0.0, 1.0.0]",org.s
+ pringframework.integration.scheduling;version="[1.0.0, 1.0.0]",org.sp
+ ringframework.jms.core;version="[2.5.4.A, 3.0.0)";resolution:=optiona
+ l,org.springframework.jms.listener;version="[2.5.4.A, 3.0.0)";resolut
+ ion:=optional,org.springframework.jms.listener.adapter;version="[2.5.
+ 4.A, 3.0.0)";resolution:=optional,org.springframework.jms.support.con
+ verter;version="[2.5.4.A, 3.0.0)";resolution:=optional,org.springfram
+ ework.mail;version="[2.5.4.A, 3.0.0)";resolution:=optional,org.spring
+ framework.mail.javamail;version="[2.5.4.A, 3.0.0)";resolution:=option
+ al,org.springframework.remoting;version="[2.5.4.A, 3.0.0)";resolution
+ :=optional,org.springframework.remoting.httpinvoker;version="[2.5.4.A
+ , 3.0.0)";resolution:=optional,org.springframework.remoting.rmi;versi
+ on="[2.5.4.A, 3.0.0)";resolution:=optional,org.springframework.remoti
+ ng.support;version="[2.5.4.A, 3.0.0)";resolution:=optional,org.spring
+ framework.util;version="[2.5.4.A, 3.0.0)",org.springframework.web;ver
+ sion="[2.5.4.A, 3.0.0)";resolution:=optional,org.w3c.dom
 Export-Package: org.springframework.integration.adapter;version="1.0.0
  .M4";uses:="org.springframework.integration.channel,org.springframewo
  rk.integration.handler,org.springframework.integration.message",org.s
