@@ -6,13 +6,24 @@
   <section id="adapters-intro">
     <title>Introduction</title>
     <para>
-      Channel Adapters are the components responsible for interacting with external systems or other components that
-      are external to the messaging system. As the name implies, the interaction consists of adapting the external
-      system or component to send-to and/or receive-from a <interfacename>MessageChannel</interfacename>. Within
-      Spring Integration, there is a distinction between <emphasis>source adapters</emphasis> and <emphasis>target
-      adapters</emphasis>. In the 1.0 Milestone 3 release, Spring Integration includes source and target adapters
-      for JMS, RMI, Files, Streams, Spring's HttpInvoker and Spring ApplicationEvents. A source adapter for FTP is
+      Spring Integration provides a number of implementations of the <interfacename>Source</interfacename> and
+      <interfacename>Target</interfacename> interfaces that serve as adapters for interacting with external
+      systems or components that are not part of the messaging system. Configuring these source and target
+      implementations within <classname>SourceEndpoints</classname> and <classname>TargetEndpoints</classname>
+      provides an implementation of the <emphasis>Channel Adapter</emphasis> pattern. Essentially, the external
+      system or component sends-to and/or receives-from a <interfacename>MessageChannel</interfacename>. In the
+      1.0 Milestone 4 release, Spring Integration includes source and target implementations for JMS, RMI,
+      Files, Streams, Spring's HttpInvoker and Spring ApplicationEvents. A source adapter for FTP is
       also available as well as target adapters for sending e-mail and invoking Web Services.
+    </para>
+    <para>
+      Adapters that allow the external system to perform request-reply operations across Spring Integration
+      <interfacename>MessageChannels</interfacename> are actually examples of the <emphasis>Messaging Gateway</emphasis>
+      pattern. Therefore, those implementations are typically called "gateways". For example, Spring Integration
+      provides a <classname>JmsSource</classname> that is <emphasis>polled by</emphasis> the bus-managed
+      scheduler, but it also provides a <classname>JmsGateway</classname>. The gateway differs from the source in
+      that it is an <emphasis>event-driven consumer</emphasis> rather than a <emphasis>polling consumer</emphasis>,
+      and it is capable of waiting for reply messages.
     </para>
     <para>
       All of these adapters are discussed in this section. However, namespace support is provided for many of them
@@ -24,48 +35,39 @@
   <section id="adapters-jms">
     <title>JMS Adapters</title>
     <para>
-      Spring Integration provides two adapters for accepting JMS messages:
-      <classname>JmsPollingSourceAdapter</classname> and <classname>JmsMessageDrivenSourceAdapter</classname>.
-      The former uses Spring's <classname>JmsTemplate</classname> to receive based on a polling period. The latter
-      configures and delegates to an instance of Spring's <classname>DefaultMessageListenerContainer</classname>.
+      Spring Integration provides two adapters for accepting JMS messages (as mentioned above):
+      <classname>JmsSource</classname> and <classname>JmsGateway</classname>. The former uses Spring's
+      <classname>JmsTemplate</classname> to receive based on a polling period. The latter configures and delegates to
+      an instance of Spring's <classname>DefaultMessageListenerContainer</classname>.
     </para>
     <para>
-      The <classname>JmsPollingSourceAdapter</classname> requires a reference to either a single
-      <classname>JmsTemplate</classname> instance or both <interfacename>ConnectionFactory</interfacename> and
-      <interfacename>Destination</interfacename> (a 'destinationName' can be provided in place of the 'destination'
-      reference). The <classname>JmsPollingSourceAdapter</classname> also requires a 'channel' property that should be
-      a reference to a <interfacename>MessageChannel</interfacename> instance. The adapter accepts additional
-      properties such as: period, initialDelay, maxMessagesPerTask, and sendTimeout. The following example defines a
-      JMS source adapter that polls every 5 seconds and then sends to the "exampleChannel":
-      <programlisting language="xml"><![CDATA[<bean class="org.springframework.integration.adapter.jms.JmsPollingSourceAdapter">
+      The <classname>JmsSource</classname> requires a reference to either a single <classname>JmsTemplate</classname>
+      instance or both <interfacename>ConnectionFactory</interfacename> and <interfacename>Destination</interfacename>
+      (a 'destinationName' can be provided in place of the 'destination' reference). The <classname>JmsSource</classname>
+      can then be referenced from a <classname>SourceEndpoint</classname> that connects the source to  a
+      <interfacename>MessageChannel</interfacename> instance. The following example defines a JMS source with
+      a <classname>JmsTemplate</classname> as a constructor-argument.
+      <programlisting language="xml"><![CDATA[<bean id="jmsSource" class="org.springframework.integration.adapter.jms.JmsSource">
     <constructor-arg ref="jmsTemplate"/>
-    <property name="channel" ref="exampleChannel"/>
-    <property name="period" value="5000"/>
 </bean>]]></programlisting>
     </para>
     <para>
-      In most cases, Spring Integration's message-driven JMS adapter is more appropriate since it delegates to a
-      <interfacename>MessageListener</interfacename> container and supports dynamically adjusting concurrent
-      consumers. The <classname>JmsMessageDrivenSourceAdapter</classname> requires references to a
-      <interfacename>MessageChannel</interfacename>, a <interfacename>ConnectionFactory</interfacename>, and a
-      <interfacename>Destination</interfacename> (or 'destinationName'). The following example defines a JMS
-      message-driven source adapter that receives from the JMS queue called "exampleQueue" and then sends to
-      the Spring Integration channel named "exampleChannel":
-      <programlisting language="xml"><![CDATA[<bean class="org.springframework.integration.adapter.jms.JmsMessageDrivenSourceAdapter">
+      In most cases, Spring Integration's message-driven <classname>JmsGateway</classname> is more appropriate since it
+      delegates to a <interfacename>MessageListener</interfacename> container, supports dynamically adjusting
+      concurrent consumers, and can also handle replies. The <classname>JmsGateway</classname> requires references to
+      a <interfacename>ConnectionFactory</interfacename>, and a <interfacename>Destination</interfacename> (or
+      'destinationName'). The following example defines a <classname>JmsGateway</classname> that receives from the JMS
+      queue called "exampleQueue". Note that the 'expectReply' property has been set to 'true' (it is 'false' by
+      default):
+      <programlisting language="xml"><![CDATA[<bean class="org.springframework.integration.adapter.jms.JmsGateway">
     <property name="connectionFactory" ref="connectionFactory"/>
     <property name="destinationName" value="exampleQueue"/>
-    <property name="channel" ref="exampleChannel"/>
+    <property name="expectReply" value="true"/>
 </bean>]]></programlisting>
     </para>
     <para>
-      For both source adapter types, Spring's <interfacename>MessageConverter</interfacename> strategy is used to
-      convert the JMS message into a plain Java object, and then Spring Integration's
-      <interfacename>MessageMapper</interfacename> strategy is used to convert from the plain object to a
-      <interfacename>Message</interfacename>.
-    </para>
-    <para>
-      The <classname>JmsTargetAdapter</classname> is a <interfacename>MessageHandler</interfacename> implementation
-      that is capable of mapping Spring Integration <interfacename>Messages</interfacename> to JMS messages and then
+      The <classname>JmsTarget</classname> implements the <interfacename>Target</interfacename> interface
+      and is capable of mapping Spring Integration <interfacename>Messages</interfacename> to JMS messages and then
       sending to a JMS destination. It requires either a 'jmsTemplate' reference or both 'connectionFactory' and
       'destination' references (again, the 'destinationName' may be provided in place of the 'destination). In
       <xref linkend="namespace-adapters"/>, you will see how to configure a JMS target adapter with Spring
@@ -116,13 +118,13 @@ RmiTargetAdapter rmiTargetAdapter = new RmiTargetAdapter(url);
   <section id="adapters-file">
     <title>File Adapters</title>
     <para>
-      The <classname>FileSourceAdapter</classname> extends the generic <classname>PollingSourceAdapter</classname>
-      (just as the polling JMS adapter does). It requires the following constructor arguments:
-      <programlisting language="java">public FileSourceAdapter(File directory, MessageChannel channel, int period)</programlisting>
-      Optional properties include 'initialDelay' and 'maxMessagesPerTask'.
+      The <classname>FileSource</classname> requires the directory as a constructor argument:
+      <programlisting language="java">public FileSource(File directory)</programlisting>
+      It can then be connected to a <interfacename>MessageChannel</interfacename> when referenced from
+      a <classname>SourceEndpoint</classname>.
     </para>
     <para>
-      The <classname>FileTargetAdapter</classname> constructor only requires the 'directory' argument. The target
+      The <classname>FileTarget</classname> constructor also requires the 'directory' argument. The target
       adapter also accepts an implementation of the <interfacename>FileNameGenerator</interfacename> strategy that
       defines the following method: <programlisting language="java">String generateFileName(Message message)</programlisting>
     </para>
@@ -130,9 +132,9 @@ RmiTargetAdapter rmiTargetAdapter = new RmiTargetAdapter(url);
   <section id="adapters-ftp">
     <title>FTP Adapters</title>
     <para>
-      To poll a directory with FTP, configure an instance of <classname>FtpSourceAdapter</classname>. The adapter
-      expects a number of properties for connecting to the FTP server (as shown below) as well as the
-      'channel' and the 'period' for polling. For example, the following adapter would poll every 30 seconds:
+      To poll a directory with FTP, configure an instance of <classname>FtpSource</classname> and then connect
+      it to a channel by configuring a <classname>SourceEndpoint</classname>. The <classname>FtpSource</classname>
+      expects a number of properties for connecting to the FTP server as shown below.
 <programlisting language="xml"><![CDATA[<bean id="ftpSource"
     class="org.springframework.integration.adapter.ftp.FtpSourceAdapter">
     <property name="host" value="example.org"/>
@@ -140,8 +142,6 @@ RmiTargetAdapter rmiTargetAdapter = new RmiTargetAdapter(url);
     <property name="password" value="somepassword"/>
     <property name="localWorkingDirectory" value="/some/path"/>
     <property name="remoteWorkingDirectory" value="/some/path"/>
-    <property name="channel" ref="someChannel"/>
-    <property name="period" value="30000"/>
 </bean>]]></programlisting>
     </para>
   </section>
@@ -149,7 +149,7 @@ RmiTargetAdapter rmiTargetAdapter = new RmiTargetAdapter(url);
     <title>Mail Adapters</title>
     <para>
       Spring Integration currently provides support for <emphasis>outbound</emphasis> email only with the
-      <classname>MailTargetAdapter</classname>. This adapter delegates to a configured instance of Spring's
+      <classname>MailTarget</classname>. This adapter delegates to a configured instance of Spring's
       <interfacename>JavaMailSender</interfacename>, and its various mapping strategies use Spring's
       <interfacename>MailMessage</interfacename> abstraction. By default text-based mails are created when
       the handled message has a String-based payload. If the message payload is a byte array, then that will
@@ -194,10 +194,10 @@ MailAttributeKeys.REPLY_TO</programlisting>
 
 marshallingAdapter = new MarshallingWebServiceTargetAdapter(uri, marshaller);
 </programlisting>
-      As with the other target adapters, this can then be referenced from a <classname>MessageEndpoint</classname>
-      that is subscribed to a channel. The endpoint is then responsible for passing the response to the proper
-      channel. It will first check for a <emphasis>returnAddress</emphasis> on the original message's header, and it
-      will fallback to the endpoint's own default output channel.
+      Either adapter can then be referenced from a <classname>HandlerEndpoint</classname> that is subscribed to a
+      <interfacename>MessageChannel</interfacename>. The endpoint is then responsible for passing the response to the
+      proper reply channel. It will first check for an "output-channel" on the endpoint itself and will fallback to a
+      <emphasis>returnAddress</emphasis> on the original message's header.
     </para>
     <para>
       For more detail on the inner workings, see the Spring Web Services reference guide's chapter covering 
@@ -209,21 +209,22 @@ marshallingAdapter = new MarshallingWebServiceTargetAdapter(uri, marshaller);
   <section id="adapters-stream">
     <title>Stream Adapters</title>
     <para>
-      Spring Integration also provides adapters for streams. Both <classname>ByteStreamSourceAdapter</classname> and
-      <classname>CharacterStreamSourceAdapter</classname> extend the <classname>PolllingSourceAdapter</classname> so
-      that the polling period can be configured, and the Message Bus can automatically detect and schedule them. The
-      byte stream version requires an <classname>InputStream</classname>, and the character stream version requires a
-      <classname>Reader</classname> as the single constructor argument. The
-      <classname>ByteStreamSourceAdapter</classname> also accepts the 'bytesPerMessage' property to determine how many
-      bytes it will attempt to read into each <interfacename>Message</interfacename>.
+      Spring Integration also provides adapters for streams. Both <classname>ByteStreamSource</classname> and
+      <classname>CharacterStreamSource</classname> implement the <interfacename>Source</interfacename> interface. By
+      configuring one of these within a <classname>SourceEndpoint</classname>, the polling period can be configured,
+      and the Message Bus can automatically detect and schedule them. The byte stream version requires an
+      <classname>InputStream</classname>, and the character stream version requires a <classname>Reader</classname> as
+      the single constructor argument. The <classname>ByteStreamSource</classname> also accepts the 'bytesPerMessage'
+      property to determine how many bytes it will attempt to read into each <interfacename>Message</interfacename>.
     </para>
     <para>
-      For target streams, there are also two implementations: <classname>ByteStreamTargetAdapter</classname> and
-      <classname>CharacterStreamTargetAdapter</classname>. Each requires a single constructor argument -
+      For target streams, there are also two implementations: <classname>ByteStreamTarget</classname> and
+      <classname>CharacterStreamTarget</classname>. Each requires a single constructor argument -
       <classname>OutputStream</classname> for byte streams or <classname>Writer</classname> for character streams,
       and each provides a second constructor that adds the optional 'bufferSize' property. Since both of these
-      ultimately implement the <interfacename>MessageHandler</interfacename> interface, they can be referenced from an
-      endpoint configuration as will be described in more detail in <xref linkend="namespace-endpoint"/>.
+      ultimately implement the <interfacename>Target</interfacename> interface, they can be referenced from a
+      <classname>TargetEndpoint</classname> configuration as will be described in more detail in
+      <xref linkend="namespace-endpoint"/>.
     </para>
   </section>
   <section id="adapters-applicationevents">
@@ -231,18 +232,17 @@ marshallingAdapter = new MarshallingWebServiceTargetAdapter(uri, marshaller);
     <para>
       Spring <classname>ApplicationEvents</classname> can also be integrated as either a source or target for Spring
       Integration message channels. To receive the events and send to a channel, simply define an instance of Spring
-      Integration's <classname>ApplicationEventSourceAdapter</classname> (as with all source adapters, if a
-      <classname>MessageBus</classname> is defined, it will automatically detect the event source adapter). The
-      <classname>ApplicationEventSourceAdapter</classname> implements Spring's
-      <interfacename>ApplicationListener</interfacename> interface. By default it will pass all received events as
-      Spring Integration Messages. To limit based on the type of event, configure the list of event types that you
-      want to receive with the 'eventTypes' property.
+      Integration's <classname>ApplicationEventSource</classname> (as with all source implementations, this can then
+      be configured within a <classname>SourceEndpoint</classname> and automatically detected by the message bus). The
+      <classname>ApplicationEventSource</classname> also implements Spring's <interfacename>ApplicationListener</interfacename>
+      interface. By default it will pass all received events as Spring Integration Messages. To limit based on the type
+      of event, configure the list of event types that you want to receive with the 'eventTypes' property.
     </para>
     <para>
       To send Spring <classname>ApplicationEvents</classname>, register an instance of the
-      <classname>ApplicationEventTargetAdapter</classname> class as the handler of an endpoint (such configuration
-      will be described in detail in <xref linkend="namespace-endpoint"/>). This adapter implements Spring's
-      <interfacename>ApplicationEventPublisherAware</interfacename> interface and thus acts as a bridge between
+      <classname>ApplicationEventTarget</classname> class as the 'target' of a <classname>TargetEndpoint</classname>
+      (such configuration will be described in detail in <xref linkend="namespace-endpoint"/>). This target also implements
+      Spring's <interfacename>ApplicationEventPublisherAware</interfacename> interface and thus acts as a bridge between
       Spring Integration <classname>Messages</classname> and <classname>ApplicationEvents</classname>.
     </para>
   </section>

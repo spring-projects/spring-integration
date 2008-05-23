@@ -89,8 +89,8 @@ public class DrinkRouter {
       <programlisting language="java"><![CDATA[@Component
 public class Barista {
 
-    private long hotDrinkDelay = 1000;
-    private long coldDrinkDelay = 700; 
+    private long hotDrinkDelay = 2000;
+    private long coldDrinkDelay = 1000; 
 
     private AtomicInteger hotDrinkCounter = new AtomicInteger();
     private AtomicInteger coldDrinkCounter = new AtomicInteger();
@@ -160,9 +160,9 @@ public class Barista {
     </para>
     <para>
       When you run cafeDemo, you will see that all 100 cold drinks are prepared in roughly the same amount of time as
-      only 70 of the hot drinks. This is to be expected based on their respective delays of 700 and 1000 milliseconds.
+      only 50 of the hot drinks. This is to be expected based on their respective delays of 1000 and 2000 milliseconds.
       However, by configuring the endpoint concurrency, you can dramatically change the results. For example, on my
-      machine, the following single modification causes all 100 hot drinks to be prepared before the 4th cold drink is
+      machine, the following single modification causes all 100 hot drinks to be prepared before the 5th cold drink is
       ready:
       <programlisting language="xml"><![CDATA[<handler-endpoint input-channel="coldDrinks" handler="barista" method="prepareColdDrink"/>
 
@@ -174,8 +174,8 @@ public class Barista {
       In addition to experimenting with the 'concurrency' settings, you can also try adding the 'schedule' sub-element
       as described in <xref linkend="namespace-endpoint"/>. Additionally, you can experiment with the channel's
       configuration, such as adding a 'dispatcher-policy' as described in <xref linkend="namespace-channel"/>. If you
-      want to explore the sample in more detail, the source JAR is available in the "dist" directory:
-      'spring-integration-samples-sources-1.0.0.M3.jar'.
+      want to explore the sample in more detail, the source JAR is available in the "src" directory:
+      'org.springframework.integration.samples-sources-1.0.0.M4.jar'.
     </para>
   </section>
 </chapter>
