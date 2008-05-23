@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:si="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-ws-1.0.xsd">
+
+	<si:message-bus/>
+
+    <!-- A Web Service target reads messages from the configurd channel, invokes the service and sends 
+    	 the response on the replyAddress configured on the message header -->
+	<si:channel id="fahrenheitChannel"/>
+		
+	<si:ws-target id="temperatureConverter" 
+				  uri="http://www.w3schools.com/webservices/tempconvert.asmx"
+				  channel="fahrenheitChannel" />
+
+	<si:channel id="celsiusChannel"/>
+
+	<!-- The response from the service is logged on the console -->
+	<si:target-endpoint target="console" input-channel="celsiusChannel"/>
+	
+	<si:console-target  id="console"/>
+	
+</beans>
