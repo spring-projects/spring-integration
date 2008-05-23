@@ -28,6 +28,7 @@ import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.adapter.file.ByteArrayFileMessageCreator;
 import org.springframework.integration.adapter.file.FileNameGenerator;
 import org.springframework.integration.adapter.file.TextFileMessageCreator;
@@ -45,7 +46,7 @@ import org.springframework.util.StringUtils;
  * @author Marius Bogoevici
  * @author Mark Fisher
  */
-public class FtpSource implements Source<Object>, MessageDeliveryAware {
+public class FtpSource implements Source<Object>, MessageDeliveryAware, InitializingBean {
 
 	private final static String DEFAULT_HOST = "localhost";
 
