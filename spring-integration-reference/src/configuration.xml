@@ -438,17 +438,35 @@ public class FooService {
 }</programlisting>
     </para>
     <para>
+      When the method parameter should be mapped from a value in the <classname>MessageHeader</classname>, another
+      option is to use the <interfacename>@HeaderAttribute</interfacename> and/or
+      <interfacename>@HeaderProperty</interfacename> parameter annotations.
+      <programlisting language="java">@MessageEndpoint(input="fooChannel")
+public class FooService {
+
+    @Handler
+    pub lic void bar(<emphasis>@HeaderAttribute("fooAttrib") Foo foo</emphasis>) {
+        ...
+    }
+}</programlisting>
+    </para>
+    <para>
       As described in the previous section, when the handler method returns a non-null value, the endpoint will
       attempt to send a reply. This is consistent across both configuration options (namespace and annotations) in that
-      the message header's 'replyChannelName' property will be used if available, and the endpoint's default output is
-      the fallback. To configure the default output for an annotation-driven endpoint, provide the 'output'
+      the the endpoint's output channel will be used if available, and the message header's 'returnAddress' value will be 
+      the fallback. To configure the output channel for an annotation-driven endpoint, provide the 'output'
       attribute on the <interfacename>@MessageEndpoint</interfacename>.
       <programlisting language="java">@MessageEndpoint(input="exampleChannel", output="replyChannel")</programlisting>
     </para>
     <para>
       Just as the 'schedule' sub-element and its 'period' attribute can be provided for a namespace-based
-      endpoint, the 'pollPeriod' attribute can be provided on the <interfacename>@MessageEndpoint</interfacename>.
-      <programlisting language="java">@MessageEndpoint(input="exampleChannel", pollPeriod=3000)</programlisting>
+      endpoint, the <interfacename>@Polled</interfacename> annotation can be provided with the
+      <interfacename>@MessageEndpoint</interfacename> annotation.
+      <programlisting language="java">@MessageEndpoint(input="exampleChannel")
+@Polled(period=3000)
+public class FooService {
+    ...
+}</programlisting>
       Likewise, <interfacename>@Concurrency</interfacename> provides an annotation-based equivalent of the
       &lt;concurrency/&gt; element:
       <programlisting language="java">@MessageEndpoint(input="fooChannel")
@@ -487,20 +505,20 @@ public List&lt;String&gt; route(Foo payload) {...}</programlisting>
       In addition to payload-based routing, a common requirement is to route based on metadata available within the
       message header as either a property or attribute. Rather than requiring use of the
       <interfacename>Message</interfacename> type as the method parameter, the <interfacename>@Router</interfacename>
-      annotation may also map to either a property or attribute name.
-      <programlisting language="java">@Router(property="customerType")
-public String route(String customerType)
+      annotation may also use the same parameter annotations that were introduced above.
+      <programlisting language="java">@Router
+public String route(@HeaderProperty("customerType") String customerType)
 
-@Router(attribute="orderStatus")
-public List&lt;String&gt; route(OrderStatus status)</programlisting>
+@Router
+public List&lt;String&gt; route(@HeaderAttribute("orderStatus") OrderStatus status)</programlisting>
     </para>
     <para>
       The <interfacename>@Splitter</interfacename> annotation is also applicable to methods that expect either the
       <interfacename>Message</interfacename> type or the message payload type, and the return values of the method
       should be a collection of any type. If the returned values are not actual <interfacename>Message</interfacename>
-      objects, then each of them will be sent as the payload of a message. The <interfacename>@Splitter</interfacename>
-      annotation expects a 'channel' attribute that specifies the channel name to which those messages should be sent.
-      <programlisting language="java">@Splitter(channel="exampleChannel")
+      objects, then each of them will be sent as the payload of a message. Those messages will be sent to the output
+      channel as designated for the endpoint on which the <interfacename>@Splitter</interfacename> is defined.
+      <programlisting language="java">@Splitter
 List&lt;LineItem&gt; extractItems(Order order) {
     return order.getItems()
 }</programlisting>

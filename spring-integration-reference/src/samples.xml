@@ -65,10 +65,10 @@
       the <interfacename>@MessageEndpoint</interfacename> annotation. That annotation extends Spring's
       "stereotype" annotations (by relying on the @Component meta-annotation), and so all classes carrying the
       endpoint annotation are capable of being detected by the component-scanner.
-      <programlisting language="java"><![CDATA[@MessageEndpoint(input="orders")
+      <programlisting language="java"><![CDATA[@MessageEndpoint(input="orders", output="drinks")
 public class OrderSplitter {
 
-    @Splitter(channel="drinks")
+    @Splitter
     public List<Drink> split(DrinkOrder order) {
         return order.getDrinks();
     }
