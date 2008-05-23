@@ -445,7 +445,15 @@ public class FooService {
 public class FooService {
 
     @Handler
-    pub lic void bar(<emphasis>@HeaderAttribute("fooAttrib") Foo foo</emphasis>) {
+    public void bar(<emphasis>@HeaderAttribute("fooAttrib") Foo foo</emphasis>) {
+        ...
+    }
+}</programlisting>
+      <programlisting language="java">@MessageEndpoint(input="fooChannel")
+public class FooService {
+
+    @Handler
+    public void bar(<emphasis>@HeaderProperty("foo") String input</emphasis>) {
         ...
     }
 }</programlisting>
@@ -524,7 +532,7 @@ List&lt;LineItem&gt; extractItems(Order order) {
 }</programlisting>
     </para>
     <para>
-      The <interfacename>@Publisher</interfacename> annotation is a convenience for sending messages with AOP
+      The <interfacename>@Publisher</interfacename> annotation is convenient for sending messages with AOP
       <emphasis>after-returning advice</emphasis>. For example, each time the following method is invoked, its return
       value will be sent to the "fooChannel":
       <programlisting language="java"><![CDATA[@Publisher(channel="fooChannel")
