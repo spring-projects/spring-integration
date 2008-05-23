@@ -16,6 +16,7 @@ Added support for parameter-binding with @HeaderAttribute and @HeaderProperty an
 Handler methods configured with namespace support now accept a Message payload
 Implemented a MessageSelectorChain (consistent with MessageHandlerChain)
 Added @CompletionStrategy annotation and CompletionStrategyAdapter for aggregators
+The sequence number and sequence size are propagated correctly for POJO-based handler methods.
 Source implementations may be connected to a DirectChannel
 The ErrorHandler is now provided to ConcurrentTargets
 Implemented RootCauseErrorMessageRouter
