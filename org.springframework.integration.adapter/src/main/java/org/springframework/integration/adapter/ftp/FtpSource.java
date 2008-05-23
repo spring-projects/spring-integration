@@ -192,7 +192,7 @@ public class FtpSource implements Source<Object>, MessageDeliveryAware {
 
 	public void onFailure(MessagingException exception) {
 		if (this.logger.isWarnEnabled()) {
-			logger.warn("FtpSource received failure notifcation", exception);
+			logger.warn("FtpSource received failure notification", exception);
 		}
 	}
 

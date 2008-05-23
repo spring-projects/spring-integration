@@ -127,7 +127,7 @@ public class FileSource implements Source<Object>, InitializingBean, MessageDeli
 
 	public void onFailure(MessagingException exception) {
 		if (this.logger.isWarnEnabled()) {
-			logger.warn("FileSource received failure notifcation", exception);
+			logger.warn("FileSource received failure notification", exception);
 		}
 	}
 
