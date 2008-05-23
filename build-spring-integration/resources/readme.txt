@@ -1,9 +1,9 @@
-SPRING INTEGRATION 1.0.0.M3 (Apr 07, 2008)
+SPRING INTEGRATION 1.0.0.M4 (May 23, 2008)
 ------------------------------------------
 
-This is the 1.0 Milestone 3 release of Spring Integration.
+This is the 1.0 Milestone 4 release of Spring Integration.
 
-To find out what has changed since Milestone 2, see 'changelog.txt'
+To find out what has changed since Milestone 3, see 'changelog.txt'
 
 The following are the key messaging components defined in this release:
   org.springframework.integration.message.Message
@@ -13,21 +13,21 @@ The following are the key messaging components defined in this release:
   org.springframework.integration.bus.MessageBus
 
 The following adapters are also available in this release:
-  org.springframework.integration.adapter.event.ApplicationEventSourceAdapter
-  org.springframework.integration.adapter.event.ApplicationEventTargetAdapter
-  org.springframework.integration.adapter.file.FileSourceAdapter
-  org.springframework.integration.adapter.file.FileTargetAdapter
-  org.springframework.integration.adapter.ftp.FtpSourceAdapter
-  org.springframework.integration.adapter.jms.JmsMessageDrivenSourceAdapter
-  org.springframework.integration.adapter.jms.JmsPollingSourceAdapter
-  org.springframework.integration.adapter.jms.JmsTargetAdapter
-  org.springframework.integration.adapter.mail.MailTargetAdapter
+  org.springframework.integration.adapter.event.ApplicationEventSource
+  org.springframework.integration.adapter.event.ApplicationEventTarget
+  org.springframework.integration.adapter.file.FileSource
+  org.springframework.integration.adapter.file.FileTarget
+  org.springframework.integration.adapter.ftp.FtpSource
+  org.springframework.integration.adapter.jms.JmsGateway
+  org.springframework.integration.adapter.jms.JmsSource
+  org.springframework.integration.adapter.jms.JmsTarget
+  org.springframework.integration.adapter.mail.MailTarget
   org.springframework.integration.adapter.rmi.RmiSourceAdapter
   org.springframework.integration.adapter.rmi.RmiTargetAdapter
-  org.springframework.integration.adapter.stream.ByteStreamSourceAdapter
-  org.springframework.integration.adapter.stream.ByteStreamTargetAdapter
-  org.springframework.integration.adapter.stream.CharacterStreamSourceAdapter
-  org.springframework.integration.adapter.stream.CharacterStreamTargetAdapter
+  org.springframework.integration.adapter.stream.ByteStreamSource
+  org.springframework.integration.adapter.stream.ByteStreamTarget
+  org.springframework.integration.adapter.stream.CharacterStreamSource
+  org.springframework.integration.adapter.stream.CharacterStreamTarget
   org.springframework.integration.ws.adapter.SimpleWebServiceTargetAdapter
   org.springframework.integration.ws.adapter.MarshallingWebServiceTargetAdapter
 

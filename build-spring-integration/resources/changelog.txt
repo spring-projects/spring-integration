@@ -1,6 +1,64 @@
 SPRING INTEGRATION CHANGELOG
 ============================
 
+Changes in version 1.0.0.M4 (May 23, 2008)
+------------------------------------------
+
+*** CORE API ***
+
+Improved consistency of 'endpoint' with SourceEndpoint, TargetEndpoint, and HandlerEndpoint implementations
+SourceEndpoint replaces PollingSourceAdapter and also provides better separation from the actual Source
+ReplyCorrelator is now encapsulated within RequestReplyTemplate
+Added MessagingGatewaySupport, SimpleMessagingGateway, and GatewayProxyFactoryBean for Request-Reply operations
+Renamed SynchronousChannel to DirectChannel, also factored out ThreadLocalChannel
+@Splitter-annotated methods now attempt to convert the Message payload (consistent with @Handler)
+Added support for parameter-binding with @HeaderAttribute and @HeaderProperty annotations
+Handler methods configured with namespace support now accept a Message payload
+Implemented a MessageSelectorChain (consistent with MessageHandlerChain)
+Added @CompletionStrategy annotation and CompletionStrategyAdapter for aggregators
+Source implementations may be connected to a DirectChannel
+The ErrorHandler is now provided to ConcurrentTargets
+Implemented RootCauseErrorMessageRouter
+Added removeAttribute() and removeProperty() methods to MessageHeader
+When passing to a handling method, primitive arrays are no longer cast to Object[]
+Failed Messages (when available) are now propagated within MessageHandlingException and MessageDeliveryException
+Provided configurable property for registering an asynchronous TaskExecutor for the ApplicationEventMulticaster
+
+*** ADAPTERS ***
+
+Provided namespace support for configuring the MessageHeaderMapper for JMS sources and targets
+FileNameGenerator is now configurable for a FileTarget
+File-Message mapping now supports text, binary, and File object
+Mapping to JMS properties from the MessageHeader no longer fails on JMSException
+
+*** CONFIGURATION ***
+
+Added namespace support for the <gateway/> element
+Added namespace support for the <splitter/> element
+Added namespace support for the <router/> element
+Added namespace support for different channel types (queue, priority, rendezvous, direct, thread-local)
+Defined ChannelFactory strategy for the plain <channel/> elements and for the MessageBus 'auto-create' mode
+Added namespace support for <console-source/> and <console-target/> elements
+The <source-adapter/> element now produces a MethodInvokingSource
+The <target-adapter/> element now produces a MethodInvokingTarget
+Added annotation support for scheduling metadata on a message endpoint
+@Splitter no longer accepts a "channel" attribute (now uses endpoint's output-channel)
+A @MessageEndpoint annotated class now requires the presence of a handler method
+The endpoint's <selector/> sub-element has been replaced by the "selector" attribute
+The endpoint's <concurrency/> and <schedule/> elements can now occur in any order
+Fixed timing issue between <annotation-driven/> and <message-bus/> in a ClasspathXmlApplicationContext
+
+*** GENERAL ***
+
+Now using the SpringSource Enterprise Bundle Repository for dependencies
+Updated MANIFEST.MF files for imports, exports, and bundle metadata
+Adjusted ivy configuration for provided and runtime dependency scopes
+Moved spring.schemas and spring.handlers files to src/main/resources
+Refactored the core's org.springframework.integration.adapter package contents into other packages
+Added several diagrams to the Reference Documentation's "overview" section
+Upgraded to Spring 2.5.4.A and Spring-WS 1.5.1.A
+
+
 Changes in version 1.0.0.M3 (Apr 07, 2008)
 ------------------------------------------
 
