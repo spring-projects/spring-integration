@@ -339,40 +339,62 @@
     </section>
 
     <section id="namespace-adapters">
-      <title>Configuring Channel Adapters</title>
+      <title>Configuring Adapters</title>
       <para>
-        The most convenient way to configure Channel Adapters is by using the namespace support. The following examples
-        demonstrate the namespace-based configuration of several source and target adapters:
-        <programlisting language="xml"><![CDATA[
-<jms-source connection-factory="connFactory" destination="inQueue" channel="in1"/>
+        The most convenient way to configure Source and Target adapters is by using the namespace support. The
+        following examples demonstrate the namespace-based configuration of several sources and targets:
+        <programlisting language="xml"><![CDATA[<jms-source id="jmsSource" connection-factory="connFactory" destination="inQueue"/>
 
 <!-- using the default "connectionFactory" reference --> 
-<jms-target destination="outQueue" channel="out1"/>
+<jms-target id="jmsTarget" destination="outQueue"/>
 
-<file-source directory="/tmp/in" channel="in2" poll-period="10000"/>
+<file-source id="fileSource" directory="/tmp/in"/>
 
-<file-target directory="/tmp/out" channel="out2"/>
+<file-target id="fileTarget" directory="/tmp/out"/>
 
-<rmi-source id="rmiSource" channel="in3"/>
+<rmi-source id="rmiSource" request-channel="rmiSourceInput"/>
 
-<rmi-target id="rmiTarget" local-channel="out3"
-    remote-channel="someRemoteChannel" host="somehost"/>
+<rmi-target id="rmiTarget"
+            local-channel="rmiTargetOutput"
+            remote-channel="someRemoteChannel"
+            host="somehost"/>
 
-<httpinvoker-source name="/some/path" channel="in4"/>
+<httpinvoker-source id="httpSource" name="/some/path" request-channel="httpInvokerInput"/>
 
-<httpinvoker-target id="httpTarget" channel="out4" url="http://somehost/test"/>
+<httpinvoker-target id="httpTarget" channel="httpInvokerOutput" url="http://somehost/test"/>
 
-<mail-target id="mailTarget" channel="out5"
-    host="somehost" username="someuser" password="somepassword"/>
+<mail-target id="mailTarget" host="somehost" username="someuser" password="somepassword"/>
 
-<ws-target id="wsTarget" uri="http://example.org" channel="out6"/>
+<ws-target id="wsTarget" uri="http://example.org" channel="wsOutput"/>
 
-<ftp-source id="ftpAdapter" channel="in5" 
-    period="60000" host="example.org"
-    username="someuser" password="somepassword"
-    local-working-directory="/some/path"
-    remote-working-directory="/some/path"/>
+<ftp-source id="ftpSource"
+            host="example.org"
+            username="someuser"
+            password="somepassword"
+            local-working-directory="/some/path"
+            remote-working-directory="/some/path"/>
 ]]></programlisting>
+      </para>
+      <para>
+        In the examples above, notice that simple implementations of the <interfacename>Source</interfacename>
+        and <interfacename>Target</interfacename> interfaces do not accept any 'channel' references. To
+        connect such sources and targets to a channel, register them within an endpoint. For example, here
+        is a File source with an endpoint whose polling will be scheduled to execute every 30 seconds by the
+        <classname>MessageBus</classname>.
+        <programlisting language="xml"><![CDATA[<source-endpoint source="fileSource" channel="exampleChannel">
+    <schedule period="30000"/>
+</source-endpoint>
+
+<file-source id="fileSource" directory="/tmp/in"/>
+]]></programlisting>
+        Likewise, here is an example of a JMS target that is registered with a target-endpoint whose Messages
+        will be received from the "exampleChannel" that is polled every 500 milliseconds.
+        <programlisting language="xml"><![CDATA[<target-endpoint input-channel="exampleChannel" target="jmsTarget">
+    <schedule period="500"/>
+</target-endpoint>
+
+<jms-target id="jmsTarget" destination="targetDestination"/>
+]]></programlisting>         
       </para>
     </section>
 
