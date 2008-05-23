@@ -17,60 +17,23 @@
 package org.springframework.integration.adapter.file;
 
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageCreator;
-import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.message.MessageMapper;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.util.Assert;
-import org.springframework.util.FileCopyUtils;
 
 /**
- * Base class providing common behavior for file-based message mappers.
+ * Base class providing common behavior for file-based message creators.
  * 
  * @author Mark Fisher
+ * @author Marius Bogoevici
  */
-public abstract class AbstractFileMapper<T> implements MessageCreator<File, T>, MessageMapper<T, File> {
+public abstract class AbstractFileMessageCreator<T> implements MessageCreator<File, T> {
 
 	protected Log logger = LogFactory.getLog(this.getClass());
-
-	private File parentDirectory;
-
-	private File backupDirectory;
-
-	private FileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
-
-
-	public AbstractFileMapper(File parentDirectory) {
-		this.parentDirectory = parentDirectory;
-	}
-
-	public void setBackupDirectory(File backupDirectory) {
-		this.backupDirectory = backupDirectory;
-	}
-
-	public void setFileNameGenerator(FileNameGenerator fileNameGenerator) {
-		Assert.notNull(fileNameGenerator, "'fileNameGenerator' must not be null");
-		this.fileNameGenerator = fileNameGenerator;
-	}
-
-	public File mapMessage(Message<T> message) {
-		try {
-			File file = new File(parentDirectory, this.fileNameGenerator.generateFileName(message));
-			this.writeToFile(file, message.getPayload());
-			return file;
-		}
-		catch (Exception e) {
-			throw new MessageHandlingException(message, "failure occurred mapping file to message", e);
-		}
-	}
 
 	public Message<T> createMessage(File file) {
 		try {
@@ -80,12 +43,6 @@ public abstract class AbstractFileMapper<T> implements MessageCreator<File, T>, 
 			}
 			Message<T> message = new GenericMessage<T>(payload);
 			message.getHeader().setProperty(FileNameGenerator.FILENAME_PROPERTY_KEY, file.getName());
-			if (this.backupDirectory != null) {
-				FileWriter writer = new FileWriter(this.backupDirectory.getAbsolutePath() +
-						File.separator + file.getName());
-				FileCopyUtils.copy(new FileReader(file), writer);
-			}
-			file.delete();
 			return message;
 		}
 		catch (Exception e) {
@@ -98,7 +55,5 @@ public abstract class AbstractFileMapper<T> implements MessageCreator<File, T>, 
 	}
 
 	protected abstract T readMessagePayload(File file) throws Exception;
-
-	protected abstract void writeToFile(File file, T payload) throws Exception;
 
 }

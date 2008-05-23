@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,21 @@
 
 package org.springframework.integration.samples.filecopy;
 
-import java.io.File;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
- * A class providing several handling methods for different types of payloads.
+ * Demonstrating the file copy scenario using binary file source and target.
  * 
- * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class Exclaimer {
+public class BinaryFileCopyDemo {
 
-	public String exclaim(String input) {
-		System.out.println("Copying text: " + input);
-		return input.toUpperCase();
+	public static void main(String[] args) {
+		FileCopyDemoCommon.setupDirectories();
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("fileCopyDemo-binary.xml",
+				BinaryFileCopyDemo.class);
+		context.start();
 	}
 	
-	public File exclaim(File input) {
-		System.out.println("Copying file: " + input.getAbsolutePath());
-		return input;
-	}
-	
-	public byte[] exclaim(byte[] input) {
-		System.out.println("Copying " + input.length + " bytes ...");
-		return new String(input).toUpperCase().getBytes();
-	}
-
 }
+

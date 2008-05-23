@@ -10,16 +10,8 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<si:file-source id="fileSourceDefault" directory="${java.io.tmpdir}"/>
-	
-	<si:file-source id="fileSourceText" type="text" directory="${java.io.tmpdir}"/>
-	
-	<si:file-source id="fileSourceBinary" type="binary" directory="${java.io.tmpdir}"/>
-	
-	<si:file-source id="fileSourceFile" type="file" directory="${java.io.tmpdir}"/>
-	
-	<si:file-source id="fileSourceCustom" message-creator="customMessageCreator" directory="${java.io.tmpdir}"/>
-	
+	<si:file-source id="fileSourceCustom" type="text" message-creator="customMessageCreator" directory="${java.io.tmpdir}"/>
+
 	<bean id="customMessageCreator" class="org.springframework.integration.adapter.file.config.CustomMessageCreator"/>
 
 	<context:property-placeholder/>

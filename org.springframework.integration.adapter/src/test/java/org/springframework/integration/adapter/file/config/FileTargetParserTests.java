@@ -17,24 +17,44 @@
 package org.springframework.integration.adapter.file.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
 
 import org.junit.Test;
-
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.adapter.file.DefaultFileNameGenerator;
 import org.springframework.integration.adapter.file.FileTarget;
-import org.springframework.integration.message.Target;
+import org.springframework.integration.adapter.file.SimpleFileMessageMapper;
 
 /**
  * @author Mark Fisher
+ * @author Marius Bogoevici
  */
 public class FileTargetParserTests {
 
 	@Test
 	public void testFileTarget() {
 		ApplicationContext context = new ClassPathXmlApplicationContext("fileTargetParserTests.xml", this.getClass());
-		Target target = (Target) context.getBean("target");
-		assertEquals(FileTarget.class, target.getClass());
+		FileTarget target = (FileTarget) context.getBean("target");
+		DirectFieldAccessor targetFieldAccessor = new DirectFieldAccessor(target);
+		SimpleFileMessageMapper messageMapper = (SimpleFileMessageMapper) targetFieldAccessor.getPropertyValue("messageMapper");
+		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(messageMapper);
+		assertEquals(System.getProperty("java.io.tmpdir"), ((File) mapperAccessor.getPropertyValue("parentDirectory")).getAbsolutePath());
+		assertTrue(mapperAccessor.getPropertyValue("fileNameGenerator") instanceof DefaultFileNameGenerator);
 	}
 
+	@Test
+	public void testFileTargetWithCustomFilenameGenerator() {
+		ApplicationContext context = new ClassPathXmlApplicationContext("fileTargetParserTests.xml", this.getClass());
+		FileTarget target = (FileTarget) context.getBean("targetWithCustomNameGenerator");
+		DirectFieldAccessor targetFieldAccessor = new DirectFieldAccessor(target);
+		SimpleFileMessageMapper messageMapper = (SimpleFileMessageMapper) targetFieldAccessor.getPropertyValue("messageMapper");
+		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(messageMapper);
+		assertEquals(System.getProperty("java.io.tmpdir"), ((File) mapperAccessor.getPropertyValue("parentDirectory")).getAbsolutePath());
+		assertTrue(mapperAccessor.getPropertyValue("fileNameGenerator") instanceof CustomNameGenerator);
+
+	}
 }

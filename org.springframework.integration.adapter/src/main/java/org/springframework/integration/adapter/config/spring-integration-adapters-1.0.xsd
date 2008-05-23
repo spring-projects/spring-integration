@@ -25,6 +25,8 @@
 			</xsd:annotation>
 			<xsd:attribute name="id" type="xsd:string"/>
 			<xsd:attribute name="directory" type="xsd:string" use="required"/>
+			<xsd:attribute name="type" type="fileSourceType" use="optional"/>
+			<xsd:attribute name="message-creator" type="xsd:string" use="optional"/>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -37,6 +39,7 @@
 			</xsd:annotation>
 			<xsd:attribute name="id" type="xsd:string"/>
 			<xsd:attribute name="directory" type="xsd:string" use="required"/>
+			<xsd:attribute name="name-generator" type="xsd:string" use="optional"/>		
 		</xsd:complexType>
 	</xsd:element>
 
@@ -259,5 +262,13 @@
 		<xsd:attribute name="request-timeout" type="xsd:long"/>
 		<xsd:attribute name="reply-timeout" type="xsd:long"/>
 	</xsd:complexType>
+			
+	<xsd:simpleType name="fileSourceType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="text"/>
+			<xsd:enumeration value="binary"/>
+			<xsd:enumeration value="file"/>
+		</xsd:restriction>
+	</xsd:simpleType>
 
 </xsd:schema>

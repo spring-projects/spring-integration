@@ -18,7 +18,6 @@ package org.springframework.integration.adapter.file;
 
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 
 import org.springframework.util.FileCopyUtils;
 
@@ -27,22 +26,13 @@ import org.springframework.util.FileCopyUtils;
  * implementation for messages with a String payload.
  * 
  * @author Mark Fisher
+ * @author Marius Bogoevici
  */
-public class TextFileMapper extends AbstractFileMapper<String> {
-
-	public TextFileMapper(File parentDirectory) {
-		super(parentDirectory);
-	}
-
+public class TextFileMessageCreator extends AbstractFileMessageCreator<String> {
 
 	@Override
 	protected String readMessagePayload(File file) throws Exception {
 		return FileCopyUtils.copyToString(new FileReader(file));
-	}
-
-	@Override
-	protected void writeToFile(File file, String payload) throws Exception {
-		FileCopyUtils.copy(payload, new FileWriter(file));
 	}
 
 }

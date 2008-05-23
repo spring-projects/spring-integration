@@ -19,26 +19,25 @@ package org.springframework.integration.samples.filecopy;
 import java.io.File;
 
 /**
- * A class providing several handling methods for different types of payloads.
+ * Common functionality for the file demo.
  * 
- * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class Exclaimer {
+public class FileCopyDemoCommon {
 
-	public String exclaim(String input) {
-		System.out.println("Copying text: " + input);
-		return input.toUpperCase();
+	public static void setupDirectories() {
+		String tmpDirPath = System.getProperty("java.io.tmpdir");
+		File parentDir = new File(tmpDirPath + File.separator + "spring-integration-samples");
+		File inDir = new File(parentDir, "input");
+		File outDir = new File(parentDir, "output");
+		if ((inDir.exists() || inDir.mkdirs()) && (outDir.exists() || outDir.mkdirs())) {
+			System.out.println("input directory is: " + inDir.getAbsolutePath());
+			System.out.println("output directory is: " + outDir.getAbsolutePath());
+		}
+		else {
+			System.err.println("failed to create directories within tmp dir: " + tmpDirPath);
+			System.exit(0);
+		}
 	}
 	
-	public File exclaim(File input) {
-		System.out.println("Copying file: " + input.getAbsolutePath());
-		return input;
-	}
-	
-	public byte[] exclaim(byte[] input) {
-		System.out.println("Copying " + input.length + " bytes ...");
-		return new String(input).toUpperCase().getBytes();
-	}
-
 }

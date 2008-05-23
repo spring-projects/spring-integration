@@ -14,31 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.samples.filecopy;
+package org.springframework.integration.adapter.file;
 
 import java.io.File;
 
+import org.springframework.util.FileCopyUtils;
+
 /**
- * A class providing several handling methods for different types of payloads.
+ * A {@link org.springframework.integration.message.MessageCreator}
+ * implementation for messages with a byte array payload.
  * 
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class Exclaimer {
+public class ByteArrayFileMessageCreator extends AbstractFileMessageCreator<byte[]> {
 
-	public String exclaim(String input) {
-		System.out.println("Copying text: " + input);
-		return input.toUpperCase();
-	}
-	
-	public File exclaim(File input) {
-		System.out.println("Copying file: " + input.getAbsolutePath());
-		return input;
-	}
-	
-	public byte[] exclaim(byte[] input) {
-		System.out.println("Copying " + input.length + " bytes ...");
-		return new String(input).toUpperCase().getBytes();
+	@Override
+	protected byte[] readMessagePayload(File file) throws Exception {
+		return FileCopyUtils.copyToByteArray(file);
 	}
 
 }

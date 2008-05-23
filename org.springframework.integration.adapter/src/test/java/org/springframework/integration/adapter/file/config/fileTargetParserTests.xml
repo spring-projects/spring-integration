@@ -15,6 +15,10 @@
 	<si:channel id="testChannel"/>
 
 	<si:file-target id="target" directory="${java.io.tmpdir}"/>
+	
+	<si:file-target id="targetWithCustomNameGenerator" name-generator="customFileNameGenerator" directory="${java.io.tmpdir}"/>
+	
+	<bean id="customFileNameGenerator" class="org.springframework.integration.adapter.file.config.CustomNameGenerator"/>
 
 	<context:property-placeholder/>
 

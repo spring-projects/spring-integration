@@ -16,29 +16,21 @@
 
 package org.springframework.integration.samples.filecopy;
 
-import java.io.File;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
- * A class providing several handling methods for different types of payloads.
- * 
- * @author Mark Fisher
+ * Demonstrating the file copy scenario using file-based source and target.
+ *
  * @author Marius Bogoevici
  */
-public class Exclaimer {
+public class FileBasedFileCopyDemo {
 
-	public String exclaim(String input) {
-		System.out.println("Copying text: " + input);
-		return input.toUpperCase();
+	public static void main(String[] args) {
+		FileCopyDemoCommon.setupDirectories();
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("fileCopyDemo-file.xml",
+				FileBasedFileCopyDemo.class);
+		context.start();
 	}
 	
-	public File exclaim(File input) {
-		System.out.println("Copying file: " + input.getAbsolutePath());
-		return input;
-	}
-	
-	public byte[] exclaim(byte[] input) {
-		System.out.println("Copying " + input.length + " bytes ...");
-		return new String(input).toUpperCase().getBytes();
-	}
-
 }
+

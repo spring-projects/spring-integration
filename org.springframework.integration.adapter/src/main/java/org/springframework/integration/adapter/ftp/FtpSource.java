@@ -28,9 +28,9 @@ import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 
-import org.springframework.integration.adapter.file.ByteArrayFileMapper;
+import org.springframework.integration.adapter.file.ByteArrayFileMessageCreator;
 import org.springframework.integration.adapter.file.FileNameGenerator;
-import org.springframework.integration.adapter.file.TextFileMapper;
+import org.springframework.integration.adapter.file.TextFileMessageCreator;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageCreator;
 import org.springframework.integration.message.MessageDeliveryAware;
@@ -113,10 +113,10 @@ public class FtpSource implements Source<Object>, MessageDeliveryAware {
 
 	public void afterPropertiesSet() {
 		if (this.isTextBased()) {
-			this.messageCreator = new TextFileMapper(this.localWorkingDirectory);
+			this.messageCreator = new TextFileMessageCreator();
 		}
 		else {
-			this.messageCreator = new ByteArrayFileMapper(this.localWorkingDirectory);
+			this.messageCreator = new ByteArrayFileMessageCreator();
 		}
 	}
 

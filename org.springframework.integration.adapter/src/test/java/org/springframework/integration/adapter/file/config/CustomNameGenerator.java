@@ -14,34 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.file;
+package org.springframework.integration.adapter.file.config;
 
-import java.io.File;
+import java.util.Date;
 
+import org.springframework.integration.adapter.file.FileNameGenerator;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageMapper;
-import org.springframework.integration.message.Target;
 
 /**
- * A message target for writing files. The actual file writing occurs in the
- * message mapper ({@link TextFileMessageCreator} or {@link ByteArrayFileMessageCreator}).
- * 
- * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class FileTarget implements Target {
+public class CustomNameGenerator implements FileNameGenerator{
 
-	private MessageMapper<?, File> messageMapper;
-
-	
-	public FileTarget(MessageMapper<?, File> messageMapper) {
-		this.messageMapper = messageMapper;
+	public String generateFileName(Message<?> message) {
+		return "file" + new Date().getTime();
 	}
 	
-	
-	public boolean send(Message message) {
-		File file = this.messageMapper.mapMessage(message);
-		return file.exists();
-	}
-
 }

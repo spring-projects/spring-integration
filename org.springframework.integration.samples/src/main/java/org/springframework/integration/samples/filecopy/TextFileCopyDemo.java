@@ -16,36 +16,22 @@
 
 package org.springframework.integration.samples.filecopy;
 
-import java.io.File;
-
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * Demo of file source and target adapters.
  * 
  * @author Mark Fisher
+ * @author Marius Bogoevici
  */
-public class FileCopyDemo {
+public class TextFileCopyDemo {
 
 	public static void main(String[] args) {
-		setupDirectories();
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("fileCopyDemo.xml", FileCopyDemo.class);
+		FileCopyDemoCommon.setupDirectories();
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("fileCopyDemo-text.xml",
+				TextFileCopyDemo.class);
 		context.start();
 	}
-
-	private static void setupDirectories() {
-		String tmpDirPath = System.getProperty("java.io.tmpdir");
-		File parentDir = new File(tmpDirPath + File.separator + "spring-integration-samples");
-		File inDir = new File(parentDir, "input");
-		File outDir = new File(parentDir, "output");
-		if ((inDir.exists() || inDir.mkdirs()) && (outDir.exists() || outDir.mkdirs())) {
-			System.out.println("input directory is: " + inDir.getAbsolutePath());
-			System.out.println("output directory is: " + outDir.getAbsolutePath());
-		}
-		else {
-			System.err.println("failed to create directories within tmp dir: " + tmpDirPath);
-			System.exit(0);
-		}
-	}
-
+	
 }
+

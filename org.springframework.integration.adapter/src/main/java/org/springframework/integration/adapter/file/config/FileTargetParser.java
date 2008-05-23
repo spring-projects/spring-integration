@@ -16,34 +16,57 @@
 
 package org.springframework.integration.adapter.file.config;
 
-import org.w3c.dom.Element;
-
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
+import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.adapter.file.FileTarget;
+import org.springframework.integration.adapter.file.SimpleFileMessageMapper;
+import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
- * Parser for the &lt;file-target/&gt; element. 
+ * Parser for the &lt;file-target/&gt; element.
  * 
  * @author Mark Fisher
+ * @author Marius Bogoevici
  */
-public class FileTargetParser extends AbstractSingleBeanDefinitionParser {
+public class FileTargetParser extends AbstractSimpleBeanDefinitionParser {
 
+	private static final String NAME_GENERATOR_PROPERTY = "fileNameGenerator";
+
+	public static final String DIRECTORY_ATTRIBUTE = "directory";
+
+	public static final String FILE_NAME_GENERATOR_ATTRIBUTE = "name-generator";
+
+	
+	@Override
 	protected Class<?> getBeanClass(Element element) {
 		return FileTarget.class;
 	}
 
-	protected boolean shouldGenerateId() {
-		return false;
+	@Override
+	protected boolean isEligibleAttribute(String attributeName) {
+		return !(DIRECTORY_ATTRIBUTE.equals(attributeName) || FILE_NAME_GENERATOR_ATTRIBUTE.equals(attributeName))
+				&& super.isEligibleAttribute(attributeName);
 	}
 
-	protected boolean shouldGenerateIdAsFallback() {
-		return true;
-	}
-
+	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		builder.addConstructorArgValue(element.getAttribute("directory"));
+		super.doParse(element, parserContext, builder);
+		BeanDefinition messageMapperDefinition = new RootBeanDefinition(SimpleFileMessageMapper.class);
+		messageMapperDefinition.getConstructorArgumentValues().addGenericArgumentValue(
+				element.getAttribute(DIRECTORY_ATTRIBUTE));
+		if (StringUtils.hasText(element.getAttribute(FILE_NAME_GENERATOR_ATTRIBUTE))) {
+			messageMapperDefinition.getPropertyValues().addPropertyValue(NAME_GENERATOR_PROPERTY,
+					new RuntimeBeanReference(element.getAttribute(FILE_NAME_GENERATOR_ATTRIBUTE)));
+		}
+		String mapperBeanName = parserContext.getReaderContext().generateBeanName(messageMapperDefinition);
+		parserContext.getRegistry().registerBeanDefinition(
+				mapperBeanName, messageMapperDefinition);
+		builder.addConstructorArgReference(mapperBeanName);
 	}
 
 }

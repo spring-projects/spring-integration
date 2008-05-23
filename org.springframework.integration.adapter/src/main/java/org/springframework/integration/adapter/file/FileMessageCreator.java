@@ -18,29 +18,20 @@ package org.springframework.integration.adapter.file;
 
 import java.io.File;
 
-import org.springframework.util.FileCopyUtils;
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageCreator;
 
 /**
- * A {@link org.springframework.integration.message.MessageMapper}
- * implementation for messages with a byte array payload.
+ * A {@link MessageCreator} that creates {@link Message} instances with the
+ * absolute path to the {@link File} as payload.
  * 
- * @author Mark Fisher
+ * @author Marius Bogoevici
  */
-public class ByteArrayFileMapper extends AbstractFileMapper<byte[]> {
-
-	public ByteArrayFileMapper(File parentDirectory) {
-		super(parentDirectory);
-	}
-
+public class FileMessageCreator extends AbstractFileMessageCreator<File> {
 
 	@Override
-	protected byte[] readMessagePayload(File file) throws Exception {
-		return FileCopyUtils.copyToByteArray(file);
-	}
-
-	@Override
-	protected void writeToFile(File file, byte[] payload) throws Exception {
-		FileCopyUtils.copy(payload, file);
+	protected File readMessagePayload(File file) throws Exception {
+		return file;
 	}
 
 }
