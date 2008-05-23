@@ -18,15 +18,12 @@ package org.springframework.integration.adapter.file;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileOutputStream;
 import java.io.FilenameFilter;
-import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.commons.net.ftp.FTPFile;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.adapter.ftp.DirectoryContentManager;
 import org.springframework.integration.adapter.ftp.FileInfo;
