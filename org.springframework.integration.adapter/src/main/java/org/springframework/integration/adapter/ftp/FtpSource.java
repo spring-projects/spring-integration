@@ -147,15 +147,20 @@ public class FtpSource implements Source<Object>, MessageDeliveryAware, Initiali
 			return this.messageCreator.createMessage(file);
 		}
 		catch (Exception e) {
+			throw new MessagingException("Error while polling for messages.", e);
+		}
+		finally {
 			try {
 				if (this.client.isConnected()) {
 					this.client.disconnect();
+					if (logger.isDebugEnabled()) {
+						logger.debug("connection closed");
+					}
 				}
 			}
 			catch (IOException ioe) {
 				throw new MessagingException("Error when disconnecting from ftp.", ioe);
 			}
-			throw new MessagingException("Error while polling for messages.", e);
 		}
 	}
 
