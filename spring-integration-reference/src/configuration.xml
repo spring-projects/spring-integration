@@ -123,9 +123,9 @@
           does support the "datatype" attribute. As with the "queue-channel", it also supports a "capacity" attribute.
           The following example demonstrates all of these:
           <programlisting language="xml"><![CDATA[<priority-channel id="exampleChannel"
-                      datatype="example.Widget"
-                      comparator="widgetComparator"
-                      capacity="10"/>
+                  datatype="example.Widget"
+                  comparator="widgetComparator"
+                  capacity="10"/>
 ]]></programlisting>
         </para>
       </section>
@@ -191,9 +191,9 @@
           endpoint subscriptions for its channel and delegates to a scheduler for managing the tasks that pull messages
           from the channel and push them to the endpoints. To configure the polling period for an individual endpoint's
           schedule, provide a 'schedule' sub-element with the 'period' in milliseconds:
-          <programlisting language="xml"><![CDATA[<target-endpoint input-channel="exampleChannel" target="exampleTarget"/>
+          <programlisting language="xml"><![CDATA[<target-endpoint input-channel="exampleChannel" target="exampleTarget">
     ]]><emphasis><![CDATA[<schedule period="3000"/>]]></emphasis><![CDATA[
-</handler-endpoint>]]></programlisting>
+</target-endpoint>]]></programlisting>
         </para>
         <note>
           <para>
@@ -257,7 +257,7 @@
         target is one of the major factors to consider (the other major factor being the expected volume on the
         channel to which the endpoint subscribes). To enable concurrency for an endpoint that is configured with the
         XML namespace support, provide the 'concurrency' sub-element and one or more of the properties shown below:
-        <programlisting language="xml"><![CDATA[<handler-endpoint input-channel="exampleChannel" handler="exampleHandler"/>
+        <programlisting language="xml"><![CDATA[<handler-endpoint input-channel="exampleChannel" handler="exampleHandler">
     ]]><emphasis><![CDATA[<concurrency core="5" max="25" queue-capacity="20" keep-alive="120"/>]]></emphasis><![CDATA[
 </handler-endpoint>]]></programlisting>
         Recall the default concurrency policy values as listed in <xref linkend="api-messagebus-concurrencypolicy"/>.
