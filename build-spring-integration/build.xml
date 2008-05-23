@@ -2,18 +2,18 @@
 <project name="build-spring-integration" default="precommit">
 
 	<path id="bundles">
-		<pathelement location="../org.springframework.integration"/>
-		<pathelement location="../org.springframework.integration.adapter"/>
-		<pathelement location="../org.springframework.integration.samples"/>
-		<pathelement location="../org.springframework.integration.test"/>
-		<pathelement location="../org.springframework.integration.ws"/>
+		<pathelement location="${basedir}/../org.springframework.integration"/>
+		<pathelement location="${basedir}/../org.springframework.integration.adapter"/>
+		<pathelement location="${basedir}/../org.springframework.integration.samples"/>
+		<pathelement location="${basedir}/../org.springframework.integration.test"/>
+		<pathelement location="${basedir}/../org.springframework.integration.ws"/>
 	</path>
 
 	<property file="${basedir}/../build.properties"/>
 	<import file="${basedir}/package-top-level.xml"/>
 	<import file="${basedir}/publish-top-level.xml"/>
-	<import file="../spring-build/multi-bundle/default.xml"/>
+	<import file="${basedir}/../spring-build/multi-bundle/default.xml"/>
 
-	<target name="precommit" depends="clean,clean-integration,jar,test"/>
+	<target name="precommit" depends="clean,clean-integration,test"/>
 
 </project>
