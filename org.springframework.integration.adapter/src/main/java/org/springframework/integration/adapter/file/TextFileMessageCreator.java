@@ -30,6 +30,16 @@ import org.springframework.util.FileCopyUtils;
  */
 public class TextFileMessageCreator extends AbstractFileMessageCreator<String> {
 
+	/**
+	 * Specifies whether the file should be removed after the message has been created.
+	 * See {@link AbstractFileMessageCreator}
+	 * @param deleteFilesAfterMessageCreation
+	 */
+	public TextFileMessageCreator(boolean deleteFilesAfterMessageCreation) {
+		super(deleteFilesAfterMessageCreation);
+	}
+	
+	
 	@Override
 	protected String readMessagePayload(File file) throws Exception {
 		return FileCopyUtils.copyToString(new FileReader(file));

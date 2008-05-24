@@ -29,6 +29,16 @@ import org.springframework.util.FileCopyUtils;
  */
 public class ByteArrayFileMessageCreator extends AbstractFileMessageCreator<byte[]> {
 
+	/**
+	 * Specifies whether the file should be removed after the message has been created.
+	 * See {@link AbstractFileMessageCreator}
+	 * @param deleteFilesAfterMessageCreation
+	 */
+	public ByteArrayFileMessageCreator(boolean deleteFilesAfterMessageCreation) {
+		super(deleteFilesAfterMessageCreation);
+	}
+	
+	
 	@Override
 	protected byte[] readMessagePayload(File file) throws Exception {
 		return FileCopyUtils.copyToByteArray(file);

@@ -10,9 +10,16 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<si:file-source id="fileSourceCustom" type="text" 
-		message-creator="customMessageCreator" directory="${java.io.tmpdir}"/>
-
+	<si:ftp-source id="ftpSourceCustom" 
+				   host="testHost"
+				   port="2121"
+				   local-working-directory="/local"
+				   remote-working-directory="/remote"
+			       username="testUser"
+			       password="testPassword"
+			       message-creator="customMessageCreator"
+			       type="text"/>
+			       
 	<bean id="customMessageCreator" 
 		class="org.springframework.integration.adapter.file.config.CustomMessageCreator"/>
 

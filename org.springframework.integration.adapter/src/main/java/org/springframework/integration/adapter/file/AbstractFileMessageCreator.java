@@ -27,7 +27,15 @@ import org.springframework.integration.message.MessageCreator;
 import org.springframework.integration.message.MessagingException;
 
 /**
- * Base class providing common behavior for file-based message creators.
+ * Base class providing common behavior for file-based message creators. The
+ * subclasses will redefine the {@code readMessagePayload()} method. This class
+ * allows to choose between keeping the file after message creation and removing
+ * it, by setting the appropriate value in the constructor. The desired
+ * behaviour depends on the nature of the created message (i.e. messages with a
+ * {@link String} payload can safely remove the file after creation, but
+ * messages with a {@link File} payload cannot do that) or of the collaborator
+ * that uses the class instance (e.g. if the file is a locally created copy, it
+ * can be always discarded).
  * 
  * @author Mark Fisher
  * @author Marius Bogoevici
@@ -36,15 +44,28 @@ public abstract class AbstractFileMessageCreator<T> implements MessageCreator<Fi
 
 	protected Log logger = LogFactory.getLog(this.getClass());
 
+	private final boolean deleteFileAfterCreation;
+	
+	
+	/**
+	 * @param deleteFileAfterCreation Indicates whether the file should be
+	 * deleted after the message has been created.
+	 */
+	public AbstractFileMessageCreator(boolean deleteFileAfterCreation) {
+		this.deleteFileAfterCreation = deleteFileAfterCreation;
+	}
+	
 
-	public Message<T> createMessage(File file) {
+	public final Message<T> createMessage(File file) {
 		try {
 			T payload = this.readMessagePayload(file);
 			if (payload == null) {
 				return null;
 			}
 			Message<T> message = new GenericMessage<T>(payload);
-			message.getHeader().setProperty(FileNameGenerator.FILENAME_PROPERTY_KEY, file.getName());
+			if (deleteFileAfterCreation) {
+				file.delete();
+			}
 			return message;
 		}
 		catch (Exception e) {

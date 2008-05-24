@@ -22,6 +22,8 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.integration.adapter.file.DirectoryContentManager;
+import org.springframework.integration.adapter.file.FileInfo;
 
 /**
  * @author Marius Bogoevici

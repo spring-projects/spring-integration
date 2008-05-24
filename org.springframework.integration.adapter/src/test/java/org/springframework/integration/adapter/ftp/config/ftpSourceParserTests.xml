@@ -7,12 +7,51 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<si:ftp-source id="ftpSource" 
+	<si:ftp-source id="ftpSourceDefault" 
 				   host="testHost"
 				   port="2121"
 				   local-working-directory="/local"
 				   remote-working-directory="/remote"
 			       username="testUser"
 			       password="testPassword"/>
+			       
+	<si:ftp-source id="ftpSourceText" 
+				   host="testHost"
+				   port="2121"
+				   local-working-directory="/local"
+				   remote-working-directory="/remote"
+			       username="testUser"
+			       password="testPassword"
+			       type="text"/>
+			 
+	<si:ftp-source id="ftpSourceBinary" 
+				   host="testHost"
+				   port="2121"
+				   local-working-directory="/local"
+				   remote-working-directory="/remote"
+			       username="testUser"
+			       password="testPassword"
+			       type="binary"/>
+			       
+	<si:ftp-source id="ftpSourceFile" 
+				   host="testHost"
+				   port="2121"
+				   local-working-directory="/local"
+				   remote-working-directory="/remote"
+			       username="testUser"
+			       password="testPassword"
+			       type="file"/>
+			       		       
+	<si:ftp-source id="ftpSourceCustom" 
+				   host="testHost"
+				   port="2121"
+				   local-working-directory="/local"
+				   remote-working-directory="/remote"
+			       username="testUser"
+			       password="testPassword"
+			       message-creator="customMessageCreator"/>
+	
+	<bean id="customMessageCreator" 
+		class="org.springframework.integration.adapter.file.config.CustomMessageCreator"/>			       
 
 </beans>

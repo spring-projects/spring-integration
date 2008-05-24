@@ -40,9 +40,11 @@ public class FileTargetParserTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext("fileTargetParserTests.xml", this.getClass());
 		FileTarget target = (FileTarget) context.getBean("target");
 		DirectFieldAccessor targetFieldAccessor = new DirectFieldAccessor(target);
-		SimpleFileMessageMapper messageMapper = (SimpleFileMessageMapper) targetFieldAccessor.getPropertyValue("messageMapper");
+		SimpleFileMessageMapper messageMapper = (SimpleFileMessageMapper) targetFieldAccessor
+				.getPropertyValue("messageMapper");
 		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(messageMapper);
-		assertEquals(System.getProperty("java.io.tmpdir"), ((File) mapperAccessor.getPropertyValue("parentDirectory")).getAbsolutePath());
+		assertEquals(System.getProperty("java.io.tmpdir"), ((File) mapperAccessor.getPropertyValue("parentDirectory"))
+				.getAbsolutePath());
 		assertTrue(mapperAccessor.getPropertyValue("fileNameGenerator") instanceof DefaultFileNameGenerator);
 	}
 
@@ -51,10 +53,12 @@ public class FileTargetParserTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext("fileTargetParserTests.xml", this.getClass());
 		FileTarget target = (FileTarget) context.getBean("targetWithCustomNameGenerator");
 		DirectFieldAccessor targetFieldAccessor = new DirectFieldAccessor(target);
-		SimpleFileMessageMapper messageMapper = (SimpleFileMessageMapper) targetFieldAccessor.getPropertyValue("messageMapper");
+		SimpleFileMessageMapper messageMapper = (SimpleFileMessageMapper) targetFieldAccessor
+				.getPropertyValue("messageMapper");
 		DirectFieldAccessor mapperAccessor = new DirectFieldAccessor(messageMapper);
-		assertEquals(System.getProperty("java.io.tmpdir"), ((File) mapperAccessor.getPropertyValue("parentDirectory")).getAbsolutePath());
+		assertEquals(System.getProperty("java.io.tmpdir"), ((File) mapperAccessor.getPropertyValue("parentDirectory"))
+				.getAbsolutePath());
 		assertTrue(mapperAccessor.getPropertyValue("fileNameGenerator") instanceof CustomNameGenerator);
-
 	}
+	
 }

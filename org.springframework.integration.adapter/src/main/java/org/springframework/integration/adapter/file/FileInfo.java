@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.ftp;
+package org.springframework.integration.adapter.file;
 
 /**
  * Information about a file in a directory.
@@ -28,7 +28,6 @@ public class FileInfo {
 	private final long modificationTimestamp;
 
 	private final long size;
-
 
 	public FileInfo(String fileName, long modificationTimestamp, long size) {
 		this.fileName = fileName;

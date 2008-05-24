@@ -29,6 +29,12 @@ import org.springframework.integration.message.MessageCreator;
  */
 public class FileMessageCreator extends AbstractFileMessageCreator<File> {
 
+	public FileMessageCreator() {
+		// The file should never be removed, as just the reference to it is
+		// passed to the message
+		super(false);
+	}
+	
 	@Override
 	protected File readMessagePayload(File file) throws Exception {
 		return file;

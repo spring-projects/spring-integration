@@ -57,7 +57,8 @@
 			<xsd:attribute name="port" type="xsd:int" use="optional"/>
 			<xsd:attribute name="local-working-directory" type="xsd:string" use="required"/>
 			<xsd:attribute name="remote-working-directory" type="xsd:string" use="optional"/>
-			<xsd:attribute name="text-based" type="xsd:boolean" use="optional"/>
+			<xsd:attribute name="type" type="fileSourceType" use="optional"/>
+			<xsd:attribute name="message-creator" type="xsd:string" use="optional"/>
 		</xsd:complexType>
 	</xsd:element>
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.ftp;
+package org.springframework.integration.adapter.file;
 
 import java.util.Collections;
 import java.util.HashMap;

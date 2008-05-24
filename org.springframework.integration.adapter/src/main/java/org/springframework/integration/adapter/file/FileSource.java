@@ -19,21 +19,17 @@ package org.springframework.integration.adapter.file;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
-import java.util.HashMap;
+import java.io.IOException;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.adapter.ftp.DirectoryContentManager;
-import org.springframework.integration.adapter.ftp.FileInfo;
-import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageCreator;
 import org.springframework.integration.message.MessageDeliveryAware;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.Source;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * A messaging source that polls a directory to retrieve files.
@@ -41,9 +37,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class FileSource implements Source<Object>, InitializingBean, MessageDeliveryAware {
-
-	private final Log logger = LogFactory.getLog(this.getClass());
+public class FileSource extends AbstractDirectorySource implements Source<Object>, InitializingBean, MessageDeliveryAware {
 
 	private final File directory;
 
@@ -53,18 +47,14 @@ public class FileSource implements Source<Object>, InitializingBean, MessageDeli
 
 	private volatile FilenameFilter filenameFilter;
 
-	private final DirectoryContentManager directoryContentManager = new DirectoryContentManager();
-
-
 	public FileSource(File directory) {
 		this(directory, new FileMessageCreator());
 	}
 
 	public FileSource(File directory, MessageCreator<File, ?> messageCreator) {
-		Assert.notNull(directory, "directory must not be null");
-		Assert.notNull(messageCreator, "MessageCreator must not be null");
+		super(messageCreator);
+		Assert.notNull(directory, "The directory must not be null");
 		this.directory = directory;
-		this.messageCreator = messageCreator;
 	}
 
 
@@ -86,7 +76,18 @@ public class FileSource implements Source<Object>, InitializingBean, MessageDeli
 		}
 	}
 
-	public Message receive() {
+	@Override
+	protected void disconnect() {
+		// No action is necessary
+	}
+
+	@Override
+	protected void establishConnection() throws IOException {
+		// No action is necessary
+	}
+
+	@Override
+	protected void populateSnapshot(Map<String, FileInfo> snapshot) throws IOException {
 		File[] files = null;
 		if (this.fileFilter != null) {
 			files = this.directory.listFiles(this.fileFilter);
@@ -100,35 +101,17 @@ public class FileSource implements Source<Object>, InitializingBean, MessageDeli
 		if (files == null) {
 			throw new MessagingException("Problem occurred while polling for files. " +
 					"Is '" + directory.getAbsolutePath() + "' a directory?");
-		}
-		HashMap<String, FileInfo> snapshot = new HashMap<String, FileInfo>();
+		}		
 		for (int i = 0; i < files.length; i++) {
 			FileInfo fileInfo = new FileInfo(files[i].getName(), files[i].lastModified(), files[i].length());
 			snapshot.put(files[i].getName(), fileInfo);
 		}
-		this.directoryContentManager.processSnapshot(snapshot);
-		if (!this.directoryContentManager.getBacklog().isEmpty()) {
-			String fileName = this.directoryContentManager.getBacklog().keySet().iterator().next();
-			File file = new File(directory, fileName);
-			return this.messageCreator.createMessage(file);
-		}
-		return null;
 	}
 
-	public void onSend(Message<?> message) {
-		String filename = message.getHeader().getProperty(FileNameGenerator.FILENAME_PROPERTY_KEY);
-		if (StringUtils.hasText(filename)) {
-			this.directoryContentManager.fileProcessed(filename);
-		}
-		else if (this.logger.isWarnEnabled()) {
-			logger.warn("No filename in Message header, cannot send notification of processing.");
-		}
-	}
-
-	public void onFailure(MessagingException exception) {
-		if (this.logger.isWarnEnabled()) {
-			logger.warn("FileSource received failure notification", exception);
-		}
+	@Override
+	protected File retrieveNextFile() throws IOException {
+		String fileName = this.getDirectoryContentManager().getBacklog().keySet().iterator().next();
+		return new File(directory, fileName);
 	}
 
 }
