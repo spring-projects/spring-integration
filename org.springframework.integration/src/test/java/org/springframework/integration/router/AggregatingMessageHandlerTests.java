@@ -82,7 +82,7 @@ public class AggregatingMessageHandlerTests {
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		Message<?> reply = replyChannel.receive(0);
 		assertNull(reply);
-		Message<?> discardedMessage = discardChannel.receive(500);
+		Message<?> discardedMessage = discardChannel.receive(1000);
 		assertNotNull(discardedMessage);
 		assertEquals(message, discardedMessage);
 	}
