@@ -21,14 +21,15 @@ import java.lang.reflect.Method;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.message.DefaultMessageCreator;
 import org.springframework.integration.message.DefaultMessageMapper;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageCreator;
+import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageMapper;
-import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.util.DefaultMethodInvoker;
 import org.springframework.integration.util.MethodInvoker;
 import org.springframework.integration.util.NameResolvingMethodInvoker;
@@ -172,11 +173,11 @@ public abstract class AbstractMessageHandlerAdapter implements MessageHandler, I
 			return this.handleReturnValue(result, message);
 		}
 		catch (InvocationTargetException e) {
-			throw new MessagingException(
+			throw new MessageHandlingException(message,
 					"Handler method '" + this.method + "' threw an Exception.", e.getTargetException());
 		}
 		catch (Throwable e) {
-			throw new MessagingException("Failed to invoke handler method '" + this.method +
+			throw new MessageHandlingException(message, "Failed to invoke handler method '" + this.method +
 					"' with arguments: " + ObjectUtils.nullSafeToString(args), e);
 		}
 	}
