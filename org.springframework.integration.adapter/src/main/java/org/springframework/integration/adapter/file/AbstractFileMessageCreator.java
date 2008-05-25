@@ -45,8 +45,8 @@ public abstract class AbstractFileMessageCreator<T> implements MessageCreator<Fi
 	protected Log logger = LogFactory.getLog(this.getClass());
 
 	private final boolean deleteFileAfterCreation;
-	
-	
+
+
 	/**
 	 * @param deleteFileAfterCreation Indicates whether the file should be
 	 * deleted after the message has been created.
@@ -54,7 +54,7 @@ public abstract class AbstractFileMessageCreator<T> implements MessageCreator<Fi
 	public AbstractFileMessageCreator(boolean deleteFileAfterCreation) {
 		this.deleteFileAfterCreation = deleteFileAfterCreation;
 	}
-	
+
 
 	public final Message<T> createMessage(File file) {
 		try {
@@ -63,7 +63,7 @@ public abstract class AbstractFileMessageCreator<T> implements MessageCreator<Fi
 				return null;
 			}
 			Message<T> message = new GenericMessage<T>(payload);
-			if (deleteFileAfterCreation) {
+			if (this.deleteFileAfterCreation) {
 				file.delete();
 			}
 			return message;

@@ -23,6 +23,7 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageCreator;
 import org.springframework.integration.message.MessageDeliveryAware;
@@ -33,30 +34,32 @@ import org.springframework.util.StringUtils;
 
 /**
  * Base class for implementing a Source that creates messages from files in a directory,
- * eiter local or remote.
+ * either local or remote.
  * 
  * @author Marius Bogoevici
  */
 public abstract class AbstractDirectorySource implements Source<Object>, MessageDeliveryAware {
-	
-	public String FILE_INFO_PROPERTY = "file.info";
+
+	public final static String FILE_INFO_PROPERTY = "file.info";
+
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final DirectoryContentManager directoryContentManager = new DirectoryContentManager();
 
 	private final MessageCreator<File, ?> messageCreator;
-	
+
 
 	public AbstractDirectorySource(MessageCreator<File, ?> messageCreator) {
 		Assert.notNull(messageCreator, "The MessageCreator must not be null");
 		this.messageCreator = messageCreator;
 	}
 
+
 	protected DirectoryContentManager getDirectoryContentManager() {
 		return this.directoryContentManager;
 	}
-	
+
 	public MessageCreator<File, ?> getMessageCreator() {
 		return messageCreator;
 	}
@@ -100,8 +103,8 @@ public abstract class AbstractDirectorySource implements Source<Object>, Message
 			logger.warn("Failure notification received by " + this.getClass().getSimpleName(), exception);
 		}
 	}
-	
-	
+
+
 	/**
 	 * Connects to the directory, if necessary.
 	 */
@@ -125,5 +128,5 @@ public abstract class AbstractDirectorySource implements Source<Object>, Message
 	 * Disconnects from the directory
 	 */
 	protected abstract void disconnect();
-	
+
 }
