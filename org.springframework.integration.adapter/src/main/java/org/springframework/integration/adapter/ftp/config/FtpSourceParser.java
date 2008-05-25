@@ -16,10 +16,10 @@
 
 package org.springframework.integration.adapter.ftp.config;
 
-import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
+import org.w3c.dom.Element;
+
 import org.springframework.integration.adapter.file.config.AbstractDirectorySourceParser;
 import org.springframework.integration.adapter.ftp.FtpSource;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;ftp-source/&gt; element.
@@ -28,14 +28,15 @@ import org.w3c.dom.Element;
  * @author Marius Bogoevici
  */
 public class FtpSourceParser extends AbstractDirectorySourceParser {
-	
+
 	public FtpSourceParser() {
 		super(true);
 	}
+
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
 		return FtpSource.class;
 	}
-	
+
 }

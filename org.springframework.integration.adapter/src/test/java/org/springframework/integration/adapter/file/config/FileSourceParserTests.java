@@ -23,6 +23,7 @@ import static org.junit.Assert.fail;
 import java.io.File;
 
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.ApplicationContext;
@@ -49,7 +50,7 @@ public class FileSourceParserTests {
 		assertEquals(System.getProperty("java.io.tmpdir"), directory.getAbsolutePath());
 		assertTrue(messageCreator instanceof FileMessageCreator);
 	}
-	
+
 	@Test
 	public void testFileSourceTextType() {
 		ApplicationContext context = new ClassPathXmlApplicationContext("fileSourceParserTests.xml", this.getClass());
@@ -60,7 +61,7 @@ public class FileSourceParserTests {
 		assertEquals(System.getProperty("java.io.tmpdir"), directory.getAbsolutePath());
 		assertTrue(messageCreator instanceof TextFileMessageCreator);
 	}
-	
+
 	@Test
 	public void testFileSourceBinaryType() {
 		ApplicationContext context = new ClassPathXmlApplicationContext("fileSourceParserTests.xml", this.getClass());
@@ -71,7 +72,7 @@ public class FileSourceParserTests {
 		assertEquals(System.getProperty("java.io.tmpdir"), directory.getAbsolutePath());
 		assertTrue(messageCreator instanceof ByteArrayFileMessageCreator);
 	}
-	
+
 	@Test
 	public void testFileSourceFileType() {
 		ApplicationContext context = new ClassPathXmlApplicationContext("fileSourceParserTests.xml", this.getClass());
@@ -82,7 +83,7 @@ public class FileSourceParserTests {
 		assertEquals(System.getProperty("java.io.tmpdir"), directory.getAbsolutePath());
 		assertTrue(messageCreator instanceof FileMessageCreator);
 	}
-	
+
 	@Test
 	public void testFileSourceCustomType() {
 		ApplicationContext context = new ClassPathXmlApplicationContext("fileSourceParserTests.xml", this.getClass());
@@ -93,15 +94,15 @@ public class FileSourceParserTests {
 		assertEquals(System.getProperty("java.io.tmpdir"), directory.getAbsolutePath());
 		assertTrue(messageCreator instanceof CustomMessageCreator);
 	}
-	
+
 	@Test
 	public void testInvalidFileSource() {
 		try {
-			ApplicationContext context = new ClassPathXmlApplicationContext("invalidFileSourceTests.xml", this.getClass());
+			new ClassPathXmlApplicationContext("invalidFileSourceTests.xml", this.getClass());
 			fail();
 		} catch (BeanDefinitionStoreException e) {
 			assertTrue(e.getCause() instanceof ConfigurationException);
 		}
 	}
-	
+
 }

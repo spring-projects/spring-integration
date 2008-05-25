@@ -23,6 +23,7 @@ import static org.junit.Assert.fail;
 import java.io.File;
 
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.ApplicationContext;
@@ -128,8 +129,7 @@ public class FtpSourceParserTests {
 	@Test
 	public void testInvalidFtpSource() {
 		try {
-			ApplicationContext context = new ClassPathXmlApplicationContext("invalidFtpSourceTests.xml", this
-					.getClass());
+			new ClassPathXmlApplicationContext("invalidFtpSourceTests.xml", this.getClass());
 			fail();
 		}
 		catch (BeanDefinitionStoreException e) {

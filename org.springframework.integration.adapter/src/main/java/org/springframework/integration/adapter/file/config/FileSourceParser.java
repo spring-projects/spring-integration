@@ -16,9 +16,10 @@
 
 package org.springframework.integration.adapter.file.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.integration.adapter.file.FileSource;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;file-source/&gt; element.
@@ -30,9 +31,11 @@ public class FileSourceParser extends AbstractDirectorySourceParser {
 
 	public static final String DIRECTORY_ATTRIBUTE = "directory";
 
+
 	public FileSourceParser() {
 		super(false);
 	}
+
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
@@ -41,7 +44,7 @@ public class FileSourceParser extends AbstractDirectorySourceParser {
 
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
-		return !(DIRECTORY_ATTRIBUTE.equals(attributeName)) && super.isEligibleAttribute(attributeName);
+		return !DIRECTORY_ATTRIBUTE.equals(attributeName) && super.isEligibleAttribute(attributeName);
 	}
 
 	@Override
