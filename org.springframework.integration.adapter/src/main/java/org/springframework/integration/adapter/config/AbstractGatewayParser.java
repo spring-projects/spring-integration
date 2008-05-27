@@ -27,11 +27,11 @@ import org.springframework.integration.ConfigurationException;
 import org.springframework.util.StringUtils;
 
 /**
- * Base class for request-reply source adapter parsers.
+ * Base class for gateway parsers.
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractRequestReplySourceAdapterParser extends AbstractSimpleBeanDefinitionParser {
+public abstract class AbstractGatewayParser extends AbstractSimpleBeanDefinitionParser {
 
 	protected abstract Class<?> getBeanClass(Element element);
 
@@ -50,24 +50,20 @@ public abstract class AbstractRequestReplySourceAdapterParser extends AbstractSi
 
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
-		return !attributeName.equals("name") && !attributeName.equals("request-channel") && super.isEligibleAttribute(attributeName);
+		return !attributeName.equals("name") && !attributeName.equals("request-channel")
+				&& !attributeName.equals("reply-channel") && super.isEligibleAttribute(attributeName);
 	}
 
 	@Override
 	protected void postProcess(BeanDefinitionBuilder builder, Element element) {
-		String channelRef = element.getAttribute("request-channel");
-		if (!StringUtils.hasText(channelRef)) {
+		String requestChannelRef = element.getAttribute("request-channel");
+		if (!StringUtils.hasText(requestChannelRef)) {
 			throw new ConfigurationException("a 'request-channel' reference is required");
 		}
-		builder.addConstructorArgReference(channelRef);
-		builder.addPropertyValue("expectReply", element.getAttribute("expect-reply").equals("true"));
-		String requestTimeout = element.getAttribute("request-timeout");
-		if (StringUtils.hasText(requestTimeout)) {
-			builder.addPropertyValue("requestTimeout", Long.parseLong(requestTimeout));
-		}
-		String replyTimeout = element.getAttribute("reply-timeout");
-		if (StringUtils.hasText(replyTimeout)) {
-			builder.addPropertyValue("replyTimeout", Long.parseLong(replyTimeout));
+		builder.addConstructorArgReference(requestChannelRef);
+		String replyChannel = element.getAttribute("reply-channel");
+		if (StringUtils.hasText(replyChannel)) {
+			builder.addPropertyReference("replyChannel", replyChannel);
 		}
 		this.doPostProcess(builder, element);
 	}

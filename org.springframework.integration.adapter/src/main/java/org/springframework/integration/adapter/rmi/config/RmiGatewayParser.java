@@ -19,23 +19,23 @@ package org.springframework.integration.adapter.rmi.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.integration.adapter.config.AbstractRequestReplySourceAdapterParser;
-import org.springframework.integration.adapter.rmi.RmiSourceAdapter;
+import org.springframework.integration.adapter.config.AbstractGatewayParser;
+import org.springframework.integration.adapter.rmi.RmiGateway;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for the &lt;rmi-source/&gt; element. 
+ * Parser for the &lt;rmi-gateway/&gt; element. 
  * 
  * @author Mark Fisher
  */
-public class RmiSourceAdapterParser extends AbstractRequestReplySourceAdapterParser {
+public class RmiGatewayParser extends AbstractGatewayParser {
 
 	private static final String REMOTE_INVOCATION_EXECUTOR_ATTRIBUTE = "remote-invocation-executor";
 
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
-		return RmiSourceAdapter.class;
+		return RmiGateway.class;
 	}
 
 	@Override

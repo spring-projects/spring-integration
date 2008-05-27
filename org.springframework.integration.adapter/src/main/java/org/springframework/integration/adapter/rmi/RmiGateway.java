@@ -19,22 +19,26 @@ package org.springframework.integration.adapter.rmi;
 import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 
-import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.adapter.MessageHandlingSourceAdapter;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.adapter.AbstractGatewayAdapter;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.remoting.rmi.RmiServiceExporter;
 import org.springframework.remoting.support.RemoteInvocationExecutor;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
- * A source channel adapter for RMI-based remoting.
+ * A gateway adapter for RMI-based remoting.
  * 
  * @author Mark Fisher
  */
-public class RmiSourceAdapter extends MessageHandlingSourceAdapter {
+public class RmiGateway extends AbstractGatewayAdapter implements InitializingBean, MessageHandler {
 
-	public static final String SERVICE_NAME_PREFIX = "internal.rmiSourceAdapter.";
+	public static final String SERVICE_NAME_PREFIX = "org.springframewok.integration.rmiGateway.";
 
+
+	private final String requestChannelName;
 
 	private volatile String registryHost;
 
@@ -43,8 +47,16 @@ public class RmiSourceAdapter extends MessageHandlingSourceAdapter {
 	private volatile RemoteInvocationExecutor remoteInvocationExecutor;
 
 
-	public RmiSourceAdapter(MessageChannel channel) {
-		super(channel);
+	/**
+	 * Create an RmiGateway that sends to the provided request channel.
+	 * 
+	 * @param requestChannel the channel where messages will be sent, must not be
+	 * <code>null</code>.
+	 */
+	public RmiGateway(MessageChannel requestChannel) {
+		super(requestChannel);
+		this.requestChannelName = requestChannel.getName();
+		Assert.isTrue(StringUtils.hasText(this.requestChannelName), "RmiGateway's request channel must have a name.");
 	}
 
 
@@ -60,11 +72,7 @@ public class RmiSourceAdapter extends MessageHandlingSourceAdapter {
 		this.remoteInvocationExecutor = remoteInvocationExecutor;
 	}
 
-	public void initialize() throws RemoteException {
-		String channelName = this.getChannel().getName();
-		if (channelName == null) {
-			throw new ConfigurationException("RmiSourceAdapter's MessageChannel must have a 'name'");
-		}
+	public void afterPropertiesSet() throws RemoteException {
 		RmiServiceExporter exporter = new RmiServiceExporter();
 		if (this.registryHost != null) {
 			exporter.setRegistryHost(this.registryHost);
@@ -75,7 +83,7 @@ public class RmiSourceAdapter extends MessageHandlingSourceAdapter {
 		}
 		exporter.setService(this);
 		exporter.setServiceInterface(MessageHandler.class);
-		exporter.setServiceName(SERVICE_NAME_PREFIX + channelName);
+		exporter.setServiceName(SERVICE_NAME_PREFIX + this.requestChannelName);
 		exporter.afterPropertiesSet();
 	}
 

@@ -24,7 +24,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.adapter.rmi.RmiSourceAdapter;
+import org.springframework.integration.adapter.rmi.RmiGateway;
 import org.springframework.integration.adapter.rmi.RmiTargetAdapter;
 import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.scheduling.Subscription;
@@ -60,7 +60,7 @@ public class RmiTargetAdapterParser extends AbstractSingleBeanDefinitionParser {
 		}
 		String portAttribute = element.getAttribute("port");
 		String port = StringUtils.hasText(portAttribute) ? portAttribute : "1099";
-		String url = "rmi://" + host + ":" + port + "/" + RmiSourceAdapter.SERVICE_NAME_PREFIX + remoteChannel;
+		String url = "rmi://" + host + ":" + port + "/" + RmiGateway.SERVICE_NAME_PREFIX + remoteChannel;
 		adapterDef.getConstructorArgumentValues().addGenericArgumentValue(url);
 		String adapterBeanName = parserContext.getReaderContext().generateBeanName(adapterDef);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(adapterDef, adapterBeanName));

@@ -24,7 +24,7 @@ import org.junit.Test;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.adapter.rmi.RmiSourceAdapter;
+import org.springframework.integration.adapter.rmi.RmiGateway;
 import org.springframework.integration.adapter.rmi.RmiTargetAdapter;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.HandlerEndpoint;
@@ -41,9 +41,9 @@ public class RmiTargetAdapterParserTests {
 	@Before
 	public void exportRemoteHandler() throws Exception {
 		testChannel.setBeanName("testChannel");
-		RmiSourceAdapter sourceAdapter = new RmiSourceAdapter(testChannel);
-		sourceAdapter.setExpectReply(false);
-		sourceAdapter.afterPropertiesSet();
+		RmiGateway gateway = new RmiGateway(testChannel);
+		gateway.setExpectReply(false);
+		gateway.afterPropertiesSet();
 	}
 
 	@Test

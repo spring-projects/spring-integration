@@ -22,7 +22,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.integration.adapter.MessageHandlingSourceAdapter;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.adapter.AbstractGatewayAdapter;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.MessagingException;
@@ -30,46 +31,46 @@ import org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter;
 import org.springframework.web.HttpRequestHandler;
 
 /**
- * A source channel adapter for HttpInvoker-based remoting. Since this class implements
+ * A gateway adapter for HttpInvoker-based remoting. Since this class implements
  * {@link HttpRequestHandler}, it can be configured with a delegating Servlet where the
  * servlet-name matches this adapter's bean name. For example, the following servlet can
  * be defined in web.xml:
  * 
  * <pre class="code">
  * &lt;servlet&gt;
- *     &lt;servlet-name&gt;httpInvokerSourceAdapter&lt;/servlet-name&gt;
+ *     &lt;servlet-name&gt;httpInvokerGateway&lt;/servlet-name&gt;
  *     &lt;servlet-class&gt;org.springframework.web.context.support.HttpRequestHandlerServlet&lt;/servlet-class&gt;
  * &lt;/servlet&gt;
  * </pre>
  * 
  * And, this would match the following bean definition in the application context loaded
- * by a {@link org.springframework.web.contextContextLoaderListener}:
+ * by a {@link org.springframework.web.context.ContextLoaderListener}:
  * 
  * <pre class="code">
- * &lt;bean id="httpInvokerSourceAdapter" class="org.springframework.integration.adapter.httpinvoker.HttpInvokerSourceAdapter"&gt;
- *     &lt;constructor-arg ref="exampleChannel"/&gt;
+ * &lt;bean id="httpInvokerGateway" class="org.springframework.integration.adapter.httpinvoker.HttpInvokerGateway"&gt;
+ *     &lt;constructor-arg ref="requestChannel"/&gt;
  * &lt;/bean&gt;
  * </pre>
  * 
  * <p>
  * Alternatively, in a Spring MVC application, the DispatcherServlet can delegate to the
- * "httpInvokerSourceAdapter" bean based on a handler mapping configuration. In that case,
+ * "httpInvokerGateway" bean based on a handler mapping configuration. In that case,
  * the HttpRequestHandlerServlet would not be necessary.
  * </p>
  * 
  * @author Mark Fisher
  */
-public class HttpInvokerSourceAdapter extends MessageHandlingSourceAdapter implements HttpRequestHandler {
+public class HttpInvokerGateway extends AbstractGatewayAdapter implements HttpRequestHandler, InitializingBean {
 
 	private volatile HttpInvokerServiceExporter exporter;
 
 
-	public HttpInvokerSourceAdapter(MessageChannel channel) {
-		super(channel);
+	public HttpInvokerGateway(MessageChannel requestChannel) {
+		super(requestChannel);
 	}
 
 
-	public void initialize() {
+	public void afterPropertiesSet() {
 		HttpInvokerServiceExporter exporter = new HttpInvokerServiceExporter();
 		exporter.setService(this);
 		exporter.setServiceInterface(MessageHandler.class);
@@ -77,8 +78,7 @@ public class HttpInvokerSourceAdapter extends MessageHandlingSourceAdapter imple
 		this.exporter = exporter;
 	}
 
-	public void handleRequest(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
+	public void handleRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		if (this.exporter == null) {
 			throw new MessagingException("adapter has not been initialized");
 		}

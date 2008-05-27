@@ -153,11 +153,11 @@
 		<xsd:attribute name="destination-name" type="xsd:string"/>
 	</xsd:complexType>
 
-	<xsd:element name="rmi-source">
+	<xsd:element name="rmi-gateway">
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines an rmi-based source channel adapter.
+	Defines an RMI-based gateway adapter.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
@@ -185,10 +185,10 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="httpinvoker-source" type="gatewayType">
+	<xsd:element name="httpinvoker-gateway" type="gatewayType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines an httpinvoker-based source channel adapter.
+	Defines an httpinvoker-based gateway adapter.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>

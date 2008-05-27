@@ -41,25 +41,25 @@ import org.springframework.remoting.support.RemoteInvocationResult;
 /**
  * @author Mark Fisher
  */
-public class HttpInvokerSourceAdapterTests {
+public class HttpInvokerGatewayTests {
 
 	@Test
 	public void testRequestOnly() throws Exception {
 		MessageChannel channel = new QueueChannel();
-		HttpInvokerSourceAdapter adapter = new HttpInvokerSourceAdapter(channel);
-		adapter.setExpectReply(false);
-		adapter.afterPropertiesSet();
+		HttpInvokerGateway gateway = new HttpInvokerGateway(channel);
+		gateway.setExpectReply(false);
+		gateway.afterPropertiesSet();
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		request.setContent(createRequestContent(new StringMessage("test")));
-		adapter.handleRequest(request, response);
+		gateway.handleRequest(request, response);
 		Message<?> message = channel.receive(500);
 		assertNotNull(message);
 		assertEquals("test", message.getPayload());
 	}
 
 	@Test
-	public void testRequestExpectingReply() throws Exception {
+	public void testRequestReply() throws Exception {
 		final MessageChannel channel = new QueueChannel();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
 			public void run() {
@@ -68,13 +68,13 @@ public class HttpInvokerSourceAdapterTests {
 				replyChannel.send(new StringMessage(message.getPayload().toString().toUpperCase()));
 			}
 		});
-		HttpInvokerSourceAdapter adapter = new HttpInvokerSourceAdapter(channel);
-		adapter.setExpectReply(true);
-		adapter.afterPropertiesSet();
+		HttpInvokerGateway gateway = new HttpInvokerGateway(channel);
+		gateway.setExpectReply(true);
+		gateway.afterPropertiesSet();
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		request.setContent(createRequestContent(new StringMessage("test")));
-		adapter.handleRequest(request, response);
+		gateway.handleRequest(request, response);
 		Message<?> reply = extractMessageFromResponse(response);
 		assertEquals("TEST", reply.getPayload());
 	}

@@ -11,11 +11,11 @@
 
 	<channel id="testChannel"/>
 
-	<httpinvoker-source id="adapterWithDefaults" request-channel="testChannel"/>
+	<httpinvoker-gateway id="gatewayWithDefaults" request-channel="testChannel"/>
 
-	<httpinvoker-source name="/adapter/with/name" request-channel="testChannel"/>
+	<httpinvoker-gateway name="/gateway/with/name" request-channel="testChannel"/>
 
-	<httpinvoker-source id="adapterWithCustomProperties"
+	<httpinvoker-gateway id="gatewayWithCustomProperties"
 			request-channel="testChannel" request-timeout="123" 
 			expect-reply="false" reply-timeout="456"/>
 

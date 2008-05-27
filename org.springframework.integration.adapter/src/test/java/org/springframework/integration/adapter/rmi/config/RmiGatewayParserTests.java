@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,27 +24,27 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.adapter.rmi.RmiSourceAdapter;
+import org.springframework.integration.adapter.rmi.RmiGateway;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.gateway.RequestReplyTemplate;
 
 /**
  * @author Mark Fisher
  */
-public class RmiSourceAdapterParserTests {
+public class RmiGatewayParserTests {
 
 	@Test
 	public void testAdapterWithDefaults() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"rmiSourceAdapterParserTests.xml", this.getClass());
+				"rmiGatewayParserTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
-		RmiSourceAdapter adapter = (RmiSourceAdapter) context.getBean("adapterWithDefaults");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(adapter);
-		assertEquals(channel, accessor.getPropertyValue("requestChannel"));
+		RmiGateway gateway = (RmiGateway) context.getBean("gatewayWithDefaults");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(true, accessor.getPropertyValue("expectReply"));
 		RequestReplyTemplate template = (RequestReplyTemplate)
 				accessor.getPropertyValue("requestReplyTemplate");
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(template);
+		assertEquals(channel, templateAccessor.getPropertyValue("requestChannel"));
 		assertEquals(-1L, templateAccessor.getPropertyValue("requestTimeout"));
 		assertEquals(-1L, templateAccessor.getPropertyValue("replyTimeout"));
 	}
@@ -52,15 +52,15 @@ public class RmiSourceAdapterParserTests {
 	@Test
 	public void testAdapterWithCustomProperties() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"rmiSourceAdapterParserTests.xml", this.getClass());
+				"rmiGatewayParserTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
-		RmiSourceAdapter adapter = (RmiSourceAdapter) context.getBean("adapterWithCustomProperties");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(adapter);
-		assertEquals(channel, accessor.getPropertyValue("requestChannel"));
+		RmiGateway gateway = (RmiGateway) context.getBean("gatewayWithCustomProperties");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(false, accessor.getPropertyValue("expectReply"));
 		RequestReplyTemplate template = (RequestReplyTemplate)
 				accessor.getPropertyValue("requestReplyTemplate");
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(template);
+		assertEquals(channel, templateAccessor.getPropertyValue("requestChannel"));
 		assertEquals(123L, templateAccessor.getPropertyValue("requestTimeout"));
 		assertEquals(456L, templateAccessor.getPropertyValue("replyTimeout"));
 	}
@@ -68,27 +68,27 @@ public class RmiSourceAdapterParserTests {
 	@Test
 	public void testAdapterWithHost() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"rmiSourceAdapterParserTests.xml", this.getClass());
-		RmiSourceAdapter adapter = (RmiSourceAdapter) context.getBean("adapterWithHost");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(adapter);
+				"rmiGatewayParserTests.xml", this.getClass());
+		RmiGateway gateway = (RmiGateway) context.getBean("gatewayWithHost");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals("localhost", accessor.getPropertyValue("registryHost"));
 	}
 
 	@Test
 	public void testAdapterWithPort() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"rmiSourceAdapterParserTests.xml", this.getClass());
-		RmiSourceAdapter adapter = (RmiSourceAdapter) context.getBean("adapterWithPort");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(adapter);
+				"rmiGatewayParserTests.xml", this.getClass());
+		RmiGateway gateway = (RmiGateway) context.getBean("gatewayWithPort");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(1234, accessor.getPropertyValue("registryPort"));
 	}
 
 	@Test
 	public void testAdapterWithRemoteInvocationExecutorReference() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"rmiSourceAdapterParserTests.xml", this.getClass());
-		RmiSourceAdapter adapter = (RmiSourceAdapter) context.getBean("adapterWithExecutorRef");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(adapter);
+				"rmiGatewayParserTests.xml", this.getClass());
+		RmiGateway gateway = (RmiGateway) context.getBean("gatewayWithExecutorRef");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		Object remoteInvocationExecutor = accessor.getPropertyValue("remoteInvocationExecutor");
 		assertNotNull(remoteInvocationExecutor);
 		assertEquals(StubRemoteInvocationExecutor.class, remoteInvocationExecutor.getClass());

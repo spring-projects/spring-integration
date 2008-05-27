@@ -23,27 +23,27 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.adapter.httpinvoker.HttpInvokerSourceAdapter;
+import org.springframework.integration.adapter.httpinvoker.HttpInvokerGateway;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.gateway.RequestReplyTemplate;
 
 /**
  * @author Mark Fisher
  */
-public class HttpInvokerSourceAdapterParserTests {
+public class HttpInvokerGatewayParserTests {
 
 	@Test
 	public void testAdapterWithDefaults() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"httpInvokerSourceAdapterParserTests.xml", this.getClass());
+				"httpInvokerGatewayParserTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
-		HttpInvokerSourceAdapter adapter = (HttpInvokerSourceAdapter) context.getBean("adapterWithDefaults");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(adapter);
-		assertEquals(channel, accessor.getPropertyValue("requestChannel"));
+		HttpInvokerGateway gateway = (HttpInvokerGateway) context.getBean("gatewayWithDefaults");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(true, accessor.getPropertyValue("expectReply"));
 		RequestReplyTemplate template = (RequestReplyTemplate)
 				accessor.getPropertyValue("requestReplyTemplate");
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(template);
+		assertEquals(channel, templateAccessor.getPropertyValue("requestChannel"));
 		assertEquals(-1L, templateAccessor.getPropertyValue("requestTimeout"));
 		assertEquals(-1L, templateAccessor.getPropertyValue("replyTimeout"));
 	}
@@ -51,15 +51,15 @@ public class HttpInvokerSourceAdapterParserTests {
 	@Test
 	public void testAdapterWithName() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"httpInvokerSourceAdapterParserTests.xml", this.getClass());
+				"httpInvokerGatewayParserTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
-		HttpInvokerSourceAdapter adapter = (HttpInvokerSourceAdapter) context.getBean("/adapter/with/name");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(adapter);
-		assertEquals(channel, accessor.getPropertyValue("requestChannel"));
+		HttpInvokerGateway gateway = (HttpInvokerGateway) context.getBean("/gateway/with/name");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(true, accessor.getPropertyValue("expectReply"));
 		RequestReplyTemplate template = (RequestReplyTemplate)
 				accessor.getPropertyValue("requestReplyTemplate");
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(template);
+		assertEquals(channel, templateAccessor.getPropertyValue("requestChannel"));
 		assertEquals(-1L, templateAccessor.getPropertyValue("requestTimeout"));
 		assertEquals(-1L, templateAccessor.getPropertyValue("replyTimeout"));
 	}
@@ -67,15 +67,15 @@ public class HttpInvokerSourceAdapterParserTests {
 	@Test
 	public void testAdapterWithCustomProperties() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"httpInvokerSourceAdapterParserTests.xml", this.getClass());
+				"httpInvokerGatewayParserTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
-		HttpInvokerSourceAdapter adapter = (HttpInvokerSourceAdapter) context.getBean("adapterWithCustomProperties");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(adapter);
-		assertEquals(channel, accessor.getPropertyValue("requestChannel"));
+		HttpInvokerGateway gateway = (HttpInvokerGateway) context.getBean("gatewayWithCustomProperties");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(false, accessor.getPropertyValue("expectReply"));
 		RequestReplyTemplate template = (RequestReplyTemplate)
 				accessor.getPropertyValue("requestReplyTemplate");
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(template);
+		assertEquals(channel, templateAccessor.getPropertyValue("requestChannel"));
 		assertEquals(123L, templateAccessor.getPropertyValue("requestTimeout"));
 		assertEquals(456L, templateAccessor.getPropertyValue("replyTimeout"));
 	}
