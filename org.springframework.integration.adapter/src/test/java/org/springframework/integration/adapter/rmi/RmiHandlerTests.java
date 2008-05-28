@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,9 +36,9 @@ import org.springframework.remoting.rmi.RmiServiceExporter;
 /**
  * @author Mark Fisher
  */
-public class RmiTargetAdapterTests {
+public class RmiHandlerTests {
 
-	private final RmiTargetAdapter adapter = new RmiTargetAdapter("rmi://localhost:1099/testRemoteHandler");
+	private final RmiHandler handler = new RmiHandler("rmi://localhost:1099/testRemoteHandler");
 
 
 	@Before
@@ -52,7 +52,7 @@ public class RmiTargetAdapterTests {
 
 	@Test
 	public void testSerializablePayload() throws RemoteException {
-		Message<?> replyMessage = adapter.handle(new StringMessage("test"));
+		Message<?> replyMessage = handler.handle(new StringMessage("test"));
 		assertNotNull(replyMessage);
 		assertEquals("TEST", replyMessage.getPayload());
 	}
@@ -61,7 +61,7 @@ public class RmiTargetAdapterTests {
 	public void testSerializableAttribute() throws RemoteException {
 		Message<?> requestMessage = new StringMessage("test");
 		requestMessage.getHeader().setAttribute("testAttribute", "foo");
-		Message<?> replyMessage = adapter.handle(requestMessage);
+		Message<?> replyMessage = handler.handle(requestMessage);
 		assertNotNull(replyMessage);
 		assertEquals("foo", replyMessage.getHeader().getAttribute("testAttribute"));
 	}
@@ -70,7 +70,7 @@ public class RmiTargetAdapterTests {
 	public void testProperty() throws RemoteException {
 		Message<?> requestMessage = new StringMessage("test");
 		requestMessage.getHeader().setProperty("testProperty", "bar");
-		Message<?> replyMessage = adapter.handle(requestMessage);
+		Message<?> replyMessage = handler.handle(requestMessage);
 		assertNotNull(replyMessage);
 		assertEquals("bar", replyMessage.getHeader().getProperty("testProperty"));
 	}
@@ -79,22 +79,22 @@ public class RmiTargetAdapterTests {
 	public void testNonSerializablePayload() throws RemoteException {
 		NonSerializableTestObject payload = new NonSerializableTestObject();
 		Message<?> requestMessage = new GenericMessage<NonSerializableTestObject>(payload);
-		adapter.handle(requestMessage);
+		handler.handle(requestMessage);
 	}
 
 	@Test(expected=MessageHandlingException.class)
 	public void testNonSerializableAttribute() throws RemoteException {
 		Message<?> requestMessage = new StringMessage("test");
 		requestMessage.getHeader().setAttribute("testAttribute", new NonSerializableTestObject());
-		adapter.handle(requestMessage);
+		handler.handle(requestMessage);
 	}
 
 	@Test
 	public void testInvalidServiceName() throws RemoteException {
-		RmiTargetAdapter adapter = new RmiTargetAdapter("rmi://localhost:1099/noSuchService");
+		RmiHandler handler = new RmiHandler("rmi://localhost:1099/noSuchService");
 		boolean exceptionThrown = false;
 		try {
-			adapter.handle(new StringMessage("test"));
+			handler.handle(new StringMessage("test"));
 		}
 		catch (MessageHandlingException e) {
 			assertEquals(RemoteLookupFailureException.class, e.getCause().getClass());
@@ -105,10 +105,10 @@ public class RmiTargetAdapterTests {
 
 	@Test
 	public void testInvalidHost() {
-		RmiTargetAdapter adapter = new RmiTargetAdapter("rmi://noSuchHost:1099/testRemoteHandler");
+		RmiHandler handler = new RmiHandler("rmi://noSuchHost:1099/testRemoteHandler");
 		boolean exceptionThrown = false;
 		try {
-			adapter.handle(new StringMessage("test"));
+			handler.handle(new StringMessage("test"));
 		}
 		catch (MessageHandlingException e) {
 			assertEquals(RemoteLookupFailureException.class, e.getCause().getClass());
@@ -119,10 +119,10 @@ public class RmiTargetAdapterTests {
 
 	@Test
 	public void testInvalidUrl() throws RemoteException {
-		RmiTargetAdapter adapter = new RmiTargetAdapter("invalid");
+		RmiHandler handler = new RmiHandler("invalid");
 		boolean exceptionThrown = false;
 		try {
-			adapter.handle(new StringMessage("test"));
+			handler.handle(new StringMessage("test"));
 		}
 		catch (MessageHandlingException e) {
 			assertEquals(RemoteLookupFailureException.class, e.getCause().getClass());

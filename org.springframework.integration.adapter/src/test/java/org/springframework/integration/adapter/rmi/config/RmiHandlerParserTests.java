@@ -25,15 +25,16 @@ import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.adapter.rmi.RmiGateway;
-import org.springframework.integration.adapter.rmi.RmiTargetAdapter;
+import org.springframework.integration.adapter.rmi.RmiHandler;
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.endpoint.HandlerEndpoint;
+import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
  */
-public class RmiTargetAdapterParserTests {
+public class RmiHandlerParserTests {
 
 	private final QueueChannel testChannel = new QueueChannel();
 
@@ -47,15 +48,23 @@ public class RmiTargetAdapterParserTests {
 	}
 
 	@Test
-	public void testRmiTargetAdapter() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"rmiTargetAdapterParserTests.xml", this.getClass());
-		HandlerEndpoint endpoint = (HandlerEndpoint) context.getBean("adapter");
-		assertNotNull(endpoint);
-		assertEquals(RmiTargetAdapter.class, endpoint.getHandler().getClass());
-		RmiTargetAdapter adapter = (RmiTargetAdapter) endpoint.getHandler();
-		adapter.handle(new StringMessage("test"));
-		assertNotNull(testChannel.receive(500));
+	public void testRmiHandlerDirectly() {
+		ApplicationContext context = new ClassPathXmlApplicationContext("rmiHandlerParserTests.xml", this.getClass());
+		RmiHandler handler = (RmiHandler) context.getBean("handler");
+		handler.handle(new StringMessage("test"));
+		Message<?> result = testChannel.receive(1000);
+		assertNotNull(result);
+		assertEquals("test", result.getPayload());
+	}
+
+	@Test
+	public void testRmiHandlerWithEndpoint() {
+		ApplicationContext context = new ClassPathXmlApplicationContext("rmiHandlerParserTests.xml", this.getClass());
+		MessageChannel localChannel = (MessageChannel) context.getBean("localChannel");
+		localChannel.send(new StringMessage("test"));
+		Message<?> result = testChannel.receive(1000);
+		assertNotNull(result);
+		assertEquals("test", result.getPayload());
 	}
 
 }

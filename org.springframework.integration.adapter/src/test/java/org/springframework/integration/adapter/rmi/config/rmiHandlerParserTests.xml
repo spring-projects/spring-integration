@@ -11,6 +11,8 @@
 
 	<channel id="localChannel"/>
 
-	<rmi-target id="adapter" local-channel="localChannel" remote-channel="testChannel" host="localhost"/>
+	<handler-endpoint input-channel="localChannel" handler="handler"/>
+
+	<rmi-handler id="handler" remote-channel="testChannel" host="localhost"/>
 
 </beans:beans>

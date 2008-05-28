@@ -11,6 +11,6 @@
 
 	<channel id="testChannel"/>
 
-	<httpinvoker-target id="adapter" channel="testChannel" url="http://localhost:8080/test"/>
+	<httpinvoker-handler id="handler" url="http://localhost:8080/test"/>
 
 </beans:beans>

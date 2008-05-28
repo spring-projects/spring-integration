@@ -16,18 +16,18 @@
 
 package org.springframework.integration.adapter.httpinvoker;
 
-import org.springframework.integration.adapter.AbstractRemotingTargetAdapter;
+import org.springframework.integration.adapter.AbstractRemotingHandler;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean;
 
 /**
- * A target channel adapter for HttpInvoker-based remoting.
+ * A MessageHandler adapter for HttpInvoker-based remoting.
  * 
  * @author Mark Fisher
  */
-public class HttpInvokerTargetAdapter extends AbstractRemotingTargetAdapter {
+public class HttpInvokerHandler extends AbstractRemotingHandler {
 
-	public HttpInvokerTargetAdapter(String url) {
+	public HttpInvokerHandler(String url) {
 		super(url);
 	}
 

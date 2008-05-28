@@ -18,19 +18,19 @@ package org.springframework.integration.adapter.httpinvoker.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.integration.adapter.config.AbstractRemotingGatewayParser;
-import org.springframework.integration.adapter.httpinvoker.HttpInvokerGateway;
+import org.springframework.integration.adapter.config.AbstractRemotingHandlerParser;
+import org.springframework.integration.adapter.httpinvoker.HttpInvokerHandler;
 
 /**
- * Parser for the &lt;httpinvoker-gateway/&gt; element. 
+ * Parser for the &lt;httpinvoker-handler/&gt; element. 
  * 
  * @author Mark Fisher
  */
-public class HttpInvokerGatewayParser extends AbstractRemotingGatewayParser {
+public class HttpInvokerHandlerParser extends AbstractRemotingHandlerParser {
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
-		return HttpInvokerGateway.class;
+		return HttpInvokerHandler.class;
 	}
 
 }

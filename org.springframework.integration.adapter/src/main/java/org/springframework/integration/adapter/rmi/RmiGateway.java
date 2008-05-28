@@ -20,7 +20,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.adapter.AbstractGatewayAdapter;
+import org.springframework.integration.adapter.AbstractRemotingGateway;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.remoting.rmi.RmiServiceExporter;
@@ -33,7 +33,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class RmiGateway extends AbstractGatewayAdapter implements InitializingBean, MessageHandler {
+public class RmiGateway extends AbstractRemotingGateway implements InitializingBean, MessageHandler {
 
 	public static final String SERVICE_NAME_PREFIX = "org.springframewok.integration.rmiGateway.";
 

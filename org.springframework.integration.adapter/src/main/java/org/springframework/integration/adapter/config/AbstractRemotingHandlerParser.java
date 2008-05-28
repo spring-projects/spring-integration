@@ -14,42 +14,47 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.rmi.config;
+package org.springframework.integration.adapter.config;
 
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.integration.adapter.config.AbstractRemotingGatewayParser;
-import org.springframework.integration.adapter.rmi.RmiGateway;
+import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for the &lt;rmi-gateway/&gt; element. 
+ * Base class for remoting MessageHandler parsers. 
  * 
  * @author Mark Fisher
  */
-public class RmiGatewayParser extends AbstractRemotingGatewayParser {
+public abstract class AbstractRemotingHandlerParser extends AbstractSimpleBeanDefinitionParser {
 
-	private static final String REMOTE_INVOCATION_EXECUTOR_ATTRIBUTE = "remote-invocation-executor";
+	protected abstract Class<?> getBeanClass(Element element);
 
 
 	@Override
-	protected Class<?> getBeanClass(Element element) {
-		return RmiGateway.class;
+	protected boolean shouldGenerateId() {
+		return false;
+	}
+
+	@Override
+	protected boolean shouldGenerateIdAsFallback() {
+		return true;
 	}
 
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
-		return !attributeName.equals(REMOTE_INVOCATION_EXECUTOR_ATTRIBUTE)
-				&& super.isEligibleAttribute(attributeName);
+		return !attributeName.equals("url") && super.isEligibleAttribute(attributeName);
 	}
 
 	@Override
-	protected void doPostProcess(BeanDefinitionBuilder builder, Element element) {
-		String executorRef = element.getAttribute(REMOTE_INVOCATION_EXECUTOR_ATTRIBUTE);
-		if (StringUtils.hasText(executorRef)) {
-			builder.addPropertyReference("remoteInvocationExecutor", executorRef);
+	protected void postProcess(BeanDefinitionBuilder builder, Element element) {
+		String url = element.getAttribute("url");
+		if (!StringUtils.hasText(url)) {
+			throw new ConfigurationException("The 'url' attribute is required.");
 		}
+		builder.addConstructorArgValue(url);
 	}
 
 }

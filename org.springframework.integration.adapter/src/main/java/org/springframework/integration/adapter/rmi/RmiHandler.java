@@ -16,19 +16,18 @@
 
 package org.springframework.integration.adapter.rmi;
 
-import org.springframework.integration.adapter.AbstractRemotingTargetAdapter;
+import org.springframework.integration.adapter.AbstractRemotingHandler;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.remoting.rmi.RmiProxyFactoryBean;
 
 /**
- * A target channel adapter for RMI-based remoting.
+ * A MessageHandler adapter for RMI-based remoting.
  * 
  * @author Mark Fisher
  */
-public class RmiTargetAdapter extends AbstractRemotingTargetAdapter {
+public class RmiHandler extends AbstractRemotingHandler {
 
-
-	public RmiTargetAdapter(String url) {
+	public RmiHandler(String url) {
 		super(url);
 	}
 

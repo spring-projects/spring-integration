@@ -26,12 +26,12 @@ import org.springframework.integration.message.Message;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractGatewayAdapter extends SimpleMessagingGateway implements MessageHandler {
+public abstract class AbstractRemotingGateway extends SimpleMessagingGateway implements MessageHandler {
 
 	private volatile boolean expectReply = true;
 
 
-	public AbstractGatewayAdapter(MessageChannel requestChannel) {
+	public AbstractRemotingGateway(MessageChannel requestChannel) {
 		super(requestChannel);
 	}
 

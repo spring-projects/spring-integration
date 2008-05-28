@@ -17,28 +17,24 @@
 package org.springframework.integration.adapter.httpinvoker.config;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.adapter.httpinvoker.HttpInvokerTargetAdapter;
-import org.springframework.integration.endpoint.HandlerEndpoint;
+import org.springframework.integration.adapter.httpinvoker.HttpInvokerHandler;
+import org.springframework.integration.handler.MessageHandler;
 
 /**
  * @author Mark Fisher
  */
-public class HttpInvokerTargetAdapterParserTests {
+public class HttpInvokerHandlerParserTests {
 
 	@Test
-	public void testHttpInvokerTargetAdapter() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"httpInvokerTargetAdapterParserTests.xml", this.getClass());
-		HandlerEndpoint endpoint = (HandlerEndpoint) context.getBean("adapter");
-		assertNotNull(endpoint);
-		assertEquals(HttpInvokerTargetAdapter.class, endpoint.getHandler().getClass());
-		assertEquals("testChannel", endpoint.getSubscription().getChannelName());
+	public void testHttpInvokerHandlerParser() {
+		ApplicationContext context = new ClassPathXmlApplicationContext("httpInvokerHandlerParserTests.xml", this.getClass());
+		MessageHandler handler = (MessageHandler) context.getBean("handler");
+		assertEquals(HttpInvokerHandler.class, handler.getClass());
 	}
 
 }

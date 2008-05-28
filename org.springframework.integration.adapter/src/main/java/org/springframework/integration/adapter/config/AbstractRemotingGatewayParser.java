@@ -27,13 +27,14 @@ import org.springframework.integration.ConfigurationException;
 import org.springframework.util.StringUtils;
 
 /**
- * Base class for gateway parsers.
+ * Base class for remoting gateway parsers.
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractGatewayParser extends AbstractSimpleBeanDefinitionParser {
+public abstract class AbstractRemotingGatewayParser extends AbstractSimpleBeanDefinitionParser {
 
 	protected abstract Class<?> getBeanClass(Element element);
+
 
 	@Override
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)

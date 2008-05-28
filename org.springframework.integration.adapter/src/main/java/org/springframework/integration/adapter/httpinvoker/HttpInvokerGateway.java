@@ -23,7 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.adapter.AbstractGatewayAdapter;
+import org.springframework.integration.adapter.AbstractRemotingGateway;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.MessagingException;
@@ -60,7 +60,7 @@ import org.springframework.web.HttpRequestHandler;
  * 
  * @author Mark Fisher
  */
-public class HttpInvokerGateway extends AbstractGatewayAdapter implements HttpRequestHandler, InitializingBean {
+public class HttpInvokerGateway extends AbstractRemotingGateway implements HttpRequestHandler, InitializingBean {
 
 	private volatile HttpInvokerServiceExporter exporter;
 

@@ -24,16 +24,16 @@ import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.remoting.RemoteAccessException;
 
 /**
- * A base class for remoting target adapters.
+ * A base class for remoting {@link MessageHandler} adapters.
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractRemotingTargetAdapter implements MessageHandler {
+public abstract class AbstractRemotingHandler implements MessageHandler {
 
 	private final MessageHandler handlerProxy;
 
 
-	public AbstractRemotingTargetAdapter(String url) {
+	public AbstractRemotingHandler(String url) {
 		this.handlerProxy = this.createHandlerProxy(url);
 	}
 
