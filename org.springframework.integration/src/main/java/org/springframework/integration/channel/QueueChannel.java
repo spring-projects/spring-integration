@@ -58,7 +58,7 @@ public class QueueChannel extends AbstractMessageChannel {
 	public QueueChannel(int capacity, DispatcherPolicy dispatcherPolicy) {
 		super((dispatcherPolicy != null) ? dispatcherPolicy : new DispatcherPolicy());
 		Assert.isTrue(capacity > 0, "The capacity must be a positive integer. " +
-				"For a zero-capacity alternative, consider '" + RendezvousChannel.class + "'");
+				"For a zero-capacity alternative, consider using a 'RendezvousChannel'.");
 		this.queue = new LinkedBlockingQueue<Message<?>>(capacity);
 	}
 
