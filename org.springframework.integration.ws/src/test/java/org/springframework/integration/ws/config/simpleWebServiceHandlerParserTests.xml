@@ -7,14 +7,12 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-ws-1.0.xsd">
 
-	<si:message-bus/>
+	<si:ws-handler id="handlerWithDefaultSourceExtractor"
+	               uri="http://example.org"/>
 
-	<si:channel id="testChannel"/>
-
-	<si:ws-target id="adapterWithDefaultSourceExtractor" uri="http://example.org" channel="testChannel"/>
-
-	<si:ws-target id="adapterWithCustomSourceExtractor" uri="http://example.org" channel="testChannel"
-			source-extractor="sourceExtractor"/>
+	<si:ws-handler id="handlerWithCustomSourceExtractor"
+	               uri="http://example.org"
+	               source-extractor="sourceExtractor"/>
 
 	<bean id="sourceExtractor" class="org.springframework.integration.ws.config.StubSourceExtractor"/>
 

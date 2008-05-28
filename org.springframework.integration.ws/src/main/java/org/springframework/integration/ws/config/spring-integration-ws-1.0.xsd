@@ -19,16 +19,15 @@
 		]]></xsd:documentation>
 	</xsd:annotation>
 
-	<xsd:element name="ws-target">
+	<xsd:element name="ws-handler">
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a Web Service target channel adapter.
+	Defines a Web Service MessageHandler adapter.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:attribute name="id" type="xsd:string"/>
 			<xsd:attribute name="uri" type="xsd:string" use="required"/>
-			<xsd:attribute name="channel" type="xsd:string" use="required"/>
 			<xsd:attribute name="marshaller" type="xsd:string"/>
 			<xsd:attribute name="unmarshaller" type="xsd:string"/>			
 			<xsd:attribute name="source-extractor" type="xsd:string"/>

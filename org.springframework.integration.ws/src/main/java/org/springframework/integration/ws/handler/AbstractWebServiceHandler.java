@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ws.adapter;
+package org.springframework.integration.ws.handler;
 
 import java.io.IOException;
 import java.net.URI;
@@ -32,11 +32,11 @@ import org.springframework.ws.soap.SoapMessage;
 import org.springframework.ws.soap.client.core.SoapActionCallback;
 
 /**
- * Base class for Web Service target channel adapters.
+ * Base class for Web Service {@link MessageHandler} adapters.
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractWebServiceTargetAdapter implements MessageHandler {
+public abstract class AbstractWebServiceHandler implements MessageHandler {
 
 	public static final String SOAP_ACTION_PROPERTY_KEY = "_ws.soapAction";
 
@@ -46,8 +46,8 @@ public abstract class AbstractWebServiceTargetAdapter implements MessageHandler 
 	private volatile WebServiceMessageCallback requestCallback;
 
 
-	public AbstractWebServiceTargetAdapter(URI uri) {
-		Assert.notNull(uri, "'uri' must not be null");
+	public AbstractWebServiceHandler(URI uri) {
+		Assert.notNull(uri, "URI must not be null");
 		this.webServiceTemplate.setDefaultUri(uri.toString());
 	}
 
@@ -70,7 +70,7 @@ public abstract class AbstractWebServiceTargetAdapter implements MessageHandler 
 
 	public final Message<?> handle(Message<?> message) {
 		Object responsePayload = this.doHandle(message.getPayload(), this.getRequestCallback(message));
-		return (responsePayload != null ? new GenericMessage<Object>(responsePayload, message.getHeader()) : null);
+		return responsePayload != null ? new GenericMessage<Object>(responsePayload, message.getHeader()) : null;
 	}
 
 	protected abstract Object doHandle(Object requestPayload, WebServiceMessageCallback requestCallback);

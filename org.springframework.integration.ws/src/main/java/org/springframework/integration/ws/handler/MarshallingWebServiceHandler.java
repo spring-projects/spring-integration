@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ws.adapter;
+package org.springframework.integration.ws.handler;
 
 import java.net.URI;
 
@@ -24,15 +24,15 @@ import org.springframework.util.Assert;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
 
 /**
- * A marshalling Web Service target channel adapter.
+ * A marshalling Web Service MessageHandler adapter.
  * 
  * @author Mark Fisher
  * @see Marshaller
  * @see Unmarshaller
  */
-public class MarshallingWebServiceTargetAdapter extends AbstractWebServiceTargetAdapter {
+public class MarshallingWebServiceHandler extends AbstractWebServiceHandler {
 
-	public MarshallingWebServiceTargetAdapter(URI uri, Marshaller marshaller, Unmarshaller unmarshaller) {
+	public MarshallingWebServiceHandler(URI uri, Marshaller marshaller, Unmarshaller unmarshaller) {
 		super(uri);
 		Assert.notNull(marshaller, "marshaller must not be null");
 		Assert.notNull(unmarshaller, "unmarshaller must not be null");
@@ -40,7 +40,7 @@ public class MarshallingWebServiceTargetAdapter extends AbstractWebServiceTarget
 		this.getWebServiceTemplate().setUnmarshaller(unmarshaller);
 	}
 
-	public MarshallingWebServiceTargetAdapter(URI uri, Marshaller marshaller) {
+	public MarshallingWebServiceHandler(URI uri, Marshaller marshaller) {
 		super(uri);
 		Assert.notNull(marshaller, "marshaller must not be null");
 		Assert.isInstanceOf(Unmarshaller.class, marshaller,

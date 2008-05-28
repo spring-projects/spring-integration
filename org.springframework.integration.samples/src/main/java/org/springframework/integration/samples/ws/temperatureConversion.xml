@@ -1,27 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:si="http://www.springframework.org/schema/integration"
+	xmlns:beans="http://www.springframework.org/schema/beans"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-ws-1.0.xsd">
 
-	<si:message-bus/>
+	<message-bus/>
 
-    <!-- A Web Service target reads messages from the configurd channel, invokes the service and sends 
-    	 the response on the replyAddress configured on the message header -->
-	<si:channel id="fahrenheitChannel"/>
-		
-	<si:ws-target id="temperatureConverter" 
-				  uri="http://www.w3schools.com/webservices/tempconvert.asmx"
-				  channel="fahrenheitChannel" />
+	<channel id="fahrenheitChannel"/>
+	<channel id="celsiusChannel"/>
 
-	<si:channel id="celsiusChannel"/>
+	<!-- The handler endpoint receives from the 'fahrenheitChannel',
+	     invokes the handler, and sends the reply Message to the 'celsiusChannel'. -->
+	<handler-endpoint input-channel="fahrenheitChannel"
+	                  handler="temperatureConverter"
+	                  output-channel="celsiusChannel"/>
 
-	<!-- The response from the service is logged on the console -->
-	<si:target-endpoint target="console" input-channel="celsiusChannel"/>
-	
-	<si:console-target  id="console"/>
-	
-</beans>
+	<!-- The handler invokes the WebService for the given URI and returns a reply Message. -->
+	<ws-handler id="temperatureConverter" 
+				uri="http://www.w3schools.com/webservices/tempconvert.asmx"/>
+
+	<!-- The response from the service is logged to the console. -->
+	<target-endpoint input-channel="celsiusChannel" target="console"/>
+
+	<console-target id="console"/>
+
+</beans:beans>

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ws.adapter;
+package org.springframework.integration.ws.handler;
 
 import java.io.IOException;
 import java.net.URI;
@@ -32,20 +32,20 @@ import org.springframework.xml.transform.StringSource;
 import org.springframework.xml.transform.TransformerObjectSupport;
 
 /**
- * A target channel adapter for calling out to a Web Service.
+ * A MessageHandler adapter for invoking a Web Service.
  * 
  * @author Mark Fisher
  */
-public class SimpleWebServiceTargetAdapter extends AbstractWebServiceTargetAdapter {
+public class SimpleWebServiceHandler extends AbstractWebServiceHandler {
 
 	private final SourceExtractor sourceExtractor;
 
 
-	public SimpleWebServiceTargetAdapter(URI uri) {
+	public SimpleWebServiceHandler(URI uri) {
 		this(uri, null);
 	}
 
-	public SimpleWebServiceTargetAdapter(URI uri, SourceExtractor sourceExtractor) {
+	public SimpleWebServiceHandler(URI uri, SourceExtractor sourceExtractor) {
 		super(uri);
 		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
 	}
@@ -65,7 +65,7 @@ public class SimpleWebServiceTargetAdapter extends AbstractWebServiceTargetAdapt
 		}
 		throw new MessagingException("Unsupported payload type '" + requestPayload.getClass() +
 				"'. " + this.getClass().getName() + " only supports 'java.lang.String' and '" + Source.class.getName() +
-				"'. Consider using the '" + MarshallingWebServiceTargetAdapter.class.getName() + "' instead.");
+				"'. Consider using the '" + MarshallingWebServiceHandler.class.getName() + "' instead.");
 	}
 
 

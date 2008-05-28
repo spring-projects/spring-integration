@@ -1,1 +1,1 @@
-ws-target=org.springframework.integration.ws.config.WebServiceTargetAdapterParser
+ws-handler=org.springframework.integration.ws.config.WebServiceHandlerParser

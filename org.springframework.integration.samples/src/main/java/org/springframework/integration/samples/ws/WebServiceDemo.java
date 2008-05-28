@@ -20,34 +20,33 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.ws.adapter.AbstractWebServiceTargetAdapter;
+import org.springframework.integration.ws.handler.AbstractWebServiceHandler;
 
 /**
- * Demonstrating a web service invocation through a Web Service Target.
+ * Demonstrating a web service invocation through a Web Service MessageHandler.
  * 
  * @author Marius Bogoevici
  */
 public class WebServiceDemo {
 
 	public static void main(String[] args) {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("temperatureConversion.xml",
-				WebServiceDemo.class);
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("temperatureConversion.xml", WebServiceDemo.class);
 		context.start();
-		
-		// Compose the XML message according to the server's schema
-		String requestMessage = "<FahrenheitToCelsius xmlns=\"http://tempuri.org/\">" +
-				"					<Fahrenheit>90.0</Fahrenheit>" +
-				"				 </FahrenheitToCelsius>";
-		
-		// Prepare the Message object 
-		Message<String> message = new GenericMessage<String>(requestMessage);
-		// In this case the service expects a SoapAction header
-		message.getHeader().setProperty(AbstractWebServiceTargetAdapter.SOAP_ACTION_PROPERTY_KEY, "http://tempuri.org/FahrenheitToCelsius");
-		// Set the return address for the message - the response message will be returned on this channel
-		message.getHeader().setReturnAddress("celsiusChannel");
-		
-		((MessageChannel)context.getBean("fahrenheitChannel")).send(message);
-	}
-	
-}
 
+		// Compose the XML message according to the server's schema
+		String requestMessage =
+				"<FahrenheitToCelsius xmlns=\"http://tempuri.org/\">" +
+				"  <Fahrenheit>90.0</Fahrenheit>" +
+				"</FahrenheitToCelsius>";
+
+		// Create the Message object 
+		Message<String> message = new GenericMessage<String>(requestMessage);
+
+		// In this case the service expects a SoapAction header
+		message.getHeader().setProperty(AbstractWebServiceHandler.SOAP_ACTION_PROPERTY_KEY, "http://tempuri.org/FahrenheitToCelsius");
+
+		// Send the Message to the handler's input channel
+		((MessageChannel) context.getBean("fahrenheitChannel")).send(message);
+	}
+
+}
