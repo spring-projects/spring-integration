@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,18 @@
 
 package org.springframework.integration.samples.oddeven;
 
-import org.springframework.integration.annotation.Subscriber;
-import org.springframework.stereotype.Component;
+import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.annotation.MessageTarget;
 
 /**
  * @author Mark Fisher
  */
-@Component
-public class NumberLogger {
+@MessageEndpoint(input="even")
+public class EvenLogger {
 
-	@Subscriber(channel="even")
+	@MessageTarget
 	public void even(int i) {
 		System.out.println("even: " + i);
-	}
-
-	@Subscriber(channel="odd")
-	public void odd(int i) {
-		System.out.println("odd:  " + i);
 	}
 
 }
