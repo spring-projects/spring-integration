@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint.annotation;
+package org.springframework.integration.config.annotation;
 
 import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.endpoint.annotation.ITestEndpoint;
 
 /**
  * @author Mark Fisher
  */
-@MessageEndpoint(input="inputChannel", output="outputChannel", pollPeriod=10)
+@MessageEndpoint(input="inputChannel", output="outputChannel")
 public class SimpleAnnotatedEndpoint implements ITestEndpoint {
 
 	@Handler

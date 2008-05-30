@@ -26,7 +26,7 @@ import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.ThreadLocalChannel;
-import org.springframework.integration.config.MessageEndpointAnnotationPostProcessor;
+import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
 import org.springframework.integration.dispatcher.DirectChannel;
 import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.handler.MessageHandler;
@@ -69,7 +69,7 @@ public class DirectChannelSubscriptionTests {
 
 	@Test
 	public void testSendAndReceiveForAnnotatedEndpoint() {
-		MessageEndpointAnnotationPostProcessor postProcessor = new MessageEndpointAnnotationPostProcessor(bus);
+		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(bus);
 		postProcessor.afterPropertiesSet();
 		TestEndpoint endpoint = new TestEndpoint();
 		postProcessor.postProcessAfterInitialization(endpoint, "testEndpoint");
@@ -83,7 +83,7 @@ public class DirectChannelSubscriptionTests {
 	@Test(expected=MessagingException.class)
 	public void testExceptionThrownFromRegisteredEndpoint() {
 		QueueChannel errorChannel = new QueueChannel();
-		bus.setErrorChannel(errorChannel);		
+		bus.setErrorChannel(errorChannel);
 		HandlerEndpoint endpoint = new HandlerEndpoint(new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				throw new RuntimeException("intentional test failure");
@@ -100,7 +100,7 @@ public class DirectChannelSubscriptionTests {
 	public void testExceptionThrownFromAnnotatedEndpoint() {
 		QueueChannel errorChannel = new QueueChannel();
 		bus.setErrorChannel(errorChannel);
-		MessageEndpointAnnotationPostProcessor postProcessor = new MessageEndpointAnnotationPostProcessor(bus);
+		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(bus);
 		postProcessor.afterPropertiesSet();
 		FailingTestEndpoint endpoint = new FailingTestEndpoint();
 		postProcessor.postProcessAfterInitialization(endpoint, "testEndpoint");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint.annotation;
+package org.springframework.integration.samples.quote;
 
-import org.springframework.integration.annotation.DefaultOutput;
-import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.annotation.MessageTarget;
 
 /**
  * @author Mark Fisher
  */
-@MessageEndpoint(input="inputChannel")
-public class OutboundChannelAdapterTestBean {
+@MessageEndpoint(input="quotes")
+public class Logger {
 
-	@Handler
-	public String sayHello(String name) {
-		return "hello " + name;
-	}
-
-	@DefaultOutput
-	public void sendGreeting(String greeting) {
-		System.out.println(greeting);
+	@MessageTarget
+	public void log(Object o) {
+		System.out.println(o);
 	}
 
 }

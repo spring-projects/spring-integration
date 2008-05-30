@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config;
+package org.springframework.integration.config.annotation;
 
 import org.w3c.dom.Element;
 
@@ -24,6 +24,7 @@ import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.MessageBusParser;
 
 /**
  * Parser for the <em>annotation-driven</em> element of the integration
@@ -39,18 +40,18 @@ public class AnnotationDrivenParser implements BeanDefinitionParser {
 	private static final String SUBSCRIBER_ANNOTATION_POST_PROCESSOR_BEAN_NAME = 
 			"internal.SubscriberAnnotationPostProcessor";
 
-	private static final String MESSAGE_ENDPOINT_ANNOTATION_POST_PROCESSOR_BEAN_NAME = 
-		"internal.MessageEndpointAnnotationPostProcessor";
+	private static final String MESSAGING_ANNOTATION_POST_PROCESSOR_BEAN_NAME =
+			"internal.MessagingAnnotationPostProcessor";
 
 
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
-		this.createPublisherPostProcessor(parserContext);
-		this.createSubscriberPostProcessor(parserContext);
-		this.createMessageEndpointPostProcessor(parserContext);
+		this.registerPublisherPostProcessor(parserContext);
+		this.registerSubscriberPostProcessor(parserContext);
+		this.registerMessagingAnnotationPostProcessor(parserContext);
 		return null;
 	}
 
-	private void createPublisherPostProcessor(ParserContext parserContext) {
+	private void registerPublisherPostProcessor(ParserContext parserContext) {
 		BeanDefinition bd = new RootBeanDefinition(PublisherAnnotationPostProcessor.class);
 		bd.getPropertyValues().addPropertyValue("channelRegistry",
 				new RuntimeBeanReference(MessageBusParser.MESSAGE_BUS_BEAN_NAME));
@@ -59,7 +60,7 @@ public class AnnotationDrivenParser implements BeanDefinitionParser {
 		parserContext.registerBeanComponent(bcd);
 	}
 
-	private void createSubscriberPostProcessor(ParserContext parserContext) {
+	private void registerSubscriberPostProcessor(ParserContext parserContext) {
 		BeanDefinition bd = new RootBeanDefinition(SubscriberAnnotationPostProcessor.class);
 		bd.getPropertyValues().addPropertyValue("messageBus",
 				new RuntimeBeanReference(MessageBusParser.MESSAGE_BUS_BEAN_NAME));
@@ -68,12 +69,12 @@ public class AnnotationDrivenParser implements BeanDefinitionParser {
 		parserContext.registerBeanComponent(bcd);
 	}
 
-	private void createMessageEndpointPostProcessor(ParserContext parserContext) {
-		BeanDefinition bd = new RootBeanDefinition(MessageEndpointAnnotationPostProcessor.class);
+	private void registerMessagingAnnotationPostProcessor(ParserContext parserContext) {
+		BeanDefinition bd = new RootBeanDefinition(MessagingAnnotationPostProcessor.class);
 		bd.getConstructorArgumentValues().addGenericArgumentValue(
 				new RuntimeBeanReference(MessageBusParser.MESSAGE_BUS_BEAN_NAME));
 		BeanComponentDefinition bcd = new BeanComponentDefinition(
-				bd, MESSAGE_ENDPOINT_ANNOTATION_POST_PROCESSOR_BEAN_NAME);
+				bd, MESSAGING_ANNOTATION_POST_PROCESSOR_BEAN_NAME);
 		parserContext.registerBeanComponent(bcd);
 	}
 

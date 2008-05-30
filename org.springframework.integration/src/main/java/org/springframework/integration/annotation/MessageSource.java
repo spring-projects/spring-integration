@@ -25,10 +25,10 @@ import java.lang.annotation.RetentionPolicy;
 import org.springframework.integration.message.Message;
 
 /**
- * Indicates that a method is capable of sending messages. The method must
- * accept a single parameter that is either a {@link Message} or an Object to
- * be passed as a message payload. The enclosing class should be annotated with
- * {@link MessageEndpoint @MessageEndpoint}.
+ * Indicates that a method is capable of producing messages. The method must
+ * accept no parameters and return either a {@link Message} or an Object to
+ * be passed as the message payload. The enclosing class may also be annotated
+ * with {@link MessageEndpoint @MessageEndpoint}.
  * 
  * @author Mark Fisher
  */
@@ -36,6 +36,6 @@ import org.springframework.integration.message.Message;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-public @interface DefaultOutput {
+public @interface MessageSource {
 
 }

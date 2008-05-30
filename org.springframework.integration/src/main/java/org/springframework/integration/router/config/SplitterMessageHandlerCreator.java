@@ -19,6 +19,9 @@ package org.springframework.integration.router.config;
 import java.lang.reflect.Method;
 import java.util.Map;
 
+import org.springframework.aop.support.AopUtils;
+import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.handler.AbstractMessageHandlerAdapter;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.config.AbstractMessageHandlerCreator;
@@ -33,6 +36,12 @@ public class SplitterMessageHandlerCreator extends AbstractMessageHandlerCreator
 
 	public MessageHandler doCreateHandler(Object object, Method method, Map<String, ?> attributes) {
 		String outputChannelName = (String) attributes.get(AbstractMessageHandlerAdapter.OUTPUT_CHANNEL_NAME_KEY);
+		if (outputChannelName == null) {
+			MessageEndpoint endpointAnnotation = AnnotationUtils.findAnnotation(AopUtils.getTargetClass(object), MessageEndpoint.class);
+			if (endpointAnnotation != null) {
+				outputChannelName = endpointAnnotation.output();
+			}
+		}
 		return new SplitterMessageHandlerAdapter(object, method, outputChannelName);
 	}
 

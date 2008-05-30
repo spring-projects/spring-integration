@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config;
+package org.springframework.integration.config.annotation;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,13 +32,15 @@ import org.springframework.stereotype.Component;
 /**
  * @author Marius Bogoevici
  */
-@MessageEndpoint(input="inputChannel")
-@Component("endpointWithDefaultAnnotation")
-public class TestAnnotatedEndpointWithDefaultAggregator {
+@MessageEndpoint(input = "inputChannel")
+@Component("endpointWithCustomizedAnnotation")
+public class TestAnnotatedEndpointWithCustomizedAggregator {
 
 	private final ConcurrentMap<Object, Message<?>> aggregatedMessages = new ConcurrentHashMap<Object, Message<?>>();
 
-	@Aggregator
+	@Aggregator(defaultReplyChannel = "replyChannel", discardChannel = "discardChannel", 
+			reaperInterval = 1234, sendPartialResultsOnTimeout = true, 
+			sendTimeout = 98765432, timeout = 4567890, trackedCorrelationIdCapacity = 42)
 	public Message<?> aggregatingMethod(List<Message<?>> messages) {
 		List<Message<?>> sortableList = new ArrayList<Message<?>>(messages);
 		Collections.sort(sortableList, new MessageSequenceComparator());
@@ -50,7 +52,7 @@ public class TestAnnotatedEndpointWithDefaultAggregator {
 				correlationId = message.getHeader().getCorrelationId();
 			}
 		}
-		Message<?> returnedMessage =  new StringMessage(buffer.toString());
+		Message<?> returnedMessage = new StringMessage(buffer.toString());
 		aggregatedMessages.put(correlationId, returnedMessage);
 		return returnedMessage;
 	}

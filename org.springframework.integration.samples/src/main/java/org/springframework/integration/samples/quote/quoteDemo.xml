@@ -11,10 +11,13 @@
 
 	<annotation-driven/>
 
+	<channel id="tickers"/>
 	<channel id="quotes"/>
 
-	<beans:bean id="publisher" class="org.springframework.integration.samples.quote.QuotePublisher"/>
+	<beans:bean class="org.springframework.integration.samples.quote.TickerStream"/>
 
-	<beans:bean id="subscriber" class="org.springframework.integration.samples.quote.QuoteSubscriber"/>
+	<beans:bean class="org.springframework.integration.samples.quote.QuoteService"/>
+
+	<beans:bean class="org.springframework.integration.samples.quote.Logger"/>
 
 </beans:beans>

@@ -14,31 +14,25 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.annotation;
+package org.springframework.integration.config.annotation;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.util.List;
 
+import org.springframework.integration.annotation.CompletionStrategy;
+import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.message.Message;
 import org.springframework.stereotype.Component;
 
 /**
- * Indicates that a class is capable of serving as a message endpoint.
- * 
- * @author Mark Fisher
+ * @author Marius Bogoevici
  */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@Inherited
-@Documented
-@Component
-public @interface MessageEndpoint {
+@MessageEndpoint(input="inputChannel")
+@Component("endpointWithoutAggregatorAndWithCompletionStrategy")
+public class TestAnnotatedEndpointWithCompletionStrategyOnly {
 
-	String input() default "";
-
-	String output() default "";
+	@CompletionStrategy
+	public boolean checkCompleteness(List<Message<?>> messages) {
+		throw new UnsupportedOperationException("Not intended to be called");
+	}
 
 }

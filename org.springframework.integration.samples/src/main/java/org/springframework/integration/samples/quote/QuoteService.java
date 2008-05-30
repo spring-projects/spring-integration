@@ -22,25 +22,15 @@ import java.util.Random;
 
 import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.MessageEndpoint;
-import org.springframework.integration.annotation.Polled;
 
 /**
  * @author Mark Fisher
  */
-@MessageEndpoint(output="quotes")
-public class QuotePublisher {
-
-	@Polled(period=300)
-	public String generateTicker() {
-		char[] chars = new char[3];
-		for (int i = 0; i < 3; i++) {
-			chars[i] = (char) (new Random().nextInt(25) + 65);
-		}
-		return new String(chars);
-	}
+@MessageEndpoint(input="tickers", output="quotes")
+public class QuoteService {
 
 	@Handler
-	public Quote getQuote(String ticker) {
+	public Quote lookupQuote(String ticker) {
 		BigDecimal price = new BigDecimal(new Random().nextDouble() * 100);		
 		return new Quote(ticker, price.setScale(2, RoundingMode.HALF_EVEN));	
 	}

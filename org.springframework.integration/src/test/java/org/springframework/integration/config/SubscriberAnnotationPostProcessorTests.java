@@ -35,6 +35,7 @@ import org.springframework.integration.annotation.Subscriber;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.config.annotation.SubscriberAnnotationPostProcessor;
 import org.springframework.integration.message.StringMessage;
 
 /**

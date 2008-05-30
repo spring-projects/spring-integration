@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config;
+package org.springframework.integration.config.annotation;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;

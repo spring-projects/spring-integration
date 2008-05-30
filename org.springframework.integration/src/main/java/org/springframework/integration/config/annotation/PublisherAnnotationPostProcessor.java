@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config;
+package org.springframework.integration.config.annotation;
 
 import java.lang.annotation.Annotation;
 
@@ -38,9 +38,9 @@ import org.springframework.util.Assert;
  */
 public class PublisherAnnotationPostProcessor implements BeanPostProcessor, BeanClassLoaderAware {
 
-	private Class<? extends Annotation> publisherAnnotationType = Publisher.class;
+	private volatile Class<? extends Annotation> publisherAnnotationType = Publisher.class;
 
-	private String channelNameAttribute = "channel";
+	private volatile String channelNameAttribute = "channel";
 
 	private ChannelRegistry channelRegistry;
 
@@ -86,8 +86,8 @@ public class PublisherAnnotationPostProcessor implements BeanPostProcessor, Bean
 		if (targetClass == null) {
 			return bean;
 		}
-		if (advisor == null) {
-			createAdvisor();
+		if (this.advisor == null) {
+			this.createAdvisor();
 		}
 		if (AopUtils.canApply(this.advisor, targetClass)) {
 			if (bean instanceof Advised) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,15 +29,11 @@ import org.springframework.integration.scheduling.PollingSchedule;
 /**
  * Annotation that can be specified at class-level alongside a
  * {@link MessageEndpoint @MessageEndpoint} annotation in order to provide the
- * scheduling information for that endpoint. Alternatively, as a method-level
- * annotation, this indicates that a method is capable of providing messages.
- * The method must not accept any parameters but can return either a single
- * object or collection. The enclosing class should be annotated with
- * {@link MessageEndpoint @MessageEndpoint}.
+ * scheduling information for that endpoint.
  * 
  * @author Mark Fisher
  */
-@Target({ElementType.TYPE, ElementType.METHOD})
+@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented

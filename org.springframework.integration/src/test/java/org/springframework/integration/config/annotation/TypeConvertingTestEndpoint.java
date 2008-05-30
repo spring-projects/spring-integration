@@ -14,31 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.annotation;
+package org.springframework.integration.config.annotation;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-import org.springframework.stereotype.Component;
+import org.springframework.integration.annotation.Handler;
+import org.springframework.integration.annotation.MessageEndpoint;
 
 /**
- * Indicates that a class is capable of serving as a message endpoint.
- * 
  * @author Mark Fisher
  */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@Inherited
-@Documented
-@Component
-public @interface MessageEndpoint {
+@MessageEndpoint(input="inputChannel", output="outputChannel")
+public class TypeConvertingTestEndpoint {
 
-	String input() default "";
-
-	String output() default "";
+	@Handler
+	public int multiplyByTwo(int number) {
+		return number * 2;
+	}
 
 }

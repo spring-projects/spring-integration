@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint.annotation;
+package org.springframework.integration.samples.oddeven;
 
-import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.annotation.Router;
 
 /**
  * @author Mark Fisher
  */
-@MessageEndpoint(input="inputChannel", output="outputChannel", pollPeriod=10)
-public class TypeConvertingTestEndpoint {
+@MessageEndpoint(input="numbers")
+public class NumberRouter {
 
-	@Handler
-	public int multiplyByTwo(int number) {
-		return number * 2;
+	@Router
+	public String resolveChannel(int i) {
+		if (i % 2 == 0) {
+			return "even";
+		}
+		return "odd";
 	}
 
 }

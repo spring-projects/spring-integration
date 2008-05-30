@@ -19,14 +19,16 @@ package org.springframework.integration.endpoint.annotation;
 import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Polled;
+import org.springframework.integration.annotation.MessageSource;
 
 /**
  * @author Mark Fisher
  */
 @MessageEndpoint(output="outputChannel")
+@Polled(period=100)
 public class InboundChannelAdapterTestBean {
 
-	@Polled(period=100)
+	@MessageSource
 	public String getName() {
 		return "world";
 	}

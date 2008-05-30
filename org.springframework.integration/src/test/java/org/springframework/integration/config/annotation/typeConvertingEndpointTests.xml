@@ -13,9 +13,9 @@
 
 	<integration:channel id="outputChannel"/>
 
-	<bean id="endpoint" class="org.springframework.integration.endpoint.annotation.TypeConvertingTestEndpoint"/>
+	<bean id="endpoint" class="org.springframework.integration.config.annotation.TypeConvertingTestEndpoint"/>
 
-	<bean class="org.springframework.integration.config.MessageEndpointAnnotationPostProcessor">
+	<bean class="org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor">
 		<constructor-arg ref="bus"/>
 	</bean>
 

@@ -14,31 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.annotation;
+package org.springframework.integration.config.annotation;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-import org.springframework.stereotype.Component;
+import org.springframework.integration.endpoint.MessageEndpoint;
 
 /**
- * Indicates that a class is capable of serving as a message endpoint.
+ * Strategy interface for post-processing annotated methods.
  * 
  * @author Mark Fisher
  */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@Inherited
-@Documented
-@Component
-public @interface MessageEndpoint {
+public interface AnnotationMethodPostProcessor {
 
-	String input() default "";
+	Object postProcess(Object bean, String beanName, Class<?> originalBeanClass);
 
-	String output() default "";
+	MessageEndpoint createEndpoint(Object bean, String beanName, Class<?> originalBeanClass,
+			org.springframework.integration.annotation.MessageEndpoint endpointAnnotation);
 
 }

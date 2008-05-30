@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,19 @@
 
 package org.springframework.integration.router.config;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Map;
 
+import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.integration.annotation.CompletionStrategy;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.config.AbstractMessageHandlerCreator;
 import org.springframework.integration.router.AggregatingMessageHandler;
 import org.springframework.integration.router.AggregatorAdapter;
+import org.springframework.integration.router.CompletionStrategyAdapter;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * Creates an {@link AggregatorAdapter AggregatorAdapter} for methods that aggregate messages.
@@ -82,7 +87,19 @@ public class AggregatorMessageHandlerCreator extends AbstractMessageHandlerCreat
 			messageHandler.setTrackedCorrelationIdCapacity(
 					(Integer) attributes.get(TRACKED_CORRELATION_ID_CAPACITY));
 		}
+		this.configureCompletionStrategy(object, messageHandler);
 		return messageHandler;
+	}
+
+	private void configureCompletionStrategy(final Object object, final AggregatingMessageHandler handler) {
+		ReflectionUtils.doWithMethods(object.getClass(), new ReflectionUtils.MethodCallback() {
+			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
+				Annotation annotation = AnnotationUtils.getAnnotation(method, CompletionStrategy.class);
+				if (annotation != null) {
+					handler.setCompletionStrategy(new CompletionStrategyAdapter(object, method));
+				}
+			}
+		});
 	}
 
 }

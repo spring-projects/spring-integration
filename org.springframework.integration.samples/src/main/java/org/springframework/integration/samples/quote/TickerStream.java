@@ -14,31 +14,28 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.annotation;
+package org.springframework.integration.samples.quote;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.util.Random;
 
-import org.springframework.stereotype.Component;
+import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.annotation.MessageSource;
+import org.springframework.integration.annotation.Polled;
 
 /**
- * Indicates that a class is capable of serving as a message endpoint.
- * 
  * @author Mark Fisher
  */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@Inherited
-@Documented
-@Component
-public @interface MessageEndpoint {
+@MessageEndpoint(output="tickers")
+@Polled(period=300)
+public class TickerStream {
 
-	String input() default "";
-
-	String output() default "";
+	@MessageSource
+	public String nextTicker() {
+		char[] chars = new char[3];
+		for (int i = 0; i < 3; i++) {
+			chars[i] = (char) (new Random().nextInt(25) + 65);
+		}
+		return new String(chars);
+	}
 
 }

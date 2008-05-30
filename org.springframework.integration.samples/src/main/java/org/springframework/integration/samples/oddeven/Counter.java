@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,28 +19,21 @@ package org.springframework.integration.samples.oddeven;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.annotation.MessageSource;
 import org.springframework.integration.annotation.Polled;
-import org.springframework.integration.annotation.Router;
 
 /**
  * @author Mark Fisher
  */
-@MessageEndpoint
+@MessageEndpoint(output="numbers")
+@Polled(initialDelay=1000, period=3000)
 public class Counter {
 
-	private AtomicInteger count = new AtomicInteger();
+	private final AtomicInteger count = new AtomicInteger();
 
-	@Polled(initialDelay=1000, period=3000)
-	public int getNumber() {
+	@MessageSource
+	public int next() {
 		return count.incrementAndGet();
-	}
-
-	@Router
-	public String resolveChannel(int i) {
-		if (i % 2 == 0) {
-			return "even";
-		}
-		return "odd";
 	}
 
 }

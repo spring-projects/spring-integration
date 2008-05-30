@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.samples.quote;
+package org.springframework.integration.handler.annotation;
 
-import org.springframework.integration.annotation.Subscriber;
+import org.springframework.integration.annotation.Handler;
 
 /**
  * @author Mark Fisher
  */
-public class QuoteSubscriber {
+public class SimpleHandlerTestBean {
 
-	@Subscriber(channel="quotes")
-	public void log(Object o) {
-		System.out.println(o);
+	@Handler
+	public String sayHello(String input) {
+		return "hello " + input;
 	}
 
 }

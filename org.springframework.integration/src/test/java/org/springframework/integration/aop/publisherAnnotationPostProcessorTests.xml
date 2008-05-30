@@ -10,7 +10,7 @@
 
 	<bean id="testBean" class="org.springframework.integration.aop.PublisherAnnotationTestBean"/>
 
-	<bean class="org.springframework.integration.config.PublisherAnnotationPostProcessor">
+	<bean class="org.springframework.integration.config.annotation.PublisherAnnotationPostProcessor">
 		<property name="channelRegistry" ref="messageBus"/>
 	</bean>
 

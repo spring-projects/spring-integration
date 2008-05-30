@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config;
+package org.springframework.integration.config.annotation;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.springframework.integration.annotation.Aggregator;
-import org.springframework.integration.annotation.CompletionStrategy;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
@@ -35,12 +33,30 @@ import org.springframework.stereotype.Component;
  * @author Marius Bogoevici
  */
 @MessageEndpoint(input="inputChannel")
-@Component("endpointWithoutAggregatorAndWithCompletionStrategy")
-public class TestAnnotatedEndpointWithCompletionStrategyOnly {
+@Component("endpointWithDefaultAnnotation")
+public class TestAnnotatedEndpointWithDefaultAggregator {
 
-	@CompletionStrategy
-	public boolean checkCompleteness(List<Message<?>> messages) {
-		throw new UnsupportedOperationException("Not intended to being called");
+	private final ConcurrentMap<Object, Message<?>> aggregatedMessages = new ConcurrentHashMap<Object, Message<?>>();
+
+	@Aggregator
+	public Message<?> aggregatingMethod(List<Message<?>> messages) {
+		List<Message<?>> sortableList = new ArrayList<Message<?>>(messages);
+		Collections.sort(sortableList, new MessageSequenceComparator());
+		StringBuffer buffer = new StringBuffer();
+		Object correlationId = null;
+		for (Message<?> message : sortableList) {
+			buffer.append(message.getPayload().toString());
+			if (null == correlationId) {
+				correlationId = message.getHeader().getCorrelationId();
+			}
+		}
+		Message<?> returnedMessage =  new StringMessage(buffer.toString());
+		aggregatedMessages.put(correlationId, returnedMessage);
+		return returnedMessage;
+	}
+
+	public ConcurrentMap<Object, Message<?>> getAggregatedMessages() {
+		return aggregatedMessages;
 	}
 
 }

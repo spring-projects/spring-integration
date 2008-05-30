@@ -37,7 +37,7 @@ public class PublisherAnnotationPostProcessorTests {
 		ITestBean testBean = (ITestBean) context.getBean("testBean");
 		testBean.test();
 		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
-		Message result = channel.receive();
+		Message<?> result = channel.receive();
 		assertEquals("test", result.getPayload());
 	}
 
