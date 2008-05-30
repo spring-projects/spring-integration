@@ -18,6 +18,8 @@
 
 	<beans:bean class="org.springframework.integration.samples.quote.QuoteService"/>
 
-	<beans:bean class="org.springframework.integration.samples.quote.Logger"/>
+	<target-endpoint input-channel="quotes" target="stdout"/>
+
+	<console-target id="stdout" append-newline="true"/>
 
 </beans:beans>
