@@ -241,6 +241,9 @@ public class AggregatingMessageHandler implements MessageHandler, InitializingBe
 			return;
 		}
 		Message<?> result = aggregator.aggregate(messages);
+		if (result.getHeader().getCorrelationId() == null) {
+			result.getHeader().setCorrelationId(correlationId);
+		}
 		MessageChannel replyChannel = this.resolveReplyChannelFromMessage(result);
 		if (replyChannel == null) {
 			replyChannel = this.resolveReplyChannelFromMessage(messages.get(0));
