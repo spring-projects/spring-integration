@@ -17,6 +17,7 @@
 package org.springframework.integration.gateway;
 
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.endpoint.MessagingGateway;
 import org.springframework.integration.message.DefaultMessageCreator;
 import org.springframework.integration.message.DefaultMessageMapper;
 import org.springframework.integration.message.Message;
@@ -34,7 +35,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class SimpleMessagingGateway extends MessagingGatewaySupport {
+public class SimpleMessagingGateway extends MessagingGatewaySupport implements MessagingGateway {
 
 	private MessageCreator messageCreator = new DefaultMessageCreator();
 

@@ -51,6 +51,7 @@ import org.springframework.integration.endpoint.DefaultEndpointRegistry;
 import org.springframework.integration.endpoint.EndpointRegistry;
 import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.endpoint.MessageEndpoint;
+import org.springframework.integration.endpoint.MessagingGateway;
 import org.springframework.integration.endpoint.SourceEndpoint;
 import org.springframework.integration.endpoint.TargetEndpoint;
 import org.springframework.integration.handler.MessageHandler;
@@ -191,6 +192,15 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 				(Map<String, MessageEndpoint>) context.getBeansOfType(MessageEndpoint.class);
 		for (Map.Entry<String, MessageEndpoint> entry : endpointBeans.entrySet()) {
 			this.registerEndpoint(entry.getKey(), entry.getValue());
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private void registerGateways(ApplicationContext context) {
+		Map<String, MessagingGateway> gatewayBeans =
+				(Map<String, MessagingGateway>) context.getBeansOfType(MessagingGateway.class);
+		for (Map.Entry<String, MessagingGateway> entry : gatewayBeans.entrySet()) {
+			this.registerGateway(entry.getKey(), entry.getValue());
 		}
 	}
 
@@ -416,6 +426,18 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 		}
 	}
 
+	private void registerGateway(String name, MessagingGateway gateway) {
+		if (gateway instanceof Lifecycle) {
+			this.lifecycleEndpoints.add((Lifecycle) gateway);
+			if (this.isRunning()) {
+				((Lifecycle) gateway).start();
+			}
+		}
+		if (logger.isInfoEnabled()) {
+			logger.info("registered gateway '" + name + "'");
+		}
+	}
+
 	private void activateSubscription(MessageChannel channel, Target target, Schedule schedule) {
 		SubscriptionManager manager = this.subscriptionManagers.get(channel);
 		if (manager == null) {
@@ -496,6 +518,7 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 		if (event instanceof ContextRefreshedEvent) {
 			ApplicationContext context = ((ContextRefreshedEvent) event).getApplicationContext();
 			this.registerEndpoints(context);
+			this.registerGateways(context);
 			if (this.configureAsyncEventMulticaster) {
 				this.initialize();
 				this.doConfigureAsyncEventMulticaster(context);
