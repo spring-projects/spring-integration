@@ -16,10 +16,13 @@
 
 package org.springframework.integration.gateway;
 
+import java.lang.reflect.Method;
+
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 
 import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.SimpleTypeConverter;
 import org.springframework.beans.TypeConverter;
 import org.springframework.beans.factory.BeanClassLoaderAware;
@@ -42,16 +45,23 @@ import org.springframework.util.ClassUtils;
 public class GatewayProxyFactoryBean extends SimpleMessagingGateway
 		implements FactoryBean, MethodInterceptor, InitializingBean, BeanClassLoaderAware, BeanFactoryAware {
 
-	private Class<?> serviceInterface;
+	private volatile Class<?> serviceInterface;
 
-	private TypeConverter typeConverter = new SimpleTypeConverter();
+	private volatile TypeConverter typeConverter = new SimpleTypeConverter();
 
-	private ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
+	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
 
-	private Object serviceProxy;
+	private volatile Object serviceProxy;
+
+	private volatile boolean initialized;
+
+	private final Object initializationMonitor = new Object();
 
 
 	public void setServiceInterface(Class<?> serviceInterface) {
+		if (serviceInterface != null && !serviceInterface.isInterface()) {
+			throw new IllegalArgumentException("'serviceInterface' must be an interface");
+		}
 		this.serviceInterface = serviceInterface;
 	}
 
@@ -70,7 +80,16 @@ public class GatewayProxyFactoryBean extends SimpleMessagingGateway
 	}
 
 	public void afterPropertiesSet() {
-		this.serviceProxy = new ProxyFactory(this.serviceInterface, this).getProxy(this.beanClassLoader);
+		synchronized (this.initializationMonitor) {
+			if (this.initialized) {
+				return;
+			}
+			if (this.serviceInterface == null) {
+				throw new IllegalArgumentException("'serviceInterface' must not be null");
+			}
+			this.serviceProxy = new ProxyFactory(this.serviceInterface, this).getProxy(this.beanClassLoader);
+			this.initialized = true;
+		}
 	}
 
 	public Object getObject() throws Exception {
@@ -86,9 +105,24 @@ public class GatewayProxyFactoryBean extends SimpleMessagingGateway
 	}
 
 	public Object invoke(MethodInvocation invocation) throws Throwable {
-		Class<?> returnType = invocation.getMethod().getReturnType();
+		Method method = invocation.getMethod();
+		if (AopUtils.isToStringMethod(method)) {
+			return "gateway proxy for service interface [" + this.serviceInterface + "]";
+		}
+		if (method.getDeclaringClass().equals(this.serviceInterface)) {
+			return this.invokeGatewayMethod(invocation);
+		}
+		return invocation.proceed();
+	}
+
+	private Object invokeGatewayMethod(MethodInvocation invocation) throws Throwable {
+		if (!this.initialized) {
+			this.afterPropertiesSet();
+		}
+		Method method = invocation.getMethod();
+		Class<?> returnType = method.getReturnType();
 		boolean shouldReturnMessage = Message.class.isAssignableFrom(returnType);
-		int paramCount = invocation.getMethod().getParameterTypes().length;
+		int paramCount = method.getParameterTypes().length;
 		Object response = null;
 		if (paramCount == 0) {
 			if (shouldReturnMessage) {

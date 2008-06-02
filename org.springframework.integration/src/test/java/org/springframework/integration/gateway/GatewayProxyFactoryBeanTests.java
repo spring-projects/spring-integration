@@ -145,6 +145,32 @@ public class GatewayProxyFactoryBeanTests {
 		assertEquals("foobar", result.getPayload());
 	}
 
+	@Test
+	public void testServiceMustBeInterface() {
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		int count = 0;
+		try {
+			proxyFactory.setServiceInterface(TestService.class);
+			count++;
+			proxyFactory.setServiceInterface(String.class);
+			count++;
+		}
+		catch (IllegalArgumentException e) {
+			// expected
+		}
+		assertEquals(1, count);
+	}
+
+	@Test
+	public void testProxiedToStringMethod() throws Exception {
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		proxyFactory.setServiceInterface(TestService.class);
+		proxyFactory.afterPropertiesSet();
+		Object proxy = proxyFactory.getObject();
+		String expected = "gateway proxy for";
+		assertEquals(expected, proxy.toString().substring(0, expected.length()));
+	}
+
 
 	private static void startResponder(final MessageChannel requestChannel) {
 		new Thread(new Runnable() {
