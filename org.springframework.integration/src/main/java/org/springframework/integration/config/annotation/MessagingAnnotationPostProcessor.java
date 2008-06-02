@@ -49,7 +49,8 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Init
 
 	private volatile ClassLoader beanClassLoader;
 
-	private Map<Class<?>, AnnotationMethodPostProcessor> postProcessors = new HashMap<Class<?>, AnnotationMethodPostProcessor>();
+	private final Map<Class<?>, AnnotationMethodPostProcessor> postProcessors =
+			new HashMap<Class<?>, AnnotationMethodPostProcessor>();
 
 
 	public MessagingAnnotationPostProcessor(MessageBus messageBus) {
@@ -60,10 +61,6 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Init
 
 	public void setBeanClassLoader(ClassLoader beanClassLoader) {
 		this.beanClassLoader = beanClassLoader;
-	}
-
-	protected MessageBus getMessageBus() {
-		return this.messageBus;
 	}
 
 	public void afterPropertiesSet() {
@@ -101,8 +98,9 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Init
 		return bean;
 	}
 
-	protected Class<?> getBeanClass(Object bean) {
-		return AopUtils.getTargetClass(bean);
+	private Class<?> getBeanClass(Object bean) {
+		Class<?> targetClass = AopUtils.getTargetClass(bean);
+		return (targetClass != null) ? targetClass : bean.getClass();
 	}
 
 }

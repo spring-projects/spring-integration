@@ -233,8 +233,8 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 		}
 
 		public boolean preReceive(MessageChannel channel) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("preReceive on channel '" + channel + "'");
+			if (logger.isTraceEnabled()) {
+				logger.trace("preReceive on channel '" + channel + "'");
 			}
 			for (ChannelInterceptor interceptor : interceptors) {
 				if (!interceptor.preReceive(channel)) {
@@ -245,8 +245,11 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 		}
 
 		public void postReceive(Message<?> message, MessageChannel channel) {
-			if (logger.isDebugEnabled()) {
+			if (message != null && logger.isDebugEnabled()) {
 				logger.debug("postReceive on channel '" + channel + "', message: " + message);
+			}
+			else if (logger.isTraceEnabled()) {
+				logger.trace("postReceive on channel '" + channel + "', message is null");
 			}
 			for (ChannelInterceptor interceptor : interceptors) {
 				interceptor.postReceive(message, channel);
