@@ -86,6 +86,10 @@ public class JmsGatewayParser extends AbstractSingleBeanDefinitionParser {
 				builder.addPropertyValue("sessionAcknowledgeMode", acknowledgeMode);
 			}
 		}
+		String transactionManager = element.getAttribute("transaction-manager");
+		if (StringUtils.hasText(transactionManager)) {
+			builder.addPropertyReference("transactionManager", transactionManager);
+		}
 		String requestChannel = element.getAttribute("request-channel");
 		if (StringUtils.hasText(requestChannel)) {
 			builder.addPropertyReference("requestChannel", requestChannel);

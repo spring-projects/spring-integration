@@ -18,6 +18,7 @@ package org.springframework.integration.adapter.jms.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
@@ -29,6 +30,7 @@ import org.springframework.integration.adapter.jms.JmsGateway;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
+import org.springframework.jms.connection.JmsTransactionManager;
 
 /**
  * @author Mark Fisher
@@ -138,6 +140,27 @@ public class JmsGatewayParserTests {
 		assertNotNull("message should not be null", message);
 		assertEquals("message-driven-test", message.getPayload());
 		context.stop();
+	}
+
+	@Test
+	public void testTransactionManagerIsNullByDefault() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsGatewayTransactionManagerTests.xml", this.getClass());
+		JmsGateway gateway = (JmsGateway) context.getBean("gatewayWithoutTransactionManager");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
+		assertNull(accessor.getPropertyValue("transactionManager"));
+	}
+
+	@Test
+	public void testGatewayWithTransactionManagerReference() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsGatewayTransactionManagerTests.xml", this.getClass());
+		JmsGateway gateway = (JmsGateway) context.getBean("gatewayWithTransactionManager");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
+		Object txManager = accessor.getPropertyValue("transactionManager");
+		assertEquals(JmsTransactionManager.class, txManager.getClass());
+		assertEquals(context.getBean("txManager"), txManager);
+		assertEquals(context.getBean("testConnectionFactory"), ((JmsTransactionManager) txManager).getConnectionFactory());
 	}
 
 }

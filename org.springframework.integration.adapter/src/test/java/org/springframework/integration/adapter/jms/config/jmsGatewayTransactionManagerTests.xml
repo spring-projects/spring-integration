@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:si="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
+
+	<si:channel id="requestChannel"/>
+
+	<si:jms-gateway id="gatewayWithoutTransactionManager"
+	                connection-factory="testConnectionFactory"
+	                destination="testDestination"
+	                request-channel="requestChannel"/>
+
+	<si:jms-gateway id="gatewayWithTransactionManager"
+	                connection-factory="testConnectionFactory"
+	                destination="testDestination"
+	                request-channel="requestChannel"
+	                transaction-manager="txManager"/>
+
+	<bean id="txManager" class="org.springframework.jms.connection.JmsTransactionManager">
+		<property name="connectionFactory" ref="testConnectionFactory"/>
+	</bean>
+
+	<bean id="testConnectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
+		<constructor-arg>
+			<bean class="org.springframework.integration.adapter.jms.StubConnection">
+				<constructor-arg value="message-driven-test"/>
+			</bean>
+		</constructor-arg>
+	</bean>
+
+	<bean id="testDestination" class="org.springframework.integration.adapter.jms.StubDestination"/>
+
+</beans>

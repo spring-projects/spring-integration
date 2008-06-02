@@ -30,6 +30,7 @@ import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.listener.adapter.MessageListenerAdapter;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.Assert;
 
 /**
@@ -50,6 +51,8 @@ public class JmsGateway extends SimpleMessagingGateway implements Lifecycle, Dis
 	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
 
 	private volatile TaskExecutor taskExecutor;
+
+	private volatile PlatformTransactionManager transactionManager;
 
 	private volatile boolean sessionTransacted;
 
@@ -89,6 +92,10 @@ public class JmsGateway extends SimpleMessagingGateway implements Lifecycle, Dis
 
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
 		this.taskExecutor = taskExecutor;
+	}
+
+	public void setTransactionManager(PlatformTransactionManager transactionManager) {
+		this.transactionManager = transactionManager;
 	}
 
 	public void setSessionTransacted(boolean sessionTransacted) {
@@ -134,6 +141,7 @@ public class JmsGateway extends SimpleMessagingGateway implements Lifecycle, Dis
 		if (this.destinationName != null) {
 			dmlc.setDestinationName(this.destinationName);
 		}
+		dmlc.setTransactionManager(this.transactionManager);
 		dmlc.setSessionTransacted(this.sessionTransacted);
 		dmlc.setSessionAcknowledgeMode(this.sessionAcknowledgeMode);
 		dmlc.setAutoStartup(false);

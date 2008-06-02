@@ -92,6 +92,7 @@
 					<xsd:attribute name="reply-channel" type="xsd:string"/>
 					<xsd:attribute name="request-timeout" type="xsd:long"/>
 					<xsd:attribute name="reply-timeout" type="xsd:long"/>
+					<xsd:attribute name="transaction-manager" type="xsd:string"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
