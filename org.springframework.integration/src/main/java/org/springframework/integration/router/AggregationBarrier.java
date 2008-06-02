@@ -81,8 +81,8 @@ public class AggregationBarrier implements MessageBarrier {
 				return null;
 			}
 			this.messages.add(message);
-			boolean complete = completionStrategy.isComplete(this.messages);
-			return (complete) ? this.messages : null;
+			this.complete = completionStrategy.isComplete(this.messages);
+			return (this.complete) ? this.messages : null;
 		}
 		finally {
 			this.lock.unlock();

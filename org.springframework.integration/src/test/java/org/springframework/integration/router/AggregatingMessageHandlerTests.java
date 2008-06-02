@@ -192,6 +192,25 @@ public class AggregatingMessageHandlerTests {
 		Message<?> message = createMessage("123", null, 2, 1, new QueueChannel());
 		aggregator.handle(message);
 	}
+	
+	@Test
+	public void testAdditionalMessageAfterCompletion() throws InterruptedException {
+		AggregatingMessageHandler aggregator = new AggregatingMessageHandler(new TestAggregator());
+		QueueChannel replyChannel = new QueueChannel();
+		Message<?> message1 = createMessage("123", "ABC", 3, 1, replyChannel);
+		Message<?> message2 = createMessage("456", "ABC", 3, 2, replyChannel);
+		Message<?> message3 = createMessage("789", "ABC", 3, 3, replyChannel);
+		Message<?> message4 = createMessage("abc", "ABC", 3, 3, replyChannel);
+		CountDownLatch latch = new CountDownLatch(4);
+		executor.execute(new AggregatorTestTask(aggregator, message1, latch));
+		executor.execute(new AggregatorTestTask(aggregator, message2, latch));
+		executor.execute(new AggregatorTestTask(aggregator, message3, latch));
+		executor.execute(new AggregatorTestTask(aggregator, message4, latch));
+		latch.await(1000, TimeUnit.MILLISECONDS);
+		Message<?> reply = replyChannel.receive(500);
+		assertNotNull(reply);
+		assertEquals("123456789".length(), ((String)reply.getPayload()).length());
+	}
 
 
 	private static Message<?> createMessage(String payload, Object correlationId,
