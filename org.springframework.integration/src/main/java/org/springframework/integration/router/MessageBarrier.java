@@ -26,9 +26,14 @@ import org.springframework.integration.message.Message;
  * {@link Message} arrives.
  * 
  * @author Mark Fisher
+ * @author Marius Bogoevici
  */
 public interface MessageBarrier {
 
 	List<Message<?>> addAndRelease(Message<?> message);
+
+	long getTimestamp();
+
+	List<Message<?>> getMessages();
 
 }
