@@ -21,6 +21,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FileFilter;
+import java.io.FilenameFilter;
 
 import org.junit.Test;
 
@@ -84,10 +86,20 @@ public class FileSourceParserTests {
 		assertTrue(messageCreator instanceof FileMessageCreator);
 	}
 
+	@Test(expected=ConfigurationException.class)
+	public void testInvalidFileSource() throws Throwable {
+		try {
+			new ClassPathXmlApplicationContext("invalidFileSourceTests.xml", this.getClass());
+			fail();
+		} catch (BeanDefinitionStoreException e) {
+			throw e.getCause();
+		}
+	}
+
 	@Test
-	public void testFileSourceCustomType() {
+	public void testFileSourceWithCustomMessageCreator() {
 		ApplicationContext context = new ClassPathXmlApplicationContext("fileSourceParserTests.xml", this.getClass());
-		FileSource fileSource = (FileSource) context.getBean("fileSourceCustom");
+		FileSource fileSource = (FileSource) context.getBean("fileSourceWithCustomMessageCreator");
 		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(fileSource);
 		File directory = (File) sourceAccessor.getPropertyValue("directory");
 		Object messageCreator =  sourceAccessor.getPropertyValue("messageCreator");
@@ -96,12 +108,30 @@ public class FileSourceParserTests {
 	}
 
 	@Test
-	public void testInvalidFileSource() {
+	public void testFileSourceWithCustomFileFilter() {
+		ApplicationContext context = new ClassPathXmlApplicationContext("fileSourceParserTests.xml", this.getClass());
+		FileSource fileSource = (FileSource) context.getBean("fileSourceWithCustomFileFilter");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(fileSource);
+		FileFilter filter = (FileFilter) context.getBean("customFileFilter");
+		assertEquals(filter, accessor.getPropertyValue("fileFilter"));
+	}
+
+	@Test
+	public void testFileSourceWithCustomFilenameFilter() {
+		ApplicationContext context = new ClassPathXmlApplicationContext("fileSourceParserTests.xml", this.getClass());
+		FileSource fileSource = (FileSource) context.getBean("fileSourceWithCustomFilenameFilter");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(fileSource);
+		FilenameFilter filter = (FilenameFilter) context.getBean("customFilenameFilter");
+		assertEquals(filter, accessor.getPropertyValue("filenameFilter"));
+	}
+
+	@Test(expected=ConfigurationException.class)
+	public void testFileSourceWithFileFilterAndFilenameFilterNotAllowed() throws Throwable {
 		try {
-			new ClassPathXmlApplicationContext("invalidFileSourceTests.xml", this.getClass());
+			new ClassPathXmlApplicationContext("fileSourceWithTooManyFilters.xml", this.getClass());
 			fail();
 		} catch (BeanDefinitionStoreException e) {
-			assertTrue(e.getCause() instanceof ConfigurationException);
+			throw e.getCause();
 		}
 	}
 

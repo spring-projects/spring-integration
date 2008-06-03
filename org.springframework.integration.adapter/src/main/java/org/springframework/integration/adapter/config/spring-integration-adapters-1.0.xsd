@@ -27,6 +27,8 @@
 			<xsd:attribute name="directory" type="xsd:string" use="required"/>
 			<xsd:attribute name="type" type="fileSourceType" use="optional"/>
 			<xsd:attribute name="message-creator" type="xsd:string" use="optional"/>
+			<xsd:attribute name="file-filter" type="xsd:string"/>
+			<xsd:attribute name="filename-filter" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
 
