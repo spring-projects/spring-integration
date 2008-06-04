@@ -38,14 +38,18 @@ import org.springframework.integration.message.Message;
  */
 public class ResequencingMessageHandler extends AbstractMessageBarrierHandler{
 
-	private boolean releasePartialSequences;
+	private volatile boolean releasePartialSequences = true;
 
-	public ResequencingMessageHandler(boolean releasePartialSequences) {
-		this(null, releasePartialSequences);
+	public ResequencingMessageHandler() {
+		this(null);
 	}
 
-	public ResequencingMessageHandler(ScheduledExecutorService executor, boolean releasePartialSequences) {
+	public ResequencingMessageHandler(ScheduledExecutorService executor) {
 		super(executor);
+	}
+	
+	
+	public void setReleasePartialSequences(boolean releasePartialSequences) {
 		this.releasePartialSequences = releasePartialSequences;
 	}
 
@@ -61,4 +65,5 @@ public class ResequencingMessageHandler extends AbstractMessageBarrierHandler{
 		return (releasedMessages.get(releasedMessages.size() - 1).getHeader().getSequenceNumber() ==
 				releasedMessages.get(releasedMessages.size() - 1).getHeader().getSequenceSize());
 	}
+	
 }

@@ -34,6 +34,7 @@ import org.springframework.integration.channel.config.RendezvousChannelParser;
 import org.springframework.integration.channel.config.ThreadLocalChannelParser;
 import org.springframework.integration.config.annotation.AnnotationDrivenParser;
 import org.springframework.integration.gateway.config.GatewayParser;
+import org.springframework.integration.router.config.ResequencerParser;
 import org.springframework.integration.router.config.RouterParser;
 import org.springframework.integration.router.config.SplitterParser;
 import org.springframework.util.ClassUtils;
@@ -72,6 +73,7 @@ public class IntegrationNamespaceHandler extends NamespaceHandlerSupport {
 		registerBeanDefinitionParser("router", new RouterParser());
 		registerBeanDefinitionParser("splitter", new SplitterParser());
 		registerBeanDefinitionParser("aggregator", new AggregatorParser());
+		registerBeanDefinitionParser("resequencer", new ResequencerParser());
 		Map<String, Class<? extends BeanDefinitionParser>> parserMappings = this.loadAdapterParserMappings();
 		try {
 			for (Map.Entry<String, Class<? extends BeanDefinitionParser>> entry : parserMappings.entrySet()) {

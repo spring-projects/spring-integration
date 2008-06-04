@@ -343,6 +343,28 @@
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+	
+	<xsd:element name="resequencer">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a resequencing message handler.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="beans:identifiedType">
+					<xsd:attribute name="default-reply-channel" type="xsd:string" use="optional"/>
+					<xsd:attribute name="discard-channel" type="xsd:string" use="optional"/>
+					<xsd:attribute name="send-timeout" type="xsd:long" use="optional"/>
+					<xsd:attribute name="release-partial-sequences" type="xsd:boolean" use="optional"></xsd:attribute>
+					<xsd:attribute name="send-partial-result-on-timeout"  type="xsd:boolean" use="optional"/>
+					<xsd:attribute name="tracked-correlation-id-capacity" type="xsd:int" use="optional"/>
+					<xsd:attribute name="reaper-interval" type="xsd:long" use="optional"/>
+					<xsd:attribute name="timeout" type="xsd:long" use="optional"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
 
 	<xsd:element name="completion-strategy">
 		<xsd:complexType>

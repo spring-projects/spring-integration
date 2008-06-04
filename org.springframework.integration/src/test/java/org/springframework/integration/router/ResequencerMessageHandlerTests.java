@@ -36,15 +36,16 @@ public class ResequencerMessageHandlerTests {
 
 	@Test
 	public void testBasicResequencing() throws InterruptedException {
-		ResequencingMessageHandler aggregator = new ResequencingMessageHandler(false);
+		ResequencingMessageHandler resequencer = new ResequencingMessageHandler();
+		resequencer.setReleasePartialSequences(false);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 3, 3, replyChannel);
 		Message<?> message2 = createMessage("456", "ABC", 3, 1, replyChannel);
 		Message<?> message3 = createMessage("789", "ABC", 3, 2, replyChannel);
 		CountDownLatch latch = new CountDownLatch(3);
-		aggregator.handle(message1);
-		aggregator.handle(message3);
-		aggregator.handle(message2);
+		resequencer.handle(message1);
+		resequencer.handle(message3);
+		resequencer.handle(message2);
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		Message<?> reply1 = replyChannel.receive(500);
 		Message<?> reply2 = replyChannel.receive(500);
@@ -59,16 +60,17 @@ public class ResequencerMessageHandlerTests {
 
 	@Test
 	public void testResequencingWithIncompleteSequenceRelease() throws InterruptedException {
-		ResequencingMessageHandler aggregator = new ResequencingMessageHandler(true);
+		ResequencingMessageHandler resequencer = new ResequencingMessageHandler();
+		resequencer.setReleasePartialSequences(true);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 4, 2, replyChannel);
 		Message<?> message2 = createMessage("456", "ABC", 4, 1, replyChannel);
 		Message<?> message3 = createMessage("789", "ABC", 4, 4, replyChannel);
 		Message<?> message4 = createMessage("XYZ", "ABC", 4, 3, replyChannel);
 		CountDownLatch latch = new CountDownLatch(3);
-		aggregator.handle(message1);
-		aggregator.handle(message2);
-		aggregator.handle(message3);
+		resequencer.handle(message1);
+		resequencer.handle(message2);
+		resequencer.handle(message3);
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		Message<?> reply1 = replyChannel.receive(500);
 		Message<?> reply2 = replyChannel.receive(500);
@@ -81,7 +83,7 @@ public class ResequencerMessageHandlerTests {
 		assertNull(reply3);
 		// when sending the last message, the whole sequence must have been sent
 		latch = new CountDownLatch(1);
-		aggregator.handle(message4);
+		resequencer.handle(message4);
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		reply3 = replyChannel.receive(500);
 		Message<?> reply4 = replyChannel.receive(500);
@@ -94,16 +96,17 @@ public class ResequencerMessageHandlerTests {
 
 	@Test
 	public void testResequencingWithCompleteSequenceRelease() throws InterruptedException {
-		ResequencingMessageHandler aggregator = new ResequencingMessageHandler(false);
+		ResequencingMessageHandler resequencer = new ResequencingMessageHandler();
+		resequencer.setReleasePartialSequences(false);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 4, 2, replyChannel);
 		Message<?> message2 = createMessage("456", "ABC", 4, 1, replyChannel);
 		Message<?> message3 = createMessage("789", "ABC", 4, 4, replyChannel);
 		Message<?> message4 = createMessage("XYZ", "ABC", 4, 3, replyChannel);
 		CountDownLatch latch = new CountDownLatch(3);
-		aggregator.handle(message1);
-		aggregator.handle(message2);
-		aggregator.handle(message3);
+		resequencer.handle(message1);
+		resequencer.handle(message2);
+		resequencer.handle(message3);
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		Message<?> reply1 = replyChannel.receive(500);
 		Message<?> reply2 = replyChannel.receive(500);
@@ -114,7 +117,7 @@ public class ResequencerMessageHandlerTests {
 		assertNull(reply3);
 		// when sending the last message, the whole sequence must have been sent
 		latch = new CountDownLatch(1);
-		aggregator.handle(message4);
+		resequencer.handle(message4);
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		reply1 = replyChannel.receive(500);
 		reply2 = replyChannel.receive(500);
