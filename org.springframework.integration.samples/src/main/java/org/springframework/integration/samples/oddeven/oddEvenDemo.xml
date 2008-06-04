@@ -12,7 +12,7 @@
 
 	<context:component-scan base-package="org.springframework.integration.samples.oddeven"/>
 
-	<message-bus auto-startup="false"/>
+	<message-bus/>
 
 	<channel id="numbers"/>
 	<channel id="even"/>

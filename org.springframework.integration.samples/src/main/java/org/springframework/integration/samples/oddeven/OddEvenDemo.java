@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.springframework.integration.samples.oddeven;
 
-import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
@@ -25,7 +24,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class OddEvenDemo {
 
 	public static void main(String[] args) {
-		AbstractApplicationContext context = new ClassPathXmlApplicationContext("oddEvenDemo.xml", OddEvenDemo.class);
+		new ClassPathXmlApplicationContext("oddEvenDemo.xml", OddEvenDemo.class);
 	}
 
 }

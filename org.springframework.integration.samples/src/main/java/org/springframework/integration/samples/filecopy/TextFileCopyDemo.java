@@ -28,8 +28,7 @@ public class TextFileCopyDemo {
 
 	public static void main(String[] args) {
 		FileCopyDemoCommon.setupDirectories();
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("fileCopyDemo-text.xml",
-				TextFileCopyDemo.class);
+		new ClassPathXmlApplicationContext("fileCopyDemo-text.xml", TextFileCopyDemo.class);
 	}
 	
 }
