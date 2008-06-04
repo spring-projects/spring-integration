@@ -30,7 +30,6 @@ public class TextFileCopyDemo {
 		FileCopyDemoCommon.setupDirectories();
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("fileCopyDemo-text.xml",
 				TextFileCopyDemo.class);
-		context.start();
 	}
 	
 }

@@ -31,7 +31,6 @@ public class WebServiceDemo {
 
 	public static void main(String[] args) {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("temperatureConversion.xml", WebServiceDemo.class);
-		context.start();
 
 		// Compose the XML message according to the server's schema
 		String requestMessage =

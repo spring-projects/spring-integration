@@ -29,7 +29,6 @@ public class FileBasedFileCopyDemo {
 		FileCopyDemoCommon.setupDirectories();
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("fileCopyDemo-file.xml",
 				FileBasedFileCopyDemo.class);
-		context.start();
 	}
 	
 }

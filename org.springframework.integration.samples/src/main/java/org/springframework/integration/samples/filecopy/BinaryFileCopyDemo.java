@@ -29,7 +29,6 @@ public class BinaryFileCopyDemo {
 		FileCopyDemoCommon.setupDirectories();
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("fileCopyDemo-binary.xml",
 				BinaryFileCopyDemo.class);
-		context.start();
 	}
 	
 }

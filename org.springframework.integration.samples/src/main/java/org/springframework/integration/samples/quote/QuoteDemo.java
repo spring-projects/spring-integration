@@ -26,6 +26,5 @@ public class QuoteDemo {
 
 	public static void main(String[] args) {
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext("quoteDemo.xml", QuoteDemo.class);
-		context.start();
 	}
 }

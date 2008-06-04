@@ -39,7 +39,6 @@ public class CafeDemo {
 		else {
 			context = new ClassPathXmlApplicationContext("cafeDemo.xml", CafeDemo.class);
 		}
-		context.start();
 		Cafe cafe = (Cafe) context.getBean("cafe");
 		DrinkOrder order = new DrinkOrder();
 		Drink hotDoubleLatte = new Drink(DrinkType.LATTE, 2, false);

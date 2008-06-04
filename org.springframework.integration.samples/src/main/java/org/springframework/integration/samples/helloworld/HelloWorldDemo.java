@@ -32,7 +32,6 @@ public class HelloWorldDemo {
 
 	public static void main(String[] args) {
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext("helloWorldDemo.xml", HelloWorldDemo.class);
-		context.start();
 		ChannelRegistry channelRegistry = (ChannelRegistry) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		MessageChannel inputChannel = channelRegistry.lookupChannel("inputChannel");
 		MessageChannel outputChannel = channelRegistry.lookupChannel("outputChannel");

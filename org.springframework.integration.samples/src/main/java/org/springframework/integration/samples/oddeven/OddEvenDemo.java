@@ -26,7 +26,6 @@ public class OddEvenDemo {
 
 	public static void main(String[] args) {
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext("oddEvenDemo.xml", OddEvenDemo.class);
-		context.start();
 	}
 
 }
