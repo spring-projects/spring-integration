@@ -1,8 +1,0 @@
-Bundle-Name: Spring Integration Test Support
-Bundle-SymbolicName: org.springframework.integration.test
-Bundle-Vendor: SpringSource
-Import-Package: org.springframework.integration.message;version="[1.0.
- 0, 1.0.0]"
-Export-Package: org.springframework.integration.test;version="1.0.0.M4
- "
-
