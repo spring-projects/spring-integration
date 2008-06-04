@@ -16,15 +16,16 @@
 
 package org.springframework.integration.router.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.integration.router.ResequencingMessageHandler;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
-
 
 /**
- * Parser for the &gt;resequencer&lt; tag.
+ * Parser for the &lt;resequencer&gt; tag.
+ * 
  * @author Marius Bogoevici
  */
 public class ResequencerParser extends AbstractSimpleBeanDefinitionParser {
@@ -45,20 +46,20 @@ public class ResequencerParser extends AbstractSimpleBeanDefinitionParser {
 
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
-		// TODO Auto-generated method stub
 		return !DEFAULT_REPLY_CHANNEL_ATTRIBUTE.equals(attributeName)
-				&& !DISCARD_CHANNEL_ATTRIBUTE.equals(attributeName) && super.isEligibleAttribute(attributeName);
+				&& !DISCARD_CHANNEL_ATTRIBUTE.equals(attributeName)
+				&& super.isEligibleAttribute(attributeName);
 	}
 
 	@Override
 	protected void postProcess(BeanDefinitionBuilder beanDefinition, Element element) {
 		if (StringUtils.hasText(element.getAttribute(DEFAULT_REPLY_CHANNEL_ATTRIBUTE))) {
-			beanDefinition.addPropertyReference(DEFAULT_REPLY_CHANNEL_PROPERTY, element
-					.getAttribute(DEFAULT_REPLY_CHANNEL_ATTRIBUTE));
+			beanDefinition.addPropertyReference(DEFAULT_REPLY_CHANNEL_PROPERTY,
+					element.getAttribute(DEFAULT_REPLY_CHANNEL_ATTRIBUTE));
 		}
 		if (StringUtils.hasText(element.getAttribute(DISCARD_CHANNEL_ATTRIBUTE))) {
-			beanDefinition.addPropertyReference(DISCARD_CHANNEL_PROPERTY, element
-					.getAttribute(DISCARD_CHANNEL_ATTRIBUTE));
+			beanDefinition.addPropertyReference(DISCARD_CHANNEL_PROPERTY,
+					element.getAttribute(DISCARD_CHANNEL_ATTRIBUTE));
 		}
 	}
 
