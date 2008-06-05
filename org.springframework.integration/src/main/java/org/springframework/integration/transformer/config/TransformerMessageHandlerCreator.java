@@ -14,32 +14,26 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.transformer;
+package org.springframework.integration.transformer.config;
+
+import java.lang.reflect.Method;
+import java.util.Map;
 
 import org.springframework.integration.handler.MessageHandler;
-import org.springframework.integration.message.Message;
-import org.springframework.integration.message.selector.MessageSelector;
+import org.springframework.integration.handler.config.AbstractMessageHandlerCreator;
+import org.springframework.integration.transformer.AnnotationMethodTransformerAdapter;
 
 /**
- * Handler for deciding whether to pass a message. Implements
- * {@link MessageHandler} and simply delegates to a {@link MessageSelector}.
- * 
  * @author Mark Fisher
  */
-public class MessageFilter implements MessageHandler {
+public class TransformerMessageHandlerCreator extends AbstractMessageHandlerCreator {
 
-	private MessageSelector selector;
-
-
-	public MessageFilter(MessageSelector selector) {
-		this.selector = selector;
-	}
-
-	public Message<?> handle(Message<?> message) {
-		if (this.selector.accept(message)) {
-			return message;
-		}
-		return null;
+	public MessageHandler doCreateHandler(Object object, Method method, Map<String, ?> attributes) {
+		AnnotationMethodTransformerAdapter adapter = new AnnotationMethodTransformerAdapter();
+		adapter.setObject(object);
+		adapter.setMethodName(method.getName());
+		adapter.afterPropertiesSet();
+		return adapter;
 	}
 
 }

@@ -34,7 +34,7 @@ public class GenericMessage<T> implements Message<T> {
 
 	private final MessageHeader header = new MessageHeader();
 
-	private final T payload;
+	private volatile T payload;
 
 	private transient final IdGenerator defaultIdGenerator = new RandomUuidGenerator();
 
@@ -89,6 +89,11 @@ public class GenericMessage<T> implements Message<T> {
 
 	public T getPayload() {
 		return this.payload;
+	}
+
+	public void setPayload(T payload) {
+		Assert.notNull(payload, "payload must not be null");
+		this.payload = payload;
 	}
 
 	public boolean isExpired() {

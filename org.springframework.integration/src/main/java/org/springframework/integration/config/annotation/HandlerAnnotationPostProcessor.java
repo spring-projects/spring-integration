@@ -18,12 +18,16 @@ package org.springframework.integration.config.annotation;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.OrderComparator;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.Order;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.Concurrency;
@@ -31,6 +35,7 @@ import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.Polled;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.annotation.Splitter;
+import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
@@ -44,6 +49,7 @@ import org.springframework.integration.router.config.AggregatorMessageHandlerCre
 import org.springframework.integration.router.config.RouterMessageHandlerCreator;
 import org.springframework.integration.router.config.SplitterMessageHandlerCreator;
 import org.springframework.integration.scheduling.Subscription;
+import org.springframework.integration.transformer.config.TransformerMessageHandlerCreator;
 import org.springframework.util.StringUtils;
 
 /**
@@ -64,6 +70,7 @@ public class HandlerAnnotationPostProcessor extends AbstractAnnotationMethodPost
 		this.handlerCreators.put(Router.class, new RouterMessageHandlerCreator());
 		this.handlerCreators.put(Splitter.class, new SplitterMessageHandlerCreator());
 		this.handlerCreators.put(Aggregator.class, new AggregatorMessageHandlerCreator(messageBus));
+		this.handlerCreators.put(Transformer.class, new TransformerMessageHandlerCreator());
 	}
 
 
@@ -82,7 +89,12 @@ public class HandlerAnnotationPostProcessor extends AbstractAnnotationMethodPost
 						+ annotation.annotationType() + "', using DefaultMessageHandlerCreator.");
 			}
 		}
-		MessageHandler handler = handlerCreator.createHandler(bean, method, AnnotationUtils.getAnnotationAttributes(annotation));
+		Map<String, Object> attributes = AnnotationUtils.getAnnotationAttributes(annotation);
+		Order order = AnnotationUtils.findAnnotation(method, Order.class);
+		if (order != null) {
+			attributes.put("order", order.value());
+		}
+		MessageHandler handler = handlerCreator.createHandler(bean, method, attributes);
 		if (handler != null) {
 			if (handler instanceof ChannelRegistryAware) {
 				((ChannelRegistryAware) handler).setChannelRegistry(this.getMessageBus());
@@ -110,6 +122,9 @@ public class HandlerAnnotationPostProcessor extends AbstractAnnotationMethodPost
 		if (handlerChain.getHandlers().size() == 1) {
 			return handlerChain.getHandlers().get(0);
 		}
+		List<MessageHandler> handlers = new ArrayList<MessageHandler>(handlerChain.getHandlers());
+		Collections.sort(handlers, new OrderComparator());
+		handlerChain.setHandlers(handlers);
 		return handlerChain;
 	}
 

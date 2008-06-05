@@ -18,6 +18,6 @@
 		<beans:constructor-arg ref="internal.MessageBus"/>
 	</beans:bean>
 
-	<beans:bean id="simpleHandler" class="org.springframework.integration.handler.annotation.SimpleHandlerTestBean"/>
+	<beans:bean id="simpleHandler" class="org.springframework.integration.config.annotation.SimpleHandlerTestBean"/>
 
 </beans:beans>

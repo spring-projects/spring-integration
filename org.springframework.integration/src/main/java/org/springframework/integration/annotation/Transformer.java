@@ -14,27 +14,26 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration.annotation;
 
-import java.io.Serializable;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * The central interface that any Message type must implement.
+ * Indicates that a method is capable of transforming a message, message header,
+ * or message payload.
  * 
  * @author Mark Fisher
  */
-public interface Message<T> extends Serializable {
-
-	Object getId();
-
-	MessageHeader getHeader();
-
-	T getPayload();
-
-	void setPayload(T payload);
-
-	boolean isExpired();
-
-	void copyHeader(MessageHeader header, boolean overwriteExistingValues);
+@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+@Documented
+@Handler
+public @interface Transformer {
 
 }

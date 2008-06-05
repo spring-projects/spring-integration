@@ -19,20 +19,14 @@ package org.springframework.integration.handler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.ConfigurationException;
+import org.springframework.core.Ordered;
 import org.springframework.integration.message.DefaultMessageCreator;
 import org.springframework.integration.message.DefaultMessageMapper;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageCreator;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageMapper;
-import org.springframework.integration.util.DefaultMethodInvoker;
-import org.springframework.integration.util.MethodInvoker;
-import org.springframework.integration.util.NameResolvingMethodInvoker;
+import org.springframework.integration.util.AbstractMethodInvokingAdapter;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -50,18 +44,12 @@ import org.springframework.util.ObjectUtils;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractMessageHandlerAdapter implements MessageHandler, InitializingBean {
+public abstract class AbstractMessageHandlerAdapter extends AbstractMethodInvokingAdapter implements MessageHandler {
 
 	public static final String OUTPUT_CHANNEL_NAME_KEY = "outputChannelName";
 
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
-
-	private volatile Object object;
-
-	private volatile Method method;
-
-	private volatile String methodName;
+	private volatile int order;
 
 	private volatile boolean methodExpectsMessage;
 
@@ -69,32 +57,6 @@ public abstract class AbstractMessageHandlerAdapter implements MessageHandler, I
 
 	private volatile MessageCreator messageCreator = new DefaultMessageCreator();
 
-	protected volatile MethodInvoker invoker;
-
-	private volatile boolean initialized;
-
-	private final Object initializationMonitor = new Object();
-
-
-	public void setObject(Object object) {
-		this.object = object;
-	}
-
-	protected Object getObject() {
-		return this.object;
-	}
-
-	public void setMethod(Method method) {
-		this.method = method;
-	}
-
-	protected Method getMethod() {
-		return this.method;
-	}
-
-	public void setMethodName(String methodName) {
-		this.methodName = methodName;
-	}
 
 	public void setMethodExpectsMessage(boolean methodExpectsMessage) {
 		this.methodExpectsMessage = methodExpectsMessage;
@@ -110,44 +72,12 @@ public abstract class AbstractMessageHandlerAdapter implements MessageHandler, I
 		this.messageCreator = messageCreator;
 	}
 
-	public void afterPropertiesSet() {
-		synchronized (this.initializationMonitor) {
-			if (this.initialized) {
-				return;
-			}
-			if (this.object == null) {
-				throw new ConfigurationException("The target 'object' must not be null.");
-			}
-			if (this.method == null && this.methodName == null) {
-				throw new ConfigurationException("Either a 'method' or 'methodName' is required.");
-			}
-			if (this.method != null) {
-				if (this.methodName != null && !this.methodName.equals(this.method.getName())) {
-					throw new ConfigurationException("An ambiguity exists between the 'method' and 'methodName' properties. " +
-							"Note that only one of them is required, but if both are provided they must match.");
-				}
-				this.invoker = new DefaultMethodInvoker(this.object, this.method);
-			}
-			else {
-				this.invoker = new NameResolvingMethodInvoker(this.object, this.methodName);
-			}
-			this.initialized = true;
-		}
-		this.initialize();
-	}
-
-	/**
-	 * Subclasses may override this method for custom initialization requirements.
-	 */
-	protected void initialize() {
-	}
-
 	public Message<?> handle(Message<?> message) {
+		if (!this.isInitialized()) {
+			this.afterPropertiesSet();
+		}
 		if (message == null) {
 			throw new IllegalArgumentException("message must not be null");
-		}
-		if (!this.initialized) {
-			this.afterPropertiesSet();
 		}
 		Object args[] = null;
 		Object mappingResult = (this.methodExpectsMessage) ? message : this.messageMapper.mapMessage(message);
@@ -161,10 +91,10 @@ public abstract class AbstractMessageHandlerAdapter implements MessageHandler, I
 		try {
 			Object result = null;
 			try {
-				result = this.invoker.invokeMethod(args);
+				result = this.invokeMethod(args);
 			}
 			catch (NoSuchMethodException e) {
-				result = this.invoker.invokeMethod(message);
+				result = this.invokeMethod(message);
 				this.methodExpectsMessage = true;
 			}
 			if (result == null) {
@@ -173,12 +103,12 @@ public abstract class AbstractMessageHandlerAdapter implements MessageHandler, I
 			return this.handleReturnValue(result, message);
 		}
 		catch (InvocationTargetException e) {
-			throw new MessageHandlingException(message,
-					"Handler method '" + this.method + "' threw an Exception.", e.getTargetException());
+			throw new MessageHandlingException(message, "Handler method '"
+					+ this.getMethod() + "' threw an Exception.", e.getTargetException());
 		}
 		catch (Throwable e) {
-			throw new MessageHandlingException(message, "Failed to invoke handler method '" + this.method +
-					"' with arguments: " + ObjectUtils.nullSafeToString(args), e);
+			throw new MessageHandlingException(message, "Failed to invoke handler method '"
+					+ this.getMethod() + "' with arguments: " + ObjectUtils.nullSafeToString(args), e);
 		}
 	}
 

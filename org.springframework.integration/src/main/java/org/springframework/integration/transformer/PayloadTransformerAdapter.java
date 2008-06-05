@@ -14,18 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler.annotation;
+package org.springframework.integration.transformer;
 
-import org.springframework.integration.annotation.Handler;
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessagingException;
+import org.springframework.integration.util.AbstractMethodInvokingAdapter;
 
 /**
  * @author Mark Fisher
  */
-public class SimpleHandlerTestBean {
+public class PayloadTransformerAdapter extends AbstractMethodInvokingAdapter implements MessageTransformer {
 
-	@Handler
-	public String sayHello(String input) {
-		return "hello " + input;
+	@SuppressWarnings("unchecked")
+	public void transform(Message message) {
+		try {
+	        message.setPayload(this.invokeMethod(message.getPayload()));
+        } catch (Exception e) {
+        	throw new MessagingException(message, "failed to transform message payload", e);
+        }
 	}
 
 }

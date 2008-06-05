@@ -14,27 +14,18 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration.config.annotation;
 
-import java.io.Serializable;
+import org.springframework.integration.annotation.Handler;
 
 /**
- * The central interface that any Message type must implement.
- * 
  * @author Mark Fisher
  */
-public interface Message<T> extends Serializable {
+public class SimpleHandlerTestBean {
 
-	Object getId();
-
-	MessageHeader getHeader();
-
-	T getPayload();
-
-	void setPayload(T payload);
-
-	boolean isExpired();
-
-	void copyHeader(MessageHeader header, boolean overwriteExistingValues);
+	@Handler
+	public String sayHello(String input) {
+		return "hello " + input;
+	}
 
 }

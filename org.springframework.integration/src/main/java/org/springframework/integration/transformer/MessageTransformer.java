@@ -14,27 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration.transformer;
 
-import java.io.Serializable;
+import org.springframework.integration.message.Message;
 
 /**
- * The central interface that any Message type must implement.
+ * Base interface for message transformers.
  * 
  * @author Mark Fisher
  */
-public interface Message<T> extends Serializable {
+public interface MessageTransformer {
 
-	Object getId();
-
-	MessageHeader getHeader();
-
-	T getPayload();
-
-	void setPayload(T payload);
-
-	boolean isExpired();
-
-	void copyHeader(MessageHeader header, boolean overwriteExistingValues);
+	void transform(Message<?> message);
 
 }

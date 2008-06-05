@@ -22,6 +22,7 @@ import java.util.Map;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.util.AbstractMethodInvokingAdapter;
 
 /**
  * Base class for handler creators that generate a {@link MessageHandler}
@@ -33,6 +34,12 @@ public abstract class AbstractMessageHandlerCreator implements MessageHandlerCre
 
 	public final MessageHandler createHandler(Object object, Method method, Map<String, ?> attributes) {
 		MessageHandler handler = this.doCreateHandler(object, method, attributes);
+		if (attributes != null && handler instanceof AbstractMethodInvokingAdapter) {
+			Object order = attributes.get("order");
+			if (order != null && order instanceof Integer) {
+				((AbstractMethodInvokingAdapter) handler).setOrder(((Integer) order).intValue());
+			}
+		}
 		if (handler instanceof InitializingBean) {
 			try {
 				((InitializingBean) handler).afterPropertiesSet();

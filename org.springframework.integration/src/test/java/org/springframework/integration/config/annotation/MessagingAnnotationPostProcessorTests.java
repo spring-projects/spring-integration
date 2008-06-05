@@ -34,6 +34,7 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.annotation.Order;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.annotation.Concurrency;
 import org.springframework.integration.annotation.Handler;
@@ -42,6 +43,7 @@ import org.springframework.integration.annotation.MessageSource;
 import org.springframework.integration.annotation.MessageTarget;
 import org.springframework.integration.annotation.Polled;
 import org.springframework.integration.annotation.Splitter;
+import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
@@ -372,6 +374,17 @@ public class MessagingAnnotationPostProcessorTests {
 		messageBus.stop();
 	}
 
+	@Test
+	public void testHandlerWithTransformers() {
+		MessageBus messageBus = new MessageBus();
+		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
+		postProcessor.afterPropertiesSet();
+		HandlerWithTransformers testBean = new HandlerWithTransformers();
+		MessageHandler handler = (MessageHandler) postProcessor.postProcessAfterInitialization(testBean, "testBean");
+		Message<?> reply = handler.handle(new StringMessage("foo"));
+		assertEquals("PRE.FOO.post", reply.getPayload());
+	}
+
 
 	@MessageEndpoint(input="testChannel")
 	private static class TargetAnnotationTestBean {
@@ -508,7 +521,28 @@ public class MessagingAnnotationPostProcessorTests {
 		public String test() {
 			return "test";
 		}
+	}
 
+
+	private static class HandlerWithTransformers {
+
+		@Transformer
+		@Order(-1)
+		public String transformBefore(String input) {
+			return "pre." + input;
+		}
+
+		@Handler
+		@Order(0)
+		public String handle(String input) {
+			return input.toUpperCase();
+		}
+
+		@Transformer
+		@Order(1)
+		public String transformAfter(String input) {
+			return input + ".post";
+		}
 	}
 
 }

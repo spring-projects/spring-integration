@@ -14,27 +14,31 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration.handler;
 
-import java.io.Serializable;
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.selector.MessageSelector;
 
 /**
- * The central interface that any Message type must implement.
+ * Handler for deciding whether to pass a message. Implements
+ * {@link MessageHandler} and simply delegates to a {@link MessageSelector}.
  * 
  * @author Mark Fisher
  */
-public interface Message<T> extends Serializable {
+public class MessageFilter implements MessageHandler {
 
-	Object getId();
+	private MessageSelector selector;
 
-	MessageHeader getHeader();
 
-	T getPayload();
+	public MessageFilter(MessageSelector selector) {
+		this.selector = selector;
+	}
 
-	void setPayload(T payload);
-
-	boolean isExpired();
-
-	void copyHeader(MessageHeader header, boolean overwriteExistingValues);
+	public Message<?> handle(Message<?> message) {
+		if (this.selector.accept(message)) {
+			return message;
+		}
+		return null;
+	}
 
 }

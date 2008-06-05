@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.transformer;
+package org.springframework.integration.handler;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 
+import org.springframework.integration.handler.MessageFilter;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.integration.message.Message;
