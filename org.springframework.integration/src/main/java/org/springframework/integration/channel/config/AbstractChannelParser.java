@@ -49,6 +49,8 @@ public abstract class AbstractChannelParser extends AbstractSingleBeanDefinition
 
 	private static final String INTERCEPTORS_PROPERTY = "interceptors";
 
+	private static final String SECURED_ELEMENT ="secured";
+
 
 	@Override
 	protected boolean shouldGenerateId() {
@@ -82,6 +84,10 @@ public abstract class AbstractChannelParser extends AbstractSingleBeanDefinition
 				else if (INTERCEPTOR_ELEMENT.equals(localName)) {
 					String ref = ((Element) child).getAttribute("ref");
 					interceptors.add(new RuntimeBeanReference(ref));
+				}
+				else if (SECURED_ELEMENT.equals(localName)) {
+					parserContext.getReaderContext().getNamespaceHandlerResolver().resolve(
+							element.getNamespaceURI()).parse((Element)child, parserContext);
 				}
 			}
 		}
