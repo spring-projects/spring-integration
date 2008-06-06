@@ -1,0 +1,2 @@
+secured=org.springframework.integration.security.config.SecuredParser
+secure-channels=org.springframework.integration.security.config.SecureChannelsParser
