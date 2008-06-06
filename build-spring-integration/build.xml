@@ -3,6 +3,7 @@
 
 	<path id="bundles">
 		<pathelement location="${basedir}/../org.springframework.integration"/>
+		<pathelement location="${basedir}/../org.springframework.integration.security"/>
 		<pathelement location="${basedir}/../org.springframework.integration.adapter"/>
 		<pathelement location="${basedir}/../org.springframework.integration.ws"/>
 		<pathelement location="${basedir}/../org.springframework.integration.test"/>
