@@ -20,7 +20,6 @@ import java.lang.reflect.Method;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.SimpleTypeConverter;
@@ -121,22 +120,27 @@ public class GatewayProxyFactoryBean extends SimpleMessagingGateway
 		}
 		Method method = invocation.getMethod();
 		Class<?> returnType = method.getReturnType();
-		boolean shouldReturnMessage = Message.class.isAssignableFrom(returnType);
+		boolean isReturnTypeMessage = Message.class.isAssignableFrom(returnType);
+		boolean shouldReply = returnType != void.class;
 		int paramCount = method.getParameterTypes().length;
 		Object response = null;
 		if (paramCount == 0) {
-			if (shouldReturnMessage) {
-				return this.receive();
+			if (shouldReply) {
+				if (isReturnTypeMessage) {
+					return this.receive();
+				}
+				response = this.receive();
 			}
-			response = this.receive();
 		}
 		else {
 			Object payload = (paramCount == 1) ? invocation.getArguments()[0] : invocation.getArguments();
-			if (returnType.equals(void.class)) {
-				this.send(payload);
-				return null;
+			if (shouldReply) {
+				response = isReturnTypeMessage ? this.sendAndReceiveMessage(payload) : this.sendAndReceive(payload);
 			}
-			response = shouldReturnMessage ? this.sendAndReceiveMessage(payload) : this.sendAndReceive(payload);
+			else {
+				this.send(payload);
+				response = null;
+			}
 		}
 		return (response != null) ? this.typeConverter.convertIfNecessary(response, returnType) : null;
 	}

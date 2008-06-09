@@ -147,7 +147,7 @@
 			<xsd:attribute name="id" type="xsd:ID" use="required"/>
 			<xsd:attribute name="service-interface" type="xsd:string" use="required"/>
 			<xsd:attribute name="request-channel" type="xsd:string"/>
-			<xsd:attribute name="reply-channel" type="xsd:string"/>
+			<xsd:attribute name="reply-channel" type="xsd:string" use="optional"/>
 			<xsd:attribute name="request-timeout" type="xsd:long"/>
 			<xsd:attribute name="reply-timeout" type="xsd:long"/>
 			<xsd:attribute name="message-mapper" type="xsd:string"/>
@@ -357,7 +357,7 @@
 					<xsd:attribute name="default-reply-channel" type="xsd:string" use="optional"/>
 					<xsd:attribute name="discard-channel" type="xsd:string" use="optional"/>
 					<xsd:attribute name="send-timeout" type="xsd:long" use="optional"/>
-					<xsd:attribute name="release-partial-sequences" type="xsd:boolean" use="optional"></xsd:attribute>
+					<xsd:attribute name="release-partial-sequences" type="xsd:boolean" use="optional"/>
 					<xsd:attribute name="send-partial-result-on-timeout"  type="xsd:boolean" use="optional"/>
 					<xsd:attribute name="tracked-correlation-id-capacity" type="xsd:int" use="optional"/>
 					<xsd:attribute name="reaper-interval" type="xsd:long" use="optional"/>
