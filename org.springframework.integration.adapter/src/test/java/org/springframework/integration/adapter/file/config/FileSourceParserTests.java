@@ -16,17 +16,18 @@
 
 package org.springframework.integration.adapter.file.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -132,6 +133,16 @@ public class FileSourceParserTests {
 			fail();
 		} catch (BeanDefinitionStoreException e) {
 			throw e.getCause();
+		}
+	}
+
+	@Test
+	public void testFileSourceWithFileAndNotDirectory() {
+		try {
+			new ClassPathXmlApplicationContext("fileSourceWithFileDirectory.xml", this.getClass());
+		    fail();
+		} catch (BeanCreationException ex) {
+			assertTrue(ex.getCause().getCause().getMessage().indexOf("is not a directory") > 0);
 		}
 	}
 

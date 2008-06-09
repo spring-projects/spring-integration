@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.util.Map;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.io.Resource;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.message.MessageCreator;
 import org.springframework.integration.message.MessageDeliveryAware;
 import org.springframework.integration.message.MessagingException;
@@ -46,14 +48,23 @@ public class FileSource extends AbstractDirectorySource implements Source<Object
 	private volatile FilenameFilter filenameFilter;
 
 
-	public FileSource(File directory) {
+	public FileSource(Resource directory) {
 		this(directory, new FileMessageCreator());
 	}
 
-	public FileSource(File directory, MessageCreator<File, ?> messageCreator) {
+	public FileSource(Resource directory, MessageCreator<File, ?> messageCreator) {
 		super(messageCreator);
 		Assert.notNull(directory, "The directory must not be null");
-		this.directory = directory;
+		try {
+			this.directory = directory.getFile();
+			if (!this.directory.isDirectory()) {
+				throw new ConfigurationException("The FileSource can't be instantiated because "
+						+ this.directory.getAbsolutePath() + " is not a directory.");
+			}
+		}
+		catch (IOException e) {
+			throw new ConfigurationException("The FileSource can't be instantiated", e);
+		}
 	}
 
 
@@ -87,7 +98,7 @@ public class FileSource extends AbstractDirectorySource implements Source<Object
 
 	@Override
 	protected void populateSnapshot(Map<String, FileInfo> snapshot) throws IOException {
-		File[] files = null;
+		File[] files;
 		if (this.fileFilter != null) {
 			files = this.directory.listFiles(this.fileFilter);
 		}
@@ -100,10 +111,10 @@ public class FileSource extends AbstractDirectorySource implements Source<Object
 		if (files == null) {
 			throw new MessagingException("Problem occurred while polling for files. " +
 					"Is '" + directory.getAbsolutePath() + "' a directory?");
-		}		
-		for (int i = 0; i < files.length; i++) {
-			FileInfo fileInfo = new FileInfo(files[i].getName(), files[i].lastModified(), files[i].length());
-			snapshot.put(files[i].getName(), fileInfo);
+		}
+		for (File file : files) {
+			FileInfo fileInfo = new FileInfo(file.getName(), file.lastModified(), file.length());
+			snapshot.put(file.getName(), fileInfo);
 		}
 	}
 

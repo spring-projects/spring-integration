@@ -16,12 +16,15 @@
 
 package org.springframework.integration.adapter.file.config;
 
-import org.w3c.dom.Element;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.adapter.file.FileSource;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;file-source/&gt; element.
@@ -58,7 +61,12 @@ public class FileSourceParser extends AbstractDirectorySourceParser {
 
 	@Override
 	protected void postProcess(BeanDefinitionBuilder beanDefinition, Element element) {
-		beanDefinition.addConstructorArgValue(element.getAttribute(DIRECTORY_ATTRIBUTE));
+		String directoryLocation = element.getAttribute(DIRECTORY_ATTRIBUTE);
+		if (!directoryLocation.startsWith(ResourceLoader.CLASSPATH_URL_PREFIX)
+				&& !isUrl(directoryLocation)) {
+			directoryLocation = "file:" + directoryLocation;
+		}
+		beanDefinition.addConstructorArgValue(directoryLocation);
 		String fileFilter = element.getAttribute(FILE_FILTER_ATTRIBUTE);
 		String filenameFilter = element.getAttribute(FILENAME_FILTER_ATTRIBUTE);
 		if (StringUtils.hasText(fileFilter) && StringUtils.hasText(filenameFilter)) {
@@ -72,6 +80,16 @@ public class FileSourceParser extends AbstractDirectorySourceParser {
 			beanDefinition.addPropertyReference("filenameFilter", filenameFilter);
 		}
 		super.postProcess(beanDefinition, element);
+	}
+
+	private boolean isUrl(String directoryLocation) {
+		try {
+			new URL(directoryLocation);
+			return true;
+		}
+		catch (MalformedURLException e) {
+			return false;
+		}
 	}
 
 }
