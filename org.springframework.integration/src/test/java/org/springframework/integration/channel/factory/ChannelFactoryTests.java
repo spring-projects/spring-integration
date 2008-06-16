@@ -42,7 +42,6 @@ import org.springframework.integration.channel.ThreadLocalChannel;
 import org.springframework.integration.dispatcher.DirectChannel;
 import org.springframework.integration.dispatcher.DirectChannelFactory;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.selector.MessageSelector;
 
 /**
  * @author Marius Bogoevici
@@ -163,39 +162,5 @@ public class ChannelFactoryTests {
 
 	}
 
-
-	static class StubChannel extends AbstractMessageChannel {
-
-		public StubChannel(DispatcherPolicy dispatcherPolicy) {
-			super(dispatcherPolicy);
-		}
-
-		@Override
-		protected Message<?> doReceive(long timeout) {
-			return null;
-		}
-
-		@Override
-		protected boolean doSend(Message<?> message, long timeout) {
-			return false;
-		}
-
-		public List<Message<?>> clear() {
-			return null;
-		}
-
-		public List<Message<?>> purge(MessageSelector selector) {
-			return null;
-		}
-	}
-
-
-	static class StubChannelFactory extends AbstractChannelFactory {
-
-		@Override
-		protected AbstractMessageChannel createChannelInternal(DispatcherPolicy dispatcherPolicy) {
-			return new StubChannel(dispatcherPolicy);
-		}
-	}
 
 }
