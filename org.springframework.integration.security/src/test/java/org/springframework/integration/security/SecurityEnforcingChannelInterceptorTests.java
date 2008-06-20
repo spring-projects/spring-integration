@@ -18,6 +18,7 @@ package org.springframework.integration.security;
 
 import static org.junit.Assert.assertEquals;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -29,6 +30,7 @@ import org.springframework.security.Authentication;
 import org.springframework.security.ConfigAttribute;
 import org.springframework.security.ConfigAttributeDefinition;
 import org.springframework.security.InsufficientAuthenticationException;
+import org.springframework.security.context.SecurityContextHolder;
 
 /**
  * @author Jonas Partner
@@ -44,7 +46,11 @@ public class SecurityEnforcingChannelInterceptorTests {
 	public void setUp() {
 		channel = new QueueChannel();
 	}
-
+	
+	@After
+	public void clearSecurityContext(){
+		SecurityContextHolder.clearContext();
+	}
 
 	@Test(expected = AccessDeniedException.class)
 	public void testSendSecuredAndAccessDenied() {

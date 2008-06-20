@@ -30,6 +30,13 @@ import org.springframework.security.context.SecurityContextHolder;
  */
 public class SecurityContextAssociatingHandlerInterceptor extends InterceptingMessageHandler {
 
+	/**
+	 * One time only set the strategy to be stack based to allow use of direct channels where push and pop is required rather than set and clear
+	 */
+	static {
+		SecurityContextHolder.setStrategyName(StackBasedSecurityContextHolderStrategy.class.getName());
+	}
+	
 	public SecurityContextAssociatingHandlerInterceptor(MessageHandler target) {
 		super(target);
 	}

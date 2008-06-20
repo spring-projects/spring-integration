@@ -54,6 +54,7 @@ public class SecureChannelsParserTests {
 		if (applicationContext != null) {
 			applicationContext.close();
 		}
+		SecurityContextHolder.clearContext();
 	}
 
 

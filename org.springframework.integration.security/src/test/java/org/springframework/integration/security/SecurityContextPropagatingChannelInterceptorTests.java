@@ -23,7 +23,6 @@ import static org.junit.Assert.assertTrue;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.MessageHeader;
 import org.springframework.integration.message.StringMessage;
@@ -78,9 +77,13 @@ public class SecurityContextPropagatingChannelInterceptorTests {
 		channel.send(message);
 		message = (StringMessage) channel.receive(0);
 		MessageHeader header = message.getHeader();
+		
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		
 		assertFalse("Security context header found when no security context existed.",
 				header.getAttributeNames().contains(SecurityContextPropagatingChannelInterceptor.SECURITY_CONTEXT_HEADER_ATTRIBUTE));
 	}
+
 
 
 	private void associateContextWithThread(){

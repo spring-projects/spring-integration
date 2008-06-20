@@ -20,8 +20,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 
+import org.junit.After;
 import org.junit.Test;
 
+import org.springframework.integration.dispatcher.DirectChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
@@ -36,6 +38,11 @@ import org.springframework.security.context.SecurityContextHolder;
  */
 public class SecurityContextAssociatingHandlerInterceptorTests {
 
+	@After
+	public void clearSecurityContext(){
+		SecurityContextHolder.clearContext();
+	}
+	
 	@Test
 	public void testMessageWithSecurityContext() {
 		final StubSecurityContext securityContext = new StubSecurityContext();
@@ -96,6 +103,27 @@ public class SecurityContextAssociatingHandlerInterceptorTests {
 		associatingInterceptor.handle(message);
 		assertNull("Security context still present after handler returned",
 				SecurityContextHolder.getContext().getAuthentication());
+	}
+	
+	@Test
+	public void testExistingSecurityContextIsNotCleared(){
+		SecurityContextHolder.setStrategyName(StackBasedSecurityContextHolderStrategy.class.getName());
+		final StubSecurityContext securityContext = new StubSecurityContext();
+		SecurityContextHolder.setContext(securityContext);
+		
+		StringMessage message = new StringMessage("test");
+		
+		final MessageHandler handler = new MessageHandler() {
+			public Message<?> handle(Message<?> message) {
+				SecurityContext associatedContext = SecurityContextHolder.getContext();
+				assertEquals("Wrong security context", securityContext, associatedContext);
+				return null;
+			}
+		};
+		SecurityContextAssociatingHandlerInterceptor associatingInterceptor =
+			new SecurityContextAssociatingHandlerInterceptor(handler);
+		associatingInterceptor.handle(message);
+		assertEquals("Security context no logner set", securityContext, SecurityContextHolder.getContext());
 	}
 
 
