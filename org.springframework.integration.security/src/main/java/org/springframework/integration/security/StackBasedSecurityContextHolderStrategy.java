@@ -39,7 +39,7 @@ public class StackBasedSecurityContextHolderStrategy implements SecurityContextH
 
 	public void clearContext() {
 		if (getStackForThread().size() > 0) {
-			SecurityContext ctx = getStackForThread().pop();
+			SecurityContext ctx = getStackForThread().poll();
 			logger.debug("Popped security context " + ctx);
 		}
 	}
@@ -47,7 +47,7 @@ public class StackBasedSecurityContextHolderStrategy implements SecurityContextH
 	public SecurityContext getContext() {
 		if (getStackForThread().peek() == null) {
 			logger.debug("Pushed new blank security context");
-			getStackForThread().push(new SecurityContextImpl());
+			getStackForThread().offer(new SecurityContextImpl());
 		}
 
 		return (SecurityContext) getStackForThread().peek();
@@ -56,7 +56,7 @@ public class StackBasedSecurityContextHolderStrategy implements SecurityContextH
 	public void setContext(SecurityContext context) {
 		Assert.notNull(context, "Only non-null SecurityContext instances are permitted");
 
-		getStackForThread().push(context);
+		getStackForThread().offer(context);
 		logger.debug("Pushed context " + context);
 	}
 
