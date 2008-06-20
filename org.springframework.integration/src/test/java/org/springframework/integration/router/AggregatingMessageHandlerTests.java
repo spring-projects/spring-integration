@@ -101,7 +101,7 @@ public class AggregatingMessageHandlerTests {
 		AggregatorTestTask task2 = new AggregatorTestTask(aggregator, message2, latch);
 		executor.execute(task1);
 		executor.execute(task2);
-		latch.await(2000, TimeUnit.MILLISECONDS);
+		latch.await(3000, TimeUnit.MILLISECONDS);
 		assertEquals("handlers should have been invoked within time limit", 0, latch.getCount());
 		Message<?> reply = replyChannel.receive(1000);
 		assertNotNull("a reply message should have been received", reply);
