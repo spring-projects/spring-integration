@@ -22,8 +22,6 @@ import static org.junit.Assert.assertNull;
 
 import org.junit.After;
 import org.junit.Test;
-
-import org.springframework.integration.dispatcher.DirectChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;

@@ -77,9 +77,6 @@ public class SecurityContextPropagatingChannelInterceptorTests {
 		channel.send(message);
 		message = (StringMessage) channel.receive(0);
 		MessageHeader header = message.getHeader();
-		
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		
 		assertFalse("Security context header found when no security context existed.",
 				header.getAttributeNames().contains(SecurityContextPropagatingChannelInterceptor.SECURITY_CONTEXT_HEADER_ATTRIBUTE));
 	}

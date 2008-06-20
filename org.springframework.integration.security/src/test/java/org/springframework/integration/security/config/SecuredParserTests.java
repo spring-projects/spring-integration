@@ -76,7 +76,6 @@ public class SecuredParserTests extends AbstractJUnit4SpringContextTests{
 	public void testAdminRequiredForSendWithAccessGranted() {
 		login("jimi", "jimispassword");
 		adminRequiredForSend.send(new StringMessage("testmessage"));
-		SecurityContextHolder.clearContext();
 		assertNotNull("Message not received", adminRequiredForSend.receive(0));
 	}
 
