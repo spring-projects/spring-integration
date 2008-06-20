@@ -175,7 +175,7 @@ public class MessageBusTests {
 		SourceEndpoint sourceEndpoint = new SourceEndpoint(new FailingSource(latch), new QueueChannel(), new PollingSchedule(1000));
 		bus.registerEndpoint("testEndpoint", sourceEndpoint);
 		bus.start();
-		latch.await(1000, TimeUnit.MILLISECONDS);
+		latch.await(2000, TimeUnit.MILLISECONDS);
 		Message<?> message = bus.getErrorChannel().receive(100);
 		assertNotNull("message should not be null", message);
 		assertTrue(message instanceof ErrorMessage);

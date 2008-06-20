@@ -77,7 +77,7 @@ public class RequestReplyTemplateTests {
 		template.request(new StringMessage("test1"), replyHandler);
 		template.request(new StringMessage("test2"), replyHandler);
 		template.request(new StringMessage("test3"), replyHandler);
-		latch.await(1000, TimeUnit.MILLISECONDS);
+		latch.await(2000, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
 		assertTrue(replies.contains("TEST1"));
 		assertTrue(replies.contains("TEST2"));
