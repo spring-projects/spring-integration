@@ -16,15 +16,12 @@
 
 package org.springframework.integration.config;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -33,6 +30,9 @@ import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.bus.MessageBusAwareBeanPostProcessor;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * Parser for the <em>message-bus</em> element of the integration namespace.
@@ -51,10 +51,16 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 	private static final String ERROR_CHANNEL_ATTRIBUTE = "error-channel";
 
 	private static final String DEFAULT_CONCURRENCY_ELEMENT = "default-concurrency";
-
+	
 	private static final String DEFAULT_CONCURRENCY_PROPERTY = "defaultConcurrencyPolicy";
 
 	private static final String CHANNEL_FACTORY_ATTRIBUTE = "channel-factory";
+	
+	private static final String INTERCEPTOR_ELEMENT = "interceptor";
+	
+	private static final String REFERENCE_ATTRIBUTE = "ref";
+	
+	private static final String INTERCEPTORS_PROPERTY = "interceptors";
 
 
 	@Override
@@ -96,6 +102,7 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 
 	private void processChildElements(BeanDefinitionBuilder beanDefinition, Element element) {
 		NodeList childNodes = element.getChildNodes();
+		ManagedList interceptors = new ManagedList();
 		for (int i = 0; i < childNodes.getLength(); i++) {
 			Node child = childNodes.item(i);
 			if (child.getNodeType() == Node.ELEMENT_NODE) {
@@ -104,7 +111,13 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 					beanDefinition.addPropertyValue(DEFAULT_CONCURRENCY_PROPERTY,
 							IntegrationNamespaceUtils.parseConcurrencyPolicy((Element) child));
 				}
+				if (INTERCEPTOR_ELEMENT.equals(localName)) {
+					interceptors.add(new RuntimeBeanReference(((Element)child).getAttribute(REFERENCE_ATTRIBUTE)));
+				}
 			}
+		}
+		if (interceptors.size() > 0) {
+			beanDefinition.addPropertyValue(INTERCEPTORS_PROPERTY, interceptors);
 		}
 	}
 

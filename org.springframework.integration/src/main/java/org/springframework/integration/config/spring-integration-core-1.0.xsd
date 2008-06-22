@@ -26,6 +26,7 @@
 			</xsd:annotation>
 			<xsd:sequence>
 				<xsd:element name="default-concurrency" type="concurrencyType" minOccurs="0" maxOccurs="1"/>
+				<xsd:element ref="interceptor" minOccurs="0" maxOccurs="unbounded"/>
 			</xsd:sequence>
 			<xsd:attribute name="auto-startup" type="xsd:boolean"/>
 			<xsd:attribute name="auto-create-channels" type="xsd:boolean"/>

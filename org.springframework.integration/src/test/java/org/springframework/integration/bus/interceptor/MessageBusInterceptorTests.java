@@ -19,9 +19,8 @@ package org.springframework.integration.bus.interceptor;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.junit.Test;
+
 import org.springframework.integration.bus.MessageBus;
 
 /**
@@ -38,6 +37,12 @@ public class MessageBusInterceptorTests {
 		messageBus.addInterceptor(startInterceptor);
 		messageBus.addInterceptor(stopInterceptor);
 		// check the state of the interceptors
+		executeInterceptorsTest(messageBus, startInterceptor, stopInterceptor);
+	}
+
+	public static void executeInterceptorsTest(MessageBus messageBus, TestMessageBusStartInterceptor startInterceptor,
+	                                     TestMessageBusStopInterceptor stopInterceptor) {
+		assertTrue(!messageBus.isRunning());
 		assertEquals(startInterceptor.getPreStartCounter().get(), 0);
 		assertEquals(startInterceptor.getPostStartCounter().get(), 0);
 		assertEquals(stopInterceptor.getPreStopCounter().get(), 0);
@@ -57,64 +62,6 @@ public class MessageBusInterceptorTests {
 		assertEquals(stopInterceptor.getPreStopCounter().get(), 1);
 		assertEquals(stopInterceptor.getPostStopCounter().get(), 1);
 	}
-	
 
-	private static class TestMessageBusStartInterceptor extends MessageBusInterceptorAdapter {
-
-		private AtomicInteger preStartCounter = new AtomicInteger(0);
-
-		private AtomicInteger postStartCounter = new AtomicInteger(0);
-
-		
-		public AtomicInteger getPreStartCounter() {
-			return preStartCounter;
-		}
-
-		public AtomicInteger getPostStartCounter() {
-			return postStartCounter;
-		}
-
-		@Override
-		public void preStart(MessageBus bus) {
-			this.preStartCounter.incrementAndGet();
-			assertTrue(!bus.isRunning());
-		}
-
-		@Override
-		public void postStart(MessageBus bus) {
-			this.postStartCounter.incrementAndGet();
-			assertTrue(bus.isRunning());
-		}
-
-	}
-
-	private static class TestMessageBusStopInterceptor extends MessageBusInterceptorAdapter {
-
-		private AtomicInteger preStopCounter = new AtomicInteger(0);
-
-		private AtomicInteger postStopCounter = new AtomicInteger(0);
-
-		
-		public AtomicInteger getPreStopCounter() {
-			return preStopCounter;
-		}
-
-		public AtomicInteger getPostStopCounter() {
-			return postStopCounter;
-		}
-
-		@Override
-		public void preStop(MessageBus bus) {
-			this.preStopCounter.incrementAndGet();
-			assertTrue(bus.isRunning());
-		}
-
-		@Override
-		public void postStop(MessageBus bus) {
-			this.postStopCounter.incrementAndGet();
-			assertTrue(!bus.isRunning());
-		}
-
-	}
 
 }

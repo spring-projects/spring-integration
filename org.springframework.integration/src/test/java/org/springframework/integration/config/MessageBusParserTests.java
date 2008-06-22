@@ -33,6 +33,9 @@ import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.bus.TestMessageBusAwareImpl;
+import org.springframework.integration.bus.interceptor.MessageBusInterceptorTests;
+import org.springframework.integration.bus.interceptor.TestMessageBusStartInterceptor;
+import org.springframework.integration.bus.interceptor.TestMessageBusStopInterceptor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.dispatcher.DirectChannel;
 import org.springframework.integration.endpoint.TargetEndpoint;
@@ -64,7 +67,7 @@ public class MessageBusParserTests {
 		assertNotNull("bus should have created a default error channel", bus.getErrorChannel());
 	}
 
-	@Test(expected=ConfigurationException.class)
+	@Test(expected = ConfigurationException.class)
 	public void testAutoCreateChannelsDisabledByDefault() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageBusWithDefaults.xml", this.getClass());
@@ -110,7 +113,7 @@ public class MessageBusParserTests {
 			// tries to get a reference to the message bus
 			assertEquals(BeanCreationException.class, e.getCause().getClass());
 			assertEquals(e.getBeanName(), MessageBusParser.MESSAGE_BUS_AWARE_POST_PROCESSOR_BEAN_NAME);
-			assertEquals(ConfigurationException.class, ((BeanCreationException) e.getCause()).getCause().getClass());
+			assertEquals(ConfigurationException.class, (e.getCause()).getCause().getClass());
 			assertEquals(((BeanCreationException) e.getCause()).getBeanName(), MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		}
 		assertTrue(exceptionThrown);
@@ -140,9 +143,9 @@ public class MessageBusParserTests {
 				"messageBusWithDefaultConcurrencyTests.xml", this.getClass());
 		TargetEndpoint endpoint2 = (TargetEndpoint) context.getBean("endpoint2");
 		assertEquals(14, endpoint2.getConcurrencyPolicy().getCoreSize());
-		assertEquals(17, endpoint2.getConcurrencyPolicy().getMaxSize());	
+		assertEquals(17, endpoint2.getConcurrencyPolicy().getMaxSize());
 	}
-	
+
 	@Test
 	public void testMessageBusAwareAutomaticallyAddedByNamespace() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
@@ -153,7 +156,7 @@ public class MessageBusParserTests {
 
 	@Test
 	public void testMessageBusWithChannelFactory() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("messageBusWithChannelFactory.xml", 
+		ApplicationContext context = new ClassPathXmlApplicationContext("messageBusWithChannelFactory.xml",
 				this.getClass());
 		assertEquals(DirectChannel.class, context.getBean("defaultTypeChannel").getClass());
 		assertEquals(QueueChannel.class, context.getBean("specifiedTypeChannel").getClass());
@@ -192,6 +195,18 @@ public class MessageBusParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(multicaster);
 		Object taskExecutor = accessor.getPropertyValue("taskExecutor");
 		assertEquals(SimpleMessagingTaskScheduler.class, taskExecutor.getClass());
+	}
+
+	@Test
+	public void testMessageBusWithInterceptors() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"messageBusWithInterceptors.xml", this.getClass());
+		MessageBus messageBus = (MessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
+		TestMessageBusStartInterceptor startInterceptor = (TestMessageBusStartInterceptor) context.getBean(
+				"startInterceptor");
+		TestMessageBusStopInterceptor stopInterceptor = (TestMessageBusStopInterceptor) context.getBean(
+				"stopInterceptor");
+		MessageBusInterceptorTests.executeInterceptorsTest(messageBus, startInterceptor, stopInterceptor);
 	}
 
 }
