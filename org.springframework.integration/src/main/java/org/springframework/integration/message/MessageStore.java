@@ -16,6 +16,8 @@
 
 package org.springframework.integration.message;
 
+import java.util.List;
+
 /**
  * Strategy interface for storing and retrieving messages.
  * 
@@ -28,6 +30,8 @@ public interface MessageStore {
 	Message<?> get(Object key);
 
 	Message<?> remove(Object key);
+
+	List<Message<?>> list();
 
 	int size();
 

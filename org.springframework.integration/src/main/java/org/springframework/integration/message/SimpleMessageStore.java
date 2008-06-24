@@ -16,6 +16,8 @@
 
 package org.springframework.integration.message;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.integration.util.BoundedHashMap;
@@ -44,6 +46,10 @@ public class SimpleMessageStore implements MessageStore {
 
 	public Message<?> get(Object key) {
 		return (key != null) ? this.map.get(key) : null;
+	}
+
+	public List<Message<?>> list() {
+		return new ArrayList<Message<?>>(this.map.values());
 	}
 
 	public Message<?> remove(Object key) {

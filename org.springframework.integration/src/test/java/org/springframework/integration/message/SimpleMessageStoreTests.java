@@ -20,6 +20,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import java.util.List;
+
 import org.junit.Test;
 
 /**
@@ -77,6 +79,35 @@ public class SimpleMessageStoreTests {
 		assertEquals(message2, store.get(2));
 		assertEquals(message3, store.get(3));
 		assertEquals(message4, store.get(4));
+	}
+
+	@Test
+	public void testListWhenEmpty() {
+		SimpleMessageStore store = new SimpleMessageStore(3);
+		List<Message<?>> list = store.list();
+		assertNotNull(list);
+		assertEquals(0, list.size());
+	}
+
+	@Test
+	public void testListWhenUnderCapacity() {
+		SimpleMessageStore store = new SimpleMessageStore(3);
+		store.put(1, new StringMessage("foo"));
+		store.put(2, new StringMessage("bar"));
+		List<Message<?>> list = store.list();
+		assertEquals(2, list.size());
+	}
+
+	@Test
+	public void testListAfterExceedingCapacity() {
+		SimpleMessageStore store = new SimpleMessageStore(2);
+		store.put(1, new StringMessage("foo"));
+		store.put(2, new StringMessage("bar"));
+		store.put(3, new StringMessage("baz"));
+		List<Message<?>> list = store.list();
+		assertEquals(2, list.size());
+		assertEquals("bar", list.get(0).getPayload());
+		assertEquals("baz", list.get(1).getPayload());
 	}
 
 }

@@ -102,6 +102,10 @@ public class RetrievalBlockingMessageStore implements MessageStore {
 		return (message != null) ? message : waitForMessage(key, timeout, false);
 	}
 
+	public List<Message<?>> list() {
+		return this.targetMessageStore.list();
+	}
+
 	public Message<?> remove(Object key) {
 		return this.remove(key, -1);
 	}
