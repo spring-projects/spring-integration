@@ -31,6 +31,7 @@
 			<xsd:attribute name="marshaller" type="xsd:string"/>
 			<xsd:attribute name="unmarshaller" type="xsd:string"/>			
 			<xsd:attribute name="source-extractor" type="xsd:string"/>
+			<xsd:attribute name="request-callback" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
 

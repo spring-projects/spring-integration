@@ -14,6 +14,12 @@
 	               uri="http://example.org"
 	               source-extractor="sourceExtractor"/>
 
+	<si:ws-handler id="handlerWithCustomRequestCallback"
+	               uri="http://example.org"
+	               request-callback="requestCallback"/>
+
 	<bean id="sourceExtractor" class="org.springframework.integration.ws.config.StubSourceExtractor"/>
+
+	<bean id="requestCallback" class="org.springframework.integration.ws.config.StubWebServiceMessageCallback"/>
 
 </beans>

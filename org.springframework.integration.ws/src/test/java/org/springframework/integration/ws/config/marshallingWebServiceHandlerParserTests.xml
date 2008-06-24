@@ -12,14 +12,21 @@
 	               marshaller="marshallerAndUnmarshaller"/>
 
 	<si:ws-handler id="handlerWithSeparateMarshallerAndUnmarshaller"
-	              uri="http://example.org"
-	              marshaller="marshaller"
-	              unmarshaller="unmarshaller"/>
+	               uri="http://example.org"
+	               marshaller="marshaller"
+	               unmarshaller="unmarshaller"/>
+
+	<si:ws-handler id="handlerWithCustomRequestCallback"
+	               uri="http://example.org"
+	               marshaller="marshallerAndUnmarshaller"
+	               request-callback="requestCallback"/>
 
 	<bean id="marshallerAndUnmarshaller" class="org.springframework.integration.ws.config.StubMarshallerAndUnmarshaller"/>
 
 	<bean id="marshaller" class="org.springframework.integration.ws.config.StubMarshaller"/>
 
 	<bean id="unmarshaller" class="org.springframework.integration.ws.config.StubUnmarshaller"/>
+
+	<bean id="requestCallback" class="org.springframework.integration.ws.config.StubWebServiceMessageCallback"/>
 
 </beans>

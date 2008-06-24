@@ -29,6 +29,7 @@ import org.springframework.integration.ws.handler.SimpleWebServiceHandler;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.ws.client.core.SourceExtractor;
+import org.springframework.ws.client.core.WebServiceMessageCallback;
 
 /**
  * @author Mark Fisher
@@ -57,6 +58,17 @@ public class WebServiceHandlerParserTests {
 	}
 
 	@Test
+	public void testSimpleWebServiceHandlerWithCustomRequestCallback() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"simpleWebServiceHandlerParserTests.xml", this.getClass());
+		MessageHandler handler = (MessageHandler) context.getBean("handlerWithCustomRequestCallback");
+		assertEquals(SimpleWebServiceHandler.class, handler.getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(handler);
+		WebServiceMessageCallback callback = (WebServiceMessageCallback) context.getBean("requestCallback");
+		assertEquals(callback, accessor.getPropertyValue("requestCallback"));
+	}
+
+	@Test
 	public void testWebServiceHandlerWithAllInOneMarshaller() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"marshallingWebServiceHandlerParserTests.xml", this.getClass());
@@ -71,7 +83,7 @@ public class WebServiceHandlerParserTests {
 	}
 
 	@Test
-	public void testWebServiceTargetAdapterWithSeparateMarshallerAndUnmarshaller() {
+	public void testWebServiceHandlerWithSeparateMarshallerAndUnmarshaller() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"marshallingWebServiceHandlerParserTests.xml", this.getClass());
 		MessageHandler handler = (MessageHandler) context.getBean("handlerWithSeparateMarshallerAndUnmarshaller");
@@ -83,6 +95,17 @@ public class WebServiceHandlerParserTests {
 		Unmarshaller unmarshaller = (Unmarshaller) context.getBean("unmarshaller");
 		assertEquals(marshaller, templateAccessor.getPropertyValue("marshaller"));
 		assertEquals(unmarshaller, templateAccessor.getPropertyValue("unmarshaller"));
+	}
+
+	@Test
+	public void testMarshallingWebServiceHandlerWithCustomRequestCallback() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"marshallingWebServiceHandlerParserTests.xml", this.getClass());
+		MessageHandler handler = (MessageHandler) context.getBean("handlerWithCustomRequestCallback");
+		assertEquals(MarshallingWebServiceHandler.class, handler.getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(handler);
+		WebServiceMessageCallback callback = (WebServiceMessageCallback) context.getBean("requestCallback");
+		assertEquals(callback, accessor.getPropertyValue("requestCallback"));
 	}
 
 }

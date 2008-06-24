@@ -70,6 +70,10 @@ public class WebServiceHandlerParser extends AbstractSingleBeanDefinitionParser 
 				builder.addConstructorArgReference(sourceExtractorRef);
 			}
 		}
+		String requestCallbackRef = element.getAttribute("request-callback");
+		if (StringUtils.hasText(requestCallbackRef)) {
+			builder.addPropertyReference("requestCallback", requestCallbackRef);
+		}
 	}
 
 }
