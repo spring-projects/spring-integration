@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
+
+	<selector-chain id="selectorChain">
+		<selector ref="selector1"/>
+		<selector ref="selector2"/>
+	</selector-chain>
+
+	<beans:bean id="selector1" class="org.springframework.integration.config.StubMessageSelector"/>
+
+	<beans:bean id="selector2" class="org.springframework.integration.config.StubMessageSelector"/>
+
+</beans:beans>
