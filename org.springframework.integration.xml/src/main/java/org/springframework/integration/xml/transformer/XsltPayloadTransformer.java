@@ -24,72 +24,77 @@ import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
 
+import org.w3c.dom.Document;
+
 import org.springframework.core.io.Resource;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.transformer.MessageTransformer;
 import org.springframework.xml.transform.StringResult;
 import org.springframework.xml.transform.StringSource;
-import org.w3c.dom.Document;
 
 /**
- * Simple Xslt transformer implementation which returns a transformed {@link Source} a {@link Document} or a {@link String} 
+ * Simple XSLT transformer implementation which returns a transformed
+ * {@link Source}, {@link Document}, or {@link String}.
+ * 
  * @author Jonas Partner
- *
  */
 public class XsltPayloadTransformer implements MessageTransformer {
 
 	private final Templates templates;
 
+
 	public XsltPayloadTransformer(Templates templates) {
 		this.templates = templates;
 	}
+
 
 	public XsltPayloadTransformer(Resource xslResource) throws Exception {
 		this.templates = TransformerFactory.newInstance().newTemplates(new StreamSource(xslResource.getInputStream()));
 	}
 
-	
+
 	@SuppressWarnings("unchecked")
 	public void transform(Message message) {
-		try{
-			
-			if( (Document.class.isAssignableFrom(message.getPayload().getClass()))){
-				transformDocument(message);
-			} else if(Source.class.isAssignableFrom(message.getPayload().getClass())){
-				transformSource(message);
-			} else if (String.class.equals(message.getPayload().getClass())){
-				transformString(message);
-			} else {
-				throw new MessagingException(message,"Unsupproted payload type for transformation " + message.getPayload().getClass().getName());
+		try {
+			if (Document.class.isAssignableFrom(message.getPayload().getClass())) {
+				this.transformDocument(message);
 			}
-		
-		} catch (TransformerException transE){
-			throw new MessagingException(message,"XSLT transformation failed", transE);
+			else if (Source.class.isAssignableFrom(message.getPayload().getClass())) {
+				this.transformSource(message);
+			}
+			else if (String.class.equals(message.getPayload().getClass())) {
+				this.transformString(message);
+			}
+			else {
+				throw new MessagingException(message,
+						"Unsupported payload type for transformation: " + message.getPayload().getClass().getName());
+			}
 		}
-		
+		catch (TransformerException e) {
+			throw new MessagingException(message, "XSLT transformation failed", e);
+		}
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	protected void transformSource(Message message) throws TransformerException {
 		StringResult result = new StringResult();
-		templates.newTransformer().transform((Source)message.getPayload(), result);
+		this.templates.newTransformer().transform((Source) message.getPayload(), result);
 		message.setPayload(new StringSource(result.toString()));
 	}
-	
-	
+
 	@SuppressWarnings("unchecked")
-	private void transformString(Message message) throws TransformerException {
+	protected void transformString(Message message) throws TransformerException {
 		StringResult result = new StringResult();
-		templates.newTransformer().transform(new StringSource((String)message.getPayload()), result);
+		this.templates.newTransformer().transform(new StringSource((String) message.getPayload()), result);
 		message.setPayload(result.toString());
 	}
 
 	@SuppressWarnings("unchecked")
-	protected void transformDocument(Message message) throws TransformerException{
+	protected void transformDocument(Message message) throws TransformerException {
 		Document doc = (Document)message.getPayload();
 		DOMResult result = new DOMResult();
-		templates.newTransformer().transform(new DOMSource(doc), result);
+		this.templates.newTransformer().transform(new DOMSource(doc), result);
 		message.setPayload(result.getNode());
 	}
 
