@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns="http://www.springframework.org/schema/integration-security"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:tool="http://www.springframework.org/schema/tool"
+	targetNamespace="http://www.springframework.org/schema/integration-security"
+	elementFormDefault="qualified" attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans" />
+	<xsd:import namespace="http://www.springframework.org/schema/tool" />
+
+	<xsd:element name="secured-channels">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+					Defines security requirements for one or more
+					message channels
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:sequence>
+				<xsd:element name="channel-name-pattern" type="xsd:string" minOccurs="1" maxOccurs="unbounded"/>
+			</xsd:sequence>
+			<xsd:attribute name="receive-access" type="xsd:string" />
+			<xsd:attribute name="send-access" type="xsd:string" />
+			<xsd:attribute name="access-decision-manager" type="xsd:string" default="accessDecisionManager"/>
+			<xsd:attribute name="propagate" type="xsd:boolean" default="true" />
+		</xsd:complexType>
+	</xsd:element>
+
+
+	<xsd:element name="secured-targets">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+					Defines security requirements for one or more
+					Targets
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:sequence>
+				<xsd:element name="targetNamePattern" type="xsd:string" />
+			</xsd:sequence>
+			<xsd:attribute name="access" type="xsd:string" />
+			<xsd:attribute name="access-decision-manager"
+				type="xsd:string" default="accessDecisionManager" />
+		
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="security-propagating-channels">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+					Defines a bean post processor which propagates the
+					security context.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="propagate" type="xsd:boolean" default="true" />
+		</xsd:complexType>
+	</xsd:element>
+
+</xsd:schema>

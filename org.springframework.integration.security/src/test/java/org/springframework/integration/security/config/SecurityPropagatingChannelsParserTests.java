@@ -36,7 +36,7 @@ import org.springframework.security.providers.UsernamePasswordAuthenticationToke
 /**
  * @author Jonas Partner
  */
-public class SecureChannelsParserTests {
+public class SecurityPropagatingChannelsParserTests {
 
 	private ClassPathXmlApplicationContext applicationContext;
 

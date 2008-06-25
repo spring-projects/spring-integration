@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.security;
+package org.springframework.integration.security.channel;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.MessageHeader;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.security.SecurityContextUtils;
 import org.springframework.security.Authentication;
 import org.springframework.security.GrantedAuthority;
 import org.springframework.security.context.SecurityContext;
@@ -65,9 +66,8 @@ public class SecurityContextPropagatingChannelInterceptorTests {
 		message = (StringMessage) channel.receive(0);
 		MessageHeader header = message.getHeader();
 		assertTrue("No security context attribute found in header.",
-				header.getAttributeNames().contains(SecurityContextPropagatingChannelInterceptor.SECURITY_CONTEXT_HEADER_ATTRIBUTE));
-		SecurityContext contextFromHeader = (SecurityContext) header.getAttribute(
-				SecurityContextPropagatingChannelInterceptor.SECURITY_CONTEXT_HEADER_ATTRIBUTE);
+				header.getAttributeNames().contains(SecurityContextUtils.SECURITY_CONTEXT_HEADER_ATTRIBUTE));
+		SecurityContext contextFromHeader = SecurityContextUtils.getSecurityContextFromHeader(message);
 		assertEquals("Incorrect security context in message header.", securityContext, contextFromHeader);
 	}	
 
@@ -78,7 +78,7 @@ public class SecurityContextPropagatingChannelInterceptorTests {
 		message = (StringMessage) channel.receive(0);
 		MessageHeader header = message.getHeader();
 		assertFalse("Security context header found when no security context existed.",
-				header.getAttributeNames().contains(SecurityContextPropagatingChannelInterceptor.SECURITY_CONTEXT_HEADER_ATTRIBUTE));
+				header.getAttributeNames().contains(SecurityContextUtils.SECURITY_CONTEXT_HEADER_ATTRIBUTE));
 	}
 
 

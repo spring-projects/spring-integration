@@ -14,20 +14,25 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.security.config;
+package org.springframework.integration.security;
 
-import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
+import org.springframework.integration.message.Message;
+import org.springframework.security.context.SecurityContext;
 
 /**
- * Namespace handler for the security namespace.
- * 
  * @author Jonas Partner
+ * 
  */
-public class IntegrationSecurityNamespaceHandler extends NamespaceHandlerSupport {
+public class SecurityContextUtils {
 
-	public void init() {
-		registerBeanDefinitionParser("secured-channels", new SecuredChannelsParser());
-		registerBeanDefinitionParser("security-propagating-channels", new SecurityPropagatingChannelsParser());
+	public static final String SECURITY_CONTEXT_HEADER_ATTRIBUTE = "SPRING_SECURITY_CONTEXT";
+
+	public static SecurityContext getSecurityContextFromHeader(Message<?> message) {
+		return (SecurityContext) message.getHeader().getAttribute(SECURITY_CONTEXT_HEADER_ATTRIBUTE);
+	}
+
+	public static void setSecurityContextHeader(SecurityContext sctx, Message<?> message) {
+		message.getHeader().setAttribute(SECURITY_CONTEXT_HEADER_ATTRIBUTE, sctx);
 	}
 
 }

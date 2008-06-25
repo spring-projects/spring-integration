@@ -18,40 +18,38 @@ package org.springframework.integration.security.config;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.Ordered;
 import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.security.SecurityContextPropagatingChannelInterceptor;
+import org.springframework.integration.security.channel.SecurityContextPropagatingChannelInterceptor;
 
 /**
  * Post processes channels applying appropriate propagation behaviour. If
- * default propagation is specified with a secure-channels tag, that will
- * be applied in the absence of a secured tag for the channel. If the
- * secured tag is specified, it will always determine propagation behaviour.
+ * default propagation is specified with a secure-channels tag, that will be
+ * applied in the absence of a secured tag for the channel. If the secured tag
+ * is specified, it will always determine propagation behaviour.
  * 
  * @author Jonas Partner
  */
 public class SecurityPropagatingBeanPostProcessor implements BeanPostProcessor, Ordered {
 
-	protected static final String SECURITY_PROPAGATING_BEAN_POST_PROCESSOR_NAME = SecurityPropagatingBeanPostProcessor.class.getName();
+	protected static final String SECURITY_PROPAGATING_BEAN_POST_PROCESSOR_NAME = SecurityPropagatingBeanPostProcessor.class
+			.getName();
 
-
-	private final SecurityContextPropagatingChannelInterceptor interceptor =
-			new SecurityContextPropagatingChannelInterceptor();
+	private final SecurityContextPropagatingChannelInterceptor interceptor = new SecurityContextPropagatingChannelInterceptor();
 
 	private boolean propagateByDefault;
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private List<String> channelsToInclude = new ArrayList<String>();
+	private List<Pattern> channelsToInclude = new ArrayList<Pattern>();
 
-	private List<String> channelsToExclude = new ArrayList<String>();
-
+	private List<Pattern> channelsToExclude = new ArrayList<Pattern>();
 
 	public boolean isPropagateByDefault() {
 		return this.propagateByDefault;
@@ -61,19 +59,19 @@ public class SecurityPropagatingBeanPostProcessor implements BeanPostProcessor, 
 		this.propagateByDefault = propagateByDefault;
 	}
 
-	public List<String> getChannelsToInclude() {
+	public List<Pattern> getChannelsToInclude() {
 		return this.channelsToInclude;
 	}
 
-	public void setChannelsToInclude(List<String> channelsToInclude) {
+	public void setChannelsToInclude(List<Pattern> channelsToInclude) {
 		this.channelsToInclude = channelsToInclude;
 	}
 
-	public List<String> getChannelsToExclude() {
+	public List<Pattern> getChannelsToExclude() {
 		return this.channelsToExclude;
 	}
 
-	public void setChannelsToExclude(List<String> channelsToExclude) {
+	public void setChannelsToExclude(List<Pattern> channelsToExclude) {
 		this.channelsToExclude = channelsToExclude;
 	}
 
@@ -88,8 +86,7 @@ public class SecurityPropagatingBeanPostProcessor implements BeanPostProcessor, 
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		if (AbstractMessageChannel.class.isAssignableFrom(bean.getClass())) {
 			AbstractMessageChannel channel = (AbstractMessageChannel) bean;
-			if(this.channelsToInclude.contains(beanName) ||
-					(this.propagateByDefault && !this.channelsToExclude.contains(beanName))) {
+			if (isIncluded(beanName) || (this.propagateByDefault && !isExcluded(beanName))) {
 				channel.addInterceptor(this.interceptor);
 				if (logger.isDebugEnabled()) {
 					logger.debug("Channel '" + beanName + "' will propagate a SecurityContext.");
@@ -100,6 +97,23 @@ public class SecurityPropagatingBeanPostProcessor implements BeanPostProcessor, 
 			}
 		}
 		return bean;
+	}
+
+	protected boolean isExcluded(String str) {
+		return matchesOnePattern(channelsToExclude, str);
+	}
+
+	protected boolean isIncluded(String str) {
+		return matchesOnePattern(channelsToInclude, str);
+	}
+
+	protected boolean matchesOnePattern(List<Pattern> patterns, String str) {
+		for (Pattern pattern : patterns) {
+			if (pattern.matcher(str).matches()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

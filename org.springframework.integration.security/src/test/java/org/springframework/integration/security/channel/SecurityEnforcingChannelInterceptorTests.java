@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.security;
+package org.springframework.integration.security.channel;
 
 import static org.junit.Assert.assertEquals;
 
@@ -24,6 +24,7 @@ import org.junit.Test;
 
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.security.channel.SecurityEnforcingChannelInterceptor;
 import org.springframework.security.AccessDecisionManager;
 import org.springframework.security.AccessDeniedException;
 import org.springframework.security.Authentication;
@@ -124,9 +125,8 @@ public class SecurityEnforcingChannelInterceptorTests {
 
 
 	private void registerInterceptor(AccessDecisionManager accessDecisionManager) {
-		securityChannelInterceptor = new SecurityEnforcingChannelInterceptor(
-				accessDecisionManager, channel);
-	
+		securityChannelInterceptor = new SecurityEnforcingChannelInterceptor(accessDecisionManager); 
+		channel.addInterceptor(securityChannelInterceptor);
 	}
 
 

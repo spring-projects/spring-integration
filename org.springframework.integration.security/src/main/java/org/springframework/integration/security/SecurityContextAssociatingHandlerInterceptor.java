@@ -23,44 +23,42 @@ import org.springframework.security.context.SecurityContext;
 import org.springframework.security.context.SecurityContextHolder;
 
 /**
- * Associates the {@link SecurityContext} propagated in the message header
- * with the thread executing the handle call to a {@link MessageHandler}.
+ * Associates the {@link SecurityContext} propagated in the message header with
+ * the thread executing the handle call to a {@link MessageHandler}.
  * 
  * @author Jonas Partner
  */
 public class SecurityContextAssociatingHandlerInterceptor extends InterceptingMessageHandler {
 
 	/**
-	 * One time only set the strategy to be stack based to allow use of direct channels where push and pop is required rather than set and clear
+	 * One time only set the strategy to be stack based to allow use of direct
+	 * channels where push and pop is required rather than set and clear
 	 */
 	static {
 		SecurityContextHolder.setStrategyName(StackBasedSecurityContextHolderStrategy.class.getName());
 	}
-	
+
 	public SecurityContextAssociatingHandlerInterceptor(MessageHandler target) {
 		super(target);
 	}
 
-
 	@Override
 	public Message<?> handle(Message<?> message, MessageHandler target) {
-		if (message.getHeader().getAttributeNames().contains(
-				SecurityContextPropagatingChannelInterceptor.SECURITY_CONTEXT_HEADER_ATTRIBUTE)) {
+		if (message.getHeader().getAttributeNames().contains(SecurityContextUtils.SECURITY_CONTEXT_HEADER_ATTRIBUTE)) {
 			return handleInSecurityContext(message, target);
 		}
 		return target.handle(message);
 	}
 
 	private Message<?> handleInSecurityContext(Message<?> message, MessageHandler target) {
-		SecurityContext context = (SecurityContext) message.getHeader().getAttribute(
-				SecurityContextPropagatingChannelInterceptor.SECURITY_CONTEXT_HEADER_ATTRIBUTE);
+		SecurityContext context = SecurityContextUtils.getSecurityContextFromHeader(message);
 		SecurityContextHolder.setContext(context);
-		try{
+		try {
 			return target.handle(message);
 		}
 		finally {
 			SecurityContextHolder.clearContext();
 		}
-	}	
+	}
 
 }

@@ -41,10 +41,10 @@ public class SecurityPropagatingBeanPostProcessorDefinitionHelper {
 
 	private static final String PROPAGATE_BY_DEFAULT = "propagateByDefault";
 
-
 	public static void setPropagationDefault(boolean valueForPropagationDefault, ParserContext context) {
 		BeanDefinition beanDefintion = getOrCreateSecurityPropagatingBeanPostProcessor(context);
-		beanDefintion.getPropertyValues().addPropertyValue(PROPAGATE_BY_DEFAULT, Boolean.valueOf(valueForPropagationDefault));
+		beanDefintion.getPropertyValues().addPropertyValue(PROPAGATE_BY_DEFAULT,
+				Boolean.valueOf(valueForPropagationDefault));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -52,7 +52,8 @@ public class SecurityPropagatingBeanPostProcessorDefinitionHelper {
 		BeanDefinition beanDefintion = getOrCreateSecurityPropagatingBeanPostProcessor(context);
 		List channelsToExclude;
 		if (beanDefintion.getPropertyValues().contains(CHANNELS_TO_EXCLUDE)) {
-			channelsToExclude = (List) beanDefintion.getPropertyValues().getPropertyValue(CHANNELS_TO_EXCLUDE).getValue();
+			channelsToExclude = (List) beanDefintion.getPropertyValues().getPropertyValue(CHANNELS_TO_EXCLUDE)
+					.getValue();
 		}
 		else {
 			channelsToExclude = new ArrayList<RuntimeBeanNameReference>();
@@ -62,15 +63,16 @@ public class SecurityPropagatingBeanPostProcessorDefinitionHelper {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static void addToIncludeChannelList(String channelName, ParserContext context){
+	public static void addToIncludeChannelList(String channelName, ParserContext context) {
 		BeanDefinition beanDefintion = getOrCreateSecurityPropagatingBeanPostProcessor(context);
 		List channelsToExclude;
 		if (beanDefintion.getPropertyValues().contains(CHANNELS_TO_INCLUDE)) {
-			channelsToExclude = (List) beanDefintion.getPropertyValues().getPropertyValue(CHANNELS_TO_INCLUDE).getValue();
+			channelsToExclude = (List) beanDefintion.getPropertyValues().getPropertyValue(CHANNELS_TO_INCLUDE)
+					.getValue();
 		}
 		else {
 			channelsToExclude = new ArrayList<RuntimeBeanNameReference>();
-			beanDefintion.getPropertyValues().addPropertyValue(CHANNELS_TO_INCLUDE,channelsToExclude);
+			beanDefintion.getPropertyValues().addPropertyValue(CHANNELS_TO_INCLUDE, channelsToExclude);
 		}
 		channelsToExclude.add(channelName);
 	}

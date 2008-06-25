@@ -45,8 +45,7 @@ public class SecurityContextAssociatingHandlerInterceptorTests {
 	public void testMessageWithSecurityContext() {
 		final StubSecurityContext securityContext = new StubSecurityContext();
 		StringMessage message = new StringMessage("test");
-		message.getHeader().setAttribute(
-				SecurityContextPropagatingChannelInterceptor.SECURITY_CONTEXT_HEADER_ATTRIBUTE, securityContext);
+		SecurityContextUtils.setSecurityContextHeader(securityContext, message);
 		MessageHandler handler = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				SecurityContext associatedContext = SecurityContextHolder.getContext();
@@ -65,8 +64,7 @@ public class SecurityContextAssociatingHandlerInterceptorTests {
 	public void testForSecurityLeakageIfHandlerThrowsException() {
 		final StubSecurityContext securityContext = new StubSecurityContext();
 		StringMessage message = new StringMessage("test");
-		message.getHeader().setAttribute(
-				SecurityContextPropagatingChannelInterceptor.SECURITY_CONTEXT_HEADER_ATTRIBUTE, securityContext);
+		SecurityContextUtils.setSecurityContextHeader(securityContext, message);
 		MessageHandler handler = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				SecurityContext associatedContext = SecurityContextHolder.getContext();
