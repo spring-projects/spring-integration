@@ -40,6 +40,8 @@ public class SimpleMessagingTaskScheduler extends AbstractMessagingTaskScheduler
 
 	private final ScheduledExecutorService executor;
 
+	private volatile boolean waitForTasksToCompleteOnShutdown = true;
+
 	private volatile ErrorHandler errorHandler;
 
 	private final Set<Runnable> pendingTasks = new CopyOnWriteArraySet<Runnable>();
@@ -54,6 +56,10 @@ public class SimpleMessagingTaskScheduler extends AbstractMessagingTaskScheduler
 		this.executor = executor;
 	}
 
+
+	public void setWaitForTasksToCompleteOnShutdown(boolean waitForTasksToCompleteOnShutdown) {
+		this.waitForTasksToCompleteOnShutdown = waitForTasksToCompleteOnShutdown;
+	}
 
 	public void setErrorHandler(ErrorHandler errorHandler) {
 		this.errorHandler = errorHandler;
@@ -85,7 +91,12 @@ public class SimpleMessagingTaskScheduler extends AbstractMessagingTaskScheduler
 	public void stop() {
 		synchronized (this.lifecycleMonitor) {
 			if (this.running) {
-				this.executor.shutdownNow();
+				if (this.waitForTasksToCompleteOnShutdown) {
+					this.executor.shutdown();
+				}
+				else {
+					this.executor.shutdownNow();
+				}
 				this.running = false;
 			}
 		}
