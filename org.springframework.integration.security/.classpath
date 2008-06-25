@@ -13,5 +13,8 @@
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework.security/org.springframework.security/2.0.0.A/org.springframework.security-2.0.0.A.jar" sourcepath="/IVY_CACHE/org.springframework.security/org.springframework.security/2.0.0.A/org.springframework.security-sources-2.0.0.A.jar"/>
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.test/2.5.4.A/org.springframework.test-2.5.4.A.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.test/2.5.4.A/org.springframework.test-sources-2.5.4.A.jar"/>
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.transaction/2.5.4.A/org.springframework.transaction-2.5.4.A.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.transaction/2.5.4.A/org.springframework.transaction-sources-2.5.4.A.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.aop/2.5.4.A/org.springframework.aop-2.5.4.A.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.aop/2.5.4.A/org.springframework.aop-sources-2.5.4.A.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.aopalliance/com.springsource.org.aopalliance/1.0.0/com.springsource.org.aopalliance-1.0.0.jar" sourcepath="/IVY_CACHE/org.aopalliance/com.springsource.org.aopalliance/1.0.0/com.springsource.org.aopalliance-sources-1.0.0.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.easymock/com.springsource.org.easymock/2.3.0/com.springsource.org.easymock-2.3.0.jar" sourcepath="/IVY_CACHE/org.easymock/com.springsource.org.easymock/2.3.0/com.springsource.org.easymock-sources-2.3.0.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
