@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.security;
+package org.springframework.integration.security.target;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.security.SecurityContextUtils;
 import org.springframework.security.AccessDecisionManager;
 import org.springframework.security.ConfigAttributeDefinition;
 import org.springframework.security.context.SecurityContext;

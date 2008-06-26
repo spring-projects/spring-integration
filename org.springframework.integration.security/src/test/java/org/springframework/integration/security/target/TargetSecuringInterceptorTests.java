@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.security;
+package org.springframework.integration.security.target;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,8 +25,8 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.Target;
 import org.springframework.integration.security.SecurityContextUtils;
-import org.springframework.integration.security.TargetSecuringInterceptor;
 import org.springframework.integration.security.config.SecurityTestUtil;
+import org.springframework.integration.security.target.TargetSecuringInterceptor;
 import org.springframework.security.AccessDecisionManager;
 import org.springframework.security.AccessDeniedException;
 import org.springframework.security.ConfigAttributeDefinition;

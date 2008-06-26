@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.security;
+package org.springframework.integration.security.target;
 
 import org.aopalliance.aop.Advice;
 import org.springframework.aop.ClassFilter;
