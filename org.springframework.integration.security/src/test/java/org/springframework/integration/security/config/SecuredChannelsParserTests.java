@@ -16,21 +16,20 @@
 
 package org.springframework.integration.security.config;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.integration.security.channel.SecurityEnforcingChannelInterceptor;
-import org.springframework.security.ConfigAttribute;
-import org.springframework.security.ConfigAttributeDefinition;
 import org.springframework.security.SecurityConfig;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
@@ -39,71 +38,84 @@ import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
  * @author Jonas Partner
  */
 @ContextConfiguration
-public class SecuredChannelsParserTests extends AbstractJUnit4SpringContextTests{
+public class SecuredChannelsParserTests extends AbstractJUnit4SpringContextTests {
 
-	TestMessageChannel messageChannel ;
-	
+	TestMessageChannel messageChannel;
+
 	@Before
-	public void setUp(){
+	public void setUp() {
 		messageChannel = new TestMessageChannel();
 	}
-	
+
 	@Test
-	public void testAdminRequiredForSend(){
-		applicationContext.getAutowireCapableBeanFactory().applyBeanPostProcessorsAfterInitialization(messageChannel, "adminRequiredForSend");
+	public void testAdminRequiredForSend() {
+		applicationContext.getAutowireCapableBeanFactory().applyBeanPostProcessorsAfterInitialization(messageChannel,
+				"adminRequiredForSend");
 		assertEquals("Wrong count of interceptors ", 1, messageChannel.interceptors.size());
-		SecurityEnforcingChannelInterceptor interceptor = (SecurityEnforcingChannelInterceptor)messageChannel.interceptors.get(0);
-		assertTrue("ROLE_ADMIN not found as send attribute", interceptor.getSendSecurityAttributes().contains(new SecurityConfig("ROLE_ADMIN")));
+		SecurityEnforcingChannelInterceptor interceptor = (SecurityEnforcingChannelInterceptor) messageChannel.interceptors
+				.get(0);
+		assertTrue("ROLE_ADMIN not found as send attribute", interceptor.getSendSecurityAttributes().contains(
+				new SecurityConfig("ROLE_ADMIN")));
 		assertNull("Receive security attribute were not null", interceptor.getReceiveSecurityAttributes());
 	}
-	
+
 	@Test
-	public void testAdminOrUserRequiredForSend(){
-		applicationContext.getAutowireCapableBeanFactory().applyBeanPostProcessorsAfterInitialization(messageChannel, "adminOrUserRequiredForSend");
+	public void testAdminOrUserRequiredForSend() {
+		applicationContext.getAutowireCapableBeanFactory().applyBeanPostProcessorsAfterInitialization(messageChannel,
+				"adminOrUserRequiredForSend");
 		assertEquals("Wrong count of interceptors ", 1, messageChannel.interceptors.size());
-		SecurityEnforcingChannelInterceptor interceptor = (SecurityEnforcingChannelInterceptor)messageChannel.interceptors.get(0);
-		assertTrue("ROLE_ADMIN not found as send attribute", interceptor.getSendSecurityAttributes().contains(new SecurityConfig("ROLE_ADMIN")));
-		assertTrue("ROLE_USER not found as send attribute", interceptor.getSendSecurityAttributes().contains(new SecurityConfig("ROLE_USER")));
+		SecurityEnforcingChannelInterceptor interceptor = (SecurityEnforcingChannelInterceptor) messageChannel.interceptors
+				.get(0);
+		assertTrue("ROLE_ADMIN not found as send attribute", interceptor.getSendSecurityAttributes().contains(
+				new SecurityConfig("ROLE_ADMIN")));
+		assertTrue("ROLE_USER not found as send attribute", interceptor.getSendSecurityAttributes().contains(
+				new SecurityConfig("ROLE_USER")));
 		assertNull("Receive security attribute were not null", interceptor.getReceiveSecurityAttributes());
 	}
-	
+
 	@Test
-	public void testAdminRequiredForReceive(){
-		applicationContext.getAutowireCapableBeanFactory().applyBeanPostProcessorsAfterInitialization(messageChannel, "adminRequiredForReceive");
+	public void testAdminRequiredForReceive() {
+		applicationContext.getAutowireCapableBeanFactory().applyBeanPostProcessorsAfterInitialization(messageChannel,
+				"adminRequiredForReceive");
 		assertEquals("Wrong count of interceptors ", 1, messageChannel.interceptors.size());
-		SecurityEnforcingChannelInterceptor interceptor = (SecurityEnforcingChannelInterceptor)messageChannel.interceptors.get(0);
-		assertTrue("ROLE_ADMIN not found as receive attribute", interceptor.getReceiveSecurityAttributes().contains(new SecurityConfig("ROLE_ADMIN")));
+		SecurityEnforcingChannelInterceptor interceptor = (SecurityEnforcingChannelInterceptor) messageChannel.interceptors
+				.get(0);
+		assertTrue("ROLE_ADMIN not found as receive attribute", interceptor.getReceiveSecurityAttributes().contains(
+				new SecurityConfig("ROLE_ADMIN")));
 		assertNull("Send security attribute were not null", interceptor.getSendSecurityAttributes());
 	}
-	
+
 	@Test
-	public void testAdminOrUserRequiredForReceive(){
-		applicationContext.getAutowireCapableBeanFactory().applyBeanPostProcessorsAfterInitialization(messageChannel, "adminOrUserRequiredForReceive");
+	public void testAdminOrUserRequiredForReceive() {
+		applicationContext.getAutowireCapableBeanFactory().applyBeanPostProcessorsAfterInitialization(messageChannel,
+				"adminOrUserRequiredForReceive");
 		assertEquals("Wrong count of interceptors ", 1, messageChannel.interceptors.size());
-		SecurityEnforcingChannelInterceptor interceptor = (SecurityEnforcingChannelInterceptor)messageChannel.interceptors.get(0);
-		assertTrue("ROLE_ADMIN not found as receive attribute", interceptor.getReceiveSecurityAttributes().contains(new SecurityConfig("ROLE_ADMIN")));
-		assertTrue("ROLE_USER not found as receive attribute", interceptor.getReceiveSecurityAttributes().contains(new SecurityConfig("ROLE_USER")));
+		SecurityEnforcingChannelInterceptor interceptor = (SecurityEnforcingChannelInterceptor) messageChannel.interceptors
+				.get(0);
+		assertTrue("ROLE_ADMIN not found as receive attribute", interceptor.getReceiveSecurityAttributes().contains(
+				new SecurityConfig("ROLE_ADMIN")));
+		assertTrue("ROLE_USER not found as receive attribute", interceptor.getReceiveSecurityAttributes().contains(
+				new SecurityConfig("ROLE_USER")));
 		assertNull("Send security attribute were not null", interceptor.getSendSecurityAttributes());
 	}
-	
+
 	@Test
-	public void testAdminRequiredForSendAndReceive(){
-		applicationContext.getAutowireCapableBeanFactory().applyBeanPostProcessorsAfterInitialization(messageChannel, "adminForSendAndReceive");
+	public void testAdminRequiredForSendAndReceive() {
+		applicationContext.getAutowireCapableBeanFactory().applyBeanPostProcessorsAfterInitialization(messageChannel,
+				"adminForSendAndReceive");
 		assertEquals("Wrong count of interceptors ", 1, messageChannel.interceptors.size());
-		SecurityEnforcingChannelInterceptor interceptor = (SecurityEnforcingChannelInterceptor)messageChannel.interceptors.get(0);
-		assertTrue("ROLE_ADMIN not found as receive attribute", interceptor.getReceiveSecurityAttributes().contains(new SecurityConfig("ROLE_ADMIN")));
-		assertTrue("ROLE_USER not found as send attribute", interceptor.getSendSecurityAttributes().contains(new SecurityConfig("ROLE_ADMIN")));
+		SecurityEnforcingChannelInterceptor interceptor = (SecurityEnforcingChannelInterceptor) messageChannel.interceptors
+				.get(0);
+		assertTrue("ROLE_ADMIN not found as receive attribute", interceptor.getReceiveSecurityAttributes().contains(
+				new SecurityConfig("ROLE_ADMIN")));
+		assertTrue("ROLE_USER not found as send attribute", interceptor.getSendSecurityAttributes().contains(
+				new SecurityConfig("ROLE_ADMIN")));
 	}
-	
-	
-	
-	
-	
-	
+
 	static class TestMessageChannel extends AbstractMessageChannel {
 
-			List<ChannelInterceptor> interceptors = new ArrayList<ChannelInterceptor>();
-		
+		List<ChannelInterceptor> interceptors = new ArrayList<ChannelInterceptor>();
+
 		public TestMessageChannel() {
 			super(null);
 		}
@@ -134,7 +146,7 @@ public class SecuredChannelsParserTests extends AbstractJUnit4SpringContextTests
 		public void addInterceptor(ChannelInterceptor interceptor) {
 			interceptors.add(interceptor);
 		}
-		
+
 	}
 
 }

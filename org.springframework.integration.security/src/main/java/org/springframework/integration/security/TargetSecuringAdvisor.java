@@ -31,6 +31,7 @@ import org.springframework.security.AccessDecisionManager;
 import org.springframework.security.ConfigAttributeDefinition;
 import org.springframework.util.StringUtils;
 
+@SuppressWarnings("serial")
 public class TargetSecuringAdvisor extends AbstractPointcutAdvisor implements Pointcut {
 
 	private ClassFilter classFilter;

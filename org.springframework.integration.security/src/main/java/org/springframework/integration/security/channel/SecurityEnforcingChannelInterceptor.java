@@ -16,7 +16,6 @@
 
 package org.springframework.integration.security.channel;
 
-import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
 import org.springframework.integration.message.Message;

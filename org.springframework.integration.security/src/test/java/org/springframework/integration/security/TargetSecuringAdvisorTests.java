@@ -43,11 +43,6 @@ public class TargetSecuringAdvisorTests {
 
 	}
 
-	@Test
-	public void testTargetSendIntercpeted() {
-		TestTarget target = new TestTarget();
-	}
-
 	@Test(expected = AccessDeniedException.class)
 	public void testTargetSendAdvised() {
 		TargetSecuringAdvisor advisor = new TargetSecuringAdvisor(new AlwaysDenyAccessDecisionManager(), "ROLE_ADMIN");
@@ -92,6 +87,7 @@ public class TargetSecuringAdvisorTests {
 			return true;
 		}
 
+		@SuppressWarnings("unchecked")
 		public boolean supports(Class clazz) {
 			return true;
 		}

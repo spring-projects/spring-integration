@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.easymock.EasyMock;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.integration.channel.AbstractMessageChannel;

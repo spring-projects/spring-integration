@@ -28,12 +28,14 @@ import org.springframework.integration.message.Message;
 public class TargetSendMethodArgMatcher extends StaticMethodMatcher{
 	
 
+	@SuppressWarnings("unchecked")
 	public boolean matches(Method method, Class targetClass) {
 		return argsTypesMatch(method.getParameterTypes());
 	}
 
 
 	
+	@SuppressWarnings("unchecked")
 	protected boolean argsTypesMatch(Class[] args){
 		if(args.length > 2){
 			return false;
