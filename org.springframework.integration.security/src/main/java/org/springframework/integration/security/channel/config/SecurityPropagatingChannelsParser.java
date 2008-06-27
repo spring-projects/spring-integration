@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.security.config;
+package org.springframework.integration.security.channel.config;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
+import org.springframework.beans.factory.config.ConstructorArgumentValues.ValueHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.security.config.IncludeExcludePattern;
+import org.springframework.integration.security.config.IncludeExcludePatternParser;
+import org.springframework.integration.security.config.OrderedIncludeExcludeList;
 import org.springframework.security.context.SecurityContext;
 import org.springframework.util.StringUtils;
 
@@ -34,17 +42,17 @@ import org.springframework.util.StringUtils;
  */
 public class SecurityPropagatingChannelsParser extends AbstractSingleBeanDefinitionParser {
 
+	IncludeExcludePatternParser includeExcludePatternParser = new IncludeExcludePatternParser();
+
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		builder.getBeanDefinition().setAbstract(true);
-		String propagation = element.getAttribute("propagate");
-		boolean propagateByDefault = true;
-		if (StringUtils.hasText(propagation)) {
-			propagateByDefault = Boolean.parseBoolean(propagation);
-		}
-		if (propagateByDefault) {
-			SecurityPropagatingBeanPostProcessorDefinitionHelper.setPropagationDefault(true, parserContext);
-		}
+		boolean propagateByDefault = Boolean.parseBoolean(element.getAttribute("propagate-by-default"));
+		OrderedIncludeExcludeList includeExcludeList = includeExcludePatternParser.createFromNodeList(
+				propagateByDefault, element.getChildNodes());
+		builder.getBeanDefinition().setBeanClass(SecurityPropagatingBeanPostProcessor.class);
+		builder.getBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(
+				new ValueHolder(includeExcludeList));
+
 	}
 
 	@Override

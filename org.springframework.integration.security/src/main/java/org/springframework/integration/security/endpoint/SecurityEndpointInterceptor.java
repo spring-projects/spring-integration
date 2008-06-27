@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.security.target;
+package org.springframework.integration.security.endpoint;
 
-import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.security.SecurityContextUtils;
@@ -24,33 +23,35 @@ import org.springframework.security.AccessDecisionManager;
 import org.springframework.security.ConfigAttributeDefinition;
 import org.springframework.security.context.SecurityContext;
 import org.springframework.security.context.SecurityContextHolder;
+import org.springframework.temp.endpoint.EndpointInterceptor;
 
-/**
- * 
- * @author Jonas Partner
- *
- */
-public class TargetSecuringInterceptor implements MethodInterceptor {
+public class SecurityEndpointInterceptor implements EndpointInterceptor {
 
 	private final ConfigAttributeDefinition targetSecurityAttributes;
 
 	private final AccessDecisionManager accessDecisionManager;
 
-	public TargetSecuringInterceptor(ConfigAttributeDefinition targetSecurityAttributes,
+	public SecurityEndpointInterceptor(ConfigAttributeDefinition endpointSecurityAttributes,
 			AccessDecisionManager accessDecisionManager) {
-		this.targetSecurityAttributes = targetSecurityAttributes;
+		super();
+		this.targetSecurityAttributes = endpointSecurityAttributes;
 		this.accessDecisionManager = accessDecisionManager;
 	}
 
-	public Object invoke(MethodInvocation invocation) throws Throwable {
+	public void aroundInvoke(MethodInvocation invocation) throws Throwable {
 		Message<?> message = (Message<?>) invocation.getArguments()[0];
-		SecurityContext ctx = SecurityContextUtils.getSecurityContextFromHeader(message);
-		if (ctx != null) {
+		
+		SecurityContext securityCtx = null;
+		
+		if(message != null){
+			securityCtx = SecurityContextUtils.getSecurityContextFromHeader(message);
+		}
+		if (securityCtx != null) {
 			try {
-				SecurityContextHolder.setContext(ctx);
+				SecurityContextHolder.setContext(securityCtx);
 				accessDecisionManager.decide(SecurityContextHolder.getContext().getAuthentication(), invocation
 						.getThis(), targetSecurityAttributes);
-				return invocation.proceed();
+				invocation.proceed();
 			}
 			finally {
 				SecurityContextHolder.clearContext();
@@ -59,8 +60,16 @@ public class TargetSecuringInterceptor implements MethodInterceptor {
 		else {
 			accessDecisionManager.decide(SecurityContextHolder.getContext().getAuthentication(), invocation.getThis(),
 					targetSecurityAttributes);
-			return invocation.proceed();
+			invocation.proceed();
 		}
+	}
+
+	public void postInvoke(Message message) {
+
+	}
+
+	public void preInvoke(Message message) {
+
 	}
 
 }

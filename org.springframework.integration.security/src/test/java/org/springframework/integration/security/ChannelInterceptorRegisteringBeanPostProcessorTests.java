@@ -33,7 +33,7 @@ import org.springframework.integration.message.selector.MessageSelector;
 /**
  * 
  * @author Jonas Partner
- *
+ * 
  */
 public class ChannelInterceptorRegisteringBeanPostProcessorTests {
 

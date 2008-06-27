@@ -24,20 +24,21 @@ import org.springframework.security.providers.UsernamePasswordAuthenticationToke
 /**
  * 
  * @author Jonas Partner
- *
+ * 
  */
 public class SecurityTestUtil {
-	
-	public static SecurityContext createContext(String username, String password, String... roles){
+
+	public static SecurityContext createContext(String username, String password, String... roles) {
 		SecurityContextImpl ctxImpl = new SecurityContextImpl();
 		UsernamePasswordAuthenticationToken authToken;
-		if(roles != null && roles.length > 0){
+		if (roles != null && roles.length > 0) {
 			GrantedAuthority[] authorities = new GrantedAuthority[roles.length];
-			for (int i =0; i < roles.length; i++) {
+			for (int i = 0; i < roles.length; i++) {
 				authorities[i] = new GrantedAuthorityImpl(roles[i]);
 			}
-			authToken = new UsernamePasswordAuthenticationToken(username,password,authorities);
-		} else {
+			authToken = new UsernamePasswordAuthenticationToken(username, password, authorities);
+		}
+		else {
 			authToken = new UsernamePasswordAuthenticationToken(username, password);
 		}
 		ctxImpl.setAuthentication(authToken);

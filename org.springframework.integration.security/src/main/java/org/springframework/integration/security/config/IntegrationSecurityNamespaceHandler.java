@@ -17,6 +17,8 @@
 package org.springframework.integration.security.config;
 
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
+import org.springframework.integration.security.channel.config.SecuredChannelsParser;
+import org.springframework.integration.security.channel.config.SecurityPropagatingChannelsParser;
 
 /**
  * Namespace handler for the security namespace.

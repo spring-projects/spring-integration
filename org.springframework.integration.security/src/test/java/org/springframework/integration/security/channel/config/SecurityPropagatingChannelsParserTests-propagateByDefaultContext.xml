@@ -11,32 +11,6 @@
               http://www.springframework.org/schema/integration-security http://www.springframework.org/schema/integration/spring-integration-security-1.0.xsd
               http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd">
 
-	<beans:import resource="commonSecurityConfiguration.xml"/>
-
-	<message-bus/>
-
-	<si-security:security-propagating-channels propagate="true"/>
-
-	<channel id="propagationDefault"/>
-
-	<channel id="excludedFromPropagation" />
-	
-	<si-security:secured-channels propagate="false">
-		<si-security:channel-name-pattern>excludedFromPropagation</si-security:channel-name-pattern>
-	</si-security:secured-channels>	
-
-	<channel id="includedInPropagation" />
-	
-	<si-security:secured-channels propagate="true">
-		<si-security:channel-name-pattern>includedInPropagation</si-security:channel-name-pattern>
-	</si-security:secured-channels>	
-	
-	<security:authentication-provider user-service-ref="userDetailsService"/>
-
-	<security:user-service id="userDetailsService">
-		<security:user name="jimi" password="jimispassword" authorities="ROLE_USER, ROLE_ADMIN"/>
-		<security:user name="bob" password="bobspassword" authorities="ROLE_USER"/>
-	</security:user-service>
-	
+	<si-security:security-propagating-channels propagate-by-default="true"/>
 
 </beans:beans>

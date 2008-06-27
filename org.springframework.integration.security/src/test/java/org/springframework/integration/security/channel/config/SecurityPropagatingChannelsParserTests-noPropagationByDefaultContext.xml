@@ -11,23 +11,11 @@
               http://www.springframework.org/schema/integration-security http://www.springframework.org/schema/integration/spring-integration-security-1.0.xsd
               http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd">
 
-	<beans:import resource="commonSecurityConfiguration.xml"/>
-
-	<message-bus/>
-
-	<channel id="propagationDefault"/>
-
-	<si-security:secured-channels send-access="ROLE_ADMIN" >
-		<si-security:channel-name-pattern>adminRequiredForSend</si-security:channel-name-pattern>
-	</si-security:secured-channels>
-
-
-	<si-security:secured-channels  propagate="false">
-		<si-security:channel-name-pattern>excludedFromPropagation</si-security:channel-name-pattern>
-	</si-security:secured-channels>
-
-	<channel id="excludedFromPropagation"/>
-	
-	
+	<si-security:security-propagating-channels propagate-by-default="false">
+		<si-security:propagation-patterns>
+			<si-security:excludePattern>adminSpecial</si-security:excludePattern>
+			<si-security:excludePattern>admin.*</si-security:excludePattern>
+		</si-security:propagation-patterns>
+	</si-security:security-propagating-channels>
 
 </beans:beans>

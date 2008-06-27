@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.security.config;
+package org.springframework.integration.security.channel.config;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +61,6 @@ public class SecuredChannelsParser extends AbstractSingleBeanDefinitionParser {
 		String receiveAccess = element.getAttribute("receive-access");
 		String sendAccess = element.getAttribute("send-access");
 		String accessDecisionManager = element.getAttribute("access-decision-manager");
-		String propagation = element.getAttribute("propagate");
 
 		BeanDefinition interceptorBeanDefinition = createSecurityEnforcingChannelInterceptor(accessDecisionManager,
 				sendAccess, receiveAccess);
@@ -75,7 +74,6 @@ public class SecuredChannelsParser extends AbstractSingleBeanDefinitionParser {
 		builder.getBeanDefinition().getConstructorArgumentValues()
 				.addGenericArgumentValue(new ValueHolder(patternList));
 
-		setPropagation(Boolean.parseBoolean(propagation), patternList, parserContext);
 	}
 
 	protected List<String> processPatterns(NodeList patternList) {
@@ -85,19 +83,6 @@ public class SecuredChannelsParser extends AbstractSingleBeanDefinitionParser {
 			patterns.add(patternElement.getTextContent());
 		}
 		return patterns;
-
-	}
-
-	protected void setPropagation(boolean propagation, List<String> patterns, ParserContext parserContext) {
-		for (String pattern : patterns) {
-			if (propagation) {
-				SecurityPropagatingBeanPostProcessorDefinitionHelper.addToIncludeChannelList(pattern, parserContext);
-			}
-			else {
-				SecurityPropagatingBeanPostProcessorDefinitionHelper.addToExcludeChannelList(pattern, parserContext);
-			}
-		}
-
 	}
 
 	protected BeanDefinition createSecurityEnforcingChannelInterceptor(String accessDecisionManager, String sendAccess,

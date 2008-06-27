@@ -24,7 +24,6 @@
 			<xsd:attribute name="receive-access" type="xsd:string" />
 			<xsd:attribute name="send-access" type="xsd:string" />
 			<xsd:attribute name="access-decision-manager" type="xsd:string" default="accessDecisionManager"/>
-			<xsd:attribute name="propagate" type="xsd:boolean" default="true" />
 		</xsd:complexType>
 	</xsd:element>
 
@@ -49,14 +48,26 @@
 
 	<xsd:element name="security-propagating-channels">
 		<xsd:complexType>
+			
 			<xsd:annotation>
 				<xsd:documentation>
 					Defines a bean post processor which propagates the
-					security context.
+					security context by registering interceptors with channels.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:attribute name="propagate" type="xsd:boolean" default="true" />
+			<xsd:sequence>	
+				<xsd:element name="propagation-patterns" type="propagationPatternType" maxOccurs="1" minOccurs="0"/>
+			</xsd:sequence>
+			<xsd:attribute name="propagate-by-default" type="xsd:boolean" default="true" />
+			
 		</xsd:complexType>
 	</xsd:element>
+	
+	<xsd:complexType name="propagationPatternType">
+		<xsd:choice maxOccurs="unbounded" minOccurs="0">
+			<xsd:element name="includePattern" type="xsd:string"/>
+			<xsd:element name="excludePattern" type="xsd:string"/>
+		</xsd:choice>
+	</xsd:complexType>
 
 </xsd:schema>

@@ -12,25 +12,25 @@
               http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd">
 
 
-	<beans:import resource="commonSecurityConfiguration.xml"/>
+	<beans:import resource="classpath:org/springframework/integration/security/config/commonSecurityConfiguration.xml"/>
 
-	<si-security:secured-channels send-access="ROLE_ADMIN" propagate="false">
+	<si-security:secured-channels send-access="ROLE_ADMIN">
 		<si-security:channel-name-pattern>adminRequiredForSend</si-security:channel-name-pattern>
 	</si-security:secured-channels>
 	
-	<si-security:secured-channels send-access="ROLE_ADMIN, ROLE_USER" propagate="false">
+	<si-security:secured-channels send-access="ROLE_ADMIN, ROLE_USER">
 		<si-security:channel-name-pattern>adminOrUserRequiredForSend</si-security:channel-name-pattern>
 	</si-security:secured-channels>
 	
-	<si-security:secured-channels receive-access="ROLE_ADMIN" propagate="false">
+	<si-security:secured-channels receive-access="ROLE_ADMIN">
 		<si-security:channel-name-pattern>adminRequiredForReceive</si-security:channel-name-pattern>
 	</si-security:secured-channels>
 	
-	<si-security:secured-channels receive-access="ROLE_ADMIN, ROLE_USER" propagate="false">
+	<si-security:secured-channels receive-access="ROLE_ADMIN, ROLE_USER">
 		<si-security:channel-name-pattern>adminOrUserRequiredForReceive</si-security:channel-name-pattern>
 	</si-security:secured-channels>
 	
-	<si-security:secured-channels receive-access="ROLE_ADMIN" send-access="ROLE_ADMIN" propagate="false">
+	<si-security:secured-channels receive-access="ROLE_ADMIN" send-access="ROLE_ADMIN">
 		<si-security:channel-name-pattern>adminForSendAndReceive</si-security:channel-name-pattern>
 	</si-security:secured-channels>
 	

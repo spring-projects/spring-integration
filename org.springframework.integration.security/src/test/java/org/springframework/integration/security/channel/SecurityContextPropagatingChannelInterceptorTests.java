@@ -16,9 +16,7 @@
 
 package org.springframework.integration.security.channel;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import org.junit.After;
 import org.junit.Before;
@@ -36,13 +34,12 @@ import org.springframework.security.context.SecurityContextHolder;
  * @author Jonas Partner
  */
 public class SecurityContextPropagatingChannelInterceptorTests {
-	
+
 	private QueueChannel channel;
 
 	private SecurityContextPropagatingChannelInterceptor securityPropogatingChannelInterceptor;
-	
-	private StubSecurityContext securityContext;
 
+	private StubSecurityContext securityContext;
 
 	@Before
 	public void setUp() {
@@ -53,10 +50,9 @@ public class SecurityContextPropagatingChannelInterceptorTests {
 	}
 
 	@After
-	public void tearDown(){
+	public void tearDown() {
 		SecurityContextHolder.clearContext();
 	}
-
 
 	@Test
 	public void testPropogationWhenSecurityContextExists() {
@@ -65,11 +61,11 @@ public class SecurityContextPropagatingChannelInterceptorTests {
 		this.channel.send(message);
 		message = (StringMessage) channel.receive(0);
 		MessageHeader header = message.getHeader();
-		assertTrue("No security context attribute found in header.",
-				header.getAttributeNames().contains(SecurityContextUtils.SECURITY_CONTEXT_HEADER_ATTRIBUTE));
+		assertTrue("No security context attribute found in header.", header.getAttributeNames().contains(
+				SecurityContextUtils.SECURITY_CONTEXT_HEADER_ATTRIBUTE));
 		SecurityContext contextFromHeader = SecurityContextUtils.getSecurityContextFromHeader(message);
 		assertEquals("Incorrect security context in message header.", securityContext, contextFromHeader);
-	}	
+	}
 
 	@Test
 	public void testHeaderNotSetWhenNoSecurityContextExists() {
@@ -77,19 +73,16 @@ public class SecurityContextPropagatingChannelInterceptorTests {
 		channel.send(message);
 		message = (StringMessage) channel.receive(0);
 		MessageHeader header = message.getHeader();
-		assertFalse("Security context header found when no security context existed.",
-				header.getAttributeNames().contains(SecurityContextUtils.SECURITY_CONTEXT_HEADER_ATTRIBUTE));
+		assertFalse("Security context header found when no security context existed.", header.getAttributeNames()
+				.contains(SecurityContextUtils.SECURITY_CONTEXT_HEADER_ATTRIBUTE));
 	}
 
-
-
-	private void associateContextWithThread(){
+	private void associateContextWithThread() {
 		SecurityContextHolder.setContext(securityContext);
-	}	
-
+	}
 
 	@SuppressWarnings("serial")
-	private static class StubSecurityContext implements SecurityContext{
+	private static class StubSecurityContext implements SecurityContext {
 
 		private Authentication authentication = new Authentication() {
 
@@ -113,8 +106,7 @@ public class SecurityContextPropagatingChannelInterceptorTests {
 				return false;
 			}
 
-			public void setAuthenticated(boolean isAuthenticated)
-					throws IllegalArgumentException {
+			public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
 			}
 
 			public String getName() {

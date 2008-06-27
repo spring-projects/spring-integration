@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.temp.endpoint;
 
-package org.springframework.integration.security.config;
+import org.aopalliance.intercept.MethodInvocation;
+import org.springframework.integration.message.Message;
 
+public interface EndpointInterceptor {
 
-/**
- * 
- * @author Jonas Partner
- *
- */
-public interface OrderedIncludeExcludeList {
+	void preInvoke(Message message);
 
-	public boolean isIncluded(String name);
+	void aroundInvoke(MethodInvocation invocation) throws Throwable;
 
+	void postInvoke(Message message);
 }
