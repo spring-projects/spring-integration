@@ -28,7 +28,7 @@ import org.springframework.integration.message.CommandMessage;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.PollCommand;
-import org.springframework.integration.message.Source;
+import org.springframework.integration.message.MessageSource;
 
 /**
  * @author Mark Fisher
@@ -47,7 +47,7 @@ public class SourceEndpointTests {
 	}
 
 
-	private static class TestSource implements Source<String> {
+	private static class TestSource implements MessageSource<String> {
 
 		private String message;
 

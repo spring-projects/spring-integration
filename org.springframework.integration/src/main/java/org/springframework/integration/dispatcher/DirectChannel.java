@@ -24,7 +24,7 @@ import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.Source;
+import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.Subscribable;
 import org.springframework.integration.message.Target;
 import org.springframework.integration.message.selector.MessageSelector;
@@ -32,7 +32,7 @@ import org.springframework.integration.message.selector.MessageSelector;
 /**
  * A channel that invokes the subscribed {@link MessageHandler handler(s)} in a
  * sender's thread (returning after at most one handles the message). If a
- * {@link Source} is provided, then that source will likewise be polled
+ * {@link MessageSource} is provided, then that source will likewise be polled
  * within a receiver's thread.
  * 
  * @author Dave Syer
@@ -40,7 +40,7 @@ import org.springframework.integration.message.selector.MessageSelector;
  */
 public class DirectChannel extends AbstractMessageChannel implements Subscribable {
 
-	private volatile Source<?> source;
+	private volatile MessageSource<?> source;
 
 	private final SimpleDispatcher dispatcher;
 
@@ -51,7 +51,7 @@ public class DirectChannel extends AbstractMessageChannel implements Subscribabl
 		this(null);
 	}
 
-	public DirectChannel(Source<?> source) {
+	public DirectChannel(MessageSource<?> source) {
 		super(defaultDispatcherPolicy());
 		this.source = source;
 		this.dispatcher = new SimpleDispatcher(this.getDispatcherPolicy());

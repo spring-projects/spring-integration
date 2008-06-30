@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.Source;
+import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.Target;
 
@@ -68,7 +68,7 @@ public class DirectChannelTests {
 
 	@Test
 	public void testReceive() {
-		DirectChannel channel = new DirectChannel(new Source<String>() {
+		DirectChannel channel = new DirectChannel(new MessageSource<String>() {
 			public Message<String> receive() {
 				return new StringMessage("foo");
 			}
@@ -147,7 +147,7 @@ public class DirectChannelTests {
 	}
 
 
-	private static class MessageReturningTestSource implements Source<String> {
+	private static class MessageReturningTestSource implements MessageSource<String> {
 
 		private final String messageText;
 

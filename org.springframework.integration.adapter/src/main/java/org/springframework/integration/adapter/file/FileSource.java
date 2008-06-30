@@ -28,7 +28,7 @@ import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.message.MessageCreator;
 import org.springframework.integration.message.MessageDeliveryAware;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.message.Source;
+import org.springframework.integration.message.MessageSource;
 import org.springframework.util.Assert;
 
 /**
@@ -37,7 +37,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class FileSource extends AbstractDirectorySource implements Source<Object>, InitializingBean, MessageDeliveryAware {
+public class FileSource extends AbstractDirectorySource implements MessageSource<Object>, InitializingBean, MessageDeliveryAware {
 
 	private final File directory;
 

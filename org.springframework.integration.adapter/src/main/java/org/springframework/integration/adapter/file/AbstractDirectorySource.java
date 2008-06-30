@@ -28,7 +28,7 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageCreator;
 import org.springframework.integration.message.MessageDeliveryAware;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.message.Source;
+import org.springframework.integration.message.MessageSource;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -38,7 +38,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Marius Bogoevici
  */
-public abstract class AbstractDirectorySource implements Source<Object>, MessageDeliveryAware {
+public abstract class AbstractDirectorySource implements MessageSource<Object>, MessageDeliveryAware {
 
 	public final static String FILE_INFO_PROPERTY = "file.info";
 

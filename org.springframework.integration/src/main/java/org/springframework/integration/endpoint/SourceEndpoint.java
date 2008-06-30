@@ -23,26 +23,26 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryAware;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.PollCommand;
-import org.springframework.integration.message.Source;
+import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.util.Assert;
 
 /**
- * A channel adapter that retrieves messages from a {@link Source}
+ * A channel adapter that retrieves messages from a {@link MessageSource}
  * and then sends the resulting messages to the provided {@link MessageChannel}.
  * 
  * @author Mark Fisher
  */
 public class SourceEndpoint extends AbstractEndpoint {
 
-	private final Source<?> source;
+	private final MessageSource<?> source;
 
 	private final SimpleDispatcher dispatcher = new SimpleDispatcher(new DispatcherPolicy());
 
 	private volatile Schedule schedule;
 
 
-	public SourceEndpoint(Source<?> source, MessageChannel channel) {
+	public SourceEndpoint(MessageSource<?> source, MessageChannel channel) {
 		Assert.notNull(source, "source must not be null");
 		Assert.notNull(channel, "channel must not be null");
 		this.source = source;

@@ -23,14 +23,14 @@ import java.io.InputStream;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.message.Source;
+import org.springframework.integration.message.MessageSource;
 
 /**
  * A pollable source for receiving bytes from an {@link InputStream}.
  * 
  * @author Mark Fisher
  */
-public class ByteStreamSource implements Source<byte[]> {
+public class ByteStreamSource implements MessageSource<byte[]> {
 
 	private BufferedInputStream stream;
 

@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.util.Assert;
 
 /**
- * Scheduling metadata for a polling task.
+ * Scheduling metadata for a task that repeats at a regular interval.
  * 
  * @author Mark Fisher
  */

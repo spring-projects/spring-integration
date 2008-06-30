@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class MethodInvokingSource implements Source<Object>, InitializingBean {
+public class MethodInvokingSource implements MessageSource<Object>, InitializingBean {
 
 	private Object object;
 

@@ -39,7 +39,7 @@ import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
-import org.springframework.integration.message.Source;
+import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Subscription;
@@ -258,7 +258,7 @@ public class MessageBusTests {
 		assertTrue(messageBusAwareBean.getMessageBus() == context.getBean("bus"));
 	}
 
-	private static class FailingSource implements Source<Object> {
+	private static class FailingSource implements MessageSource<Object> {
 
 		private CountDownLatch latch;
 

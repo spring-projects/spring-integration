@@ -22,7 +22,6 @@ import java.util.List;
 
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.annotation.MessageSource;
 import org.springframework.integration.annotation.Polled;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
@@ -30,7 +29,7 @@ import org.springframework.integration.dispatcher.DirectChannel;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.SourceEndpoint;
 import org.springframework.integration.message.MethodInvokingSource;
-import org.springframework.integration.message.Source;
+import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.util.StringUtils;
 
@@ -39,21 +38,21 @@ import org.springframework.util.StringUtils;
  *
  * @author Mark Fisher
  */
-public class SourceAnnotationPostProcessor extends AbstractAnnotationMethodPostProcessor<Source<?>> {
+public class SourceAnnotationPostProcessor extends AbstractAnnotationMethodPostProcessor<MessageSource<?>> {
 
 	public SourceAnnotationPostProcessor(MessageBus messageBus, ClassLoader beanClassLoader) {
-		super(MessageSource.class, messageBus, beanClassLoader);
+		super(org.springframework.integration.annotation.MessageSource.class, messageBus, beanClassLoader);
 	}
 
 
-	protected Source<?> processMethod(Object bean, Method method, Annotation annotation) {
+	protected MessageSource<?> processMethod(Object bean, Method method, Annotation annotation) {
 		MethodInvokingSource source = new MethodInvokingSource();
 		source.setObject(bean);
 		source.setMethod(method.getName());
 		return source;
 	}
 
-	protected Source<?> processResults(List<Source<?>> results) {
+	protected MessageSource<?> processResults(List<MessageSource<?>> results) {
 		if (results.size() > 1) {
 			throw new ConfigurationException("At most one @MessageSource annotation is allowed per class.");
 		}
@@ -76,7 +75,7 @@ public class SourceAnnotationPostProcessor extends AbstractAnnotationMethodPostP
 			outputChannel = new DirectChannel();
 			this.getMessageBus().registerChannel(beanName + ".output", outputChannel);
 		}
-		SourceEndpoint endpoint = new SourceEndpoint((Source<?>) bean, outputChannel);
+		SourceEndpoint endpoint = new SourceEndpoint((MessageSource<?>) bean, outputChannel);
 		endpoint.setSchedule(schedule);
 		return endpoint;
 	}

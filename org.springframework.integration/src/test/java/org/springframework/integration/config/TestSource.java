@@ -17,13 +17,13 @@
 package org.springframework.integration.config;
 
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.Source;
+import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
  */
-public class TestSource implements Source {
+public class TestSource implements MessageSource {
 
 	public Message<?> receive() {
 		return new StringMessage("test");
