@@ -90,7 +90,7 @@ public class AggregatingMessageHandlerTests {
 	@Test
 	public void testShouldSendPartialResultOnTimeoutTrue() throws InterruptedException {
 		AggregatingMessageHandler aggregator = new AggregatingMessageHandler(new TestAggregator());
-		aggregator.setTimeout(50);
+		aggregator.setTimeout(500);
 		aggregator.setReaperInterval(10);
 		aggregator.setSendPartialResultOnTimeout(true);
 		QueueChannel replyChannel = new QueueChannel();
@@ -103,7 +103,7 @@ public class AggregatingMessageHandlerTests {
 		executor.execute(task2);
 		latch.await(3000, TimeUnit.MILLISECONDS);
 		assertEquals("handlers should have been invoked within time limit", 0, latch.getCount());
-		Message<?> reply = replyChannel.receive(1000);
+		Message<?> reply = replyChannel.receive(3000);
 		assertNotNull("a reply message should have been received", reply);
 		assertEquals("123456", reply.getPayload());
 		assertNull(task1.getException());
