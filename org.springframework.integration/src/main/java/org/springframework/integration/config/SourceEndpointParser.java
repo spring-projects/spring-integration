@@ -19,6 +19,7 @@ package org.springframework.integration.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
@@ -67,7 +68,12 @@ public class SourceEndpointParser extends AbstractSimpleBeanDefinitionParser {
 		if (scheduleElement == null) {
 			throw new ConfigurationException("The <schedule/> sub-element is required for a <source-endpoint/>.");
 		}
-		builder.addConstructorArgValue(this.parseSchedule(scheduleElement));
+		builder.addPropertyValue("schedule", this.parseSchedule(scheduleElement));
+		Element adviceChainElement = DomUtils.getChildElementByTagName(element, "advice-chain");
+		if (adviceChainElement != null) {
+			ManagedList adviceChain = IntegrationNamespaceUtils.parseEndpointAdviceChain(adviceChainElement);
+			builder.addPropertyValue("adviceChain", adviceChain);
+		}
 	}
 
 	/**

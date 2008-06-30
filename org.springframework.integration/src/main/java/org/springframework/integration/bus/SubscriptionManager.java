@@ -28,7 +28,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.dispatcher.DefaultPollingDispatcher;
 import org.springframework.integration.dispatcher.DirectChannel;
 import org.springframework.integration.dispatcher.PollingDispatcherTask;
 import org.springframework.integration.endpoint.TargetEndpoint;
@@ -122,10 +121,9 @@ public class SubscriptionManager {
 		}
 		PollingDispatcherTask dispatcherTask = this.dispatcherTasks.get(schedule);
 		if (dispatcherTask == null) {
-			DefaultPollingDispatcher dispatcher = new DefaultPollingDispatcher(this.channel);
-			dispatcherTask = this.dispatcherTasks.putIfAbsent(schedule, new PollingDispatcherTask(dispatcher, schedule));
+			dispatcherTask = this.dispatcherTasks.putIfAbsent(schedule, new PollingDispatcherTask(this.channel, schedule));
 		}
-		this.dispatcherTasks.get(schedule).getDispatcher().subscribe(target);
+		this.dispatcherTasks.get(schedule).subscribe(target);
 		if (dispatcherTask == null && this.isRunning()) {
 			this.scheduleDispatcherTask(schedule);
 		}
@@ -135,7 +133,7 @@ public class SubscriptionManager {
 		boolean removed = false;
 		Collection<PollingDispatcherTask> dispatcherTaskValues = this.dispatcherTasks.values();
 		for (PollingDispatcherTask dispatcherTask : dispatcherTaskValues) {
-			removed = (removed || dispatcherTask.getDispatcher().unsubscribe(target));
+			removed = (removed || dispatcherTask.unsubscribe(target));
 		}
 		return removed;
 	}

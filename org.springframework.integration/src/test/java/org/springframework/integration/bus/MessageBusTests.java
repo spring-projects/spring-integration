@@ -172,7 +172,8 @@ public class MessageBusTests {
 	public void testErrorChannelWithFailedDispatch() throws InterruptedException {
 		MessageBus bus = new MessageBus();
 		CountDownLatch latch = new CountDownLatch(1);
-		SourceEndpoint sourceEndpoint = new SourceEndpoint(new FailingSource(latch), new QueueChannel(), new PollingSchedule(1000));
+		SourceEndpoint sourceEndpoint = new SourceEndpoint(new FailingSource(latch), new QueueChannel());
+		sourceEndpoint.setSchedule(new PollingSchedule(1000));
 		bus.registerEndpoint("testEndpoint", sourceEndpoint);
 		bus.start();
 		latch.await(2000, TimeUnit.MILLISECONDS);

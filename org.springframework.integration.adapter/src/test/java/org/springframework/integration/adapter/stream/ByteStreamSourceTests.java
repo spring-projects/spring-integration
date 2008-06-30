@@ -26,7 +26,9 @@ import org.junit.Test;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.SourceEndpoint;
+import org.springframework.integration.message.CommandMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.PollCommand;
 import org.springframework.integration.scheduling.PollingSchedule;
 
 /**
@@ -40,10 +42,8 @@ public class ByteStreamSourceTests {
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
 		MessageChannel channel = new QueueChannel();
 		ByteStreamSource source = new ByteStreamSource(stream);
-		PollingSchedule schedule = new PollingSchedule(1000);
-		schedule.setInitialDelay(10000);
-		SourceEndpoint endpoint = new SourceEndpoint(source, channel, schedule);
-		endpoint.run();
+		SourceEndpoint endpoint = new SourceEndpoint(source, channel);
+		endpoint.invoke(new CommandMessage(new PollCommand()));
 		Message<?> message1 = channel.receive(500);
 		byte[] payload = (byte[]) message1.getPayload();
 		assertEquals(3, payload.length);
@@ -52,74 +52,7 @@ public class ByteStreamSourceTests {
 		assertEquals(3, payload[2]);
 		Message<?> message2 = channel.receive(0);
 		assertNull(message2);
-		endpoint.run();
-		Message<?> message3 = channel.receive(0);
-		assertNull(message3);
-	}
-
-	@Test
-	public void testEndOfStreamWithMaxMessagesPerTask() throws Exception {
-		byte[] bytes = new byte[] {0,1,2,3,4,5,6,7};
-		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
-		MessageChannel channel = new QueueChannel();
-		ByteStreamSource source = new ByteStreamSource(stream);
-		source.setBytesPerMessage(8);
-		PollingSchedule schedule = new PollingSchedule(1000);
-		schedule.setInitialDelay(10000);
-		SourceEndpoint endpoint = new SourceEndpoint(source, channel, schedule);
-		endpoint.setMaxMessagesPerTask(5);
-		endpoint.run();
-		Message<?> message1 = channel.receive(500);
-		assertEquals(8, ((byte[]) message1.getPayload()).length);
-		Message<?> message2 = channel.receive(0);
-		assertNull(message2);
-	}
-
-	@Test
-	public void testMultipleMessagesWithSingleMessagePerTask() {
-		byte[] bytes = new byte[] {0,1,2,3,4,5,6,7};
-		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
-		MessageChannel channel = new QueueChannel();
-		ByteStreamSource source = new ByteStreamSource(stream);
-		source.setBytesPerMessage(4);
-		PollingSchedule schedule = new PollingSchedule(1000);
-		schedule.setInitialDelay(10000);
-		SourceEndpoint endpoint = new SourceEndpoint(source, channel, schedule);
-		endpoint.setMaxMessagesPerTask(1);
-		endpoint.run();
-		Message<?> message1 = channel.receive(0);
-		byte[] bytes1 = (byte[]) message1.getPayload();
-		assertEquals(4, bytes1.length);
-		assertEquals(0, bytes1[0]);
-		Message<?> message2 = channel.receive(0);
-		assertNull(message2);
-		endpoint.run();
-		Message<?> message3 = channel.receive(0);
-		byte[] bytes3 = (byte[]) message3.getPayload();
-		assertEquals(4, bytes3.length);
-		assertEquals(4, bytes3[0]);
-	}
-
-	@Test
-	public void testLessThanMaxMessagesAvailable() {
-		byte[] bytes = new byte[] {0,1,2,3,4,5,6,7};
-		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
-		MessageChannel channel = new QueueChannel();
-		ByteStreamSource source = new ByteStreamSource(stream);
-		source.setBytesPerMessage(4);
-		PollingSchedule schedule = new PollingSchedule(1000);
-		schedule.setInitialDelay(10000);
-		SourceEndpoint endpoint = new SourceEndpoint(source, channel, schedule);
-		endpoint.setMaxMessagesPerTask(5);
-		endpoint.run();
-		Message<?> message1 = channel.receive(0);
-		byte[] bytes1 = (byte[]) message1.getPayload();
-		assertEquals(4, bytes1.length);
-		assertEquals(0, bytes1[0]);
-		Message<?> message2 = channel.receive(0);
-		byte[] bytes2 = (byte[]) message2.getPayload();
-		assertEquals(4, bytes2.length);
-		assertEquals(4, bytes2[0]);
+		endpoint.invoke(new CommandMessage(new PollCommand()));
 		Message<?> message3 = channel.receive(0);
 		assertNull(message3);
 	}
@@ -133,14 +66,13 @@ public class ByteStreamSourceTests {
 		source.setBytesPerMessage(4);
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
-		SourceEndpoint endpoint = new SourceEndpoint(source, channel, schedule);
-		endpoint.setMaxMessagesPerTask(1);
-		endpoint.run();
+		SourceEndpoint endpoint = new SourceEndpoint(source, channel);
+		endpoint.invoke(new CommandMessage(new PollCommand()));
 		Message<?> message1 = channel.receive(0);
 		assertEquals(4, ((byte[]) message1.getPayload()).length);
 		Message<?> message2 = channel.receive(0);
 		assertNull(message2);
-		endpoint.run();
+		endpoint.invoke(new CommandMessage(new PollCommand()));
 		Message<?> message3 = channel.receive(0);
 		assertEquals(2, ((byte[]) message3.getPayload()).length);
 	}
@@ -155,14 +87,13 @@ public class ByteStreamSourceTests {
 		source.setShouldTruncate(false);
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
-		SourceEndpoint endpoint = new SourceEndpoint(source, channel, schedule);
-		endpoint.setMaxMessagesPerTask(1);
-		endpoint.run();
+		SourceEndpoint endpoint = new SourceEndpoint(source, channel);
+		endpoint.invoke(new CommandMessage(new PollCommand()));
 		Message<?> message1 = channel.receive(0);
 		assertEquals(4, ((byte[]) message1.getPayload()).length);
 		Message<?> message2 = channel.receive(0);
 		assertNull(message2);
-		endpoint.run();
+		endpoint.invoke(new CommandMessage(new PollCommand()));
 		Message<?> message3 = channel.receive(0);
 		assertEquals(4, ((byte[]) message3.getPayload()).length);
 		assertEquals(0, ((byte[]) message3.getPayload())[3]);

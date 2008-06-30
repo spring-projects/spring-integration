@@ -16,17 +16,24 @@
 
 package org.springframework.integration.endpoint;
 
+import org.aopalliance.intercept.MethodInvocation;
+
 import org.springframework.integration.message.Message;
 
 /**
- * Base interface for message endpoints.
- * 
  * @author Mark Fisher
  */
-public interface MessageEndpoint {
+public class EndpointInterceptorAdapter implements EndpointInterceptor {
 
-	String getName();
+	public boolean preInvoke(Message message) {
+		return true;
+	}
 
-	boolean invoke(Message<?> message);
+	public boolean aroundInvoke(MethodInvocation invocation) throws Throwable {
+		return (Boolean) invocation.proceed();
+	}
+
+	public void postInvoke(Message message, boolean result) {
+	}
 
 }

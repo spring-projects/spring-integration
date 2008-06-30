@@ -14,19 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint;
-
-import org.springframework.integration.message.Message;
+package org.springframework.integration.message;
 
 /**
- * Base interface for message endpoints.
- * 
  * @author Mark Fisher
  */
-public interface MessageEndpoint {
-
-	String getName();
-
-	boolean invoke(Message<?> message);
+public class PollCommand implements Command {
 
 }

@@ -16,9 +16,10 @@
 
 package org.springframework.integration.dispatcher;
 
-import java.util.List;
-
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.Subscribable;
+import org.springframework.integration.message.Target;
 import org.springframework.integration.scheduling.MessagingTask;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.util.Assert;
@@ -28,22 +29,29 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class PollingDispatcherTask implements MessagingTask {
+public class PollingDispatcherTask implements MessagingTask, Subscribable {
 
-	private final PollingDispatcher dispatcher;
+	private final MessageChannel channel;
 
 	private final Schedule schedule;
 
+	private final SimpleDispatcher dispatcher;
 
-	public PollingDispatcherTask(PollingDispatcher dispatcher, Schedule schedule) {
-		Assert.notNull(dispatcher, "dispatcher must not be null");
-		this.dispatcher = dispatcher;
+
+	public PollingDispatcherTask(MessageChannel channel, Schedule schedule) {
+		Assert.notNull(channel, "channel must not be null");
+		this.channel = channel;
 		this.schedule = schedule;
+		this.dispatcher = new SimpleDispatcher(this.channel.getDispatcherPolicy());
 	}
 
 
-	public PollingDispatcher getDispatcher() {
-		return this.dispatcher;
+	public boolean subscribe(Target target) {
+		return this.dispatcher.subscribe(target);
+	}
+
+	public boolean unsubscribe(Target target) {
+		return this.dispatcher.unsubscribe(target);
 	}
 
 	public Schedule getSchedule() {
@@ -51,9 +59,16 @@ public class PollingDispatcherTask implements MessagingTask {
 	}
 
 	public void run() {
-		List<Message<?>> messages = this.dispatcher.poll();
-		for (Message<?> message : messages) {
+		long timeout = this.channel.getDispatcherPolicy().getReceiveTimeout();
+		int limit = this.channel.getDispatcherPolicy().getMaxMessagesPerTask();
+		int count = 0;
+		while (count < limit) {
+			Message<?> message = (timeout < 0) ? this.channel.receive() : this.channel.receive(timeout);
+			if (message == null) {
+				return;
+			}
 			this.dispatcher.dispatch(message);
+			count++;
 		}
 	}
 

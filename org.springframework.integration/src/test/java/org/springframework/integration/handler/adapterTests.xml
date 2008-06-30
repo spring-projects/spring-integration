@@ -20,11 +20,11 @@
 			</bean>
 		</constructor-arg>
 		<constructor-arg ref="channel"/>
-		<constructor-arg>
+		<property name="schedule">
 			<bean class="org.springframework.integration.scheduling.PollingSchedule">
 				<constructor-arg value="1000"/>
 			</bean>
-		</constructor-arg>
+		</property>
 	</bean>
 
 	<bean id="target" class="org.springframework.integration.handler.MethodInvokingTarget">

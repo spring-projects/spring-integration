@@ -76,7 +76,9 @@ public class SourceAnnotationPostProcessor extends AbstractAnnotationMethodPostP
 			outputChannel = new DirectChannel();
 			this.getMessageBus().registerChannel(beanName + ".output", outputChannel);
 		}
-		return new SourceEndpoint((Source<?>) bean, outputChannel, schedule);
+		SourceEndpoint endpoint = new SourceEndpoint((Source<?>) bean, outputChannel);
+		endpoint.setSchedule(schedule);
+		return endpoint;
 	}
 
 }

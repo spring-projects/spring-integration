@@ -14,14 +14,27 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.dispatcher;
+package org.springframework.integration.config;
 
-import org.springframework.integration.message.Poller;
-import org.springframework.integration.message.Subscribable;
+import java.lang.reflect.Method;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.springframework.aop.MethodBeforeAdvice;
 
 /**
  * @author Mark Fisher
  */
-public interface PollingDispatcher extends Poller, MessageDispatcher, Subscribable {
+public class TestBeforeAdvice implements MethodBeforeAdvice {
+
+	private AtomicInteger counter = new AtomicInteger();
+
+
+	public int getCount() {
+		return this.counter.get();
+	}
+
+	public void before(Method method, Object[] args, Object target) throws Throwable {
+		this.counter.incrementAndGet();
+	}
 
 }

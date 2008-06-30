@@ -27,6 +27,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -55,8 +56,11 @@ import org.springframework.integration.endpoint.MessagingGateway;
 import org.springframework.integration.endpoint.SourceEndpoint;
 import org.springframework.integration.endpoint.TargetEndpoint;
 import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.message.CommandMessage;
+import org.springframework.integration.message.PollCommand;
 import org.springframework.integration.message.Target;
 import org.springframework.integration.scheduling.MessagePublishingErrorHandler;
+import org.springframework.integration.scheduling.MessagingTask;
 import org.springframework.integration.scheduling.MessagingTaskScheduler;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.integration.scheduling.SimpleMessagingTaskScheduler;
@@ -408,19 +412,26 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 		}
 	}
 
-	private void registerSourceEndpoint(String name, SourceEndpoint endpoint) {
+	private void registerSourceEndpoint(String name, final SourceEndpoint endpoint) {
 		if (!this.initialized) {
 			this.initialize();
 		}
-		this.taskScheduler.schedule(endpoint);
+		final Schedule schedule = endpoint.getSchedule();
+		if (schedule != null) {
+			this.taskScheduler.schedule(new MessagingTask() {
+				public Schedule getSchedule() {
+					return schedule;
+				}
+				public void run() {
+					endpoint.invoke(new CommandMessage(new PollCommand()));
+				}
+			});
+		}
 		if (endpoint instanceof Lifecycle) {
 			this.lifecycleEndpoints.add((Lifecycle) endpoint);
 			if (this.isRunning()) {
 				((Lifecycle) endpoint).start();
 			}
-		}
-		if (logger.isInfoEnabled()) {
-			logger.info("registered source adapter '" + name + "'");
 		}
 	}
 
@@ -436,7 +447,7 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 		}
 	}
 
-	private void activateSubscription(MessageChannel channel, Target target, Schedule schedule) {
+	private void activateSubscription(MessageChannel channel, TargetEndpoint targetEndpoint, Schedule schedule) {
 		SubscriptionManager manager = this.subscriptionManagers.get(channel);
 		if (manager == null) {
 			if (logger.isWarnEnabled()) {
@@ -445,7 +456,7 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 			}
 			return;
 		}
-		manager.addTarget(target, schedule);
+		manager.addTarget(targetEndpoint, schedule);
 		if (this.isRunning() && !manager.isRunning()) {
 			manager.start();
 		}

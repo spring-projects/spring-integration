@@ -169,7 +169,8 @@ public class TargetEndpoint extends AbstractEndpoint implements Target, ChannelR
 		this.running = false;
 	}
 
-	public final boolean send(Message<?> message) {
+	@Override
+	protected final boolean doInvoke(Message<?> message) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("endpoint '" + this + "' handling message: " + message);
 		}
@@ -196,6 +197,15 @@ public class TargetEndpoint extends AbstractEndpoint implements Target, ChannelR
 			this.errorHandler.handle(t);
 			return false;
 		}
+	}
+
+	@Override
+	protected final boolean supports(Message<?> message) {
+		return true;
+	}
+
+	public boolean send(Message<?> message) {
+		return this.invoke(message);
 	}
 
 }

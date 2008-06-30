@@ -26,7 +26,9 @@ import org.junit.Test;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.SourceEndpoint;
+import org.springframework.integration.message.CommandMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.PollCommand;
 import org.springframework.integration.scheduling.PollingSchedule;
 
 /**
@@ -41,68 +43,13 @@ public class CharacterStreamSourceTests {
 		CharacterStreamSource source = new CharacterStreamSource(reader);
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
-		SourceEndpoint endpoint = new SourceEndpoint(source, channel, schedule);
-		endpoint.run();
+		SourceEndpoint endpoint = new SourceEndpoint(source, channel);
+		endpoint.invoke(new CommandMessage(new PollCommand()));
 		Message<?> message1 = channel.receive(0);
 		assertEquals("test", message1.getPayload());
 		Message<?> message2 = channel.receive(0);
 		assertNull(message2);
-		endpoint.run();
-		Message<?> message3 = channel.receive(0);
-		assertNull(message3);
-	}
-
-	@Test
-	public void testEndOfStreamWithMaxMessagesPerTask() {
-		StringReader reader = new StringReader("test");
-		MessageChannel channel = new QueueChannel();
-		CharacterStreamSource source = new CharacterStreamSource(reader);
-		PollingSchedule schedule = new PollingSchedule(1000);
-		schedule.setInitialDelay(10000);
-		SourceEndpoint endpoint = new SourceEndpoint(source, channel, schedule);
-		endpoint.setMaxMessagesPerTask(5);
-		endpoint.run();
-		Message<?> message1 = channel.receive(0);
-		assertEquals("test", message1.getPayload());
-		Message<?> message2 = channel.receive(0);
-		assertNull(message2);
-	}
-
-	@Test
-	public void testMultipleLinesWithSingleMessagePerTask() {
-		String s = "test1" + System.getProperty("line.separator") + "test2";
-		StringReader reader = new StringReader(s);
-		MessageChannel channel = new QueueChannel();
-		CharacterStreamSource source = new CharacterStreamSource(reader);
-		PollingSchedule schedule = new PollingSchedule(1000);
-		schedule.setInitialDelay(10000);
-		SourceEndpoint endpoint = new SourceEndpoint(source, channel, schedule);
-		endpoint.setMaxMessagesPerTask(1);
-		endpoint.run();
-		Message<?> message1 = channel.receive(0);
-		assertEquals("test1", message1.getPayload());
-		Message<?> message2 = channel.receive(0);
-		assertNull(message2);
-		endpoint.run();
-		Message<?> message3 = channel.receive(0);
-		assertEquals("test2", message3.getPayload());
-	}
-
-	@Test
-	public void testLessThanMaxMessagesAvailable() {
-		String s = "test1" + System.getProperty("line.separator") + "test2";
-		StringReader reader = new StringReader(s);
-		MessageChannel channel = new QueueChannel();
-		CharacterStreamSource source = new CharacterStreamSource(reader);
-		PollingSchedule schedule = new PollingSchedule(1000);
-		schedule.setInitialDelay(5000);
-		SourceEndpoint endpoint = new SourceEndpoint(source, channel, schedule);
-		endpoint.setMaxMessagesPerTask(5);
-		endpoint.run();
-		Message<?> message1 = channel.receive(500);
-		assertEquals("test1", message1.getPayload());
-		Message<?> message2 = channel.receive(500);
-		assertEquals("test2", message2.getPayload());
+		endpoint.invoke(new CommandMessage(new PollCommand()));
 		Message<?> message3 = channel.receive(0);
 		assertNull(message3);
 	}

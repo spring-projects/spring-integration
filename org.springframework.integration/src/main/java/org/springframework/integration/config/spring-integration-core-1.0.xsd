@@ -166,6 +166,7 @@
 				<xsd:extension base="beans:identifiedType">
 					<xsd:sequence>
 						<xsd:element ref="schedule" minOccurs="1" maxOccurs="1"/>
+						<xsd:element name="advice-chain" type="adviceChainType" minOccurs="0" maxOccurs="1"/>
 					</xsd:sequence>
 					<xsd:attribute name="source" type="xsd:string" use="required"/>
 					<xsd:attribute name="channel" type="xsd:string" use="required"/>
@@ -415,6 +416,7 @@
 				<xsd:all>
 					<xsd:element ref="schedule" minOccurs="0" maxOccurs="1"/>
 					<xsd:element name="concurrency" type="concurrencyType" minOccurs="0" maxOccurs="1"/>
+					<xsd:element name="advice-chain" type="adviceChainType" minOccurs="0" maxOccurs="1"/>
 				</xsd:all>
 				<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
 				<xsd:attribute name="error-handler" type="xsd:string"/>
@@ -435,6 +437,21 @@
 				<xsd:attribute name="method" type="xsd:string" use="required"/>
 			</xsd:extension>
 		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="adviceChainType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a list of Advice.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="ref" minOccurs="0" maxOccurs="unbounded">
+				<xsd:complexType>
+					<xsd:attribute name="bean" use="required"/>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
 	</xsd:complexType>
 
 </xsd:schema>

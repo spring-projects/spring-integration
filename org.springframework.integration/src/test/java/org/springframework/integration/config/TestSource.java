@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint;
+package org.springframework.integration.config;
 
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.Source;
+import org.springframework.integration.message.StringMessage;
 
 /**
- * Base interface for message endpoints.
- * 
  * @author Mark Fisher
  */
-public interface MessageEndpoint {
+public class TestSource implements Source {
 
-	String getName();
-
-	boolean invoke(Message<?> message);
+	public Message<?> receive() {
+		return new StringMessage("test");
+	}
 
 }

@@ -17,8 +17,11 @@
 package org.springframework.integration.config;
 
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.util.StringUtils;
@@ -59,6 +62,23 @@ public abstract class IntegrationNamespaceUtils {
 			policy.setKeepAliveSeconds(Integer.parseInt(keepAlive));
 		}
 		return policy;
+	}
+
+	@SuppressWarnings("unchecked")
+	public static ManagedList parseEndpointAdviceChain(Element element) {
+		ManagedList adviceChain = new ManagedList();
+		NodeList childNodes = element.getChildNodes();
+		for (int i = 0; i < childNodes.getLength(); i++) {
+			Node child = childNodes.item(i);
+			if (child.getNodeType() == Node.ELEMENT_NODE) {
+				String localName = child.getLocalName();
+				if ("ref".equals(localName)) {
+					String ref = ((Element) child).getAttribute("bean");
+					adviceChain.add(new RuntimeBeanReference(ref));
+				}
+			}
+		}
+		return adviceChain;
 	}
 
 	/**

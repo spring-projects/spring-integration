@@ -14,19 +14,31 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint;
+package org.springframework.integration.config;
 
-import org.springframework.integration.message.Message;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.aopalliance.intercept.MethodInvocation;
+
+import org.springframework.integration.endpoint.EndpointInterceptorAdapter;
 
 /**
- * Base interface for message endpoints.
- * 
  * @author Mark Fisher
  */
-public interface MessageEndpoint {
+public class TestEndpointInterceptor extends EndpointInterceptorAdapter {
 
-	String getName();
+	private AtomicInteger counter = new AtomicInteger();
 
-	boolean invoke(Message<?> message);
+
+	public int getCount() {
+		return this.counter.get();
+	}
+
+	public boolean aroundInvoke(MethodInvocation invocation) throws Throwable {
+		this.counter.incrementAndGet();
+		Boolean result = (Boolean) invocation.proceed();
+		this.counter.incrementAndGet();
+		return result;
+	}
 
 }

@@ -24,6 +24,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -61,6 +62,8 @@ public abstract class AbstractTargetEndpointParser extends AbstractSingleBeanDef
 
 	private static final String CONCURRENCY_POLICY_PROPERTY = "concurrencyPolicy";
 
+	private static final String ADVICE_CHAIN_ELEMENT = "advice-chain";
+
 
 	@Override
 	protected boolean shouldGenerateId() {
@@ -97,6 +100,10 @@ public abstract class AbstractTargetEndpointParser extends AbstractSingleBeanDef
 				}
 				else if (SCHEDULE_ELEMENT.equals(localName)) {
 					schedule = this.parseSchedule((Element) child);
+				}
+				else if (ADVICE_CHAIN_ELEMENT.equals(localName)) {
+					ManagedList adviceChain = IntegrationNamespaceUtils.parseEndpointAdviceChain((Element) child);
+					builder.addPropertyValue("adviceChain", adviceChain);
 				}
 			}
 		}

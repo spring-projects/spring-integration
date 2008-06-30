@@ -25,7 +25,6 @@ import org.junit.Test;
 
 import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.dispatcher.DefaultPollingDispatcher;
 import org.springframework.integration.dispatcher.PollingDispatcherTask;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.StringMessage;
@@ -64,8 +63,8 @@ public class ByteStreamTargetTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(3);
 		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
-		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
-		task.getDispatcher().subscribe(target);
+		PollingDispatcherTask task = new PollingDispatcherTask(channel, null);
+		task.subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -83,8 +82,8 @@ public class ByteStreamTargetTests {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
-		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
-		task.getDispatcher().subscribe(target);
+		PollingDispatcherTask task = new PollingDispatcherTask(channel, null);
+		task.subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -102,8 +101,8 @@ public class ByteStreamTargetTests {
 		dispatcherPolicy.setMaxMessagesPerTask(5);
 		dispatcherPolicy.setReceiveTimeout(0);
 		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
-		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
-		task.getDispatcher().subscribe(target);
+		PollingDispatcherTask task = new PollingDispatcherTask(channel, null);
+		task.subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -121,8 +120,8 @@ public class ByteStreamTargetTests {
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		dispatcherPolicy.setReceiveTimeout(0);
 		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
-		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
-		task.getDispatcher().subscribe(target);
+		PollingDispatcherTask task = new PollingDispatcherTask(channel, null);
+		task.subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -145,8 +144,8 @@ public class ByteStreamTargetTests {
 		dispatcherPolicy.setMaxMessagesPerTask(5);
 		dispatcherPolicy.setReceiveTimeout(0);
 		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
-		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
-		task.getDispatcher().subscribe(target);
+		PollingDispatcherTask task = new PollingDispatcherTask(channel, null);
+		task.subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -168,8 +167,8 @@ public class ByteStreamTargetTests {
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		dispatcherPolicy.setReceiveTimeout(0);
 		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
-		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
-		task.getDispatcher().subscribe(target);
+		PollingDispatcherTask task = new PollingDispatcherTask(channel, null);
+		task.subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -191,8 +190,8 @@ public class ByteStreamTargetTests {
 		dispatcherPolicy.setMaxMessagesPerTask(2);
 		dispatcherPolicy.setReceiveTimeout(0);
 		QueueChannel channel = new QueueChannel(5, dispatcherPolicy);
-		PollingDispatcherTask task = new PollingDispatcherTask(new DefaultPollingDispatcher(channel), null);
-		task.getDispatcher().subscribe(target);
+		PollingDispatcherTask task = new PollingDispatcherTask(channel, null);
+		task.subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);

@@ -14,15 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration.endpoint;
 
-import java.util.List;
+import org.aopalliance.intercept.MethodInvocation;
+
+import org.springframework.integration.message.Message;
 
 /**
  * @author Mark Fisher
  */
-public interface Poller {
+public interface EndpointInterceptor {
 
-	 List<Message<?>> poll();
+	boolean preInvoke(Message message);
+
+	boolean aroundInvoke(MethodInvocation invocation) throws Throwable;
+
+	void postInvoke(Message message, boolean result);
 
 }

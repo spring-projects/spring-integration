@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
+
+	<message-bus/>
+
+	<channel id="testChannel"/>
+
+	<channel id="replyChannel"/>
+
+	<handler-endpoint id="handlerEndpointWithoutAdvice"
+	                  input-channel="testChannel"
+	                  handler="testHandler"
+	                  output-channel="replyChannel">
+		<schedule period="100"/>
+	</handler-endpoint>
+
+	<handler-endpoint id="handlerEndpointWithAdvice"
+	                  input-channel="testChannel"
+	                  handler="testHandler"
+	                  output-channel="replyChannel">
+		<schedule period="100"/>
+		<advice-chain>
+			<ref bean="simpleAdvice"/>
+			<ref bean="interceptor"/>
+		</advice-chain>
+	</handler-endpoint>
+
+	<target-endpoint id="targetEndpointWithoutAdvice"
+	                  input-channel="testChannel"
+	                  target="testTarget">
+		<schedule period="100"/>
+	</target-endpoint>
+
+	<target-endpoint id="targetEndpointWithAdvice"
+	                  input-channel="testChannel"
+	                  target="testTarget">
+		<schedule period="100"/>
+		<advice-chain>
+			<ref bean="simpleAdvice"/>
+			<ref bean="interceptor"/>
+		</advice-chain>
+	</target-endpoint>
+
+	<source-endpoint id="sourceEndpointWithoutAdvice"
+	                 source="testSource"
+	                 channel="replyChannel">
+		<schedule period="100"/>
+	</source-endpoint>
+
+	<source-endpoint id="sourceEndpointWithAdvice"
+	                 source="testSource"
+	                 channel="testChannel">
+		<schedule period="100"/>
+		<advice-chain>
+			<ref bean="simpleAdvice"/>
+			<ref bean="interceptor"/>
+		</advice-chain>
+	</source-endpoint>
+
+	<beans:bean id="testHandler" class="org.springframework.integration.config.TestHandler"/>
+
+	<beans:bean id="testSource" class="org.springframework.integration.config.TestSource"/>
+
+	<beans:bean id="testTarget" class="org.springframework.integration.config.TestTarget"/>
+
+	<beans:bean id="simpleAdvice" class="org.springframework.integration.config.TestBeforeAdvice"/>
+
+	<beans:bean id="interceptor" class="org.springframework.integration.config.TestEndpointInterceptor"/>
+
+</beans:beans>

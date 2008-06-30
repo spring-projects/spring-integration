@@ -16,19 +16,31 @@
 
 package org.springframework.integration.endpoint;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.aopalliance.aop.Advice;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageHandlingException;
 
 /**
  * Base class for {@link MessageEndpoint} implementations.
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractEndpoint implements MessageEndpoint {
+public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile String name;
+
+	private final List<Advice> adviceChain = new ArrayList<Advice>();
 
 
 	public String getName() {
@@ -46,5 +58,38 @@ public abstract class AbstractEndpoint implements MessageEndpoint {
 	public String toString() {
 		return (this.name != null) ? this.name : super.toString();
 	}
+
+	public void setAdviceChain(List<Object> adviceChain) {
+		for (Object advice : adviceChain) {
+			if (advice instanceof Advice) {
+				this.adviceChain.add((Advice) advice);
+			}
+			else if (advice instanceof EndpointInterceptor) {
+				this.adviceChain.add(new EndpointMethodInterceptor((EndpointInterceptor) advice));
+			}
+			else {
+				throw new ConfigurationException("Each adviceChain element must implement either "
+						+ "'" + Advice.class.getName() + "' or '" + EndpointInterceptor.class.getName() + "'.");
+			}
+		}
+	}
+
+	public List<Advice> getAdviceChain() {
+		return this.adviceChain;
+	}
+
+	public final boolean invoke(Message<?> message) {
+		if (message == null) {
+			throw new IllegalArgumentException("Message must not be null.");
+		}
+		if (!this.supports(message)) {
+			throw new MessageHandlingException(message, "unsupported message");
+		}
+		return this.doInvoke(message);
+	}
+
+	protected abstract boolean supports(Message<?> message);
+
+	protected abstract boolean doInvoke(Message<?> message);
 
 }
