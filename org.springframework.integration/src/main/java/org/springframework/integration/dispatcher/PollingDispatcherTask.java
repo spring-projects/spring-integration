@@ -19,7 +19,7 @@ package org.springframework.integration.dispatcher;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.Subscribable;
-import org.springframework.integration.message.Target;
+import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.scheduling.MessagingTask;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.util.Assert;
@@ -46,11 +46,11 @@ public class PollingDispatcherTask implements MessagingTask, Subscribable {
 	}
 
 
-	public boolean subscribe(Target target) {
+	public boolean subscribe(MessageTarget target) {
 		return this.dispatcher.subscribe(target);
 	}
 
-	public boolean unsubscribe(Target target) {
+	public boolean unsubscribe(MessageTarget target) {
 		return this.dispatcher.unsubscribe(target);
 	}
 

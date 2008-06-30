@@ -19,7 +19,7 @@ package org.springframework.integration.adapter.mail;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageMapper;
-import org.springframework.integration.message.Target;
+import org.springframework.integration.message.MessageTarget;
 import org.springframework.mail.MailMessage;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -32,7 +32,7 @@ import org.springframework.util.Assert;
  * @author Marius Bogoevici
  * @author Mark Fisher
  */
-public class MailTarget implements Target, InitializingBean {
+public class MailTarget implements MessageTarget, InitializingBean {
 
 	private final JavaMailSender mailSender;
 

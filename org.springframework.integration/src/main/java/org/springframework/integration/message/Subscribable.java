@@ -24,13 +24,13 @@ package org.springframework.integration.message;
 public interface Subscribable {
 
 	/**
-	 * Register a {@link Target} as a subscriber to this source.
+	 * Register a {@link MessageTarget} as a subscriber to this source.
 	 */
-	boolean subscribe(Target target);
+	boolean subscribe(MessageTarget target);
 
 	/**
-	 * Remove a {@link Target} from the subscribers of this source.
+	 * Remove a {@link MessageTarget} from the subscribers of this source.
 	 */
-	boolean unsubscribe(Target target);
+	boolean unsubscribe(MessageTarget target);
 
 }

@@ -25,14 +25,14 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.message.Target;
+import org.springframework.integration.message.MessageTarget;
 
 /**
  * A target that writes a byte array to an {@link OutputStream}.
  * 
  * @author Mark Fisher
  */
-public class ByteStreamTarget implements Target {
+public class ByteStreamTarget implements MessageTarget {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 

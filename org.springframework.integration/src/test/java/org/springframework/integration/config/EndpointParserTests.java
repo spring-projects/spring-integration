@@ -36,7 +36,7 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.message.Target;
+import org.springframework.integration.message.MessageTarget;
 
 /**
  * @author Mark Fisher
@@ -109,7 +109,7 @@ public class EndpointParserTests {
 	public void testEndpointWithSelectorAccepts() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"endpointWithSelector.xml", this.getClass());		
-		Target endpoint = (Target) context.getBean("endpoint");
+		MessageTarget endpoint = (MessageTarget) context.getBean("endpoint");
 		((Lifecycle) endpoint).start();
 		Message<?> message = new StringMessage("test");
 		MessageChannel replyChannel = new QueueChannel();
@@ -124,7 +124,7 @@ public class EndpointParserTests {
 	public void testEndpointWithSelectorRejects() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"endpointWithSelector.xml", this.getClass());		
-		Target endpoint = (Target) context.getBean("endpoint");
+		MessageTarget endpoint = (MessageTarget) context.getBean("endpoint");
 		((Lifecycle) endpoint).start();
 		Message<?> message = new GenericMessage<Integer>(123);
 		MessageChannel replyChannel = new QueueChannel();
@@ -136,7 +136,7 @@ public class EndpointParserTests {
 	public void testCustomErrorHandler() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"endpointWithErrorHandler.xml", this.getClass());
-		Target endpoint = (Target) context.getBean("endpoint");
+		MessageTarget endpoint = (MessageTarget) context.getBean("endpoint");
 		TestErrorHandler errorHandler = (TestErrorHandler) context.getBean("errorHandler");
 		assertNull(errorHandler.getLastError());
 		Message<?> message = new StringMessage("test");
@@ -151,7 +151,7 @@ public class EndpointParserTests {
 	public void testCustomReplyHandler() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"endpointWithReplyHandler.xml", this.getClass());
-		Target endpoint = (Target) context.getBean("endpoint");
+		MessageTarget endpoint = (MessageTarget) context.getBean("endpoint");
 		TestReplyHandler replyHandler = (TestReplyHandler) context.getBean("replyHandler");
 		assertNull(replyHandler.getLastMessage());
 		Message<?> message = new StringMessage("test");

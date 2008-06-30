@@ -32,7 +32,7 @@ import org.springframework.integration.handler.MessageHandlerNotRunningException
 import org.springframework.integration.handler.MessageHandlerRejectedExecutionException;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.message.Target;
+import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.integration.scheduling.Subscription;
 import org.springframework.integration.util.ErrorHandler;
@@ -43,9 +43,9 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class TargetEndpoint extends AbstractEndpoint implements Target, ChannelRegistryAware, InitializingBean, Lifecycle {
+public class TargetEndpoint extends AbstractEndpoint implements MessageTarget, ChannelRegistryAware, InitializingBean, Lifecycle {
 
-	private volatile Target target;
+	private volatile MessageTarget target;
 
 	private volatile Subscription subscription;
 
@@ -65,17 +65,17 @@ public class TargetEndpoint extends AbstractEndpoint implements Target, ChannelR
 	public TargetEndpoint() {
 	}
 
-	public TargetEndpoint(Target target) {
+	public TargetEndpoint(MessageTarget target) {
 		Assert.notNull(target, "target must not be null");
 		this.target = target;
 	}
 
 
-	public Target getTarget() {
+	public MessageTarget getTarget() {
 		return this.target;
 	}
 
-	public void setTarget(Target target) {
+	public void setTarget(MessageTarget target) {
 		Assert.notNull(target, "target must not be null");
 		this.target = target;
 	}

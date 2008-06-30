@@ -26,7 +26,7 @@ import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.Subscribable;
-import org.springframework.integration.message.Target;
+import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.selector.MessageSelector;
 
 /**
@@ -58,7 +58,7 @@ public class DirectChannel extends AbstractMessageChannel implements Subscribabl
 	}
 
 
-	public boolean subscribe(Target target) {
+	public boolean subscribe(MessageTarget target) {
 		boolean added = this.dispatcher.subscribe(target);
 		if (added) {
 			this.handlerCount.incrementAndGet();
@@ -66,7 +66,7 @@ public class DirectChannel extends AbstractMessageChannel implements Subscribabl
 		return added;
 	}
 
-	public boolean unsubscribe(Target target) {
+	public boolean unsubscribe(MessageTarget target) {
 		boolean removed = this.dispatcher.unsubscribe(target);
 		if (removed) {
 			this.handlerCount.decrementAndGet();

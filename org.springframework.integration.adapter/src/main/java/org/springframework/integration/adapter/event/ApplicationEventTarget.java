@@ -21,7 +21,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageMapper;
-import org.springframework.integration.message.Target;
+import org.springframework.integration.message.MessageTarget;
 
 /**
  * A message target for publishing {@link MessagingEvent MessagingEvents}. The
@@ -30,7 +30,7 @@ import org.springframework.integration.message.Target;
  * 
  * @author Mark Fisher
  */
-public class ApplicationEventTarget<T> implements Target, ApplicationEventPublisherAware {
+public class ApplicationEventTarget<T> implements MessageTarget, ApplicationEventPublisherAware {
 
 	private final MessageMapper<T, MessagingEvent<T>> mapper = new MessagingEventMapper<T>();
 

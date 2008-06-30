@@ -31,7 +31,7 @@ import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.MessageSource;
-import org.springframework.integration.message.Target;
+import org.springframework.integration.message.MessageTarget;
 import org.springframework.util.Assert;
 
 /**
@@ -66,7 +66,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Init
 	public void afterPropertiesSet() {
 		this.postProcessors.put(MessageHandler.class, new HandlerAnnotationPostProcessor(this.messageBus, this.beanClassLoader));
 		this.postProcessors.put(MessageSource.class, new SourceAnnotationPostProcessor(this.messageBus, this.beanClassLoader));
-		this.postProcessors.put(Target.class, new TargetAnnotationPostProcessor(this.messageBus, this.beanClassLoader));
+		this.postProcessors.put(MessageTarget.class, new TargetAnnotationPostProcessor(this.messageBus, this.beanClassLoader));
 	}
 
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {

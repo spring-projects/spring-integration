@@ -39,7 +39,7 @@ import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.message.Target;
+import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.selector.PayloadTypeSelector;
 import org.springframework.integration.scheduling.MessagePublishingErrorHandler;
 import org.springframework.integration.scheduling.SimpleMessagingTaskScheduler;
@@ -157,7 +157,7 @@ public class SubscriptionManagerTests {
 		channel.send(new StringMessage(1, "test"));
 		SubscriptionManager manager = new SubscriptionManager(channel, scheduler);
 		manager.addTarget(createEndpoint(handler1, true));
-		manager.addTarget(new Target() {
+		manager.addTarget(new MessageTarget() {
 			public boolean send(Message<?> message) {
 				throw new MessageHandlerRejectedExecutionException(message);
 			}

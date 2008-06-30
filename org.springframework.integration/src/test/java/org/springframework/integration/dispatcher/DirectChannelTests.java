@@ -30,7 +30,7 @@ import org.junit.Test;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.message.Target;
+import org.springframework.integration.message.MessageTarget;
 
 /**
  * @author Mark Fisher
@@ -124,7 +124,7 @@ public class DirectChannelTests {
 	}
 
 
-	private static class ThreadNameSettingTestTarget implements Target {
+	private static class ThreadNameSettingTestTarget implements MessageTarget {
 
 		private final CountDownLatch latch;
 

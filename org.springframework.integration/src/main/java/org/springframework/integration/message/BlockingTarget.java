@@ -17,11 +17,11 @@
 package org.springframework.integration.message;
 
 /**
- * Extends {@link Target} and provides a timeout-aware send method. 
+ * Extends {@link MessageTarget} and provides a timeout-aware send method. 
  * 
  * @author Mark Fisher
  */
-public interface BlockingTarget extends Target {
+public interface BlockingTarget extends MessageTarget {
 
 	/**
 	 * Send a message, blocking indefinitely if necessary.

@@ -29,7 +29,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.message.Target;
+import org.springframework.integration.message.MessageTarget;
 import org.springframework.util.Assert;
 
 /**
@@ -41,7 +41,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class CharacterStreamTarget implements Target {
+public class CharacterStreamTarget implements MessageTarget {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 

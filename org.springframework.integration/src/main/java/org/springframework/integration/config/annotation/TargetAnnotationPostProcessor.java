@@ -23,14 +23,13 @@ import java.util.List;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.annotation.Concurrency;
-import org.springframework.integration.annotation.MessageTarget;
 import org.springframework.integration.annotation.Polled;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.TargetEndpoint;
 import org.springframework.integration.handler.MethodInvokingTarget;
-import org.springframework.integration.message.Target;
+import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.scheduling.Subscription;
 
 /**
@@ -38,21 +37,21 @@ import org.springframework.integration.scheduling.Subscription;
  *
  * @author Mark Fisher
  */
-public class TargetAnnotationPostProcessor extends AbstractAnnotationMethodPostProcessor<Target> {
+public class TargetAnnotationPostProcessor extends AbstractAnnotationMethodPostProcessor<MessageTarget> {
 
 	public TargetAnnotationPostProcessor(MessageBus messageBus, ClassLoader beanClassLoader) {
-		super(MessageTarget.class, messageBus, beanClassLoader);
+		super(org.springframework.integration.annotation.MessageTarget.class, messageBus, beanClassLoader);
 	}
 
 
-	public Target processMethod(Object bean, Method method, Annotation annotation) {
+	public MessageTarget processMethod(Object bean, Method method, Annotation annotation) {
 		MethodInvokingTarget target = new MethodInvokingTarget();
 		target.setObject(bean);
 		target.setMethod(method);
 		return target;
 	}
 
-	protected Target processResults(List<Target> results) {
+	protected MessageTarget processResults(List<MessageTarget> results) {
 		if (results.size() > 1) {
 			throw new ConfigurationException("At most one @MessageTarget annotation is allowed per class.");
 		}
@@ -61,7 +60,7 @@ public class TargetAnnotationPostProcessor extends AbstractAnnotationMethodPostP
 
 	public MessageEndpoint createEndpoint(Object bean, String beanName, Class<?> originalBeanClass,
 			org.springframework.integration.annotation.MessageEndpoint endpointAnnotation) {
-		TargetEndpoint endpoint = new TargetEndpoint((Target) bean);
+		TargetEndpoint endpoint = new TargetEndpoint((MessageTarget) bean);
 		Polled polledAnnotation = AnnotationUtils.findAnnotation(originalBeanClass, Polled.class);
 		Subscription subscription = this.createSubscription(bean, beanName, endpointAnnotation, polledAnnotation);
 		endpoint.setSubscription(subscription);

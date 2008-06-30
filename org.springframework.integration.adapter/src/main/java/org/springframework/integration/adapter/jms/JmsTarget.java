@@ -20,7 +20,7 @@ import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.Target;
+import org.springframework.integration.message.MessageTarget;
 import org.springframework.jms.core.JmsTemplate;
 
 /**
@@ -28,7 +28,7 @@ import org.springframework.jms.core.JmsTemplate;
  * 
  * @author Mark Fisher
  */
-public class JmsTarget extends AbstractJmsTemplateBasedAdapter implements Target {
+public class JmsTarget extends AbstractJmsTemplateBasedAdapter implements MessageTarget {
 
 	public JmsTarget(JmsTemplate jmsTemplate) {
 		super(jmsTemplate);

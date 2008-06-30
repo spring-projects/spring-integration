@@ -20,7 +20,7 @@ import java.io.File;
 
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageMapper;
-import org.springframework.integration.message.Target;
+import org.springframework.integration.message.MessageTarget;
 
 /**
  * A message target for writing files. The actual file writing occurs in the
@@ -29,7 +29,7 @@ import org.springframework.integration.message.Target;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class FileTarget implements Target {
+public class FileTarget implements MessageTarget {
 
 	private MessageMapper<?, File> messageMapper;
 

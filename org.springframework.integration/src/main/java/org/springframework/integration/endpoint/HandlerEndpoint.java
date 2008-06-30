@@ -25,7 +25,7 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageHeader;
-import org.springframework.integration.message.Target;
+import org.springframework.integration.message.MessageTarget;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -141,7 +141,7 @@ public class HandlerEndpoint extends TargetEndpoint {
 	}
 
 
-	private static class HandlerInvokingTarget implements Target {
+	private static class HandlerInvokingTarget implements MessageTarget {
 
 		private final MessageHandler handler;
 

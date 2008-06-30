@@ -27,29 +27,29 @@ import org.springframework.integration.handler.MessageHandlerNotRunningException
 import org.springframework.integration.handler.MessageHandlerRejectedExecutionException;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
-import org.springframework.integration.message.Target;
+import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.util.ErrorHandler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.Assert;
 
 /**
- * A {@link Target} implementation that encapsulates an Executor and delegates
+ * A {@link MessageTarget} implementation that encapsulates an Executor and delegates
  * to a wrapped target for concurrent, asynchronous message handling.
  * 
  * @author Mark Fisher
  */
-public class ConcurrentTarget implements Target, DisposableBean {
+public class ConcurrentTarget implements MessageTarget, DisposableBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private final Target target;
+	private final MessageTarget target;
 
 	private final ExecutorService executor;
 
 	private volatile ErrorHandler errorHandler;
 
 
-	public ConcurrentTarget(Target target, ExecutorService executor) {
+	public ConcurrentTarget(MessageTarget target, ExecutorService executor) {
 		Assert.notNull(target, "'target' must not be null");
 		Assert.notNull(executor, "'executor' must not be null");
 		this.target = target;

@@ -21,7 +21,7 @@ package org.springframework.integration.message;
  * 
  * @author Mark Fisher
  */
-public interface Target {
+public interface MessageTarget {
 
 	boolean send(Message<?> message);
 

@@ -32,7 +32,7 @@ import org.springframework.integration.dispatcher.DirectChannel;
 import org.springframework.integration.dispatcher.PollingDispatcherTask;
 import org.springframework.integration.endpoint.TargetEndpoint;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.message.Target;
+import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.scheduling.MessagingTaskScheduler;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
@@ -40,7 +40,7 @@ import org.springframework.integration.util.ErrorHandler;
 import org.springframework.util.Assert;
 
 /**
- * Manages subscriptions for {@link Target Targets} to a {@link MessageChannel}
+ * Manages subscriptions for {@link MessageTarget Targets} to a {@link MessageChannel}
  * including the creation, scheduling, and lifecycle management of dispatchers.
  * 
  * @author Mark Fisher
@@ -77,11 +77,11 @@ public class SubscriptionManager {
 		this.defaultSchedule = defaultSchedule;
 	}
 
-	public void addTarget(Target target) {
+	public void addTarget(MessageTarget target) {
 		this.addTarget(target, null);
 	}
 
-	public void addTarget(Target target, Schedule schedule) {
+	public void addTarget(MessageTarget target, Schedule schedule) {
 		Assert.notNull(target, "'target' must not be null");
 		if (schedule == null) {
 			schedule = this.defaultSchedule;
@@ -129,7 +129,7 @@ public class SubscriptionManager {
 		}
 	}
 
-	public boolean removeTarget(Target target) {
+	public boolean removeTarget(MessageTarget target) {
 		boolean removed = false;
 		Collection<PollingDispatcherTask> dispatcherTaskValues = this.dispatcherTasks.values();
 		for (PollingDispatcherTask dispatcherTask : dispatcherTaskValues) {

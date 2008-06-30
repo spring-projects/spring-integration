@@ -29,7 +29,7 @@ import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.message.Target;
+import org.springframework.integration.message.MessageTarget;
 
 /**
  * @author Mark Fisher
@@ -76,7 +76,7 @@ public class SimpleDispatcherTests {
 	}
 
 
-	private static Target createEndpoint(MessageHandler handler) {
+	private static MessageTarget createEndpoint(MessageHandler handler) {
 		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
 		endpoint.start();
 		return endpoint;

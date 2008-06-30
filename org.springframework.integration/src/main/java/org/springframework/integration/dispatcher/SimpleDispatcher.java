@@ -31,7 +31,7 @@ import org.springframework.integration.message.BlockingTarget;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.Subscribable;
-import org.springframework.integration.message.Target;
+import org.springframework.integration.message.MessageTarget;
 
 /**
  * Basic implementation of {@link MessageDispatcher}.
@@ -42,7 +42,7 @@ public class SimpleDispatcher implements MessageDispatcher, Subscribable {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	private final List<Target> targets = new CopyOnWriteArrayList<Target>();
+	private final List<MessageTarget> targets = new CopyOnWriteArrayList<MessageTarget>();
 
 	protected final DispatcherPolicy dispatcherPolicy;
 
@@ -58,17 +58,17 @@ public class SimpleDispatcher implements MessageDispatcher, Subscribable {
 		this.sendTimeout = sendTimeout;
 	}
 
-	public boolean subscribe(Target target) {
+	public boolean subscribe(MessageTarget target) {
 		return this.targets.add(target);
 	}
 
-	public boolean unsubscribe(Target target) {
+	public boolean unsubscribe(MessageTarget target) {
 		return this.targets.remove(target);
 	}
 
 	public boolean dispatch(Message<?> message) {
 		int attempts = 0;
-		List<Target> targetList = new ArrayList<Target>(this.targets);
+		List<MessageTarget> targetList = new ArrayList<MessageTarget>(this.targets);
 		while (attempts < this.dispatcherPolicy.getRejectionLimit()) {
 			if (attempts > 0) {
 				if (logger.isDebugEnabled()) {
@@ -84,7 +84,7 @@ public class SimpleDispatcher implements MessageDispatcher, Subscribable {
 					return false;
 				}
 			}
-			Iterator<Target> iter = targetList.iterator();
+			Iterator<MessageTarget> iter = targetList.iterator();
 			if (!iter.hasNext()) {
 				if (logger.isWarnEnabled()) {
 					logger.warn("no active targets");
@@ -93,7 +93,7 @@ public class SimpleDispatcher implements MessageDispatcher, Subscribable {
 			}
 			boolean rejected = false;
 			while (iter.hasNext()) {
-				Target target = iter.next();
+				MessageTarget target = iter.next();
 				try {
 					boolean sent = (target instanceof BlockingTarget && this.sendTimeout >= 0) ?
 							((BlockingTarget) target).send(message, this.sendTimeout) : target.send(message);

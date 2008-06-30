@@ -39,7 +39,7 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessagePriority;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.message.Target;
+import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.scheduling.SimpleMessagingTaskScheduler;
 
 /**
@@ -272,7 +272,7 @@ public class ChannelParserTests {
 	}
 
 
-	private static class TestTarget implements Target {
+	private static class TestTarget implements MessageTarget {
 
 		private AtomicInteger counter;
 

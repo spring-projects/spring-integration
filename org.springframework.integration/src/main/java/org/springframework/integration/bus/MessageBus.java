@@ -58,7 +58,7 @@ import org.springframework.integration.endpoint.TargetEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.CommandMessage;
 import org.springframework.integration.message.PollCommand;
-import org.springframework.integration.message.Target;
+import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.scheduling.MessagePublishingErrorHandler;
 import org.springframework.integration.scheduling.MessagingTask;
 import org.springframework.integration.scheduling.MessagingTaskScheduler;
@@ -273,11 +273,11 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 		this.doRegisterEndpoint(name, endpoint, subscription, concurrencyPolicy);
 	}
 
-	public void registerTarget(String name, Target target, Subscription subscription) {
+	public void registerTarget(String name, MessageTarget target, Subscription subscription) {
 		this.registerTarget(name, target, subscription, this.defaultConcurrencyPolicy);
 	}
 
-	public void registerTarget(String name, Target target, Subscription subscription,
+	public void registerTarget(String name, MessageTarget target, Subscription subscription,
 			ConcurrencyPolicy concurrencyPolicy) {
 		Assert.notNull(target, "'target' must not be null");
 		TargetEndpoint endpoint = new TargetEndpoint(target);

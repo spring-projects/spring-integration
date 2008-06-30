@@ -17,12 +17,12 @@
 package org.springframework.integration.config;
 
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.Target;
+import org.springframework.integration.message.MessageTarget;
 
 /**
  * @author Mark Fisher
  */
-public class TestTarget implements Target {
+public class TestTarget implements MessageTarget {
 
 	public boolean send(Message<?> message) {
 		return true;

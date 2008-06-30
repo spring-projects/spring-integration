@@ -18,14 +18,14 @@ package org.springframework.integration.handler;
 
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.message.Target;
+import org.springframework.integration.message.MessageTarget;
 
 /**
  * A messaging target that invokes the specified method on the provided object.
  * 
  * @author Mark Fisher
  */
-public class MethodInvokingTarget extends AbstractMessageHandlerAdapter implements Target {
+public class MethodInvokingTarget extends AbstractMessageHandlerAdapter implements MessageTarget {
 
 	public boolean send(Message<?> message) {
 		this.handle(message);
