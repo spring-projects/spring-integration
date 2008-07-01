@@ -17,19 +17,24 @@
 package org.springframework.integration.security.endpoint;
 
 import org.aopalliance.intercept.MethodInvocation;
+
+import org.springframework.integration.endpoint.interceptor.EndpointInterceptorAdapter;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.security.SecurityContextUtils;
 import org.springframework.security.AccessDecisionManager;
 import org.springframework.security.ConfigAttributeDefinition;
 import org.springframework.security.context.SecurityContext;
 import org.springframework.security.context.SecurityContextHolder;
-import org.springframework.temp.endpoint.EndpointInterceptor;
 
-public class SecurityEndpointInterceptor implements EndpointInterceptor {
+/**
+ * @author Jonas Partner
+ */
+public class SecurityEndpointInterceptor extends EndpointInterceptorAdapter {
 
 	private final ConfigAttributeDefinition targetSecurityAttributes;
 
 	private final AccessDecisionManager accessDecisionManager;
+
 
 	public SecurityEndpointInterceptor(ConfigAttributeDefinition endpointSecurityAttributes,
 			AccessDecisionManager accessDecisionManager) {
@@ -38,38 +43,30 @@ public class SecurityEndpointInterceptor implements EndpointInterceptor {
 		this.accessDecisionManager = accessDecisionManager;
 	}
 
-	public void aroundInvoke(MethodInvocation invocation) throws Throwable {
+
+	@Override
+	public boolean aroundInvoke(MethodInvocation invocation) throws Throwable {
 		Message<?> message = (Message<?>) invocation.getArguments()[0];
-		
-		SecurityContext securityCtx = null;
-		
-		if(message != null){
-			securityCtx = SecurityContextUtils.getSecurityContextFromHeader(message);
+		SecurityContext securityContext = null;
+		if (message != null) {
+			securityContext = SecurityContextUtils.getSecurityContextFromHeader(message);
 		}
-		if (securityCtx != null) {
+		if (securityContext != null) {
 			try {
-				SecurityContextHolder.setContext(securityCtx);
-				accessDecisionManager.decide(SecurityContextHolder.getContext().getAuthentication(), invocation
-						.getThis(), targetSecurityAttributes);
-				invocation.proceed();
+				SecurityContextHolder.setContext(securityContext);
+				this.accessDecisionManager.decide(SecurityContextHolder.getContext().getAuthentication(),
+						invocation.getThis(), this.targetSecurityAttributes);
+				return (Boolean) invocation.proceed();
 			}
 			finally {
 				SecurityContextHolder.clearContext();
 			}
 		}
 		else {
-			accessDecisionManager.decide(SecurityContextHolder.getContext().getAuthentication(), invocation.getThis(),
-					targetSecurityAttributes);
-			invocation.proceed();
+			this.accessDecisionManager.decide(SecurityContextHolder.getContext().getAuthentication(),
+					invocation.getThis(), this.targetSecurityAttributes);
+			return (Boolean) invocation.proceed();
 		}
-	}
-
-	public void postInvoke(Message message) {
-
-	}
-
-	public void preInvoke(Message message) {
-
 	}
 
 }

@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNull;
 
 import org.aopalliance.intercept.MethodInvocation;
 import org.junit.Test;
+
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.security.SecurityContextUtils;
@@ -32,9 +33,7 @@ import org.springframework.security.context.SecurityContext;
 import org.springframework.security.context.SecurityContextHolder;
 
 /**
- * 
  * @author Jonas Partner
- * 
  */
 public class SecurityEndpointInterceptorTests {
 
@@ -93,7 +92,7 @@ public class SecurityEndpointInterceptorTests {
 			SecurityContext context = SecurityTestUtil.createContext("bob", "bobspassword",
 					new String[] { "ROLE_ADMIN" });
 			MethodInvocation invocation = createTestMethodInvocation(target, context);
-			expect(invocation.proceed()).andReturn(null);
+			expect(invocation.proceed()).andReturn(Boolean.TRUE);
 			replay(invocation);
 
 			ConfigAttributeDefinition attDefintion = new ConfigAttributeDefinition("ROLE_ADMIN");
