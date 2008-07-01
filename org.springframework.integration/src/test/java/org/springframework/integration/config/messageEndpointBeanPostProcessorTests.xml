@@ -25,10 +25,10 @@
 	                  handler="testHandler"
 	                  output-channel="replyChannel">
 		<schedule period="100"/>
-		<advice-chain>
+		<interceptors>
 			<ref bean="simpleAdvice"/>
 			<ref bean="interceptor"/>
-		</advice-chain>
+		</interceptors>
 	</handler-endpoint>
 
 	<target-endpoint id="targetEndpointWithoutAdvice"
@@ -41,10 +41,10 @@
 	                  input-channel="testChannel"
 	                  target="testTarget">
 		<schedule period="100"/>
-		<advice-chain>
+		<interceptors>
 			<ref bean="simpleAdvice"/>
 			<ref bean="interceptor"/>
-		</advice-chain>
+		</interceptors>
 	</target-endpoint>
 
 	<source-endpoint id="sourceEndpointWithoutAdvice"
@@ -57,10 +57,10 @@
 	                 source="testSource"
 	                 channel="testChannel">
 		<schedule period="100"/>
-		<advice-chain>
+		<interceptors>
 			<ref bean="simpleAdvice"/>
 			<ref bean="interceptor"/>
-		</advice-chain>
+		</interceptors>
 	</source-endpoint>
 
 	<beans:bean id="testHandler" class="org.springframework.integration.config.TestHandler"/>
