@@ -29,7 +29,6 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.integration.scheduling.Subscription;
@@ -46,10 +45,6 @@ public abstract class AbstractTargetEndpointParser extends AbstractSingleBeanDef
 
 	private static final String SUBSCRIPTION_PROPERTY = "subscription";
 
-	private static final String ERROR_HANDLER_ATTRIBUTE = "error-handler";
-
-	private static final String ERROR_HANDLER_PROPERTY = "errorHandler";
-
 	private static final String SELECTOR_ATTRIBUTE = "selector";
 
 	private static final String SELECTOR_PROPERTY = "messageSelector";
@@ -57,10 +52,6 @@ public abstract class AbstractTargetEndpointParser extends AbstractSingleBeanDef
 	private static final String PERIOD_ATTRIBUTE = "period";
 
 	private static final String SCHEDULE_ELEMENT = "schedule";
-
-	private static final String CONCURRENCY_ELEMENT = "concurrency";
-
-	private static final String CONCURRENCY_POLICY_PROPERTY = "concurrencyPolicy";
 
 	private static final String INTERCEPTORS_ELEMENT = "interceptors";
 
@@ -95,10 +86,7 @@ public abstract class AbstractTargetEndpointParser extends AbstractSingleBeanDef
 			Node child = childNodes.item(i);
 			if (child.getNodeType() == Node.ELEMENT_NODE) {
 				String localName = child.getLocalName();
-				if (CONCURRENCY_ELEMENT.equals(localName)) {
-					parseConcurrencyPolicy((Element) child, builder);
-				}
-				else if (SCHEDULE_ELEMENT.equals(localName)) {
+				if (SCHEDULE_ELEMENT.equals(localName)) {
 					schedule = this.parseSchedule((Element) child);
 				}
 				else if (INTERCEPTORS_ELEMENT.equals(localName)) {
@@ -117,10 +105,6 @@ public abstract class AbstractTargetEndpointParser extends AbstractSingleBeanDef
 			String subscriptionBeanName = parserContext.getReaderContext().generateBeanName(subscriptionDef);
 			parserContext.registerBeanComponent(new BeanComponentDefinition(subscriptionDef, subscriptionBeanName));
 			builder.addPropertyReference(SUBSCRIPTION_PROPERTY, subscriptionBeanName);
-		}
-		String errorHandlerRef = element.getAttribute(ERROR_HANDLER_ATTRIBUTE);
-		if (StringUtils.hasText(errorHandlerRef)) {
-			builder.addPropertyReference(ERROR_HANDLER_PROPERTY, errorHandlerRef);
 		}
 		String selectorRef = element.getAttribute(SELECTOR_ATTRIBUTE);
 		if (StringUtils.hasText(selectorRef)) {
@@ -151,11 +135,6 @@ public abstract class AbstractTargetEndpointParser extends AbstractSingleBeanDef
 		String adapterBeanName = parserContext.getReaderContext().generateBeanName(adapterDef);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(adapterDef, adapterBeanName));
 		return adapterBeanName;
-	}
-
-	private void parseConcurrencyPolicy(Element concurrencyElement, BeanDefinitionBuilder builder) {
-		ConcurrencyPolicy policy = IntegrationNamespaceUtils.parseConcurrencyPolicy(concurrencyElement);
-		builder.addPropertyValue(CONCURRENCY_POLICY_PROPERTY, policy);
 	}
 
 	private Schedule parseSchedule(Element scheduleElement) {
