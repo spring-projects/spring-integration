@@ -104,11 +104,11 @@ public abstract class AbstractMessageHandlerAdapter extends AbstractMethodInvoki
 		}
 		catch (InvocationTargetException e) {
 			throw new MessageHandlingException(message, "Handler method '"
-					+ this.getMethod() + "' threw an Exception.", e.getTargetException());
+					+ this.getMethodName() + "' threw an Exception.", e.getTargetException());
 		}
 		catch (Throwable e) {
 			throw new MessageHandlingException(message, "Failed to invoke handler method '"
-					+ this.getMethod() + "' with arguments: " + ObjectUtils.nullSafeToString(args), e);
+					+ this.getMethodName() + "' with arguments: " + ObjectUtils.nullSafeToString(args), e);
 		}
 	}
 

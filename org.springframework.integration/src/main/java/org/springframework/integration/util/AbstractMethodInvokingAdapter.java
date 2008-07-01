@@ -74,6 +74,10 @@ public abstract class AbstractMethodInvokingAdapter implements MethodInvoker, In
 		this.methodName = methodName;
 	}
 
+	protected String getMethodName() {
+		return this.methodName;
+	}
+
 	public void setOrder(int order) {
 		this.order = order;
 	}
@@ -102,6 +106,7 @@ public abstract class AbstractMethodInvokingAdapter implements MethodInvoker, In
 					throw new ConfigurationException("An ambiguity exists between the 'method' and 'methodName' properties. " +
 							"Note that only one of them is required, but if both are provided they must match.");
 				}
+				this.methodName = this.method.getName();
 				this.invoker = new DefaultMethodInvoker(this.object, this.method);
 			}
 			else {
