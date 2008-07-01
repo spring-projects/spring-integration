@@ -51,10 +51,6 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 
 	private static final String ERROR_CHANNEL_ATTRIBUTE = "error-channel";
 
-	private static final String DEFAULT_CONCURRENCY_ELEMENT = "default-concurrency";
-	
-	private static final String DEFAULT_CONCURRENCY_PROPERTY = "defaultConcurrencyPolicy";
-
 	private static final String CHANNEL_FACTORY_ATTRIBUTE = "channel-factory";
 	
 	private static final String INTERCEPTOR_ELEMENT = "interceptor";
@@ -109,10 +105,6 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 			Node child = childNodes.item(i);
 			if (child.getNodeType() == Node.ELEMENT_NODE) {
 				String localName = child.getLocalName();
-				if (DEFAULT_CONCURRENCY_ELEMENT.equals(localName)) {
-					beanDefinition.addPropertyValue(DEFAULT_CONCURRENCY_PROPERTY,
-							IntegrationNamespaceUtils.parseConcurrencyPolicy((Element) child));
-				}
 				if (INTERCEPTOR_ELEMENT.equals(localName)) {
 					interceptors.add(new RuntimeBeanReference(((Element)child).getAttribute(REFERENCE_ATTRIBUTE)));
 				}

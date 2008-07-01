@@ -71,8 +71,8 @@ public class SourceEndpointParser extends AbstractSimpleBeanDefinitionParser {
 		builder.addPropertyValue("schedule", this.parseSchedule(scheduleElement));
 		Element interceptorsElement = DomUtils.getChildElementByTagName(element, "interceptors");
 		if (interceptorsElement != null) {
-			ManagedList interceptors = IntegrationNamespaceUtils.parseEndpointInterceptors(
-					interceptorsElement, parserContext);
+			EndpointInterceptorParser parser = new EndpointInterceptorParser();
+			ManagedList interceptors = parser.parseEndpointInterceptors(interceptorsElement, parserContext);
 			builder.addPropertyValue("interceptors", interceptors);
 		}
 	}

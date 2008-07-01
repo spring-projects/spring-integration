@@ -85,13 +85,14 @@ public abstract class AbstractTargetEndpointParser extends AbstractSingleBeanDef
 		for (int i = 0; i < childNodes.getLength(); i++) {
 			Node child = childNodes.item(i);
 			if (child.getNodeType() == Node.ELEMENT_NODE) {
+				Element childElement = (Element) child;
 				String localName = child.getLocalName();
 				if (SCHEDULE_ELEMENT.equals(localName)) {
-					schedule = this.parseSchedule((Element) child);
+					schedule = this.parseSchedule(childElement);
 				}
 				else if (INTERCEPTORS_ELEMENT.equals(localName)) {
-					ManagedList interceptors = IntegrationNamespaceUtils.parseEndpointInterceptors(
-							(Element) child, parserContext);
+					EndpointInterceptorParser parser = new EndpointInterceptorParser();
+					ManagedList interceptors = parser.parseEndpointInterceptors(childElement, parserContext);
 					builder.addPropertyValue("interceptors", interceptors);
 				}
 			}
