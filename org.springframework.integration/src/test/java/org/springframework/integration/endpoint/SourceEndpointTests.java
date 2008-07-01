@@ -27,6 +27,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.CommandMessage;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.PollCommand;
 import org.springframework.integration.message.MessageSource;
 
@@ -40,12 +41,22 @@ public class SourceEndpointTests {
 		TestSource source = new TestSource("testing", 1);
 		QueueChannel channel = new QueueChannel();
 		SourceEndpoint endpoint = new SourceEndpoint(source, channel);
+		endpoint.afterPropertiesSet();
 		endpoint.invoke(new CommandMessage(new PollCommand()));
 		Message<?> message = channel.receive(1000);
 		assertNotNull("message should not be null", message);
 		assertEquals("testing.1", message.getPayload());
 	}
 
+	@Test(expected = MessageHandlingException.class)
+	public void testAutoStartupDisabled() {
+		TestSource source = new TestSource("testing", 1);
+		QueueChannel channel = new QueueChannel();
+		SourceEndpoint endpoint = new SourceEndpoint(source, channel);
+		endpoint.setAutoStartup(false);
+		endpoint.afterPropertiesSet();
+		endpoint.invoke(new CommandMessage(new PollCommand()));
+	}
 
 	private static class TestSource implements MessageSource<String> {
 

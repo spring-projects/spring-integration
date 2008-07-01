@@ -16,12 +16,8 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
-import org.springframework.integration.handler.MessageHandlerNotRunningException;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.selector.MessageSelector;
@@ -34,7 +30,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  */
 public class TargetEndpoint extends AbstractEndpoint
-		implements MessageTarget, MessageConsumingEndpoint, ChannelRegistryAware, InitializingBean, Lifecycle {
+		implements MessageTarget, MessageConsumingEndpoint, ChannelRegistryAware {
 
 	private volatile MessageTarget target;
 
@@ -46,7 +42,7 @@ public class TargetEndpoint extends AbstractEndpoint
 
 	private volatile boolean initialized;
 
-	private volatile boolean running;
+	private final Object initializationMonitor = new Object();
 
 
 	public TargetEndpoint() {
@@ -90,52 +86,20 @@ public class TargetEndpoint extends AbstractEndpoint
 		return this.channelRegistry;
 	}
 
-	public void afterPropertiesSet() {
-		if (this.target instanceof ChannelRegistryAware && this.channelRegistry != null) {
-			((ChannelRegistryAware) this.target).setChannelRegistry(this.channelRegistry);
+	protected void initialize() {
+		synchronized (this.initializationMonitor) {
+	        if (this.initialized) {
+	        	return;
+	        }
+	        if (this.target instanceof ChannelRegistryAware && this.channelRegistry != null) {
+	        	((ChannelRegistryAware) this.target).setChannelRegistry(this.channelRegistry);
+	        }
+	        this.initialized = true;
 		}
-		this.initialized = true;
-	}
-
-	public boolean isRunning() {
-		return this.running;
-	}
-
-	public void start() {
-		if (this.isRunning()) {
-			return;
-		}
-		if (!this.initialized) {
-			this.afterPropertiesSet();
-		}
-		this.running = true;
-	}
-
-	public void stop() {
-		if (!this.isRunning()) {
-			return;
-		}
-		if (this.target instanceof DisposableBean) {
-			try {
-				((DisposableBean) this.target).destroy();
-			}
-			catch (Exception e) {
-				if (logger.isWarnEnabled()) {
-					logger.warn("exception occurred when destroying target", e);
-				}
-			}
-		}
-		this.running = false;
 	}
 
 	@Override
 	protected final boolean doInvoke(Message<?> message) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("endpoint '" + this + "' handling message: " + message);
-		}
-		if (!this.isRunning()) {
-			throw new MessageHandlerNotRunningException(message);
-		}
 		if (this.selector != null && !this.selector.accept(message)) {
 			return false;
 		}

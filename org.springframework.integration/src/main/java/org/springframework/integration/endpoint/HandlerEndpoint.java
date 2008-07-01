@@ -85,13 +85,13 @@ public class HandlerEndpoint extends TargetEndpoint implements MessageProducingE
 		this.returnAddressOverrides = returnAddressOverrides;
 	}
 
-	public void afterPropertiesSet() {
+	public void initialize() {
 		Assert.notNull(this.handler, "handler must not be null");
 		if (this.handler instanceof ChannelRegistryAware) {
 			((ChannelRegistryAware) this.handler).setChannelRegistry(this.getChannelRegistry());
 		}
 		super.setTarget(new HandlerInvokingTarget(this.handler, this.replyHandler));
-		super.afterPropertiesSet();
+		super.initialize();
 	}
 
 	private MessageChannel resolveReplyChannel(MessageHeader originalMessageHeader) {

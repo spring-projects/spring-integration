@@ -25,7 +25,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.handler.MessageHandlerNotRunningException;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
 
@@ -34,13 +37,19 @@ import org.springframework.integration.message.MessageHandlingException;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware {
+public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware, Lifecycle, InitializingBean {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile String name;
 
 	private final List<Advice> interceptors = new ArrayList<Advice>();
+
+	private volatile boolean autoStartup = true;
+
+	private volatile boolean running;
+
+	private final Object lifecycleMonitor = new Object();
 
 
 	public String getName() {
@@ -55,8 +64,8 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 		this.setName(beanName);
 	}
 
-	public String toString() {
-		return (this.name != null) ? this.name : super.toString();
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
 	}
 
 	public void addInterceptor(Object interceptor) {
@@ -83,9 +92,54 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 		return this.interceptors;
 	}
 
+	public String toString() {
+		return (this.name != null) ? this.name : super.toString();
+	}
+
+	protected void initialize() {
+	}
+
+	public boolean isRunning() {
+		return this.running;
+	}
+
+	public void afterPropertiesSet() {
+		if (this.autoStartup) {
+			this.start();
+		}
+		else {
+			this.initialize();
+		}
+	}
+
+	public void start() {
+		this.initialize();
+		synchronized (this.lifecycleMonitor) {
+			if (this.running) {
+				return;
+			}
+			this.running = true;
+		}
+	}
+
+	public void stop() {
+		synchronized (this.lifecycleMonitor) {
+			if (!this.running) {
+				return;
+			}
+			this.running = false;
+		}
+	}
+
 	public final boolean invoke(Message<?> message) {
 		if (message == null) {
 			throw new IllegalArgumentException("Message must not be null.");
+		}
+		if (logger.isDebugEnabled()) {
+			logger.debug("endpoint '" + this + "' handling message: " + message);
+		}
+		if (!this.isRunning()) {
+			throw new MessageHandlerNotRunningException(message);
 		}
 		if (!this.supports(message)) {
 			throw new MessageHandlingException(message, "unsupported message");
