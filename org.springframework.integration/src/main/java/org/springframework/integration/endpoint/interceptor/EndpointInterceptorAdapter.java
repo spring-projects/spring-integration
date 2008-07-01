@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint;
+package org.springframework.integration.endpoint.interceptor;
 
 import org.aopalliance.intercept.MethodInvocation;
 
+import org.springframework.integration.endpoint.EndpointInterceptor;
 import org.springframework.integration.message.Message;
 
 /**
+ * A convenience base class for implementing {@link EndpointInterceptor EndpointInterceptors}.
+ *
  * @author Mark Fisher
  */
 public class EndpointInterceptorAdapter implements EndpointInterceptor {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,28 @@
 
 package org.springframework.integration.config;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
+import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
+import org.springframework.transaction.interceptor.MatchAlwaysTransactionAttributeSource;
+import org.springframework.transaction.interceptor.NoRollbackRuleAttribute;
+import org.springframework.transaction.interceptor.RollbackRuleAttribute;
+import org.springframework.transaction.interceptor.RuleBasedTransactionAttribute;
+import org.springframework.transaction.interceptor.TransactionInterceptor;
 import org.springframework.util.StringUtils;
 
 /**
@@ -65,20 +79,86 @@ public abstract class IntegrationNamespaceUtils {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static ManagedList parseEndpointAdviceChain(Element element) {
-		ManagedList adviceChain = new ManagedList();
+	public static ManagedList parseEndpointInterceptors(Element element, ParserContext parserContext) {
+		ManagedList interceptors = new ManagedList();
 		NodeList childNodes = element.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); i++) {
 			Node child = childNodes.item(i);
 			if (child.getNodeType() == Node.ELEMENT_NODE) {
+				Element childElement = (Element) child;
 				String localName = child.getLocalName();
-				if ("ref".equals(localName)) {
-					String ref = ((Element) child).getAttribute("bean");
-					adviceChain.add(new RuntimeBeanReference(ref));
+				if ("bean".equals(localName)) {
+					BeanDefinitionParserDelegate beanParser = new BeanDefinitionParserDelegate(parserContext.getReaderContext());
+					beanParser.initDefaults(childElement.getOwnerDocument().getDocumentElement());
+					BeanDefinitionHolder beanDefinitionHolder = beanParser.parseBeanDefinitionElement(childElement);
+					parserContext.registerBeanComponent(new BeanComponentDefinition(beanDefinitionHolder));
+					interceptors.add(new RuntimeBeanReference(beanDefinitionHolder.getBeanName()));
+				}
+				else if ("ref".equals(localName)) {
+					String ref = childElement.getAttribute("bean");
+					interceptors.add(new RuntimeBeanReference(ref));
+				}
+				else if ("transaction-interceptor".equals(localName)) {
+					String txInterceptorBeanName = parseTransactionInterceptor(childElement, parserContext);
+					interceptors.add(new RuntimeBeanReference(txInterceptorBeanName));
 				}
 			}
 		}
-		return adviceChain;
+		return interceptors;
+	}
+
+	private static String parseTransactionInterceptor(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(TransactionInterceptor.class);
+		String txManagerRef = element.getAttribute("transaction-manager");
+		if (!StringUtils.hasText(txManagerRef)) {
+			txManagerRef = "transactionManager";
+		}
+		builder.addPropertyReference("transactionManager", txManagerRef);
+		RuleBasedTransactionAttribute attribute = new RuleBasedTransactionAttribute();
+		String propagation = element.getAttribute("propagation");
+		String isolation = element.getAttribute("isolation");
+		String timeout = element.getAttribute("timeout");
+		String readOnly = element.getAttribute("read-only");
+		if (StringUtils.hasText(propagation)) {
+			attribute.setPropagationBehaviorName(RuleBasedTransactionAttribute.PREFIX_PROPAGATION + propagation);
+		}
+		if (StringUtils.hasText(isolation)) {
+			attribute.setIsolationLevelName(RuleBasedTransactionAttribute.PREFIX_ISOLATION + isolation);
+		}
+		if (StringUtils.hasText(timeout)) {
+			try {
+				attribute.setTimeout(Integer.parseInt(timeout));
+			}
+			catch (NumberFormatException ex) {
+				parserContext.getReaderContext().error("Timeout must be an integer value: [" + timeout + "]", element);
+			}
+		}
+		if (StringUtils.hasText(readOnly)) {
+			attribute.setReadOnly(Boolean.valueOf(readOnly).booleanValue());
+		}
+		List rollbackRules = new LinkedList();
+		if (element.hasAttribute("rollback-for")) {
+			String rollbackForValue = element.getAttribute("rollback-for");
+			String[] exceptionTypeNames = StringUtils.commaDelimitedListToStringArray(rollbackForValue);
+			for (int i = 0; i < exceptionTypeNames.length; i++) {
+				rollbackRules.add(new RollbackRuleAttribute(StringUtils.trimWhitespace(exceptionTypeNames[i])));
+			}
+		}
+		if (element.hasAttribute("no-rollback-for")) {
+			String noRollbackForValue = element.getAttribute("no-rollback-for");
+			String[] exceptionTypeNames = StringUtils.commaDelimitedListToStringArray(noRollbackForValue);
+			for (int i = 0; i < exceptionTypeNames.length; i++) {
+				rollbackRules.add(new NoRollbackRuleAttribute(StringUtils.trimWhitespace(exceptionTypeNames[i])));
+			}
+		}
+		attribute.setRollbackRules(rollbackRules);
+		RootBeanDefinition attributeSourceDefinition = new RootBeanDefinition(MatchAlwaysTransactionAttributeSource.class);
+		attributeSourceDefinition.setSource(parserContext.extractSource(element));
+		attributeSourceDefinition.getPropertyValues().addPropertyValue("transactionAttribute", attribute);
+		String attributeSourceBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
+				attributeSourceDefinition, parserContext.getRegistry());
+		builder.addPropertyReference("transactionAttributeSource", attributeSourceBeanName);
+		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
 	}
 
 	/**

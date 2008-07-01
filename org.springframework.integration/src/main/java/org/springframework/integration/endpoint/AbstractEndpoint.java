@@ -40,7 +40,7 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 
 	private volatile String name;
 
-	private final List<Advice> adviceChain = new ArrayList<Advice>();
+	private final List<Advice> interceptors = new ArrayList<Advice>();
 
 
 	public String getName() {
@@ -59,23 +59,23 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 		return (this.name != null) ? this.name : super.toString();
 	}
 
-	public void setAdviceChain(List<Object> adviceChain) {
-		for (Object advice : adviceChain) {
-			if (advice instanceof Advice) {
-				this.adviceChain.add((Advice) advice);
+	public void setInterceptors(List<Object> interceptors) {
+		for (Object interceptor : interceptors) {
+			if (interceptor instanceof Advice) {
+				this.interceptors.add((Advice) interceptor);
 			}
-			else if (advice instanceof EndpointInterceptor) {
-				this.adviceChain.add(new EndpointMethodInterceptor((EndpointInterceptor) advice));
+			else if (interceptor instanceof EndpointInterceptor) {
+				this.interceptors.add(new EndpointMethodInterceptor((EndpointInterceptor) interceptor));
 			}
 			else {
-				throw new ConfigurationException("Each adviceChain element must implement either "
+				throw new ConfigurationException("Each interceptor element must implement either "
 						+ "'" + Advice.class.getName() + "' or '" + EndpointInterceptor.class.getName() + "'.");
 			}
 		}
 	}
 
-	public List<Advice> getAdviceChain() {
-		return this.adviceChain;
+	public List<Advice> getInterceptors() {
+		return this.interceptors;
 	}
 
 	public final boolean invoke(Message<?> message) {

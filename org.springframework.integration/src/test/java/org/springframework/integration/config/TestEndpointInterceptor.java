@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.aopalliance.intercept.MethodInvocation;
 
-import org.springframework.integration.endpoint.EndpointInterceptorAdapter;
+import org.springframework.integration.endpoint.interceptor.EndpointInterceptorAdapter;
 
 /**
  * @author Mark Fisher

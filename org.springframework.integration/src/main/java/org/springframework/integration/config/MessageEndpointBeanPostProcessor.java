@@ -29,7 +29,7 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.message.Message;
 
 /**
- * A post-processor that applies an advice-chain by creating a proxy for an endpoint.
+ * A post-processor that applies interceptors by creating a proxy for an endpoint.
  *
  * @author Mark Fisher
  */
@@ -42,11 +42,11 @@ public class MessageEndpointBeanPostProcessor implements BeanPostProcessor {
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		if (bean instanceof AbstractEndpoint) {
 			AbstractEndpoint endpoint = (AbstractEndpoint) bean;
-			List<Advice> adviceChain = endpoint.getAdviceChain();
-			if (adviceChain.size() > 0) {
+			List<Advice> interceptors = endpoint.getInterceptors();
+			if (interceptors.size() > 0) {
 				ProxyFactory proxyFactory = new ProxyFactory(endpoint);
-				for (Advice advice : adviceChain) {
-					proxyFactory.addAdvisor(new EndpointInvokeMethodAdvisor(advice));
+				for (Advice interceptor : interceptors) {
+					proxyFactory.addAdvisor(new EndpointInvokeMethodAdvisor(interceptor));
 				}
 				bean = proxyFactory.getProxy();
 			}

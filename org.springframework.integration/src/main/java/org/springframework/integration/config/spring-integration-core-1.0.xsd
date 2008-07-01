@@ -166,7 +166,7 @@
 				<xsd:extension base="beans:identifiedType">
 					<xsd:sequence>
 						<xsd:element ref="schedule" minOccurs="1" maxOccurs="1"/>
-						<xsd:element name="advice-chain" type="adviceChainType" minOccurs="0" maxOccurs="1"/>
+						<xsd:element name="interceptors" type="interceptorsType" minOccurs="0" maxOccurs="1"/>
 					</xsd:sequence>
 					<xsd:attribute name="source" type="xsd:string" use="required"/>
 					<xsd:attribute name="channel" type="xsd:string" use="required"/>
@@ -416,7 +416,7 @@
 				<xsd:all>
 					<xsd:element ref="schedule" minOccurs="0" maxOccurs="1"/>
 					<xsd:element name="concurrency" type="concurrencyType" minOccurs="0" maxOccurs="1"/>
-					<xsd:element name="advice-chain" type="adviceChainType" minOccurs="0" maxOccurs="1"/>
+					<xsd:element name="interceptors" type="interceptorsType" minOccurs="0" maxOccurs="1"/>
 				</xsd:all>
 				<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
 				<xsd:attribute name="error-handler" type="xsd:string"/>
@@ -439,19 +439,97 @@
 		</xsd:complexContent>
 	</xsd:complexType>
 
-	<xsd:complexType name="adviceChainType">
+	<xsd:complexType name="interceptorsType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a list of Advice.
+	Defines a list of interceptors. Each element may be an EndpointInterceptor or any Advice instance.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="ref" minOccurs="0" maxOccurs="unbounded">
-				<xsd:complexType>
-					<xsd:attribute name="bean" use="required"/>
-				</xsd:complexType>
-			</xsd:element>
+			<xsd:choice minOccurs="0" maxOccurs="unbounded">
+				<xsd:element name="ref" minOccurs="0" maxOccurs="unbounded">
+					<xsd:complexType>
+						<xsd:attribute name="bean" use="required"/>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="transaction-interceptor" type="transactionInterceptorType" minOccurs="0" maxOccurs="1"/>
+				<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded"/>				
+			</xsd:choice>
 		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="transactionInterceptorType">
+		<xsd:attribute name="transaction-manager" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	The bean name of the PlatformTransactionManager to use. The default is "transactionManager".
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="propagation" default="REQUIRED">
+			<xsd:annotation>
+				<xsd:documentation source="java:org.springframework.transaction.annotation.Propagation"><![CDATA[
+	The transaction propagation behavior.
+				]]></xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:enumeration value="REQUIRED"/>
+					<xsd:enumeration value="SUPPORTS"/>
+					<xsd:enumeration value="MANDATORY"/>
+					<xsd:enumeration value="REQUIRES_NEW"/>
+					<xsd:enumeration value="NOT_SUPPORTED"/>
+					<xsd:enumeration value="NEVER"/>
+					<xsd:enumeration value="NESTED"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="isolation" default="DEFAULT">
+			<xsd:annotation>
+				<xsd:documentation source="java:org.springframework.transaction.annotation.Isolation"><![CDATA[
+	The transaction isolation level.
+				]]></xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:enumeration value="DEFAULT"/>
+					<xsd:enumeration value="READ_UNCOMMITTED"/>
+					<xsd:enumeration value="READ_COMMITTED"/>
+					<xsd:enumeration value="REPEATABLE_READ"/>
+					<xsd:enumeration value="SERIALIZABLE"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="timeout" type="xsd:integer" default="-1">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	The transaction timeout value (in seconds).
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="read-only" type="xsd:boolean" default="false">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	Is this transaction read-only?
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="rollback-for" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	The Exception(s) that will trigger rollback; comma-delimited.
+	For example, 'com.foo.MyBusinessException,ServletException'
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="no-rollback-for" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation><![CDATA[
+	The Exception(s) that will *not* trigger rollback; comma-delimited.
+	For example, 'com.foo.MyBusinessException,ServletException'
+				]]></xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 </xsd:schema>

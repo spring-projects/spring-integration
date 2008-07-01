@@ -62,7 +62,7 @@ public abstract class AbstractTargetEndpointParser extends AbstractSingleBeanDef
 
 	private static final String CONCURRENCY_POLICY_PROPERTY = "concurrencyPolicy";
 
-	private static final String ADVICE_CHAIN_ELEMENT = "advice-chain";
+	private static final String INTERCEPTORS_ELEMENT = "interceptors";
 
 
 	@Override
@@ -101,9 +101,10 @@ public abstract class AbstractTargetEndpointParser extends AbstractSingleBeanDef
 				else if (SCHEDULE_ELEMENT.equals(localName)) {
 					schedule = this.parseSchedule((Element) child);
 				}
-				else if (ADVICE_CHAIN_ELEMENT.equals(localName)) {
-					ManagedList adviceChain = IntegrationNamespaceUtils.parseEndpointAdviceChain((Element) child);
-					builder.addPropertyValue("adviceChain", adviceChain);
+				else if (INTERCEPTORS_ELEMENT.equals(localName)) {
+					ManagedList interceptors = IntegrationNamespaceUtils.parseEndpointInterceptors(
+							(Element) child, parserContext);
+					builder.addPropertyValue("interceptors", interceptors);
 				}
 			}
 		}

@@ -69,10 +69,11 @@ public class SourceEndpointParser extends AbstractSimpleBeanDefinitionParser {
 			throw new ConfigurationException("The <schedule/> sub-element is required for a <source-endpoint/>.");
 		}
 		builder.addPropertyValue("schedule", this.parseSchedule(scheduleElement));
-		Element adviceChainElement = DomUtils.getChildElementByTagName(element, "advice-chain");
-		if (adviceChainElement != null) {
-			ManagedList adviceChain = IntegrationNamespaceUtils.parseEndpointAdviceChain(adviceChainElement);
-			builder.addPropertyValue("adviceChain", adviceChain);
+		Element interceptorsElement = DomUtils.getChildElementByTagName(element, "interceptors");
+		if (interceptorsElement != null) {
+			ManagedList interceptors = IntegrationNamespaceUtils.parseEndpointInterceptors(
+					interceptorsElement, parserContext);
+			builder.addPropertyValue("interceptors", interceptors);
 		}
 	}
 

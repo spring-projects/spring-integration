@@ -22,14 +22,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerNotRunningException;
 import org.springframework.integration.handler.MessageHandlerRejectedExecutionException;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.util.ErrorHandler;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.Assert;
 
 /**
