@@ -43,6 +43,7 @@ public class ByteStreamSourceTests {
 		MessageChannel channel = new QueueChannel();
 		ByteStreamSource source = new ByteStreamSource(stream);
 		SourceEndpoint endpoint = new SourceEndpoint(source, channel);
+		endpoint.afterPropertiesSet();
 		endpoint.invoke(new CommandMessage(new PollCommand()));
 		Message<?> message1 = channel.receive(500);
 		byte[] payload = (byte[]) message1.getPayload();
@@ -67,6 +68,7 @@ public class ByteStreamSourceTests {
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
 		SourceEndpoint endpoint = new SourceEndpoint(source, channel);
+		endpoint.afterPropertiesSet();
 		endpoint.invoke(new CommandMessage(new PollCommand()));
 		Message<?> message1 = channel.receive(0);
 		assertEquals(4, ((byte[]) message1.getPayload()).length);
@@ -88,6 +90,7 @@ public class ByteStreamSourceTests {
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
 		SourceEndpoint endpoint = new SourceEndpoint(source, channel);
+		endpoint.afterPropertiesSet();
 		endpoint.invoke(new CommandMessage(new PollCommand()));
 		Message<?> message1 = channel.receive(0);
 		assertEquals(4, ((byte[]) message1.getPayload()).length);
