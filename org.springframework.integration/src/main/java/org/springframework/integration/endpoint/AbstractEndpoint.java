@@ -59,18 +59,23 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 		return (this.name != null) ? this.name : super.toString();
 	}
 
+	public void addInterceptor(Object interceptor) {
+		if (interceptor instanceof Advice) {
+			this.interceptors.add((Advice) interceptor);
+		}
+		else if (interceptor instanceof EndpointInterceptor) {
+			this.interceptors.add(new EndpointMethodInterceptor((EndpointInterceptor) interceptor));
+		}
+		else {
+			throw new ConfigurationException("Interceptor must implement either "
+					+ "'" + Advice.class.getName() + "' or '" + EndpointInterceptor.class.getName() + "'.");
+		}
+	}
+
 	public void setInterceptors(List<Object> interceptors) {
+		this.interceptors.clear();
 		for (Object interceptor : interceptors) {
-			if (interceptor instanceof Advice) {
-				this.interceptors.add((Advice) interceptor);
-			}
-			else if (interceptor instanceof EndpointInterceptor) {
-				this.interceptors.add(new EndpointMethodInterceptor((EndpointInterceptor) interceptor));
-			}
-			else {
-				throw new ConfigurationException("Each interceptor element must implement either "
-						+ "'" + Advice.class.getName() + "' or '" + EndpointInterceptor.class.getName() + "'.");
-			}
+			this.addInterceptor(interceptor);
 		}
 	}
 

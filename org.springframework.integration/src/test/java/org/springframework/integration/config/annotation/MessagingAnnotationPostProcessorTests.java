@@ -26,11 +26,14 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.aopalliance.aop.Advice;
 import org.junit.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -49,13 +52,14 @@ import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.HandlerEndpoint;
+import org.springframework.integration.endpoint.interceptor.ConcurrencyInterceptor;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
+import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 
 /**
  * @author Mark Fisher
@@ -178,11 +182,18 @@ public class MessagingAnnotationPostProcessorTests {
 		ConcurrencyAnnotationTestBean testBean = new ConcurrencyAnnotationTestBean();
 		postProcessor.postProcessAfterInitialization(testBean, "testBean");
 		HandlerEndpoint endpoint = (HandlerEndpoint) messageBus.lookupEndpoint("testBean.MessageHandler.endpoint");
-		ConcurrencyPolicy concurrencyPolicy = endpoint.getConcurrencyPolicy();
-		assertEquals(17, concurrencyPolicy.getCoreSize());
-		assertEquals(42, concurrencyPolicy.getMaxSize());
-		assertEquals(11, concurrencyPolicy.getQueueCapacity());
-		assertEquals(123, concurrencyPolicy.getKeepAliveSeconds());
+		assertEquals(1, endpoint.getInterceptors().size());
+		Advice interceptor = endpoint.getInterceptors().get(0);
+		DirectFieldAccessor accessor = new DirectFieldAccessor(interceptor);
+		ConcurrencyInterceptor concurrencyInterceptor = (ConcurrencyInterceptor)
+				accessor.getPropertyValue("interceptor");
+		accessor = new DirectFieldAccessor(concurrencyInterceptor);
+		ConcurrentTaskExecutor cte = (ConcurrentTaskExecutor) accessor.getPropertyValue("executor");
+		ThreadPoolExecutor executor = (ThreadPoolExecutor) cte.getConcurrentExecutor();
+		assertEquals(17, executor.getCorePoolSize());
+		assertEquals(42, executor.getMaximumPoolSize());
+		assertEquals(123, executor.getKeepAliveTime(TimeUnit.SECONDS));
+		assertEquals(11, executor.getQueue().remainingCapacity());
 	}
 
 	@Test(expected=IllegalArgumentException.class)

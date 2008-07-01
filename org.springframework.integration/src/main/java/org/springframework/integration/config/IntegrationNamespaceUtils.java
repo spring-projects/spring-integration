@@ -32,7 +32,9 @@ import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
+import org.springframework.integration.endpoint.interceptor.ConcurrencyInterceptor;
 import org.springframework.transaction.interceptor.MatchAlwaysTransactionAttributeSource;
 import org.springframework.transaction.interceptor.NoRollbackRuleAttribute;
 import org.springframework.transaction.interceptor.RollbackRuleAttribute;
@@ -102,6 +104,10 @@ public abstract class IntegrationNamespaceUtils {
 					String txInterceptorBeanName = parseTransactionInterceptor(childElement, parserContext);
 					interceptors.add(new RuntimeBeanReference(txInterceptorBeanName));
 				}
+				else if ("concurrency-interceptor".equals(localName)) {
+					String concurrencyInterceptorBeanName = parseConcurrencyInterceptor(childElement, parserContext);
+					interceptors.add(new RuntimeBeanReference(concurrencyInterceptorBeanName));
+				}
 			}
 		}
 		return interceptors;
@@ -158,6 +164,24 @@ public abstract class IntegrationNamespaceUtils {
 		String attributeSourceBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
 				attributeSourceDefinition, parserContext.getRegistry());
 		builder.addPropertyReference("transactionAttributeSource", attributeSourceBeanName);
+		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
+	}
+
+	private static String parseConcurrencyInterceptor(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ConcurrencyInterceptor.class);
+		String taskExecutorRef = element.getAttribute("task-executor");
+		if (StringUtils.hasText(taskExecutorRef)) {
+			if (element.getAttributes().getLength() != 1) {
+				parserContext.getReaderContext().error("No other attributes are permitted when "
+					+ "specifying a 'task-executor' reference on the <concurrency-interceptor/> element.",
+					parserContext.extractSource(element));
+			}
+			builder.addConstructorArgReference(taskExecutorRef);
+		}
+		else {
+			ConcurrencyPolicy policy = IntegrationNamespaceUtils.parseConcurrencyPolicy(element);
+			builder.addConstructorArgValue(policy);
+		}
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
 	}
 

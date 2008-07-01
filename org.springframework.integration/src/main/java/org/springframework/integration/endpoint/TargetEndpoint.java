@@ -16,26 +16,16 @@
 
 package org.springframework.integration.endpoint;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.handler.MessageHandlerNotRunningException;
-import org.springframework.integration.handler.MessageHandlerRejectedExecutionException;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.integration.scheduling.Subscription;
-import org.springframework.integration.util.ErrorHandler;
 import org.springframework.util.Assert;
 
 /**
@@ -43,15 +33,12 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class TargetEndpoint extends AbstractEndpoint implements MessageTarget, ChannelRegistryAware, InitializingBean, Lifecycle {
+public class TargetEndpoint extends AbstractEndpoint
+		implements MessageTarget, MessageConsumingEndpoint, ChannelRegistryAware, InitializingBean, Lifecycle {
 
 	private volatile MessageTarget target;
 
 	private volatile Subscription subscription;
-
-	private volatile ConcurrencyPolicy concurrencyPolicy;
-
-	private volatile ErrorHandler errorHandler;
 
 	private volatile MessageSelector selector;
 
@@ -92,22 +79,6 @@ public class TargetEndpoint extends AbstractEndpoint implements MessageTarget, C
 		this.subscription = subscription;
 	}
 
-	public ConcurrencyPolicy getConcurrencyPolicy() {
-		return this.concurrencyPolicy;
-	}
-
-	public void setConcurrencyPolicy(ConcurrencyPolicy concurrencyPolicy) {
-		this.concurrencyPolicy = concurrencyPolicy;
-	}
-
-	public void setErrorHandler(ErrorHandler errorHandler) {
-		this.errorHandler = errorHandler;
-	}
-
-	public boolean hasErrorHandler() {
-		return (this.errorHandler != null);
-	}
-
 	/**
 	 * Set the channel registry to use for looking up channels by name.
 	 */
@@ -122,18 +93,6 @@ public class TargetEndpoint extends AbstractEndpoint implements MessageTarget, C
 	public void afterPropertiesSet() {
 		if (this.target instanceof ChannelRegistryAware && this.channelRegistry != null) {
 			((ChannelRegistryAware) this.target).setChannelRegistry(this.channelRegistry);
-		}
-		if (this.concurrencyPolicy != null && !(this.target instanceof ConcurrentTarget)) {
-			int capacity = this.concurrencyPolicy.getQueueCapacity();
-			BlockingQueue<Runnable> queue = (capacity < 1) ? new SynchronousQueue<Runnable>() : new ArrayBlockingQueue<Runnable>(capacity);
-			ExecutorService executor = new ThreadPoolExecutor(this.concurrencyPolicy.getCoreSize(), this.concurrencyPolicy.getMaxSize(),
-					this.concurrencyPolicy.getKeepAliveSeconds(), TimeUnit.SECONDS, queue);
-			this.target = new ConcurrentTarget(this.target, executor);
-		}
-		if (this.target instanceof ConcurrentTarget) {
-			if (this.errorHandler != null) {
-				((ConcurrentTarget) this.target).setErrorHandler(this.errorHandler);
-			}
 		}
 		this.initialized = true;
 	}
@@ -180,23 +139,7 @@ public class TargetEndpoint extends AbstractEndpoint implements MessageTarget, C
 		if (this.selector != null && !this.selector.accept(message)) {
 			return false;
 		}
-		try {
-			return this.target.send(message);
-		}
-		catch (MessageHandlerRejectedExecutionException e) {
-			throw e;
-		}
-		catch (Throwable t) {
-			if (this.errorHandler == null) {
-				if (t instanceof MessageHandlingException) {
-					throw (MessageHandlingException) t;
-				}
-				throw new MessageHandlingException(message,
-						"error occurred in endpoint, and no 'errorHandler' available", t);
-			}
-			this.errorHandler.handle(t);
-			return false;
-		}
+		return this.target.send(message);
 	}
 
 	@Override

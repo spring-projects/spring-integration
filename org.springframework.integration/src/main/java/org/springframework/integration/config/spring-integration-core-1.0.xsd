@@ -25,7 +25,6 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:sequence>
-				<xsd:element name="default-concurrency" type="concurrencyType" minOccurs="0" maxOccurs="1"/>
 				<xsd:element ref="interceptor" minOccurs="0" maxOccurs="unbounded"/>
 			</xsd:sequence>
 			<xsd:attribute name="auto-startup" type="xsd:boolean"/>
@@ -304,12 +303,13 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:complexType name="concurrencyType">
+	<xsd:complexType name="concurrencyInterceptorType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a concurrency policy.
+	Defines a ConcurrencyInterceptor for endpoints.
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:attribute name="task-executor" type="xsd:string"/>
 		<xsd:attribute name="core" type="xsd:int"/>
 		<xsd:attribute name="max" type="xsd:int"/>
 		<xsd:attribute name="queue-capacity" type="xsd:int"/>
@@ -415,11 +415,9 @@
 			<xsd:extension base="beans:identifiedType">
 				<xsd:all>
 					<xsd:element ref="schedule" minOccurs="0" maxOccurs="1"/>
-					<xsd:element name="concurrency" type="concurrencyType" minOccurs="0" maxOccurs="1"/>
 					<xsd:element name="interceptors" type="interceptorsType" minOccurs="0" maxOccurs="1"/>
 				</xsd:all>
 				<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
-				<xsd:attribute name="error-handler" type="xsd:string"/>
 				<xsd:attribute name="selector" type="xsd:string"/>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -453,6 +451,7 @@
 					</xsd:complexType>
 				</xsd:element>
 				<xsd:element name="transaction-interceptor" type="transactionInterceptorType" minOccurs="0" maxOccurs="1"/>
+				<xsd:element name="concurrency-interceptor" type="concurrencyInterceptorType" minOccurs="0" maxOccurs="1"/>
 				<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded"/>				
 			</xsd:choice>
 		</xsd:sequence>

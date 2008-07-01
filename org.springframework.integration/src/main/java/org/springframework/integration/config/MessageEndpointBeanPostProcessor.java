@@ -46,7 +46,7 @@ public class MessageEndpointBeanPostProcessor implements BeanPostProcessor {
 			if (interceptors.size() > 0) {
 				ProxyFactory proxyFactory = new ProxyFactory(endpoint);
 				for (Advice interceptor : interceptors) {
-					proxyFactory.addAdvisor(new EndpointInvokeMethodAdvisor(interceptor));
+					proxyFactory.addAdvisor(new EndpointMethodAdvisor(interceptor));
 				}
 				bean = proxyFactory.getProxy();
 			}
@@ -56,16 +56,16 @@ public class MessageEndpointBeanPostProcessor implements BeanPostProcessor {
 
 
 	@SuppressWarnings("serial")
-	private static class EndpointInvokeMethodAdvisor extends StaticMethodMatcherPointcutAdvisor {
+	private static class EndpointMethodAdvisor extends StaticMethodMatcherPointcutAdvisor {
 
-		EndpointInvokeMethodAdvisor(Advice advice) {
+		EndpointMethodAdvisor(Advice advice) {
 			super(advice);
 		}
 
 
 		@SuppressWarnings("unchecked")
 		public boolean matches(Method method, Class clazz) {
-			return method.getName().equals("invoke")
+			return (method.getName().equals("invoke") || method.getName().equals("send"))
 					&& method.getParameterTypes().length == 1
 					&& method.getParameterTypes()[0].equals(Message.class);
 		}

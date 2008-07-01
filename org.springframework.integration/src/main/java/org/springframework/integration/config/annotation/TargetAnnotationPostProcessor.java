@@ -28,6 +28,7 @@ import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.TargetEndpoint;
+import org.springframework.integration.endpoint.interceptor.ConcurrencyInterceptor;
 import org.springframework.integration.handler.MethodInvokingTarget;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.scheduling.Subscription;
@@ -70,7 +71,7 @@ public class TargetAnnotationPostProcessor extends AbstractAnnotationMethodPostP
 					concurrencyAnnotation.maxSize());
 			concurrencyPolicy.setKeepAliveSeconds(concurrencyAnnotation.keepAliveSeconds());
 			concurrencyPolicy.setQueueCapacity(concurrencyAnnotation.queueCapacity());
-			endpoint.setConcurrencyPolicy(concurrencyPolicy);
+			endpoint.addInterceptor(new ConcurrencyInterceptor(concurrencyPolicy));
 		}
 		return endpoint;
 	}

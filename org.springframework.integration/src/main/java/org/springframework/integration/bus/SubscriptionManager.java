@@ -30,13 +30,10 @@ import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.dispatcher.DirectChannel;
 import org.springframework.integration.dispatcher.PollingDispatcherTask;
-import org.springframework.integration.endpoint.TargetEndpoint;
-import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.scheduling.MessagingTaskScheduler;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
-import org.springframework.integration.util.ErrorHandler;
 import org.springframework.util.Assert;
 
 /**
@@ -88,7 +85,7 @@ public class SubscriptionManager {
 		}
 		else if (this.channel instanceof DirectChannel) {
 			if (logger.isInfoEnabled()) {
-				logger.info("Subscribing to a SynchronousChannel. The provided schedule will be ignored.");
+				logger.info("Subscribing to a DirectChannel. The provided schedule will be ignored.");
 			}
 		}
 		else if (this.channel.getDispatcherPolicy().isPublishSubscribe()) {
@@ -107,16 +104,6 @@ public class SubscriptionManager {
 		}
 		if (this.channel instanceof DirectChannel) {
 			((DirectChannel) this.channel).subscribe(target);
-			if (target instanceof TargetEndpoint) {
-				((TargetEndpoint) target).setErrorHandler(new ErrorHandler() {
-					public void handle(Throwable t) {
-						if (t instanceof MessagingException) {
-							throw (MessagingException) t;
-						}
-						throw new MessagingException("error occurred in handler", t);
-					}
-				});
-			}
 			return;
 		}
 		PollingDispatcherTask dispatcherTask = this.dispatcherTasks.get(schedule);

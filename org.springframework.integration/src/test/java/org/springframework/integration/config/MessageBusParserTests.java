@@ -38,7 +38,6 @@ import org.springframework.integration.bus.interceptor.TestMessageBusStartInterc
 import org.springframework.integration.bus.interceptor.TestMessageBusStopInterceptor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.dispatcher.DirectChannel;
-import org.springframework.integration.endpoint.TargetEndpoint;
 import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.scheduling.SimpleMessagingTaskScheduler;
 import org.springframework.integration.scheduling.Subscription;
@@ -126,24 +125,6 @@ public class MessageBusParserTests {
 		MessageBus bus = (MessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		assertTrue(bus.isRunning());
 		bus.stop();
-	}
-
-	@Test
-	public void testDefaultConcurrency() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"messageBusWithDefaultConcurrencyTests.xml", this.getClass());
-		TargetEndpoint endpoint1 = (TargetEndpoint) context.getBean("endpoint1");
-		assertEquals(4, endpoint1.getConcurrencyPolicy().getCoreSize());
-		assertEquals(7, endpoint1.getConcurrencyPolicy().getMaxSize());
-	}
-
-	@Test
-	public void testExplicitConcurrencyTakesPrecedence() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"messageBusWithDefaultConcurrencyTests.xml", this.getClass());
-		TargetEndpoint endpoint2 = (TargetEndpoint) context.getBean("endpoint2");
-		assertEquals(14, endpoint2.getConcurrencyPolicy().getCoreSize());
-		assertEquals(17, endpoint2.getConcurrencyPolicy().getMaxSize());
 	}
 
 	@Test

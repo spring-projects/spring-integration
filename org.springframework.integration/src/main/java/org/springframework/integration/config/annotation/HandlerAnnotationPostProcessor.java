@@ -41,6 +41,7 @@ import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.endpoint.MessageEndpoint;
+import org.springframework.integration.endpoint.interceptor.ConcurrencyInterceptor;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.integration.handler.config.DefaultMessageHandlerCreator;
@@ -111,6 +112,7 @@ public class HandlerAnnotationPostProcessor extends AbstractAnnotationMethodPost
 		return handler;
 	}
 
+	@SuppressWarnings("unchecked")
 	protected MessageHandler processResults(List<MessageHandler> results) {
 		MessageHandlerChain handlerChain = new MessageHandlerChain();
 		for (MessageHandler handler : results) {
@@ -146,7 +148,7 @@ public class HandlerAnnotationPostProcessor extends AbstractAnnotationMethodPost
 					concurrencyAnnotation.coreSize(), concurrencyAnnotation.maxSize());
 			concurrencyPolicy.setKeepAliveSeconds(concurrencyAnnotation.keepAliveSeconds());
 			concurrencyPolicy.setQueueCapacity(concurrencyAnnotation.queueCapacity());
-			endpoint.setConcurrencyPolicy(concurrencyPolicy);
+			endpoint.addInterceptor(new ConcurrencyInterceptor(concurrencyPolicy));
 		}
 		return endpoint;
 	}

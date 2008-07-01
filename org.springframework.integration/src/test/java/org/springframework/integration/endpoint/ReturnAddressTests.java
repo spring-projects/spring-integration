@@ -80,7 +80,7 @@ public class ReturnAddressTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"returnAddressTests.xml", this.getClass());
 		MessageChannel channel3 = (MessageChannel) context.getBean("channel3");
-		MessageChannel errorChannel = (MessageChannel) context.getBean("errorChannel");
+		MessageChannel errorChannel = (MessageChannel) context.getBean("customErrorChannel");
 		context.start();
 		StringMessage message = new StringMessage("*");
 		channel3.send(message);
@@ -93,7 +93,7 @@ public class ReturnAddressTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"returnAddressTests.xml", this.getClass());
 		MessageChannel channel3 = (MessageChannel) context.getBean("channel3WithOverride");
-		MessageChannel errorChannel = (MessageChannel) context.getBean("errorChannel");
+		MessageChannel errorChannel = (MessageChannel) context.getBean("customErrorChannel");
 		context.start();
 		StringMessage message = new StringMessage("*");
 		channel3.send(message);

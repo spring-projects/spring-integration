@@ -80,7 +80,7 @@ public class DirectChannelSubscriptionTests {
 		bus.stop();
 	}
 
-	@Test(expected=MessagingException.class)
+	@Test(expected=RuntimeException.class)
 	public void testExceptionThrownFromRegisteredEndpoint() {
 		QueueChannel errorChannel = new QueueChannel();
 		bus.setErrorChannel(errorChannel);

@@ -7,7 +7,7 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
 
-	<si:message-bus error-channel="errorChannel"/>
+	<si:message-bus error-channel="customErrorChannel"/>
 
 	<si:channel id="channel1"/>
 	<si:channel id="channel2"/>
@@ -16,7 +16,7 @@
 	<si:channel id="channel1WithOverride"/>
 	<si:channel id="channel3WithOverride"/>
 	<si:channel id="replyChannel"/>
-	<si:channel id="errorChannel"/>
+	<si:channel id="customErrorChannel"/>
 
 	<si:handler-endpoint input-channel="channel1WithOverride" handler="testBean" method="duplicate"
                  output-channel="channel2" return-address-overrides="true"/>

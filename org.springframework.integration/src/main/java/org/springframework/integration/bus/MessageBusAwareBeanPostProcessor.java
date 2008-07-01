@@ -44,6 +44,9 @@ public class MessageBusAwareBeanPostProcessor implements BeanPostProcessor {
 	}
 
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+		if (bean instanceof MessageBusAware) {
+			((MessageBusAware) bean).setMessageBus(messageBus);
+		}
 		return bean;
 	}
 

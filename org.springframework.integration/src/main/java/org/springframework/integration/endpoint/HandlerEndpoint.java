@@ -35,7 +35,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class HandlerEndpoint extends TargetEndpoint {
+public class HandlerEndpoint extends TargetEndpoint implements MessageProducingEndpoint {
 
 	private volatile MessageHandler handler;
 
@@ -79,10 +79,6 @@ public class HandlerEndpoint extends TargetEndpoint {
 	 */
 	public void setOutputChannelName(String outputChannelName) {
 		this.outputChannelName = outputChannelName;
-	}
-
-	public String getOutputChannelName() {
-		return this.outputChannelName;
 	}
 
 	public void setReturnAddressOverrides(boolean returnAddressOverrides) {
@@ -132,12 +128,16 @@ public class HandlerEndpoint extends TargetEndpoint {
 		return null;
 	}
 
-	private MessageChannel getOutputChannel() {
+	public MessageChannel getOutputChannel() {
 		ChannelRegistry registry = this.getChannelRegistry();
 		if (this.outputChannelName != null && registry != null) {
 			return registry.lookupChannel(this.outputChannelName);
 		}
 		return null;
+	}
+
+	public String getOutputChannelName() {
+		return this.outputChannelName;
 	}
 
 

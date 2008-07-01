@@ -36,11 +36,9 @@ import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerNotRunningException;
 import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.integration.message.selector.MessageSelectorChain;
-import org.springframework.integration.util.ErrorHandler;
 
 /**
  * @author Mark Fisher
@@ -142,48 +140,6 @@ public class HandlerEndpointTests {
 	}
 
 	@Test
-	public void testCustomErrorHandler() throws InterruptedException {
-		final CountDownLatch latch = new CountDownLatch(2);
-		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.rejectingCountDownHandler(latch));
-		endpoint.setConcurrencyPolicy(new ConcurrencyPolicy(1, 1));
-		endpoint.setErrorHandler(new ErrorHandler() {
-			public void handle(Throwable t) {
-				latch.countDown();
-			}
-		});
-		endpoint.start();
-		endpoint.send(new StringMessage("test"));
-		latch.await(500, TimeUnit.MILLISECONDS);
-		assertEquals("both handler and errorHandler should have been invoked", 0, latch.getCount());
-	}
-
-	@Test
-	public void testConcurrentHandlerWithDefaultReplyChannel() throws InterruptedException {
-		MessageChannel replyChannel = new QueueChannel();
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		channelRegistry.registerChannel("replyChannel", replyChannel);
-		final CountDownLatch latch = new CountDownLatch(1);
-		MessageHandler handler = new MessageHandler() {
-			public Message<String> handle(Message<?> message) {
-				latch.countDown();
-				return new StringMessage("123", "hello " + message.getPayload());
-			}
-		};
-		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
-		endpoint.setConcurrencyPolicy(new ConcurrencyPolicy(1, 1));
-		endpoint.setChannelRegistry(channelRegistry);
-		endpoint.setOutputChannelName("replyChannel");
-		endpoint.start();
-		endpoint.send(new StringMessage(1, "test"));
-		latch.await(500, TimeUnit.MILLISECONDS);
-		endpoint.stop();
-		assertEquals("handler should have been invoked within allotted time", 0, latch.getCount());
-		Message<?> reply = replyChannel.receive(100);
-		assertNotNull(reply);
-		assertEquals("hello test", reply.getPayload());
-	}
-
-	@Test
 	public void testHandlerReturnsNull() throws InterruptedException {
 		MessageChannel replyChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
@@ -205,111 +161,6 @@ public class HandlerEndpointTests {
 		assertEquals("handler should have been invoked within allotted time", 0, latch.getCount());
 		Message<?> reply = replyChannel.receive(0);
 		assertNull(reply);
-	}
-
-	@Test
-	public void testConcurrentHandlerReturnsNull() throws InterruptedException {
-		MessageChannel replyChannel = new QueueChannel();
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		channelRegistry.registerChannel("replyChannel", replyChannel);
-		final CountDownLatch latch = new CountDownLatch(1);
-		MessageHandler handler = new MessageHandler() {
-			public Message<String> handle(Message<?> message) {
-				latch.countDown();
-				return null;
-			}
-		};
-		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
-		endpoint.setConcurrencyPolicy(new ConcurrencyPolicy(1, 1));
-		endpoint.setChannelRegistry(channelRegistry);
-		endpoint.setOutputChannelName("replyChannel");
-		endpoint.start();
-		endpoint.send(new StringMessage(1, "test"));
-		latch.await(500, TimeUnit.MILLISECONDS);
-		endpoint.stop();
-		assertEquals("handler should have been invoked within allotted time", 0, latch.getCount());
-		Message<?> reply = replyChannel.receive(0);
-		assertNull(reply);
-	}
-
-	@Test
-	public void testConcurrentHandlerWithExplicitReplyChannel() throws InterruptedException {
-		MessageChannel replyChannel = new QueueChannel();
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		channelRegistry.registerChannel("replyChannel", replyChannel);
-		final CountDownLatch latch = new CountDownLatch(1);
-		MessageHandler handler = new MessageHandler() {
-			public Message<String> handle(Message<?> message) {
-				latch.countDown();
-				return new StringMessage("123", "hello " + message.getPayload());
-			}
-		};
-		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
-		endpoint.setConcurrencyPolicy(new ConcurrencyPolicy(1, 1));
-		endpoint.setChannelRegistry(channelRegistry);
-		endpoint.start();
-		StringMessage message = new StringMessage(1, "test");
-		message.getHeader().setReturnAddress("replyChannel");
-		endpoint.send(message);
-		latch.await(500, TimeUnit.MILLISECONDS);
-		assertEquals("handler should have been invoked within allotted time", 0, latch.getCount());
-		Message<?> reply = replyChannel.receive(100);
-		endpoint.stop();
-		assertNotNull(reply);
-		assertEquals("hello test", reply.getPayload());
-	}
-
-	@Test
-	public void testGeneratedConcurrentHandlerWithDefaultReplyChannel() throws InterruptedException {
-		MessageChannel replyChannel = new QueueChannel();
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		channelRegistry.registerChannel("replyChannel", replyChannel);
-		final CountDownLatch latch = new CountDownLatch(1);
-		MessageHandler handler = new MessageHandler() {
-			public Message<String> handle(Message<?> message) {
-				latch.countDown();
-				return new StringMessage("123", "hello " + message.getPayload());
-			}
-		};
-		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
-		endpoint.setChannelRegistry(channelRegistry);
-		endpoint.setConcurrencyPolicy(new ConcurrencyPolicy(3, 14));
-		endpoint.setOutputChannelName("replyChannel");
-		endpoint.start();
-		endpoint.send(new StringMessage(1, "test"));
-		latch.await(500, TimeUnit.MILLISECONDS);
-		endpoint.stop();
-		assertEquals("handler should have been invoked within allotted time", 0, latch.getCount());
-		Message<?> reply = replyChannel.receive(100);
-		assertNotNull(reply);
-		assertEquals("hello test", reply.getPayload());
-	}
-
-	@Test
-	public void testGeneratedConcurrentHandlerWithExplicitReplyChannel() throws InterruptedException {
-		MessageChannel replyChannel = new QueueChannel();
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		channelRegistry.registerChannel("replyChannel", replyChannel);
-		final CountDownLatch latch = new CountDownLatch(1);
-		MessageHandler handler = new MessageHandler() {
-			public Message<String> handle(Message<?> message) {
-				latch.countDown();
-				return new StringMessage("123", "hello " + message.getPayload());
-			}
-		};
-		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
-		endpoint.setChannelRegistry(channelRegistry);
-		endpoint.setConcurrencyPolicy(new ConcurrencyPolicy(3, 14));
-		endpoint.start();
-		StringMessage message = new StringMessage(1, "test");
-		message.getHeader().setReturnAddress("replyChannel");
-		endpoint.send(message);
-		latch.await(500, TimeUnit.MILLISECONDS);
-		endpoint.stop();
-		assertEquals("handler should have been invoked within allotted time", 0, latch.getCount());
-		Message<?> reply = replyChannel.receive(100);
-		assertNotNull(reply);
-		assertEquals("hello test", reply.getPayload());
 	}
 
 	@Test(expected=MessageHandlerNotRunningException.class)
@@ -439,84 +290,6 @@ public class HandlerEndpointTests {
 	}
 
 	@Test
-	public void testDefaultOutputChannelTimeoutSendsToErrorHandler() {
-		QueueChannel output = new QueueChannel(1);
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		channelRegistry.registerChannel("output", output);
-		HandlerEndpoint endpoint = new HandlerEndpoint(new MessageHandler() {
-			public Message<?> handle(Message<?> message) {
-				return message;
-			}
-		});
-		endpoint.setOutputChannelName("output");
-		endpoint.setChannelRegistry(channelRegistry);
-		TestErrorHandler errorHandler = new TestErrorHandler();
-		endpoint.setErrorHandler(errorHandler);
-		endpoint.setReplyTimeout(0);
-		endpoint.start();
-		endpoint.send(new StringMessage("test1"));
-		assertNull(errorHandler.getLastError());
-		endpoint.send(new StringMessage("test2"));
-		Throwable error = errorHandler.getLastError();
-		assertNotNull(error);
-		assertEquals(MessageDeliveryException.class, error.getClass());
-		assertEquals("test2", ((MessageDeliveryException) error).getFailedMessage().getPayload());
-	}
-
-	@Test
-	public void testReturnAddressChannelTimeoutSendsToErrorHandler() {
-		QueueChannel replyChannel = new QueueChannel(1);
-		HandlerEndpoint endpoint = new HandlerEndpoint(new MessageHandler() {
-			public Message<?> handle(Message<?> message) {
-				return message;
-			}
-		});
-		TestErrorHandler errorHandler = new TestErrorHandler();
-		endpoint.setErrorHandler(errorHandler);
-		endpoint.setReplyTimeout(0);
-		endpoint.start();
-		Message<?> message1 = new StringMessage("test1");
-		message1.getHeader().setReturnAddress(replyChannel);
-		endpoint.send(message1);
-		assertNull(errorHandler.getLastError());
-		Message<?> message2 = new StringMessage("test2");
-		message2.getHeader().setReturnAddress(replyChannel);
-		endpoint.send(message2);
-		Throwable error = errorHandler.getLastError();
-		assertNotNull(error);
-		assertEquals(MessageDeliveryException.class, error.getClass());
-		assertEquals(message2, ((MessageDeliveryException) error).getFailedMessage());
-	}
-
-	@Test
-	public void testReturnAddressChannelNameTimeoutSendsToErrorHandler() {
-		QueueChannel replyChannel = new QueueChannel(1);
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		channelRegistry.registerChannel("replyChannel", replyChannel);
-		HandlerEndpoint endpoint = new HandlerEndpoint(new MessageHandler() {
-			public Message<?> handle(Message<?> message) {
-				return message;
-			}
-		});
-		endpoint.setChannelRegistry(channelRegistry);
-		TestErrorHandler errorHandler = new TestErrorHandler();
-		endpoint.setErrorHandler(errorHandler);
-		endpoint.setReplyTimeout(10);
-		endpoint.start();
-		Message<?> message1 = new StringMessage("test1");
-		message1.getHeader().setReturnAddress("replyChannel");
-		endpoint.send(message1);
-		assertNull(errorHandler.getLastError());
-		Message<?> message2 = new StringMessage("test2");
-		message2.getHeader().setReturnAddress("replyChannel");
-		endpoint.send(message2);
-		Throwable error = errorHandler.getLastError();
-		assertNotNull(error);
-		assertEquals(MessageDeliveryException.class, error.getClass());
-		assertEquals(message2, ((MessageDeliveryException) error).getFailedMessage());
-	}
-
-	@Test
 	public void testCorrelationId() {
 		QueueChannel replyChannel = new QueueChannel(1);
 		HandlerEndpoint endpoint = new HandlerEndpoint(new MessageHandler() {
@@ -549,21 +322,6 @@ public class HandlerEndpointTests {
 		Object correlationId = reply.getHeader().getCorrelationId();
 		assertFalse(message.getId().equals(correlationId));
 		assertEquals("ABC-123", correlationId);
-	}
-
-
-	private static class TestErrorHandler implements ErrorHandler {
-
-		private volatile Throwable lastError;
-
-
-		public void handle(Throwable t) {
-			this.lastError = t;
-		}
-
-		Throwable getLastError() {
-			return this.lastError;
-		}
 	}
 
 }

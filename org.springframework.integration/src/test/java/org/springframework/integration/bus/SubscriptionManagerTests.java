@@ -27,19 +27,23 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
-import org.springframework.integration.bus.SubscriptionManager;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.config.MessageEndpointBeanPostProcessor;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.HandlerEndpoint;
+import org.springframework.integration.endpoint.interceptor.ConcurrencyInterceptor;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerRejectedExecutionException;
 import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
-import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.MessageTarget;
+import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.selector.PayloadTypeSelector;
 import org.springframework.integration.scheduling.MessagePublishingErrorHandler;
 import org.springframework.integration.scheduling.SimpleMessagingTaskScheduler;
@@ -99,12 +103,12 @@ public class SubscriptionManagerTests {
 		MessageHandler handler3 = TestHandlers.countingCountDownHandler(counter3, latch);
 		QueueChannel channel = new QueueChannel();
 		SubscriptionManager manager = new SubscriptionManager(channel, scheduler);
-		HandlerEndpoint inactiveEndpoint = createEndpoint(handler1, true);
+		MessageTarget inactiveEndpoint = createEndpoint(handler1, true);
 		manager.addTarget(inactiveEndpoint);
 		manager.addTarget(createEndpoint(handler2, true));
 		manager.addTarget(createEndpoint(handler3, true));
 		manager.start();
-		inactiveEndpoint.stop();
+		((Lifecycle) inactiveEndpoint).stop();
 		channel.send(new StringMessage(1, "test"));
 		latch.await(2000, TimeUnit.MILLISECONDS);
 		assertEquals("messages should have been dispatched within allotted time", 0, latch.getCount());
@@ -123,12 +127,12 @@ public class SubscriptionManagerTests {
 		MessageHandler handler3 = TestHandlers.countingCountDownHandler(counter3, latch);
 		QueueChannel channel = new QueueChannel(5, new DispatcherPolicy(true));
 		SubscriptionManager manager = new SubscriptionManager(channel, scheduler);
-		HandlerEndpoint inactiveEndpoint = createEndpoint(handler2, true);
+		MessageTarget inactiveEndpoint = createEndpoint(handler2, true);
 		manager.addTarget(createEndpoint(handler1, true));
 		manager.addTarget(inactiveEndpoint);
 		manager.addTarget(createEndpoint(handler3, true));
 		manager.start();
-		inactiveEndpoint.stop();
+		((Lifecycle) inactiveEndpoint).stop();
 		channel.send(new StringMessage(1, "test"));
 		latch.await(2000, TimeUnit.MILLISECONDS);
 		assertEquals("messages should have been dispatched within allotted time", 0, latch.getCount());
@@ -434,9 +438,7 @@ public class SubscriptionManagerTests {
 		channel.send(new StringMessage(1, "test"));
 		SubscriptionManager manager = new SubscriptionManager(channel, scheduler);
 		HandlerEndpoint endpoint1 = new HandlerEndpoint(handler1);
-		endpoint1.setConcurrencyPolicy(new ConcurrencyPolicy(1, 1));
 		HandlerEndpoint endpoint2 = new HandlerEndpoint(handler2);
-		endpoint2.setConcurrencyPolicy(new ConcurrencyPolicy(1, 1));
 		endpoint1.setMessageSelector(new PayloadTypeSelector(Integer.class));
 		endpoint2.setMessageSelector(new PayloadTypeSelector(String.class));
 		manager.addTarget(endpoint1);
@@ -449,12 +451,19 @@ public class SubscriptionManagerTests {
 	}
 
 
-	private static HandlerEndpoint createEndpoint(MessageHandler handler, boolean asynchronous) {
-		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
+	private static MessageTarget createEndpoint(MessageHandler handler, boolean asynchronous) {
+		MessageTarget endpoint = new HandlerEndpoint(handler);
 		if (asynchronous) {
-			endpoint.setConcurrencyPolicy(new ConcurrencyPolicy(1, 1));
+			MessageEndpointBeanPostProcessor postProcessor = new MessageEndpointBeanPostProcessor();
+			((AbstractEndpoint) endpoint).addInterceptor(new ConcurrencyInterceptor(new ConcurrencyPolicy(1, 1)));
+			endpoint = (MessageTarget) postProcessor.postProcessAfterInitialization(endpoint, "test-endpoint");
 		}
-		endpoint.afterPropertiesSet();
+		try {
+			((InitializingBean) endpoint).afterPropertiesSet();
+		}
+		catch (Exception e) {
+			throw new RuntimeException("failed to initialize endpoint", e);
+		}
 		return endpoint;
 	}
 
