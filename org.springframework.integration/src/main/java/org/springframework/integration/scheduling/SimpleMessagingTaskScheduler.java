@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.integration.util.ErrorHandler;
 import org.springframework.util.Assert;
 
@@ -34,7 +35,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class SimpleMessagingTaskScheduler extends AbstractMessagingTaskScheduler {
+public class SimpleMessagingTaskScheduler extends AbstractMessagingTaskScheduler implements DisposableBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -91,13 +92,22 @@ public class SimpleMessagingTaskScheduler extends AbstractMessagingTaskScheduler
 	public void stop() {
 		synchronized (this.lifecycleMonitor) {
 			if (this.running) {
-				if (this.waitForTasksToCompleteOnShutdown) {
-					this.executor.shutdown();
-				}
-				else {
-					this.executor.shutdownNow();
-				}
 				this.running = false;
+			}
+		}
+	}
+
+	public void destroy() {
+		synchronized (this.lifecycleMonitor) {
+			this.stop();
+			if (this.executor.isShutdown()) {
+				return;
+			}
+			if (this.waitForTasksToCompleteOnShutdown) {
+				this.executor.shutdown();
+			}
+			else {
+				this.executor.shutdownNow();
 			}
 		}
 	}

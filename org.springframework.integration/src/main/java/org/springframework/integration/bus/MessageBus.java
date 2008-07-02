@@ -29,6 +29,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -76,8 +77,8 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class MessageBus implements ChannelRegistry, EndpointRegistry, ApplicationContextAware, ApplicationListener,
-		Lifecycle {
+public class MessageBus implements ChannelRegistry, EndpointRegistry,
+		ApplicationContextAware, ApplicationListener, Lifecycle, DisposableBean {
 
 	public static final String ERROR_CHANNEL_NAME = "errorChannel";
 
@@ -98,8 +99,6 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 	private final MessageBusInterceptorsList interceptors = new MessageBusInterceptorsList();
 
 	private volatile MessagingTaskScheduler taskScheduler;
-
-	private volatile ScheduledExecutorService executor;
 
 	private volatile boolean configureAsyncEventMulticaster = false;
 
@@ -138,10 +137,10 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 	}
 
 	/**
-	 * Set the {@link ScheduledExecutorService} to use for scheduling message dispatchers.
+	 * Set the {@link MessagingTaskScheduler} to use for scheduling message dispatchers.
 	 */
-	public void setScheduledExecutorService(ScheduledExecutorService executor) {
-		this.executor = executor;
+	public void setMessagingTaskScheduler(MessagingTaskScheduler messagingTaskScheduler) {
+		this.taskScheduler = messagingTaskScheduler;
 	}
 
 	/**
@@ -205,10 +204,10 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 				return;
 			}
 			this.initializing = true;
-			if (this.executor == null) {
-				this.executor = new ScheduledThreadPoolExecutor(DEFAULT_DISPATCHER_POOL_SIZE);
+			if (this.taskScheduler == null) {
+				this.taskScheduler = new SimpleMessagingTaskScheduler(
+						new ScheduledThreadPoolExecutor(DEFAULT_DISPATCHER_POOL_SIZE));
 			}
-			this.taskScheduler = new SimpleMessagingTaskScheduler(this.executor);
 			if (this.getErrorChannel() == null) {
 				this.setErrorChannel(new DefaultErrorChannel());
 			}
@@ -498,6 +497,12 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry, Applicatio
 		this.interceptors.postStop();
 		if (logger.isInfoEnabled()) {
 			logger.info("message bus stopped");
+		}
+	}
+
+	public void destroy() throws Exception {
+		if (this.taskScheduler instanceof DisposableBean) {
+			((DisposableBean) this.taskScheduler).destroy();
 		}
 	}
 
