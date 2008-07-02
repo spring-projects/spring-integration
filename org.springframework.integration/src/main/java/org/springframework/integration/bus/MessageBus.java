@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import org.apache.commons.logging.Log;
@@ -63,10 +62,10 @@ import org.springframework.integration.message.CommandMessage;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.PollCommand;
 import org.springframework.integration.scheduling.MessagePublishingErrorHandler;
-import org.springframework.integration.scheduling.MessagingTask;
-import org.springframework.integration.scheduling.MessagingTaskScheduler;
+import org.springframework.integration.scheduling.SchedulableTask;
+import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.integration.scheduling.Schedule;
-import org.springframework.integration.scheduling.SimpleMessagingTaskScheduler;
+import org.springframework.integration.scheduling.SimpleTaskScheduler;
 import org.springframework.integration.scheduling.Subscription;
 import org.springframework.util.Assert;
 
@@ -98,7 +97,7 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry,
 
 	private final MessageBusInterceptorsList interceptors = new MessageBusInterceptorsList();
 
-	private volatile MessagingTaskScheduler taskScheduler;
+	private volatile TaskScheduler taskScheduler;
 
 	private volatile boolean configureAsyncEventMulticaster = false;
 
@@ -137,10 +136,10 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry,
 	}
 
 	/**
-	 * Set the {@link MessagingTaskScheduler} to use for scheduling message dispatchers.
+	 * Set the {@link TaskScheduler} to use for scheduling message dispatchers.
 	 */
-	public void setMessagingTaskScheduler(MessagingTaskScheduler messagingTaskScheduler) {
-		this.taskScheduler = messagingTaskScheduler;
+	public void setTaskScheduler(TaskScheduler taskScheduler) {
+		this.taskScheduler = taskScheduler;
 	}
 
 	/**
@@ -205,7 +204,7 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry,
 			}
 			this.initializing = true;
 			if (this.taskScheduler == null) {
-				this.taskScheduler = new SimpleMessagingTaskScheduler(
+				this.taskScheduler = new SimpleTaskScheduler(
 						new ScheduledThreadPoolExecutor(DEFAULT_DISPATCHER_POOL_SIZE));
 			}
 			if (this.getErrorChannel() == null) {
@@ -389,7 +388,7 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry,
 		}
 		final Schedule schedule = endpoint.getSchedule();
 		if (schedule != null) {
-			this.taskScheduler.schedule(new MessagingTask() {
+			this.taskScheduler.schedule(new SchedulableTask() {
 				public Schedule getSchedule() {
 					return schedule;
 				}

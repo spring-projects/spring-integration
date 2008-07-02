@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,26 @@
 
 package org.springframework.integration.scheduling;
 
+import java.util.concurrent.ScheduledFuture;
+
 /**
- * An extension of runnable that provides metadata for a
- * {@link MessagingTaskScheduler}.
+ * Base class for {@link TaskScheduler} implementations.
  * 
  * @author Mark Fisher
  */
-public interface MessagingTask extends Runnable {
+public abstract class AbstractTaskScheduler implements TaskScheduler {
 
-	Schedule getSchedule();
+	public boolean prefersShortLivedTasks() {
+		return true;
+	}
+
+	/**
+	 * Submit a task to be run once.
+	 */
+	public void execute(Runnable task) {
+		this.schedule(task);
+	}
+
+	public abstract ScheduledFuture<?> schedule(Runnable task);
 
 }

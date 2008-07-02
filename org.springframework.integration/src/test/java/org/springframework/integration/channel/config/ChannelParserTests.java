@@ -40,7 +40,7 @@ import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessagePriority;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.MessageTarget;
-import org.springframework.integration.scheduling.SimpleMessagingTaskScheduler;
+import org.springframework.integration.scheduling.SimpleTaskScheduler;
 
 /**
  * @author Mark Fisher
@@ -70,7 +70,7 @@ public class ChannelParserTests {
 				"channelParserTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("pointToPointChannelByDefault");
 		channel.send(new StringMessage("test"));
-		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(new ScheduledThreadPoolExecutor(1));
+		SimpleTaskScheduler scheduler = new SimpleTaskScheduler(new ScheduledThreadPoolExecutor(1));
 		SubscriptionManager manager = new SubscriptionManager(channel, scheduler);
 		AtomicInteger counter = new AtomicInteger();
 		CountDownLatch latch = new CountDownLatch(1);
@@ -90,7 +90,7 @@ public class ChannelParserTests {
 				"channelParserTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("pointToPointChannelExplicitlyConfigured");
 		channel.send(new StringMessage("test"));
-		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(new ScheduledThreadPoolExecutor(1));
+		SimpleTaskScheduler scheduler = new SimpleTaskScheduler(new ScheduledThreadPoolExecutor(1));
 		SubscriptionManager manager = new SubscriptionManager(channel, scheduler);
 		AtomicInteger counter = new AtomicInteger();
 		CountDownLatch latch = new CountDownLatch(1);
@@ -110,7 +110,7 @@ public class ChannelParserTests {
 				"channelParserTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("publishSubscribeChannel");
 		channel.send(new StringMessage("test"));
-		SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(new ScheduledThreadPoolExecutor(1));
+		SimpleTaskScheduler scheduler = new SimpleTaskScheduler(new ScheduledThreadPoolExecutor(1));
 		SubscriptionManager manager = new SubscriptionManager(channel, scheduler);
 		AtomicInteger counter = new AtomicInteger();
 		CountDownLatch latch = new CountDownLatch(2);

@@ -46,14 +46,14 @@ import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.selector.PayloadTypeSelector;
 import org.springframework.integration.scheduling.MessagePublishingErrorHandler;
-import org.springframework.integration.scheduling.SimpleMessagingTaskScheduler;
+import org.springframework.integration.scheduling.SimpleTaskScheduler;
 
 /**
  * @author Mark Fisher
  */
 public class SubscriptionManagerTests {
 
-	private SimpleMessagingTaskScheduler scheduler = new SimpleMessagingTaskScheduler(new ScheduledThreadPoolExecutor(10));
+	private SimpleTaskScheduler scheduler = new SimpleTaskScheduler(new ScheduledThreadPoolExecutor(10));
 
 
 	@Test

@@ -20,16 +20,16 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.Subscribable;
 import org.springframework.integration.message.MessageTarget;
-import org.springframework.integration.scheduling.MessagingTask;
+import org.springframework.integration.scheduling.SchedulableTask;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.util.Assert;
 
 /**
- * A {@link MessagingTask} that combines polling and dispatching.
+ * A {@link SchedulableTask} that combines polling and dispatching.
  * 
  * @author Mark Fisher
  */
-public class PollingDispatcherTask implements MessagingTask, Subscribable {
+public class PollingDispatcherTask implements SchedulableTask, Subscribable {
 
 	private final MessageChannel channel;
 

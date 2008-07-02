@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,24 +18,21 @@ package org.springframework.integration.scheduling;
 
 import java.util.concurrent.ScheduledFuture;
 
+import org.springframework.context.Lifecycle;
+import org.springframework.integration.util.ErrorHandler;
+import org.springframework.scheduling.SchedulingTaskExecutor;
+
 /**
- * Base class for {@link MessagingTaskScheduler} implementations.
+ * Base interface for scheduling messaging tasks.
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractMessagingTaskScheduler implements MessagingTaskScheduler {
+public interface TaskScheduler extends SchedulingTaskExecutor, Lifecycle {
 
-	public boolean prefersShortLivedTasks() {
-		return true;
-	}
+	ScheduledFuture<?> schedule(Runnable task);
 
-	/**
-	 * Submit a task to be run once.
-	 */
-	public void execute(Runnable task) {
-		this.schedule(task);
-	}
+	boolean cancel(Runnable task, boolean mayInterruptIfRunning);
 
-	public abstract ScheduledFuture<?> schedule(Runnable task);
+	void setErrorHandler(ErrorHandler errorHandler);
 
 }

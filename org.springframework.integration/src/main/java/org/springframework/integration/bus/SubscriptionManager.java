@@ -31,7 +31,7 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.dispatcher.DirectChannel;
 import org.springframework.integration.dispatcher.PollingDispatcherTask;
 import org.springframework.integration.message.MessageTarget;
-import org.springframework.integration.scheduling.MessagingTaskScheduler;
+import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.util.Assert;
@@ -48,7 +48,7 @@ public class SubscriptionManager {
 
 	private final MessageChannel channel;
 
-	private final MessagingTaskScheduler scheduler;
+	private final TaskScheduler scheduler;
 
 	private volatile Schedule defaultSchedule = new PollingSchedule(5);
 
@@ -61,7 +61,7 @@ public class SubscriptionManager {
 	private final Object lifecycleMonitor = new Object();
 
 
-	public SubscriptionManager(MessageChannel channel, MessagingTaskScheduler scheduler) {
+	public SubscriptionManager(MessageChannel channel, TaskScheduler scheduler) {
 		Assert.notNull(channel, "channel must not be null");
 		Assert.notNull(scheduler, "scheduler must not be null");
 		this.channel = channel;

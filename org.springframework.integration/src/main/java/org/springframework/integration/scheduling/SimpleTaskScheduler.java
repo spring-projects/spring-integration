@@ -16,7 +16,9 @@
 
 package org.springframework.integration.scheduling;
 
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -30,12 +32,13 @@ import org.springframework.integration.util.ErrorHandler;
 import org.springframework.util.Assert;
 
 /**
- * An implementation of {@link MessagingTaskScheduler} that understands
- * {@link PollingSchedule PollingSchedules}.
+ * An implementation of {@link TaskScheduler} that understands
+ * {@link PollingSchedule PollingSchedules} and delegates to
+ * a {@link ScheduledExecutorService} instance.
  * 
  * @author Mark Fisher
  */
-public class SimpleMessagingTaskScheduler extends AbstractMessagingTaskScheduler implements DisposableBean {
+public class SimpleTaskScheduler extends AbstractTaskScheduler implements DisposableBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -47,12 +50,15 @@ public class SimpleMessagingTaskScheduler extends AbstractMessagingTaskScheduler
 
 	private final Set<Runnable> pendingTasks = new CopyOnWriteArraySet<Runnable>();
 
+	private final Map<Runnable, ScheduledFuture<?>> scheduledTasks =
+			new ConcurrentHashMap<Runnable, ScheduledFuture<?>>();
+
 	private volatile boolean running;
 
 	private final Object lifecycleMonitor = new Object();
 
 
-	public SimpleMessagingTaskScheduler(ScheduledExecutorService executor) {
+	public SimpleTaskScheduler(ScheduledExecutorService executor) {
 		Assert.notNull(executor, "'executor' must not be null");
 		this.executor = executor;
 	}
@@ -114,28 +120,47 @@ public class SimpleMessagingTaskScheduler extends AbstractMessagingTaskScheduler
 
 	@Override
 	public ScheduledFuture<?> schedule(Runnable task) {
-		if (!this.running) {
-			this.pendingTasks.add(task);
-			return null;
-		}
-		Schedule schedule = (task instanceof MessagingTask) ? ((MessagingTask) task).getSchedule() : null;
-		MessagingTaskRunner runner = new MessagingTaskRunner(task);
-		if (schedule == null) {
-			return this.executor.schedule(runner, 0, TimeUnit.MILLISECONDS);
-		}
-		if (schedule instanceof PollingSchedule) {
-			PollingSchedule ps = (PollingSchedule) schedule;
-			if (ps.getPeriod() <= 0) {
-				runner.setShouldRepeat(true);
-				return this.executor.schedule(runner, ps.getInitialDelay(), ps.getTimeUnit());
+		synchronized (this.lifecycleMonitor) {
+			if (!this.running) {
+				this.pendingTasks.add(task);
+				return null;
 			}
-			if (ps.getFixedRate()) {
-				return this.executor.scheduleAtFixedRate(runner, ps.getInitialDelay(), ps.getPeriod(), ps.getTimeUnit());
+			Schedule schedule = (task instanceof SchedulableTask) ? ((SchedulableTask) task).getSchedule() : null;
+			MessagingTaskRunner runner = new MessagingTaskRunner(task);
+			ScheduledFuture<?> future = null;
+			if (schedule == null) {
+				future = this.executor.schedule(runner, 0, TimeUnit.MILLISECONDS);
 			}
-			return this.executor.scheduleWithFixedDelay(runner, ps.getInitialDelay(), ps.getPeriod(), ps.getTimeUnit());
+			else if (schedule instanceof PollingSchedule) {
+				PollingSchedule ps = (PollingSchedule) schedule;
+				if (ps.getPeriod() <= 0) {
+					runner.setShouldRepeat(true);
+					future = this.executor.schedule(runner, ps.getInitialDelay(), ps.getTimeUnit());
+				}
+				else if (ps.getFixedRate()) {
+					future = this.executor.scheduleAtFixedRate(runner, ps.getInitialDelay(), ps.getPeriod(), ps.getTimeUnit());
+				}
+				else {
+					future = this.executor.scheduleWithFixedDelay(runner, ps.getInitialDelay(), ps.getPeriod(), ps.getTimeUnit());
+				}
+			}
+			if (future == null) {
+				throw new UnsupportedOperationException(this.getClass().getName() + " does not support schedule type '"
+						+ schedule.getClass().getName() + "'");
+			}
+			this.scheduledTasks.put(task, future);
+			return future;
 		}
-		throw new UnsupportedOperationException(this.getClass().getName() + " does not support schedule type '"
-				+ schedule.getClass().getName() + "'");
+	}
+
+	public boolean cancel(Runnable task, boolean mayInterruptIfRunning) {
+		synchronized (this.lifecycleMonitor) {
+			ScheduledFuture<?> future = this.scheduledTasks.get(task);
+			if (future != null) {
+				return future.cancel(mayInterruptIfRunning);
+			}
+			return this.pendingTasks.remove(task);
+		}
 	}
 
 

@@ -16,21 +16,13 @@
 
 package org.springframework.integration.scheduling;
 
-import java.util.concurrent.ScheduledFuture;
-
-import org.springframework.context.Lifecycle;
-import org.springframework.integration.util.ErrorHandler;
-import org.springframework.scheduling.SchedulingTaskExecutor;
-
 /**
- * Base interface for {@link MessagingTask} schedulers.
+ * An extension of runnable that provides metadata for a {@link TaskScheduler}.
  * 
  * @author Mark Fisher
  */
-public interface MessagingTaskScheduler extends SchedulingTaskExecutor, Lifecycle {
+public interface SchedulableTask extends Runnable {
 
-	ScheduledFuture<?> schedule(Runnable task);
-
-	void setErrorHandler(ErrorHandler errorHandler);
+	Schedule getSchedule();
 
 }

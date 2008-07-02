@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 package org.springframework.integration.scheduling;
 
 /**
- * A marker interface for scheduling metadata. Implementations of this interface
- * will provide the information necessary for a {@link MessagingTaskScheduler}
- * implementation to schedule tasks.
+ * A marker interface for scheduling metadata. Implementations
+ * of this interface will provide the information necessary for
+ * a {@link TaskScheduler} implementation to schedule tasks.
  * 
  * @author Mark Fisher
  */
