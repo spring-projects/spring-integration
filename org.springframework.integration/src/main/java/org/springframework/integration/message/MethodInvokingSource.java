@@ -35,7 +35,7 @@ public class MethodInvokingSource implements MessageSource<Object>, Initializing
 
 	private Object object;
 
-	private String method;
+	private String methodName;
 
 	private NameResolvingMethodInvoker invoker;
 
@@ -45,13 +45,13 @@ public class MethodInvokingSource implements MessageSource<Object>, Initializing
 		this.object = object;
 	}
 
-	public void setMethodName(String method) {
-		Assert.notNull(method, "'method' must not be null");
-		this.method = method;
+	public void setMethodName(String methodName) {
+		Assert.notNull(methodName, "'methodName' must not be null");
+		this.methodName = methodName;
 	}
 
 	public void afterPropertiesSet() {
-		this.invoker = new NameResolvingMethodInvoker(this.object, this.method);
+		this.invoker = new NameResolvingMethodInvoker(this.object, this.methodName);
 		this.invoker.setMethodValidator(new MessageReceivingMethodValidator());
 	}
 
@@ -63,10 +63,10 @@ public class MethodInvokingSource implements MessageSource<Object>, Initializing
 			return new GenericMessage<Object>(this.invoker.invokeMethod(new Object[] {}));
 		} catch (InvocationTargetException e) {
 			throw new MessagingException(
-					"Source method '" + this.method + "' threw an Exception.", e.getTargetException());
+					"Source method '" + this.methodName + "' threw an Exception.", e.getTargetException());
 		}
 		catch (Throwable e) {
-			throw new MessagingException("Failed to invoke source method '" + this.method + "'.");
+			throw new MessagingException("Failed to invoke source method '" + this.methodName + "'.");
 		}
 	}
 
