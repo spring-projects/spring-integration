@@ -38,6 +38,8 @@ public class TestTransactionManager extends AbstractPlatformTransactionManager {
 
 	private final CountDownLatch latch = new CountDownLatch(1);
 
+	private volatile TransactionDefinition lastDefinition;
+
 
 	public int getCommitCount() {
 		return this.commitCounter.get();
@@ -47,12 +49,17 @@ public class TestTransactionManager extends AbstractPlatformTransactionManager {
 		return this.rollbackCounter.get();
 	}
 
+	public TransactionDefinition getLastDefinition() {
+		return this.lastDefinition;
+	}
+
 	public void waitForCompletion(long timeout) throws InterruptedException {
 		this.latch.await(timeout, TimeUnit.MILLISECONDS);
 	}
 
 	@Override
 	protected void doBegin(Object transaction, TransactionDefinition definition) throws TransactionException {
+		this.lastDefinition = definition;
 	}
 
 	@Override

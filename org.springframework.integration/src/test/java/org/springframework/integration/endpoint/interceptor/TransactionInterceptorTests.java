@@ -24,8 +24,14 @@ import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.transaction.IllegalTransactionStateException;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Mark Fisher
@@ -64,6 +70,96 @@ public class TransactionInterceptorTests {
 		assertNull(message);
 		assertEquals(0, txManager.getCommitCount());
 		assertEquals(1, txManager.getRollbackCount());		
+	}
+
+	@Test
+	public void testPropagationRequired() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"transactionInterceptorPropagationTests.xml", this.getClass());
+		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManager");
+		final MessageEndpoint endpoint = (MessageEndpoint) context.getBean("required");
+		assertEquals(0, txManager.getCommitCount());
+		endpoint.invoke(new StringMessage("test"));
+		assertEquals(1, txManager.getCommitCount());
+		TestTransactionManager outerTxManager = new TestTransactionManager();
+		TransactionTemplate txTemplate = new TransactionTemplate(outerTxManager);
+		txTemplate.execute(new TransactionCallback() {
+			public Object doInTransaction(TransactionStatus status) {
+				return endpoint.invoke(new StringMessage("test"));
+			}
+		});
+		assertEquals(1, outerTxManager.getCommitCount());
+		assertEquals(2, txManager.getCommitCount());
+		assertEquals(Propagation.REQUIRED.value(), txManager.getLastDefinition().getPropagationBehavior());
+	}
+
+	@Test
+	public void testPropagationRequiresNew() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"transactionInterceptorPropagationTests.xml", this.getClass());
+		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManager");
+		final MessageEndpoint endpoint = (MessageEndpoint) context.getBean("requiresNew");
+		assertEquals(0, txManager.getCommitCount());
+		endpoint.invoke(new StringMessage("test"));
+		assertEquals(1, txManager.getCommitCount());
+		TestTransactionManager outerTxManager = new TestTransactionManager();
+		TransactionTemplate txTemplate = new TransactionTemplate(outerTxManager);
+		txTemplate.execute(new TransactionCallback() {
+			public Object doInTransaction(TransactionStatus status) {
+				return endpoint.invoke(new StringMessage("test"));
+			}
+		});
+		assertEquals(1, outerTxManager.getCommitCount());
+		assertEquals(2, txManager.getCommitCount());
+		assertEquals(Propagation.REQUIRES_NEW.value(), txManager.getLastDefinition().getPropagationBehavior());
+	}
+
+	@Test
+	public void testPropagationSupports() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"transactionInterceptorPropagationTests.xml", this.getClass());
+		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManager");
+		final MessageEndpoint endpoint = (MessageEndpoint) context.getBean("supports");
+		assertEquals(0, txManager.getCommitCount());
+		endpoint.invoke(new StringMessage("test"));
+		assertEquals(0, txManager.getCommitCount());
+		TestTransactionManager outerTxManager = new TestTransactionManager();
+		TransactionTemplate txTemplate = new TransactionTemplate(outerTxManager);
+		txTemplate.execute(new TransactionCallback() {
+			public Object doInTransaction(TransactionStatus status) {
+				return endpoint.invoke(new StringMessage("test"));
+			}
+		});
+		assertEquals(0, txManager.getCommitCount());
+		assertEquals(1, outerTxManager.getCommitCount());
+	}
+
+	@Test
+	public void testPropagationNotSupported() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"transactionInterceptorPropagationTests.xml", this.getClass());
+		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManager");
+		final MessageEndpoint endpoint = (MessageEndpoint) context.getBean("notSupported");
+		assertEquals(0, txManager.getCommitCount());
+		endpoint.invoke(new StringMessage("test"));
+		assertEquals(0, txManager.getCommitCount());
+		TestTransactionManager outerTxManager = new TestTransactionManager();
+		TransactionTemplate txTemplate = new TransactionTemplate(outerTxManager);
+		txTemplate.execute(new TransactionCallback() {
+			public Object doInTransaction(TransactionStatus status) {
+				return endpoint.invoke(new StringMessage("test"));
+			}
+		});
+		assertEquals(0, txManager.getCommitCount());
+		assertEquals(1, outerTxManager.getCommitCount());
+	}
+
+	@Test(expected = IllegalTransactionStateException.class)
+	public void testPropagationMandatoryCalledWithoutTransaction() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"transactionInterceptorPropagationTests.xml", this.getClass());
+		final MessageEndpoint endpoint = (MessageEndpoint) context.getBean("mandatory");
+		endpoint.invoke(new StringMessage("test"));
 	}
 
 }
