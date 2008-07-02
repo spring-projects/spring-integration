@@ -87,6 +87,9 @@ public class AggregatingMessageHandler extends AbstractMessageBarrierHandler {
 			return new Message<?>[0];
 		}
 		Message<?> result = aggregator.aggregate(messages);
+		if (result.getHeader().getCorrelationId() == null) {
+			result.getHeader().setCorrelationId(correlationId);
+		}
 		return new Message<?>[] { result };
 		
 	}
