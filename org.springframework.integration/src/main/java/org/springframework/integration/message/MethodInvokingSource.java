@@ -45,7 +45,7 @@ public class MethodInvokingSource implements MessageSource<Object>, Initializing
 		this.object = object;
 	}
 
-	public void setMethod(String method) {
+	public void setMethodName(String method) {
 		Assert.notNull(method, "'method' must not be null");
 		this.method = method;
 	}

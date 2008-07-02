@@ -49,7 +49,7 @@ public class MethodInvokingAdapterParser extends AbstractSingleBeanDefinitionPar
 			throw new ConfigurationException("The 'method' attribute is required.");
 		}
 		builder.addPropertyReference("object", ref);
-		builder.addPropertyValue("method", method);
+		builder.addPropertyValue("methodName", method);
 	}
 
 }

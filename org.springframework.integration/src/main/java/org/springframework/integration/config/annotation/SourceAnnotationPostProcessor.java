@@ -48,7 +48,7 @@ public class SourceAnnotationPostProcessor extends AbstractAnnotationMethodPostP
 	protected MessageSource<?> processMethod(Object bean, Method method, Annotation annotation) {
 		MethodInvokingSource source = new MethodInvokingSource();
 		source.setObject(bean);
-		source.setMethod(method.getName());
+		source.setMethodName(method.getName());
 		return source;
 	}
 

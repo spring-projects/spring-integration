@@ -16,7 +16,7 @@
 				<property name="object">
 					<bean class="org.springframework.integration.handler.TestSource"/>
 				</property>
-				<property name="method" value="foo"/>
+				<property name="methodName" value="foo"/>
 			</bean>
 		</constructor-arg>
 		<constructor-arg ref="channel"/>
