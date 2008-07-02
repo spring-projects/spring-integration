@@ -88,8 +88,6 @@ public class ThreadLocalChannel extends AbstractMessageChannel {
 
 	private static DispatcherPolicy defaultDispatcherPolicy() {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy(false);
-		dispatcherPolicy.setMaxMessagesPerTask(1);
-		dispatcherPolicy.setReceiveTimeout(0);
 		dispatcherPolicy.setRejectionLimit(1);
 		dispatcherPolicy.setRetryInterval(0);
 		dispatcherPolicy.setShouldFailOnRejectionLimit(false);

@@ -295,8 +295,6 @@
 	Defines a dispatcher policy.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:attribute name="max-messages-per-task" type="xsd:int"/>
-			<xsd:attribute name="receive-timeout" type="xsd:long"/>
 			<xsd:attribute name="rejection-limit" type="xsd:int"/>
 			<xsd:attribute name="retry-interval" type="xsd:long"/>
 			<xsd:attribute name="should-fail-on-rejection-limit" type="xsd:boolean"/>

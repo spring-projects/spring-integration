@@ -60,11 +60,6 @@ public class ChannelFactoryTests {
 		interceptors.add(new TestChannelInterceptor());
 	}
 
-	@Before
-	public void initDispatcherPolicy() {
-		dispatcherPolicy.setMaxMessagesPerTask(100);
-	}
-
 
 	@Test
 	public void testQueueChannelFactory() {

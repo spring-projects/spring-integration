@@ -49,6 +49,7 @@ public abstract class AbstractChannelParser extends AbstractSingleBeanDefinition
 
 	private static final String INTERCEPTORS_PROPERTY = "interceptors";
 
+
 	@Override
 	protected boolean shouldGenerateId() {
 		return false;
@@ -104,14 +105,6 @@ public abstract class AbstractChannelParser extends AbstractSingleBeanDefinition
 	}
 
 	private void configureDispatcherPolicy(Element element, DispatcherPolicy dispatcherPolicy) {
-		String maxMessagesPerTask = element.getAttribute("max-messages-per-task");
-		if (StringUtils.hasText(maxMessagesPerTask)) {
-			dispatcherPolicy.setMaxMessagesPerTask(Integer.parseInt(maxMessagesPerTask));
-		}
-		String receiveTimeout = element.getAttribute("receive-timeout");
-		if (StringUtils.hasText(receiveTimeout)) {
-			dispatcherPolicy.setReceiveTimeout(Long.parseLong(receiveTimeout));
-		}
 		String rejectionLimit = element.getAttribute("rejection-limit");
 		if (StringUtils.hasText(rejectionLimit)) {
 			dispatcherPolicy.setRejectionLimit(Integer.parseInt(rejectionLimit));

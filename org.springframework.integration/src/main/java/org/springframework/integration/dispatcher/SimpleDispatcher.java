@@ -30,7 +30,6 @@ import org.springframework.integration.handler.MessageHandlerRejectedExecutionEx
 import org.springframework.integration.message.BlockingTarget;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
-import org.springframework.integration.message.Subscribable;
 import org.springframework.integration.message.MessageTarget;
 
 /**
@@ -38,7 +37,7 @@ import org.springframework.integration.message.MessageTarget;
  * 
  * @author Mark Fisher
  */
-public class SimpleDispatcher implements MessageDispatcher, Subscribable {
+public class SimpleDispatcher implements MessageDispatcher {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
@@ -66,7 +65,7 @@ public class SimpleDispatcher implements MessageDispatcher, Subscribable {
 		return this.targets.remove(target);
 	}
 
-	public boolean dispatch(Message<?> message) {
+	public boolean send(Message<?> message) {
 		int attempts = 0;
 		List<MessageTarget> targetList = new ArrayList<MessageTarget>(this.targets);
 		while (attempts < this.dispatcherPolicy.getRejectionLimit()) {

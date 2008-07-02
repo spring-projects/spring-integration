@@ -16,10 +16,8 @@
 	<channel id="publishSubscribeChannel" publish-subscribe="true"/>
 
 	<channel id="channelWithDispatcherPolicy" publish-subscribe="true">
-		<dispatcher-policy max-messages-per-task="7"
-		                   receive-timeout="77"
-		                   rejection-limit="777"
-		                   retry-interval="7777"
+		<dispatcher-policy rejection-limit="7"
+		                   retry-interval="77"
 		                   should-fail-on-rejection-limit="false"/>
 	</channel>
 

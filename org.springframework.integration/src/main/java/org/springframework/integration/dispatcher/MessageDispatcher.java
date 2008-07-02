@@ -17,15 +17,16 @@
 package org.springframework.integration.dispatcher;
 
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageTarget;
 
 /**
  * Strategy interface for dispatching messages.
  * 
  * @author Mark Fisher
  */
-public interface MessageDispatcher {
+public interface MessageDispatcher extends MessageTarget {
 
-	boolean dispatch(Message<?> message);
+	boolean send(Message<?> message);
 
 	void setSendTimeout(long timeout);
 

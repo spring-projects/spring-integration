@@ -86,7 +86,7 @@ public class DirectChannel extends AbstractMessageChannel implements Subscribabl
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
 		if (message != null && this.handlerCount.get() > 0) {
-			return this.dispatcher.dispatch(message);
+			return this.dispatcher.send(message);
 		}
 		return false;
 	}
@@ -102,8 +102,6 @@ public class DirectChannel extends AbstractMessageChannel implements Subscribabl
 
 	private static DispatcherPolicy defaultDispatcherPolicy() {
 		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy(false);
-		dispatcherPolicy.setMaxMessagesPerTask(1);
-		dispatcherPolicy.setReceiveTimeout(0);
 		dispatcherPolicy.setRejectionLimit(1);
 		dispatcherPolicy.setRetryInterval(0);
 		dispatcherPolicy.setShouldFailOnRejectionLimit(false);

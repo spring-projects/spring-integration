@@ -26,20 +26,12 @@ import org.springframework.util.Assert;
  */
 public class DispatcherPolicy {
 
-	public final static int DEFAULT_MAX_MESSAGES_PER_TASK = 1;
-
-	public final static long DEFAULT_RECEIVE_TIMEOUT = 1000;
-
 	public final static int DEFAULT_REJECTION_LIMIT = 5;
 
 	public final static long DEFAULT_RETRY_INTERVAL = 1000;
 
 
 	private final boolean publishSubscribe;
-
-	private volatile int maxMessagesPerTask = DEFAULT_MAX_MESSAGES_PER_TASK;
-
-	private volatile long receiveTimeout = DEFAULT_RECEIVE_TIMEOUT;
 
 	private volatile int rejectionLimit = DEFAULT_REJECTION_LIMIT;
 
@@ -70,35 +62,6 @@ public class DispatcherPolicy {
 	 */
 	public boolean isPublishSubscribe() {
 		return this.publishSubscribe;
-	}
-
-	/**
-	 * Return the maximum number of messages for each retrieval attempt.
-	 */
-	public int getMaxMessagesPerTask() {
-		return this.maxMessagesPerTask;
-	}
-
-	/**
-	 * Set the maximum number of messages for each retrieval attempt.
-	 */
-	public void setMaxMessagesPerTask(int maxMessagesPerTask) {
-		Assert.isTrue(maxMessagesPerTask > 0, "'maxMessagePerTask' must be at least 1");
-		this.maxMessagesPerTask = maxMessagesPerTask;
-	}
-
-	/**
-	 * Return the maximum amount of time in milliseconds to wait for a message to be available. 
-	 */
-	public long getReceiveTimeout() {
-		return this.receiveTimeout;
-	}
-
-	/**
-	 * Set the maximum amount of time in milliseconds to wait for a message to be available. 
-	 */
-	public void setReceiveTimeout(long receiveTimeout) {
-		this.receiveTimeout = receiveTimeout;
 	}
 
 	/**

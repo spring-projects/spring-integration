@@ -37,6 +37,10 @@ public class PollingDispatcherTask implements SchedulableTask, Subscribable {
 
 	private final SimpleDispatcher dispatcher;
 
+	private volatile long receiveTimeout = -1;
+
+	private volatile int maxMessagesPerTask = 1;
+
 
 	public PollingDispatcherTask(MessageChannel channel, Schedule schedule) {
 		Assert.notNull(channel, "channel must not be null");
@@ -45,6 +49,22 @@ public class PollingDispatcherTask implements SchedulableTask, Subscribable {
 		this.dispatcher = new SimpleDispatcher(this.channel.getDispatcherPolicy());
 	}
 
+
+	/**
+	 * Set the maximum amount of time in milliseconds to wait for a message to be available. 
+	 * A negative value indicates that receive calls should block indefinitely.
+	 */
+	public void setReceiveTimeout(long receiveTimeout) {
+		this.receiveTimeout = receiveTimeout;
+	}
+
+	/**
+	 * Set the maximum number of messages for each retrieval attempt.
+	 */
+	public void setMaxMessagesPerTask(int maxMessagesPerTask) {
+		Assert.isTrue(maxMessagesPerTask > 0, "'maxMessagePerTask' must be at least 1");
+		this.maxMessagesPerTask = maxMessagesPerTask;
+	}
 
 	public boolean subscribe(MessageTarget target) {
 		return this.dispatcher.subscribe(target);
@@ -59,15 +79,14 @@ public class PollingDispatcherTask implements SchedulableTask, Subscribable {
 	}
 
 	public void run() {
-		long timeout = this.channel.getDispatcherPolicy().getReceiveTimeout();
-		int limit = this.channel.getDispatcherPolicy().getMaxMessagesPerTask();
 		int count = 0;
-		while (count < limit) {
-			Message<?> message = (timeout < 0) ? this.channel.receive() : this.channel.receive(timeout);
+		while (count < this.maxMessagesPerTask) {
+			Message<?> message = (this.receiveTimeout < 0) ?
+					this.channel.receive() : this.channel.receive(this.receiveTimeout);
 			if (message == null) {
 				return;
 			}
-			this.dispatcher.dispatch(message);
+			this.dispatcher.send(message);
 			count++;
 		}
 	}

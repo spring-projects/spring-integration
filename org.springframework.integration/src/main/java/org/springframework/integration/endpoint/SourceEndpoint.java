@@ -67,7 +67,7 @@ public class SourceEndpoint extends AbstractEndpoint {
 		if (message == null) {
 			return false;
 		}
-		boolean sent = this.dispatcher.dispatch(message);
+		boolean sent = this.dispatcher.send(message);
 		if (this.source instanceof MessageDeliveryAware) {
 			if (sent) {
 				((MessageDeliveryAware) this.source).onSend(message);

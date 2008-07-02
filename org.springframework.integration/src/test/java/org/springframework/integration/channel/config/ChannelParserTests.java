@@ -131,8 +131,6 @@ public class ChannelParserTests {
 		MessageChannel channel = (MessageChannel) context.getBean("pointToPointChannelByDefault");
 		DispatcherPolicy dispatcherPolicy = channel.getDispatcherPolicy();
 		assertFalse(dispatcherPolicy.isPublishSubscribe());
-		assertEquals(DispatcherPolicy.DEFAULT_MAX_MESSAGES_PER_TASK, dispatcherPolicy.getMaxMessagesPerTask());
-		assertEquals(DispatcherPolicy.DEFAULT_RECEIVE_TIMEOUT, dispatcherPolicy.getReceiveTimeout());
 		assertEquals(DispatcherPolicy.DEFAULT_REJECTION_LIMIT, dispatcherPolicy.getRejectionLimit());
 		assertEquals(DispatcherPolicy.DEFAULT_RETRY_INTERVAL, dispatcherPolicy.getRetryInterval());
 		assertTrue(dispatcherPolicy.getShouldFailOnRejectionLimit());
@@ -145,10 +143,8 @@ public class ChannelParserTests {
 		MessageChannel channel = (MessageChannel) context.getBean("channelWithDispatcherPolicy");
 		DispatcherPolicy dispatcherPolicy = channel.getDispatcherPolicy();
 		assertTrue(dispatcherPolicy.isPublishSubscribe());
-		assertEquals(7, dispatcherPolicy.getMaxMessagesPerTask());
-		assertEquals(77, dispatcherPolicy.getReceiveTimeout());
-		assertEquals(777, dispatcherPolicy.getRejectionLimit());
-		assertEquals(7777, dispatcherPolicy.getRetryInterval());
+		assertEquals(7, dispatcherPolicy.getRejectionLimit());
+		assertEquals(77, dispatcherPolicy.getRetryInterval());
 		assertFalse(dispatcherPolicy.getShouldFailOnRejectionLimit());
 	}
 

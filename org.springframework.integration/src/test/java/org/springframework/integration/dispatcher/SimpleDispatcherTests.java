@@ -41,7 +41,7 @@ public class SimpleDispatcherTests {
 		SimpleDispatcher dispatcher = new SimpleDispatcher(new DispatcherPolicy());
 		final CountDownLatch latch = new CountDownLatch(1);
 		dispatcher.subscribe(createEndpoint(TestHandlers.countDownHandler(latch)));
-		dispatcher.dispatch(new StringMessage("test"));
+		dispatcher.send(new StringMessage("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
 	}
@@ -54,7 +54,7 @@ public class SimpleDispatcherTests {
 		final AtomicInteger counter2 = new AtomicInteger();
 		dispatcher.subscribe(createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch)));
 		dispatcher.subscribe(createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch)));
-		dispatcher.dispatch(new StringMessage("test"));
+		dispatcher.send(new StringMessage("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
 		assertEquals("only 1 handler should have received the message", 1, counter1.get() + counter2.get());
@@ -68,7 +68,7 @@ public class SimpleDispatcherTests {
 		final AtomicInteger counter2 = new AtomicInteger();
 		dispatcher.subscribe(createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch)));
 		dispatcher.subscribe(createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch)));
-		dispatcher.dispatch(new StringMessage("test"));
+		dispatcher.send(new StringMessage("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
 		assertEquals(1, counter1.get());
