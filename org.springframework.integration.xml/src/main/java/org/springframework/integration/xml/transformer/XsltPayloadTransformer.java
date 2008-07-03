@@ -43,16 +43,13 @@ public class XsltPayloadTransformer implements MessageTransformer {
 
 	private final Templates templates;
 
-
 	public XsltPayloadTransformer(Templates templates) {
 		this.templates = templates;
 	}
 
-
 	public XsltPayloadTransformer(Resource xslResource) throws Exception {
 		this.templates = TransformerFactory.newInstance().newTemplates(new StreamSource(xslResource.getInputStream()));
 	}
-
 
 	@SuppressWarnings("unchecked")
 	public void transform(Message message) {
@@ -67,8 +64,8 @@ public class XsltPayloadTransformer implements MessageTransformer {
 				this.transformString(message);
 			}
 			else {
-				throw new MessagingException(message,
-						"Unsupported payload type for transformation: " + message.getPayload().getClass().getName());
+				throw new MessagingException(message, "Unsupported payload type for transformation: "
+						+ message.getPayload().getClass().getName());
 			}
 		}
 		catch (TransformerException e) {
@@ -92,7 +89,7 @@ public class XsltPayloadTransformer implements MessageTransformer {
 
 	@SuppressWarnings("unchecked")
 	protected void transformDocument(Message message) throws TransformerException {
-		Document doc = (Document)message.getPayload();
+		Document doc = (Document) message.getPayload();
 		DOMResult result = new DOMResult();
 		this.templates.newTransformer().transform(new DOMSource(doc), result);
 		message.setPayload(result.getNode());

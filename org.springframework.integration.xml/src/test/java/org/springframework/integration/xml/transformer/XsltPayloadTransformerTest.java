@@ -38,35 +38,36 @@ import org.xml.sax.InputSource;
 /**
  * 
  * @author Jonas Partner
- *
+ * 
  */
 public class XsltPayloadTransformerTest {
 
 	XsltPayloadTransformer transformer;
-	
+
 	@Before
-	public void setUp() throws Exception{
+	public void setUp() throws Exception {
 		transformer = new XsltPayloadTransformer(getXslResource());
 	}
-	
+
 	@Test
 	public void testDocumentAsPayload() throws Exception {
 		Document input = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
 				new InputSource(new StringReader(getInputString())));
 		GenericMessage<Document> documentMessage = new GenericMessage<Document>(input);
 		transformer.transform(documentMessage);
-		String rootNodeName = ((Document)documentMessage.getPayload()).getDocumentElement().getNodeName();
+		String rootNodeName = ((Document) documentMessage.getPayload()).getDocumentElement().getNodeName();
 		assertEquals("Wrong name for root element after transform", "bob", rootNodeName);
 	}
-	
+
 	@Test
 	public void testXmlAsStringPayload() throws Exception {
 		StringMessage message = new StringMessage(getInputString());
 		transformer.transform(message);
-		String rootNodeName = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(message.getPayload()))).getDocumentElement().getNodeName();
+		String rootNodeName = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
+				new InputSource(new StringReader(message.getPayload()))).getDocumentElement().getNodeName();
 		assertEquals("Wrong name for root element after transform", "bob", rootNodeName);
 	}
-	
+
 	@Test
 	public void testSourceAsPayload() throws Exception {
 		GenericMessage<Source> message = new GenericMessage<Source>(new StringSource(getInputString()));
@@ -74,29 +75,25 @@ public class XsltPayloadTransformerTest {
 
 		DOMResult result = new DOMResult();
 		TransformerFactory.newInstance().newTransformer().transform(message.getPayload(), result);
-		String rootNodeName = ((Document)result.getNode()).getDocumentElement().getNodeName();
+		String rootNodeName = ((Document) result.getNode()).getDocumentElement().getNodeName();
 		assertEquals("Wrong name for root element after transform", "bob", rootNodeName);
 	}
-	
+
 	@Test(expected = MessagingException.class)
 	public void testNonXmlString() throws Exception {
 		transformer.transform(new StringMessage("test"));
 	}
-	
+
 	@Test(expected = MessagingException.class)
 	public void testUnsupportedPayloadType() throws Exception {
 		transformer.transform(new GenericMessage<Long>(new Long(12)));
 	}
-	
-	
-	
-	
 
 	public String getInputString() {
 		return "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>";
 	}
 
-	public Resource getXslResource() throws Exception{
+	public Resource getXslResource() throws Exception {
 		String xsl = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\"><xsl:template match=\"order\"><bob>test</bob></xsl:template></xsl:stylesheet>";
 		return new ByteArrayResource(xsl.getBytes("UTF-8"));
 	}

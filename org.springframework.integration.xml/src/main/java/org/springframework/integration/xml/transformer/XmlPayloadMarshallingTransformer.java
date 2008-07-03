@@ -19,21 +19,19 @@ package org.springframework.integration.xml.transformer;
 import java.io.IOException;
 
 import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.dom.DOMResult;
-
-import org.w3c.dom.Document;
 
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.transformer.MessageTransformer;
+import org.springframework.integration.xml.result.DomResultFactory;
+import org.springframework.integration.xml.result.ResultFactory;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
-import org.springframework.xml.transform.StringResult;
+import org.springframework.util.Assert;
 
 /**
- * An implementation of {@link MessageTransformer} that delegates to an
- * OXM {@link Marshaller} and/or {@link Unmarshaller}.
+ * An implementation of {@link MessageTransformer} that delegates to an OXM
+ * {@link Marshaller}
  * 
  * @author Mark Fisher
  */
@@ -41,68 +39,37 @@ public class XmlPayloadMarshallingTransformer implements MessageTransformer {
 
 	private final Marshaller marshaller;
 
-	private final Unmarshaller unmarshaller;
-
-
-	public XmlPayloadMarshallingTransformer(Marshaller marshaller, Unmarshaller unmarshaller) {
-		this.marshaller = marshaller;
-		this.unmarshaller = unmarshaller;
-	}
+	private ResultFactory resultFactory = new DomResultFactory();
 
 	public XmlPayloadMarshallingTransformer(Marshaller marshaller) {
+		Assert.notNull(marshaller, " a marshaller is required");
 		this.marshaller = marshaller;
-		this.unmarshaller = (marshaller != null && marshaller instanceof Unmarshaller) ?
-				(Unmarshaller) marshaller : null;
 	}
 
+	public void setResultFactory(ResultFactory resultFactory) {
+		this.resultFactory = resultFactory;
+	}
 
 	@SuppressWarnings("unchecked")
 	public void transform(Message message) {
 		Object transformedPayload = null;
 		Object originalPayload = message.getPayload();
-		if (originalPayload instanceof Source) {
-			if (this.unmarshaller == null) {
-				throw new MessageHandlingException(message, "no Unmarshaller available");
-			}
-			try {
-				transformedPayload = this.unmarshaller.unmarshal((Source) originalPayload);
-			}
-			catch (IOException e) {
-				throw new MessageHandlingException(message, "failed to unmarshal payload", e);
-			}
+		Result result = this.resultFactory.getNewResult(message);
+		if (result == null) {
+			throw new MessageHandlingException(message, "Unable to marshall payload, ResultFactory returned null");
 		}
-		else {
-			if (this.marshaller == null) {
-				throw new MessageHandlingException(message, "no Marshaller available");
-			}
-			Result result = this.createResult(originalPayload);
-			if (result == null) {
-				throw new MessageHandlingException(message, "Unable to marshal payload; expected ["
-					 + String.class.getName() + "] or [" + Document.class.getName() + "] but received ["
-					 + originalPayload.getClass().getName() + "].");
-			}
-			try {
-				this.marshaller.marshal(originalPayload, result);
-				transformedPayload = result;
-			}
-			catch (IOException e) {
-				throw new MessageHandlingException(message, "failed to marshal payload", e);
-			}
+		try {
+			this.marshaller.marshal(originalPayload, result);
+			transformedPayload = result;
 		}
+		catch (IOException e) {
+			throw new MessageHandlingException(message, "failed to marshal payload", e);
+		}
+
 		if (transformedPayload == null) {
 			throw new MessageHandlingException(message, "failed to transform payload");
 		}
 		message.setPayload(transformedPayload);
-	}
-
-	protected Result createResult(Object objectToMarshal) {
-		if (objectToMarshal instanceof String) {
-			return new StringResult();
-		}
-		if (objectToMarshal instanceof Document) {
-			return new DOMResult();
-		}
-		return null;
 	}
 
 }
