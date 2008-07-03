@@ -26,7 +26,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
-import org.springframework.context.Lifecycle;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -83,7 +82,6 @@ public class EndpointParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"endpointWithSelector.xml", this.getClass());		
 		MessageTarget endpoint = (MessageTarget) context.getBean("endpoint");
-		((Lifecycle) endpoint).start();
 		Message<?> message = new StringMessage("test");
 		MessageChannel replyChannel = new QueueChannel();
 		message.getHeader().setReturnAddress(replyChannel);
@@ -98,7 +96,6 @@ public class EndpointParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"endpointWithSelector.xml", this.getClass());		
 		MessageTarget endpoint = (MessageTarget) context.getBean("endpoint");
-		((Lifecycle) endpoint).start();
 		Message<?> message = new GenericMessage<Integer>(123);
 		MessageChannel replyChannel = new QueueChannel();
 		message.getHeader().setReturnAddress(replyChannel);
