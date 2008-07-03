@@ -81,11 +81,11 @@ public class SimpleTaskScheduler extends AbstractTaskScheduler implements Dispos
 			if (this.running) {
 				return;
 			}
+			if (logger.isInfoEnabled()) {
+				logger.info("task scheduler starting");
+			}
 			this.running = true;
 			for (Runnable task : this.pendingTasks) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("scheduling task: " + task);
-				}
 				this.schedule(task);
 			}
 			this.pendingTasks.clear();
@@ -98,7 +98,16 @@ public class SimpleTaskScheduler extends AbstractTaskScheduler implements Dispos
 	public void stop() {
 		synchronized (this.lifecycleMonitor) {
 			if (this.running) {
+				if (logger.isInfoEnabled()) {
+					logger.info("task scheduler stopping");
+				}
 				this.running = false;
+				for (Runnable task : this.scheduledTasks.keySet()) {
+					this.cancel(task, true);
+				}
+				if (logger.isInfoEnabled()) {
+					logger.info("task scheduler stopped successfully");
+				}
 			}
 		}
 	}
@@ -122,11 +131,17 @@ public class SimpleTaskScheduler extends AbstractTaskScheduler implements Dispos
 	public ScheduledFuture<?> schedule(Runnable task) {
 		synchronized (this.lifecycleMonitor) {
 			if (!this.running) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("scheduler is not running, adding task to pending list: " + task);
+				}
 				this.pendingTasks.add(task);
 				return null;
 			}
+			if (logger.isDebugEnabled()) {
+				logger.debug("scheduling task: " + task);
+			}
 			Schedule schedule = (task instanceof SchedulableTask) ? ((SchedulableTask) task).getSchedule() : null;
-			MessagingTaskRunner runner = new MessagingTaskRunner(task);
+			TaskRunner runner = new TaskRunner(task);
 			ScheduledFuture<?> future = null;
 			if (schedule == null) {
 				future = this.executor.schedule(runner, 0, TimeUnit.MILLISECONDS);
@@ -149,6 +164,9 @@ public class SimpleTaskScheduler extends AbstractTaskScheduler implements Dispos
 						+ schedule.getClass().getName() + "'");
 			}
 			this.scheduledTasks.put(task, future);
+			if (logger.isDebugEnabled()) {
+				logger.debug("scheduled task: " + task);
+			}
 			return future;
 		}
 	}
@@ -157,6 +175,9 @@ public class SimpleTaskScheduler extends AbstractTaskScheduler implements Dispos
 		synchronized (this.lifecycleMonitor) {
 			ScheduledFuture<?> future = this.scheduledTasks.get(task);
 			if (future != null) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("cancelling task: " + task);
+				}
 				return future.cancel(mayInterruptIfRunning);
 			}
 			return this.pendingTasks.remove(task);
@@ -164,16 +185,17 @@ public class SimpleTaskScheduler extends AbstractTaskScheduler implements Dispos
 	}
 
 
-	private class MessagingTaskRunner implements Runnable {
+	private class TaskRunner implements Runnable {
 
 		private final Runnable task;
 
 		private volatile boolean shouldRepeat;
 
 
-		public MessagingTaskRunner(Runnable task) {
+		public TaskRunner(Runnable task) {
 			this.task = task;
 		}
+
 
 		public void setShouldRepeat(boolean shouldRepeat) {
 			this.shouldRepeat = shouldRepeat;
@@ -192,7 +214,7 @@ public class SimpleTaskScheduler extends AbstractTaskScheduler implements Dispos
 				}
 			}
 			if (this.shouldRepeat) {
-				MessagingTaskRunner runner = new MessagingTaskRunner(this.task);
+				TaskRunner runner = new TaskRunner(this.task);
 				runner.setShouldRepeat(true);
 				executor.execute(runner);
 			}
