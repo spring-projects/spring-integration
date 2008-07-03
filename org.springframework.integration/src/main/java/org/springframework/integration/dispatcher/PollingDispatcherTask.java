@@ -37,7 +37,7 @@ public class PollingDispatcherTask implements SchedulableTask, Subscribable {
 
 	private final SimpleDispatcher dispatcher;
 
-	private volatile long receiveTimeout = -1;
+	private volatile long receiveTimeout = 5000;
 
 	private volatile int maxMessagesPerTask = 1;
 
