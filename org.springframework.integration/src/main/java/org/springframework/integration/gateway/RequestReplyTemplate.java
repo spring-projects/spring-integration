@@ -29,6 +29,7 @@ import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.handler.ReplyHandler;
 import org.springframework.integration.handler.ReplyMessageCorrelator;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.integration.scheduling.Subscription;
@@ -131,22 +132,24 @@ public class RequestReplyTemplate implements MessageBusAware {
 
 	public boolean send(Message<?> message) {
 		if (message == null) {
-			throw new MessagingException("Message must not be null.");
+			throw new MessageDeliveryException(message, "Message must not be null.");
 		}
 		if (this.requestChannel == null) {
-			throw new MessagingException("No request channel has been configured. Cannot send message.");
+			throw new MessageDeliveryException(message,
+					"No request channel has been configured. Cannot send message.");
 		}
 		boolean sent = (this.requestTimeout >= 0) ?
 				this.requestChannel.send(message, this.requestTimeout) : this.requestChannel.send(message);
 		if (!sent) {
-			throw new MessagingException("Failed to send request message.");
+			throw new MessageDeliveryException(message, "Failed to send request message.");
 		}
 		return true;
 	}
 
 	public Message<?> receive() {
 		if (this.replyChannel == null) {
-			throw new MessagingException("No reply channel has been configured. Cannot perform receive only operation.");
+			throw new MessagingException(
+					"No reply channel has been configured. Cannot perform receive only operation.");
 		}
 		return this.receiveResponse(this.replyChannel);
 	}
@@ -170,7 +173,8 @@ public class RequestReplyTemplate implements MessageBusAware {
 	 */
 	public Message<?> request(Message<?> message) {
 		if (this.requestChannel == null) {
-			throw new MessagingException("No request channel available. Cannot send request message.");
+			throw new MessageDeliveryException(message,
+					"No request channel available. Cannot send request message.");
 		}
 		if (this.replyChannel != null) {
 			return this.sendAndReceiveWithReplyMessageCorrelator(message);
