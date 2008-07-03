@@ -26,7 +26,6 @@ import org.springframework.integration.transformer.MessageTransformer;
 import org.springframework.integration.xml.result.DomResultFactory;
 import org.springframework.integration.xml.result.ResultFactory;
 import org.springframework.oxm.Marshaller;
-import org.springframework.oxm.Unmarshaller;
 import org.springframework.util.Assert;
 
 /**
