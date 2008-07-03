@@ -17,7 +17,6 @@
 package org.springframework.integration.security.endpoint;
 
 import org.aopalliance.intercept.MethodInvocation;
-
 import org.springframework.integration.endpoint.interceptor.EndpointInterceptorAdapter;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.security.SecurityContextUtils;
@@ -35,14 +34,12 @@ public class SecurityEndpointInterceptor extends EndpointInterceptorAdapter {
 
 	private final AccessDecisionManager accessDecisionManager;
 
-
 	public SecurityEndpointInterceptor(ConfigAttributeDefinition endpointSecurityAttributes,
 			AccessDecisionManager accessDecisionManager) {
 		super();
 		this.targetSecurityAttributes = endpointSecurityAttributes;
 		this.accessDecisionManager = accessDecisionManager;
 	}
-
 
 	@Override
 	public boolean aroundInvoke(MethodInvocation invocation) throws Throwable {
@@ -54,8 +51,8 @@ public class SecurityEndpointInterceptor extends EndpointInterceptorAdapter {
 		if (securityContext != null) {
 			try {
 				SecurityContextHolder.setContext(securityContext);
-				this.accessDecisionManager.decide(SecurityContextHolder.getContext().getAuthentication(),
-						invocation.getThis(), this.targetSecurityAttributes);
+				this.accessDecisionManager.decide(SecurityContextHolder.getContext().getAuthentication(), invocation
+						.getThis(), this.targetSecurityAttributes);
 				return (Boolean) invocation.proceed();
 			}
 			finally {
@@ -63,8 +60,8 @@ public class SecurityEndpointInterceptor extends EndpointInterceptorAdapter {
 			}
 		}
 		else {
-			this.accessDecisionManager.decide(SecurityContextHolder.getContext().getAuthentication(),
-					invocation.getThis(), this.targetSecurityAttributes);
+			this.accessDecisionManager.decide(SecurityContextHolder.getContext().getAuthentication(), invocation
+					.getThis(), this.targetSecurityAttributes);
 			return (Boolean) invocation.proceed();
 		}
 	}

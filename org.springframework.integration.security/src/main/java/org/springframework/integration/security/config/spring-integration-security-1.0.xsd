@@ -28,7 +28,7 @@
 	</xsd:element>
 
 
-	<xsd:element name="secured-targets">
+	<xsd:element name="endpoint-security-policy">
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
@@ -36,10 +36,7 @@
 					Targets
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:sequence>
-				<xsd:element name="targetNamePattern" type="xsd:string" />
-			</xsd:sequence>
-			<xsd:attribute name="access" type="xsd:string" />
+			<xsd:attribute name="access" type="xsd:string" use="required"/>
 			<xsd:attribute name="access-decision-manager"
 				type="xsd:string" default="accessDecisionManager" />
 		
@@ -48,7 +45,6 @@
 
 	<xsd:element name="security-propagating-channels">
 		<xsd:complexType>
-			
 			<xsd:annotation>
 				<xsd:documentation>
 					Defines a bean post processor which propagates the

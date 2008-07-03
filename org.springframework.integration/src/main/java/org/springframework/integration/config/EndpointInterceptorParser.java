@@ -19,34 +19,33 @@ package org.springframework.integration.config;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.beans.factory.config.BeanDefinitionHolder;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
+import org.springframework.beans.factory.support.ManagedList;
+import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
+import org.springframework.beans.factory.xml.NamespaceHandler;
+import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.util.Assert;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import org.springframework.beans.factory.config.BeanDefinitionHolder;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
-import org.springframework.beans.factory.parsing.BeanComponentDefinition;
-import org.springframework.beans.factory.support.ManagedList;
-import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
-import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.ConfigurationException;
-
 /**
  * A helper class for parsing the sub-elements of an endpoint's
  * <em>interceptors</em> element.
- *
+ * 
  * @author Mark Fisher
  */
 public class EndpointInterceptorParser {
 
 	private final Map<String, BeanDefinitionRegisteringParser> parsers = new HashMap<String, BeanDefinitionRegisteringParser>();
 
-
 	public EndpointInterceptorParser() {
 		this.parsers.put("transaction-interceptor", new TransactionInterceptorParser());
 		this.parsers.put("concurrency-interceptor", new ConcurrencyInterceptorParser());
 	}
-
 
 	@SuppressWarnings("unchecked")
 	public ManagedList parseEndpointInterceptors(Element element, ParserContext parserContext) {
@@ -58,7 +57,8 @@ public class EndpointInterceptorParser {
 				Element childElement = (Element) child;
 				String localName = child.getLocalName();
 				if ("bean".equals(localName)) {
-					BeanDefinitionParserDelegate beanParser = new BeanDefinitionParserDelegate(parserContext.getReaderContext());
+					BeanDefinitionParserDelegate beanParser = new BeanDefinitionParserDelegate(parserContext
+							.getReaderContext());
 					beanParser.initDefaults(childElement.getOwnerDocument().getDocumentElement());
 					BeanDefinitionHolder beanDefinitionHolder = beanParser.parseBeanDefinitionElement(childElement);
 					parserContext.registerBeanComponent(new BeanComponentDefinition(beanDefinitionHolder));
@@ -70,16 +70,29 @@ public class EndpointInterceptorParser {
 				}
 				else {
 					BeanDefinitionRegisteringParser parser = this.parsers.get(localName);
+					String interceptorBeanName;
 					if (parser == null) {
-						throw new ConfigurationException("No parser available for interceptor element '"
-								+ localName + "'.");
+						interceptorBeanName = handleNonstandardInterceptor(childElement, parserContext);
 					}
-					String interceptorBeanName = parser.parse(childElement, parserContext);
+					else {
+						interceptorBeanName = parser.parse(childElement, parserContext);
+					}
 					interceptors.add(new RuntimeBeanReference(interceptorBeanName));
 				}
 			}
 		}
 		return interceptors;
+	}
+
+	protected String handleNonstandardInterceptor(Element childElement, ParserContext parserContext) {
+		NamespaceHandler handlerFromOtherNamespace = parserContext.getReaderContext().getNamespaceHandlerResolver()
+				.resolve(childElement.getNamespaceURI());
+		AbstractBeanDefinition interceptorDefintiion = ((AbstractBeanDefinition) handlerFromOtherNamespace.parse(
+				childElement, parserContext));
+		String beanName = (String) interceptorDefintiion.getMetadataAttribute("interceptorName").getValue();
+		Assert.hasText("No value for interceptorName provided by namespace handler for element "
+				+ childElement.getNodeName());
+		return beanName;
 	}
 
 }

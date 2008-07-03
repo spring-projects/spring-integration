@@ -25,7 +25,7 @@ import org.junit.Test;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.security.SecurityContextUtils;
-import org.springframework.integration.security.config.SecurityTestUtil;
+import org.springframework.integration.security.SecurityTestUtil;
 import org.springframework.security.AccessDecisionManager;
 import org.springframework.security.AccessDeniedException;
 import org.springframework.security.ConfigAttributeDefinition;
