@@ -20,27 +20,22 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.junit.Test;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.FatalBeanException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.bus.SubscriptionManager;
 import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PublishSubscribeChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.TestChannelInterceptor;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessagePriority;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.message.MessageTarget;
-import org.springframework.integration.scheduling.SimpleTaskScheduler;
 
 /**
  * @author Mark Fisher
@@ -65,43 +60,11 @@ public class ChannelParserTests {
 	}
 
 	@Test
-	public void testPointToPointChannelByDefault() throws InterruptedException {
+	public void testQueueChannelByDefault() throws InterruptedException {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"channelParserTests.xml", this.getClass());
-		MessageChannel channel = (MessageChannel) context.getBean("pointToPointChannelByDefault");
-		channel.send(new StringMessage("test"));
-		SimpleTaskScheduler scheduler = new SimpleTaskScheduler(new ScheduledThreadPoolExecutor(1));
-		SubscriptionManager manager = new SubscriptionManager(channel, scheduler);
-		AtomicInteger counter = new AtomicInteger();
-		CountDownLatch latch = new CountDownLatch(1);
-		TestTarget target1 = new TestTarget(counter, latch);
-		TestTarget target2 = new TestTarget(counter, latch);
-		manager.addTarget(target1);
-		manager.addTarget(target2);
-		manager.start();
-		latch.await(500, TimeUnit.MILLISECONDS);
-		assertEquals(0, latch.getCount());
-		assertEquals(1, counter.get());
-	}
-
-	@Test
-	public void testPointToPointChannelExplicitlyConfigured() throws InterruptedException {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"channelParserTests.xml", this.getClass());
-		MessageChannel channel = (MessageChannel) context.getBean("pointToPointChannelExplicitlyConfigured");
-		channel.send(new StringMessage("test"));
-		SimpleTaskScheduler scheduler = new SimpleTaskScheduler(new ScheduledThreadPoolExecutor(1));
-		SubscriptionManager manager = new SubscriptionManager(channel, scheduler);
-		AtomicInteger counter = new AtomicInteger();
-		CountDownLatch latch = new CountDownLatch(1);
-		TestTarget target1 = new TestTarget(counter, latch);
-		TestTarget target2 = new TestTarget(counter, latch);
-		manager.addTarget(target1);
-		manager.addTarget(target2);
-		manager.start();
-		latch.await(500, TimeUnit.MILLISECONDS);
-		assertEquals(0, latch.getCount());
-		assertEquals(1, counter.get());
+		MessageChannel channel = (MessageChannel) context.getBean("queueChannelByDefault");
+		assertEquals(QueueChannel.class, channel.getClass());
 	}
 
 	@Test
@@ -109,26 +72,27 @@ public class ChannelParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"channelParserTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("publishSubscribeChannel");
-		channel.send(new StringMessage("test"));
-		SimpleTaskScheduler scheduler = new SimpleTaskScheduler(new ScheduledThreadPoolExecutor(1));
-		SubscriptionManager manager = new SubscriptionManager(channel, scheduler);
-		AtomicInteger counter = new AtomicInteger();
-		CountDownLatch latch = new CountDownLatch(2);
-		TestTarget target1 = new TestTarget(counter, latch);
-		TestTarget target2 = new TestTarget(counter, latch);
-		manager.addTarget(target1);
-		manager.addTarget(target2);
-		manager.start();
-		latch.await(500, TimeUnit.MILLISECONDS);
-		assertEquals(0, latch.getCount());
-		assertEquals(2, counter.get());
+		assertEquals(PublishSubscribeChannel.class, channel.getClass());
+	}
+
+	@Test
+	public void testPublishSubscribeChannelWithTaskExecutorReference() throws InterruptedException {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"channelParserTests.xml", this.getClass());
+		MessageChannel channel = (MessageChannel) context.getBean("publishSubscribeChannelWithTaskExecutorRef");
+		assertEquals(PublishSubscribeChannel.class, channel.getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
+		accessor = new DirectFieldAccessor(accessor.getPropertyValue("dispatcher"));
+		Object taskExecutorProperty = accessor.getPropertyValue("taskExecutor");
+		Object taskExecutorBean = context.getBean("taskExecutor");
+		assertEquals(taskExecutorBean, taskExecutorProperty);
 	}
 
 	@Test
 	public void testDefaultDispatcherPolicy() throws InterruptedException {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"channelParserTests.xml", this.getClass());
-		MessageChannel channel = (MessageChannel) context.getBean("pointToPointChannelByDefault");
+		MessageChannel channel = (MessageChannel) context.getBean("queueChannelByDefault");
 		DispatcherPolicy dispatcherPolicy = channel.getDispatcherPolicy();
 		assertFalse(dispatcherPolicy.isPublishSubscribe());
 		assertEquals(DispatcherPolicy.DEFAULT_REJECTION_LIMIT, dispatcherPolicy.getRejectionLimit());
@@ -142,7 +106,6 @@ public class ChannelParserTests {
 				"channelParserTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("channelWithDispatcherPolicy");
 		DispatcherPolicy dispatcherPolicy = channel.getDispatcherPolicy();
-		assertTrue(dispatcherPolicy.isPublishSubscribe());
 		assertEquals(7, dispatcherPolicy.getRejectionLimit());
 		assertEquals(77, dispatcherPolicy.getRetryInterval());
 		assertFalse(dispatcherPolicy.getShouldFailOnRejectionLimit());
@@ -265,25 +228,6 @@ public class ChannelParserTests {
 			threwException = true;
 		}
 		assertTrue(threwException);
-	}
-
-
-	private static class TestTarget implements MessageTarget {
-
-		private AtomicInteger counter;
-
-		private CountDownLatch latch;
-
-		TestTarget(AtomicInteger counter, CountDownLatch latch) {
-			this.counter = counter;
-			this.latch = latch;
-		}
-
-		public boolean send(Message<?> message) {
-			this.counter.incrementAndGet();
-			this.latch.countDown();
-			return true;
-		}
 	}
 
 }

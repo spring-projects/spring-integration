@@ -29,6 +29,7 @@ import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.integration.channel.config.PriorityChannelParser;
+import org.springframework.integration.channel.config.PublishSubscribeChannelParser;
 import org.springframework.integration.channel.config.QueueChannelParser;
 import org.springframework.integration.channel.config.RendezvousChannelParser;
 import org.springframework.integration.channel.config.ThreadLocalChannelParser;
@@ -58,6 +59,7 @@ public class IntegrationNamespaceHandler extends NamespaceHandlerSupport {
 		registerBeanDefinitionParser("annotation-driven", new AnnotationDrivenParser());
 		registerBeanDefinitionParser("channel", new DefaultChannelParser());
 		registerBeanDefinitionParser("queue-channel", new QueueChannelParser());
+		registerBeanDefinitionParser("publish-subscribe-channel", new PublishSubscribeChannelParser());
 		registerBeanDefinitionParser("direct-channel", new DirectChannelParser());
 		registerBeanDefinitionParser("priority-channel", new PriorityChannelParser());
 		registerBeanDefinitionParser("rendezvous-channel", new RendezvousChannelParser());

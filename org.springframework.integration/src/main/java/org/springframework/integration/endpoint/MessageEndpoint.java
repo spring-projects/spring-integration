@@ -16,17 +16,30 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.integration.message.Message;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.channel.ChannelRegistryAware;
+import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.message.MessageTarget;
+import org.springframework.integration.scheduling.Schedule;
+import org.springframework.integration.scheduling.Subscription;
 
 /**
  * Base interface for message endpoints.
  * 
  * @author Mark Fisher
  */
-public interface MessageEndpoint {
+public interface MessageEndpoint extends MessageTarget, ChannelRegistryAware, InitializingBean {
 
 	String getName();
 
-	boolean invoke(Message<?> message);
+	Schedule getSchedule();
+
+	EndpointTrigger getTrigger();
+
+	Subscription getSubscription();
+
+	String getOutputChannelName();
+
+	MessageChannel getOutputChannel();
 
 }

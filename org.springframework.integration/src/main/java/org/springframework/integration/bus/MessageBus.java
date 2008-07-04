@@ -16,12 +16,11 @@
 
 package org.springframework.integration.bus;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import org.apache.commons.logging.Log;
@@ -29,7 +28,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEvent;
@@ -45,7 +43,6 @@ import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.factory.ChannelFactory;
 import org.springframework.integration.channel.factory.QueueChannelFactory;
 import org.springframework.integration.endpoint.DefaultEndpointRegistry;
@@ -53,16 +50,13 @@ import org.springframework.integration.endpoint.EndpointRegistry;
 import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.MessagingGateway;
-import org.springframework.integration.endpoint.MessageProducingEndpoint;
-import org.springframework.integration.endpoint.SourceEndpoint;
-import org.springframework.integration.endpoint.MessageConsumingEndpoint;
 import org.springframework.integration.endpoint.TargetEndpoint;
+import org.springframework.integration.endpoint.EndpointTrigger;
 import org.springframework.integration.handler.MessageHandler;
-import org.springframework.integration.message.CommandMessage;
 import org.springframework.integration.message.MessageTarget;
-import org.springframework.integration.message.PollCommand;
+import org.springframework.integration.message.Subscribable;
 import org.springframework.integration.scheduling.MessagePublishingErrorHandler;
-import org.springframework.integration.scheduling.SchedulableTask;
+import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.integration.scheduling.SimpleTaskScheduler;
@@ -91,11 +85,13 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry,
 
 	private final EndpointRegistry endpointRegistry = new DefaultEndpointRegistry();
 
-	private final Map<MessageChannel, SubscriptionManager> subscriptionManagers = new ConcurrentHashMap<MessageChannel, SubscriptionManager>();
+	private final Set<EndpointTrigger> endpointTriggers = new CopyOnWriteArraySet<EndpointTrigger>();
 
 	private final List<Lifecycle> lifecycleEndpoints = new CopyOnWriteArrayList<Lifecycle>();
 
 	private final MessageBusInterceptorsList interceptors = new MessageBusInterceptorsList();
+
+	private volatile Schedule defaultPollerSchedule = new PollingSchedule(0);
 
 	private volatile TaskScheduler taskScheduler;
 
@@ -232,8 +228,6 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry,
 			this.initialize();
 		}
 		channel.setName(name);
-		SubscriptionManager manager = new SubscriptionManager(channel, this.taskScheduler);
-		this.subscriptionManagers.put(channel, manager);
 		this.channelRegistry.registerChannel(name, channel);
 		if (logger.isInfoEnabled()) {
 			logger.info("registered channel '" + name + "'");
@@ -241,14 +235,7 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry,
 	}
 
 	public MessageChannel unregisterChannel(String name) {
-		MessageChannel removedChannel = this.channelRegistry.unregisterChannel(name);
-		if (removedChannel != null) {
-			SubscriptionManager manager = this.subscriptionManagers.remove(removedChannel);
-			if (manager != null && manager.isRunning()) {
-				manager.stop();
-			}
-		}
-		return removedChannel;
+		return this.channelRegistry.unregisterChannel(name);
 	}
 
 	public void registerHandler(String name, MessageHandler handler, Subscription subscription) {
@@ -276,12 +263,9 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry,
 		if (endpoint instanceof ChannelRegistryAware) {
 			((ChannelRegistryAware) endpoint).setChannelRegistry(this.channelRegistry);
 		}
-		if (endpoint instanceof SourceEndpoint) {
-			this.registerSourceEndpoint(name, (SourceEndpoint) endpoint);
-		}
 		this.endpointRegistry.registerEndpoint(name, endpoint);
 		if (this.isRunning()) {
-			activateEndpoint(endpoint);
+			this.activateEndpoint(endpoint);
 		}
 		if (logger.isInfoEnabled()) {
 			logger.info("registered endpoint '" + name + "'");
@@ -293,17 +277,8 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry,
 		if (endpoint == null) {
 			return null;
 		}
-		if (endpoint instanceof TargetEndpoint) {
-			Collection<SubscriptionManager> managers = this.subscriptionManagers.values();
-			boolean removed = false;
-			for (SubscriptionManager manager : managers) {
-				removed = (removed || manager.removeTarget((TargetEndpoint) endpoint));
-			}
-			if (removed) {
-				return endpoint;
-			}
-		}
-		return null;
+		this.deactivateEndpoint(endpoint);
+		return endpoint;
 	}
 
 	public MessageEndpoint lookupEndpoint(String endpointName) {
@@ -325,84 +300,63 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry,
 	}
 
 	private void activateEndpoint(MessageEndpoint endpoint) {
-		if (endpoint instanceof MessageProducingEndpoint) {
-			String channelName = ((MessageProducingEndpoint) endpoint).getOutputChannelName();
-			if (channelName != null && this.lookupChannel(channelName) == null) {
-				if (!this.autoCreateChannels) {
-					throw new ConfigurationException("Unknown channel '" + channelName
-							+ "' configured as output channel for endpoint '" + endpoint
-							+ "'. Consider enabling the 'autoCreateChannels' option for the message bus.");
-				}
-				this.registerChannel(channelName, new QueueChannel());
-			}
+		Assert.notNull(endpoint, "'endpoint' must not be null");
+		if (endpoint.getOutputChannel() == null) {
+			this.lookupOrCreateChannel(endpoint.getOutputChannelName());
 		}
-		if (endpoint instanceof InitializingBean) {
-			try {
-				((InitializingBean) endpoint).afterPropertiesSet();
-			}
-			catch (Exception e) {
-				throw new ConfigurationException("failed to initialize endpoint", e);
-			}
+		try {
+			endpoint.afterPropertiesSet();
 		}
-		if (endpoint instanceof MessageConsumingEndpoint && endpoint instanceof MessageTarget) {
-			this.activateSubscriber((MessageConsumingEndpoint) endpoint);
+		catch (Exception e) {
+			throw new ConfigurationException("failed to initialize endpoint", e);
 		}
-	}
-
-	private void activateSubscriber(MessageConsumingEndpoint subscriber) {
-		Subscription subscription = subscriber.getSubscription();
-		if (subscription == null) {
-			throw new ConfigurationException("Unable to register endpoint '" + subscriber
-					+ "'. No subscription information is available.");
-		}
-		MessageChannel channel = subscription.getChannel();
-		if (channel == null) {
-			String channelName = subscription.getChannelName();
-			if (channelName == null) {
-				throw new ConfigurationException("endpoint '" + subscriber
-						+ "' must provide either 'channel' or 'channelName' in its subscription metadata");
-			}
-			channel = this.lookupChannel(channelName);
+		Schedule schedule = null;
+		Subscription subscription = endpoint.getSubscription();
+		if (subscription != null) {
+			schedule = subscription.getSchedule();
+			MessageChannel channel = subscription.getChannel();
 			if (channel == null) {
-				if (!this.autoCreateChannels) {
-					throw new ConfigurationException("Cannot activate subscription, unknown channel '" + channelName
-							+ "'. Consider enabling the 'autoCreateChannels' option for the message bus.");
+				channel = this.lookupOrCreateChannel(subscription.getChannelName());
+			}
+			if (channel != null && channel instanceof Subscribable) {
+				((Subscribable) channel).subscribe(endpoint);
+				if (logger.isInfoEnabled()) {
+					logger.info("activated subscription to channel '"
+							+ channel.getName() + "' for endpoint '" + endpoint + "'");
 				}
-				if (this.logger.isInfoEnabled()) {
-					logger.info("auto-creating channel '" + channelName + "'");
-				}
-				channel = channelFactory.getChannel(null, null);
-				this.registerChannel(channelName, channel);
+				return;
 			}
 		}
-		this.activateSubscription(channel, (MessageTarget) subscriber, subscription.getSchedule());
-		if (logger.isInfoEnabled()) {
-			logger.info("activated subscription to channel '" + channel.getName()
-					+ "' for endpoint '" + subscriber + "' of type '" + subscriber.getClass() + "'");
+		if (schedule == null) {
+			schedule = endpoint.getSchedule();
+		}
+		EndpointTrigger trigger = endpoint.getTrigger();
+		if (trigger == null) {
+			trigger = new EndpointTrigger(schedule != null ? schedule : this.defaultPollerSchedule);
+		}
+		trigger.addTarget(endpoint);
+		if (this.endpointTriggers.add(trigger)) {
+			this.taskScheduler.schedule(trigger);
 		}
 	}
 
-	private void registerSourceEndpoint(String name, final SourceEndpoint endpoint) {
-		if (!this.initialized) {
-			this.initialize();
+	private MessageChannel lookupOrCreateChannel(String channelName) {
+		if (channelName == null) {
+			return null;
 		}
-		final Schedule schedule = endpoint.getSchedule();
-		if (schedule != null) {
-			this.taskScheduler.schedule(new SchedulableTask() {
-				public Schedule getSchedule() {
-					return schedule;
-				}
-				public void run() {
-					endpoint.invoke(new CommandMessage(new PollCommand()));
-				}
-			});
-		}
-		if (endpoint instanceof Lifecycle) {
-			this.lifecycleEndpoints.add((Lifecycle) endpoint);
-			if (this.isRunning()) {
-				((Lifecycle) endpoint).start();
+		MessageChannel channel = this.lookupChannel(channelName);
+		if (channel == null) {
+			if (!this.autoCreateChannels) {
+				throw new ConfigurationException("Cannot activate endpoint, unknown channel '" + channelName
+						+ "'. Consider enabling the 'autoCreateChannels' option for the message bus.");
 			}
+			if (this.logger.isInfoEnabled()) {
+				logger.info("auto-creating channel '" + channelName + "'");
+			}
+			channel = channelFactory.getChannel(null, null);
+			this.registerChannel(channelName, channel);
 		}
+		return channel;
 	}
 
 	private void registerGateway(String name, MessagingGateway gateway) {
@@ -417,18 +371,16 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry,
 		}
 	}
 
-	private void activateSubscription(MessageChannel channel, MessageTarget target, Schedule schedule) {
-		SubscriptionManager manager = this.subscriptionManagers.get(channel);
-		if (manager == null) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("no subscription manager available for channel '" + channel
-						+ "', be sure to register the channel");
+	public void deactivateEndpoint(MessageEndpoint endpoint) {
+		Assert.notNull(endpoint, "'endpoint' must not be null");
+		for (EndpointTrigger trigger : this.endpointTriggers) {
+			boolean removed = trigger.removeTarget(endpoint);
+			if (removed && this.logger.isInfoEnabled()) {
+				logger.info("removed endpoint '" + endpoint + "' from dispatcher");
 			}
-			return;
 		}
-		manager.addTarget(target, schedule);
-		if (this.isRunning() && !manager.isRunning()) {
-			manager.start();
+		if (endpoint instanceof Lifecycle) {
+			((Lifecycle) endpoint).stop();
 		}
 	}
 
@@ -451,12 +403,6 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry,
 			this.activateEndpoints();
 			this.taskScheduler.setErrorHandler(new MessagePublishingErrorHandler(this.getErrorChannel()));
 			this.taskScheduler.start();
-			for (SubscriptionManager manager : this.subscriptionManagers.values()) {
-				manager.start();
-				if (logger.isInfoEnabled()) {
-					logger.info("started subscription manager '" + manager + "'");
-				}
-			}
 			for (Lifecycle endpoint : this.lifecycleEndpoints) {
 				endpoint.start();
 				if (logger.isInfoEnabled()) {
@@ -484,12 +430,6 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry,
 				endpoint.stop();
 				if (logger.isInfoEnabled()) {
 					logger.info("stopped endpoint '" + endpoint + "'");
-				}
-			}
-			for (SubscriptionManager manager : this.subscriptionManagers.values()) {
-				manager.stop();
-				if (logger.isInfoEnabled()) {
-					logger.info("stopped subscription manager '" + manager + "'");
 				}
 			}
 		}

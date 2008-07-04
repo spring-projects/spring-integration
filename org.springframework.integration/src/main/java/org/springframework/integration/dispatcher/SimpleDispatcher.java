@@ -19,15 +19,10 @@ package org.springframework.integration.dispatcher;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.handler.MessageHandlerNotRunningException;
 import org.springframework.integration.handler.MessageHandlerRejectedExecutionException;
-import org.springframework.integration.message.BlockingTarget;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageTarget;
@@ -37,32 +32,13 @@ import org.springframework.integration.message.MessageTarget;
  * 
  * @author Mark Fisher
  */
-public class SimpleDispatcher implements MessageDispatcher {
-
-	protected final Log logger = LogFactory.getLog(this.getClass());
-
-	private final List<MessageTarget> targets = new CopyOnWriteArrayList<MessageTarget>();
+public class SimpleDispatcher extends AbstractDispatcher {
 
 	protected final DispatcherPolicy dispatcherPolicy;
-
-	private volatile long sendTimeout;
 
 
 	public SimpleDispatcher(DispatcherPolicy dispatcherPolicy) {
 		this.dispatcherPolicy = (dispatcherPolicy != null) ? dispatcherPolicy : new DispatcherPolicy();
-	}
-
-
-	public void setSendTimeout(long sendTimeout) {
-		this.sendTimeout = sendTimeout;
-	}
-
-	public boolean subscribe(MessageTarget target) {
-		return this.targets.add(target);
-	}
-
-	public boolean unsubscribe(MessageTarget target) {
-		return this.targets.remove(target);
 	}
 
 	public boolean send(Message<?> message) {
@@ -94,8 +70,7 @@ public class SimpleDispatcher implements MessageDispatcher {
 			while (iter.hasNext()) {
 				MessageTarget target = iter.next();
 				try {
-					boolean sent = (target instanceof BlockingTarget && this.sendTimeout >= 0) ?
-							((BlockingTarget) target).send(message, this.sendTimeout) : target.send(message);
+					boolean sent = this.sendMessageToTarget(message, target);
 					if (!this.dispatcherPolicy.isPublishSubscribe() && sent) {
 						return true;
 					}
@@ -112,7 +87,7 @@ public class SimpleDispatcher implements MessageDispatcher {
 				catch (MessageHandlerRejectedExecutionException e) {
 					rejected = true;
 					if (logger.isDebugEnabled()) {
-						logger.debug("target is busy, continuing with other targets if available", e);
+						logger.debug("target '" + target + "' is busy, continuing with other targets if available", e);
 					}
 				}
 			}

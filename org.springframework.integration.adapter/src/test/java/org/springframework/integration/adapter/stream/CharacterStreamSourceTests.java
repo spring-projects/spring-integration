@@ -45,12 +45,12 @@ public class CharacterStreamSourceTests {
 		schedule.setInitialDelay(10000);
 		SourceEndpoint endpoint = new SourceEndpoint(source, channel);
 		endpoint.afterPropertiesSet();
-		endpoint.invoke(new CommandMessage(new PollCommand()));
+		endpoint.send(new CommandMessage(new PollCommand()));
 		Message<?> message1 = channel.receive(0);
 		assertEquals("test", message1.getPayload());
 		Message<?> message2 = channel.receive(0);
 		assertNull(message2);
-		endpoint.invoke(new CommandMessage(new PollCommand()));
+		endpoint.send(new CommandMessage(new PollCommand()));
 		Message<?> message3 = channel.receive(0);
 		assertNull(message3);
 	}

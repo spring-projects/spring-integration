@@ -24,7 +24,6 @@ import org.springframework.integration.message.MessageDeliveryAware;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.PollCommand;
 import org.springframework.integration.message.MessageSource;
-import org.springframework.integration.scheduling.Schedule;
 import org.springframework.util.Assert;
 
 /**
@@ -39,24 +38,14 @@ public class SourceEndpoint extends AbstractEndpoint {
 
 	private final SimpleDispatcher dispatcher = new SimpleDispatcher(new DispatcherPolicy());
 
-	private volatile Schedule schedule;
-
 
 	public SourceEndpoint(MessageSource<?> source, MessageChannel channel) {
 		Assert.notNull(source, "source must not be null");
 		Assert.notNull(channel, "channel must not be null");
 		this.source = source;
-		this.dispatcher.subscribe(channel);
+		this.dispatcher.addTarget(channel);
 	}
 
-
-	public void setSchedule(Schedule schedule) {
-		this.schedule = schedule;
-	}
-
-	public Schedule getSchedule() {
-		return this.schedule;
-	}
 
 	protected boolean supports(Message<?> message) {
 		return (message.getPayload() instanceof PollCommand);

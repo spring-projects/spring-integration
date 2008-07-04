@@ -59,7 +59,7 @@ public class DirectChannel extends AbstractMessageChannel implements Subscribabl
 
 
 	public boolean subscribe(MessageTarget target) {
-		boolean added = this.dispatcher.subscribe(target);
+		boolean added = this.dispatcher.addTarget(target);
 		if (added) {
 			this.handlerCount.incrementAndGet();
 		}
@@ -67,7 +67,7 @@ public class DirectChannel extends AbstractMessageChannel implements Subscribabl
 	}
 
 	public boolean unsubscribe(MessageTarget target) {
-		boolean removed = this.dispatcher.unsubscribe(target);
+		boolean removed = this.dispatcher.removeTarget(target);
 		if (removed) {
 			this.handlerCount.decrementAndGet();
 		}

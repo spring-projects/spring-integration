@@ -25,19 +25,22 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandlerNotRunningException;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.scheduling.Schedule;
+import org.springframework.integration.scheduling.Subscription;
 
 /**
  * Base class for {@link MessageEndpoint} implementations.
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware, Lifecycle, InitializingBean {
+public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware, Lifecycle {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
@@ -48,6 +51,16 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 	private volatile boolean autoStartup = true;
 
 	private volatile boolean running;
+
+	private volatile Schedule schedule;
+
+	private volatile EndpointTrigger trigger;
+
+	private volatile Subscription subscription;
+
+	private volatile String outputChannelName;
+
+	private volatile ChannelRegistry channelRegistry;
 
 	private final Object lifecycleMonitor = new Object();
 
@@ -62,6 +75,60 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 
 	public void setBeanName(String beanName) {
 		this.setName(beanName);
+	}
+
+	public void setSchedule(Schedule schedule) {
+		this.schedule = schedule;
+	}
+
+	public Schedule getSchedule() {
+		return this.schedule;
+	}
+
+	public void setTrigger(EndpointTrigger trigger) {
+		this.trigger = trigger;
+	}
+
+	public EndpointTrigger getTrigger() {
+		return this.trigger;
+	}
+
+	public Subscription getSubscription() {
+		return this.subscription;
+	}
+
+	public void setSubscription(Subscription subscription) {
+		this.subscription = subscription;
+	}
+
+	/**
+	 * Set the name of the channel to which this endpoint should send reply
+	 * messages.
+	 */
+	public void setOutputChannelName(String outputChannelName) {
+		this.outputChannelName = outputChannelName;
+	}
+
+	public MessageChannel getOutputChannel() {
+		if (this.outputChannelName != null && this.channelRegistry != null) {
+			return this.channelRegistry.lookupChannel(this.outputChannelName);
+		}
+		return null;
+	}
+
+	public String getOutputChannelName() {
+		return this.outputChannelName;
+	}
+
+	/**
+	 * Set the channel registry to use for looking up channels by name.
+	 */
+	public void setChannelRegistry(ChannelRegistry channelRegistry) {
+		this.channelRegistry = channelRegistry;
+	}
+
+	protected ChannelRegistry getChannelRegistry() {
+		return this.channelRegistry;
 	}
 
 	public void setAutoStartup(boolean autoStartup) {
@@ -131,7 +198,7 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 		}
 	}
 
-	public final boolean invoke(Message<?> message) {
+	public final boolean send(Message<?> message) {
 		if (message == null) {
 			throw new IllegalArgumentException("Message must not be null.");
 		}

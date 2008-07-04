@@ -16,27 +16,35 @@
 
 package org.springframework.integration.dispatcher;
 
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageTarget;
 
 /**
- * Strategy interface for dispatching messages.
+ * A broadcasting dispatcher implementation. It makes a best effort to
+ * send the message to each of its targets. If it fails to send to any
+ * one target, it will log a warn-level message but continue to send
+ * to the other targets.
  * 
  * @author Mark Fisher
  */
-public interface MessageDispatcher extends MessageTarget {
+public class BroadcastingDispatcher extends AbstractDispatcher {
 
-	boolean send(Message<?> message);
-
-	/**
-	 * Specify the timeout for sending to a target (in milliseconds).
-	 * Note that this value will only be applicable for blocking targets.
-	 * The default value is 0.
-	 */
-	void setTimeout(long timeout);
-
-	boolean addTarget(MessageTarget target);
-
-	boolean removeTarget(MessageTarget target);
+	public boolean send(final Message<?> message) {
+		for (final MessageTarget target : this.targets) {
+			TaskExecutor executor = this.getTaskExecutor();
+			if (executor != null) {
+				executor.execute(new Runnable() {
+					public void run() {
+						sendMessageToTarget(message, target);
+					}
+				});
+			}
+			else {
+				this.sendMessageToTarget(message, target);
+			}
+		}
+		return true;
+	}
 
 }

@@ -44,7 +44,7 @@ public class ByteStreamSourceTests {
 		ByteStreamSource source = new ByteStreamSource(stream);
 		SourceEndpoint endpoint = new SourceEndpoint(source, channel);
 		endpoint.afterPropertiesSet();
-		endpoint.invoke(new CommandMessage(new PollCommand()));
+		endpoint.send(new CommandMessage(new PollCommand()));
 		Message<?> message1 = channel.receive(500);
 		byte[] payload = (byte[]) message1.getPayload();
 		assertEquals(3, payload.length);
@@ -53,7 +53,7 @@ public class ByteStreamSourceTests {
 		assertEquals(3, payload[2]);
 		Message<?> message2 = channel.receive(0);
 		assertNull(message2);
-		endpoint.invoke(new CommandMessage(new PollCommand()));
+		endpoint.send(new CommandMessage(new PollCommand()));
 		Message<?> message3 = channel.receive(0);
 		assertNull(message3);
 	}
@@ -69,12 +69,12 @@ public class ByteStreamSourceTests {
 		schedule.setInitialDelay(10000);
 		SourceEndpoint endpoint = new SourceEndpoint(source, channel);
 		endpoint.afterPropertiesSet();
-		endpoint.invoke(new CommandMessage(new PollCommand()));
+		endpoint.send(new CommandMessage(new PollCommand()));
 		Message<?> message1 = channel.receive(0);
 		assertEquals(4, ((byte[]) message1.getPayload()).length);
 		Message<?> message2 = channel.receive(0);
 		assertNull(message2);
-		endpoint.invoke(new CommandMessage(new PollCommand()));
+		endpoint.send(new CommandMessage(new PollCommand()));
 		Message<?> message3 = channel.receive(0);
 		assertEquals(2, ((byte[]) message3.getPayload()).length);
 	}
@@ -91,12 +91,12 @@ public class ByteStreamSourceTests {
 		schedule.setInitialDelay(10000);
 		SourceEndpoint endpoint = new SourceEndpoint(source, channel);
 		endpoint.afterPropertiesSet();
-		endpoint.invoke(new CommandMessage(new PollCommand()));
+		endpoint.send(new CommandMessage(new PollCommand()));
 		Message<?> message1 = channel.receive(0);
 		assertEquals(4, ((byte[]) message1.getPayload()).length);
 		Message<?> message2 = channel.receive(0);
 		assertNull(message2);
-		endpoint.invoke(new CommandMessage(new PollCommand()));
+		endpoint.send(new CommandMessage(new PollCommand()));
 		Message<?> message3 = channel.receive(0);
 		assertEquals(4, ((byte[]) message3.getPayload()).length);
 		assertEquals(0, ((byte[]) message3.getPayload())[3]);

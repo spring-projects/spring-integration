@@ -30,6 +30,7 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.SourceEndpoint;
 import org.springframework.integration.handler.MessageHandler;
@@ -129,8 +130,7 @@ public class MessageBusTests {
 
 	@Test
 	public void testBothHandlersReceivePublishSubscribeMessage() throws InterruptedException {
-		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy(true);
-		QueueChannel inputChannel = new QueueChannel(10, dispatcherPolicy);
+		PublishSubscribeChannel inputChannel = new PublishSubscribeChannel();
 		QueueChannel outputChannel1 = new QueueChannel();
 		QueueChannel outputChannel2 = new QueueChannel();
 		final CountDownLatch latch = new CountDownLatch(2);

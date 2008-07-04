@@ -40,7 +40,7 @@ public class SimpleDispatcherTests {
 	public void testSingleMessage() throws InterruptedException {
 		SimpleDispatcher dispatcher = new SimpleDispatcher(new DispatcherPolicy());
 		final CountDownLatch latch = new CountDownLatch(1);
-		dispatcher.subscribe(createEndpoint(TestHandlers.countDownHandler(latch)));
+		dispatcher.addTarget(createEndpoint(TestHandlers.countDownHandler(latch)));
 		dispatcher.send(new StringMessage("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
@@ -52,8 +52,8 @@ public class SimpleDispatcherTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicInteger counter1 = new AtomicInteger();
 		final AtomicInteger counter2 = new AtomicInteger();
-		dispatcher.subscribe(createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch)));
-		dispatcher.subscribe(createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch)));
+		dispatcher.addTarget(createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch)));
+		dispatcher.addTarget(createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch)));
 		dispatcher.send(new StringMessage("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
@@ -66,8 +66,8 @@ public class SimpleDispatcherTests {
 		final CountDownLatch latch = new CountDownLatch(2);
 		final AtomicInteger counter1 = new AtomicInteger();
 		final AtomicInteger counter2 = new AtomicInteger();
-		dispatcher.subscribe(createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch)));
-		dispatcher.subscribe(createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch)));
+		dispatcher.addTarget(createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch)));
+		dispatcher.addTarget(createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch)));
 		dispatcher.send(new StringMessage("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());

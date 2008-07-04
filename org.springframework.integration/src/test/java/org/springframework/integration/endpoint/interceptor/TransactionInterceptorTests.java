@@ -79,13 +79,13 @@ public class TransactionInterceptorTests {
 		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManager");
 		final MessageEndpoint endpoint = (MessageEndpoint) context.getBean("required");
 		assertEquals(0, txManager.getCommitCount());
-		endpoint.invoke(new StringMessage("test"));
+		endpoint.send(new StringMessage("test"));
 		assertEquals(1, txManager.getCommitCount());
 		TestTransactionManager outerTxManager = new TestTransactionManager();
 		TransactionTemplate txTemplate = new TransactionTemplate(outerTxManager);
 		txTemplate.execute(new TransactionCallback() {
 			public Object doInTransaction(TransactionStatus status) {
-				return endpoint.invoke(new StringMessage("test"));
+				return endpoint.send(new StringMessage("test"));
 			}
 		});
 		assertEquals(1, outerTxManager.getCommitCount());
@@ -100,13 +100,13 @@ public class TransactionInterceptorTests {
 		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManager");
 		final MessageEndpoint endpoint = (MessageEndpoint) context.getBean("requiresNew");
 		assertEquals(0, txManager.getCommitCount());
-		endpoint.invoke(new StringMessage("test"));
+		endpoint.send(new StringMessage("test"));
 		assertEquals(1, txManager.getCommitCount());
 		TestTransactionManager outerTxManager = new TestTransactionManager();
 		TransactionTemplate txTemplate = new TransactionTemplate(outerTxManager);
 		txTemplate.execute(new TransactionCallback() {
 			public Object doInTransaction(TransactionStatus status) {
-				return endpoint.invoke(new StringMessage("test"));
+				return endpoint.send(new StringMessage("test"));
 			}
 		});
 		assertEquals(1, outerTxManager.getCommitCount());
@@ -121,13 +121,13 @@ public class TransactionInterceptorTests {
 		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManager");
 		final MessageEndpoint endpoint = (MessageEndpoint) context.getBean("supports");
 		assertEquals(0, txManager.getCommitCount());
-		endpoint.invoke(new StringMessage("test"));
+		endpoint.send(new StringMessage("test"));
 		assertEquals(0, txManager.getCommitCount());
 		TestTransactionManager outerTxManager = new TestTransactionManager();
 		TransactionTemplate txTemplate = new TransactionTemplate(outerTxManager);
 		txTemplate.execute(new TransactionCallback() {
 			public Object doInTransaction(TransactionStatus status) {
-				return endpoint.invoke(new StringMessage("test"));
+				return endpoint.send(new StringMessage("test"));
 			}
 		});
 		assertEquals(0, txManager.getCommitCount());
@@ -141,13 +141,13 @@ public class TransactionInterceptorTests {
 		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManager");
 		final MessageEndpoint endpoint = (MessageEndpoint) context.getBean("notSupported");
 		assertEquals(0, txManager.getCommitCount());
-		endpoint.invoke(new StringMessage("test"));
+		endpoint.send(new StringMessage("test"));
 		assertEquals(0, txManager.getCommitCount());
 		TestTransactionManager outerTxManager = new TestTransactionManager();
 		TransactionTemplate txTemplate = new TransactionTemplate(outerTxManager);
 		txTemplate.execute(new TransactionCallback() {
 			public Object doInTransaction(TransactionStatus status) {
-				return endpoint.invoke(new StringMessage("test"));
+				return endpoint.send(new StringMessage("test"));
 			}
 		});
 		assertEquals(0, txManager.getCommitCount());
@@ -159,7 +159,7 @@ public class TransactionInterceptorTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"transactionInterceptorPropagationTests.xml", this.getClass());
 		final MessageEndpoint endpoint = (MessageEndpoint) context.getBean("mandatory");
-		endpoint.invoke(new StringMessage("test"));
+		endpoint.send(new StringMessage("test"));
 	}
 
 }

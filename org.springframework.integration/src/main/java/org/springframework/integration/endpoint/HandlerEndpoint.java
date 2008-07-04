@@ -35,15 +35,13 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class HandlerEndpoint extends TargetEndpoint implements MessageProducingEndpoint {
+public class HandlerEndpoint extends TargetEndpoint {
 
 	private volatile MessageHandler handler;
 
 	private volatile ReplyHandler replyHandler = new EndpointReplyHandler();
 
 	private volatile long replyTimeout = 1000;
-
-	private volatile String outputChannelName;
 
 	private volatile boolean returnAddressOverrides = false;
 
@@ -71,14 +69,6 @@ public class HandlerEndpoint extends TargetEndpoint implements MessageProducingE
 	 */
 	public void setReplyTimeout(long replyTimeout) {
 		this.replyTimeout = replyTimeout;
-	}
-
-	/**
-	 * Set the name of the channel to which this endpoint should send reply
-	 * messages.
-	 */
-	public void setOutputChannelName(String outputChannelName) {
-		this.outputChannelName = outputChannelName;
 	}
 
 	public void setReturnAddressOverrides(boolean returnAddressOverrides) {
@@ -126,18 +116,6 @@ public class HandlerEndpoint extends TargetEndpoint implements MessageProducingE
 			}
 		}
 		return null;
-	}
-
-	public MessageChannel getOutputChannel() {
-		ChannelRegistry registry = this.getChannelRegistry();
-		if (this.outputChannelName != null && registry != null) {
-			return registry.lookupChannel(this.outputChannelName);
-		}
-		return null;
-	}
-
-	public String getOutputChannelName() {
-		return this.outputChannelName;
 	}
 
 

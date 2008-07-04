@@ -16,10 +16,11 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageTarget;
+import org.springframework.integration.message.PollCommand;
 import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.integration.scheduling.Subscription;
 import org.springframework.util.Assert;
@@ -29,16 +30,13 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class TargetEndpoint extends AbstractEndpoint
-		implements MessageTarget, MessageConsumingEndpoint, ChannelRegistryAware {
+public class TargetEndpoint extends AbstractEndpoint {
 
 	private volatile MessageTarget target;
 
 	private volatile Subscription subscription;
 
 	private volatile MessageSelector selector;
-
-	private volatile ChannelRegistry channelRegistry;
 
 	private volatile boolean initialized;
 
@@ -75,24 +73,13 @@ public class TargetEndpoint extends AbstractEndpoint
 		this.subscription = subscription;
 	}
 
-	/**
-	 * Set the channel registry to use for looking up channels by name.
-	 */
-	public void setChannelRegistry(ChannelRegistry channelRegistry) {
-		this.channelRegistry = channelRegistry;
-	}
-
-	protected ChannelRegistry getChannelRegistry() {
-		return this.channelRegistry;
-	}
-
 	protected void initialize() {
 		synchronized (this.initializationMonitor) {
 	        if (this.initialized) {
 	        	return;
 	        }
-	        if (this.target instanceof ChannelRegistryAware && this.channelRegistry != null) {
-	        	((ChannelRegistryAware) this.target).setChannelRegistry(this.channelRegistry);
+	        if (this.target instanceof ChannelRegistryAware && this.getChannelRegistry() != null) {
+	        	((ChannelRegistryAware) this.target).setChannelRegistry(this.getChannelRegistry());
 	        }
 	        this.initialized = true;
 		}
@@ -100,6 +87,23 @@ public class TargetEndpoint extends AbstractEndpoint
 
 	@Override
 	protected final boolean doInvoke(Message<?> message) {
+		if (message.getPayload() instanceof PollCommand) {
+			MessageChannel channel = this.getSubscription().getChannel();
+			if (channel == null && this.getSubscription().getChannelName() != null) {
+				channel = this.getChannelRegistry().lookupChannel(this.getSubscription().getChannelName());
+			}
+			if (channel != null) {
+				Message<?> receivedMessage = channel.receive(5000);
+				if (receivedMessage != null) {
+					return this.doInvoke(receivedMessage);
+				}
+			}
+			else if (logger.isDebugEnabled()) {
+				logger.debug("TargetEndpoint unable to resolve channel '"
+						+ this.getSubscription().getChannelName() + "'");
+			}
+			return false;
+		}
 		if (this.selector != null && !this.selector.accept(message)) {
 			return false;
 		}
@@ -109,10 +113,6 @@ public class TargetEndpoint extends AbstractEndpoint
 	@Override
 	protected final boolean supports(Message<?> message) {
 		return true;
-	}
-
-	public boolean send(Message<?> message) {
-		return this.invoke(message);
 	}
 
 }

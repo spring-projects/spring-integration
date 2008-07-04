@@ -63,6 +63,21 @@
 		</xsd:annotation>
 	</xsd:element>
 
+	<xsd:element name="publish-subscribe-channel">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a publish-subscribe channel that broadcasts to its targets.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="channelType">
+					<xsd:attribute name="task-executor" type="xsd:string"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:element name="direct-channel">
 		<xsd:complexType>
 			<xsd:annotation>
@@ -121,7 +136,6 @@
 			<xsd:element ref="interceptor" minOccurs="0" maxOccurs="unbounded"/>
 		</xsd:sequence>
 		<xsd:attribute name="id" type="xsd:ID" use="required"/>
-		<xsd:attribute name="publish-subscribe" type="xsd:boolean" default="false"/>
 		<xsd:attribute name="datatype" type="xsd:string"/>
 	</xsd:complexType>
 

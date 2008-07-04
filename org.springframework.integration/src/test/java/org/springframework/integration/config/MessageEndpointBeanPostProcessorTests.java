@@ -47,14 +47,13 @@ public class MessageEndpointBeanPostProcessorTests {
 	public void testHandlerEndpointWithAdviceChain() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageEndpointBeanPostProcessorTests.xml", this.getClass());
-		context.start();
 		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("handlerEndpointWithAdvice");
 		assertTrue(AopUtils.isAopProxy(endpoint));
 		TestBeforeAdvice beforeAdvice = (TestBeforeAdvice) context.getBean("simpleAdvice");
 		TestEndpointInterceptor interceptor = (TestEndpointInterceptor) context.getBean("interceptor");
 		assertEquals(0, beforeAdvice.getCount());
 		assertEquals(0, interceptor.getCount());
-		endpoint.invoke(new StringMessage("test"));
+		endpoint.send(new StringMessage("test"));
 		assertEquals(1, beforeAdvice.getCount());
 		assertEquals(2, interceptor.getCount());
 		context.stop();
@@ -72,14 +71,13 @@ public class MessageEndpointBeanPostProcessorTests {
 	public void testTargetEndpointWithAdviceChain() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageEndpointBeanPostProcessorTests.xml", this.getClass());
-		context.start();
 		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("targetEndpointWithAdvice");
 		assertTrue(AopUtils.isAopProxy(endpoint));
 		TestBeforeAdvice beforeAdvice = (TestBeforeAdvice) context.getBean("simpleAdvice");
 		TestEndpointInterceptor interceptor = (TestEndpointInterceptor) context.getBean("interceptor");
 		assertEquals(0, beforeAdvice.getCount());
 		assertEquals(0, interceptor.getCount());
-		endpoint.invoke(new StringMessage("test"));
+		endpoint.send(new StringMessage("test"));
 		assertEquals(1, beforeAdvice.getCount());
 		assertEquals(2, interceptor.getCount());
 		context.stop();
@@ -97,14 +95,13 @@ public class MessageEndpointBeanPostProcessorTests {
 	public void testSourceEndpointWithAdviceChain() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageEndpointBeanPostProcessorTests.xml", this.getClass());
-		context.start();
 		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("sourceEndpointWithAdvice");
 		assertTrue(AopUtils.isAopProxy(endpoint));
 		TestBeforeAdvice beforeAdvice = (TestBeforeAdvice) context.getBean("simpleAdvice");
 		TestEndpointInterceptor interceptor = (TestEndpointInterceptor) context.getBean("interceptor");
 		assertEquals(0, beforeAdvice.getCount());
 		assertEquals(0, interceptor.getCount());
-		endpoint.invoke(new CommandMessage(new PollCommand()));
+		endpoint.send(new CommandMessage(new PollCommand()));
 		assertEquals(1, beforeAdvice.getCount());
 		assertEquals(2, interceptor.getCount());
 		context.stop();

@@ -42,7 +42,7 @@ public class SourceEndpointTests {
 		QueueChannel channel = new QueueChannel();
 		SourceEndpoint endpoint = new SourceEndpoint(source, channel);
 		endpoint.afterPropertiesSet();
-		endpoint.invoke(new CommandMessage(new PollCommand()));
+		endpoint.send(new CommandMessage(new PollCommand()));
 		Message<?> message = channel.receive(1000);
 		assertNotNull("message should not be null", message);
 		assertEquals("testing.1", message.getPayload());
@@ -55,7 +55,7 @@ public class SourceEndpointTests {
 		SourceEndpoint endpoint = new SourceEndpoint(source, channel);
 		endpoint.setAutoStartup(false);
 		endpoint.afterPropertiesSet();
-		endpoint.invoke(new CommandMessage(new PollCommand()));
+		endpoint.send(new CommandMessage(new PollCommand()));
 	}
 
 	private static class TestSource implements MessageSource<String> {

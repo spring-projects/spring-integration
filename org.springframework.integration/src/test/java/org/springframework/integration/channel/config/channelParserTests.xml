@@ -9,13 +9,14 @@
 
 	<queue-channel id="capacityChannel" capacity="10"/>
 
-	<channel id="pointToPointChannelByDefault"/>
+	<channel id="queueChannelByDefault"/>
 
-	<channel id="pointToPointChannelExplicitlyConfigured" publish-subscribe="false"/>
+	<publish-subscribe-channel id="publishSubscribeChannel"/>
 
-	<channel id="publishSubscribeChannel" publish-subscribe="true"/>
+	<publish-subscribe-channel id="publishSubscribeChannelWithTaskExecutorRef"
+	                           task-executor="taskExecutor"/>
 
-	<channel id="channelWithDispatcherPolicy" publish-subscribe="true">
+	<channel id="channelWithDispatcherPolicy">
 		<dispatcher-policy rejection-limit="7"
 		                   retry-interval="77"
 		                   should-fail-on-rejection-limit="false"/>
@@ -26,5 +27,7 @@
 	<channel id="numberChannel" datatype="java.lang.Number"/>
 
 	<channel id="stringOrNumberChannel" datatype="java.lang.String,java.lang.Number"/>
+
+	<beans:bean id="taskExecutor" class="org.springframework.core.task.SimpleAsyncTaskExecutor"/>
 
 </beans:beans>
