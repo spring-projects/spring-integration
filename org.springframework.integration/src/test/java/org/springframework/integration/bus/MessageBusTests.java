@@ -39,7 +39,6 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.scheduling.PollingSchedule;
-import org.springframework.integration.scheduling.Subscription;
 
 /**
  * @author Mark Fisher
@@ -47,7 +46,7 @@ import org.springframework.integration.scheduling.Subscription;
 public class MessageBusTests {
 
 	@Test
-	public void testOutputChannel() {
+	public void testRegistrationWithInputChannelReference() {
 		MessageBus bus = new MessageBus();
 		MessageChannel sourceChannel = new QueueChannel();
 		MessageChannel targetChannel = new QueueChannel();
@@ -61,8 +60,29 @@ public class MessageBusTests {
 				return message;
 			}
 		};
-		Subscription subscription = new Subscription(sourceChannel);
-		bus.registerHandler("handler", handler, subscription);
+		bus.registerHandler("handler", handler, sourceChannel, null);
+		bus.start();
+		Message<?> result = targetChannel.receive(3000);
+		assertEquals("test", result.getPayload());
+		bus.stop();
+	}
+
+	@Test
+	public void testRegistrationWithInputChannelName() {
+		MessageBus bus = new MessageBus();
+		MessageChannel sourceChannel = new QueueChannel();
+		MessageChannel targetChannel = new QueueChannel();
+		bus.registerChannel("sourceChannel", sourceChannel);
+		StringMessage message = new StringMessage("test");
+		message.getHeader().setReturnAddress("targetChannel");
+		sourceChannel.send(message);
+		bus.registerChannel("targetChannel", targetChannel);
+		MessageHandler handler = new MessageHandler() {
+			public Message<?> handle(Message<?> message) {
+				return message;
+			}
+		};
+		bus.registerHandler("handler", handler, "sourceChannel", null);
 		bus.start();
 		Message<?> result = targetChannel.receive(3000);
 		assertEquals("test", result.getPayload());
@@ -117,8 +137,8 @@ public class MessageBusTests {
 		bus.registerChannel("input", inputChannel);
 		bus.registerChannel("output1", outputChannel1);
 		bus.registerChannel("output2", outputChannel2);
-		bus.registerHandler("handler1", handler1, new Subscription(inputChannel));
-		bus.registerHandler("handler2", handler2, new Subscription(inputChannel));
+		bus.registerHandler("handler1", handler1, inputChannel, null);
+		bus.registerHandler("handler2", handler2, inputChannel, null);
 		bus.start();
 		inputChannel.send(new StringMessage(1, "testing"));
 		Message<?> message1 = outputChannel1.receive(100);
@@ -151,8 +171,8 @@ public class MessageBusTests {
 		bus.registerChannel("input", inputChannel);
 		bus.registerChannel("output1", outputChannel1);
 		bus.registerChannel("output2", outputChannel2);
-		bus.registerHandler("handler1", handler1, new Subscription(inputChannel));
-		bus.registerHandler("handler2", handler2, new Subscription(inputChannel));
+		bus.registerHandler("handler1", handler1, inputChannel, null);
+		bus.registerHandler("handler2", handler2, inputChannel, null);
 		bus.start();
 		inputChannel.send(new StringMessage(1, "testing"));
 		latch.await(500, TimeUnit.MILLISECONDS);
@@ -207,7 +227,7 @@ public class MessageBusTests {
 				return null;
 			}
 		};
-		bus.registerHandler("testHandler", handler, new Subscription(MessageBus.ERROR_CHANNEL_NAME));
+		bus.registerHandler("testHandler", handler, MessageBus.ERROR_CHANNEL_NAME, null);
 		bus.start();
 		errorChannel.send(new ErrorMessage(new RuntimeException("test-exception")));
 		latch.await(1000, TimeUnit.MILLISECONDS);

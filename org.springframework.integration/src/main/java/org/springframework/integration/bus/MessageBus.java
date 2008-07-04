@@ -45,6 +45,7 @@ import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.factory.ChannelFactory;
 import org.springframework.integration.channel.factory.QueueChannelFactory;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.DefaultEndpointRegistry;
 import org.springframework.integration.endpoint.EndpointRegistry;
 import org.springframework.integration.endpoint.HandlerEndpoint;
@@ -60,7 +61,6 @@ import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.integration.scheduling.SimpleTaskScheduler;
-import org.springframework.integration.scheduling.Subscription;
 import org.springframework.util.Assert;
 
 /**
@@ -238,22 +238,32 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry,
 		return this.channelRegistry.unregisterChannel(name);
 	}
 
-	public void registerHandler(String name, MessageHandler handler, Subscription subscription) {
+	public void registerHandler(String name, MessageHandler handler, Object input, Schedule schedule) {
 		Assert.notNull(handler, "'handler' must not be null");
 		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
-		endpoint.setName(name);
-		endpoint.setInputChannelName(subscription.getChannelName());
-		endpoint.setSchedule(subscription.getSchedule());
+		this.configureEndpoint(endpoint, name, input, schedule);
 		this.registerEndpoint(endpoint);
 	}
 
-	public void registerTarget(String name, MessageTarget target, Subscription subscription) {
+	public void registerTarget(String name, MessageTarget target, Object input, Schedule schedule) {
 		Assert.notNull(target, "'target' must not be null");
 		TargetEndpoint endpoint = new TargetEndpoint(target);
-		endpoint.setName(name);
-		endpoint.setInputChannelName(subscription.getChannelName());
-		endpoint.setSchedule(subscription.getSchedule());
+		this.configureEndpoint(endpoint, name, input, schedule);
 		this.registerEndpoint(endpoint);
+	}
+
+	private void configureEndpoint(AbstractEndpoint endpoint, String name, Object input, Schedule schedule) {
+		endpoint.setName(name);
+		if (input instanceof MessageChannel) {
+			endpoint.setInputChannel((MessageChannel) input);
+		}
+		else if (input instanceof String) {
+			endpoint.setInputChannelName((String) input);
+		}
+		else {
+			throw new ConfigurationException("'input' must be a MessageChannel or String");
+		}
+		endpoint.setSchedule(schedule);
 	}
 
 	public void registerEndpoint(MessageEndpoint endpoint) {

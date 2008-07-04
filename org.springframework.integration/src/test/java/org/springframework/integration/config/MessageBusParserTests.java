@@ -40,7 +40,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.dispatcher.DirectChannel;
 import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.scheduling.SimpleTaskScheduler;
-import org.springframework.integration.scheduling.Subscription;
 
 /**
  * @author Mark Fisher
@@ -71,8 +70,7 @@ public class MessageBusParserTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageBusWithDefaults.xml", this.getClass());
 		MessageBus bus = (MessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
-		Subscription subscription = new Subscription("unknownChannel");
-		bus.registerHandler("handler", TestHandlers.nullHandler(), subscription);
+		bus.registerHandler("handler", TestHandlers.nullHandler(), "unknownChannel", null);
 	}
 
 	@Test
@@ -80,8 +78,7 @@ public class MessageBusParserTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageBusWithAutoCreateChannels.xml", this.getClass());
 		MessageBus bus = (MessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
-		Subscription subscription = new Subscription("channelToCreate");
-		bus.registerHandler("handler", TestHandlers.nullHandler(), subscription);
+		bus.registerHandler("handler", TestHandlers.nullHandler(), "channelToCreate", null);
 		bus.start();
 		assertNotNull(bus.lookupChannel("channelToCreate"));
 		bus.stop();

@@ -29,7 +29,6 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.Subscriber;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
-import org.springframework.integration.scheduling.Subscription;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
@@ -92,8 +91,7 @@ public class SubscriberAnnotationPostProcessor implements BeanPostProcessor {
 					adapter.afterPropertiesSet();
 					String adapterName = ClassUtils.getShortNameAsProperty(targetClass) + 
 							"-" + method.getName() + "-endpoint";
-					Subscription subscription = new Subscription(channelName);
-					messageBus.registerHandler(adapterName, adapter, subscription);
+					messageBus.registerHandler(adapterName, adapter, channelName, null);
 				}
 			}
 		});

@@ -27,15 +27,13 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.DelegatingIntroductionInterceptor;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Polled;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.scheduling.PollingSchedule;
-import org.springframework.integration.scheduling.Subscription;
+import org.springframework.integration.scheduling.Schedule;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Base class for post-processing annotated methods.
@@ -99,20 +97,16 @@ public abstract class AbstractAnnotationMethodPostProcessor<T> implements Annota
 		return null;
 	}
 
-	protected Subscription createSubscription(final Object bean, final String beanName, MessageEndpoint annotation, Polled polledAnnotation) {
-		String channelName = annotation.input();
-		if (StringUtils.hasText(channelName)) {
-			PollingSchedule schedule = null;
-			if (polledAnnotation != null) {
-				schedule = new PollingSchedule(polledAnnotation.period());
-				schedule.setInitialDelay(polledAnnotation.initialDelay());
-				schedule.setFixedRate(polledAnnotation.fixedRate());
-				schedule.setTimeUnit(polledAnnotation.timeUnit());
-			}
-			Subscription subscription = new Subscription(channelName, schedule);
-			return subscription;
+	protected Schedule extractSchedule(Class<?> originalBeanClass) {
+		PollingSchedule schedule = null;
+		Polled polledAnnotation = AnnotationUtils.findAnnotation(originalBeanClass, Polled.class);
+		if (polledAnnotation != null) {
+			schedule = new PollingSchedule(polledAnnotation.period());
+			schedule.setInitialDelay(polledAnnotation.initialDelay());
+			schedule.setFixedRate(polledAnnotation.fixedRate());
+			schedule.setTimeUnit(polledAnnotation.timeUnit());
 		}
-		return null;
+		return schedule;
 	}
 
 

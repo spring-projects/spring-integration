@@ -32,7 +32,6 @@ import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.Concurrency;
 import org.springframework.integration.annotation.Handler;
-import org.springframework.integration.annotation.Polled;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.annotation.Transformer;
@@ -49,7 +48,7 @@ import org.springframework.integration.handler.config.MessageHandlerCreator;
 import org.springframework.integration.router.config.AggregatorMessageHandlerCreator;
 import org.springframework.integration.router.config.RouterMessageHandlerCreator;
 import org.springframework.integration.router.config.SplitterMessageHandlerCreator;
-import org.springframework.integration.scheduling.Subscription;
+import org.springframework.integration.scheduling.Schedule;
 import org.springframework.integration.transformer.config.TransformerMessageHandlerCreator;
 import org.springframework.util.StringUtils;
 
@@ -137,11 +136,13 @@ public class HandlerAnnotationPostProcessor extends AbstractAnnotationMethodPost
 		if (StringUtils.hasText(outputChannelName)) {
 			endpoint.setOutputChannelName(outputChannelName);
 		}
-		Polled polledAnnotation = AnnotationUtils.findAnnotation(originalBeanClass, Polled.class);
-		Subscription subscription = this.createSubscription(bean, beanName, endpointAnnotation, polledAnnotation);
-		if (subscription != null) {
-			endpoint.setSchedule(subscription.getSchedule());
-			endpoint.setInputChannelName(subscription.getChannelName());
+		String inputChannelName = endpointAnnotation.input();
+		if (StringUtils.hasText(inputChannelName)) {
+			endpoint.setInputChannelName(inputChannelName);
+		}
+		Schedule schedule = this.extractSchedule(originalBeanClass);
+		if (schedule != null) {
+			endpoint.setSchedule(schedule);
 		}
 		Concurrency concurrencyAnnotation = AnnotationUtils.findAnnotation(originalBeanClass, Concurrency.class);
 		if (concurrencyAnnotation != null) {

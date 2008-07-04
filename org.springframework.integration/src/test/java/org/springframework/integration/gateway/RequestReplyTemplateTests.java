@@ -33,7 +33,6 @@ import org.springframework.integration.handler.ReplyHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHeader;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.scheduling.Subscription;
 
 /**
  * @author Mark Fisher
@@ -51,7 +50,7 @@ public class RequestReplyTemplateTests {
 		};
 		MessageBus bus = new MessageBus();
 		bus.registerChannel("requestChannel", requestChannel);
-		bus.registerHandler("testHandler", testHandler, new Subscription(requestChannel));
+		bus.registerHandler("testHandler", testHandler, requestChannel, null);
 		bus.start();
 	}
 

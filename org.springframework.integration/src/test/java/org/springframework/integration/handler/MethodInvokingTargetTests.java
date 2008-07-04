@@ -34,7 +34,6 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.scheduling.Subscription;
 
 /**
  * @author Mark Fisher
@@ -88,13 +87,12 @@ public class MethodInvokingTargetTests {
 		target.setMethodName("foo");
 		target.afterPropertiesSet();
 		QueueChannel channel = new QueueChannel();
-		Subscription subscription = new Subscription(channel);
 		Message<String> message = new GenericMessage<String>("123", "testing");
 		channel.send(message);
 		assertNull(queue.poll());
 		MessageBus bus = new MessageBus();
 		bus.registerChannel("channel", channel);
-		bus.registerHandler("targetAdapter", target, subscription);
+		bus.registerHandler("targetAdapter", target, channel, null);
 		bus.start();
 		String result = queue.poll(500, TimeUnit.MILLISECONDS);
 		assertNotNull(result);

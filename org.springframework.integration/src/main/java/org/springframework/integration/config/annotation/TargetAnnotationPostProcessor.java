@@ -23,7 +23,6 @@ import java.util.List;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.annotation.Concurrency;
-import org.springframework.integration.annotation.Polled;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.MessageEndpoint;
@@ -31,7 +30,8 @@ import org.springframework.integration.endpoint.TargetEndpoint;
 import org.springframework.integration.endpoint.interceptor.ConcurrencyInterceptor;
 import org.springframework.integration.handler.MethodInvokingTarget;
 import org.springframework.integration.message.MessageTarget;
-import org.springframework.integration.scheduling.Subscription;
+import org.springframework.integration.scheduling.Schedule;
+import org.springframework.util.StringUtils;
 
 /**
  * Post-processor for classes annotated with {@link MessageTarget @MessageTarget}.
@@ -62,10 +62,14 @@ public class TargetAnnotationPostProcessor extends AbstractAnnotationMethodPostP
 	public MessageEndpoint createEndpoint(Object bean, String beanName, Class<?> originalBeanClass,
 			org.springframework.integration.annotation.MessageEndpoint endpointAnnotation) {
 		TargetEndpoint endpoint = new TargetEndpoint((MessageTarget) bean);
-		Polled polledAnnotation = AnnotationUtils.findAnnotation(originalBeanClass, Polled.class);
-		Subscription subscription = this.createSubscription(bean, beanName, endpointAnnotation, polledAnnotation);
-		endpoint.setSchedule(subscription.getSchedule());
-		endpoint.setInputChannelName(subscription.getChannelName());
+		String inputChannelName = endpointAnnotation.input();
+		if (StringUtils.hasText(inputChannelName)) {
+			endpoint.setInputChannelName(inputChannelName);
+		}
+		Schedule schedule = this.extractSchedule(originalBeanClass);
+		if (schedule != null) {
+			endpoint.setSchedule(schedule);
+		}
 		Concurrency concurrencyAnnotation = AnnotationUtils.findAnnotation(originalBeanClass, Concurrency.class);
 		if (concurrencyAnnotation != null) {
 			ConcurrencyPolicy concurrencyPolicy = new ConcurrencyPolicy(concurrencyAnnotation.coreSize(),
