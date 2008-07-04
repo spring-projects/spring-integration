@@ -150,7 +150,7 @@ public class HandlerAnnotationPostProcessor extends AbstractAnnotationMethodPost
 					concurrencyAnnotation.coreSize(), concurrencyAnnotation.maxSize());
 			concurrencyPolicy.setKeepAliveSeconds(concurrencyAnnotation.keepAliveSeconds());
 			concurrencyPolicy.setQueueCapacity(concurrencyAnnotation.queueCapacity());
-			endpoint.addInterceptor(new ConcurrencyInterceptor(concurrencyPolicy));
+			endpoint.addInterceptor(new ConcurrencyInterceptor(concurrencyPolicy, beanName));
 		}
 		return endpoint;
 	}

@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -48,19 +49,20 @@ import org.springframework.integration.channel.factory.QueueChannelFactory;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.DefaultEndpointRegistry;
 import org.springframework.integration.endpoint.EndpointRegistry;
+import org.springframework.integration.endpoint.EndpointTrigger;
 import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.MessagingGateway;
 import org.springframework.integration.endpoint.TargetEndpoint;
-import org.springframework.integration.endpoint.EndpointTrigger;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.Subscribable;
 import org.springframework.integration.scheduling.MessagePublishingErrorHandler;
 import org.springframework.integration.scheduling.PollingSchedule;
-import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.integration.scheduling.SimpleTaskScheduler;
+import org.springframework.integration.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 
 /**
@@ -200,8 +202,10 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry,
 			}
 			this.initializing = true;
 			if (this.taskScheduler == null) {
-				this.taskScheduler = new SimpleTaskScheduler(
-						new ScheduledThreadPoolExecutor(DEFAULT_DISPATCHER_POOL_SIZE));
+				ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(DEFAULT_DISPATCHER_POOL_SIZE);
+				executor.setThreadFactory(new CustomizableThreadFactory("message-bus-"));
+				executor.setRejectedExecutionHandler(new CallerRunsPolicy());
+				this.taskScheduler = new SimpleTaskScheduler(executor);
 			}
 			if (this.getErrorChannel() == null) {
 				this.setErrorChannel(new DefaultErrorChannel());

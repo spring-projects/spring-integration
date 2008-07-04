@@ -21,6 +21,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
 import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
@@ -41,6 +42,7 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.scheduling.MessagePublishingErrorHandler;
 import org.springframework.integration.util.ErrorHandler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 
 /**
@@ -66,7 +68,7 @@ public class ConcurrencyInterceptor extends EndpointInterceptorAdapter
 		this.executor = executor;
 	}
 
-	public ConcurrencyInterceptor(ConcurrencyPolicy concurrencyPolicy) {
+	public ConcurrencyInterceptor(ConcurrencyPolicy concurrencyPolicy, String threadPrefix) {
 		Assert.notNull(concurrencyPolicy, "ConcurrencyPolicy must not be null");
 		int core = concurrencyPolicy.getCoreSize();
 		int max = concurrencyPolicy.getMaxSize();
@@ -75,6 +77,8 @@ public class ConcurrencyInterceptor extends EndpointInterceptorAdapter
 		BlockingQueue<Runnable> queue = (capacity > 0) ?
 				new LinkedBlockingQueue<Runnable>(capacity) : new SynchronousQueue<Runnable>();
 		ThreadPoolExecutor tpe = new ThreadPoolExecutor(core, max, keepAlive, TimeUnit.SECONDS, queue);
+		tpe.setThreadFactory(new CustomizableThreadFactory(threadPrefix));
+		tpe.setRejectedExecutionHandler(new CallerRunsPolicy());
 		this.executor = new ConcurrentTaskExecutor(tpe);
 	}
 

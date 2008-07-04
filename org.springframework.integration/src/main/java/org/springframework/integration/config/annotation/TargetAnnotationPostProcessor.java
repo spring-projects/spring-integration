@@ -76,7 +76,7 @@ public class TargetAnnotationPostProcessor extends AbstractAnnotationMethodPostP
 					concurrencyAnnotation.maxSize());
 			concurrencyPolicy.setKeepAliveSeconds(concurrencyAnnotation.keepAliveSeconds());
 			concurrencyPolicy.setQueueCapacity(concurrencyAnnotation.queueCapacity());
-			endpoint.addInterceptor(new ConcurrencyInterceptor(concurrencyPolicy));
+			endpoint.addInterceptor(new ConcurrencyInterceptor(concurrencyPolicy, beanName));
 		}
 		return endpoint;
 	}

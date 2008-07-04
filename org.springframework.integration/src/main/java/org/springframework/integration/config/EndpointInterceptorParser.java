@@ -19,6 +19,10 @@ package org.springframework.integration.config;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
@@ -28,9 +32,6 @@ import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.NamespaceHandler;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.Assert;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  * A helper class for parsing the sub-elements of an endpoint's
@@ -57,8 +58,8 @@ public class EndpointInterceptorParser {
 				Element childElement = (Element) child;
 				String localName = child.getLocalName();
 				if ("bean".equals(localName)) {
-					BeanDefinitionParserDelegate beanParser = new BeanDefinitionParserDelegate(parserContext
-							.getReaderContext());
+					BeanDefinitionParserDelegate beanParser =
+							new BeanDefinitionParserDelegate(parserContext.getReaderContext());
 					beanParser.initDefaults(childElement.getOwnerDocument().getDocumentElement());
 					BeanDefinitionHolder beanDefinitionHolder = beanParser.parseBeanDefinitionElement(childElement);
 					parserContext.registerBeanComponent(new BeanComponentDefinition(beanDefinitionHolder));
@@ -70,7 +71,7 @@ public class EndpointInterceptorParser {
 				}
 				else {
 					BeanDefinitionRegisteringParser parser = this.parsers.get(localName);
-					String interceptorBeanName;
+					String interceptorBeanName = null;
 					if (parser == null) {
 						interceptorBeanName = handleNonstandardInterceptor(childElement, parserContext);
 					}
@@ -85,13 +86,13 @@ public class EndpointInterceptorParser {
 	}
 
 	protected String handleNonstandardInterceptor(Element childElement, ParserContext parserContext) {
-		NamespaceHandler handlerFromOtherNamespace = parserContext.getReaderContext().getNamespaceHandlerResolver()
+		NamespaceHandler handler = parserContext.getReaderContext().getNamespaceHandlerResolver()
 				.resolve(childElement.getNamespaceURI());
-		AbstractBeanDefinition interceptorDefintiion = ((AbstractBeanDefinition) handlerFromOtherNamespace.parse(
-				childElement, parserContext));
-		String beanName = (String) interceptorDefintiion.getMetadataAttribute("interceptorName").getValue();
-		Assert.hasText("No value for interceptorName provided by namespace handler for element "
-				+ childElement.getNodeName());
+		AbstractBeanDefinition interceptorDefinition =
+				((AbstractBeanDefinition) handler.parse(childElement, parserContext));
+		String beanName = (String) interceptorDefinition.getMetadataAttribute("interceptorName").getValue();
+		Assert.hasText("No value for interceptorName provided by namespace handler for element '"
+				+ childElement.getNodeName() + "'");
 		return beanName;
 	}
 

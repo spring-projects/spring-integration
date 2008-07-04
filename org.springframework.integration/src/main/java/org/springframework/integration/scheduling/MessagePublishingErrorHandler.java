@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.ErrorMessage;
+import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.util.ErrorHandler;
 
 /**
@@ -52,7 +53,13 @@ public class MessagePublishingErrorHandler implements ErrorHandler {
 
 	public final void handle(Throwable t) {
 		if (logger.isWarnEnabled()) {
-			logger.warn("failure occurred in messaging task", t);
+			if (t instanceof MessagingException) {
+				logger.warn("failure occurred in messaging task with message: "
+						+ ((MessagingException) t).getFailedMessage(), t);
+			}
+			else {
+				logger.warn("failure occurred in messaging task", t);
+			}
 		}
 		if (this.errorChannel != null) {
 			try {

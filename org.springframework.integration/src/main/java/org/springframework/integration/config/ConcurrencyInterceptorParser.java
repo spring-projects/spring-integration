@@ -46,8 +46,10 @@ public class ConcurrencyInterceptorParser implements BeanDefinitionRegisteringPa
 		else {
 			ConcurrencyPolicy policy = this.parseConcurrencyPolicy(element);
 			builder.addConstructorArgValue(policy);
+			builder.addConstructorArgValue("concurrency-interceptor-");
 		}
-		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
+		return BeanDefinitionReaderUtils.registerWithGeneratedName(
+				builder.getBeanDefinition(), parserContext.getRegistry());
 	}
 
 	private ConcurrencyPolicy parseConcurrencyPolicy(Element element) {
