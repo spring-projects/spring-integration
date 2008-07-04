@@ -33,7 +33,6 @@ import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.scheduling.Subscription;
 
 /**
  * @author Mark Fisher
@@ -57,9 +56,10 @@ public class DirectChannelSubscriptionTests {
 	@Test
 	public void testSendAndReceiveForRegisteredEndpoint() {
 		HandlerEndpoint endpoint = new HandlerEndpoint(new TestHandler());
-		endpoint.setSubscription(new Subscription("sourceChannel"));
+		endpoint.setInputChannelName("sourceChannel");
 		endpoint.setOutputChannelName("targetChannel");
-		bus.registerEndpoint("testEndpoint", endpoint);
+		endpoint.setName("testEndpoint");
+		bus.registerEndpoint(endpoint);
 		bus.start();
 		this.sourceChannel.send(new StringMessage("foo"));
 		Message<?> response = this.targetChannel.receive();
@@ -89,9 +89,10 @@ public class DirectChannelSubscriptionTests {
 				throw new RuntimeException("intentional test failure");
 			}
 		});
-		endpoint.setSubscription(new Subscription("sourceChannel"));
+		endpoint.setInputChannelName("sourceChannel");
 		endpoint.setOutputChannelName("targetChannel");
-		bus.registerEndpoint("testEndpoint", endpoint);
+		endpoint.setName("testEndpoint");
+		bus.registerEndpoint(endpoint);
 		bus.start();
 		this.sourceChannel.send(new StringMessage("foo"));
 	}

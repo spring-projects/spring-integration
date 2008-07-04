@@ -84,7 +84,8 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Init
 				org.springframework.integration.endpoint.MessageEndpoint endpoint =
 						postProcessor.createEndpoint(bean, beanName, beanClass, endpointAnnotation);
 				if (endpoint != null) {
-					this.messageBus.registerEndpoint(beanName + "." + entry.getKey().getSimpleName() + ".endpoint", endpoint);
+					endpoint.setName(beanName + "." + entry.getKey().getSimpleName() + ".endpoint");
+					this.messageBus.registerEndpoint(endpoint);
 				}
 			}
 		}

@@ -33,7 +33,6 @@ import org.springframework.integration.handler.MessageHandlerNotRunningException
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.scheduling.Schedule;
-import org.springframework.integration.scheduling.Subscription;
 
 /**
  * Base class for {@link MessageEndpoint} implementations.
@@ -46,21 +45,25 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 
 	private volatile String name;
 
+	private volatile String inputChannelName;
+
+	private MessageChannel inputChannel;
+
+	private volatile String outputChannelName;
+
+	private MessageChannel outputChannel;
+
 	private final List<Advice> interceptors = new ArrayList<Advice>();
-
-	private volatile boolean autoStartup = true;
-
-	private volatile boolean running;
 
 	private volatile Schedule schedule;
 
 	private volatile EndpointTrigger trigger;
 
-	private volatile Subscription subscription;
-
-	private volatile String outputChannelName;
-
 	private volatile ChannelRegistry channelRegistry;
+
+	private volatile boolean autoStartup = true;
+
+	private volatile boolean running;
 
 	private final Object lifecycleMonitor = new Object();
 
@@ -93,12 +96,25 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 		return this.trigger;
 	}
 
-	public Subscription getSubscription() {
-		return this.subscription;
+	public void setInputChannelName(String inputChannelName) {
+		this.inputChannelName = inputChannelName;
 	}
 
-	public void setSubscription(Subscription subscription) {
-		this.subscription = subscription;
+	public String getInputChannelName() {
+		return this.inputChannelName;
+	}
+
+	public void setInputChannel(MessageChannel channel) {
+		this.inputChannel = channel; 
+		this.inputChannelName = channel.getName();
+	}
+
+	public MessageChannel getInputChannel() {
+		if (this.inputChannel == null &&
+				(this.inputChannelName != null && this.channelRegistry != null)) {
+			this.inputChannel = this.channelRegistry.lookupChannel(this.inputChannelName);
+		}
+		return this.inputChannel;
 	}
 
 	/**
@@ -109,15 +125,21 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 		this.outputChannelName = outputChannelName;
 	}
 
-	public MessageChannel getOutputChannel() {
-		if (this.outputChannelName != null && this.channelRegistry != null) {
-			return this.channelRegistry.lookupChannel(this.outputChannelName);
-		}
-		return null;
-	}
-
 	public String getOutputChannelName() {
 		return this.outputChannelName;
+	}
+
+	public void setOutputChannel(MessageChannel outputChannel) {
+		this.outputChannel = outputChannel;
+		this.outputChannelName = outputChannel.getName();
+	}
+
+	public MessageChannel getOutputChannel() {
+		if (this.outputChannel == null &&
+				(this.outputChannelName != null && this.channelRegistry != null)) {
+			this.outputChannel = this.channelRegistry.lookupChannel(this.outputChannelName);
+		}
+		return this.outputChannel;
 	}
 
 	/**

@@ -180,7 +180,7 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry,
 		Map<String, MessageEndpoint> endpointBeans = (Map<String, MessageEndpoint>) context
 				.getBeansOfType(MessageEndpoint.class);
 		for (Map.Entry<String, MessageEndpoint> entry : endpointBeans.entrySet()) {
-			this.registerEndpoint(entry.getKey(), entry.getValue());
+			this.registerEndpoint(entry.getValue());
 		}
 	}
 
@@ -241,34 +241,34 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry,
 	public void registerHandler(String name, MessageHandler handler, Subscription subscription) {
 		Assert.notNull(handler, "'handler' must not be null");
 		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
-		this.doRegisterEndpoint(name, endpoint, subscription);
+		endpoint.setName(name);
+		endpoint.setInputChannelName(subscription.getChannelName());
+		endpoint.setSchedule(subscription.getSchedule());
+		this.registerEndpoint(endpoint);
 	}
 
 	public void registerTarget(String name, MessageTarget target, Subscription subscription) {
 		Assert.notNull(target, "'target' must not be null");
 		TargetEndpoint endpoint = new TargetEndpoint(target);
-		this.doRegisterEndpoint(name, endpoint, subscription);
-	}
-
-	private void doRegisterEndpoint(String name, TargetEndpoint endpoint, Subscription subscription) {
 		endpoint.setName(name);
-		endpoint.setSubscription(subscription);
-		this.registerEndpoint(name, endpoint);
+		endpoint.setInputChannelName(subscription.getChannelName());
+		endpoint.setSchedule(subscription.getSchedule());
+		this.registerEndpoint(endpoint);
 	}
 
-	public void registerEndpoint(String name, MessageEndpoint endpoint) {
+	public void registerEndpoint(MessageEndpoint endpoint) {
 		if (!this.initialized) {
 			this.initialize();
 		}
 		if (endpoint instanceof ChannelRegistryAware) {
 			((ChannelRegistryAware) endpoint).setChannelRegistry(this.channelRegistry);
 		}
-		this.endpointRegistry.registerEndpoint(name, endpoint);
+		this.endpointRegistry.registerEndpoint(endpoint);
 		if (this.isRunning()) {
 			this.activateEndpoint(endpoint);
 		}
 		if (logger.isInfoEnabled()) {
-			logger.info("registered endpoint '" + name + "'");
+			logger.info("registered endpoint '" + endpoint + "'");
 		}
 	}
 
@@ -310,26 +310,19 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry,
 		catch (Exception e) {
 			throw new ConfigurationException("failed to initialize endpoint", e);
 		}
-		Schedule schedule = null;
-		Subscription subscription = endpoint.getSubscription();
-		if (subscription != null) {
-			schedule = subscription.getSchedule();
-			MessageChannel channel = subscription.getChannel();
-			if (channel == null) {
-				channel = this.lookupOrCreateChannel(subscription.getChannelName());
-			}
-			if (channel != null && channel instanceof Subscribable) {
-				((Subscribable) channel).subscribe(endpoint);
-				if (logger.isInfoEnabled()) {
-					logger.info("activated subscription to channel '"
-							+ channel.getName() + "' for endpoint '" + endpoint + "'");
-				}
-				return;
-			}
+		MessageChannel channel = endpoint.getInputChannel();
+		if (channel == null) {
+			channel = this.lookupOrCreateChannel(endpoint.getInputChannelName());
 		}
-		if (schedule == null) {
-			schedule = endpoint.getSchedule();
+		if (channel != null && channel instanceof Subscribable) {
+			((Subscribable) channel).subscribe(endpoint);
+			if (logger.isInfoEnabled()) {
+				logger.info("activated subscription to channel '"
+						+ channel.getName() + "' for endpoint '" + endpoint + "'");
+			}
+			return;
 		}
+		Schedule schedule = endpoint.getSchedule();
 		EndpointTrigger trigger = endpoint.getTrigger();
 		if (trigger == null) {
 			trigger = new EndpointTrigger(schedule != null ? schedule : this.defaultPollerSchedule);

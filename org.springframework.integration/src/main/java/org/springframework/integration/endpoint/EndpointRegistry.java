@@ -25,7 +25,7 @@ import java.util.Set;
  */
 public interface EndpointRegistry {
 
-	void registerEndpoint(String name, MessageEndpoint endpoint);
+	void registerEndpoint(MessageEndpoint endpoint);
 
 	MessageEndpoint unregisterEndpoint(String name);
 

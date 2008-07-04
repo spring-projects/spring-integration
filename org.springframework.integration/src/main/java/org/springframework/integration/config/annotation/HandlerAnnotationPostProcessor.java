@@ -140,7 +140,8 @@ public class HandlerAnnotationPostProcessor extends AbstractAnnotationMethodPost
 		Polled polledAnnotation = AnnotationUtils.findAnnotation(originalBeanClass, Polled.class);
 		Subscription subscription = this.createSubscription(bean, beanName, endpointAnnotation, polledAnnotation);
 		if (subscription != null) {
-			endpoint.setSubscription(subscription);
+			endpoint.setSchedule(subscription.getSchedule());
+			endpoint.setInputChannelName(subscription.getChannelName());
 		}
 		Concurrency concurrencyAnnotation = AnnotationUtils.findAnnotation(originalBeanClass, Concurrency.class);
 		if (concurrencyAnnotation != null) {

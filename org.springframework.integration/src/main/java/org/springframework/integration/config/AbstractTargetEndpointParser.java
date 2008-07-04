@@ -31,7 +31,6 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
-import org.springframework.integration.scheduling.Subscription;
 import org.springframework.util.StringUtils;
 
 /**
@@ -42,8 +41,6 @@ import org.springframework.util.StringUtils;
 public abstract class AbstractTargetEndpointParser extends AbstractSingleBeanDefinitionParser {
 
 	private static final String INPUT_CHANNEL_ATTRIBUTE = "input-channel";
-
-	private static final String SUBSCRIPTION_PROPERTY = "subscription";
 
 	private static final String SELECTOR_ATTRIBUTE = "selector";
 
@@ -79,7 +76,7 @@ public abstract class AbstractTargetEndpointParser extends AbstractSingleBeanDef
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		this.parseTarget(element, this.getTargetAttributeName(), parserContext, builder);
-		String inputChannel = element.getAttribute(INPUT_CHANNEL_ATTRIBUTE);
+		String inputChannelName = element.getAttribute(INPUT_CHANNEL_ATTRIBUTE);
 		Schedule schedule = null;
 		NodeList childNodes = element.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); i++) {
@@ -97,15 +94,11 @@ public abstract class AbstractTargetEndpointParser extends AbstractSingleBeanDef
 				}
 			}
 		}
-		if (StringUtils.hasText(inputChannel)) {
-			RootBeanDefinition subscriptionDef = new RootBeanDefinition(Subscription.class);
-			subscriptionDef.getConstructorArgumentValues().addGenericArgumentValue(inputChannel);
-			if (schedule != null) {
-				subscriptionDef.getConstructorArgumentValues().addGenericArgumentValue(schedule);
-			}
-			String subscriptionBeanName = parserContext.getReaderContext().generateBeanName(subscriptionDef);
-			parserContext.registerBeanComponent(new BeanComponentDefinition(subscriptionDef, subscriptionBeanName));
-			builder.addPropertyReference(SUBSCRIPTION_PROPERTY, subscriptionBeanName);
+		if (StringUtils.hasText(inputChannelName)) {
+			builder.addPropertyValue("inputChannelName", inputChannelName);
+		}
+		if (schedule != null) {
+			builder.addPropertyValue("schedule", schedule);
 		}
 		String selectorRef = element.getAttribute(SELECTOR_ATTRIBUTE);
 		if (StringUtils.hasText(selectorRef)) {

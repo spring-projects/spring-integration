@@ -64,7 +64,8 @@ public class TargetAnnotationPostProcessor extends AbstractAnnotationMethodPostP
 		TargetEndpoint endpoint = new TargetEndpoint((MessageTarget) bean);
 		Polled polledAnnotation = AnnotationUtils.findAnnotation(originalBeanClass, Polled.class);
 		Subscription subscription = this.createSubscription(bean, beanName, endpointAnnotation, polledAnnotation);
-		endpoint.setSubscription(subscription);
+		endpoint.setSchedule(subscription.getSchedule());
+		endpoint.setInputChannelName(subscription.getChannelName());
 		Concurrency concurrencyAnnotation = AnnotationUtils.findAnnotation(originalBeanClass, Concurrency.class);
 		if (concurrencyAnnotation != null) {
 			ConcurrencyPolicy concurrencyPolicy = new ConcurrencyPolicy(concurrencyAnnotation.coreSize(),

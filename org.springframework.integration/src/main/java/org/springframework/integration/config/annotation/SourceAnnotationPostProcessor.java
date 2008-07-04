@@ -61,6 +61,7 @@ public class SourceAnnotationPostProcessor extends AbstractAnnotationMethodPostP
 
 	public MessageEndpoint createEndpoint(Object bean, String beanName, Class<?> originalBeanClass,
 			org.springframework.integration.annotation.MessageEndpoint endpointAnnotation) {
+		SourceEndpoint endpoint = new SourceEndpoint((MessageSource<?>) bean);
 		Polled polledAnnotation = AnnotationUtils.findAnnotation(originalBeanClass, Polled.class);
 		int period = polledAnnotation.period();
 		long initialDelay = polledAnnotation.initialDelay();
@@ -68,15 +69,16 @@ public class SourceAnnotationPostProcessor extends AbstractAnnotationMethodPostP
 		PollingSchedule schedule = new PollingSchedule(period);
 		schedule.setInitialDelay(initialDelay);
 		schedule.setFixedRate(fixedRate);
-		String outputChannelName = endpointAnnotation.output();
-		MessageChannel outputChannel = (StringUtils.hasText(outputChannelName)) ?
-				this.getMessageBus().lookupChannel(outputChannelName) : null;
-		if (outputChannel == null) {
-			outputChannel = new DirectChannel();
-			this.getMessageBus().registerChannel(beanName + ".output", outputChannel);
-		}
-		SourceEndpoint endpoint = new SourceEndpoint((MessageSource<?>) bean, outputChannel);
 		endpoint.setSchedule(schedule);
+		String outputChannelName = endpointAnnotation.output();
+		if (!StringUtils.hasText(outputChannelName)) {
+			MessageChannel outputChannel = new DirectChannel();
+			this.getMessageBus().registerChannel(beanName + ".output", outputChannel);
+			endpoint.setOutputChannel(outputChannel);
+		}
+		else {
+			endpoint.setOutputChannelName(outputChannelName);
+		}
 		return endpoint;
 	}
 

@@ -22,7 +22,6 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.PollCommand;
 import org.springframework.integration.message.selector.MessageSelector;
-import org.springframework.integration.scheduling.Subscription;
 import org.springframework.util.Assert;
 
 /**
@@ -33,8 +32,6 @@ import org.springframework.util.Assert;
 public class TargetEndpoint extends AbstractEndpoint {
 
 	private volatile MessageTarget target;
-
-	private volatile Subscription subscription;
 
 	private volatile MessageSelector selector;
 
@@ -65,14 +62,6 @@ public class TargetEndpoint extends AbstractEndpoint {
 		this.selector = selector;
 	}
 
-	public Subscription getSubscription() {
-		return this.subscription;
-	}
-
-	public void setSubscription(Subscription subscription) {
-		this.subscription = subscription;
-	}
-
 	protected void initialize() {
 		synchronized (this.initializationMonitor) {
 	        if (this.initialized) {
@@ -88,10 +77,7 @@ public class TargetEndpoint extends AbstractEndpoint {
 	@Override
 	protected final boolean doInvoke(Message<?> message) {
 		if (message.getPayload() instanceof PollCommand) {
-			MessageChannel channel = this.getSubscription().getChannel();
-			if (channel == null && this.getSubscription().getChannelName() != null) {
-				channel = this.getChannelRegistry().lookupChannel(this.getSubscription().getChannelName());
-			}
+			MessageChannel channel = this.getInputChannel();
 			if (channel != null) {
 				Message<?> receivedMessage = channel.receive(5000);
 				if (receivedMessage != null) {
@@ -99,8 +85,7 @@ public class TargetEndpoint extends AbstractEndpoint {
 				}
 			}
 			else if (logger.isDebugEnabled()) {
-				logger.debug("TargetEndpoint unable to resolve channel '"
-						+ this.getSubscription().getChannelName() + "'");
+				logger.debug("TargetEndpoint unable to resolve channel '" + this.getInputChannelName() + "'");
 			}
 			return false;
 		}

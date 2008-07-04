@@ -32,7 +32,6 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.selector.MessageSelector;
-import org.springframework.integration.scheduling.Subscription;
 
 /**
  * A template that facilitates the implementation of request-reply usage
@@ -215,8 +214,9 @@ public class RequestReplyTemplate implements MessageBusAware {
 			}
 			ReplyMessageCorrelator correlator = new ReplyMessageCorrelator(10);
 			HandlerEndpoint endpoint = new HandlerEndpoint(correlator);
-			endpoint.setSubscription(new Subscription(this.replyChannel));
-			this.endpointRegistry.registerEndpoint("internal.correlator." + this, endpoint);
+			endpoint.setInputChannel(this.replyChannel);
+			endpoint.setName("internal.correlator." + this);
+			this.endpointRegistry.registerEndpoint(endpoint);
 			this.replyMessageCorrelator = correlator;
 		}
 	}

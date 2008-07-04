@@ -40,7 +40,8 @@ public class SourceEndpointTests {
 	public void testPolledSourceSendsToChannel() {
 		TestSource source = new TestSource("testing", 1);
 		QueueChannel channel = new QueueChannel();
-		SourceEndpoint endpoint = new SourceEndpoint(source, channel);
+		SourceEndpoint endpoint = new SourceEndpoint(source);
+		endpoint.setOutputChannel(channel);
 		endpoint.afterPropertiesSet();
 		endpoint.send(new CommandMessage(new PollCommand()));
 		Message<?> message = channel.receive(1000);
@@ -52,7 +53,8 @@ public class SourceEndpointTests {
 	public void testAutoStartupDisabled() {
 		TestSource source = new TestSource("testing", 1);
 		QueueChannel channel = new QueueChannel();
-		SourceEndpoint endpoint = new SourceEndpoint(source, channel);
+		SourceEndpoint endpoint = new SourceEndpoint(source);
+		endpoint.setOutputChannel(channel);
 		endpoint.setAutoStartup(false);
 		endpoint.afterPropertiesSet();
 		endpoint.send(new CommandMessage(new PollCommand()));

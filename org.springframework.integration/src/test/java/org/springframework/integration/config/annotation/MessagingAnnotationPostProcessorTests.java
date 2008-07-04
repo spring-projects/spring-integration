@@ -361,7 +361,7 @@ public class MessagingAnnotationPostProcessorTests {
 		AnnotatedEndpointWithPolledAnnotation endpoint = new AnnotatedEndpointWithPolledAnnotation();
 		postProcessor.postProcessAfterInitialization(endpoint, "testBean");
 		HandlerEndpoint processedEndpoint = (HandlerEndpoint) messageBus.lookupEndpoint("testBean.MessageHandler.endpoint");
-		Schedule schedule = processedEndpoint.getSubscription().getSchedule();
+		Schedule schedule = processedEndpoint.getSchedule();
 		assertEquals(PollingSchedule.class, schedule.getClass());
 		PollingSchedule pollingSchedule = (PollingSchedule) schedule;
 		assertEquals(1234, pollingSchedule.getPeriod());

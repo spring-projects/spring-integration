@@ -28,7 +28,6 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -169,9 +168,11 @@ public class MessageBusTests {
 	public void testErrorChannelWithFailedDispatch() throws InterruptedException {
 		MessageBus bus = new MessageBus();
 		CountDownLatch latch = new CountDownLatch(1);
-		SourceEndpoint sourceEndpoint = new SourceEndpoint(new FailingSource(latch), new QueueChannel());
+		SourceEndpoint sourceEndpoint = new SourceEndpoint(new FailingSource(latch));
+		sourceEndpoint.setOutputChannel(new QueueChannel());
 		sourceEndpoint.setSchedule(new PollingSchedule(1000));
-		bus.registerEndpoint("testEndpoint", sourceEndpoint);
+		sourceEndpoint.setName("testEndpoint");
+		bus.registerEndpoint(sourceEndpoint);
 		bus.start();
 		latch.await(2000, TimeUnit.MILLISECONDS);
 		Message<?> message = bus.getErrorChannel().receive(100);

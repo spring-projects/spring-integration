@@ -21,7 +21,6 @@ import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.scheduling.Schedule;
-import org.springframework.integration.scheduling.Subscription;
 
 /**
  * Base interface for message endpoints.
@@ -30,13 +29,17 @@ import org.springframework.integration.scheduling.Subscription;
  */
 public interface MessageEndpoint extends MessageTarget, ChannelRegistryAware, InitializingBean {
 
+	void setName(String name);
+
 	String getName();
 
 	Schedule getSchedule();
 
 	EndpointTrigger getTrigger();
 
-	Subscription getSubscription();
+	String getInputChannelName();
+
+	MessageChannel getInputChannel();
 
 	String getOutputChannelName();
 

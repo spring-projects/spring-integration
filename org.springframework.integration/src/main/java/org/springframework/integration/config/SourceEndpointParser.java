@@ -63,12 +63,11 @@ public class SourceEndpointParser extends AbstractSimpleBeanDefinitionParser {
 			throw new ConfigurationException("'channel' is required");
 		}
 		builder.addConstructorArgReference(source);
-		builder.addConstructorArgReference(output);
-		Element scheduleElement = this.getScheduleElement(element);
-		if (scheduleElement == null) {
-			throw new ConfigurationException("The <schedule/> sub-element is required for a <source-endpoint/>.");
+		builder.addPropertyValue("outputChannelName", output);
+		Element scheduleElement = DomUtils.getChildElementByTagName(element, "schedule");
+		if (scheduleElement != null) {
+			builder.addPropertyValue("schedule", this.parseSchedule(scheduleElement));
 		}
-		builder.addPropertyValue("schedule", this.parseSchedule(scheduleElement));
 		Element interceptorsElement = DomUtils.getChildElementByTagName(element, "interceptors");
 		if (interceptorsElement != null) {
 			EndpointInterceptorParser parser = new EndpointInterceptorParser();
@@ -88,10 +87,6 @@ public class SourceEndpointParser extends AbstractSimpleBeanDefinitionParser {
 		}
 		PollingSchedule schedule = new PollingSchedule(Long.valueOf(period));
 		return schedule;
-	}
-
-	private Element getScheduleElement(Element element) {
-		return DomUtils.getChildElementByTagName(element, "schedule");
 	}
 
 }
