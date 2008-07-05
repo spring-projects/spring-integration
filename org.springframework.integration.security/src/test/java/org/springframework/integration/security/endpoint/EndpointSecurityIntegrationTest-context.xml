@@ -14,15 +14,15 @@
 	<message-bus auto-create-channels="false" />
 
 	<beans:bean id="testTarget"
-		class="org.springframework.integration.security.endpoint.TestTarget" />
+		class="org.springframework.integration.security.endpoint.TestTarget"/>
 
-	<direct-channel id="testChannel"></direct-channel>
+	<direct-channel id="testChannel"/>
 
-	<target-endpoint target="testTarget" input-channel="testChannel">
+	<channel-adapter target="testTarget" channel="testChannel">
 		<interceptors>
 			<si-security:endpoint-security-policy access="ROLE_ADMIN" />
 		</interceptors>
-	</target-endpoint>
+	</channel-adapter>
 
 
 	<beans:bean id="accessDecisionManager"

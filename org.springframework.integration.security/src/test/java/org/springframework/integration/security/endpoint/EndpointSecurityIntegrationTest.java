@@ -31,7 +31,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
 @ContextConfiguration
-public class EnpointSecurityIntegrationTest extends AbstractJUnit4SpringContextTests {
+public class EndpointSecurityIntegrationTest extends AbstractJUnit4SpringContextTests {
 
 	@Autowired
 	MessageChannel channel;
