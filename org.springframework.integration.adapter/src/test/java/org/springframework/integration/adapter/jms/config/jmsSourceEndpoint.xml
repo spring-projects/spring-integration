@@ -11,9 +11,9 @@
 
 	<si:channel id="channel"/>
 
-	<si:source-endpoint id="endpoint" source="jmsSource" channel="channel">
+	<si:channel-adapter id="endpoint" source="jmsSource" channel="channel">
 		<si:schedule period="5000"/>
-	</si:source-endpoint>
+	</si:channel-adapter>
 
 	<si:jms-source id="jmsSource" jms-template="jmsTemplate"/>
 
