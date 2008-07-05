@@ -18,6 +18,8 @@ package org.springframework.integration.endpoint;
 
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.message.BlockingTarget;
+import org.springframework.integration.message.Command;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.PollCommand;
@@ -34,6 +36,10 @@ public class TargetEndpoint extends AbstractEndpoint {
 	private volatile MessageTarget target;
 
 	private volatile MessageSelector selector;
+
+	private volatile long receiveTimeout = 5000;
+
+	private volatile long sendTimeout = 0;
 
 	private volatile boolean initialized;
 
@@ -62,6 +68,14 @@ public class TargetEndpoint extends AbstractEndpoint {
 		this.selector = selector;
 	}
 
+	public void setReceiveTimeout(long receiveTimeout) {
+		this.receiveTimeout = receiveTimeout;
+	}
+
+	public void setSendTimeout(long sendTimeout) {
+		this.sendTimeout = sendTimeout;
+	}
+
 	protected void initialize() {
 		synchronized (this.initializationMonitor) {
 	        if (this.initialized) {
@@ -75,29 +89,37 @@ public class TargetEndpoint extends AbstractEndpoint {
 	}
 
 	@Override
-	protected final boolean doInvoke(Message<?> message) {
-		if (message.getPayload() instanceof PollCommand) {
+	protected boolean supports(Message<?> message) {
+		if (this.selector != null && !this.selector.accept(message)) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("selector for endpoint '" + this + "' rejected message: " + message);
+			}
+			return false;
+		}
+		return true;
+	}
+
+	@Override
+	protected final boolean handleMessage(Message<?> message) {
+		return (this.sendTimeout >= 0 && this.target instanceof BlockingTarget) ?
+				((BlockingTarget) this.target).send(message) : this.target.send(message);
+	}
+
+	@Override
+	protected final boolean handleCommand(Command command) {
+		if (command instanceof PollCommand) {
 			MessageChannel channel = this.getInputChannel();
 			if (channel != null) {
-				Message<?> receivedMessage = channel.receive(5000);
+				Message<?> receivedMessage = channel.receive(this.receiveTimeout);
 				if (receivedMessage != null) {
-					return this.doInvoke(receivedMessage);
+					return this.handleMessage(receivedMessage);
 				}
 			}
 			else if (logger.isDebugEnabled()) {
 				logger.debug("TargetEndpoint unable to resolve channel '" + this.getInputChannelName() + "'");
 			}
-			return false;
 		}
-		if (this.selector != null && !this.selector.accept(message)) {
-			return false;
-		}
-		return this.target.send(message);
-	}
-
-	@Override
-	protected final boolean supports(Message<?> message) {
-		return true;
+		return false;
 	}
 
 }

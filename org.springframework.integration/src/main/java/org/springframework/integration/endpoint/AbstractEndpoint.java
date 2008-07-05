@@ -30,8 +30,9 @@ import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandlerNotRunningException;
+import org.springframework.integration.message.Command;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.scheduling.Schedule;
 
 /**
@@ -221,8 +222,8 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 	}
 
 	public final boolean send(Message<?> message) {
-		if (message == null) {
-			throw new IllegalArgumentException("Message must not be null.");
+		if (message == null || message.getPayload() == null) {
+			throw new IllegalArgumentException("Message and its payload must not be null.");
 		}
 		if (logger.isDebugEnabled()) {
 			logger.debug("endpoint '" + this + "' handling message: " + message);
@@ -230,14 +231,19 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 		if (!this.isRunning()) {
 			throw new MessageHandlerNotRunningException(message);
 		}
-		if (!this.supports(message)) {
-			throw new MessageHandlingException(message, "unsupported message");
+		if (message.getPayload() instanceof Command) {
+			return this.handleCommand((Command) message.getPayload());
 		}
-		return this.doInvoke(message);
+		if (!this.supports(message)) {
+			throw new MessageRejectedException(message, "unsupported message");
+		}
+		return this.handleMessage(message);
 	}
 
 	protected abstract boolean supports(Message<?> message);
 
-	protected abstract boolean doInvoke(Message<?> message);
+	protected abstract boolean handleCommand(Command command);
+
+	protected abstract boolean handleMessage(Message<?> message);
 
 }

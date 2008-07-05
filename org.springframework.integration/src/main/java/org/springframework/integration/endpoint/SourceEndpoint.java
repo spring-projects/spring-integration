@@ -18,6 +18,7 @@ package org.springframework.integration.endpoint;
 
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.message.Command;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryAware;
 import org.springframework.integration.message.MessageDeliveryException;
@@ -42,15 +43,33 @@ public class SourceEndpoint extends AbstractEndpoint {
 	}
 
 
-	protected boolean supports(Message<?> message) {
-		return (message.getPayload() instanceof PollCommand);
-	}
-
-	public final boolean doInvoke(Message<?> pollCommandMessage) {
-		if (this.getOutputChannel() == null) {
+	@Override
+	public void initialize() {
+		if (this.getOutputChannelName() == null && this.getOutputChannel() == null) {
 			throw new ConfigurationException(
 					"no output channel has been configured for source endpoint '" + this.getName() + "'");
 		}
+	}
+
+	@Override
+	protected final boolean supports(Message<?> message) {
+		return false;
+	}
+
+	@Override
+	protected final boolean handleMessage(Message<?> message) {
+		return false;
+	}
+
+	@Override
+	protected final boolean handleCommand(Command command) {
+		if (command instanceof PollCommand) {
+			return this.poll();
+		}
+		return false;
+	}
+
+	private boolean poll() {
 		Message<?> message = this.source.receive();
 		if (message == null) {
 			return false;

@@ -23,12 +23,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
-import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.ManagedList;
-import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.NamespaceHandler;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.Assert;
@@ -58,12 +55,8 @@ public class EndpointInterceptorParser {
 				Element childElement = (Element) child;
 				String localName = child.getLocalName();
 				if ("bean".equals(localName)) {
-					BeanDefinitionParserDelegate beanParser =
-							new BeanDefinitionParserDelegate(parserContext.getReaderContext());
-					beanParser.initDefaults(childElement.getOwnerDocument().getDocumentElement());
-					BeanDefinitionHolder beanDefinitionHolder = beanParser.parseBeanDefinitionElement(childElement);
-					parserContext.registerBeanComponent(new BeanComponentDefinition(beanDefinitionHolder));
-					interceptors.add(new RuntimeBeanReference(beanDefinitionHolder.getBeanName()));
+					interceptors.add(new RuntimeBeanReference(
+							IntegrationNamespaceUtils.parseBeanDefinitionElement(childElement, parserContext)));
 				}
 				else if ("ref".equals(localName)) {
 					String ref = childElement.getAttribute("bean");

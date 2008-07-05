@@ -18,8 +18,12 @@ package org.springframework.integration.config;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
+import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
 
 /**
@@ -66,6 +70,15 @@ public abstract class IntegrationNamespaceUtils {
 		if (StringUtils.hasText(attributeValue)) {
 			beanDefinition.getPropertyValues().addPropertyValue(propertyName, new RuntimeBeanReference(attributeValue));
 		}
+	}
+
+	public static String parseBeanDefinitionElement(Element element, ParserContext parserContext) {
+		BeanDefinitionParserDelegate beanParser =
+				new BeanDefinitionParserDelegate(parserContext.getReaderContext());
+		beanParser.initDefaults(element.getOwnerDocument().getDocumentElement());
+		BeanDefinitionHolder beanDefinitionHolder = beanParser.parseBeanDefinitionElement(element);
+		parserContext.registerBeanComponent(new BeanComponentDefinition(beanDefinitionHolder));
+		return beanDefinitionHolder.getBeanName();
 	}
 
 }

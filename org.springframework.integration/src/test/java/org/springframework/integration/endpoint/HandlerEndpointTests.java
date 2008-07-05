@@ -36,6 +36,7 @@ import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerNotRunningException;
 import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.integration.message.selector.MessageSelectorChain;
@@ -187,7 +188,7 @@ public class HandlerEndpointTests {
 		assertTrue(exceptionThrown);
 	}
 
-	@Test
+	@Test(expected=MessageRejectedException.class)
 	public void testEndpointWithSelectorRejecting() {
 		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.nullHandler());
 		endpoint.setMessageSelector(new MessageSelector() {
@@ -196,7 +197,7 @@ public class HandlerEndpointTests {
 			}
 		});
 		endpoint.start();
-		assertFalse(endpoint.send(new StringMessage("test")));
+		endpoint.send(new StringMessage("test"));
 	}
 
 	@Test
@@ -234,7 +235,14 @@ public class HandlerEndpointTests {
 		});
 		endpoint.setMessageSelector(selectorChain);
 		endpoint.start();
-		assertFalse(endpoint.send(new StringMessage("test")));
+		boolean exceptionWasThrown = false;
+		try {
+			endpoint.send(new StringMessage("test"));
+		}
+		catch (MessageRejectedException e) {
+			exceptionWasThrown = true;
+		}
+		assertTrue(exceptionWasThrown);
 		assertEquals("only the first selector should have been invoked", 1, counter.get());
 		endpoint.stop();
 	}
@@ -259,7 +267,14 @@ public class HandlerEndpointTests {
 		});
 		endpoint.setMessageSelector(selectorChain);
 		endpoint.start();
-		assertFalse(endpoint.send(new StringMessage("test")));
+		boolean exceptionWasThrown = false;
+		try {
+			endpoint.send(new StringMessage("test"));
+		}
+		catch (MessageRejectedException e) {
+			exceptionWasThrown = true;
+		}
+		assertTrue(exceptionWasThrown);
 		assertEquals("both selectors should have been invoked", 2, selectorCounter.get());
 		assertEquals("the handler should not have been invoked", 0, handlerCounter.get());
 		endpoint.stop();
