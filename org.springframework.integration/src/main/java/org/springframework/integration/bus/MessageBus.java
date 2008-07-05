@@ -173,7 +173,15 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry,
 		Map<String, MessageChannel> channelBeans = (Map<String, MessageChannel>) context
 				.getBeansOfType(MessageChannel.class);
 		for (Map.Entry<String, MessageChannel> entry : channelBeans.entrySet()) {
-			this.registerChannel(entry.getKey(), entry.getValue());
+			String channelName = entry.getKey();
+			MessageChannel previousChannel = this.lookupChannel(channelName);
+			if (previousChannel == null) {
+				this.registerChannel(channelName, entry.getValue());
+			}
+			else if (!previousChannel.equals(entry.getValue())) {
+				throw new ConfigurationException("A different channel instance has already "
+						+ "been registered with the name '" + channelName + "'.");
+			}
 		}
 	}
 
@@ -455,6 +463,7 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry,
 	public void onApplicationEvent(ApplicationEvent event) {
 		if (event instanceof ContextRefreshedEvent) {
 			ApplicationContext context = ((ContextRefreshedEvent) event).getApplicationContext();
+			this.registerChannels(context);
 			this.registerEndpoints(context);
 			this.registerGateways(context);
 			if (this.configureAsyncEventMulticaster) {
