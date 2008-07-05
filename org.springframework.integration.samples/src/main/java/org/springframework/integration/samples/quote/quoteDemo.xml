@@ -18,7 +18,7 @@
 
 	<beans:bean class="org.springframework.integration.samples.quote.QuoteService"/>
 
-	<target-endpoint input-channel="quotes" target="stdout"/>
+	<channel-adapter channel="quotes" target="stdout"/>
 
 	<console-target id="stdout" append-newline="true"/>
 

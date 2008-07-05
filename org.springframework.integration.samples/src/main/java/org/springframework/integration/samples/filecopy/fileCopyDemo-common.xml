@@ -15,14 +15,14 @@
 
 	<channel id="channel2"/>
 
-	<source-endpoint source="fileSource" channel="channel1">
+	<channel-adapter source="fileSource" channel="channel1">
 		<schedule period="10000"/>
-	</source-endpoint>
+	</channel-adapter>
 
 	<handler-endpoint input-channel="channel1" output-channel="channel2"
               handler="exclaimer" method="exclaim"/>
 
-	<target-endpoint input-channel="channel2" target="fileTarget"/>
+	<channel-adapter channel="channel2" target="fileTarget"/>
 
 	<file-target id="fileTarget" directory="${java.io.tmpdir}/spring-integration-samples/output"/>
 
