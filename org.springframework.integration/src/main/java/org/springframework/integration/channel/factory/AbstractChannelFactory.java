@@ -35,10 +35,13 @@ public abstract class AbstractChannelFactory implements ChannelFactory {
 		super();
 	}
 
-	public final MessageChannel getChannel(DispatcherPolicy dispatcherPolicy, List<ChannelInterceptor> interceptors) {		
+	public final MessageChannel getChannel(String name, DispatcherPolicy dispatcherPolicy, List<ChannelInterceptor> interceptors) {
 		AbstractMessageChannel channel = createChannelInternal(dispatcherPolicy);
 		if (null != interceptors) {
 			channel.setInterceptors(interceptors);
+		}
+		if (name != null && channel.getName() == null) {
+			channel.setName(name);
 		}
 		return channel;
 	}

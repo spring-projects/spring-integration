@@ -19,6 +19,7 @@ package org.springframework.integration.bus;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -37,8 +38,11 @@ import org.springframework.util.Assert;
  * an ApplicationContext.
  * 
  * @author Marius Bogoevici
+ * @author Mark Fisher
  */
-public class DefaultChannelFactoryBean implements ApplicationContextAware, FactoryBean {
+public class DefaultChannelFactoryBean implements ApplicationContextAware, FactoryBean, BeanNameAware {
+
+	private volatile String beanName;
 
 	private volatile ChannelFactory channelFactory;
 
@@ -51,6 +55,10 @@ public class DefaultChannelFactoryBean implements ApplicationContextAware, Facto
 		this.dispatcherPolicy = dispatcherPolicy;
 	}
 
+
+	public void setBeanName(String beanName) {
+		this.beanName = beanName;
+	}
 
 	@SuppressWarnings("unchecked")
 	public void setApplicationContext(ApplicationContext applicationContext){
@@ -70,7 +78,7 @@ public class DefaultChannelFactoryBean implements ApplicationContextAware, Facto
 
 	public Object getObject() throws Exception {
 		Assert.notNull(channelFactory, "ChannelFactory not set on this instance. Is this used within an ApplicationContext?");
-		return channelFactory.getChannel(dispatcherPolicy, interceptors);
+		return channelFactory.getChannel(this.beanName, dispatcherPolicy, interceptors);
 	}
 
 	public Class<?> getObjectType() {

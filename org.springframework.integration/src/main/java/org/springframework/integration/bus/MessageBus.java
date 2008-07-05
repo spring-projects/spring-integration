@@ -368,7 +368,7 @@ public class MessageBus implements ChannelRegistry, EndpointRegistry,
 			if (this.logger.isInfoEnabled()) {
 				logger.info("auto-creating channel '" + channelName + "'");
 			}
-			channel = channelFactory.getChannel(null, null);
+			channel = channelFactory.getChannel(channelName, null, null);
 			this.registerChannel(channelName, channel);
 		}
 		return channel;

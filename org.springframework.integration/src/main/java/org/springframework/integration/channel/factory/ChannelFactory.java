@@ -24,14 +24,14 @@ import org.springframework.integration.channel.MessageChannel;
 
 /**
  * Interface for a channel factory.
+ * 
  * @author Marius Bogoevici
  */
 public interface ChannelFactory {
 
 	/**
-	 * Creates a channel, based on the provided dispatcher policy, and with the given interceptors.
-	 * @return
+	 * Creates a channel based on the provided name, dispatcher policy, and interceptors.
 	 */
-	MessageChannel getChannel(DispatcherPolicy dispatcherPolicy, List<ChannelInterceptor> interceptors);
+	MessageChannel getChannel(String name, DispatcherPolicy dispatcherPolicy, List<ChannelInterceptor> interceptors);
 
 }
