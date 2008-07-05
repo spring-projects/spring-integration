@@ -29,6 +29,7 @@
 			<xsd:attribute name="message-creator" type="xsd:string" use="optional"/>
 			<xsd:attribute name="file-filter" type="xsd:string"/>
 			<xsd:attribute name="filename-filter" type="xsd:string"/>
+			<xsd:attribute name="filename-pattern" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
 

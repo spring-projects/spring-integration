@@ -16,13 +16,14 @@
 
 package org.springframework.integration.adapter.file.config;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
@@ -35,6 +36,7 @@ import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.adapter.file.ByteArrayFileMessageCreator;
 import org.springframework.integration.adapter.file.FileMessageCreator;
 import org.springframework.integration.adapter.file.FileSource;
+import org.springframework.integration.adapter.file.RegexPatternFilenameFilter;
 import org.springframework.integration.adapter.file.TextFileMessageCreator;
 
 /**
@@ -124,6 +126,16 @@ public class FileSourceParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(fileSource);
 		FilenameFilter filter = (FilenameFilter) context.getBean("customFilenameFilter");
 		assertEquals(filter, accessor.getPropertyValue("filenameFilter"));
+	}
+
+	@Test
+	public void testFileSourceWithRegexPatternFilenameFilter() {
+		ApplicationContext context = new ClassPathXmlApplicationContext("fileSourceParserTests.xml", this.getClass());
+		FileSource fileSource = (FileSource) context.getBean("fileSourceWithRegexFilter");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(fileSource);
+		RegexPatternFilenameFilter filter = (RegexPatternFilenameFilter) accessor.getPropertyValue("filenameFilter");
+		assertFalse(filter.accept(null, "foo.htm"));
+		assertTrue(filter.accept(null, "foo.txt"));
 	}
 
 	@Test(expected=ConfigurationException.class)

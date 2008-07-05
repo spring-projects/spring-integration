@@ -18,11 +18,13 @@ package org.springframework.integration.adapter.file.config;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.adapter.file.FileSource;
+import org.springframework.integration.adapter.file.RegexPatternFilenameFilter;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
@@ -40,6 +42,8 @@ public class FileSourceParser extends AbstractDirectorySourceParser {
 
 	public static final String FILENAME_FILTER_ATTRIBUTE = "filename-filter";
 
+	public static final String FILENAME_PATTERN_ATTRIBUTE = "filename-pattern";
+
 
 	public FileSourceParser() {
 		super(false);
@@ -53,10 +57,11 @@ public class FileSourceParser extends AbstractDirectorySourceParser {
 
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
-		return !DIRECTORY_ATTRIBUTE.equals(attributeName) &&
-				!FILE_FILTER_ATTRIBUTE.equals(attributeName) &&
-				!FILENAME_FILTER_ATTRIBUTE.equals(attributeName) &&
-				super.isEligibleAttribute(attributeName);
+		return !DIRECTORY_ATTRIBUTE.equals(attributeName)
+				&& !FILE_FILTER_ATTRIBUTE.equals(attributeName)
+				&& !FILENAME_FILTER_ATTRIBUTE.equals(attributeName)
+				&& !FILENAME_PATTERN_ATTRIBUTE.equals(attributeName)
+				&& super.isEligibleAttribute(attributeName);
 	}
 
 	@Override
@@ -69,15 +74,18 @@ public class FileSourceParser extends AbstractDirectorySourceParser {
 		beanDefinition.addConstructorArgValue(directoryLocation);
 		String fileFilter = element.getAttribute(FILE_FILTER_ATTRIBUTE);
 		String filenameFilter = element.getAttribute(FILENAME_FILTER_ATTRIBUTE);
-		if (StringUtils.hasText(fileFilter) && StringUtils.hasText(filenameFilter)) {
-			throw new ConfigurationException("FileSource does not support both '" +
-					FILE_FILTER_ATTRIBUTE + "' and '" + FILENAME_FILTER_ATTRIBUTE + "'.");
-		}
-		else if (StringUtils.hasText(fileFilter)) {
+		String filenamePattern = element.getAttribute(FILENAME_PATTERN_ATTRIBUTE);
+		this.verifyAtMostOneAttributeSpecified(fileFilter, filenameFilter, filenamePattern);
+		if (StringUtils.hasText(fileFilter)) {
 			beanDefinition.addPropertyReference("fileFilter", fileFilter);
 		}
 		else if (StringUtils.hasText(filenameFilter)) {
 			beanDefinition.addPropertyReference("filenameFilter", filenameFilter);
+		}
+		else if (StringUtils.hasLength(filenamePattern)) {
+			RegexPatternFilenameFilter regexFilter = new RegexPatternFilenameFilter();
+			regexFilter.setPattern(Pattern.compile(filenamePattern));
+			beanDefinition.addPropertyValue("filenameFilter", regexFilter);
 		}
 		super.postProcess(beanDefinition, element);
 	}
@@ -89,6 +97,20 @@ public class FileSourceParser extends AbstractDirectorySourceParser {
 		}
 		catch (MalformedURLException e) {
 			return false;
+		}
+	}
+
+	private void verifyAtMostOneAttributeSpecified(String ... attributes) {
+		boolean attributeSpecified = false;
+		for (String attribute : attributes) {
+			if (StringUtils.hasText(attribute)) {
+				if (attributeSpecified) {
+					throw new ConfigurationException("FileSource supports at most one of '"
+							+ FILE_FILTER_ATTRIBUTE + "', '" + FILENAME_FILTER_ATTRIBUTE
+							+ "', and '" + FILENAME_PATTERN_ATTRIBUTE + "'.");
+				}
+				attributeSpecified = true;
+			}
 		}
 	}
 

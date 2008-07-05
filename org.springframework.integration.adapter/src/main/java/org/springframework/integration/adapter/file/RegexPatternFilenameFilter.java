@@ -42,7 +42,7 @@ public class RegexPatternFilenameFilter implements FilenameFilter {
 		if (this.pattern == null) {
 			throw new ConfigurationException("no pattern available");
 		}
-		return this.pattern.matcher(name).matches();
+		return (name != null) && this.pattern.matcher(name).matches();
 	}
 
 }
