@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class Barista {
 
-	private long hotDrinkDelay = 2000;
+	private long hotDrinkDelay = 5000;
 
 	private long coldDrinkDelay = 1000; 
 
@@ -46,19 +46,21 @@ public class Barista {
 	public void prepareHotDrink(Drink drink) {
 		try {
 			Thread.sleep(this.hotDrinkDelay);
+			System.out.println(Thread.currentThread().getName()
+				+ " prepared hot drink #" + hotDrinkCounter.incrementAndGet() + ": " + drink);
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
-		System.out.println("prepared hot drink #" + hotDrinkCounter.incrementAndGet() + ": " + drink);
 	}
 
 	public void prepareColdDrink(Drink drink) {
 		try {
 			Thread.sleep(this.coldDrinkDelay);
+			System.out.println(Thread.currentThread().getName()
+				+ " prepared cold drink #" + coldDrinkCounter.incrementAndGet() + ": " + drink);
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
-		System.out.println("prepared cold drink #" + coldDrinkCounter.incrementAndGet() + ": " + drink);
 	}
 
 }

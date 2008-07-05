@@ -21,7 +21,11 @@
 	<channel id="hotDrinks"/>
 
 	<handler-endpoint input-channel="coldDrinks" handler="barista" method="prepareColdDrink"/>
-	<handler-endpoint input-channel="hotDrinks" handler="barista" method="prepareHotDrink"/>
+	<handler-endpoint input-channel="hotDrinks" handler="barista" method="prepareHotDrink">
+		<interceptors>
+			<concurrency-interceptor max="5"/>
+		</interceptors>
+	</handler-endpoint>
 
 	<beans:bean id="cafe" class="org.springframework.integration.samples.cafe.Cafe">
 		<beans:property name="orderChannel" ref="orders"/>
