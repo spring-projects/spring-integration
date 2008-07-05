@@ -17,9 +17,11 @@
 package org.springframework.integration.security.config;
 
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
+import org.springframework.integration.security.StackBasedSecurityContextHolderStrategy;
 import org.springframework.integration.security.channel.config.SecuredChannelsParser;
 import org.springframework.integration.security.channel.config.SecurityPropagatingChannelsParser;
 import org.springframework.integration.security.endpoint.config.SecurityEndpointInterceptorParser;
+import org.springframework.security.context.SecurityContextHolder;
 
 /**
  * Namespace handler for the security namespace.
@@ -27,6 +29,10 @@ import org.springframework.integration.security.endpoint.config.SecurityEndpoint
  * @author Jonas Partner
  */
 public class IntegrationSecurityNamespaceHandler extends NamespaceHandlerSupport {
+
+	static {
+		SecurityContextHolder.setStrategyName(StackBasedSecurityContextHolderStrategy.class.getName());
+	}
 
 	public void init() {
 		registerBeanDefinitionParser("secured-channels", new SecuredChannelsParser());
