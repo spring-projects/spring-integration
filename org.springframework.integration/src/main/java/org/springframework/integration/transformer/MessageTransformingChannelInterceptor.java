@@ -22,39 +22,43 @@ import org.springframework.integration.channel.interceptor.ChannelInterceptorAda
 import org.springframework.integration.message.Message;
 
 /**
- * a {@link ChannelInterceptor} which allows the application of a {@link MessageTransformer} on either send or receive to a channel
- * @author Jonas Partner
+ * A {@link ChannelInterceptor} which invokes a {@link MessageTransformer}
+ * when either sending-to or receiving-from a channel.
  * 
+ * @author Jonas Partner
  */
 public class MessageTransformingChannelInterceptor extends ChannelInterceptorAdapter {
 
-	private boolean convertOnSend = true;
-
 	private final MessageTransformer transfomer;
+
+	private volatile boolean transformOnSend = true;
+
 
 	public MessageTransformingChannelInterceptor(MessageTransformer transformer) {
 		this.transfomer = transformer;
 	}
 
-	public boolean getConvertOnSend() {
-		return convertOnSend;
+
+	public boolean getTransformOnSend() {
+		return this.transformOnSend;
 	}
 
-	public void setConvertOnSend(boolean convertOnSend) {
-		this.convertOnSend = convertOnSend;
+	public void setTransformOnSend(boolean transformOnSend) {
+		this.transformOnSend = transformOnSend;
 	}
 
 	@Override
-	public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
-		if(convertOnSend){
-			transfomer.transform(message);
+	public boolean preSend(Message<?> message, MessageChannel channel) {
+		if (this.transformOnSend) {
+			this.transfomer.transform(message);
 		}
+		return true;
 	}
 
 	@Override
 	public void postReceive(Message<?> message, MessageChannel channel) {
-		if(!convertOnSend){
-			transfomer.transform(message);
+		if (!this.transformOnSend) {
+			this.transfomer.transform(message);
 		}
 	}
 

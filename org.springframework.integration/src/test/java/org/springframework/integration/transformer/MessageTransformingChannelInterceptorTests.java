@@ -20,26 +20,26 @@ import static org.junit.Assert.*;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 
 /**
- * 
  * @author Jonas Partner
- * 
  */
 public class MessageTransformingChannelInterceptorTests {
-	
+
 	AbstractMessageChannel channel; 
-	
+
 	StringMessage message;
-	
+
 	TestTransformer transfomer;
-	
+
 	MessageTransformingChannelInterceptor channelInterceptor;
-	
+
+
 	@Before
 	public void setUp(){
 		channel = new QueueChannel();
@@ -48,28 +48,28 @@ public class MessageTransformingChannelInterceptorTests {
 		channelInterceptor = new MessageTransformingChannelInterceptor(transfomer);
 		channel.addInterceptor(channelInterceptor);
 	}
-	
+
 	@Test
-	public void testTransformOnReceive(){
-		channelInterceptor.setConvertOnSend(false);
+	public void testTransformOnReceive() {
+		channelInterceptor.setTransformOnSend(false);
 		channel.send(message);
 		assertFalse("Transfomrer on incorrectly invoked on send", transfomer.invoked);
-		Message msg = channel.receive(1);
+		Message<?> msg = channel.receive(1);
 		assertEquals("Wrong message",message, msg);
 		assertTrue("Transfomer not invoked on receive", transfomer.invoked);
 	}
-	
+
 	@Test
-	public void testTransformOnSend(){
-		channelInterceptor.setConvertOnSend(true);
+	public void testTransformOnSend() {
+		channelInterceptor.setTransformOnSend(true);
 		channel.send(message);
 		assertTrue("Transfomrer not invoked on send", transfomer.invoked);
-		Message msg = channel.receive(1);
+		Message<?> msg = channel.receive(1);
 		assertEquals("Wrong message",message, msg);
 		assertEquals("Transfomer invoked on receive", 1, transfomer.invokedCount);
 	}
-	
-	
+
+
 	private static class TestTransformer implements MessageTransformer{
 
 		boolean invoked = false;
@@ -80,7 +80,7 @@ public class MessageTransformingChannelInterceptorTests {
 			invoked = true;
 			invokedCount++;
 		}
-		
+
 	}
 
 }
