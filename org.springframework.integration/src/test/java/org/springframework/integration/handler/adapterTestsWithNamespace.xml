@@ -11,13 +11,11 @@
 
 	<si:channel id="channel"/>
 
-	<si:source-endpoint source="sourceAdapter" channel="channel">
+	<si:channel-adapter source="source" method="foo" channel="channel">
 		<si:schedule period="100"/>
-	</si:source-endpoint>
+	</si:channel-adapter>
 
-	<si:target-endpoint target="sink" method="store" input-channel="channel"/>
-
-	<si:source-adapter id="sourceAdapter" ref="source" method="foo"/>
+	<si:channel-adapter target="sink" method="store" channel="channel"/>
 
 	<bean id="source" class="org.springframework.integration.handler.TestSource"/>
 

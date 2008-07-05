@@ -9,11 +9,9 @@
 
 	<direct-channel id="channelWithoutSource"/>
 
-	<direct-channel id="channelWithSource" source="source"/>
+	<direct-channel id="channelWithSource" source="testSource"/>
 
-	<source-adapter id="source" ref="testSourceBean" method="getText"/>
-
-	<beans:bean id="testSourceBean" class="org.springframework.integration.channel.config.TestSourceBean">
+	<beans:bean id="testSource" class="org.springframework.integration.channel.config.TestSource">
 		<beans:constructor-arg value="foo"/>
 	</beans:bean>
 

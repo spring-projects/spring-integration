@@ -16,20 +16,24 @@
 
 package org.springframework.integration.channel.config;
 
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageSource;
+import org.springframework.integration.message.StringMessage;
+
 /**
  * @author Mark Fisher
  */
-public class TestSourceBean {
+public class TestSource implements MessageSource<String> {
 
 	private final String text;
 
 
-	public TestSourceBean(String text) {
+	public TestSource(String text) {
 		this.text = text;
 	}
 
-	public String getText() {
-		return this.text;
+	public Message<String> receive() {
+		return new StringMessage(this.text);
 	}
 
 }
