@@ -20,8 +20,10 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Map;
 
+import org.springframework.aop.support.AopUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.CompletionStrategy;
+import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.config.AbstractMessageHandlerCreator;
@@ -29,6 +31,7 @@ import org.springframework.integration.router.AggregatingMessageHandler;
 import org.springframework.integration.router.AggregatorAdapter;
 import org.springframework.integration.router.CompletionStrategyAdapter;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Creates an {@link AggregatorAdapter AggregatorAdapter} for methods that aggregate messages.
@@ -36,8 +39,6 @@ import org.springframework.util.ReflectionUtils;
  * @author Marius Bogoevici
  */
 public class AggregatorMessageHandlerCreator extends AbstractMessageHandlerCreator {
-
-	private static final String DEFAULT_REPLY_CHANNEL = "defaultReplyChannel";
 
 	private static final String DISCARD_CHANNEL = "discardChannel";
 
@@ -62,10 +63,7 @@ public class AggregatorMessageHandlerCreator extends AbstractMessageHandlerCreat
 
 	public MessageHandler doCreateHandler(Object object, Method method, Map<String, ?> attributes) {
 		AggregatingMessageHandler messageHandler = new AggregatingMessageHandler(new AggregatorAdapter(object, method));
-		if (attributes.containsKey(DEFAULT_REPLY_CHANNEL)) {
-			messageHandler.setDefaultReplyChannel(this.channelRegistry.lookupChannel(
-					(String) attributes.get(DEFAULT_REPLY_CHANNEL)));
-		}
+		this.configureDefaultReplyChannel(messageHandler, object);
 		if (attributes.containsKey(DISCARD_CHANNEL)) {
 			messageHandler.setDiscardChannel(this.channelRegistry.lookupChannel(
 					(String) attributes.get(DISCARD_CHANNEL)));
@@ -89,6 +87,17 @@ public class AggregatorMessageHandlerCreator extends AbstractMessageHandlerCreat
 		}
 		this.configureCompletionStrategy(object, messageHandler);
 		return messageHandler;
+	}
+
+	private void configureDefaultReplyChannel(AggregatingMessageHandler handler, Object originalObject) {
+		MessageEndpoint endpointAnnotation = AnnotationUtils.findAnnotation(
+				AopUtils.getTargetClass(originalObject), MessageEndpoint.class);
+		if (endpointAnnotation != null) {
+			String outputChannelName = endpointAnnotation.output();
+			if (StringUtils.hasText(outputChannelName)) {
+				handler.setDefaultReplyChannel(this.channelRegistry.lookupChannel(outputChannelName));
+			}
+		}
 	}
 
 	private void configureCompletionStrategy(final Object object, final AggregatingMessageHandler handler) {

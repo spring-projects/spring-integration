@@ -32,13 +32,13 @@ import org.springframework.stereotype.Component;
 /**
  * @author Marius Bogoevici
  */
-@MessageEndpoint(input = "inputChannel")
+@MessageEndpoint(input = "inputChannel", output= "replyChannel")
 @Component("endpointWithCustomizedAnnotation")
 public class TestAnnotatedEndpointWithCustomizedAggregator {
 
 	private final ConcurrentMap<Object, Message<?>> aggregatedMessages = new ConcurrentHashMap<Object, Message<?>>();
 
-	@Aggregator(defaultReplyChannel = "replyChannel", discardChannel = "discardChannel", 
+	@Aggregator(discardChannel = "discardChannel", 
 			reaperInterval = 1234, sendPartialResultsOnTimeout = true, 
 			sendTimeout = 98765432, timeout = 4567890, trackedCorrelationIdCapacity = 42)
 	public Message<?> aggregatingMethod(List<Message<?>> messages) {
