@@ -15,9 +15,7 @@
 
 	<channel id="output2"/>
 
-	<handler-endpoint ref="router" input-channel="input"/>
-
-	<router id="router" ref="pojo" method="route"/>
+	<router id="router" ref="pojo" method="route" input-channel="input"/>
 
 	<beans:bean id="pojo" class="org.springframework.integration.router.config.TestRouter"/>
 

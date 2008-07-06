@@ -16,17 +16,15 @@
 
 package org.springframework.integration.samples.oddeven;
 
-import org.springframework.integration.annotation.MessageEndpoint;
-import org.springframework.integration.annotation.MessageTarget;
+import org.springframework.integration.annotation.Handler;
 
 /**
  * @author Mark Fisher
  */
-@MessageEndpoint(input="even")
 public class EvenLogger {
 
-	@MessageTarget
-	public void even(int i) {
+	@Handler
+	public void log(int i) {
 		System.out.println("even: " + i);
 	}
 

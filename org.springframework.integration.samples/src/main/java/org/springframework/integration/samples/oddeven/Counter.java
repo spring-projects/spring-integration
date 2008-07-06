@@ -18,20 +18,13 @@ package org.springframework.integration.samples.oddeven;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.integration.annotation.MessageEndpoint;
-import org.springframework.integration.annotation.MessageSource;
-import org.springframework.integration.annotation.Polled;
-
 /**
  * @author Mark Fisher
  */
-@MessageEndpoint(output="numbers")
-@Polled(initialDelay=1000, period=3000)
 public class Counter {
 
 	private final AtomicInteger count = new AtomicInteger();
 
-	@MessageSource
 	public int next() {
 		return count.incrementAndGet();
 	}

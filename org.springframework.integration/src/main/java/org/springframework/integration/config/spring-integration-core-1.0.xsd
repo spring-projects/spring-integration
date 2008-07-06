@@ -200,17 +200,32 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
-				<xsd:extension base="handlerEndpointType">
+				<xsd:extension base="inputOutputHandlerEndpointType">
 					<xsd:attribute name="reply-handler" type="xsd:string"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:complexType name="handlerEndpointType">
+	<xsd:complexType name="inputOutputHandlerEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Base type for handler endpoint elements.
+	Base type for handler endpoint elements that accept Messages from an input-channel
+	and also produce Messages to be sent to an output-channel.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="inputHandlerEndpointType">
+				<xsd:attribute name="output-channel" type="xsd:string"/>
+				<xsd:attribute name="return-address-overrides" type="xsd:boolean" default="false"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="inputHandlerEndpointType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Base type for handler endpoint elements that accept Messages from an input-channel.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
@@ -222,9 +237,7 @@
 				<xsd:attribute name="ref" type="xsd:string" use="required"/>
 				<xsd:attribute name="method" type="xsd:string"/>
 				<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
-				<xsd:attribute name="output-channel" type="xsd:string"/>
 				<xsd:attribute name="selector" type="xsd:string"/>
-				<xsd:attribute name="return-address-overrides" type="xsd:boolean" default="false"/>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
@@ -318,20 +331,15 @@
 		<xsd:attribute name="keep-alive" type="xsd:int"/>
 	</xsd:complexType>
 
-	<xsd:element name="router">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
+	<xsd:element name="router" type="inputHandlerEndpointType">
+		<xsd:annotation>
+			<xsd:documentation>
 	Defines a Router.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:attribute name="id" type="xsd:ID"/>
-			<xsd:attribute name="ref" type="xsd:string" use="required"/>
-			<xsd:attribute name="method" type="xsd:string" use="required"/>
-		</xsd:complexType>
+			</xsd:documentation>
+		</xsd:annotation>
 	</xsd:element>
 
-	<xsd:element name="splitter" type="handlerEndpointType">
+	<xsd:element name="splitter" type="inputOutputHandlerEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
 	Defines a Splitter.

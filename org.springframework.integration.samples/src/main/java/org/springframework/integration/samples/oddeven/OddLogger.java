@@ -16,17 +16,15 @@
 
 package org.springframework.integration.samples.oddeven;
 
-import org.springframework.integration.annotation.MessageEndpoint;
-import org.springframework.integration.annotation.MessageTarget;
+import org.springframework.integration.annotation.Handler;
 
 /**
  * @author Mark Fisher
  */
-@MessageEndpoint(input="odd")
 public class OddLogger {
 
-	@MessageTarget
-	public void odd(int i) {
+	@Handler
+	public void log(int i) {
 		System.out.println("odd:  " + i);
 	}
 

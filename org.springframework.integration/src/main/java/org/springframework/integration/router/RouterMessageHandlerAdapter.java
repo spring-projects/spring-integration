@@ -54,6 +54,9 @@ public class RouterMessageHandlerAdapter extends AbstractMessageHandlerAdapter i
 		this.setMethodName(methodName);
 	}
 
+	public RouterMessageHandlerAdapter() {
+	}
+
 
 	public void setChannelRegistry(ChannelRegistry channelRegistry) {
 		this.channelRegistry = channelRegistry;

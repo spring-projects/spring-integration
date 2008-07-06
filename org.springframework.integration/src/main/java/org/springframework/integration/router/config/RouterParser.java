@@ -16,36 +16,20 @@
 
 package org.springframework.integration.router.config;
 
-import org.w3c.dom.Element;
-
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
-import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.config.AbstractHandlerEndpointParser;
+import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.router.RouterMessageHandlerAdapter;
-import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;router/&gt; element.
  * 
  * @author Mark Fisher
  */
-public class RouterParser extends AbstractSingleBeanDefinitionParser {
+public class RouterParser extends AbstractHandlerEndpointParser {
 
 	@Override
-	protected Class<?> getBeanClass(Element element) {
+	protected Class<? extends MessageHandler> getHandlerAdapterClass() {
 		return RouterMessageHandlerAdapter.class;
-	}
-
-	@Override
-	protected void doParse(Element element, BeanDefinitionBuilder builder) {
-		String ref = element.getAttribute("ref");
-		String methodName = element.getAttribute("method");
-		if (!StringUtils.hasText(ref) || !StringUtils.hasText(methodName)) {
-			throw new ConfigurationException(
-					"The 'ref' and 'method' attributes are both required.");
-		}
-		builder.addConstructorArgReference(ref);
-		builder.addConstructorArgValue(methodName);
 	}
 
 }

@@ -16,17 +16,12 @@
 
 package org.springframework.integration.samples.oddeven;
 
-import org.springframework.integration.annotation.MessageEndpoint;
-import org.springframework.integration.annotation.Router;
-
 /**
  * @author Mark Fisher
  */
-@MessageEndpoint(input="numbers")
-public class NumberRouter {
+public class ParityResolver {
 
-	@Router
-	public String resolveChannel(int i) {
+	public String getParity(int i) {
 		if (i % 2 == 0) {
 			return "even";
 		}
