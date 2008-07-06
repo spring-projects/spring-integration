@@ -24,7 +24,6 @@ import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.ConfigurationException;
@@ -232,16 +231,7 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 			throw new MessageHandlerNotRunningException(message);
 		}
 		if (message.getPayload() instanceof EndpointVisitor) {
-			MessageEndpoint endpoint = null;
-			try {
-				endpoint = (MessageEndpoint) AopContext.currentProxy();
-			}
-			catch (IllegalStateException e) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("The currenty proxy is not exposed.");
-				}
-			}
-			((EndpointVisitor) message.getPayload()).visitEndpoint((endpoint != null) ? endpoint : this);
+			((EndpointVisitor) message.getPayload()).visitEndpoint(this);
 			return true;
 		}
 		if (!this.supports(message)) {
