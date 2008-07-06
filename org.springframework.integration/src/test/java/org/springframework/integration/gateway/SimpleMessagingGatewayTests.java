@@ -16,13 +16,20 @@
 
 package org.springframework.integration.gateway;
 
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.*;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.getCurrentArguments;
+import static org.easymock.EasyMock.isA;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
 
 import org.easymock.IAnswer;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
@@ -31,32 +38,32 @@ import org.springframework.integration.message.MessageMapper;
 /**
  * @author Iwein Fuld
  */
+@SuppressWarnings("unchecked")
 public class SimpleMessagingGatewayTests {
 
 	private SimpleMessagingGateway simpleMessagingGateway;
 
-	private MessageChannel requestChannel;
+	private MessageChannel requestChannel = createMock(MessageChannel.class);
 
-	private Object[] allmocks;
+	private MessageChannel replyChannel = createMock(MessageChannel.class);
 
-	private Message messageMock;
+	private Message<?> messageMock = createMock(Message.class);
 
-	private MessageChannel replyChannel;
+	private MessageMapper messageMapperMock = createMock(MessageMapper.class);
 
-	private MessageMapper messageMapperMock;
+	private MessageBus messageBusMock = createMock(MessageBus.class);
+
+	private Object[] allmocks = new Object[] {
+			requestChannel, replyChannel, messageMock, messageMapperMock };
 
 
 	@Before
 	public void initializeSample() {
-		this.requestChannel = createMock(MessageChannel.class);
-		this.replyChannel = createMock(MessageChannel.class);
-		this.messageMock = createMock(Message.class);
-		this.messageMapperMock = createMock(MessageMapper.class);
-
 		this.simpleMessagingGateway = new SimpleMessagingGateway(requestChannel);
 		this.simpleMessagingGateway.setReplyChannel(replyChannel);
 		this.simpleMessagingGateway.setMessageMapper(messageMapperMock);
-		this.allmocks = new Object[] { requestChannel, replyChannel, messageMock, messageMapperMock };
+		this.simpleMessagingGateway.setMessageBus(messageBusMock);
+		reset(allmocks);
 	}
 
 
@@ -104,7 +111,12 @@ public class SimpleMessagingGatewayTests {
 		verify(allmocks);
 	}
 
-	//TODO null cases for send
+	@Test
+	public void sendMessage_null() {
+		replay(allmocks);
+		this.simpleMessagingGateway.send(null);
+		verify(allmocks);
+	}
 
 	/* receive tests */
 
@@ -122,6 +134,42 @@ public class SimpleMessagingGatewayTests {
 		expect(replyChannel.receive()).andReturn(null);
 		replay(allmocks);
 		assertEquals(this.simpleMessagingGateway.receive(), null);
+		verify(allmocks);
+	}
+
+	/* send and receive tests */
+
+	@Test
+	public void sendObjectAndRecieveObject() {
+		expect(replyChannel.getName()).andReturn("replyChannel").anyTimes();
+		expect(requestChannel.send(isA(Message.class))).andReturn(true);
+		replay(allmocks);
+		this.simpleMessagingGateway.sendAndReceive("test");
+		verify(allmocks);
+	}
+
+	@Test
+	public void sendNullAndRecieveObject() {
+		expect(replyChannel.getName()).andReturn("replyChannel").anyTimes();
+		replay(allmocks);
+		this.simpleMessagingGateway.sendAndReceive(null);
+		verify(allmocks);
+	}
+
+	@Test
+	public void sendObjectAndRecieveMessage() {
+		expect(replyChannel.getName()).andReturn("replyChannel").anyTimes();
+		expect(requestChannel.send(isA(Message.class))).andReturn(true);
+		replay(allmocks);
+		this.simpleMessagingGateway.sendAndReceiveMessage("test");
+		verify(allmocks);
+	}
+
+	@Test
+	public void sendNullAndRecieveMessage() {
+		expect(replyChannel.getName()).andReturn("replyChannel").anyTimes();
+		replay(allmocks);
+		this.simpleMessagingGateway.sendAndReceiveMessage(null);
 		verify(allmocks);
 	}
 

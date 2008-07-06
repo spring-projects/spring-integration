@@ -16,6 +16,8 @@
 
 package org.springframework.integration.gateway;
 
+import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.bus.MessageBusAware;
 import org.springframework.integration.channel.MessageChannel;
 
 /**
@@ -26,7 +28,7 @@ import org.springframework.integration.channel.MessageChannel;
  * 
  * @author Mark Fisher
  */
-public abstract class MessagingGatewaySupport {
+public abstract class MessagingGatewaySupport implements MessageBusAware {
 
 	private final RequestReplyTemplate requestReplyTemplate = new RequestReplyTemplate();
 
@@ -39,6 +41,10 @@ public abstract class MessagingGatewaySupport {
 		super();
 	}
 
+
+	public void setMessageBus(MessageBus messageBus) {
+		this.requestReplyTemplate.setMessageBus(messageBus);
+	}
 
 	public void setRequestChannel(MessageChannel requestChannel) {
 		this.requestReplyTemplate.setRequestChannel(requestChannel);
