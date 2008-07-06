@@ -9,8 +9,8 @@
 
 	<message-bus/>
 
-	<channel id="numbers"/>
-	<channel id="splits"/>
+	<direct-channel id="numbers"/>
+	<direct-channel id="splits"/>
 	<channel id="results"/>
 
 	<splitter ref="splitter" method="split" input-channel="numbers" output-channel="splits"/>
