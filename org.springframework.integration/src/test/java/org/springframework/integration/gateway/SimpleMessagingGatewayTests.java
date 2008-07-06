@@ -33,6 +33,7 @@ import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.message.MessageHeader;
 import org.springframework.integration.message.MessageMapper;
 
 /**
@@ -140,7 +141,7 @@ public class SimpleMessagingGatewayTests {
 	/* send and receive tests */
 
 	@Test
-	public void sendObjectAndRecieveObject() {
+	public void sendObjectAndReceiveObject() {
 		expect(replyChannel.getName()).andReturn("replyChannel").anyTimes();
 		expect(requestChannel.send(isA(Message.class))).andReturn(true);
 		replay(allmocks);
@@ -149,7 +150,26 @@ public class SimpleMessagingGatewayTests {
 	}
 
 	@Test
-	public void sendNullAndRecieveObject() {
+	public void sendMessageAndReceiveObject() {
+		// setup local mocks
+		MessageHeader messageHeaderMock = createMock(MessageHeader.class);	
+		//set expectations
+		messageHeaderMock.setReturnAddress(replyChannel);
+		expect(replyChannel.getName()).andReturn("replyChannel").anyTimes();
+		expect(messageMock.getHeader()).andReturn(messageHeaderMock);
+		expect(requestChannel.send(messageMock)).andReturn(true);
+		expect(messageMock.getId()).andReturn(1);
+
+		//play scenario
+		replay(allmocks);
+		replay(messageHeaderMock);
+		this.simpleMessagingGateway.sendAndReceive(messageMock);
+		verify(allmocks);
+		verify(messageHeaderMock);
+	}
+
+	@Test
+	public void sendNullAndReceiveObject() {
 		expect(replyChannel.getName()).andReturn("replyChannel").anyTimes();
 		replay(allmocks);
 		this.simpleMessagingGateway.sendAndReceive(null);
@@ -157,7 +177,7 @@ public class SimpleMessagingGatewayTests {
 	}
 
 	@Test
-	public void sendObjectAndRecieveMessage() {
+	public void sendObjectAndReceiveMessage() {
 		expect(replyChannel.getName()).andReturn("replyChannel").anyTimes();
 		expect(requestChannel.send(isA(Message.class))).andReturn(true);
 		replay(allmocks);
@@ -166,7 +186,23 @@ public class SimpleMessagingGatewayTests {
 	}
 
 	@Test
-	public void sendNullAndRecieveMessage() {
+	public void sendMessageAndReceiveMessage() {
+		// setup local mocks
+		MessageHeader messageHeaderMock = createMock(MessageHeader.class);	
+		//set expectations
+		messageHeaderMock.setReturnAddress(replyChannel);
+		expect(replyChannel.getName()).andReturn("replyChannel").anyTimes();
+		expect(messageMock.getHeader()).andReturn(messageHeaderMock);
+		expect(requestChannel.send(messageMock)).andReturn(true);
+		expect(messageMock.getId()).andReturn(1);
+
+		replay(allmocks);
+		this.simpleMessagingGateway.sendAndReceiveMessage(messageMock);
+		verify(allmocks);
+	}
+
+	@Test
+	public void sendNullAndReceiveMessage() {
 		expect(replyChannel.getName()).andReturn("replyChannel").anyTimes();
 		replay(allmocks);
 		this.simpleMessagingGateway.sendAndReceiveMessage(null);
