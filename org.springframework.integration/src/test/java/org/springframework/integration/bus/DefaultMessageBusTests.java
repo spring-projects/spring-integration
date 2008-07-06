@@ -43,11 +43,11 @@ import org.springframework.integration.scheduling.PollingSchedule;
 /**
  * @author Mark Fisher
  */
-public class MessageBusTests {
+public class DefaultMessageBusTests {
 
 	@Test
 	public void testRegistrationWithInputChannelReference() {
-		MessageBus bus = new MessageBus();
+		DefaultMessageBus bus = new DefaultMessageBus();
 		MessageChannel sourceChannel = new QueueChannel();
 		MessageChannel targetChannel = new QueueChannel();
 		bus.registerChannel("sourceChannel", sourceChannel);
@@ -69,7 +69,7 @@ public class MessageBusTests {
 
 	@Test
 	public void testRegistrationWithInputChannelName() {
-		MessageBus bus = new MessageBus();
+		MessageBus bus = new DefaultMessageBus();
 		MessageChannel sourceChannel = new QueueChannel();
 		MessageChannel targetChannel = new QueueChannel();
 		bus.registerChannel("sourceChannel", sourceChannel);
@@ -91,7 +91,7 @@ public class MessageBusTests {
 
 	@Test
 	public void testChannelsWithoutHandlers() {
-		MessageBus bus = new MessageBus();
+		MessageBus bus = new DefaultMessageBus();
 		MessageChannel sourceChannel = new QueueChannel();
 		sourceChannel.send(new StringMessage("123", "test"));
 		MessageChannel targetChannel = new QueueChannel();
@@ -133,7 +133,7 @@ public class MessageBusTests {
 				return message;
 			}
 		};
-		MessageBus bus = new MessageBus();
+		MessageBus bus = new DefaultMessageBus();
 		bus.registerChannel("input", inputChannel);
 		bus.registerChannel("output1", outputChannel1);
 		bus.registerChannel("output2", outputChannel2);
@@ -167,7 +167,7 @@ public class MessageBusTests {
 				return message;
 			}
 		};
-		MessageBus bus = new MessageBus();
+		MessageBus bus = new DefaultMessageBus();
 		bus.registerChannel("input", inputChannel);
 		bus.registerChannel("output1", outputChannel1);
 		bus.registerChannel("output2", outputChannel2);
@@ -186,7 +186,7 @@ public class MessageBusTests {
 
 	@Test
 	public void testErrorChannelWithFailedDispatch() throws InterruptedException {
-		MessageBus bus = new MessageBus();
+		MessageBus bus = new DefaultMessageBus();
 		CountDownLatch latch = new CountDownLatch(1);
 		SourceEndpoint sourceEndpoint = new SourceEndpoint(new FailingSource(latch));
 		sourceEndpoint.setOutputChannel(new QueueChannel());
@@ -210,7 +210,7 @@ public class MessageBusTests {
 	@Test
 	public void testErrorChannelRegistration() {
 		MessageChannel errorChannel = new QueueChannel();
-		MessageBus bus = new MessageBus();
+		DefaultMessageBus bus = new DefaultMessageBus();
 		bus.setErrorChannel(errorChannel);
 		assertEquals(errorChannel, bus.getErrorChannel());
 	}
@@ -218,7 +218,7 @@ public class MessageBusTests {
 	@Test
 	public void testHandlerSubscribedToErrorChannel() throws InterruptedException {
 		MessageChannel errorChannel = new QueueChannel();
-		MessageBus bus = new MessageBus();
+		DefaultMessageBus bus = new DefaultMessageBus();
 		bus.setErrorChannel(errorChannel);
 		final CountDownLatch latch = new CountDownLatch(1);
 		MessageHandler handler = new MessageHandler() {
@@ -240,6 +240,7 @@ public class MessageBusTests {
 		TestMessageBusAwareImpl messageBusAwareBean = (TestMessageBusAwareImpl) context.getBean("messageBusAwareBean");
 		assertTrue(messageBusAwareBean.getMessageBus() == context.getBean("bus"));
 	}
+
 
 	private static class FailingSource implements MessageSource<Object> {
 

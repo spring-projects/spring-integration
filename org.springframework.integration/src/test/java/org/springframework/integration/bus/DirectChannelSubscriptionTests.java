@@ -39,7 +39,7 @@ import org.springframework.integration.message.StringMessage;
  */
 public class DirectChannelSubscriptionTests {
 
-	private MessageBus bus = new MessageBus();
+	private DefaultMessageBus bus = new DefaultMessageBus();
 
 	private MessageChannel sourceChannel = new DirectChannel();
 

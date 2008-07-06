@@ -32,7 +32,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.bus.DefaultChannelFactoryBean;
-import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.channel.DispatcherPolicy;
@@ -107,11 +107,11 @@ public class ChannelFactoryTests {
 
 	@Test
 	public void testDefaultChannelFactoryBean() throws Exception{
-		MessageBus messageBus = new MessageBus();
+		DefaultMessageBus messageBus = new DefaultMessageBus();
 		ChannelFactory channelFactory = new StubChannelFactory();
 		messageBus.setChannelFactory(channelFactory);
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
-		BeanDefinitionBuilder messageBusDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(MessageBus.class);
+		BeanDefinitionBuilder messageBusDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(DefaultMessageBus.class);
 		messageBusDefinitionBuilder.getBeanDefinition().getPropertyValues().addPropertyValue("channelFactory", channelFactory);
 		applicationContext.registerBeanDefinition("messageBus", messageBusDefinitionBuilder.getBeanDefinition());
 		DefaultChannelFactoryBean channelFactoryBean =  new DefaultChannelFactoryBean(dispatcherPolicy);

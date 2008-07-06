@@ -27,9 +27,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
+import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.handler.MethodInvokingTarget;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
@@ -90,7 +90,7 @@ public class MethodInvokingTargetTests {
 		Message<String> message = new GenericMessage<String>("123", "testing");
 		channel.send(message);
 		assertNull(queue.poll());
-		MessageBus bus = new MessageBus();
+		MessageBus bus = new DefaultMessageBus();
 		bus.registerChannel("channel", channel);
 		bus.registerHandler("targetAdapter", target, channel, null);
 		bus.start();

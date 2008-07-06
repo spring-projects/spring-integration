@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,10 @@ import org.junit.Test;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -37,6 +37,7 @@ import org.springframework.integration.message.StringMessage;
 public class ApplicationEventTargetTests {
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testSendingEvent() throws InterruptedException {
 		final CountDownLatch latch = new CountDownLatch(1);
 		ApplicationEventPublisher publisher = new ApplicationEventPublisher() {
@@ -47,7 +48,7 @@ public class ApplicationEventTargetTests {
 		MessageChannel channel = new QueueChannel();
 		ApplicationEventTarget adapter = new ApplicationEventTarget();
 		adapter.setApplicationEventPublisher(publisher);
-		MessageBus bus = new MessageBus();
+		MessageBus bus = new DefaultMessageBus();
 		bus.registerChannel("channel", channel);
 		bus.registerTarget("adapter", adapter, channel, null);
 		bus.start();

@@ -47,6 +47,7 @@ import org.springframework.integration.annotation.MessageTarget;
 import org.springframework.integration.annotation.Polled;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.annotation.Transformer;
+import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
@@ -68,7 +69,7 @@ public class MessagingAnnotationPostProcessorTests {
 
 	@Test
 	public void testHandlerAnnotation() {
-		MessageBus messageBus = new MessageBus();
+		MessageBus messageBus = new DefaultMessageBus();
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
 		postProcessor.afterPropertiesSet();
 		HandlerAnnotatedBean bean = new HandlerAnnotatedBean();
@@ -78,7 +79,7 @@ public class MessagingAnnotationPostProcessorTests {
 
 	@Test
 	public void testCustomHandlerAnnotation() {
-		MessageBus messageBus = new MessageBus();
+		MessageBus messageBus = new DefaultMessageBus();
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
 		postProcessor.afterPropertiesSet();
 		CustomHandlerAnnotatedBean bean = new CustomHandlerAnnotatedBean();
@@ -158,7 +159,7 @@ public class MessagingAnnotationPostProcessorTests {
 
 	@Test
 	public void testTargetAnnotation() throws InterruptedException {
-		MessageBus messageBus = new MessageBus();
+		MessageBus messageBus = new DefaultMessageBus();
 		QueueChannel testChannel = new QueueChannel();
 		messageBus.registerChannel("testChannel", testChannel);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
@@ -176,7 +177,7 @@ public class MessagingAnnotationPostProcessorTests {
 
 	@Test
 	public void testConcurrencyAnnotationWithValues() {
-		MessageBus messageBus = new MessageBus();
+		MessageBus messageBus = new DefaultMessageBus();
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
 		postProcessor.afterPropertiesSet();
 		ConcurrencyAnnotationTestBean testBean = new ConcurrencyAnnotationTestBean();
@@ -203,7 +204,7 @@ public class MessagingAnnotationPostProcessorTests {
 
 	@Test
 	public void testChannelRegistryAwareBean() {
-		MessageBus messageBus = new MessageBus();
+		MessageBus messageBus = new DefaultMessageBus();
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
 		postProcessor.afterPropertiesSet();
 		ChannelRegistryAwareTestBean testBean = new ChannelRegistryAwareTestBean();
@@ -216,7 +217,7 @@ public class MessagingAnnotationPostProcessorTests {
 
 	@Test
 	public void testProxiedMessageEndpointAnnotation() {
-		MessageBus messageBus = new MessageBus();
+		DefaultMessageBus messageBus = new DefaultMessageBus();
 		messageBus.setAutoCreateChannels(true);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
 		postProcessor.afterPropertiesSet();
@@ -233,7 +234,7 @@ public class MessagingAnnotationPostProcessorTests {
 
 	@Test
 	public void testMessageEndpointAnnotationInherited() {
-		MessageBus messageBus = new MessageBus();
+		DefaultMessageBus messageBus = new DefaultMessageBus();
 		messageBus.setAutoCreateChannels(true);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
 		postProcessor.afterPropertiesSet();
@@ -248,7 +249,7 @@ public class MessagingAnnotationPostProcessorTests {
 
 	@Test
 	public void testMessageEndpointAnnotationInheritedWithProxy() {
-		MessageBus messageBus = new MessageBus();
+		DefaultMessageBus messageBus = new DefaultMessageBus();
 		messageBus.setAutoCreateChannels(true);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
 		postProcessor.afterPropertiesSet();
@@ -265,7 +266,7 @@ public class MessagingAnnotationPostProcessorTests {
 
 	@Test
 	public void testMessageEndpointAnnotationInheritedFromInterface() {
-		MessageBus messageBus = new MessageBus();
+		MessageBus messageBus = new DefaultMessageBus();
 		MessageChannel inputChannel = new QueueChannel();
 		MessageChannel outputChannel = new QueueChannel();
 		messageBus.registerChannel("inputChannel", inputChannel);
@@ -281,7 +282,7 @@ public class MessagingAnnotationPostProcessorTests {
 
 	@Test
 	public void testMessageEndpointAnnotationInheritedFromInterfaceWithAutoCreatedChannels() {
-		MessageBus messageBus = new MessageBus();
+		DefaultMessageBus messageBus = new DefaultMessageBus();
 		messageBus.setAutoCreateChannels(true);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
 		postProcessor.afterPropertiesSet();
@@ -296,7 +297,7 @@ public class MessagingAnnotationPostProcessorTests {
 
 	@Test
 	public void testMessageEndpointAnnotationInheritedFromInterfaceWithProxy() {
-		MessageBus messageBus = new MessageBus();
+		MessageBus messageBus = new DefaultMessageBus();
 		MessageChannel inputChannel = new QueueChannel();
 		MessageChannel outputChannel = new QueueChannel();
 		messageBus.registerChannel("inputChannel", inputChannel);
@@ -314,7 +315,7 @@ public class MessagingAnnotationPostProcessorTests {
 
 	@Test
 	public void testSplitterAnnotation() throws InterruptedException {
-		MessageBus messageBus = new MessageBus();
+		MessageBus messageBus = new DefaultMessageBus();
 		QueueChannel input = new QueueChannel();
 		QueueChannel output = new QueueChannel();
 		messageBus.registerChannel("input", input);
@@ -342,7 +343,7 @@ public class MessagingAnnotationPostProcessorTests {
 
 	@Test(expected=ConfigurationException.class)
 	public void testEndpointWithNoHandlerMethod() {
-		MessageBus messageBus = new MessageBus();
+		MessageBus messageBus = new DefaultMessageBus();
 		QueueChannel testChannel = new QueueChannel();
 		messageBus.registerChannel("testChannel", testChannel);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
@@ -353,7 +354,7 @@ public class MessagingAnnotationPostProcessorTests {
 
 	@Test
 	public void testEndpointWithPolledAnnotation() {
-		MessageBus messageBus = new MessageBus();
+		MessageBus messageBus = new DefaultMessageBus();
 		QueueChannel testChannel = new QueueChannel();
 		messageBus.registerChannel("testChannel", testChannel);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
@@ -372,7 +373,7 @@ public class MessagingAnnotationPostProcessorTests {
 
 	@Test
 	public void testMessageSourceAnnotation() {
-		MessageBus messageBus = new MessageBus();
+		MessageBus messageBus = new DefaultMessageBus();
 		QueueChannel testChannel = new QueueChannel();
 		messageBus.registerChannel("testChannel", testChannel);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
@@ -387,7 +388,7 @@ public class MessagingAnnotationPostProcessorTests {
 
 	@Test
 	public void testHandlerWithTransformers() {
-		MessageBus messageBus = new MessageBus();
+		MessageBus messageBus = new DefaultMessageBus();
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
 		postProcessor.afterPropertiesSet();
 		HandlerWithTransformers testBean = new HandlerWithTransformers();

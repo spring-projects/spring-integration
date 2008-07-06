@@ -7,7 +7,7 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
 
-	<bean id="bus" class="org.springframework.integration.bus.MessageBus"/>
+	<bean id="bus" class="org.springframework.integration.bus.DefaultMessageBus"/>
 
 	<integration:channel id="inputChannel"/>
 

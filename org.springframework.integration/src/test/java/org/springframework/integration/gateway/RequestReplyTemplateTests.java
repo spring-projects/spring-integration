@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
+import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.MessageHandler;
@@ -48,7 +49,7 @@ public class RequestReplyTemplateTests {
 				return new StringMessage(message.getPayload().toString().toUpperCase());
 			}		
 		};
-		MessageBus bus = new MessageBus();
+		MessageBus bus = new DefaultMessageBus();
 		bus.registerChannel("requestChannel", requestChannel);
 		bus.registerHandler("testHandler", testHandler, requestChannel, null);
 		bus.start();

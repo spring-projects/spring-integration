@@ -31,6 +31,7 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.bus.TestMessageBusAwareImpl;
 import org.springframework.integration.bus.interceptor.MessageBusInterceptorTests;
@@ -51,7 +52,7 @@ public class MessageBusParserTests {
 	public void testErrorChannelReference() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageBusWithErrorChannelReference.xml", this.getClass());
-		MessageBus bus = (MessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
+		DefaultMessageBus bus = (DefaultMessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		bus.initialize();
 		assertEquals(context.getBean("testErrorChannel"), bus.getErrorChannel());
 	}
@@ -60,7 +61,7 @@ public class MessageBusParserTests {
 	public void testDefaultErrorChannel() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageBusWithDefaults.xml", this.getClass());
-		MessageBus bus = (MessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
+		DefaultMessageBus bus = (DefaultMessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		bus.initialize();
 		assertNotNull("bus should have created a default error channel", bus.getErrorChannel());
 	}

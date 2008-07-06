@@ -31,6 +31,7 @@ import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
 import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.bus.MessageBusAwareBeanPostProcessor;
 import org.springframework.util.StringUtils;
@@ -47,8 +48,6 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 
 	public static final String MESSAGE_BUS_AWARE_POST_PROCESSOR_BEAN_NAME = "internal.MessageBusAwareBeanPostProcessor";
 
-	private static final Class<?> MESSAGE_BUS_CLASS = MessageBus.class;
-
 	private static final String ERROR_CHANNEL_ATTRIBUTE = "error-channel";
 
 	private static final String CHANNEL_FACTORY_ATTRIBUTE = "channel-factory";
@@ -64,7 +63,7 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
 			throws BeanDefinitionStoreException {
 		if (parserContext.getRegistry().containsBeanDefinition(MESSAGE_BUS_BEAN_NAME)) {
-			throw new ConfigurationException("Only one instance of '" + MESSAGE_BUS_CLASS.getSimpleName()
+			throw new ConfigurationException("Only one instance of '" + MessageBus.class.getSimpleName()
 					+ "' is allowed per ApplicationContext.");
 		}
 		return MESSAGE_BUS_BEAN_NAME;
@@ -72,7 +71,7 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
-		return MESSAGE_BUS_CLASS;
+		return DefaultMessageBus.class;
 	}
 
 	@Override

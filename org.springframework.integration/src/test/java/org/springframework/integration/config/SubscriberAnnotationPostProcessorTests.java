@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.annotation.Subscriber;
-import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.annotation.SubscriberAnnotationPostProcessor;
@@ -52,7 +52,7 @@ public class SubscriberAnnotationPostProcessorTests {
 		subscriberDef.getConstructorArgumentValues().addGenericArgumentValue(latch);
 		context.registerBeanDefinition("testBean", subscriberDef);
 		String busBeanName = MessageBusParser.MESSAGE_BUS_BEAN_NAME;
-		context.registerBeanDefinition(busBeanName, new RootBeanDefinition(MessageBus.class));
+		context.registerBeanDefinition(busBeanName, new RootBeanDefinition(DefaultMessageBus.class));
 		RootBeanDefinition postProcessorDef = new RootBeanDefinition(SubscriberAnnotationPostProcessor.class);
 		postProcessorDef.getPropertyValues().addPropertyValue("messageBus", new RuntimeBeanReference(busBeanName));
 		context.registerBeanDefinition("postProcessor", postProcessorDef);
@@ -78,7 +78,7 @@ public class SubscriberAnnotationPostProcessorTests {
 		subscriberDef.getConstructorArgumentValues().addGenericArgumentValue(latch);
 		context.registerBeanDefinition("testBean", subscriberDef);
 		String busBeanName = MessageBusParser.MESSAGE_BUS_BEAN_NAME;
-		context.registerBeanDefinition(busBeanName, new RootBeanDefinition(MessageBus.class));
+		context.registerBeanDefinition(busBeanName, new RootBeanDefinition(DefaultMessageBus.class));
 		RootBeanDefinition postProcessorDef = new RootBeanDefinition(SubscriberAnnotationPostProcessor.class);
 		postProcessorDef.getPropertyValues().addPropertyValue("messageBus", new RuntimeBeanReference(busBeanName));
 		postProcessorDef.getPropertyValues().addPropertyValue("subscriberAnnotationType", CustomSubscriberAnnotation.class);

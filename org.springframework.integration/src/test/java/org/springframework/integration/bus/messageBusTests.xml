@@ -4,7 +4,7 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="bus" class="org.springframework.integration.bus.MessageBus"/>
+	<bean id="bus" class="org.springframework.integration.bus.DefaultMessageBus"/>
 
 	<bean id="sourceChannel" class="org.springframework.integration.channel.QueueChannel"/>
 
