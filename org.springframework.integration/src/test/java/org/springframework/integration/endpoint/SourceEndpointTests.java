@@ -24,11 +24,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.message.CommandMessage;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.message.PollCommand;
 import org.springframework.integration.message.MessageSource;
 
 /**
@@ -43,7 +41,7 @@ public class SourceEndpointTests {
 		SourceEndpoint endpoint = new SourceEndpoint(source);
 		endpoint.setOutputChannel(channel);
 		endpoint.afterPropertiesSet();
-		endpoint.send(new CommandMessage(new PollCommand()));
+		endpoint.send(new GenericMessage<EndpointPoller>(new EndpointPoller()));
 		Message<?> message = channel.receive(1000);
 		assertNotNull("message should not be null", message);
 		assertEquals("testing.1", message.getPayload());
@@ -57,7 +55,7 @@ public class SourceEndpointTests {
 		endpoint.setOutputChannel(channel);
 		endpoint.setAutoStartup(false);
 		endpoint.afterPropertiesSet();
-		endpoint.send(new CommandMessage(new PollCommand()));
+		endpoint.send(new GenericMessage<EndpointPoller>(new EndpointPoller()));
 	}
 
 	private static class TestSource implements MessageSource<String> {

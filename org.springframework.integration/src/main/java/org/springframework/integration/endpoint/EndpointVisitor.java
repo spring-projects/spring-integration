@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration.endpoint;
 
 /**
  * @author Mark Fisher
  */
-public class CommandMessage extends GenericMessage<Command> {
+public interface EndpointVisitor {
 
-	public CommandMessage(Command command) {
-		super(command);
-	}
+	void visitEndpoint(MessageEndpoint endpoint);
 
 }

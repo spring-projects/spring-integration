@@ -21,38 +21,37 @@ import org.springframework.integration.dispatcher.PollingDispatcher;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageSource;
-import org.springframework.integration.message.PollCommand;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
 
 /**
- * A {@link PollingDispatcher} implementation that sends poll command
- * trigger messages to endpoints.
+ * A {@link PollingDispatcher} implementation that sends a message
+ * to trigger endpoint polling.
  * 
  * @author Mark Fisher
  */
 public class EndpointTrigger extends PollingDispatcher {
 
 	/**
-	 * Create a trigger with the specified {@link Schedule}.
+	 * Create an endpoint trigger with the specified {@link Schedule}.
 	 */
 	public EndpointTrigger(Schedule schedule) {
-		super(new PollCommandMessageSource(), new BroadcastingDispatcher(), schedule);
+		super(new EndpointPollerMessageSource(), new BroadcastingDispatcher(), schedule);
 	}
 
 	/**
-	 * Create a trigger. A {@link PollingSchedule} will be created
-	 * with the specified interval.
+	 * Create an endpoint trigger. A {@link PollingSchedule} will be
+	 * created with the specified interval.
 	 */
 	public EndpointTrigger(long interval) {
 		this(new PollingSchedule(interval));
 	}
 
 
-	private static class PollCommandMessageSource implements MessageSource<PollCommand> {
+	private static class EndpointPollerMessageSource implements MessageSource<EndpointPoller> {
 
-		public Message<PollCommand> receive() {
-			return new GenericMessage<PollCommand>(new PollCommand());
+		public Message<EndpointPoller> receive() {
+			return new GenericMessage<EndpointPoller>(new EndpointPoller());
 		}
 	}
 

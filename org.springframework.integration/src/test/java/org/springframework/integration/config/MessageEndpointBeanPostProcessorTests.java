@@ -25,9 +25,9 @@ import org.junit.Test;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.endpoint.EndpointPoller;
 import org.springframework.integration.endpoint.MessageEndpoint;
-import org.springframework.integration.message.CommandMessage;
-import org.springframework.integration.message.PollCommand;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -101,7 +101,7 @@ public class MessageEndpointBeanPostProcessorTests {
 		TestEndpointInterceptor interceptor = (TestEndpointInterceptor) context.getBean("interceptor");
 		assertEquals(0, beforeAdvice.getCount());
 		assertEquals(0, interceptor.getCount());
-		endpoint.send(new CommandMessage(new PollCommand()));
+		endpoint.send(new GenericMessage<EndpointPoller>(new EndpointPoller()));
 		assertEquals(1, beforeAdvice.getCount());
 		assertEquals(2, interceptor.getCount());
 		context.stop();

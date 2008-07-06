@@ -19,10 +19,8 @@ package org.springframework.integration.endpoint;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.BlockingTarget;
-import org.springframework.integration.message.Command;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageTarget;
-import org.springframework.integration.message.PollCommand;
 import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.util.Assert;
 
@@ -105,19 +103,16 @@ public class TargetEndpoint extends AbstractEndpoint {
 				((BlockingTarget) this.target).send(message) : this.target.send(message);
 	}
 
-	@Override
-	protected final boolean handleCommand(Command command) {
-		if (command instanceof PollCommand) {
-			MessageChannel channel = this.getInputChannel();
-			if (channel != null) {
-				Message<?> receivedMessage = channel.receive(this.receiveTimeout);
-				if (receivedMessage != null) {
-					return this.handleMessage(receivedMessage);
-				}
+	public final boolean poll() {
+		MessageChannel channel = this.getInputChannel();
+		if (channel != null) {
+			Message<?> receivedMessage = channel.receive(this.receiveTimeout);
+			if (receivedMessage != null) {
+				return this.handleMessage(receivedMessage);
 			}
-			else if (logger.isDebugEnabled()) {
-				logger.debug("TargetEndpoint unable to resolve channel '" + this.getInputChannelName() + "'");
-			}
+		}
+		else if (logger.isDebugEnabled()) {
+			logger.debug("TargetEndpoint unable to resolve channel '" + this.getInputChannelName() + "'");
 		}
 		return false;
 	}

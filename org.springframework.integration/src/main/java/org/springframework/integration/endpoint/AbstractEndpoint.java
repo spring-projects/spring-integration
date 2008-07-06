@@ -30,7 +30,6 @@ import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandlerNotRunningException;
-import org.springframework.integration.message.Command;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.scheduling.Schedule;
@@ -231,8 +230,9 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 		if (!this.isRunning()) {
 			throw new MessageHandlerNotRunningException(message);
 		}
-		if (message.getPayload() instanceof Command) {
-			return this.handleCommand((Command) message.getPayload());
+		if (message.getPayload() instanceof EndpointVisitor) {
+			((EndpointVisitor) message.getPayload()).visitEndpoint(this);
+			return true;
 		}
 		if (!this.supports(message)) {
 			throw new MessageRejectedException(message, "unsupported message");
@@ -241,8 +241,6 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 	}
 
 	protected abstract boolean supports(Message<?> message);
-
-	protected abstract boolean handleCommand(Command command);
 
 	protected abstract boolean handleMessage(Message<?> message);
 

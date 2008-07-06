@@ -45,4 +45,6 @@ public interface MessageEndpoint extends MessageTarget, ChannelRegistryAware, In
 
 	MessageChannel getOutputChannel();
 
+	boolean poll();
+
 }

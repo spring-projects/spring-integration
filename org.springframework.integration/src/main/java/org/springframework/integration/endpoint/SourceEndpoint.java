@@ -18,12 +18,10 @@ package org.springframework.integration.endpoint;
 
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.Command;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryAware;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageSource;
-import org.springframework.integration.message.PollCommand;
 import org.springframework.util.Assert;
 
 /**
@@ -61,15 +59,7 @@ public class SourceEndpoint extends AbstractEndpoint {
 		return false;
 	}
 
-	@Override
-	protected final boolean handleCommand(Command command) {
-		if (command instanceof PollCommand) {
-			return this.poll();
-		}
-		return false;
-	}
-
-	private boolean poll() {
+	public boolean poll() {
 		Message<?> message = this.source.receive();
 		if (message == null) {
 			return false;

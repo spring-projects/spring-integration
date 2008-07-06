@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration.endpoint;
 
 /**
- * A marker interface for commands.
- * 
  * @author Mark Fisher
  */
-public interface Command {
+public class EndpointPoller implements EndpointVisitor {
+
+	public void visitEndpoint(MessageEndpoint endpoint) {
+		endpoint.poll();
+	}
 
 }
