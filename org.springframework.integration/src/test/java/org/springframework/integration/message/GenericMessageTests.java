@@ -58,7 +58,7 @@ public class GenericMessageTests {
 
 	@Test
 	public void testMessageHeaderCopied() {
-		MessageHeader header = new MessageHeader();
+		MessageHeader header = new DefaultMessageHeader();
 		header.setAttribute("testAttribute", new Integer(123));
 		header.setProperty("testProperty", "foo");
 		header.setSequenceSize(42);

@@ -32,7 +32,7 @@ public class GenericMessage<T> implements Message<T> {
 
 	private final Object id;
 
-	private final MessageHeader header = new MessageHeader();
+	private final MessageHeader header = new DefaultMessageHeader();
 
 	private volatile T payload;
 

@@ -16,13 +16,8 @@
 
 package org.springframework.integration.message;
 
-import java.io.Serializable;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * A holder for Message metadata. This includes information that may be used by
@@ -33,134 +28,50 @@ import java.util.concurrent.ConcurrentMap;
  * 
  * @author Mark Fisher
  */
-public class MessageHeader implements Serializable {
+public interface MessageHeader {
 
-	private final Date timestamp = new Date();
+	Date getTimestamp();
 
-	private volatile Date expiration;
+	Date getExpiration();
 
-	private volatile Object correlationId;
+	void setExpiration(Date expiration);
 
-	private transient volatile Object returnAddress;
+	Object getCorrelationId();
 
-	private volatile int sequenceNumber = 1;
+	void setCorrelationId(Object correlationId);
 
-	private volatile int sequenceSize = 1;
+	Object getReturnAddress();
 
-	private volatile MessagePriority priority = MessagePriority.NORMAL;
+	void setReturnAddress(Object returnAddress);
 
-	private final Properties properties = new Properties();
+	int getSequenceNumber();
 
-	private final ConcurrentMap<String, Object> attributes = new ConcurrentHashMap<String, Object>();
+	void setSequenceNumber(int sequenceNumber);
 
+	int getSequenceSize();
 
-	/**
-	 * Return the creation time of this message.  
-	 */
-	public Date getTimestamp() {
-		return this.timestamp;
-	}
+	void setSequenceSize(int sequenceSize);
 
-	/**
-	 * Return the expiration date for this message or <code>null</code> to
-	 * indicate 'never expire'.
-	 */
-	public Date getExpiration() {
-		return this.expiration;
-	}
+	MessagePriority getPriority();
 
-	/**
-	 * Set the expiration date for this message or <code>null</code> to
-	 * indicate 'never expire'. The default is <code>null</code>.
-	 */
-	public void setExpiration(Date expiration) {
-		this.expiration = expiration;
-	}
+	void setPriority(MessagePriority priority);
 
-	public Object getCorrelationId() {
-		return this.correlationId;
-	}
+	String getProperty(String key);
 
-	public void setCorrelationId(Object correlationId) {
-		this.correlationId = correlationId;
-	}
+	String setProperty(String key, String value);
 
-	public Object getReturnAddress() {
-		return this.returnAddress;
-	}
+	String removeProperty(String key);
 
-	public void setReturnAddress(Object returnAddress) {
-		this.returnAddress = returnAddress;
-	}
+	Set<String> getPropertyNames();
 
-	public int getSequenceNumber() {
-		return this.sequenceNumber;
-	}
+	Object getAttribute(String key);
 
-	public void setSequenceNumber(int sequenceNumber) {
-		this.sequenceNumber = sequenceNumber;
-	}
+	Object setAttribute(String key, Object value);
 
-	public int getSequenceSize() {
-		return this.sequenceSize;
-	}
+	Object setAttributeIfAbsent(String key, Object value);
 
-	public void setSequenceSize(int sequenceSize) {
-		this.sequenceSize = sequenceSize;
-	}
+	Object removeAttribute(String key);
 
-	public MessagePriority getPriority() {
-		return this.priority;
-	}
-
-	public void setPriority(MessagePriority priority) {
-		this.priority = priority;
-	}
-
-	public String getProperty(String key) {
-		return this.properties.getProperty(key);
-	}
-
-	public String setProperty(String key, String value) {
-		return (String) this.properties.setProperty(key, value);
-	}
-
-	public String removeProperty(String key) {
-		return (String) this.properties.remove(key);
-	}
-
-	public Set<String> getPropertyNames() {
-		Set<String> propertyNames = new HashSet<String>();
-		for (Object key : this.properties.keySet()) {
-			propertyNames.add((String) key);
-		}
-		return propertyNames;
-	}
-
-	public Object getAttribute(String key) {
-		return this.attributes.get(key);
-	}
-
-	public Object setAttribute(String key, Object value) {
-		return this.attributes.put(key, value);
-	}
-
-	public Object setAttributeIfAbsent(String key, Object value) {
-		return this.attributes.putIfAbsent(key, value);
-	}
-
-	public Object removeAttribute(String key) {
-		return this.attributes.remove(key);
-	}
-
-	public Set<String> getAttributeNames() {
-		return this.attributes.keySet();
-	}
-
-	public String toString() {
-		return "[CorrelationID=" + this.correlationId + "][Properties=" + this.properties + "][Attributes=" + this.attributes +
-				"][Timestamp=" + this.timestamp + "][Expiration=" + this.expiration + "][Priority=" + this.priority + 
-				"][Sequence #" + this.sequenceNumber + " (of " + this.sequenceSize + ")]";
-	}
+	Set<String> getAttributeNames();
 
 }

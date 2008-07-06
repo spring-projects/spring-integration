@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration;
+package org.springframework.integration.message;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -26,22 +26,23 @@ import java.util.Set;
 
 import org.junit.Test;
 
+import org.springframework.integration.message.DefaultMessageHeader;
 import org.springframework.integration.message.MessageHeader;
 
 /**
  * @author Mark Fisher
  */
-public class MessageHeaderTests {
+public class DefaultMessageHeaderTests {
 
 	@Test
 	public void testTimestamp() {
-		MessageHeader header = new MessageHeader();
+		MessageHeader header = new DefaultMessageHeader();
 		assertNotNull(header.getTimestamp());
 	}
 
 	@Test
 	public void testAttributes() {
-		MessageHeader header = new MessageHeader();
+		MessageHeader header = new DefaultMessageHeader();
 		Integer value = new Integer(123);
 		Object previousValue = header.setAttribute("test", value);
 		assertNull(previousValue);
@@ -58,7 +59,7 @@ public class MessageHeaderTests {
 
 	@Test
 	public void testProperties() {
-		MessageHeader header = new MessageHeader();
+		MessageHeader header = new DefaultMessageHeader();
 		String previousValue = header.setProperty("foo", "bar");
 		assertNull(previousValue);
 		assertEquals("bar", header.getProperty("foo"));
@@ -73,7 +74,7 @@ public class MessageHeaderTests {
 
 	@Test
 	public void testSetAttributeIfAbsent() {
-		MessageHeader header = new MessageHeader();
+		MessageHeader header = new DefaultMessageHeader();
 		Integer integer = new Integer(123);
 		assertNull(header.getAttribute("test"));
 		assertFalse(header.getAttributeNames().contains("test"));
@@ -85,7 +86,7 @@ public class MessageHeaderTests {
 
 	@Test
 	public void testSetAttributeIfAbsentDoesNotOverride() {
-		MessageHeader header = new MessageHeader();
+		MessageHeader header = new DefaultMessageHeader();
 		Integer originalValue = new Integer(123);
 		header.setAttributeIfAbsent("test", originalValue);
 		Object existingValue = header.setAttributeIfAbsent("test", new Integer(456));
