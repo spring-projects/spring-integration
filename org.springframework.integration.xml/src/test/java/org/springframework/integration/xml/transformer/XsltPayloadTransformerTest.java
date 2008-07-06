@@ -49,23 +49,12 @@ public class XsltPayloadTransformerTest {
 		transformer = new XsltPayloadTransformer(getXslResource());
 	}
 
-	@Test
-	public void testDocumentAsPayload() throws Exception {
+	@Test(expected = MessagingException.class)
+	public void testDocumentAsPayloadShouldBeRejected() throws Exception {
 		Document input = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
 				new InputSource(new StringReader(getInputString())));
 		GenericMessage<Document> documentMessage = new GenericMessage<Document>(input);
 		transformer.transform(documentMessage);
-		String rootNodeName = ((Document) documentMessage.getPayload()).getDocumentElement().getNodeName();
-		assertEquals("Wrong name for root element after transform", "bob", rootNodeName);
-	}
-
-	@Test
-	public void testXmlAsStringPayload() throws Exception {
-		StringMessage message = new StringMessage(getInputString());
-		transformer.transform(message);
-		String rootNodeName = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
-				new InputSource(new StringReader(message.getPayload()))).getDocumentElement().getNodeName();
-		assertEquals("Wrong name for root element after transform", "bob", rootNodeName);
 	}
 
 	@Test

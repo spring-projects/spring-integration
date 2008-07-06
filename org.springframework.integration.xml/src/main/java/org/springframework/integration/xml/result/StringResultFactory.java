@@ -24,7 +24,7 @@ import org.springframework.xml.transform.StringResult;
 /**
  * 
  * @author Jonas Partner
- *
+ * 
  */
 public class StringResultFactory implements ResultFactory {
 

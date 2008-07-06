@@ -24,7 +24,7 @@ import org.springframework.integration.message.Message;
 /**
  * 
  * @author Jonas Partner
- *
+ * 
  */
 public class DomResultFactory implements ResultFactory {
 

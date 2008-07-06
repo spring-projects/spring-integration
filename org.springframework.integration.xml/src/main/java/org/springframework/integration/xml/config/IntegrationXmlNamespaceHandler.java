@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2007 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.xml.source;
+package org.springframework.integration.xml.config;
 
-import javax.xml.transform.Source;
-
-import org.springframework.integration.message.Message;
+import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
 /**
- * Factory to create instances of {@link Source} possibly taking into account
- * the contents of the passed {@link Message}
  * 
  * @author Jonas Partner
  * 
  */
-public interface SourceFactory {
+public class IntegrationXmlNamespaceHandler extends NamespaceHandlerSupport {
 
-	Source getSourceForMessage(Message<?> message);
+	public void init() {
+		registerBeanDefinitionParser("marshalling-transformer", new XmlMarshallingTransformerParser());
+		registerBeanDefinitionParser("unmarshalling-transformer", new XmlUnmarshallingTransformerParser());
+	}
 
 }

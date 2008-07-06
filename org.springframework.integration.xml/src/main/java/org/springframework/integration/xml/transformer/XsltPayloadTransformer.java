@@ -20,11 +20,7 @@ import javax.xml.transform.Source;
 import javax.xml.transform.Templates;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
-
-import org.w3c.dom.Document;
 
 import org.springframework.core.io.Resource;
 import org.springframework.integration.message.Message;
@@ -32,6 +28,7 @@ import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.transformer.MessageTransformer;
 import org.springframework.xml.transform.StringResult;
 import org.springframework.xml.transform.StringSource;
+import org.w3c.dom.Document;
 
 /**
  * Simple XSLT transformer implementation which returns a transformed
@@ -54,18 +51,13 @@ public class XsltPayloadTransformer implements MessageTransformer {
 	@SuppressWarnings("unchecked")
 	public void transform(Message message) {
 		try {
-			if (Document.class.isAssignableFrom(message.getPayload().getClass())) {
-				this.transformDocument(message);
-			}
-			else if (Source.class.isAssignableFrom(message.getPayload().getClass())) {
+			if (Source.class.isAssignableFrom(message.getPayload().getClass())) {
 				this.transformSource(message);
 			}
-			else if (String.class.equals(message.getPayload().getClass())) {
-				this.transformString(message);
-			}
 			else {
-				throw new MessagingException(message, "Unsupported payload type for transformation: "
-						+ message.getPayload().getClass().getName());
+				throw new MessagingException(message,
+						"Unsupported payload type for transformation expected javax.xml.transform.Source but got : "
+								+ message.getPayload().getClass().getName());
 			}
 		}
 		catch (TransformerException e) {
@@ -78,21 +70,6 @@ public class XsltPayloadTransformer implements MessageTransformer {
 		StringResult result = new StringResult();
 		this.templates.newTransformer().transform((Source) message.getPayload(), result);
 		message.setPayload(new StringSource(result.toString()));
-	}
-
-	@SuppressWarnings("unchecked")
-	protected void transformString(Message message) throws TransformerException {
-		StringResult result = new StringResult();
-		this.templates.newTransformer().transform(new StringSource((String) message.getPayload()), result);
-		message.setPayload(result.toString());
-	}
-
-	@SuppressWarnings("unchecked")
-	protected void transformDocument(Message message) throws TransformerException {
-		Document doc = (Document) message.getPayload();
-		DOMResult result = new DOMResult();
-		this.templates.newTransformer().transform(new DOMSource(doc), result);
-		message.setPayload(result.getNode());
 	}
 
 }

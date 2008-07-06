@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:si-xml="http://www.springframework.org/schema/integration-xml"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration-xml http://www.springframework.org/schema/integration/spring-integration-xml-1.0.xsd">
+
+	<si-xml:marshalling-transformer
+		id="marshallingTransfomerNoResultFactory" marshaller="marshaller" />
+
+
+
+	<si-xml:marshalling-transformer
+		id="marshallingTransfomerStringResultFactory" marshaller="marshaller"
+		result-factory="StringResult" />
+
+	<si-xml:marshalling-transformer
+		id="marshallingTransfomerDOMResultFactory" marshaller="marshaller"
+		result-factory="DOMResult" />
+
+
+	<bean id="marshaller"
+		class="org.springframework.integration.xml.config.StubMarshaller" />
+		
+</beans>

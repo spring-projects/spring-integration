@@ -33,6 +33,7 @@ import org.springframework.util.Assert;
  * {@link Marshaller}
  * 
  * @author Mark Fisher
+ * @author Jonas Partner
  */
 public class XmlPayloadMarshallingTransformer implements MessageTransformer {
 
@@ -46,6 +47,7 @@ public class XmlPayloadMarshallingTransformer implements MessageTransformer {
 	}
 
 	public void setResultFactory(ResultFactory resultFactory) {
+		Assert.notNull(resultFactory, " the ResultFactory can not be null");
 		this.resultFactory = resultFactory;
 	}
 

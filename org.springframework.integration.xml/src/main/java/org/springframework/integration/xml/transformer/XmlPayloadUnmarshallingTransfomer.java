@@ -23,12 +23,15 @@ import javax.xml.transform.Source;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.transformer.MessageTransformer;
+import org.springframework.integration.xml.source.DomSourceFactory;
 import org.springframework.integration.xml.source.SourceFactory;
 import org.springframework.oxm.Unmarshaller;
 
 /**
  * An implementation of {@link MessageTransformer} that delegates to an OXM
- * {@link Unmarshaller}
+ * {@link Unmarshaller} Expects the payload to be of type {@link Source} or to
+ * have an instance of {@link SourceFactory} that can convert to a
+ * {@link Source}
  * 
  * @author Jonas Partner
  */
@@ -36,7 +39,7 @@ public class XmlPayloadUnmarshallingTransfomer implements MessageTransformer {
 
 	private final Unmarshaller unmarshaller;
 
-	private SourceFactory sourceFactory;
+	private SourceFactory sourceFactory = new DomSourceFactory();
 
 	public XmlPayloadUnmarshallingTransfomer(Unmarshaller unmarshaller) {
 		this.unmarshaller = unmarshaller;
@@ -58,7 +61,7 @@ public class XmlPayloadUnmarshallingTransfomer implements MessageTransformer {
 
 		if (source == null) {
 			throw new MessagingException(message,
-					"Could not transform message payload not assignable from javax.xml.transform.Source and no conversion possible");
+					"Could not transform message, payload not assignable from javax.xml.transform.Source and no conversion possible");
 		}
 
 		Object unmarshalled;
