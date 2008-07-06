@@ -19,9 +19,8 @@ package org.springframework.integration.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
-import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.StringUtils;
@@ -45,11 +44,11 @@ public abstract class IntegrationNamespaceUtils {
 	 * @param attributeName - the name of the attribute whose value will be set
 	 * on the property
 	 */
-	public static void setValueIfAttributeDefined(RootBeanDefinition beanDefinition, String propertyName,
+	public static void setValueIfAttributeDefined(BeanDefinitionBuilder builder, String propertyName,
 			Element element, String attributeName) {
 		final String attributeValue = element.getAttribute(attributeName);
 		if (StringUtils.hasText(attributeValue)) {
-			beanDefinition.getPropertyValues().addPropertyValue(propertyName, attributeValue);
+			builder.addPropertyValue(propertyName, attributeValue);
 		}
 	}
 
@@ -64,11 +63,11 @@ public abstract class IntegrationNamespaceUtils {
 	 * @param attributeName - the id of the bean which will be used to populate
 	 * the property
 	 */
-	public static void setBeanReferenceIfAttributeDefined(RootBeanDefinition beanDefinition, String propertyName,
+	public static void setBeanReferenceIfAttributeDefined(BeanDefinitionBuilder builder, String propertyName,
 			Element element, String attributeName) {
 		final String attributeValue = element.getAttribute(attributeName);
 		if (StringUtils.hasText(attributeValue)) {
-			beanDefinition.getPropertyValues().addPropertyValue(propertyName, new RuntimeBeanReference(attributeValue));
+			builder.addPropertyReference(propertyName, attributeValue);
 		}
 	}
 

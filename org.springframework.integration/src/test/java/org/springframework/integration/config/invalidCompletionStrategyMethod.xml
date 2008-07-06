@@ -7,13 +7,15 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
 
-	<aggregator id="aggregatorWithPojoCompletionStrategy" completion-strategy="completionStrategy"
-		ref="adderBean" method="add" default-reply-channel="replyChannel">
-		<completion-strategy ref="pojoCompletionStrategy"
-			method="checkCompleteness" />
-	</aggregator>
+	<aggregator id="aggregatorWithPojoCompletionStrategy"
+		completion-strategy="completionStrategy"
+		ref="adderBean" method="add"
+		input-channel="inputChannel"
+		output-channel="replyChannel"
+		completion-strategy-method="invalidMethodName"/>
 
-	<channel id="replyChannel" />
+	<channel id="inputChannel"/>
+	<channel id="replyChannel"/>
 
 	<beans:bean id="adderBean"
 		class="org.springframework.integration.config.Adder" />

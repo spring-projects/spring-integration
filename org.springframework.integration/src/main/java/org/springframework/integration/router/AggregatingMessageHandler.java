@@ -62,7 +62,7 @@ public class AggregatingMessageHandler extends AbstractMessageBarrierHandler {
 		this(aggregator, null);
 	}
 
-	
+
 	/**
 	 * Strategy to determine whether the group of messages is complete.
 	 */

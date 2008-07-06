@@ -80,6 +80,10 @@ public abstract class AbstractHandlerEndpointParser extends AbstractSingleBeanDe
 		return true;
 	}
 
+	protected boolean shouldCreateAdapter(Element element) {
+		return StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE));
+	}
+
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String ref = element.getAttribute(REF_ATTRIBUTE);
@@ -87,7 +91,7 @@ public abstract class AbstractHandlerEndpointParser extends AbstractSingleBeanDe
 			throw new ConfigurationException("The '" + REF_ATTRIBUTE + "' attribute is required.");
 		}
 		String method = element.getAttribute(METHOD_ATTRIBUTE);
-		if (StringUtils.hasText(method)) {
+		if (this.shouldCreateAdapter(element)) {
 			String adapterBeanName = this.parseAdapter(ref, method, element, parserContext);
 			builder.addConstructorArgReference(adapterBeanName);
 		}
@@ -141,7 +145,7 @@ public abstract class AbstractHandlerEndpointParser extends AbstractSingleBeanDe
 	}
 
 
-	private String parseAdapter(String ref, String method, Element element, ParserContext parserContext) {
+	protected String parseAdapter(String ref, String method, Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(this.getHandlerAdapterClass());
 		builder.addPropertyValue("object", new RuntimeBeanReference(ref));
 		builder.addPropertyValue("methodName", method);

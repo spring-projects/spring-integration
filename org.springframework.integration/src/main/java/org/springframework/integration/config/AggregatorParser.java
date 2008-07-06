@@ -17,15 +17,11 @@
 package org.springframework.integration.config;
 
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
-import org.springframework.beans.factory.parsing.BeanComponentDefinition;
-import org.springframework.beans.factory.support.RootBeanDefinition;
-import org.springframework.beans.factory.xml.BeanDefinitionParser;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.router.AggregatingMessageHandler;
 import org.springframework.integration.router.AggregatorAdapter;
 import org.springframework.integration.router.CompletionStrategyAdapter;
@@ -36,18 +32,13 @@ import org.springframework.util.StringUtils;
  * Registers the annotation-driven post-processors.
  * 
  * @author Marius Bogoevici
+ * @author Mark Fisher
  */
-public class AggregatorParser implements BeanDefinitionParser {
+public class AggregatorParser extends AbstractHandlerEndpointParser {
 
-	public static final String ID_ATTRIBUTE = "id";
+	public static final String COMPLETION_STRATEGY_REF_ATTRIBUTE = "completion-strategy";
 
-	public static final String REF_ATTRIBUTE = "ref";
-
-	public static final String METHOD_ATTRIBUTE = "method";
-
-	public static final String COMPLETION_STRATEGY_ATTRIBUTE = "completion-strategy";
-
-	public static final String DEFAULT_REPLY_CHANNEL_ATTRIBUTE = "default-reply-channel";
+	public static final String COMPLETION_STRATEGY_METHOD_ATTRIBUTE = "completion-strategy-method";
 
 	public static final String DISCARD_CHANNEL_ATTRIBUTE = "discard-channel";
 
@@ -79,86 +70,61 @@ public class AggregatorParser implements BeanDefinitionParser {
 
 	public static final String AGGREGATOR_ELEMENT = "aggregator";
 
-	public static final String COMPLETION_STRATEGY_ELEMENT = "completion-strategy";
 
-
-	public BeanDefinition parse(Element element, ParserContext parserContext) {
-		return parseAggregatorElement(element, parserContext, true);
+	@Override
+	protected Class<? extends MessageHandler> getHandlerAdapterClass() {
+		return AggregatingMessageHandler.class;
 	}
 
-	private BeanDefinition parseAggregatorElement(Element element, ParserContext parserContext, boolean topLevel) {
-		final RootBeanDefinition aggregatorDef = new RootBeanDefinition(AggregatingMessageHandler.class);
-		aggregatorDef.setSource(parserContext.extractSource(element));
-		final String id = element.getAttribute(ID_ATTRIBUTE);
-		final String ref = element.getAttribute(REF_ATTRIBUTE);
-		final String method = element.getAttribute(METHOD_ATTRIBUTE);
-		final String completionStrategyRef = element.getAttribute(COMPLETION_STRATEGY_ATTRIBUTE);
-		final NodeList completionStrategyChildElements = element.getElementsByTagName(COMPLETION_STRATEGY_ELEMENT);
-		if (!StringUtils.hasText(ref)) {
-			throw new ConfigurationException("The 'ref' attribute must be present");
-		}
-		if (!topLevel && StringUtils.hasText(id)) {
-			parserContext.getReaderContext().error(
-					"The 'id' attribute is only supported for top-level <aggregator> elements.",
-					parserContext.extractSource(element));
-		}
-		if (completionStrategyChildElements.getLength() > 0 && StringUtils.hasText(completionStrategyRef)) {
-			parserContext
-					.getReaderContext()
-					.error(
-							"The 'completion-strategy' element is only supported when no 'completion-strategy' attribute is specified.",
-							parserContext.extractSource(element));
-		}
-		if (!StringUtils.hasText(method)) {
-			aggregatorDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(ref));
+	@Override
+	protected boolean shouldCreateAdapter(Element element) {
+		return true;
+	}
+
+	@Override
+	protected String parseAdapter(String ref, String method, Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(this.getHandlerAdapterClass());
+		if (StringUtils.hasText(method)) {
+			String aggregatorAdapterBeanName = this.createAdapter(ref, method, parserContext, AggregatorAdapter.class);
+			builder.addConstructorArgReference(aggregatorAdapterBeanName);
 		}
 		else {
-			String adapterBeanName = createAdapterAndReturnBeanName(parserContext, ref, method, AggregatorAdapter.class);
-			aggregatorDef.getConstructorArgumentValues().addGenericArgumentValue(
-					new RuntimeBeanReference(adapterBeanName));
+			builder.addConstructorArgReference(ref);
 		}
-
+		final String completionStrategyRef = element.getAttribute(COMPLETION_STRATEGY_REF_ATTRIBUTE);
+		final String completionStrategyMethod = element.getAttribute(COMPLETION_STRATEGY_METHOD_ATTRIBUTE);
 		if (StringUtils.hasText(completionStrategyRef)) {
-			aggregatorDef.getPropertyValues().addPropertyValue(COMPLETION_STRATEGY_PROPERTY,
-					new RuntimeBeanReference(completionStrategyRef));
+			if (StringUtils.hasText(completionStrategyMethod)) {
+				String adapterBeanName = this.createAdapter(completionStrategyRef,
+						completionStrategyMethod, parserContext, CompletionStrategyAdapter.class);
+				builder.addPropertyReference(COMPLETION_STRATEGY_PROPERTY, adapterBeanName);	
+			}
+			else {
+				builder.addPropertyReference(COMPLETION_STRATEGY_PROPERTY, completionStrategyRef);
+			}
 		}
-		else if (completionStrategyChildElements.getLength() > 0) {
-			Element completionStrategyElement = (Element) completionStrategyChildElements.item(0);
-			String childCompletionStrategyReference = completionStrategyElement.getAttribute(REF_ATTRIBUTE);
-			String childCompletionStrategyMethod = completionStrategyElement.getAttribute(METHOD_ATTRIBUTE);
-			String adapterBeanName = createAdapterAndReturnBeanName(parserContext, childCompletionStrategyReference,
-					childCompletionStrategyMethod, CompletionStrategyAdapter.class);
-			aggregatorDef.getPropertyValues().addPropertyValue(COMPLETION_STRATEGY_PROPERTY,
-					new RuntimeBeanReference(adapterBeanName));
-		}
-
-		IntegrationNamespaceUtils.setBeanReferenceIfAttributeDefined(aggregatorDef, DEFAULT_REPLY_CHANNEL_PROPERTY,
-				element, DEFAULT_REPLY_CHANNEL_ATTRIBUTE);
-		IntegrationNamespaceUtils.setBeanReferenceIfAttributeDefined(aggregatorDef, DISCARD_CHANNEL_PROPERTY, element,
+		IntegrationNamespaceUtils.setBeanReferenceIfAttributeDefined(builder, DEFAULT_REPLY_CHANNEL_PROPERTY,
+				element, OUTPUT_CHANNEL_ATTRIBUTE);
+		IntegrationNamespaceUtils.setBeanReferenceIfAttributeDefined(builder, DISCARD_CHANNEL_PROPERTY, element,
 				DISCARD_CHANNEL_ATTRIBUTE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(aggregatorDef, SEND_TIMEOUT_PROPERTY, element,
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, SEND_TIMEOUT_PROPERTY, element,
 				SEND_TIMEOUT_ATTRIBUTE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(aggregatorDef, SEND_PARTIAL_RESULT_ON_TIMEOUT_PROPERTY,
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, SEND_PARTIAL_RESULT_ON_TIMEOUT_PROPERTY,
 				element, SEND_PARTIAL_RESULT_ON_TIMEOUT_ATTRIBUTE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(aggregatorDef, REAPER_INTERVAL_PROPERTY, element,
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, REAPER_INTERVAL_PROPERTY, element,
 				REAPER_INTERVAL_ATTRIBUTE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(aggregatorDef, TRACKED_CORRELATION_ID_CAPACITY_PROPERTY,
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, TRACKED_CORRELATION_ID_CAPACITY_PROPERTY,
 				element, TRACKED_CORRELATION_ID_CAPACITY_ATTRIBUTE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(aggregatorDef, TIMEOUT, element, TIMEOUT_ATTRIBUTE);
-		String beanName = StringUtils.hasText(id) ? id : parserContext.getReaderContext().generateBeanName(
-				aggregatorDef);
-		parserContext.registerBeanComponent(new BeanComponentDefinition(aggregatorDef, beanName));
-		return aggregatorDef;
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, TIMEOUT, element, TIMEOUT_ATTRIBUTE);
+		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
 	}
 
-	private String createAdapterAndReturnBeanName(ParserContext parserContext, final String ref, final String method,
-			Class<?> adapterClass) {
-		BeanDefinition adapterDefinition = new RootBeanDefinition(adapterClass);
-		adapterDefinition.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(ref));
-		adapterDefinition.getConstructorArgumentValues().addGenericArgumentValue(method);
-		String adapterBeanName = parserContext.getReaderContext().generateBeanName(adapterDefinition);
-		parserContext.registerBeanComponent(new BeanComponentDefinition(adapterDefinition, adapterBeanName));
-		return adapterBeanName;
+	private String createAdapter(String ref, String method, ParserContext parserContext, Class<?> adapterClass) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(adapterClass);
+		builder.addConstructorArgReference(ref);
+		builder.addConstructorArgValue(method);
+		return BeanDefinitionReaderUtils.registerWithGeneratedName(
+				builder.getBeanDefinition(), parserContext.getRegistry());
 	}
 
 }

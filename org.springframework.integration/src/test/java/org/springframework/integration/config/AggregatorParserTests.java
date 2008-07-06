@@ -26,10 +26,10 @@ import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.router.AggregatingMessageHandler;
@@ -39,6 +39,7 @@ import org.springframework.integration.util.MethodInvoker;
 
 /**
  * @author Marius Bogoevici
+ * @author Mark Fisher
  */
 public class AggregatorParserTests {
 
@@ -52,8 +53,8 @@ public class AggregatorParserTests {
 
 	@Test
 	public void testAggregation() {
-		AggregatingMessageHandler aggregatingHandler = (AggregatingMessageHandler) context
-				.getBean("aggregatorWithReference");
+		HandlerEndpoint endpoint = (HandlerEndpoint) context.getBean("aggregatorWithReference");
+		AggregatingMessageHandler aggregatingHandler = (AggregatingMessageHandler) endpoint.getHandler();
 		TestAggregator aggregatorBean = (TestAggregator) context.getBean("aggregatorBean");
 		List<Message<?>> outboundMessages = new ArrayList<Message<?>>();
 		outboundMessages.add(createMessage("123", "id1", 3, 1, null));
@@ -71,8 +72,9 @@ public class AggregatorParserTests {
 
 	@Test
 	public void testPropertyAssignment() throws Exception {
-		AggregatingMessageHandler completeAggregatingMessageHandler = (AggregatingMessageHandler) context
-				.getBean("completelyDefinedAggregator");
+		HandlerEndpoint endpoint = (HandlerEndpoint) context.getBean("completelyDefinedAggregator");
+		AggregatingMessageHandler completeAggregatingMessageHandler =
+				(AggregatingMessageHandler) endpoint.getHandler(); 
 		TestAggregator testAggregator = (TestAggregator) context.getBean("aggregatorBean");
 		CompletionStrategy completionStrategy = (CompletionStrategy) context.getBean("completionStrategy");
 		MessageChannel defaultReplyChannel = (MessageChannel) context.getBean("replyChannel");
@@ -103,8 +105,9 @@ public class AggregatorParserTests {
 
 	@Test
 	public void testSimpleJavaBeanAggregator() {
-		AggregatingMessageHandler addingAggregator = (AggregatingMessageHandler) context.getBean("aggregatorWithReferenceAndMethod");
 		List<Message<?>> outboundMessages = new ArrayList<Message<?>>();
+		HandlerEndpoint endpoint = (HandlerEndpoint) context.getBean("aggregatorWithReferenceAndMethod");
+		AggregatingMessageHandler addingAggregator = (AggregatingMessageHandler) endpoint.getHandler();
 		outboundMessages.add(createMessage(1l, "id1", 3, 1, null));
 		outboundMessages.add(createMessage(2l, "id1", 3, 3, null));
 		outboundMessages.add(createMessage(3l, "id1", 3, 2, null));
@@ -121,21 +124,23 @@ public class AggregatorParserTests {
 		context = new ClassPathXmlApplicationContext("invalidMethodNameAggregator.xml", this.getClass());		
 	}
 
-	@Test(expected=BeanDefinitionParsingException.class)
+	@Test(expected=BeanCreationException.class)
 	public void testDuplicateCompletionStrategyDefinition() {
-		context = new ClassPathXmlApplicationContext("completionStrategyMethodWithMissingReference.xml", this.getClass());		
+		context = new ClassPathXmlApplicationContext(
+				"completionStrategyMethodWithMissingReference.xml", this.getClass());		
 	}
 
 	@Test
 	public void testAggregatorWithPojoCompletionStrategy(){
-		AggregatingMessageHandler aggregatorWithPojoCompletionStrategy = (AggregatingMessageHandler) context.getBean("aggregatorWithPojoCompletionStrategy");
-		CompletionStrategy completionStrategy = (CompletionStrategy)new DirectFieldAccessor(aggregatorWithPojoCompletionStrategy).getPropertyValue("completionStrategy");
+		HandlerEndpoint endpoint = (HandlerEndpoint) context.getBean("aggregatorWithPojoCompletionStrategy");
+		AggregatingMessageHandler aggregatorWithPojoCompletionStrategy = (AggregatingMessageHandler) endpoint.getHandler();
+		CompletionStrategy completionStrategy = (CompletionStrategy)
+				new DirectFieldAccessor(aggregatorWithPojoCompletionStrategy).getPropertyValue("completionStrategy");
 		Assert.assertTrue(completionStrategy instanceof CompletionStrategyAdapter);
 		DirectFieldAccessor completionStrategyAccessor = new DirectFieldAccessor(completionStrategy);
 		MethodInvoker invoker = (MethodInvoker) completionStrategyAccessor.getPropertyValue("invoker");
 		Assert.assertTrue(new DirectFieldAccessor(invoker).getPropertyValue("object") instanceof MaxValueCompletionStrategy);
 		Assert.assertTrue(((Method)completionStrategyAccessor.getPropertyValue("method")).getName().equals("checkCompleteness"));
-		
 		aggregatorWithPojoCompletionStrategy.handle(createMessage(1l, "id1", 0 , 0, null));
 		aggregatorWithPojoCompletionStrategy.handle(createMessage(2l, "id1", 0 , 0, null));
 		aggregatorWithPojoCompletionStrategy.handle(createMessage(3l, "id1", 0 , 0, null));
@@ -148,9 +153,9 @@ public class AggregatorParserTests {
 		Assert.assertEquals(11l, reply.getPayload());
 	}
 
-	@Test(expected=BeanDefinitionParsingException.class)
-	public void testAggregatorWithDuplicateCompletionStrategy() {
-		context = new ClassPathXmlApplicationContext("duplicateCompletionStrategy.xml", this.getClass());		
+	@Test(expected=BeanCreationException.class)
+	public void testAggregatorWithInvalidCompletionStrategyMethod() {
+		context = new ClassPathXmlApplicationContext("invalidCompletionStrategyMethod.xml", this.getClass());		
 	}
 
 

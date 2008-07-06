@@ -9,14 +9,15 @@
 				
 	<message-bus/>
 	
-	<aggregator id="aggregator" ref="adderBean" method="add" completion-strategy="testCompletionStrategy" default-reply-channel="replyChannel">
-		<completion-strategy ref="testCompletionStrategy"/>
+	<aggregator id="aggregator" ref="adderBean" method="add" completion-strategy="testCompletionStrategy"
+		input-channel="input-channel" output-channel="replyChannel">
 	</aggregator>
 
+	<channel id="inputChannel"/>
 	<channel id="replyChannel"/>
 
 	<beans:bean id="adderBean" class="org.springframework.integration.config.Adder"/>
 	
-	<beans:bean id="completionStrategyBean" class="org.springframework.integration.config.TestCompletionStrategy"></beans:bean>
+	<beans:bean id="completionStrategyBean" class="org.springframework.integration.config.TestCompletionStrategy"/>
 
 </beans:beans>
