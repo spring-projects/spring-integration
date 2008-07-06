@@ -157,7 +157,8 @@ public class SplitterMessageHandlerAdapterTests {
 	@Test(expected=MessagingException.class)
 	public void testInvalidReturnType() throws Exception {
 		Method splittingMethod = this.testBean.getClass().getMethod("invalidParameterCount", String.class, String.class);
-		SplitterMessageHandlerAdapter adapter = new SplitterMessageHandlerAdapter(testBean, splittingMethod, "testChannel");
+		SplitterMessageHandlerAdapter adapter = new SplitterMessageHandlerAdapter(testBean, splittingMethod);
+		adapter.setOutputChannelName("testChannel");
 		adapter.setChannelRegistry(channelRegistry);
 		adapter.afterPropertiesSet();
 		StringMessage message = new StringMessage("foo.bar");
@@ -167,8 +168,9 @@ public class SplitterMessageHandlerAdapterTests {
 	@Test
 	public void testSplitPayloadToStringArrayConfiguredByMethodName() throws Exception {
 		StringMessage message = new StringMessage("foo.bar");
-		SplitterMessageHandlerAdapter adapter = new SplitterMessageHandlerAdapter(
-				testBean, "stringToStringArray", "testChannel");
+		SplitterMessageHandlerAdapter adapter =
+				new SplitterMessageHandlerAdapter(testBean, "stringToStringArray");
+		adapter.setOutputChannelName("testChannel");
 		adapter.setChannelRegistry(channelRegistry);
 		adapter.afterPropertiesSet();
 		adapter.handle(message);
@@ -183,8 +185,9 @@ public class SplitterMessageHandlerAdapterTests {
 	@Test
 	public void testSplitMessageToStringArrayConfiguredByMethodName() throws Exception {
 		StringMessage message = new StringMessage("foo.bar");
-		SplitterMessageHandlerAdapter adapter = new SplitterMessageHandlerAdapter(
-				testBean, "messageToStringArray", "testChannel");
+		SplitterMessageHandlerAdapter adapter =
+				new SplitterMessageHandlerAdapter(testBean, "messageToStringArray");
+		adapter.setOutputChannelName("testChannel");
 		adapter.setChannelRegistry(channelRegistry);
 		adapter.afterPropertiesSet();
 		adapter.handle(message);
@@ -199,8 +202,9 @@ public class SplitterMessageHandlerAdapterTests {
 	@Test
 	public void testSplitStringToMessageListConfiguredByMethodName() throws Exception {
 		StringMessage message = new StringMessage("foo.bar");
-		SplitterMessageHandlerAdapter adapter = new SplitterMessageHandlerAdapter(
-				testBean, "stringToMessageList", "testChannel");
+		SplitterMessageHandlerAdapter adapter =
+				new SplitterMessageHandlerAdapter(testBean, "stringToMessageList");
+		adapter.setOutputChannelName("testChannel");
 		adapter.setChannelRegistry(channelRegistry);
 		adapter.afterPropertiesSet();
 		adapter.handle(message);
@@ -250,7 +254,9 @@ public class SplitterMessageHandlerAdapterTests {
 	private SplitterMessageHandlerAdapter getAdapter(String methodName) throws Exception {
 		Class<?> paramType = methodName.startsWith("message") ? Message.class : String.class;
 		Method splittingMethod = this.testBean.getClass().getMethod(methodName, paramType);
-		SplitterMessageHandlerAdapter adapter = new SplitterMessageHandlerAdapter(testBean, splittingMethod, "testChannel");
+		SplitterMessageHandlerAdapter adapter =
+				new SplitterMessageHandlerAdapter(testBean, splittingMethod);
+		adapter.setOutputChannelName("testChannel");
 		adapter.setChannelRegistry(channelRegistry);
 		adapter.afterPropertiesSet();
 		return adapter;

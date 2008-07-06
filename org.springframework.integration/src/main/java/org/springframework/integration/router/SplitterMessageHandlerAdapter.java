@@ -26,7 +26,6 @@ import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.AbstractMessageHandlerAdapter;
 import org.springframework.integration.message.Message;
-import org.springframework.util.Assert;
 
 /**
  * MessageHandler adapter for methods annotated with {@link Splitter @Splitter}.
@@ -36,18 +35,14 @@ import org.springframework.util.Assert;
  */
 public class SplitterMessageHandlerAdapter extends AbstractMessageHandlerAdapter implements ChannelRegistryAware {
 
-	private final String outputChannelName;
-
-	private volatile ChannelRegistry channelRegistry;
+	private volatile String outputChannelName;
 
 	private volatile long sendTimeout = -1;
 
 
-	public SplitterMessageHandlerAdapter(Object object, Method method, String outputChannelName) {
-		Assert.hasText(outputChannelName, "output channel name is required");
+	public SplitterMessageHandlerAdapter(Object object, Method method) {
 		this.setObject(object);
 		this.setMethod(method);
-		this.outputChannelName = outputChannelName;
 		if (method.getParameterTypes().length < 1) {
 			throw new ConfigurationException("The splitter method must accept at least one argument.");
 		}
@@ -56,15 +51,17 @@ public class SplitterMessageHandlerAdapter extends AbstractMessageHandlerAdapter
 		}
 	}
 
-	public SplitterMessageHandlerAdapter(Object object, String methodName, String outputChannelName) {
-		Assert.hasText(outputChannelName, "output channel name is required");
+	public SplitterMessageHandlerAdapter(Object object, String methodName) {
 		this.setObject(object);
 		this.setMethodName(methodName);
-		this.outputChannelName = outputChannelName;
 	}
 
-	public void setChannelRegistry(ChannelRegistry channelRegistry) {
-		this.channelRegistry = channelRegistry;
+	public SplitterMessageHandlerAdapter() {
+	}
+
+
+	public void setOutputChannelName(String outputChannelName) {
+		this.outputChannelName = outputChannelName;
 	}
 
 	public void setSendTimeout(long sendTimeout) {
@@ -115,10 +112,11 @@ public class SplitterMessageHandlerAdapter extends AbstractMessageHandlerAdapter
 	}
 
 	private boolean sendMessage(Message<?> message, String channelName) {
-		if (this.channelRegistry == null) {
+		ChannelRegistry channelRegistry = this.getChannelRegistry();
+		if (channelRegistry == null) {
 			throw new IllegalStateException(this.getClass().getSimpleName() + " requires a ChannelRegistry reference.");
 		}
-		MessageChannel channel = this.channelRegistry.lookupChannel(channelName);
+		MessageChannel channel = channelRegistry.lookupChannel(channelName);
 		if (channel == null) {
 			if (logger.isWarnEnabled()) {
 				logger.warn("unable to resolve channel for name '" + channelName + "'");

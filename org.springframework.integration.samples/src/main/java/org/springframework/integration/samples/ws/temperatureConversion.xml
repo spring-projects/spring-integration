@@ -15,7 +15,7 @@
 	<!-- The handler endpoint receives from the 'fahrenheitChannel',
 	     invokes the handler, and sends the reply Message to the 'celsiusChannel'. -->
 	<handler-endpoint input-channel="fahrenheitChannel"
-	                  handler="temperatureConverter"
+	                  ref="temperatureConverter"
 	                  output-channel="celsiusChannel"/>
 
 	<!-- The handler invokes the WebService for the given URI and returns a reply Message. -->

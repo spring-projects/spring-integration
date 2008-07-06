@@ -19,7 +19,8 @@ package org.springframework.integration.handler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import org.springframework.core.Ordered;
+import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.message.DefaultMessageCreator;
 import org.springframework.integration.message.DefaultMessageMapper;
 import org.springframework.integration.message.Message;
@@ -44,18 +45,19 @@ import org.springframework.util.ObjectUtils;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractMessageHandlerAdapter extends AbstractMethodInvokingAdapter implements MessageHandler {
+public abstract class AbstractMessageHandlerAdapter extends AbstractMethodInvokingAdapter
+		implements MessageHandler, ChannelRegistryAware {
 
 	public static final String OUTPUT_CHANNEL_NAME_KEY = "outputChannelName";
 
-
-	private volatile int order;
 
 	private volatile boolean methodExpectsMessage;
 
 	private volatile MessageMapper messageMapper = new DefaultMessageMapper();
 
 	private volatile MessageCreator messageCreator = new DefaultMessageCreator();
+
+	private volatile ChannelRegistry channelRegistry;
 
 
 	public void setMethodExpectsMessage(boolean methodExpectsMessage) {
@@ -70,6 +72,14 @@ public abstract class AbstractMessageHandlerAdapter extends AbstractMethodInvoki
 	public void setMessageCreator(MessageCreator messageCreator) {
 		Assert.notNull(messageCreator, "'messageCreator' must not be null");
 		this.messageCreator = messageCreator;
+	}
+
+	public void setChannelRegistry(ChannelRegistry channelRegistry) {
+		this.channelRegistry = channelRegistry;
+	}
+
+	protected ChannelRegistry getChannelRegistry() {
+		return this.channelRegistry;
 	}
 
 	public Message<?> handle(Message<?> message) {

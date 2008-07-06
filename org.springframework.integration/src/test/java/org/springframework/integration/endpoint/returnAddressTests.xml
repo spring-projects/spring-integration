@@ -18,16 +18,16 @@
 	<si:channel id="replyChannel"/>
 	<si:channel id="customErrorChannel"/>
 
-	<si:handler-endpoint input-channel="channel1WithOverride" handler="testBean" method="duplicate"
+	<si:handler-endpoint input-channel="channel1WithOverride" ref="testBean" method="duplicate"
                  output-channel="channel2" return-address-overrides="true"/>
 
-	<si:handler-endpoint input-channel="channel3WithOverride" handler="testBean" method="duplicate"
+	<si:handler-endpoint input-channel="channel3WithOverride" ref="testBean" method="duplicate"
                  return-address-overrides="true"/>
 
-	<si:handler-endpoint input-channel="channel1" handler="testBean" method="duplicate" output-channel="channel2"/>
-	<si:handler-endpoint input-channel="channel2" handler="testBean" method="duplicate" output-channel="channel3"/>
-	<si:handler-endpoint input-channel="channel3" handler="testBean" method="duplicate"/>
-	<si:handler-endpoint input-channel="channel4" handler="testBean" method="duplicate" output-channel="replyChannel"/>
+	<si:handler-endpoint input-channel="channel1" ref="testBean" method="duplicate" output-channel="channel2"/>
+	<si:handler-endpoint input-channel="channel2" ref="testBean" method="duplicate" output-channel="channel3"/>
+	<si:handler-endpoint input-channel="channel3" ref="testBean" method="duplicate"/>
+	<si:handler-endpoint input-channel="channel4" ref="testBean" method="duplicate" output-channel="replyChannel"/>
 
 	<bean id="testBean" class="org.springframework.integration.endpoint.TestBean"/>
 

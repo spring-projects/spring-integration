@@ -14,7 +14,7 @@
 	<channel id="output"/>
 
 	<handler-endpoint input-channel="badInput"
-	                  handler="testBean"
+	                  ref="testBean"
 	                  method="bad"
                       output-channel="output">
         <schedule period="100"/>
@@ -24,7 +24,7 @@
     </handler-endpoint>
 
 	<handler-endpoint input-channel="goodInput"
-	                  handler="testBean"
+	                  ref="testBean"
 	                  method="good"
                       output-channel="output">
         <schedule period="100"/>

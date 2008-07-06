@@ -92,6 +92,9 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Init
 		if (bean instanceof ChannelRegistryAware) {
 			((ChannelRegistryAware) bean).setChannelRegistry(this.messageBus);
 		}
+		if (!bean.equals(originalBean) && originalBean instanceof ChannelRegistryAware) {
+			((ChannelRegistryAware) originalBean).setChannelRegistry(this.messageBus);
+		}
 		if (endpointAnnotation != null && bean.equals(originalBean)) {
 			throw new ConfigurationException("Class [" + beanClass.getName()
 					+ "] is annotated with @MessageEndpoint but contains no source, target, or handler method annotations.");

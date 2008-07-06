@@ -19,7 +19,7 @@
 		<handler ref="handler3"/>
 	</handler-chain>
 
-	<handler-endpoint input-channel="testChannel" handler="chain" output-channel="replyChannel">
+	<handler-endpoint input-channel="testChannel" ref="chain" output-channel="replyChannel">
 		<schedule period="100"/>
 	</handler-endpoint>
 

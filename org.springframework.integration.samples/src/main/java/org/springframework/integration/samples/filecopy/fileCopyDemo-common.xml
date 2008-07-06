@@ -20,7 +20,7 @@
 	</channel-adapter>
 
 	<handler-endpoint input-channel="channel1" output-channel="channel2"
-              handler="exclaimer" method="exclaim"/>
+              ref="exclaimer" method="exclaim"/>
 
 	<channel-adapter channel="channel2" target="fileTarget"/>
 

@@ -9,6 +9,8 @@
 
 	<beans:import resource="fileCopyDemo-common.xml"/>
 	
-	<file-source id="fileSource" type="text" directory="${java.io.tmpdir}/spring-integration-samples/input"/>
+	<file-source id="fileSource" type="text"
+		         filename-pattern="[a-z]+.txt"
+	             directory="${java.io.tmpdir}/spring-integration-samples/input"/>
 
 </beans:beans>

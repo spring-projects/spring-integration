@@ -11,7 +11,7 @@
 
 	<queue-channel id="testChannel" capacity="50"/>
 
-	<handler-endpoint input-channel="testChannel" handler="testHandler">
+	<handler-endpoint input-channel="testChannel" ref="testHandler">
 		<schedule period="100"/>
 	</handler-endpoint>
 

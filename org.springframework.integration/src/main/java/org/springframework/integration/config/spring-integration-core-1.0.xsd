@@ -200,22 +200,34 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
-				<xsd:extension base="beans:identifiedType">
-					<xsd:all>
-						<xsd:element ref="schedule" minOccurs="0" maxOccurs="1"/>
-						<xsd:element name="interceptors" type="interceptorsType" minOccurs="0" maxOccurs="1"/>
-					</xsd:all>
-					<xsd:attribute name="handler" type="xsd:string" use="required"/>
-					<xsd:attribute name="method" type="xsd:string"/>
-					<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
-					<xsd:attribute name="output-channel" type="xsd:string"/>
-					<xsd:attribute name="selector" type="xsd:string"/>
+				<xsd:extension base="handlerEndpointType">
 					<xsd:attribute name="reply-handler" type="xsd:string"/>
-					<xsd:attribute name="return-address-overrides" type="xsd:boolean" default="false"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:complexType name="handlerEndpointType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Base type for handler endpoint elements.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="beans:identifiedType">
+				<xsd:all>
+					<xsd:element ref="schedule" minOccurs="0" maxOccurs="1"/>
+					<xsd:element name="interceptors" type="interceptorsType" minOccurs="0" maxOccurs="1"/>
+				</xsd:all>
+				<xsd:attribute name="ref" type="xsd:string" use="required"/>
+				<xsd:attribute name="method" type="xsd:string"/>
+				<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
+				<xsd:attribute name="output-channel" type="xsd:string"/>
+				<xsd:attribute name="selector" type="xsd:string"/>
+				<xsd:attribute name="return-address-overrides" type="xsd:boolean" default="false"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
 
 	<xsd:element name="schedule">
 		<xsd:complexType>
@@ -319,18 +331,12 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="splitter">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
+	<xsd:element name="splitter" type="handlerEndpointType">
+		<xsd:annotation>
+			<xsd:documentation>
 	Defines a Splitter.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:attribute name="id" type="xsd:ID"/>
-			<xsd:attribute name="ref" type="xsd:string" use="required"/>
-			<xsd:attribute name="method" type="xsd:string" use="required"/>
-			<xsd:attribute name="output-channel" type="xsd:string" use="required"/>
-		</xsd:complexType>
+			</xsd:documentation>
+		</xsd:annotation>
 	</xsd:element>
 
 	<xsd:element name="aggregator">

@@ -14,37 +14,38 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.router.config;
+package org.springframework.integration.config;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.config.AbstractHandlerEndpointParser;
+import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
 import org.springframework.integration.handler.MessageHandler;
-import org.springframework.integration.router.SplitterMessageHandlerAdapter;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for the &lt;splitter/&gt; element.
- * 
  * @author Mark Fisher
  */
-public class SplitterParser extends AbstractHandlerEndpointParser {
+public class DefaultHandlerEndpointParser extends AbstractHandlerEndpointParser {
+
+	private static final String REPLY_HANDLER_ATTRIBUTE = "reply-handler";
+
+	private static final String REPLY_HANDLER_PROPERTY = "replyHandler";
+
 
 	@Override
 	protected Class<? extends MessageHandler> getHandlerAdapterClass() {
-		return SplitterMessageHandlerAdapter.class;
+		return DefaultMessageHandlerAdapter.class;
 	}
 
 	@Override
-	protected void postProcessAdapterBean(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
-		String outputChannelName = element.getAttribute("output-channel");
-		if (!StringUtils.hasText(outputChannelName)) {
-			throw new ConfigurationException("The 'output-channel' attribute is required.");
+	protected void postProcessEndpointBean(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
+		String replyHandler = element.getAttribute(REPLY_HANDLER_ATTRIBUTE);
+		if (StringUtils.hasText(replyHandler)) {
+			builder.addPropertyValue(REPLY_HANDLER_PROPERTY, new RuntimeBeanReference(replyHandler));
 		}
-		builder.addPropertyValue("outputChannelName", outputChannelName);
 	}
 
 }

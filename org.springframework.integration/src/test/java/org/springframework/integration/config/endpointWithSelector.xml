@@ -12,7 +12,7 @@
 	<queue-channel id="testChannel" capacity="50"/>
 
 	<handler-endpoint id="endpoint" input-channel="testChannel"
-	                  handler="testHandler" selector="typeSelector">
+	                  ref="testHandler" selector="typeSelector">
 		<schedule period="100"/>
 	</handler-endpoint>
 

@@ -15,14 +15,14 @@
 
 	<handler-endpoint id="handlerEndpointWithoutAdvice"
 	                  input-channel="testChannel"
-	                  handler="testHandler"
+	                  ref="testHandler"
 	                  output-channel="replyChannel">
 		<schedule period="100"/>
 	</handler-endpoint>
 
 	<handler-endpoint id="handlerEndpointWithAdvice"
 	                  input-channel="testChannel"
-	                  handler="testHandler"
+	                  ref="testHandler"
 	                  output-channel="replyChannel">
 		<schedule period="100"/>
 		<interceptors>

@@ -20,8 +20,8 @@
 	<channel id="coldDrinks"/>
 	<channel id="hotDrinks"/>
 
-	<handler-endpoint input-channel="coldDrinks" handler="barista" method="prepareColdDrink"/>
-	<handler-endpoint input-channel="hotDrinks" handler="barista" method="prepareHotDrink">
+	<handler-endpoint input-channel="coldDrinks" ref="barista" method="prepareColdDrink"/>
+	<handler-endpoint input-channel="hotDrinks" ref="barista" method="prepareHotDrink">
 		<interceptors>
 			<concurrency-interceptor max="5"/>
 		</interceptors>

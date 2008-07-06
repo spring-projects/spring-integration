@@ -15,7 +15,7 @@
 
 	<channel id="output2"/>
 
-	<handler-endpoint handler="router" input-channel="input"/>
+	<handler-endpoint ref="router" input-channel="input"/>
 
 	<router id="router" ref="pojo" method="route"/>
 

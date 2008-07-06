@@ -20,47 +20,47 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.endpoint.HandlerEndpoint;
-import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
+import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for the <em>handler-endpoint</em> element of the integration namespace.
+ * Base class parser for elements that create handler-invoking endpoints.
  * 
  * @author Mark Fisher
  */
-public class HandlerEndpointParser extends AbstractSingleBeanDefinitionParser {
+public abstract class AbstractHandlerEndpointParser extends AbstractSingleBeanDefinitionParser {
 
-	private static final String INPUT_CHANNEL_ATTRIBUTE = "input-channel";
+	protected static final String REF_ATTRIBUTE = "ref";
 
-	private static final String OUTPUT_CHANNEL_ATTRIBUTE = "output-channel";
+	protected static final String METHOD_ATTRIBUTE = "method";
 
-	private static final String OUTPUT_CHANNEL_PROPERTY = "outputChannelName";
+	protected static final String INPUT_CHANNEL_ATTRIBUTE = "input-channel";
 
-	private static final String RETURN_ADDRESS_OVERRIDES_ATTRIBUTE = "return-address-overrides";
+	protected static final String OUTPUT_CHANNEL_ATTRIBUTE = "output-channel";
 
-	private static final String REPLY_HANDLER_ATTRIBUTE = "reply-handler";
+	protected static final String OUTPUT_CHANNEL_PROPERTY = "outputChannelName";
 
-	private static final String REPLY_HANDLER_PROPERTY = "replyHandler";
-
-	private static final String SELECTOR_ATTRIBUTE = "selector";
-
-	private static final String SELECTOR_PROPERTY = "messageSelector";
+	protected static final String RETURN_ADDRESS_OVERRIDES_ATTRIBUTE = "return-address-overrides";
 
 	private static final String PERIOD_ATTRIBUTE = "period";
 
 	private static final String SCHEDULE_ELEMENT = "schedule";
+
+	private static final String SELECTOR_ATTRIBUTE = "selector";
+
+	private static final String SELECTOR_PROPERTY = "messageSelector";
 
 	private static final String INTERCEPTORS_ELEMENT = "interceptors";
 
@@ -82,17 +82,17 @@ public class HandlerEndpointParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		String handler = element.getAttribute("handler");
-		if (!StringUtils.hasText(handler)) {
-			throw new ConfigurationException("The 'handler' attribute is required.");
+		String ref = element.getAttribute(REF_ATTRIBUTE);
+		if (!StringUtils.hasText(ref)) {
+			throw new ConfigurationException("The '" + REF_ATTRIBUTE + "' attribute is required.");
 		}
-		String method = element.getAttribute("method");
+		String method = element.getAttribute(METHOD_ATTRIBUTE);
 		if (StringUtils.hasText(method)) {
-			String adapterBeanName = this.parseAdapter(handler, method, parserContext);
+			String adapterBeanName = this.parseAdapter(ref, method, element, parserContext);
 			builder.addConstructorArgReference(adapterBeanName);
 		}
 		else {
-			builder.addConstructorArgReference(handler);
+			builder.addConstructorArgReference(ref);
 		}
 		String inputChannelName = element.getAttribute(INPUT_CHANNEL_ATTRIBUTE);
 		Schedule schedule = null;
@@ -129,18 +129,26 @@ public class HandlerEndpointParser extends AbstractSingleBeanDefinitionParser {
 		String returnAddressOverridesAttribute = element.getAttribute(RETURN_ADDRESS_OVERRIDES_ATTRIBUTE);
 		boolean returnAddressOverrides = "true".equals(returnAddressOverridesAttribute);
 		builder.addPropertyValue("returnAddressOverrides", returnAddressOverrides);
-		String replyHandler = element.getAttribute(REPLY_HANDLER_ATTRIBUTE);
-		if (StringUtils.hasText(replyHandler)) {
-			builder.addPropertyValue(REPLY_HANDLER_PROPERTY, new RuntimeBeanReference(replyHandler));
-		}
+		this.postProcessEndpointBean(builder, element, parserContext);
 	}
 
-	private String parseAdapter(String ref, String method, ParserContext parserContext) {
-		BeanDefinition adapterDef = new RootBeanDefinition(DefaultMessageHandlerAdapter.class);
-		adapterDef.getPropertyValues().addPropertyValue("object", new RuntimeBeanReference(ref));
-		adapterDef.getPropertyValues().addPropertyValue("methodName", method);
-		String adapterBeanName = parserContext.getReaderContext().generateBeanName(adapterDef);
-		parserContext.registerBeanComponent(new BeanComponentDefinition(adapterDef, adapterBeanName));
+	protected abstract Class<? extends MessageHandler> getHandlerAdapterClass();
+
+	protected void postProcessEndpointBean(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
+	}
+
+	protected void postProcessAdapterBean(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
+	}
+
+
+	private String parseAdapter(String ref, String method, Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(this.getHandlerAdapterClass());
+		builder.addPropertyValue("object", new RuntimeBeanReference(ref));
+		builder.addPropertyValue("methodName", method);
+		String adapterBeanName = BeanDefinitionReaderUtils.generateBeanName(builder.getBeanDefinition(), parserContext.getRegistry());
+		this.postProcessAdapterBean(builder, element, parserContext);
+		BeanDefinitionHolder holder = new BeanDefinitionHolder(builder.getBeanDefinition(), adapterBeanName);
+		parserContext.registerBeanComponent(new BeanComponentDefinition(holder));
 		return adapterBeanName;
 	}
 

@@ -12,7 +12,7 @@
 	<channel id="inputChannel"/>
 	<channel id="outputChannel"/>
 
-	<handler-endpoint input-channel="inputChannel" handler="simpleHandler" output-channel="outputChannel"/>
+	<handler-endpoint input-channel="inputChannel" ref="simpleHandler" output-channel="outputChannel"/>
 
 	<beans:bean class="org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor">
 		<beans:constructor-arg ref="internal.MessageBus"/>

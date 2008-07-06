@@ -121,7 +121,8 @@ public class CorrelationIdTests {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("testChannel", testChannel);
 		SplitterMessageHandlerAdapter splitter = new SplitterMessageHandlerAdapter(
-				new TestBean(), TestBean.class.getMethod("split", String.class), "testChannel");
+				new TestBean(), TestBean.class.getMethod("split", String.class));
+		splitter.setOutputChannelName("testChannel");
 		splitter.setChannelRegistry(channelRegistry);
 		splitter.afterPropertiesSet();
 		splitter.handle(message);

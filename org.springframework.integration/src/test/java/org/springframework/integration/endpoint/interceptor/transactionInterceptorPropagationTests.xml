@@ -14,7 +14,7 @@
 
 	<handler-endpoint id="required"
 	                  input-channel="input"
-	                  handler="testBean"
+	                  ref="testBean"
 	                  method="good"
                       output-channel="output">
         <schedule period="10000"/>
@@ -25,7 +25,7 @@
 
 	<handler-endpoint id="requiresNew"
 	                  input-channel="input"
-	                  handler="testBean"
+	                  ref="testBean"
 	                  method="good"
                       output-channel="output">
         <schedule period="10000"/>
@@ -36,7 +36,7 @@
 
 	<handler-endpoint id="supports"
 	                  input-channel="input"
-	                  handler="testBean"
+	                  ref="testBean"
 	                  method="good"
                       output-channel="output">
         <schedule period="10000"/>
@@ -47,7 +47,7 @@
 
 	<handler-endpoint id="notSupported"
 	                  input-channel="input"
-	                  handler="testBean"
+	                  ref="testBean"
 	                  method="good"
                       output-channel="output">
         <schedule period="10000"/>
@@ -58,7 +58,7 @@
 
 	<handler-endpoint id="mandatory"
 	                  input-channel="input"
-	                  handler="testBean"
+	                  ref="testBean"
 	                  method="good"
                       output-channel="output">
         <schedule period="10000"/>
