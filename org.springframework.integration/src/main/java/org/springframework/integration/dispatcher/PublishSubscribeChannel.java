@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.channel;
+package org.springframework.integration.dispatcher;
 
 import java.util.List;
 
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.dispatcher.BroadcastingDispatcher;
+import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.Subscribable;
