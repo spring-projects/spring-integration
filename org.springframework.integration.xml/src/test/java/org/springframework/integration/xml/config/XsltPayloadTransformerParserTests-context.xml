@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:si-xml="http://www.springframework.org/schema/integration-xml"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration-xml http://www.springframework.org/schema/integration/spring-integration-xml-1.0.xsd">
+
+	<si-xml:xslt-transformer
+		id="xsltTransfomerWithResource" xsl-resource="org/springframework/integration/xml/config/test.xsl" />
+		
+		
+	<si-xml:xslt-transformer id="xsltTransformerWithTemplates" xsl-templates="templates" />
+	
+	<bean id="templates" class="org.springframework.integration.xml.config.TestTemplatesFactory" />	
+		
+</beans>

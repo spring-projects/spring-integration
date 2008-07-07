@@ -28,6 +28,7 @@ public class IntegrationXmlNamespaceHandler extends NamespaceHandlerSupport {
 	public void init() {
 		registerBeanDefinitionParser("marshalling-transformer", new XmlMarshallingTransformerParser());
 		registerBeanDefinitionParser("unmarshalling-transformer", new XmlUnmarshallingTransformerParser());
+		registerBeanDefinitionParser("xslt-transformer", new XsltPayloadTransformerParser());
 	}
 
 }

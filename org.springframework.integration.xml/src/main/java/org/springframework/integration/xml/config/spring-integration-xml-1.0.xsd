@@ -52,5 +52,21 @@
 		</xsd:complexType>
 	</xsd:element>
 	
+	
+		<xsd:element name="xslt-transformer">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+					Defines a XML unmarshalling transformer.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="id" type="xsd:string" use="required" />
+			<xsd:attribute name="xsl-resource" type="xsd:string" use="optional" />
+			<xsd:attribute name="xsl-templates" type="xsd:string" use="optional" />
+			<xsd:attribute name="source-factory" type="xsd:string" use="optional" />
+			<xsd:attribute name="result-factory" type="xsd:string" use="optional" />
+		</xsd:complexType>
+	</xsd:element>
+	
 
 </xsd:schema>

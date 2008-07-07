@@ -64,7 +64,7 @@ public class XmlPayloadMarshallingTransformer implements MessageTransformer {
 			transformedPayload = result;
 		}
 		catch (IOException e) {
-			throw new MessageHandlingException(message, "failed to marshal payload", e);
+			throw new MessageHandlingException(message, "failed to marshall payload", e);
 		}
 
 		if (transformedPayload == null) {

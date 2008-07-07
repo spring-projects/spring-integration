@@ -17,11 +17,7 @@ package org.springframework.integration.xml.transformer;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.StringReader;
-
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Source;
-import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 
 import org.junit.Before;
@@ -31,9 +27,9 @@ import org.springframework.core.io.Resource;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.xml.transform.StringSource;
 import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
 
 /**
  * 
@@ -44,26 +40,34 @@ public class XsltPayloadTransformerTest {
 
 	XsltPayloadTransformer transformer;
 
+	String doc = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>";
+
 	@Before
 	public void setUp() throws Exception {
 		transformer = new XsltPayloadTransformer(getXslResource());
 	}
 
-	@Test(expected = MessagingException.class)
-	public void testDocumentAsPayloadShouldBeRejected() throws Exception {
-		Document input = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
-				new InputSource(new StringReader(getInputString())));
-		GenericMessage<Document> documentMessage = new GenericMessage<Document>(input);
+	@Test
+	public void testDocumentAsPayload() throws Exception {
+		GenericMessage<Document> documentMessage = new GenericMessage<Document>(XmlTestUtil.getDocumentForString(doc));
 		transformer.transform(documentMessage);
+
 	}
 
 	@Test
 	public void testSourceAsPayload() throws Exception {
-		GenericMessage<Source> message = new GenericMessage<Source>(new StringSource(getInputString()));
+		GenericMessage<Source> message = new GenericMessage<Source>(new StringSource(doc));
 		transformer.transform(message);
+		DOMResult result = (DOMResult) message.getPayload();
+		String rootNodeName = ((Document) result.getNode()).getDocumentElement().getNodeName();
+		assertEquals("Wrong name for root element after transform", "bob", rootNodeName);
+	}
 
-		DOMResult result = new DOMResult();
-		TransformerFactory.newInstance().newTransformer().transform(message.getPayload(), result);
+	@Test
+	public void testStringAsPayload() throws Exception {
+		GenericMessage<Object> message = new GenericMessage<Object>(doc);
+		transformer.transform(message);
+		DOMResult result = (DOMResult) message.getPayload();
 		String rootNodeName = ((Document) result.getNode()).getDocumentElement().getNodeName();
 		assertEquals("Wrong name for root element after transform", "bob", rootNodeName);
 	}
@@ -76,10 +80,6 @@ public class XsltPayloadTransformerTest {
 	@Test(expected = MessagingException.class)
 	public void testUnsupportedPayloadType() throws Exception {
 		transformer.transform(new GenericMessage<Long>(new Long(12)));
-	}
-
-	public String getInputString() {
-		return "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>";
 	}
 
 	public Resource getXslResource() throws Exception {

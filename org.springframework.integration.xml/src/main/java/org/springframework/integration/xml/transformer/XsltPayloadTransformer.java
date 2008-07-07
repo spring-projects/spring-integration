@@ -16,6 +16,7 @@
 
 package org.springframework.integration.xml.transformer;
 
+import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Templates;
 import javax.xml.transform.TransformerException;
@@ -26,8 +27,10 @@ import org.springframework.core.io.Resource;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.transformer.MessageTransformer;
-import org.springframework.xml.transform.StringResult;
-import org.springframework.xml.transform.StringSource;
+import org.springframework.integration.xml.result.DomResultFactory;
+import org.springframework.integration.xml.result.ResultFactory;
+import org.springframework.integration.xml.source.DomSourceFactory;
+import org.springframework.integration.xml.source.SourceFactory;
 import org.w3c.dom.Document;
 
 /**
@@ -39,6 +42,10 @@ import org.w3c.dom.Document;
 public class XsltPayloadTransformer implements MessageTransformer {
 
 	private final Templates templates;
+
+	private SourceFactory sourceFactory = new DomSourceFactory();
+
+	private ResultFactory resultFactory = new DomResultFactory();
 
 	public XsltPayloadTransformer(Templates templates) {
 		this.templates = templates;
@@ -52,12 +59,11 @@ public class XsltPayloadTransformer implements MessageTransformer {
 	public void transform(Message message) {
 		try {
 			if (Source.class.isAssignableFrom(message.getPayload().getClass())) {
-				this.transformSource(message);
+				transformSource(message, (Source) message.getPayload());
 			}
 			else {
-				throw new MessagingException(message,
-						"Unsupported payload type for transformation expected javax.xml.transform.Source but got : "
-								+ message.getPayload().getClass().getName());
+				Source source = sourceFactory.getSourceForMessage(message);
+				transformSource(message, source);
 			}
 		}
 		catch (TransformerException e) {
@@ -66,10 +72,18 @@ public class XsltPayloadTransformer implements MessageTransformer {
 	}
 
 	@SuppressWarnings("unchecked")
-	protected void transformSource(Message message) throws TransformerException {
-		StringResult result = new StringResult();
-		this.templates.newTransformer().transform((Source) message.getPayload(), result);
-		message.setPayload(new StringSource(result.toString()));
+	protected void transformSource(Message message, Source source) throws TransformerException {
+		Result result = resultFactory.getNewResult(message);
+		this.templates.newTransformer().transform(source, result);
+		message.setPayload(result);
+	}
+
+	public void setSourceFactory(SourceFactory sourceFactory) {
+		this.sourceFactory = sourceFactory;
+	}
+
+	public void setResultFactory(ResultFactory resultFactory) {
+		this.resultFactory = resultFactory;
 	}
 
 }
