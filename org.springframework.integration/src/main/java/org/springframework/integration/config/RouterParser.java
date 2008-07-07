@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.router.config;
+package org.springframework.integration.config;
 
-import org.springframework.integration.config.AbstractHandlerEndpointParser;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.router.RouterMessageHandlerAdapter;
 

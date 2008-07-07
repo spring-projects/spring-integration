@@ -36,8 +36,6 @@ import org.springframework.integration.channel.config.ThreadLocalChannelParser;
 import org.springframework.integration.config.annotation.AnnotationDrivenParser;
 import org.springframework.integration.gateway.config.GatewayParser;
 import org.springframework.integration.router.config.ResequencerParser;
-import org.springframework.integration.router.config.RouterParser;
-import org.springframework.integration.router.config.SplitterParser;
 import org.springframework.util.ClassUtils;
 
 /**
