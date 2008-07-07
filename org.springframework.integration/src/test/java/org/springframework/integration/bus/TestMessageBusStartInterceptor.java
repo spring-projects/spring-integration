@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.bus.interceptor;
+package org.springframework.integration.bus;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.bus.MessageBusInterceptorAdapter;
 
 /**
  * @author Marius Bogoevici

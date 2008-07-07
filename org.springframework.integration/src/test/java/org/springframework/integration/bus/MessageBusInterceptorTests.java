@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.bus.interceptor;
+package org.springframework.integration.bus;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

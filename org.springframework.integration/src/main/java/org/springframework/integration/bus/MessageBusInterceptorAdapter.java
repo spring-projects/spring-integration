@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.bus.interceptor;
+package org.springframework.integration.bus;
 
-import org.springframework.integration.bus.MessageBus;
 
 /**
  * No-op implementation of a {@link MessageBusInterceptor}. Subclasses shall
