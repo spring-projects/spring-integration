@@ -35,8 +35,6 @@ public interface MessageEndpoint extends MessageTarget, ChannelRegistryAware, In
 
 	Schedule getSchedule();
 
-	EndpointTrigger getTrigger();
-
 	String getInputChannelName();
 
 	MessageChannel getInputChannel();

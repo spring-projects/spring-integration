@@ -342,10 +342,7 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 			return;
 		}
 		Schedule schedule = endpoint.getSchedule();
-		EndpointTrigger trigger = endpoint.getTrigger();
-		if (trigger == null) {
-			trigger = new EndpointTrigger(schedule != null ? schedule : this.defaultPollerSchedule);
-		}
+		EndpointTrigger trigger = new EndpointTrigger(schedule != null ? schedule : this.defaultPollerSchedule);
 		trigger.addTarget(endpoint);
 		if (this.endpointTriggers.add(trigger)) {
 			this.taskScheduler.schedule(trigger);
