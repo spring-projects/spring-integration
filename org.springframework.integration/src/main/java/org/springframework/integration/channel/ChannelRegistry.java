@@ -23,6 +23,9 @@ package org.springframework.integration.channel;
  */
 public interface ChannelRegistry {
 
+	static final String ERROR_CHANNEL_NAME = "errorChannel";
+
+
 	void registerChannel(String name, MessageChannel channel);
 
 	MessageChannel unregisterChannel(String name);

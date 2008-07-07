@@ -31,8 +31,8 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.bus.MessageBus;
-import org.springframework.integration.bus.MessageBusAware;
+import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.EndpointInterceptor;
@@ -52,7 +52,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  */
 public class ConcurrencyInterceptor extends EndpointInterceptorAdapter
-		implements DisposableBean, InitializingBean, MessageBusAware {
+		implements DisposableBean, InitializingBean, ChannelRegistryAware {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -60,7 +60,7 @@ public class ConcurrencyInterceptor extends EndpointInterceptorAdapter
 
 	private volatile ErrorHandler errorHandler;
 
-	private volatile MessageBus messageBus;
+	private volatile ChannelRegistry channelRegistry;
 
 
 	public ConcurrencyInterceptor(TaskExecutor executor) {
@@ -87,13 +87,14 @@ public class ConcurrencyInterceptor extends EndpointInterceptorAdapter
 		this.errorHandler = errorHandler;
 	}
 
-	public void setMessageBus(MessageBus messageBus) {
-		this.messageBus = messageBus;
+	public void setChannelRegistry(ChannelRegistry channelRegistry) {
+		this.channelRegistry = channelRegistry;
 	}
 
 	public void afterPropertiesSet() throws Exception {
 		if (this.errorHandler == null) {
-			MessageChannel errorChannel = this.messageBus.getErrorChannel();
+			MessageChannel errorChannel = this.channelRegistry.lookupChannel(
+					ChannelRegistry.ERROR_CHANNEL_NAME);
 			if (errorChannel != null) {
 				this.errorHandler = new MessagePublishingErrorHandler(errorChannel);
 			}

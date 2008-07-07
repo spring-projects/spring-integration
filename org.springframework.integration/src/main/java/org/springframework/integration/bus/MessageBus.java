@@ -33,9 +33,6 @@ import org.springframework.integration.scheduling.Schedule;
  */
 public interface MessageBus extends ChannelRegistry, EndpointRegistry, Lifecycle, DisposableBean {
 
-	static final String ERROR_CHANNEL_NAME = "errorChannel";
-
-
 	MessageChannel getErrorChannel();
 
 	ChannelFactory getChannelFactory();
