@@ -92,7 +92,7 @@ public class ConcurrencyInterceptor extends EndpointInterceptorAdapter
 	}
 
 	public void afterPropertiesSet() throws Exception {
-		if (this.errorHandler == null) {
+		if (this.errorHandler == null && this.channelRegistry != null) {
 			MessageChannel errorChannel = this.channelRegistry.lookupChannel(
 					ChannelRegistry.ERROR_CHANNEL_NAME);
 			if (errorChannel != null) {

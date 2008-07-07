@@ -18,6 +18,7 @@ package org.springframework.integration.bus;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.util.Assert;
 
 /**
@@ -25,7 +26,7 @@ import org.springframework.util.Assert;
  * reference to the {@link MessageBus}.
  * 
  * @author Marius Bogoevici
- *
+ * @author Mark Fisher
  */
 public class MessageBusAwareBeanPostProcessor implements BeanPostProcessor {
 
@@ -37,18 +38,21 @@ public class MessageBusAwareBeanPostProcessor implements BeanPostProcessor {
 	}
 	
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-		if (bean instanceof MessageBusAware) {
-			((MessageBusAware) bean).setMessageBus(messageBus);
-		}
-		return bean;
+		return postProcessIfNecessary(bean);
 	}
 
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+		return postProcessIfNecessary(bean);
+	}
+
+	private Object postProcessIfNecessary(Object bean) {
 		if (bean instanceof MessageBusAware) {
-			((MessageBusAware) bean).setMessageBus(messageBus);
+			((MessageBusAware) bean).setMessageBus(this.messageBus);
+		}
+		if (bean instanceof ChannelRegistryAware) {
+			((ChannelRegistryAware) bean).setChannelRegistry(this.messageBus);
 		}
 		return bean;
 	}
 
-	
 }
