@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.security.channel.config;
+package org.springframework.integration.security.config;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -23,7 +23,6 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.Ordered;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.security.channel.SecurityContextPropagatingChannelInterceptor;
-import org.springframework.integration.security.config.OrderedIncludeExcludeList;
 
 /**
  * Post processes channels applying appropriate propagation behaviour. If

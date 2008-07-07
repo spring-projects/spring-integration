@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.security.endpoint.config;
+package org.springframework.integration.security.config;
 
 import org.springframework.beans.BeanMetadataAttribute;
 import org.springframework.beans.factory.config.RuntimeBeanReference;

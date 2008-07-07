@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.security.channel.config;
+package org.springframework.integration.security.config;
 
 import java.util.ArrayList;
 import java.util.List;
