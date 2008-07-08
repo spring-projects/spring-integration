@@ -20,12 +20,13 @@
 	<channel id="coldDrinks"/>
 	<channel id="hotDrinks"/>
 
-	<handler-endpoint input-channel="coldDrinks" ref="barista" method="prepareColdDrink"/>
-	<handler-endpoint input-channel="hotDrinks" ref="barista" method="prepareHotDrink">
+	<service-activator input-channel="coldDrinks" ref="barista" method="prepareColdDrink"/>
+
+	<service-activator input-channel="hotDrinks" ref="barista" method="prepareHotDrink">
 		<interceptors>
 			<concurrency-interceptor max="5"/>
 		</interceptors>
-	</handler-endpoint>
+	</service-activator>
 
 	<beans:bean id="cafe" class="org.springframework.integration.samples.cafe.Cafe">
 		<beans:property name="orderChannel" ref="orders"/>
