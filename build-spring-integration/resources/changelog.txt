@@ -1,6 +1,68 @@
 SPRING INTEGRATION CHANGELOG
 ============================
 
+Changes in version 1.0.0.M5 (Jul 08, 2008)
+------------------------------------------
+
+*** CORE API ***
+
+SimpleMessagingTaskScheduler now has a configurable shutdown (for 'shutdown' vs 'shutdownNow')
+QueueChannel uses TRACE logging for preReceive and only uses DEBUG in postReceive if the Message is not null
+Added <concurrency-interceptor> for endpoints
+Added <transaction-interceptor> for endpoints
+The MessageBus tries to register new channels before starting (on ContextRefreshedEvent)
+Aggregator now uses its endpoint's output-channel
+Added MessageTransformer and @Transformer support
+Added a MessageTransformingChannelInterceptor
+MessageBus is now an interface
+MessageHeader is now an interface
+Added ChannelFactory
+Added PublishSubscribeChannel and <publish-subscribe-channel/>
+Channels specified in source-endpoint (now channel-adapter) are now auto-created
+Added EndpointTrigger for invoking endpoints with a poll command
+Removed the DispatcherPolicy from channel configuration
+Added BroadcastingDispatcher
+
+*** ADAPTERS ***
+
+Added regular expression pattern FilenameFilter implementation
+The <file-source/> now accepts one of "file-filter", "filename-filter", or "filename-pattern"
+FileSource now uses a Resource to locate its directory
+FtpSource closes the connection after poll
+WebServiceHandler namespace support includes 'message-factory' and 'fault-message-resolver'
+WebServiceHandler namespace supports injection of the WebServiceMessageCallback 
+Refactored FtpSource and FileSource to be better aligned
+AggregatorBarrier correctly stops processing messages after completion
+
+*** CONFIGURATION ***
+
+Method-level @Handler can now be used without class-level @MessageEndpoint
+The <channel-adapter/> with "ref" and "source" attributes replaces <source-endpoint/>
+The <channel-adapter/> with "ref" and "target" attributes replaces <target-endpoint/> 
+The <channel-adapter/> accepts a "method" replacing <source-adapter/> and <target-adapter/>
+The <router/> element is now a self-sufficient endpoint (rather than just creating a handler) 
+The <splitter/> element is now a self-sufficient endpoint (rather than just creating a handler) 
+The <aggregator/> element is now a self-sufficient endpoint (rather than just creating a handler) 
+Added namespace support for creating a MessageSelectorChain
+
+*** WEB SERVICES AND XML ***
+
+Added XML module
+Added XSLT Transformer
+Add Spring OXM transformer
+Add XML Result transformer to convert from a Result to a Document
+
+*** SECURITY ***
+
+Added support for Spring Security on MessageChannels
+Added support for Spring Security on endpoints
+
+*** GENERAL ***
+
+More Exceptions now provide the 'failedMessage'
+Added a MessageRejectedException. It is thrown when a MessageSelector rejects a Message
+
+
 Changes in version 1.0.0.M4 (May 23, 2008)
 ------------------------------------------
 
