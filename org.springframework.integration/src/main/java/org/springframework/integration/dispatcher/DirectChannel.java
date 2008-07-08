@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageSource;
@@ -52,9 +51,8 @@ public class DirectChannel extends AbstractMessageChannel implements Subscribabl
 	}
 
 	public DirectChannel(MessageSource<?> source) {
-		super(defaultDispatcherPolicy());
 		this.source = source;
-		this.dispatcher = new SimpleDispatcher(this.getDispatcherPolicy());
+		this.dispatcher = new SimpleDispatcher();
 	}
 
 
@@ -97,15 +95,6 @@ public class DirectChannel extends AbstractMessageChannel implements Subscribabl
 
 	public List<Message<?>> purge(MessageSelector selector) {
 		return new ArrayList<Message<?>>();
-	}
-
-
-	private static DispatcherPolicy defaultDispatcherPolicy() {
-		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy(false);
-		dispatcherPolicy.setRejectionLimit(1);
-		dispatcherPolicy.setRetryInterval(0);
-		dispatcherPolicy.setShouldFailOnRejectionLimit(false);
-		return dispatcherPolicy;
 	}
 
 }

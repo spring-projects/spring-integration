@@ -19,7 +19,6 @@ package org.springframework.integration.channel.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.PriorityChannel;
 import org.springframework.util.StringUtils;
 
@@ -36,8 +35,8 @@ public class PriorityChannelParser extends QueueChannelParser {
 	}
 
 	@Override
-	protected void configureConstructorArgs(BeanDefinitionBuilder builder, Element element, DispatcherPolicy dispatcherPolicy) {
-		super.configureConstructorArgs(builder, element, dispatcherPolicy);
+	protected void configureConstructorArgs(BeanDefinitionBuilder builder, Element element) {
+		super.configureConstructorArgs(builder, element);
 		String comparator = element.getAttribute("comparator");
 		if (StringUtils.hasText(comparator)) {
 			builder.addConstructorArgReference(comparator);

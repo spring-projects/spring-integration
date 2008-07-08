@@ -17,7 +17,6 @@
 package org.springframework.integration.channel.factory;
 
 import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.channel.DispatcherPolicy;
 
 /**
  * @author Marius Bogoevici
@@ -25,8 +24,8 @@ import org.springframework.integration.channel.DispatcherPolicy;
 public class StubChannelFactory extends AbstractChannelFactory {
 
     @Override
-    protected AbstractMessageChannel createChannelInternal(DispatcherPolicy dispatcherPolicy) {
-        return new StubChannel(dispatcherPolicy);
+    protected AbstractMessageChannel createChannelInternal() {
+        return new StubChannel();
     }
-    
+
 }

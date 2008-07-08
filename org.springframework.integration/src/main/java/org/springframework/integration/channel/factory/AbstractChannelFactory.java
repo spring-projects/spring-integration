@@ -20,7 +20,6 @@ import java.util.List;
 
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
-import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.MessageChannel;
 
 /**
@@ -35,8 +34,8 @@ public abstract class AbstractChannelFactory implements ChannelFactory {
 		super();
 	}
 
-	public final MessageChannel getChannel(String name, DispatcherPolicy dispatcherPolicy, List<ChannelInterceptor> interceptors) {
-		AbstractMessageChannel channel = createChannelInternal(dispatcherPolicy);
+	public final MessageChannel getChannel(String name, List<ChannelInterceptor> interceptors) {
+		AbstractMessageChannel channel = createChannelInternal();
 		if (null != interceptors) {
 			channel.setInterceptors(interceptors);
 		}
@@ -50,6 +49,6 @@ public abstract class AbstractChannelFactory implements ChannelFactory {
 	 * Factory method to be overridden by subclasses. It assumes that subclasses will return
 	 * subclasses of AbstractMessageChannel.
 	 */
-	protected abstract AbstractMessageChannel createChannelInternal(DispatcherPolicy dispatcherPolicy);
+	protected abstract AbstractMessageChannel createChannelInternal();
 
 }

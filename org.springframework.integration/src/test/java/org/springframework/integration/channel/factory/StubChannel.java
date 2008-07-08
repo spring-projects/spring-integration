@@ -19,7 +19,6 @@ package org.springframework.integration.channel.factory;
 import java.util.List;
 
 import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.selector.MessageSelector;
 
@@ -27,10 +26,6 @@ import org.springframework.integration.message.selector.MessageSelector;
  * @author Marius Bogoevici
  */
 public class StubChannel extends AbstractMessageChannel {
-
-	public StubChannel(DispatcherPolicy dispatcherPolicy) {
-		super(dispatcherPolicy);
-	}
 
 	@Override
 	protected Message<?> doReceive(long timeout) {

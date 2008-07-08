@@ -24,6 +24,7 @@ import java.util.List;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.channel.MessageChannel;
@@ -31,9 +32,7 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.selector.MessageSelector;
 
 /**
- * 
  * @author Jonas Partner
- * 
  */
 public class ChannelInterceptorRegisteringBeanPostProcessorTests {
 
@@ -74,36 +73,29 @@ public class ChannelInterceptorRegisteringBeanPostProcessorTests {
 		EasyMock.verify(channel);
 	}
 
+
 	static class TestInterceptor implements ChannelInterceptor {
 
 		public void postReceive(Message<?> message, MessageChannel channel) {
-			// TODO Auto-generated method stub
-
 		}
 
 		public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
-			// TODO Auto-generated method stub
-
 		}
 
 		public boolean preReceive(MessageChannel channel) {
-			// TODO Auto-generated method stub
 			return false;
 		}
 
 		public boolean preSend(Message<?> message, MessageChannel channel) {
-			// TODO Auto-generated method stub
 			return false;
 		}
 	}
+
 
 	static class TestChannel extends AbstractMessageChannel {
 
 		ChannelInterceptor channelInterceptor;
 
-		public TestChannel() {
-			super(null);
-		}
 
 		@Override
 		public void addInterceptor(ChannelInterceptor interceptor) {
@@ -113,23 +105,19 @@ public class ChannelInterceptorRegisteringBeanPostProcessorTests {
 
 		@Override
 		protected Message<?> doReceive(long timeout) {
-			// TODO Auto-generated method stub
 			return null;
 		}
 
 		@Override
 		protected boolean doSend(Message<?> message, long timeout) {
-			// TODO Auto-generated method stub
 			return false;
 		}
 
 		public List<Message<?>> clear() {
-			// TODO Auto-generated method stub
 			return null;
 		}
 
 		public List<Message<?>> purge(MessageSelector selector) {
-			// TODO Auto-generated method stub
 			return null;
 		}
 

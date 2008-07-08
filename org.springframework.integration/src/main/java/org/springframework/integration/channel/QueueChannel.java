@@ -44,29 +44,20 @@ public class QueueChannel extends AbstractMessageChannel {
 
 
 	/**
-	 * Create a channel with the specified queue and dispatcher policy.
+	 * Create a channel with the specified queue.
 	 */
-	public QueueChannel(BlockingQueue<Message<?>> queue, DispatcherPolicy dispatcherPolicy) {
-		super((dispatcherPolicy != null) ? dispatcherPolicy : new DispatcherPolicy());
+	public QueueChannel(BlockingQueue<Message<?>> queue) {
 		Assert.notNull(queue, "'queue' must not be null");
 		this.queue = queue;
-	}
-
-	/**
-	 * Create a channel with the specified queue capacity and dispatcher policy.
-	 */
-	public QueueChannel(int capacity, DispatcherPolicy dispatcherPolicy) {
-		super((dispatcherPolicy != null) ? dispatcherPolicy : new DispatcherPolicy());
-		Assert.isTrue(capacity > 0, "The capacity must be a positive integer. " +
-				"For a zero-capacity alternative, consider using a 'RendezvousChannel'.");
-		this.queue = new LinkedBlockingQueue<Message<?>>(capacity);
 	}
 
 	/**
 	 * Create a channel with the specified queue capacity.
 	 */
 	public QueueChannel(int capacity) {
-		this(capacity, null);
+		Assert.isTrue(capacity > 0, "The capacity must be a positive integer. " +
+				"For a zero-capacity alternative, consider using a 'RendezvousChannel'.");
+		this.queue = new LinkedBlockingQueue<Message<?>>(capacity);
 	}
 
 	/**
@@ -74,7 +65,7 @@ public class QueueChannel extends AbstractMessageChannel {
 	 * @see #DEFAULT_CAPACITY
 	 */
 	public QueueChannel() {
-		this(DEFAULT_CAPACITY, null);
+		this(DEFAULT_CAPACITY);
 	}
 
 

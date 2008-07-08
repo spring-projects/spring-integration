@@ -66,7 +66,7 @@ public class PriorityChannelTests {
 
 	@Test
 	public void testCustomComparator() {
-		PriorityChannel channel = new PriorityChannel(5, null, new StringPayloadComparator());
+		PriorityChannel channel = new PriorityChannel(5, new StringPayloadComparator());
 		Message<?> messageA = new StringMessage("A");
 		Message<?> messageB = new StringMessage("B");
 		Message<?> messageC = new StringMessage("C");

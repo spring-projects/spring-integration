@@ -19,7 +19,6 @@ package org.springframework.integration.channel.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.util.StringUtils;
 
@@ -36,12 +35,11 @@ public class QueueChannelParser extends AbstractChannelParser {
 	}
 
 	@Override
-	protected void configureConstructorArgs(BeanDefinitionBuilder builder, Element element, DispatcherPolicy dispatcherPolicy) {
+	protected void configureConstructorArgs(BeanDefinitionBuilder builder, Element element) {
 		String capacityAttribute = element.getAttribute("capacity");
 		int capacity = (StringUtils.hasText(capacityAttribute)) ?
 				Integer.parseInt(capacityAttribute) : QueueChannel.DEFAULT_CAPACITY;
 		builder.addConstructorArgValue(capacity);
-		builder.addConstructorArgValue(dispatcherPolicy);
 	}
 
 }

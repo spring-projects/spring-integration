@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.channel.factory;
+package org.springframework.integration.config;
 
-import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.channel.RendezvousChannel;
+import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
+import org.springframework.integration.handler.MessageHandler;
 
 /**
- * A {@link ChannelFactory} for creating {@link RendezvousChannel} instances.
+ * Parser for the &lt;service-activator&gt; element.
  * 
- * @author Marius Bogoevici
+ * @author Mark Fisher
  */
-public class RendezvousChannelFactory extends AbstractChannelFactory {
+public class ServiceActivatorParser extends AbstractHandlerEndpointParser {
 
 	@Override
-	protected AbstractMessageChannel createChannelInternal() {
-		return new RendezvousChannel();
+	protected Class<? extends MessageHandler> getHandlerAdapterClass() {
+		return DefaultMessageHandlerAdapter.class;
 	}
 
 }

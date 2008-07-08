@@ -19,7 +19,6 @@ package org.springframework.integration.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.config.AbstractChannelParser;
 import org.springframework.integration.dispatcher.DirectChannel;
 import org.springframework.util.StringUtils;
@@ -37,7 +36,7 @@ public class DirectChannelParser extends AbstractChannelParser {
 	}
 
 	@Override
-	protected void configureConstructorArgs(BeanDefinitionBuilder builder, Element element, DispatcherPolicy dispatcherPolicy) {
+	protected void configureConstructorArgs(BeanDefinitionBuilder builder, Element element) {
 		String source = element.getAttribute("source");
 		if (StringUtils.hasText(source)) {
 			builder.addConstructorArgReference(source);

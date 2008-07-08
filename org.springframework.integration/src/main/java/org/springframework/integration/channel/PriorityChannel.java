@@ -37,28 +37,20 @@ public class PriorityChannel extends QueueChannel {
 
 
 	/**
-	 * Create a channel with the specified queue capacity and dispatcher policy.
+	 * Create a channel with the specified queue capacity.
 	 * Priority will be based upon the provided {@link Comparator}.
 	 */
-	public PriorityChannel(int capacity, DispatcherPolicy dispatcherPolicy, Comparator<Message<?>> comparator) {
-		super(new PriorityBlockingQueue<Message<?>>(capacity, comparator), dispatcherPolicy);
+	public PriorityChannel(int capacity, Comparator<Message<?>> comparator) {
+		super(new PriorityBlockingQueue<Message<?>>(capacity, comparator));
 		this.semaphore = new Semaphore(capacity, true);
 	}
 
 	/**
-	 * Create a channel with the specified queue capacity and dispatcher policy.
+	 * Create a channel with the specified queue capacity.
 	 * Priority will be based upon the value of {@link MessageHeader#getPriority()}.
 	 */
-	public PriorityChannel(int capacity, DispatcherPolicy dispatcherPolicy) {
-		this(capacity, dispatcherPolicy, new MessagePriorityComparator());
-	}
-
-	/**
-	 * Create a channel with the specified queue capacity and default dispatcher
-	 * policy. Priority will be based on the value of {@link MessageHeader#getPriority()}.
-	 */
 	public PriorityChannel(int capacity) {
-		this(capacity, null, new MessagePriorityComparator());
+		this(capacity, new MessagePriorityComparator());
 	}
 
 	/**
@@ -66,7 +58,7 @@ public class PriorityChannel extends QueueChannel {
 	 * Priority will be based on the value of {@link MessageHeader#getPriority()}.
 	 */
 	public PriorityChannel() {
-		this(DEFAULT_CAPACITY, null, new MessagePriorityComparator());
+		this(DEFAULT_CAPACITY, new MessagePriorityComparator());
 	}
 
 

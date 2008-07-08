@@ -16,9 +16,7 @@
 
 package org.springframework.integration.config;
 
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.integration.bus.DefaultChannelFactoryBean;
-import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.config.AbstractChannelParser;
 
 import org.w3c.dom.Element;
@@ -33,11 +31,6 @@ public class DefaultChannelParser extends AbstractChannelParser {
 	@Override
 	protected Class<?> getBeanClass(Element element) {
 		return DefaultChannelFactoryBean.class;
-	}
-
-	@Override
-	protected void configureConstructorArgs(BeanDefinitionBuilder builder, Element element, DispatcherPolicy dispatcherPolicy) {
-		builder.addConstructorArgValue(dispatcherPolicy);
 	}
 
 }

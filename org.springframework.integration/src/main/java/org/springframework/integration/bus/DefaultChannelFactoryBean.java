@@ -24,7 +24,6 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.integration.channel.ChannelInterceptor;
-import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.factory.ChannelFactory;
 import org.springframework.integration.channel.factory.QueueChannelFactory;
@@ -47,13 +46,6 @@ public class DefaultChannelFactoryBean implements ApplicationContextAware, Facto
 	private volatile ChannelFactory channelFactory;
 
 	private volatile List<ChannelInterceptor> interceptors;
-
-	private volatile DispatcherPolicy dispatcherPolicy;
-
-
-	public DefaultChannelFactoryBean(DispatcherPolicy dispatcherPolicy) {
-		this.dispatcherPolicy = dispatcherPolicy;
-	}
 
 
 	public void setBeanName(String beanName) {
@@ -78,7 +70,7 @@ public class DefaultChannelFactoryBean implements ApplicationContextAware, Facto
 
 	public Object getObject() throws Exception {
 		Assert.notNull(channelFactory, "ChannelFactory not set on this instance. Is this used within an ApplicationContext?");
-		return channelFactory.getChannel(this.beanName, dispatcherPolicy, interceptors);
+		return channelFactory.getChannel(this.beanName, interceptors);
 	}
 
 	public Class<?> getObjectType() {

@@ -11,10 +11,6 @@
 
 	<beans:bean id="factory" class="org.springframework.integration.channel.factory.StubChannelFactory"/>
 
-	<beans:bean id="testChannel" class="org.springframework.integration.bus.DefaultChannelFactoryBean">
-		<beans:constructor-arg ref="dispatcherPolicy"/>
-	</beans:bean>
-
-	<beans:bean id="dispatcherPolicy" class="org.springframework.integration.channel.DispatcherPolicy"/>
+	<beans:bean id="testChannel" class="org.springframework.integration.bus.DefaultChannelFactoryBean"/>
 
 </beans:beans>

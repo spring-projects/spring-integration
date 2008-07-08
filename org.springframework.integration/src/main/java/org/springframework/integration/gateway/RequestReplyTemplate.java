@@ -21,7 +21,6 @@ import java.util.List;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.bus.MessageBusAware;
-import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.RendezvousChannel;
 import org.springframework.integration.endpoint.EndpointRegistry;
@@ -236,10 +235,6 @@ public class RequestReplyTemplate implements MessageBusAware {
 
 
         public List<Message<?>> clear() {
-	        return null;
-        }
-
-        public DispatcherPolicy getDispatcherPolicy() {
 	        return null;
         }
 

@@ -26,7 +26,6 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.FatalBeanException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.TestChannelInterceptor;
@@ -86,29 +85,6 @@ public class ChannelParserTests {
 		Object taskExecutorProperty = accessor.getPropertyValue("taskExecutor");
 		Object taskExecutorBean = context.getBean("taskExecutor");
 		assertEquals(taskExecutorBean, taskExecutorProperty);
-	}
-
-	@Test
-	public void testDefaultDispatcherPolicy() throws InterruptedException {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"channelParserTests.xml", this.getClass());
-		MessageChannel channel = (MessageChannel) context.getBean("queueChannelByDefault");
-		DispatcherPolicy dispatcherPolicy = channel.getDispatcherPolicy();
-		assertFalse(dispatcherPolicy.isPublishSubscribe());
-		assertEquals(DispatcherPolicy.DEFAULT_REJECTION_LIMIT, dispatcherPolicy.getRejectionLimit());
-		assertEquals(DispatcherPolicy.DEFAULT_RETRY_INTERVAL, dispatcherPolicy.getRetryInterval());
-		assertTrue(dispatcherPolicy.getShouldFailOnRejectionLimit());
-	}
-
-	@Test
-	public void testDispatcherPolicyConfiguration() throws InterruptedException {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"channelParserTests.xml", this.getClass());
-		MessageChannel channel = (MessageChannel) context.getBean("channelWithDispatcherPolicy");
-		DispatcherPolicy dispatcherPolicy = channel.getDispatcherPolicy();
-		assertEquals(7, dispatcherPolicy.getRejectionLimit());
-		assertEquals(77, dispatcherPolicy.getRetryInterval());
-		assertFalse(dispatcherPolicy.getShouldFailOnRejectionLimit());
 	}
 
 	@Test

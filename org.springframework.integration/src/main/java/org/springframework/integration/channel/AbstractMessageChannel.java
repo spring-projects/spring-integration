@@ -42,16 +42,6 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 
 	private final ChannelInterceptorList interceptors = new ChannelInterceptorList();
 
-	private final DispatcherPolicy dispatcherPolicy;
-
-
-	/**
-	 * Create a channel with the given dispatcher policy.
-	 */
-	public AbstractMessageChannel(DispatcherPolicy dispatcherPolicy) {
-		this.dispatcherPolicy = dispatcherPolicy;
-	}
-
 
 	/**
 	 * Set the name of this channel.
@@ -89,13 +79,6 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 	 */
 	public void addInterceptor(ChannelInterceptor interceptor) {
 		this.interceptors.add(interceptor);
-	}
-
-	/**
-	 * Return the dispatcher policy for this channel.
-	 */
-	public DispatcherPolicy getDispatcherPolicy() {
-		return this.dispatcherPolicy;
 	}
 
 	/**

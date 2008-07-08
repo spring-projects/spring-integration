@@ -27,7 +27,6 @@ import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.interceptor.MessageSelectingInterceptor;
 import org.springframework.integration.message.selector.PayloadTypeSelector;
 import org.springframework.util.StringUtils;
@@ -38,10 +37,6 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  */
 public abstract class AbstractChannelParser extends AbstractSingleBeanDefinitionParser {
-
-	private static final String PUBLISH_SUBSCRIBE_ATTRIBUTE = "publish-subscribe";
-
-	private static final String DISPATCHER_POLICY_ELEMENT = "dispatcher-policy";
 
 	private static final String DATATYPE_ATTRIBUTE = "datatype";
 
@@ -63,26 +58,19 @@ public abstract class AbstractChannelParser extends AbstractSingleBeanDefinition
 	@Override
 	protected abstract Class<?> getBeanClass(Element element);
 
-	protected abstract void configureConstructorArgs(
-			BeanDefinitionBuilder builder, Element element, DispatcherPolicy dispatcherPolicy);
+	protected void configureConstructorArgs(BeanDefinitionBuilder builder, Element element) {
+	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		boolean isPublishSubscribe = "true".equals(element.getAttribute(PUBLISH_SUBSCRIBE_ATTRIBUTE));
-		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy(isPublishSubscribe);
 		ManagedList interceptors = new ManagedList();
 		NodeList childNodes = element.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); i++) {
 			Node child = childNodes.item(i);
-			if (child.getNodeType() == Node.ELEMENT_NODE) {
-				String localName = child.getLocalName();
-				if (DISPATCHER_POLICY_ELEMENT.equals(localName)) {
-					configureDispatcherPolicy((Element) child, dispatcherPolicy);
-				}
-				else if (INTERCEPTOR_ELEMENT.equals(localName)) {
-					String ref = ((Element) child).getAttribute("ref");
-					interceptors.add(new RuntimeBeanReference(ref));
-				}
+			if (child.getNodeType() == Node.ELEMENT_NODE && child.getLocalName().equals(INTERCEPTOR_ELEMENT)) {
+				String ref = ((Element) child).getAttribute("ref");
+				interceptors.add(new RuntimeBeanReference(ref));
 			}
 		}
 		String datatypeAttr = element.getAttribute(DATATYPE_ATTRIBUTE);
@@ -101,22 +89,7 @@ public abstract class AbstractChannelParser extends AbstractSingleBeanDefinition
 			interceptors.add(new RuntimeBeanReference(interceptorBeanName));
 		}
 		builder.addPropertyValue(INTERCEPTORS_PROPERTY, interceptors);
-		this.configureConstructorArgs(builder, element, dispatcherPolicy);
-	}
-
-	private void configureDispatcherPolicy(Element element, DispatcherPolicy dispatcherPolicy) {
-		String rejectionLimit = element.getAttribute("rejection-limit");
-		if (StringUtils.hasText(rejectionLimit)) {
-			dispatcherPolicy.setRejectionLimit(Integer.parseInt(rejectionLimit));
-		}
-		String retryInterval = element.getAttribute("retry-interval");
-		if (StringUtils.hasText(retryInterval)) {
-			dispatcherPolicy.setRetryInterval(Long.parseLong(retryInterval));
-		}
-		String shouldFailOnRejectionLimit = element.getAttribute("should-fail-on-rejection-limit");
-		if (StringUtils.hasText(shouldFailOnRejectionLimit)) {
-			dispatcherPolicy.setShouldFailOnRejectionLimit("true".equals(shouldFailOnRejectionLimit));
-		}
+		this.configureConstructorArgs(builder, element);
 	}
 
 }

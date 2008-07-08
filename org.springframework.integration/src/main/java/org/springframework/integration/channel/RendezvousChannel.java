@@ -29,12 +29,8 @@ import org.springframework.integration.message.Message;
  */
 public class RendezvousChannel extends QueueChannel {
 
-	public RendezvousChannel(DispatcherPolicy dispatcherPolicy) {
-		super(new SynchronousQueue<Message<?>>(), dispatcherPolicy);
-	}
-
 	public RendezvousChannel() {
-		this(null);
+		super(new SynchronousQueue<Message<?>>());
 	}
 
 }

@@ -16,9 +16,7 @@
 
 package org.springframework.integration.channel.factory;
 
-
 import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.util.Assert;
 
@@ -46,8 +44,8 @@ public class QueueChannelFactory extends AbstractChannelFactory{
 		this.queueCapacity = queueCapacity;
 	}
 
-	protected AbstractMessageChannel createChannelInternal(DispatcherPolicy dispatcherPolicy) {
-		return  new QueueChannel(queueCapacity, dispatcherPolicy);
+	protected AbstractMessageChannel createChannelInternal() {
+		return  new QueueChannel(queueCapacity);
 	}
 
 }

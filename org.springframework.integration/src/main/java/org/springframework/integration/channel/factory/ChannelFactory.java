@@ -19,7 +19,6 @@ package org.springframework.integration.channel.factory;
 import java.util.List;
 
 import org.springframework.integration.channel.ChannelInterceptor;
-import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.MessageChannel;
 
 /**
@@ -30,8 +29,8 @@ import org.springframework.integration.channel.MessageChannel;
 public interface ChannelFactory {
 
 	/**
-	 * Creates a channel based on the provided name, dispatcher policy, and interceptors.
+	 * Creates a channel based on the provided name and interceptors.
 	 */
-	MessageChannel getChannel(String name, DispatcherPolicy dispatcherPolicy, List<ChannelInterceptor> interceptors);
+	MessageChannel getChannel(String name, List<ChannelInterceptor> interceptors);
 
 }

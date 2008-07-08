@@ -41,11 +41,6 @@ public interface MessageChannel extends BlockingSource, BlockingTarget {
 	void setName(String name);
 
 	/**
-	 * Return this channel's dispatcher policy
-	 */
-	DispatcherPolicy getDispatcherPolicy();
-
-	/**
 	 * Remove all {@link Message Messages} from this channel.
 	 */
 	List<Message<?>> clear();

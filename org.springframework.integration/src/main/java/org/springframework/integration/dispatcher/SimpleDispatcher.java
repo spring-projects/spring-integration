@@ -20,12 +20,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.handler.MessageHandlerNotRunningException;
 import org.springframework.integration.handler.MessageHandlerRejectedExecutionException;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageTarget;
+import org.springframework.util.Assert;
 
 /**
  * Basic implementation of {@link MessageDispatcher}.
@@ -34,25 +34,54 @@ import org.springframework.integration.message.MessageTarget;
  */
 public class SimpleDispatcher extends AbstractDispatcher {
 
-	protected final DispatcherPolicy dispatcherPolicy;
+	public final static int DEFAULT_REJECTION_LIMIT = 1;
+
+	public final static long DEFAULT_RETRY_INTERVAL = 1000;
 
 
-	public SimpleDispatcher(DispatcherPolicy dispatcherPolicy) {
-		this.dispatcherPolicy = (dispatcherPolicy != null) ? dispatcherPolicy : new DispatcherPolicy();
+	private volatile int rejectionLimit = DEFAULT_REJECTION_LIMIT;
+
+	private volatile long retryInterval = DEFAULT_RETRY_INTERVAL;
+
+	private volatile boolean shouldFailOnRejectionLimit = true;
+
+
+	/**
+	 * Set the maximum number of retries upon rejection. 
+	 */
+	public void setRejectionLimit(int rejectionLimit) {
+		Assert.isTrue(rejectionLimit > 0, "'rejectionLimit' must be at least 1");
+		this.rejectionLimit = rejectionLimit;
+	}
+
+	/**
+	 * Set the amount of time in milliseconds to wait between rejections.
+	 */
+	public void setRetryInterval(long retryInterval) {
+		Assert.isTrue(retryInterval >= 0, "'retryInterval' must not be negative");
+		this.retryInterval = retryInterval;
+	}
+
+	/**
+	 * Specify whether an exception should be thrown when this dispatcher's
+	 * {@link #rejectionLimit} is reached. The default value is 'true'.
+	 */
+	public void setShouldFailOnRejectionLimit(boolean shouldFailOnRejectionLimit) {
+		this.shouldFailOnRejectionLimit = shouldFailOnRejectionLimit;
 	}
 
 	public boolean send(Message<?> message) {
 		int attempts = 0;
 		List<MessageTarget> targetList = new ArrayList<MessageTarget>(this.targets);
-		while (attempts < this.dispatcherPolicy.getRejectionLimit()) {
+		while (attempts < this.rejectionLimit) {
 			if (attempts > 0) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("target(s) rejected message after " + attempts +
 							" attempt(s), will try again after 'retryInterval' of " +
-							this.dispatcherPolicy.getRetryInterval() + " milliseconds");
+							this.retryInterval + " milliseconds");
 				}
 				try {
-					Thread.sleep(this.dispatcherPolicy.getRetryInterval());
+					Thread.sleep(this.retryInterval);
 				}
 				catch (InterruptedException iex) {
 					Thread.currentThread().interrupt();
@@ -70,11 +99,10 @@ public class SimpleDispatcher extends AbstractDispatcher {
 			while (iter.hasNext()) {
 				MessageTarget target = iter.next();
 				try {
-					boolean sent = this.sendMessageToTarget(message, target);
-					if (!this.dispatcherPolicy.isPublishSubscribe() && sent) {
+					if (this.sendMessageToTarget(message, target)) {
 						return true;
 					}
-					if (!sent && logger.isDebugEnabled()) {
+					if (logger.isDebugEnabled()) {
 						logger.debug("target rejected message, continuing with other targets if available");
 					}
 					iter.remove();
@@ -96,9 +124,9 @@ public class SimpleDispatcher extends AbstractDispatcher {
 			}
 			attempts++;
 		}
-		if (this.dispatcherPolicy.getShouldFailOnRejectionLimit()) {
+		if (this.shouldFailOnRejectionLimit) {
 			throw new MessageDeliveryException(message, "Dispatcher reached rejection limit of "
-					+ this.dispatcherPolicy.getRejectionLimit()
+					+ this.rejectionLimit
 					+ ". Consider increasing the target's concurrency and/or "
 					+ "the dispatcherPolicy's 'rejectionLimit'.");
 		}

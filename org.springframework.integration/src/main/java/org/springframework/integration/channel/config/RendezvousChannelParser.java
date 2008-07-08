@@ -18,8 +18,6 @@ package org.springframework.integration.channel.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.RendezvousChannel;
 
 /**
@@ -32,11 +30,6 @@ public class RendezvousChannelParser extends AbstractChannelParser {
 	@Override
 	protected Class<?> getBeanClass(Element element) {
 		return RendezvousChannel.class;
-	}
-
-	@Override
-	protected void configureConstructorArgs(BeanDefinitionBuilder builder, Element element, DispatcherPolicy dispatcherPolicy) {
-		builder.addConstructorArgValue(dispatcherPolicy);
 	}
 
 }

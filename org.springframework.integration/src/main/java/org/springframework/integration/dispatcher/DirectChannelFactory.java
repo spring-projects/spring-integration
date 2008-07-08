@@ -17,7 +17,6 @@
 package org.springframework.integration.dispatcher;
 
 import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.factory.AbstractChannelFactory;
 import org.springframework.integration.channel.factory.ChannelFactory;
 
@@ -29,8 +28,8 @@ import org.springframework.integration.channel.factory.ChannelFactory;
 public class DirectChannelFactory extends AbstractChannelFactory {
 
 	@Override
-	protected AbstractMessageChannel createChannelInternal(DispatcherPolicy dispatcherPolicy) {
-		return new DirectChannel(null);
+	protected AbstractMessageChannel createChannelInternal() {
+		return new DirectChannel();
 	}
 
 }

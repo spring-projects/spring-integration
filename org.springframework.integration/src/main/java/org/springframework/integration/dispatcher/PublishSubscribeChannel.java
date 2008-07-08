@@ -20,7 +20,6 @@ import java.util.List;
 
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.Subscribable;
@@ -35,7 +34,6 @@ public class PublishSubscribeChannel extends AbstractMessageChannel implements S
 
 
 	public PublishSubscribeChannel() {
-		super(new DispatcherPolicy(true));
 	}
 
 	/**
@@ -43,7 +41,6 @@ public class PublishSubscribeChannel extends AbstractMessageChannel implements S
 	 * to publish its Messages. 
 	 */
 	public PublishSubscribeChannel(TaskExecutor taskExecutor) {
-		this();
 		if (taskExecutor != null) {
 			this.dispatcher.setTaskExecutor(taskExecutor);
 		}

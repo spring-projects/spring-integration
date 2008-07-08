@@ -17,7 +17,6 @@
 package org.springframework.integration.channel.factory;
 
 import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.ThreadLocalChannel;
 
 /**
@@ -28,7 +27,7 @@ import org.springframework.integration.channel.ThreadLocalChannel;
 public class ThreadLocalChannelFactory extends AbstractChannelFactory {
 
 	@Override
-	protected AbstractMessageChannel createChannelInternal(DispatcherPolicy dispatcherPolicy) {
+	protected AbstractMessageChannel createChannelInternal() {
 		return new ThreadLocalChannel();
 	}
 

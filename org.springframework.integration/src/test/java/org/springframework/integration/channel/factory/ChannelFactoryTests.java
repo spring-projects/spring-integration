@@ -28,14 +28,11 @@ import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.bus.DefaultChannelFactoryBean;
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
-import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PriorityChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -52,8 +49,6 @@ import org.springframework.integration.message.Message;
 public class ChannelFactoryTests {
 
 	private final ArrayList<ChannelInterceptor> interceptors = new ArrayList<ChannelInterceptor>();
-
-	private final DispatcherPolicy dispatcherPolicy = new DispatcherPolicy();
 
 
 	@Before
@@ -76,7 +71,7 @@ public class ChannelFactoryTests {
 		DirectChannelFactory channelFactory = new DirectChannelFactory();
 		assertNotNull(interceptors);
 		AbstractMessageChannel channel = (AbstractMessageChannel)
-				channelFactory.getChannel("testChannel", dispatcherPolicy, interceptors);
+				channelFactory.getChannel("testChannel", interceptors);
 		assertEquals(DirectChannel.class, channel.getClass());
 		assertEquals("testChannel", channel.getName());
 		assertInterceptors(channel);
@@ -99,7 +94,7 @@ public class ChannelFactoryTests {
 		ThreadLocalChannelFactory channelFactory = new ThreadLocalChannelFactory();
 		assertNotNull(interceptors);
 		AbstractMessageChannel channel = (AbstractMessageChannel)
-				channelFactory.getChannel("testChannel", dispatcherPolicy, interceptors);
+				channelFactory.getChannel("testChannel", interceptors);
 		assertEquals(ThreadLocalChannel.class, channel.getClass());
 		assertEquals("testChannel", channel.getName());
 		assertInterceptors(channel);
@@ -114,36 +109,21 @@ public class ChannelFactoryTests {
 		BeanDefinitionBuilder messageBusDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(DefaultMessageBus.class);
 		messageBusDefinitionBuilder.getBeanDefinition().getPropertyValues().addPropertyValue("channelFactory", channelFactory);
 		applicationContext.registerBeanDefinition("messageBus", messageBusDefinitionBuilder.getBeanDefinition());
-		DefaultChannelFactoryBean channelFactoryBean =  new DefaultChannelFactoryBean(dispatcherPolicy);
+		DefaultChannelFactoryBean channelFactoryBean =  new DefaultChannelFactoryBean();
 		channelFactoryBean.setBeanName("testChannel");
 		channelFactoryBean.setApplicationContext(applicationContext);
 		channelFactoryBean.setInterceptors(interceptors);
 		StubChannel channel = (StubChannel) channelFactoryBean.getObject();
 		assertEquals("testChannel", channel.getName());
-		assertTrue(dispatcherPolicy == channel.getDispatcherPolicy());
 		assertInterceptors(channel);
-	}
-
-	@Test
-	public void testDefaultChannelFactoryBeanInApplicationContext() throws Exception{
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"defaultChannelFactoryBeanTests.xml", this.getClass());
-		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
-		assertEquals(StubChannel.class, channel.getClass());
-		assertEquals("testChannel", channel.getName());
-		DispatcherPolicy dispatcherPolicy = (DispatcherPolicy) context.getBean("dispatcherPolicy");
-		assertTrue(dispatcherPolicy == channel.getDispatcherPolicy());
 	}
 
 
 	private void genericChannelFactoryTests(ChannelFactory channelFactory, Class<?> expectedChannelClass) {
-		assertNotNull(dispatcherPolicy);
 		assertNotNull(interceptors);
-		AbstractMessageChannel channel = (AbstractMessageChannel)
-				channelFactory.getChannel("testChannel", dispatcherPolicy, interceptors);
+		AbstractMessageChannel channel = (AbstractMessageChannel) channelFactory.getChannel("testChannel", interceptors);
 		assertEquals(expectedChannelClass, channel.getClass());
 		assertEquals("testChannel", channel.getName());
-		assertTrue(channel.getDispatcherPolicy() == dispatcherPolicy);
 		assertInterceptors(channel);
 	}
 

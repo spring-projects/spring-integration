@@ -19,7 +19,6 @@ package org.springframework.integration.channel.factory;
 import java.util.Comparator;
 
 import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.channel.DispatcherPolicy;
 import org.springframework.integration.channel.PriorityChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
@@ -46,8 +45,8 @@ public class PriorityChannelFactory extends AbstractChannelFactory {
 	}
 
 	@Override
-	protected AbstractMessageChannel createChannelInternal(DispatcherPolicy dispatcherPolicy) {
-		return new PriorityChannel(this.capacity, dispatcherPolicy, this.comparator);
+	protected AbstractMessageChannel createChannelInternal() {
+		return new PriorityChannel(this.capacity, this.comparator);
 	}
 
 }

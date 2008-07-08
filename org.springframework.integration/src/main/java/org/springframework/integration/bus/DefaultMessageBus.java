@@ -361,7 +361,7 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 			if (this.logger.isInfoEnabled()) {
 				logger.info("auto-creating channel '" + channelName + "'");
 			}
-			channel = channelFactory.getChannel(channelName, null, null);
+			channel = channelFactory.getChannel(channelName, null);
 			this.registerChannel(channelName, channel);
 		}
 		return channel;

@@ -27,28 +27,18 @@ import org.junit.Test;
 import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.TestHandlers;
-import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.MessageTarget;
+import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
  */
-public class SimpleDispatcherTests {
+public class BroadcastingDispatcherTests {
 
 	@Test
-	public void testSingleMessage() throws InterruptedException {
-		SimpleDispatcher dispatcher = new SimpleDispatcher();
-		final CountDownLatch latch = new CountDownLatch(1);
-		dispatcher.addTarget(createEndpoint(TestHandlers.countDownHandler(latch)));
-		dispatcher.send(new StringMessage("test"));
-		latch.await(500, TimeUnit.MILLISECONDS);
-		assertEquals(0, latch.getCount());
-	}
-
-	@Test
-	public void testPointToPoint() throws InterruptedException {
-		SimpleDispatcher dispatcher = new SimpleDispatcher();
-		final CountDownLatch latch = new CountDownLatch(1);
+	public void testPublishSubscribe() throws InterruptedException {
+		BroadcastingDispatcher dispatcher = new BroadcastingDispatcher();
+		final CountDownLatch latch = new CountDownLatch(2);
 		final AtomicInteger counter1 = new AtomicInteger();
 		final AtomicInteger counter2 = new AtomicInteger();
 		dispatcher.addTarget(createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch)));
@@ -56,7 +46,8 @@ public class SimpleDispatcherTests {
 		dispatcher.send(new StringMessage("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
-		assertEquals("only 1 handler should have received the message", 1, counter1.get() + counter2.get());
+		assertEquals(1, counter1.get());
+		assertEquals(1, counter2.get());
 	}
 
 

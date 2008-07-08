@@ -16,12 +16,6 @@
 	<publish-subscribe-channel id="publishSubscribeChannelWithTaskExecutorRef"
 	                           task-executor="taskExecutor"/>
 
-	<channel id="channelWithDispatcherPolicy">
-		<dispatcher-policy rejection-limit="7"
-		                   retry-interval="77"
-		                   should-fail-on-rejection-limit="false"/>
-	</channel>
-
 	<channel id="integerChannel" datatype="java.lang.Integer"/>
 
 	<channel id="numberChannel" datatype="java.lang.Number"/>

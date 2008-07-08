@@ -110,33 +110,27 @@ public class SecuredChannelsParserTests extends AbstractJUnit4SpringContextTests
 				new SecurityConfig("ROLE_ADMIN")));
 	}
 
+
 	static class TestMessageChannel extends AbstractMessageChannel {
 
 		List<ChannelInterceptor> interceptors = new ArrayList<ChannelInterceptor>();
 
-		public TestMessageChannel() {
-			super(null);
-		}
 
 		@Override
 		protected Message<?> doReceive(long timeout) {
-			// TODO Auto-generated method stub
 			return null;
 		}
 
 		@Override
 		protected boolean doSend(Message<?> message, long timeout) {
-			// TODO Auto-generated method stub
 			return false;
 		}
 
 		public List<Message<?>> clear() {
-			// TODO Auto-generated method stub
 			return null;
 		}
 
 		public List<Message<?>> purge(MessageSelector selector) {
-			// TODO Auto-generated method stub
 			return null;
 		}
 

@@ -38,11 +38,6 @@ public class ThreadLocalChannel extends AbstractMessageChannel {
 	private static final ThreadLocalMessageHolder messageHolder = new ThreadLocalMessageHolder();
 
 
-	public ThreadLocalChannel() {
-		super(defaultDispatcherPolicy());
-	}
-
-
 	@Override
 	protected Message<?> doReceive(long timeout) {
 		return messageHolder.get().poll();
@@ -83,15 +78,6 @@ public class ThreadLocalChannel extends AbstractMessageChannel {
 			}
 		}
 		return removedMessages;
-	}
-
-
-	private static DispatcherPolicy defaultDispatcherPolicy() {
-		DispatcherPolicy dispatcherPolicy = new DispatcherPolicy(false);
-		dispatcherPolicy.setRejectionLimit(1);
-		dispatcherPolicy.setRetryInterval(0);
-		dispatcherPolicy.setShouldFailOnRejectionLimit(false);
-		return dispatcherPolicy;
 	}
 
 
