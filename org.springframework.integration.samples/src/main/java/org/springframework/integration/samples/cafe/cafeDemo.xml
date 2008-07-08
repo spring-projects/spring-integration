@@ -22,11 +22,7 @@
 
 	<service-activator input-channel="coldDrinks" ref="barista" method="prepareColdDrink"/>
 
-	<service-activator input-channel="hotDrinks" ref="barista" method="prepareHotDrink">
-		<interceptors>
-			<concurrency-interceptor max="5"/>
-		</interceptors>
-	</service-activator>
+	<service-activator input-channel="hotDrinks" ref="barista" method="prepareHotDrink"/>
 
 	<beans:bean id="cafe" class="org.springframework.integration.samples.cafe.Cafe">
 		<beans:property name="orderChannel" ref="orders"/>
