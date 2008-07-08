@@ -14,7 +14,9 @@
     Object getId();
     MessageHeader getHeader();
     T getPayload();
+    void setPayload(T payload);
     boolean isExpired();
+    void copyHeader(MessageHeader header, boolean overwriteExistingValues);
 }</programlisting>
       And the header provides the following properties:
       <table id="api-message-headerproperties">
@@ -75,8 +77,9 @@
 new GenericMessage&lt;T&gt;(T payload);
 new GenericMessage&lt;T&gt;(T payload, MessageHeader headerToCopy)</programlisting>
       When no id is provided, a random unique id will be generated. The constructor that accepts a
-      <classname>MessageHeader</classname> will copy properties, attributes, and any 'returnAddress' from the
-      provided header. There are also two convenient subclasses available currently:
+      <classname>MessageHeader</classname> will copy properties and attributes as well as the
+      'returnAddress', 'sequenceNumber', and 'sequenceSize' properties from the provided header.
+      There are also two convenient subclasses available currently:
       <classname>StringMessage</classname> and <classname>ErrorMessage</classname>. The latter accepts any
       <classname>Throwable</classname> object as its payload.
     </para>
@@ -103,11 +106,11 @@ new GenericMessage&lt;T&gt;(T payload, MessageHeader headerToCopy)</programlisti
   </section>
 
   <section id="api-source">
-    <title>Source</title>
+    <title>MessageSource</title>
     <para>
-      The <interfacename>Source</interfacename> interface defines a single method for receiving
+      The <interfacename>MessageSource</interfacename> interface defines a single method for receiving
       <interfacename>Message</interfacename> objects.
-      <programlisting language="java">public interface Source&lt;T&gt; {
+      <programlisting language="java">public interface MessageSource&lt;T&gt; {
     Message&lt;T&gt; receive();
 }</programlisting>
       Spring Integration also provides a <classname>MethodInvokingSource</classname> implementation that serves as an
@@ -115,32 +118,32 @@ new GenericMessage&lt;T&gt;(T payload, MessageHeader headerToCopy)</programlisti
       To use the <classname>MethodInvokingSource</classname>, provide the Object reference and the method name.
       <programlisting language="java">MethodInvokingSource source = new MethodInvokingSource();
 source.setObject(new SourceObject());
-source.setMethod("sourceMethod");
+source.setMethodName("sourceMethod");
 Message&lt;?&gt; result = source.receive();</programlisting>
       It is generally more common to configure a <classname>MethodInvokingSource</classname> in XML by providing a
-      bean reference.
-      <programlisting language="xml"><![CDATA[<source-adapter id="source" ref="sourceObject" method="sourceMethod"/>]]></programlisting>
+      bean reference in the "source" attribute of a &lt;channel-adapter&gt; element.
+      <programlisting language="xml"><![CDATA[<channel-adapter source="sourceObject" method="sourceMethod" channel="someChannel"/>]]></programlisting>
 	</para>
   </section>
 
   <section id="api-target">
-    <title>Target</title>
+    <title>MessageTarget</title>
     <para>
-      The <interfacename>Target</interfacename> interface defines a single method for sending
+      The <interfacename>MessageTarget</interfacename> interface defines a single method for sending
       <interfacename>Message</interfacename> objects.
-      <programlisting language="java">public interface Target {
+      <programlisting language="java">public interface MessageTarget {
     boolean send(Message&lt;?&gt; message);
 }</programlisting>
-      As with the <interfacename>Source</interfacename>, Spring Integration also provides a
+      As with the <interfacename>MessageSource</interfacename>, Spring Integration also provides a
       <classname>MethodInvokingTarget</classname> adapter class.
       <programlisting language="java">MethodInvokingTarget target = new MethodInvokingTarget();
 target.setObject(new TargetObject());
 target.setMethodName("targetMethod");
 target.afterPropertiesSet();
 target.send(new StringMessage("test"));</programlisting>
-      Likewise, the corresponding XML configuration is very similar to that of
-      <classname>MethodInvokingSource</classname>.
-      <programlisting language="xml"><![CDATA[<target-adapter id="target" ref="targetObject" method="targetMethod"/>]]></programlisting>
+      When creating a Channel Adapter for this target, the corresponding XML configuration
+      is very similar to that of <classname>MethodInvokingSource</classname>.
+      <programlisting language="xml"><![CDATA[<channel-adapter channel="someChannel" target="targetObject" method="targetMethod"/>]]></programlisting>
 	</para>
   </section>
 
@@ -153,7 +156,6 @@ target.send(new StringMessage("test"));</programlisting>
       <programlisting language="java"><![CDATA[public interface MessageChannel {
     String getName();
     void setName(String name);
-    DispatcherPolicy getDispatcherPolicy();
     boolean send(Message message);
     boolean send(Message message, long timeout);
     Message receive();
@@ -169,10 +171,28 @@ target.send(new StringMessage("test"));</programlisting>
       Spring Integration provides several different implementations of the
       <interfacename>MessageChannel</interfacename> interface. Each is briefly described in the sections below.
     </para>
+    <section id="api-messagechannel-publishsubscribechannel">
+      <title>PublishSubscribeChannel</title>
+      <para>
+        The <classname>PublishSubscribeChannel</classname> implementation broadcasts any Message
+        sent to it to all of its subscribed consumers. This is most often used for sending
+        <emphasis>Event Messages</emphasis> whose primary role is notification as opposed to
+        <emphasis>Document Messages</emphasis> which are generally intended to be processed by
+        a single consumer. Note that the <classname>PublishSubscribeChannel</classname> is
+        intended for sending only. Since it broadcasts to its subscribers directly when its
+        <methodname>send(Message)</methodname> method is invoked, consumers cannot receive
+        Messages by invoking <methodname>receive()</methodname>. Instead, any subscriber must
+        be a <interfacename>MessageTarget</interfacename> itself, and the subscriber's
+        <methodname>send(Message)</methodname> method will be invoked in turn.
+      </para>
+    </section>
     <section id="api-messagechannel-queuechannel">
       <title>QueueChannel</title>
       <para>
-        The <classname>QueueChannel</classname> implementation wraps a queue. It provides a no-argument constructor
+        The <classname>QueueChannel</classname> implementation wraps a queue. Unlike, the
+        <classname>PublishSubscribeChannel</classname>, the <classname>QueueChannel</classname> has
+        point-to-point semantics. In other words, even if the channel has multiple consumers, only
+        one of them should receive any Message sent to that channel. It provides a no-argument constructor
         (that uses a default capacity of 100) as well as a constructor that accepts the queue capacity:
         <programlisting language="java">public QueueChannel(int capacity)</programlisting>
         A channel that has not reached its capacity limit will store messages in its internal queue, and the
@@ -219,14 +239,17 @@ target.send(new StringMessage("test"));</programlisting>
     <section id="api-messagechannel-directchannel">
       <title>DirectChannel</title>
       <para>
-        The <classname>DirectChannel</classname> is significantly different than the channel implementations described
-        thus far. It's primary purpose is to enable a single thread to perform the operations on "both sides" of the
-        channel. For example, if a <classname>HandlerEndpoint</classname> is subscribed to a
-        <classname>DirectChannel</classname>, then sending a Message to that channel will trigger invocation of the
-        handler <emphasis>directly in the sender's thread</emphasis>. The key motivation for providing a channel
-        implementation with this behavior is to support transactions. If the send call is invoked within the scope of a
-        transaction, then the outcome of the handler invocation can play a role in determining the ultimate result of
-        that transaction (commit or rollback).
+        The <classname>DirectChannel</classname> has point-to-point semantics, but otherwise is more similar
+        to the <classname>PublishSubscribeChannel</classname> than any of the queue-based channel implementations
+        described above. In other words, it also dispatches Messages directly but only to a single receiver. Its
+        primary purpose is to enable a single thread to perform the operations on "both sides" of the channel. For
+        example, if a receiving target is subscribed to a <classname>DirectChannel</classname>, then sending a
+        Message to that channel will trigger invocation of that target's <methodname>send(Message)</methodname>
+        method <emphasis>directly in the sender's thread</emphasis>. The key motivation for providing a channel
+        implementation with this behavior is to support transactions that must span across the channel while still
+        benefiting from the abstraction and loose coupling that the channel provides. If the send call is invoked
+        within the scope of a transaction, then the outcome of the target's invocation can play a role in determining
+        the ultimate result of that transaction (commit or rollback).
       </para>
     </section>
     <section id="api-messagechannel-threadlocalchannel">
@@ -307,155 +330,59 @@ target.send(new StringMessage("test"));</programlisting>
       <interfacename>Message</interfacename>, but how do the messages get passed from the channel to the handler?
       As mentioned earlier, the <classname>MessageBus</classname> provides a runtime form of inversion of control, and
       one of the primary responsibilities that it assumes is connecting the channels to the handlers. It also connects
-      Sources and Targets to channels, and it manages the scheduling of pollers and dispatchers.
+      MessageSources and MessageTargets to channels, and it manages the scheduling of pollers and dispatchers.
     </para>
     <para>
       The <interfacename>MessageBus</interfacename> is an example of a mediator. It performs a number of roles - mostly
       by delegating to other strategies. One of its main responsibilities is to manage registration of the
-      <interfacename>MessageChannels</interfacename> and <interfacename>MessageHandlers</interfacename>. It provides
-      the following methods:
-      <programlisting language="java">public void registerChannel(String name, MessageChannel channel)
+      <interfacename>MessageChannels</interfacename> and endpoints, such as <emphasis>Channel Adapters</emphasis>
+      and <emphasis>Service Activators</emphasis>. It recognizes any of these instances that have been defined
+      within its <interfacename>ApplicationContext</interfacename>.
+    </para>
+    <para>
+      The message bus handles several of the concerns so that the channels, sources, targets, and Message-handling
+      objects can be as simple as possible. These responsibilities include the lifecycle management of
+      message endpoints, the activation of subscriptions, and the scheduling of dispatchers (including
+      the configuration of thread pools). The bus coordinates all of that behavior based upon the metadata provided
+      in bean definitions. Furthermore, those bean definitions may be provided via XML and/or annotations
+      (we will look at examples of both configuration options shortly).
+    </para>
+    <para>
+      The bus creates and schedules triggers for all of its registered endpoints. When an endpoint
+      receives a trigger event, it will poll the <interfacename>MessageSource</interfacename> that
+      was provided in its metadata. For example, a <emphasis>Channel Adapter</emphasis> will poll the
+      referenced "source", and a <emphasis>Service Activator</emphasis> will poll the referenced
+      "input-channel".
+    </para>
+  </section>
 
-public void registerHandler(String name, MessageHandler handler,
-                            Subscription subscription)
-
-public void registerHandler(String name, MessageHandler handler,
-                            Subscription subscription,
-                            ConcurrencyPolicy concurrencyPolicy)</programlisting>
-      As those method signatures reveal, the message bus is handling several of the concerns here so that the channel
-      and handler objects can be as simple as possible. These responsibilities include the creation and lifecycle
-      management of message dispatchers, the activation of handler subscriptions, and the configuration of thread
-      pools. The bus coordinates all of that behavior based upon the metadata provided via these registration methods,
-      and typically developers will not even use this API directly since the metadata can be provided in XML and/or
-      annotations. We will briefly take a look at each of those metadata objects.
+  <section id="api-messageendpoint">
+    <title>MessageEndpoint</title>
+    <para>
+      As described in <xref linkend="overview"/>, there are different types of Message Endpoint, such
+      as the <emphasis>Channel Adapter</emphasis> (inbound or outbound) and the <emphasis>Service Activator</emphasis>.
+      Spring Integration provides many other components that are also endpoints, such as Routers,
+      Splitters, and Aggregators. Each endpoint may provide its own specific metadata so that the
+      <classname>MessageBus</classname> can manage its connection to a channel and its polling schedule.
     </para>
     <para>
-      The bus creates and manages dispatchers that pull messages from a channel in order to push those messages to
-      handlers subscribed to that channel. Each channel has a <classname>DispatcherPolicy</classname> that contains
-      metadata for configuring those dispatchers:
-      <table id="api-messagebus-dispatcherpolicy">
-        <title>Properties of the DispatcherPolicy</title>
-        <tgroup cols="3">
-          <colspec align="left"/>
-          <thead>
-            <row>
-              <entry align="center">Property Name</entry>
-              <entry align="center">Default Value</entry>
-              <entry align="center">Description</entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>publishSubscribe</entry>
-              <entry>false</entry>
-              <entry>whether the dispatcher should attempt to publish to all of its handlers (rather than just one)</entry>
-            </row>
-            <row>
-              <entry>maxMessagesPerTask</entry>
-              <entry>1</entry>
-              <entry>maximum number of messages to retrieve per poll</entry>
-            </row>
-            <row>
-              <entry>receiveTimeout</entry>
-              <entry>1000 (milliseconds)</entry>
-              <entry>how long to block on the receive call (0 for no blocking, -1 for indefinite block)</entry>
-            </row>
-            <row>
-              <entry>rejectionLimit</entry>
-              <entry>5</entry>
-              <entry>maximum number of attempts to invoke handlers (e.g. no threads available)</entry>
-            </row>
-            <row>
-              <entry>retryInterval</entry>
-              <entry>1000 (milliseconds)</entry>
-              <entry>amount of time to wait between successive attempts to invoke handlers</entry>
-            </row>
-            <row>
-              <entry>shouldFailOnRejectionLimit</entry>
-              <entry>true</entry>
-              <entry>whether to throw a <classname>MessageDeliveryException</classname> if the 'rejectionLimit' is
-              reached - if this is set to 'false', then such undeliverable messages would be dropped silently</entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+      The scheduling metadata is provided as an implementation of the <interfacename>Schedule</interfacename> interface.
+      This is an abstraction designed to allow extensibility of schedulers for messaging tasks. Currently, there is a
+      single implementation named <classname>PollingSchedule</classname> and the endpoint may set the
+      <emphasis>period</emphasis> property. The polling period may differ depending on the type of MessageSource
+      (e.g. file-system vs. JMS).
     </para>
     <para>
-      The bus registers handlers with a channel's dispatcher based upon the <classname>Subscription</classname>
-      metadata provided to the <methodname>registerHandler()</methodname> method.
-      <table id="api-messagebus-subscription">
-        <title>Properties of the Subscription</title>
-        <tgroup cols="2">
-          <colspec align="left" />
-          <thead>
-            <row>
-              <entry align="center">Property Name</entry>
-              <entry align="center">Description</entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>channel</entry>
-              <entry>the channel instance to subscribe to (an object reference)</entry>
-            </row>
-            <row>
-              <entry>channelName</entry>
-              <entry>the name of the channel to subscribe to - only used as a fallback if 'channel' is null</entry>
-            </row>
-            <row>
-              <entry>schedule</entry>
-              <entry>the scheduling metadata (see below)</entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      The scheduling metadata is provided as an implementation of the <interfacename>Schedule</interfacename>
-      interface. This is an abstraction designed to allow extensibility of schedulers for messaging tasks. Currently,
-      there is a single implementation named <classname>PollingSchedule</classname> that provides the following
-      properties:
-      <table id="api-messagebus-pollingschedule">
-        <title>Properties of the PollingSchedule</title>
-        <tgroup cols="3">
-          <colspec align="left"/>
-          <thead>
-            <row>
-              <entry align="center">Property Name</entry>
-              <entry align="center">Default Value</entry>
-              <entry align="center">Description</entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>period</entry>
-              <entry>N/A</entry>
-              <entry>the delay interval between each poll</entry>
-            </row>
-            <row>
-              <entry>initialDelay</entry>
-              <entry>0</entry>
-              <entry>the delay prior to the first poll</entry>
-            </row>
-            <row>
-              <entry>timeUnit</entry>
-              <entry>TimeUnit.MILLISECONDS</entry>
-              <entry>time unit for 'period' and 'initialDelay'</entry>
-            </row>
-            <row>
-              <entry>fixedRate</entry>
-              <entry>false</entry>
-              <entry>'false' indicates fixed-delay (no backlog)</entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      The <classname>PollingSchedule</classname> constructor requires the 'period' value.
-    </para>
-    <para>
-      The <classname>ConcurrencyPolicy</classname> is an optional parameter to provide when registering a handler.
-      When the <interfacename>MessageBus</interfacename> registers a handler, it will use these properties to configure
-      that handler's thread pool. These parameters are configurable on a per-handler basis since handlers may have
-      different performance characteristics and may have different expectations with regard to the volume of
-      throughput. The following table lists the available properties and their default values:
+      While the MessageBus manages the scheduling of the trigger invocation threads, it may be necessary
+      to have concurrent threads for the endpoint's processing of each receive-and-handle unit of work.
+      Spring Integration provides an endpoint interceptor called <classname>ConcurrencyInterceptor</classname>
+      for this very purpose. The interceptor's configuration is provided by the
+      <classname>ConcurrencyPolicy</classname> metadata object. When the <interfacename>MessageBus</interfacename>
+      activates an endpoint that has been defined with a ConcurrencyInterceptor, it will use these properties to
+      configure that endpoint's thread pool. These interceptors are configurable on a per-endpoint basis since
+      different endpoint handlers may have different performance characteristics and may have different
+      expectations with regard to the volume of throughput. The following table lists the available properties
+      of the <classname>ConcurrencyPolicy</classname> and their default values:
       <table id="api-messagebus-concurrencypolicy">
         <title>Properties of the ConcurrencyPolicy</title>
         <tgroup cols="3">
@@ -492,49 +419,28 @@ public void registerHandler(String name, MessageHandler handler,
         </tgroup>
       </table>
     </para>
-  </section>
-
-  <section id="api-messageendpoint">
-    <title>MessageEndpoint</title>
     <para>
-      As described in <xref linkend="overview"/>, there are three implementations of the
-      <interfacename>MessageEndpoint</interfacename> interface: <classname>SourceEndpoint</classname>,
-      <classname>TargetEndpoint</classname>, and <classname>HandlerEndpoint</classname>. These endpoints provide the
-      metadata necessary for the <classname>MessageBus</classname> to manage <interfacename>Sources</interfacename>,
-      <interfacename>Targets</interfacename>, and <interfacename>MessageHandlers</interfacename> respectively.
-    </para>
-    <para>
-      For a <interfacename>SourceEndpoint</interfacename>, the <classname>MessageBus</classname> schedules a task for
-      polling the <interfacename>Source</interfacename> based on the provided schedule.
-    </para>
-    <para>
-      When a <interfacename>Target</interfacename> or <interfacename>MessageHandler</interfacename> is registered with
-      the <classname>MessageBus</classname>, the bus assigns it to a dispatcher that polls a
-      <interfacename>MessageChannel</interfacename> based on the provided schedule. Targets and handlers may also
-      provide concurrency settings in which case a thread pool will be created for asynchronous processing of messages.
-    </para>
-    <para>
-      Rather than programming to the API directly, it is simpler and more common to register sources, targets, and
-      handlers with either XML or annotation-based metadata. Then, the message endpoint is an internal responsibility
-      of the bus. The configuration options are discussed in detail in <xref linkend="namespace-endpoint"/>.
+      The details of configuring this and other metadata for each endpoint will be discussed in detail in
+      <xref linkend="namespace-endpoint"/>.
     </para>
   </section>
 
   <section id="api-messageselector">
     <title>MessageSelector</title>
     <para>
-      As described above, when a <interfacename>MessageHandler</interfacename> is registered with the message bus, it
-      is hosted by an endpoint and thereby subscribed to a channel. Often it is necessary to provide additional
-      <emphasis>dynamic</emphasis> logic to determine what messages the handler should receive. The
-      <interfacename>MessageSelector</interfacename> strategy interface fulfills that role.
+      As described above, each endpoint is registered with the message bus and is thereby subscribed
+      to a channel. Often it is necessary to provide additional <emphasis>dynamic</emphasis> logic to
+      determine what messages the endpoint should receive. The <interfacename>MessageSelector</interfacename>
+      strategy interface fulfills that role.
       <programlisting language="java"><![CDATA[public interface MessageSelector {
     boolean accept(Message<?> message);
 }]]></programlisting>
-      A <interfacename>MessageEndpoint</interfacename> can be configured with zero or more selectors, and will only
-      receive messages that are accepted by each selector. Even though the interface is simple to implement, a couple
-      common selector implementations are provided. For example, the <classname>PayloadTypeSelector</classname>
-      provides similar functionality to Datatype Channels (as described in <xref linkend="namespace-channel"/>)
-      except that in this case the type-matching can be done by the endpoint rather than the channel.
+      A <interfacename>MessageEndpoint</interfacename> can be configured with a selector (or selector-chain)
+      and will only receive messages that are accepted by each selector. Even though the interface is simple
+      to implement, a couple common selector implementations are provided. For example, the
+      <classname>PayloadTypeSelector</classname> provides similar functionality to Datatype Channels
+      (as described in <xref linkend="namespace-channel"/>) except that in this case the type-matching can be done
+      by the endpoint rather than the channel.
       <programlisting language="java"><![CDATA[PayloadTypeSelector selector = new PayloadTypeSelector(String.class, Integer.class);
 assertTrue(selector.accept(new StringMessage("example")));
 assertTrue(selector.accept(new GenericMessage<Integer>(123)));
@@ -549,7 +455,7 @@ assertFalse(selector.accept(new GenericMessage<SomeObject>(someObject)));
       and Message Router provide <emphasis>proactive</emphasis> routing. However, selectors accommodate additional
       uses. For example, the <interfacename>MessageChannel</interfacename>'s 'purge' method accepts a selector:
       <programlisting language="java">channel.purge(someSelector);</programlisting>
-      There is even a <classname>ChannelPurger</classname> utility class whose purge operation is a good candidate for
+      There is a <classname>ChannelPurger</classname> utility class whose purge operation is a good candidate for
       Spring's JMX support:
       <programlisting language="java">ChannelPurger purger = new ChannelPurger(new ExampleMessageSelector(), channel);
 purger.purge();</programlisting>
