@@ -67,22 +67,8 @@
       </para>
       <para>
         The default channel type is <emphasis>Point to Point</emphasis>. To create a
-        <emphasis>Publish Subscribe</emphasis> channel, provide a value of <emphasis>true</emphasis> for the
-        'publish-subscribe' attribute of the channel element:
-        <programlisting language="xml">&lt;channel id="exampleChannel" publish-subscribe="true"/&gt;</programlisting>
-      </para>
-      <para>
-        When the <classname>MessageBus</classname> detects and registers channels, it will establish a dispatcher for
-        each channel. The default dispatcher settings were previously displayed in
-        <xref linkend="api-messagebus-dispatcherpolicy"/>. To customize these settings for a particular channel, add
-        the 'dispatcher-policy' sub-element and provide one or more of the attributes shown below:
-        <programlisting language="xml"><![CDATA[<channel id="exampleChannel" publish-subscribe="true">
-    <dispatcher-policy max-messages-per-task="25"
-                       receive-timeout="10"
-                       rejection-limit="3"
-                       retry-interval="500"
-                       should-fail-on-rejection-limit="false"/>
-</channel>]]></programlisting>
+        <emphasis>Publish Subscribe</emphasis> channel, use the "publish-subscribe-channel" element:
+        <programlisting language="xml">&lt;publish-subscribe-channel id="exampleChannel"/&gt;</programlisting>
       </para>
       <para>
         To create a <ulink url="http://www.eaipatterns.com/DatatypeChannel.html">Datatype Channel</ulink> that only
@@ -110,6 +96,15 @@
 	 	  To create a <classname>QueueChannel</classname>, use the "queue-channel" element.
 		  By using this element, you can also specify the channel's capacity: 
 		  <programlisting language="xml">&lt;queue-channel id="exampleChannel" capacity="25"/&gt;</programlisting>
+        </para>
+      </section>
+      <section id="namespace-channel-pubsubchannel">
+	    <title>The &lt;publish-subscribe-channel/&gt; element</title>
+	    <para>
+	 	  To create a <classname>PublishSubscribeChannel</classname>, use the "publish-subscribe-channel" element.
+		  By using this element, you can also specify the "task-executor" used for publishing
+		  Messages (if none is specified it simply publishes in the sender's thread): 
+		  <programlisting language="xml">&lt;publish-subscribe-channel id="exampleChannel" task-executor="someTaskExecutor"/&gt;</programlisting>
         </para>
       </section>
       <section id="namespace-channel-prioritychannel">
@@ -166,34 +161,33 @@
     <section id="namespace-endpoint">
       <title>Configuring Message Endpoints</title>
       <para>
-        Each of the three endpoint types (source, target, and handler) has its own element in the namespace.
+        Each of the endpoint types (channel-adapter, service-activator, etc) has its own element in the namespace.
       </para>
-      <section id="namespace-endpoint-source">
-        <title>The &lt;source-endpoint/&gt; element</title>
+      <section id="namespace-endpoint-inboundchanneladapter">
+        <title>The inbound &lt;channel-adapter/&gt; element with a MessageSource</title>
         <para>
-          A <classname>SourceEndpoint</classname> connects an implementation of the <interfacename>Source</interfacename>
-          interface to a <interfacename>MessageChannel</interfacename>. The &lt;source-endpoint/&gt; therefore requires
-          these two references as well as the scheduling information so that the <classname>MessageBus</classname> can
-          manage the message-receiving tasks.
-          <programlisting language="xml"><![CDATA[<source-endpoint source="exampleSource" channel="exampleChannel">
+          A "channel-adapter" element can connect any implementation of the <interfacename>MessageSource</interfacename>
+          interface to a <interfacename>MessageChannel</interfacename>. When the <interfacename>MessageBus</interfacename>
+          registers the endpoint, it will activate the subscription by assigning the endpoint to the input channel's dispatcher.
+          The dispatcher is capable of handling multiple endpoint subscriptions for its channel and delegates to a scheduler
+          for managing the tasks that pull messages from the source and push them to the channel. To configure the polling
+          period for an individual channel-adapter's schedule, provide a 'schedule' sub-element with the 'period' in
+          milliseconds:
+          <programlisting language="xml"><![CDATA[<channel-adapter source="exampleSource" channel="exampleChannel">
     <schedule period="5000"/>
-</source-endpoint>]]></programlisting>
+</channel-adapter>]]></programlisting>
         </para>
       </section>
-      <section id="namespace-endpoint-target">
-        <title>The &lt;target-endpoint/&gt; element</title>
+      <section id="namespace-endpoint-outboundchanneladapter">
+        <title>The outbound &lt;channel-adapter/&gt; with a MessageTarget</title>
         <para>
-          A <classname>TargetEndpoint</classname> connects a <interfacename>MessageChannel</interfacename> to an implementation
-          of the <interfacename>Target</interfacename> interface. The &lt;target-endpoint/&gt; requires these two references.
-          <programlisting language="xml"><![CDATA[<target-endpoint input-channel="exampleChannel" target="exampleTarget"/>]]></programlisting>
-          When the <interfacename>MessageBus</interfacename> registers the endpoint, it will activate the subscription
-          by assigning the endpoint to the input channel's dispatcher. The dispatcher is capable of handling multiple
-          endpoint subscriptions for its channel and delegates to a scheduler for managing the tasks that pull messages
-          from the channel and push them to the endpoints. To configure the polling period for an individual endpoint's
-          schedule, provide a 'schedule' sub-element with the 'period' in milliseconds:
-          <programlisting language="xml"><![CDATA[<target-endpoint input-channel="exampleChannel" target="exampleTarget">
+          A "channel-adapter" element can also connect a <interfacename>MessageChannel</interfacename> to any implementation
+          of the <interfacename>MessageTarget</interfacename> interface.
+          <programlisting language="xml"><![CDATA[<channel-adapter channel="exampleChannel" target="exampleTarget"/>]]></programlisting>
+          Again, it is possible to provide a schedule:
+          <programlisting language="xml"><![CDATA[<channel-adapter channel="exampleChannel" target="exampleTarget">
     ]]><emphasis><![CDATA[<schedule period="3000"/>]]></emphasis><![CDATA[
-</target-endpoint>]]></programlisting>
+</channel-adapter>]]></programlisting>
         </para>
         <note>
           <para>
@@ -203,31 +197,27 @@
             default schedule, and any 'schedule' element configured for those endpoints will be ignored.
           </para>
         </note>
-        <para>
-          The &lt;target-endpoint/&gt; accepts additional attributes and child elements, but since these configuration
-          options are also available for the &lt;handler-endpoint/&gt; element, they will be discussed below.
-        </para>
       </section>
-      <section id="namespace-endpoint-handler">
-        <title>The &lt;handler-endpoint/&gt; element</title>
+      <section id="namespace-service-activator">
+        <title>The &lt;service-activator/&gt; element</title>
         <para>
-          To create a Handler Endpoint instance, use the 'handler-endpoint' element with the 'input-channel' and
-          'handler' attributes:
-          <programlisting language="xml">&lt;handler-endpoint input-channel="exampleChannel" handler="exampleHandler"/&gt;</programlisting>
+          To create a Service Activator, use the 'service-activator' element with the 'input-channel' and
+          'ref' attributes:
+          <programlisting language="xml">&lt;service-activator input-channel="exampleChannel" ref="exampleHandler"/&gt;</programlisting>
         </para>
         <para>
           The configuration above assumes that "exampleHandler" is an actual implementation of the
           <interfacename>MessageHandler</interfacename> interface as described in <xref linkend="api-messagehandler"/>.
           To delegate to an arbitrary method of any object, simply add the "method" attribute.
-          <programlisting language="xml">&lt;handler-endpoint input-channel="exampleChannel" handler="somePojo" method="someMethod"/&gt;</programlisting>
+          <programlisting language="xml">&lt;service-activator input-channel="exampleChannel" ref="somePojo" method="someMethod"/&gt;</programlisting>
         </para>
         <para>
           In either case (<interfacename>MessageHandler</interfacename> or arbitrary object/method), when the handling
           method returns a non-null value, the endpoint will attempt to send the reply message to an appropriate reply
           channel. To determine the reply channel, it will first check if an "output-channel" was provided in the
           endpoint configuration:
-          <programlisting language="xml">&lt;handler-endpoint input-channel="exampleChannel" output-channel="replyChannel"
-                  handler="somePojo" method="someMethod"/&gt;</programlisting>
+          <programlisting language="xml">&lt;service-activator input-channel="exampleChannel" output-channel="replyChannel"
+                  ref="somePojo" method="someMethod"/&gt;</programlisting>
           If no "output-channel" is available, it will next check the message header's '<literal>returnAddress</literal>'
           property. If that value is available, it will then check its type. If it is a <classname>MessageChannel</classname>,
           the reply message will be sent to that channel. If it is a <classname>String</classname>, then the endpoint will
@@ -236,35 +226,43 @@
         <para>
           To reverse the order so that the 'returnAddress' is given priority over the endpoint's "output-channel", then
           provide the "return-address-overrides" attribute with a value of 'true':
-          <programlisting language="xml">&lt;handler-endpoint input-channel="exampleChannel" output-channel="replyChannel"
-                  handler="somePojo" method="someMethod" return-address-overrides="true"/&gt;</programlisting>
+          <programlisting language="xml">&lt;service-activator input-channel="exampleChannel" output-channel="replyChannel"
+                  ref="somePojo" method="someMethod" return-address-overrides="true"/&gt;</programlisting>
           If neither is available, then a <classname>MessageHandlingException</classname> will be thrown.
         </para>
       </section>
       <para>
-        Handler and Target Endpoints also support <interfacename>MessageSelectors</interfacename> as described in
+        Message Endpoints also support <interfacename>MessageSelectors</interfacename> as described in
         <xref linkend="api-messageselector"/>. To configure a selector with namespace support, simply add the
         "selector" attribute to the endpoint definition and reference an implementation of the
         <interfacename>MessageSelector</interfacename> interface.
-        <programlisting language="xml"><![CDATA[<handler-endpoint id="endpoint" input-channel="channel" handler="handler"
+        <programlisting language="xml"><![CDATA[<service-activator id="endpoint" input-channel="channel" ref="handler"
                   selector="exampleSelector"/>]]></programlisting>
       </para>
       <para>
-        Another important configuration option for handler and target endpoints is the concurrency policy. Each
-        endpoint is capable of managing a thread pool for its handler or target, and the values you provide for that
-        pool's core and max size can make a substantial difference in how the handler or target performs under load.
+        Another important configuration option for message endpoints is the concurrency interceptor. Each
+        endpoint is capable of managing a thread pool, and the concurrency settings you provide for that
+        pool's core and max size can make a substantial difference in how the endpoint performs under load.
         These settings are available per-endpoint since the performance characteristics of an endpoint's handler or
         target is one of the major factors to consider (the other major factor being the expected volume on the
         channel to which the endpoint subscribes). To enable concurrency for an endpoint that is configured with the
-        XML namespace support, provide the 'concurrency' sub-element and one or more of the properties shown below:
-        <programlisting language="xml"><![CDATA[<handler-endpoint input-channel="exampleChannel" handler="exampleHandler">
-    ]]><emphasis><![CDATA[<concurrency core="5" max="25" queue-capacity="20" keep-alive="120"/>]]></emphasis><![CDATA[
-</handler-endpoint>]]></programlisting>
+        XML namespace support, provide the 'concurrency-interceptor' element within the 'interceptors' sub-element
+        and then provide one or more of the properties shown below:
+        <programlisting language="xml"><![CDATA[<service-activator input-channel="exampleChannel" ref="exampleHandler">
+    <interceptors>    
+        ]]><emphasis><![CDATA[<concurrency-interceptor core="5" max="25" queue-capacity="20" keep-alive="120"/>]]></emphasis><![CDATA[
+    </interceptors>
+</service-activator>]]></programlisting>
         Recall the default concurrency policy values as listed in <xref linkend="api-messagebus-concurrencypolicy"/>.
         If no concurrency settings are provided (i.e. a <emphasis>null</emphasis>
         <classname>ConcurrencyPolicy</classname>), the endpoint's handler or target will be invoked in the caller's thread.
         Note that the "caller" is usually the dispatcher except in the case of a <classname>DirectChannel</classname>
         (see <xref linkend="api-messagechannel-directchannel"/> for more detail).
+      </para>
+      <para>
+        Another option for the concurrency-interceptor is to provide the "task-executor" attribute
+        with a reference to any implementation of Spring's <interfacename>TaskExecutor</interfacename>
+        interface.
       </para>
       <tip>
         <para>
@@ -295,11 +293,11 @@
         and the 'message-bus' element accepts a reference with its 'error-channel' attribute:
         <programlisting language="xml"><![CDATA[<message-bus error-channel="errorChannel"/>
 
-<channel id="errorChannel" publish-subscribe="true" capacity="500"/>]]></programlisting>
+<channel id="errorChannel" capacity="500"/>]]></programlisting>
         When exceptions occur in a concurrent endpoint's execution of its <interfacename>MessageHandler</interfacename>
         callback, those exceptions will be wrapped in <classname>ErrorMessages</classname> and sent to the Message Bus'
         'errorChannel' by default. To enable global error handling, simply register a handler on that channel. For
-        example, you can configure Spring Integration's <classname>PayloadTypeRouter</classname> as the handler of
+        example, you can configure Spring Integration's <classname>RootCauseErrorMessageRouter</classname> as the handler of
         an endpoint that is subscribed to the 'errorChannel'. That router can then spread the error messages across
         multiple channels based on <classname>Exception</classname> type. However, since most of the errors will already
         have been wrapped in <classname>MessageDeliveryException</classname> or <classname>MessageHandlingException</classname>,
@@ -342,7 +340,8 @@
       <title>Configuring Adapters</title>
       <para>
         The most convenient way to configure Source and Target adapters is by using the namespace support. The
-        following examples demonstrate the namespace-based configuration of several sources and targets:
+        following examples demonstrate the namespace-based configuration of several source, target, gateway,
+        and handler adapters:
         <programlisting language="xml"><![CDATA[<jms-source id="jmsSource" connection-factory="connFactory" destination="inQueue"/>
 
 <!-- using the default "connectionFactory" reference --> 
@@ -352,20 +351,20 @@
 
 <file-target id="fileTarget" directory="/tmp/out"/>
 
-<rmi-source id="rmiSource" request-channel="rmiSourceInput"/>
+<rmi-gateway id="rmiSource" request-channel="rmiSourceInput"/>
 
-<rmi-target id="rmiTarget"
-            local-channel="rmiTargetOutput"
-            remote-channel="someRemoteChannel"
-            host="somehost"/>
+<rmi-handler id="rmiTarget"
+             local-channel="rmiTargetOutput"
+             remote-channel="someRemoteChannel"
+             host="somehost"/>
 
-<httpinvoker-source id="httpSource" name="/some/path" request-channel="httpInvokerInput"/>
+<httpinvoker-gateway id="httpSource" name="/some/path" request-channel="httpInvokerInput"/>
 
-<httpinvoker-target id="httpTarget" channel="httpInvokerOutput" url="http://somehost/test"/>
+<httpinvoker-handler id="httpTarget" channel="httpInvokerOutput" url="http://somehost/test"/>
 
 <mail-target id="mailTarget" host="somehost" username="someuser" password="somepassword"/>
 
-<ws-target id="wsTarget" uri="http://example.org" channel="wsOutput"/>
+<ws-handler id="wsTarget" uri="http://example.org" channel="wsOutput"/>
 
 <ftp-source id="ftpSource"
             host="example.org"
@@ -376,22 +375,22 @@
 ]]></programlisting>
       </para>
       <para>
-        In the examples above, notice that simple implementations of the <interfacename>Source</interfacename>
-        and <interfacename>Target</interfacename> interfaces do not accept any 'channel' references. To
-        connect such sources and targets to a channel, register them within an endpoint. For example, here
+        In the examples above, notice that simple implementations of the <interfacename>MessageSource</interfacename>
+        and <interfacename>MessageTarget</interfacename> interfaces do not accept any 'channel' references. To
+        connect such sources and targets to a channel, register them within a 'channel-adapter'. For example, here
         is a File source with an endpoint whose polling will be scheduled to execute every 30 seconds by the
         <classname>MessageBus</classname>.
-        <programlisting language="xml"><![CDATA[<source-endpoint source="fileSource" channel="exampleChannel">
+        <programlisting language="xml"><![CDATA[<channel-adapter source="fileSource" channel="exampleChannel">
     <schedule period="30000"/>
-</source-endpoint>
+</channel-adapter>
 
 <file-source id="fileSource" directory="/tmp/in"/>
 ]]></programlisting>
-        Likewise, here is an example of a JMS target that is registered with a target-endpoint whose Messages
+        Likewise, here is an example of a JMS target that is registered within a 'channel-adapter' and whose Messages
         will be received from the "exampleChannel" that is polled every 500 milliseconds.
-        <programlisting language="xml"><![CDATA[<target-endpoint input-channel="exampleChannel" target="jmsTarget">
+        <programlisting language="xml"><![CDATA[<channel-adapter channel="exampleChannel" target="jmsTarget">
     <schedule period="500"/>
-</target-endpoint>
+</channel-adapter>
 
 <jms-target id="jmsTarget" destination="targetDestination"/>
 ]]></programlisting>         
