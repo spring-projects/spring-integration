@@ -28,6 +28,8 @@ import org.springframework.integration.ws.handler.MarshallingWebServiceHandler;
 import org.springframework.integration.ws.handler.SimpleWebServiceHandler;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
+import org.springframework.ws.WebServiceMessageFactory;
+import org.springframework.ws.client.core.FaultMessageResolver;
 import org.springframework.ws.client.core.SourceExtractor;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
 
@@ -66,6 +68,30 @@ public class WebServiceHandlerParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(handler);
 		WebServiceMessageCallback callback = (WebServiceMessageCallback) context.getBean("requestCallback");
 		assertEquals(callback, accessor.getPropertyValue("requestCallback"));
+	}
+
+	@Test
+	public void testSimpleWebServiceHandlerWithCustomMessageFactory() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"simpleWebServiceHandlerParserTests.xml", this.getClass());
+		MessageHandler handler = (MessageHandler) context.getBean("handlerWithCustomMessageFactory");
+		assertEquals(SimpleWebServiceHandler.class, handler.getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(handler);
+		accessor = new DirectFieldAccessor(accessor.getPropertyValue("webServiceTemplate"));
+		WebServiceMessageFactory factory = (WebServiceMessageFactory) context.getBean("messageFactory");
+		assertEquals(factory, accessor.getPropertyValue("messageFactory"));
+	}
+
+	@Test
+	public void testSimpleWebServiceHandlerWithCustomFaultMessageResolver() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"simpleWebServiceHandlerParserTests.xml", this.getClass());
+		MessageHandler handler = (MessageHandler) context.getBean("handlerWithCustomFaultMessageResolver");
+		assertEquals(SimpleWebServiceHandler.class, handler.getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(handler);
+		accessor = new DirectFieldAccessor(accessor.getPropertyValue("webServiceTemplate"));
+		FaultMessageResolver resolver = (FaultMessageResolver) context.getBean("faultMessageResolver");
+		assertEquals(resolver, accessor.getPropertyValue("faultMessageResolver"));
 	}
 
 	@Test

@@ -74,6 +74,14 @@ public class WebServiceHandlerParser extends AbstractSingleBeanDefinitionParser 
 		if (StringUtils.hasText(requestCallbackRef)) {
 			builder.addPropertyReference("requestCallback", requestCallbackRef);
 		}
+		String messageFactoryRef = element.getAttribute("message-factory");
+		if (StringUtils.hasText(messageFactoryRef)) {
+			builder.addPropertyReference("messageFactory", messageFactoryRef);
+		}
+		String faultMessageResolverRef = element.getAttribute("fault-message-resolver");
+		if (StringUtils.hasText(faultMessageResolverRef)) {
+			builder.addPropertyReference("faultMessageResolver", faultMessageResolverRef);
+		}
 	}
 
 }

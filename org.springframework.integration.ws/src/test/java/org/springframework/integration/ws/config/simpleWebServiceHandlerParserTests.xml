@@ -18,8 +18,20 @@
 	               uri="http://example.org"
 	               request-callback="requestCallback"/>
 
+	<si:ws-handler id="handlerWithCustomMessageFactory"
+	               uri="http://example.org"
+	               message-factory="messageFactory"/>
+
+	<si:ws-handler id="handlerWithCustomFaultMessageResolver"
+	               uri="http://example.org"
+	               fault-message-resolver="faultMessageResolver"/>
+
 	<bean id="sourceExtractor" class="org.springframework.integration.ws.config.StubSourceExtractor"/>
 
 	<bean id="requestCallback" class="org.springframework.integration.ws.config.StubWebServiceMessageCallback"/>
+
+	<bean id="messageFactory" class="org.springframework.integration.ws.config.StubMessageFactory"/>
+
+	<bean id="faultMessageResolver" class="org.springframework.integration.ws.config.StubFaultMessageResolver"/>
 
 </beans>
