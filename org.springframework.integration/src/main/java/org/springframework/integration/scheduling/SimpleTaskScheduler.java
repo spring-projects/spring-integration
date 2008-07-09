@@ -213,7 +213,7 @@ public class SimpleTaskScheduler extends AbstractTaskScheduler implements Dispos
 					logger.warn("error occurred in task but no 'errorHandler' is available", t);
 				}
 			}
-			if (this.shouldRepeat) {
+			if (this.shouldRepeat && isRunning()) {
 				TaskRunner runner = new TaskRunner(this.task);
 				runner.setShouldRepeat(true);
 				executor.execute(runner);

@@ -17,6 +17,8 @@
 package org.springframework.integration.endpoint.interceptor;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -104,6 +106,16 @@ public class ConcurrencyInterceptor extends EndpointInterceptorAdapter
 	public void destroy() throws Exception {
 		if (this.executor instanceof DisposableBean) {
 			((DisposableBean) this.executor).destroy();
+		}
+		if (this.executor instanceof ConcurrentTaskExecutor) {
+			Executor innerExecutor = ((ConcurrentTaskExecutor) this.executor).getConcurrentExecutor();
+			if (innerExecutor instanceof ExecutorService) {
+				ExecutorService executorService = (ExecutorService) innerExecutor;
+				executorService.shutdown();
+				if (!executorService.awaitTermination(10, TimeUnit.SECONDS)) {
+					executorService.shutdownNow();
+				}
+			}
 		}
 	}
 

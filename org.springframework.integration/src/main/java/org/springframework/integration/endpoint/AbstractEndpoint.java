@@ -214,7 +214,6 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 	}
 
 	private boolean send(final Message<?> message, final int index) {
-		boolean result = false;
 		if (index == 0) {
 			for (EndpointInterceptor interceptor : interceptors) {
 				if (!interceptor.preSend(message)) {
@@ -223,21 +222,20 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 			}
 		}
 		if (index == interceptors.size()) {
-			return this.doSend(message);
+			boolean result = this.doSend(message);
+			for (int i = index - 1; i >= 0; i--) {
+				EndpointInterceptor interceptor = this.interceptors.get(i);
+				interceptor.postSend(message, result);
+			}
+			return result;
 		}
 		EndpointInterceptor nextInterceptor = interceptors.get(index);
-		result = nextInterceptor.aroundSend(message, new MessageTarget() {
+		return nextInterceptor.aroundSend(message, new MessageTarget() {
 			@SuppressWarnings("unchecked")
 			public boolean send(Message message) {
 				return AbstractEndpoint.this.send(message, index + 1);
 			}
 		});
-		if (index == this.interceptors.size()) {
-			for (EndpointInterceptor interceptor : this.interceptors) {
-				interceptor.postSend(message, result);
-			}
-		}
-		return result;
 	}
 
 	private boolean doSend(Message<?> message) {

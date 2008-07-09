@@ -111,7 +111,7 @@ public class WireTapTests {
 		QueueChannel secondaryChannel = new QueueChannel();
 		mainChannel.addInterceptor(new WireTap(secondaryChannel));
 		Message<?> message = new StringMessage("testing");
-		Thread.sleep(3);
+		Thread.sleep(50);
 		mainChannel.send(message);
 		Message<?> original = mainChannel.receive(0);
 		Message<?> duplicate = secondaryChannel.receive(0);
