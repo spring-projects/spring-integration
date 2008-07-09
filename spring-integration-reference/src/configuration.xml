@@ -240,9 +240,54 @@
                   selector="exampleSelector"/>]]></programlisting>
       </para>
       <para>
-        Another important configuration option for message endpoints is the concurrency interceptor. Each
-        endpoint is capable of managing a thread pool, and the concurrency settings you provide for that
-        pool's core and max size can make a substantial difference in how the endpoint performs under load.
+        Another important configuration option for message endpoints is the inclusion of
+        <classname>EndpointInterceptors</classname>. The interface is defined as follows:
+        <programlisting language="java"><![CDATA[public interface EndpointInterceptor {
+
+    boolean preSend(Message<?> message);
+
+    boolean aroundSend(Message<?> message, MessageTarget endpoint);
+
+    void postSend(Message<?> message, boolean result);
+}]]></programlisting>
+        There is also an EndpointInterceptorAdapter that provides no-op methods for convenience
+        when subclassing. Within an endpoint configuration, interceptors can be added within
+        the &lt;interceptors&gt; sub-element. It accepts either "ref" elements or inner "beans":
+        <programlisting language="xml"><![CDATA[<service-activator id="exampleEndpoint"
+                   input-channel="requestChannel"
+                   ref="someObject"
+                   method="someMethod"
+                   output-channel="replyChannel">
+    <schedule period="1000"/>
+    <interceptors>
+        <ref bean="someInterceptor"/>
+        <beans:bean class="example.AnotherInterceptor"/>
+    </interceptors>
+</service-activator>]]></programlisting>
+      </para>
+      <para>
+        Spring Integration provides a <classname>TransactionInterceptor</classname> and namespace
+        support with the &lt;transaction-interceptor&gt; element. The attributes for this element
+        should be familiar to anyone who has experience with Spring's Transaction management:
+        <programlisting language="xml"><![CDATA[<service-activator id="exampleEndpoint"
+                   input-channel="requestChannel"
+                   ref="someObject"
+                   method="someMethod"
+                   output-channel="replyChannel">
+    <schedule period="1000"/>
+    <interceptors>
+        <transaction-interceptor transaction-manager="txManager"
+                                 propagation="REQUIRES_NEW"
+                                 isolation="REPEATABLE_READ"
+                                 timeout="10000"
+                                 read-only="false"/>
+    </interceptors>
+</service-activator>]]></programlisting> 
+      </para>
+      <para>
+        Spring Integration also provides a ConcurrencyInterceptor. By applying this, an endpoint becomes capable of
+        managing a thread pool, and the concurrency settings you provide for that pool's core size, max size,
+        and queue capacity can make a substantial difference in how the endpoint performs under load.
         These settings are available per-endpoint since the performance characteristics of an endpoint's handler or
         target is one of the major factors to consider (the other major factor being the expected volume on the
         channel to which the endpoint subscribes). To enable concurrency for an endpoint that is configured with the
