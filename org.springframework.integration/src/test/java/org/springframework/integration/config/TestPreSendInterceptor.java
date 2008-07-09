@@ -18,14 +18,13 @@ package org.springframework.integration.config;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.aopalliance.intercept.MethodInvocation;
-
 import org.springframework.integration.endpoint.interceptor.EndpointInterceptorAdapter;
+import org.springframework.integration.message.Message;
 
 /**
  * @author Mark Fisher
  */
-public class TestEndpointInterceptor extends EndpointInterceptorAdapter {
+public class TestPreSendInterceptor extends EndpointInterceptorAdapter {
 
 	private AtomicInteger counter = new AtomicInteger();
 
@@ -34,11 +33,10 @@ public class TestEndpointInterceptor extends EndpointInterceptorAdapter {
 		return this.counter.get();
 	}
 
-	public boolean aroundInvoke(MethodInvocation invocation) throws Throwable {
+	@Override
+	public boolean preSend(Message<?> message) {
 		this.counter.incrementAndGet();
-		Boolean result = (Boolean) invocation.proceed();
-		this.counter.incrementAndGet();
-		return result;
+		return true;
 	}
 
 }

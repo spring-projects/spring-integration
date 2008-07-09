@@ -16,15 +16,16 @@
 
 package org.springframework.integration.config;
 
-import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.aop.MethodBeforeAdvice;
+import org.springframework.integration.endpoint.interceptor.EndpointInterceptorAdapter;
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageTarget;
 
 /**
  * @author Mark Fisher
  */
-public class TestBeforeAdvice implements MethodBeforeAdvice {
+public class TestAroundSendEndpointInterceptor extends EndpointInterceptorAdapter {
 
 	private AtomicInteger counter = new AtomicInteger();
 
@@ -33,8 +34,12 @@ public class TestBeforeAdvice implements MethodBeforeAdvice {
 		return this.counter.get();
 	}
 
-	public void before(Method method, Object[] args, Object target) throws Throwable {
+	@Override
+	public boolean aroundSend(Message<?> message, MessageTarget endpoint) {
 		this.counter.incrementAndGet();
+		boolean result = endpoint.send(message);
+		this.counter.incrementAndGet();
+		return result;
 	}
 
 }

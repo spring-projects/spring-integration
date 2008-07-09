@@ -25,7 +25,6 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -125,7 +124,6 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 	 */
 	private void addPostProcessors(ParserContext parserContext) {
 		this.registerMessageBusAwarePostProcessor(parserContext);
-		this.registerMessageEndpointPostProcessor(parserContext);
 	}
 
 	private void registerMessageBusAwarePostProcessor(ParserContext parserContext) {
@@ -133,12 +131,6 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 		builder.addConstructorArgReference(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		builder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 		parserContext.getRegistry().registerBeanDefinition(MESSAGE_BUS_AWARE_POST_PROCESSOR_BEAN_NAME, builder.getBeanDefinition());
-	}
-
-	private void registerMessageEndpointPostProcessor(ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MessageEndpointBeanPostProcessor.class);
-		builder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-		BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
 	}
 
 }

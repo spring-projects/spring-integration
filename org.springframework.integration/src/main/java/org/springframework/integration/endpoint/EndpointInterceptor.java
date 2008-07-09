@@ -16,19 +16,18 @@
 
 package org.springframework.integration.endpoint;
 
-import org.aopalliance.intercept.MethodInvocation;
-
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageTarget;
 
 /**
  * @author Mark Fisher
  */
 public interface EndpointInterceptor {
 
-	boolean preInvoke(Message message);
+	boolean preSend(Message<?> message);
 
-	boolean aroundInvoke(MethodInvocation invocation) throws Throwable;
+	boolean aroundSend(Message<?> message, MessageTarget endpoint);
 
-	void postInvoke(Message message, boolean result);
+	void postSend(Message<?> message, boolean result);
 
 }

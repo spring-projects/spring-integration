@@ -19,19 +19,17 @@ package org.springframework.integration.endpoint;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.aopalliance.aop.Advice;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandlerNotRunningException;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageRejectedException;
+import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.scheduling.Schedule;
 
 /**
@@ -53,7 +51,7 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 
 	private MessageChannel outputChannel;
 
-	private final List<Advice> interceptors = new ArrayList<Advice>();
+	private final List<EndpointInterceptor> interceptors = new ArrayList<EndpointInterceptor>();
 
 	private volatile Schedule schedule;
 
@@ -157,27 +155,18 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 		this.autoStartup = autoStartup;
 	}
 
-	public void addInterceptor(Object interceptor) {
-		if (interceptor instanceof Advice) {
-			this.interceptors.add((Advice) interceptor);
-		}
-		else if (interceptor instanceof EndpointInterceptor) {
-			this.interceptors.add(new EndpointMethodInterceptor((EndpointInterceptor) interceptor));
-		}
-		else {
-			throw new ConfigurationException("Interceptor must implement either "
-					+ "'" + Advice.class.getName() + "' or '" + EndpointInterceptor.class.getName() + "'.");
-		}
+	public void addInterceptor(EndpointInterceptor interceptor) {
+		this.interceptors.add(interceptor);
 	}
 
-	public void setInterceptors(List<Object> interceptors) {
+	public void setInterceptors(List<EndpointInterceptor> interceptors) {
 		this.interceptors.clear();
-		for (Object interceptor : interceptors) {
+		for (EndpointInterceptor interceptor : interceptors) {
 			this.addInterceptor(interceptor);
 		}
 	}
 
-	public List<Advice> getInterceptors() {
+	public List<EndpointInterceptor> getInterceptors() {
 		return this.interceptors;
 	}
 
@@ -221,6 +210,37 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 	}
 
 	public final boolean send(Message<?> message) {
+		return this.send(message, 0);
+	}
+
+	private boolean send(final Message<?> message, final int index) {
+		boolean result = false;
+		if (index == 0) {
+			for (EndpointInterceptor interceptor : interceptors) {
+				if (!interceptor.preSend(message)) {
+					return false;
+				}
+			}
+		}
+		if (index == interceptors.size()) {
+			return this.doSend(message);
+		}
+		EndpointInterceptor nextInterceptor = interceptors.get(index);
+		result = nextInterceptor.aroundSend(message, new MessageTarget() {
+			@SuppressWarnings("unchecked")
+			public boolean send(Message message) {
+				return AbstractEndpoint.this.send(message, index + 1);
+			}
+		});
+		if (index == this.interceptors.size()) {
+			for (EndpointInterceptor interceptor : this.interceptors) {
+				interceptor.postSend(message, result);
+			}
+		}
+		return result;
+	}
+
+	private boolean doSend(Message<?> message) {
 		if (message == null || message.getPayload() == null) {
 			throw new IllegalArgumentException("Message and its payload must not be null.");
 		}

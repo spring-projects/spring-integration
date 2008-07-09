@@ -16,10 +16,9 @@
 
 package org.springframework.integration.endpoint.interceptor;
 
-import org.aopalliance.intercept.MethodInvocation;
-
 import org.springframework.integration.endpoint.EndpointInterceptor;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageTarget;
 
 /**
  * A convenience base class for implementing {@link EndpointInterceptor EndpointInterceptors}.
@@ -28,15 +27,15 @@ import org.springframework.integration.message.Message;
  */
 public class EndpointInterceptorAdapter implements EndpointInterceptor {
 
-	public boolean preInvoke(Message message) {
+	public boolean preSend(Message<?> message) {
 		return true;
 	}
 
-	public boolean aroundInvoke(MethodInvocation invocation) throws Throwable {
-		return (Boolean) invocation.proceed();
+	public boolean aroundSend(Message<?> message, MessageTarget endpoint) {
+		return endpoint.send(message);
 	}
 
-	public void postInvoke(Message message, boolean result) {
+	public void postSend(Message<?> message, boolean result) {
 	}
 
 }

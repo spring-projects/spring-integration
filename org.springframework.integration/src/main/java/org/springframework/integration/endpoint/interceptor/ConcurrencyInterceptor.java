@@ -23,7 +23,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
-import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -39,6 +38,7 @@ import org.springframework.integration.endpoint.EndpointInterceptor;
 import org.springframework.integration.handler.MessageHandlerNotRunningException;
 import org.springframework.integration.handler.MessageHandlerRejectedExecutionException;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.scheduling.MessagePublishingErrorHandler;
 import org.springframework.integration.util.ErrorHandler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
@@ -108,16 +108,15 @@ public class ConcurrencyInterceptor extends EndpointInterceptorAdapter
 	}
 
 	@Override
-	public boolean aroundInvoke(final MethodInvocation invocation) {
-		final Message<?> message = (Message<?>) invocation.getArguments()[0];
-		if (invocation.getThis() instanceof Lifecycle && !((Lifecycle) invocation.getThis()).isRunning()) {
+	public boolean aroundSend(final Message<?> message, final MessageTarget endpoint) {
+		if (endpoint instanceof Lifecycle && !((Lifecycle) endpoint).isRunning()) {
 			throw new MessageHandlerNotRunningException(message);
 		}
 		try {
 			this.executor.execute(new Runnable() {
 				public void run() {
 					try {
-						invocation.proceed();
+						endpoint.send(message);
 					}
 					catch (Throwable t) {
 						if (logger.isDebugEnabled()) {
