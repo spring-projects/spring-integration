@@ -20,9 +20,9 @@
 
 	<router ref="parityResolver" method="getParity" input-channel="numbers"/>
 
-	<handler-endpoint ref="oddLogger" input-channel="odd"/>
+	<service-activator ref="oddLogger" input-channel="odd"/>
 
-	<handler-endpoint ref="evenLogger" input-channel="even"/>
+	<service-activator ref="evenLogger" input-channel="even"/>
 
 	<beans:bean id="counter" class="org.springframework.integration.samples.oddeven.Counter"/>
 

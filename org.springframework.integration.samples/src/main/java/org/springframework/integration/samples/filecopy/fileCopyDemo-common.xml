@@ -19,7 +19,7 @@
 		<schedule period="10000"/>
 	</channel-adapter>
 
-	<handler-endpoint input-channel="channel1" output-channel="channel2"
+	<service-activator input-channel="channel1" output-channel="channel2"
               ref="exclaimer" method="exclaim"/>
 
 	<channel-adapter channel="channel2" target="fileTarget"/>
