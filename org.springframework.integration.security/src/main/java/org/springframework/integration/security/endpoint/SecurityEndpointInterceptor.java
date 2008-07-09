@@ -16,9 +16,9 @@
 
 package org.springframework.integration.security.endpoint;
 
-import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.integration.endpoint.interceptor.EndpointInterceptorAdapter;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.security.SecurityContextUtils;
 import org.springframework.security.AccessDecisionManager;
 import org.springframework.security.ConfigAttributeDefinition;
@@ -42,8 +42,7 @@ public class SecurityEndpointInterceptor extends EndpointInterceptorAdapter {
 	}
 
 	@Override
-	public boolean aroundInvoke(MethodInvocation invocation) throws Throwable {
-		Message<?> message = (Message<?>) invocation.getArguments()[0];
+	public boolean aroundSend(Message<?> message, MessageTarget endpoint) {
 		SecurityContext securityContext = null;
 		if (message != null) {
 			securityContext = SecurityContextUtils.getSecurityContextFromHeader(message);
@@ -51,18 +50,18 @@ public class SecurityEndpointInterceptor extends EndpointInterceptorAdapter {
 		if (securityContext != null) {
 			try {
 				SecurityContextHolder.setContext(securityContext);
-				this.accessDecisionManager.decide(SecurityContextHolder.getContext().getAuthentication(), invocation
-						.getThis(), this.targetSecurityAttributes);
-				return (Boolean) invocation.proceed();
+				this.accessDecisionManager.decide(SecurityContextHolder.getContext().getAuthentication(),
+						endpoint, this.targetSecurityAttributes);
+				return endpoint.send(message);
 			}
 			finally {
 				SecurityContextHolder.clearContext();
 			}
 		}
 		else {
-			this.accessDecisionManager.decide(SecurityContextHolder.getContext().getAuthentication(), invocation
-					.getThis(), this.targetSecurityAttributes);
-			return (Boolean) invocation.proceed();
+			this.accessDecisionManager.decide(SecurityContextHolder.getContext().getAuthentication(),
+					endpoint, this.targetSecurityAttributes);
+			return endpoint.send(message);
 		}
 	}
 

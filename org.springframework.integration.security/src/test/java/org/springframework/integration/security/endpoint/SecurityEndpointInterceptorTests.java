@@ -16,12 +16,18 @@
 
 package org.springframework.integration.security.endpoint;
 
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertNull;
 
-import org.aopalliance.intercept.MethodInvocation;
+import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.integration.endpoint.HandlerEndpoint;
+import org.springframework.integration.endpoint.MessageEndpoint;
+import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.security.SecurityContextUtils;
@@ -34,26 +40,36 @@ import org.springframework.security.context.SecurityContextHolder;
 
 /**
  * @author Jonas Partner
+ * @author Mark Fisher
  */
 public class SecurityEndpointInterceptorTests {
+
+	private MessageEndpoint endpoint;
+
+
+	@Before
+	public void createEndpoint() throws Exception {
+		this.endpoint = new HandlerEndpoint(new MessageHandler() {
+			public Message<?> handle(Message<?> message) {
+				return null;
+			}
+		});
+		this.endpoint.afterPropertiesSet();
+	}
+
 
 	@Test(expected = AccessDeniedException.class)
 	public void testUnauthenticatedAccessToSecuredEndpointWithNullMessage() throws Throwable {
 		try {
-			Object target = new Object();
-			MethodInvocation invocation = createTestMethodInvocationWithNullMessage(target);
 			ConfigAttributeDefinition attDefintion = new ConfigAttributeDefinition("ROLE_ADMIN");
 			AccessDecisionManager adm = createMock(AccessDecisionManager.class);
-			adm.decide(null, target, attDefintion);
+			adm.decide(null, endpoint, attDefintion);
 			expectLastCall().andThrow(new AccessDeniedException("nope"));
-
-			replay(invocation);
 			replay(adm);
 
 			SecurityEndpointInterceptor interceptor = new SecurityEndpointInterceptor(attDefintion, adm);
-			interceptor.aroundInvoke(invocation);
-
-			verify(invocation, adm);
+			interceptor.aroundSend(null, endpoint);
+			verify(adm);
 		}
 		finally {
 			assertNull("Authentication was not null after invocation threw AccessDeniedException",
@@ -62,22 +78,17 @@ public class SecurityEndpointInterceptorTests {
 	}
 
 	@Test(expected = AccessDeniedException.class)
-	public void testUnauthenticatedAccessToSecuredEndpoint() throws Throwable {
+	public void testUnauthenticatedAccessToSecuredEndpointWithNoSecurityContext() throws Throwable {
 		try {
-			Object target = new Object();
-			MethodInvocation invocation = createTestMethodInvocationNoSecurityHeaderInMessage(target);
 			ConfigAttributeDefinition attDefintion = new ConfigAttributeDefinition("ROLE_ADMIN");
 			AccessDecisionManager adm = createMock(AccessDecisionManager.class);
-			adm.decide(null, target, attDefintion);
+			adm.decide(null, endpoint, attDefintion);
 			expectLastCall().andThrow(new AccessDeniedException("nope"));
-
-			replay(invocation);
 			replay(adm);
 
 			SecurityEndpointInterceptor interceptor = new SecurityEndpointInterceptor(attDefintion, adm);
-			interceptor.aroundInvoke(invocation);
-
-			verify(invocation, adm);
+			interceptor.aroundSend(this.createMessageWithoutContext(), endpoint);
+			verify(adm);
 		}
 		finally {
 			assertNull("Authentication was not null after invocation threw AccessDeniedException",
@@ -85,28 +96,21 @@ public class SecurityEndpointInterceptorTests {
 		}
 	}
 
-	@Test
-	public void testAuthenticatedAccessToSecuredEndpoint() throws Throwable {
+	@Test(expected = AccessDeniedException.class)
+	public void testUnauthenticatedAccessToSecuredEndpointWithSecurityContext() throws Throwable {
 		try {
-			Object target = new Object();
 			SecurityContext context = SecurityTestUtil.createContext("bob", "bobspassword",
 					new String[] { "ROLE_ADMIN" });
-			MethodInvocation invocation = createTestMethodInvocation(target, context);
-			expect(invocation.proceed()).andReturn(Boolean.TRUE);
-			replay(invocation);
-
 			ConfigAttributeDefinition attDefintion = new ConfigAttributeDefinition("ROLE_ADMIN");
 
 			AccessDecisionManager adm = createMock(AccessDecisionManager.class);
-			adm.decide(context.getAuthentication(), target, attDefintion);
-			expectLastCall();
+			adm.decide(context.getAuthentication(), endpoint, attDefintion);
+			expectLastCall().andThrow(new AccessDeniedException("nope"));
 			replay(adm);
 
 			SecurityEndpointInterceptor interceptor = new SecurityEndpointInterceptor(attDefintion, adm);
-			interceptor.aroundInvoke(invocation);
-
-			verify(invocation, adm);
-
+			interceptor.aroundSend(this.createMessageWithContext(context), endpoint);
+			verify(adm);
 		}
 		finally {
 			assertNull("Authentication was not null after successful invocation", SecurityContextHolder.getContext()
@@ -114,28 +118,35 @@ public class SecurityEndpointInterceptorTests {
 		}
 	}
 
-	public MethodInvocation createTestMethodInvocation(Object target, SecurityContext securityContext) {
-		Message message = new StringMessage("test");
+	@Test
+	public void testAuthenticatedAccessToSecuredEndpoint() throws Throwable {
+		try {
+			SecurityContext context = SecurityTestUtil.createContext("bob", "bobspassword",
+					new String[] { "ROLE_ADMIN" });
+			ConfigAttributeDefinition attDefintion = new ConfigAttributeDefinition("ROLE_ADMIN");
+			AccessDecisionManager adm = createMock(AccessDecisionManager.class);
+			adm.decide(context.getAuthentication(), endpoint, attDefintion);
+			expectLastCall();
+			replay(adm);
+
+			SecurityEndpointInterceptor interceptor = new SecurityEndpointInterceptor(attDefintion, adm);
+			interceptor.aroundSend(this.createMessageWithContext(context), endpoint);
+			verify(adm);
+		}
+		finally {
+			assertNull("Authentication was not null after successful invocation", SecurityContextHolder.getContext()
+					.getAuthentication());
+		}
+	}
+
+	public Message<?> createMessageWithContext(SecurityContext securityContext) {
+		Message<?> message = new StringMessage("test");
 		SecurityContextUtils.setSecurityContextHeader(securityContext, message);
-		MethodInvocation mockInvocation = createMock(MethodInvocation.class);
-		expect(mockInvocation.getArguments()).andReturn(new Object[] { message });
-		expect(mockInvocation.getThis()).andReturn(target);
-		return mockInvocation;
+		return message;
 	}
 
-	public MethodInvocation createTestMethodInvocationNoSecurityHeaderInMessage(Object target) {
-		Message message = new StringMessage("test");
-		MethodInvocation mockInvocation = createMock(MethodInvocation.class);
-		expect(mockInvocation.getArguments()).andReturn(new Object[] { message });
-		expect(mockInvocation.getThis()).andReturn(target);
-		return mockInvocation;
-	}
-
-	public MethodInvocation createTestMethodInvocationWithNullMessage(Object target) {
-		MethodInvocation mockInvocation = createMock(MethodInvocation.class);
-		expect(mockInvocation.getArguments()).andReturn(new Object[] { null });
-		expect(mockInvocation.getThis()).andReturn(target);
-		return mockInvocation;
+	public Message<?> createMessageWithoutContext() {
+		return new StringMessage("test");
 	}
 
 }
