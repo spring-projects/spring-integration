@@ -43,13 +43,13 @@ public class TransactionInterceptor extends EndpointInterceptorAdapter implement
 
 	private volatile TransactionTemplate transactionTemplate;
 
-	private volatile String propagationBehaviorName;
+	private volatile String propagationBehaviorName = "PROPAGATION_REQUIRED";
 
-	private volatile String isolationLevelName;
+	private volatile String isolationLevelName = "ISOLATION_DEFAULT";
 
-	private volatile int timeout;
+	private volatile int timeout = -1;
 
-	private volatile boolean readOnly;
+	private volatile boolean readOnly = false;
 
 
 	public TransactionInterceptor(PlatformTransactionManager transactionManager) {
