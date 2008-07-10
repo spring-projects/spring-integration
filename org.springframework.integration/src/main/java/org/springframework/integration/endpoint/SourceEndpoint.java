@@ -18,6 +18,7 @@ package org.springframework.integration.endpoint;
 
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.message.BlockingSource;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryAware;
 import org.springframework.integration.message.MessageDeliveryException;
@@ -34,12 +35,24 @@ public class SourceEndpoint extends AbstractEndpoint {
 
 	private final MessageSource<?> source;
 
+	private volatile long receiveTimeout = 5000;
+
+	private volatile long sendTimeout = -1;
+
 
 	public SourceEndpoint(MessageSource<?> source) {
 		Assert.notNull(source, "source must not be null");
 		this.source = source;
 	}
 
+
+	public void setReceiveTimeout(long receiveTimeout) {
+		this.receiveTimeout = receiveTimeout;
+	}
+
+	public void setSendTimeout(long sendTimeout) {
+		this.sendTimeout = sendTimeout;
+	}
 
 	@Override
 	public void initialize() {
@@ -60,11 +73,12 @@ public class SourceEndpoint extends AbstractEndpoint {
 	}
 
 	public boolean poll() {
-		Message<?> message = this.source.receive();
+		Message<?> message = (this.source instanceof BlockingSource && this.receiveTimeout >= 0) ?
+				((BlockingSource<?>) this.source).receive(this.receiveTimeout) : this.source.receive();
 		if (message == null) {
 			return false;
 		}
-		boolean sent = this.getOutputChannel().send(message);
+		boolean sent = this.getOutputChannel().send(message, this.sendTimeout);
 		if (this.source instanceof MessageDeliveryAware) {
 			if (sent) {
 				((MessageDeliveryAware) this.source).onSend(message);
