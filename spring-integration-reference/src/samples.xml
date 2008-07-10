@@ -179,7 +179,7 @@ public class Barista {
       with the 'concurrency' settings, you can also try adding the 'schedule' sub-element as described in
       <xref linkend="namespace-endpoint"/>. If you want to explore the sample in more detail, the source JAR
       is available in the "src" directory:
-      'org.springframework.integration.samples-sources-1.0.0.M4.jar'.
+      'org.springframework.integration.samples-sources-1.0.0.M5.jar'.
     </para>
   </section>
 </chapter>
