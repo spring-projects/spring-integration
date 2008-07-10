@@ -21,6 +21,17 @@
 	               marshaller="marshallerAndUnmarshaller"
 	               request-callback="requestCallback"/>
 
+	<si:ws-handler id="handlerWithAllInOneMarshallerAndMessageFactory"
+	               uri="http://example.org"
+	               marshaller="marshallerAndUnmarshaller"
+	               message-factory="messageFactory"/>
+
+	<si:ws-handler id="handlerWithSeparateMarshallerAndUnmarshallerAndMessageFactory"
+	               uri="http://example.org"
+	               marshaller="marshaller"
+	               unmarshaller="unmarshaller"
+	               message-factory="messageFactory"/>
+
 	<bean id="marshallerAndUnmarshaller" class="org.springframework.integration.ws.config.StubMarshallerAndUnmarshaller"/>
 
 	<bean id="marshaller" class="org.springframework.integration.ws.config.StubMarshaller"/>
@@ -28,5 +39,7 @@
 	<bean id="unmarshaller" class="org.springframework.integration.ws.config.StubUnmarshaller"/>
 
 	<bean id="requestCallback" class="org.springframework.integration.ws.config.StubWebServiceMessageCallback"/>
+
+	<bean id="messageFactory" class="org.springframework.integration.ws.config.StubMessageFactory"/>
 
 </beans>

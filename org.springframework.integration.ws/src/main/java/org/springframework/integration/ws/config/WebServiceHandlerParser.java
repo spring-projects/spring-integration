@@ -18,7 +18,6 @@ package org.springframework.integration.ws.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -26,8 +25,6 @@ import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.ws.handler.MarshallingWebServiceHandler;
 import org.springframework.integration.ws.handler.SimpleWebServiceHandler;
 import org.springframework.util.StringUtils;
-import org.springframework.ws.WebServiceMessageFactory;
-import org.springframework.ws.client.core.SourceExtractor;
 
 /**
  * Parser for the &lt;ws-handler/&gt; element. 
@@ -70,8 +67,7 @@ public class WebServiceHandlerParser extends AbstractSingleBeanDefinitionParser 
 		else {
 			String sourceExtractorRef = element.getAttribute("source-extractor");
 			if (StringUtils.hasText(sourceExtractorRef)) {
-				builder.getBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(
-					new RuntimeBeanReference(sourceExtractorRef), SourceExtractor.class.getName());
+				builder.addConstructorArgReference(sourceExtractorRef);
 			}
 			else {
 				builder.addConstructorArgValue(null);
@@ -79,8 +75,7 @@ public class WebServiceHandlerParser extends AbstractSingleBeanDefinitionParser 
 		}
 		String messageFactoryRef = element.getAttribute("message-factory");
 		if (StringUtils.hasText(messageFactoryRef)) {
-			builder.getBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(
-					new RuntimeBeanReference(messageFactoryRef), WebServiceMessageFactory.class.getName());
+			builder.addConstructorArgReference(messageFactoryRef);
 		}
 		String requestCallbackRef = element.getAttribute("request-callback");
 		if (StringUtils.hasText(requestCallbackRef)) {

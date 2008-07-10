@@ -22,6 +22,11 @@
 	               uri="http://example.org"
 	               message-factory="messageFactory"/>
 
+	<si:ws-handler id="handlerWithCustomSourceExtractorAndMessageFactory"
+	               uri="http://example.org"
+	               source-extractor="sourceExtractor"
+	               message-factory="messageFactory"/>
+
 	<si:ws-handler id="handlerWithCustomFaultMessageResolver"
 	               uri="http://example.org"
 	               fault-message-resolver="faultMessageResolver"/>
