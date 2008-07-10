@@ -25,6 +25,7 @@ import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 
 import org.springframework.integration.message.MessagingException;
+import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.SourceExtractor;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
 import org.springframework.xml.transform.StringResult;
@@ -42,11 +43,15 @@ public class SimpleWebServiceHandler extends AbstractWebServiceHandler {
 
 
 	public SimpleWebServiceHandler(URI uri) {
-		this(uri, null);
+		this(uri, null, null);
 	}
 
 	public SimpleWebServiceHandler(URI uri, SourceExtractor sourceExtractor) {
-		super(uri);
+		this(uri, sourceExtractor, (WebServiceMessageFactory) null);
+	}
+
+	public SimpleWebServiceHandler(URI uri, SourceExtractor sourceExtractor, WebServiceMessageFactory messageFactory) {
+		super(uri, messageFactory);
 		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
 	}
 

@@ -41,13 +41,15 @@ public abstract class AbstractWebServiceHandler implements MessageHandler {
 	public static final String SOAP_ACTION_PROPERTY_KEY = "_ws.soapAction";
 
 
-	private final WebServiceTemplate webServiceTemplate = new WebServiceTemplate();
+	private final WebServiceTemplate webServiceTemplate;
 
 	private volatile WebServiceMessageCallback requestCallback;
 
 
-	public AbstractWebServiceHandler(URI uri) {
+	public AbstractWebServiceHandler(URI uri, WebServiceMessageFactory messageFactory) {
 		Assert.notNull(uri, "URI must not be null");
+		this.webServiceTemplate = (messageFactory != null) ?
+				new WebServiceTemplate(messageFactory) : new WebServiceTemplate();
 		this.webServiceTemplate.setDefaultUri(uri.toString());
 	}
 

@@ -21,6 +21,7 @@ import java.net.URI;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.util.Assert;
+import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
 
 /**
@@ -32,23 +33,31 @@ import org.springframework.ws.client.core.WebServiceMessageCallback;
  */
 public class MarshallingWebServiceHandler extends AbstractWebServiceHandler {
 
-	public MarshallingWebServiceHandler(URI uri, Marshaller marshaller, Unmarshaller unmarshaller) {
-		super(uri);
+	public MarshallingWebServiceHandler(URI uri, Marshaller marshaller, Unmarshaller unmarshaller, WebServiceMessageFactory messageFactory) {
+		super(uri, messageFactory);
 		Assert.notNull(marshaller, "marshaller must not be null");
 		Assert.notNull(unmarshaller, "unmarshaller must not be null");
 		this.getWebServiceTemplate().setMarshaller(marshaller);
 		this.getWebServiceTemplate().setUnmarshaller(unmarshaller);
 	}
 
-	public MarshallingWebServiceHandler(URI uri, Marshaller marshaller) {
-		super(uri);
+	public MarshallingWebServiceHandler(URI uri, Marshaller marshaller, Unmarshaller unmarshaller) {
+		this(uri, marshaller, unmarshaller, null);
+	}
+
+	public MarshallingWebServiceHandler(URI uri, Marshaller marshaller, WebServiceMessageFactory messageFactory) {
+		super(uri, messageFactory);
 		Assert.notNull(marshaller, "marshaller must not be null");
 		Assert.isInstanceOf(Unmarshaller.class, marshaller,
 				"Marshaller [" + marshaller + "] does not implement the Unmarshaller interface. " +
 				"Please set an Unmarshaller explicitly by using the " + this.getClass().getName() +
 				"(String uri, Marshaller marshaller, Unmarshaller unmarshaller) constructor.");
 		this.getWebServiceTemplate().setMarshaller(marshaller);
-		this.getWebServiceTemplate().setUnmarshaller((Unmarshaller) marshaller);
+		this.getWebServiceTemplate().setUnmarshaller((Unmarshaller) marshaller);		
+	}
+
+	public MarshallingWebServiceHandler(URI uri, Marshaller marshaller) {
+		this(uri, marshaller, (WebServiceMessageFactory) null);
 	}
 
 
