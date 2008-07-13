@@ -23,9 +23,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.message.BlockingTarget;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageTarget;
+import org.springframework.integration.message.TargetInvoker;
 
 /**
  * Base class for {@link MessageDispatcher} implementations.
@@ -41,6 +41,8 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	private volatile long timeout = 0;
 
 	private volatile TaskExecutor taskExecutor;
+
+	private final TargetInvoker targetInvoker = new TargetInvoker();
 
 
 	public void setTimeout(long timeout) {
@@ -69,13 +71,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	}
 
 	protected final boolean sendMessageToTarget(Message<?> message, MessageTarget target) {
-		boolean sent = (target instanceof BlockingTarget && this.timeout >= 0)
-				? ((BlockingTarget) target).send(message, this.timeout)
-				: target.send(message);
-		if (!sent && logger.isDebugEnabled()) {
-			logger.debug("dispatcher failed to send message to target '" + target + "'");
-		}
-		return sent;
+		return this.targetInvoker.invoke(target, message, this.timeout);
 	}
 
 }
