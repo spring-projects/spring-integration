@@ -25,7 +25,6 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageHeader;
-import org.springframework.integration.message.MessageTarget;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -35,7 +34,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class HandlerEndpoint extends TargetEndpoint {
+public class HandlerEndpoint extends AbstractEndpoint {
 
 	private volatile MessageHandler handler;
 
@@ -80,7 +79,6 @@ public class HandlerEndpoint extends TargetEndpoint {
 		if (this.handler instanceof ChannelRegistryAware) {
 			((ChannelRegistryAware) this.handler).setChannelRegistry(this.getChannelRegistry());
 		}
-		super.setTarget(new HandlerInvokingTarget(this.handler, this.replyHandler));
 		super.initialize();
 	}
 
@@ -118,31 +116,16 @@ public class HandlerEndpoint extends TargetEndpoint {
 		return null;
 	}
 
-
-	private static class HandlerInvokingTarget implements MessageTarget {
-
-		private final MessageHandler handler;
-
-		private final ReplyHandler replyHandler;
-
-
-		public HandlerInvokingTarget(MessageHandler handler, ReplyHandler replyHandler) {
-			this.handler = handler;
-			this.replyHandler = replyHandler;
-		}
-
-
-		public boolean send(Message<?> message) {
-			Message<?> replyMessage = this.handler.handle(message);
-			if (replyMessage != null) {
-				if (replyMessage.getHeader().getCorrelationId() == null) {
-					replyMessage.getHeader().setCorrelationId(message.getId());
-				}
-				this.replyHandler.handle(replyMessage, message.getHeader());
+	@Override
+	protected Message<?> handleMessage(Message<?> message) {
+		Message<?> replyMessage = this.handler.handle(message);
+		if (replyMessage != null) {
+			if (replyMessage.getHeader().getCorrelationId() == null) {
+				replyMessage.getHeader().setCorrelationId(message.getId());
 			}
-			return true;
+			this.replyHandler.handle(replyMessage, message.getHeader());
 		}
-
+		return null;
 	}
 
 

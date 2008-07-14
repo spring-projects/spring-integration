@@ -263,7 +263,7 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 	private void configureEndpoint(AbstractEndpoint endpoint, String name, Object input, Schedule schedule) {
 		endpoint.setName(name);
 		if (input instanceof MessageChannel) {
-			endpoint.setInputChannel((MessageChannel) input);
+			endpoint.setSource((MessageChannel) input);
 		}
 		else if (input instanceof String) {
 			endpoint.setInputChannelName((String) input);
@@ -322,15 +322,12 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 		if (endpoint.getOutputChannel() == null) {
 			this.lookupOrCreateChannel(endpoint.getOutputChannelName());
 		}
-		try {
-			endpoint.afterPropertiesSet();
-		}
-		catch (Exception e) {
-			throw new ConfigurationException("failed to initialize endpoint", e);
-		}
 		MessageChannel channel = endpoint.getInputChannel();
 		if (channel == null) {
 			channel = this.lookupOrCreateChannel(endpoint.getInputChannelName());
+			if (channel != null) {
+				endpoint.setSource(channel);
+			}
 		}
 		if (channel != null && channel instanceof Subscribable) {
 			((Subscribable) channel).subscribe(endpoint);
@@ -343,6 +340,12 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 		Schedule schedule = endpoint.getSchedule();
 		EndpointTrigger trigger = new EndpointTrigger(schedule != null ? schedule : this.defaultPollerSchedule);
 		trigger.addTarget(endpoint);
+		try {
+			endpoint.afterPropertiesSet();
+		}
+		catch (Exception e) {
+			throw new ConfigurationException("failed to initialize endpoint '" + endpoint + "'", e);
+		}
 		if (this.endpointTriggers.add(trigger)) {
 			this.taskScheduler.schedule(trigger);
 		}

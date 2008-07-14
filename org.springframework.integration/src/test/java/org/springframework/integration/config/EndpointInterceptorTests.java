@@ -18,11 +18,14 @@ package org.springframework.integration.config;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.List;
+
 import org.junit.Test;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.endpoint.EndpointInterceptor;
 import org.springframework.integration.endpoint.EndpointPoller;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.SourceEndpoint;
@@ -83,12 +86,15 @@ public class EndpointInterceptorTests {
 	}
 
 
+	@SuppressWarnings("unchecked")
 	private static void testInterceptors(MessageEndpoint endpoint, ClassPathXmlApplicationContext context, boolean innerBeans) {
 		TestPreSendInterceptor preInterceptor = null;
 		TestAroundSendEndpointInterceptor aroundInterceptor = null;
 		if (innerBeans) {
-			preInterceptor = (TestPreSendInterceptor) ((AbstractEndpoint) endpoint).getInterceptors().get(0);
-			aroundInterceptor = (TestAroundSendEndpointInterceptor) ((AbstractEndpoint) endpoint).getInterceptors().get(1);
+			DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
+			List<EndpointInterceptor> interceptors = (List<EndpointInterceptor>) accessor.getPropertyValue("interceptors");
+			preInterceptor = (TestPreSendInterceptor) interceptors.get(0);
+			aroundInterceptor = (TestAroundSendEndpointInterceptor) interceptors.get(1);
 		}
 		else {
 			preInterceptor = (TestPreSendInterceptor) context.getBean("preInterceptor");

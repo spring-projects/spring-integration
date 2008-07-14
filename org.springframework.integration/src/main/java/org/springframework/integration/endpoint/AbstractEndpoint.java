@@ -23,13 +23,17 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.handler.MessageHandlerNotRunningException;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageRejectedException;
+import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
+import org.springframework.integration.message.MessagingException;
+import org.springframework.integration.message.Poller;
+import org.springframework.integration.message.TargetInvoker;
+import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.integration.scheduling.Schedule;
 
 /**
@@ -37,7 +41,7 @@ import org.springframework.integration.scheduling.Schedule;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware, Lifecycle {
+public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
@@ -45,25 +49,25 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 
 	private volatile String inputChannelName;
 
-	private MessageChannel inputChannel;
-
 	private volatile String outputChannelName;
 
-	private MessageChannel outputChannel;
+	private volatile MessageSource<?> source;
 
-	private final List<EndpointInterceptor> interceptors = new ArrayList<EndpointInterceptor>();
+	private volatile MessageTarget target;
+
+	private volatile Poller poller;
 
 	private volatile Schedule schedule;
 
-	private volatile EndpointTrigger trigger;
+	private final TargetInvoker targetInvoker = new TargetInvoker();
+
+	private volatile long sendTimeout;
+
+	private volatile MessageSelector selector;
+
+	private final List<EndpointInterceptor> interceptors = new ArrayList<EndpointInterceptor>();
 
 	private volatile ChannelRegistry channelRegistry;
-
-	private volatile boolean autoStartup = true;
-
-	private volatile boolean running;
-
-	private final Object lifecycleMonitor = new Object();
 
 
 	public String getName() {
@@ -86,12 +90,8 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 		return this.schedule;
 	}
 
-	public void setTrigger(EndpointTrigger trigger) {
-		this.trigger = trigger;
-	}
-
-	public EndpointTrigger getTrigger() {
-		return this.trigger;
+	public void setPoller(Poller poller) {
+		this.poller = poller;
 	}
 
 	public void setInputChannelName(String inputChannelName) {
@@ -102,17 +102,27 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 		return this.inputChannelName;
 	}
 
-	public void setInputChannel(MessageChannel channel) {
-		this.inputChannel = channel; 
-		this.inputChannelName = channel.getName();
+	public void setSource(MessageSource<?> source) {
+		if (source instanceof MessageChannel) {
+			this.inputChannelName = ((MessageChannel) source).getName();
+		}
+		this.source = source;
 	}
 
 	public MessageChannel getInputChannel() {
-		if (this.inputChannel == null &&
-				(this.inputChannelName != null && this.channelRegistry != null)) {
-			this.inputChannel = this.channelRegistry.lookupChannel(this.inputChannelName);
+		if (this.source != null) {
+			if (this.source instanceof MessageChannel) {
+				return (MessageChannel) this.source;
+			}
 		}
-		return this.inputChannel;
+		else if (this.inputChannelName != null && this.channelRegistry != null) {
+			MessageChannel inputChannel = this.channelRegistry.lookupChannel(this.inputChannelName);
+			if (inputChannel != null) {
+				this.source = inputChannel;
+			}
+			return inputChannel;
+		}
+		return null;
 	}
 
 	/**
@@ -127,17 +137,31 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 		return this.outputChannelName;
 	}
 
-	public void setOutputChannel(MessageChannel outputChannel) {
-		this.outputChannel = outputChannel;
-		this.outputChannelName = outputChannel.getName();
+	public void setTarget(MessageTarget target) {
+		if (target instanceof MessageChannel) {
+			this.outputChannelName = ((MessageChannel) target).getName();
+		}
+		this.target = target;
+	}
+
+	public void setSendTimeout(long sendTimeout) {
+		this.sendTimeout = sendTimeout;
 	}
 
 	public MessageChannel getOutputChannel() {
-		if (this.outputChannel == null &&
-				(this.outputChannelName != null && this.channelRegistry != null)) {
-			this.outputChannel = this.channelRegistry.lookupChannel(this.outputChannelName);
+		if (this.target != null) {
+			if (this.target instanceof MessageChannel) {
+				return (MessageChannel) this.target;
+			}
 		}
-		return this.outputChannel;
+		else if (this.outputChannelName != null && this.channelRegistry != null) {
+			MessageChannel outputChannel = this.channelRegistry.lookupChannel(this.outputChannelName);
+			if (outputChannel != null) {
+				this.target = outputChannel;
+			}
+			return outputChannel;
+		}
+		return null;
 	}
 
 	/**
@@ -151,8 +175,8 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 		return this.channelRegistry;
 	}
 
-	public void setAutoStartup(boolean autoStartup) {
-		this.autoStartup = autoStartup;
+	public void setMessageSelector(MessageSelector selector) {
+		this.selector = selector;
 	}
 
 	public void addInterceptor(EndpointInterceptor interceptor) {
@@ -166,10 +190,6 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 		}
 	}
 
-	public List<EndpointInterceptor> getInterceptors() {
-		return this.interceptors;
-	}
-
 	public String toString() {
 		return (this.name != null) ? this.name : super.toString();
 	}
@@ -177,39 +197,31 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 	protected void initialize() {
 	}
 
-	public boolean isRunning() {
-		return this.running;
-	}
-
 	public void afterPropertiesSet() {
-		if (this.autoStartup) {
-			this.start();
+		if (this.source != null && this.poller == null) {
+			this.poller = new DefaultEndpointPoller();
 		}
-		else {
-			this.initialize();
+		if (this.target == null) {
+			this.target = this.getOutputChannel();
 		}
-	}
-
-	public void start() {
+		if (this.target != null && this.target instanceof ChannelRegistryAware
+				&& this.channelRegistry != null) {
+			((ChannelRegistryAware) this.target).setChannelRegistry(this.channelRegistry);
+		}
 		this.initialize();
-		synchronized (this.lifecycleMonitor) {
-			if (this.running) {
-				return;
-			}
-			this.running = true;
-		}
-	}
-
-	public void stop() {
-		synchronized (this.lifecycleMonitor) {
-			if (!this.running) {
-				return;
-			}
-			this.running = false;
-		}
 	}
 
 	public final boolean send(Message<?> message) {
+		if (message == null || message.getPayload() == null) {
+			throw new IllegalArgumentException("Message and its payload must not be null.");
+		}
+		if (logger.isDebugEnabled()) {
+			logger.debug("endpoint '" + this + "' handling message: " + message);
+		}
+		if (message.getPayload() instanceof EndpointVisitor) {
+			((EndpointVisitor) message.getPayload()).visitEndpoint(this);
+			return true;
+		}
 		return this.send(message, 0);
 	}
 
@@ -239,27 +251,46 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 	}
 
 	private boolean doSend(Message<?> message) {
-		if (message == null || message.getPayload() == null) {
-			throw new IllegalArgumentException("Message and its payload must not be null.");
-		}
-		if (logger.isDebugEnabled()) {
-			logger.debug("endpoint '" + this + "' handling message: " + message);
-		}
-		if (!this.isRunning()) {
-			throw new MessageHandlerNotRunningException(message);
-		}
-		if (message.getPayload() instanceof EndpointVisitor) {
-			((EndpointVisitor) message.getPayload()).visitEndpoint(this);
-			return true;
-		}
 		if (!this.supports(message)) {
 			throw new MessageRejectedException(message, "unsupported message");
 		}
-		return this.handleMessage(message);
+		Message<?> result = this.handleMessage(message);
+		if (result != null) {
+			return this.targetInvoker.invoke(this.target, result, this.sendTimeout);
+		}
+		return true;
 	}
 
-	protected abstract boolean supports(Message<?> message);
+	public final boolean poll() {
+		if (this.poller == null) {
+			this.afterPropertiesSet();
+			if (this.poller == null) {
+				throw new MessagingException("endpoint '" + this + "' has no poller");
+			}
+		}
+		if (this.source == null) {
+			throw new MessagingException("endpoint '" + this + "' has no source");
+		}
+		int result = this.poller.poll(this.source, new MessageTarget() {
+			public boolean send(Message<?> message) {
+				return AbstractEndpoint.this.send(message, 0);
+			}
+		});
+		return (result > 0);
+	}
 
-	protected abstract boolean handleMessage(Message<?> message);
+	protected boolean supports(Message<?> message) {
+		if (this.selector != null && !this.selector.accept(message)) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("selector for endpoint '" + this + "' rejected message: " + message);
+			}
+			return false;
+		}
+		return true;
+	}
+
+	protected Message<?> handleMessage(Message<?> message) {
+		return message;
+	}
 
 }

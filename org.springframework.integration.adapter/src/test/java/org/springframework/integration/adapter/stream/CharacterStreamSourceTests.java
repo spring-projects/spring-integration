@@ -44,7 +44,7 @@ public class CharacterStreamSourceTests {
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
 		SourceEndpoint endpoint = new SourceEndpoint(source);
-		endpoint.setOutputChannel(channel);
+		endpoint.setTarget(channel);
 		endpoint.afterPropertiesSet();
 		endpoint.send(new GenericMessage<EndpointPoller>(new EndpointPoller()));
 		Message<?> message1 = channel.receive(0);

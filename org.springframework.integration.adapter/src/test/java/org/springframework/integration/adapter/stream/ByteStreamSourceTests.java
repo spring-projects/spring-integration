@@ -43,7 +43,7 @@ public class ByteStreamSourceTests {
 		MessageChannel channel = new QueueChannel();
 		ByteStreamSource source = new ByteStreamSource(stream);
 		SourceEndpoint endpoint = new SourceEndpoint(source);
-		endpoint.setOutputChannel(channel);
+		endpoint.setTarget(channel);
 		endpoint.afterPropertiesSet();
 		endpoint.send(new GenericMessage<EndpointPoller>(new EndpointPoller()));
 		Message<?> message1 = channel.receive(500);
@@ -69,7 +69,7 @@ public class ByteStreamSourceTests {
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
 		SourceEndpoint endpoint = new SourceEndpoint(source);
-		endpoint.setOutputChannel(channel);
+		endpoint.setTarget(channel);
 		endpoint.afterPropertiesSet();
 		endpoint.send(new GenericMessage<EndpointPoller>(new EndpointPoller()));
 		Message<?> message1 = channel.receive(0);
@@ -92,7 +92,7 @@ public class ByteStreamSourceTests {
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);
 		SourceEndpoint endpoint = new SourceEndpoint(source);
-		endpoint.setOutputChannel(channel);
+		endpoint.setTarget(channel);
 		endpoint.afterPropertiesSet();
 		endpoint.send(new GenericMessage<EndpointPoller>(new EndpointPoller()));
 		Message<?> message1 = channel.receive(0);

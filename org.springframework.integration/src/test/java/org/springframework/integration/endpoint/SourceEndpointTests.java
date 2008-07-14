@@ -26,7 +26,6 @@ import org.junit.Test;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageSource;
 
 /**
@@ -39,7 +38,7 @@ public class SourceEndpointTests {
 		TestSource source = new TestSource("testing", 1);
 		QueueChannel channel = new QueueChannel();
 		SourceEndpoint endpoint = new SourceEndpoint(source);
-		endpoint.setOutputChannel(channel);
+		endpoint.setTarget(channel);
 		endpoint.afterPropertiesSet();
 		endpoint.send(new GenericMessage<EndpointPoller>(new EndpointPoller()));
 		Message<?> message = channel.receive(1000);
@@ -47,16 +46,6 @@ public class SourceEndpointTests {
 		assertEquals("testing.1", message.getPayload());
 	}
 
-	@Test(expected = MessageHandlingException.class)
-	public void testAutoStartupDisabled() {
-		TestSource source = new TestSource("testing", 1);
-		QueueChannel channel = new QueueChannel();
-		SourceEndpoint endpoint = new SourceEndpoint(source);
-		endpoint.setOutputChannel(channel);
-		endpoint.setAutoStartup(false);
-		endpoint.afterPropertiesSet();
-		endpoint.send(new GenericMessage<EndpointPoller>(new EndpointPoller()));
-	}
 
 	private static class TestSource implements MessageSource<String> {
 

@@ -19,7 +19,7 @@
 				<property name="methodName" value="foo"/>
 			</bean>
 		</constructor-arg>
-		<property name="outputChannel" ref="channel"/>
+		<property name="target" ref="channel"/>
 		<property name="schedule">
 			<bean class="org.springframework.integration.scheduling.PollingSchedule">
 				<constructor-arg value="1000"/>
@@ -34,7 +34,7 @@
 
 	<bean id="targetEndpoint" class="org.springframework.integration.endpoint.TargetEndpoint">
 		<constructor-arg ref="target"/>
-		<property name="inputChannel" ref="channel"/>
+		<property name="source" ref="channel"/>
 	</bean>
 
 	<bean id="sink" class="org.springframework.integration.handler.TestSink"/>

@@ -33,7 +33,6 @@ import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.MessageHandler;
-import org.springframework.integration.handler.MessageHandlerNotRunningException;
 import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageRejectedException;
@@ -59,9 +58,7 @@ public class HandlerEndpointTests {
 		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
 		endpoint.setChannelRegistry(channelRegistry);
 		endpoint.setOutputChannelName("replyChannel");
-		endpoint.start();
 		endpoint.send(new StringMessage(1, "test"));
-		endpoint.stop();
 		Message<?> reply = replyChannel.receive(50);
 		assertNotNull(reply);
 		assertEquals("hello test", reply.getPayload());
@@ -76,11 +73,9 @@ public class HandlerEndpointTests {
 			}
 		};
 		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
-		endpoint.start();
 		StringMessage testMessage = new StringMessage(1, "test");
 		testMessage.getHeader().setReturnAddress(replyChannel);
 		endpoint.send(testMessage);
-		endpoint.stop();
 		Message<?> reply = replyChannel.receive(50);
 		assertNotNull(reply);
 		assertEquals("hello test", reply.getPayload());
@@ -98,11 +93,9 @@ public class HandlerEndpointTests {
 		};
 		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
 		endpoint.setChannelRegistry(channelRegistry);
-		endpoint.start();
 		StringMessage testMessage = new StringMessage(1, "test");
 		testMessage.getHeader().setReturnAddress("replyChannel");
 		endpoint.send(testMessage);
-		endpoint.stop();
 		Message<?> reply = replyChannel.receive(50);
 		assertNotNull(reply);
 		assertEquals("hello test", reply.getPayload());
@@ -121,7 +114,6 @@ public class HandlerEndpointTests {
 		};
 		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
 		endpoint.setChannelRegistry(channelRegistry);
-		endpoint.start();
 		StringMessage testMessage = new StringMessage("test");
 		testMessage.getHeader().setReturnAddress(replyChannel1);
 		endpoint.send(testMessage);
@@ -137,7 +129,6 @@ public class HandlerEndpointTests {
 		reply2 = replyChannel2.receive(0);
 		assertNotNull(reply2);	
 		assertEquals("hello test", reply2.getPayload());	
-		endpoint.stop();
 	}
 
 	@Test
@@ -155,37 +146,11 @@ public class HandlerEndpointTests {
 		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
 		endpoint.setChannelRegistry(channelRegistry);
 		endpoint.setOutputChannelName("replyChannel");
-		endpoint.start();
 		endpoint.send(new StringMessage(1, "test"));
-		endpoint.stop();
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals("handler should have been invoked within allotted time", 0, latch.getCount());
 		Message<?> reply = replyChannel.receive(0);
 		assertNull(reply);
-	}
-
-	@Test(expected=MessageHandlerNotRunningException.class)
-	public void testEndpointDoesNotHandleMessagesWhenNotYetStarted() {
-		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.nullHandler());
-		endpoint.send(new StringMessage("test"));
-	}
-
-	@Test
-	public void testEndpointDoesNotHandleMessagesAfterBeingStopped() {
-		AtomicInteger counter = new AtomicInteger();
-		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.countingHandler(counter));
-		boolean exceptionThrown = false;
-		try {
-			endpoint.start();
-			endpoint.send(new StringMessage("test1"));
-			endpoint.stop();
-			endpoint.send(new StringMessage("test2"));
-		}
-		catch (MessageHandlerNotRunningException e) {
-			exceptionThrown = true;
-		}
-		assertEquals("handler should have been invoked exactly once", 1, counter.get());
-		assertTrue(exceptionThrown);
 	}
 
 	@Test(expected=MessageRejectedException.class)
@@ -196,7 +161,6 @@ public class HandlerEndpointTests {
 				return false;
 			}
 		});
-		endpoint.start();
 		endpoint.send(new StringMessage("test"));
 	}
 
@@ -209,11 +173,9 @@ public class HandlerEndpointTests {
 				return true;
 			}
 		});
-		endpoint.start();
 		endpoint.send(new StringMessage("test"));
 		latch.await(100, TimeUnit.MILLISECONDS);
 		assertEquals("handler should have been invoked", 0, latch.getCount());
-		endpoint.stop();
 	}
 
 	@Test
@@ -234,7 +196,6 @@ public class HandlerEndpointTests {
 			}
 		});
 		endpoint.setMessageSelector(selectorChain);
-		endpoint.start();
 		boolean exceptionWasThrown = false;
 		try {
 			endpoint.send(new StringMessage("test"));
@@ -244,7 +205,6 @@ public class HandlerEndpointTests {
 		}
 		assertTrue(exceptionWasThrown);
 		assertEquals("only the first selector should have been invoked", 1, counter.get());
-		endpoint.stop();
 	}
 
 	@Test
@@ -266,7 +226,6 @@ public class HandlerEndpointTests {
 			}
 		});
 		endpoint.setMessageSelector(selectorChain);
-		endpoint.start();
 		boolean exceptionWasThrown = false;
 		try {
 			endpoint.send(new StringMessage("test"));
@@ -277,7 +236,6 @@ public class HandlerEndpointTests {
 		assertTrue(exceptionWasThrown);
 		assertEquals("both selectors should have been invoked", 2, selectorCounter.get());
 		assertEquals("the handler should not have been invoked", 0, handlerCounter.get());
-		endpoint.stop();
 	}
 
 	@Test
@@ -298,10 +256,8 @@ public class HandlerEndpointTests {
 			}
 		});
 		endpoint.setMessageSelector(selectorChain);
-		endpoint.start();
 		assertTrue(endpoint.send(new StringMessage("test")));
 		assertEquals("both selectors and handler should have been invoked", 3, counter.get());
-		endpoint.stop();
 	}
 
 	@Test
@@ -312,7 +268,6 @@ public class HandlerEndpointTests {
 				return message;
 			}
 		});
-		endpoint.start();
 		Message<?> message = new StringMessage("test");
 		message.getHeader().setReturnAddress(replyChannel);
 		endpoint.send(message);
@@ -329,7 +284,6 @@ public class HandlerEndpointTests {
 				return message;
 			}
 		});
-		endpoint.start();
 		Message<?> message = new StringMessage("test");
 		message.getHeader().setReturnAddress(replyChannel);
 		endpoint.send(message);

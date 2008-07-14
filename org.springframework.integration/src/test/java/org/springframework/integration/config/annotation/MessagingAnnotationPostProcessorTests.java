@@ -25,6 +25,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -175,6 +176,7 @@ public class MessagingAnnotationPostProcessorTests {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testConcurrencyAnnotationWithValues() {
 		MessageBus messageBus = new DefaultMessageBus();
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
@@ -182,9 +184,10 @@ public class MessagingAnnotationPostProcessorTests {
 		ConcurrencyAnnotationTestBean testBean = new ConcurrencyAnnotationTestBean();
 		postProcessor.postProcessAfterInitialization(testBean, "testBean");
 		HandlerEndpoint endpoint = (HandlerEndpoint) messageBus.lookupEndpoint("testBean.MessageHandler.endpoint");
-		assertEquals(1, endpoint.getInterceptors().size());
-		EndpointInterceptor interceptor = endpoint.getInterceptors().get(0);
-		DirectFieldAccessor accessor = new DirectFieldAccessor(interceptor);
+		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
+		List<EndpointInterceptor> interceptors = (List<EndpointInterceptor>) accessor.getPropertyValue("interceptors");
+		assertEquals(1, interceptors.size());
+		EndpointInterceptor interceptor = interceptors.get(0);
 		accessor = new DirectFieldAccessor(interceptor);
 		ConcurrentTaskExecutor cte = (ConcurrentTaskExecutor) accessor.getPropertyValue("executor");
 		ThreadPoolExecutor executor = (ThreadPoolExecutor) cte.getConcurrentExecutor();

@@ -213,7 +213,7 @@ public class RequestReplyTemplate implements MessageBusAware {
 			}
 			ReplyMessageCorrelator correlator = new ReplyMessageCorrelator(10);
 			HandlerEndpoint endpoint = new HandlerEndpoint(correlator);
-			endpoint.setInputChannel(this.replyChannel);
+			endpoint.setSource(this.replyChannel);
 			endpoint.setName("internal.correlator." + this);
 			this.endpointRegistry.registerEndpoint(endpoint);
 			this.replyMessageCorrelator = correlator;
@@ -249,11 +249,11 @@ public class RequestReplyTemplate implements MessageBusAware {
         public void setName(String name) {
         }
 
-        public Message receive() {
+        public Message<?> receive() {
 	        return null;
         }
 
-        public Message receive(long timeout) {
+        public Message<?> receive(long timeout) {
 	        return null;
         }
 

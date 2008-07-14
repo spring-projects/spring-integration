@@ -52,9 +52,7 @@ public class BroadcastingDispatcherTests {
 
 
 	private static MessageTarget createEndpoint(MessageHandler handler) {
-		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
-		endpoint.start();
-		return endpoint;
+		return new HandlerEndpoint(handler);
 	}
 
 }

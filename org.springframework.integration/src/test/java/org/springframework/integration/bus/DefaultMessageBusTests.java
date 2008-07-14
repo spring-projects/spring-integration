@@ -189,7 +189,7 @@ public class DefaultMessageBusTests {
 		MessageBus bus = new DefaultMessageBus();
 		CountDownLatch latch = new CountDownLatch(1);
 		SourceEndpoint sourceEndpoint = new SourceEndpoint(new FailingSource(latch));
-		sourceEndpoint.setOutputChannel(new QueueChannel());
+		sourceEndpoint.setTarget(new QueueChannel());
 		sourceEndpoint.setSchedule(new PollingSchedule(1000));
 		sourceEndpoint.setName("testEndpoint");
 		bus.registerEndpoint(sourceEndpoint);

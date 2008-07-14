@@ -18,10 +18,6 @@ package org.springframework.integration.endpoint;
 
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.BlockingSource;
-import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageDeliveryAware;
-import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.util.Assert;
 
@@ -33,26 +29,11 @@ import org.springframework.util.Assert;
  */
 public class SourceEndpoint extends AbstractEndpoint {
 
-	private final MessageSource<?> source;
-
-	private volatile long receiveTimeout = 5000;
-
-	private volatile long sendTimeout = -1;
-
-
 	public SourceEndpoint(MessageSource<?> source) {
 		Assert.notNull(source, "source must not be null");
-		this.source = source;
+		this.setSource(source);
 	}
 
-
-	public void setReceiveTimeout(long receiveTimeout) {
-		this.receiveTimeout = receiveTimeout;
-	}
-
-	public void setSendTimeout(long sendTimeout) {
-		this.sendTimeout = sendTimeout;
-	}
 
 	@Override
 	public void initialize() {
@@ -60,34 +41,6 @@ public class SourceEndpoint extends AbstractEndpoint {
 			throw new ConfigurationException(
 					"no output channel has been configured for source endpoint '" + this.getName() + "'");
 		}
-	}
-
-	@Override
-	protected final boolean supports(Message<?> message) {
-		return false;
-	}
-
-	@Override
-	protected final boolean handleMessage(Message<?> message) {
-		return false;
-	}
-
-	public boolean poll() {
-		Message<?> message = (this.source instanceof BlockingSource && this.receiveTimeout >= 0) ?
-				((BlockingSource<?>) this.source).receive(this.receiveTimeout) : this.source.receive();
-		if (message == null) {
-			return false;
-		}
-		boolean sent = this.getOutputChannel().send(message, this.sendTimeout);
-		if (this.source instanceof MessageDeliveryAware) {
-			if (sent) {
-				((MessageDeliveryAware) this.source).onSend(message);
-			}
-			else {
-				((MessageDeliveryAware) this.source).onFailure(new MessageDeliveryException(message, "failed to send message"));
-			}
-		}
-		return sent;
 	}
 
 }

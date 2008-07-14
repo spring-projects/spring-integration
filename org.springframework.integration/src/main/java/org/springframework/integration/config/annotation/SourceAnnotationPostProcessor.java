@@ -74,7 +74,7 @@ public class SourceAnnotationPostProcessor extends AbstractAnnotationMethodPostP
 		if (!StringUtils.hasText(outputChannelName)) {
 			MessageChannel outputChannel = new DirectChannel();
 			this.getMessageBus().registerChannel(beanName + ".output", outputChannel);
-			endpoint.setOutputChannel(outputChannel);
+			endpoint.setTarget(outputChannel);
 		}
 		else {
 			endpoint.setOutputChannelName(outputChannelName);
