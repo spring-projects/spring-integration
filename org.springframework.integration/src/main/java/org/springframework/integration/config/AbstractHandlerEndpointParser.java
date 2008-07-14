@@ -58,6 +58,8 @@ public abstract class AbstractHandlerEndpointParser extends AbstractSingleBeanDe
 
 	private static final String SCHEDULE_ELEMENT = "schedule";
 
+	private static final String POLLER_ELEMENT = "poller";
+
 	private static final String SELECTOR_ATTRIBUTE = "selector";
 
 	private static final String SELECTOR_PROPERTY = "messageSelector";
@@ -108,6 +110,10 @@ public abstract class AbstractHandlerEndpointParser extends AbstractSingleBeanDe
 				String localName = child.getLocalName();
 				if (SCHEDULE_ELEMENT.equals(localName)) {
 					schedule = this.parseSchedule(childElement);
+				}
+				else if (POLLER_ELEMENT.equals(localName)) {
+					builder.addPropertyReference("poller",
+							IntegrationNamespaceUtils.parsePoller(childElement, parserContext));
 				}
 				else if (INTERCEPTORS_ELEMENT.equals(localName)) {
 					EndpointInterceptorParser parser = new EndpointInterceptorParser();

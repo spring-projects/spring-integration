@@ -90,6 +90,11 @@ public class ChannelAdapterParser extends AbstractSimpleBeanDefinitionParser {
 		if (scheduleElement != null) {
 			builder.addPropertyValue("schedule", this.parseSchedule(scheduleElement));
 		}
+		Element pollerElement = DomUtils.getChildElementByTagName(element, "poller");
+		if (pollerElement != null) {
+			builder.addPropertyReference("poller",
+					IntegrationNamespaceUtils.parsePoller(pollerElement, parserContext));
+		}
 		Element interceptorsElement = DomUtils.getChildElementByTagName(element, "interceptors");
 		if (interceptorsElement != null) {
 			EndpointInterceptorParser parser = new EndpointInterceptorParser();
@@ -106,7 +111,7 @@ public class ChannelAdapterParser extends AbstractSimpleBeanDefinitionParser {
 			adapterDef.getPropertyValues().addPropertyValue("methodName", method);
 			String adapterBeanName = parserContext.getReaderContext().generateBeanName(adapterDef);
 			parserContext.registerBeanComponent(new BeanComponentDefinition(adapterDef, adapterBeanName));
-			return adapterBeanName;			
+			return adapterBeanName;
 		}
 		return ref;
 	}
