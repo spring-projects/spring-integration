@@ -25,6 +25,7 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.endpoint.DefaultEndpointPoller;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -108,8 +109,8 @@ public abstract class IntegrationNamespaceUtils {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(DefaultEndpointPoller.class);
 		if (txElement != null) {
 			builder.addPropertyReference("transactionManager", txElement.getAttribute("transaction-manager"));
-			builder.addPropertyValue("propagationBehaviorName", txElement.getAttribute("propagation"));
-			builder.addPropertyValue("isolationLevelName", txElement.getAttribute("isolation"));
+			builder.addPropertyValue("propagationBehaviorName", DefaultTransactionDefinition.PREFIX_PROPAGATION + txElement.getAttribute("propagation"));
+			builder.addPropertyValue("isolationLevelName", DefaultTransactionDefinition.PREFIX_ISOLATION + txElement.getAttribute("isolation"));
 			builder.addPropertyValue("transactionTimeout", txElement.getAttribute("timeout"));
 			builder.addPropertyValue("transactionReadOnly", txElement.getAttribute("read-only"));
 		}

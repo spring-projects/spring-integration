@@ -19,6 +19,7 @@ package org.springframework.integration.endpoint;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
@@ -34,7 +35,7 @@ import org.springframework.transaction.support.TransactionTemplate;
  * 
  * @author Mark Fisher
  */
-public class DefaultEndpointPoller extends SimplePoller {
+public class DefaultEndpointPoller extends SimplePoller implements InitializingBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
