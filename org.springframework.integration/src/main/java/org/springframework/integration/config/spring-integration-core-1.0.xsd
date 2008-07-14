@@ -180,6 +180,7 @@
 				<xsd:extension base="beans:identifiedType">
 					<xsd:all>
 						<xsd:element ref="schedule" minOccurs="0" maxOccurs="1"/>
+						<xsd:element ref="poller" minOccurs="0" maxOccurs="1"/>
 						<xsd:element name="interceptors" type="interceptorsType" minOccurs="0" maxOccurs="1"/>
 					</xsd:all>
 					<xsd:attribute name="source" type="xsd:string"/>

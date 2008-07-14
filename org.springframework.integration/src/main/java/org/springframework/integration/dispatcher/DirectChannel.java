@@ -56,6 +56,10 @@ public class DirectChannel extends AbstractMessageChannel implements Subscribabl
 	}
 
 
+	public void setSource(MessageSource<?> source) {
+		this.source = source;
+	}
+
 	public boolean subscribe(MessageTarget target) {
 		boolean added = this.dispatcher.addTarget(target);
 		if (added) {
