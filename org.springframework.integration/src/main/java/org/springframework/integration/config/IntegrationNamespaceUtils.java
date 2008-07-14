@@ -21,9 +21,12 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.endpoint.DefaultEndpointPoller;
 import org.springframework.util.StringUtils;
+import org.springframework.util.xml.DomUtils;
 
 /**
  * Shared utility methods for integration namespace parsers.
@@ -78,6 +81,50 @@ public abstract class IntegrationNamespaceUtils {
 		BeanDefinitionHolder beanDefinitionHolder = beanParser.parseBeanDefinitionElement(element);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(beanDefinitionHolder));
 		return beanDefinitionHolder.getBeanName();
+	}
+
+	/**
+	 * Parse a "poller" element and return the bean name of the poller instance.
+	 * The name will be generated for a newly created bean, or if the poller
+	 * element simply provides a "ref", that value will be returned.
+	 * 
+	 * @param element the "poller" element to parse
+	 * @param parserContext the parserContext for registering a newly created bean definition
+	 * @return the name of the poller bean definition
+	 */
+	public static String parsePoller(Element element, ParserContext parserContext) {
+		String ref = element.getAttribute("ref");
+		String taskExecutorRef = element.getAttribute("task-executor");
+		Element txElement = DomUtils.getChildElementByTagName(element, "transactional");
+		if (StringUtils.hasText(ref)) {
+			if (StringUtils.hasText(taskExecutorRef) || (txElement != null)) {
+				parserContext.getReaderContext().error(
+						"Neither the 'task-executor' attribute or 'transactional' sub-element "
+						+ "should be provided when using the 'ref' attribute.",
+						parserContext.extractSource(element));
+			}
+			return ref;
+		}
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(DefaultEndpointPoller.class);
+		if (txElement != null) {
+			builder.addPropertyReference("transactionManager", txElement.getAttribute("transaction-manager"));
+			builder.addPropertyValue("propagationBehaviorName", txElement.getAttribute("propagation"));
+			builder.addPropertyValue("isolationLevelName", txElement.getAttribute("isolation"));
+			builder.addPropertyValue("transactionTimeout", txElement.getAttribute("timeout"));
+			builder.addPropertyValue("transactionReadOnly", txElement.getAttribute("read-only"));
+		}
+		if (StringUtils.hasText(taskExecutorRef)) {
+			builder.addPropertyReference("taskExecutor", taskExecutorRef);
+		}
+		String receiveTimeout = element.getAttribute("receive-timeout");
+		if (StringUtils.hasText(receiveTimeout)) {
+			builder.addPropertyValue("receiveTimeout", Long.parseLong(receiveTimeout));
+		}
+		String sendTimeout = element.getAttribute("send-timeout");
+		if (StringUtils.hasText(sendTimeout)) {
+			builder.addPropertyValue("sendTimeout", Long.parseLong(sendTimeout));
+		}
+		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
 	}
 
 }

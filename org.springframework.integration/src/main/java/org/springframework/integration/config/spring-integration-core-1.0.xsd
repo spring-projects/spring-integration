@@ -242,6 +242,7 @@
 			<xsd:extension base="beans:identifiedType">
 				<xsd:all>
 					<xsd:element ref="schedule" minOccurs="0" maxOccurs="1"/>
+					<xsd:element ref="poller" minOccurs="0" maxOccurs="1"/>
 					<xsd:element name="interceptors" type="interceptorsType" minOccurs="0" maxOccurs="1"/>
 				</xsd:all>
 				<xsd:attribute name="ref" type="xsd:string" use="required"/>
@@ -260,6 +261,23 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:attribute name="period" type="xsd:int"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="poller">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a poller.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:sequence>
+				<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1"/>
+			</xsd:sequence>
+			<xsd:attribute name="ref" type="xsd:string"/>
+			<xsd:attribute name="task-executor" type="xsd:string"/>
+			<xsd:attribute name="receive-timeout" type="xsd:long"/>
+			<xsd:attribute name="send-timeout" type="xsd:long"/>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -327,6 +345,36 @@
 		<xsd:attribute name="queue-capacity" type="xsd:int"/>
 		<xsd:attribute name="keep-alive" type="xsd:int"/>
 	</xsd:complexType>
+
+	<xsd:element name="pool-executor">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a ThreadPoolTaskExecutor.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="id" type="xsd:ID" use="required"/>
+			<xsd:attribute name="core-size" type="xsd:int" use="optional" default="1"/>
+			<xsd:attribute name="max-size" type="xsd:int" use="optional" default="10"/>
+			<xsd:attribute name="queue-capacity" type="xsd:int" use="optional" default="0"/>
+			<xsd:attribute name="keep-alive-seconds" type="xsd:int" use="optional" default="60"/>
+			<xsd:attribute name="rejection-policy" default="CALLER_RUNS">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+	The RejectedExecutionHandler type.
+					]]></xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:enumeration value="ABORT"/>
+					<xsd:enumeration value="CALLER_RUNS"/>
+					<xsd:enumeration value="DISCARD"/>
+					<xsd:enumeration value="DISCARD_OLDEST"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
 
 	<xsd:element name="router" type="inputHandlerEndpointType">
 		<xsd:annotation>
@@ -413,18 +461,18 @@
 						<xsd:attribute name="bean" use="required"/>
 					</xsd:complexType>
 				</xsd:element>
-				<xsd:element name="transaction-interceptor" type="transactionInterceptorType" minOccurs="0" maxOccurs="1"/>
+				<xsd:element name="transaction-interceptor" type="transactionalType" minOccurs="0" maxOccurs="1"/>
 				<xsd:element name="concurrency-interceptor" type="concurrencyInterceptorType" minOccurs="0" maxOccurs="1"/>
 				<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded"/>				
 			</xsd:choice>
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<xsd:complexType name="transactionInterceptorType">
-		<xsd:attribute name="transaction-manager" type="xsd:string">
+	<xsd:complexType name="transactionalType">
+		<xsd:attribute name="transaction-manager" type="xsd:string" default="transactionManager">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
-	The bean name of the PlatformTransactionManager to use. The default is "transactionManager".
+	The bean name of the PlatformTransactionManager to use.
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
