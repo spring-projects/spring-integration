@@ -72,6 +72,7 @@ public class IntegrationNamespaceHandler extends NamespaceHandlerSupport {
 		registerBeanDefinitionParser("splitter", new SplitterParser());
 		registerBeanDefinitionParser("aggregator", new AggregatorParser());
 		registerBeanDefinitionParser("resequencer", new ResequencerParser());
+		registerBeanDefinitionParser("pool-executor", new PoolExecutorParser());
 		Map<String, Class<? extends BeanDefinitionParser>> parserMappings = this.loadAdapterParserMappings();
 		try {
 			for (Map.Entry<String, Class<? extends BeanDefinitionParser>> entry : parserMappings.entrySet()) {
