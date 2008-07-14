@@ -18,7 +18,6 @@ package org.springframework.integration.endpoint;
 
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.dispatcher.PollingDispatcher;
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.scheduling.PollingSchedule;
@@ -36,7 +35,7 @@ public class EndpointTrigger extends PollingDispatcher {
 	 * Create an endpoint trigger with the specified {@link Schedule}.
 	 */
 	public EndpointTrigger(Schedule schedule) {
-		super(new EndpointPollerMessageSource(), new BroadcastingDispatcher(), schedule);
+		super(new TriggerSource(), new BroadcastingDispatcher(), schedule);
 	}
 
 	/**
@@ -47,11 +46,19 @@ public class EndpointTrigger extends PollingDispatcher {
 		this(new PollingSchedule(interval));
 	}
 
+	/**
+	 * Create an endpoint trigger that will run one time only when submitted to
+	 * a {@link org.springframework.integration.scheduling.TaskScheduler}.
+	 */
+	public EndpointTrigger() {
+		this(null);
+	}
 
-	private static class EndpointPollerMessageSource implements MessageSource<EndpointPoller> {
+
+	private static class TriggerSource implements MessageSource<EndpointPoller> {
 
 		public Message<EndpointPoller> receive() {
-			return new GenericMessage<EndpointPoller>(new EndpointPoller());
+			return new TriggerMessage();
 		}
 	}
 

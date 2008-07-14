@@ -40,7 +40,7 @@ public class SourceEndpointTests {
 		SourceEndpoint endpoint = new SourceEndpoint(source);
 		endpoint.setTarget(channel);
 		endpoint.afterPropertiesSet();
-		endpoint.send(new GenericMessage<EndpointPoller>(new EndpointPoller()));
+		endpoint.send(new TriggerMessage());
 		Message<?> message = channel.receive(1000);
 		assertNotNull("message should not be null", message);
 		assertEquals("testing.1", message.getPayload());

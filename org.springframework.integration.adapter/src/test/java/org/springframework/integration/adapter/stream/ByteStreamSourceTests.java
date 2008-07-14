@@ -22,12 +22,10 @@ import static org.junit.Assert.assertNull;
 import java.io.ByteArrayInputStream;
 
 import org.junit.Test;
-
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.endpoint.EndpointPoller;
 import org.springframework.integration.endpoint.SourceEndpoint;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.endpoint.TriggerMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.scheduling.PollingSchedule;
 
@@ -45,7 +43,7 @@ public class ByteStreamSourceTests {
 		SourceEndpoint endpoint = new SourceEndpoint(source);
 		endpoint.setTarget(channel);
 		endpoint.afterPropertiesSet();
-		endpoint.send(new GenericMessage<EndpointPoller>(new EndpointPoller()));
+		endpoint.send(new TriggerMessage());
 		Message<?> message1 = channel.receive(500);
 		byte[] payload = (byte[]) message1.getPayload();
 		assertEquals(3, payload.length);
@@ -54,7 +52,7 @@ public class ByteStreamSourceTests {
 		assertEquals(3, payload[2]);
 		Message<?> message2 = channel.receive(0);
 		assertNull(message2);
-		endpoint.send(new GenericMessage<EndpointPoller>(new EndpointPoller()));
+		endpoint.send(new TriggerMessage());
 		Message<?> message3 = channel.receive(0);
 		assertNull(message3);
 	}
@@ -71,12 +69,12 @@ public class ByteStreamSourceTests {
 		SourceEndpoint endpoint = new SourceEndpoint(source);
 		endpoint.setTarget(channel);
 		endpoint.afterPropertiesSet();
-		endpoint.send(new GenericMessage<EndpointPoller>(new EndpointPoller()));
+		endpoint.send(new TriggerMessage());
 		Message<?> message1 = channel.receive(0);
 		assertEquals(4, ((byte[]) message1.getPayload()).length);
 		Message<?> message2 = channel.receive(0);
 		assertNull(message2);
-		endpoint.send(new GenericMessage<EndpointPoller>(new EndpointPoller()));
+		endpoint.send(new TriggerMessage());
 		Message<?> message3 = channel.receive(0);
 		assertEquals(2, ((byte[]) message3.getPayload()).length);
 	}
@@ -94,12 +92,12 @@ public class ByteStreamSourceTests {
 		SourceEndpoint endpoint = new SourceEndpoint(source);
 		endpoint.setTarget(channel);
 		endpoint.afterPropertiesSet();
-		endpoint.send(new GenericMessage<EndpointPoller>(new EndpointPoller()));
+		endpoint.send(new TriggerMessage());
 		Message<?> message1 = channel.receive(0);
 		assertEquals(4, ((byte[]) message1.getPayload()).length);
 		Message<?> message2 = channel.receive(0);
 		assertNull(message2);
-		endpoint.send(new GenericMessage<EndpointPoller>(new EndpointPoller()));
+		endpoint.send(new TriggerMessage());
 		Message<?> message3 = channel.receive(0);
 		assertEquals(4, ((byte[]) message3.getPayload()).length);
 		assertEquals(0, ((byte[]) message3.getPayload())[3]);

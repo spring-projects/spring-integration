@@ -22,12 +22,10 @@ import static org.junit.Assert.assertNull;
 import java.io.StringReader;
 
 import org.junit.Test;
-
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.endpoint.EndpointPoller;
 import org.springframework.integration.endpoint.SourceEndpoint;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.endpoint.TriggerMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.scheduling.PollingSchedule;
 
@@ -46,12 +44,12 @@ public class CharacterStreamSourceTests {
 		SourceEndpoint endpoint = new SourceEndpoint(source);
 		endpoint.setTarget(channel);
 		endpoint.afterPropertiesSet();
-		endpoint.send(new GenericMessage<EndpointPoller>(new EndpointPoller()));
+		endpoint.send(new TriggerMessage());
 		Message<?> message1 = channel.receive(0);
 		assertEquals("test", message1.getPayload());
 		Message<?> message2 = channel.receive(0);
 		assertNull(message2);
-		endpoint.send(new GenericMessage<EndpointPoller>(new EndpointPoller()));
+		endpoint.send(new TriggerMessage());
 		Message<?> message3 = channel.receive(0);
 		assertNull(message3);
 	}

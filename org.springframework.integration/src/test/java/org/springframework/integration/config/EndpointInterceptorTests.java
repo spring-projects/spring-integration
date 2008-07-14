@@ -21,15 +21,13 @@ import static org.junit.Assert.assertEquals;
 import java.util.List;
 
 import org.junit.Test;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.EndpointInterceptor;
-import org.springframework.integration.endpoint.EndpointPoller;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.SourceEndpoint;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.endpoint.TriggerMessage;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -105,7 +103,7 @@ public class EndpointInterceptorTests {
 		if (endpoint instanceof SourceEndpoint) {
 			MessageChannel channel = (MessageChannel) context.getBean("testChannel");
 			channel.send(new StringMessage("foo"));
-			endpoint.send(new GenericMessage<EndpointPoller>(new EndpointPoller()));
+			endpoint.send(new TriggerMessage());
 		}
 		else {
 			endpoint.send(new StringMessage("test"));
