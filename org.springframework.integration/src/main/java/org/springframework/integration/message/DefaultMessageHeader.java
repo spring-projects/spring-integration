@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class DefaultMessageHeader implements MessageHeader, Serializable {
 
-	private final Date timestamp = new Date();
+	private final long timestamp = System.currentTimeMillis();
 
 	private volatile Date expiration;
 
@@ -51,9 +51,9 @@ public class DefaultMessageHeader implements MessageHeader, Serializable {
 
 
 	/**
-	 * Return the creation time of this message.  
+	 * Return the creation time of this message (in milliseconds).  
 	 */
-	public Date getTimestamp() {
+	public long getTimestamp() {
 		return this.timestamp;
 	}
 

@@ -116,7 +116,7 @@ public class WireTapTests {
 		Message<?> original = mainChannel.receive(0);
 		Message<?> duplicate = secondaryChannel.receive(0);
 		assertTrue("original timestamp should precede duplicate",
-				original.getHeader().getTimestamp().before(duplicate.getHeader().getTimestamp()));
+				original.getHeader().getTimestamp() < duplicate.getHeader().getTimestamp());
 	}
 
 	public void testDuplicateMessageContainsAttribute() {

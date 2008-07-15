@@ -19,7 +19,6 @@ package org.springframework.integration.adapter.event;
 import static org.junit.Assert.assertEquals;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
@@ -28,7 +27,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.dispatcher.DirectChannel;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -45,7 +44,7 @@ public class ApplicationEventTargetTests {
 				latch.countDown();
 			}
 		};
-		MessageChannel channel = new QueueChannel();
+		MessageChannel channel = new DirectChannel();
 		ApplicationEventTarget adapter = new ApplicationEventTarget();
 		adapter.setApplicationEventPublisher(publisher);
 		MessageBus bus = new DefaultMessageBus();
@@ -54,7 +53,6 @@ public class ApplicationEventTargetTests {
 		bus.start();
 		assertEquals(1, latch.getCount());
 		channel.send(new StringMessage("123", "testing"));
-		latch.await(100, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
 		bus.stop();
 	}

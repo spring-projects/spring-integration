@@ -30,7 +30,7 @@ import java.util.Set;
  */
 public interface MessageHeader {
 
-	Date getTimestamp();
+	long getTimestamp();
 
 	Date getExpiration();
 
