@@ -85,11 +85,11 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 
 	private final Set<EndpointTrigger> endpointTriggers = new CopyOnWriteArraySet<EndpointTrigger>();
 
+	private volatile Schedule defaultPollerSchedule = new PollingSchedule(0);
+
 	private final List<Lifecycle> lifecycleEndpoints = new CopyOnWriteArrayList<Lifecycle>();
 
 	private final MessageBusInterceptorsList interceptors = new MessageBusInterceptorsList();
-
-	private volatile Schedule defaultPollerSchedule = new PollingSchedule(0);
 
 	private volatile TaskScheduler taskScheduler;
 
@@ -340,12 +340,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 		Schedule schedule = endpoint.getSchedule();
 		EndpointTrigger trigger = new EndpointTrigger(schedule != null ? schedule : this.defaultPollerSchedule);
 		trigger.addTarget(endpoint);
-		try {
-			endpoint.afterPropertiesSet();
-		}
-		catch (Exception e) {
-			throw new ConfigurationException("failed to initialize endpoint '" + endpoint + "'", e);
-		}
 		if (this.endpointTriggers.add(trigger)) {
 			this.taskScheduler.schedule(trigger);
 		}

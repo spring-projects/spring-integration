@@ -32,6 +32,7 @@ import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.Poller;
+import org.springframework.integration.message.Subscribable;
 import org.springframework.integration.message.TargetInvoker;
 import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.integration.scheduling.Schedule;
@@ -198,7 +199,8 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 	}
 
 	public void afterPropertiesSet() {
-		if (this.source != null && this.poller == null) {
+		if (this.poller == null && this.source != null
+				&& !(this.source instanceof Subscribable)) {
 			this.poller = new DefaultEndpointPoller();
 		}
 		if (this.target == null) {
