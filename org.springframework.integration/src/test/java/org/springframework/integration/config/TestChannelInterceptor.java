@@ -33,14 +33,15 @@ public class TestChannelInterceptor extends ChannelInterceptorAdapter {
 
 
 	@Override
-	public boolean preSend(Message<?> message, MessageChannel channel) {
+	public Message<?> preSend(Message<?> message, MessageChannel channel) {
 		sendCount.incrementAndGet();
-		return true;
+		return message;
 	}
 
 	@Override
-	public void postReceive(Message<?> message, MessageChannel channel) {
+	public Message<?> postReceive(Message<?> message, MessageChannel channel) {
 		receiveCount.incrementAndGet();
+		return message;
 	}
 
 	public int getSendCount() {

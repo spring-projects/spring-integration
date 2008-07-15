@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,33 +18,34 @@ package org.springframework.integration.xml.transformer;
 
 import javax.xml.transform.Source;
 
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.transformer.MessageTransformer;
 import org.springframework.integration.xml.source.DomSourceFactory;
 import org.springframework.integration.xml.source.SourceFactory;
 
 /**
- * Transforms the payload to a {@link Source} using a {@link SourceFactory}
- * Default to using a {@link DomSourceFactory} if alternative is not provided
+ * Transforms the payload to a {@link Source} using a {@link SourceFactory}.
+ * Defaults to using a {@link DomSourceFactory} if alternative is not provided.
  * 
  * @author Jonas Partner
- * 
  */
 public class SourceCreatingTransformer implements MessageTransformer {
 
 	private final SourceFactory sourceFactory;
 
+
 	public SourceCreatingTransformer() {
-		sourceFactory = new DomSourceFactory();
+		this.sourceFactory = new DomSourceFactory();
 	}
 
 	public SourceCreatingTransformer(SourceFactory sourceFactory) {
 		this.sourceFactory = sourceFactory;
 	}
 
-	@SuppressWarnings("unchecked")
-	public void transform(Message message) {
-		message.setPayload(sourceFactory.getSourceForMessage(message));
+	public Message<?> transform(Message<?> message) {
+		Source source = this.sourceFactory.getSourceForMessage(message);
+		return new GenericMessage<Source>(source, message.getHeader());
 	}
 
 }

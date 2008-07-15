@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,39 +16,48 @@
 
 package org.springframework.integration.xml.config;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import javax.xml.transform.dom.DOMResult;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import org.w3c.dom.Document;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.message.Message;
 import org.springframework.integration.transformer.MessageTransformer;
 import org.springframework.integration.xml.util.XmlTestUtil;
-import org.w3c.dom.Document;
 
+/**
+ * @author Jonas Partner
+ */
 public class XsltPayloadTransformerParserTests {
 
 	String doc = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>";
 
 	ApplicationContext applicationContext;
 
+
 	@Before
 	public void setUp() {
 		applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context.xml", getClass());
 	}
+
 
 	@Test
 	public void testWithResourceProvided() throws Exception {
 		MessageTransformer messageTransformer = (MessageTransformer) applicationContext
 				.getBean("xsltTransfomerWithResource");
 		GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
-		messageTransformer.transform(message);
-		assertTrue("Payload was not a DOMResult", message.getPayload() instanceof DOMResult);
-		Document doc = (Document) ((DOMResult) message.getPayload()).getNode();
-		assertEquals("Wrong palyoad", "test", doc.getDocumentElement().getTextContent());
+		Message<?> result = messageTransformer.transform(message);
+		assertTrue("Payload was not a DOMResult", result.getPayload() instanceof DOMResult);
+		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
+		assertEquals("Wrong payload", "test", doc.getDocumentElement().getTextContent());
 	}
 
 	@Test
@@ -56,10 +65,10 @@ public class XsltPayloadTransformerParserTests {
 		MessageTransformer messageTransformer = (MessageTransformer) applicationContext
 				.getBean("xsltTransformerWithTemplates");
 		GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
-		messageTransformer.transform(message);
-		assertTrue("Payload was not a DOMResult", message.getPayload() instanceof DOMResult);
-		Document doc = (Document) ((DOMResult) message.getPayload()).getNode();
-		assertEquals("Wrong palyoad", "test", doc.getDocumentElement().getTextContent());
+		Message<?> result = messageTransformer.transform(message);
+		assertTrue("Payload was not a DOMResult", result.getPayload() instanceof DOMResult);
+		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
+		assertEquals("Wrong payload", "test", doc.getDocumentElement().getTextContent());
 	}
 
 }

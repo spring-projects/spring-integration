@@ -31,8 +31,6 @@ public interface Message<T> extends Serializable {
 
 	T getPayload();
 
-	void setPayload(T payload);
-
 	boolean isExpired();
 
 	void copyHeader(MessageHeader header, boolean overwriteExistingValues);

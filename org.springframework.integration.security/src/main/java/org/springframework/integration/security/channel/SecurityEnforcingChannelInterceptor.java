@@ -26,7 +26,7 @@ import org.springframework.util.Assert;
 
 /**
  * Delegates to the provided instance of {@link AccessDecisionManager} to
- * enforce the security on the send and receive calls on the {@ MessageChannel}.
+ * enforce the security on the send and receive calls of the {@link MessageChannel}.
  * 
  * @author Jonas Partner
  */
@@ -38,10 +38,12 @@ public class SecurityEnforcingChannelInterceptor extends ChannelInterceptorAdapt
 
 	private volatile ConfigAttributeDefinition receiveSecurityAttributes;
 
+
 	public SecurityEnforcingChannelInterceptor(AccessDecisionManager accessDecisionManager) {
 		Assert.notNull(accessDecisionManager, "AccessDecisionManager must not be null");
 		this.accessDecisionManger = accessDecisionManager;
 	}
+
 
 	public ConfigAttributeDefinition getSendSecurityAttributes() {
 		return this.sendSecurityAttributes;
@@ -60,9 +62,9 @@ public class SecurityEnforcingChannelInterceptor extends ChannelInterceptorAdapt
 	}
 
 	@Override
-	public boolean preSend(Message<?> message, MessageChannel channel) {
+	public Message<?> preSend(Message<?> message, MessageChannel channel) {
 		this.checkSend(channel);
-		return true;
+		return message;
 	}
 
 	@Override

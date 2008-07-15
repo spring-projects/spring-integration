@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,32 @@
 
 package org.springframework.integration.xml.config;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import javax.xml.transform.dom.DOMSource;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.transformer.MessageTransformer;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.xml.transform.StringSource;
 
 /**
- * 
  * @author Jonas Partner
- * 
  */
 public class XmlUnmarshallingTransformerParserTests {
 
 	ApplicationContext appContext;
 
 	StubUnmarshaller unmarshaller;
+
 
 	@Before
 	public void setUp() {
@@ -48,13 +50,14 @@ public class XmlUnmarshallingTransformerParserTests {
 		unmarshaller = (StubUnmarshaller) appContext.getBean("unmarshaller");
 	}
 
+
 	@Test
 	public void testDefaultUnmarshall() throws Exception {
 		MessageTransformer transformer = (MessageTransformer) appContext.getBean("defaultUnmarshaller");
 		GenericMessage<Object> message = new GenericMessage<Object>(new StringSource(
 				"<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>"));
-		transformer.transform(message);
-		assertEquals("Wrong payload after unmarshalling ", "unmarshalled", message.getPayload());
+		Message<?> result = transformer.transform(message);
+		assertEquals("Wrong payload after unmarshalling", "unmarshalled", result.getPayload());
 		assertTrue("Wrong source passed to unmarshaller", unmarshaller.sourcesPassed.poll() instanceof StringSource);
 	}
 
@@ -63,8 +66,8 @@ public class XmlUnmarshallingTransformerParserTests {
 		MessageTransformer transformer = (MessageTransformer) appContext.getBean("defaultUnmarshaller");
 		GenericMessage<Object> message = new GenericMessage<Object>(
 				"<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>");
-		transformer.transform(message);
-		assertEquals("Wrong payload after unmarshalling ", "unmarshalled", message.getPayload());
+		Message<?> result = transformer.transform(message);
+		assertEquals("Wrong payload after unmarshalling", "unmarshalled", result.getPayload());
 		assertTrue("Wrong source passed to unmarshaller", unmarshaller.sourcesPassed.poll() instanceof DOMSource);
 	}
 
@@ -74,8 +77,8 @@ public class XmlUnmarshallingTransformerParserTests {
 		GenericMessage<Object> message = new GenericMessage<Object>(
 				XmlTestUtil
 						.getDocumentForString("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>"));
-		transformer.transform(message);
-		assertEquals("Wrong payload after unmarshalling ", "unmarshalled", message.getPayload());
+		Message<?> result = transformer.transform(message);
+		assertEquals("Wrong payload after unmarshalling", "unmarshalled", result.getPayload());
 		assertTrue("Wrong source passed to unmarshaller", unmarshaller.sourcesPassed.poll() instanceof DOMSource);
 	}
 

@@ -110,7 +110,8 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 	 * time or the sending thread is interrupted.
 	 */
 	public final boolean send(Message<?> message, long timeout) {
-		if (!this.interceptors.preSend(message, this)) {
+		message = this.interceptors.preSend(message, this);
+		if (message == null) {
 			return false;
 		}
 		boolean sent = this.doSend(message, timeout);
@@ -147,7 +148,7 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 			return null;
 		}
 		Message<?> message = this.doReceive(timeout);
-		this.interceptors.postReceive(message, this);
+		message = this.interceptors.postReceive(message, this);
 		return message;
 	}
 
@@ -194,16 +195,17 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 			return this.interceptors.add(interceptor);
 		}
 
-		public boolean preSend(Message<?> message, MessageChannel channel) {
+		public Message<?> preSend(Message<?> message, MessageChannel channel) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("preSend on channel '" + channel + "', message: " + message);
 			}
 			for (ChannelInterceptor interceptor : interceptors) {
-				if (!interceptor.preSend(message, channel)) {
-					return false;
+				message = interceptor.preSend(message, channel);
+				if (message == null) {
+					return null;
 				}
 			}
-			return true;
+			return message;
 		}
 
 		public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
@@ -227,7 +229,7 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 			return true;
 		}
 
-		public void postReceive(Message<?> message, MessageChannel channel) {
+		public Message<?> postReceive(Message<?> message, MessageChannel channel) {
 			if (message != null && logger.isDebugEnabled()) {
 				logger.debug("postReceive on channel '" + channel + "', message: " + message);
 			}
@@ -235,8 +237,12 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 				logger.trace("postReceive on channel '" + channel + "', message is null");
 			}
 			for (ChannelInterceptor interceptor : interceptors) {
-				interceptor.postReceive(message, channel);
+				message = interceptor.postReceive(message, channel);
+				if (message == null) {
+					return null;
+				}
 			}
+			return message;
 		}
 	}
 

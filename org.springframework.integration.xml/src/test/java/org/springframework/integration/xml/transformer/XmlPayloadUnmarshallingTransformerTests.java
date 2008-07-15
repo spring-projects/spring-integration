@@ -23,6 +23,7 @@ import java.io.IOException;
 import javax.xml.transform.Source;
 
 import org.junit.Test;
+
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.oxm.Unmarshaller;
@@ -30,21 +31,20 @@ import org.springframework.oxm.XmlMappingException;
 import org.springframework.xml.transform.StringSource;
 
 /**
- * 
  * @author Jonas Partner
- * 
  */
-public class XmlPayloadUnmarshallingTransfomerTests {
+public class XmlPayloadUnmarshallingTransformerTests {
 
 	@Test
 	public void testStringSourceToString() {
 		Unmarshaller unmarshaller = new TestUnmarshaller();
-		XmlPayloadUnmarshallingTransfomer transformer = new XmlPayloadUnmarshallingTransfomer(unmarshaller);
+		XmlPayloadUnmarshallingTransformer transformer = new XmlPayloadUnmarshallingTransformer(unmarshaller);
 		Message<?> message = new GenericMessage<StringSource>(new StringSource("world"));
-		transformer.transform(message);
-		assertEquals(String.class, message.getPayload().getClass());
-		assertEquals("hello world", message.getPayload().toString());
+		Message<?> transformed = transformer.transform(message);
+		assertEquals(String.class, transformed.getPayload().getClass());
+		assertEquals("hello world", transformed.getPayload().toString());
 	}
+
 
 	private static class TestUnmarshaller implements Unmarshaller {
 		public Object unmarshal(Source source) throws XmlMappingException, IOException {

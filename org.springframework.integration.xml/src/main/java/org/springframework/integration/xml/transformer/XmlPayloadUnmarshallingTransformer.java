@@ -20,6 +20,7 @@ import java.io.IOException;
 
 import javax.xml.transform.Source;
 
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.transformer.MessageTransformer;
@@ -29,34 +30,36 @@ import org.springframework.oxm.Unmarshaller;
 
 /**
  * An implementation of {@link MessageTransformer} that delegates to an OXM
- * {@link Unmarshaller} Expects the payload to be of type {@link Source} or to
+ * {@link Unmarshaller}. Expects the payload to be of type {@link Source} or to
  * have an instance of {@link SourceFactory} that can convert to a
- * {@link Source}
+ * {@link Source}.
  * 
  * @author Jonas Partner
  */
-public class XmlPayloadUnmarshallingTransfomer implements MessageTransformer {
+public class XmlPayloadUnmarshallingTransformer implements MessageTransformer {
 
 	private final Unmarshaller unmarshaller;
 
 	private SourceFactory sourceFactory = new DomSourceFactory();
 
-	public XmlPayloadUnmarshallingTransfomer(Unmarshaller unmarshaller) {
+
+	public XmlPayloadUnmarshallingTransformer(Unmarshaller unmarshaller) {
 		this.unmarshaller = unmarshaller;
 	}
+
 
 	public void setSourceFactory(SourceFactory sourceFactory) {
 		this.sourceFactory = sourceFactory;
 	}
 
 	@SuppressWarnings("unchecked")
-	public void transform(Message message) {
+	public Message<?> transform(Message<?> message) {
 		Source source = null;
 		if (Source.class.isAssignableFrom(message.getPayload().getClass())) {
 			source = (Source) message.getPayload();
 		}
-		else if (sourceFactory != null) {
-			source = sourceFactory.getSourceForMessage(message);
+		else if (this.sourceFactory != null) {
+			source = this.sourceFactory.getSourceForMessage(message);
 		}
 
 		if (source == null) {
@@ -64,14 +67,13 @@ public class XmlPayloadUnmarshallingTransfomer implements MessageTransformer {
 					"Could not transform message, payload not assignable from javax.xml.transform.Source and no conversion possible");
 		}
 
-		Object unmarshalled;
 		try {
-			unmarshalled = unmarshaller.unmarshal(source);
+			Object unmarshalled = this.unmarshaller.unmarshal(source);
+			return new GenericMessage(unmarshalled, message.getHeader());
 		}
-		catch (IOException ioE) {
-			throw new MessagingException(message, "Exception unamrshalling payload", ioE);
+		catch (IOException e) {
+			throw new MessagingException(message, "Failed to unamrshal payload", e);
 		}
-		message.setPayload(unmarshalled);
 	}
 
 }

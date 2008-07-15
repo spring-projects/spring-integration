@@ -48,18 +48,19 @@ public class MessageTransformingChannelInterceptor extends ChannelInterceptorAda
 	}
 
 	@Override
-	public boolean preSend(Message<?> message, MessageChannel channel) {
+	public Message<?> preSend(Message<?> message, MessageChannel channel) {
 		if (this.transformOnSend) {
-			this.transfomer.transform(message);
+			message = this.transfomer.transform(message);
 		}
-		return true;
+		return message;
 	}
 
 	@Override
-	public void postReceive(Message<?> message, MessageChannel channel) {
+	public Message<?> postReceive(Message<?> message, MessageChannel channel) {
 		if (!this.transformOnSend) {
-			this.transfomer.transform(message);
+			message = this.transfomer.transform(message);
 		}
+		return message;
 	}
 
 }

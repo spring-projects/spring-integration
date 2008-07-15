@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.selector.MessageSelector;
 
@@ -38,12 +39,14 @@ public class ChannelInterceptorRegisteringBeanPostProcessorTests {
 
 	public ArrayList<String> matchAll;
 
+
 	@Before
 	public void setUp() {
 		matchAll = new ArrayList<String>();
 		matchAll.add(".*");
 
 	}
+
 
 	@Test
 	public void testWithAbstractMessageChannel() {
@@ -74,25 +77,11 @@ public class ChannelInterceptorRegisteringBeanPostProcessorTests {
 	}
 
 
-	static class TestInterceptor implements ChannelInterceptor {
-
-		public void postReceive(Message<?> message, MessageChannel channel) {
-		}
-
-		public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
-		}
-
-		public boolean preReceive(MessageChannel channel) {
-			return false;
-		}
-
-		public boolean preSend(Message<?> message, MessageChannel channel) {
-			return false;
-		}
+	private static class TestInterceptor extends ChannelInterceptorAdapter {
 	}
 
 
-	static class TestChannel extends AbstractMessageChannel {
+	private static class TestChannel extends AbstractMessageChannel {
 
 		ChannelInterceptor channelInterceptor;
 

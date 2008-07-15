@@ -22,6 +22,7 @@ import java.util.Properties;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.annotation.AnnotationMethodMessageMapper;
 import org.springframework.integration.message.DefaultMessageMapper;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageMapper;
 import org.springframework.integration.message.MessagingException;
@@ -30,8 +31,7 @@ import org.springframework.integration.util.AbstractMethodInvokingAdapter;
 /**
  * @author Mark Fisher
  */
-public class AnnotationMethodTransformerAdapter extends AbstractMethodInvokingAdapter
-		implements MessageTransformer, MessageHandler {
+public class AnnotationMethodTransformerAdapter extends AbstractMethodInvokingAdapter implements MessageHandler {
 
 	private volatile MessageMapper mapper;
 
@@ -49,12 +49,12 @@ public class AnnotationMethodTransformerAdapter extends AbstractMethodInvokingAd
 	}
 
 	@SuppressWarnings("unchecked")
-	public void transform(Message message) {
+	public Message<?> transform(Message<?> message) {
 		if (!this.isInitialized()) {
 			this.afterPropertiesSet();
 		}
 		if (message.getPayload() == null) {
-			return;
+			return message;
 		}
 		Object param = (this.methodExpectsMessage) ? message : this.mapper.mapMessage(message);
 		try {
@@ -78,7 +78,7 @@ public class AnnotationMethodTransformerAdapter extends AbstractMethodInvokingAd
 				if (logger.isDebugEnabled()) {
 					logger.debug("MessageTransformer returned a null result");
 				}
-				return;
+				return null;
 			}
 			if (result instanceof Properties && !(message.getPayload() instanceof Properties)) {
 				Properties propertiesToSet = (Properties) result;
@@ -94,17 +94,17 @@ public class AnnotationMethodTransformerAdapter extends AbstractMethodInvokingAd
 				}
 			}
 			else {
-				message.setPayload(result);
+				return new GenericMessage(result, message.getHeader());
 			}
 		}
 		catch (Exception e) {
 			throw new MessagingException(message, "failed to transform message payload", e);
 		}
+		return message;
 	}
 
 	public Message<?> handle(Message<?> message) {
-		this.transform(message);
-		return message;
+		return this.transform(message);
 	}
 
 }

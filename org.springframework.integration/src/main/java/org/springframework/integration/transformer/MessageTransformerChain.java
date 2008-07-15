@@ -48,10 +48,14 @@ public class MessageTransformerChain implements MessageTransformer {
 		this.transformers.addAll(transformers);
 	}
 
-	public void transform(Message<?> message) {
-		for (MessageTransformer next : transformers) {
-			next.transform(message);
+	public Message<?> transform(Message<?> message) {
+		for (MessageTransformer next : this.transformers) {
+			message = next.transform(message);
+			if (message == null) {
+				return null;
+			}
 		}
+		return message;
 	}
 
 }

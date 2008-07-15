@@ -28,8 +28,8 @@ import org.springframework.integration.message.Message;
  */
 public class ChannelInterceptorAdapter implements ChannelInterceptor {
 
-	public boolean preSend(Message<?> message, MessageChannel channel) {
-		return true;
+	public Message<?> preSend(Message<?> message, MessageChannel channel) {
+		return message;
 	}
 
 	public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
@@ -39,7 +39,8 @@ public class ChannelInterceptorAdapter implements ChannelInterceptor {
 		return true;
 	}
 
-	public void postReceive(Message<?> message, MessageChannel channel) {
+	public Message<?> postReceive(Message<?> message, MessageChannel channel) {
+		return message;
 	}
 
 }

@@ -44,9 +44,9 @@ public class XmlPayloadMarshallingTransformerTests {
 		XmlPayloadMarshallingTransformer transformer = new XmlPayloadMarshallingTransformer(marshaller);
 		transformer.setResultFactory(new StringResultFactory());
 		Message<?> message = new StringMessage("world");
-		transformer.transform(message);
-		assertEquals(StringResult.class, message.getPayload().getClass());
-		assertEquals("hello world", message.getPayload().toString());
+		Message<?> result = transformer.transform(message);
+		assertEquals(StringResult.class, result.getPayload().getClass());
+		assertEquals("hello world", result.getPayload().toString());
 		assertEquals("world", marshaller.payloads.get(0));
 	}
 
@@ -55,10 +55,11 @@ public class XmlPayloadMarshallingTransformerTests {
 		TestMarshaller marshaller = new TestMarshaller();
 		XmlPayloadMarshallingTransformer transformer = new XmlPayloadMarshallingTransformer(marshaller);
 		Message<?> message = new StringMessage("world");
-		transformer.transform(message);
-		assertEquals(DOMResult.class, message.getPayload().getClass());
+		Message<?> result = transformer.transform(message);
+		assertEquals(DOMResult.class, result.getPayload().getClass());
 		assertEquals("world", marshaller.payloads.get(0));
 	}
+
 
 	private static class TestMarshaller implements Marshaller {
 
@@ -74,7 +75,6 @@ public class XmlPayloadMarshallingTransformerTests {
 			if (result instanceof StringResult) {
 				((StringResult) result).getWriter().write("hello world");
 			}
-
 		}
 
 	}

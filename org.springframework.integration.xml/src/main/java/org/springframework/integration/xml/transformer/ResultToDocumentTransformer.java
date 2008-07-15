@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,22 +24,25 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Result;
 import javax.xml.transform.dom.DOMResult;
 
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.transformer.MessageTransformer;
 import org.springframework.xml.transform.StringResult;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
 
 /**
- * Creates a {@link Document} from a {@link Result} payload
- * @author Jonas Partner
+ * Creates a {@link Document} from a {@link Result} payload.
  * 
+ * @author Jonas Partner
  */
 public class ResultToDocumentTransformer implements MessageTransformer {
 
 	// Not guaranteed to be thread safe
 	private final DocumentBuilderFactory documentBuilderFactory;
+
 
 	public ResultToDocumentTransformer(DocumentBuilderFactory documentBuilderFactory) {
 		this.documentBuilderFactory = documentBuilderFactory;
@@ -49,23 +52,21 @@ public class ResultToDocumentTransformer implements MessageTransformer {
 		this(DocumentBuilderFactory.newInstance());
 	}
 
+
 	@SuppressWarnings("unchecked")
-	public void transform(Message message) {
-		Document doc;
+	public Message<?> transform(Message message) {
+		Document doc = null;
 		if (DOMResult.class.isAssignableFrom(message.getPayload().getClass())) {
 			doc = createDocumentFromDomResult(message, (DOMResult) message.getPayload());
-
 		}
 		else if (StringResult.class.isAssignableFrom(message.getPayload().getClass())) {
 			doc = createDocumentFromStringResult(message, (StringResult) message.getPayload());
 		}
 		else {
-			throw new MessagingException(message, "Could not create document from payload type "
-					+ message.getPayload().getClass().getName());
+			throw new MessagingException(message, "Failed to create document from payload type ["
+					+ message.getPayload().getClass().getName() + "]");
 		}
-
-		message.setPayload(doc);
-
+		return new GenericMessage<Document>(doc, message.getHeader());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -87,8 +88,8 @@ public class ResultToDocumentTransformer implements MessageTransformer {
 		try {
 			return documentBuilderFactory.newDocumentBuilder();
 		}
-		catch (ParserConfigurationException parseE) {
-			throw new MessagingException("Failed to create a new DocumentBuilder", parseE);
+		catch (ParserConfigurationException e) {
+			throw new MessagingException("Failed to create a new DocumentBuilder", e);
 		}
 	}
 

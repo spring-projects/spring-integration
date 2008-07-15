@@ -98,7 +98,7 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle {
 	}
 
 	@Override
-	public boolean preSend(Message<?> message, MessageChannel channel) {
+	public Message<?> preSend(Message<?> message, MessageChannel channel) {
 		if (this.running && this.selectorsAccept(message)) {
 			Message<?> duplicate = new GenericMessage<Object>(message.getPayload(), message.getHeader());
 			duplicate.getHeader().setAttribute(ORIGINAL_MESSAGE_ID_KEY, message.getId());
@@ -109,7 +109,7 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle {
 				}
 			}
 		}
-		return true;
+		return message;
 	}
 
 	/**

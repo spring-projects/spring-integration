@@ -45,8 +45,8 @@ public class AnnotationMethodTransformerAdapterTests {
 		adapter.setObject(testBean);
 		adapter.setMethod(testBean.getClass().getMethod("exclaim", String.class));
 		Message<?> message = new StringMessage("foo");
-		adapter.transform(message);
-		assertEquals("FOO!", message.getPayload());
+		Message<?> result = adapter.handle(message);
+		assertEquals("FOO!", result.getPayload());
 	}
 
 	@Test
@@ -56,8 +56,8 @@ public class AnnotationMethodTransformerAdapterTests {
 		adapter.setObject(testBean);
 		adapter.setMethod(testBean.getClass().getMethod("exclaim", String.class));
 		Message<?> message = new GenericMessage<Integer>(123);
-		adapter.transform(message);
-		assertEquals("123!", message.getPayload());
+		Message<?> result = adapter.handle(message);
+		assertEquals("123!", result.getPayload());
 	}
 
 	@Test(expected=MessagingException.class)
@@ -67,7 +67,7 @@ public class AnnotationMethodTransformerAdapterTests {
 		adapter.setObject(testBean);
 		adapter.setMethod(testBean.getClass().getMethod("exclaim", String.class));
 		Message<?> message = new GenericMessage<Date>(new Date());
-		adapter.transform(message);
+		adapter.handle(message);
 	}
 
 	@Test
@@ -78,8 +78,8 @@ public class AnnotationMethodTransformerAdapterTests {
 		adapter.setMethod(testBean.getClass().getMethod("attributeTest", String.class, Integer.class));
 		Message<?> message = new StringMessage("foo");
 		message.getHeader().setAttribute("number", 123);
-		adapter.transform(message);
-		assertEquals("foo123", message.getPayload());
+		Message<?> result = adapter.handle(message);
+		assertEquals("foo123", result.getPayload());
 	}
 
 	@Test(expected=MessageHandlingException.class)
@@ -90,7 +90,7 @@ public class AnnotationMethodTransformerAdapterTests {
 		adapter.setMethod(testBean.getClass().getMethod("attributeTest", String.class, Integer.class));
 		Message<?> message = new StringMessage("foo");
 		message.getHeader().setAttribute("wrong", 123);
-		adapter.transform(message);
+		adapter.handle(message);
 	}
 
 	@Test
@@ -101,8 +101,8 @@ public class AnnotationMethodTransformerAdapterTests {
 		adapter.setMethod(testBean.getClass().getMethod("propertyTest", String.class, String.class));
 		Message<?> message = new StringMessage("foo");
 		message.getHeader().setProperty("suffix", "bar");
-		adapter.transform(message);
-		assertEquals("foobar", message.getPayload());
+		Message<?> result = adapter.handle(message);
+		assertEquals("foobar", result.getPayload());
 	}
 
 	@Test(expected=MessageHandlingException.class)
@@ -113,7 +113,7 @@ public class AnnotationMethodTransformerAdapterTests {
 		adapter.setMethod(testBean.getClass().getMethod("propertyTest", String.class, String.class));
 		Message<?> message = new StringMessage("foo");
 		message.getHeader().setProperty("wrong", "bar");
-		adapter.transform(message);
+		adapter.handle(message);
 	}
 
 	@Test
@@ -125,14 +125,15 @@ public class AnnotationMethodTransformerAdapterTests {
 		Message<?> message = new StringMessage("test");
 		message.getHeader().setProperty("prop1", "bad");
 		message.getHeader().setProperty("prop3", "baz");
-		adapter.transform(message);
-		assertEquals("test", message.getPayload());
-		assertEquals("foo", message.getHeader().getProperty("prop1"));
-		assertEquals("bar", message.getHeader().getProperty("prop2"));
-		assertEquals("baz", message.getHeader().getProperty("prop3"));
+		Message<?> result = adapter.handle(message);
+		assertEquals("test", result.getPayload());
+		assertEquals("foo", result.getHeader().getProperty("prop1"));
+		assertEquals("bar", result.getHeader().getProperty("prop2"));
+		assertEquals("baz", result.getHeader().getProperty("prop3"));
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testPropertyPayload() throws Exception {
 		TestBean testBean = new TestBean();
 		AnnotationMethodTransformerAdapter adapter = new AnnotationMethodTransformerAdapter();
@@ -142,15 +143,15 @@ public class AnnotationMethodTransformerAdapterTests {
 		props.setProperty("prop1", "bad");
 		props.setProperty("prop3", "baz");
 		Message<Properties> message = new GenericMessage<Properties>(props);
-		adapter.transform(message);
-		assertEquals(Properties.class, message.getPayload().getClass());
-		Properties payload = message.getPayload();
+		Message<Properties> result = (Message<Properties>) adapter.handle(message);
+		assertEquals(Properties.class, result.getPayload().getClass());
+		Properties payload = result.getPayload();
 		assertEquals("foo", payload.getProperty("prop1"));
 		assertEquals("bar", payload.getProperty("prop2"));
 		assertEquals("baz", payload.getProperty("prop3"));
-		assertNull(message.getHeader().getProperty("prop1"));
-		assertNull(message.getHeader().getProperty("prop2"));
-		assertNull(message.getHeader().getProperty("prop3"));
+		assertNull(result.getHeader().getProperty("prop1"));
+		assertNull(result.getHeader().getProperty("prop2"));
+		assertNull(result.getHeader().getProperty("prop3"));
 	}
 
 

@@ -38,8 +38,8 @@ public class PayloadTransformerAdapterTests {
 		adapter.setObject(new TestBean());
 		adapter.setMethodName("exclaim");
 		Message<?> message = new StringMessage("foo");
-		adapter.transform(message);
-		assertEquals("FOO!", message.getPayload());
+		Message<?> result = adapter.transform(message);
+		assertEquals("FOO!", result.getPayload());
 	}
 
 	@Test
@@ -48,8 +48,8 @@ public class PayloadTransformerAdapterTests {
 		adapter.setObject(new TestBean());
 		adapter.setMethodName("exclaim");
 		Message<?> message = new GenericMessage<Integer>(123);
-		adapter.transform(message);
-		assertEquals("123!", message.getPayload());
+		Message<?> result = adapter.transform(message);
+		assertEquals("123!", result.getPayload());
 	}
 
 	@Test(expected=MessagingException.class)

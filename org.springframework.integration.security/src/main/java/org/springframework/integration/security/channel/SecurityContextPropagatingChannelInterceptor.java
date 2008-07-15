@@ -27,7 +27,7 @@ import org.springframework.security.context.SecurityContext;
 import org.springframework.security.context.SecurityContextHolder;
 
 /**
- * Propagates the {@ link SecurityContext} associated with the current thread
+ * Propagates the {@link SecurityContext} associated with the current thread
  * (if any) by adding it to the header of sent messages.
  * 
  * @author Jonas Partner
@@ -36,10 +36,11 @@ public class SecurityContextPropagatingChannelInterceptor extends ChannelInterce
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
+
 	@Override
-	public boolean preSend(Message<?> message, MessageChannel channel) {
+	public Message<?> preSend(Message<?> message, MessageChannel channel) {
 		this.setSecurityContextAttribute(message);
-		return true;
+		return message;
 	}
 
 	protected void setSecurityContextAttribute(Message<?> message) {

@@ -48,10 +48,11 @@ public class TestChannelInterceptor extends ChannelInterceptorAdapter {
 	}
 
 	@Override
-	public void postReceive(Message<?> message, MessageChannel channel) {
+	public Message<?> postReceive(Message<?> message, MessageChannel channel) {
 		if (message != null) {
 			this.receivedCount.incrementAndGet();
 		}
+		return message;
 	}
 
 }

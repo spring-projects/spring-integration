@@ -33,8 +33,7 @@ public class TransformerMessageHandlerAdapter implements MessageHandler {
 
 
 	public Message<?> handle(Message<?> message) {
-		this.transformer.transform(message);
-		return message;
+		return this.transformer.transform(message);
 	}
 
 }

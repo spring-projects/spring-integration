@@ -23,7 +23,10 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamSource;
 
+import org.w3c.dom.Document;
+
 import org.springframework.core.io.Resource;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.transformer.MessageTransformer;
@@ -31,7 +34,6 @@ import org.springframework.integration.xml.result.DomResultFactory;
 import org.springframework.integration.xml.result.ResultFactory;
 import org.springframework.integration.xml.source.DomSourceFactory;
 import org.springframework.integration.xml.source.SourceFactory;
-import org.w3c.dom.Document;
 
 /**
  * Simple XSLT transformer implementation which returns a transformed
@@ -47,6 +49,7 @@ public class XsltPayloadTransformer implements MessageTransformer {
 
 	private ResultFactory resultFactory = new DomResultFactory();
 
+
 	public XsltPayloadTransformer(Templates templates) {
 		this.templates = templates;
 	}
@@ -55,16 +58,15 @@ public class XsltPayloadTransformer implements MessageTransformer {
 		this.templates = TransformerFactory.newInstance().newTemplates(new StreamSource(xslResource.getInputStream()));
 	}
 
+
 	@SuppressWarnings("unchecked")
-	public void transform(Message message) {
+	public Message<Result> transform(Message message) {
 		try {
 			if (Source.class.isAssignableFrom(message.getPayload().getClass())) {
-				transformSource(message, (Source) message.getPayload());
+				return this.transformSource(message, (Source) message.getPayload());
 			}
-			else {
-				Source source = sourceFactory.getSourceForMessage(message);
-				transformSource(message, source);
-			}
+			Source source = this.sourceFactory.getSourceForMessage(message);
+			return this.transformSource(message, source);
 		}
 		catch (TransformerException e) {
 			throw new MessagingException(message, "XSLT transformation failed", e);
@@ -72,10 +74,10 @@ public class XsltPayloadTransformer implements MessageTransformer {
 	}
 
 	@SuppressWarnings("unchecked")
-	protected void transformSource(Message message, Source source) throws TransformerException {
+	protected Message<Result> transformSource(Message message, Source source) throws TransformerException {
 		Result result = resultFactory.getNewResult(message);
 		this.templates.newTransformer().transform(source, result);
-		message.setPayload(result);
+		return new GenericMessage<Result>(result, message.getHeader());
 	}
 
 	public void setSourceFactory(SourceFactory sourceFactory) {

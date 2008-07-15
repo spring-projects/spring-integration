@@ -70,15 +70,16 @@ public class MessageTransformingChannelInterceptorTests {
 	}
 
 
-	private static class TestTransformer implements MessageTransformer{
+	private static class TestTransformer implements MessageTransformer {
 
 		boolean invoked = false;
 		
 		int invokedCount = 0;
 		
-		public void transform(Message<?> message) {
+		public Message<?> transform(Message<?> message) {
 			invoked = true;
 			invokedCount++;
+			return message;
 		}
 
 	}

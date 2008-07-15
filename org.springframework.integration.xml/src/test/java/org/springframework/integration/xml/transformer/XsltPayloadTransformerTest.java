@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xml.transformer;
 
 import static org.junit.Assert.assertEquals;
@@ -22,19 +23,20 @@ import javax.xml.transform.dom.DOMResult;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import org.w3c.dom.Document;
+
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.xml.transform.StringSource;
-import org.w3c.dom.Document;
 
 /**
- * 
  * @author Jonas Partner
- * 
  */
 public class XsltPayloadTransformerTest {
 
@@ -57,8 +59,8 @@ public class XsltPayloadTransformerTest {
 	@Test
 	public void testSourceAsPayload() throws Exception {
 		GenericMessage<Source> message = new GenericMessage<Source>(new StringSource(doc));
-		transformer.transform(message);
-		DOMResult result = (DOMResult) message.getPayload();
+		Message<?> transformed = transformer.transform(message);
+		DOMResult result = (DOMResult) transformed.getPayload();
 		String rootNodeName = ((Document) result.getNode()).getDocumentElement().getNodeName();
 		assertEquals("Wrong name for root element after transform", "bob", rootNodeName);
 	}
@@ -66,8 +68,8 @@ public class XsltPayloadTransformerTest {
 	@Test
 	public void testStringAsPayload() throws Exception {
 		GenericMessage<Object> message = new GenericMessage<Object>(doc);
-		transformer.transform(message);
-		DOMResult result = (DOMResult) message.getPayload();
+		Message<?> transformed = transformer.transform(message);
+		DOMResult result = (DOMResult) transformed.getPayload();
 		String rootNodeName = ((Document) result.getNode()).getDocumentElement().getNodeName();
 		assertEquals("Wrong name for root element after transform", "bob", rootNodeName);
 	}
@@ -82,7 +84,8 @@ public class XsltPayloadTransformerTest {
 		transformer.transform(new GenericMessage<Long>(new Long(12)));
 	}
 
-	public Resource getXslResource() throws Exception {
+
+	private Resource getXslResource() throws Exception {
 		String xsl = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\"><xsl:template match=\"order\"><bob>test</bob></xsl:template></xsl:stylesheet>";
 		return new ByteArrayResource(xsl.getBytes("UTF-8"));
 	}

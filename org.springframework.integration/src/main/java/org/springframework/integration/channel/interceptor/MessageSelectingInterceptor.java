@@ -42,14 +42,14 @@ public class MessageSelectingInterceptor extends ChannelInterceptorAdapter {
 
 
 	@Override
-	public boolean preSend(Message<?> message, MessageChannel channel) {
+	public Message<?> preSend(Message<?> message, MessageChannel channel) {
 		for (MessageSelector selector : this.selectors) {
 			if (!selector.accept(message)) {
 				throw new MessageDeliveryException(message,
 						"selector '" + selector + "' did not accept message");
 			}
 		}
-		return true;
+		return message;
 	}
 
 }

@@ -41,22 +41,22 @@ public class ChannelInterceptorTests {
 
 
 	@Test
-	public void testPreSendInterceptorReturnsTrue() {
-		channel.addInterceptor(new PreSendReturnsTrueInterceptor());
+	public void testPreSendInterceptorReturnsMessage() {
+		channel.addInterceptor(new PreSendReturnsMessageInterceptor());
 		channel.send(new StringMessage("test"));
-		Message result = channel.receive(0);
+		Message<?> result = channel.receive(0);
 		assertNotNull(result);
 		assertEquals("test", result.getPayload());
-		assertEquals(1, result.getHeader().getAttribute(PreSendReturnsTrueInterceptor.class.getName()));
+		assertEquals(1, result.getHeader().getAttribute(PreSendReturnsMessageInterceptor.class.getName()));
 	}
 
 	@Test
-	public void testPreSendInterceptorReturnsFalse() {
-		channel.addInterceptor(new PreSendReturnsFalseInterceptor());
-		Message message = new StringMessage("test");
+	public void testPreSendInterceptorReturnsNull() {
+		channel.addInterceptor(new PreSendReturnsNullInterceptor());
+		Message<?> message = new StringMessage("test");
 		channel.send(message);
-		assertEquals(1, message.getHeader().getAttribute(PreSendReturnsFalseInterceptor.class.getName()));
-		Message result = channel.receive(0);
+		assertEquals(1, message.getHeader().getAttribute(PreSendReturnsNullInterceptor.class.getName()));
+		Message<?> result = channel.receive(0);
 		assertNull(result);
 	}
 
@@ -65,7 +65,7 @@ public class ChannelInterceptorTests {
 		final AtomicBoolean invoked = new AtomicBoolean(false);
 		channel.addInterceptor(new ChannelInterceptorAdapter() {
 			@Override
-			public void postSend(Message message, MessageChannel channel, boolean sent) {
+			public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
 				assertNotNull(message);
 				assertNotNull(channel);
 				assertSame(ChannelInterceptorTests.this.channel, channel);
@@ -84,7 +84,7 @@ public class ChannelInterceptorTests {
 		final QueueChannel singleItemChannel = new QueueChannel(1);
 		singleItemChannel.addInterceptor(new ChannelInterceptorAdapter() {
 			@Override
-			public void postSend(Message message, MessageChannel channel, boolean sent) {
+			public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
 				assertNotNull(message);
 				assertNotNull(channel);
 				assertSame(singleItemChannel, channel);
@@ -107,9 +107,9 @@ public class ChannelInterceptorTests {
 	@Test
 	public void testPreReceiveInterceptorReturnsTrue() {
 		channel.addInterceptor(new PreReceiveReturnsTrueInterceptor());
-		Message message = new StringMessage("test");
+		Message<?> message = new StringMessage("test");
 		channel.send(message);
-		Message result = channel.receive(0);
+		Message<?> result = channel.receive(0);
 		assertEquals(1, PreReceiveReturnsTrueInterceptor.counter.get());
 		assertNotNull(result);		
 	}
@@ -117,9 +117,9 @@ public class ChannelInterceptorTests {
 	@Test
 	public void testPreReceiveInterceptorReturnsFalse() {
 		channel.addInterceptor(new PreReceiveReturnsFalseInterceptor());
-		Message message = new StringMessage("test");
+		Message<?> message = new StringMessage("test");
 		channel.send(message);
-		Message result = channel.receive(0);
+		Message<?> result = channel.receive(0);
 		assertEquals(1, PreReceiveReturnsFalseInterceptor.counter.get());
 		assertNull(result);		
 	}
@@ -130,48 +130,49 @@ public class ChannelInterceptorTests {
 		final AtomicInteger messageCount = new AtomicInteger();
 		channel.addInterceptor(new ChannelInterceptorAdapter() {
 			@Override
-			public void postReceive(Message message, MessageChannel channel) {
+			public Message<?> postReceive(Message<?> message, MessageChannel channel) {
 				assertNotNull(channel);
 				assertSame(ChannelInterceptorTests.this.channel, channel);
 				if (message != null) {
 					messageCount.incrementAndGet();
 				}
 				invokedCount.incrementAndGet();
+				return message;
 			}
 		});
 		channel.receive(0);
 		assertEquals(1, invokedCount.get());
 		assertEquals(0, messageCount.get());
 		channel.send(new StringMessage("test"));
-		Message result = channel.receive(0);
+		Message<?> result = channel.receive(0);
 		assertNotNull(result);		
 		assertEquals(2, invokedCount.get());
 		assertEquals(1, messageCount.get());
 	}
 
 
-	private static class PreSendReturnsTrueInterceptor extends ChannelInterceptorAdapter { 
+	private static class PreSendReturnsMessageInterceptor extends ChannelInterceptorAdapter { 
 
 		private static AtomicInteger counter = new AtomicInteger();
 
 		@Override
-		public boolean preSend(Message message, MessageChannel channel) {
+		public Message<?> preSend(Message<?> message, MessageChannel channel) {
 			assertNotNull(message);
 			message.getHeader().setAttribute(this.getClass().getName(), counter.incrementAndGet());
-			return true;
+			return message;
 		}
 	}
 
 
-	private static class PreSendReturnsFalseInterceptor extends ChannelInterceptorAdapter { 
+	private static class PreSendReturnsNullInterceptor extends ChannelInterceptorAdapter { 
 
 		private static AtomicInteger counter = new AtomicInteger();
 
 		@Override
-		public boolean preSend(Message message, MessageChannel channel) {
+		public Message<?> preSend(Message<?> message, MessageChannel channel) {
 			assertNotNull(message);
 			message.getHeader().setAttribute(this.getClass().getName(), counter.incrementAndGet());
-			return false;
+			return null;
 		}
 	}
 

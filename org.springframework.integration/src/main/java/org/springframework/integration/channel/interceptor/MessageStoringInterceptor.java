@@ -54,11 +54,11 @@ public class MessageStoringInterceptor extends ChannelInterceptorAdapter {
 
 
 	@Override
-	public boolean preSend(Message<?> message, MessageChannel channel) {
+	public Message<?> preSend(Message<?> message, MessageChannel channel) {
 		if (message != null) {
 			this.messageStore.put(message.getId(), message);
 		}
-		return true;
+		return message;
 	}
 
 	@Override
@@ -84,10 +84,11 @@ public class MessageStoringInterceptor extends ChannelInterceptorAdapter {
 	}
 
 	@Override
-	public void postReceive(Message<?> message, MessageChannel channel) {
+	public Message<?> postReceive(Message<?> message, MessageChannel channel) {
 		if (message != null) {
 			this.messageStore.remove(message.getId());
 		}
+		return message;
 	}
 
 }

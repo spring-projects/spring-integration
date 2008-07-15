@@ -25,6 +25,6 @@ import org.springframework.integration.message.Message;
  */
 public interface MessageTransformer {
 
-	void transform(Message<?> message);
+	Message<?> transform(Message<?> message);
 
 }

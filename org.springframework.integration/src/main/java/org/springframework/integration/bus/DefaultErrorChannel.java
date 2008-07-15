@@ -54,7 +54,7 @@ public class DefaultErrorChannel extends RendezvousChannel {
 		 * Even if the error channel has no subscribers, errors are at least visible at debug level.
 		 */
 		@Override
-		public boolean preSend(Message<?> message, MessageChannel channel) {
+		public Message<?> preSend(Message<?> message, MessageChannel channel) {
 			if (logger.isDebugEnabled()) {
 				String errorMessage = "Error Received. Message: " + message.toString();
 				Object payload = message.getPayload();
@@ -65,7 +65,7 @@ public class DefaultErrorChannel extends RendezvousChannel {
 					logger.debug(errorMessage);
 				}
 			}
-			return true;
+			return message;
 		}
 	}
 
