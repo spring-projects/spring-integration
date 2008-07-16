@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
@@ -42,7 +43,7 @@ import org.springframework.integration.scheduling.Schedule;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware {
+public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegistryAware, InitializingBean, BeanNameAware {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 

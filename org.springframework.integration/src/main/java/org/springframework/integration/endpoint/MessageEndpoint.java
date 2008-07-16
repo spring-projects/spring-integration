@@ -16,8 +16,6 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
@@ -28,7 +26,7 @@ import org.springframework.integration.scheduling.Schedule;
  * 
  * @author Mark Fisher
  */
-public interface MessageEndpoint extends MessageTarget, ChannelRegistryAware, InitializingBean {
+public interface MessageEndpoint extends MessageTarget {
 
 	void setName(String name);
 

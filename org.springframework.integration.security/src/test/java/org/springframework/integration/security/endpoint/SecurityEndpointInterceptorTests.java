@@ -49,12 +49,13 @@ public class SecurityEndpointInterceptorTests {
 
 	@Before
 	public void createEndpoint() throws Exception {
-		this.endpoint = new HandlerEndpoint(new MessageHandler() {
+		HandlerEndpoint endpoint = new HandlerEndpoint(new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				return null;
 			}
 		});
-		this.endpoint.afterPropertiesSet();
+		endpoint.afterPropertiesSet();
+		this.endpoint = endpoint;
 	}
 
 
