@@ -17,6 +17,7 @@
 package org.springframework.integration.security;
 
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.security.context.SecurityContext;
 
 /**
@@ -28,11 +29,12 @@ public class SecurityContextUtils {
 	public static final String SECURITY_CONTEXT_HEADER_ATTRIBUTE = "SPRING_SECURITY_CONTEXT";
 
 	public static SecurityContext getSecurityContextFromHeader(Message<?> message) {
-		return (SecurityContext) message.getHeader().getAttribute(SECURITY_CONTEXT_HEADER_ATTRIBUTE);
+		return (SecurityContext) message.getHeaders().get(SECURITY_CONTEXT_HEADER_ATTRIBUTE);
 	}
 
-	public static void setSecurityContextHeader(SecurityContext sctx, Message<?> message) {
-		message.getHeader().setAttribute(SECURITY_CONTEXT_HEADER_ATTRIBUTE, sctx);
+	public static Message<?> setSecurityContextHeader(SecurityContext sctx, Message<?> message) {
+		return MessageBuilder.fromMessage(message)
+				.setHeader(SECURITY_CONTEXT_HEADER_ATTRIBUTE, sctx).build();
 	}
 
 }

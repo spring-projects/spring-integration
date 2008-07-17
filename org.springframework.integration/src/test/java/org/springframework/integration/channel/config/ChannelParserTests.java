@@ -32,6 +32,7 @@ import org.springframework.integration.config.TestChannelInterceptor;
 import org.springframework.integration.dispatcher.PublishSubscribeChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessagePriority;
 import org.springframework.integration.message.StringMessage;
@@ -52,10 +53,10 @@ public class ChannelParserTests {
 				"channelParserTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("capacityChannel");
 		for (int i = 0; i < 10; i++) {
-			boolean result = channel.send(new GenericMessage<String>(1, "test"), 10);
+			boolean result = channel.send(new GenericMessage<String>("test"), 10);
 			assertTrue(result);
 		}
-		assertFalse(channel.send(new GenericMessage<String>(1, "test"), 3));
+		assertFalse(channel.send(new GenericMessage<String>("test"), 3));
 	}
 
 	@Test
@@ -148,12 +149,12 @@ public class ChannelParserTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"priorityChannelParserTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("priorityChannelWithDefaultComparator");
-		Message<?> lowPriorityMessage = new StringMessage("low");
-		lowPriorityMessage.getHeader().setPriority(MessagePriority.LOW);
-		Message<?> midPriorityMessage = new StringMessage("mid");
-		midPriorityMessage.getHeader().setPriority(MessagePriority.NORMAL);
-		Message<?> highPriorityMessage = new StringMessage("high");
-		highPriorityMessage.getHeader().setPriority(MessagePriority.HIGH);
+		Message<String> lowPriorityMessage = MessageBuilder.fromPayload("low")
+				.setPriority(MessagePriority.LOW).build();
+		Message<String> midPriorityMessage = MessageBuilder.fromPayload("mid")
+				.setPriority(MessagePriority.NORMAL).build();
+		Message<String> highPriorityMessage = MessageBuilder.fromPayload("high")
+				.setPriority(MessagePriority.HIGH).build();	
 		channel.send(lowPriorityMessage);
 		channel.send(highPriorityMessage);
 		channel.send(midPriorityMessage);

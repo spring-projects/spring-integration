@@ -24,7 +24,7 @@ import java.util.Date;
 import org.junit.Test;
 
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.message.MessageBuilder;
 
 /**
  * @author Mark Fisher
@@ -34,8 +34,8 @@ public class UnexpiredMessageSelectorTests {
 	@Test
 	public void testExpiredMessageRejected() {
 		long past = System.currentTimeMillis() - 60000;
-		Message<?> message = new StringMessage("expired");
-		message.getHeader().setExpiration(new Date(past));
+		Message<String> message = MessageBuilder.fromPayload("expired")
+				.setExpirationDate(new Date(past)).build();
 		UnexpiredMessageSelector selector = new UnexpiredMessageSelector();
 		assertFalse(selector.accept(message));
 	}
@@ -43,8 +43,15 @@ public class UnexpiredMessageSelectorTests {
 	@Test
 	public void testUnexpiredMessageAccepted() {
 		long future = System.currentTimeMillis() + 60000;
-		Message<?> message = new StringMessage("unexpired");
-		message.getHeader().setExpiration(new Date(future));
+		Message<String> message = MessageBuilder.fromPayload("unexpired")
+				.setExpirationDate(new Date(future)).build();
+		UnexpiredMessageSelector selector = new UnexpiredMessageSelector();
+		assertTrue(selector.accept(message));
+	}
+
+	@Test
+	public void testMessageWithNullExpirationDateNeverExpires() {
+		Message<String> message = MessageBuilder.fromPayload("unexpired").build();
 		UnexpiredMessageSelector selector = new UnexpiredMessageSelector();
 		assertTrue(selector.accept(message));
 	}

@@ -16,13 +16,16 @@
 
 package org.springframework.integration.security.channel;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.message.MessageHeader;
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageHeaders;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.security.SecurityContextUtils;
 import org.springframework.security.Authentication;
@@ -57,24 +60,24 @@ public class SecurityContextPropagatingChannelInterceptorTests {
 	@Test
 	public void testPropogationWhenSecurityContextExists() {
 		this.associateContextWithThread();
-		StringMessage message = new StringMessage("test");
+		Message<?> message = new StringMessage("test");
 		this.channel.send(message);
-		message = (StringMessage) channel.receive(0);
-		MessageHeader header = message.getHeader();
-		assertTrue("No security context attribute found in header.", header.getAttributeNames().contains(
-				SecurityContextUtils.SECURITY_CONTEXT_HEADER_ATTRIBUTE));
+		message = channel.receive(0);
+		MessageHeaders headers = message.getHeaders();
+		assertTrue("No security context attribute found in header.",
+				headers.keySet().contains(SecurityContextUtils.SECURITY_CONTEXT_HEADER_ATTRIBUTE));
 		SecurityContext contextFromHeader = SecurityContextUtils.getSecurityContextFromHeader(message);
 		assertEquals("Incorrect security context in message header.", securityContext, contextFromHeader);
 	}
 
 	@Test
 	public void testHeaderNotSetWhenNoSecurityContextExists() {
-		StringMessage message = new StringMessage("test");
+		Message<?> message = new StringMessage("test");
 		channel.send(message);
-		message = (StringMessage) channel.receive(0);
-		MessageHeader header = message.getHeader();
-		assertFalse("Security context header found when no security context existed.", header.getAttributeNames()
-				.contains(SecurityContextUtils.SECURITY_CONTEXT_HEADER_ATTRIBUTE));
+		message = channel.receive(0);
+		MessageHeaders headers = message.getHeaders();
+		assertFalse("Security context header found when no security context existed.",
+				headers.keySet().contains(SecurityContextUtils.SECURITY_CONTEXT_HEADER_ATTRIBUTE));
 	}
 
 	private void associateContextWithThread() {

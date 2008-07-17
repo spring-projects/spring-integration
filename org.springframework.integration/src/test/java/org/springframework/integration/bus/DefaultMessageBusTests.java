@@ -36,6 +36,7 @@ import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.scheduling.PollingSchedule;
@@ -51,8 +52,8 @@ public class DefaultMessageBusTests {
 		MessageChannel sourceChannel = new QueueChannel();
 		MessageChannel targetChannel = new QueueChannel();
 		bus.registerChannel("sourceChannel", sourceChannel);
-		StringMessage message = new StringMessage("test");
-		message.getHeader().setReturnAddress("targetChannel");
+		Message<String> message = MessageBuilder.fromPayload("test")
+				.setReturnAddress("targetChannel").build();
 		sourceChannel.send(message);
 		bus.registerChannel("targetChannel", targetChannel);
 		MessageHandler handler = new MessageHandler() {
@@ -73,8 +74,8 @@ public class DefaultMessageBusTests {
 		MessageChannel sourceChannel = new QueueChannel();
 		MessageChannel targetChannel = new QueueChannel();
 		bus.registerChannel("sourceChannel", sourceChannel);
-		StringMessage message = new StringMessage("test");
-		message.getHeader().setReturnAddress("targetChannel");
+		Message<String> message = MessageBuilder.fromPayload("test")
+				.setReturnAddress("targetChannel").build();
 		sourceChannel.send(message);
 		bus.registerChannel("targetChannel", targetChannel);
 		MessageHandler handler = new MessageHandler() {
@@ -93,7 +94,7 @@ public class DefaultMessageBusTests {
 	public void testChannelsWithoutHandlers() {
 		MessageBus bus = new DefaultMessageBus();
 		MessageChannel sourceChannel = new QueueChannel();
-		sourceChannel.send(new StringMessage("123", "test"));
+		sourceChannel.send(new StringMessage("test"));
 		MessageChannel targetChannel = new QueueChannel();
 		bus.registerChannel("sourceChannel", sourceChannel);
 		bus.registerChannel("targetChannel", targetChannel);
@@ -108,7 +109,7 @@ public class DefaultMessageBusTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("messageBusTests.xml", this.getClass());
 		context.start();
 		MessageChannel sourceChannel = (MessageChannel) context.getBean("sourceChannel");
-		sourceChannel.send(new GenericMessage<String>("123", "test"));		
+		sourceChannel.send(new GenericMessage<String>("test"));		
 		MessageChannel targetChannel = (MessageChannel) context.getBean("targetChannel");
 		MessageBus bus = (MessageBus) context.getBean("bus");
 		bus.start();
@@ -123,14 +124,14 @@ public class DefaultMessageBusTests {
 		QueueChannel outputChannel2 = new QueueChannel();
 		MessageHandler handler1 = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
-				message.getHeader().setReturnAddress("output1");
-				return message;
+				return MessageBuilder.fromMessage(message)
+						.setReturnAddress("output1").build();
 			}
 		};
 		MessageHandler handler2 = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
-				message.getHeader().setReturnAddress("output2");
-				return message;
+				return MessageBuilder.fromMessage(message)
+						.setReturnAddress("output2").build();
 			}
 		};
 		MessageBus bus = new DefaultMessageBus();
@@ -140,8 +141,8 @@ public class DefaultMessageBusTests {
 		bus.registerHandler("handler1", handler1, inputChannel, null);
 		bus.registerHandler("handler2", handler2, inputChannel, null);
 		bus.start();
-		inputChannel.send(new StringMessage(1, "testing"));
-		Message<?> message1 = outputChannel1.receive(100);
+		inputChannel.send(new StringMessage("testing"));
+		Message<?> message1 = outputChannel1.receive(500);
 		Message<?> message2 = outputChannel2.receive(0);
 		bus.stop();
 		assertTrue("exactly one message should be null", message1 == null ^ message2 == null);
@@ -155,16 +156,18 @@ public class DefaultMessageBusTests {
 		final CountDownLatch latch = new CountDownLatch(2);
 		MessageHandler handler1 = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
-				message.getHeader().setReturnAddress("output1");
+				Message<?> reply = MessageBuilder.fromMessage(message)
+						.setReturnAddress("output1").build();
 				latch.countDown();
-				return message;
+				return reply;
 			}
 		};
 		MessageHandler handler2 = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
-				message.getHeader().setReturnAddress("output2");
+				Message<?> reply = MessageBuilder.fromMessage(message)
+						.setReturnAddress("output2").build();
 				latch.countDown();
-				return message;
+				return reply;
 			}
 		};
 		MessageBus bus = new DefaultMessageBus();
@@ -174,7 +177,7 @@ public class DefaultMessageBusTests {
 		bus.registerHandler("handler1", handler1, inputChannel, null);
 		bus.registerHandler("handler2", handler2, inputChannel, null);
 		bus.start();
-		inputChannel.send(new StringMessage(1, "testing"));
+		inputChannel.send(new StringMessage("testing"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals("both handlers should have been invoked", 0, latch.getCount());
 		Message<?> message1 = outputChannel1.receive(500);

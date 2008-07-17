@@ -35,6 +35,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.selector.MessageSelector;
@@ -52,13 +53,13 @@ public class HandlerEndpointTests {
 		channelRegistry.registerChannel("replyChannel", replyChannel);
 		MessageHandler handler = new MessageHandler() {
 			public Message<String> handle(Message<?> message) {
-				return new StringMessage("123", "hello " + message.getPayload());
+				return new StringMessage("hello " + message.getPayload());
 			}
 		};
 		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
 		endpoint.setChannelRegistry(channelRegistry);
 		endpoint.setOutputChannelName("replyChannel");
-		endpoint.send(new StringMessage(1, "test"));
+		endpoint.send(new StringMessage("test"));
 		Message<?> reply = replyChannel.receive(50);
 		assertNotNull(reply);
 		assertEquals("hello test", reply.getPayload());
@@ -69,12 +70,12 @@ public class HandlerEndpointTests {
 		final MessageChannel replyChannel = new QueueChannel();
 		MessageHandler handler = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
-				return new StringMessage("123", "hello " + message.getPayload());
+				return new StringMessage("hello " + message.getPayload());
 			}
 		};
 		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
-		StringMessage testMessage = new StringMessage(1, "test");
-		testMessage.getHeader().setReturnAddress(replyChannel);
+		Message<String> testMessage = MessageBuilder.fromPayload("test")
+				.setReturnAddress(replyChannel).build();
 		endpoint.send(testMessage);
 		Message<?> reply = replyChannel.receive(50);
 		assertNotNull(reply);
@@ -88,13 +89,13 @@ public class HandlerEndpointTests {
 		channelRegistry.registerChannel("replyChannel", replyChannel);
 		MessageHandler handler = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
-				return new StringMessage("123", "hello " + message.getPayload());
+				return new StringMessage("hello " + message.getPayload());
 			}
 		};
 		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
 		endpoint.setChannelRegistry(channelRegistry);
-		StringMessage testMessage = new StringMessage(1, "test");
-		testMessage.getHeader().setReturnAddress("replyChannel");
+		Message<String> testMessage = MessageBuilder.fromPayload("test")
+				.setReturnAddress(replyChannel).build();
 		endpoint.send(testMessage);
 		Message<?> reply = replyChannel.receive(50);
 		assertNotNull(reply);
@@ -109,21 +110,22 @@ public class HandlerEndpointTests {
 		channelRegistry.registerChannel("replyChannel2", replyChannel2);
 		MessageHandler handler = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
-				return new StringMessage("123", "hello " + message.getPayload());
+				return new StringMessage("hello " + message.getPayload());
 			}
 		};
 		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
 		endpoint.setChannelRegistry(channelRegistry);
-		StringMessage testMessage = new StringMessage("test");
-		testMessage.getHeader().setReturnAddress(replyChannel1);
-		endpoint.send(testMessage);
+		Message<String> testMessage1 = MessageBuilder.fromPayload("test")
+				.setReturnAddress(replyChannel1).build();
+		endpoint.send(testMessage1);
 		Message<?> reply1 = replyChannel1.receive(50);
 		assertNotNull(reply1);
 		assertEquals("hello test", reply1.getPayload());
 		Message<?> reply2 = replyChannel2.receive(0);
 		assertNull(reply2);
-		testMessage.getHeader().setReturnAddress("replyChannel2");
-		endpoint.send(testMessage);
+		Message<String> testMessage2 = MessageBuilder.fromMessage(testMessage1)
+				.setReturnAddress("replyChannel2").build();
+		endpoint.send(testMessage2);
 		reply1 = replyChannel1.receive(0);
 		assertNull(reply1);
 		reply2 = replyChannel2.receive(0);
@@ -146,7 +148,7 @@ public class HandlerEndpointTests {
 		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
 		endpoint.setChannelRegistry(channelRegistry);
 		endpoint.setOutputChannelName("replyChannel");
-		endpoint.send(new StringMessage(1, "test"));
+		endpoint.send(new StringMessage("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals("handler should have been invoked within allotted time", 0, latch.getCount());
 		Message<?> reply = replyChannel.receive(0);
@@ -268,11 +270,11 @@ public class HandlerEndpointTests {
 				return message;
 			}
 		});
-		Message<?> message = new StringMessage("test");
-		message.getHeader().setReturnAddress(replyChannel);
+		Message<String> message = MessageBuilder.fromPayload("test")
+				.setReturnAddress(replyChannel).build();
 		endpoint.send(message);
 		Message<?> reply = replyChannel.receive(500);
-		assertEquals(message.getId(), reply.getHeader().getCorrelationId());
+		assertEquals(message.getId(), reply.getHeaders().getCorrelationId());
 	}
 
 	@Test
@@ -280,15 +282,15 @@ public class HandlerEndpointTests {
 		QueueChannel replyChannel = new QueueChannel(1);
 		HandlerEndpoint endpoint = new HandlerEndpoint(new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
-				message.getHeader().setCorrelationId("ABC-123");
-				return message;
+				return MessageBuilder.fromMessage(message)
+						.setCorrelationId("ABC-123").build();
 			}
 		});
-		Message<?> message = new StringMessage("test");
-		message.getHeader().setReturnAddress(replyChannel);
+		Message<String> message = MessageBuilder.fromPayload("test")
+				.setReturnAddress(replyChannel).build();
 		endpoint.send(message);
 		Message<?> reply = replyChannel.receive(500);
-		Object correlationId = reply.getHeader().getCorrelationId();
+		Object correlationId = reply.getHeaders().getCorrelationId();
 		assertFalse(message.getId().equals(correlationId));
 		assertEquals("ABC-123", correlationId);
 	}

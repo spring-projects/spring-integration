@@ -29,6 +29,7 @@ import org.junit.Test;
 
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.selector.MessageSelector;
 
@@ -100,7 +101,7 @@ public class WireTapTests {
 		mainChannel.send(new StringMessage("testing"));
 		Message<?> original = mainChannel.receive(0);
 		Message<?> duplicate = secondaryChannel.receive(0);
-		Object originalIdAttribute = duplicate.getHeader().getAttribute(WireTap.ORIGINAL_MESSAGE_ID_KEY);
+		Object originalIdAttribute = duplicate.getHeaders().get(WireTap.ORIGINAL_MESSAGE_ID_KEY);
 		assertNotNull(originalIdAttribute);
 		assertEquals(original.getId(), originalIdAttribute);
 	}
@@ -116,44 +117,24 @@ public class WireTapTests {
 		Message<?> original = mainChannel.receive(0);
 		Message<?> duplicate = secondaryChannel.receive(0);
 		assertTrue("original timestamp should precede duplicate",
-				original.getHeader().getTimestamp() < duplicate.getHeader().getTimestamp());
+				original.getHeaders().getTimestamp() < duplicate.getHeaders().getTimestamp());
 	}
 
-	public void testDuplicateMessageContainsAttribute() {
+	public void testDuplicateMessageContainsHeaderValue() {
 		QueueChannel mainChannel = new QueueChannel();
 		QueueChannel secondaryChannel = new QueueChannel();
 		mainChannel.addInterceptor(new WireTap(secondaryChannel));
-		Message<?> message = new StringMessage("testing");
-		String attributeKey = "testAttribute";
-		Integer attributeValue = new Integer(123);
-		message.getHeader().setAttribute(attributeKey, attributeValue);
+		String headerName = "testAttribute";
+		Message<String> message = MessageBuilder.fromPayload("testing")
+				.setHeader(headerName, new Integer(123)).build();
 		mainChannel.send(message);
 		Message<?> original = mainChannel.receive(0);
 		Message<?> duplicate = secondaryChannel.receive(0);
-		Object originalAttribute = original.getHeader().getAttribute(attributeKey);
-		Object duplicateAttribute = duplicate.getHeader().getAttribute(attributeKey);
+		Object originalAttribute = original.getHeaders().get(headerName);
+		Object duplicateAttribute = duplicate.getHeaders().get(headerName);
 		assertNotNull(originalAttribute);
 		assertNotNull(duplicateAttribute);
 		assertEquals(originalAttribute, duplicateAttribute);
-	}
-
-	@Test
-	public void testDuplicateMessageContainsProperty() {
-		QueueChannel mainChannel = new QueueChannel();
-		QueueChannel secondaryChannel = new QueueChannel();
-		mainChannel.addInterceptor(new WireTap(secondaryChannel));
-		Message<?> message = new StringMessage("testing");
-		String propertyKey = "testProperty";
-		String propertyValue = "foo";
-		message.getHeader().setProperty(propertyKey, propertyValue);
-		mainChannel.send(message);
-		Message<?> original = mainChannel.receive(0);
-		Message<?> duplicate = secondaryChannel.receive(0);
-		String originalProperty = original.getHeader().getProperty(propertyKey);
-		String duplicateProperty = duplicate.getHeader().getProperty(propertyKey);
-		assertNotNull(originalProperty);
-		assertNotNull(duplicateProperty);
-		assertEquals(originalProperty, duplicateProperty);
 	}
 
 

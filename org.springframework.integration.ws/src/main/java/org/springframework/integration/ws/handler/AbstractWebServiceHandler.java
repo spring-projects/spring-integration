@@ -72,7 +72,7 @@ public abstract class AbstractWebServiceHandler implements MessageHandler {
 
 	public final Message<?> handle(Message<?> message) {
 		Object responsePayload = this.doHandle(message.getPayload(), this.getRequestCallback(message));
-		return responsePayload != null ? new GenericMessage<Object>(responsePayload, message.getHeader()) : null;
+		return responsePayload != null ? new GenericMessage<Object>(responsePayload, message.getHeaders()) : null;
 	}
 
 	protected abstract Object doHandle(Object requestPayload, WebServiceMessageCallback requestCallback);
@@ -81,7 +81,7 @@ public abstract class AbstractWebServiceHandler implements MessageHandler {
 		if (this.requestCallback != null) {
 			return this.requestCallback;
 		}
-		String soapAction = requestMessage.getHeader().getProperty(SOAP_ACTION_PROPERTY_KEY);
+		String soapAction = requestMessage.getHeaders().get(SOAP_ACTION_PROPERTY_KEY, String.class);
 		return (soapAction != null) ? new TypeCheckingSoapActionCallback(soapAction) : null;
 	}
 

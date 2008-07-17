@@ -28,9 +28,9 @@ import org.springframework.util.StringUtils;
 public class DefaultFileNameGenerator implements FileNameGenerator {
 
 	public String generateFileName(Message<?> message) {
-		String filenameProperty = message.getHeader().getProperty(FILENAME_PROPERTY_KEY);
+		String filenameProperty = message.getHeaders().get(FILENAME_PROPERTY_KEY, String.class);
 		return StringUtils.hasText(filenameProperty) ?
-				filenameProperty : message.getId() + "-" + System.currentTimeMillis() + ".msg";
+				filenameProperty : message.getId() + ".msg";
 	}
 
 }

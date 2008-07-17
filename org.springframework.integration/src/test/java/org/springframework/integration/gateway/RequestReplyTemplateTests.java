@@ -32,7 +32,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.ReplyHandler;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageHeader;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -68,7 +67,7 @@ public class RequestReplyTemplateTests {
 		final List<String> replies = new ArrayList<String>(3);
 		final CountDownLatch latch = new CountDownLatch(3);
 		ReplyHandler replyHandler = new ReplyHandler() {
-			public void handle(Message<?> replyMessage, MessageHeader originalMessageHeader) {
+			public void handle(Message<?> replyMessage, Message<?> originalMessage) {
 				replies.add((String) replyMessage.getPayload());
 				latch.countDown();
 			}

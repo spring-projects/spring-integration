@@ -16,8 +16,8 @@
 
 package org.springframework.integration.transformer;
 
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.util.AbstractMethodInvokingAdapter;
 
@@ -30,7 +30,7 @@ public class PayloadTransformerAdapter extends AbstractMethodInvokingAdapter imp
 	public Message<?> transform(Message<?> message) {
 		try {
 	        Object result = this.invokeMethod(message.getPayload());
-	        return new GenericMessage(result, message.getHeader());
+	        return MessageBuilder.fromPayload(result).copyHeadersFromMessage(message).build();
         } catch (Exception e) {
         	throw new MessagingException(message, "failed to transform message payload", e);
         }

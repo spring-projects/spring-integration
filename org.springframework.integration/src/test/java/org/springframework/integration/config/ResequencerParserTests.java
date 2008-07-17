@@ -16,7 +16,6 @@
 
 package org.springframework.integration.config;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,18 +24,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.parsing.BeanDefinitionParsingException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.router.AggregatingMessageHandler;
-import org.springframework.integration.router.CompletionStrategy;
-import org.springframework.integration.router.CompletionStrategyAdapter;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.router.ResequencingMessageHandler;
-import org.springframework.integration.util.MethodInvoker;
 
 /**
  * @author Marius Bogoevici
@@ -50,6 +43,7 @@ public class ResequencerParserTests {
 	public void setUp() {
 		this.context = new ClassPathXmlApplicationContext("resequencerParserTests.xml", this.getClass());
 	}
+
 
 	@Test
 	public void testResequencing() {
@@ -67,13 +61,13 @@ public class ResequencerParserTests {
 		Message<?> message2 = replyChannel.receive(500);
 		Message<?> message3 = replyChannel.receive(500);
 		Assert.assertNotNull(message1);
-		Assert.assertEquals(1, message1.getHeader().getSequenceNumber());
+		Assert.assertEquals(new Integer(1), message1.getHeaders().getSequenceNumber());
 		Assert.assertNotNull(message2);
-		Assert.assertEquals(2, message2.getHeader().getSequenceNumber());
+		Assert.assertEquals(new Integer(2), message2.getHeaders().getSequenceNumber());
 		Assert.assertNotNull(message3);
-		Assert.assertEquals(3, message3.getHeader().getSequenceNumber());
+		Assert.assertEquals(new Integer(3), message3.getHeaders().getSequenceNumber());
 	}
-	
+
 	@Test
 	public void testDefaultResequencerProperties() {
 		ResequencingMessageHandler resequencingHandler = (ResequencingMessageHandler) context
@@ -126,12 +120,12 @@ public class ResequencerParserTests {
 
 	private static <T> Message<T> createMessage(T payload, Object correlationId, int sequenceSize, int sequenceNumber,
 			MessageChannel replyChannel) {
-		GenericMessage<T> message = new GenericMessage<T>(payload);
-		message.getHeader().setCorrelationId(correlationId);
-		message.getHeader().setSequenceSize(sequenceSize);
-		message.getHeader().setSequenceNumber(sequenceNumber);
-		message.getHeader().setReturnAddress(replyChannel);
-		return message;
+		return MessageBuilder.fromPayload(payload)
+				.setCorrelationId(correlationId)
+				.setSequenceSize(sequenceSize)
+				.setSequenceNumber(sequenceNumber)
+				.setReturnAddress(replyChannel)
+				.build();
 	}
 
 }

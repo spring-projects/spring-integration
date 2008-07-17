@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -38,8 +39,8 @@ public class ReturnAddressTests {
 		MessageChannel channel1 = (MessageChannel) context.getBean("channel1WithOverride");
 		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
 		context.start();
-		StringMessage message = new StringMessage("*");
-		message.getHeader().setReturnAddress("replyChannel");
+		Message<String> message = MessageBuilder.fromPayload("*")
+				.setReturnAddress("replyChannel").build();
 		channel1.send(message);
 		Message<?> response = replyChannel.receive(3000);
 		assertNotNull(response);
@@ -53,8 +54,8 @@ public class ReturnAddressTests {
 		MessageChannel channel1 = (MessageChannel) context.getBean("channel1");
 		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
 		context.start();
-		StringMessage message = new StringMessage("*");
-		message.getHeader().setReturnAddress("replyChannel");
+		Message<String> message = MessageBuilder.fromPayload("*")
+				.setReturnAddress("replyChannel").build();
 		channel1.send(message);
 		Message<?> response = replyChannel.receive(3000);
 		assertNotNull(response);

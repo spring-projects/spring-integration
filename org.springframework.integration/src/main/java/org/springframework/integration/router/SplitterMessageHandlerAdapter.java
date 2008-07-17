@@ -26,6 +26,7 @@ import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.AbstractMessageHandlerAdapter;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 
 /**
  * MessageHandler adapter for methods annotated with {@link Splitter @Splitter}.
@@ -83,7 +84,10 @@ public class SplitterMessageHandlerAdapter extends AbstractMessageHandlerAdapter
 			for (Object item : items) {
 				Message<?> splitMessage = (item instanceof Message<?>) ?
 						(Message<?>) item : this.createReplyMessage(item, originalMessage);
-				this.prepareMessage(splitMessage, originalMessage.getId(), ++sequenceNumber, sequenceSize);
+				splitMessage = MessageBuilder.fromMessage(splitMessage)
+						.setCorrelationId(originalMessage.getId())
+						.setSequenceNumber(++sequenceNumber)
+						.setSequenceSize(sequenceSize).build();
 				this.sendMessage(splitMessage, this.outputChannelName);
 			}
 		}
@@ -94,7 +98,10 @@ public class SplitterMessageHandlerAdapter extends AbstractMessageHandlerAdapter
 			for (Object item : array) {
 				Message<?> splitMessage = (item instanceof Message<?>) ?
 						(Message<?>) item : this.createReplyMessage(item, originalMessage);
-				this.prepareMessage(splitMessage, originalMessage.getId(), ++sequenceNumber, sequenceSize);
+				splitMessage = MessageBuilder.fromMessage(splitMessage)
+						.setCorrelationId(originalMessage.getId())
+						.setSequenceNumber(++sequenceNumber)
+						.setSequenceSize(sequenceSize).build();	
 				this.sendMessage(splitMessage, this.outputChannelName);
 			}
 		}
@@ -103,12 +110,6 @@ public class SplitterMessageHandlerAdapter extends AbstractMessageHandlerAdapter
 					"splitter method must return either a Collection or array");
 		}
 		return null;
-	}
-
-	private void prepareMessage(Message<?> message, Object correlationId, int sequenceNumber, int sequenceSize) {
-		message.getHeader().setCorrelationId(correlationId);
-		message.getHeader().setSequenceNumber(sequenceNumber);
-		message.getHeader().setSequenceSize(sequenceSize);
 	}
 
 	private boolean sendMessage(Message<?> message, String channelName) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.message.selector;
 
+import java.util.Date;
+
 import org.springframework.integration.message.Message;
 
 /**
@@ -27,7 +29,11 @@ import org.springframework.integration.message.Message;
 public class UnexpiredMessageSelector implements MessageSelector {
 
 	public boolean accept(Message<?> message) {
-		return (!message.isExpired());
+		Date expirationDate = message.getHeaders().getExpirationDate();
+		if (expirationDate == null) {
+			return true;
+		}
+		return expirationDate.getTime() > System.currentTimeMillis();
 	}
 
 }

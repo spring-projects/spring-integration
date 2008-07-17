@@ -25,7 +25,7 @@ import java.util.List;
 import org.junit.Test;
 
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.message.MessageBuilder;
 
 /**
  * @author Mark Fisher
@@ -34,8 +34,8 @@ public class SequenceSizeCompletionStrategyTests {
 
 	@Test
 	public void testIncompleteList() {
-		Message<?> message = new StringMessage("test1");
-		message.getHeader().setSequenceSize(2);
+		Message<String> message = MessageBuilder.fromPayload("test1")
+				.setSequenceSize(2).build();
 		List<Message<?>> messages = new ArrayList<Message<?>>();
 		messages.add(message);
 		SequenceSizeCompletionStrategy completionStrategy = new SequenceSizeCompletionStrategy();
@@ -44,10 +44,10 @@ public class SequenceSizeCompletionStrategyTests {
 
 	@Test
 	public void testCompleteList() {
-		Message<?> message1 = new StringMessage("test1");
-		message1.getHeader().setSequenceSize(2);
-		Message<?> message2 = new StringMessage("test2");
-		message2.getHeader().setSequenceSize(2);
+		Message<String> message1 = MessageBuilder.fromPayload("test1")
+				.setSequenceSize(2).build();
+		Message<String> message2 = MessageBuilder.fromPayload("test2")
+				.setSequenceSize(2).build();
 		List<Message<?>> messages = new ArrayList<Message<?>>();
 		messages.add(message1);
 		messages.add(message2);

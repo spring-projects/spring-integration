@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.message.MessageBuilder;
 
 /**
  * @author Mark Fisher
@@ -39,8 +39,8 @@ public class ReplyMessageCorrelatorTests {
 		final ReplyMessageCorrelator correlator = new ReplyMessageCorrelator(10);
 		final AtomicInteger replyCounter = new AtomicInteger();
 		CountDownLatch latch = startReceivers(correlator, replyCounter, 5, 500);
-		Message<?> message = new StringMessage("test");
-		message.getHeader().setCorrelationId("123");
+		Message<String> message = MessageBuilder.fromPayload("test")
+				.setCorrelationId("123").build();
 		correlator.handle(message);
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
@@ -50,8 +50,8 @@ public class ReplyMessageCorrelatorTests {
 	@Test
 	public void testReplyPrecedeReceivers() throws InterruptedException {
 		final ReplyMessageCorrelator correlator = new ReplyMessageCorrelator(10);
-		Message<?> message = new StringMessage("test");
-		message.getHeader().setCorrelationId("123");
+		Message<String> message = MessageBuilder.fromPayload("test")
+				.setCorrelationId("123").build();
 		correlator.handle(message);
 		final AtomicInteger replyCounter = new AtomicInteger();
 		CountDownLatch latch = startReceivers(correlator, replyCounter, 5, 50);

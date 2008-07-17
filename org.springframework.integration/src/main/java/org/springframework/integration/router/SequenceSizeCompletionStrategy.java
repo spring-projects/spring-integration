@@ -35,7 +35,7 @@ public class SequenceSizeCompletionStrategy implements CompletionStrategy {
 		if (CollectionUtils.isEmpty(messages)) {
 			return false;
 		}
-		return messages.size() != 0 && (messages.size() >= messages.get(0).getHeader().getSequenceSize());
+		return messages.size() != 0 && (messages.size() >= messages.get(0).getHeaders().getSequenceSize());
 	}
 
 }

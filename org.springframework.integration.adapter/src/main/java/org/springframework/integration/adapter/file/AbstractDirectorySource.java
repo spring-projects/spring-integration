@@ -25,6 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageCreator;
 import org.springframework.integration.message.MessageDeliveryAware;
 import org.springframework.integration.message.MessagingException;
@@ -64,6 +65,7 @@ public abstract class AbstractDirectorySource implements MessageSource<Object>, 
 		return messageCreator;
 	}
 
+	@SuppressWarnings("unchecked")
 	public final Message receive() {
 		try {
 			this.establishConnection();
@@ -73,9 +75,10 @@ public abstract class AbstractDirectorySource implements MessageSource<Object>, 
 			if (!getDirectoryContentManager().getBacklog().isEmpty()) {
 				File file = retrieveNextFile();
 				Message message = this.messageCreator.createMessage(file);
-				message.getHeader().setProperty(FileNameGenerator.FILENAME_PROPERTY_KEY, file.getName());
-				message.getHeader().setAttribute(FILE_INFO_PROPERTY,
-						getDirectoryContentManager().getBacklog().get(file.getName()));
+				message = MessageBuilder.fromMessage(message)
+						.setHeader(FileNameGenerator.FILENAME_PROPERTY_KEY, file.getName())
+						.setHeader(FILE_INFO_PROPERTY, getDirectoryContentManager().getBacklog().get(file.getName()))
+						.build();
 				return message;
 			}
 			return null;
@@ -89,7 +92,7 @@ public abstract class AbstractDirectorySource implements MessageSource<Object>, 
 	}
 
 	public void onSend(Message<?> message) {
-		String filename = message.getHeader().getProperty(FileNameGenerator.FILENAME_PROPERTY_KEY);
+		String filename = message.getHeaders().get(FileNameGenerator.FILENAME_PROPERTY_KEY, String.class);
 		if (StringUtils.hasText(filename)) {
 			this.directoryContentManager.fileProcessed(filename);
 		}

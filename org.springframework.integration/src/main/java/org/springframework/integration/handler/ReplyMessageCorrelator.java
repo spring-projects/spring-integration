@@ -70,7 +70,7 @@ public class ReplyMessageCorrelator implements MessageHandler {
 	 * returns the 'correlationId' from the message header.
 	 */
 	protected Object getCorrelationId(final Message<?> message) {
-		return message.getHeader().getCorrelationId();
+		return message.getHeaders().getCorrelationId();
 	}
 
 }

@@ -47,7 +47,7 @@ public class TestAnnotatedEndpointWithDefaultAggregator {
 		for (Message<?> message : sortableList) {
 			buffer.append(message.getPayload().toString());
 			if (null == correlationId) {
-				correlationId = message.getHeader().getCorrelationId();
+				correlationId = message.getHeaders().getCorrelationId();
 			}
 		}
 		Message<?> returnedMessage =  new StringMessage(buffer.toString());

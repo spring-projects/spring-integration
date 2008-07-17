@@ -29,6 +29,7 @@ import org.springframework.integration.handler.annotation.HeaderAttribute;
 import org.springframework.integration.handler.annotation.HeaderProperty;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.StringMessage;
@@ -76,65 +77,54 @@ public class AnnotationMethodTransformerAdapterTests {
 		AnnotationMethodTransformerAdapter adapter = new AnnotationMethodTransformerAdapter();
 		adapter.setObject(testBean);
 		adapter.setMethod(testBean.getClass().getMethod("attributeTest", String.class, Integer.class));
-		Message<?> message = new StringMessage("foo");
-		message.getHeader().setAttribute("number", 123);
+		Message<String> message = MessageBuilder.fromPayload("foo")
+				.setHeader("number", 123).build();
 		Message<?> result = adapter.handle(message);
 		assertEquals("foo123", result.getPayload());
 	}
 
 	@Test(expected=MessageHandlingException.class)
-	public void testHeaderAttributeNotProvided() throws Exception {
+	public void testHeaderValueNotProvided() throws Exception {
 		TestBean testBean = new TestBean();
 		AnnotationMethodTransformerAdapter adapter = new AnnotationMethodTransformerAdapter();
 		adapter.setObject(testBean);
 		adapter.setMethod(testBean.getClass().getMethod("attributeTest", String.class, Integer.class));
-		Message<?> message = new StringMessage("foo");
-		message.getHeader().setAttribute("wrong", 123);
+		Message<String> message = MessageBuilder.fromPayload("foo")
+				.setHeader("wrong", 123).build();
 		adapter.handle(message);
 	}
 
 	@Test
-	public void testHeaderPropertyAnnotation() throws Exception {
+	public void testHeaderAnnotation() throws Exception {
 		TestBean testBean = new TestBean();
 		AnnotationMethodTransformerAdapter adapter = new AnnotationMethodTransformerAdapter();
 		adapter.setObject(testBean);
 		adapter.setMethod(testBean.getClass().getMethod("propertyTest", String.class, String.class));
-		Message<?> message = new StringMessage("foo");
-		message.getHeader().setProperty("suffix", "bar");
+		Message<String> message = MessageBuilder.fromPayload("foo")
+				.setHeader("suffix", "bar").build();
 		Message<?> result = adapter.handle(message);
 		assertEquals("foobar", result.getPayload());
 	}
 
-	@Test(expected=MessageHandlingException.class)
-	public void testHeaderPropertyNotAvailable() throws Exception {
-		TestBean testBean = new TestBean();
-		AnnotationMethodTransformerAdapter adapter = new AnnotationMethodTransformerAdapter();
-		adapter.setObject(testBean);
-		adapter.setMethod(testBean.getClass().getMethod("propertyTest", String.class, String.class));
-		Message<?> message = new StringMessage("foo");
-		message.getHeader().setProperty("wrong", "bar");
-		adapter.handle(message);
-	}
-
 	@Test
-	public void testPropertyEnricher() throws Exception {
+	public void testHeaderEnricher() throws Exception {
 		TestBean testBean = new TestBean();
 		AnnotationMethodTransformerAdapter adapter = new AnnotationMethodTransformerAdapter();
 		adapter.setObject(testBean);
 		adapter.setMethod(testBean.getClass().getMethod("propertyEnricherTest", String.class));
-		Message<?> message = new StringMessage("test");
-		message.getHeader().setProperty("prop1", "bad");
-		message.getHeader().setProperty("prop3", "baz");
+		Message<String> message = MessageBuilder.fromPayload("test")
+				.setHeader("prop1", "bad")
+				.setHeader("prop3", "baz").build();
 		Message<?> result = adapter.handle(message);
 		assertEquals("test", result.getPayload());
-		assertEquals("foo", result.getHeader().getProperty("prop1"));
-		assertEquals("bar", result.getHeader().getProperty("prop2"));
-		assertEquals("baz", result.getHeader().getProperty("prop3"));
+		assertEquals("foo", result.getHeaders().get("prop1"));
+		assertEquals("bar", result.getHeaders().get("prop2"));
+		assertEquals("baz", result.getHeaders().get("prop3"));
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void testPropertyPayload() throws Exception {
+	public void testPropertiesPayload() throws Exception {
 		TestBean testBean = new TestBean();
 		AnnotationMethodTransformerAdapter adapter = new AnnotationMethodTransformerAdapter();
 		adapter.setObject(testBean);
@@ -149,9 +139,9 @@ public class AnnotationMethodTransformerAdapterTests {
 		assertEquals("foo", payload.getProperty("prop1"));
 		assertEquals("bar", payload.getProperty("prop2"));
 		assertEquals("baz", payload.getProperty("prop3"));
-		assertNull(result.getHeader().getProperty("prop1"));
-		assertNull(result.getHeader().getProperty("prop2"));
-		assertNull(result.getHeader().getProperty("prop3"));
+		assertNull(result.getHeaders().get("prop1"));
+		assertNull(result.getHeaders().get("prop2"));
+		assertNull(result.getHeaders().get("prop3"));
 	}
 
 

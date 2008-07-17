@@ -62,8 +62,8 @@ public class ResequencingMessageHandler extends AbstractMessageBarrierHandler{
 	}
 
 	protected boolean isBarrierRemovable(Object correlationId, List<Message<?>> releasedMessages) {
-		return (releasedMessages.get(releasedMessages.size() - 1).getHeader().getSequenceNumber() ==
-				releasedMessages.get(releasedMessages.size() - 1).getHeader().getSequenceSize());
+		return (releasedMessages.get(releasedMessages.size() - 1).getHeaders().getSequenceNumber() ==
+				releasedMessages.get(releasedMessages.size() - 1).getHeaders().getSequenceSize());
 	}
 	
 }

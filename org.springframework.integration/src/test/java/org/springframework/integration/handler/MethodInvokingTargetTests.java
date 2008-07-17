@@ -87,7 +87,7 @@ public class MethodInvokingTargetTests {
 		target.setMethodName("foo");
 		target.afterPropertiesSet();
 		QueueChannel channel = new QueueChannel();
-		Message<String> message = new GenericMessage<String>("123", "testing");
+		Message<String> message = new GenericMessage<String>("testing");
 		channel.send(message);
 		assertNull(queue.poll());
 		MessageBus bus = new DefaultMessageBus();

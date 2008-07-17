@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.junit.Test;
 
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 
 /**
  * @author Mark Fisher
@@ -31,8 +32,8 @@ public class DefaultFileNameGeneratorTests {
 
 	@Test
 	public void testWithFileNamePropertyProvided() {
-		Message<String> message = new GenericMessage<String>("123", "testing");
-		message.getHeader().setProperty(FileNameGenerator.FILENAME_PROPERTY_KEY, "foo.bar");
+		Message<String> message = MessageBuilder.fromPayload("testing")
+				.setHeader(FileNameGenerator.FILENAME_PROPERTY_KEY, "foo.bar").build();
 		FileNameGenerator generator = new DefaultFileNameGenerator();
 		String filename = generator.generateFileName(message);
 		assertEquals("foo.bar", filename);
@@ -40,10 +41,10 @@ public class DefaultFileNameGeneratorTests {
 
 	@Test
 	public void testWithoutFileNamePropertyProvided() {
-		Message<String> message = new GenericMessage<String>("123", "testing");
+		Message<String> message = new GenericMessage<String>("testing");
 		FileNameGenerator generator = new DefaultFileNameGenerator();
 		String filename = generator.generateFileName(message);
-		assertTrue(filename.startsWith("123-"));
+		assertTrue(filename.startsWith("" + message.getId()));
 		assertTrue(filename.endsWith(".msg"));
 	}
 

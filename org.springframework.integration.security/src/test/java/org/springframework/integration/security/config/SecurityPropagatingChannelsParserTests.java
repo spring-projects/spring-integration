@@ -76,7 +76,7 @@ public class SecurityPropagatingChannelsParserTests {
 	private boolean channelPropagatesSecurityContext(MessageChannel channel) {
 		login("bob", "bobspassword");
 		channel.send(new StringMessage("testMessage"));
-		SecurityContext context = (SecurityContext) channel.receive(-1).getHeader().getAttribute(
+		SecurityContext context = (SecurityContext) channel.receive(-1).getHeaders().get(
 				"SPRING_SECURITY_CONTEXT");
 		return context != null;
 	}

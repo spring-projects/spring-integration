@@ -16,7 +16,9 @@
 
 package org.springframework.integration.adapter;
 
-import org.springframework.integration.message.MessageHeader;
+import java.util.Map;
+
+import org.springframework.integration.message.MessageHeaders;
 
 /**
  * Strategy interface for mapping between a source or target object and an
@@ -26,8 +28,8 @@ import org.springframework.integration.message.MessageHeader;
  */
 public interface MessageHeaderMapper<T> {
 
-	void mapFromMessageHeader(MessageHeader header, T target);
+	void mapFromMessageHeaders(MessageHeaders headers, T target);
 
-	void mapToMessageHeader(T source, MessageHeader header);
+	Map<String, Object> mapToMessageHeaders(T source);
 
 }

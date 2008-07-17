@@ -17,11 +17,9 @@
 package org.springframework.integration.message;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
-import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.Test;
 
@@ -30,44 +28,18 @@ import org.junit.Test;
  */
 public class GenericMessageTests {
 
-	private static final long ONE_MINUTE = 60 * 1000;
-
-
 	@Test
-	public void testExpiredMessage() {
-		GenericMessage<Integer> expiredMessage = new GenericMessage<Integer>(1);
-		Date past = new Date(System.currentTimeMillis() - ONE_MINUTE);
-		expiredMessage.getHeader().setExpiration(past);
-		assertTrue(expiredMessage.isExpired());
-	}
-
-	@Test
-	public void testUnexpiredMessage() {
-		GenericMessage<Integer> unexpiredMessage = new GenericMessage<Integer>(1);
-		Date future = new Date(System.currentTimeMillis() + ONE_MINUTE);
-		unexpiredMessage.getHeader().setExpiration(future);
-		assertFalse(unexpiredMessage.isExpired());
-	}
-
-	@Test
-	public void testMessageWithNullExpirationNeverExpires() {
-		GenericMessage<Integer> message = new GenericMessage<Integer>(1);
-		assertNull(message.getHeader().getExpiration());
-		assertFalse(message.isExpired());
-	}
-
-	@Test
-	public void testMessageHeaderCopied() {
-		MessageHeader header = new DefaultMessageHeader();
-		header.setAttribute("testAttribute", new Integer(123));
-		header.setProperty("testProperty", "foo");
-		header.setSequenceSize(42);
-		header.setSequenceNumber(24);
-		GenericMessage<String> message = new GenericMessage<String>("test", header);
-		assertEquals(new Integer(123), message.getHeader().getAttribute("testAttribute"));
-		assertEquals("foo", message.getHeader().getProperty("testProperty"));
-		assertEquals(42, message.getHeader().getSequenceSize());
-		assertEquals(24, message.getHeader().getSequenceNumber());
+	public void testMessageHeadersCopiedFromMap() {
+		Map<String, Object> headerMap = new HashMap<String, Object>();
+		headerMap.put("testAttribute", new Integer(123));
+		headerMap.put("testProperty", "foo");
+		headerMap.put(MessageHeaders.SEQUENCE_SIZE, 42);
+		headerMap.put(MessageHeaders.SEQUENCE_NUMBER, 24);
+		GenericMessage<String> message = new GenericMessage<String>("test", headerMap);
+		assertEquals(new Integer(123), message.getHeaders().get("testAttribute"));
+		assertEquals("foo", message.getHeaders().get("testProperty", String.class));
+		assertEquals(new Integer(42), message.getHeaders().getSequenceSize());
+		assertEquals(new Integer(24), message.getHeaders().getSequenceNumber());
 	}
 
 }

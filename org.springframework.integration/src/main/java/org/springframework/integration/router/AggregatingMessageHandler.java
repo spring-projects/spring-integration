@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -87,11 +88,11 @@ public class AggregatingMessageHandler extends AbstractMessageBarrierHandler {
 			return new Message<?>[0];
 		}
 		Message<?> result = aggregator.aggregate(messages);
-		if (result.getHeader().getCorrelationId() == null) {
-			result.getHeader().setCorrelationId(correlationId);
+		if (result.getHeaders().getCorrelationId() == null) {
+			result = MessageBuilder.fromMessage(result)
+					.setCorrelationId(correlationId).build();
 		}
 		return new Message<?>[] { result };
-		
 	}
 
 }

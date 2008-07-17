@@ -22,8 +22,8 @@ import java.util.Properties;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.annotation.AnnotationMethodMessageMapper;
 import org.springframework.integration.message.DefaultMessageMapper;
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageMapper;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.util.AbstractMethodInvokingAdapter;
@@ -82,25 +82,28 @@ public class AnnotationMethodTransformerAdapter extends AbstractMethodInvokingAd
 			}
 			if (result instanceof Properties && !(message.getPayload() instanceof Properties)) {
 				Properties propertiesToSet = (Properties) result;
+				MessageBuilder builder = MessageBuilder.fromMessage(message);
 				for (Object keyObject : propertiesToSet.keySet()) {
 					String key = (String) keyObject;
-					message.getHeader().setProperty(key, propertiesToSet.getProperty(key)); 
+					builder.setHeader(key, propertiesToSet.getProperty(key));
 				}
+				return builder.build();
 			}
 			else if (result instanceof Map && !(message.getPayload() instanceof Map)) {
 				Map<String, ?> attributesToSet = (Map) result;
+				MessageBuilder builder = MessageBuilder.fromMessage(message);
 				for (String key : attributesToSet.keySet()) {
-					message.getHeader().setAttribute(key, attributesToSet.get(key));
+					builder.setHeader(key, attributesToSet.get(key));
 				}
+				return builder.build();
 			}
 			else {
-				return new GenericMessage(result, message.getHeader());
+				return MessageBuilder.fromPayload(result).copyHeadersFromMessage(message).build();
 			}
 		}
 		catch (Exception e) {
 			throw new MessagingException(message, "failed to transform message payload", e);
 		}
-		return message;
 	}
 
 	public Message<?> handle(Message<?> message) {

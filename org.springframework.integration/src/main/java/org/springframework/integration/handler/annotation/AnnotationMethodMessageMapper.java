@@ -17,10 +17,8 @@
 package org.springframework.integration.handler.annotation;
 
 import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 import org.springframework.core.GenericTypeResolver;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
@@ -29,7 +27,7 @@ import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.message.MessageHeader;
+import org.springframework.integration.message.MessageHeaders;
 import org.springframework.integration.message.MessageMapper;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -124,7 +122,7 @@ public class AnnotationMethodMessageMapper implements MessageMapper {
 			MethodParameterMetadata metadata = this.parameterMetadata[i];
 			Class<?> expectedType = metadata.type;
 			if (expectedType.equals(HeaderAttribute.class)) {
-				Object value = message.getHeader().getAttribute(metadata.key);
+				Object value = message.getHeaders().get(metadata.key);
 				if (value == null && metadata.required) {
 					throw new MessageHandlingException(message,
 							"required attribute '" + metadata.key + "' not available");
@@ -132,7 +130,7 @@ public class AnnotationMethodMessageMapper implements MessageMapper {
 				args[i] = value;
 			}
 			else if (expectedType.equals(HeaderProperty.class)) {
-				Object value = message.getHeader().getProperty(metadata.key);
+				Object value = message.getHeaders().get(metadata.key);
 				if (value == null && metadata.required) {
 					throw new MessageHandlingException(message,
 							"required property '" + metadata.key + "' not available");
@@ -146,10 +144,10 @@ public class AnnotationMethodMessageMapper implements MessageMapper {
 				args[i] = message.getPayload();
 			}
 			else if (expectedType.equals(Map.class)) {
-				args[i] = this.getHeaderAttributes(message);
+				args[i] = message.getHeaders();
 			}
 			else if (expectedType.equals(Properties.class)) {
-				args[i] = this.getHeaderProperties(message);
+				args[i] = this.getStringTypedHeaders(message);
 			}
 			else {
 				args[i] = message.getPayload();
@@ -158,22 +156,14 @@ public class AnnotationMethodMessageMapper implements MessageMapper {
 		return args;
 	}
 
-	private Map<String, Object> getHeaderAttributes(Message<?> message) {
-		Map<String, Object> attributes = new HashMap<String, Object>();
-		MessageHeader header = message.getHeader();
-		Set<String> attributeNames = header.getAttributeNames();
-		for (String name : attributeNames) {
-			attributes.put(name, header.getAttribute(name));
-		}
-		return attributes;
-	}
-
-	private Properties getHeaderProperties(Message<?> message) {
+	private Properties getStringTypedHeaders(Message<?> message) {
 		Properties properties = new Properties();
-		MessageHeader header = message.getHeader();
-		Set<String> propertyNames = header.getPropertyNames();
-		for (String name : propertyNames) {
-			properties.setProperty(name, header.getProperty(name));
+		MessageHeaders headers = message.getHeaders();
+		for (String key : headers.keySet()) {
+			Object value = headers.get(key);
+			if (value instanceof String) {
+				properties.setProperty(key, (String) value);
+			}
 		}
 		return properties;
 	}

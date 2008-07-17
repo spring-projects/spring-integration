@@ -25,6 +25,7 @@ import java.util.Comparator;
 import org.junit.Test;
 
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessagePriority;
 import org.springframework.integration.message.StringMessage;
 
@@ -84,11 +85,23 @@ public class PriorityChannelTests {
 		assertEquals("E", channel.receive(0).getPayload());		
 	}
 
+	@Test
+	public void testNullPriorityIsConsideredNormal() {
+		PriorityChannel channel = new PriorityChannel(5);
+		Message<?> highPriority = createPriorityMessage(MessagePriority.HIGH);
+		Message<?> lowPriority = createPriorityMessage(MessagePriority.LOW);
+		Message<?> nullPriority = new StringMessage("test-NULL");
+		channel.send(lowPriority);
+		channel.send(highPriority);
+		channel.send(nullPriority);
+		assertEquals("test-HIGH", channel.receive(0).getPayload());
+		assertEquals("test-NULL", channel.receive(0).getPayload());
+		assertEquals("test-LOW", channel.receive(0).getPayload());
+	}
 
-	private static Message<?> createPriorityMessage(MessagePriority priority) {
-		Message<?> message = new StringMessage("test-" + priority);
-		message.getHeader().setPriority(priority);
-		return message;
+
+	private static Message<String> createPriorityMessage(MessagePriority priority) {
+		return MessageBuilder.fromPayload("test-" + priority).setPriority(priority).build(); 
 	}
 
 

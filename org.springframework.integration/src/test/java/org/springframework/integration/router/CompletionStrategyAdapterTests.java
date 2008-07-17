@@ -194,20 +194,20 @@ public class CompletionStrategyAdapterTests {
 
 	private static class SimpleCompletionStrategy {
 
-		public boolean checkCompletenessOnNonParameterizedListOfMessages(List<Message> messages) {
+		public boolean checkCompletenessOnNonParameterizedListOfMessages(List<Message<?>> messages) {
 			Assert.assertTrue(messages.size() > 0);
-			return messages.size() > messages.iterator().next().getHeader().getSequenceSize();
+			return messages.size() > messages.iterator().next().getHeaders().getSequenceSize();
 		}
 
 		public boolean checkCompletenessOnListOfMessagesParametrizedWithWildcard(List<Message<?>> messages) {
 			Assert.assertTrue(messages.size() > 0);
-			return messages.size() > messages.iterator().next().getHeader().getSequenceSize();
+			return messages.size() > messages.iterator().next().getHeaders().getSequenceSize();
 		}
 
 		public boolean checkCompletenessOnListOfMessagesParametrizedWithString(
 				List<Message<String>> messages) {
 			Assert.assertTrue(messages.size() > 0);
-			return messages.size() > messages.iterator().next().getHeader().getSequenceSize();
+			return messages.size() > messages.iterator().next().getHeaders().getSequenceSize();
 		}
 
 		// Example for the case when completeness is checked on the structure of

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -30,30 +32,30 @@ public class MessageSequenceComparatorTests {
 	@Test
 	public void testLessThan() {
 		MessageSequenceComparator comparator = new MessageSequenceComparator();
-		StringMessage message1 = new StringMessage("test1");
-		message1.getHeader().setSequenceNumber(1);
-		StringMessage message2 = new StringMessage("test2");
-		message2.getHeader().setSequenceNumber(2);
+		Message<String> message1 = MessageBuilder.fromPayload("test1")
+				.setSequenceNumber(1).build();
+		Message<String> message2 = MessageBuilder.fromPayload("test2")
+				.setSequenceNumber(2).build();
 		assertEquals(-1, comparator.compare(message1, message2));
 	}
 
 	@Test
 	public void testEqual() {
 		MessageSequenceComparator comparator = new MessageSequenceComparator();
-		StringMessage message1 = new StringMessage("test1");
-		message1.getHeader().setSequenceNumber(3);
-		StringMessage message2 = new StringMessage("test2");
-		message2.getHeader().setSequenceNumber(3);
+		Message<String> message1 = MessageBuilder.fromPayload("test1")
+				.setSequenceNumber(3).build();
+		Message<String> message2 = MessageBuilder.fromPayload("test2")
+				.setSequenceNumber(3).build();
 		assertEquals(0, comparator.compare(message1, message2));
 	}
 
 	@Test
 	public void testGreaterThan() {
 		MessageSequenceComparator comparator = new MessageSequenceComparator();
-		StringMessage message1 = new StringMessage("test1");
-		message1.getHeader().setSequenceNumber(5);
-		StringMessage message2 = new StringMessage("test2");
-		message2.getHeader().setSequenceNumber(3);
+		Message<String> message1 = MessageBuilder.fromPayload("test1")
+				.setSequenceNumber(5).build();
+		Message<String> message2 = MessageBuilder.fromPayload("test2")
+				.setSequenceNumber(3).build();
 		assertEquals(1, comparator.compare(message1, message2));
 	}
 

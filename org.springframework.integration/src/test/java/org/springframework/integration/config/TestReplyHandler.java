@@ -18,7 +18,6 @@ package org.springframework.integration.config;
 
 import org.springframework.integration.handler.ReplyHandler;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageHeader;
 
 /**
  * @author Mark Fisher
@@ -28,7 +27,7 @@ public class TestReplyHandler implements ReplyHandler {
 	private volatile Message<?> lastMessage;
 
 
-	public void handle(Message<?> replyMessage, MessageHeader originalMessageHeader) {
+	public void handle(Message<?> replyMessage, Message<?> originalMessage) {
 		this.lastMessage = replyMessage;
 	}
 

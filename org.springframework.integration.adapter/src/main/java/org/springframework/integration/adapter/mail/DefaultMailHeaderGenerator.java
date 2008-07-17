@@ -59,12 +59,12 @@ public class DefaultMailHeaderGenerator extends AbstractMailHeaderGenerator {
 
 
 	private String retrieveAsString(Message<?> message, String key) {
-		Object value = message.getHeader().getAttribute(key);
+		Object value = message.getHeaders().get(key);
 		return (value instanceof String) ? (String) value : null;
 	}
 
 	private String[] retrieveAsStringArray(Message<?> message, String key) {
-		Object value = message.getHeader().getAttribute(key);
+		Object value = message.getHeaders().get(key);
 		if (value instanceof String[]) {
 			return (String[]) value;
 		}

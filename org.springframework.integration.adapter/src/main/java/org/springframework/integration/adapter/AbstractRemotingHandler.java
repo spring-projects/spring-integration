@@ -60,13 +60,13 @@ public abstract class AbstractRemotingHandler implements MessageHandler {
 					this.getClass().getName() + " expects a Serializable payload type " +
 					"but encountered '" + message.getPayload().getClass().getName() + "'");
 		}
-		for (String attributeName : message.getHeader().getAttributeNames()) {
-			Object attribute = message.getHeader().getAttribute(attributeName);
+		for (String headerName : message.getHeaders().keySet()) {
+			Object attribute = message.getHeaders().get(headerName);
 			if (!(attribute instanceof Serializable)) {
 				throw new MessageHandlingException(message,
 						this.getClass().getName() + " expects Serializable attribute types " +
 						"but encountered '" + attribute.getClass().getName() + "' for the attribute '" +
-						attributeName + "'");				
+						headerName + "'");				
 			}
 		}
 	}

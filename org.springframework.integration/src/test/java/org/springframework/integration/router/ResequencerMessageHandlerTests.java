@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.router;
 
 import java.util.concurrent.CountDownLatch;
@@ -27,7 +28,7 @@ import org.junit.Test;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.message.MessageBuilder;
 
 /**
  * @author Marius Bogoevici
@@ -51,11 +52,11 @@ public class ResequencerMessageHandlerTests {
 		Message<?> reply2 = replyChannel.receive(500);
 		Message<?> reply3 = replyChannel.receive(500);
 		assertNotNull(reply1);
-		assertEquals(1, reply1.getHeader().getSequenceNumber());
+		assertEquals(new Integer(1), reply1.getHeaders().getSequenceNumber());
 		assertNotNull(reply2);
-		assertEquals(2, reply2.getHeader().getSequenceNumber());
+		assertEquals(new Integer(2), reply2.getHeaders().getSequenceNumber());
 		assertNotNull(reply3);
-		assertEquals(3, reply3.getHeader().getSequenceNumber());
+		assertEquals(new Integer(3), reply3.getHeaders().getSequenceNumber());
 	}
 
 	@Test
@@ -77,9 +78,9 @@ public class ResequencerMessageHandlerTests {
 		Message<?> reply3 = replyChannel.receive(500);
 		// only messages 1 and 2 must have been received by now
 		assertNotNull(reply1);
-		assertEquals(1, reply1.getHeader().getSequenceNumber());
+		assertEquals(new Integer(1), reply1.getHeaders().getSequenceNumber());
 		assertNotNull(reply2);
-		assertEquals(2, reply2.getHeader().getSequenceNumber());
+		assertEquals(new Integer(2), reply2.getHeaders().getSequenceNumber());
 		assertNull(reply3);
 		// when sending the last message, the whole sequence must have been sent
 		latch = new CountDownLatch(1);
@@ -88,9 +89,9 @@ public class ResequencerMessageHandlerTests {
 		reply3 = replyChannel.receive(500);
 		Message<?> reply4 = replyChannel.receive(500);
 		assertNotNull(reply3);
-		assertEquals(3, reply3.getHeader().getSequenceNumber());
+		assertEquals(new Integer(3), reply3.getHeaders().getSequenceNumber());
 		assertNotNull(reply4);
-		assertEquals(4, reply4.getHeader().getSequenceNumber());
+		assertEquals(new Integer(4), reply4.getHeaders().getSequenceNumber());
 	}
 
 
@@ -124,23 +125,25 @@ public class ResequencerMessageHandlerTests {
 		reply3 = replyChannel.receive(500);
 		Message<?> reply4 = replyChannel.receive(500);
 		assertNotNull(reply1);
-		assertEquals(1, reply1.getHeader().getSequenceNumber());
+		assertEquals(new Integer(1), reply1.getHeaders().getSequenceNumber());
 		assertNotNull(reply2);
-		assertEquals(2, reply2.getHeader().getSequenceNumber());
+		assertEquals(new Integer(2), reply2.getHeaders().getSequenceNumber());
 		assertNotNull(reply3);
-		assertEquals(3, reply3.getHeader().getSequenceNumber());
+		assertEquals(new Integer(3), reply3.getHeaders().getSequenceNumber());
 		assertNotNull(reply4);
-		assertEquals(4, reply4.getHeader().getSequenceNumber());
+		assertEquals(new Integer(4), reply4.getHeaders().getSequenceNumber());
 	}
+
 
 	private static Message<?> createMessage(String payload, Object correlationId,
 	                                        int sequenceSize, int sequenceNumber, MessageChannel replyChannel) {
-		StringMessage message = new StringMessage(payload);
-		message.getHeader().setCorrelationId(correlationId);
-		message.getHeader().setSequenceSize(sequenceSize);
-		message.getHeader().setSequenceNumber(sequenceNumber);
-		message.getHeader().setReturnAddress(replyChannel);
+		Message<String> message = MessageBuilder.fromPayload(payload)
+				.setCorrelationId(correlationId)
+				.setSequenceSize(sequenceSize)
+				.setSequenceNumber(sequenceNumber)
+				.setReturnAddress(replyChannel)
+				.build();
 		return message;
 	}
-	
+
 }

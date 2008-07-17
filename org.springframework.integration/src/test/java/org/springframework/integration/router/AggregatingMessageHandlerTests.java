@@ -31,6 +31,7 @@ import org.junit.Test;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -215,11 +216,12 @@ public class AggregatingMessageHandlerTests {
 
 	private static Message<?> createMessage(String payload, Object correlationId,
 			int sequenceSize, int sequenceNumber, MessageChannel replyChannel) {
-		StringMessage message = new StringMessage(payload);
-		message.getHeader().setCorrelationId(correlationId);
-		message.getHeader().setSequenceSize(sequenceSize);
-		message.getHeader().setSequenceNumber(sequenceNumber);
-		message.getHeader().setReturnAddress(replyChannel);
+		Message<String> message = MessageBuilder.fromPayload(payload)
+				.setCorrelationId(correlationId)
+				.setSequenceSize(sequenceSize)
+				.setSequenceNumber(sequenceNumber)
+				.setReturnAddress(replyChannel)
+				.build();
 		return message;
 	}
 
@@ -263,7 +265,7 @@ public class AggregatingMessageHandlerTests {
 			try {
 				Message<?> result = this.aggregator.handle(message);
 				if (result != null) {
-					Object returnAddress = message.getHeader().getReturnAddress();
+					Object returnAddress = message.getHeaders().getReturnAddress();
 					if (returnAddress instanceof MessageChannel) {
 						((MessageChannel) returnAddress).send(result);
 					}

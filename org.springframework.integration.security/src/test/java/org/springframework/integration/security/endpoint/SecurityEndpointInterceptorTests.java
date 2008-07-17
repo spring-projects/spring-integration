@@ -142,8 +142,7 @@ public class SecurityEndpointInterceptorTests {
 
 	public Message<?> createMessageWithContext(SecurityContext securityContext) {
 		Message<?> message = new StringMessage("test");
-		SecurityContextUtils.setSecurityContextHeader(securityContext, message);
-		return message;
+		return SecurityContextUtils.setSecurityContextHeader(securityContext, message);
 	}
 
 	public Message<?> createMessageWithoutContext() {

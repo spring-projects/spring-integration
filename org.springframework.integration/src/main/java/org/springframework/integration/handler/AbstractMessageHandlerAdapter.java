@@ -24,8 +24,10 @@ import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.message.DefaultMessageCreator;
 import org.springframework.integration.message.DefaultMessageMapper;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageCreator;
 import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.message.MessageHeaders;
 import org.springframework.integration.message.MessageMapper;
 import org.springframework.integration.util.AbstractMethodInvokingAdapter;
 import org.springframework.util.Assert;
@@ -124,16 +126,11 @@ public abstract class AbstractMessageHandlerAdapter extends AbstractMethodInvoki
 
 	protected Message<?> createReplyMessage(Object returnValue, Message<?> originalMessage) {
 		Message<?> reply = this.messageCreator.createMessage(returnValue);
-		if (reply != null) {
-			reply.copyHeader(originalMessage.getHeader(), false);
-			Object correlationId = reply.getHeader().getCorrelationId();
-			if (correlationId == null) {
-				Object orginalCorrelationId = originalMessage.getHeader().getCorrelationId();
-				reply.getHeader().setCorrelationId((orginalCorrelationId != null) ?
-						orginalCorrelationId : originalMessage.getId());
-			}
+		if (reply == null) {
+			return null;
 		}
-		return reply;
+		return MessageBuilder.fromMessage(reply).copyHeadersIfAbsent(originalMessage.getHeaders())
+				.setHeaderIfAbsent(MessageHeaders.CORRELATION_ID, originalMessage.getId()).build();
 	}
 
 	/**

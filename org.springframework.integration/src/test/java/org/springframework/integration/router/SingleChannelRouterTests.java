@@ -46,7 +46,7 @@ public class SingleChannelRouterTests {
 		SingleChannelRouter router = new SingleChannelRouter();
 		router.setChannelResolver(channelResolver);
 		router.afterPropertiesSet();
-		Message<String> message = new StringMessage("123", "test");
+		Message<String> message = new StringMessage("test");
 		router.handle(message);
 		Message<?> result = channel.receive(25);
 		assertNotNull(result);
@@ -67,7 +67,7 @@ public class SingleChannelRouterTests {
 		router.setChannelNameResolver(channelNameResolver);
 		router.setChannelRegistry(channelRegistry);
 		router.afterPropertiesSet();
-		Message<String> message = new StringMessage("123", "test");
+		Message<String> message = new StringMessage("test");
 		router.handle(message);
 		Message<?> result = channel.receive(25);
 		assertNotNull(result);
@@ -102,7 +102,7 @@ public class SingleChannelRouterTests {
 		SingleChannelRouter router = new SingleChannelRouter();
 		router.setChannelResolver(channelResolver);
 		router.afterPropertiesSet();
-		Message<String> message = new StringMessage("123", "test");
+		Message<String> message = new StringMessage("test");
 		router.handle(message);
 	}
 
@@ -117,7 +117,7 @@ public class SingleChannelRouterTests {
 		router.setChannelResolver(channelResolver);
 		router.setResolutionRequired(true);
 		router.afterPropertiesSet();
-		Message<String> message = new StringMessage("123", "test");
+		Message<String> message = new StringMessage("test");
 		router.handle(message);
 	}
 
@@ -133,7 +133,7 @@ public class SingleChannelRouterTests {
 		router.setChannelNameResolver(channelNameResolver);
 		router.setChannelRegistry(channelRegistry);
 		router.afterPropertiesSet();
-		Message<String> message = new StringMessage("123", "test");
+		Message<String> message = new StringMessage("test");
 		router.handle(message);
 	}
 
@@ -150,7 +150,7 @@ public class SingleChannelRouterTests {
 		router.setChannelRegistry(channelRegistry);
 		router.setResolutionRequired(true);
 		router.afterPropertiesSet();
-		Message<String> message = new StringMessage("123", "test");
+		Message<String> message = new StringMessage("test");
 		router.handle(message);
 	}
 

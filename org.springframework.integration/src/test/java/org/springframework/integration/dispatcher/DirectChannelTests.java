@@ -28,9 +28,10 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageSource;
-import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.MessageTarget;
+import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -43,18 +44,19 @@ public class DirectChannelTests {
 	@Test
 	public void testSend() {
 		DirectChannel channel = new DirectChannel();
-		channel.subscribe(new ThreadNameSettingTestTarget());
+		ThreadNameExtractingTestTarget target = new ThreadNameExtractingTestTarget();
+		channel.subscribe(target);
 		StringMessage message = new StringMessage("test");
 		assertTrue(channel.send(message));
-		String handlerThreadName = message.getHeader().getProperty(HANDLER_THREAD);
-		assertEquals(Thread.currentThread().getName(), handlerThreadName);
+		assertEquals(Thread.currentThread().getName(), target.threadName);
 	}
 
 	@Test
 	public void testSendInSeparateThread() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
 		final DirectChannel channel = new DirectChannel();
-		channel.subscribe(new ThreadNameSettingTestTarget(latch));
+		ThreadNameExtractingTestTarget target = new ThreadNameExtractingTestTarget(latch);
+		channel.subscribe(target);
 		final StringMessage message = new StringMessage("test");
 		new Thread(new Runnable() {
 			public void run() {
@@ -62,8 +64,7 @@ public class DirectChannelTests {
 			}
 		}, "test-thread").start();
 		latch.await(1000, TimeUnit.MILLISECONDS);
-		String handlerThreadName = message.getHeader().getProperty(HANDLER_THREAD);
-		assertEquals("test-thread", handlerThreadName);
+		assertEquals("test-thread", target.threadName);
 	}
 
 	@Test
@@ -88,7 +89,7 @@ public class DirectChannelTests {
 		assertNotNull(message.getPayload());
 		assertEquals(String.class, message.getPayload().getClass());
 		assertEquals("foo", message.getPayload());
-		String handlerThreadName = message.getHeader().getProperty(HANDLER_THREAD);
+		String handlerThreadName = message.getHeaders().get(HANDLER_THREAD, String.class);
 		assertEquals(Thread.currentThread().getName(), handlerThreadName);
 	}
 
@@ -113,7 +114,7 @@ public class DirectChannelTests {
 		assertNotNull(message.getPayload());
 		assertEquals(String.class, message.getPayload().getClass());
 		assertEquals("foo", message.getPayload());
-		String handlerThreadName = message.getHeader().getProperty(HANDLER_THREAD);
+		String handlerThreadName = message.getHeaders().get(HANDLER_THREAD, String.class);
 		assertEquals("test-thread", handlerThreadName);
 	}
 
@@ -124,21 +125,23 @@ public class DirectChannelTests {
 	}
 
 
-	private static class ThreadNameSettingTestTarget implements MessageTarget {
+	private static class ThreadNameExtractingTestTarget implements MessageTarget {
+
+		private String threadName;
 
 		private final CountDownLatch latch;
 
 
-		ThreadNameSettingTestTarget() {
+		ThreadNameExtractingTestTarget() {
 			this(null);
 		}
 
-		ThreadNameSettingTestTarget(CountDownLatch latch) {
+		ThreadNameExtractingTestTarget(CountDownLatch latch) {
 			this.latch = latch;
 		}
 
 		public boolean send(Message<?> message) {
-			message.getHeader().setProperty(HANDLER_THREAD, Thread.currentThread().getName());
+			this.threadName = Thread.currentThread().getName();
 			if (this.latch != null) {
 				this.latch.countDown();
 			}
@@ -156,10 +159,9 @@ public class DirectChannelTests {
 			this.messageText = messageText;
 		}
 
-		public StringMessage receive() {
-			StringMessage message = new StringMessage(messageText);
-			message.getHeader().setProperty(HANDLER_THREAD, Thread.currentThread().getName());
-			return message;
+		public Message<String> receive() {
+			return MessageBuilder.fromPayload(messageText)
+					.setHeader(HANDLER_THREAD, Thread.currentThread().getName()).build();
 		}
 	}
 

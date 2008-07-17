@@ -39,18 +39,18 @@ public class SecurityContextPropagatingChannelInterceptor extends ChannelInterce
 
 	@Override
 	public Message<?> preSend(Message<?> message, MessageChannel channel) {
-		this.setSecurityContextAttribute(message);
-		return message;
+		return this.createSecurityContextMessageIfPossible(message);
 	}
 
-	protected void setSecurityContextAttribute(Message<?> message) {
+	protected Message<?> createSecurityContextMessageIfPossible(Message<?> message) {
 		SecurityContext securityContext = SecurityContextHolder.getContext();
 		if (securityContext.getAuthentication() != null) {
-			SecurityContextUtils.setSecurityContextHeader(securityContext, message);
+			message = SecurityContextUtils.setSecurityContextHeader(securityContext, message);
 		}
 		else if (logger.isInfoEnabled()) {
 			logger.info("No security context found");
 		}
+		return message;
 	}
 
 }

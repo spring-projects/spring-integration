@@ -33,6 +33,7 @@ import org.junit.Test;
 
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.selector.UnexpiredMessageSelector;
 
@@ -56,7 +57,7 @@ public class QueueChannelTests {
 			}
 		}).start();
 		assertFalse(messageReceived.get());
-		channel.send(new GenericMessage<String>(1, "testing"));
+		channel.send(new GenericMessage<String>("testing"));
 		latch.await(25, TimeUnit.MILLISECONDS);
 		assertTrue(messageReceived.get());
 	}
@@ -79,7 +80,7 @@ public class QueueChannelTests {
 		};
 		Runnable sendTask = new Runnable() {
 			public void run() {
-				channel.send(new GenericMessage<String>(1, "testing"));
+				channel.send(new GenericMessage<String>("testing"));
 			}
 		};
 		singleThreadExecutor.execute(receiveTask1);
@@ -143,26 +144,26 @@ public class QueueChannelTests {
 	@Test
 	public void testImmediateSend() {
 		QueueChannel channel = new QueueChannel(3);
-		boolean result1 = channel.send(new GenericMessage<String>(1, "test-1"));
+		boolean result1 = channel.send(new GenericMessage<String>("test-1"));
 		assertTrue(result1);
-		boolean result2 = channel.send(new GenericMessage<String>(2, "test-2"), 100);
+		boolean result2 = channel.send(new GenericMessage<String>("test-2"), 100);
 		assertTrue(result2);
-		boolean result3 = channel.send(new GenericMessage<String>(3, "test-3"), 0);
+		boolean result3 = channel.send(new GenericMessage<String>("test-3"), 0);
 		assertTrue(result3);
-		boolean result4 = channel.send(new GenericMessage<String>(4, "test-4"), 0);
+		boolean result4 = channel.send(new GenericMessage<String>("test-4"), 0);
 		assertFalse(result4);
 	}
 
 	@Test
 	public void testBlockingSendWithNoTimeout() throws Exception{
 		final QueueChannel channel = new QueueChannel(1);
-		boolean result1 = channel.send(new GenericMessage<String>(1, "test-1"));
+		boolean result1 = channel.send(new GenericMessage<String>("test-1"));
 		assertTrue(result1);
 		final AtomicBoolean sendInterrupted = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
 			public void run() {
-				channel.send(new GenericMessage<String>(2, "test-2"));
+				channel.send(new GenericMessage<String>("test-2"));
 				sendInterrupted.set(true);
 				latch.countDown();
 			}
@@ -177,13 +178,13 @@ public class QueueChannelTests {
 	@Test
 	public void testBlockingSendWithTimeout() throws Exception{
 		final QueueChannel channel = new QueueChannel(1);
-		boolean result1 = channel.send(new GenericMessage<String>(1, "test-1"));
+		boolean result1 = channel.send(new GenericMessage<String>("test-1"));
 		assertTrue(result1);
 		final AtomicBoolean sendInterrupted = new AtomicBoolean(false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		Thread t = new Thread(new Runnable() {
 			public void run() {
-				channel.send(new GenericMessage<String>(2, "test-2"), 10000);
+				channel.send(new GenericMessage<String>("test-2"), 10000);
 				sendInterrupted.set(true);
 				latch.countDown();
 			}
@@ -225,10 +226,10 @@ public class QueueChannelTests {
 		long time = System.currentTimeMillis();
 		Date past = new Date(time - minute);
 		Date future = new Date(time + minute);
-		StringMessage expiredMessage = new StringMessage("test1");
-		expiredMessage.getHeader().setExpiration(past);
-		StringMessage unexpiredMessage = new StringMessage("test2");
-		unexpiredMessage.getHeader().setExpiration(future);
+		Message<String> expiredMessage = MessageBuilder.fromPayload("test1")
+				.setExpirationDate(past).build();
+		Message<String> unexpiredMessage = MessageBuilder.fromPayload("test2")
+				.setExpirationDate(future).build();
 		assertTrue(channel.send(expiredMessage, 0));
 		assertTrue(channel.send(unexpiredMessage, 0));
 		assertFalse(channel.send(new StringMessage("atCapacity"), 0));

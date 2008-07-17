@@ -17,7 +17,6 @@
 package org.springframework.integration.handler;
 
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageHeader;
 
 /**
  * Strategy interface for handling reply messages.
@@ -26,6 +25,6 @@ import org.springframework.integration.message.MessageHeader;
  */
 public interface ReplyHandler {
 
-	void handle(Message<?> replyMessage, MessageHeader originalMessageHeader);
+	void handle(Message<?> replyMessage, Message<?> originalMessage);
 
 }

@@ -30,8 +30,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.HandlerEndpoint;
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.router.AggregatingMessageHandler;
 import org.springframework.integration.router.CompletionStrategy;
 import org.springframework.integration.router.CompletionStrategyAdapter;
@@ -161,12 +161,11 @@ public class AggregatorParserTests {
 
 	private static <T> Message<T> createMessage(T payload, Object correlationId, int sequenceSize, int sequenceNumber,
 			MessageChannel replyChannel) {
-		GenericMessage<T> message = new GenericMessage<T>(payload);
-		message.getHeader().setCorrelationId(correlationId);
-		message.getHeader().setSequenceSize(sequenceSize);
-		message.getHeader().setSequenceNumber(sequenceNumber);
-		message.getHeader().setReturnAddress(replyChannel);
-		return message;
+		return MessageBuilder.fromPayload(payload)
+				.setCorrelationId(correlationId)
+				.setSequenceSize(sequenceSize)
+				.setSequenceNumber(sequenceNumber)
+				.setReturnAddress(replyChannel).build();
 	}
 
 }

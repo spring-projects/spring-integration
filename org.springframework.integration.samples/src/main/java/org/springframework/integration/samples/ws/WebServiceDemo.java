@@ -18,8 +18,8 @@ package org.springframework.integration.samples.ws;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.ws.handler.AbstractWebServiceHandler;
 
 /**
@@ -33,16 +33,16 @@ public class WebServiceDemo {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("temperatureConversion.xml", WebServiceDemo.class);
 
 		// Compose the XML message according to the server's schema
-		String requestMessage =
+		String requestXml =
 				"<FahrenheitToCelsius xmlns=\"http://tempuri.org/\">" +
 				"  <Fahrenheit>90.0</Fahrenheit>" +
 				"</FahrenheitToCelsius>";
 
-		// Create the Message object 
-		Message<String> message = new GenericMessage<String>(requestMessage);
-
+		// Create the Message object
 		// In this case the service expects a SoapAction header
-		message.getHeader().setProperty(AbstractWebServiceHandler.SOAP_ACTION_PROPERTY_KEY, "http://tempuri.org/FahrenheitToCelsius");
+		Message<String> message = MessageBuilder.fromPayload(requestXml)
+				.setHeader(AbstractWebServiceHandler.SOAP_ACTION_PROPERTY_KEY, "http://tempuri.org/FahrenheitToCelsius")
+				.build();
 
 		// Send the Message to the handler's input channel
 		((MessageChannel) context.getBean("fahrenheitChannel")).send(message);

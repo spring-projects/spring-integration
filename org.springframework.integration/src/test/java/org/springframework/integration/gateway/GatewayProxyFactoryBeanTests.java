@@ -80,7 +80,7 @@ public class GatewayProxyFactoryBeanTests {
 			public void run() {
 				Message<?> input = requestChannel.receive();
 				StringMessage response = new StringMessage(input.getPayload() + "456");
-				((MessageChannel) input.getHeader().getReturnAddress()).send(response);
+				((MessageChannel) input.getHeaders().getReturnAddress()).send(response);
 			}
 		}).start();
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
@@ -133,7 +133,7 @@ public class GatewayProxyFactoryBeanTests {
 			public void run() {
 				Message<?> input = requestChannel.receive();
 				StringMessage response = new StringMessage(input.getPayload() + "bar");
-				((MessageChannel) input.getHeader().getReturnAddress()).send(response);
+				((MessageChannel) input.getHeaders().getReturnAddress()).send(response);
 			}
 		}).start();
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
@@ -177,7 +177,7 @@ public class GatewayProxyFactoryBeanTests {
 			public void run() {
 				Message<?> input = requestChannel.receive();
 				StringMessage response = new StringMessage(input.getPayload() + "bar");
-				((MessageChannel) input.getHeader().getReturnAddress()).send(response);
+				((MessageChannel) input.getHeaders().getReturnAddress()).send(response);
 			}
 		}).start();
 	}

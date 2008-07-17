@@ -32,6 +32,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.mail.SimpleMailMessage;
 
@@ -92,13 +93,14 @@ public class MailTargetTests {
 
 	@Test
 	public void testDefaultMailHeaderGenerator() {
-		StringMessage message = new StringMessage(MailTestsHelper.MESSAGE_TEXT);
-		message.getHeader().setAttribute(MailAttributeKeys.SUBJECT, MailTestsHelper.SUBJECT);
-		message.getHeader().setAttribute(MailAttributeKeys.TO, MailTestsHelper.TO);
-		message.getHeader().setAttribute(MailAttributeKeys.CC, MailTestsHelper.CC);
-		message.getHeader().setAttribute(MailAttributeKeys.BCC, MailTestsHelper.BCC);
-		message.getHeader().setAttribute(MailAttributeKeys.FROM, MailTestsHelper.FROM);
-		message.getHeader().setAttribute(MailAttributeKeys.REPLY_TO, MailTestsHelper.REPLY_TO);
+		org.springframework.integration.message.Message<String> message =
+				MessageBuilder.fromPayload(MailTestsHelper.MESSAGE_TEXT)
+				.setHeader(MailAttributeKeys.SUBJECT, MailTestsHelper.SUBJECT)
+				.setHeader(MailAttributeKeys.TO, MailTestsHelper.TO)
+				.setHeader(MailAttributeKeys.CC, MailTestsHelper.CC)
+				.setHeader(MailAttributeKeys.BCC, MailTestsHelper.BCC)
+				.setHeader(MailAttributeKeys.FROM, MailTestsHelper.FROM)
+				.setHeader(MailAttributeKeys.REPLY_TO, MailTestsHelper.REPLY_TO).build();
 		this.mailTarget.send(message);
 		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
 		assertEquals("no mime message should have been sent",

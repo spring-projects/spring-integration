@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.router;
 
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ import org.springframework.integration.message.Message;
 /**
  * MessageBarrier implementation for resequencing. It can either
  * release partial sequences as messages arrive, or the full sequence.
+ * 
  * @author Marius Bogoevici
  */
 public class ResequencingMessageBarrier extends AbstractMessageBarrier {
@@ -44,7 +46,7 @@ public class ResequencingMessageBarrier extends AbstractMessageBarrier {
 	public ResequencingMessageBarrier(boolean releasePartialSequences) {
 		this.resequencingComparator = new Comparator<Message<?>>() {
 			public int compare(Message<?> m1, Message<?> m2) {
-				return m1.getHeader().getSequenceNumber() - m2.getHeader().getSequenceNumber();
+				return m1.getHeaders().getSequenceNumber() - m2.getHeaders().getSequenceNumber();
 			}
 		};
 		this.releasePartialSequences = releasePartialSequences;
@@ -66,10 +68,10 @@ public class ResequencingMessageBarrier extends AbstractMessageBarrier {
 		//(aggregated, this means that the last possibile partial sequence of messages has been received
 		Message<?> firstMessage = this.messages.get(0);
 		Message<?> lastMessage = this.messages.get(messages.size() - 1);
-		return (lastMessage.getHeader().getSequenceNumber() == lastMessage.getHeader().getSequenceSize()
-				&& (lastMessage.getHeader().getSequenceNumber() - firstMessage.getHeader().getSequenceNumber()
+		return (lastMessage.getHeaders().getSequenceNumber() == lastMessage.getHeaders().getSequenceSize()
+				&& (lastMessage.getHeaders().getSequenceNumber() - firstMessage.getHeaders().getSequenceNumber()
 				== this.messages.size() - 1
-				&& this.lastReleasedSequenceNumber == firstMessage.getHeader().getSequenceNumber() - 1));
+				&& this.lastReleasedSequenceNumber == firstMessage.getHeaders().getSequenceNumber() - 1));
 	}
 
 	protected List<Message<?>> releaseAvailableMessages() {
@@ -78,9 +80,9 @@ public class ResequencingMessageBarrier extends AbstractMessageBarrier {
 			Iterator<Message<?>> it = this.messages.iterator();
 			while (it.hasNext()) {
 				Message<?> currentMessage = it.next();
-				if (this.lastReleasedSequenceNumber == currentMessage.getHeader().getSequenceNumber() - 1) {
+				if (this.lastReleasedSequenceNumber == currentMessage.getHeaders().getSequenceNumber() - 1) {
 					releasedMessages.add(currentMessage);
-					this.lastReleasedSequenceNumber = currentMessage.getHeader().getSequenceNumber();
+					this.lastReleasedSequenceNumber = currentMessage.getHeaders().getSequenceNumber();
 					it.remove();
 				}
 				else {

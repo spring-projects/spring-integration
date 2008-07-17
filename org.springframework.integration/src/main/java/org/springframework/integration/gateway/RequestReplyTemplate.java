@@ -28,7 +28,9 @@ import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.handler.ReplyHandler;
 import org.springframework.integration.handler.ReplyMessageCorrelator;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.message.MessageHeaders;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.selector.MessageSelector;
 
@@ -157,8 +159,9 @@ public class RequestReplyTemplate implements MessageBusAware {
 	 */
 	public boolean request(Message<?> message, ReplyHandler replyHandler) {
 		MessageChannel replyChannelAdapter = new ReplyHandlingChannelAdapter(message, replyHandler);
-		message.getHeader().setReturnAddress(replyChannelAdapter);
-		return this.send(message);
+		Message<?> requestMessage = MessageBuilder.fromMessage(message)
+				.setReturnAddress(replyChannelAdapter).build();
+		return this.send(requestMessage);
 	}
 
 	/**
@@ -186,7 +189,8 @@ public class RequestReplyTemplate implements MessageBusAware {
 		if (this.replyMessageCorrelator == null) {
 			this.registerReplyMessageCorrelator();
 		}
-		message.getHeader().setReturnAddress(this.replyChannel);
+		message = MessageBuilder.fromMessage(message)
+				.setReturnAddress(this.replyChannel).build();
 		this.send(message);
 		return (this.replyTimeout >= 0) ? this.replyMessageCorrelator.getReply(message.getId(), this.replyTimeout) :
 				this.replyMessageCorrelator.getReply(message.getId());
@@ -194,8 +198,9 @@ public class RequestReplyTemplate implements MessageBusAware {
 
 	private Message<?> sendAndReceiveWithTemporaryChannel(Message<?> message) {
 		RendezvousChannel temporaryChannel = new RendezvousChannel();
-		message.getHeader().setReturnAddress(temporaryChannel);
-		this.send(message);
+		Message<?> requestMessage = MessageBuilder.fromMessage(message)
+				.setReturnAddress(temporaryChannel).build();
+		this.send(requestMessage);
 		return this.receiveResponse(temporaryChannel);
 	}
 
@@ -258,7 +263,7 @@ public class RequestReplyTemplate implements MessageBusAware {
         }
 
         public boolean send(Message<?> message) {
-	        this.replyHandler.handle(message, originalMessage.getHeader());
+	        this.replyHandler.handle(message, originalMessage);
 	        return true;
         }
 

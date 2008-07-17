@@ -26,6 +26,7 @@ import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.router.SplitterMessageHandlerAdapter;
 
@@ -38,58 +39,58 @@ public class CorrelationIdTests {
 	@Test
 	public void testCorrelationIdPassedIfAvailable() {
 		Object correlationId = "123-ABC";
-		Message<?> message = new StringMessage("test");
-		message.getHeader().setCorrelationId(correlationId);
+		Message<String> message = MessageBuilder.fromPayload("test")
+				.setCorrelationId(correlationId).build();
 		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
 		adapter.setObject(new TestBean());
 		adapter.setMethodName("upperCase");
 		adapter.afterPropertiesSet();
 		Message<?> reply = adapter.handle(message);
-		assertEquals(correlationId, reply.getHeader().getCorrelationId());
+		assertEquals(correlationId, reply.getHeaders().getCorrelationId());
 	}
 
 	@Test
 	public void testCorrelationIdCopiedFromMessageIdByDefault() {
-		Message<?> message = new StringMessage("test");
+		Message<String> message = MessageBuilder.fromPayload("test").build();
 		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
 		adapter.setObject(new TestBean());
 		adapter.setMethodName("upperCase");
 		adapter.afterPropertiesSet();
 		Message<?> reply = adapter.handle(message);
-		assertEquals(message.getId(), reply.getHeader().getCorrelationId());
+		assertEquals(message.getId(), reply.getHeaders().getCorrelationId());
 	}
 
 	@Test
 	public void testCorrelationIdCopiedFromMessageCorrelationIdIfAvailable() {
-		Message<?> message = new StringMessage("messageId","test");
-		message.getHeader().setCorrelationId("correlationId");
+		Message<String> message = MessageBuilder.fromPayload("test")
+				.setCorrelationId("correlationId").build();
 		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
 		adapter.setObject(new TestBean());
 		adapter.setMethodName("upperCase");
 		adapter.afterPropertiesSet();
 		Message<?> reply = adapter.handle(message);
-		assertEquals(message.getHeader().getCorrelationId(), reply.getHeader().getCorrelationId());
-		assertTrue(message.getHeader().getCorrelationId().equals(reply.getHeader().getCorrelationId()));
+		assertEquals(message.getHeaders().getCorrelationId(), reply.getHeaders().getCorrelationId());
+		assertTrue(message.getHeaders().getCorrelationId().equals(reply.getHeaders().getCorrelationId()));
 	}
 
 	@Test
 	public void testCorrelationNotPassedIfAlreadySetByHandler() throws Exception {
 		Object correlationId = "123-ABC";
-		Message<?> message = new StringMessage("test");
-		message.getHeader().setCorrelationId(correlationId);
+		Message<String> message = MessageBuilder.fromPayload("test")
+				.setCorrelationId(correlationId).build();
 		AbstractMessageHandlerAdapter adapter = new AbstractMessageHandlerAdapter() {
 			@Override
             protected Message<?> handleReturnValue(Object returnValue, Message<?> originalMessage) {
 				Message<?> resultMessage = this.createReplyMessage(returnValue, originalMessage);
-				resultMessage.getHeader().setCorrelationId("456-XYZ");
-	            return resultMessage;
+				return MessageBuilder.fromMessage(resultMessage)
+						.setCorrelationId("456-XYZ").build();
             }
 		};
 		adapter.setObject(new TestBean());
 		adapter.setMethodName("upperCase");
 		adapter.afterPropertiesSet();
 		Message<?> reply = adapter.handle(message);
-		assertEquals("456-XYZ", reply.getHeader().getCorrelationId());
+		assertEquals("456-XYZ", reply.getHeaders().getCorrelationId());
 	}
 
 	@Test
@@ -99,15 +100,14 @@ public class CorrelationIdTests {
 			@Override
             protected Message<?> handleReturnValue(Object returnValue, Message<?> originalMessage) {
 				Message<?> resultMessage = this.createReplyMessage(returnValue, originalMessage);
-				resultMessage.getHeader().setCorrelationId("456-XYZ");
-	            return resultMessage;
+				return MessageBuilder.fromMessage(resultMessage).setCorrelationId("456-XYZ").build();
             }
 		};
 		adapter.setObject(new TestBean());
 		adapter.setMethodName("upperCase");
 		adapter.afterPropertiesSet();
 		Message<?> reply = adapter.handle(message);
-		assertEquals("456-XYZ", reply.getHeader().getCorrelationId());
+		assertEquals("456-XYZ", reply.getHeaders().getCorrelationId());
 	}
 
 	@Test
@@ -128,8 +128,8 @@ public class CorrelationIdTests {
 		splitter.handle(message);
 		Message<?> reply1 = testChannel.receive(100);
 		Message<?> reply2 = testChannel.receive(100);
-		assertEquals(message.getId(), reply1.getHeader().getCorrelationId());
-		assertEquals(message.getId(), reply2.getHeader().getCorrelationId());		
+		assertEquals(message.getId(), reply1.getHeaders().getCorrelationId());
+		assertEquals(message.getId(), reply2.getHeaders().getCorrelationId());		
 	}
 
 

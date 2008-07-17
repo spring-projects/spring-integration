@@ -30,6 +30,7 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.StringMessage;
@@ -47,7 +48,7 @@ public class EndpointParserTests {
 		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
 		TestHandler handler = (TestHandler) context.getBean("testHandler");
 		assertNull(handler.getMessageString());
-		channel.send(new GenericMessage<String>(1, "test"));
+		channel.send(new GenericMessage<String>("test"));
 		handler.getLatch().await(500, TimeUnit.MILLISECONDS);
 		assertEquals("test", handler.getMessageString());
 	}
@@ -60,7 +61,7 @@ public class EndpointParserTests {
 		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
 		TestBean bean = (TestBean) context.getBean("testBean");
 		assertNull(bean.getMessage());
-		channel.send(new GenericMessage<String>(1, "test"));
+		channel.send(new GenericMessage<String>("test"));
 		bean.getLatch().await(500, TimeUnit.MILLISECONDS);
 		assertEquals("test", bean.getMessage());
 	}
@@ -82,9 +83,9 @@ public class EndpointParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"endpointWithSelector.xml", this.getClass());		
 		MessageTarget endpoint = (MessageTarget) context.getBean("endpoint");
-		Message<?> message = new StringMessage("test");
 		MessageChannel replyChannel = new QueueChannel();
-		message.getHeader().setReturnAddress(replyChannel);
+		Message<?> message = MessageBuilder.fromPayload("test")
+				.setReturnAddress(replyChannel).build();
 		assertTrue(endpoint.send(message));
 		Message<?> reply = replyChannel.receive(500);
 		assertNotNull(reply);
@@ -96,9 +97,9 @@ public class EndpointParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"endpointWithSelector.xml", this.getClass());		
 		MessageTarget endpoint = (MessageTarget) context.getBean("endpoint");
-		Message<?> message = new GenericMessage<Integer>(123);
 		MessageChannel replyChannel = new QueueChannel();
-		message.getHeader().setReturnAddress(replyChannel);
+		Message<?> message = MessageBuilder.fromPayload(123)
+				.setReturnAddress(replyChannel).build();
 		endpoint.send(message);
 	}
 

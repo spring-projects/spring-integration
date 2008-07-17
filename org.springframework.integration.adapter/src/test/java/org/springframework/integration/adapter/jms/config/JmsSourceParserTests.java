@@ -122,8 +122,8 @@ public class JmsSourceParserTests {
 		Message<?> message = source.receive();
 		assertNotNull("message should not be null", message);
 		assertEquals("polling-test", message.getPayload());
-		assertEquals("foo", message.getHeader().getProperty("testProperty"));
-		assertEquals(new Integer(123), message.getHeader().getAttribute("testAttribute"));
+		assertEquals("foo", message.getHeaders().get("testProperty"));
+		assertEquals(new Integer(123), message.getHeaders().get("testAttribute"));
 	}
 
 	@Test

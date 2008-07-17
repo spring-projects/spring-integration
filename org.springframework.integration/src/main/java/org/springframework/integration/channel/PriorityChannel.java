@@ -22,7 +22,6 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageHeader;
 import org.springframework.integration.message.MessagePriority;
 
 /**
@@ -90,8 +89,10 @@ public class PriorityChannel extends QueueChannel {
 	private static class MessagePriorityComparator implements Comparator<Message<?>> {
 
 		public int compare(Message<?> message1, Message<?> message2) {
-			MessagePriority priority1 = message1.getHeader().getPriority();
-			MessagePriority priority2 = message2.getHeader().getPriority();
+			MessagePriority priority1 = message1.getHeaders().getPriority();
+			MessagePriority priority2 = message2.getHeaders().getPriority();
+			priority1 = priority1 != null ? priority1 : MessagePriority.NORMAL;
+			priority2 = priority2 != null ? priority2 : MessagePriority.NORMAL;
 			return priority1.compareTo(priority2);
 		}
 	}

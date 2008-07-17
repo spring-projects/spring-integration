@@ -22,9 +22,10 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.ReplyHandler;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.message.MessageHeader;
+import org.springframework.integration.message.MessageHeaders;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -82,9 +83,9 @@ public class HandlerEndpoint extends AbstractEndpoint {
 		super.initialize();
 	}
 
-	private MessageChannel resolveReplyChannel(MessageHeader originalMessageHeader) {
+	private MessageChannel resolveReplyChannel(Message<?> originalMessage) {
 		if (this.returnAddressOverrides) {
-			MessageChannel channel = this.getReturnAddress(originalMessageHeader);
+			MessageChannel channel = this.getReturnAddress(originalMessage);
 			if (channel == null) {
 				channel = this.getOutputChannel();
 			}
@@ -93,14 +94,14 @@ public class HandlerEndpoint extends AbstractEndpoint {
 		else {
 			MessageChannel channel = this.getOutputChannel();
 			if (channel == null) {
-				channel = this.getReturnAddress(originalMessageHeader);
+				channel = this.getReturnAddress(originalMessage);
 			}
 			return channel;
 		}
 	}
 
-	private MessageChannel getReturnAddress(MessageHeader originalMessageHeader) {
-		Object returnAddress = originalMessageHeader.getReturnAddress();
+	private MessageChannel getReturnAddress(Message<?> originalMessage) {
+		Object returnAddress = originalMessage.getHeaders().getReturnAddress();
 		if (returnAddress != null) {
 			if (returnAddress instanceof MessageChannel) {
 				return (MessageChannel) returnAddress;
@@ -120,10 +121,12 @@ public class HandlerEndpoint extends AbstractEndpoint {
 	protected Message<?> handleMessage(Message<?> message) {
 		Message<?> replyMessage = this.handler.handle(message);
 		if (replyMessage != null) {
-			if (replyMessage.getHeader().getCorrelationId() == null) {
-				replyMessage.getHeader().setCorrelationId(message.getId());
+			Object correlationId = replyMessage.getHeaders().getCorrelationId();
+			if (correlationId == null) {
+				replyMessage = MessageBuilder.fromMessage(replyMessage)
+						.setHeader(MessageHeaders.CORRELATION_ID, message.getId()).build();
 			}
-			this.replyHandler.handle(replyMessage, message.getHeader());
+			this.replyHandler.handle(replyMessage, message);
 		}
 		return null;
 	}
@@ -131,14 +134,17 @@ public class HandlerEndpoint extends AbstractEndpoint {
 
 	private class EndpointReplyHandler implements ReplyHandler {
 
-		public void handle(Message<?> replyMessage, MessageHeader originalMessageHeader) {
+		public void handle(Message<?> replyMessage, Message<?> originalMessage) {
 			if (replyMessage == null) {
 				return;
 			}
-			MessageChannel replyChannel = resolveReplyChannel(originalMessageHeader);
+			MessageChannel replyChannel = resolveReplyChannel(replyMessage);
 			if (replyChannel == null) {
-				throw new MessageHandlingException(replyMessage, "Unable to determine reply channel for message. " +
-						"Provide an 'outputChannelName' on the message endpoint or a 'returnAddress' in the message header");
+				replyChannel = resolveReplyChannel(originalMessage);
+				if (replyChannel == null) {
+					throw new MessageHandlingException(replyMessage, "Unable to determine reply channel for message. " +
+							"Provide an 'outputChannelName' on the message endpoint or a 'returnAddress' in the message header");
+				}
 			}
 			if (logger.isDebugEnabled()) {
 				logger.debug("endpoint '" + HandlerEndpoint.this + "' replying to channel '" + replyChannel + "' with message: " + replyMessage);

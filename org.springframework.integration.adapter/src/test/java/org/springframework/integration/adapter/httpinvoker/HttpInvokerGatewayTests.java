@@ -64,7 +64,7 @@ public class HttpInvokerGatewayTests {
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
 			public void run() {
 				Message<?> message = channel.receive();
-				MessageChannel replyChannel = (MessageChannel) message.getHeader().getReturnAddress();
+				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReturnAddress();
 				replyChannel.send(new StringMessage(message.getPayload().toString().toUpperCase()));
 			}
 		});

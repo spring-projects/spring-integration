@@ -36,6 +36,7 @@ import org.springframework.integration.handler.annotation.HeaderAttribute;
 import org.springframework.integration.handler.annotation.HeaderProperty;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -59,7 +60,7 @@ public class RouterMessageHandlerAdapterTests {
 	}
 
 	private void doTestChannelNameResolutionByPayload(RouterMessageHandlerAdapter adapter) {
-		Message<String> message = new GenericMessage<String>("123", "bar");
+		Message<String> message = new GenericMessage<String>("bar");
 		QueueChannel barChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("bar-channel", barChannel);
@@ -72,12 +73,12 @@ public class RouterMessageHandlerAdapterTests {
 	}
 
 	@Test
-	public void testChannelNameResolutionByProperty() throws Exception {
+	public void testChannelNameResolutionByHeader() throws Exception {
 		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routeByProperty", String.class);
 		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
-		Message<String> message = new GenericMessage<String>("123", "bar");
-		message.getHeader().setProperty("returnAddress", "baz");
+		Message<String> message = MessageBuilder.fromPayload("bar")
+				.setHeader("returnAddress", "baz").build();
 		QueueChannel barChannel = new QueueChannel();
 		QueueChannel bazChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
@@ -93,40 +94,13 @@ public class RouterMessageHandlerAdapterTests {
 		assertEquals("bar", message2.getPayload());
 	}
 
-	@Test
-	public void testChannelNameResolutionByAttribute() throws Exception {
-		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
-		Method routingMethod = testBean.getClass().getMethod("routeByAttribute", String.class);
-		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
-		Message<String> message = new GenericMessage<String>("123", "bar");
-		message.getHeader().setProperty("returnAddress", "bad");
-		message.getHeader().setAttribute("returnAddress", "baz");
-		QueueChannel barChannel = new QueueChannel();
-		QueueChannel badChannel = new QueueChannel();
-		QueueChannel bazChannel = new QueueChannel();
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		channelRegistry.registerChannel("bar-channel", barChannel);
-		channelRegistry.registerChannel("bad-channel", badChannel);
-		channelRegistry.registerChannel("baz-channel", bazChannel);
-		adapter.setChannelRegistry(channelRegistry);
-		adapter.afterPropertiesSet();
-		adapter.handle(message);
-		Message<?> message1 = barChannel.receive(0);
-		assertNull(message1);
-		Message<?> message2 = badChannel.receive(0);
-		assertNull(message2);
-		Message<?> message3 = bazChannel.receive(0);
-		assertNotNull(message3);
-		assertEquals("bar", message3.getPayload());
-	}
-
 	@Test(expected=ConfigurationException.class)
 	public void testFailsWhenPropertyAndAttributeAreBothProvided() throws Exception {
 		InvalidRoutingTestBean testBean = new InvalidRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("tooManyAnnotations", String.class);
 		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
 		adapter.afterPropertiesSet();
-		adapter.handle(new GenericMessage<String>("123", "testing"));
+		adapter.handle(new GenericMessage<String>("testing"));
 	}
 
 	@Test

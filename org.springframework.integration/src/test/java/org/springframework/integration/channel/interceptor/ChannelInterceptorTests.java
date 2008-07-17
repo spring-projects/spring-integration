@@ -30,6 +30,7 @@ import org.junit.Test;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -47,15 +48,16 @@ public class ChannelInterceptorTests {
 		Message<?> result = channel.receive(0);
 		assertNotNull(result);
 		assertEquals("test", result.getPayload());
-		assertEquals(1, result.getHeader().getAttribute(PreSendReturnsMessageInterceptor.class.getName()));
+		assertEquals(1, result.getHeaders().get(PreSendReturnsMessageInterceptor.class.getName()));
 	}
 
 	@Test
 	public void testPreSendInterceptorReturnsNull() {
-		channel.addInterceptor(new PreSendReturnsNullInterceptor());
+		PreSendReturnsNullInterceptor interceptor = new PreSendReturnsNullInterceptor();
+		channel.addInterceptor(interceptor);
 		Message<?> message = new StringMessage("test");
 		channel.send(message);
-		assertEquals(1, message.getHeader().getAttribute(PreSendReturnsNullInterceptor.class.getName()));
+		assertEquals(1, interceptor.getCount());
 		Message<?> result = channel.receive(0);
 		assertNull(result);
 	}
@@ -158,8 +160,9 @@ public class ChannelInterceptorTests {
 		@Override
 		public Message<?> preSend(Message<?> message, MessageChannel channel) {
 			assertNotNull(message);
-			message.getHeader().setAttribute(this.getClass().getName(), counter.incrementAndGet());
-			return message;
+			Message<?> reply = MessageBuilder.fromMessage(message)
+					.setHeader(this.getClass().getName(), counter.incrementAndGet()).build();
+			return reply;
 		}
 	}
 
@@ -168,10 +171,14 @@ public class ChannelInterceptorTests {
 
 		private static AtomicInteger counter = new AtomicInteger();
 
+		protected int getCount() {
+			return counter.get();
+		}
+
 		@Override
 		public Message<?> preSend(Message<?> message, MessageChannel channel) {
 			assertNotNull(message);
-			message.getHeader().setAttribute(this.getClass().getName(), counter.incrementAndGet());
+			counter.incrementAndGet();
 			return null;
 		}
 	}

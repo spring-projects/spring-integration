@@ -21,7 +21,7 @@ import java.util.Comparator;
 import org.springframework.integration.message.Message;
 
 /**
- * A {@link Comparator} implementation based on the '<code>sequenceNumber</code>'
+ * A {@link Comparator} implementation based on the 'sequence number'
  * property of a {@link Message Message's} header.
  * 
  * @author Mark Fisher
@@ -29,9 +29,15 @@ import org.springframework.integration.message.Message;
 public class MessageSequenceComparator implements Comparator<Message<?>> {
 
 	public int compare(Message<?> message1, Message<?> message2) {
-		int s1 = message1.getHeader().getSequenceNumber();
-		int s2 = message2.getHeader().getSequenceNumber();
-		return (s1 < s2) ? -1 : (s1 == s2) ? 0 : 1;
+		Integer s1 = message1.getHeaders().getSequenceNumber();
+		Integer s2 = message2.getHeaders().getSequenceNumber();
+		if (s1 == null) {
+			s1 = 0;
+		}
+		if (s2 == null) {
+			s2 = 0;
+		}
+		return s1.compareTo(s2);
 	}
 
 }

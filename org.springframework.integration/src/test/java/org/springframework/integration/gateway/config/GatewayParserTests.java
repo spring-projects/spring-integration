@@ -27,6 +27,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.gateway.TestService;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -92,8 +93,8 @@ public class GatewayParserTests {
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
 			public void run() {
 				Message<?> request = requestChannel.receive();
-				Message<?> reply = new StringMessage(request.getPayload() + "bar");
-				reply.getHeader().setCorrelationId(request.getId());
+				Message<String> reply = MessageBuilder.fromPayload(request.getPayload() + "bar")
+						.setCorrelationId(request.getId()).build();
 				replyChannel.send(reply);
 			}
 		});

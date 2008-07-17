@@ -25,8 +25,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.util.Assert;
 
@@ -100,8 +100,9 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle {
 	@Override
 	public Message<?> preSend(Message<?> message, MessageChannel channel) {
 		if (this.running && this.selectorsAccept(message)) {
-			Message<?> duplicate = new GenericMessage<Object>(message.getPayload(), message.getHeader());
-			duplicate.getHeader().setAttribute(ORIGINAL_MESSAGE_ID_KEY, message.getId());
+			Message<?> duplicate = MessageBuilder.fromMessage(message)
+					.setHeader(ORIGINAL_MESSAGE_ID_KEY, message.getId())
+					.build();
 			if (!this.secondaryChannel.send(duplicate, 0)) {
 				if (logger.isWarnEnabled()) {
 					logger.warn("Failed to send message to secondary channel '" + this.secondaryChannel.getName()

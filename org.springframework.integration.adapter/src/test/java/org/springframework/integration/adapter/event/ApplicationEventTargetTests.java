@@ -52,7 +52,7 @@ public class ApplicationEventTargetTests {
 		bus.registerTarget("adapter", adapter, channel, null);
 		bus.start();
 		assertEquals(1, latch.getCount());
-		channel.send(new StringMessage("123", "testing"));
+		channel.send(new StringMessage("testing"));
 		assertEquals(0, latch.getCount());
 		bus.stop();
 	}

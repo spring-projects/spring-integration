@@ -30,6 +30,7 @@ import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.StringMessage;
@@ -59,8 +60,8 @@ public class AnnotationMethodMessageMapperTests {
 	public void testRequiredAttributeProvided() throws Exception {
 		Method method = TestHandler.class.getMethod("requiredAttribute", Integer.class);
 		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
-		Message<?> message = new StringMessage("foo");
-		message.getHeader().setAttribute("num", new Integer(123));
+		Message<String> message = MessageBuilder.fromPayload("foo")
+				.setHeader("num", new Integer(123)).build(); 
 		Object[] args = (Object[]) mapper.mapMessage(message);
 		assertEquals(1, args.length);
 		assertEquals(new Integer(123), args[0]);
@@ -86,8 +87,8 @@ public class AnnotationMethodMessageMapperTests {
 	public void testRequiredPropertyProvided() throws Exception {
 		Method method = TestHandler.class.getMethod("requiredProperty", String.class);
 		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
-		Message<?> message = new StringMessage("foo");
-		message.getHeader().setProperty("prop", "bar");
+		Message<String> message = MessageBuilder.fromPayload("foo")
+				.setHeader("prop", "bar").build();
 		Object[] args = (Object[]) mapper.mapMessage(message);
 		assertEquals(1, args.length);
 		assertEquals("bar", args[0]);
@@ -97,9 +98,8 @@ public class AnnotationMethodMessageMapperTests {
 	public void testPropertiesMethodWithNonPropertiesPayload() throws Exception {
 		Method method = TestHandler.class.getMethod("propertiesMethod", Properties.class);
 		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
-		Message<?> message = new StringMessage("test");
-		message.getHeader().setProperty("prop1", "foo");
-		message.getHeader().setProperty("prop2", "bar");
+		Message<String> message = MessageBuilder.fromPayload("test")
+				.setHeader("prop1", "foo").setHeader("prop2", "bar").build();
 		Object[] args = (Object[]) mapper.mapMessage(message);
 		Properties result = (Properties) args[0];
 		assertEquals(2, result.size());
@@ -114,9 +114,8 @@ public class AnnotationMethodMessageMapperTests {
 		Properties payload = new Properties();
 		payload.setProperty("prop1", "foo");
 		payload.setProperty("prop2", "bar");
-		Message<?> message = new GenericMessage<Properties>(payload);
-		message.getHeader().setProperty("prop1", "not");
-		message.getHeader().setProperty("prop2", "these");
+		Message<Properties> message = MessageBuilder.fromPayload(payload)
+				.setHeader("prop1", "not").setHeader("prop2", "these").build();
 		Object[] args = (Object[]) mapper.mapMessage(message);
 		Properties result = (Properties) args[0];
 		assertEquals(2, result.size());
@@ -129,12 +128,11 @@ public class AnnotationMethodMessageMapperTests {
 	public void testMapMethodWithNonMapPayload() throws Exception {
 		Method method = TestHandler.class.getMethod("mapMethod", Map.class);
 		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
-		Message<?> message = new StringMessage("test");
-		message.getHeader().setAttribute("attrib1", new Integer(123));
-		message.getHeader().setAttribute("attrib2", new Integer(456));
+		Message<String> message = MessageBuilder.fromPayload("test")
+				.setHeader("attrib1", new Integer(123))
+				.setHeader("attrib2", new Integer(456)).build();
 		Object[] args = (Object[]) mapper.mapMessage(message);
-		Map<String, Integer> result = (HashMap<String, Integer>) args[0];
-		assertEquals(2, result.size());
+		Map<String, Object> result = (Map<String, Object>) args[0];
 		assertEquals(new Integer(123), result.get("attrib1"));
 		assertEquals(new Integer(456), result.get("attrib2"));
 	}
@@ -147,9 +145,9 @@ public class AnnotationMethodMessageMapperTests {
 		Map<String, Integer> payload = new HashMap<String, Integer>();
 		payload.put("attrib1", new Integer(123));
 		payload.put("attrib2", new Integer(456));
-		Message<?> message = new GenericMessage<Map>(payload);
-		message.getHeader().setAttribute("attrib1", "not");
-		message.getHeader().setProperty("attrib2", "these");
+		Message<Map<String, Integer>> message = MessageBuilder.fromPayload(payload)
+				.setHeader("attrib1", new Integer(123))
+				.setHeader("attrib2", new Integer(456)).build();
 		Object[] args = (Object[]) mapper.mapMessage(message);
 		Map<String, Integer> result = (Map<String, Integer>) args[0];
 		assertEquals(2, result.size());
@@ -218,8 +216,8 @@ public class AnnotationMethodMessageMapperTests {
 		adapter.setObject(handler);
 		adapter.setMethod(method);
 		adapter.setMessageMapper(mapper);
-		Message<?> message = new StringMessage("foo");
-		message.getHeader().setAttribute("number", 42);
+		Message<String> message = MessageBuilder.fromPayload("foo")
+				.setHeader("number", 42).build();
 		Message<?> result = adapter.handle(message);
 		assertEquals("foo-42", result.getPayload());
 	}
@@ -233,9 +231,9 @@ public class AnnotationMethodMessageMapperTests {
 		adapter.setObject(handler);
 		adapter.setMethod(method);
 		adapter.setMessageMapper(mapper);
-		Message<?> message = new StringMessage("foo");
-		message.getHeader().setProperty("prop", "bar");
-		message.getHeader().setAttribute("number", 42);
+		Message<String> message = MessageBuilder.fromPayload("foo")
+				.setHeader("prop", "bar")
+				.setHeader("number", 42).build();
 		Message<?> result = adapter.handle(message);
 		assertEquals("bar-42", result.getPayload());
 	}

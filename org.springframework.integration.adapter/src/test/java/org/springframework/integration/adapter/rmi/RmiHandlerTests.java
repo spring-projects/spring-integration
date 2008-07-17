@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.remoting.RemoteLookupFailureException;
@@ -50,6 +51,7 @@ public class RmiHandlerTests {
 		exporter.afterPropertiesSet();
 	}
 
+
 	@Test
 	public void testSerializablePayload() throws RemoteException {
 		Message<?> replyMessage = handler.handle(new StringMessage("test"));
@@ -59,20 +61,11 @@ public class RmiHandlerTests {
 
 	@Test
 	public void testSerializableAttribute() throws RemoteException {
-		Message<?> requestMessage = new StringMessage("test");
-		requestMessage.getHeader().setAttribute("testAttribute", "foo");
+		Message<String> requestMessage = MessageBuilder.fromPayload("test")
+				.setHeader("testAttribute", "foo").build();
 		Message<?> replyMessage = handler.handle(requestMessage);
 		assertNotNull(replyMessage);
-		assertEquals("foo", replyMessage.getHeader().getAttribute("testAttribute"));
-	}
-
-	@Test
-	public void testProperty() throws RemoteException {
-		Message<?> requestMessage = new StringMessage("test");
-		requestMessage.getHeader().setProperty("testProperty", "bar");
-		Message<?> replyMessage = handler.handle(requestMessage);
-		assertNotNull(replyMessage);
-		assertEquals("bar", replyMessage.getHeader().getProperty("testProperty"));
+		assertEquals("foo", replyMessage.getHeaders().get("testAttribute"));
 	}
 
 	@Test(expected=MessageHandlingException.class)
@@ -84,8 +77,8 @@ public class RmiHandlerTests {
 
 	@Test(expected=MessageHandlingException.class)
 	public void testNonSerializableAttribute() throws RemoteException {
-		Message<?> requestMessage = new StringMessage("test");
-		requestMessage.getHeader().setAttribute("testAttribute", new NonSerializableTestObject());
+		Message<String> requestMessage = MessageBuilder.fromPayload("test")
+				.setHeader("testAttribute", new NonSerializableTestObject()).build();
 		handler.handle(requestMessage);
 	}
 
@@ -135,7 +128,7 @@ public class RmiHandlerTests {
 	private static class TestHandler implements MessageHandler {
 
 		public Message<?> handle(Message<?> message) {
-			return new GenericMessage<String>(message.getPayload().toString().toUpperCase(), message.getHeader());
+			return new GenericMessage<String>(message.getPayload().toString().toUpperCase(), message.getHeaders());
 		}
 	}
 

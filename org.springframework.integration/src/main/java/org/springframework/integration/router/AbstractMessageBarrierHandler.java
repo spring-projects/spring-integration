@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.router;
 
 import java.util.List;
@@ -168,7 +169,7 @@ public abstract class AbstractMessageBarrierHandler implements MessageHandler, I
 		if (!this.initialized) {
 			this.afterPropertiesSet();
 		}
-		Object correlationId = message.getHeader().getCorrelationId();
+		Object correlationId = message.getHeaders().getCorrelationId();
 		if (correlationId == null) {
 			throw new MessageHandlingException(message,
 					this.getClass().getSimpleName() + " requires the 'correlationId' property");
@@ -226,7 +227,7 @@ public abstract class AbstractMessageBarrierHandler implements MessageHandler, I
 	}
 
 	protected MessageChannel resolveReplyChannelFromMessage(Message<?> message) {
-		Object returnAddress = message.getHeader().getReturnAddress();
+		Object returnAddress = message.getHeaders().getReturnAddress();
 		if (returnAddress != null) {
 			if (returnAddress instanceof MessageChannel) {
 				return (MessageChannel) returnAddress;
