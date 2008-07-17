@@ -74,7 +74,7 @@ public class XmlPayloadMarshallingTransformer implements MessageTransformer {
 		if (transformedPayload == null) {
 			throw new MessageHandlingException(message, "failed to transform payload");
 		}
-		return new GenericMessage(transformedPayload, message.getHeader());
+		return new GenericMessage(transformedPayload, message.getHeaders());
 	}
 
 }

@@ -77,7 +77,7 @@ public class XsltPayloadTransformer implements MessageTransformer {
 	protected Message<Result> transformSource(Message message, Source source) throws TransformerException {
 		Result result = resultFactory.getNewResult(message);
 		this.templates.newTransformer().transform(source, result);
-		return new GenericMessage<Result>(result, message.getHeader());
+		return new GenericMessage<Result>(result, message.getHeaders());
 	}
 
 	public void setSourceFactory(SourceFactory sourceFactory) {

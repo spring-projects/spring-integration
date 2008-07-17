@@ -69,7 +69,7 @@ public class XmlPayloadUnmarshallingTransformer implements MessageTransformer {
 
 		try {
 			Object unmarshalled = this.unmarshaller.unmarshal(source);
-			return new GenericMessage(unmarshalled, message.getHeader());
+			return new GenericMessage(unmarshalled, message.getHeaders());
 		}
 		catch (IOException e) {
 			throw new MessagingException(message, "Failed to unamrshal payload", e);

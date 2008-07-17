@@ -66,7 +66,7 @@ public class ResultToDocumentTransformer implements MessageTransformer {
 			throw new MessagingException(message, "Failed to create document from payload type ["
 					+ message.getPayload().getClass().getName() + "]");
 		}
-		return new GenericMessage<Document>(doc, message.getHeader());
+		return new GenericMessage<Document>(doc, message.getHeaders());
 	}
 
 	@SuppressWarnings("unchecked")

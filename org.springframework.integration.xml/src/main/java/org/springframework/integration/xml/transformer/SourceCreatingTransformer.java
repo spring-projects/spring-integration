@@ -45,7 +45,7 @@ public class SourceCreatingTransformer implements MessageTransformer {
 
 	public Message<?> transform(Message<?> message) {
 		Source source = this.sourceFactory.getSourceForMessage(message);
-		return new GenericMessage<Source>(source, message.getHeader());
+		return new GenericMessage<Source>(source, message.getHeaders());
 	}
 
 }
