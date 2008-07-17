@@ -20,6 +20,11 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
 import org.w3c.dom.Node;
 
+/**
+ * 
+ * @author Jonas Partner
+ * 
+ */
 public class AbstractXPathChannelNameResolver {
 
 	protected Node extractNode(Message<?> message) {

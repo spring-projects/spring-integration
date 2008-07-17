@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:si-xml="http://www.springframework.org/schema/integration-xml"
+	xmlns:si="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration-xml http://www.springframework.org/schema/integration/spring-integration-xml-1.0.xsd
+		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
+
+
+	<bean id="messageChannel"
+		class="org.springframework.integration.channel.QueueChannel" />
+	<si:message-bus error-channel="errors" />
+
+	<si:channel id="inputOne" />
+	<si:channel id="inputTwo" />
+
+
+	<si:channel id="outputOne" />
+	<si:channel id="outputTwo" />
+
+	<si:channel id="errors" />
+
+	<si-xml:xpath-router id="routerOne"
+		xpath-expression-ref="xpathExpression" />
+	<si:service-activator ref="routerOne" input-channel="inputOne" />
+
+	<si-xml:xpath-router id="routerTwo"
+		xpath-expression-ref="xpathExpressionMulti" multi-channel="true" />
+	<si:service-activator ref="routerTwo" input-channel="inputTwo" />
+
+
+	<bean id="xpathExpression"
+		class="org.springframework.xml.xpath.XPathExpressionFactoryBean">
+		<property name="expression" value="/name" />
+	</bean>
+
+	<bean id="xpathExpressionMulti"
+		class="org.springframework.xml.xpath.XPathExpressionFactoryBean">
+		<property name="expression" value="//name" />
+	</bean>
+
+</beans>

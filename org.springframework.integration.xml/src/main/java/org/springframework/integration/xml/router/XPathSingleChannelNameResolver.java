@@ -17,27 +17,29 @@
 package org.springframework.integration.xml.router;
 
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.router.ChannelNameResolver;
 import org.springframework.util.Assert;
 import org.springframework.xml.xpath.XPathExpression;
 import org.w3c.dom.Node;
 
+/**
+ * 
+ * @author Jonas Partner
+ * 
+ */
 public class XPathSingleChannelNameResolver extends AbstractXPathChannelNameResolver implements ChannelNameResolver {
 
 	private final XPathExpression xPathExpression;
-	
-	
-	public XPathSingleChannelNameResolver(XPathExpression xPathExpression){
-		Assert.notNull("XPAthExpression must be provided");
+
+	public XPathSingleChannelNameResolver(XPathExpression xPathExpression) {
+		Assert.notNull("XPathExpression must be provided");
 		this.xPathExpression = xPathExpression;
 	}
 
-
 	public String resolve(Message<?> message) {
 		Node node = extractNode(message);
+		System.out.println(xPathExpression.evaluateAsString(node));
 		return xPathExpression.evaluateAsString(node);
 	}
-	
-	
+
 }

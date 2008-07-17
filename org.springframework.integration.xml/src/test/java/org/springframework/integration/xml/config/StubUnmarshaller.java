@@ -24,6 +24,11 @@ import javax.xml.transform.Source;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.oxm.XmlMappingException;
 
+/**
+ * 
+ * @author Jonas Partner
+ *
+ */
 public class StubUnmarshaller implements Unmarshaller {
 
 	public LinkedList<Source> sourcesPassed = new LinkedList<Source>();

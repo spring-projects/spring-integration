@@ -26,36 +26,40 @@ import org.springframework.xml.xpath.XPathExpression;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Node;
 
+/**
+ * 
+ * @author Jonas Partner
+ * 
+ */
 public class XPathMultiChannelNameResolver extends AbstractXPathChannelNameResolver implements MultiChannelNameResolver {
 
 	private final XPathExpression xPathExpression;
-	
+
 	private NodeMapper nodeMapper = new TextContentNodeMapper();
-	
-	public XPathMultiChannelNameResolver(XPathExpression xPathExpression){
+
+	public XPathMultiChannelNameResolver(XPathExpression xPathExpression) {
 		Assert.notNull("XPAthExpression must be provided");
 		this.xPathExpression = xPathExpression;
 	}
-	
-	public void setNodeMapper(NodeMapper nodeMapper){
-		Assert.notNull(nodeMapper,"NodeMapper can not be null");
+
+	public void setNodeMapper(NodeMapper nodeMapper) {
+		Assert.notNull(nodeMapper, "NodeMapper can not be null");
 		this.nodeMapper = nodeMapper;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public String[] resolve(Message<?> message) {
-		Node node =extractNode(message);
+		Node node = extractNode(message);
 		List channelNamesList = xPathExpression.evaluate(node, nodeMapper);
-		return (String[])channelNamesList.toArray(new String[channelNamesList.size()]);
+		return (String[]) channelNamesList.toArray(new String[channelNamesList.size()]);
 	}
-	
-	private static class TextContentNodeMapper implements NodeMapper{
+
+	private static class TextContentNodeMapper implements NodeMapper {
 
 		public Object mapNode(Node node, int nodeNum) throws DOMException {
 			return node.getTextContent();
 		}
-		
+
 	}
-	
 
 }

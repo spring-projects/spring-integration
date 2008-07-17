@@ -28,26 +28,28 @@ import org.springframework.xml.xpath.XPathExpression;
 import org.springframework.xml.xpath.XPathExpressionFactory;
 import org.w3c.dom.Document;
 
+/**
+ * 
+ * @author Jonas Partner
+ *
+ */
 public class XPathSingleChannelNameResolverTests {
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testSimpleDocType() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<doc type=\"one\" />");
 		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/doc/@type");
 		XPathSingleChannelNameResolver resolver = new XPathSingleChannelNameResolver(expression);
 		String channelName = resolver.resolve(new GenericMessage(doc));
-		assertEquals("Wrong channel name","one",channelName);
+		assertEquals("Wrong channel name", "one", channelName);
 	}
 
-	
-	@Test(expected=MessagingException.class)
+	@Test(expected = MessagingException.class)
 	public void testNonNodePayload() throws Exception {
 		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/doc/@type");
 		XPathSingleChannelNameResolver resolver = new XPathSingleChannelNameResolver(expression);
 		resolver.resolve(new StringMessage("test"));
 	}
 
-	
-	
-	
 }

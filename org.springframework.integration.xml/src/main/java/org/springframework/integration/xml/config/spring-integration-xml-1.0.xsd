@@ -38,7 +38,7 @@
 			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
-	
+
 	<xsd:element name="unmarshalling-transformer">
 		<xsd:complexType>
 			<xsd:annotation>
@@ -51,22 +51,46 @@
 				use="required" />
 		</xsd:complexType>
 	</xsd:element>
-	
-	
-		<xsd:element name="xslt-transformer">
+
+
+	<xsd:element name="xslt-transformer">
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-					Defines a XML unmarshalling transformer.
+					Defines a XML XSLT transformer.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:attribute name="id" type="xsd:string" use="required" />
-			<xsd:attribute name="xsl-resource" type="xsd:string" use="optional" />
-			<xsd:attribute name="xsl-templates" type="xsd:string" use="optional" />
-			<xsd:attribute name="source-factory" type="xsd:string" use="optional" />
-			<xsd:attribute name="result-factory" type="xsd:string" use="optional" />
+			<xsd:attribute name="xsl-resource" type="xsd:string"
+				use="optional" />
+			<xsd:attribute name="xsl-templates" type="xsd:string"
+				use="optional" />
+			<xsd:attribute name="source-factory" type="xsd:string"
+				use="optional" />
+			<xsd:attribute name="result-factory" type="xsd:string"
+				use="optional" />
 		</xsd:complexType>
 	</xsd:element>
-	
+
+
+	<xsd:element name="xpath-router">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+					Defines a XPath router.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="id" type="xsd:string" use="required" />
+			<xsd:attribute name="xpath-expression-ref" type="xsd:string"
+				use="optional" />
+			<xsd:attribute name="xpath-expression" type="xsd:string"
+				use="optional" />
+			<xsd:attribute name="multi-channel" type="xsd:boolean"
+				default="false" />
+			<xsd:attribute name="resolution-required" type="xsd:boolean"
+				default="true" />
+		</xsd:complexType>
+	</xsd:element>
+
 
 </xsd:schema>

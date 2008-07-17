@@ -26,6 +26,11 @@ import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.XmlMappingException;
 import org.springframework.xml.transform.StringSource;
 
+/**
+ * 
+ * @author Jonas Partner
+ *
+ */
 public class StubMarshaller implements Marshaller {
 
 	public void marshal(Object graph, Result result) throws XmlMappingException, IOException {
