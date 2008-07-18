@@ -24,7 +24,6 @@ import javax.jms.Session;
 import org.springframework.integration.adapter.MessageHeaderMapper;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessageHeaders;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.jms.support.converter.MessageConversionException;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -56,7 +55,7 @@ public class HeaderMappingMessageConverter implements MessageConverter {
 	public Object fromMessage(javax.jms.Message jmsMessage) throws JMSException, MessageConversionException {
 		Object payload = this.converter.fromMessage(jmsMessage);
 		Map<String, Object> headerMap = this.headerMapper.mapToMessageHeaders(jmsMessage); 
-		Message<?> message = MessageBuilder.fromPayload(payload).copyHeaders(new MessageHeaders(headerMap)).build();
+		Message<?> message = MessageBuilder.fromPayload(payload).copyHeaders(headerMap).build();
 		return message;
 	}
 
