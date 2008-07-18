@@ -26,17 +26,16 @@ import java.util.List;
 
 import org.junit.Test;
 
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.handler.annotation.HeaderAttribute;
-import org.springframework.integration.handler.annotation.HeaderProperty;
+import org.springframework.integration.handler.annotation.Header;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -75,7 +74,7 @@ public class RouterMessageHandlerAdapterTests {
 	@Test
 	public void testChannelNameResolutionByHeader() throws Exception {
 		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
-		Method routingMethod = testBean.getClass().getMethod("routeByProperty", String.class);
+		Method routingMethod = testBean.getClass().getMethod("routeByHeader", String.class);
 		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
 		Message<String> message = MessageBuilder.fromPayload("bar")
 				.setHeader("returnAddress", "baz").build();
@@ -94,10 +93,10 @@ public class RouterMessageHandlerAdapterTests {
 		assertEquals("bar", message2.getPayload());
 	}
 
-	@Test(expected=ConfigurationException.class)
-	public void testFailsWhenPropertyAndAttributeAreBothProvided() throws Exception {
-		InvalidRoutingTestBean testBean = new InvalidRoutingTestBean();
-		Method routingMethod = testBean.getClass().getMethod("tooManyAnnotations", String.class);
+	@Test(expected=MessageHandlingException.class)
+	public void testFailsWhenRequireddHeaderIsNotProvided() throws Exception {
+		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
+		Method routingMethod = testBean.getClass().getMethod("routeByHeader", String.class);
 		RouterMessageHandlerAdapter adapter = new RouterMessageHandlerAdapter(testBean, routingMethod);
 		adapter.afterPropertiesSet();
 		adapter.handle(new GenericMessage<String>("testing"));
@@ -542,11 +541,7 @@ public class RouterMessageHandlerAdapterTests {
 			return name + "-channel";
 		}
 
-		public String routeByProperty(@HeaderProperty("returnAddress") String name) {
-			return name + "-channel";
-		}
-
-		public String routeByAttribute(@HeaderAttribute("returnAddress") String name) {
+		public String routeByHeader(@Header("returnAddress") String name) {
 			return name + "-channel";
 		}
 
@@ -671,14 +666,6 @@ public class RouterMessageHandlerAdapterTests {
 		public MessageChannel route(String channelName) {
 			return this.channelRegistry.lookupChannel(channelName);
 		}
-	}
-
-	public static class InvalidRoutingTestBean {
-
-		public String tooManyAnnotations(@HeaderProperty("foo") @HeaderAttribute("bar") String name) {
-			return name + "-channel";
-		}
-
 	}
 
 }

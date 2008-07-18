@@ -41,8 +41,8 @@ import org.springframework.integration.message.StringMessage;
 public class AnnotationMethodMessageMapperTests {
 
 	@Test
-	public void testOptionalAttribute() throws Exception {
-		Method method = TestHandler.class.getMethod("optionalAttribute", Integer.class);
+	public void testOptionalHeader() throws Exception {
+		Method method = TestHandler.class.getMethod("optionalHeader", Integer.class);
 		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
 		Object[] args = (Object[]) mapper.mapMessage(new StringMessage("foo"));
 		assertEquals(1, args.length);
@@ -50,15 +50,15 @@ public class AnnotationMethodMessageMapperTests {
 	}
 
 	@Test(expected=MessageHandlingException.class)
-	public void testRequiredAttributeNotProvided() throws Exception {
-		Method method = TestHandler.class.getMethod("requiredAttribute", Integer.class);
+	public void testRequiredHeaderNotProvided() throws Exception {
+		Method method = TestHandler.class.getMethod("requiredHeader", Integer.class);
 		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
 		mapper.mapMessage(new StringMessage("foo"));
 	}
 
 	@Test
-	public void testRequiredAttributeProvided() throws Exception {
-		Method method = TestHandler.class.getMethod("requiredAttribute", Integer.class);
+	public void testRequiredHeaderProvided() throws Exception {
+		Method method = TestHandler.class.getMethod("requiredHeader", Integer.class);
 		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
 		Message<String> message = MessageBuilder.fromPayload("foo")
 				.setHeader("num", new Integer(123)).build(); 
@@ -67,31 +67,39 @@ public class AnnotationMethodMessageMapperTests {
 		assertEquals(new Integer(123), args[0]);
 	}
 
-	@Test
-	public void testOptionalProperty() throws Exception {
-		Method method = TestHandler.class.getMethod("optionalProperty", String.class);
-		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
-		Object[] args = (Object[]) mapper.mapMessage(new StringMessage("foo"));
-		assertEquals(1, args.length);
-		assertNull(args[0]);
-	}
-
 	@Test(expected=MessageHandlingException.class)
-	public void testRequiredPropertyNotProvided() throws Exception {
-		Method method = TestHandler.class.getMethod("requiredProperty", String.class);
-		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
-		mapper.mapMessage(new StringMessage("foo"));
-	}
-
-	@Test
-	public void testRequiredPropertyProvided() throws Exception {
-		Method method = TestHandler.class.getMethod("requiredProperty", String.class);
+	public void testOptionalAndRequiredHeaderWithOnlyOptionalHeaderProvided() throws Exception {
+		Method method = TestHandler.class.getMethod("optionalAndRequiredHeader", String.class, Integer.class);
 		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
 		Message<String> message = MessageBuilder.fromPayload("foo")
-				.setHeader("prop", "bar").build();
+				.setHeader("prop", "bar").build(); 
+		mapper.mapMessage(message);
+	}
+
+	@Test
+	public void testOptionalAndRequiredHeaderWithOnlyRequiredHeaderProvided() throws Exception {
+		Method method = TestHandler.class.getMethod("optionalAndRequiredHeader", String.class, Integer.class);
+		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
+		Message<String> message = MessageBuilder.fromPayload("foo")
+				.setHeader("num", new Integer(123)).build(); 
 		Object[] args = (Object[]) mapper.mapMessage(message);
-		assertEquals(1, args.length);
+		assertEquals(2, args.length);
+		assertNull(args[0]);
+		assertEquals(123, args[1]);
+	}
+
+	@Test
+	public void testOptionalAndRequiredHeaderWithBothHeadersProvided() throws Exception {
+		Method method = TestHandler.class.getMethod("optionalAndRequiredHeader", String.class, Integer.class);
+		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
+		Message<String> message = MessageBuilder.fromPayload("foo")
+				.setHeader("num", new Integer(123))
+				.setHeader("prop", "bar")
+				.build(); 
+		Object[] args = (Object[]) mapper.mapMessage(message);
+		assertEquals(2, args.length);
 		assertEquals("bar", args[0]);
+		assertEquals(123, args[1]);
 	}
 
 	@Test
@@ -210,7 +218,7 @@ public class AnnotationMethodMessageMapperTests {
 	@Test
 	public void testMessageAndHeaderWithAdapter() throws Exception {
 		TestHandler handler = new TestHandler();
-		Method method = handler.getClass().getMethod("messageAndAttribute", Message.class, Integer.class);
+		Method method = handler.getClass().getMethod("messageAndHeader", Message.class, Integer.class);
 		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
 		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
 		adapter.setObject(handler);
@@ -223,9 +231,9 @@ public class AnnotationMethodMessageMapperTests {
 	}
 
 	@Test
-	public void testHeaderAndPropertyWithAdapter() throws Exception {
+	public void testMultipleHeadersWithAdapter() throws Exception {
 		TestHandler handler = new TestHandler();
-		Method method = handler.getClass().getMethod("propertyAndAttribute", String.class, Integer.class);
+		Method method = handler.getClass().getMethod("twoHeaders", String.class, Integer.class);
 		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
 		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
 		adapter.setObject(handler);
@@ -247,33 +255,28 @@ public class AnnotationMethodMessageMapperTests {
 		}
 
 		@Handler
-		public String messageAndAttribute(Message<?> message, @HeaderAttribute("number") Integer num) {
+		public String messageAndHeader(Message<?> message, @Header("number") Integer num) {
 			return (String) message.getPayload() + "-" + num.toString();
 		}
 
 		@Handler
-		public String propertyAndAttribute(@HeaderProperty String prop, @HeaderAttribute("number") Integer num) {
+		public String twoHeaders(@Header String prop, @Header("number") Integer num) {
 			return prop + "-" + num.toString();
 		}
 
 		@Handler
-		public Integer optionalAttribute(@HeaderAttribute(required=false) Integer num) {
+		public Integer optionalHeader(@Header(required=false) Integer num) {
 			return num;
 		}
 
 		@Handler
-		public Integer requiredAttribute(@HeaderAttribute(value="num", required=true) Integer num) {
+		public Integer requiredHeader(@Header(value="num", required=true) Integer num) {
 			return num;
 		}
 
 		@Handler
-		public String optionalProperty(@HeaderProperty(required=false) String prop) {
-			return prop;
-		}
-
-		@Handler
-		public String requiredProperty(@HeaderProperty(value="prop", required=true) String prop) {
-			return prop;
+		public String optionalAndRequiredHeader(@Header(required=false) String prop, @Header(value="num", required=true) Integer num) {
+			return prop + num;
 		}
 
 		@Handler

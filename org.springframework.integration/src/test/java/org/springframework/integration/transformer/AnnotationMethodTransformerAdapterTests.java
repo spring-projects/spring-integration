@@ -25,8 +25,7 @@ import java.util.Properties;
 import org.junit.Test;
 
 import org.springframework.integration.annotation.Transformer;
-import org.springframework.integration.handler.annotation.HeaderAttribute;
-import org.springframework.integration.handler.annotation.HeaderProperty;
+import org.springframework.integration.handler.annotation.Header;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
@@ -72,11 +71,11 @@ public class AnnotationMethodTransformerAdapterTests {
 	}
 
 	@Test
-	public void testHeaderAttributeAnnotation() throws Exception {
+	public void testHeaderAnnotation() throws Exception {
 		TestBean testBean = new TestBean();
 		AnnotationMethodTransformerAdapter adapter = new AnnotationMethodTransformerAdapter();
 		adapter.setObject(testBean);
-		adapter.setMethod(testBean.getClass().getMethod("attributeTest", String.class, Integer.class));
+		adapter.setMethod(testBean.getClass().getMethod("headerTest", String.class, Integer.class));
 		Message<String> message = MessageBuilder.fromPayload("foo")
 				.setHeader("number", 123).build();
 		Message<?> result = adapter.handle(message);
@@ -88,22 +87,21 @@ public class AnnotationMethodTransformerAdapterTests {
 		TestBean testBean = new TestBean();
 		AnnotationMethodTransformerAdapter adapter = new AnnotationMethodTransformerAdapter();
 		adapter.setObject(testBean);
-		adapter.setMethod(testBean.getClass().getMethod("attributeTest", String.class, Integer.class));
+		adapter.setMethod(testBean.getClass().getMethod("headerTest", String.class, Integer.class));
 		Message<String> message = MessageBuilder.fromPayload("foo")
 				.setHeader("wrong", 123).build();
 		adapter.handle(message);
 	}
 
 	@Test
-	public void testHeaderAnnotation() throws Exception {
+	public void testOptionalHeaderAnnotation() throws Exception {
 		TestBean testBean = new TestBean();
 		AnnotationMethodTransformerAdapter adapter = new AnnotationMethodTransformerAdapter();
 		adapter.setObject(testBean);
-		adapter.setMethod(testBean.getClass().getMethod("propertyTest", String.class, String.class));
-		Message<String> message = MessageBuilder.fromPayload("foo")
-				.setHeader("suffix", "bar").build();
+		adapter.setMethod(testBean.getClass().getMethod("optionalHeaderTest", String.class, Integer.class));
+		Message<String> message = MessageBuilder.fromPayload("foo").build();
 		Message<?> result = adapter.handle(message);
-		assertEquals("foobar", result.getPayload());
+		assertEquals("foonull", result.getPayload());
 	}
 
 	@Test
@@ -153,13 +151,13 @@ public class AnnotationMethodTransformerAdapterTests {
 		}
 
 		@Transformer
-		public String attributeTest(String s, @HeaderAttribute("number") Integer num) {
+		public String headerTest(String s, @Header("number") Integer num) {
 			return s + num;
 		}
 
 		@Transformer
-		public String propertyTest(String s, @HeaderProperty("suffix") String suffix) {
-			return s + suffix;
+		public String optionalHeaderTest(String s, @Header(value="number", required=false) Integer num) {
+			return s + num;
 		}
 
 		@Transformer

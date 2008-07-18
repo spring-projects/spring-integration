@@ -24,17 +24,17 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation indicating that a method parameter's value should be
- * retrieved from an attribute in the message header. The value of
- * the annotation provides the attribute key, and the optional
- * 'required' property specifies whether the attribute value must
- * be available within the header.
+ * retrieved from the message headers. The value of the annotation
+ * provides the header name, and the optional 'required' property
+ * specifies whether the attribute value must be available within
+ * the header. The default value for 'required' is <code>true</code>.
  * 
  * @author Mark Fisher
  */
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface HeaderAttribute {
+public @interface Header {
 
 	String value() default "";
 

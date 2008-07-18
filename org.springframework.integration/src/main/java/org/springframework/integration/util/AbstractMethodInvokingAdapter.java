@@ -26,7 +26,7 @@ import org.springframework.core.Ordered;
 import org.springframework.integration.ConfigurationException;
 
 /**
- * An base class for adapters that invoke a specified method and target object.
+ * A base class for adapters that invoke a specified method and target object.
  * Either a {@link Method} reference or a 'methodName' may be provided, but both
  * are not necessary. In fact, while preference is given to a {@link Method}
  * reference if available, an Exception will be thrown if a non-matching
