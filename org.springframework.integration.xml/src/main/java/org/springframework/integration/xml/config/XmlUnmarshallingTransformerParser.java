@@ -18,35 +18,29 @@ package org.springframework.integration.xml.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.transformer.PayloadTransformer;
+import org.springframework.integration.transformer.config.AbstractPayloadTransformerParser;
 import org.springframework.integration.xml.transformer.XmlPayloadUnmarshallingTransformer;
 import org.springframework.util.Assert;
 
 /**
  * @author Jonas Partner
+ * @author Mark Fisher
  */
-public class XmlUnmarshallingTransformerParser extends AbstractSingleBeanDefinitionParser {
+public class XmlUnmarshallingTransformerParser extends AbstractPayloadTransformerParser {
 
 	@Override
-	protected boolean shouldGenerateId() {
-		return false;
+	protected Class<? extends PayloadTransformer<?, ?>> getTransformerClass() {
+		return XmlPayloadUnmarshallingTransformer.class;
 	}
 
 	@Override
-	protected boolean shouldGenerateIdAsFallback() {
-		return true;
-	}
-
-	@Override
-	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+	protected void parsePayloadTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String unmarshaller = element.getAttribute("unmarshaller");
-		Assert.hasText(unmarshaller, "A unmarshaller attribute is required");
-		builder.getBeanDefinition().setBeanClass(XmlPayloadUnmarshallingTransformer.class);
-		builder.getBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(
-				new RuntimeBeanReference(unmarshaller));
+		Assert.hasText(unmarshaller, "the 'unmarshaller' attribute is required");
+		builder.addConstructorArgReference(unmarshaller);
 	}
 
 }

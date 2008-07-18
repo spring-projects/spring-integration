@@ -28,9 +28,9 @@ import org.w3c.dom.Document;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.transformer.MessageTransformer;
 import org.springframework.integration.xml.util.XmlTestUtil;
 
 /**
@@ -38,9 +38,9 @@ import org.springframework.integration.xml.util.XmlTestUtil;
  */
 public class XsltPayloadTransformerParserTests {
 
-	String doc = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>";
+	private String doc = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>";
 
-	ApplicationContext applicationContext;
+	private ApplicationContext applicationContext;
 
 
 	@Before
@@ -51,10 +51,10 @@ public class XsltPayloadTransformerParserTests {
 
 	@Test
 	public void testWithResourceProvided() throws Exception {
-		MessageTransformer messageTransformer = (MessageTransformer) applicationContext
-				.getBean("xsltTransfomerWithResource");
+		MessageHandler messageTransformer = (MessageHandler) applicationContext
+				.getBean("xsltTransformerWithResource");
 		GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
-		Message<?> result = messageTransformer.transform(message);
+		Message<?> result = messageTransformer.handle(message);
 		assertTrue("Payload was not a DOMResult", result.getPayload() instanceof DOMResult);
 		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
 		assertEquals("Wrong payload", "test", doc.getDocumentElement().getTextContent());
@@ -62,10 +62,10 @@ public class XsltPayloadTransformerParserTests {
 
 	@Test
 	public void testWithTemplatesProvided() throws Exception {
-		MessageTransformer messageTransformer = (MessageTransformer) applicationContext
+		MessageHandler messageTransformer = (MessageHandler) applicationContext
 				.getBean("xsltTransformerWithTemplates");
 		GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
-		Message<?> result = messageTransformer.transform(message);
+		Message<?> result = messageTransformer.handle(message);
 		assertTrue("Payload was not a DOMResult", result.getPayload() instanceof DOMResult);
 		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
 		assertEquals("Wrong payload", "test", doc.getDocumentElement().getTextContent());

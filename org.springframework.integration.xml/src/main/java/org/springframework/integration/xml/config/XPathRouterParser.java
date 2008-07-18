@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.xml.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -27,12 +29,9 @@ import org.springframework.integration.xml.router.XPathSingleChannelNameResolver
 import org.springframework.util.StringUtils;
 import org.springframework.xml.xpath.XPathExpression;
 import org.springframework.xml.xpath.XPathExpressionFactory;
-import org.w3c.dom.Element;
 
 /**
- * 
  * @author Jonas Partner
- * 
  */
 public class XPathRouterParser extends AbstractSingleBeanDefinitionParser {
 
@@ -48,14 +47,13 @@ public class XPathRouterParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-
 		boolean multiChannel = Boolean.parseBoolean(element.getAttribute("multi-channel"));
 		boolean resolutionRequired = Boolean.parseBoolean(element.getAttribute("resolution-required"));
 		String xPathExpression = element.getAttribute("xpath-expression");
 		String xPathExpressionRef = element.getAttribute("xpath-expression-ref");
 		if ((StringUtils.hasText(xPathExpression) && StringUtils.hasText(xPathExpressionRef))
 				|| (!StringUtils.hasText(xPathExpression) && !StringUtils.hasText(xPathExpressionRef))) {
-			throw new ConfigurationException("Exactl one of xpath-expression or xpath-expression-ref is required");
+			throw new ConfigurationException("Exactly one of 'xpath-expression' or 'xpath-expression-ref' is required.");
 		}
 
 		BeanDefinitionBuilder resolverDefinitionBuilder = null;
@@ -77,10 +75,8 @@ public class XPathRouterParser extends AbstractSingleBeanDefinitionParser {
 		else {
 			resolverDefinitionBuilder.addConstructorArgReference(xPathExpressionRef);
 		}
-
-		builder.getBeanDefinition().getPropertyValues().addPropertyValue("resolutionRequired", resolutionRequired);
-		builder.getBeanDefinition().getPropertyValues().addPropertyValue("channelNameResolver",
-				resolverDefinitionBuilder.getBeanDefinition());
+		builder.addPropertyValue("resolutionRequired", resolutionRequired);
+		builder.addPropertyValue("channelNameResolver", resolverDefinitionBuilder.getBeanDefinition());
 	}
 
 }

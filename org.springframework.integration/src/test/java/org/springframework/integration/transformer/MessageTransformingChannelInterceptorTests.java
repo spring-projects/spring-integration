@@ -23,6 +23,7 @@ import org.junit.Test;
 
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 
@@ -31,52 +32,53 @@ import org.springframework.integration.message.StringMessage;
  */
 public class MessageTransformingChannelInterceptorTests {
 
-	AbstractMessageChannel channel; 
+	private AbstractMessageChannel channel; 
 
-	StringMessage message;
+	private StringMessage message;
 
-	TestTransformer transfomer;
+	private TestTransformer transformer;
 
-	MessageTransformingChannelInterceptor channelInterceptor;
+	private MessageTransformingChannelInterceptor channelInterceptor;
 
 
 	@Before
-	public void setUp(){
+	public void setUp() {
 		channel = new QueueChannel();
 		message = new StringMessage("test");
-		transfomer = new TestTransformer();
-		channelInterceptor = new MessageTransformingChannelInterceptor(transfomer);
+		transformer = new TestTransformer();
+		channelInterceptor = new MessageTransformingChannelInterceptor(transformer);
 		channel.addInterceptor(channelInterceptor);
 	}
+
 
 	@Test
 	public void testTransformOnReceive() {
 		channelInterceptor.setTransformOnSend(false);
 		channel.send(message);
-		assertFalse("Transfomrer on incorrectly invoked on send", transfomer.invoked);
+		assertFalse("Transformer incorrectly invoked on send", transformer.invoked);
 		Message<?> msg = channel.receive(1);
-		assertEquals("Wrong message",message, msg);
-		assertTrue("Transfomer not invoked on receive", transfomer.invoked);
+		assertEquals("Wrong message", message, msg);
+		assertTrue("Transformer not invoked on receive", transformer.invoked);
 	}
 
 	@Test
 	public void testTransformOnSend() {
 		channelInterceptor.setTransformOnSend(true);
 		channel.send(message);
-		assertTrue("Transfomrer not invoked on send", transfomer.invoked);
+		assertTrue("Transformer not invoked on send", transformer.invoked);
 		Message<?> msg = channel.receive(1);
-		assertEquals("Wrong message",message, msg);
-		assertEquals("Transfomer invoked on receive", 1, transfomer.invokedCount);
+		assertEquals("Wrong message", message, msg);
+		assertEquals("Transformer invoked on receive", 1, transformer.invokedCount);
 	}
 
 
-	private static class TestTransformer implements MessageTransformer {
+	private static class TestTransformer implements MessageHandler {
 
 		boolean invoked = false;
-		
+
 		int invokedCount = 0;
-		
-		public Message<?> transform(Message<?> message) {
+
+		public Message<?> handle(Message<?> message) {
 			invoked = true;
 			invokedCount++;
 			return message;

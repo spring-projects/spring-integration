@@ -18,17 +18,14 @@ package org.springframework.integration.xml.source;
 
 import javax.xml.transform.Source;
 
-import org.springframework.integration.message.Message;
-
 /**
- * Factory to create instances of {@link Source} possibly taking into account
- * the contents of the passed {@link Message}
+ * Factory to create a {@link Source} possibly taking into account
+ * the provided message payload instance.
  * 
  * @author Jonas Partner
- * 
  */
 public interface SourceFactory {
 
-	Source getSourceForMessage(Message<?> message);
+	Source createSource(Object payload);
 
 }

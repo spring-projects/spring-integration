@@ -19,22 +19,23 @@ package org.springframework.integration.transformer;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
+import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 
 /**
- * A {@link ChannelInterceptor} which invokes a {@link MessageTransformer}
+ * A {@link ChannelInterceptor} which invokes a {@link MessageHandler}
  * when either sending-to or receiving-from a channel.
  * 
  * @author Jonas Partner
  */
 public class MessageTransformingChannelInterceptor extends ChannelInterceptorAdapter {
 
-	private final MessageTransformer transfomer;
+	private final MessageHandler transfomer;
 
 	private volatile boolean transformOnSend = true;
 
 
-	public MessageTransformingChannelInterceptor(MessageTransformer transformer) {
+	public MessageTransformingChannelInterceptor(MessageHandler transformer) {
 		this.transfomer = transformer;
 	}
 
@@ -50,7 +51,7 @@ public class MessageTransformingChannelInterceptor extends ChannelInterceptorAda
 	@Override
 	public Message<?> preSend(Message<?> message, MessageChannel channel) {
 		if (this.transformOnSend) {
-			message = this.transfomer.transform(message);
+			message = this.transfomer.handle(message);
 		}
 		return message;
 	}
@@ -58,7 +59,7 @@ public class MessageTransformingChannelInterceptor extends ChannelInterceptorAda
 	@Override
 	public Message<?> postReceive(Message<?> message, MessageChannel channel) {
 		if (!this.transformOnSend) {
-			message = this.transfomer.transform(message);
+			message = this.transfomer.handle(message);
 		}
 		return message;
 	}

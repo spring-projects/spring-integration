@@ -26,10 +26,10 @@ import org.junit.Test;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.transformer.MessageTransformer;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.xml.transform.StringSource;
 
@@ -38,9 +38,9 @@ import org.springframework.xml.transform.StringSource;
  */
 public class XmlUnmarshallingTransformerParserTests {
 
-	ApplicationContext appContext;
+	private ApplicationContext appContext;
 
-	StubUnmarshaller unmarshaller;
+	private StubUnmarshaller unmarshaller;
 
 
 	@Before
@@ -53,41 +53,41 @@ public class XmlUnmarshallingTransformerParserTests {
 
 	@Test
 	public void testDefaultUnmarshall() throws Exception {
-		MessageTransformer transformer = (MessageTransformer) appContext.getBean("defaultUnmarshaller");
+		MessageHandler transformer = (MessageHandler) appContext.getBean("defaultUnmarshaller");
 		GenericMessage<Object> message = new GenericMessage<Object>(new StringSource(
 				"<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>"));
-		Message<?> result = transformer.transform(message);
+		Message<?> result = transformer.handle(message);
 		assertEquals("Wrong payload after unmarshalling", "unmarshalled", result.getPayload());
 		assertTrue("Wrong source passed to unmarshaller", unmarshaller.sourcesPassed.poll() instanceof StringSource);
 	}
 
 	@Test
 	public void testUnmarshallString() throws Exception {
-		MessageTransformer transformer = (MessageTransformer) appContext.getBean("defaultUnmarshaller");
+		MessageHandler transformer = (MessageHandler) appContext.getBean("defaultUnmarshaller");
 		GenericMessage<Object> message = new GenericMessage<Object>(
 				"<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>");
-		Message<?> result = transformer.transform(message);
+		Message<?> result = transformer.handle(message);
 		assertEquals("Wrong payload after unmarshalling", "unmarshalled", result.getPayload());
 		assertTrue("Wrong source passed to unmarshaller", unmarshaller.sourcesPassed.poll() instanceof DOMSource);
 	}
 
 	@Test
 	public void testUnmarshallDocument() throws Exception {
-		MessageTransformer transformer = (MessageTransformer) appContext.getBean("defaultUnmarshaller");
+		MessageHandler transformer = (MessageHandler) appContext.getBean("defaultUnmarshaller");
 		GenericMessage<Object> message = new GenericMessage<Object>(
 				XmlTestUtil
 						.getDocumentForString("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>"));
-		Message<?> result = transformer.transform(message);
+		Message<?> result = transformer.handle(message);
 		assertEquals("Wrong payload after unmarshalling", "unmarshalled", result.getPayload());
 		assertTrue("Wrong source passed to unmarshaller", unmarshaller.sourcesPassed.poll() instanceof DOMSource);
 	}
 
 	@Test(expected = MessagingException.class)
 	public void testUnmarshallUnsupported() throws Exception {
-		MessageTransformer transformer = (MessageTransformer) appContext.getBean("defaultUnmarshaller");
+		MessageHandler transformer = (MessageHandler) appContext.getBean("defaultUnmarshaller");
 		GenericMessage<Object> message = new GenericMessage<Object>(new StringBuffer(
 				"<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>"));
-		transformer.transform(message);
+		transformer.handle(message);
 	}
 
 }

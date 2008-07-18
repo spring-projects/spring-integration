@@ -26,8 +26,6 @@ import javax.xml.transform.Result;
 import javax.xml.transform.dom.DOMResult;
 
 import org.junit.Test;
-import org.springframework.integration.message.Message;
-import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.xml.result.StringResultFactory;
 import org.springframework.oxm.Marshaller;
 import org.springframework.oxm.XmlMappingException;
@@ -43,10 +41,9 @@ public class XmlPayloadMarshallingTransformerTests {
 		TestMarshaller marshaller = new TestMarshaller();
 		XmlPayloadMarshallingTransformer transformer = new XmlPayloadMarshallingTransformer(marshaller);
 		transformer.setResultFactory(new StringResultFactory());
-		Message<?> message = new StringMessage("world");
-		Message<?> result = transformer.transform(message);
-		assertEquals(StringResult.class, result.getPayload().getClass());
-		assertEquals("hello world", result.getPayload().toString());
+		Object result = transformer.transform("world");
+		assertEquals(StringResult.class, result.getClass());
+		assertEquals("hello world", result.toString());
 		assertEquals("world", marshaller.payloads.get(0));
 	}
 
@@ -54,16 +51,15 @@ public class XmlPayloadMarshallingTransformerTests {
 	public void testDefaultResultFactory() {
 		TestMarshaller marshaller = new TestMarshaller();
 		XmlPayloadMarshallingTransformer transformer = new XmlPayloadMarshallingTransformer(marshaller);
-		Message<?> message = new StringMessage("world");
-		Message<?> result = transformer.transform(message);
-		assertEquals(DOMResult.class, result.getPayload().getClass());
+		Object result = transformer.transform("world");
+		assertEquals(DOMResult.class, result.getClass());
 		assertEquals("world", marshaller.payloads.get(0));
 	}
 
 
 	private static class TestMarshaller implements Marshaller {
 
-		List<Object> payloads = new ArrayList<Object>();
+		private List<Object> payloads = new ArrayList<Object>();
 
 		@SuppressWarnings("unchecked")
 		public boolean supports(Class clazz) {

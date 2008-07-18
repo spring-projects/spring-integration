@@ -24,8 +24,6 @@ import javax.xml.transform.Source;
 
 import org.junit.Test;
 
-import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.message.Message;
 import org.springframework.oxm.Unmarshaller;
 import org.springframework.oxm.XmlMappingException;
 import org.springframework.xml.transform.StringSource;
@@ -39,10 +37,9 @@ public class XmlPayloadUnmarshallingTransformerTests {
 	public void testStringSourceToString() {
 		Unmarshaller unmarshaller = new TestUnmarshaller();
 		XmlPayloadUnmarshallingTransformer transformer = new XmlPayloadUnmarshallingTransformer(unmarshaller);
-		Message<?> message = new GenericMessage<StringSource>(new StringSource("world"));
-		Message<?> transformed = transformer.transform(message);
-		assertEquals(String.class, transformed.getPayload().getClass());
-		assertEquals("hello world", transformed.getPayload().toString());
+		Object transformed = transformer.transform(new StringSource("world"));
+		assertEquals(String.class, transformed.getClass());
+		assertEquals("hello world", transformed.toString());
 	}
 
 

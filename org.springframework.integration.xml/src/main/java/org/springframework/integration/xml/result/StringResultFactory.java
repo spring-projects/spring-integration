@@ -18,17 +18,14 @@ package org.springframework.integration.xml.result;
 
 import javax.xml.transform.Result;
 
-import org.springframework.integration.message.Message;
 import org.springframework.xml.transform.StringResult;
 
 /**
- * 
  * @author Jonas Partner
- * 
  */
 public class StringResultFactory implements ResultFactory {
 
-	public Result getNewResult(Message<?> message) {
+	public Result createResult(Object payload) {
 		return new StringResult();
 	}
 

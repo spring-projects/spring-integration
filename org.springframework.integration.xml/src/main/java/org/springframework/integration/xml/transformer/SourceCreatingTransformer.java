@@ -18,19 +18,17 @@ package org.springframework.integration.xml.transformer;
 
 import javax.xml.transform.Source;
 
-import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.message.Message;
-import org.springframework.integration.transformer.MessageTransformer;
+import org.springframework.integration.transformer.PayloadTransformer;
 import org.springframework.integration.xml.source.DomSourceFactory;
 import org.springframework.integration.xml.source.SourceFactory;
 
 /**
  * Transforms the payload to a {@link Source} using a {@link SourceFactory}.
- * Defaults to using a {@link DomSourceFactory} if alternative is not provided.
+ * Defaults to using a {@link DomSourceFactory} if an alternative is not provided.
  * 
  * @author Jonas Partner
  */
-public class SourceCreatingTransformer implements MessageTransformer {
+public class SourceCreatingTransformer implements PayloadTransformer<Object, Source> {
 
 	private final SourceFactory sourceFactory;
 
@@ -43,9 +41,9 @@ public class SourceCreatingTransformer implements MessageTransformer {
 		this.sourceFactory = sourceFactory;
 	}
 
-	public Message<?> transform(Message<?> message) {
-		Source source = this.sourceFactory.getSourceForMessage(message);
-		return new GenericMessage<Source>(source, message.getHeaders());
+
+	public Source transform(Object payload) {
+		return this.sourceFactory.createSource(payload);
 	}
 
 }

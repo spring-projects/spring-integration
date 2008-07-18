@@ -26,10 +26,7 @@ import javax.xml.transform.stream.StreamSource;
 import org.w3c.dom.Document;
 
 import org.springframework.core.io.Resource;
-import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.transformer.MessageTransformer;
+import org.springframework.integration.transformer.PayloadTransformer;
 import org.springframework.integration.xml.result.DomResultFactory;
 import org.springframework.integration.xml.result.ResultFactory;
 import org.springframework.integration.xml.source.DomSourceFactory;
@@ -40,8 +37,9 @@ import org.springframework.integration.xml.source.SourceFactory;
  * {@link Source}, {@link Document}, or {@link String}.
  * 
  * @author Jonas Partner
+ * @author Mark Fisher
  */
-public class XsltPayloadTransformer implements MessageTransformer {
+public class XsltPayloadTransformer implements PayloadTransformer<Object, Result> {
 
 	private final Templates templates;
 
@@ -59,33 +57,26 @@ public class XsltPayloadTransformer implements MessageTransformer {
 	}
 
 
-	@SuppressWarnings("unchecked")
-	public Message<Result> transform(Message message) {
-		try {
-			if (Source.class.isAssignableFrom(message.getPayload().getClass())) {
-				return this.transformSource(message, (Source) message.getPayload());
-			}
-			Source source = this.sourceFactory.getSourceForMessage(message);
-			return this.transformSource(message, source);
-		}
-		catch (TransformerException e) {
-			throw new MessagingException(message, "XSLT transformation failed", e);
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	protected Message<Result> transformSource(Message message, Source source) throws TransformerException {
-		Result result = resultFactory.getNewResult(message);
-		this.templates.newTransformer().transform(source, result);
-		return new GenericMessage<Result>(result, message.getHeaders());
-	}
-
 	public void setSourceFactory(SourceFactory sourceFactory) {
 		this.sourceFactory = sourceFactory;
 	}
 
 	public void setResultFactory(ResultFactory resultFactory) {
 		this.resultFactory = resultFactory;
+	}
+
+	public Result transform(Object payload) throws TransformerException {
+		if (Source.class.isAssignableFrom(payload.getClass())) {
+			return this.transformSource((Source) payload);
+		}
+		Source source = this.sourceFactory.createSource(payload);
+		return this.transformSource(source);
+	}
+
+	protected Result transformSource(Source source) throws TransformerException {
+		Result result = resultFactory.createResult(source);
+		this.templates.newTransformer().transform(source, result);
+		return result;
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,53 +16,40 @@
 
 package org.springframework.integration.xml.config;
 
-import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.transformer.PayloadTransformer;
+import org.springframework.integration.transformer.config.AbstractPayloadTransformerParser;
 import org.springframework.integration.xml.result.DomResultFactory;
 import org.springframework.integration.xml.result.StringResultFactory;
 import org.springframework.integration.xml.transformer.XmlPayloadMarshallingTransformer;
 import org.springframework.util.Assert;
-import org.w3c.dom.Element;
 
 /**
- * 
  * @author Jonas Partner
- * 
+ * @author Mark Fisher
  */
-public class XmlMarshallingTransformerParser extends AbstractSingleBeanDefinitionParser {
+public class XmlMarshallingTransformerParser extends AbstractPayloadTransformerParser {
 
 	@Override
-	protected boolean shouldGenerateId() {
-		return false;
+	protected Class<? extends PayloadTransformer<?, ?>> getTransformerClass() {
+		return XmlPayloadMarshallingTransformer.class;
 	}
 
 	@Override
-	protected boolean shouldGenerateIdAsFallback() {
-		return true;
-	}
-
-	@Override
-	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		String resourceFactory = element.getAttribute("result-factory");
+	protected void parsePayloadTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+		String resultFactory = element.getAttribute("result-factory");
 		String marshaller = element.getAttribute("marshaller");
-
-		Assert.hasText(marshaller, "A unmarshaller attribute is required");
-
-		Assert.hasText(resourceFactory, "A result-factory attribute is required");
-
-		builder.getBeanDefinition().setBeanClass(XmlPayloadMarshallingTransformer.class);
-
-		builder.getBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(
-				new RuntimeBeanReference(marshaller));
-
-		if (resourceFactory.equals("DOMResult")) {
-			builder.getBeanDefinition().getPropertyValues().addPropertyValue("resultFactory", new DomResultFactory());
+		Assert.hasText(marshaller, "the 'marshaller' attribute is required");
+		Assert.hasText(resultFactory, "the 'result-factory' attribute is required");
+		builder.addConstructorArgReference(marshaller);
+		if (resultFactory.equals("DOMResult")) {
+			builder.addPropertyValue("resultFactory", new DomResultFactory());
 		}
-		else if (resourceFactory.equals("StringResult")) {
-			builder.getBeanDefinition().getPropertyValues()
-					.addPropertyValue("resultFactory", new StringResultFactory());
+		else if (resultFactory.equals("StringResult")) {
+			builder.addPropertyValue("resultFactory", new StringResultFactory());
 		}
 	}
 

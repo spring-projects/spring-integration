@@ -18,16 +18,14 @@ package org.springframework.integration.xml.result;
 
 import javax.xml.transform.Result;
 
-import org.springframework.integration.message.Message;
-
 /**
- * Factory to create {@link ResultFactory} possibly taking into account the
- * passed {@link Message} instance
- * @author Jonas Partner
+ * Factory to create a {@link Result} possibly taking into account the
+ * provided message payload instance.
  * 
+ * @author Jonas Partner
  */
 public interface ResultFactory {
 
-	Result getNewResult(Message<?> message);
+	Result createResult(Object payload);
 
 }

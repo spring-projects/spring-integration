@@ -5,7 +5,7 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration-xml http://www.springframework.org/schema/integration/spring-integration-xml-1.0.xsd">
 
-	<si-xml:xslt-transformer id="xsltTransfomerWithResource"
+	<si-xml:xslt-transformer id="xsltTransformerWithResource"
 		xsl-resource="org/springframework/integration/xml/config/test.xsl" />
 
 

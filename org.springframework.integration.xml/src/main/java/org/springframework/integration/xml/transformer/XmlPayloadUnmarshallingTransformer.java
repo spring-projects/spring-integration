@@ -20,23 +20,21 @@ import java.io.IOException;
 
 import javax.xml.transform.Source;
 
-import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.transformer.MessageTransformer;
+import org.springframework.integration.transformer.PayloadTransformer;
 import org.springframework.integration.xml.source.DomSourceFactory;
 import org.springframework.integration.xml.source.SourceFactory;
 import org.springframework.oxm.Unmarshaller;
 
 /**
- * An implementation of {@link MessageTransformer} that delegates to an OXM
+ * An implementation of {@link PayloadTransformer} that delegates to an OXM
  * {@link Unmarshaller}. Expects the payload to be of type {@link Source} or to
  * have an instance of {@link SourceFactory} that can convert to a
  * {@link Source}.
  * 
  * @author Jonas Partner
  */
-public class XmlPayloadUnmarshallingTransformer implements MessageTransformer {
+public class XmlPayloadUnmarshallingTransformer implements PayloadTransformer<Object, Object> {
 
 	private final Unmarshaller unmarshaller;
 
@@ -52,27 +50,25 @@ public class XmlPayloadUnmarshallingTransformer implements MessageTransformer {
 		this.sourceFactory = sourceFactory;
 	}
 
-	@SuppressWarnings("unchecked")
-	public Message<?> transform(Message<?> message) {
+	public Object transform(Object payload) {
 		Source source = null;
-		if (Source.class.isAssignableFrom(message.getPayload().getClass())) {
-			source = (Source) message.getPayload();
+		if (Source.class.isAssignableFrom(payload.getClass())) {
+			source = (Source) payload;
 		}
 		else if (this.sourceFactory != null) {
-			source = this.sourceFactory.getSourceForMessage(message);
+			source = this.sourceFactory.createSource(payload);
 		}
 
 		if (source == null) {
-			throw new MessagingException(message,
-					"Could not transform message, payload not assignable from javax.xml.transform.Source and no conversion possible");
+			throw new MessagingException(
+					"Failed to transform message, payload not assignable from javax.xml.transform.Source and no conversion possible");
 		}
 
 		try {
-			Object unmarshalled = this.unmarshaller.unmarshal(source);
-			return new GenericMessage(unmarshalled, message.getHeaders());
+			return this.unmarshaller.unmarshal(source);
 		}
 		catch (IOException e) {
-			throw new MessagingException(message, "Failed to unamrshal payload", e);
+			throw new MessagingException("Failed to unamrshal payload", e);
 		}
 	}
 

@@ -19,16 +19,12 @@ package org.springframework.integration.xml.result;
 import javax.xml.transform.Result;
 import javax.xml.transform.dom.DOMResult;
 
-import org.springframework.integration.message.Message;
-
 /**
- * 
  * @author Jonas Partner
- * 
  */
 public class DomResultFactory implements ResultFactory {
 
-	public Result getNewResult(Message<?> message) {
+	public Result createResult(Object payload) {
 		return new DOMResult();
 	}
 

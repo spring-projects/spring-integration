@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,26 +18,26 @@ package org.springframework.integration.xml.source;
 
 import java.io.StringReader;
 
-import javax.sound.sampled.SourceDataLine;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 
-import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessagingException;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
+import org.springframework.integration.message.MessagingException;
+
 /**
- * {@link SourceDataLine} implementation which supports creation of a
- * {@link DOMSource} from a {@link Document} or {@link String} payload
+ * {@link SourceFactory} implementation which supports creation of a
+ * {@link DOMSource} from a {@link Document} or {@link String} payload.
  * 
  * @author Jonas Partner
- * 
+ * @author Mark Fisher
  */
 public class DomSourceFactory implements SourceFactory {
 
 	private final DocumentBuilderFactory docBuilderFactory;
+
 
 	public DomSourceFactory() {
 		this.docBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -47,31 +47,31 @@ public class DomSourceFactory implements SourceFactory {
 		this.docBuilderFactory = docBuilderFactory;
 	}
 
-	public Source getSourceForMessage(Message<?> message) {
-		if (Document.class.isAssignableFrom(message.getPayload().getClass())) {
-			return createDomSourceForDocument(message);
+
+	public Source createSource(Object payload) {
+		if (Document.class.isAssignableFrom(payload.getClass())) {
+			return createDomSourceForDocument((Document) payload);
 		}
-		else if (message.getPayload() instanceof String) {
-			return createDomSourceForString(message);
+		else if (payload instanceof String) {
+			return createDomSourceForString((String) payload);
 		}
-		throw new MessagingException(message, "Could not create Source for payload type "
-				+ message.getPayload().getClass().getName());
+		throw new MessagingException("Failed to create Source for payload type ["
+				+ payload.getClass().getName() + "]");
 	}
 
-	protected DOMSource createDomSourceForDocument(Message<?> message) {
-		DOMSource source = new DOMSource(((Document) message.getPayload()).getDocumentElement());
+	protected DOMSource createDomSourceForDocument(Document document) {
+		DOMSource source = new DOMSource(document.getDocumentElement());
 		return source;
 	}
 
-	protected DOMSource createDomSourceForString(Message<?> message) {
+	protected DOMSource createDomSourceForString(String s) {
 		try {
-			String str = (String) message.getPayload();
-			Document doc = docBuilderFactory.newDocumentBuilder().parse(new InputSource(new StringReader(str)));
+			Document doc = docBuilderFactory.newDocumentBuilder().parse(new InputSource(new StringReader(s)));
 			DOMSource source = new DOMSource(doc.getDocumentElement());
 			return source;
 		}
 		catch (Exception e) {
-			throw new MessagingException(message, "Exception creating DOMSource", e);
+			throw new MessagingException("Exception creating DOMSource", e);
 		}
 	}
 

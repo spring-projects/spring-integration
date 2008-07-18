@@ -20,24 +20,21 @@ import java.io.IOException;
 
 import javax.xml.transform.Result;
 
+import org.springframework.integration.message.MessagingException;
+import org.springframework.integration.transformer.PayloadTransformer;
+import org.springframework.integration.xml.result.DomResultFactory;
+import org.springframework.integration.xml.result.ResultFactory;
 import org.springframework.oxm.Marshaller;
 import org.springframework.util.Assert;
 
-import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.transformer.MessageTransformer;
-import org.springframework.integration.xml.result.DomResultFactory;
-import org.springframework.integration.xml.result.ResultFactory;
-
 /**
- * An implementation of {@link MessageTransformer} that delegates to an OXM
+ * An implementation of {@link PayloadTransformer} that delegates to an OXM
  * {@link Marshaller}.
  * 
  * @author Mark Fisher
  * @author Jonas Partner
  */
-public class XmlPayloadMarshallingTransformer implements MessageTransformer {
+public class XmlPayloadMarshallingTransformer implements PayloadTransformer<Object, Object> {
 
 	private final Marshaller marshaller;
 
@@ -55,26 +52,23 @@ public class XmlPayloadMarshallingTransformer implements MessageTransformer {
 		this.resultFactory = resultFactory;
 	}
 
-	@SuppressWarnings("unchecked")
-	public Message<?> transform(Message<?> message) {
+	public Object transform(Object payload) {
 		Object transformedPayload = null;
-		Object originalPayload = message.getPayload();
-		Result result = this.resultFactory.getNewResult(message);
+		Result result = this.resultFactory.createResult(payload);
 		if (result == null) {
-			throw new MessageHandlingException(message, "Unable to marshall payload, ResultFactory returned null");
+			throw new MessagingException("Unable to marshal payload, ResultFactory returned null.");
 		}
 		try {
-			this.marshaller.marshal(originalPayload, result);
+			this.marshaller.marshal(payload, result);
 			transformedPayload = result;
 		}
 		catch (IOException e) {
-			throw new MessageHandlingException(message, "failed to marshall payload", e);
+			throw new MessagingException("Failed to marshal payload", e);
 		}
-
 		if (transformedPayload == null) {
-			throw new MessageHandlingException(message, "failed to transform payload");
+			throw new MessagingException("Failed to transform payload");
 		}
-		return new GenericMessage(transformedPayload, message.getHeaders());
+		return transformedPayload;
 	}
 
 }

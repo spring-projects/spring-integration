@@ -27,10 +27,8 @@ import javax.xml.transform.dom.DOMResult;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
-import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.transformer.MessageTransformer;
+import org.springframework.integration.transformer.PayloadTransformer;
 import org.springframework.xml.transform.StringResult;
 
 /**
@@ -38,7 +36,7 @@ import org.springframework.xml.transform.StringResult;
  * 
  * @author Jonas Partner
  */
-public class ResultToDocumentTransformer implements MessageTransformer {
+public class ResultToDocumentTransformer implements PayloadTransformer<Result, Document> {
 
 	// Not guaranteed to be thread safe
 	private final DocumentBuilderFactory documentBuilderFactory;
@@ -54,39 +52,37 @@ public class ResultToDocumentTransformer implements MessageTransformer {
 
 
 	@SuppressWarnings("unchecked")
-	public Message<?> transform(Message message) {
+	public Document transform(Result payload) {
 		Document doc = null;
-		if (DOMResult.class.isAssignableFrom(message.getPayload().getClass())) {
-			doc = createDocumentFromDomResult(message, (DOMResult) message.getPayload());
+		if (DOMResult.class.isAssignableFrom(payload.getClass())) {
+			doc = createDocumentFromDomResult((DOMResult) payload);
 		}
-		else if (StringResult.class.isAssignableFrom(message.getPayload().getClass())) {
-			doc = createDocumentFromStringResult(message, (StringResult) message.getPayload());
+		else if (StringResult.class.isAssignableFrom(payload.getClass())) {
+			doc = createDocumentFromStringResult((StringResult) payload);
 		}
 		else {
-			throw new MessagingException(message, "Failed to create document from payload type ["
-					+ message.getPayload().getClass().getName() + "]");
+			throw new MessagingException("Failed to create document from payload type ["
+					+ payload.getClass().getName() + "]");
 		}
-		return new GenericMessage<Document>(doc, message.getHeaders());
+		return doc;
 	}
 
-	@SuppressWarnings("unchecked")
-	protected Document createDocumentFromDomResult(Message message, DOMResult domResult) {
+	protected Document createDocumentFromDomResult(DOMResult domResult) {
 		return (Document) domResult.getNode();
 	}
 
-	@SuppressWarnings("unchecked")
-	protected Document createDocumentFromStringResult(Message message, StringResult stringResult) {
+	protected Document createDocumentFromStringResult(StringResult stringResult) {
 		try {
 			return getDocumentBuilder().parse(new InputSource(new StringReader(stringResult.toString())));
 		}
 		catch (Exception e) {
-			throw new MessagingException(message, "Exception creating Document form StringResult payload", e);
+			throw new MessagingException("Failed to create Document from StringResult payload", e);
 		}
 	}
 
 	protected synchronized DocumentBuilder getDocumentBuilder() {
 		try {
-			return documentBuilderFactory.newDocumentBuilder();
+			return this.documentBuilderFactory.newDocumentBuilder();
 		}
 		catch (ParserConfigurationException e) {
 			throw new MessagingException("Failed to create a new DocumentBuilder", e);
