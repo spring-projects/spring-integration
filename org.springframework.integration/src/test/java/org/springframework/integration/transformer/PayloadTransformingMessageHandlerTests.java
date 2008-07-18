@@ -30,42 +30,41 @@ import org.springframework.integration.message.StringMessage;
 /**
  * @author Mark Fisher
  */
-public class PayloadTransformerAdapterTests {
+public class PayloadTransformingMessageHandlerTests {
 
 	@Test
-	public void testSimpleMethod() {
-		PayloadTransformerAdapter adapter = new PayloadTransformerAdapter();
-		adapter.setObject(new TestBean());
-		adapter.setMethodName("exclaim");
+	public void testSuccessfulTransformation() {
+		PayloadTransformingMessageHandler handler = new PayloadTransformingMessageHandler(
+				new TestPayloadTransformer());
 		Message<?> message = new StringMessage("foo");
-		Message<?> result = adapter.transform(message);
-		assertEquals("FOO!", result.getPayload());
-	}
-
-	@Test
-	public void testTypeConversion() {
-		PayloadTransformerAdapter adapter = new PayloadTransformerAdapter();
-		adapter.setObject(new TestBean());
-		adapter.setMethodName("exclaim");
-		Message<?> message = new GenericMessage<Integer>(123);
-		Message<?> result = adapter.transform(message);
-		assertEquals("123!", result.getPayload());
+		Message<?> result = handler.handle(message);
+		assertEquals(3, result.getPayload());
 	}
 
 	@Test(expected=MessagingException.class)
-	public void testTypeConversionFailure() {
-		PayloadTransformerAdapter adapter = new PayloadTransformerAdapter();
-		adapter.setObject(new TestBean());
-		adapter.setMethodName("exclaim");
+	public void testExceptionThrownByTransformer() {
+		PayloadTransformingMessageHandler handler = new PayloadTransformingMessageHandler(
+				new TestPayloadTransformer());
+		Message<?> message = new StringMessage("bad");
+		handler.handle(message);
+	}
+
+	@Test(expected=MessagingException.class)
+	public void testWrongPayloadType() {
+		PayloadTransformingMessageHandler handler = new PayloadTransformingMessageHandler(
+				new TestPayloadTransformer());
 		Message<?> message = new GenericMessage<Date>(new Date());
-		adapter.transform(message);
+		handler.handle(message);
 	}
 
 
-	private static class TestBean {
+	private static class TestPayloadTransformer implements PayloadTransformer<String, Integer> {
 
-		String exclaim(String input) {
-			return input.toUpperCase() + "!";
+		public Integer transform(String s) throws Exception {
+			if (s.equals("bad")) {
+				throw new Exception("bad input!");
+			}
+			return s.length();
 		}
 	}
 

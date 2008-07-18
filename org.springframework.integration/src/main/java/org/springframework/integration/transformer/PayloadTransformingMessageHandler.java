@@ -18,22 +18,32 @@ package org.springframework.integration.transformer;
 
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.MessagingException;
+import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
  */
-public class TransformerMessageHandlerAdapter implements MessageHandler {
+@SuppressWarnings("unchecked")
+public class PayloadTransformingMessageHandler implements MessageHandler {
 
-	private final MessageTransformer transformer;
+	private final PayloadTransformer transformer;
 
 
-	public TransformerMessageHandlerAdapter(MessageTransformer transformer) {
+	public PayloadTransformingMessageHandler(PayloadTransformer transformer) {
+		Assert.notNull(transformer, "transformer must not be null");
 		this.transformer = transformer;
 	}
 
 
 	public Message<?> handle(Message<?> message) {
-		return this.transformer.transform(message);
+		try {
+	        Object result = this.transformer.transform(message.getPayload());
+	        return MessageBuilder.fromPayload(result).copyHeaders(message.getHeaders()).build();
+        } catch (Exception e) {
+        	throw new MessagingException(message, "failed to transform message payload", e);
+        }
 	}
 
 }

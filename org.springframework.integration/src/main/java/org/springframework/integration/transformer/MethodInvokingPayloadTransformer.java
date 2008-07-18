@@ -16,24 +16,15 @@
 
 package org.springframework.integration.transformer;
 
-import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.util.AbstractMethodInvokingAdapter;
 
 /**
  * @author Mark Fisher
  */
-public class PayloadTransformerAdapter extends AbstractMethodInvokingAdapter implements MessageTransformer {
+public class MethodInvokingPayloadTransformer extends AbstractMethodInvokingAdapter implements PayloadTransformer<Object, Object> {
 
-	@SuppressWarnings("unchecked")
-	public Message<?> transform(Message<?> message) {
-		try {
-	        Object result = this.invokeMethod(message.getPayload());
-	        return MessageBuilder.fromPayload(result).copyHeaders(message.getHeaders()).build();
-        } catch (Exception e) {
-        	throw new MessagingException(message, "failed to transform message payload", e);
-        }
+	public Object transform(Object payload) throws Exception {
+		return this.invokeMethod(payload); 
 	}
 
 }
