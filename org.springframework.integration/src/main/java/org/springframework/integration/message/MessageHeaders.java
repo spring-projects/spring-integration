@@ -109,8 +109,8 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 			return null;
 		}
 		if (!type.isAssignableFrom(value.getClass())) {
-			throw new MessagingException("Type mismatch for header '" + key + "'. Expected ["
-					+ type + "] but actual type is [" + value.getClass() + "]");
+			throw new IllegalArgumentException("Incorrect type specified for header '" + key
+					+ "'. Expected [" + type + "] but actual type is [" + value.getClass() + "]");
 		}
 		return (T) value;
 	}

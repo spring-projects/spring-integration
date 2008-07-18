@@ -56,8 +56,8 @@ public class MessageHeadersTests {
 		assertEquals(value, headers.get("test", Integer.class));
 	}
 
-	@Test(expected = MessagingException.class)
-	public void testTypeMismatchWhenAccessingHeaderValue() {
+	@Test(expected = IllegalArgumentException.class)
+	public void testHeaderValueAccessWithIncorrectType() {
 		Integer value = new Integer(123);
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put("test", value);

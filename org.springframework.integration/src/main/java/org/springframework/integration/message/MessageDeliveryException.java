@@ -32,4 +32,8 @@ public class MessageDeliveryException extends MessagingException {
 		super(undeliveredMessage, description);
 	}
 
+	public MessageDeliveryException(Message<?> undeliveredMessage, String description, Throwable cause) {
+		super(undeliveredMessage, description, cause);
+	}
+
 }

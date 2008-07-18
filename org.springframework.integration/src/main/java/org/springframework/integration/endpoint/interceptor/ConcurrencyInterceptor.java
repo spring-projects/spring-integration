@@ -30,14 +30,12 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.Lifecycle;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.EndpointInterceptor;
-import org.springframework.integration.handler.MessageHandlerNotRunningException;
 import org.springframework.integration.handler.MessageHandlerRejectedExecutionException;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageTarget;
@@ -121,9 +119,6 @@ public class ConcurrencyInterceptor extends EndpointInterceptorAdapter
 
 	@Override
 	public boolean aroundSend(final Message<?> message, final MessageTarget endpoint) {
-		if (endpoint instanceof Lifecycle && !((Lifecycle) endpoint).isRunning()) {
-			throw new MessageHandlerNotRunningException(message);
-		}
 		try {
 			this.executor.execute(new Runnable() {
 				public void run() {

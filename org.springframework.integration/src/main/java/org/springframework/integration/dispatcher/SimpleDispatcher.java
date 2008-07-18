@@ -18,17 +18,17 @@ package org.springframework.integration.dispatcher;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
-import org.springframework.integration.handler.MessageHandlerNotRunningException;
-import org.springframework.integration.handler.MessageHandlerRejectedExecutionException;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.util.Assert;
 
 /**
- * Basic implementation of {@link MessageDispatcher}.
+ * Basic implementation of {@link MessageDispatcher} that will attempt
+ * to send a {@link Message} to one of its targets (the first that accepts).
  * 
  * @author Mark Fisher
  */
@@ -71,66 +71,81 @@ public class SimpleDispatcher extends AbstractDispatcher {
 	}
 
 	public boolean send(Message<?> message) {
+		if (this.targets.size() == 0) {
+			if (logger.isWarnEnabled()) {
+				logger.warn("Dispatcher has no targets.");
+			}
+			return false;
+		}
 		int attempts = 0;
-		List<MessageTarget> targetList = new ArrayList<MessageTarget>(this.targets);
+		MessageHandlingException lastException = null;
 		while (attempts < this.rejectionLimit) {
+			Iterator<MessageTarget> iter = new ArrayList<MessageTarget>(this.targets).iterator();
+			if (!iter.hasNext()) {
+				return false;
+			}
 			if (attempts > 0) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("target(s) rejected message after " + attempts +
-							" attempt(s), will try again after 'retryInterval' of " +
-							this.retryInterval + " milliseconds");
-				}
 				try {
-					Thread.sleep(this.retryInterval);
+					this.waitBetweenAttempts(attempts);
 				}
 				catch (InterruptedException iex) {
 					Thread.currentThread().interrupt();
 					return false;
 				}
 			}
-			Iterator<MessageTarget> iter = targetList.iterator();
-			if (!iter.hasNext()) {
-				if (logger.isWarnEnabled()) {
-					logger.warn("no active targets");
-				}
-				return false;
-			}
-			boolean rejected = false;
-			while (iter.hasNext()) {
-				MessageTarget target = iter.next();
-				try {
-					if (this.sendMessageToTarget(message, target)) {
-						return true;
-					}
-					if (logger.isDebugEnabled()) {
-						logger.debug("target rejected message, continuing with other targets if available");
-					}
-					iter.remove();
-				}
-				catch (MessageHandlerNotRunningException e) {
-					if (logger.isDebugEnabled()) {
-						logger.debug("target is not running, continuing with other targets if available", e);
-					}
-				}
-				catch (MessageHandlerRejectedExecutionException e) {
-					rejected = true;
-					if (logger.isDebugEnabled()) {
-						logger.debug("target '" + target + "' is busy, continuing with other targets if available", e);
-					}
-				}
-			}
-			if (!rejected) {
+			lastException = sendMessageToFirstAcceptingTarget(message, iter);
+			if (lastException == null) {
 				return true;
 			}
 			attempts++;
 		}
 		if (this.shouldFailOnRejectionLimit) {
-			throw new MessageDeliveryException(message, "Dispatcher reached rejection limit of "
-					+ this.rejectionLimit
-					+ ". Consider increasing the target's concurrency and/or "
-					+ "the dispatcherPolicy's 'rejectionLimit'.");
+			throw new MessageDeliveryException(message, "Dispatcher reached rejection limit of " + this.rejectionLimit, lastException);
 		}
 		return false;
+	}
+
+	private MessageHandlingException sendMessageToFirstAcceptingTarget(Message<?> message, Iterator<MessageTarget> iter) {
+		MessageHandlingException lastException = null;
+		int count = 0;
+		int rejectedExceptionCount = 0;
+		while (iter.hasNext()) {
+			count++;
+			MessageTarget target = iter.next();
+			try {
+				if (this.sendMessageToTarget(message, target)) {
+					return null;
+				}
+				if (logger.isDebugEnabled()) {
+					logger.debug("Failed to send message to target, continuing with other targets if available.");
+				}
+			}
+			catch (MessageRejectedException e) {
+				rejectedExceptionCount++;
+				if (logger.isDebugEnabled()) {
+					logger.debug("Target '" + target + "' rejected Message, continuing with other targets if available.", e);
+				}
+			}
+			catch (MessageHandlingException e) {
+				lastException = e;
+				if (logger.isDebugEnabled()) {
+					logger.debug("Target '" + target + "' threw an exception, continuing with other targets if available.", e);
+				}
+			}
+		}
+		if (rejectedExceptionCount == count) {
+			throw new MessageRejectedException(message, "All of dispatcher's targets rejected Message.");
+		}
+		return lastException;
+	}
+
+	private void waitBetweenAttempts(int attempts) throws InterruptedException {
+		if (logger.isDebugEnabled()) {
+			logger.debug("target(s) unable to handle message after " + attempts +
+					" attempt(s), will try again after 'retryInterval' of " +
+					this.retryInterval + " milliseconds");
+		}
+		Thread.sleep(this.retryInterval);
 	}
 
 }

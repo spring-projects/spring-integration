@@ -31,6 +31,7 @@ import org.springframework.integration.util.AbstractMethodInvokingAdapter;
 /**
  * @author Mark Fisher
  */
+@SuppressWarnings("unchecked")
 public class AnnotationMethodTransformerAdapter extends AbstractMethodInvokingAdapter implements MessageHandler {
 
 	private volatile MessageMapper mapper;
@@ -48,8 +49,7 @@ public class AnnotationMethodTransformerAdapter extends AbstractMethodInvokingAd
 				: new DefaultMessageMapper();
 	}
 
-	@SuppressWarnings("unchecked")
-	public Message<?> transform(Message<?> message) {
+	public Message<?> handle(Message<?> message) {
 		if (!this.isInitialized()) {
 			this.afterPropertiesSet();
 		}
@@ -66,48 +66,48 @@ public class AnnotationMethodTransformerAdapter extends AbstractMethodInvokingAd
 			else {
 				args = new Object[] { param }; 
 			}
-			Object result = null;
-			try {
-				result = this.invokeMethod(args);
-			}
-			catch (NoSuchMethodException e) {
-				result = this.invokeMethod(message);
-				this.methodExpectsMessage = true;
-			}
-			if (result == null) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("MessageTransformer returned a null result");
-				}
-				return null;
-			}
-			if (result instanceof Properties && !(message.getPayload() instanceof Properties)) {
-				Properties propertiesToSet = (Properties) result;
-				MessageBuilder builder = MessageBuilder.fromMessage(message);
-				for (Object keyObject : propertiesToSet.keySet()) {
-					String key = (String) keyObject;
-					builder.setHeader(key, propertiesToSet.getProperty(key));
-				}
-				return builder.build();
-			}
-			else if (result instanceof Map && !(message.getPayload() instanceof Map)) {
-				Map<String, ?> attributesToSet = (Map) result;
-				MessageBuilder builder = MessageBuilder.fromMessage(message);
-				for (String key : attributesToSet.keySet()) {
-					builder.setHeader(key, attributesToSet.get(key));
-				}
-				return builder.build();
-			}
-			else {
-				return MessageBuilder.fromPayload(result).copyHeaders(message.getHeaders()).build();
-			}
+			return this.invokeMethodAndReturnMessage(message, args);
 		}
 		catch (Exception e) {
 			throw new MessagingException(message, "failed to transform message payload", e);
 		}
 	}
 
-	public Message<?> handle(Message<?> message) {
-		return this.transform(message);
+	private Message<?> invokeMethodAndReturnMessage(Message<?> message, Object[] args) throws Exception {
+		Object result = null;
+		try {
+			result = this.invokeMethod(args);
+		}
+		catch (NoSuchMethodException e) {
+			result = this.invokeMethod(message);
+			this.methodExpectsMessage = true;
+		}
+		if (result == null) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("handler invocation returned a null result");
+			}
+			return null;
+		}
+		if (result instanceof Properties && !(message.getPayload() instanceof Properties)) {
+			Properties propertiesToSet = (Properties) result;
+			MessageBuilder builder = MessageBuilder.fromMessage(message);
+			for (Object keyObject : propertiesToSet.keySet()) {
+				String key = (String) keyObject;
+				builder.setHeader(key, propertiesToSet.getProperty(key));
+			}
+			return builder.build();
+		}
+		else if (result instanceof Map && !(message.getPayload() instanceof Map)) {
+			Map<String, ?> attributesToSet = (Map) result;
+			MessageBuilder builder = MessageBuilder.fromMessage(message);
+			for (String key : attributesToSet.keySet()) {
+				builder.setHeader(key, attributesToSet.get(key));
+			}
+			return builder.build();
+		}
+		else {
+			return MessageBuilder.fromPayload(result).copyHeaders(message.getHeaders()).build();
+		}
 	}
 
 }
