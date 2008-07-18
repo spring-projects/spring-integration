@@ -111,7 +111,9 @@ public abstract class AbstractJmsTemplateBasedAdapter implements InitializingBea
 				this.jmsTemplate = this.createDefaultJmsTemplate();
 			}
 			MessageConverter converter = this.jmsTemplate.getMessageConverter();
-			this.jmsTemplate.setMessageConverter(new HeaderMappingMessageConverter(converter, this.headerMapper));
+			converter = (converter != null && converter instanceof HeaderMappingMessageConverter) ?
+					converter : new HeaderMappingMessageConverter(converter, this.headerMapper);
+			this.jmsTemplate.setMessageConverter(converter);
 			this.initialized = true;
 		}
 	}
