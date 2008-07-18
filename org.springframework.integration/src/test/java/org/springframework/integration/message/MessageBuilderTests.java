@@ -50,7 +50,7 @@ public class MessageBuilderTests {
 				.setHeader("bar", "2")
 				.build();
 		Message<String> message2 = MessageBuilder.fromPayload("test2")
-				.copyHeadersFromMessage(message1)
+				.copyHeaders(message1.getHeaders())
 				.setHeader("foo", "42")
 				.setHeaderIfAbsent("bar", "99")
 				.build();

@@ -30,7 +30,7 @@ public class PayloadTransformerAdapter extends AbstractMethodInvokingAdapter imp
 	public Message<?> transform(Message<?> message) {
 		try {
 	        Object result = this.invokeMethod(message.getPayload());
-	        return MessageBuilder.fromPayload(result).copyHeadersFromMessage(message).build();
+	        return MessageBuilder.fromPayload(result).copyHeaders(message.getHeaders()).build();
         } catch (Exception e) {
         	throw new MessagingException(message, "failed to transform message payload", e);
         }

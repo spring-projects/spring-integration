@@ -98,7 +98,7 @@ public class AnnotationMethodTransformerAdapter extends AbstractMethodInvokingAd
 				return builder.build();
 			}
 			else {
-				return MessageBuilder.fromPayload(result).copyHeadersFromMessage(message).build();
+				return MessageBuilder.fromPayload(result).copyHeaders(message.getHeaders()).build();
 			}
 		}
 		catch (Exception e) {

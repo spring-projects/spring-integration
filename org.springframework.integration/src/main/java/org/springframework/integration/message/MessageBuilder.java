@@ -81,11 +81,7 @@ public final class MessageBuilder<T> {
 		return this;
 	}
 
-	public MessageBuilder<T> copyHeadersFromMessage(Message<?> message) {
-		return this.copyHeaders(message.getHeaders());
-	}
-
-	public MessageBuilder<T> copyHeaders(MessageHeaders headersToCopy) {
+	public MessageBuilder<T> copyHeaders(Map<String, Object> headersToCopy) {
 		Set<String> keys = headersToCopy.keySet();
 		for (String key : keys) {
 			if (key.equals(MessageHeaders.TIMESTAMP)) {
@@ -96,19 +92,13 @@ public final class MessageBuilder<T> {
 		return this;
 	}
 
-	public MessageBuilder<T> copyHeadersFromMessageIfAbsent(Message<?> message) {
-		return this.copyHeadersIfAbsent(message.getHeaders());
-	}
-
-	public MessageBuilder<T> copyHeadersIfAbsent(MessageHeaders headersToCopy) {
+	public MessageBuilder<T> copyHeadersIfAbsent(Map<String, Object> headersToCopy) {
 		Set<String> keys = headersToCopy.keySet();
 		for (String key : keys) {
 			if (key.equals(MessageHeaders.TIMESTAMP)) {
 				continue;
 			}
-			if (this.headers.get(key) == null) {
-				this.setHeaderIfAbsent(key, headersToCopy.get(key));
-			}
+			this.setHeaderIfAbsent(key, headersToCopy.get(key));
 		}
 		return this;
 	}
