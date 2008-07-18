@@ -16,12 +16,12 @@
 
 package org.springframework.integration.channel.factory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -33,13 +33,17 @@ import org.springframework.integration.bus.DefaultChannelFactoryBean;
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PriorityChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.RendezvousChannel;
 import org.springframework.integration.channel.ThreadLocalChannel;
+import org.springframework.integration.channel.config.ChannelParserTests;
 import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
 import org.springframework.integration.dispatcher.DirectChannel;
 import org.springframework.integration.dispatcher.DirectChannelFactory;
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 
 /**
  * @author Marius Bogoevici
@@ -49,6 +53,7 @@ public class ChannelFactoryTests {
 
 	private final ArrayList<ChannelInterceptor> interceptors = new ArrayList<ChannelInterceptor>();
 
+	private final ArrayList<ChannelInterceptor> appliedInterceptors = new ArrayList<ChannelInterceptor>();
 
 	@Before
 	public void initInterceptorsList() {
@@ -112,11 +117,14 @@ public class ChannelFactoryTests {
 		channelFactoryBean.setBeanName("testChannel");
 		channelFactoryBean.setApplicationContext(applicationContext);
 		channelFactoryBean.setInterceptors(interceptors);
-		StubChannel channel = (StubChannel) channelFactoryBean.getObject();
+		MessageChannel channel = (MessageChannel) channelFactoryBean.getObject();      
+		channel.getName();
+		assertEquals(StubChannel.class, ChannelParserTests.extractProxifiedChannel(channel).getClass());
 		assertEquals("testChannel", channel.getName());
-		assertInterceptors(channel);
+		channel.send(MessageBuilder.fromPayload("").build());
+		assertTrue(appliedInterceptors.get(0) == interceptors.get(0));
+		assertTrue(appliedInterceptors.get(1) == interceptors.get(1));
 	}
-
 
 	private void genericChannelFactoryTests(ChannelFactory channelFactory, Class<?> expectedChannelClass) {
 		assertNotNull(interceptors);
@@ -131,12 +139,18 @@ public class ChannelFactoryTests {
 		Object interceptorsWrapper = new DirectFieldAccessor(channel).getPropertyValue("interceptors");
 		List<ChannelInterceptor> interceptors = (List<ChannelInterceptor>)
 				new DirectFieldAccessor(interceptorsWrapper).getPropertyValue("interceptors");
-		assertTrue(interceptors.get(0) == interceptors.get(0));
-		assertTrue(interceptors.get(1) == interceptors.get(1));
+		assertTrue(interceptors.get(0) == this.interceptors.get(0));
+		assertTrue(interceptors.get(1) == this.interceptors.get(1));
 	}
 
 
-	private static class TestChannelInterceptor extends ChannelInterceptorAdapter {
+	private class TestChannelInterceptor extends ChannelInterceptorAdapter {
+
+		public Message<?> preSend(Message<?> message, MessageChannel channel) {
+			appliedInterceptors.add(this);
+			return message;
+		}
+		
 	}
 
 }

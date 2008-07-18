@@ -37,7 +37,9 @@ import org.springframework.integration.bus.MessageBusInterceptorTests;
 import org.springframework.integration.bus.TestMessageBusAwareImpl;
 import org.springframework.integration.bus.TestMessageBusStartInterceptor;
 import org.springframework.integration.bus.TestMessageBusStopInterceptor;
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.channel.config.ChannelParserTests;
 import org.springframework.integration.dispatcher.DirectChannel;
 import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.scheduling.SimpleTaskScheduler;
@@ -137,7 +139,9 @@ public class MessageBusParserTests {
 	public void testMessageBusWithChannelFactory() {
 		ApplicationContext context = new ClassPathXmlApplicationContext("messageBusWithChannelFactory.xml",
 				this.getClass());
-		assertEquals(DirectChannel.class, context.getBean("defaultTypeChannel").getClass());
+		((MessageChannel)context.getBean("defaultTypeChannel")).getName();
+		assertEquals(DirectChannel.class,
+				ChannelParserTests.extractProxifiedChannel(context.getBean("defaultTypeChannel")).getClass());
 		assertEquals(QueueChannel.class, context.getBean("specifiedTypeChannel").getClass());
 	}
 

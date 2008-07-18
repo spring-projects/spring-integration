@@ -16,7 +16,7 @@
 
 package org.springframework.integration.channel.config;
 
-import static  org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -34,7 +34,7 @@ public class DefaultChannelParserTests {
     public void testDefaultChannel() {
         ApplicationContext context = new ClassPathXmlApplicationContext("defaultChannelParserTests.xml", this.getClass());
         MessageChannel channel = (MessageChannel) context.getBean("defaultChannel");
-        assertTrue(channel instanceof StubChannel);
+        assertTrue(StubChannel.class.isAssignableFrom(ChannelParserTests.extractProxifiedChannel(channel).getClass()));
     }
 
 }

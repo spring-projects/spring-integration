@@ -16,11 +16,17 @@
 
 package org.springframework.integration.bus;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.integration.channel.ChannelInterceptor;
@@ -32,45 +38,57 @@ import org.springframework.util.Assert;
 /**
  * Creates a channel by delegating to the current message bus' configured
  * ChannelFactory. Tries to retrieve the {@link ChannelFactory} from the
- * single {@link MessageBus} defined in the {@link ApplicationContext}. 
- * As a {@link FactoryBean}, this class is solely intended to be used within 
+ * single {@link MessageBus} defined in the {@link ApplicationContext}.
+ * As a {@link FactoryBean}, this class is solely intended to be used within
  * an ApplicationContext.
- * 
+ *
  * @author Marius Bogoevici
  * @author Mark Fisher
  */
-public class DefaultChannelFactoryBean implements ApplicationContextAware, FactoryBean, BeanNameAware {
+public class DefaultChannelFactoryBean implements ApplicationContextAware, FactoryBean, BeanNameAware, InitializingBean {
 
 	private volatile String beanName;
 
-	private volatile ChannelFactory channelFactory;
-
 	private volatile List<ChannelInterceptor> interceptors;
 
+	private volatile ApplicationContext applicationContext;
+
+	private volatile boolean initialized;
+
+	private final Object initializationMonitor = new Object();
+
+	private volatile Object proxyBean;
+
+
+	public void setApplicationContext(ApplicationContext applicationContext) {
+		this.applicationContext = applicationContext;
+	}
 
 	public void setBeanName(String beanName) {
 		this.beanName = beanName;
-	}
-
-	@SuppressWarnings("unchecked")
-	public void setApplicationContext(ApplicationContext applicationContext){
-		Map map = applicationContext.getBeansOfType(MessageBus.class);
-		Assert.state(map.size() <= 1, "There is more than one MessageBus in the ApplicationContext");
-		if (map.isEmpty()) {
-			this.channelFactory = new QueueChannelFactory();
-		}
-		else {
-			this.channelFactory = ((MessageBus) map.values().iterator().next()).getChannelFactory();
-		}
 	}
 
 	public void setInterceptors(List<ChannelInterceptor> interceptors) {
 		this.interceptors = interceptors;
 	}
 
+	public void afterPropertiesSet() throws Exception {
+		synchronized (initializationMonitor) {
+			if (!initialized) {
+				this.proxyBean = Proxy.newProxyInstance(
+						getClass().getClassLoader(),
+						new Class[]{MessageChannel.class},
+						new DefaultChannelInvocationHandler());
+				this.initialized = true;
+			}
+		}
+	}
+
 	public Object getObject() throws Exception {
-		Assert.notNull(channelFactory, "ChannelFactory not set on this instance. Is this used within an ApplicationContext?");
-		return channelFactory.getChannel(this.beanName, interceptors);
+		if (!initialized) {
+			afterPropertiesSet();
+		}
+		return proxyBean;
 	}
 
 	public Class<?> getObjectType() {
@@ -79,6 +97,51 @@ public class DefaultChannelFactoryBean implements ApplicationContextAware, Facto
 
 	public boolean isSingleton() {
 		return true;
+	}
+
+
+	private class DefaultChannelInvocationHandler implements InvocationHandler {
+
+		private volatile AtomicReference<MessageChannel> targetChannelReference = new AtomicReference<MessageChannel>();
+
+
+		private MessageChannel getTargetChannel() {
+			if (targetChannelReference.get() == null) {
+				targetChannelReference.compareAndSet(null, createMessageChannel());
+			}
+			return targetChannelReference.get();
+		}
+
+		private MessageChannel createMessageChannel() {
+			ChannelFactory channelFactory;
+			Map map = DefaultChannelFactoryBean.this.applicationContext.getBeansOfType(MessageBus.class);
+			Assert.state(map.size() <= 1, "There is more than one MessageBus in the ApplicationContext");
+			if (map.isEmpty()) {
+				channelFactory = new QueueChannelFactory();
+			}
+			else {
+				channelFactory = ((MessageBus) map.values().iterator().next()).getChannelFactory();
+			}
+			return channelFactory.getChannel(beanName, interceptors);
+		}
+
+		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+			if (method.getName().equals("equals")) {
+				return proxy == args[0];
+			}
+			else if (method.getName().equals("hashCode")) {
+				return System.identityHashCode(proxy);
+			}
+			else {
+				try {
+					return method.invoke(getTargetChannel(), args);
+				}
+				catch (InvocationTargetException e) {
+					throw e.getCause();
+				}
+			}
+		}
+
 	}
 
 }

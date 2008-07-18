@@ -16,6 +16,10 @@
 
 package org.springframework.integration.channel.config;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Proxy;
+import java.util.concurrent.atomic.AtomicReference;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -64,7 +68,9 @@ public class ChannelParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"channelParserTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("queueChannelByDefault");
-		assertEquals(QueueChannel.class, channel.getClass());
+		//called to initialize the channel instance
+		channel.getName();
+		assertEquals(QueueChannel.class, extractProxifiedChannel(channel).getClass());
 	}
 
 	@Test
@@ -206,5 +212,14 @@ public class ChannelParserTests {
 		}
 		assertTrue(threwException);
 	}
+
+
+    public static MessageChannel extractProxifiedChannel (Object channelProxy) {
+	    InvocationHandler handler = Proxy.getInvocationHandler(channelProxy);
+	    DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+	    AtomicReference<MessageChannel> reference =
+			    (AtomicReference<MessageChannel>) handlerAccessor.getPropertyValue("targetChannelReference");
+	    return reference.get();
+    }
 
 }
