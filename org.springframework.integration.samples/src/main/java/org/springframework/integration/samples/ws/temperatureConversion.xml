@@ -12,11 +12,11 @@
 	<channel id="fahrenheitChannel"/>
 	<channel id="celsiusChannel"/>
 
-	<!-- The handler endpoint receives from the 'fahrenheitChannel',
+	<!-- The service activator receives from the 'fahrenheitChannel',
 	     invokes the handler, and sends the reply Message to the 'celsiusChannel'. -->
-	<handler-endpoint input-channel="fahrenheitChannel"
-	                  ref="temperatureConverter"
-	                  output-channel="celsiusChannel"/>
+	<service-activator input-channel="fahrenheitChannel"
+	                   ref="temperatureConverter"
+	                   output-channel="celsiusChannel"/>
 
 	<!-- The handler invokes the WebService for the given URI and returns a reply Message. -->
 	<ws-handler id="temperatureConverter" 
