@@ -12,7 +12,7 @@
 	<channel id="input"/>
 	<channel id="output"/>
 
-	<handler-endpoint id="required"
+	<service-activator id="required"
 	                  input-channel="input"
 	                  ref="testBean"
 	                  method="good"
@@ -21,9 +21,9 @@
     	<interceptors>
 			<transaction-interceptor transaction-manager="txManager" propagation="REQUIRED"/>
     	</interceptors>
-    </handler-endpoint>
+    </service-activator>
 
-	<handler-endpoint id="requiresNew"
+	<service-activator id="requiresNew"
 	                  input-channel="input"
 	                  ref="testBean"
 	                  method="good"
@@ -32,9 +32,9 @@
     	<interceptors>
 			<transaction-interceptor transaction-manager="txManager" propagation="REQUIRES_NEW"/>
     	</interceptors>
-    </handler-endpoint>
+    </service-activator>
 
-	<handler-endpoint id="supports"
+	<service-activator id="supports"
 	                  input-channel="input"
 	                  ref="testBean"
 	                  method="good"
@@ -43,9 +43,9 @@
     	<interceptors>
 			<transaction-interceptor transaction-manager="txManager" propagation="SUPPORTS"/>
     	</interceptors>
-    </handler-endpoint>
+    </service-activator>
 
-	<handler-endpoint id="notSupported"
+	<service-activator id="notSupported"
 	                  input-channel="input"
 	                  ref="testBean"
 	                  method="good"
@@ -54,9 +54,9 @@
     	<interceptors>
 			<transaction-interceptor transaction-manager="txManager" propagation="NOT_SUPPORTED"/>
     	</interceptors>
-    </handler-endpoint>
+    </service-activator>
 
-	<handler-endpoint id="mandatory"
+	<service-activator id="mandatory"
 	                  input-channel="input"
 	                  ref="testBean"
 	                  method="good"
@@ -65,7 +65,7 @@
     	<interceptors>
 			<transaction-interceptor transaction-manager="txManager" propagation="MANDATORY"/>
     	</interceptors>
-    </handler-endpoint>
+    </service-activator>
 
 	<beans:bean id="testBean" class="org.springframework.integration.endpoint.interceptor.TestBean"/>
 

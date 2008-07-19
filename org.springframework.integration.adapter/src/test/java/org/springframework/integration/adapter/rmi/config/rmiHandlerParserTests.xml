@@ -11,7 +11,7 @@
 
 	<channel id="localChannel"/>
 
-	<handler-endpoint input-channel="localChannel" ref="handler"/>
+	<service-activator input-channel="localChannel" ref="handler"/>
 
 	<rmi-handler id="handler" remote-channel="testChannel" host="localhost"/>
 

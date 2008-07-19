@@ -13,7 +13,7 @@
 	<channel id="goodInput"/>
 	<channel id="output"/>
 
-	<handler-endpoint input-channel="badInput"
+	<service-activator input-channel="badInput"
 	                  ref="testBean"
 	                  method="bad"
                       output-channel="output">
@@ -21,9 +21,9 @@
     	<interceptors>
 			<transaction-interceptor transaction-manager="txManager"/>
     	</interceptors>
-    </handler-endpoint>
+    </service-activator>
 
-	<handler-endpoint input-channel="goodInput"
+	<service-activator input-channel="goodInput"
 	                  ref="testBean"
 	                  method="good"
                       output-channel="output">
@@ -31,7 +31,7 @@
 		<interceptors>
 			<transaction-interceptor transaction-manager="txManager" propagation="REQUIRED"/>
 		</interceptors>
-	</handler-endpoint>
+	</service-activator>
 
 	<beans:bean id="testBean" class="org.springframework.integration.endpoint.interceptor.TestBean"/>
 

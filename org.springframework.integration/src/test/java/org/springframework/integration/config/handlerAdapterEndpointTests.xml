@@ -11,9 +11,9 @@
 
 	<queue-channel id="testChannel" capacity="50"/>
 
-	<handler-endpoint input-channel="testChannel" ref="testBean" method="store">
+	<service-activator input-channel="testChannel" ref="testBean" method="store">
 		<schedule period="100"/>
-	</handler-endpoint>
+	</service-activator>
 
 	<beans:bean id="testBean" class="org.springframework.integration.config.TestBean">
 		<beans:constructor-arg value="1"/>

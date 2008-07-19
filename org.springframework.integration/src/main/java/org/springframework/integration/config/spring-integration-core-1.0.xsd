@@ -203,14 +203,6 @@
 		</xsd:annotation>
 	</xsd:element>
 
-	<xsd:element name="handler-endpoint" type="inputOutputHandlerEndpointType">
-		<xsd:annotation>
-			<xsd:documentation>
-	Defines an endpoint for a MessageHandler.
-			</xsd:documentation>
-		</xsd:annotation>
-	</xsd:element>
-
 	<xsd:complexType name="inputOutputHandlerEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
