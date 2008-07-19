@@ -16,36 +16,17 @@
 
 package org.springframework.integration.config;
 
-import org.w3c.dom.Element;
-
-import org.springframework.beans.factory.config.RuntimeBeanReference;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
 import org.springframework.integration.handler.MessageHandler;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Mark Fisher
  */
 public class DefaultHandlerEndpointParser extends AbstractHandlerEndpointParser {
 
-	private static final String REPLY_HANDLER_ATTRIBUTE = "reply-handler";
-
-	private static final String REPLY_HANDLER_PROPERTY = "replyHandler";
-
-
 	@Override
 	protected Class<? extends MessageHandler> getHandlerAdapterClass() {
 		return DefaultMessageHandlerAdapter.class;
-	}
-
-	@Override
-	protected void postProcessEndpointBean(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
-		String replyHandler = element.getAttribute(REPLY_HANDLER_ATTRIBUTE);
-		if (StringUtils.hasText(replyHandler)) {
-			builder.addPropertyValue(REPLY_HANDLER_PROPERTY, new RuntimeBeanReference(replyHandler));
-		}
 	}
 
 }

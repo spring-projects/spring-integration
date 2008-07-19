@@ -30,8 +30,8 @@ import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.MessageHandler;
-import org.springframework.integration.handler.ReplyHandler;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -66,16 +66,17 @@ public class RequestReplyTemplateTests {
 	public void testAsynchronousRequestAndReply() throws InterruptedException {
 		final List<String> replies = new ArrayList<String>(3);
 		final CountDownLatch latch = new CountDownLatch(3);
-		ReplyHandler replyHandler = new ReplyHandler() {
-			public void handle(Message<?> replyMessage, Message<?> originalMessage) {
+		MessageTarget replyTarget = new MessageTarget() {
+			public boolean send(Message<?> replyMessage) {
 				replies.add((String) replyMessage.getPayload());
 				latch.countDown();
+				return true;
 			}
 		};
 		RequestReplyTemplate template = new RequestReplyTemplate(requestChannel);
-		template.request(new StringMessage("test1"), replyHandler);
-		template.request(new StringMessage("test2"), replyHandler);
-		template.request(new StringMessage("test3"), replyHandler);
+		template.request(new StringMessage("test1"), replyTarget);
+		template.request(new StringMessage("test2"), replyTarget);
+		template.request(new StringMessage("test3"), replyTarget);
 		latch.await(2000, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
 		assertTrue(replies.contains("TEST1"));

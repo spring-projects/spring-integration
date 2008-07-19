@@ -20,7 +20,6 @@ import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandler;
-import org.springframework.integration.handler.ReplyHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryException;
@@ -39,8 +38,6 @@ public class HandlerEndpoint extends AbstractEndpoint {
 
 	private volatile MessageHandler handler;
 
-	private volatile ReplyHandler replyHandler = new EndpointReplyHandler();
-
 	private volatile long replyTimeout = 1000;
 
 	private volatile boolean returnAddressOverrides = false;
@@ -54,11 +51,6 @@ public class HandlerEndpoint extends AbstractEndpoint {
 
 	public MessageHandler getHandler() {
 		return this.handler;
-	}
-
-	public void setReplyHandler(ReplyHandler replyHandler) {
-		Assert.notNull(replyHandler, "'replyHandler' must not be null");
-		this.replyHandler = replyHandler;
 	}
 
 	/**
@@ -126,33 +118,28 @@ public class HandlerEndpoint extends AbstractEndpoint {
 				replyMessage = MessageBuilder.fromMessage(replyMessage)
 						.setHeader(MessageHeaders.CORRELATION_ID, message.getId()).build();
 			}
-			this.replyHandler.handle(replyMessage, message);
+			if (replyMessage != null) {
+				MessageChannel replyChannel = resolveReplyChannel(replyMessage);
+				if (replyChannel == null) {
+					replyChannel = resolveReplyChannel(message);
+					if (replyChannel == null) {
+						throw new MessageHandlingException(replyMessage, "Unable to determine reply channel for message. " +
+								"Provide an 'outputChannelName' on the message endpoint or a 'returnAddress' in the message header");
+					}
+				}
+				this.sendReplyMessage(replyMessage, replyChannel);
+			}
 		}
 		return null;
 	}
 
-
-	private class EndpointReplyHandler implements ReplyHandler {
-
-		public void handle(Message<?> replyMessage, Message<?> originalMessage) {
-			if (replyMessage == null) {
-				return;
-			}
-			MessageChannel replyChannel = resolveReplyChannel(replyMessage);
-			if (replyChannel == null) {
-				replyChannel = resolveReplyChannel(originalMessage);
-				if (replyChannel == null) {
-					throw new MessageHandlingException(replyMessage, "Unable to determine reply channel for message. " +
-							"Provide an 'outputChannelName' on the message endpoint or a 'returnAddress' in the message header");
-				}
-			}
-			if (logger.isDebugEnabled()) {
-				logger.debug("endpoint '" + HandlerEndpoint.this + "' replying to channel '" + replyChannel + "' with message: " + replyMessage);
-			}
-			if (!replyChannel.send(replyMessage, replyTimeout)) {
-				throw new MessageDeliveryException(replyMessage,
-						"unable to send reply message within alloted timeout of " + replyTimeout + " milliseconds");
-			}
+	private void sendReplyMessage(Message<?> replyMessage, MessageChannel replyChannel) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("endpoint '" + HandlerEndpoint.this + "' replying to channel '" + replyChannel + "' with message: " + replyMessage);
+		}
+		if (!replyChannel.send(replyMessage, replyTimeout)) {
+			throw new MessageDeliveryException(replyMessage,
+					"unable to send reply message within alloted timeout of " + replyTimeout + " milliseconds");
 		}
 	}
 

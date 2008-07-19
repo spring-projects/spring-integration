@@ -203,19 +203,12 @@
 		</xsd:annotation>
 	</xsd:element>
 
-	<xsd:element name="handler-endpoint">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
+	<xsd:element name="handler-endpoint" type="inputOutputHandlerEndpointType">
+		<xsd:annotation>
+			<xsd:documentation>
 	Defines an endpoint for a MessageHandler.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:complexContent>
-				<xsd:extension base="inputOutputHandlerEndpointType">
-					<xsd:attribute name="reply-handler" type="xsd:string"/>
-				</xsd:extension>
-			</xsd:complexContent>
-		</xsd:complexType>
+			</xsd:documentation>
+		</xsd:annotation>
 	</xsd:element>
 
 	<xsd:complexType name="inputOutputHandlerEndpointType">

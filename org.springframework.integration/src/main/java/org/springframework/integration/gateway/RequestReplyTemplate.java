@@ -25,12 +25,11 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.RendezvousChannel;
 import org.springframework.integration.endpoint.EndpointRegistry;
 import org.springframework.integration.endpoint.HandlerEndpoint;
-import org.springframework.integration.handler.ReplyHandler;
 import org.springframework.integration.handler.ReplyMessageCorrelator;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryException;
-import org.springframework.integration.message.MessageHeaders;
+import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.selector.MessageSelector;
 
@@ -155,10 +154,10 @@ public class RequestReplyTemplate implements MessageBusAware {
 	}
 
 	/**
-	 * Send a request message whose reply should be handled be the provided callback.
+	 * Send a request message whose reply should be sent to the provided target.
 	 */
-	public boolean request(Message<?> message, ReplyHandler replyHandler) {
-		MessageChannel replyChannelAdapter = new ReplyHandlingChannelAdapter(message, replyHandler);
+	public boolean request(Message<?> message, MessageTarget target) {
+		MessageChannel replyChannelAdapter = new ReplyHandlingChannelAdapter(target);
 		Message<?> requestMessage = MessageBuilder.fromMessage(message)
 				.setReturnAddress(replyChannelAdapter).build();
 		return this.send(requestMessage);
@@ -228,14 +227,11 @@ public class RequestReplyTemplate implements MessageBusAware {
 
 	private static class ReplyHandlingChannelAdapter implements MessageChannel {
 
-		private final Message<?> originalMessage;
-
-		private final ReplyHandler replyHandler;
+		private final MessageTarget target;
 
 
-		ReplyHandlingChannelAdapter(Message<?> originalMessage, ReplyHandler replyHandler) {
-			this.originalMessage = originalMessage;
-			this.replyHandler = replyHandler;
+		ReplyHandlingChannelAdapter(MessageTarget target) {
+			this.target = target;
 		}
 
 
@@ -263,7 +259,7 @@ public class RequestReplyTemplate implements MessageBusAware {
         }
 
         public boolean send(Message<?> message) {
-	        this.replyHandler.handle(message, originalMessage);
+	        this.target.send(message);
 	        return true;
         }
 
