@@ -22,7 +22,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Map;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.message.MessageCreator;
@@ -37,11 +36,9 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class FileSource extends AbstractDirectorySource implements MessageSource<Object>, InitializingBean, MessageDeliveryAware {
+public class FileSource extends AbstractDirectorySource implements MessageSource<Object>, MessageDeliveryAware {
 
 	private final File directory;
-
-	private volatile MessageCreator<File, ?> messageCreator;
 
 	private volatile FileFilter fileFilter;
 
@@ -68,22 +65,12 @@ public class FileSource extends AbstractDirectorySource implements MessageSource
 	}
 
 
-	public void setMessageCreator(MessageCreator<File, ?> messageCreator) {
-		this.messageCreator = messageCreator;
-	}
-
 	public void setFileFilter(FileFilter fileFilter) {
 		this.fileFilter = fileFilter;
 	}
 
 	public void setFilenameFilter(FilenameFilter filenameFilter) {
 		this.filenameFilter = filenameFilter;
-	}
-
-	public void afterPropertiesSet() {
-		if (null == this.messageCreator) {
-			this.messageCreator = new FileMessageCreator();
-		}
 	}
 
 	@Override
