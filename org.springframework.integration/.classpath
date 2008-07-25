@@ -14,5 +14,6 @@
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.context.support/2.5.4.A/org.springframework.context.support-2.5.4.A.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.context.support/2.5.4.A/org.springframework.context.support-sources-2.5.4.A.jar"/>
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.core/2.5.4.A/org.springframework.core-2.5.4.A.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.core/2.5.4.A/org.springframework.core-sources-2.5.4.A.jar"/>
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.transaction/2.5.4.A/org.springframework.transaction-2.5.4.A.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.transaction/2.5.4.A/org.springframework.transaction-sources-2.5.4.A.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.test/2.5.4.A/org.springframework.test-2.5.4.A.jar" sourcepath="IVY_CACHE/org.springframework/org.springframework.test/2.5.4.A/org.springframework.test-sources-2.5.4.A.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
