@@ -33,6 +33,7 @@
 		<dependency org="org.springframework" name="org.springframework.aop" rev="2.5.4.A" conf="compile->runtime"/>
 		<dependency org="org.springframework" name="org.springframework.jms" rev="2.5.4.A" conf="compile->runtime"/>
 		<dependency org="org.springframework" name="org.springframework.test" rev="2.5.4.A" conf="test->runtime"/>
+		<dependency org="org.easymock" name="com.springsource.org.easymock" rev="2.3.0" conf="test->runtime"/>
 		<dependency org="org.springframework" name="org.springframework.transaction" rev="2.5.4.A" conf="compile->runtime"/>
 		<dependency org="org.springframework" name="org.springframework.web" rev="2.5.4.A" conf="compile->runtime"/>
 	</dependencies>
