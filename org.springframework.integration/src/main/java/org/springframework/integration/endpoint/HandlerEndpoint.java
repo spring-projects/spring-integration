@@ -18,13 +18,14 @@ package org.springframework.integration.endpoint;
 
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.message.BlockingTarget;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageHeaders;
+import org.springframework.integration.message.MessageTarget;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -75,28 +76,28 @@ public class HandlerEndpoint extends AbstractEndpoint {
 		super.initialize();
 	}
 
-	private MessageChannel resolveReplyChannel(Message<?> originalMessage) {
+	private MessageTarget resolveReturnAddress(Message<?> originalMessage) {
 		if (this.returnAddressOverrides) {
-			MessageChannel channel = this.getReturnAddress(originalMessage);
-			if (channel == null) {
-				channel = this.getOutputChannel();
+			MessageTarget target = this.getReturnAddress(originalMessage);
+			if (target == null) {
+				target = this.getOutputChannel();
 			}
-			return channel;
+			return target;
 		}
 		else {
-			MessageChannel channel = this.getOutputChannel();
-			if (channel == null) {
-				channel = this.getReturnAddress(originalMessage);
+			MessageTarget target = this.getOutputChannel();
+			if (target == null) {
+				target = this.getReturnAddress(originalMessage);
 			}
-			return channel;
+			return target;
 		}
 	}
 
-	private MessageChannel getReturnAddress(Message<?> originalMessage) {
+	private MessageTarget getReturnAddress(Message<?> originalMessage) {
 		Object returnAddress = originalMessage.getHeaders().getReturnAddress();
 		if (returnAddress != null) {
-			if (returnAddress instanceof MessageChannel) {
-				return (MessageChannel) returnAddress;
+			if (returnAddress instanceof MessageTarget) {
+				return (MessageTarget) returnAddress;
 			}
 			ChannelRegistry registry = this.getChannelRegistry();
 			if (returnAddress instanceof String && registry != null) {
@@ -119,27 +120,30 @@ public class HandlerEndpoint extends AbstractEndpoint {
 						.setHeader(MessageHeaders.CORRELATION_ID, message.getId()).build();
 			}
 			if (replyMessage != null) {
-				MessageChannel replyChannel = resolveReplyChannel(replyMessage);
-				if (replyChannel == null) {
-					replyChannel = resolveReplyChannel(message);
-					if (replyChannel == null) {
-						throw new MessageHandlingException(replyMessage, "Unable to determine reply channel for message. " +
+				MessageTarget returnAddress = resolveReturnAddress(replyMessage);
+				if (returnAddress == null) {
+					returnAddress = resolveReturnAddress(message);
+					if (returnAddress == null) {
+						throw new MessageHandlingException(replyMessage, "Unable to determine return address for message. " +
 								"Provide an 'outputChannelName' on the message endpoint or a 'returnAddress' in the message header");
 					}
 				}
-				this.sendReplyMessage(replyMessage, replyChannel);
+				this.sendReplyMessage(replyMessage, returnAddress);
 			}
 		}
 		return null;
 	}
 
-	private void sendReplyMessage(Message<?> replyMessage, MessageChannel replyChannel) {
+	private void sendReplyMessage(Message<?> replyMessage, MessageTarget returnAddress) {
 		if (logger.isDebugEnabled()) {
-			logger.debug("endpoint '" + HandlerEndpoint.this + "' replying to channel '" + replyChannel + "' with message: " + replyMessage);
+			logger.debug("endpoint '" + HandlerEndpoint.this + "' replying to target '" + returnAddress + "' with message: " + replyMessage);
 		}
-		if (!replyChannel.send(replyMessage, replyTimeout)) {
+		boolean sent = (this.replyTimeout >= 0 && returnAddress instanceof BlockingTarget)
+				? ((BlockingTarget) returnAddress).send(replyMessage, this.replyTimeout)
+				: returnAddress.send(replyMessage);
+		if (!sent) {
 			throw new MessageDeliveryException(replyMessage,
-					"unable to send reply message within alloted timeout of " + replyTimeout + " milliseconds");
+					"unable to send reply message within allotted timeout of " + this.replyTimeout + " milliseconds");
 		}
 	}
 
