@@ -28,13 +28,11 @@ import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageExchangeTemplate;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.message.Poller;
-import org.springframework.integration.message.Subscribable;
-import org.springframework.integration.message.TargetInvoker;
 import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.integration.scheduling.Schedule;
 
@@ -57,13 +55,9 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 
 	private volatile MessageTarget target;
 
-	private volatile Poller poller;
-
 	private volatile Schedule schedule;
 
-	private final TargetInvoker targetInvoker = new TargetInvoker();
-
-	private volatile long sendTimeout;
+	private volatile MessageExchangeTemplate messageExchangeTemplate;
 
 	private volatile MessageSelector selector;
 
@@ -92,8 +86,8 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 		return this.schedule;
 	}
 
-	public void setPoller(Poller poller) {
-		this.poller = poller;
+	public void setMessageExchangeTemplate(MessageExchangeTemplate messageExchangeTemplate) {
+		this.messageExchangeTemplate = messageExchangeTemplate;
 	}
 
 	public void setInputChannelName(String inputChannelName) {
@@ -147,7 +141,7 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 	}
 
 	public void setSendTimeout(long sendTimeout) {
-		this.sendTimeout = sendTimeout;
+		this.messageExchangeTemplate.setSendTimeout(sendTimeout);
 	}
 
 	public MessageChannel getOutputChannel() {
@@ -200,9 +194,9 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 	}
 
 	public void afterPropertiesSet() {
-		if (this.poller == null && this.source != null
-				&& !(this.source instanceof Subscribable)) {
-			this.poller = new DefaultEndpointPoller();
+		if (this.messageExchangeTemplate == null) {
+			this.messageExchangeTemplate = new MessageExchangeTemplate();
+			this.messageExchangeTemplate.afterPropertiesSet();
 		}
 		if (this.target == null) {
 			this.target = this.getOutputChannel();
@@ -254,32 +248,31 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 	}
 
 	private boolean doSend(Message<?> message) {
+		if (this.messageExchangeTemplate == null) {
+			this.afterPropertiesSet();
+		}
 		if (!this.supports(message)) {
 			throw new MessageRejectedException(message, "unsupported message");
 		}
 		Message<?> result = this.handleMessage(message);
 		if (result != null) {
-			return this.targetInvoker.invoke(this.target, result, this.sendTimeout);
+			return this.messageExchangeTemplate.send(message, this.target);
 		}
 		return true;
 	}
 
 	public final boolean poll() {
-		if (this.poller == null) {
+		if (this.messageExchangeTemplate == null) {
 			this.afterPropertiesSet();
-			if (this.poller == null) {
-				throw new MessagingException("endpoint '" + this + "' has no poller");
-			}
 		}
 		if (this.source == null) {
 			throw new MessagingException("endpoint '" + this + "' has no source");
 		}
-		int result = this.poller.poll(this.source, new MessageTarget() {
+		return this.messageExchangeTemplate.receiveAndForward(this.source, new MessageTarget() {
 			public boolean send(Message<?> message) {
 				return AbstractEndpoint.this.send(message, 0);
 			}
 		});
-		return (result > 0);
 	}
 
 	protected boolean supports(Message<?> message) {

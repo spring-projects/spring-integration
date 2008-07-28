@@ -112,7 +112,7 @@ public abstract class AbstractHandlerEndpointParser extends AbstractSingleBeanDe
 					schedule = this.parseSchedule(childElement);
 				}
 				else if (POLLER_ELEMENT.equals(localName)) {
-					builder.addPropertyReference("poller",
+					builder.addPropertyReference("messageExchangeTemplate",
 							IntegrationNamespaceUtils.parsePoller(childElement, parserContext));
 				}
 				else if (INTERCEPTORS_ELEMENT.equals(localName)) {

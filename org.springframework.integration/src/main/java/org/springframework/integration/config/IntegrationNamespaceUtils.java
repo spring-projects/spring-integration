@@ -24,7 +24,8 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.endpoint.DefaultEndpointPoller;
+import org.springframework.integration.message.AsyncMessageExchangeTemplate;
+import org.springframework.integration.message.MessageExchangeTemplate;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
@@ -106,16 +107,18 @@ public abstract class IntegrationNamespaceUtils {
 			}
 			return ref;
 		}
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(DefaultEndpointPoller.class);
+		Class<?> beanClass = (StringUtils.hasText(taskExecutorRef)) ?
+				AsyncMessageExchangeTemplate.class : MessageExchangeTemplate.class;
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(beanClass);
+		if (StringUtils.hasText(taskExecutorRef)) {
+			builder.addConstructorArgReference(taskExecutorRef);
+		}
 		if (txElement != null) {
 			builder.addPropertyReference("transactionManager", txElement.getAttribute("transaction-manager"));
 			builder.addPropertyValue("propagationBehaviorName", DefaultTransactionDefinition.PREFIX_PROPAGATION + txElement.getAttribute("propagation"));
 			builder.addPropertyValue("isolationLevelName", DefaultTransactionDefinition.PREFIX_ISOLATION + txElement.getAttribute("isolation"));
 			builder.addPropertyValue("transactionTimeout", txElement.getAttribute("timeout"));
 			builder.addPropertyValue("transactionReadOnly", txElement.getAttribute("read-only"));
-		}
-		if (StringUtils.hasText(taskExecutorRef)) {
-			builder.addPropertyReference("taskExecutor", taskExecutorRef);
 		}
 		String receiveTimeout = element.getAttribute("receive-timeout");
 		if (StringUtils.hasText(receiveTimeout)) {

@@ -24,8 +24,8 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageExchangeTemplate;
 import org.springframework.integration.message.MessageTarget;
-import org.springframework.integration.message.TargetInvoker;
 
 /**
  * Base class for {@link MessageDispatcher} implementations.
@@ -38,15 +38,13 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	protected final List<MessageTarget> targets = new CopyOnWriteArrayList<MessageTarget>();
 
-	private volatile long timeout = 0;
-
 	private volatile TaskExecutor taskExecutor;
 
-	private final TargetInvoker targetInvoker = new TargetInvoker();
+	private final MessageExchangeTemplate messageExchangeTemplate = new MessageExchangeTemplate();
 
 
 	public void setTimeout(long timeout) {
-		this.timeout = timeout;
+		this.messageExchangeTemplate.setSendTimeout(timeout);
 	}
 
 	public boolean addTarget(MessageTarget target) {
@@ -71,7 +69,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	}
 
 	protected final boolean sendMessageToTarget(Message<?> message, MessageTarget target) {
-		return this.targetInvoker.invoke(target, message, this.timeout);
+		return this.messageExchangeTemplate.send(message, target);
 	}
 
 }
