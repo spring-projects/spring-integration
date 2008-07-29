@@ -16,7 +16,6 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.scheduling.Schedule;
@@ -36,16 +35,14 @@ public interface MessageEndpoint extends MessageTarget {
 
 	void setSource(MessageSource<?> source);
 
+	MessageSource<?> getSource();
+
 	void setTarget(MessageTarget target);
+
+	MessageTarget getTarget();
 
 	String getInputChannelName();
 
-	MessageChannel getInputChannel();
-
 	String getOutputChannelName();
-
-	MessageChannel getOutputChannel();
-
-	boolean poll();
 
 }

@@ -80,12 +80,12 @@ public class HandlerEndpoint extends AbstractEndpoint {
 		if (this.returnAddressOverrides) {
 			MessageTarget target = this.getReturnAddress(originalMessage);
 			if (target == null) {
-				target = this.getOutputChannel();
+				target = this.getTarget();
 			}
 			return target;
 		}
 		else {
-			MessageTarget target = this.getOutputChannel();
+			MessageTarget target = this.getTarget();
 			if (target == null) {
 				target = this.getReturnAddress(originalMessage);
 			}

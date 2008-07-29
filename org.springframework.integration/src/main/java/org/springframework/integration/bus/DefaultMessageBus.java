@@ -54,6 +54,7 @@ import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.MessagingGateway;
 import org.springframework.integration.endpoint.TargetEndpoint;
 import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.Subscribable;
 import org.springframework.integration.scheduling.MessagePublishingErrorHandler;
@@ -319,21 +320,21 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 
 	private void activateEndpoint(MessageEndpoint endpoint) {
 		Assert.notNull(endpoint, "'endpoint' must not be null");
-		if (endpoint.getOutputChannel() == null) {
+		if (endpoint.getTarget() == null) {
 			this.lookupOrCreateChannel(endpoint.getOutputChannelName());
 		}
-		MessageChannel channel = endpoint.getInputChannel();
-		if (channel == null) {
-			channel = this.lookupOrCreateChannel(endpoint.getInputChannelName());
-			if (channel != null) {
-				endpoint.setSource(channel);
+		MessageSource<?> source = endpoint.getSource();
+		if (source == null) {
+			source = this.lookupOrCreateChannel(endpoint.getInputChannelName());
+			if (source != null) {
+				endpoint.setSource(source);
 			}
 		}
-		if (channel != null && channel instanceof Subscribable) {
-			((Subscribable) channel).subscribe(endpoint);
+		if (source != null && source instanceof Subscribable) {
+			((Subscribable) source).subscribe(endpoint);
 			if (logger.isInfoEnabled()) {
 				logger.info("activated subscription to channel '"
-						+ channel.getName() + "' for endpoint '" + endpoint + "'");
+						+ source + "' for endpoint '" + endpoint + "'");
 			}
 			return;
 		}

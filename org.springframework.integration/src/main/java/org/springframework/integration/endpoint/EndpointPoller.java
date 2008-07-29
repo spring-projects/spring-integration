@@ -16,13 +16,22 @@
 
 package org.springframework.integration.endpoint;
 
+import org.springframework.integration.message.MessageExchangeTemplate;
+
 /**
  * @author Mark Fisher
  */
 public class EndpointPoller implements EndpointVisitor {
 
+	private final MessageExchangeTemplate template;
+
+	public EndpointPoller() {
+		 this.template = new MessageExchangeTemplate();
+		 this.template.setSendTimeout(0);
+	}
+
 	public void visitEndpoint(MessageEndpoint endpoint) {
-		endpoint.poll();
+		template.receiveAndForward(endpoint.getSource(), endpoint);
 	}
 
 }

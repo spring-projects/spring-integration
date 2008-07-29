@@ -37,9 +37,9 @@ public class SourceEndpoint extends AbstractEndpoint {
 
 	@Override
 	public void initialize() {
-		if (this.getOutputChannel() == null) {
+		if (this.getTarget() == null) {
 			throw new ConfigurationException(
-					"no output channel has been configured for source endpoint '" + this.getName() + "'");
+					"no output has been configured for source endpoint '" + this.getName() + "'");
 		}
 	}
 

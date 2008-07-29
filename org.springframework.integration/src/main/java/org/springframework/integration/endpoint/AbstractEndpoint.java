@@ -105,20 +105,14 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 		this.source = source;
 	}
 
-	public MessageChannel getInputChannel() {
-		if (this.source != null) {
-			if (this.source instanceof MessageChannel) {
-				return (MessageChannel) this.source;
-			}
-		}
-		else if (this.inputChannelName != null && this.channelRegistry != null) {
+	public MessageSource<?> getSource() {
+		if (this.source == null && this.inputChannelName != null && this.channelRegistry != null) {
 			MessageChannel inputChannel = this.channelRegistry.lookupChannel(this.inputChannelName);
 			if (inputChannel != null) {
 				this.source = inputChannel;
 			}
-			return inputChannel;
 		}
-		return null;
+		return this.source;
 	}
 
 	/**
@@ -144,20 +138,14 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 		this.messageExchangeTemplate.setSendTimeout(sendTimeout);
 	}
 
-	public MessageChannel getOutputChannel() {
-		if (this.target != null) {
-			if (this.target instanceof MessageChannel) {
-				return (MessageChannel) this.target;
-			}
-		}
-		else if (this.outputChannelName != null && this.channelRegistry != null) {
+	public MessageTarget getTarget() {
+		if (this.target == null && this.outputChannelName != null && this.channelRegistry != null) {
 			MessageChannel outputChannel = this.channelRegistry.lookupChannel(this.outputChannelName);
 			if (outputChannel != null) {
 				this.target = outputChannel;
 			}
-			return outputChannel;
 		}
-		return null;
+		return this.target;
 	}
 
 	/**
@@ -199,7 +187,7 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 			this.messageExchangeTemplate.afterPropertiesSet();
 		}
 		if (this.target == null) {
-			this.target = this.getOutputChannel();
+			this.target = this.getTarget();
 		}
 		if (this.target != null && this.target instanceof ChannelRegistryAware
 				&& this.channelRegistry != null) {
