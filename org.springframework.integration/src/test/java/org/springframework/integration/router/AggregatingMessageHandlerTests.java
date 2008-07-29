@@ -80,7 +80,8 @@ public class AggregatingMessageHandlerTests {
 		CountDownLatch latch = new CountDownLatch(1);
 		AggregatorTestTask task = new AggregatorTestTask(aggregator, message, latch);
 		executor.execute(task);
-		latch.await(1000, TimeUnit.MILLISECONDS);
+		latch.await(2000, TimeUnit.MILLISECONDS);
+		assertEquals("task should have completed within timeout", 0, latch.getCount());
 		Message<?> reply = replyChannel.receive(0);
 		assertNull(reply);
 		Message<?> discardedMessage = discardChannel.receive(1000);
