@@ -23,7 +23,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class ConcurrencyPolicy implements EndpointPolicy {
+public class ConcurrencyPolicy {
 
 	public static final int DEFAULT_CORE_SIZE = 1;
 
