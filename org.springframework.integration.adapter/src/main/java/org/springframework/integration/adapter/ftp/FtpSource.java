@@ -19,15 +19,22 @@ package org.springframework.integration.adapter.ftp;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.annotation.Required;
 import org.springframework.integration.adapter.file.AbstractDirectorySource;
 import org.springframework.integration.adapter.file.FileInfo;
+import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageCreator;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.util.Assert;
@@ -38,15 +45,15 @@ import org.springframework.util.StringUtils;
  * 
  * @author Marius Bogoevici
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
-public class FtpSource extends AbstractDirectorySource {
+public class FtpSource extends AbstractDirectorySource<List<File>> implements DisposableBean {
 
 	private final static String DEFAULT_HOST = "localhost";
 
 	private final static int DEFAULT_PORT = 21;
 
 	private final static String DEFAULT_REMOTE_WORKING_DIRECTORY = "/";
-
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -62,11 +69,15 @@ public class FtpSource extends AbstractDirectorySource {
 
 	private volatile File localWorkingDirectory;
 
-	private final FTPClient client = new FTPClient();
+	private final FTPClient client;
 
+	public FtpSource(MessageCreator<List<File>, List<File>> messageCreator) {
+		this(messageCreator, new FTPClient());
+	}
 
-	public FtpSource(MessageCreator<File, ?> messageCreator) {
+	public FtpSource(MessageCreator<List<File>, List<File>> messageCreator, FTPClient client) {
 		super(messageCreator);
+		this.client = client;
 	}
 
 	public void setHost(String host) {
@@ -77,6 +88,7 @@ public class FtpSource extends AbstractDirectorySource {
 		this.port = port;
 	}
 
+	@Required
 	public void setUsername(String username) {
 		this.username = username;
 	}
@@ -86,8 +98,9 @@ public class FtpSource extends AbstractDirectorySource {
 	}
 
 	public void setRemoteWorkingDirectory(String remoteWorkingDirectory) {
-		Assert.hasText(remoteWorkingDirectory, "'remoteWorkingDirectory' is required");
-		this.remoteWorkingDirectory = remoteWorkingDirectory;
+		Assert.notNull(remoteWorkingDirectory, "'remoteWorkingDirectory' cannot be null");
+		// FtpClient is picky about "", so we make it happy
+		this.remoteWorkingDirectory = remoteWorkingDirectory.replaceAll("^$", "/");
 	}
 
 	public void setLocalWorkingDirectory(File localWorkingDirectory) {
@@ -97,6 +110,7 @@ public class FtpSource extends AbstractDirectorySource {
 
 	@Override
 	protected void populateSnapshot(Map<String, FileInfo> snapshot) throws IOException {
+		establishConnection();
 		FTPFile[] fileList = this.client.listFiles();
 
 		for (FTPFile ftpFile : fileList) {
@@ -107,6 +121,12 @@ public class FtpSource extends AbstractDirectorySource {
 	}
 
 	protected void establishConnection() throws IOException {
+		if (this.client.isConnected()) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("client already connected");
+			}
+			return;
+		}
 		if (!StringUtils.hasText(this.username)) {
 			throw new MessagingException("username is required");
 		}
@@ -128,16 +148,22 @@ public class FtpSource extends AbstractDirectorySource {
 		}
 	}
 
-	protected File retrieveNextFile() throws IOException {
-		String fileName = this.getDirectoryContentManager().getBacklog().keySet().iterator().next();
-		File file = new File(this.localWorkingDirectory, fileName);
-		if (file.exists()) {
-			file.delete();
+	protected List<File> retrieveNextPayload() throws IOException {
+		establishConnection();
+		List<File> files = new ArrayList<File>();
+		Set<String> backlog = this.getDirectoryContentManager().getBacklog().keySet();
+		for (String fileName : backlog) {
+			File file = new File(this.localWorkingDirectory, fileName);
+			if (file.exists()) {
+				file.delete();
+			}
+			FileOutputStream fileOutputStream = new FileOutputStream(file);
+			this.client.retrieveFile(fileName, fileOutputStream);
+			fileOutputStream.close();
+			files.add(file);
 		}
-		FileOutputStream fileOutputStream = new FileOutputStream(file);
-		this.client.retrieveFile(fileName, fileOutputStream);
-		fileOutputStream.close();
-		return file;
+		disconnect();
+		return files;
 	}
 
 	protected void disconnect() {
@@ -150,7 +176,21 @@ public class FtpSource extends AbstractDirectorySource {
 			}
 		}
 		catch (IOException ioe) {
-			throw new MessagingException("Error when disconnecting from ftp.", ioe);
+			if (logger.isErrorEnabled()) {
+				logger.error("Error when disconnecting from ftp.", ioe);
+			}
+		}
+	}
+
+	public void destroy() throws Exception {
+		disconnect();
+	}
+
+	@Override
+	public void onSend(Message<?> message) {
+		List<File> files = ((Message<List<File>>) message).getPayload();
+		for (File file : files) {
+			fileProcessed(file.getName());
 		}
 	}
 

@@ -22,13 +22,18 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageCreator;
 import org.springframework.integration.message.MessageDeliveryAware;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * A messaging source that polls a directory to retrieve files.
@@ -36,8 +41,10 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class FileSource extends AbstractDirectorySource implements MessageSource<Object>, MessageDeliveryAware {
+public class FileSource extends AbstractDirectorySource<File> implements MessageSource<File>, MessageDeliveryAware {
 
+	private final Log logger = LogFactory.getLog(this.getClass());
+	
 	private final File directory;
 
 	private volatile FileFilter fileFilter;
@@ -48,8 +55,18 @@ public class FileSource extends AbstractDirectorySource implements MessageSource
 	public FileSource(Resource directory) {
 		this(directory, new FileMessageCreator());
 	}
+	
+	@Override
+	protected Message<File> buildNextMessage() throws IOException {
+		File file = retrieveNextPayload();
+		Message<File> message = this.getMessageCreator().createMessage(file);
+		message = MessageBuilder.fromMessage(message)
+				.setHeader(FileNameGenerator.FILENAME_PROPERTY_KEY, file.getName()).setHeader(FILE_INFO_PROPERTY,
+						getDirectoryContentManager().getBacklog().get(file.getName())).build();
+		return message;
+	}
 
-	public FileSource(Resource directory, MessageCreator<File, ?> messageCreator) {
+	public FileSource(Resource directory, MessageCreator<File, File> messageCreator) {
 		super(messageCreator);
 		Assert.notNull(directory, "The directory must not be null");
 		try {
@@ -71,16 +88,6 @@ public class FileSource extends AbstractDirectorySource implements MessageSource
 
 	public void setFilenameFilter(FilenameFilter filenameFilter) {
 		this.filenameFilter = filenameFilter;
-	}
-
-	@Override
-	protected void disconnect() {
-		// No action is necessary
-	}
-
-	@Override
-	protected void establishConnection() throws IOException {
-		// No action is necessary
 	}
 
 	@Override
@@ -106,9 +113,19 @@ public class FileSource extends AbstractDirectorySource implements MessageSource
 	}
 
 	@Override
-	protected File retrieveNextFile() throws IOException {
+	protected File retrieveNextPayload() throws IOException {
 		String fileName = this.getDirectoryContentManager().getBacklog().keySet().iterator().next();
 		return new File(directory, fileName);
 	}
 
+	@Override
+	public void onSend(Message<?> message) {
+		String filename = message.getHeaders().get(FileNameGenerator.FILENAME_PROPERTY_KEY, String.class);
+		if (StringUtils.hasText(filename)) {
+			fileProcessed(filename);
+		}
+		else if (this.logger.isWarnEnabled()) {
+			logger.warn("No filename in Message header, cannot send notification of processing.");
+		}
+	}
 }

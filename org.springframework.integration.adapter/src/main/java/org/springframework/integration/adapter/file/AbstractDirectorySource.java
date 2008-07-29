@@ -24,6 +24,7 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageCreator;
@@ -34,84 +35,73 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Base class for implementing a Source that creates messages from files in a directory,
- * either local or remote.
+ * Base class for implementing a Source that creates messages from files in a
+ * directory, either local or remote.
  * 
  * @author Marius Bogoevici
+ * @author iwein
  */
-public abstract class AbstractDirectorySource implements MessageSource<Object>, MessageDeliveryAware {
+public abstract class AbstractDirectorySource<T> implements MessageSource<T>, MessageDeliveryAware {
 
 	public final static String FILE_INFO_PROPERTY = "file.info";
-
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final DirectoryContentManager directoryContentManager = new DirectoryContentManager();
 
-	private final MessageCreator<File, ?> messageCreator;
+	private final MessageCreator<T, T> messageCreator;
 
-
-	public AbstractDirectorySource(MessageCreator<File, ?> messageCreator) {
+	public AbstractDirectorySource(MessageCreator<T, T> messageCreator) {
 		Assert.notNull(messageCreator, "The MessageCreator must not be null");
 		this.messageCreator = messageCreator;
 	}
-
 
 	protected DirectoryContentManager getDirectoryContentManager() {
 		return this.directoryContentManager;
 	}
 
-	public MessageCreator<File, ?> getMessageCreator() {
+	public MessageCreator<T, T> getMessageCreator() {
 		return messageCreator;
 	}
 
 	@SuppressWarnings("unchecked")
-	public final Message receive() {
+	public final Message<T> receive() {
 		try {
-			this.establishConnection();
 			HashMap<String, FileInfo> snapshot = new HashMap<String, FileInfo>();
 			this.populateSnapshot(snapshot);
 			this.directoryContentManager.processSnapshot(snapshot);
 			if (!getDirectoryContentManager().getBacklog().isEmpty()) {
-				File file = retrieveNextFile();
-				Message message = this.messageCreator.createMessage(file);
-				message = MessageBuilder.fromMessage(message)
-						.setHeader(FileNameGenerator.FILENAME_PROPERTY_KEY, file.getName())
-						.setHeader(FILE_INFO_PROPERTY, getDirectoryContentManager().getBacklog().get(file.getName()))
-						.build();
-				return message;
+				return buildNextMessage();
 			}
 			return null;
 		}
 		catch (Exception e) {
 			throw new MessagingException("Error while polling for messages.", e);
 		}
-		finally {
-			disconnect();
-		}
 	}
 
-	public void onSend(Message<?> message) {
-		String filename = message.getHeaders().get(FileNameGenerator.FILENAME_PROPERTY_KEY, String.class);
-		if (StringUtils.hasText(filename)) {
-			this.directoryContentManager.fileProcessed(filename);
-		}
-		else if (this.logger.isWarnEnabled()) {
-			logger.warn("No filename in Message header, cannot send notification of processing.");
-		}
+	/**
+	 * Hook point for implementors to create the next message that should be
+	 * received. Implementations can use a File by File approach like
+	 * FileSource). In cases where retrieval could be expensive because of
+	 * network latency a batched approach could be implemented here. See
+	 * FtpSource for an example.
+	 * 
+	 * @return the next message containing (part of) the unprocessed content of
+	 * the directory
+	 * @throws IOException
+	 */
+	protected Message<T> buildNextMessage() throws IOException {
+		return messageCreator.createMessage(retrieveNextPayload());
 	}
+
+	public abstract void onSend(Message<?> message);
 
 	public void onFailure(MessagingException exception) {
 		if (this.logger.isWarnEnabled()) {
 			logger.warn("Failure notification received by " + this.getClass().getSimpleName(), exception);
 		}
 	}
-
-
-	/**
-	 * Connects to the directory, if necessary.
-	 */
-	protected abstract void establishConnection() throws IOException;
 
 	/**
 	 * Constructs the snapshot by iterating files.
@@ -125,11 +115,10 @@ public abstract class AbstractDirectorySource implements MessageSource<Object>, 
 	 * @return
 	 * @throws IOException
 	 */
-	protected abstract File retrieveNextFile() throws IOException;
+	protected abstract T retrieveNextPayload() throws IOException;
 
-	/**
-	 * Disconnects from the directory
-	 */
-	protected abstract void disconnect();
-
+	protected final void fileProcessed(String fileName){
+		this.directoryContentManager.fileProcessed(fileName);
+	}
+	
 }
