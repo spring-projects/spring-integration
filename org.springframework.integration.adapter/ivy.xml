@@ -22,7 +22,7 @@
 	<dependencies>
 		<dependency org="javax.activation" name="com.springsource.javax.activation" rev="1.1.0" conf="provided->runtime"/>
 		<dependency org="javax.jms" name="com.springsource.javax.jms" rev="1.1.0" conf="provided->runtime"/>
-		<dependency org="javax.mail" name="com.springsource.javax.mail" rev="1.4.0" conf="provided->runtime"/>
+		<dependency org="javax.mail" name="com.springsource.javax.mail" rev="1.4.1" conf="provided->runtime"/>
 		<dependency org="javax.servlet" name="com.springsource.javax.servlet" rev="2.4.0" conf="provided->runtime"/>
 		<dependency org="org.apache.commons" name="com.springsource.org.apache.commons.net" rev="1.4.1" conf="compile->runtime"/>
 		<dependency org="org.apache.oro" name="com.springsource.org.apache.oro" rev="2.0.8" conf="compile->runtime"/>
