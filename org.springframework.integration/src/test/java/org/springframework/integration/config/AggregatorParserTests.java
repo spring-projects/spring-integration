@@ -77,7 +77,7 @@ public class AggregatorParserTests {
 				(AggregatingMessageHandler) endpoint.getHandler(); 
 		TestAggregator testAggregator = (TestAggregator) context.getBean("aggregatorBean");
 		CompletionStrategy completionStrategy = (CompletionStrategy) context.getBean("completionStrategy");
-		MessageChannel defaultReplyChannel = (MessageChannel) context.getBean("replyChannel");
+		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
 		MessageChannel discardChannel = (MessageChannel) context.getBean("discardChannel");
 		DirectFieldAccessor messageHandlerFieldAccessor = new DirectFieldAccessor(completeAggregatingMessageHandler);
 		Assert.assertEquals("The AggregatingMessageHandler is not injected with the appropriate Aggregator instance",
@@ -85,8 +85,8 @@ public class AggregatorParserTests {
 		Assert.assertEquals(
 				"The AggregatingMessageHandler is not injected with the appropriate CompletionStrategy instance",
 				completionStrategy, messageHandlerFieldAccessor.getPropertyValue("completionStrategy"));
-		Assert.assertEquals("The AggregatingMessageHandler is not injected with the appropriate default reply channel",
-				defaultReplyChannel, messageHandlerFieldAccessor.getPropertyValue("defaultReplyChannel"));
+		Assert.assertEquals("The AggregatingMessageHandler is not injected with the appropriate output channel",
+				outputChannel, messageHandlerFieldAccessor.getPropertyValue("outputChannel"));
 		Assert.assertEquals("The AggregatingMessageHandler is not injected with the appropriate discard channel",
 				discardChannel, messageHandlerFieldAccessor.getPropertyValue("discardChannel"));
 		Assert.assertEquals("The AggregatingMessageHandler is not set with the appropriate timeout value", 86420000l,
@@ -114,8 +114,8 @@ public class AggregatorParserTests {
 		for (Message<?> message : outboundMessages) {
 			addingAggregator.handle(message);
 		}
-		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
-		Message<?> response = replyChannel.receive();
+		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
+		Message<?> response = outputChannel.receive();
 		Assert.assertEquals(6l, response.getPayload());
 	}
 
@@ -144,11 +144,11 @@ public class AggregatorParserTests {
 		aggregatorWithPojoCompletionStrategy.handle(createMessage(1l, "id1", 0 , 0, null));
 		aggregatorWithPojoCompletionStrategy.handle(createMessage(2l, "id1", 0 , 0, null));
 		aggregatorWithPojoCompletionStrategy.handle(createMessage(3l, "id1", 0 , 0, null));
-		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
-		Message<?> reply = replyChannel.receive(0);
+		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
+		Message<?> reply = outputChannel.receive(0);
 		Assert.assertNull(reply);
 		aggregatorWithPojoCompletionStrategy.handle(createMessage(5l, "id1", 0 , 0, null));
-		reply = replyChannel.receive(0);
+		reply = outputChannel.receive(0);
 		Assert.assertNotNull(reply);		
 		Assert.assertEquals(11l, reply.getPayload());
 	}
@@ -160,12 +160,12 @@ public class AggregatorParserTests {
 
 
 	private static <T> Message<T> createMessage(T payload, Object correlationId, int sequenceSize, int sequenceNumber,
-			MessageChannel replyChannel) {
+			MessageChannel outputChannel) {
 		return MessageBuilder.fromPayload(payload)
 				.setCorrelationId(correlationId)
 				.setSequenceSize(sequenceSize)
 				.setSequenceNumber(sequenceNumber)
-				.setReturnAddress(replyChannel).build();
+				.setReturnAddress(outputChannel).build();
 	}
 
 }

@@ -10,14 +10,14 @@
 	<message-bus/>
 
 	<channel id="inputChannel"/>
-	<channel id="replyChannel"/>
+	<channel id="outputChannel"/>
 	<channel id="discardChannel"/>
 
 	<aggregator id="aggregatorWithReference" ref="aggregatorBean" input-channel="inputChannel"/>
 
 	<aggregator id="completelyDefinedAggregator"
 		input-channel="inputChannel"
-		output-channel="replyChannel"
+		output-channel="outputChannel"
 		discard-channel="discardChannel"
 		ref="aggregatorBean" 
 		completion-strategy="completionStrategy"
@@ -31,11 +31,11 @@
 		ref="adderBean"
 		method="add"
 		input-channel="inputChannel"
-		output-channel="replyChannel"/>
+		output-channel="outputChannel"/>
 
 	<aggregator id="aggregatorWithPojoCompletionStrategy"
 		input-channel="inputChannel"
-		output-channel="replyChannel"
+		output-channel="outputChannel"
 		ref="adderBean"
 		method="add"
 		completion-strategy="pojoCompletionStrategy"

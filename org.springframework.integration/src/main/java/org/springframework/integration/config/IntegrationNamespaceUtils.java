@@ -24,6 +24,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.core.Conventions;
 import org.springframework.integration.message.AsyncMessageExchangeTemplate;
 import org.springframework.integration.message.MessageExchangeTemplate;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
@@ -39,38 +40,47 @@ import org.springframework.util.xml.DomUtils;
 public abstract class IntegrationNamespaceUtils {
 
 	/**
-	 * Populates the property identified by propertyName on the bean definition
-	 * to the value of the attribute specified by attributeName, if that
-	 * attribute is defined in the element
+	 * Populates the bean definition property corresponding to the specified
+	 * attributeName with the value of that attribute if it is defined in the
+	 * given element. The property name will be the camel-case equivalent of
+	 * the lower case hyphen separated attribute (e.g. the "foo-bar" attribute
+	 * would match the "fooBar" property).
 	 * 
 	 * @param beanDefinition - the bean definition to be configured
-	 * @param propertyName - the name of the bean property to be set
 	 * @param element - the XML element where the attribute should be defined
 	 * @param attributeName - the name of the attribute whose value will be set
 	 * on the property
+	 * 
+	 * @see Conventions#attributeNameToPropertyName(String)
 	 */
-	public static void setValueIfAttributeDefined(BeanDefinitionBuilder builder, String propertyName,
+	public static void setValueIfAttributeDefined(BeanDefinitionBuilder builder,
 			Element element, String attributeName) {
-		final String attributeValue = element.getAttribute(attributeName);
+		String attributeValue = element.getAttribute(attributeName);
+		String propertyName = Conventions.attributeNameToPropertyName(attributeName);
 		if (StringUtils.hasText(attributeValue)) {
 			builder.addPropertyValue(propertyName, attributeValue);
 		}
 	}
 
 	/**
-	 * Populates the property given by propertyName on the given bean definition
-	 * to a reference to a bean identified by the value of the attribute
-	 * specified by attributeName, if that attribute is defined in the element
+	 * Populates the bean definition property corresponding to the specified
+	 * attributeName with the reference to a bean identified by the value of
+	 * that attribute if the attribute is defined in the given element. The
+	 * property name will be the camel-case equivalent of the lower case
+	 * hyphen separated attribute (e.g. the "foo-bar" attribute would match
+	 * the "fooBar" property).
 	 * 
 	 * @param beanDefinition - the bean definition to be configured
-	 * @param propertyName - the name of the bean property to be set
 	 * @param element - the XML element where the attribute should be defined
-	 * @param attributeName - the id of the bean which will be used to populate
-	 * the property
+	 * @param attributeName - the name of the attribute whose value will be
+	 * used as a bean reference to populate the property
+	 * 
+	 * @see Conventions#attributeNameToPropertyName(String)
 	 */
-	public static void setBeanReferenceIfAttributeDefined(BeanDefinitionBuilder builder, String propertyName,
+	public static void setReferenceIfAttributeDefined(BeanDefinitionBuilder builder,
 			Element element, String attributeName) {
-		final String attributeValue = element.getAttribute(attributeName);
+		String attributeValue = element.getAttribute(attributeName);
+		String propertyName = Conventions.attributeNameToPropertyName(attributeName);
 		if (StringUtils.hasText(attributeValue)) {
 			builder.addPropertyReference(propertyName, attributeValue);
 		}

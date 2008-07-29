@@ -95,7 +95,7 @@ public class AggregatorMessageHandlerCreator extends AbstractMessageHandlerCreat
 		if (endpointAnnotation != null) {
 			String outputChannelName = endpointAnnotation.output();
 			if (StringUtils.hasText(outputChannelName)) {
-				handler.setDefaultReplyChannel(this.channelRegistry.lookupChannel(outputChannelName));
+				handler.setOutputChannel(this.channelRegistry.lookupChannel(outputChannelName));
 			}
 		}
 	}

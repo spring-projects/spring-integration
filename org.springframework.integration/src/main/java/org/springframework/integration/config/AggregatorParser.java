@@ -54,20 +54,6 @@ public class AggregatorParser extends AbstractHandlerEndpointParser {
 
 	private static final String COMPLETION_STRATEGY_PROPERTY = "completionStrategy";
 
-	private static final String DEFAULT_REPLY_CHANNEL_PROPERTY = "defaultReplyChannel";
-
-	private static final String DISCARD_CHANNEL_PROPERTY = "discardChannel";
-
-	private static final String SEND_TIMEOUT_PROPERTY = "sendTimeout";
-
-	private static final String SEND_PARTIAL_RESULT_ON_TIMEOUT_PROPERTY = "sendPartialResultOnTimeout";
-
-	private static final String REAPER_INTERVAL_PROPERTY = "reaperInterval";
-
-	public static final String TRACKED_CORRELATION_ID_CAPACITY_PROPERTY = "trackedCorrelationIdCapacity";
-
-	public static final String TIMEOUT = "timeout";
-
 	public static final String AGGREGATOR_ELEMENT = "aggregator";
 
 
@@ -103,19 +89,13 @@ public class AggregatorParser extends AbstractHandlerEndpointParser {
 				builder.addPropertyReference(COMPLETION_STRATEGY_PROPERTY, completionStrategyRef);
 			}
 		}
-		IntegrationNamespaceUtils.setBeanReferenceIfAttributeDefined(builder, DEFAULT_REPLY_CHANNEL_PROPERTY,
-				element, OUTPUT_CHANNEL_ATTRIBUTE);
-		IntegrationNamespaceUtils.setBeanReferenceIfAttributeDefined(builder, DISCARD_CHANNEL_PROPERTY, element,
-				DISCARD_CHANNEL_ATTRIBUTE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, SEND_TIMEOUT_PROPERTY, element,
-				SEND_TIMEOUT_ATTRIBUTE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, SEND_PARTIAL_RESULT_ON_TIMEOUT_PROPERTY,
-				element, SEND_PARTIAL_RESULT_ON_TIMEOUT_ATTRIBUTE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, REAPER_INTERVAL_PROPERTY, element,
-				REAPER_INTERVAL_ATTRIBUTE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, TRACKED_CORRELATION_ID_CAPACITY_PROPERTY,
-				element, TRACKED_CORRELATION_ID_CAPACITY_ATTRIBUTE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, TIMEOUT, element, TIMEOUT_ATTRIBUTE);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, OUTPUT_CHANNEL_ATTRIBUTE);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, DISCARD_CHANNEL_ATTRIBUTE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_TIMEOUT_ATTRIBUTE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_PARTIAL_RESULT_ON_TIMEOUT_ATTRIBUTE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, REAPER_INTERVAL_ATTRIBUTE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, TRACKED_CORRELATION_ID_CAPACITY_ATTRIBUTE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, TIMEOUT_ATTRIBUTE);
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
 	}
 

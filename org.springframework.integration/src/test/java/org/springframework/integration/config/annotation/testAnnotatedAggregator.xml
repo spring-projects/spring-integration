@@ -15,7 +15,7 @@
 
 	<channel id="inputChannel"/>
 
-	<channel id="replyChannel"/>
+	<channel id="outputChannel"/>
 
 	<channel id="discardChannel"/>
 

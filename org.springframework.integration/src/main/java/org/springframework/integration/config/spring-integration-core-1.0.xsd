@@ -409,7 +409,7 @@
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="beans:identifiedType">
-					<xsd:attribute name="default-reply-channel" type="xsd:string" use="optional"/>
+					<xsd:attribute name="output-channel" type="xsd:string" use="optional"/>
 					<xsd:attribute name="discard-channel" type="xsd:string" use="optional"/>
 					<xsd:attribute name="send-timeout" type="xsd:long" use="optional"/>
 					<xsd:attribute name="release-partial-sequences" type="xsd:boolean" use="optional"/>

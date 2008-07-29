@@ -50,7 +50,7 @@ public class AggregatorAnnotationTests {
 		DirectFieldAccessor aggregatingMessageHandlerAccessor = getDirectFieldAccessorForAggregatingHandler(context,
 				endpointName);
 		Assert.assertTrue(aggregatingMessageHandlerAccessor.getPropertyValue("completionStrategy") instanceof SequenceSizeCompletionStrategy);
-		Assert.assertNull(aggregatingMessageHandlerAccessor.getPropertyValue("defaultReplyChannel"));
+		Assert.assertNull(aggregatingMessageHandlerAccessor.getPropertyValue("outputChannel"));
 		Assert.assertNull(aggregatingMessageHandlerAccessor.getPropertyValue("discardChannel"));
 		Assert.assertEquals(AggregatingMessageHandler.DEFAULT_SEND_TIMEOUT, aggregatingMessageHandlerAccessor
 				.getPropertyValue("sendTimeout"));
@@ -71,8 +71,8 @@ public class AggregatorAnnotationTests {
 		DirectFieldAccessor aggregatingMessageHandlerAccessor = getDirectFieldAccessorForAggregatingHandler(context,
 				endpointName);
 		Assert.assertTrue(aggregatingMessageHandlerAccessor.getPropertyValue("completionStrategy") instanceof SequenceSizeCompletionStrategy);
-		Assert.assertEquals(getMessageBus(context).lookupChannel("replyChannel"), aggregatingMessageHandlerAccessor
-				.getPropertyValue("defaultReplyChannel"));
+		Assert.assertEquals(getMessageBus(context).lookupChannel("outputChannel"), aggregatingMessageHandlerAccessor
+				.getPropertyValue("outputChannel"));
 		Assert.assertEquals(getMessageBus(context).lookupChannel("discardChannel"), aggregatingMessageHandlerAccessor
 				.getPropertyValue("discardChannel"));
 		Assert.assertEquals(98765432l, aggregatingMessageHandlerAccessor

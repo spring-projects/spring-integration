@@ -49,17 +49,17 @@ public class ResequencerParserTests {
 	public void testResequencing() {
 		ResequencingMessageHandler resequencingHandler = (ResequencingMessageHandler) context
 				.getBean("defaultResequencer");
-		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
+		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
 		List<Message<?>> outboundMessages = new ArrayList<Message<?>>();
-		outboundMessages.add(createMessage("123", "id1", 3, 3, replyChannel));
-		outboundMessages.add(createMessage("789", "id1", 3, 1, replyChannel));
-		outboundMessages.add(createMessage("456", "id1", 3, 2, replyChannel));
+		outboundMessages.add(createMessage("123", "id1", 3, 3, outputChannel));
+		outboundMessages.add(createMessage("789", "id1", 3, 1, outputChannel));
+		outboundMessages.add(createMessage("456", "id1", 3, 2, outputChannel));
 		for (Message<?> message : outboundMessages) {
 			resequencingHandler.handle(message);
 		}
-		Message<?> message1 = replyChannel.receive(500);
-		Message<?> message2 = replyChannel.receive(500);
-		Message<?> message3 = replyChannel.receive(500);
+		Message<?> message1 = outputChannel.receive(500);
+		Message<?> message2 = outputChannel.receive(500);
+		Message<?> message3 = outputChannel.receive(500);
 		Assert.assertNotNull(message1);
 		Assert.assertEquals(new Integer(1), message1.getHeaders().getSequenceNumber());
 		Assert.assertNotNull(message2);
@@ -73,7 +73,7 @@ public class ResequencerParserTests {
 		ResequencingMessageHandler resequencingHandler = (ResequencingMessageHandler) context
 				.getBean("defaultResequencer");
 		DirectFieldAccessor messageHandlerFieldAccessor = new DirectFieldAccessor(resequencingHandler);
-		Assert.assertNull(messageHandlerFieldAccessor.getPropertyValue("defaultReplyChannel"));
+		Assert.assertNull(messageHandlerFieldAccessor.getPropertyValue("outputChannel"));
 		Assert.assertNull(messageHandlerFieldAccessor.getPropertyValue("discardChannel"));
 		Assert.assertEquals("The ResequencingMessageHandler is not set with the appropriate timeout value", 1000l,
 				messageHandlerFieldAccessor.getPropertyValue("sendTimeout"));
@@ -95,11 +95,11 @@ public class ResequencerParserTests {
 	public void testPropertyAssignment() throws Exception {
 		ResequencingMessageHandler completeResequencingMessageHandler = (ResequencingMessageHandler) context
 				.getBean("completelyDefinedResequencer");
-		MessageChannel defaultReplyChannel = (MessageChannel) context.getBean("replyChannel");
+		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
 		MessageChannel discardChannel = (MessageChannel) context.getBean("discardChannel");
 		DirectFieldAccessor messageHandlerFieldAccessor = new DirectFieldAccessor(completeResequencingMessageHandler);
-		Assert.assertEquals("The ResequencingMessageHandler is not injected with the appropriate default reply channel",
-				defaultReplyChannel, messageHandlerFieldAccessor.getPropertyValue("defaultReplyChannel"));
+		Assert.assertEquals("The ResequencingMessageHandler is not injected with the appropriate output channel",
+				outputChannel, messageHandlerFieldAccessor.getPropertyValue("outputChannel"));
 		Assert.assertEquals("The ResequencingMessageHandler is not injected with the appropriate discard channel",
 				discardChannel, messageHandlerFieldAccessor.getPropertyValue("discardChannel"));
 		Assert.assertEquals("The ResequencingMessageHandler is not set with the appropriate timeout value", 86420000l,
@@ -119,12 +119,12 @@ public class ResequencerParserTests {
 	}
 
 	private static <T> Message<T> createMessage(T payload, Object correlationId, int sequenceSize, int sequenceNumber,
-			MessageChannel replyChannel) {
+			MessageChannel outputChannel) {
 		return MessageBuilder.fromPayload(payload)
 				.setCorrelationId(correlationId)
 				.setSequenceSize(sequenceSize)
 				.setSequenceNumber(sequenceNumber)
-				.setReturnAddress(replyChannel)
+				.setReturnAddress(outputChannel)
 				.build();
 	}
 

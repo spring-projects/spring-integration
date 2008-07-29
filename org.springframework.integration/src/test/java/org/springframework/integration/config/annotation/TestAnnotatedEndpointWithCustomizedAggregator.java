@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
 /**
  * @author Marius Bogoevici
  */
-@MessageEndpoint(input = "inputChannel", output= "replyChannel")
+@MessageEndpoint(input = "inputChannel", output = "outputChannel")
 @Component("endpointWithCustomizedAnnotation")
 public class TestAnnotatedEndpointWithCustomizedAggregator {
 

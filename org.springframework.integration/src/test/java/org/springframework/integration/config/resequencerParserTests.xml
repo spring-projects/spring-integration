@@ -9,14 +9,14 @@
 
 	<message-bus/>
 	
-	<channel id="replyChannel" />
+	<channel id="outputChannel" />
 
 	<channel id="discardChannel" />
 	
 	<resequencer id="defaultResequencer"/>
 
 	<resequencer id="completelyDefinedResequencer" 
-		default-reply-channel="replyChannel" 
+		output-channel="outputChannel" 
 		discard-channel="discardChannel"
 		send-timeout="86420000" 
 		send-partial-result-on-timeout="true"

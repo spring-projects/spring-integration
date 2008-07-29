@@ -69,7 +69,7 @@ public abstract class AbstractMessageBarrierHandler implements MessageHandler, I
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	protected volatile MessageChannel defaultReplyChannel;
+	protected volatile MessageChannel outputChannel;
 
 	private volatile MessageChannel discardChannel;
 
@@ -99,12 +99,12 @@ public abstract class AbstractMessageBarrierHandler implements MessageHandler, I
 
 
 	/**
-	 * Set the default channel for sending aggregated Messages. Note that
+	 * Set the output channel for sending aggregated Messages. Note that
 	 * precedence will be given to the 'returnAddress' of the aggregated
 	 * message itself, then to the 'returnAddress' of the original message.
 	 */
-	public void setDefaultReplyChannel(MessageChannel defaultReplyChannel) {
-		this.defaultReplyChannel = defaultReplyChannel;
+	public void setOutputChannel(MessageChannel outputChannel) {
+		this.outputChannel = outputChannel;
 	}
 
 	/**
@@ -204,7 +204,7 @@ public abstract class AbstractMessageBarrierHandler implements MessageHandler, I
 			if (replyChannel == null) {
 				replyChannel = this.resolveReplyChannelFromMessage(releasedMessages.get(0));
 				if (replyChannel == null) {
-					replyChannel = this.defaultReplyChannel;
+					replyChannel = this.outputChannel;
 				}
 			}
 			if (replyChannel != null) {
