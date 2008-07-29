@@ -23,6 +23,10 @@ import javax.mail.event.MessageCountAdapter;
 import javax.mail.event.MessageCountEvent;
 import javax.mail.event.MessageCountListener;
 
+import org.springframework.util.Assert;
+
+import com.sun.mail.imap.IMAPFolder;
+
 /**
  * Implementation of the {@link MonitoringStrategy} interface that uses the IMAP IDLE command for asynchronous message
  * detection.
@@ -37,9 +41,9 @@ public class ImapIdleMonitoringStrategy extends AbstractMonitoringStrategy {
     private MessageCountListener messageCountListener;
 
     protected void waitForNewMessages(Folder folder) throws MessagingException, InterruptedException {
-       // Assert.isInstanceOf(IMAPFolder.class, folder);
-        //IMAPFolder imapFolder = (IMAPFolder) folder;
-        // retrieve unseen messages before we enter the blocking idle call
+    	Assert.isInstanceOf(IMAPFolder.class, folder);
+        IMAPFolder imapFolder = (IMAPFolder) folder;
+        //retrieve unseen messages before we enter the blocking idle call
         if (searchForNewMessages(folder).length > 0) {
             return;
         }
@@ -48,7 +52,7 @@ public class ImapIdleMonitoringStrategy extends AbstractMonitoringStrategy {
         }
         folder.addMessageCountListener(messageCountListener);
         try {
-   //TODO: add this back in when we have java mail 1.4.1 in the repository         imapFolder.idle();
+        	imapFolder.idle();
         }
         finally {
             folder.removeMessageCountListener(messageCountListener);
