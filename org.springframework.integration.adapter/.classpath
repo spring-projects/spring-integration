@@ -23,6 +23,8 @@
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.transaction/2.5.4.A/org.springframework.transaction-2.5.4.A.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.transaction/2.5.4.A/org.springframework.transaction-sources-2.5.4.A.jar"/>
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.web/2.5.4.A/org.springframework.web-2.5.4.A.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.web/2.5.4.A/org.springframework.web-2.5.4.A.jar"/>
 	<classpathentry kind="var" path="IVY_CACHE/org.easymock/com.springsource.org.easymock/2.3.0/com.springsource.org.easymock-2.3.0.jar" sourcepath="/IVY_CACHE/org.easymock/com.springsource.org.easymock/2.3.0/com.springsource.org.easymock-sources-2.3.0.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.easymock/com.springsource.org.easymock.classextension/2.3.0/com.springsource.org.easymock.classextension-2.3.0.jar" sourcepath="/IVY_CACHE/org.easymock/com.springsource.org.easymock.classextension/2.3.0/com.springsource.org.easymock.classextension-sources-2.3.0.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/net.sourceforge.cglib/com.springsource.net.sf.cglib/2.1.3/com.springsource.net.sf.cglib-2.1.3.jar" sourcepath="/IVY_CACHE/net.sourceforge.cglib/com.springsource.net.sf.cglib/2.1.3/com.springsource.net.sf.cglib-sources-2.1.3.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/org.springframework.integration"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
