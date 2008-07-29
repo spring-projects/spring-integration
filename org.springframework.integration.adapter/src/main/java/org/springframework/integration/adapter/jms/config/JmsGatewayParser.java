@@ -25,6 +25,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.adapter.jms.JmsGateway;
+import org.springframework.integration.config.IntegrationNamespaceUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -109,6 +110,10 @@ public class JmsGatewayParser extends AbstractSingleBeanDefinitionParser {
 		if ("true".equals(element.getAttribute("expect-reply"))) {
 			builder.addPropertyValue("expectReply", Boolean.TRUE);
 		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "concurrent-consumers");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-concurrent-consumers");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-messages-per-task");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "idle-task-execution-limit");
 	}
 
 }

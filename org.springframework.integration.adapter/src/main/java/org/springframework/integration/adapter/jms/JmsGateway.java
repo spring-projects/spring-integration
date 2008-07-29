@@ -110,6 +110,22 @@ public class JmsGateway extends SimpleMessagingGateway implements Lifecycle, Dis
 		this.expectReply = expectReply;
 	}
 
+	public void setConcurrentConsumers(int concurrentConsumers) {
+		this.concurrentConsumers = concurrentConsumers;
+	}
+
+	public void setMaxConcurrentConsumers(int maxConcurrentConsumers) {
+		this.maxConcurrentConsumers = maxConcurrentConsumers;
+	}
+
+	public void setMaxMessagesPerTask(int maxMessagesPerTask) {
+		this.maxMessagesPerTask = maxMessagesPerTask;
+	}
+
+	public void setIdleTaskExecutionLimit(int idleTaskExecutionLimit) {
+		this.idleTaskExecutionLimit = idleTaskExecutionLimit;
+	}
+
 	private void initialize() {
 		if (this.container == null) {
 			this.container = createDefaultContainer();
