@@ -31,6 +31,7 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.jms.connection.JmsTransactionManager;
+import org.springframework.jms.listener.AbstractMessageListenerContainer;
 
 /**
  * @author Mark Fisher
@@ -161,6 +162,54 @@ public class JmsGatewayParserTests {
 		assertEquals(JmsTransactionManager.class, txManager.getClass());
 		assertEquals(context.getBean("txManager"), txManager);
 		assertEquals(context.getBean("testConnectionFactory"), ((JmsTransactionManager) txManager).getConnectionFactory());
+	}
+
+	@Test
+	public void testGatewayWithConcurrentConsumers() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsGatewayWithContainerSettings.xml", this.getClass());
+		JmsGateway gateway = (JmsGateway) context.getBean("gatewayWithConcurrentConsumers");
+		gateway.start();
+		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
+				new DirectFieldAccessor(gateway).getPropertyValue("container");
+		assertEquals(3, new DirectFieldAccessor(container).getPropertyValue("concurrentConsumers"));
+		gateway.stop();
+	}
+
+	@Test
+	public void testGatewayWithMaxConcurrentConsumers() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsGatewayWithContainerSettings.xml", this.getClass());
+		JmsGateway gateway = (JmsGateway) context.getBean("gatewayWithMaxConcurrentConsumers");
+		gateway.start();
+		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
+				new DirectFieldAccessor(gateway).getPropertyValue("container");
+		assertEquals(22, new DirectFieldAccessor(container).getPropertyValue("maxConcurrentConsumers"));
+		gateway.stop();
+	}
+
+	@Test
+	public void testGatewayWithMaxMessagesPerTask() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsGatewayWithContainerSettings.xml", this.getClass());
+		JmsGateway gateway = (JmsGateway) context.getBean("gatewayWithMaxMessagesPerTask");
+		gateway.start();
+		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
+				new DirectFieldAccessor(gateway).getPropertyValue("container");
+		assertEquals(99, new DirectFieldAccessor(container).getPropertyValue("maxMessagesPerTask"));
+		gateway.stop();
+	}
+
+	@Test
+	public void testGatewayWithIdleTaskExecutionLimit() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsGatewayWithContainerSettings.xml", this.getClass());
+		JmsGateway gateway = (JmsGateway) context.getBean("gatewayWithIdleTaskExecutionLimit");
+		gateway.start();
+		AbstractMessageListenerContainer container = (AbstractMessageListenerContainer)
+				new DirectFieldAccessor(gateway).getPropertyValue("container");
+		assertEquals(7, new DirectFieldAccessor(container).getPropertyValue("idleTaskExecutionLimit"));
+		gateway.stop();
 	}
 
 }

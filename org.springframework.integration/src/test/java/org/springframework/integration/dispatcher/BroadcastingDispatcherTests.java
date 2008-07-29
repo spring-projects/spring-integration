@@ -90,7 +90,7 @@ public class BroadcastingDispatcherTests {
 		verify(globalMocks);
 	}
 
-	@Test(timeout = 100)
+	@Test(timeout = 500)
 	public void multipleTargetsPartialTimout() throws Exception {
 		reset(taskExecutorMock);
 		dispatcher.addTarget(targetMock);

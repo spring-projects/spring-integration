@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:si="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
+
+	<si:message-bus/>
+
+	<si:channel id="requestChannel"/>
+
+	<si:jms-gateway id="gatewayWithConcurrentConsumers"
+					connection-factory="testConnectionFactory"
+		 			request-channel="requestChannel"
+		 			destination-name="test"
+		 			concurrent-consumers="3"/>
+
+	<si:jms-gateway id="gatewayWithMaxConcurrentConsumers"
+					connection-factory="testConnectionFactory"
+		 			request-channel="requestChannel"
+		 			destination-name="test"
+		 			max-concurrent-consumers="22"/>
+
+	<si:jms-gateway id="gatewayWithMaxMessagesPerTask"
+					connection-factory="testConnectionFactory"
+		 			request-channel="requestChannel"
+		 			destination-name="test"
+		 			max-messages-per-task="99"/>
+
+	<si:jms-gateway id="gatewayWithIdleTaskExecutionLimit"
+					connection-factory="testConnectionFactory"
+		 			request-channel="requestChannel"
+		 			destination-name="test"
+		 			idle-task-execution-limit="7"/>
+
+	<bean id="testConnectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
+		<constructor-arg>
+			<bean class="org.springframework.integration.adapter.jms.StubConnection">
+				<constructor-arg value="message-driven-test"/>
+			</bean>
+		</constructor-arg>
+	</bean>
+
+</beans>
