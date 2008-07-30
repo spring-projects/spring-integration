@@ -27,8 +27,6 @@ import org.springframework.integration.scheduling.Schedule;
  */
 public interface MessageEndpoint extends MessageTarget {
 
-	void setName(String name);
-
 	String getName();
 
 	Schedule getSchedule();

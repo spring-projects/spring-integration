@@ -26,7 +26,7 @@ import org.springframework.integration.annotation.Polled;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.dispatcher.DirectChannel;
-import org.springframework.integration.endpoint.MessageEndpoint;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.SourceEndpoint;
 import org.springframework.integration.message.MethodInvokingSource;
 import org.springframework.integration.message.MessageSource;
@@ -59,7 +59,7 @@ public class SourceAnnotationPostProcessor extends AbstractAnnotationMethodPostP
 		return (results.size() == 1) ? results.get(0) : null;
 	}
 
-	public MessageEndpoint createEndpoint(Object bean, String beanName, Class<?> originalBeanClass,
+	public AbstractEndpoint createEndpoint(Object bean, String beanName, Class<?> originalBeanClass,
 			org.springframework.integration.annotation.MessageEndpoint endpointAnnotation) {
 		SourceEndpoint endpoint = new SourceEndpoint((MessageSource<?>) bean);
 		Polled polledAnnotation = AnnotationUtils.findAnnotation(originalBeanClass, Polled.class);

@@ -24,8 +24,8 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.annotation.Concurrency;
 import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
-import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.TargetEndpoint;
 import org.springframework.integration.endpoint.interceptor.ConcurrencyInterceptor;
 import org.springframework.integration.handler.MethodInvokingTarget;
@@ -59,7 +59,7 @@ public class TargetAnnotationPostProcessor extends AbstractAnnotationMethodPostP
 		return (results.size() == 1) ? results.get(0) : null;
 	}
 
-	public MessageEndpoint createEndpoint(Object bean, String beanName, Class<?> originalBeanClass,
+	public AbstractEndpoint createEndpoint(Object bean, String beanName, Class<?> originalBeanClass,
 			org.springframework.integration.annotation.MessageEndpoint endpointAnnotation) {
 		TargetEndpoint endpoint = new TargetEndpoint((MessageTarget) bean);
 		String inputChannelName = endpointAnnotation.input();

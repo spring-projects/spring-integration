@@ -29,6 +29,7 @@ import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelRegistryAware;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
@@ -81,7 +82,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Init
 			AnnotationMethodPostProcessor postProcessor = entry.getValue();
 			bean = postProcessor.postProcess(bean, beanName, beanClass);
 			if (endpointAnnotation != null && entry.getKey().isAssignableFrom(bean.getClass())) {
-				org.springframework.integration.endpoint.MessageEndpoint endpoint =
+				AbstractEndpoint endpoint =
 						postProcessor.createEndpoint(bean, beanName, beanClass, endpointAnnotation);
 				if (endpoint != null) {
 					endpoint.setName(beanName + "." + entry.getKey().getSimpleName() + ".endpoint");
