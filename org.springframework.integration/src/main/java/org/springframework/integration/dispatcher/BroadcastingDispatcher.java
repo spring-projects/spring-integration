@@ -18,6 +18,7 @@ package org.springframework.integration.dispatcher;
 
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageTarget;
 
 /**
@@ -30,18 +31,37 @@ import org.springframework.integration.message.MessageTarget;
  */
 public class BroadcastingDispatcher extends AbstractDispatcher {
 
-	public boolean send(final Message<?> message) {
+	private volatile boolean applySequence;
+
+
+	/**
+	 * Specify whether to apply sequence numbers to the messages
+	 * prior to sending to the targets. By default, sequence
+	 * numbers will <em>not</em> be applied
+	 */
+	public void setApplySequence(boolean applySequence) {
+		this.applySequence = applySequence;
+	}
+
+	public boolean send(Message<?> message) {
+		int sequenceNumber = 1;
+		int sequenceSize = this.targets.size();
 		for (final MessageTarget target : this.targets) {
+			final Message<?> messageToSend = (!this.applySequence) ? message
+				: MessageBuilder.fromMessage(message)
+						.setSequenceNumber(sequenceNumber++)
+						.setSequenceSize(sequenceSize)
+						.build();
 			TaskExecutor executor = this.getTaskExecutor();
 			if (executor != null) {
 				executor.execute(new Runnable() {
 					public void run() {
-						sendMessageToTarget(message, target);
+						sendMessageToTarget(messageToSend, target);
 					}
 				});
 			}
 			else {
-				this.sendMessageToTarget(message, target);
+				this.sendMessageToTarget(messageToSend, target);
 			}
 		}
 		return true;

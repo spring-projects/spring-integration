@@ -16,18 +16,31 @@
 
 package org.springframework.integration.dispatcher;
 
-import static org.junit.Assert.*;
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.getCurrentArguments;
+import static org.easymock.EasyMock.isA;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.easymock.IAnswer;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageTarget;
+import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -136,6 +149,51 @@ public class BroadcastingDispatcherTests {
 		assertFalse("Test not timed out properly", testNotTimedOut.get());
 		assertTrue("Timing out Runnable not executed", timingOutStarted.get());
 	}
+
+	@Test
+	public void applySequenceDisabledByDefault() {
+		BroadcastingDispatcher dispatcher = new BroadcastingDispatcher();
+		final List<Message<?>> messages = new ArrayList<Message<?>>();
+		MessageTarget target = new MessageTarget() {
+			public boolean send(Message<?> message) {
+				messages.add(message);
+				return true;
+			}
+		};
+		dispatcher.addTarget(target);
+		dispatcher.addTarget(target);
+		dispatcher.send(new StringMessage("test"));
+		assertEquals(2, messages.size());
+		assertEquals(0, (int) messages.get(0).getHeaders().getSequenceNumber());
+		assertEquals(0, (int) messages.get(0).getHeaders().getSequenceSize());
+		assertEquals(0, (int) messages.get(1).getHeaders().getSequenceNumber());
+		assertEquals(0, (int) messages.get(1).getHeaders().getSequenceSize());
+	}
+
+	@Test
+	public void applySequenceEnabled() {
+		BroadcastingDispatcher dispatcher = new BroadcastingDispatcher();
+		dispatcher.setApplySequence(true);
+		final List<Message<?>> messages = new ArrayList<Message<?>>();
+		MessageTarget target = new MessageTarget() {
+			public boolean send(Message<?> message) {
+				messages.add(message);
+				return true;
+			}
+		};
+		dispatcher.addTarget(target);
+		dispatcher.addTarget(target);
+		dispatcher.addTarget(target);
+		dispatcher.send(new StringMessage("test"));
+		assertEquals(3, messages.size());
+		assertEquals(1, (int) messages.get(0).getHeaders().getSequenceNumber());
+		assertEquals(3, (int) messages.get(0).getHeaders().getSequenceSize());
+		assertEquals(2, (int) messages.get(1).getHeaders().getSequenceNumber());
+		assertEquals(3, (int) messages.get(1).getHeaders().getSequenceSize());
+		assertEquals(3, (int) messages.get(2).getHeaders().getSequenceNumber());
+		assertEquals(3, (int) messages.get(2).getHeaders().getSequenceSize());
+	}
+
 
 	private void defaultTaskExecutorMock() {
 		taskExecutorMock.execute(isA(Runnable.class));

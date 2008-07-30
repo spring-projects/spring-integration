@@ -33,9 +33,6 @@ public class PublishSubscribeChannel extends AbstractMessageChannel implements S
 	private final BroadcastingDispatcher dispatcher = new BroadcastingDispatcher();
 
 
-	public PublishSubscribeChannel() {
-	}
-
 	/**
 	 * Create a PublishSubscribeChannel that will use a {@link TaskExecutor}
 	 * to publish its Messages. 
@@ -46,6 +43,13 @@ public class PublishSubscribeChannel extends AbstractMessageChannel implements S
 		}
 	}
 
+	public PublishSubscribeChannel() {
+	}
+
+
+	public void setApplySequence(boolean applySequence) {
+		this.dispatcher.setApplySequence(applySequence);
+	}
 
 	public boolean subscribe(MessageTarget target) {
 		return this.dispatcher.addTarget(target);

@@ -73,6 +73,7 @@
 			<xsd:complexContent>
 				<xsd:extension base="channelType">
 					<xsd:attribute name="task-executor" type="xsd:string"/>
+					<xsd:attribute name="apply-sequence" type="xsd:string"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
