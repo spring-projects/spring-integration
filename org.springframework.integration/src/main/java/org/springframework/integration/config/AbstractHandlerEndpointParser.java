@@ -50,8 +50,6 @@ public abstract class AbstractHandlerEndpointParser extends AbstractSingleBeanDe
 
 	protected static final String OUTPUT_CHANNEL_ATTRIBUTE = "output-channel";
 
-	protected static final String OUTPUT_CHANNEL_PROPERTY = "outputChannelName";
-
 	protected static final String RETURN_ADDRESS_OVERRIDES_ATTRIBUTE = "return-address-overrides";
 
 	private static final String PERIOD_ATTRIBUTE = "period";
@@ -61,8 +59,6 @@ public abstract class AbstractHandlerEndpointParser extends AbstractSingleBeanDe
 	private static final String POLLER_ELEMENT = "poller";
 
 	private static final String SELECTOR_ATTRIBUTE = "selector";
-
-	private static final String SELECTOR_PROPERTY = "messageSelector";
 
 	private static final String INTERCEPTORS_ELEMENT = "interceptors";
 
@@ -100,7 +96,6 @@ public abstract class AbstractHandlerEndpointParser extends AbstractSingleBeanDe
 		else {
 			builder.addConstructorArgReference(ref);
 		}
-		String inputChannelName = element.getAttribute(INPUT_CHANNEL_ATTRIBUTE);
 		Schedule schedule = null;
 		NodeList childNodes = element.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); i++) {
@@ -122,20 +117,14 @@ public abstract class AbstractHandlerEndpointParser extends AbstractSingleBeanDe
 				}
 			}
 		}
-		if (StringUtils.hasText(inputChannelName)) {
-			builder.addPropertyValue("inputChannelName", inputChannelName);
-		}
 		if (schedule != null) {
 			builder.addPropertyValue("schedule", schedule);
 		}
-		String selectorRef = element.getAttribute(SELECTOR_ATTRIBUTE);
-		if (StringUtils.hasText(selectorRef)) {
-			builder.addPropertyReference(SELECTOR_PROPERTY, selectorRef);
-		}
-		String outputChannel = element.getAttribute(OUTPUT_CHANNEL_ATTRIBUTE);
-		if (StringUtils.hasText(outputChannel)) {
-			builder.addPropertyValue(OUTPUT_CHANNEL_PROPERTY, outputChannel);
-		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(
+				builder, element, INPUT_CHANNEL_ATTRIBUTE, "inputChannelName");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(
+				builder, element, OUTPUT_CHANNEL_ATTRIBUTE, "outputChannelName");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, SELECTOR_ATTRIBUTE);
 		String returnAddressOverridesAttribute = element.getAttribute(RETURN_ADDRESS_OVERRIDES_ATTRIBUTE);
 		boolean returnAddressOverrides = "true".equals(returnAddressOverridesAttribute);
 		builder.addPropertyValue("returnAddressOverrides", returnAddressOverrides);

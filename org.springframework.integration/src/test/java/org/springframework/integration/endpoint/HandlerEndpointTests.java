@@ -158,7 +158,7 @@ public class HandlerEndpointTests {
 	@Test(expected=MessageRejectedException.class)
 	public void testEndpointWithSelectorRejecting() {
 		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.nullHandler());
-		endpoint.setMessageSelector(new MessageSelector() {
+		endpoint.setSelector(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return false;
 			}
@@ -170,7 +170,7 @@ public class HandlerEndpointTests {
 	public void testEndpointWithSelectorAccepting() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
 		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.countDownHandler(latch));
-		endpoint.setMessageSelector(new MessageSelector() {
+		endpoint.setSelector(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return true;
 			}
@@ -197,7 +197,7 @@ public class HandlerEndpointTests {
 				return true;
 			}
 		});
-		endpoint.setMessageSelector(selectorChain);
+		endpoint.setSelector(selectorChain);
 		boolean exceptionWasThrown = false;
 		try {
 			endpoint.send(new StringMessage("test"));
@@ -227,7 +227,7 @@ public class HandlerEndpointTests {
 				return false;
 			}
 		});
-		endpoint.setMessageSelector(selectorChain);
+		endpoint.setSelector(selectorChain);
 		boolean exceptionWasThrown = false;
 		try {
 			endpoint.send(new StringMessage("test"));
@@ -257,7 +257,7 @@ public class HandlerEndpointTests {
 				return true;
 			}
 		});
-		endpoint.setMessageSelector(selectorChain);
+		endpoint.setSelector(selectorChain);
 		assertTrue(endpoint.send(new StringMessage("test")));
 		assertEquals("both selectors and handler should have been invoked", 3, counter.get());
 	}

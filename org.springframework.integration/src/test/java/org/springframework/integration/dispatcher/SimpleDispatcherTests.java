@@ -76,9 +76,9 @@ public class SimpleDispatcherTests {
 		HandlerEndpoint endpoint1 = createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch));
 		HandlerEndpoint endpoint2 = createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch));
 		HandlerEndpoint endpoint3 = createEndpoint(TestHandlers.countingCountDownHandler(counter3, latch));
-		endpoint1.setMessageSelector(new TestMessageSelector(selectorCounter, false));
-		endpoint2.setMessageSelector(new TestMessageSelector(selectorCounter, false));
-		endpoint3.setMessageSelector(new TestMessageSelector(selectorCounter, true));
+		endpoint1.setSelector(new TestMessageSelector(selectorCounter, false));
+		endpoint2.setSelector(new TestMessageSelector(selectorCounter, false));
+		endpoint3.setSelector(new TestMessageSelector(selectorCounter, true));
 		dispatcher.addTarget(endpoint1);
 		dispatcher.addTarget(endpoint2);
 		dispatcher.addTarget(endpoint3);
@@ -103,9 +103,9 @@ public class SimpleDispatcherTests {
 		HandlerEndpoint endpoint1 = createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch));
 		HandlerEndpoint endpoint2 = createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch));
 		HandlerEndpoint endpoint3 = createEndpoint(TestHandlers.countingCountDownHandler(counter3, latch));
-		endpoint1.setMessageSelector(new TestMessageSelector(selectorCounter, false));
-		endpoint2.setMessageSelector(new TestMessageSelector(selectorCounter, false));
-		endpoint3.setMessageSelector(new TestMessageSelector(selectorCounter, false));
+		endpoint1.setSelector(new TestMessageSelector(selectorCounter, false));
+		endpoint2.setSelector(new TestMessageSelector(selectorCounter, false));
+		endpoint3.setSelector(new TestMessageSelector(selectorCounter, false));
 		dispatcher.addTarget(endpoint1);
 		dispatcher.addTarget(endpoint2);
 		dispatcher.addTarget(endpoint3);

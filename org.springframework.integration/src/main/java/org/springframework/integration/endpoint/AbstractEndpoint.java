@@ -158,7 +158,7 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 		return this.channelRegistry;
 	}
 
-	public void setMessageSelector(MessageSelector selector) {
+	public void setSelector(MessageSelector selector) {
 		this.selector = selector;
 	}
 
