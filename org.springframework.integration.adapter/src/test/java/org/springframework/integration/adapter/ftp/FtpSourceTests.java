@@ -125,32 +125,21 @@ public class FtpSourceTests {
 		// assume client already connected
 		expect(ftpClient.isConnected()).andReturn(true).anyTimes();
 		// first run
-		checkOrder(ftpClient, true);
 		FTPFile[] mockedFTPFiles = mockedFTPFilesNamed("test", "test2");
 		expect(ftpClient.listFiles()).andReturn(mockedFTPFiles);
-		expect(ftpClient.isConnected()).andReturn(true).anyTimes();
 		expect(ftpClient.retrieveFile(eq("test"), isA(OutputStream.class))).andReturn(true);
-		expect(ftpClient.isConnected()).andReturn(true).anyTimes();
 		expect(ftpClient.retrieveFile(eq("test2"), isA(OutputStream.class))).andReturn(true);
-		checkOrder(ftpClient, false);
 
 		ftpClient.disconnect();
-		expect(ftpClient.isConnected()).andReturn(true).anyTimes();
 		// second run, change the date so the messages should be retrieved again
 		// expect(ftpClient.isConnected()).andReturn(true);
-		checkOrder(ftpClient, true);
 		FTPFile[] mockedFTPFiles2 = mockedFTPFilesNamed("test", "test2");
 		expect(ftpClient.listFiles()).andReturn(mockedFTPFiles2);
-		expect(ftpClient.isConnected()).andReturn(true).anyTimes();
 		expect(ftpClient.retrieveFile(eq("test"), isA(OutputStream.class))).andReturn(true);
-		expect(ftpClient.isConnected()).andReturn(true).anyTimes();
 		expect(ftpClient.retrieveFile(eq("test2"), isA(OutputStream.class))).andReturn(true);
-		checkOrder(ftpClient, false);
-		expect(ftpClient.isConnected()).andReturn(true).anyTimes();
 		// create message
 		List<File> files = Arrays.asList(new File("test"), new File("test2"));
-		expect(messageCreator.createMessage(isA(List.class))).andReturn(new GenericMessage(files));
-		expect(messageCreator.createMessage(isA(List.class))).andReturn(new GenericMessage(files));
+		expect(messageCreator.createMessage(isA(List.class))).andReturn(new GenericMessage(files)).times(2);
 		ftpClient.disconnect();
 
 		replay(globalMocks);
