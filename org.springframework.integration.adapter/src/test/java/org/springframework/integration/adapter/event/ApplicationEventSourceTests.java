@@ -31,7 +31,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.ContextStartedEvent;
 import org.springframework.context.event.ContextStoppedEvent;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
 
@@ -42,7 +42,7 @@ public class ApplicationEventSourceTests {
 
 	@Test
 	public void testAnyApplicationEventSentByDefault() {
-		MessageChannel channel = new QueueChannel();
+		QueueChannel channel = new QueueChannel();
 		ApplicationEventSource adapter = new ApplicationEventSource(channel);
 		Message<?> message1 = channel.receive(0);
 		assertNull(message1);
@@ -58,7 +58,7 @@ public class ApplicationEventSourceTests {
 
 	@Test
 	public void testOnlyConfiguredEventTypesAreSent() {
-		MessageChannel channel = new QueueChannel();
+		QueueChannel channel = new QueueChannel();
 		ApplicationEventSource adapter = new ApplicationEventSource(channel);
 		List<Class<? extends ApplicationEvent>> eventTypes = new ArrayList<Class<? extends ApplicationEvent>>();
 		eventTypes.add(TestApplicationEvent1.class);
@@ -77,7 +77,7 @@ public class ApplicationEventSourceTests {
 	@Test
 	public void testApplicationContextEvents() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("applicationEventSourceTests.xml", this.getClass());
-		MessageChannel channel = (MessageChannel) context.getBean("channel");
+		PollableChannel channel = (PollableChannel) context.getBean("channel");
 		Message<?> refreshedEventMessage = channel.receive(0);
 		assertNotNull(refreshedEventMessage);
 		assertEquals(ContextRefreshedEvent.class, refreshedEventMessage.getPayload().getClass());

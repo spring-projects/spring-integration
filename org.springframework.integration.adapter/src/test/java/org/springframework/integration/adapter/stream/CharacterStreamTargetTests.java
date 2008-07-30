@@ -23,7 +23,6 @@ import java.io.StringWriter;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.dispatcher.PollingDispatcher;
@@ -36,7 +35,7 @@ import org.springframework.integration.scheduling.PollingSchedule;
  */
 public class CharacterStreamTargetTests {
 
-	private MessageChannel channel;
+	private QueueChannel channel;
 
 	private PollingDispatcher dispatcher;
 

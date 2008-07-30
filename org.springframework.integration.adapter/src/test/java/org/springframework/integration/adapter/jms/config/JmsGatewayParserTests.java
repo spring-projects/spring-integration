@@ -27,7 +27,6 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.adapter.jms.JmsGateway;
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.jms.connection.JmsTransactionManager;
@@ -42,7 +41,7 @@ public class JmsGatewayParserTests {
 	public void testGatewayWithConnectionFactoryAndDestination() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsGatewayWithConnectionFactoryAndDestination.xml", this.getClass());
-		MessageChannel channel = new QueueChannel(1);
+		QueueChannel channel = new QueueChannel(1);
 		JmsGateway gateway = (JmsGateway) context.getBean("jmsGateway");
 		gateway.setRequestChannel(channel);
 		context.start();
@@ -56,7 +55,7 @@ public class JmsGatewayParserTests {
 	public void testGatewayWithConnectionFactoryAndDestinationName() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsGatewayWithConnectionFactoryAndDestinationName.xml", this.getClass());
-		MessageChannel channel = new QueueChannel(1);
+		QueueChannel channel = new QueueChannel(1);
 		JmsGateway gateway = (JmsGateway) context.getBean("jmsGateway");
 		gateway.setRequestChannel(channel);
 		context.start();
@@ -70,7 +69,7 @@ public class JmsGatewayParserTests {
 	public void testGatewayWithMessageConverter() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsGatewayWithMessageConverter.xml", this.getClass());
-		MessageChannel channel = new QueueChannel(1);
+		QueueChannel channel = new QueueChannel(1);
 		JmsGateway gateway = (JmsGateway) context.getBean("jmsGateway");
 		gateway.setRequestChannel(channel);
 		context.start();
@@ -133,7 +132,7 @@ public class JmsGatewayParserTests {
 	public void testGatewayWithDefaultConnectionFactory() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsGatewayWithDefaultConnectionFactory.xml", this.getClass());
-		MessageChannel channel = new QueueChannel(1);
+		QueueChannel channel = new QueueChannel(1);
 		JmsGateway gateway = (JmsGateway) context.getBean("jmsGateway");
 		gateway.setRequestChannel(channel);
 		context.start();

@@ -38,15 +38,15 @@ import org.springframework.integration.message.StringMessage;
  */
 public class RootCauseErrorMessageRouterTests {
 
-	private MessageChannel illegalArgumentChannel = new QueueChannel();
+	private QueueChannel illegalArgumentChannel = new QueueChannel();
 
-	private MessageChannel runtimeExceptionChannel = new QueueChannel();
+	private QueueChannel runtimeExceptionChannel = new QueueChannel();
 
-	private MessageChannel messageHandlingExceptionChannel = new QueueChannel();
+	private QueueChannel messageHandlingExceptionChannel = new QueueChannel();
 
-	private MessageChannel messageDeliveryExceptionChannel = new QueueChannel();
+	private QueueChannel messageDeliveryExceptionChannel = new QueueChannel();
 
-	private MessageChannel defaultChannel = new QueueChannel();
+	private QueueChannel defaultChannel = new QueueChannel();
 
 
 	@Test

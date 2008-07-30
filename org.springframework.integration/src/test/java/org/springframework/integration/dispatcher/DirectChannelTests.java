@@ -17,19 +17,14 @@
 package org.springframework.integration.dispatcher;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.StringMessage;
 
@@ -37,9 +32,6 @@ import org.springframework.integration.message.StringMessage;
  * @author Mark Fisher
  */
 public class DirectChannelTests {
-
-	private static final String HANDLER_THREAD = "handler-thread";
-
 
 	@Test
 	public void testSend() {
@@ -67,63 +59,6 @@ public class DirectChannelTests {
 		assertEquals("test-thread", target.threadName);
 	}
 
-	@Test
-	public void testReceive() {
-		DirectChannel channel = new DirectChannel(new MessageSource<String>() {
-			public Message<String> receive() {
-				return new StringMessage("foo");
-			}
-		});
-		Message<?> message = channel.receive();
-		assertNotNull(message);
-		assertNotNull(message.getPayload());
-		assertEquals(String.class, message.getPayload().getClass());
-		assertEquals("foo", message.getPayload());
-	}
-
-	@Test
-	public void testReceiveWithMessageResult() {
-		DirectChannel channel = new DirectChannel(new MessageReturningTestSource("foo"));
-		Message<?> message = channel.receive();
-		assertNotNull(message);
-		assertNotNull(message.getPayload());
-		assertEquals(String.class, message.getPayload().getClass());
-		assertEquals("foo", message.getPayload());
-		String handlerThreadName = message.getHeaders().get(HANDLER_THREAD, String.class);
-		assertEquals(Thread.currentThread().getName(), handlerThreadName);
-	}
-
-	@Test
-	public void testReceiveInSeparateThread() throws InterruptedException {
-		final DirectChannel channel = new DirectChannel(new MessageReturningTestSource("foo"));
-		final SynchronousQueue<Message<?>> messageHolder = new SynchronousQueue<Message<?>>();
-		new Thread(new Runnable() {
-			public void run() {
-				Message<?> message = channel.receive();
-				assertNotNull(message);
-				try {
-					messageHolder.put(message);
-				}
-				catch (InterruptedException e) {
-					// will fail after timeout below
-				}
-			}
-		}, "test-thread").start();
-		Message<?> message = messageHolder.poll(1000, TimeUnit.MILLISECONDS);
-		assertNotNull(message);
-		assertNotNull(message.getPayload());
-		assertEquals(String.class, message.getPayload().getClass());
-		assertEquals("foo", message.getPayload());
-		String handlerThreadName = message.getHeaders().get(HANDLER_THREAD, String.class);
-		assertEquals("test-thread", handlerThreadName);
-	}
-
-	@Test
-	public void testReceiveWithNoSource() {
-		DirectChannel channel = new DirectChannel();
-		assertNull(channel.receive());
-	}
-
 
 	private static class ThreadNameExtractingTestTarget implements MessageTarget {
 
@@ -146,22 +81,6 @@ public class DirectChannelTests {
 				this.latch.countDown();
 			}
 			return true;
-		}
-	}
-
-
-	private static class MessageReturningTestSource implements MessageSource<String> {
-
-		private final String messageText;
-
-
-		MessageReturningTestSource(String messageText) {
-			this.messageText = messageText;
-		}
-
-		public Message<String> receive() {
-			return MessageBuilder.fromPayload(messageText)
-					.setHeader(HANDLER_THREAD, Thread.currentThread().getName()).build();
 		}
 	}
 

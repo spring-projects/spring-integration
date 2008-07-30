@@ -33,7 +33,7 @@ import org.springframework.integration.message.selector.MessageSelector;
  * @author Dave Syer
  * @author Mark Fisher
  */
-public class ThreadLocalChannel extends AbstractMessageChannel {
+public class ThreadLocalChannel extends AbstractPollableChannel {
 
 	private static final ThreadLocalMessageHolder messageHolder = new ThreadLocalMessageHolder();
 

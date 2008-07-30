@@ -32,6 +32,7 @@ import org.junit.Test;
 
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHeaders;
@@ -47,7 +48,7 @@ public class SimpleMessagingGatewayTests {
 
 	private MessageChannel requestChannel = createMock(MessageChannel.class);
 
-	private MessageChannel replyChannel = createMock(MessageChannel.class);
+	private PollableChannel replyChannel = createMock(PollableChannel.class);
 
 	private Message<?> messageMock = createMock(Message.class);
 

@@ -27,7 +27,6 @@ import org.springframework.integration.message.BlockingSource;
 import org.springframework.integration.message.BlockingTarget;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
@@ -36,9 +35,9 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * This is the central class for invoking message exchange operations
- * across {@link MessageSource}s and {@link MessageTarget}s. It supports
+ * across {@link PollableSource}s and {@link MessageTarget}s. It supports
  * one-way send and receive calls as well as request/reply. Additionally,
- * the {@link #receiveAndForward(MessageSource, MessageTarget)} method
+ * the {@link #receiveAndForward(PollableSource, MessageTarget)} method
  * plays the role of a polling-consumer while actually sending any
  * received message to an event-driven consumer.
  * 
@@ -167,7 +166,7 @@ public class MessageExchangeTemplate implements InitializingBean {
 		return this.doSendAndReceive(request, target);
 	}
 
-	public Message<?> receive(final MessageSource<?> source) {
+	public Message<?> receive(final PollableSource<?> source) {
 		TransactionTemplate txTemplate = this.getTransactionTemplate();
 		if (txTemplate != null) {
 			return (Message<?>) txTemplate.execute(new TransactionCallback() {
@@ -179,7 +178,7 @@ public class MessageExchangeTemplate implements InitializingBean {
 		return this.doReceive(source);
 	}
 
-	public boolean receiveAndForward(final MessageSource<?> source, final MessageTarget target) {
+	public boolean receiveAndForward(final PollableSource<?> source, final MessageTarget target) {
 		TransactionTemplate txTemplate = this.getTransactionTemplate();
 		if (txTemplate != null) {
 			return (Boolean) txTemplate.execute(new TransactionCallback() {
@@ -203,7 +202,7 @@ public class MessageExchangeTemplate implements InitializingBean {
 		return sent;
 	}
 
-	private Message<?> doReceive(MessageSource<?> source) {
+	private Message<?> doReceive(PollableSource<?> source) {
 		long timeout = this.receiveTimeout;
 		Message<?> message = (timeout >= 0 && source instanceof BlockingSource)
 				? ((BlockingSource<?>) source).receive(timeout)
@@ -223,7 +222,7 @@ public class MessageExchangeTemplate implements InitializingBean {
 		return this.doReceive(returnAddress);
 	}
 
-	private boolean doReceiveAndForward(MessageSource<?> source, MessageTarget target) {
+	private boolean doReceiveAndForward(PollableSource<?> source, MessageTarget target) {
 		Message<?> message = this.doReceive(source);
 		if (message == null) {
 			return false;

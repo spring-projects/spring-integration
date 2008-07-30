@@ -56,7 +56,7 @@ import org.springframework.integration.endpoint.TargetEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
-import org.springframework.integration.message.Subscribable;
+import org.springframework.integration.message.SubscribableSource;
 import org.springframework.integration.scheduling.MessagePublishingErrorHandler;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
@@ -330,8 +330,8 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 				endpoint.setSource(source);
 			}
 		}
-		if (source != null && source instanceof Subscribable) {
-			((Subscribable) source).subscribe(endpoint);
+		if (source != null && source instanceof SubscribableSource) {
+			((SubscribableSource) source).subscribe(endpoint);
 			if (logger.isInfoEnabled()) {
 				logger.info("activated subscription to channel '"
 						+ source + "' for endpoint '" + endpoint + "'");

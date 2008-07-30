@@ -14,25 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.dispatcher;
-
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Test;
-
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+package org.springframework.integration.message;
 
 /**
+ * Interface for any source of messages that accepts subscribers.
+ * 
  * @author Mark Fisher
  */
-public class DirectChannelParserTests {
+public interface SubscribableSource extends MessageSource {
 
-	@Test
-	public void testReceivesMessageFromChannelWithSource() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"directChannelParserTests.xml", DirectChannelParserTests.class);
-		Object channel = context.getBean("channel");
-		assertEquals(DirectChannel.class, channel.getClass());
-	}
+	/**
+	 * Register a {@link MessageTarget} as a subscriber to this source.
+	 */
+	boolean subscribe(MessageTarget target);
+
+	/**
+	 * Remove a {@link MessageTarget} from the subscribers of this source.
+	 */
+	boolean unsubscribe(MessageTarget target);
 
 }

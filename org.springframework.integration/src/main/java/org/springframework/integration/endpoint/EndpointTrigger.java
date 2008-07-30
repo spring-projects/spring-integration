@@ -19,7 +19,7 @@ package org.springframework.integration.endpoint;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.dispatcher.PollingDispatcher;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageSource;
+import org.springframework.integration.message.PollableSource;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
 
@@ -55,7 +55,7 @@ public class EndpointTrigger extends PollingDispatcher {
 	}
 
 
-	private static class TriggerSource implements MessageSource<EndpointPoller> {
+	private static class TriggerSource implements PollableSource<EndpointPoller> {
 
 		public Message<EndpointPoller> receive() {
 			return new TriggerMessage();

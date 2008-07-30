@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.core.io.Resource;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.message.Message;
@@ -31,7 +32,6 @@ import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageCreator;
 import org.springframework.integration.message.MessageDeliveryAware;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.message.MessageSource;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -41,7 +41,7 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class FileSource extends AbstractDirectorySource<File> implements MessageSource<File>, MessageDeliveryAware {
+public class FileSource extends AbstractDirectorySource<File> implements MessageDeliveryAware {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 	

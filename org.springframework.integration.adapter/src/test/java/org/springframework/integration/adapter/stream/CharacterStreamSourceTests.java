@@ -22,7 +22,7 @@ import static org.junit.Assert.assertNull;
 import java.io.StringReader;
 
 import org.junit.Test;
-import org.springframework.integration.channel.MessageChannel;
+
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.SourceEndpoint;
 import org.springframework.integration.endpoint.TriggerMessage;
@@ -37,7 +37,7 @@ public class CharacterStreamSourceTests {
 	@Test
 	public void testEndOfStream() {
 		StringReader reader = new StringReader("test");
-		MessageChannel channel = new QueueChannel();
+		QueueChannel channel = new QueueChannel();
 		CharacterStreamSource source = new CharacterStreamSource(reader);
 		PollingSchedule schedule = new PollingSchedule(1000);
 		schedule.setInitialDelay(10000);

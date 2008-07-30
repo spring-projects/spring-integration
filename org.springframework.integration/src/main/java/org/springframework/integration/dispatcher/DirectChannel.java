@@ -16,49 +16,27 @@
 
 package org.springframework.integration.dispatcher;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageSource;
-import org.springframework.integration.message.Subscribable;
+import org.springframework.integration.message.SubscribableSource;
 import org.springframework.integration.message.MessageTarget;
-import org.springframework.integration.message.selector.MessageSelector;
 
 /**
- * A channel that invokes the subscribed {@link MessageHandler handler(s)} in a
- * sender's thread (returning after at most one handles the message). If a
- * {@link MessageSource} is provided, then that source will likewise be polled
- * within a receiver's thread.
+ * A channel that invokes the subscribed {@link MessageHandler handler(s)} in
+ * the sender's thread (returning after at most one handles the message).
  * 
  * @author Dave Syer
  * @author Mark Fisher
  */
-public class DirectChannel extends AbstractMessageChannel implements Subscribable {
+public class DirectChannel extends AbstractMessageChannel implements SubscribableSource {
 
-	private volatile MessageSource<?> source;
-
-	private final SimpleDispatcher dispatcher;
+	private final SimpleDispatcher dispatcher = new SimpleDispatcher();
 
 	private final AtomicInteger handlerCount = new AtomicInteger();
 
-
-	public DirectChannel() {
-		this(null);
-	}
-
-	public DirectChannel(MessageSource<?> source) {
-		this.source = source;
-		this.dispatcher = new SimpleDispatcher();
-	}
-
-
-	public void setSource(MessageSource<?> source) {
-		this.source = source;
-	}
 
 	public boolean subscribe(MessageTarget target) {
 		boolean added = this.dispatcher.addTarget(target);
@@ -76,29 +54,12 @@ public class DirectChannel extends AbstractMessageChannel implements Subscribabl
 		return removed;
 	}
 
-
-	@Override
-	protected Message<?> doReceive(long timeout) {
-		if (this.source != null) {
-			return this.source.receive();
-		}
-		return null;
-	}
-
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
 		if (message != null && this.handlerCount.get() > 0) {
 			return this.dispatcher.send(message);
 		}
 		return false;
-	}
-
-	public List<Message<?>> clear() {
-		return new ArrayList<Message<?>>();
-	}
-
-	public List<Message<?>> purge(MessageSelector selector) {
-		return new ArrayList<Message<?>>();
 	}
 
 }

@@ -14,23 +14,27 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration.channel;
+
+import java.util.List;
+
+import org.springframework.integration.message.BlockingSource;
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.selector.MessageSelector;
 
 /**
- * Interface for any component that accepts subscribers.
- * 
  * @author Mark Fisher
  */
-public interface Subscribable {
+public interface PollableChannel extends MessageChannel, BlockingSource {
 
 	/**
-	 * Register a {@link MessageTarget} as a subscriber to this source.
+	 * Remove all {@link Message Messages} from this channel.
 	 */
-	boolean subscribe(MessageTarget target);
+	List<Message<?>> clear();
 
 	/**
-	 * Remove a {@link MessageTarget} from the subscribers of this source.
+	 * Remove any {@link Message Messages} that are not accepted by the provided selector.
 	 */
-	boolean unsubscribe(MessageTarget target);
+	List<Message<?>> purge(MessageSelector selector);
 
 }

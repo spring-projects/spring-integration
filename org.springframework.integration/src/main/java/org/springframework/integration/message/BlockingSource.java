@@ -21,7 +21,7 @@ package org.springframework.integration.message;
  * 
  * @author Mark Fisher
  */
-public interface BlockingSource<T> extends MessageSource<T> {
+public interface BlockingSource<T> extends PollableSource<T> {
 
 	/**
 	 * Receive a message, blocking indefinitely if necessary.

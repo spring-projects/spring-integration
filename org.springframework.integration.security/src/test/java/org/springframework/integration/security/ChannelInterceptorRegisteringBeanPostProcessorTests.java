@@ -25,7 +25,7 @@ import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.integration.channel.AbstractPollableChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
@@ -44,7 +44,6 @@ public class ChannelInterceptorRegisteringBeanPostProcessorTests {
 	public void setUp() {
 		matchAll = new ArrayList<String>();
 		matchAll.add(".*");
-
 	}
 
 
@@ -81,7 +80,7 @@ public class ChannelInterceptorRegisteringBeanPostProcessorTests {
 	}
 
 
-	private static class TestChannel extends AbstractMessageChannel {
+	private static class TestChannel extends AbstractPollableChannel {
 
 		ChannelInterceptor channelInterceptor;
 

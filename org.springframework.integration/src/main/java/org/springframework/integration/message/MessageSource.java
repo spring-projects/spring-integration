@@ -23,9 +23,4 @@ package org.springframework.integration.message;
  */
 public interface MessageSource<T> {
 
-	/**
-	 * Retrieve a message from this source or <code>null</code> if no message is available.
-	 */
-	Message<T> receive();
-
 }

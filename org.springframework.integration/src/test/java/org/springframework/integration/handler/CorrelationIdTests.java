@@ -23,7 +23,6 @@ import org.junit.Test;
 
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.DefaultChannelRegistry;
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
@@ -117,7 +116,7 @@ public class CorrelationIdTests {
 		adapter.setObject(new TestBean());
 		adapter.setMethodName("upperCase");
 		adapter.afterPropertiesSet();
-		MessageChannel testChannel = new QueueChannel();
+		QueueChannel testChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("testChannel", testChannel);
 		SplitterMessageHandlerAdapter splitter = new SplitterMessageHandlerAdapter(

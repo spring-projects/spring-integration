@@ -27,6 +27,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.router.ResequencingMessageHandler;
@@ -49,7 +50,7 @@ public class ResequencerParserTests {
 	public void testResequencing() {
 		ResequencingMessageHandler resequencingHandler = (ResequencingMessageHandler) context
 				.getBean("defaultResequencer");
-		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
+		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		List<Message<?>> outboundMessages = new ArrayList<Message<?>>();
 		outboundMessages.add(createMessage("123", "id1", 3, 3, outputChannel));
 		outboundMessages.add(createMessage("789", "id1", 3, 1, outputChannel));

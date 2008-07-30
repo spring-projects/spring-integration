@@ -27,6 +27,7 @@ import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
@@ -71,7 +72,7 @@ public class EndpointParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"endpointWithHandlerChainElement.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
-		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
+		PollableChannel replyChannel = (PollableChannel) context.getBean("replyChannel");
 		channel.send(new StringMessage("test"));
 		Message<?> reply = replyChannel.receive(500);
 		assertNotNull(reply);
@@ -83,7 +84,7 @@ public class EndpointParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"endpointWithSelector.xml", this.getClass());		
 		MessageTarget endpoint = (MessageTarget) context.getBean("endpoint");
-		MessageChannel replyChannel = new QueueChannel();
+		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.fromPayload("test")
 				.setReturnAddress(replyChannel).build();
 		assertTrue(endpoint.send(message));

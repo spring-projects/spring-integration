@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageTarget;
@@ -41,7 +41,7 @@ public class GatewayProxyFactoryBeanTests {
 
 	@Test
 	public void testRequestReplyWithAnonymousChannel() throws Exception {
-		final MessageChannel requestChannel = new QueueChannel();
+		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		proxyFactory.setRequestChannel(requestChannel);
@@ -54,7 +54,7 @@ public class GatewayProxyFactoryBeanTests {
 
 	@Test
 	public void testOneWay() throws Exception {
-		final MessageChannel requestChannel = new QueueChannel();
+		final QueueChannel requestChannel = new QueueChannel();
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		proxyFactory.setServiceInterface(TestService.class);
 		proxyFactory.setRequestChannel(requestChannel);
@@ -68,7 +68,7 @@ public class GatewayProxyFactoryBeanTests {
 
 	@Test
 	public void testSolicitResponse() throws Exception {
-		MessageChannel replyChannel = new QueueChannel();
+		QueueChannel replyChannel = new QueueChannel();
 		replyChannel.send(new StringMessage("foo"));
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		proxyFactory.setServiceInterface(TestService.class);
@@ -82,7 +82,7 @@ public class GatewayProxyFactoryBeanTests {
 
 	@Test
 	public void testRequestReplyWithTypeConversion() throws Exception {
-		final MessageChannel requestChannel = new QueueChannel();
+		final QueueChannel requestChannel = new QueueChannel();
 		new Thread(new Runnable() {
 			public void run() {
 				Message<?> input = requestChannel.receive();
@@ -155,7 +155,7 @@ public class GatewayProxyFactoryBeanTests {
 
 	@Test
 	public void testMessageAsMethodArgument() throws Exception {
-		final MessageChannel requestChannel = new QueueChannel();
+		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		proxyFactory.setServiceInterface(TestService.class);
@@ -168,7 +168,7 @@ public class GatewayProxyFactoryBeanTests {
 
 	@Test
 	public void testMessageAsReturnValue() throws Exception {
-		final MessageChannel requestChannel = new QueueChannel();
+		final QueueChannel requestChannel = new QueueChannel();
 		new Thread(new Runnable() {
 			public void run() {
 				Message<?> input = requestChannel.receive();
@@ -212,7 +212,7 @@ public class GatewayProxyFactoryBeanTests {
 	}
 
 
-	private static void startResponder(final MessageChannel requestChannel) {
+	private static void startResponder(final PollableChannel requestChannel) {
 		new Thread(new Runnable() {
 			public void run() {
 				Message<?> input = requestChannel.receive();

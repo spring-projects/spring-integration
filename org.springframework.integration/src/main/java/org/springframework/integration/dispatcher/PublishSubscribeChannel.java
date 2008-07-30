@@ -16,19 +16,16 @@
 
 package org.springframework.integration.dispatcher;
 
-import java.util.List;
-
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageTarget;
-import org.springframework.integration.message.Subscribable;
-import org.springframework.integration.message.selector.MessageSelector;
+import org.springframework.integration.message.SubscribableSource;
 
 /**
  * @author Mark Fisher
  */
-public class PublishSubscribeChannel extends AbstractMessageChannel implements Subscribable {
+public class PublishSubscribeChannel extends AbstractMessageChannel implements SubscribableSource {
 
 	private final BroadcastingDispatcher dispatcher = new BroadcastingDispatcher();
 
@@ -62,19 +59,6 @@ public class PublishSubscribeChannel extends AbstractMessageChannel implements S
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
 		return this.dispatcher.send(message);
-	}
-
-	@Override
-	protected Message<?> doReceive(long timeout) {
-		return null;
-	}
-
-	public List<Message<?>> clear() {
-		return null;
-	}
-
-	public List<Message<?>> purge(MessageSelector selector) {
-		return null;
 	}
 
 }

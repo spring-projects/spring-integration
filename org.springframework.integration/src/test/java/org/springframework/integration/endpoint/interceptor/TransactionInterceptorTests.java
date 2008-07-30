@@ -24,6 +24,7 @@ import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
@@ -44,7 +45,7 @@ public class TransactionInterceptorTests {
 				"transactionInterceptorTests.xml", this.getClass());
 		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManager");
 		MessageChannel input = (MessageChannel) context.getBean("goodInput");
-		MessageChannel output = (MessageChannel) context.getBean("output");
+		PollableChannel output = (PollableChannel) context.getBean("output");
 		assertEquals(0, txManager.getCommitCount());
 		assertEquals(0, txManager.getRollbackCount());
 		input.send(new StringMessage("test"));
@@ -61,7 +62,7 @@ public class TransactionInterceptorTests {
 				"transactionInterceptorTests.xml", this.getClass());
 		TestTransactionManager txManager = (TestTransactionManager) context.getBean("txManager");
 		MessageChannel input = (MessageChannel) context.getBean("badInput");
-		MessageChannel output = (MessageChannel) context.getBean("output");
+		PollableChannel output = (PollableChannel) context.getBean("output");
 		assertEquals(0, txManager.getCommitCount());
 		assertEquals(0, txManager.getRollbackCount());
 		input.send(new StringMessage("test"));

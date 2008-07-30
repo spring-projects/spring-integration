@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class QueueChannel extends AbstractMessageChannel {
+public class QueueChannel extends AbstractPollableChannel {
 
 	public static final int DEFAULT_CAPACITY = 100;
 

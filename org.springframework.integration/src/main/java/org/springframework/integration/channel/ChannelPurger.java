@@ -25,7 +25,7 @@ import org.springframework.util.Assert;
 
 /**
  * A utility class for purging {@link Message Messages} from one or more
- * {@link MessageChannel MessageChannels}. Any message that does <em>not</em>
+ * {@link PollableChannel PollableChannels}. Any message that does <em>not</em>
  * match the provided {@link MessageSelector} will be removed from the channel.
  * If no {@link MessageSelector} is provided, then <em>all</em> messages will be
  * cleared from the channel.
@@ -41,16 +41,16 @@ import org.springframework.util.Assert;
  */
 public class ChannelPurger {
 
-	private final MessageChannel[] channels;
+	private final PollableChannel[] channels;
 
 	private final MessageSelector selector;
 
 
-	public ChannelPurger(MessageChannel ... channels) {
+	public ChannelPurger(PollableChannel ... channels) {
 		this(null, channels);
 	}
 
-	public ChannelPurger(MessageSelector selector, MessageChannel ... channels) {
+	public ChannelPurger(MessageSelector selector, PollableChannel ... channels) {
 		Assert.notEmpty(channels, "at least one channel is required");
 		if (channels.length == 1) {
 			Assert.notNull(channels[0], "channel must not be null");
@@ -62,7 +62,7 @@ public class ChannelPurger {
 
 	public final List<Message<?>> purge() {
 		List<Message<?>> purgedMessages = new ArrayList<Message<?>>();
-		for (MessageChannel channel : this.channels) {
+		for (PollableChannel channel : this.channels) {
 			List<Message<?>> results = (this.selector == null) ?
 					channel.clear() : channel.purge(this.selector);
 			if (results != null) {

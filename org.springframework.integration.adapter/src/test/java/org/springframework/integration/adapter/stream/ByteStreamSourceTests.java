@@ -22,7 +22,7 @@ import static org.junit.Assert.assertNull;
 import java.io.ByteArrayInputStream;
 
 import org.junit.Test;
-import org.springframework.integration.channel.MessageChannel;
+
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.SourceEndpoint;
 import org.springframework.integration.endpoint.TriggerMessage;
@@ -38,7 +38,7 @@ public class ByteStreamSourceTests {
 	public void testEndOfStream() {
 		byte[] bytes = new byte[] {1,2,3};
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
-		MessageChannel channel = new QueueChannel();
+		QueueChannel channel = new QueueChannel();
 		ByteStreamSource source = new ByteStreamSource(stream);
 		SourceEndpoint endpoint = new SourceEndpoint(source);
 		endpoint.setTarget(channel);
@@ -61,7 +61,7 @@ public class ByteStreamSourceTests {
 	public void testByteArrayIsTruncated() {
 		byte[] bytes = new byte[] {0,1,2,3,4,5};
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
-		MessageChannel channel = new QueueChannel();
+		QueueChannel channel = new QueueChannel();
 		ByteStreamSource source = new ByteStreamSource(stream);
 		source.setBytesPerMessage(4);
 		PollingSchedule schedule = new PollingSchedule(1000);
@@ -83,7 +83,7 @@ public class ByteStreamSourceTests {
 	public void testByteArrayIsNotTruncated() {
 		byte[] bytes = new byte[] {0,1,2,3,4,5};
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
-		MessageChannel channel = new QueueChannel();
+		QueueChannel channel = new QueueChannel();
 		ByteStreamSource source = new ByteStreamSource(stream);
 		source.setBytesPerMessage(4);
 		source.setShouldTruncate(false);

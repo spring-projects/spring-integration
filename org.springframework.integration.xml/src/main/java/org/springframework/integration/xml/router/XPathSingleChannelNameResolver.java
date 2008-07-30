@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,15 @@
 
 package org.springframework.integration.xml.router;
 
+import org.w3c.dom.Node;
+
 import org.springframework.integration.message.Message;
 import org.springframework.integration.router.ChannelNameResolver;
 import org.springframework.util.Assert;
 import org.springframework.xml.xpath.XPathExpression;
-import org.w3c.dom.Node;
 
 /**
- * 
  * @author Jonas Partner
- * 
  */
 public class XPathSingleChannelNameResolver extends AbstractXPathChannelNameResolver implements ChannelNameResolver {
 
@@ -38,7 +37,6 @@ public class XPathSingleChannelNameResolver extends AbstractXPathChannelNameReso
 
 	public String resolve(Message<?> message) {
 		Node node = extractNode(message);
-		System.out.println(xPathExpression.evaluateAsString(node));
 		return xPathExpression.evaluateAsString(node);
 	}
 

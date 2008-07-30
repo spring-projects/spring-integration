@@ -7,12 +7,6 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
 
-	<direct-channel id="channelWithoutSource"/>
-
-	<direct-channel id="channelWithSource" source="testSource"/>
-
-	<beans:bean id="testSource" class="org.springframework.integration.channel.config.TestSource">
-		<beans:constructor-arg value="foo"/>
-	</beans:bean>
+	<direct-channel id="channel"/>
 
 </beans:beans>

@@ -29,7 +29,6 @@ import java.util.concurrent.Executors;
 
 import org.junit.Test;
 
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageTarget;
@@ -46,7 +45,7 @@ public class HttpInvokerGatewayTests {
 
 	@Test
 	public void testRequestOnly() throws Exception {
-		MessageChannel channel = new QueueChannel();
+		QueueChannel channel = new QueueChannel();
 		HttpInvokerGateway gateway = new HttpInvokerGateway(channel);
 		gateway.setExpectReply(false);
 		gateway.afterPropertiesSet();
@@ -61,7 +60,7 @@ public class HttpInvokerGatewayTests {
 
 	@Test
 	public void testRequestReply() throws Exception {
-		final MessageChannel channel = new QueueChannel();
+		final QueueChannel channel = new QueueChannel();
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
 			public void run() {
 				Message<?> message = channel.receive();

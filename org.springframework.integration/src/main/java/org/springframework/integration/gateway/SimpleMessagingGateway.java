@@ -20,6 +20,7 @@ import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.bus.MessageBusAware;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.endpoint.EndpointRegistry;
 import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.endpoint.MessagingGateway;
@@ -46,7 +47,7 @@ public class SimpleMessagingGateway extends MessagingGatewaySupport implements M
 
 	private volatile MessageChannel requestChannel;
 
-	private volatile MessageChannel replyChannel;
+	private volatile PollableChannel replyChannel;
 
 	private volatile long replyTimeout = 5000;
 
@@ -87,7 +88,7 @@ public class SimpleMessagingGateway extends MessagingGatewaySupport implements M
 	 * 
 	 * @param replyChannel the channel from which reply messages will be received
 	 */
-	public void setReplyChannel(MessageChannel replyChannel) {
+	public void setReplyChannel(PollableChannel replyChannel) {
 		this.replyChannel = replyChannel;
 	}
 

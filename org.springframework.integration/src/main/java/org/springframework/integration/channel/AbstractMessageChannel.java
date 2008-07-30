@@ -82,6 +82,13 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 	}
 
 	/**
+	 * Exposes the interceptor list for subclasses.
+	 */
+	protected ChannelInterceptorList getInterceptors() {
+		return this.interceptors;
+	}
+
+	/**
 	 * Send a message on this channel. If the channel is at capacity, this
 	 * method will block until either space becomes available or the sending
 	 * thread is interrupted.
@@ -119,43 +126,9 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 		return sent;
 	}
 
-	/**
-	 * Receive the first available message from this channel. If the channel
-	 * contains no messages, this method will block.
-	 * 
-	 * @return the first available message or <code>null</code> if the
-	 * receiving thread is interrupted.
-	 */
-	public final Message<?> receive() {
-		return this.receive(-1);
-	}
-
-	/**
-	 * Receive the first available message from this channel. If the channel
-	 * contains no messages, this method will block until the allotted timeout
-	 * elapses. If the specified timeout is 0, the method will return
-	 * immediately. If less than zero, it will block indefinitely (see
-	 * {@link #receive()}).
-	 * 
-	 * @param timeout the timeout in milliseconds
-	 * 
-	 * @return the first available message or <code>null</code> if no message
-	 * is available within the allotted time or the receiving thread is
-	 * interrupted.
-	 */
-	public final Message<?> receive(long timeout) {
-		if (!this.interceptors.preReceive(this)) {
-			return null;
-		}
-		Message<?> message = this.doReceive(timeout);
-		message = this.interceptors.postReceive(message, this);
-		return message;
-	}
-
 	public String toString() {
 		return (this.name != null) ? this.name : super.toString();
 	}
-
 
 	/**
 	 * Subclasses must implement this method. A non-negative timeout indicates
@@ -166,20 +139,11 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 	 */
 	protected abstract boolean doSend(Message<?> message, long timeout);
 
-	/**
-	 * Subclasses must implement this method. A non-negative timeout indicates
-	 * how long to wait if the channel is empty (if the value is 0, it must
-	 * return immediately with or without success). A negative timeout value
-	 * indicates that the method should block until either a message is
-	 * available or the blocking thread is interrupted.
-	 */
-	protected abstract Message<?> doReceive(long timeout);
-
 
 	/**
 	 * A convenience wrapper class for the list of ChannelInterceptors.
 	 */
-	private class ChannelInterceptorList {
+	protected class ChannelInterceptorList {
 
 		private final List<ChannelInterceptor> interceptors = new CopyOnWriteArrayList<ChannelInterceptor>();
 

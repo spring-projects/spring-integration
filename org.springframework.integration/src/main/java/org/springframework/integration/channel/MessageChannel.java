@@ -16,19 +16,15 @@
 
 package org.springframework.integration.channel;
 
-import java.util.List;
-
-import org.springframework.integration.message.BlockingSource;
 import org.springframework.integration.message.BlockingTarget;
-import org.springframework.integration.message.Message;
-import org.springframework.integration.message.selector.MessageSelector;
+import org.springframework.integration.message.MessageSource;
 
 /**
  * Base channel interface defining common behavior for message sending and receiving.
  * 
  * @author Mark Fisher
  */
-public interface MessageChannel extends BlockingSource, BlockingTarget {
+public interface MessageChannel extends MessageSource, BlockingTarget {
 
 	/**
 	 * Return the name of this channel.
@@ -39,15 +35,5 @@ public interface MessageChannel extends BlockingSource, BlockingTarget {
 	 * Set the name of this channel.
 	 */
 	void setName(String name);
-
-	/**
-	 * Remove all {@link Message Messages} from this channel.
-	 */
-	List<Message<?>> clear();
-
-	/**
-	 * Remove any {@link Message Messages} that are not accepted by the provided selector.
-	 */
-	List<Message<?>> purge(MessageSelector selector);
 
 }

@@ -43,7 +43,7 @@ public class DirectChannelSubscriptionTests {
 
 	private MessageChannel sourceChannel = new DirectChannel();
 
-	private MessageChannel targetChannel = new ThreadLocalChannel();
+	private ThreadLocalChannel targetChannel = new ThreadLocalChannel();
 
 
 	@Before

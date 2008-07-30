@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.dispatcher.PublishSubscribeChannel;
 import org.springframework.integration.endpoint.SourceEndpoint;
@@ -38,6 +39,7 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageSource;
+import org.springframework.integration.message.PollableSource;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.scheduling.PollingSchedule;
 
@@ -49,8 +51,8 @@ public class DefaultMessageBusTests {
 	@Test
 	public void testRegistrationWithInputChannelReference() {
 		DefaultMessageBus bus = new DefaultMessageBus();
-		MessageChannel sourceChannel = new QueueChannel();
-		MessageChannel targetChannel = new QueueChannel();
+		QueueChannel sourceChannel = new QueueChannel();
+		QueueChannel targetChannel = new QueueChannel();
 		bus.registerChannel("sourceChannel", sourceChannel);
 		Message<String> message = MessageBuilder.fromPayload("test")
 				.setReturnAddress("targetChannel").build();
@@ -71,8 +73,8 @@ public class DefaultMessageBusTests {
 	@Test
 	public void testRegistrationWithInputChannelName() {
 		MessageBus bus = new DefaultMessageBus();
-		MessageChannel sourceChannel = new QueueChannel();
-		MessageChannel targetChannel = new QueueChannel();
+		QueueChannel sourceChannel = new QueueChannel();
+		QueueChannel targetChannel = new QueueChannel();
 		bus.registerChannel("sourceChannel", sourceChannel);
 		Message<String> message = MessageBuilder.fromPayload("test")
 				.setReturnAddress("targetChannel").build();
@@ -93,9 +95,9 @@ public class DefaultMessageBusTests {
 	@Test
 	public void testChannelsWithoutHandlers() {
 		MessageBus bus = new DefaultMessageBus();
-		MessageChannel sourceChannel = new QueueChannel();
+		QueueChannel sourceChannel = new QueueChannel();
 		sourceChannel.send(new StringMessage("test"));
-		MessageChannel targetChannel = new QueueChannel();
+		QueueChannel targetChannel = new QueueChannel();
 		bus.registerChannel("sourceChannel", sourceChannel);
 		bus.registerChannel("targetChannel", targetChannel);
 		bus.start();
@@ -108,9 +110,9 @@ public class DefaultMessageBusTests {
 	public void testAutodetectionWithApplicationContext() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("messageBusTests.xml", this.getClass());
 		context.start();
-		MessageChannel sourceChannel = (MessageChannel) context.getBean("sourceChannel");
+		PollableChannel sourceChannel = (PollableChannel) context.getBean("sourceChannel");
 		sourceChannel.send(new GenericMessage<String>("test"));		
-		MessageChannel targetChannel = (MessageChannel) context.getBean("targetChannel");
+		PollableChannel targetChannel = (PollableChannel) context.getBean("targetChannel");
 		MessageBus bus = (MessageBus) context.getBean("bus");
 		bus.start();
 		Message<?> result = targetChannel.receive(1000);
@@ -198,7 +200,7 @@ public class DefaultMessageBusTests {
 		bus.registerEndpoint(sourceEndpoint);
 		bus.start();
 		latch.await(2000, TimeUnit.MILLISECONDS);
-		Message<?> message = bus.getErrorChannel().receive(100);
+		Message<?> message = ((PollableChannel) bus.getErrorChannel()).receive(5000);
 		assertNotNull("message should not be null", message);
 		assertTrue(message instanceof ErrorMessage);
 		assertEquals("intentional test failure", ((ErrorMessage) message).getPayload().getMessage());
@@ -245,7 +247,7 @@ public class DefaultMessageBusTests {
 	}
 
 
-	private static class FailingSource implements MessageSource<Object> {
+	private static class FailingSource implements PollableSource<Object> {
 
 		private CountDownLatch latch;
 

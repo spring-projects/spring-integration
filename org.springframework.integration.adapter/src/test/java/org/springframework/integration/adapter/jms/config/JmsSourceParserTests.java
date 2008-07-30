@@ -26,7 +26,7 @@ import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.adapter.jms.JmsSource;
-import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.message.Message;
 
 /**
@@ -131,7 +131,7 @@ public class JmsSourceParserTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsSourceEndpoint.xml", this.getClass());
 		context.start();
-		MessageChannel channel = (MessageChannel) context.getBean("channel");
+		PollableChannel channel = (PollableChannel) context.getBean("channel");
 		Message<?> message = channel.receive(3000);
 		assertNotNull("message should not be null", message);
 		assertEquals("polling-test", message.getPayload());

@@ -22,7 +22,6 @@ import java.util.concurrent.FutureTask;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageExchangeTemplate;
-import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.util.Assert;
 
@@ -78,7 +77,7 @@ public class AsyncMessageExchangeTemplate extends MessageExchangeTemplate {
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public Message<?> receive(final MessageSource<?> source) {
+	public Message<?> receive(final PollableSource<?> source) {
 		FutureTask<Message<?>> task = new FutureTask<Message<?>>(new Callable<Message<?>>() {
 			public Message<?> call() throws Exception {
 				return AsyncMessageExchangeTemplate.super.receive(source);
@@ -95,7 +94,7 @@ public class AsyncMessageExchangeTemplate extends MessageExchangeTemplate {
 	 * unless an exception is thrown by the executor.
 	 */
 	@Override
-	public boolean receiveAndForward(final MessageSource<?> source, final MessageTarget target) {
+	public boolean receiveAndForward(final PollableSource<?> source, final MessageTarget target) {
 		this.taskExecutor.execute(new Runnable() {
 			public void run() {
 				AsyncMessageExchangeTemplate.super.receiveAndForward(source, target);

@@ -21,7 +21,6 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
@@ -32,7 +31,7 @@ import org.springframework.integration.message.StringMessage;
  */
 public class MessageTransformingChannelInterceptorTests {
 
-	private AbstractMessageChannel channel; 
+	private QueueChannel channel; 
 
 	private StringMessage message;
 

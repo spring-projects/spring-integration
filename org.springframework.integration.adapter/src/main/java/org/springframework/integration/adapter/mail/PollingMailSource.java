@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import javax.mail.internet.MimeMessage;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.adapter.mail.monitor.DefaultLocalMailMessageStore;
@@ -34,20 +35,19 @@ import org.springframework.integration.adapter.mail.monitor.LocalMailMessageStor
 import org.springframework.integration.adapter.mail.monitor.MailTransportUtils;
 import org.springframework.integration.adapter.mail.monitor.MonitoringStrategy;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageSource;
+import org.springframework.integration.message.PollableSource;
 import org.springframework.util.Assert;
 
 /**
  * {@link MessageSource} implementation which delegates to a
- * {@link MonitoringStrategy} to poll a mailbox Each poll of the mailbox may
+ * {@link MonitoringStrategy} to poll a mailbox. Each poll of the mailbox may
  * return more than one message which will then be stored locally using the
  * provided {@link LocalMailMessageStore}
- * @author Jonas Partner
  * 
+ * @author Jonas Partner
  */
-
 @SuppressWarnings("unchecked")
-public class PollingMailSource implements MessageSource, DisposableBean, Lifecycle {
+public class PollingMailSource implements PollableSource, DisposableBean, Lifecycle {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 

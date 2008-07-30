@@ -14,25 +14,18 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.dispatcher;
-
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Test;
-
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+package org.springframework.integration.message;
 
 /**
+ * Base interface for any source of {@link Message Messages} that can be polled. 
+ * 
  * @author Mark Fisher
  */
-public class DirectChannelParserTests {
+public interface PollableSource<T> extends MessageSource<T> {
 
-	@Test
-	public void testReceivesMessageFromChannelWithSource() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"directChannelParserTests.xml", DirectChannelParserTests.class);
-		Object channel = context.getBean("channel");
-		assertEquals(DirectChannel.class, channel.getClass());
-	}
+	/**
+	 * Retrieve a message from this source or <code>null</code> if no message is available.
+	 */
+	Message<T> receive();
 
 }

@@ -31,6 +31,7 @@ import org.springframework.beans.FatalBeanException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.TestChannelInterceptor;
 import org.springframework.integration.dispatcher.PublishSubscribeChannel;
@@ -140,7 +141,7 @@ public class ChannelParserTests {
 	public void testChannelInteceptors() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"channelInterceptorParserTests.xml", this.getClass());
-		MessageChannel channel = (MessageChannel) context.getBean("channel");
+		PollableChannel channel = (PollableChannel) context.getBean("channel");
 		TestChannelInterceptor interceptor = (TestChannelInterceptor) context.getBean("interceptor");
 		assertEquals(0, interceptor.getSendCount());
 		channel.send(new StringMessage("test"));
@@ -154,7 +155,7 @@ public class ChannelParserTests {
 	public void testPriorityChannelWithDefaultComparator() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"priorityChannelParserTests.xml", this.getClass());
-		MessageChannel channel = (MessageChannel) context.getBean("priorityChannelWithDefaultComparator");
+		PollableChannel channel = (PollableChannel) context.getBean("priorityChannelWithDefaultComparator");
 		Message<String> lowPriorityMessage = MessageBuilder.fromPayload("low")
 				.setPriority(MessagePriority.LOW).build();
 		Message<String> midPriorityMessage = MessageBuilder.fromPayload("mid")
@@ -176,7 +177,7 @@ public class ChannelParserTests {
 	public void testPriorityChannelWithCustomComparator() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"priorityChannelParserTests.xml", this.getClass());
-		MessageChannel channel = (MessageChannel) context.getBean("priorityChannelWithCustomComparator");
+		PollableChannel channel = (PollableChannel) context.getBean("priorityChannelWithCustomComparator");
 		channel.send(new StringMessage("C"));
 		channel.send(new StringMessage("A"));
 		channel.send(new StringMessage("D"));
@@ -195,7 +196,7 @@ public class ChannelParserTests {
 	public void testPriorityChannelWithIntegerDatatypeEnforced() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"priorityChannelParserTests.xml", this.getClass());
-		MessageChannel channel = (MessageChannel) context.getBean("integerOnlyPriorityChannel");
+		PollableChannel channel = (PollableChannel) context.getBean("integerOnlyPriorityChannel");
 		channel.send(new GenericMessage<Integer>(3));
 		channel.send(new GenericMessage<Integer>(2));
 		channel.send(new GenericMessage<Integer>(1));

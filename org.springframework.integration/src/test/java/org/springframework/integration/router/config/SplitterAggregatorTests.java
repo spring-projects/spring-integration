@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 
@@ -44,7 +45,7 @@ public class SplitterAggregatorTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"splitterAggregatorTests.xml", this.getClass());
 		MessageChannel inputChannel = (MessageChannel) context.getBean("numbers");
-		MessageChannel outputChannel = (MessageChannel) context.getBean("results");
+		PollableChannel outputChannel = (PollableChannel) context.getBean("results");
 		inputChannel.send(new GenericMessage<Numbers>(this.nextTen()));
 		Message<?> result1 = outputChannel.receive(1000);
 		assertNotNull(result1);

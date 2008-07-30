@@ -20,9 +20,10 @@ import static org.junit.Assert.*;
 
 import org.junit.After;
 import org.junit.Test;
+
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.security.context.SecurityContext;
@@ -48,7 +49,7 @@ public class SecurityPropagatingChannelsParserTests {
 	@Test
 	public void testPropagationByDefault() {
 		loadApplicationContext(this.getClass().getSimpleName() + "-propagateByDefaultContext.xml");
-		MessageChannel channel = new QueueChannel();
+		QueueChannel channel = new QueueChannel();
 		applicationContext.getAutowireCapableBeanFactory().applyBeanPostProcessorsAfterInitialization(channel,
 				"Does not matter");
 		assertTrue("security context did not propagate by setting message bus level default",
@@ -67,13 +68,13 @@ public class SecurityPropagatingChannelsParserTests {
 	@Test
 	public void testNoPropagationWithExcludedChannel() {
 		loadApplicationContext(this.getClass().getSimpleName() + "-noPropagationByDefaultContext.xml");
-		MessageChannel channel = new QueueChannel();
+		QueueChannel channel = new QueueChannel();
 		applicationContext.getAutowireCapableBeanFactory().applyBeanPostProcessorsAfterInitialization(channel,
 				"adminSpecial");
 		assertFalse("security context propagated when channel excluded", channelPropagatesSecurityContext(channel));
 	}
 
-	private boolean channelPropagatesSecurityContext(MessageChannel channel) {
+	private boolean channelPropagatesSecurityContext(PollableChannel channel) {
 		login("bob", "bobspassword");
 		channel.send(new StringMessage("testMessage"));
 		SecurityContext context = (SecurityContext) channel.receive(-1).getHeaders().get(

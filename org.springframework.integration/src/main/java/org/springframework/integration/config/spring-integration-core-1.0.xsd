@@ -79,19 +79,12 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="direct-channel">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
+	<xsd:element name="direct-channel" type="channelType">
+		<xsd:annotation>
+			<xsd:documentation>
 	Defines a channel that invokes its handlers directly in the sender's thread.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:complexContent>
-				<xsd:extension base="channelType">
-					<xsd:attribute name="source" type="xsd:string"/>
-				</xsd:extension>
-			</xsd:complexContent>
-		</xsd:complexType>
+			</xsd:documentation>
+		</xsd:annotation>
 	</xsd:element>
 
 	<xsd:element name="priority-channel">

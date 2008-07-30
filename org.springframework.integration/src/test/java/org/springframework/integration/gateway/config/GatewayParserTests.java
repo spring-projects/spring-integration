@@ -25,6 +25,7 @@ import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.gateway.TestService;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
@@ -40,7 +41,7 @@ public class GatewayParserTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext("gatewayParserTests.xml", this.getClass());
 		TestService service = (TestService) context.getBean("oneWay");
 		service.oneWay("foo");
-		MessageChannel channel = (MessageChannel) context.getBean("requestChannel");
+		PollableChannel channel = (PollableChannel) context.getBean("requestChannel");
 		Message<?> result = channel.receive(1000);
 		assertEquals("foo", result.getPayload());
 	}
@@ -48,7 +49,7 @@ public class GatewayParserTests {
 	@Test
 	public void testSolicitResponse() {
 		ApplicationContext context = new ClassPathXmlApplicationContext("gatewayParserTests.xml", this.getClass());
-		MessageChannel channel = (MessageChannel) context.getBean("replyChannel");
+		PollableChannel channel = (PollableChannel) context.getBean("replyChannel");
 		channel.send(new StringMessage("foo"));
 		TestService service = (TestService) context.getBean("solicitResponse");
 		String result = service.solicitResponse();
@@ -58,7 +59,7 @@ public class GatewayParserTests {
 	@Test
 	public void testRequestReply() {
 		ApplicationContext context = new ClassPathXmlApplicationContext("gatewayParserTests.xml", this.getClass());
-		MessageChannel requestChannel = (MessageChannel) context.getBean("requestChannel");
+		PollableChannel requestChannel = (PollableChannel) context.getBean("requestChannel");
 		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
 		this.startResponder(requestChannel, replyChannel);
 		TestService service = (TestService) context.getBean("requestReply");
@@ -69,7 +70,7 @@ public class GatewayParserTests {
 	@Test
 	public void testRequestReplyWithMessageMapper() {
 		ApplicationContext context = new ClassPathXmlApplicationContext("gatewayParserTests.xml", this.getClass());
-		MessageChannel requestChannel = (MessageChannel) context.getBean("requestChannel");
+		PollableChannel requestChannel = (PollableChannel) context.getBean("requestChannel");
 		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
 		this.startResponder(requestChannel, replyChannel);
 		TestService service = (TestService) context.getBean("requestReplyWithMessageMapper");
@@ -80,7 +81,7 @@ public class GatewayParserTests {
 	@Test
 	public void testRequestReplyWithMessageCreator() {
 		ApplicationContext context = new ClassPathXmlApplicationContext("gatewayParserTests.xml", this.getClass());
-		MessageChannel requestChannel = (MessageChannel) context.getBean("requestChannel");
+		PollableChannel requestChannel = (PollableChannel) context.getBean("requestChannel");
 		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
 		this.startResponder(requestChannel, replyChannel);
 		TestService service = (TestService) context.getBean("requestReplyWithMessageCreator");
@@ -89,7 +90,7 @@ public class GatewayParserTests {
 	}
 
 
-	private void startResponder(final MessageChannel requestChannel, final MessageChannel replyChannel) {
+	private void startResponder(final PollableChannel requestChannel, final MessageChannel replyChannel) {
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
 			public void run() {
 				Message<?> request = requestChannel.receive();

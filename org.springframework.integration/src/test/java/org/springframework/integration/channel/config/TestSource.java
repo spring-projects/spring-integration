@@ -17,13 +17,13 @@
 package org.springframework.integration.channel.config;
 
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageSource;
+import org.springframework.integration.message.PollableSource;
 import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
  */
-public class TestSource implements MessageSource<String> {
+public class TestSource implements PollableSource<String> {
 
 	private final String text;
 

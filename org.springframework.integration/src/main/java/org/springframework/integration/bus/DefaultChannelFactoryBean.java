@@ -31,6 +31,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.factory.ChannelFactory;
 import org.springframework.integration.channel.factory.QueueChannelFactory;
 import org.springframework.util.Assert;
@@ -73,11 +74,11 @@ public class DefaultChannelFactoryBean implements ApplicationContextAware, Facto
 	}
 
 	public void afterPropertiesSet() throws Exception {
-		synchronized (initializationMonitor) {
+		synchronized (this.initializationMonitor) {
 			if (!initialized) {
 				this.proxyBean = Proxy.newProxyInstance(
 						getClass().getClassLoader(),
-						new Class[]{MessageChannel.class},
+						new Class[] { PollableChannel.class },
 						new DefaultChannelInvocationHandler());
 				this.initialized = true;
 			}
@@ -85,14 +86,14 @@ public class DefaultChannelFactoryBean implements ApplicationContextAware, Facto
 	}
 
 	public Object getObject() throws Exception {
-		if (!initialized) {
+		if (!this.initialized) {
 			afterPropertiesSet();
 		}
 		return proxyBean;
 	}
 
 	public Class<?> getObjectType() {
-		return MessageChannel.class;
+		return PollableChannel.class;
 	}
 
 	public boolean isSingleton() {

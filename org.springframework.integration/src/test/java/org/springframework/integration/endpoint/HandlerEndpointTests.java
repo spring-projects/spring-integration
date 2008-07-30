@@ -30,7 +30,6 @@ import org.junit.Test;
 
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.DefaultChannelRegistry;
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.TestHandlers;
@@ -48,7 +47,7 @@ public class HandlerEndpointTests {
 
 	@Test
 	public void testDefaultReplyChannel() throws Exception {
-		MessageChannel replyChannel = new QueueChannel();
+		QueueChannel replyChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("replyChannel", replyChannel);
 		MessageHandler handler = new MessageHandler() {
@@ -67,7 +66,7 @@ public class HandlerEndpointTests {
 
 	@Test
 	public void testExplicitReplyChannel() throws Exception {
-		final MessageChannel replyChannel = new QueueChannel();
+		final QueueChannel replyChannel = new QueueChannel();
 		MessageHandler handler = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				return new StringMessage("hello " + message.getPayload());
@@ -84,7 +83,7 @@ public class HandlerEndpointTests {
 
 	@Test
 	public void testExplicitReplyChannelName() throws Exception {
-		final MessageChannel replyChannel = new QueueChannel();
+		final QueueChannel replyChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("replyChannel", replyChannel);
 		MessageHandler handler = new MessageHandler() {
@@ -104,8 +103,8 @@ public class HandlerEndpointTests {
 
 	@Test
 	public void testDynamicReplyChannel() throws Exception {
-		final MessageChannel replyChannel1 = new QueueChannel();
-		final MessageChannel replyChannel2 = new QueueChannel();
+		final QueueChannel replyChannel1 = new QueueChannel();
+		final QueueChannel replyChannel2 = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("replyChannel2", replyChannel2);
 		MessageHandler handler = new MessageHandler() {
@@ -135,7 +134,7 @@ public class HandlerEndpointTests {
 
 	@Test
 	public void testHandlerReturnsNull() throws InterruptedException {
-		MessageChannel replyChannel = new QueueChannel();
+		QueueChannel replyChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("replyChannel", replyChannel);
 		final CountDownLatch latch = new CountDownLatch(1);

@@ -23,7 +23,8 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.integration.channel.AbstractMessageChannel;
+
+import org.springframework.integration.channel.AbstractPollableChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.selector.MessageSelector;
@@ -111,7 +112,7 @@ public class SecuredChannelsParserTests extends AbstractJUnit4SpringContextTests
 	}
 
 
-	static class TestMessageChannel extends AbstractMessageChannel {
+	static class TestMessageChannel extends AbstractPollableChannel {
 
 		List<ChannelInterceptor> interceptors = new ArrayList<ChannelInterceptor>();
 

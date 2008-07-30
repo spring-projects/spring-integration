@@ -26,7 +26,7 @@ import org.junit.Test;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageSource;
+import org.springframework.integration.message.PollableSource;
 
 /**
  * @author Mark Fisher
@@ -47,7 +47,7 @@ public class SourceEndpointTests {
 	}
 
 
-	private static class TestSource implements MessageSource<String> {
+	private static class TestSource implements PollableSource<String> {
 
 		private String message;
 

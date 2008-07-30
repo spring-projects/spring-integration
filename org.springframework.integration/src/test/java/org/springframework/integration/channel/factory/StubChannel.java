@@ -18,14 +18,14 @@ package org.springframework.integration.channel.factory;
 
 import java.util.List;
 
-import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.integration.channel.AbstractPollableChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.selector.MessageSelector;
 
 /**
  * @author Marius Bogoevici
  */
-public class StubChannel extends AbstractMessageChannel {
+public class StubChannel extends AbstractPollableChannel {
 
 	@Override
 	protected Message<?> doReceive(long timeout) {

@@ -20,6 +20,7 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.config.MessageBusParser;
 import org.springframework.integration.message.StringMessage;
 
@@ -34,7 +35,7 @@ public class HelloWorldDemo {
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext("helloWorldDemo.xml", HelloWorldDemo.class);
 		ChannelRegistry channelRegistry = (ChannelRegistry) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		MessageChannel inputChannel = channelRegistry.lookupChannel("inputChannel");
-		MessageChannel outputChannel = channelRegistry.lookupChannel("outputChannel");
+		PollableChannel outputChannel = (PollableChannel) channelRegistry.lookupChannel("outputChannel");
 		inputChannel.send(new StringMessage("World"));
 		System.out.println(outputChannel.receive().getPayload());
 	}

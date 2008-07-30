@@ -16,7 +16,6 @@
 
 package org.springframework.integration.adapter.file;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,24 +23,21 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageCreator;
 import org.springframework.integration.message.MessageDeliveryAware;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.message.MessageSource;
+import org.springframework.integration.message.PollableSource;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
- * Base class for implementing a Source that creates messages from files in a
- * directory, either local or remote.
+ * Base class for implementing a PollableSource that creates messages
+ * from files in a directory, either local or remote.
  * 
  * @author Marius Bogoevici
- * @author iwein
+ * @author Iwein Fuld
  */
-public abstract class AbstractDirectorySource<T> implements MessageSource<T>, MessageDeliveryAware {
+public abstract class AbstractDirectorySource<T> implements PollableSource<T>, MessageDeliveryAware {
 
 	public final static String FILE_INFO_PROPERTY = "file.info";
 

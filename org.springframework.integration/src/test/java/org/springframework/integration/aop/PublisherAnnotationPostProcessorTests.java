@@ -22,7 +22,7 @@ import org.junit.Test;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.message.Message;
 
 /**
@@ -36,7 +36,7 @@ public class PublisherAnnotationPostProcessorTests {
 				"publisherAnnotationPostProcessorTests.xml", this.getClass());
 		ITestBean testBean = (ITestBean) context.getBean("testBean");
 		testBean.test();
-		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
+		PollableChannel channel = (PollableChannel) context.getBean("testChannel");
 		Message<?> result = channel.receive();
 		assertEquals("test", result.getPayload());
 	}

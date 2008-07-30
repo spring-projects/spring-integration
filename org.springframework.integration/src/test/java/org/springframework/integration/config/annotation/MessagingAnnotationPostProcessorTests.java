@@ -52,6 +52,7 @@ import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EndpointInterceptor;
 import org.springframework.integration.endpoint.HandlerEndpoint;
@@ -101,7 +102,7 @@ public class MessagingAnnotationPostProcessorTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"handlerAnnotationPostProcessorTests.xml", this.getClass());
 		MessageChannel inputChannel = (MessageChannel) context.getBean("inputChannel");
-		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
+		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		inputChannel.send(new StringMessage("foo"));
 		Message<?> reply = outputChannel.receive(1000);
 		assertEquals("hello foo", reply.getPayload());
@@ -112,7 +113,7 @@ public class MessagingAnnotationPostProcessorTests {
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext("simpleAnnotatedEndpointTests.xml", this.getClass());
 		context.start();
 		MessageChannel inputChannel = (MessageChannel) context.getBean("inputChannel");
-		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
+		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		inputChannel.send(new StringMessage("world"));
 		Message<?> message = outputChannel.receive(1000);
 		assertEquals("hello world", message.getPayload());
@@ -126,7 +127,7 @@ public class MessagingAnnotationPostProcessorTests {
 		context.start();
 		ChannelRegistry channelRegistry = (ChannelRegistry) context.getBean("bus");
 		MessageChannel inputChannel = channelRegistry.lookupChannel("inputChannel");
-		MessageChannel outputChannel = channelRegistry.lookupChannel("outputChannel");
+		PollableChannel outputChannel = (PollableChannel) channelRegistry.lookupChannel("outputChannel");
 		inputChannel.send(new StringMessage("world"));
 		Message<?> message = outputChannel.receive(1000);
 		assertEquals("hello world", message.getPayload());
@@ -138,7 +139,7 @@ public class MessagingAnnotationPostProcessorTests {
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext("messageParameterAnnotatedEndpointTests.xml", this.getClass());
 		context.start();
 		MessageChannel inputChannel = (MessageChannel) context.getBean("inputChannel");
-		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
+		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		inputChannel.send(new StringMessage("world"));
 		Message<?> message = outputChannel.receive(1000);
 		assertEquals("hello world", message.getPayload());
@@ -150,7 +151,7 @@ public class MessagingAnnotationPostProcessorTests {
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext("typeConvertingEndpointTests.xml", this.getClass());
 		context.start();
 		MessageChannel inputChannel = (MessageChannel) context.getBean("inputChannel");
-		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
+		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		inputChannel.send(new StringMessage("123"));
 		Message<?> message = outputChannel.receive(1000);
 		assertEquals(246, message.getPayload());
@@ -226,7 +227,7 @@ public class MessagingAnnotationPostProcessorTests {
 		postProcessor.postProcessAfterInitialization(proxy, "proxy");
 		messageBus.start();
 		MessageChannel inputChannel = messageBus.lookupChannel("inputChannel");
-		MessageChannel outputChannel = messageBus.lookupChannel("outputChannel");
+		PollableChannel outputChannel = (PollableChannel) messageBus.lookupChannel("outputChannel");
 		inputChannel.send(new StringMessage("world"));
 		Message<?> message = outputChannel.receive(1000);
 		assertEquals("hello world", message.getPayload());
@@ -241,7 +242,7 @@ public class MessagingAnnotationPostProcessorTests {
 		postProcessor.postProcessAfterInitialization(new SimpleAnnotatedEndpointSubclass(), "subclass");
 		messageBus.start();
 		MessageChannel inputChannel = messageBus.lookupChannel("inputChannel");
-		MessageChannel outputChannel = messageBus.lookupChannel("outputChannel");
+		PollableChannel outputChannel = (PollableChannel) messageBus.lookupChannel("outputChannel");
 		inputChannel.send(new StringMessage("world"));
 		Message<?> message = outputChannel.receive(1000);
 		assertEquals("hello world", message.getPayload());
@@ -258,7 +259,7 @@ public class MessagingAnnotationPostProcessorTests {
 		postProcessor.postProcessAfterInitialization(proxy, "proxy");
 		messageBus.start();
 		MessageChannel inputChannel = messageBus.lookupChannel("inputChannel");
-		MessageChannel outputChannel = messageBus.lookupChannel("outputChannel");
+		PollableChannel outputChannel = (PollableChannel) messageBus.lookupChannel("outputChannel");
 		inputChannel.send(new StringMessage("world"));
 		Message<?> message = outputChannel.receive(1000);
 		assertEquals("hello world", message.getPayload());
@@ -268,7 +269,7 @@ public class MessagingAnnotationPostProcessorTests {
 	public void testMessageEndpointAnnotationInheritedFromInterface() {
 		MessageBus messageBus = new DefaultMessageBus();
 		MessageChannel inputChannel = new QueueChannel();
-		MessageChannel outputChannel = new QueueChannel();
+		QueueChannel outputChannel = new QueueChannel();
 		messageBus.registerChannel("inputChannel", inputChannel);
 		messageBus.registerChannel("outputChannel", outputChannel);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
@@ -289,7 +290,7 @@ public class MessagingAnnotationPostProcessorTests {
 		postProcessor.postProcessAfterInitialization(new SimpleAnnotatedEndpointImplementation(), "impl");
 		messageBus.start();
 		MessageChannel inputChannel = messageBus.lookupChannel("inputChannel");
-		MessageChannel outputChannel = messageBus.lookupChannel("outputChannel");
+		PollableChannel outputChannel = (PollableChannel) messageBus.lookupChannel("outputChannel");
 		inputChannel.send(new StringMessage("ABC"));
 		Message<?> message = outputChannel.receive(1000);
 		assertEquals("test-ABC", message.getPayload());
@@ -299,7 +300,7 @@ public class MessagingAnnotationPostProcessorTests {
 	public void testMessageEndpointAnnotationInheritedFromInterfaceWithProxy() {
 		MessageBus messageBus = new DefaultMessageBus();
 		MessageChannel inputChannel = new QueueChannel();
-		MessageChannel outputChannel = new QueueChannel();
+		QueueChannel outputChannel = new QueueChannel();
 		messageBus.registerChannel("inputChannel", inputChannel);
 		messageBus.registerChannel("outputChannel", outputChannel);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);

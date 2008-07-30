@@ -23,6 +23,7 @@ import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 
@@ -37,8 +38,8 @@ public class RouterParserTests {
 				"routerParserTests.xml", this.getClass());
 		context.start();
 		MessageChannel input = (MessageChannel) context.getBean("input");
-		MessageChannel output1 = (MessageChannel) context.getBean("output1");
-		MessageChannel output2 = (MessageChannel) context.getBean("output2");
+		PollableChannel output1 = (PollableChannel) context.getBean("output1");
+		PollableChannel output2 = (PollableChannel) context.getBean("output2");
 		input.send(new StringMessage("1"));
 		Message<?> result1 = output1.receive(1000);
 		assertEquals("1", result1.getPayload());

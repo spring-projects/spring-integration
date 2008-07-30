@@ -23,6 +23,7 @@ import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 
@@ -37,7 +38,7 @@ public class SplitterParserTests {
 				"splitterParserTests.xml", this.getClass());
 		context.start();
 		MessageChannel channel1 = (MessageChannel) context.getBean("channel1");
-		MessageChannel channel2 = (MessageChannel) context.getBean("channel2");
+		PollableChannel channel2 = (PollableChannel) context.getBean("channel2");
 		channel1.send(new StringMessage("this.is.a.test"));
 		Message<?> result1 = channel2.receive(1000);
 		assertEquals("this", result1.getPayload());

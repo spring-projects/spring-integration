@@ -19,8 +19,8 @@ package org.springframework.integration.dispatcher;
 import org.springframework.integration.message.BlockingSource;
 import org.springframework.integration.message.BlockingTarget;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
+import org.springframework.integration.message.PollableSource;
 import org.springframework.integration.scheduling.SchedulableTask;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.util.Assert;
@@ -30,7 +30,7 @@ import org.springframework.util.Assert;
  */
 public class PollingDispatcher implements SchedulableTask {
 
-	private final MessageSource<?> source;
+	private final PollableSource<?> source;
 
 	private final MessageDispatcher dispatcher;
 
@@ -42,10 +42,10 @@ public class PollingDispatcher implements SchedulableTask {
 
 
 	/**
-	 * Create a PollingDispatcher for the provided {@link MessageSource}.
+	 * Create a PollingDispatcher for the provided {@link PollableSource}.
 	 * It can be scheduled according to the specified {@link Schedule}.
 	 */
-	public PollingDispatcher(MessageSource<?> source, MessageDispatcher dispatcher, Schedule schedule) {
+	public PollingDispatcher(PollableSource<?> source, MessageDispatcher dispatcher, Schedule schedule) {
 		Assert.notNull(source, "source must not be null");
 		Assert.notNull(dispatcher, "dispatcher must not be null");
 		this.source = source;

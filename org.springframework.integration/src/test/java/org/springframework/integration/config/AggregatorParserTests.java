@@ -29,6 +29,7 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
@@ -114,7 +115,7 @@ public class AggregatorParserTests {
 		for (Message<?> message : outboundMessages) {
 			addingAggregator.handle(message);
 		}
-		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
+		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		Message<?> response = outputChannel.receive();
 		Assert.assertEquals(6l, response.getPayload());
 	}
@@ -144,7 +145,7 @@ public class AggregatorParserTests {
 		aggregatorWithPojoCompletionStrategy.handle(createMessage(1l, "id1", 0 , 0, null));
 		aggregatorWithPojoCompletionStrategy.handle(createMessage(2l, "id1", 0 , 0, null));
 		aggregatorWithPojoCompletionStrategy.handle(createMessage(3l, "id1", 0 , 0, null));
-		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
+		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		Message<?> reply = outputChannel.receive(0);
 		Assert.assertNull(reply);
 		aggregatorWithPojoCompletionStrategy.handle(createMessage(5l, "id1", 0 , 0, null));

@@ -10,11 +10,11 @@
 
 	<bean id="messageChannel"
 		class="org.springframework.integration.channel.QueueChannel" />
+
 	<si:message-bus error-channel="errors" />
 
 	<si:channel id="inputOne" />
 	<si:channel id="inputTwo" />
-
 
 	<si:channel id="outputOne" />
 	<si:channel id="outputTwo" />
