@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
+import org.easymock.IAnswer;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.integration.message.GenericMessage;
@@ -148,6 +149,41 @@ public class FtpSourceTests {
 		ftpSource.onSend(ftpSource.receive());
 		verify(globalMocks);
 		assertEquals(files, receivedFiles.getPayload());
+	}
+
+	@Test
+	public void retrieveMaxFilesPerPayload() throws Exception {
+
+		this.ftpSource.setMaxMessagesPerPayload(2);
+		// assume client already connected
+		expect(ftpClient.isConnected()).andReturn(true).anyTimes();
+		// first run
+		FTPFile[] mockedFTPFiles = mockedFTPFilesNamed("test", "test2", "test3");
+		expect(ftpClient.listFiles()).andReturn(mockedFTPFiles);
+		expect(ftpClient.retrieveFile(eq("test"), isA(OutputStream.class))).andReturn(true);
+		expect(ftpClient.retrieveFile(eq("test2"), isA(OutputStream.class))).andReturn(true);
+
+		ftpClient.disconnect();
+		// second run
+		expect(ftpClient.listFiles()).andReturn(mockedFTPFiles);
+		expect(ftpClient.retrieveFile(eq("test3"), isA(OutputStream.class))).andReturn(true);
+		// create message
+		expect(messageCreator.createMessage(isA(List.class))).andAnswer(new IAnswer<Message<List<File>>>() {
+			public Message<List<File>> answer() throws Throwable {
+				return new GenericMessage(getCurrentArguments()[0]);
+			}
+		}).times(2);
+
+		ftpClient.disconnect();
+
+		replay(globalMocks);
+		Message<List<File>> receivedFiles1 = ftpSource.receive();
+		ftpSource.onSend(receivedFiles1);
+		Message<List<File>> receivedFiles2 = ftpSource.receive();
+		ftpSource.onSend(receivedFiles2);
+		verify(globalMocks);
+		assertEquals(2, receivedFiles1.getPayload().size());
+		assertEquals(1, receivedFiles2.getPayload().size());
 	}
 
 }
