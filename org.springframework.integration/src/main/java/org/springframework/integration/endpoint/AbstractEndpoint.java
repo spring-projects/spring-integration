@@ -32,7 +32,6 @@ import org.springframework.integration.message.MessageExchangeTemplate;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
-import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.integration.scheduling.Schedule;
 
@@ -247,20 +246,6 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 			return this.messageExchangeTemplate.send(message, this.target);
 		}
 		return true;
-	}
-
-	public final boolean poll() {
-		if (this.messageExchangeTemplate == null) {
-			this.afterPropertiesSet();
-		}
-		if (this.source == null) {
-			throw new MessagingException("endpoint '" + this + "' has no source");
-		}
-		return this.messageExchangeTemplate.receiveAndForward(this.source, new MessageTarget() {
-			public boolean send(Message<?> message) {
-				return AbstractEndpoint.this.send(message, 0);
-			}
-		});
 	}
 
 	protected boolean supports(Message<?> message) {
