@@ -4,6 +4,8 @@ import static org.easymock.classextension.EasyMock.*;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.io.FileFilter;
+import java.io.FilenameFilter;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,7 +14,10 @@ import java.util.List;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
+import org.apache.oro.io.Perl5FilenameFilter;
 import org.easymock.IAnswer;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -40,6 +45,8 @@ public class FtpSourceTests {
 	private FtpSource ftpSource;
 
 	private Long size = 100l;
+	
+	private File testDir = new File(this.getClass().getName());
 
 	@Before
 	public void initializeFtpSource() {
@@ -103,12 +110,12 @@ public class FtpSourceTests {
 		expect(ftpClient.printWorkingDirectory()).andReturn("/");
 
 		// get files
-		expect(ftpClient.listFiles()).andReturn(mockedFTPFilesNamed("test", "test2")).times(2);
+		expect(ftpClient.listFiles()).andReturn(mockedFTPFilesNamed("test1", "test2")).times(2);
 
-		expect(ftpClient.retrieveFile(eq("test"), isA(OutputStream.class))).andReturn(true);
+		expect(ftpClient.retrieveFile(eq("test1"), isA(OutputStream.class))).andReturn(true);
 		expect(ftpClient.retrieveFile(eq("test2"), isA(OutputStream.class))).andReturn(true);
 		// create message
-		List<File> files = Arrays.asList(new File("test"), new File("test2"));
+		List<File> files = Arrays.asList(new File("test1"), new File("test2"));
 		expect(messageCreator.createMessage(isA(List.class))).andReturn(new GenericMessage(files));
 		ftpClient.disconnect();
 
@@ -127,20 +134,20 @@ public class FtpSourceTests {
 		// assume client already connected
 		expect(ftpClient.isConnected()).andReturn(true).anyTimes();
 		// first run
-		FTPFile[] mockedFTPFiles = mockedFTPFilesNamed("test", "test2");
+		FTPFile[] mockedFTPFiles = mockedFTPFilesNamed("test1", "test2");
 		expect(ftpClient.listFiles()).andReturn(mockedFTPFiles);
-		expect(ftpClient.retrieveFile(eq("test"), isA(OutputStream.class))).andReturn(true);
+		expect(ftpClient.retrieveFile(eq("test1"), isA(OutputStream.class))).andReturn(true);
 		expect(ftpClient.retrieveFile(eq("test2"), isA(OutputStream.class))).andReturn(true);
 
 		ftpClient.disconnect();
 		// second run, change the date so the messages should be retrieved again
 		// expect(ftpClient.isConnected()).andReturn(true);
-		FTPFile[] mockedFTPFiles2 = mockedFTPFilesNamed("test", "test2");
+		FTPFile[] mockedFTPFiles2 = mockedFTPFilesNamed("test1", "test2");
 		expect(ftpClient.listFiles()).andReturn(mockedFTPFiles2);
-		expect(ftpClient.retrieveFile(eq("test"), isA(OutputStream.class))).andReturn(true);
+		expect(ftpClient.retrieveFile(eq("test1"), isA(OutputStream.class))).andReturn(true);
 		expect(ftpClient.retrieveFile(eq("test2"), isA(OutputStream.class))).andReturn(true);
 		// create message
-		List<File> files = Arrays.asList(new File("test"), new File("test2"));
+		List<File> files = Arrays.asList(new File("test1"), new File("test2"));
 		expect(messageCreator.createMessage(isA(List.class))).andReturn(new GenericMessage(files)).times(2);
 		ftpClient.disconnect();
 
@@ -153,17 +160,15 @@ public class FtpSourceTests {
 	}
 
 	@Test
-	@Ignore
 	public void retrieveMaxFilesPerPayload() throws Exception {
 
-		// TODO: uncomment (and un-ignore) this when FtpSource is committed
-		//this.ftpSource.setMaxMessagesPerPayload(2);
+		 this.ftpSource.setMaxMessagesPerPayload(2);
 		// assume client already connected
 		expect(ftpClient.isConnected()).andReturn(true).anyTimes();
 		// first run
-		FTPFile[] mockedFTPFiles = mockedFTPFilesNamed("test", "test2", "test3");
+		FTPFile[] mockedFTPFiles = mockedFTPFilesNamed("test1", "test2", "test3");
 		expect(ftpClient.listFiles()).andReturn(mockedFTPFiles);
-		expect(ftpClient.retrieveFile(eq("test"), isA(OutputStream.class))).andReturn(true);
+		expect(ftpClient.retrieveFile(eq("test1"), isA(OutputStream.class))).andReturn(true);
 		expect(ftpClient.retrieveFile(eq("test2"), isA(OutputStream.class))).andReturn(true);
 
 		ftpClient.disconnect();
@@ -187,6 +192,15 @@ public class FtpSourceTests {
 		verify(globalMocks);
 		assertEquals(2, receivedFiles1.getPayload().size());
 		assertEquals(1, receivedFiles2.getPayload().size());
+	}
+
+	@AfterClass
+	public static void deleteFiles() {
+		File file = new File("./");
+		File[] files = file.listFiles((FilenameFilter) new Perl5FilenameFilter("test\\d"));
+		for (File file2 : files) {
+			file2.delete();
+		}
 	}
 
 }

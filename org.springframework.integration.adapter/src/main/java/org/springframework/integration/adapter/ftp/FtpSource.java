@@ -69,6 +69,8 @@ public class FtpSource extends AbstractDirectorySource<List<File>> implements Di
 
 	private volatile File localWorkingDirectory;
 
+	private int maxFilesPerPayload = -1;
+
 	private final FTPClient client;
 
 	public FtpSource(MessageCreator<List<File>, List<File>> messageCreator) {
@@ -95,6 +97,11 @@ public class FtpSource extends AbstractDirectorySource<List<File>> implements Di
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public void setMaxMessagesPerPayload(int maxMessagesPerPayload) {
+		Assert.isTrue(maxMessagesPerPayload > 0, "'maxMessagesPerPayload' should greater than 0");
+		this.maxFilesPerPayload = maxMessagesPerPayload;
 	}
 
 	public void setRemoteWorkingDirectory(String remoteWorkingDirectory) {
@@ -152,7 +159,12 @@ public class FtpSource extends AbstractDirectorySource<List<File>> implements Di
 		establishConnection();
 		List<File> files = new ArrayList<File>();
 		Set<String> backlog = this.getDirectoryContentManager().getBacklog().keySet();
-		for (String fileName : backlog) {
+		int i = 0;
+		Iterator<String> iterator = backlog.iterator();
+		while (iterator.hasNext() && (maxFilesPerPayload == -1 || i < maxFilesPerPayload)) {
+			i++;
+			String fileName = iterator.next();
+
 			File file = new File(this.localWorkingDirectory, fileName);
 			if (file.exists()) {
 				file.delete();
@@ -186,6 +198,7 @@ public class FtpSource extends AbstractDirectorySource<List<File>> implements Di
 		disconnect();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void onSend(Message<?> message) {
 		List<File> files = ((Message<List<File>>) message).getPayload();
