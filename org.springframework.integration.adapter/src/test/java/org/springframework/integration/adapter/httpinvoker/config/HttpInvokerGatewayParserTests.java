@@ -25,7 +25,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.adapter.httpinvoker.HttpInvokerGateway;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.gateway.RequestReplyTemplate;
+import org.springframework.integration.message.MessageExchangeTemplate;
 
 /**
  * @author Mark Fisher
@@ -40,12 +40,12 @@ public class HttpInvokerGatewayParserTests {
 		HttpInvokerGateway gateway = (HttpInvokerGateway) context.getBean("gatewayWithDefaults");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(true, accessor.getPropertyValue("expectReply"));
-		RequestReplyTemplate template = (RequestReplyTemplate)
-				accessor.getPropertyValue("requestReplyTemplate");
+		assertEquals(channel, accessor.getPropertyValue("requestChannel"));
+		MessageExchangeTemplate template = (MessageExchangeTemplate)
+				accessor.getPropertyValue("messageExchangeTemplate");
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(template);
-		assertEquals(channel, templateAccessor.getPropertyValue("requestChannel"));
-		assertEquals(-1L, templateAccessor.getPropertyValue("requestTimeout"));
-		assertEquals(-1L, templateAccessor.getPropertyValue("replyTimeout"));
+		assertEquals(-1L, templateAccessor.getPropertyValue("sendTimeout"));
+		assertEquals(-1L, templateAccessor.getPropertyValue("receiveTimeout"));
 	}
 
 	@Test
@@ -56,12 +56,12 @@ public class HttpInvokerGatewayParserTests {
 		HttpInvokerGateway gateway = (HttpInvokerGateway) context.getBean("/gateway/with/name");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(true, accessor.getPropertyValue("expectReply"));
-		RequestReplyTemplate template = (RequestReplyTemplate)
-				accessor.getPropertyValue("requestReplyTemplate");
+		assertEquals(channel, accessor.getPropertyValue("requestChannel"));
+		MessageExchangeTemplate template = (MessageExchangeTemplate)
+				accessor.getPropertyValue("messageExchangeTemplate");
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(template);
-		assertEquals(channel, templateAccessor.getPropertyValue("requestChannel"));
-		assertEquals(-1L, templateAccessor.getPropertyValue("requestTimeout"));
-		assertEquals(-1L, templateAccessor.getPropertyValue("replyTimeout"));
+		assertEquals(-1L, templateAccessor.getPropertyValue("sendTimeout"));
+		assertEquals(-1L, templateAccessor.getPropertyValue("receiveTimeout"));
 	}
 
 	@Test
@@ -72,12 +72,12 @@ public class HttpInvokerGatewayParserTests {
 		HttpInvokerGateway gateway = (HttpInvokerGateway) context.getBean("gatewayWithCustomProperties");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(false, accessor.getPropertyValue("expectReply"));
-		RequestReplyTemplate template = (RequestReplyTemplate)
-				accessor.getPropertyValue("requestReplyTemplate");
+		assertEquals(channel, accessor.getPropertyValue("requestChannel"));
+		MessageExchangeTemplate template = (MessageExchangeTemplate)
+				accessor.getPropertyValue("messageExchangeTemplate");
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(template);
-		assertEquals(channel, templateAccessor.getPropertyValue("requestChannel"));
-		assertEquals(123L, templateAccessor.getPropertyValue("requestTimeout"));
-		assertEquals(456L, templateAccessor.getPropertyValue("replyTimeout"));
+		assertEquals(123L, templateAccessor.getPropertyValue("sendTimeout"));
+		assertEquals(456L, templateAccessor.getPropertyValue("receiveTimeout"));
 	}
 
 }

@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -64,8 +65,8 @@ public class HttpInvokerGatewayTests {
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
 			public void run() {
 				Message<?> message = channel.receive();
-				MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReturnAddress();
-				replyChannel.send(new StringMessage(message.getPayload().toString().toUpperCase()));
+				MessageTarget replyTarget = (MessageTarget) message.getHeaders().getReturnAddress();
+				replyTarget.send(new StringMessage(message.getPayload().toString().toUpperCase()));
 			}
 		});
 		HttpInvokerGateway gateway = new HttpInvokerGateway(channel);
