@@ -21,9 +21,9 @@ import java.util.List;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
-import org.springframework.integration.channel.ChannelPublisher;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.message.MessageExchangeTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -33,13 +33,18 @@ import org.springframework.util.CollectionUtils;
  * 
  * @author Mark Fisher
  */
-public class ApplicationEventSource extends ChannelPublisher implements ApplicationListener {
+public class ApplicationEventSource implements ApplicationListener {
+
+	private final MessageChannel channel;
 
 	private List<Class<? extends ApplicationEvent>> eventTypes = new ArrayList<Class<? extends ApplicationEvent>>();
 
+	private final MessageExchangeTemplate messageExchangeTemplate = new MessageExchangeTemplate();
+
 
 	public ApplicationEventSource(MessageChannel channel) {
-		super(channel);
+		Assert.notNull(channel, "channel must not be null");
+		this.channel = channel;
 	}
 
 
@@ -67,7 +72,8 @@ public class ApplicationEventSource extends ChannelPublisher implements Applicat
 	}
 
 	private boolean sendMessage(ApplicationEvent event) {
-		return this.publish(new GenericMessage<ApplicationEvent>(event));
+		return this.messageExchangeTemplate.send(
+				new GenericMessage<ApplicationEvent>(event), this.channel);
 	}
 
 }
