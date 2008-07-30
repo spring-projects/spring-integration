@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.gateway;
+package org.springframework.integration.message;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -31,18 +31,20 @@ import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.MessageExchangeTemplate;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
  */
-public class RequestReplyTemplateTests {
+public class MessageExchangeTemplateTests {
 
 	private final QueueChannel requestChannel = new QueueChannel();
 
 
-	public RequestReplyTemplateTests() {
+	public MessageExchangeTemplateTests() {
 		MessageHandler testHandler = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				return new StringMessage(message.getPayload().toString().toUpperCase());
@@ -56,14 +58,14 @@ public class RequestReplyTemplateTests {
 
 
 	@Test
-	public void testSynchronousRequestReply() {
-		RequestReplyTemplate template = new RequestReplyTemplate(requestChannel);
-		Message<?> reply = template.request(new StringMessage("test"));
+	public void testSendAndReceive() {
+		MessageExchangeTemplate template = new MessageExchangeTemplate();
+		Message<?> reply = template.sendAndReceive(new StringMessage("test"), this.requestChannel);
 		assertEquals("TEST", reply.getPayload());
 	}
 
 	@Test
-	public void testAsynchronousRequestAndReply() throws InterruptedException {
+	public void testSendWithReturnAddress() throws InterruptedException {
 		final List<String> replies = new ArrayList<String>(3);
 		final CountDownLatch latch = new CountDownLatch(3);
 		MessageTarget replyTarget = new MessageTarget() {
@@ -73,10 +75,13 @@ public class RequestReplyTemplateTests {
 				return true;
 			}
 		};
-		RequestReplyTemplate template = new RequestReplyTemplate(requestChannel);
-		template.request(new StringMessage("test1"), replyTarget);
-		template.request(new StringMessage("test2"), replyTarget);
-		template.request(new StringMessage("test3"), replyTarget);
+		MessageExchangeTemplate template = new MessageExchangeTemplate();
+		Message<String> message1 = MessageBuilder.fromPayload("test1").setReturnAddress(replyTarget).build();
+		Message<String> message2 = MessageBuilder.fromPayload("test2").setReturnAddress(replyTarget).build();
+		Message<String> message3 = MessageBuilder.fromPayload("test3").setReturnAddress(replyTarget).build();
+		template.send(message1, this.requestChannel);
+		template.send(message2, this.requestChannel);
+		template.send(message3, this.requestChannel);
 		latch.await(2000, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
 		assertTrue(replies.contains("TEST1"));

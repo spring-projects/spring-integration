@@ -19,6 +19,9 @@ package org.springframework.integration.util;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.util.Assert;
 
 /**
@@ -27,6 +30,8 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  */
 public class BoundedHashMap<K, V> extends LinkedHashMap<K, V> {
+
+	private static final Log logger = LogFactory.getLog(BoundedHashMap.class);
 
 	private final int capacity;
 
@@ -39,7 +44,11 @@ public class BoundedHashMap<K, V> extends LinkedHashMap<K, V> {
 
 	@Override
 	protected boolean removeEldestEntry(Entry<K, V> eldest) {
-		return this.size() > this.capacity;
+		boolean shouldRemove = this.size() > this.capacity;
+		if (shouldRemove && logger.isDebugEnabled()) {
+			logger.debug("removing eldest entry from BoundedHashMap with capacity of " + this.capacity);
+		}
+		return shouldRemove;
 	}
 
 }

@@ -35,4 +35,6 @@ public interface MessagingGateway {
 
 	Message<?> sendAndReceiveMessage(Object object);
 
+	void receiveAndForward();
+
 }

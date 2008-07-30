@@ -74,7 +74,7 @@ public class GatewayProxyFactoryBean extends SimpleMessagingGateway
 	}
 
 	public void setBeanFactory(BeanFactory beanFactory) {
-		this.getRequestReplyTemplate().setMessageBus(
+		this.setMessageBus(
 				(MessageBus) beanFactory.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME));
 	}
 

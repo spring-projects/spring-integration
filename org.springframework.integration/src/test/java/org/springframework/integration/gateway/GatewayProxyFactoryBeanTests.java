@@ -19,12 +19,19 @@ package org.springframework.integration.gateway;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -80,7 +87,7 @@ public class GatewayProxyFactoryBeanTests {
 			public void run() {
 				Message<?> input = requestChannel.receive();
 				StringMessage response = new StringMessage(input.getPayload() + "456");
-				((MessageChannel) input.getHeaders().getReturnAddress()).send(response);
+				((MessageTarget) input.getHeaders().getReturnAddress()).send(response);
 			}
 		}).start();
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
@@ -114,6 +121,39 @@ public class GatewayProxyFactoryBeanTests {
 	}
 
 	@Test
+	public void testMultipleMessagesWithResponseCorrelator() throws InterruptedException {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"gatewayWithResponseCorrelator.xml", GatewayProxyFactoryBeanTests.class);
+		final TestService service = (TestService) context.getBean("proxy");
+		final String[] results = new String[100];
+		final CountDownLatch latch = new CountDownLatch(100);
+		Executor executor = Executors.newFixedThreadPool(25);
+		for (int i = 0; i < 100; i++) {
+			final int count = i;
+			executor.execute(new Runnable() {
+				public void run() {
+					// add some randomness to the ordering of requests
+					try {
+						Thread.sleep(new Random().nextInt(100));
+					}
+					catch (InterruptedException e) {
+						// ignore
+					}
+					results[count] = service.requestReply("test-" + count);
+					latch.countDown();
+				}
+			});
+		}
+		latch.await(5, TimeUnit.SECONDS);
+		for (int i = 0; i < 100; i++) {
+			assertEquals("test-" + i + "!!!", results[i]);
+		}
+		TestChannelInterceptor interceptor = (TestChannelInterceptor) context.getBean("interceptor");
+		assertEquals(100, interceptor.getSentCount());
+		assertEquals(100, interceptor.getReceivedCount());
+	}
+
+	@Test
 	public void testMessageAsMethodArgument() throws Exception {
 		final MessageChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
@@ -133,7 +173,7 @@ public class GatewayProxyFactoryBeanTests {
 			public void run() {
 				Message<?> input = requestChannel.receive();
 				StringMessage response = new StringMessage(input.getPayload() + "bar");
-				((MessageChannel) input.getHeaders().getReturnAddress()).send(response);
+				((MessageTarget) input.getHeaders().getReturnAddress()).send(response);
 			}
 		}).start();
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
@@ -177,7 +217,7 @@ public class GatewayProxyFactoryBeanTests {
 			public void run() {
 				Message<?> input = requestChannel.receive();
 				StringMessage response = new StringMessage(input.getPayload() + "bar");
-				((MessageChannel) input.getHeaders().getReturnAddress()).send(response);
+				((MessageTarget) input.getHeaders().getReturnAddress()).send(response);
 			}
 		}).start();
 	}

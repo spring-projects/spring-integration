@@ -16,54 +16,48 @@
 
 package org.springframework.integration.gateway;
 
-import org.springframework.integration.bus.MessageBus;
-import org.springframework.integration.bus.MessageBusAware;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.message.MessageExchangeTemplate;
 
 /**
- * A convenient base class providing access to a {@link RequestReplyTemplate} and exposing setter methods for
+ * A convenient base class providing access to a {@link MessageExchangeTemplate} and exposing setter methods for
  * configuring request and reply {@link MessageChannel MessageChannels}. May be used as a base class for framework
  * components so that the details of messaging are well-encapsulated and hidden from application code. For example,
  * see {@link SimpleMessagingGateway}.
  * 
  * @author Mark Fisher
  */
-public abstract class MessagingGatewaySupport implements MessageBusAware {
+public abstract class MessagingGatewaySupport {
 
-	private final RequestReplyTemplate requestReplyTemplate = new RequestReplyTemplate();
-
-
-	public MessagingGatewaySupport(MessageChannel requestChannel) {
-		this.requestReplyTemplate.setRequestChannel(requestChannel);
-	}
-
-	public MessagingGatewaySupport() {
-		super();
-	}
+	private final MessageExchangeTemplate messageExchangeTemplate = new MessageExchangeTemplate();
 
 
-	public void setMessageBus(MessageBus messageBus) {
-		this.requestReplyTemplate.setMessageBus(messageBus);
-	}
-
-	public void setRequestChannel(MessageChannel requestChannel) {
-		this.requestReplyTemplate.setRequestChannel(requestChannel);
-	}
-
-	public void setReplyChannel(MessageChannel replyChannel) {
-		this.requestReplyTemplate.setReplyChannel(replyChannel);
-	}
-
+	/**
+	 * Set the timeout value for sending request messages. If not
+	 * explicitly configured, the default is an indefinite timeout.
+	 * 
+	 * @param requestTimeout the timeout value in milliseconds
+	 */
 	public void setRequestTimeout(long requestTimeout) {
-		this.requestReplyTemplate.setRequestTimeout(requestTimeout);
+		this.messageExchangeTemplate.setSendTimeout(requestTimeout);
 	}
 
+	/**
+	 * Set the timeout value for receiving reply messages. If not
+	 * explicitly configured, the default is an indefinite timeout.
+	 * 
+	 * @param replyTimeout the timeout value in milliseconds
+	 */
 	public void setReplyTimeout(long replyTimeout) {
-		this.requestReplyTemplate.setReplyTimeout(replyTimeout);
+		this.messageExchangeTemplate.setReceiveTimeout(replyTimeout);
 	}
 
-	protected final RequestReplyTemplate getRequestReplyTemplate() {
-		return this.requestReplyTemplate;
+	/**
+	 * Retrieve the {@link MessageExchangeTemplate} for performing
+	 * send and receive operations across channels.
+	 */
+	protected final MessageExchangeTemplate getMessageExchangeTemplate() {
+		return this.messageExchangeTemplate;
 	}
 
 }
