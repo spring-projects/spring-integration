@@ -58,6 +58,7 @@ public class BroadcastingDispatcherTests {
 
 	private Object[] globalMocks = new Object[] { messageMock, taskExecutorMock, targetMock };
 
+
 	@Before
 	public void init() {
 		dispatcher = new BroadcastingDispatcher();
@@ -104,7 +105,7 @@ public class BroadcastingDispatcherTests {
 	}
 
 	@Test(timeout = 500)
-	public void multipleTargetsPartialTimout() throws Exception {
+	public void multipleTargetsPartialTimeout() throws Exception {
 		reset(taskExecutorMock);
 		dispatcher.addTarget(targetMock);
 		dispatcher.addTarget(targetMock);
@@ -115,7 +116,7 @@ public class BroadcastingDispatcherTests {
 		threadedExecutorMock(3);
 		final AtomicBoolean timingOutStarted = new AtomicBoolean(false);
 		final AtomicBoolean testNotTimedOut = new AtomicBoolean(false);
-		
+
 		expect(targetMock.send(messageMock)).andAnswer(new IAnswer<Boolean>() {
 			public Boolean answer() throws Throwable {
 				latch.countDown();
@@ -132,14 +133,14 @@ public class BroadcastingDispatcherTests {
 		expect(targetMock.send(messageMock)).andAnswer(new IAnswer<Boolean>() {
 			public Boolean answer() throws Throwable {
 				// this should happen
-				timingOutStarted.compareAndSet(false,true);
+				timingOutStarted.compareAndSet(false, true);
 				latch.countDown();
 				// cause timeout here
 				Thread.sleep(1000);
 				testNotTimedOut.compareAndSet(false, true);
 				//fail("There is a bug in this Test");
 				//in a long running suite this will run until the end, but the test will already be over
-				return null;
+				return true;
 			}
 		}).anyTimes();
 		replay(globalMocks);
