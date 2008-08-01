@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package org.springframework.integration.handler;
 
-import java.util.concurrent.CountDownLatch;
-
 /**
  * @author Mark Fisher
  */
@@ -25,12 +23,6 @@ public class TestSink {
 
 	private String result;
 
-	private CountDownLatch latch;
-
-
-	public void setLatch(CountDownLatch latch) {
-		this.latch = latch;
-	}
 
 	public void validMethod(String s) {
 	}
@@ -44,9 +36,6 @@ public class TestSink {
 
 	public void store(String s) {
 		this.result = s;
-		if (this.latch != null) {
-			this.latch.countDown();
-		}
 	}
 
 	public String get() {

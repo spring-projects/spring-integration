@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:si="http://www.springframework.org/schema/integration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
+
+	<bean id="adapterWithPollableSourceAndNoTarget" class="org.springframework.integration.channel.config.ChannelAdapterFactoryBean">
+		<property name="source" ref="pollableSource"/>
+	</bean>
+
+	<bean id="adapterWithPollableSourceAndTarget" class="org.springframework.integration.channel.config.ChannelAdapterFactoryBean">
+		<property name="source" ref="pollableSource"/>
+		<property name="target" ref="testTarget"/>
+	</bean>
+
+	<bean id="pollableSource" class="org.springframework.integration.channel.config.TestPollableSource"/>
+
+	<bean id="testTarget" class="org.springframework.integration.channel.config.TestTarget"/>
+
+</beans>

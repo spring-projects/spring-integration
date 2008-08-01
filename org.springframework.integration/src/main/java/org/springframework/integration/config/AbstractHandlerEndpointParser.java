@@ -112,7 +112,7 @@ public abstract class AbstractHandlerEndpointParser extends AbstractSingleBeanDe
 				}
 				else if (INTERCEPTORS_ELEMENT.equals(localName)) {
 					EndpointInterceptorParser parser = new EndpointInterceptorParser();
-					ManagedList interceptors = parser.parseEndpointInterceptors(childElement, parserContext);
+					ManagedList interceptors = parser.parseInterceptors(childElement, parserContext);
 					builder.addPropertyValue("interceptors", interceptors);
 				}
 			}

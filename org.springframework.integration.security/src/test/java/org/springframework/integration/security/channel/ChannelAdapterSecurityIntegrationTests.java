@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.security.endpoint;
+package org.springframework.integration.security.channel;
 
 import static org.junit.Assert.assertEquals;
 
@@ -26,7 +26,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.security.SecurityTestUtil;
+import org.springframework.integration.security.endpoint.TestTarget;
 import org.springframework.security.AccessDeniedException;
+import org.springframework.security.AuthenticationException;
 import org.springframework.security.context.SecurityContext;
 import org.springframework.security.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
@@ -34,18 +36,18 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
 /**
- * @author Jonas Partner
  * @author Mark Fisher
  */
 @ContextConfiguration
-public class EndpointSecurityIntegrationTest extends AbstractJUnit4SpringContextTests {
+public class ChannelAdapterSecurityIntegrationTests extends AbstractJUnit4SpringContextTests {
 
 	@Autowired
-	@Qualifier("input")
-	MessageChannel input;
+	@Qualifier("securedChannelAdapter")
+	MessageChannel securedChannelAdapter;
 
 	@Autowired
-	TestHandler testHandler;
+	@Qualifier("unsecuredChannelAdapter")
+	MessageChannel unsecuredChannelAdapter;
 
 	@Autowired
 	TestTarget testTarget;
@@ -56,20 +58,49 @@ public class EndpointSecurityIntegrationTest extends AbstractJUnit4SpringContext
 		SecurityContextHolder.clearContext();
 	}
 
+
 	@Test
 	@DirtiesContext
-	public void testWithPermision() {
+	public void testSecuredWithPermission() {
 		login("bob", "bobspassword", "ROLE_ADMIN");
-		input.send(new StringMessage("test"));
-		assertEquals("Wrong size of message list in handler", 1, testHandler.sentMessages.size());
+		securedChannelAdapter.send(new StringMessage("test"));
 		assertEquals("Wrong size of message list in target", 1, testTarget.sentMessages.size());
 	}
 
 	@Test(expected = AccessDeniedException.class)
 	@DirtiesContext
-	public void testWithoutPermision() {
+	public void testSecuredWithoutPermision() {
 		login("bob", "bobspassword", "ROLE_USER");
-		input.send(new StringMessage("test"));
+		securedChannelAdapter.send(new StringMessage("test"));
+	}
+
+	@Test(expected = AuthenticationException.class)
+	@DirtiesContext
+	public void testSecuredWithoutAuthenticating() {
+		securedChannelAdapter.send(new StringMessage("test"));
+	}
+
+	@Test
+	@DirtiesContext
+	public void testUnsecuredAsAdmin() {
+		login("bob", "bobspassword", "ROLE_ADMIN");
+		unsecuredChannelAdapter.send(new StringMessage("test"));
+		assertEquals("Wrong size of message list in target", 1, testTarget.sentMessages.size());
+	}
+
+	@Test
+	@DirtiesContext
+	public void testUnsecuredAsUser() {
+		login("bob", "bobspassword", "ROLE_USER");
+		unsecuredChannelAdapter.send(new StringMessage("test"));
+		assertEquals("Wrong size of message list in target", 1, testTarget.sentMessages.size());
+	}
+
+	@Test
+	@DirtiesContext
+	public void testUnsecuredWithoutAuthenticating() {
+		unsecuredChannelAdapter.send(new StringMessage("test"));
+		assertEquals("Wrong size of message list in target", 1, testTarget.sentMessages.size());
 	}
 
 

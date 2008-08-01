@@ -13,24 +13,17 @@
 
 	<beans:import resource="classpath:org/springframework/integration/security/config/commonSecurityConfiguration.xml"/>
 
+	<message-bus auto-create-channels="false" />
+
 	<si-security:secured-channels send-access="ROLE_ADMIN">
-		<si-security:channel-name-pattern>adminRequiredForSend</si-security:channel-name-pattern>
+		<si-security:channel-name-pattern>secured.*</si-security:channel-name-pattern>
 	</si-security:secured-channels>
 
-	<si-security:secured-channels send-access="ROLE_ADMIN, ROLE_USER">
-		<si-security:channel-name-pattern>adminOrUserRequiredForSend</si-security:channel-name-pattern>
-	</si-security:secured-channels>
+	<beans:bean id="testTarget"
+		class="org.springframework.integration.security.endpoint.TestTarget"/>
 
-	<si-security:secured-channels receive-access="ROLE_ADMIN">
-		<si-security:channel-name-pattern>adminRequiredForReceive</si-security:channel-name-pattern>
-	</si-security:secured-channels>
+	<channel-adapter id="securedChannelAdapter" target="testTarget"/>
 
-	<si-security:secured-channels receive-access="ROLE_ADMIN, ROLE_USER">
-		<si-security:channel-name-pattern>adminOrUserRequiredForReceive</si-security:channel-name-pattern>
-	</si-security:secured-channels>
-
-	<si-security:secured-channels receive-access="ROLE_ADMIN" send-access="ROLE_ADMIN">
-		<si-security:channel-name-pattern>adminForSendAndReceive</si-security:channel-name-pattern>
-	</si-security:secured-channels>
+	<channel-adapter id="unsecuredChannelAdapter" target="testTarget"/>
 
 </beans:beans>

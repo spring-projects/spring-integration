@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,15 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -35,31 +37,24 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 public class MethodInvokingAdapterTests {
 
 	@Test
-	public void testAdaptersWithBeanDefinitions() throws IOException, InterruptedException {
+	public void testMethodInvokingSourceChannelAdapter() throws IOException, InterruptedException {
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext("adapterTests.xml", this.getClass());
-		TestSink sink = (TestSink) context.getBean("sink");
-		CountDownLatch latch = new CountDownLatch(1);
-		sink.setLatch(latch);
-		assertNull(sink.get());
-		context.start();
-		latch.await(3000, TimeUnit.MILLISECONDS);
-		assertEquals("latch should have counted down within allotted time", 0, latch.getCount());
-		assertNotNull(sink.get());
-		context.close();
+		PollableChannel channel = (PollableChannel) context.getBean("sourceChannelAdapter");
+		Message<?> message = channel.receive(1000);
+		assertNotNull(message);
+		assertEquals("foo", message.getPayload());
 	}
 
 	@Test
-	public void testAdaptersWithNamespace() throws IOException, InterruptedException {
-		AbstractApplicationContext context = new ClassPathXmlApplicationContext("adapterTestsWithNamespace.xml", this.getClass());
+	public void testMethodInvokingTargetChannelAdapter() throws IOException, InterruptedException {
+		AbstractApplicationContext context = new ClassPathXmlApplicationContext("adapterTests.xml", this.getClass());
+		MessageChannel channel = (MessageChannel) context.getBean("targetChannelAdapter");
 		TestSink sink = (TestSink) context.getBean("sink");
-		CountDownLatch latch = new CountDownLatch(1);
-		sink.setLatch(latch);
 		assertNull(sink.get());
-		context.start();
-		latch.await(3000, TimeUnit.MILLISECONDS);
-		assertEquals("latch should have counted down within allotted time", 0, latch.getCount());
-		assertNotNull(sink.get());
-		context.close();
+		channel.send(new StringMessage("foo"));
+		String result = sink.get();
+		assertNotNull(result);
+		assertEquals("foo", result);
 	}
 
 }

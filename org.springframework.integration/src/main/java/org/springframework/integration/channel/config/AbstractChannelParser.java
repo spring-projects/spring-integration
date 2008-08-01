@@ -28,6 +28,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.channel.interceptor.MessageSelectingInterceptor;
+import org.springframework.integration.config.ChannelInterceptorParser;
 import org.springframework.integration.message.selector.PayloadTypeSelector;
 import org.springframework.util.StringUtils;
 
@@ -37,13 +38,6 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  */
 public abstract class AbstractChannelParser extends AbstractSingleBeanDefinitionParser {
-
-	private static final String DATATYPE_ATTRIBUTE = "datatype";
-
-	private static final String INTERCEPTOR_ELEMENT = "interceptor";
-
-	private static final String INTERCEPTORS_PROPERTY = "interceptors";
-
 
 	@Override
 	protected boolean shouldGenerateId() {
@@ -58,22 +52,25 @@ public abstract class AbstractChannelParser extends AbstractSingleBeanDefinition
 	@Override
 	protected abstract Class<?> getBeanClass(Element element);
 
-	protected void configureConstructorArgs(BeanDefinitionBuilder builder, Element element) {
+	protected void postProcess(BeanDefinitionBuilder builder, Element element) {
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		ManagedList interceptors = new ManagedList();
+		ManagedList interceptors = null;
 		NodeList childNodes = element.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); i++) {
 			Node child = childNodes.item(i);
-			if (child.getNodeType() == Node.ELEMENT_NODE && child.getLocalName().equals(INTERCEPTOR_ELEMENT)) {
-				String ref = ((Element) child).getAttribute("ref");
-				interceptors.add(new RuntimeBeanReference(ref));
+			if (child.getNodeType() == Node.ELEMENT_NODE && child.getLocalName().equals("interceptors")) {
+				ChannelInterceptorParser interceptorParser = new ChannelInterceptorParser();
+				interceptors = interceptorParser.parseInterceptors((Element) child, parserContext);
 			}
 		}
-		String datatypeAttr = element.getAttribute(DATATYPE_ATTRIBUTE);
+		if (interceptors == null) {
+			interceptors = new ManagedList();
+		}
+		String datatypeAttr = element.getAttribute("datatype");
 		if (StringUtils.hasText(datatypeAttr)) {
 			String[] datatypes = StringUtils.commaDelimitedListToStringArray(datatypeAttr);
 			RootBeanDefinition selectorDef = new RootBeanDefinition(PayloadTypeSelector.class);
@@ -88,8 +85,8 @@ public abstract class AbstractChannelParser extends AbstractSingleBeanDefinition
 			parserContext.registerBeanComponent(interceptorComponent);
 			interceptors.add(new RuntimeBeanReference(interceptorBeanName));
 		}
-		builder.addPropertyValue(INTERCEPTORS_PROPERTY, interceptors);
-		this.configureConstructorArgs(builder, element);
+		builder.addPropertyValue("interceptors", interceptors);
+		this.postProcess(builder, element);
 	}
 
 }

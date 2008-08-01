@@ -12,7 +12,9 @@
 	<channel id="requestChannel"/>
 
 	<channel id="replyChannel">
-		<interceptor ref="interceptor"/>
+		<interceptors>
+			<ref bean="interceptor"/>
+		</interceptors>
 	</channel>
 
 	<service-activator ref="handler" input-channel="requestChannel"/>

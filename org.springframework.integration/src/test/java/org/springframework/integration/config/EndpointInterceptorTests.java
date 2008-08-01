@@ -21,13 +21,11 @@ import static org.junit.Assert.assertEquals;
 import java.util.List;
 
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.EndpointInterceptor;
 import org.springframework.integration.endpoint.MessageEndpoint;
-import org.springframework.integration.endpoint.SourceEndpoint;
-import org.springframework.integration.endpoint.TriggerMessage;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -39,7 +37,7 @@ public class EndpointInterceptorTests {
 	public void testHandlerEndpointWithBeanInterceptors() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"endpointInterceptorTests.xml", this.getClass());
-		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("handlerEndpointWithBeanInterceptors");
+		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("endpointWithBeanInterceptors");
 		testInterceptors(endpoint, context, true);
 	}
 
@@ -47,39 +45,7 @@ public class EndpointInterceptorTests {
 	public void testHandlerEndpointWithRefInterceptors() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"endpointInterceptorTests.xml", this.getClass());
-		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("handlerEndpointWithRefInterceptors");
-		testInterceptors(endpoint, context, false);
-	}
-
-	@Test
-	public void testTargetEndpointWithBeanInterceptors() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"endpointInterceptorTests.xml", this.getClass());
-		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("targetEndpointWithBeanInterceptors");
-		testInterceptors(endpoint, context, true);
-	}
-
-	@Test
-	public void testTargetEndpointWithRefInterceptors() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"endpointInterceptorTests.xml", this.getClass());
-		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("targetEndpointWithRefInterceptors");
-		testInterceptors(endpoint, context, false);
-	}
-
-	@Test
-	public void testSourceEndpointWithBeanInterceptors() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"endpointInterceptorTests.xml", this.getClass());
-		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("sourceEndpointWithBeanInterceptors");
-		testInterceptors(endpoint, context, true);
-	}
-
-	@Test
-	public void testSourceEndpointWithRefInterceptors() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"endpointInterceptorTests.xml", this.getClass());
-		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("sourceEndpointWithRefInterceptors");
+		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("endpointWithRefInterceptors");
 		testInterceptors(endpoint, context, false);
 	}
 
@@ -100,14 +66,7 @@ public class EndpointInterceptorTests {
 		}
 		assertEquals(0, preInterceptor.getCount());
 		assertEquals(0, aroundInterceptor.getCount());
-		if (endpoint instanceof SourceEndpoint) {
-			MessageChannel channel = (MessageChannel) context.getBean("testChannel");
-			channel.send(new StringMessage("foo"));
-			endpoint.send(new TriggerMessage());
-		}
-		else {
-			endpoint.send(new StringMessage("test"));
-		}
+		endpoint.send(new StringMessage("test"));
 		assertEquals(1, preInterceptor.getCount());
 		assertEquals(2, aroundInterceptor.getCount());
 		context.stop();

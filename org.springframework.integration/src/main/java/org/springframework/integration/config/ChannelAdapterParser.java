@@ -18,115 +18,25 @@ package org.springframework.integration.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
-import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.ManagedList;
-import org.springframework.beans.factory.support.RootBeanDefinition;
-import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
-import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.endpoint.SourceEndpoint;
-import org.springframework.integration.endpoint.TargetEndpoint;
-import org.springframework.integration.handler.MethodInvokingTarget;
-import org.springframework.integration.message.MethodInvokingSource;
-import org.springframework.integration.scheduling.PollingSchedule;
-import org.springframework.integration.scheduling.Schedule;
-import org.springframework.util.StringUtils;
-import org.springframework.util.xml.DomUtils;
+import org.springframework.integration.channel.config.AbstractChannelParser;
+import org.springframework.integration.channel.config.ChannelAdapterFactoryBean;
 
 /**
  * Parser for the <channel-adapter/> element.
  * 
  * @author Mark Fisher
  */
-public class ChannelAdapterParser extends AbstractSimpleBeanDefinitionParser {
+public class ChannelAdapterParser extends AbstractChannelParser {
 
 	protected final Class<?> getBeanClass(Element element) {
-		boolean hasSource = StringUtils.hasText(element.getAttribute("source"));
-		boolean hasTarget = StringUtils.hasText(element.getAttribute("target"));
-		if (!(hasSource ^ hasTarget)) {
-			throw new ConfigurationException("exactly one of 'source' or 'target' is required");
-		}
-		return hasSource ? SourceEndpoint.class : TargetEndpoint.class;
-	}
-
-	protected boolean shouldGenerateId() {
-		return false;
-	}
-
-	protected boolean shouldGenerateIdAsFallback() {
-		return true;
-	}
-
-	protected boolean isEligibleAttribute(String name) {
-		return (!"source".equals(name)
-				&& !"target".equals(name)
-				&& !"channel".equals(name)
-				&& super.isEligibleAttribute(name));
+		return ChannelAdapterFactoryBean.class;
 	}
 
 	@Override
-	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		String source = element.getAttribute("source");
-		String target = element.getAttribute("target");
-		String channel = element.getAttribute("channel");
-		if (!StringUtils.hasText(channel)) {
-			throw new ConfigurationException("'channel' is required");
-		}
-		boolean isSource = StringUtils.hasText(source); 
-		if (isSource) {
-			builder.addConstructorArgReference(this.resolveConstructorArgument(
-					source, MethodInvokingSource.class, element, parserContext));
-			builder.addPropertyValue("outputChannelName", channel);
-		}
-		else {
-			builder.addConstructorArgReference(this.resolveConstructorArgument(
-					target, MethodInvokingTarget.class, element, parserContext));
-			builder.addPropertyValue("inputChannelName", channel);
-		}
-		Element scheduleElement = DomUtils.getChildElementByTagName(element, "schedule");
-		if (scheduleElement != null) {
-			builder.addPropertyValue("schedule", this.parseSchedule(scheduleElement));
-		}
-		Element pollerElement = DomUtils.getChildElementByTagName(element, "poller");
-		if (pollerElement != null) {
-			builder.addPropertyReference("poller",
-					IntegrationNamespaceUtils.parsePoller(pollerElement, parserContext));
-		}
-		Element interceptorsElement = DomUtils.getChildElementByTagName(element, "interceptors");
-		if (interceptorsElement != null) {
-			EndpointInterceptorParser parser = new EndpointInterceptorParser();
-			ManagedList interceptors = parser.parseEndpointInterceptors(interceptorsElement, parserContext);
-			builder.addPropertyValue("interceptors", interceptors);
-		}
-	}
-
-	private String resolveConstructorArgument(String ref, Class<?> targetClass, Element element, ParserContext parserContext) {
-		String method = element.getAttribute("method");
-		if (StringUtils.hasText(method)) {
-			BeanDefinition adapterDef = new RootBeanDefinition(targetClass);
-			adapterDef.getPropertyValues().addPropertyValue("object", new RuntimeBeanReference(ref));
-			adapterDef.getPropertyValues().addPropertyValue("methodName", method);
-			String adapterBeanName = parserContext.getReaderContext().generateBeanName(adapterDef);
-			parserContext.registerBeanComponent(new BeanComponentDefinition(adapterDef, adapterBeanName));
-			return adapterBeanName;
-		}
-		return ref;
-	}
-
-	/**
-	 * Subclasses may override this method to control the creation of the {@link Schedule}. The default
-	 * implementation creates a {@link PollingSchedule} instance based on the provided "period" attribute. 
-	 */
-	protected Schedule parseSchedule(Element element) {
-		String period = element.getAttribute("period");
-		if (!StringUtils.hasText(period)) {
-			throw new ConfigurationException("The 'period' attribute is required for the 'schedule' element.");
-		}
-		PollingSchedule schedule = new PollingSchedule(Long.valueOf(period));
-		return schedule;
+	protected void postProcess(BeanDefinitionBuilder builder, Element element) {
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "source");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "target");
 	}
 
 }

@@ -7,8 +7,20 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
 
-	<channel id="channel">
-		<interceptor ref="interceptor"/>
+	<channel id="channelWithInterceptorRef">
+		<interceptors>
+			<ref bean="interceptor"/>
+		</interceptors>
+	</channel>
+
+	<channel id="channelWithInterceptorInnerBean">
+		<interceptors>
+			<beans:bean class="org.springframework.integration.transformer.MessageTransformingChannelInterceptor">
+				<beans:constructor-arg>
+					<beans:bean class="org.springframework.integration.channel.config.TestTransformer"/>
+				</beans:constructor-arg>
+			</beans:bean>
+		</interceptors>
 	</channel>
 
 	<beans:bean id="interceptor" class="org.springframework.integration.config.TestChannelInterceptor"/>

@@ -30,8 +30,10 @@ import org.springframework.security.AccessDeniedException;
 import org.springframework.security.Authentication;
 import org.springframework.security.ConfigAttribute;
 import org.springframework.security.ConfigAttributeDefinition;
+import org.springframework.security.GrantedAuthorityImpl;
 import org.springframework.security.InsufficientAuthenticationException;
 import org.springframework.security.context.SecurityContextHolder;
+import org.springframework.security.providers.TestingAuthenticationToken;
 
 /**
  * @author Jonas Partner
@@ -46,8 +48,10 @@ public class SecurityEnforcingChannelInterceptorTests {
 	@Before
 	public void setUp() {
 		channel = new QueueChannel();
+		SecurityContextHolder.getContext().setAuthentication(new TestingAuthenticationToken(
+				"stub", "passwd", new GrantedAuthorityImpl[] {}));
 	}
-	
+
 	@After
 	public void clearSecurityContext(){
 		SecurityContextHolder.clearContext();

@@ -25,7 +25,11 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:sequence>
-				<xsd:element ref="interceptor" minOccurs="0" maxOccurs="unbounded"/>
+				<xsd:element name="interceptor" minOccurs="0" maxOccurs="unbounded">
+					<xsd:complexType>
+						<xsd:attribute name="ref" type="xsd:string" use="required"/>
+					</xsd:complexType>
+				</xsd:element>
 			</xsd:sequence>
 			<xsd:attribute name="auto-startup" type="xsd:boolean"/>
 			<xsd:attribute name="auto-create-channels" type="xsd:boolean"/>
@@ -126,22 +130,11 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element ref="interceptor" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="interceptors" type="channelInterceptorsType" minOccurs="0" maxOccurs="1"/>
 		</xsd:sequence>
 		<xsd:attribute name="id" type="xsd:ID" use="required"/>
 		<xsd:attribute name="datatype" type="xsd:string"/>
 	</xsd:complexType>
-
-	<xsd:element name="interceptor">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-	Provides a channel interceptor reference.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:attribute name="ref" type="xsd:string" use="required"/>
-		</xsd:complexType>
-	</xsd:element>
 
 	<xsd:element name="gateway">
 		<xsd:complexType>
@@ -171,16 +164,9 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
-				<xsd:extension base="beans:identifiedType">
-					<xsd:all>
-						<xsd:element ref="schedule" minOccurs="0" maxOccurs="1"/>
-						<xsd:element ref="poller" minOccurs="0" maxOccurs="1"/>
-						<xsd:element name="interceptors" type="interceptorsType" minOccurs="0" maxOccurs="1"/>
-					</xsd:all>
+				<xsd:extension base="channelType">
 					<xsd:attribute name="source" type="xsd:string"/>
 					<xsd:attribute name="target" type="xsd:string"/>
-					<xsd:attribute name="method" type="xsd:string"/>
-					<xsd:attribute name="channel" type="xsd:string" use="required"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -223,7 +209,7 @@
 				<xsd:all>
 					<xsd:element ref="schedule" minOccurs="0" maxOccurs="1"/>
 					<xsd:element ref="poller" minOccurs="0" maxOccurs="1"/>
-					<xsd:element name="interceptors" type="interceptorsType" minOccurs="0" maxOccurs="1"/>
+					<xsd:element name="interceptors" type="endpointInterceptorsType" minOccurs="0" maxOccurs="1"/>
 				</xsd:all>
 				<xsd:attribute name="ref" type="xsd:string" use="required"/>
 				<xsd:attribute name="method" type="xsd:string"/>
@@ -428,10 +414,28 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:complexType name="interceptorsType">
+	<xsd:complexType name="channelInterceptorsType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a list of interceptors. Each element may be an EndpointInterceptor or any Advice instance.
+	Defines a list of interceptors. Each element may be a ChannelInterceptor, ref, or inner-bean.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:choice minOccurs="0" maxOccurs="unbounded">
+				<xsd:element name="ref" minOccurs="0" maxOccurs="unbounded">
+					<xsd:complexType>
+						<xsd:attribute name="bean" use="required"/>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded"/>
+			</xsd:choice>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="endpointInterceptorsType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a list of interceptors. Each element may be an EndpointInterceptor, ref, or inner-bean.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
@@ -443,7 +447,7 @@
 				</xsd:element>
 				<xsd:element name="transaction-interceptor" type="transactionalType" minOccurs="0" maxOccurs="1"/>
 				<xsd:element name="concurrency-interceptor" type="concurrencyInterceptorType" minOccurs="0" maxOccurs="1"/>
-				<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded"/>				
+				<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded"/>
 			</xsd:choice>
 		</xsd:sequence>
 	</xsd:complexType>

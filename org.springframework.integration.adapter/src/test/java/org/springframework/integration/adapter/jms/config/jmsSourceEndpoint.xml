@@ -9,11 +9,7 @@
 
 	<si:message-bus/>
 
-	<si:channel id="channel"/>
-
-	<si:channel-adapter id="endpoint" source="jmsSource" channel="channel">
-		<si:schedule period="5000"/>
-	</si:channel-adapter>
+	<si:channel-adapter id="channel" source="jmsSource"/>
 
 	<si:jms-source id="jmsSource" jms-template="jmsTemplate"/>
 

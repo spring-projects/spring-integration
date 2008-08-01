@@ -20,6 +20,8 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
 import org.springframework.integration.message.Message;
 import org.springframework.security.AccessDecisionManager;
+import org.springframework.security.Authentication;
+import org.springframework.security.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.ConfigAttributeDefinition;
 import org.springframework.security.context.SecurityContextHolder;
 import org.springframework.util.Assert;
@@ -29,6 +31,7 @@ import org.springframework.util.Assert;
  * enforce the security on the send and receive calls of the {@link MessageChannel}.
  * 
  * @author Jonas Partner
+ * @author Mark Fisher
  */
 public class SecurityEnforcingChannelInterceptor extends ChannelInterceptorAdapter {
 
@@ -83,8 +86,12 @@ public class SecurityEnforcingChannelInterceptor extends ChannelInterceptorAdapt
 
 	private void checkPermission(MessageChannel messageChannel, ConfigAttributeDefinition securityAttributes) {
 		if (securityAttributes != null) {
-			this.accessDecisionManger.decide(SecurityContextHolder.getContext().getAuthentication(), messageChannel,
-					securityAttributes);
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			if (authentication == null) {
+				throw new AuthenticationCredentialsNotFoundException(
+						"No Authentication object available. Consider enabling the SecurityPropagatingBeanPostProcessor.");
+			}
+			this.accessDecisionManger.decide(authentication, messageChannel, securityAttributes);
 		}
 	}
 

@@ -13,7 +13,7 @@
 
 	<channel id="replyChannel"/>
 
-	<service-activator id="handlerEndpointWithBeanInterceptors"
+	<service-activator id="endpointWithBeanInterceptors"
 	                   input-channel="testChannel"
 	                   ref="testHandler"
 	                   output-channel="replyChannel">
@@ -24,7 +24,7 @@
 		</interceptors>
 	</service-activator>
 
-	<service-activator id="handlerEndpointWithRefInterceptors"
+	<service-activator id="endpointWithRefInterceptors"
 	                   input-channel="testChannel"
 	                   ref="testHandler"
 	                   output-channel="replyChannel">
@@ -35,51 +35,8 @@
 		</interceptors>
 	</service-activator>
 
-	<channel-adapter id="targetEndpointWithBeanInterceptors"
-	                 channel="testChannel"
-	                 target="testTarget">
-		<schedule period="100"/>
-		<interceptors>
-			<beans:bean class="org.springframework.integration.config.TestPreSendInterceptor"/>
-			<beans:bean class="org.springframework.integration.config.TestAroundSendEndpointInterceptor"/>
-		</interceptors>
-	</channel-adapter>
-
-	<channel-adapter id="targetEndpointWithRefInterceptors"
-	                 channel="testChannel"
-	                 target="testTarget">
-		<schedule period="100"/>
-		<interceptors>
-			<ref bean="preInterceptor"/>
-			<ref bean="aroundInterceptor"/>
-		</interceptors>
-	</channel-adapter>
-
-	<channel-adapter id="sourceEndpointWithBeanInterceptors"
-	                 source="testSource"
-	                 channel="testChannel">
-		<schedule period="100"/>
-		<interceptors>
-			<beans:bean class="org.springframework.integration.config.TestPreSendInterceptor"/>
-			<beans:bean class="org.springframework.integration.config.TestAroundSendEndpointInterceptor"/>
-		</interceptors>
-	</channel-adapter>
-
-	<channel-adapter id="sourceEndpointWithRefInterceptors"
-	                 source="testSource"
-	                 channel="testChannel">
-		<schedule period="100"/>
-		<interceptors>
-			<ref bean="preInterceptor"/>
-			<ref bean="aroundInterceptor"/>
-		</interceptors>
-	</channel-adapter>
 
 	<beans:bean id="testHandler" class="org.springframework.integration.config.TestHandler"/>
-
-	<beans:bean id="testSource" class="org.springframework.integration.config.TestSource"/>
-
-	<beans:bean id="testTarget" class="org.springframework.integration.config.TestTarget"/>
 
 	<beans:bean id="preInterceptor" class="org.springframework.integration.config.TestPreSendInterceptor"/>
 

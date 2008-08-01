@@ -36,7 +36,7 @@ public class PublishSubscribeChannelParser extends AbstractChannelParser {
 	}
 
 	@Override
-	protected void configureConstructorArgs(BeanDefinitionBuilder builder, Element element) {
+	protected void postProcess(BeanDefinitionBuilder builder, Element element) {
 		String taskExecutorRef = element.getAttribute("task-executor");
 		if (StringUtils.hasText(taskExecutorRef)) {
 			builder.addConstructorArgReference(taskExecutorRef);

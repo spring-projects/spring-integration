@@ -35,7 +35,7 @@ public class QueueChannelParser extends AbstractChannelParser {
 	}
 
 	@Override
-	protected void configureConstructorArgs(BeanDefinitionBuilder builder, Element element) {
+	protected void postProcess(BeanDefinitionBuilder builder, Element element) {
 		String capacityAttribute = element.getAttribute("capacity");
 		int capacity = (StringUtils.hasText(capacityAttribute)) ?
 				Integer.parseInt(capacityAttribute) : QueueChannel.DEFAULT_CAPACITY;

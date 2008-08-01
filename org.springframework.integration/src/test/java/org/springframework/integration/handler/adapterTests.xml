@@ -4,37 +4,24 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
 
-	<bean id="bus" class="org.springframework.integration.bus.DefaultMessageBus">
-		<property name="autoStartup" value="false"/>
+	<bean id="sourceChannelAdapter" class="org.springframework.integration.channel.config.ChannelAdapterFactoryBean">
+		<property name="source" ref="source"/>
 	</bean>
 
-	<bean id="channel" class="org.springframework.integration.channel.QueueChannel"/>
-
-	<bean id="sourceEndpoint" class="org.springframework.integration.endpoint.SourceEndpoint">
-		<constructor-arg>
-			<bean class="org.springframework.integration.message.MethodInvokingSource">
-				<property name="object">
-					<bean class="org.springframework.integration.handler.TestSource"/>
-				</property>
-				<property name="methodName" value="foo"/>
-			</bean>
-		</constructor-arg>
-		<property name="target" ref="channel"/>
-		<property name="schedule">
-			<bean class="org.springframework.integration.scheduling.PollingSchedule">
-				<constructor-arg value="1000"/>
-			</bean>
+	<bean id="source" class="org.springframework.integration.message.MethodInvokingSource">
+		<property name="object">
+			<bean class="org.springframework.integration.handler.TestSource"/>
 		</property>
+		<property name="methodName" value="foo"/>
+	</bean>
+
+	<bean id="targetChannelAdapter" class="org.springframework.integration.channel.config.ChannelAdapterFactoryBean">
+		<property name="target" ref="target"/>
 	</bean>
 
 	<bean id="target" class="org.springframework.integration.handler.MethodInvokingTarget">
 		<property name="object" ref="sink"/>
 		<property name="methodName" value="store"/>
-	</bean>
-
-	<bean id="targetEndpoint" class="org.springframework.integration.endpoint.TargetEndpoint">
-		<constructor-arg ref="target"/>
-		<property name="source" ref="channel"/>
 	</bean>
 
 	<bean id="sink" class="org.springframework.integration.handler.TestSink"/>

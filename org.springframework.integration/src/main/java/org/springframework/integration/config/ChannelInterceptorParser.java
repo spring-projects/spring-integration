@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,18 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler;
+package org.springframework.integration.config;
+
+import java.util.Map;
 
 /**
  * @author Mark Fisher
  */
-public class TestSource {
+public class ChannelInterceptorParser extends AbstractInterceptorParser {
 
-	public String validMethod() {
-		return "valid";
-	}
-
-	public String invalidMethodWithArg(String arg) {
-		return "invalid";
-	}
-
-	public void invalidMethodWithNoReturnValue() {
-	}
-
-	public String foo() {
-		return "foo";
+	@Override
+	protected Map<String, BeanDefinitionRegisteringParser> getParserMap() {
+		return null;
 	}
 
 }

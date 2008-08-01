@@ -13,17 +13,24 @@
 
 	<message-bus auto-create-channels="false" />
 
-	<beans:bean id="testTarget"
-		class="org.springframework.integration.security.endpoint.TestTarget"/>
+	<direct-channel id="input"/>
 
-	<direct-channel id="testChannel"/>
-
-	<channel-adapter target="testTarget" channel="testChannel">
+	<service-activator id="endpoint"
+	                   input-channel="input"
+		               output-channel="output"
+		               ref="testHandler">
 		<interceptors>
 			<si-security:endpoint-security-policy access="ROLE_ADMIN" />
 		</interceptors>
-	</channel-adapter>
+	</service-activator>
 
+	<channel-adapter id="output" target="testTarget"/>
+
+	<beans:bean id="testHandler"
+		class="org.springframework.integration.security.endpoint.TestHandler"/>
+
+	<beans:bean id="testTarget"
+		class="org.springframework.integration.security.endpoint.TestTarget"/>
 
 	<beans:bean id="accessDecisionManager"
 		class="org.springframework.security.vote.AffirmativeBased">

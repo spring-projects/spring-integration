@@ -138,10 +138,10 @@ public class ChannelParserTests {
 	}
 
 	@Test
-	public void testChannelInteceptors() {
+	public void testChannelInteceptorRef() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"channelInterceptorParserTests.xml", this.getClass());
-		PollableChannel channel = (PollableChannel) context.getBean("channel");
+		PollableChannel channel = (PollableChannel) context.getBean("channelWithInterceptorRef");
 		TestChannelInterceptor interceptor = (TestChannelInterceptor) context.getBean("interceptor");
 		assertEquals(0, interceptor.getSendCount());
 		channel.send(new StringMessage("test"));
@@ -149,6 +149,16 @@ public class ChannelParserTests {
 		assertEquals(0, interceptor.getReceiveCount());
 		channel.receive();
 		assertEquals(1, interceptor.getReceiveCount());
+	}
+
+	@Test
+	public void testChannelInteceptorInnerBean() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"channelInterceptorParserTests.xml", this.getClass());
+		PollableChannel channel = (PollableChannel) context.getBean("channelWithInterceptorInnerBean");
+		channel.send(new StringMessage("test"));
+		Message<?> transformed = channel.receive(1000);
+		assertEquals("TEST", transformed.getPayload());
 	}
 
 	@Test
@@ -215,6 +225,7 @@ public class ChannelParserTests {
 	}
 
 
+	@SuppressWarnings("unchecked")
     public static MessageChannel extractProxifiedChannel (Object channelProxy) {
 	    InvocationHandler handler = Proxy.getInvocationHandler(channelProxy);
 	    DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
