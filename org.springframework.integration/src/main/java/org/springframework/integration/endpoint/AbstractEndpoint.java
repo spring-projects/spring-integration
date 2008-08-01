@@ -34,6 +34,7 @@ import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.integration.scheduling.Schedule;
+import org.springframework.util.Assert;
 
 /**
  * Base class for {@link MessageEndpoint} implementations.
@@ -86,7 +87,16 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 	}
 
 	public void setMessageExchangeTemplate(MessageExchangeTemplate messageExchangeTemplate) {
+		Assert.notNull(messageExchangeTemplate, "messageExchangeTemplate must not be null");
 		this.messageExchangeTemplate = messageExchangeTemplate;
+	}
+
+	public MessageExchangeTemplate getMessageExchangeTemplate() {
+		if (this.messageExchangeTemplate == null) {
+			this.messageExchangeTemplate = new MessageExchangeTemplate();
+			this.messageExchangeTemplate.afterPropertiesSet();
+		}
+		return this.messageExchangeTemplate;
 	}
 
 	public void setInputChannelName(String inputChannelName) {
@@ -134,7 +144,7 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 	}
 
 	public void setSendTimeout(long sendTimeout) {
-		this.messageExchangeTemplate.setSendTimeout(sendTimeout);
+		this.getMessageExchangeTemplate().setSendTimeout(sendTimeout);
 	}
 
 	public MessageTarget getTarget() {
@@ -181,10 +191,6 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 	}
 
 	public void afterPropertiesSet() {
-		if (this.messageExchangeTemplate == null) {
-			this.messageExchangeTemplate = new MessageExchangeTemplate();
-			this.messageExchangeTemplate.afterPropertiesSet();
-		}
 		if (this.target == null) {
 			this.target = this.getTarget();
 		}
@@ -235,15 +241,12 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 	}
 
 	private boolean doSend(Message<?> message) {
-		if (this.messageExchangeTemplate == null) {
-			this.afterPropertiesSet();
-		}
 		if (!this.supports(message)) {
 			throw new MessageRejectedException(message, "unsupported message");
 		}
 		Message<?> result = this.handleMessage(message);
 		if (result != null) {
-			return this.messageExchangeTemplate.send(message, this.target);
+			return this.getMessageExchangeTemplate().send(message, this.target);
 		}
 		return true;
 	}

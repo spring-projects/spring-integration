@@ -17,7 +17,6 @@
 package org.springframework.integration.endpoint;
 
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.message.MessageExchangeTemplate;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.PollableSource;
 
@@ -25,14 +24,6 @@ import org.springframework.integration.message.PollableSource;
  * @author Mark Fisher
  */
 public class EndpointPoller implements EndpointVisitor {
-
-	private final MessageExchangeTemplate template;
-
-
-	public EndpointPoller() {
-		 this.template = new MessageExchangeTemplate();
-		 this.template.setSendTimeout(0);
-	}
 
 	public void visitEndpoint(MessageEndpoint endpoint) {
 		MessageSource<?> source = endpoint.getSource();
@@ -44,7 +35,7 @@ public class EndpointPoller implements EndpointVisitor {
 			throw new ConfigurationException("unable to poll for endpoint '"
 					+ endpoint + ", source is not a PollableSource");
 		}
-		this.template.receiveAndForward((PollableSource<?>) source, endpoint);
+		endpoint.getMessageExchangeTemplate().receiveAndForward((PollableSource<?>) source, endpoint);
 	}
 
 }
