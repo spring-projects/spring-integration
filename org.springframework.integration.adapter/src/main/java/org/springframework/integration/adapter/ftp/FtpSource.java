@@ -20,6 +20,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +35,7 @@ import org.apache.commons.net.ftp.FTPFile;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.integration.adapter.file.AbstractDirectorySource;
+import org.springframework.integration.adapter.file.DirectoryContentManager;
 import org.springframework.integration.adapter.file.FileInfo;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageCreator;
@@ -116,14 +119,32 @@ public class FtpSource extends AbstractDirectorySource<List<File>> implements Di
 	}
 
 	@Override
+	protected void refreshSnapshotAndMarkProcessing(DirectoryContentManager directoryContentManager) throws IOException {
+		Map<String, FileInfo> snapshot = new HashMap<String, FileInfo>();
+		synchronized (directoryContentManager) {
+			populateSnapshot(snapshot);
+			directoryContentManager.processSnapshot(snapshot);
+			ArrayList<String> backlog = new ArrayList<String>(directoryContentManager.getBacklog().keySet());
+			int toIndex = maxFilesPerPayload == -1 ? backlog.size() : Math.min(maxFilesPerPayload, backlog.size());
+			directoryContentManager.fileProcessing(backlog.subList(0, toIndex).toArray(new String[] {}));
+		}
+	}
+
+	@Override
 	protected void populateSnapshot(Map<String, FileInfo> snapshot) throws IOException {
 		establishConnection();
 		FTPFile[] fileList = this.client.listFiles();
 
 		for (FTPFile ftpFile : fileList) {
-			FileInfo fileInfo = new FileInfo(ftpFile.getName(), ftpFile.getTimestamp().getTimeInMillis(), ftpFile
-					.getSize());
-			snapshot.put(ftpFile.getName(), fileInfo);
+			/*
+			 * according to the FTPFile javadoc the list can contain nulls if
+			 * files couldn't be parsed
+			 */
+			if (ftpFile != null) {
+				FileInfo fileInfo = new FileInfo(ftpFile.getName(), ftpFile.getTimestamp().getTimeInMillis(), ftpFile
+						.getSize());
+				snapshot.put(ftpFile.getName(), fileInfo);
+			}
 		}
 	}
 
@@ -158,13 +179,8 @@ public class FtpSource extends AbstractDirectorySource<List<File>> implements Di
 	protected List<File> retrieveNextPayload() throws IOException {
 		establishConnection();
 		List<File> files = new ArrayList<File>();
-		Set<String> backlog = this.getDirectoryContentManager().getBacklog().keySet();
-		int i = 0;
-		Iterator<String> iterator = backlog.iterator();
-		while (iterator.hasNext() && (maxFilesPerPayload == -1 || i < maxFilesPerPayload)) {
-			i++;
-			String fileName = iterator.next();
-
+		Set<String> toDo = this.getDirectoryContentManager().getProcessingBuffer().keySet();
+		for (String fileName : toDo) {
 			File file = new File(this.localWorkingDirectory, fileName);
 			if (file.exists()) {
 				file.delete();

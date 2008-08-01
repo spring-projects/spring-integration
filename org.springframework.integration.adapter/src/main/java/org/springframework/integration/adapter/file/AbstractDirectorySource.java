@@ -63,10 +63,9 @@ public abstract class AbstractDirectorySource<T> implements PollableSource<T>, M
 	@SuppressWarnings("unchecked")
 	public final Message<T> receive() {
 		try {
-			HashMap<String, FileInfo> snapshot = new HashMap<String, FileInfo>();
-			this.populateSnapshot(snapshot);
-			this.directoryContentManager.processSnapshot(snapshot);
-			if (!getDirectoryContentManager().getBacklog().isEmpty()) {
+			refreshSnapshotAndMarkProcessing(directoryContentManager);
+			if (!(getDirectoryContentManager().getProcessingBuffer().isEmpty() & getDirectoryContentManager()
+					.getBacklog().isEmpty())) {
 				return buildNextMessage();
 			}
 			return null;
@@ -74,6 +73,20 @@ public abstract class AbstractDirectorySource<T> implements PollableSource<T>, M
 		catch (Exception e) {
 			throw new MessagingException("Error while polling for messages.", e);
 		}
+	}
+
+	/**
+	 * Naive implementation that ignores thread safety. Subclasses that want to
+	 * be thread safe and use the reservation facilities of
+	 * {@link DirectoryContentManager} override this method and call
+	 * <code>directoryContentManager.fileProcessing(...)</code with the appropriate arguments
+	 * @param directoryContentManager
+	 * @throws IOException
+	 */
+	protected void refreshSnapshotAndMarkProcessing(DirectoryContentManager directoryContentManager) throws IOException {
+		HashMap<String, FileInfo> snapshot = new HashMap<String, FileInfo>();
+		this.populateSnapshot(snapshot);
+		directoryContentManager.processSnapshot(snapshot);
 	}
 
 	/**
@@ -113,8 +126,8 @@ public abstract class AbstractDirectorySource<T> implements PollableSource<T>, M
 	 */
 	protected abstract T retrieveNextPayload() throws IOException;
 
-	protected final void fileProcessed(String fileName){
+	protected final void fileProcessed(String fileName) {
 		this.directoryContentManager.fileProcessed(fileName);
 	}
-	
+
 }

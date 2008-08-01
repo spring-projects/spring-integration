@@ -20,9 +20,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.util.Assert;
 
 /**
  * Tracks changes in a directory. This implementation is thread-safe as it
@@ -30,6 +32,7 @@ import org.apache.commons.logging.LogFactory;
  * 
  * @author Marius Bogoevici
  * @author Mark Fisher
+ * @author iwein
  */
 public class DirectoryContentManager {
 
@@ -39,14 +42,33 @@ public class DirectoryContentManager {
 
 	private final Map<String, FileInfo> backlog = new HashMap<String, FileInfo>();
 
+	/**
+	 * This is the storage for backlog that is being processed by a specific
+	 * thread. Not initialized means that we're not in thread safe mode (just
+	 * working directly on the backlog)
+	 */
+	private ThreadLocal<Map<String, FileInfo>> processingBuffer = new ThreadLocal<Map<String, FileInfo>>() {
+		@Override
+		protected Map<String, FileInfo> initialValue() {
+			return new HashMap<String, FileInfo>();
+		}
+	};
 
 	public synchronized void processSnapshot(Map<String, FileInfo> currentSnapshot) {
+		/*
+		 * clear the threadLocal backlog. When the thread processes a new
+		 * snapshot it is done with the previous message. If there are still
+		 * messages in the processing buffer something is wrong because they
+		 * were not processed, nor raised as failed.
+		 */
+		Assert.isTrue(processingBuffer.get().isEmpty());
 		Iterator<Map.Entry<String, FileInfo>> iter = this.backlog.entrySet().iterator();
 		while (iter.hasNext()) {
 			String fileName = iter.next().getKey();
 			if (!currentSnapshot.containsKey(fileName)) {
 				if (logger.isDebugEnabled()) {
-					logger.debug("Removing file '" + fileName + "' from backlog. It no longer exists in remote directory.");
+					logger.debug("Removing file '" + fileName
+							+ "' from backlog. It no longer exists in remote directory.");
 				}
 				iter.remove();
 			}
@@ -63,17 +85,51 @@ public class DirectoryContentManager {
 		this.previousSnapshot = new HashMap<String, FileInfo>(currentSnapshot);
 	}
 
-	public synchronized void fileProcessed(String fileName) {
-		if (fileName != null) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Removing file '" + fileName + "' from the backlog. It has been processed.");
+	public synchronized void fileProcessing(String... fileNames) {
+		for (String fileName : fileNames) {
+			if (fileName != null) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Moving file '" + fileName
+							+ "' from the backlog to thread local backlog. It is being processed.");
+				}
+				processingBuffer.get().put(fileName, this.backlog.remove(fileName));
 			}
-			this.backlog.remove(fileName);
+		}
+	}
+
+	public synchronized void fileNotProcessed(String... fileNames) {
+		for (String fileName : fileNames) {
+			if (fileName != null) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("File '" + fileName + "' was not processed. Moving it back to the backlog");
+				}
+				this.backlog.put(fileName, this.processingBuffer.get().remove(fileName));
+			}
+		}
+	}
+
+	public synchronized void fileProcessed(String... fileNames) {
+		for (String fileName : fileNames) {
+			if (fileName != null) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Removing file '" + fileName + "' from the undo buffer. It has been processed.");
+				}
+				/*
+				 * It's not relevant if clients use the thread safe approach or
+				 * not at this point, so we act on both.
+				 */
+				this.processingBuffer.get().remove(fileName);
+				this.backlog.remove(fileName);
+			}
 		}
 	}
 
 	public Map<String, FileInfo> getBacklog() {
 		return Collections.unmodifiableMap(this.backlog);
+	}
+
+	public Map<String, FileInfo> getProcessingBuffer() {
+		return Collections.unmodifiableMap(this.processingBuffer.get());
 	}
 
 }
