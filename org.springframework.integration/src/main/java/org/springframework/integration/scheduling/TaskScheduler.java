@@ -29,7 +29,7 @@ import org.springframework.scheduling.SchedulingTaskExecutor;
  */
 public interface TaskScheduler extends SchedulingTaskExecutor, Lifecycle {
 
-	ScheduledFuture<?> schedule(Runnable task);
+	ScheduledFuture<?> schedule(SchedulableTask task);
 
 	boolean cancel(Runnable task, boolean mayInterruptIfRunning);
 

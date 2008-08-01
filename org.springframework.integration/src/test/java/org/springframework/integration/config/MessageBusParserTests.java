@@ -42,7 +42,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.config.ChannelParserTests;
 import org.springframework.integration.dispatcher.DirectChannel;
 import org.springframework.integration.handler.TestHandlers;
-import org.springframework.integration.scheduling.SimpleTaskScheduler;
+import org.springframework.integration.scheduling.spi.ProviderTaskScheduler;
 
 /**
  * @author Mark Fisher
@@ -177,7 +177,7 @@ public class MessageBusParserTests {
 				context.getBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(multicaster);
 		Object taskExecutor = accessor.getPropertyValue("taskExecutor");
-		assertEquals(SimpleTaskScheduler.class, taskExecutor.getClass());
+		assertEquals(ProviderTaskScheduler.class, taskExecutor.getClass());
 	}
 
 	@Test

@@ -26,7 +26,6 @@ import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.ApplicationContext;
@@ -60,8 +59,9 @@ import org.springframework.integration.message.SubscribableSource;
 import org.springframework.integration.scheduling.MessagePublishingErrorHandler;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
-import org.springframework.integration.scheduling.SimpleTaskScheduler;
 import org.springframework.integration.scheduling.TaskScheduler;
+import org.springframework.integration.scheduling.spi.ProviderTaskScheduler;
+import org.springframework.integration.scheduling.spi.SimpleScheduleServiceProvider;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 
@@ -210,7 +210,7 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 				ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(DEFAULT_DISPATCHER_POOL_SIZE);
 				executor.setThreadFactory(new CustomizableThreadFactory("message-bus-"));
 				executor.setRejectedExecutionHandler(new CallerRunsPolicy());
-				this.taskScheduler = new SimpleTaskScheduler(executor);
+				this.taskScheduler = new ProviderTaskScheduler(new SimpleScheduleServiceProvider(executor));
 			}
 			if (this.getErrorChannel() == null) {
 				this.setErrorChannel(new DefaultErrorChannel());
