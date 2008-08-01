@@ -138,7 +138,6 @@ public class BroadcastingDispatcherTests {
 				// cause timeout here
 				Thread.sleep(1000);
 				testNotTimedOut.compareAndSet(false, true);
-				//fail("There is a bug in this Test");
 				//in a long running suite this will run until the end, but the test will already be over
 				return true;
 			}
