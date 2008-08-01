@@ -16,27 +16,16 @@
 
 package org.springframework.integration.adapter.mail;
 
-import java.util.Properties;
-
-import javax.mail.Folder;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.Store;
-import javax.mail.URLName;
 import javax.mail.internet.MimeMessage;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.context.Lifecycle;
 import org.springframework.integration.adapter.mail.monitor.DefaultLocalMailMessageStore;
 import org.springframework.integration.adapter.mail.monitor.LocalMailMessageStore;
-import org.springframework.integration.adapter.mail.monitor.MailTransportUtils;
 import org.springframework.integration.adapter.mail.monitor.MonitoringStrategy;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.PollableSource;
-import org.springframework.util.Assert;
 
 /**
  * {@link MessageSource} implementation which delegates to a
@@ -47,26 +36,18 @@ import org.springframework.util.Assert;
  * @author Jonas Partner
  */
 @SuppressWarnings("unchecked")
-public class PollingMailSource implements PollableSource, DisposableBean, Lifecycle {
+public class PollingMailSource implements PollableSource {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private final MonitoringStrategy monitoringStrategy;
-
-	private Session session;
-
-	private Store store;
-
-	private Folder folder;
-
-	private URLName storeUri;
+	private final FolderConnection folderConnection;
 
 	private MailMessageConverter converter = new DefaultMailMessageConverter();
 
 	private LocalMailMessageStore mailMessageStore = new DefaultLocalMailMessageStore();
 
-	public PollingMailSource(MonitoringStrategy monitoringStrategy) {
-		this.monitoringStrategy = monitoringStrategy;
+	public PollingMailSource(FolderConnection folderConnetion) {
+		this.folderConnection = folderConnetion;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -75,12 +56,12 @@ public class PollingMailSource implements PollableSource, DisposableBean, Lifecy
 		javax.mail.Message mailMessage = mailMessageStore.getNext();
 		if (mailMessage == null) {
 			try {
-				javax.mail.Message[] messages = monitoringStrategy.receive(folder);
+				javax.mail.Message[] messages = folderConnection.receive();
 				mailMessageStore.addLast(messages);
 				mailMessage = mailMessageStore.getNext();
-			}
-			catch (Exception e) {
-				throw new org.springframework.integration.message.MessagingException("Excpetion receiving mail", e);
+			} catch (Exception e) {
+				throw new org.springframework.integration.message.MessagingException(
+						"Excpetion receiving mail", e);
 			}
 		}
 		if (mailMessage != null) {
@@ -92,75 +73,8 @@ public class PollingMailSource implements PollableSource, DisposableBean, Lifecy
 		return received;
 	}
 
-	public void setJavaMailProperties(Properties javaMailProperties) {
-		session = Session.getInstance(javaMailProperties, null);
-	}
-	
-	public void setJavaMailsession(Session session) {
-		this.session = session;
-	}
-
-	public void setStoreUri(String storeUri) {
-		this.storeUri = new URLName(storeUri);
-	}
-
-	public void afterPropertiesSet() throws Exception {
-		Assert.notNull(storeUri, "Property 'storeUri' is required");
-		Assert.notNull(session, "Property 'JavaMailProperties' is required");
-		Assert.notNull(converter, "An instantce of MailMessageConverter' is required");
-		openSession();
-		openFolder();
-	}
-
-	private void openFolder() throws MessagingException {
-		if (folder != null && folder.isOpen()) {
-			return;
-		}
-		folder = store.getFolder(storeUri);
-		if (folder == null || !folder.exists()) {
-			throw new IllegalStateException("No default folder to receive from");
-		}
-		if (logger.isDebugEnabled()) {
-			logger.debug("Opening folder [" + MailTransportUtils.toPasswordProtectedString(storeUri) + "]");
-		}
-		folder.open(monitoringStrategy.getFolderOpenMode());
-	}
-
-	private void openSession() throws MessagingException {
-		store = session.getStore(storeUri);
-		if (logger.isDebugEnabled()) {
-			logger.debug("Connecting to store [" + MailTransportUtils.toPasswordProtectedString(storeUri) + "]");
-		}
-		store.connect();
-	}
-
 	public void setConverter(MailMessageConverter converter) {
 		this.converter = converter;
-	}
-
-	public void destroy() throws Exception {
-		stop();
-	}
-
-	public boolean isRunning() {
-		return folder.isOpen();
-	}
-
-	public void start() {
-		try {
-			openSession();
-			openFolder();
-		}
-		catch (MessagingException messageE) {
-			throw new org.springframework.integration.message.MessagingException("Excpetion starting MailSource",
-					messageE);
-		}
-
-	}
-
-	public void stop() {
-		MailTransportUtils.closeFolder(folder);
-		MailTransportUtils.closeService(store);
 	}
 
 	public void setMailMessageStore(LocalMailMessageStore mailMessageStore) {

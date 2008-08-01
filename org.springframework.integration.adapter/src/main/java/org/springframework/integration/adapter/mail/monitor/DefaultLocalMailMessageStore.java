@@ -35,6 +35,9 @@ public class DefaultLocalMailMessageStore implements LocalMailMessageStore {
 	private ConcurrentLinkedQueue<Message> messages = new ConcurrentLinkedQueue<Message>();
 	
 	public void addLast(Message[] newMessages) {
+		if(newMessages == null){
+			return;
+		}
 		for (Message message : newMessages) {
 			messages.add(message);
 		}

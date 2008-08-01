@@ -36,11 +36,14 @@ import com.sun.mail.imap.IMAPFolder;
  *
  * @author Arjen Poutsma
  */
-public class ImapIdleMonitoringStrategy extends AbstractMonitoringStrategy {
+public class ImapIdleMonitoringStrategy extends AbstractMonitoringStrategy implements AsyncMonitoringStrategy {
 
     private MessageCountListener messageCountListener;
 
-    protected void waitForNewMessages(Folder folder) throws MessagingException, InterruptedException {
+    /* (non-Javadoc)
+	 * @see org.springframework.integration.adapter.mail.monitor.AynchronouseMonitoringStrategy#waitForNewMessages(javax.mail.Folder)
+	 */
+    public void waitForNewMessages(Folder folder) throws MessagingException, InterruptedException {
     	Assert.isInstanceOf(IMAPFolder.class, folder);
         IMAPFolder imapFolder = (IMAPFolder) folder;
         //retrieve unseen messages before we enter the blocking idle call
