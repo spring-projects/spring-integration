@@ -10,21 +10,25 @@
 	<message-bus/>
 	<annotation-driven/>
 
-	<channel id="numbers"/>
 	<channel id="even"/>
 	<channel id="odd"/>
 
-	<channel-adapter source="counter" method="next" channel="numbers">
-		<schedule period="3000"/>
-	</channel-adapter>
+	<channel-adapter id="numbers" source="counter"/>
 
-	<router ref="parityResolver" method="getParity" input-channel="numbers"/>
+	<router ref="parityResolver" method="getParity" input-channel="numbers">
+		<schedule period="3000"/>
+	</router>
 
 	<service-activator ref="oddLogger" input-channel="odd"/>
 
 	<service-activator ref="evenLogger" input-channel="even"/>
 
-	<beans:bean id="counter" class="org.springframework.integration.samples.oddeven.Counter"/>
+	<beans:bean id="counter" class="org.springframework.integration.message.MethodInvokingSource">
+		<beans:property name="object">
+			<beans:bean class="org.springframework.integration.samples.oddeven.Counter"/>
+		</beans:property>
+		<beans:property name="methodName" value="next"/>
+	</beans:bean>
 
 	<beans:bean id="parityResolver" class="org.springframework.integration.samples.oddeven.ParityResolver"/>
 
