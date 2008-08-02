@@ -12,13 +12,12 @@
 	<annotation-driven/>
 
 	<channel id="tickers"/>
-	<channel id="quotes"/>
 
 	<beans:bean class="org.springframework.integration.samples.quote.TickerStream"/>
 
 	<beans:bean class="org.springframework.integration.samples.quote.QuoteService"/>
 
-	<channel-adapter channel="quotes" target="stdout"/>
+	<channel-adapter id="quotes" target="stdout"/>
 
 	<console-target id="stdout" append-newline="true"/>
 

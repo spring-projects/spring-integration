@@ -10,7 +10,6 @@
 	<message-bus/>
 
 	<channel id="fahrenheitChannel"/>
-	<channel id="celsiusChannel"/>
 
 	<!-- The service activator receives from the 'fahrenheitChannel',
 	     invokes the handler, and sends the reply Message to the 'celsiusChannel'. -->
@@ -23,7 +22,7 @@
 				uri="http://www.w3schools.com/webservices/tempconvert.asmx"/>
 
 	<!-- The response from the service is logged to the console. -->
-	<channel-adapter channel="celsiusChannel" target="console"/>
+	<channel-adapter id="celsiusChannel" target="console"/>
 
 	<console-target id="console"/>
 
