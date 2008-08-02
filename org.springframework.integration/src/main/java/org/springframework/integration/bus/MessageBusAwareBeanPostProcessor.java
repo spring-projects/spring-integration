@@ -31,12 +31,14 @@ import org.springframework.util.Assert;
 public class MessageBusAwareBeanPostProcessor implements BeanPostProcessor {
 
 	private final MessageBus messageBus;
-	
+
+
 	public MessageBusAwareBeanPostProcessor(MessageBus messageBus) {
 		Assert.notNull(messageBus, "'messageBus' must not be null");
 		this.messageBus = messageBus;
 	}
-	
+
+
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		return postProcessIfNecessary(bean);
 	}

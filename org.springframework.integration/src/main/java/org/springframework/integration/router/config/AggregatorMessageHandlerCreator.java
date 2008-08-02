@@ -64,26 +64,31 @@ public class AggregatorMessageHandlerCreator extends AbstractMessageHandlerCreat
 	public MessageHandler doCreateHandler(Object object, Method method, Map<String, ?> attributes) {
 		AggregatingMessageHandler messageHandler = new AggregatingMessageHandler(new AggregatorAdapter(object, method));
 		this.configureDefaultReplyChannel(messageHandler, object);
-		if (attributes.containsKey(DISCARD_CHANNEL)) {
-			messageHandler.setDiscardChannel(this.channelRegistry.lookupChannel(
-					(String) attributes.get(DISCARD_CHANNEL)));
+		String discardChannelName = this.getAttribute(attributes, DISCARD_CHANNEL, String.class);
+		if (discardChannelName != null) {
+			messageHandler.setDiscardChannel(this.channelRegistry.lookupChannel(discardChannelName));
 		}
-		if (attributes.containsKey(SEND_TIMEOUT)) {
-			messageHandler.setSendTimeout((Long) attributes.get(SEND_TIMEOUT));
+		Long sendTimeout = this.getAttribute(attributes, SEND_TIMEOUT, Long.class);
+		if (sendTimeout != null) {
+			messageHandler.setSendTimeout(sendTimeout);
 		}
-		if (attributes.containsKey(SEND_PARTIAL_RESULTS_ON_TIMEOUT)) {
-			messageHandler.setSendPartialResultOnTimeout(
-					(Boolean) attributes.get(SEND_PARTIAL_RESULTS_ON_TIMEOUT));
+		Boolean sendPartialResultOnTimeout = this.getAttribute(
+				attributes, SEND_PARTIAL_RESULTS_ON_TIMEOUT, Boolean.class);
+		if (sendPartialResultOnTimeout != null) {
+			messageHandler.setSendPartialResultOnTimeout(sendPartialResultOnTimeout);
 		}
-		if (attributes.containsKey(REAPER_INTERVAL)) {
-			messageHandler.setReaperInterval((Long) attributes.get(REAPER_INTERVAL));
+		Long reaperInterval = this.getAttribute(attributes, REAPER_INTERVAL, Long.class);
+		if (reaperInterval != null) {
+			messageHandler.setReaperInterval(reaperInterval);
 		}
-		if (attributes.containsKey(TIMEOUT)) {
-			messageHandler.setTimeout((Long) attributes.get(TIMEOUT));
+		Long timeout = this.getAttribute(attributes, TIMEOUT, Long.class);
+		if (timeout != null) {
+			messageHandler.setTimeout(timeout);
 		}
-		if (attributes.containsKey(TRACKED_CORRELATION_ID_CAPACITY)) {
-			messageHandler.setTrackedCorrelationIdCapacity(
-					(Integer) attributes.get(TRACKED_CORRELATION_ID_CAPACITY));
+		Integer trackedCorrelationIdCapacity = this.getAttribute(
+				attributes, TRACKED_CORRELATION_ID_CAPACITY, Integer.class);
+		if (trackedCorrelationIdCapacity != null) {
+			messageHandler.setTrackedCorrelationIdCapacity(trackedCorrelationIdCapacity);
 		}
 		this.configureCompletionStrategy(object, messageHandler);
 		return messageHandler;
@@ -109,6 +114,18 @@ public class AggregatorMessageHandlerCreator extends AbstractMessageHandlerCreat
 				}
 			}
 		});
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T> T getAttribute(Map<String, ?> attributes, String name, Class<T> expectedType) {
+		Object value = attributes.get(name);
+		if (value == null || !expectedType.isAssignableFrom(value.getClass())) {
+			return null;
+		}
+		if (value instanceof String && !StringUtils.hasText((String) value)) {
+			return null;
+		}
+		return (T) value;
 	}
 
 }

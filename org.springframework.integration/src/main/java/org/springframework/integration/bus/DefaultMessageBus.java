@@ -94,6 +94,8 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 
 	private volatile TaskScheduler taskScheduler;
 
+	private volatile ApplicationContext applicationContext;
+
 	private volatile boolean configureAsyncEventMulticaster = false;
 
 	private volatile boolean autoCreateChannels = false;
@@ -127,7 +129,7 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 			throw new ConfigurationException("Only one instance of '" + this.getClass().getSimpleName()
 					+ "' is allowed per ApplicationContext.");
 		}
-		this.registerChannels(applicationContext);
+		this.applicationContext = applicationContext;
 	}
 
 	/**
@@ -229,7 +231,15 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 	}
 
 	public MessageChannel lookupChannel(String channelName) {
-		return this.channelRegistry.lookupChannel(channelName);
+		MessageChannel channel = this.channelRegistry.lookupChannel(channelName);
+		if (channel == null && this.applicationContext != null && this.applicationContext.containsBean(channelName)) {
+			Object bean = this.applicationContext.getBean(channelName);
+			if (bean instanceof MessageChannel) {
+				channel = (MessageChannel) bean;
+				this.registerChannel(channelName, channel);
+			}
+		}
+		return channel;
 	}
 
 	public void registerChannel(String name, MessageChannel channel) {
