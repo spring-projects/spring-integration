@@ -99,7 +99,7 @@ public abstract class AbstractHandlerEndpointParser extends AbstractSingleBeanDe
 			builder.addPropertyReference("source", pollerBeanName);
 		}
 		else {
-			builder.addPropertyReference("source", inputChannel);
+			builder.addPropertyValue("inputChannelName", inputChannel);
 		}
 		Element interceptorsElement = DomUtils.getChildElementByTagName(element, INTERCEPTORS_ELEMENT);
 		if (interceptorsElement != null) {
