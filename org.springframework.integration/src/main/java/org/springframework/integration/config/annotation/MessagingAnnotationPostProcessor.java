@@ -27,7 +27,7 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.annotation.MessageEndpoint;
-import org.springframework.integration.annotation.Polled;
+import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
@@ -91,18 +91,18 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Init
 						postProcessor.createEndpoint(bean, beanName, beanClass, endpointAnnotation);
 				if (endpoint != null) {
 					endpoint.setName(beanName + "." + entry.getKey().getSimpleName() + ".endpoint");
-					Polled polledAnnotation = AnnotationUtils.findAnnotation(beanClass, Polled.class);
-					if (polledAnnotation != null) {
-						PollingSchedule schedule = new PollingSchedule(polledAnnotation.period());
-						schedule.setInitialDelay(polledAnnotation.initialDelay());
-						schedule.setFixedRate(polledAnnotation.fixedRate());
-						schedule.setTimeUnit(polledAnnotation.timeUnit());
+					Poller pollerAnnotation = AnnotationUtils.findAnnotation(beanClass, Poller.class);
+					if (pollerAnnotation != null) {
+						PollingSchedule schedule = new PollingSchedule(pollerAnnotation.period());
+						schedule.setInitialDelay(pollerAnnotation.initialDelay());
+						schedule.setFixedRate(pollerAnnotation.fixedRate());
+						schedule.setTimeUnit(pollerAnnotation.timeUnit());
 						String inputChannelName = endpointAnnotation.input();
 						MessageChannel inputChannel = this.messageBus.lookupChannel(inputChannelName);
 						if (inputChannel != null) {
 							if (inputChannel instanceof PollableChannel) {
 								PollingDispatcher poller = new PollingDispatcher((PollableChannel) inputChannel, schedule);
-								poller.setMaxMessagesPerPoll(polledAnnotation.maxMessagesPerPoll());
+								poller.setMaxMessagesPerPoll(pollerAnnotation.maxMessagesPerPoll());
 								endpoint.setSource(poller);
 							}
 							else {

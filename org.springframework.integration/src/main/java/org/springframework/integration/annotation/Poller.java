@@ -29,7 +29,7 @@ import org.springframework.integration.scheduling.PollingSchedule;
 /**
  * Annotation that can be specified at class-level alongside a
  * {@link MessageEndpoint @MessageEndpoint} annotation in order to provide the
- * scheduling information for that endpoint.
+ * polling metadata and scheduling information for that endpoint.
  * 
  * @author Mark Fisher
  */
@@ -37,7 +37,7 @@ import org.springframework.integration.scheduling.PollingSchedule;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-public @interface Polled {
+public @interface Poller {
 
 	int period() default 0;
 

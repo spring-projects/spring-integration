@@ -45,7 +45,7 @@ import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.MessageTarget;
 import org.springframework.integration.annotation.Pollable;
-import org.springframework.integration.annotation.Polled;
+import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.bus.DefaultMessageBus;
@@ -355,7 +355,7 @@ public class MessagingAnnotationPostProcessorTests {
 	}
 
 	@Test
-	public void testEndpointWithPolledAnnotation() {
+	public void testEndpointWithPollerAnnotation() {
 		MessageBus messageBus = new DefaultMessageBus();
 		QueueChannel testChannel = new QueueChannel();
 		messageBus.registerChannel("testChannel", testChannel);
@@ -489,7 +489,7 @@ public class MessagingAnnotationPostProcessorTests {
 
 
 	@MessageEndpoint(input="testChannel")
-	@Polled(period=1234, initialDelay=5678, fixedRate=true, timeUnit=TimeUnit.SECONDS)
+	@Poller(period=1234, initialDelay=5678, fixedRate=true, timeUnit=TimeUnit.SECONDS)
 	private static class AnnotatedEndpointWithPolledAnnotation {
 
 		@Handler
