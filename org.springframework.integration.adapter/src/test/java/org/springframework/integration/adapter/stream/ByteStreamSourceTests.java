@@ -23,11 +23,7 @@ import java.io.ByteArrayInputStream;
 
 import org.junit.Test;
 
-import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.endpoint.SourceEndpoint;
-import org.springframework.integration.endpoint.TriggerMessage;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.scheduling.PollingSchedule;
 
 /**
  * @author Mark Fisher
@@ -38,69 +34,48 @@ public class ByteStreamSourceTests {
 	public void testEndOfStream() {
 		byte[] bytes = new byte[] {1,2,3};
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
-		QueueChannel channel = new QueueChannel();
 		ByteStreamSource source = new ByteStreamSource(stream);
-		SourceEndpoint endpoint = new SourceEndpoint(source);
-		endpoint.setTarget(channel);
-		endpoint.afterPropertiesSet();
-		endpoint.send(new TriggerMessage());
-		Message<?> message1 = channel.receive(500);
+		Message<?> message1 = source.receive();
 		byte[] payload = (byte[]) message1.getPayload();
 		assertEquals(3, payload.length);
 		assertEquals(1, payload[0]);
 		assertEquals(2, payload[1]);
 		assertEquals(3, payload[2]);
-		Message<?> message2 = channel.receive(0);
+		Message<?> message2 = source.receive();
 		assertNull(message2);
-		endpoint.send(new TriggerMessage());
-		Message<?> message3 = channel.receive(0);
-		assertNull(message3);
 	}
 
 	@Test
 	public void testByteArrayIsTruncated() {
 		byte[] bytes = new byte[] {0,1,2,3,4,5};
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
-		QueueChannel channel = new QueueChannel();
 		ByteStreamSource source = new ByteStreamSource(stream);
 		source.setBytesPerMessage(4);
-		PollingSchedule schedule = new PollingSchedule(1000);
-		schedule.setInitialDelay(10000);
-		SourceEndpoint endpoint = new SourceEndpoint(source);
-		endpoint.setTarget(channel);
-		endpoint.afterPropertiesSet();
-		endpoint.send(new TriggerMessage());
-		Message<?> message1 = channel.receive(0);
+		Message<?> message1 = source.receive();
 		assertEquals(4, ((byte[]) message1.getPayload()).length);
-		Message<?> message2 = channel.receive(0);
-		assertNull(message2);
-		endpoint.send(new TriggerMessage());
-		Message<?> message3 = channel.receive(0);
-		assertEquals(2, ((byte[]) message3.getPayload()).length);
+		Message<?> message2 = source.receive();
+		assertEquals(2, ((byte[]) message2.getPayload()).length);
+		Message<?> message3 = source.receive();
+		assertNull(message3);
 	}
 
 	@Test
 	public void testByteArrayIsNotTruncated() {
 		byte[] bytes = new byte[] {0,1,2,3,4,5};
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
-		QueueChannel channel = new QueueChannel();
 		ByteStreamSource source = new ByteStreamSource(stream);
 		source.setBytesPerMessage(4);
 		source.setShouldTruncate(false);
-		PollingSchedule schedule = new PollingSchedule(1000);
-		schedule.setInitialDelay(10000);
-		SourceEndpoint endpoint = new SourceEndpoint(source);
-		endpoint.setTarget(channel);
-		endpoint.afterPropertiesSet();
-		endpoint.send(new TriggerMessage());
-		Message<?> message1 = channel.receive(0);
+		Message<?> message1 = source.receive();
 		assertEquals(4, ((byte[]) message1.getPayload()).length);
-		Message<?> message2 = channel.receive(0);
-		assertNull(message2);
-		endpoint.send(new TriggerMessage());
-		Message<?> message3 = channel.receive(0);
-		assertEquals(4, ((byte[]) message3.getPayload()).length);
-		assertEquals(0, ((byte[]) message3.getPayload())[3]);
+		Message<?> message2 = source.receive();
+		assertEquals(4, ((byte[]) message2.getPayload()).length);
+		assertEquals(4, ((byte[]) message2.getPayload())[0]);
+		assertEquals(5, ((byte[]) message2.getPayload())[1]);
+		assertEquals(0, ((byte[]) message2.getPayload())[2]);
+		assertEquals(0, ((byte[]) message2.getPayload())[3]);
+		Message<?> message3 = source.receive();
+		assertNull(message3);
 	}
 
 }

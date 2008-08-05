@@ -43,7 +43,7 @@ public class CharacterStreamTargetTests {
 	@Before
 	public void initialize() {
 		this.channel = new QueueChannel(10);
-		this.dispatcher = new PollingDispatcher(channel, new BroadcastingDispatcher(), new PollingSchedule(0));
+		this.dispatcher = new PollingDispatcher(channel, new PollingSchedule(0), new BroadcastingDispatcher());
 	}
 
 
@@ -59,7 +59,8 @@ public class CharacterStreamTargetTests {
 	public void testTwoStringsAndNoNewLinesByDefault() {
 		StringWriter writer = new StringWriter();
 		CharacterStreamTarget target = new CharacterStreamTarget(writer);
-		dispatcher.addTarget(target);
+		dispatcher.subscribe(target);
+		dispatcher.setMaxMessagesPerPoll(1);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
 		dispatcher.run();
@@ -73,7 +74,8 @@ public class CharacterStreamTargetTests {
 		StringWriter writer = new StringWriter();
 		CharacterStreamTarget target = new CharacterStreamTarget(writer);
 		target.setShouldAppendNewLine(true);
-		dispatcher.addTarget(target);
+		dispatcher.subscribe(target);
+		dispatcher.setMaxMessagesPerPoll(1);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
 		dispatcher.run();
@@ -87,8 +89,8 @@ public class CharacterStreamTargetTests {
 	public void testMaxMessagesPerTaskSameAsMessageCount() {
 		StringWriter writer = new StringWriter();
 		CharacterStreamTarget target = new CharacterStreamTarget(writer);
-		dispatcher.setMaxMessagesPerTask(2);
-		dispatcher.addTarget(target);
+		dispatcher.setMaxMessagesPerPoll(2);
+		dispatcher.subscribe(target);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
 		dispatcher.run();
@@ -99,9 +101,9 @@ public class CharacterStreamTargetTests {
 	public void testMaxMessagesPerTaskExceedsMessageCountWithAppendedNewLines() {
 		StringWriter writer = new StringWriter();
 		CharacterStreamTarget target = new CharacterStreamTarget(writer);
-		dispatcher.setMaxMessagesPerTask(10);
+		dispatcher.setMaxMessagesPerPoll(10);
 		dispatcher.setReceiveTimeout(0);
-		dispatcher.addTarget(target);		
+		dispatcher.subscribe(target);		
 		target.setShouldAppendNewLine(true);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
@@ -114,7 +116,8 @@ public class CharacterStreamTargetTests {
 	public void testSingleNonStringObject() {
 		StringWriter writer = new StringWriter();
 		CharacterStreamTarget target = new CharacterStreamTarget(writer);
-		dispatcher.addTarget(target);
+		dispatcher.subscribe(target);
+		dispatcher.setMaxMessagesPerPoll(1);
 		TestObject testObject = new TestObject("foo");
 		channel.send(new GenericMessage<TestObject>(testObject));
 		dispatcher.run();
@@ -126,8 +129,8 @@ public class CharacterStreamTargetTests {
 		StringWriter writer = new StringWriter();
 		CharacterStreamTarget target = new CharacterStreamTarget(writer);
 		dispatcher.setReceiveTimeout(0);
-		dispatcher.setMaxMessagesPerTask(2);
-		dispatcher.addTarget(target);
+		dispatcher.setMaxMessagesPerPoll(2);
+		dispatcher.subscribe(target);
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
 		channel.send(new GenericMessage<TestObject>(testObject1), 0);
@@ -142,8 +145,8 @@ public class CharacterStreamTargetTests {
 		CharacterStreamTarget target = new CharacterStreamTarget(writer);
 		target.setShouldAppendNewLine(true);
 		dispatcher.setReceiveTimeout(0);
-		dispatcher.setMaxMessagesPerTask(2);
-		dispatcher.addTarget(target);
+		dispatcher.setMaxMessagesPerPoll(2);
+		dispatcher.subscribe(target);
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
 		channel.send(new GenericMessage<TestObject>(testObject1), 0);

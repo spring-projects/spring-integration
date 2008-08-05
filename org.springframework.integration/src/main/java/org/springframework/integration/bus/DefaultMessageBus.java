@@ -26,6 +26,7 @@ import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.ApplicationContext;
@@ -44,10 +45,10 @@ import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.factory.ChannelFactory;
 import org.springframework.integration.channel.factory.QueueChannelFactory;
+import org.springframework.integration.dispatcher.PollingDispatcher;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.DefaultEndpointRegistry;
 import org.springframework.integration.endpoint.EndpointRegistry;
-import org.springframework.integration.endpoint.EndpointTrigger;
 import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.MessagingGateway;
@@ -55,6 +56,7 @@ import org.springframework.integration.endpoint.TargetEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
+import org.springframework.integration.message.PollableSource;
 import org.springframework.integration.message.SubscribableSource;
 import org.springframework.integration.scheduling.MessagePublishingErrorHandler;
 import org.springframework.integration.scheduling.PollingSchedule;
@@ -84,7 +86,7 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 
 	private final EndpointRegistry endpointRegistry = new DefaultEndpointRegistry();
 
-	private final Set<EndpointTrigger> endpointTriggers = new CopyOnWriteArraySet<EndpointTrigger>();
+	private final Set<PollingDispatcher> pollingDispatchers = new CopyOnWriteArraySet<PollingDispatcher>();
 
 	private volatile Schedule defaultPollerSchedule = new PollingSchedule(0);
 
@@ -348,11 +350,13 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 			}
 			return;
 		}
-		Schedule schedule = endpoint.getSchedule();
-		EndpointTrigger trigger = new EndpointTrigger(schedule != null ? schedule : this.defaultPollerSchedule);
-		trigger.addTarget(endpoint);
-		if (this.endpointTriggers.add(trigger)) {
-			this.taskScheduler.schedule(trigger);
+		if (source != null && source instanceof PollableSource) {
+			Schedule schedule = endpoint.getSchedule();
+			schedule = schedule != null ? schedule : this.defaultPollerSchedule;
+			PollingDispatcher poller = new PollingDispatcher((PollableSource<?>) source, schedule);
+			poller.subscribe(endpoint);
+			this.pollingDispatchers.add(poller);
+			this.taskScheduler.schedule(poller);
 		}
 	}
 
@@ -389,10 +393,10 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 
 	public void deactivateEndpoint(MessageEndpoint endpoint) {
 		Assert.notNull(endpoint, "'endpoint' must not be null");
-		for (EndpointTrigger trigger : this.endpointTriggers) {
-			boolean removed = trigger.removeTarget(endpoint);
+		for (PollingDispatcher poller : this.pollingDispatchers) {
+			boolean removed = poller.unsubscribe(endpoint);
 			if (removed && this.logger.isInfoEnabled()) {
-				logger.info("removed endpoint '" + endpoint + "' from dispatcher");
+				logger.info("removed endpoint '" + endpoint + "' from dispatcher '" + poller + "'");
 			}
 		}
 		if (endpoint instanceof Lifecycle) {

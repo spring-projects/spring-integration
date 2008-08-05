@@ -208,10 +208,6 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 		if (logger.isDebugEnabled()) {
 			logger.debug("endpoint '" + this + "' handling message: " + message);
 		}
-		if (message.getPayload() instanceof EndpointVisitor) {
-			((EndpointVisitor) message.getPayload()).visitEndpoint(this);
-			return true;
-		}
 		return this.send(message, 0);
 	}
 

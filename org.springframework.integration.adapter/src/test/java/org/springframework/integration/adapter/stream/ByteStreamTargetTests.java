@@ -44,7 +44,7 @@ public class ByteStreamTargetTests {
 	@Before
 	public void initialize() {
 		this.channel = new QueueChannel(10);
-		this.dispatcher = new PollingDispatcher(channel, new BroadcastingDispatcher(), new PollingSchedule(0));
+		this.dispatcher = new PollingDispatcher(channel, new PollingSchedule(0), new BroadcastingDispatcher());
 	}
 
 
@@ -74,8 +74,8 @@ public class ByteStreamTargetTests {
 	public void testMaxMessagesPerTaskSameAsMessageCount() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		ByteStreamTarget target = new ByteStreamTarget(stream);
-		dispatcher.setMaxMessagesPerTask(3);
-		dispatcher.addTarget(target);
+		dispatcher.setMaxMessagesPerPoll(3);
+		dispatcher.subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -90,8 +90,8 @@ public class ByteStreamTargetTests {
 	public void testMaxMessagesPerTaskLessThanMessageCount() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		ByteStreamTarget target = new ByteStreamTarget(stream);
-		dispatcher.setMaxMessagesPerTask(2);
-		dispatcher.addTarget(target);
+		dispatcher.setMaxMessagesPerPoll(2);
+		dispatcher.subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -105,9 +105,9 @@ public class ByteStreamTargetTests {
 	public void testMaxMessagesPerTaskExceedsMessageCount() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		ByteStreamTarget target = new ByteStreamTarget(stream);
-		dispatcher.setMaxMessagesPerTask(5);
+		dispatcher.setMaxMessagesPerPoll(5);
 		dispatcher.setReceiveTimeout(0);
-		dispatcher.addTarget(target);
+		dispatcher.subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -121,9 +121,9 @@ public class ByteStreamTargetTests {
 	public void testMaxMessagesLessThanMessageCountWithMultipleDispatches() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		ByteStreamTarget target = new ByteStreamTarget(stream);
-		dispatcher.setMaxMessagesPerTask(2);
+		dispatcher.setMaxMessagesPerPoll(2);
 		dispatcher.setReceiveTimeout(0);
-		dispatcher.addTarget(target);
+		dispatcher.subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -142,9 +142,9 @@ public class ByteStreamTargetTests {
 	public void testMaxMessagesExceedsMessageCountWithMultipleDispatches() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		ByteStreamTarget target = new ByteStreamTarget(stream);
-		dispatcher.setMaxMessagesPerTask(5);
+		dispatcher.setMaxMessagesPerPoll(5);
 		dispatcher.setReceiveTimeout(0);
-		dispatcher.addTarget(target);
+		dispatcher.subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -162,9 +162,9 @@ public class ByteStreamTargetTests {
 	public void testStreamResetBetweenDispatches() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		ByteStreamTarget target = new ByteStreamTarget(stream);
-		dispatcher.setMaxMessagesPerTask(2);
+		dispatcher.setMaxMessagesPerPoll(2);
 		dispatcher.setReceiveTimeout(0);
-		dispatcher.addTarget(target);
+		dispatcher.subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -182,9 +182,9 @@ public class ByteStreamTargetTests {
 	public void testStreamWriteBetweenDispatches() throws IOException {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		ByteStreamTarget target = new ByteStreamTarget(stream);
-		dispatcher.setMaxMessagesPerTask(2);
+		dispatcher.setMaxMessagesPerPoll(2);
 		dispatcher.setReceiveTimeout(0);
-		dispatcher.addTarget(target);
+		dispatcher.subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);

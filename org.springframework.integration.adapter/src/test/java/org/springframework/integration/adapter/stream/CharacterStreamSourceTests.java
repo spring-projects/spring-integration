@@ -23,11 +23,7 @@ import java.io.StringReader;
 
 import org.junit.Test;
 
-import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.endpoint.SourceEndpoint;
-import org.springframework.integration.endpoint.TriggerMessage;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.scheduling.PollingSchedule;
 
 /**
  * @author Mark Fisher
@@ -37,21 +33,11 @@ public class CharacterStreamSourceTests {
 	@Test
 	public void testEndOfStream() {
 		StringReader reader = new StringReader("test");
-		QueueChannel channel = new QueueChannel();
 		CharacterStreamSource source = new CharacterStreamSource(reader);
-		PollingSchedule schedule = new PollingSchedule(1000);
-		schedule.setInitialDelay(10000);
-		SourceEndpoint endpoint = new SourceEndpoint(source);
-		endpoint.setTarget(channel);
-		endpoint.afterPropertiesSet();
-		endpoint.send(new TriggerMessage());
-		Message<?> message1 = channel.receive(0);
+		Message<?> message1 = source.receive();
 		assertEquals("test", message1.getPayload());
-		Message<?> message2 = channel.receive(0);
+		Message<?> message2 = source.receive();
 		assertNull(message2);
-		endpoint.send(new TriggerMessage());
-		Message<?> message3 = channel.receive(0);
-		assertNull(message3);
 	}
 
 }
