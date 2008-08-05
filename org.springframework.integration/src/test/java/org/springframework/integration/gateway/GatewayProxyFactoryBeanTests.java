@@ -144,7 +144,7 @@ public class GatewayProxyFactoryBeanTests {
 				}
 			});
 		}
-		latch.await(5, TimeUnit.SECONDS);
+		latch.await(10, TimeUnit.SECONDS);
 		for (int i = 0; i < 100; i++) {
 			assertEquals("test-" + i + "!!!", results[i]);
 		}
