@@ -60,7 +60,11 @@ public class MethodInvokingSource implements PollableSource<Object>, Initializin
 			this.afterPropertiesSet();
 		}
 		try {
-			return new GenericMessage<Object>(this.invoker.invokeMethod(new Object[] {}));
+			Object result = this.invoker.invokeMethod(new Object[] {});
+			if (result == null) {
+				return null;
+			}
+			return new GenericMessage<Object>(result);
 		} catch (InvocationTargetException e) {
 			throw new MessagingException(
 					"Source method '" + this.methodName + "' threw an Exception.", e.getTargetException());
