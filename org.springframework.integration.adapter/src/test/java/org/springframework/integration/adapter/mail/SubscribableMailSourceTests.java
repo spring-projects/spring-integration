@@ -20,7 +20,7 @@ import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 /**
  * 
  * @author Jonas Partner
- *
+ * 
  */
 public class SubscribableMailSourceTests {
 

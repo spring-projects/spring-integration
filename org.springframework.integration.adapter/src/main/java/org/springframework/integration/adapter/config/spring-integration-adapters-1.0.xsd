@@ -227,6 +227,36 @@
 			<xsd:attribute name="password" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
+	
+	<xsd:element name="polling-mail-source">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a polling mail source.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="id" type="xsd:string" use="required"/>
+			<xsd:attribute name="store-uri" type="xsd:string" use="required"/>
+			<xsd:attribute name="mail-convertor" type="xsd:string" use="optional"/>
+		</xsd:complexType>
+	</xsd:element>
+	
+	<xsd:element name="imap-idle-mail-source">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a polling mail source.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="id" type="xsd:string" use="required"/>
+			<xsd:attribute name="store-uri" type="xsd:string" use="required"/>
+			<xsd:attribute name="task-executor" type="xsd:string" use="required"/>
+			<xsd:attribute name="mail-convertor" type="xsd:string" use="optional"/>
+		</xsd:complexType>
+	</xsd:element>
+	
+	
+	
 
 	<xsd:element name="console-source">
 		<xsd:complexType>

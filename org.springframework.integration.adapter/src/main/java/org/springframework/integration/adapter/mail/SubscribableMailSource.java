@@ -18,15 +18,20 @@ package org.springframework.integration.adapter.mail;
 import javax.mail.Message;
 import javax.mail.internet.MimeMessage;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.integration.adapter.mail.monitor.AsyncMonitoringStrategy;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.SubscribableSource;
 
 /**
- * Broadcasts all mail messages receoved to subscribed {@link MessageTarget}
+ * Broadcasts all mail messages recovered to subscribed {@link MessageTarget}
+ * The given {@link FolderConnection} should be using an
+ * {@link AsyncMonitoringStrategy} to retrieve mail
  * 
  * @author Jonas Partner
  * 
@@ -42,13 +47,12 @@ public class SubscribableMailSource implements SubscribableSource, Lifecycle,
 
 	private boolean monitorRunning = false;
 
-	private final FolderConnection folderConnection;
+	private final Log logger = LogFactory.getLog(getClass());
 
 	private MailMessageConverter converter = new DefaultMailMessageConverter();
 
 	public SubscribableMailSource(FolderConnection folderConnection,
 			TaskExecutor taskExecutor) {
-		this.folderConnection = folderConnection;
 		this.monitorRunnable = new MonitorRunnable(folderConnection);
 		this.taskExecutor = taskExecutor;
 
@@ -75,11 +79,16 @@ public class SubscribableMailSource implements SubscribableSource, Lifecycle,
 	}
 
 	public void start() {
+		logger.info("Starting to monitor mailbox");
 		startMonitor();
+		logger.info("Started to monitor mailbox");
+
 	}
 
 	public void stop() {
+		logger.info("Stopping monitoring of mailbox");
 		stopMonitor();
+		logger.info("Stopped monitoring mailbox");
 	}
 
 	public boolean isRunning() {
@@ -107,7 +116,7 @@ public class SubscribableMailSource implements SubscribableSource, Lifecycle,
 			this.folderConnection = folderConnection;
 		}
 
-		public void interrupt() {
+		public synchronized void interrupt() {
 			thread.interrupt();
 		}
 

@@ -36,8 +36,11 @@ import org.springframework.integration.adapter.mail.monitor.MonitoringStrategy;
 import org.springframework.util.Assert;
 
 /**
+ * A Connection to a mail folder capable of retrieving mail by utilising the
+ * given instance of {@link MonitoringStrategy}
+ * 
  * @author Jonas Partner
- *
+ * 
  */
 public class DefaultFolderConnection implements Lifecycle, InitializingBean,
 		DisposableBean, FolderConnection {
@@ -46,7 +49,7 @@ public class DefaultFolderConnection implements Lifecycle, InitializingBean,
 
 	private final URLName storeUri;
 
-	private final Session session;
+	private Session session;
 
 	private final MonitoringStrategy monitoringStrategy;
 
@@ -56,14 +59,16 @@ public class DefaultFolderConnection implements Lifecycle, InitializingBean,
 
 	private Folder folder;
 
-	public DefaultFolderConnection(String storeUri, Properties javaMailProperties,
+	private Properties javaMailProperties = new Properties();
+
+	public DefaultFolderConnection(String storeUri,
 			MonitoringStrategy monitoringStrategy, boolean polling) {
 		this.storeUri = new URLName(storeUri);
-		this.session = Session.getInstance(javaMailProperties);
 		this.monitoringStrategy = monitoringStrategy;
 		this.polling = polling;
 		if (!polling
-				&& monitoringStrategy.getClass().isAssignableFrom(AsyncMonitoringStrategy.class)) {
+				&& monitoringStrategy.getClass().isAssignableFrom(
+						AsyncMonitoringStrategy.class)) {
 			throw new ConfigurationException(
 					"Folder connection requires an AsyncMonitoringStragey if polling is disabled");
 		}
@@ -72,21 +77,21 @@ public class DefaultFolderConnection implements Lifecycle, InitializingBean,
 	public void afterPropertiesSet() throws Exception {
 
 		Assert.notNull(storeUri, "Property 'storeUri' is required");
-		Assert.notNull(session, "Property 'JavaMailProperties' is required");
 		Assert.notNull(monitoringStrategy,
 				"An instantce of MonitoringStrategy' is required");
-		start();
+		//	
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.springframework.integration.adapter.mail.FolderConnectionI#receive()
 	 */
 	public synchronized Message[] receive() {
 		if (!isRunning()) {
-			throw new org.springframework.integration.message.MessagingException(
-					"Folder connection is not running");
+			start();
 		}
-	
+
 		try {
 			if (!polling) {
 				((AsyncMonitoringStrategy) monitoringStrategy)
@@ -105,7 +110,7 @@ public class DefaultFolderConnection implements Lifecycle, InitializingBean,
 	}
 
 	public synchronized boolean isRunning() {
-		return (folder!= null && folder.isOpen());
+		return (folder != null && folder.isOpen());
 	}
 
 	public synchronized void start() {
@@ -143,6 +148,7 @@ public class DefaultFolderConnection implements Lifecycle, InitializingBean,
 	}
 
 	private void openSession() throws MessagingException {
+		session = Session.getInstance(javaMailProperties);
 		store = session.getStore(storeUri);
 		if (logger.isDebugEnabled()) {
 			logger.debug("Connecting to store ["
@@ -150,6 +156,14 @@ public class DefaultFolderConnection implements Lifecycle, InitializingBean,
 					+ "]");
 		}
 		store.connect();
+	}
+
+	public Properties getJavaMailProperties() {
+		return javaMailProperties;
+	}
+
+	public void setJavaMailProperties(Properties javaMailProperties) {
+		this.javaMailProperties = javaMailProperties;
 	}
 
 }

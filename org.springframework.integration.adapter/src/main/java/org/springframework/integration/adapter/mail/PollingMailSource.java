@@ -81,4 +81,16 @@ public class PollingMailSource implements PollableSource {
 		this.mailMessageStore = mailMessageStore;
 	}
 
+	public FolderConnection getFolderConnection() {
+		return folderConnection;
+	}
+
+	public MailMessageConverter getConverter() {
+		return converter;
+	}
+
+	public LocalMailMessageStore getMailMessageStore() {
+		return mailMessageStore;
+	}
+
 }

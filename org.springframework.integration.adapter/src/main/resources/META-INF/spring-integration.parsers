@@ -9,5 +9,7 @@ jms-gateway=org.springframework.integration.adapter.jms.config.JmsGatewayParser
 jms-source=org.springframework.integration.adapter.jms.config.JmsSourceParser
 jms-target=org.springframework.integration.adapter.jms.config.JmsTargetParser
 mail-target=org.springframework.integration.adapter.mail.config.MailTargetParser
+polling-mail-source=org.springframework.integration.adapter.mail.config.PollingMailSourceParser
+imap-idle-mail-source=org.springframework.integration.adapter.mail.config.SubscribableImapIdleMailSourceParser
 rmi-gateway=org.springframework.integration.adapter.rmi.config.RmiGatewayParser
 rmi-handler=org.springframework.integration.adapter.rmi.config.RmiHandlerParser
