@@ -124,11 +124,12 @@ public class GatewayProxyFactoryBeanTests {
 	public void testMultipleMessagesWithResponseCorrelator() throws InterruptedException {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"gatewayWithResponseCorrelator.xml", GatewayProxyFactoryBeanTests.class);
+		int numRequests = 25;
 		final TestService service = (TestService) context.getBean("proxy");
-		final String[] results = new String[100];
-		final CountDownLatch latch = new CountDownLatch(100);
-		Executor executor = Executors.newFixedThreadPool(25);
-		for (int i = 0; i < 100; i++) {
+		final String[] results = new String[numRequests];
+		final CountDownLatch latch = new CountDownLatch(numRequests);
+		Executor executor = Executors.newFixedThreadPool(numRequests);
+		for (int i = 0; i < numRequests; i++) {
 			final int count = i;
 			executor.execute(new Runnable() {
 				public void run() {
@@ -145,12 +146,12 @@ public class GatewayProxyFactoryBeanTests {
 			});
 		}
 		latch.await(10, TimeUnit.SECONDS);
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < numRequests; i++) {
 			assertEquals("test-" + i + "!!!", results[i]);
 		}
 		TestChannelInterceptor interceptor = (TestChannelInterceptor) context.getBean("interceptor");
-		assertEquals(100, interceptor.getSentCount());
-		assertEquals(100, interceptor.getReceivedCount());
+		assertEquals(numRequests, interceptor.getSentCount());
+		assertEquals(numRequests, interceptor.getReceivedCount());
 	}
 
 	@Test
