@@ -22,11 +22,13 @@ import java.util.Random;
 
 import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.annotation.Polled;
 
 /**
  * @author Mark Fisher
  */
 @MessageEndpoint(input="tickers", output="quotes")
+@Polled(period=300)
 public class QuoteService {
 
 	@Handler

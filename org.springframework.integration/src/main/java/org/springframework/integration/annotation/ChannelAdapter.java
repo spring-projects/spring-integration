@@ -21,21 +21,22 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import org.springframework.integration.message.Message;
+import org.springframework.stereotype.Component;
 
 /**
- * Indicates that a method is capable of producing messages. The method must
- * accept no parameters and return either a {@link Message} or an Object to
- * be passed as the message payload. The enclosing class may also be annotated
- * with {@link MessageEndpoint @MessageEndpoint}.
+ * Indicates that a class is capable of serving as a message channel.
  * 
  * @author Mark Fisher
  */
-@java.lang.annotation.Target(ElementType.METHOD)
+@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-public @interface MessageSource {
+@Component
+public @interface ChannelAdapter {
+
+	String value();
 
 }

@@ -39,11 +39,12 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.annotation.Order;
 import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.annotation.ChannelAdapter;
 import org.springframework.integration.annotation.Concurrency;
 import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.MessageEndpoint;
-import org.springframework.integration.annotation.MessageSource;
 import org.springframework.integration.annotation.MessageTarget;
+import org.springframework.integration.annotation.Pollable;
 import org.springframework.integration.annotation.Polled;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.annotation.Transformer;
@@ -373,15 +374,14 @@ public class MessagingAnnotationPostProcessorTests {
 	}
 
 	@Test
-	public void testMessageSourceAnnotation() {
+	public void testChannelAdapterAnnotation() {
 		MessageBus messageBus = new DefaultMessageBus();
-		QueueChannel testChannel = new QueueChannel();
-		messageBus.registerChannel("testChannel", testChannel);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
 		postProcessor.afterPropertiesSet();
-		MessageSourceAnnotationTestBean testBean = new MessageSourceAnnotationTestBean();
+		ChannelAdapterAnnotationTestBean testBean = new ChannelAdapterAnnotationTestBean();
 		postProcessor.postProcessAfterInitialization(testBean, "testBean");
 		messageBus.start();
+		PollableChannel testChannel = (PollableChannel) messageBus.lookupChannel("testChannel");
 		Message<?> message = testChannel.receive(1000);
 		assertEquals("test", message.getPayload());
 		messageBus.stop();
@@ -526,11 +526,10 @@ public class MessagingAnnotationPostProcessorTests {
 	}
 
 
-	@MessageEndpoint(output="testChannel")
-	@Polled(period=100)
-	private static class MessageSourceAnnotationTestBean {
+	@ChannelAdapter("testChannel")
+	private static class ChannelAdapterAnnotationTestBean {
 
-		@MessageSource
+		@Pollable
 		public String test() {
 			return "test";
 		}

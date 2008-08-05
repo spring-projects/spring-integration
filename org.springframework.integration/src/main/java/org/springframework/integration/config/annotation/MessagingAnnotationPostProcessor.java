@@ -27,12 +27,17 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.annotation.Polled;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelRegistryAware;
+import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
+import org.springframework.integration.dispatcher.PollingDispatcher;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
+import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.util.Assert;
 
 /**
@@ -66,7 +71,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Init
 
 	public void afterPropertiesSet() {
 		this.postProcessors.put(MessageHandler.class, new HandlerAnnotationPostProcessor(this.messageBus, this.beanClassLoader));
-		this.postProcessors.put(MessageSource.class, new SourceAnnotationPostProcessor(this.messageBus, this.beanClassLoader));
+		this.postProcessors.put(MessageSource.class, new PollableAnnotationPostProcessor(this.messageBus, this.beanClassLoader));
 		this.postProcessors.put(MessageTarget.class, new TargetAnnotationPostProcessor(this.messageBus, this.beanClassLoader));
 	}
 
@@ -86,6 +91,29 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Init
 						postProcessor.createEndpoint(bean, beanName, beanClass, endpointAnnotation);
 				if (endpoint != null) {
 					endpoint.setName(beanName + "." + entry.getKey().getSimpleName() + ".endpoint");
+					Polled polledAnnotation = AnnotationUtils.findAnnotation(beanClass, Polled.class);
+					if (polledAnnotation != null) {
+						PollingSchedule schedule = new PollingSchedule(polledAnnotation.period());
+						schedule.setInitialDelay(polledAnnotation.initialDelay());
+						schedule.setFixedRate(polledAnnotation.fixedRate());
+						schedule.setTimeUnit(polledAnnotation.timeUnit());
+						String inputChannelName = endpointAnnotation.input();
+						MessageChannel inputChannel = this.messageBus.lookupChannel(inputChannelName);
+						if (inputChannel != null) {
+							if (inputChannel instanceof PollableChannel) {
+								PollingDispatcher poller = new PollingDispatcher((PollableChannel) inputChannel, schedule);
+								poller.setMaxMessagesPerPoll(polledAnnotation.maxMessagesPerPoll());
+								endpoint.setSource(poller);
+							}
+							else {
+								endpoint.setSource(inputChannel);
+							}
+						}
+						else {
+							endpoint.setInputChannelName(inputChannelName);
+						}
+						endpoint.setSchedule(schedule);
+					}
 					this.messageBus.registerEndpoint(endpoint);
 				}
 			}

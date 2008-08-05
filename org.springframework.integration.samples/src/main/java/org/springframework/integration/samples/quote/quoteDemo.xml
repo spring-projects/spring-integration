@@ -11,8 +11,6 @@
 
 	<annotation-driven/>
 
-	<channel id="tickers"/>
-
 	<beans:bean class="org.springframework.integration.samples.quote.TickerStream"/>
 
 	<beans:bean class="org.springframework.integration.samples.quote.QuoteService"/>

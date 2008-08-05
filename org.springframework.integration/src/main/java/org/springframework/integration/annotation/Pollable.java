@@ -21,32 +21,21 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.util.concurrent.TimeUnit;
 
-import org.springframework.integration.scheduling.PollingSchedule;
+import org.springframework.integration.message.Message;
 
 /**
- * Annotation that can be specified at class-level alongside a
- * {@link MessageEndpoint @MessageEndpoint} annotation in order to provide the
- * scheduling information for that endpoint.
+ * Indicates that a method is capable of producing messages. The method must
+ * accept no parameters and return either a {@link Message} or an Object to
+ * be passed as the message payload. The enclosing class may also be annotated
+ * with {@link ChannelAdapter @ChannelAdapter}.
  * 
  * @author Mark Fisher
  */
-@Target(ElementType.TYPE)
+@java.lang.annotation.Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-public @interface Polled {
-
-	int period() default 0;
-
-	long initialDelay() default PollingSchedule.DEFAULT_INITIAL_DELAY;
-
-	boolean fixedRate() default PollingSchedule.DEFAULT_FIXED_RATE;
-
-	TimeUnit timeUnit() default TimeUnit.MILLISECONDS;
-
-	int maxMessagesPerPoll() default 1;
+public @interface Pollable {
 
 }
