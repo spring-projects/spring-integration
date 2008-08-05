@@ -223,11 +223,11 @@ public class MessageExchangeTemplate implements InitializingBean {
 	}
 
 	private boolean doReceiveAndForward(PollableSource<?> source, MessageTarget target) {
-		Message<?> message = this.doReceive(source);
-		if (message == null) {
-			return false;
-		}
 		try {
+			Message<?> message = this.doReceive(source);
+			if (message == null) {
+				return false;
+			}
 			boolean sent = this.doSend(message, target);
 			if (source instanceof MessageDeliveryAware) {
 				if (sent) {
