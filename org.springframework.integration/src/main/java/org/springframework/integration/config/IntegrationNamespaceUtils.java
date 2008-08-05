@@ -148,6 +148,16 @@ public abstract class IntegrationNamespaceUtils {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PollingDispatcher.class);
 		Long period = Long.valueOf(element.getAttribute("period"));
 		PollingSchedule schedule = new PollingSchedule(period);
+		String initialDelay = element.getAttribute("initial-delay");
+		if (StringUtils.hasText(initialDelay)) {
+			schedule.setInitialDelay(Long.valueOf(initialDelay));
+		}
+		if ("true".equals(element.getAttribute("fixed-rate").toLowerCase())) {
+			schedule.setFixedRate(true);
+		}
+		else {
+			schedule.setFixedRate(false);
+		}
 		String templateBeanName = parseMessageExhangeTemplate(element, parserContext);
 		builder.addConstructorArgReference(sourceBeanName);
 		builder.addConstructorArgValue(schedule);
