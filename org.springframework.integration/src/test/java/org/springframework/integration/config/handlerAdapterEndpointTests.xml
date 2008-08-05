@@ -12,7 +12,7 @@
 	<queue-channel id="testChannel" capacity="50"/>
 
 	<service-activator input-channel="testChannel" ref="testBean" method="store">
-		<schedule period="100"/>
+		<poller period="100"/>
 	</service-activator>
 
 	<beans:bean id="testBean" class="org.springframework.integration.config.TestBean">

@@ -16,7 +16,7 @@
 	<channel-adapter id="numbers" source="counter"/>
 
 	<router ref="parityResolver" method="getParity" input-channel="numbers">
-		<schedule period="3000"/>
+		<poller period="3000" max-messages-per-poll="1"/>
 	</router>
 
 	<service-activator ref="oddLogger" input-channel="odd"/>

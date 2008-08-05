@@ -207,7 +207,6 @@
 		<xsd:complexContent>
 			<xsd:extension base="beans:identifiedType">
 				<xsd:all>
-					<xsd:element ref="schedule" minOccurs="0" maxOccurs="1"/>
 					<xsd:element ref="poller" minOccurs="0" maxOccurs="1"/>
 					<xsd:element name="interceptors" type="endpointInterceptorsType" minOccurs="0" maxOccurs="1"/>
 				</xsd:all>
@@ -219,17 +218,6 @@
 		</xsd:complexContent>
 	</xsd:complexType>
 
-	<xsd:element name="schedule">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-	Defines a schedule.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:attribute name="period" type="xsd:int"/>
-		</xsd:complexType>
-	</xsd:element>
-
 	<xsd:element name="poller">
 		<xsd:complexType>
 			<xsd:annotation>
@@ -240,10 +228,11 @@
 			<xsd:sequence>
 				<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1"/>
 			</xsd:sequence>
-			<xsd:attribute name="ref" type="xsd:string"/>
-			<xsd:attribute name="task-executor" type="xsd:string"/>
+			<xsd:attribute name="period" type="xsd:long" use="required"/>
 			<xsd:attribute name="receive-timeout" type="xsd:long"/>
 			<xsd:attribute name="send-timeout" type="xsd:long"/>
+			<xsd:attribute name="max-messages-per-poll" type="xsd:long"/>
+			<xsd:attribute name="task-executor" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
 

@@ -17,8 +17,6 @@
 package org.springframework.integration.config;
 
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
@@ -31,9 +29,8 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.handler.MessageHandler;
-import org.springframework.integration.scheduling.PollingSchedule;
-import org.springframework.integration.scheduling.Schedule;
 import org.springframework.util.StringUtils;
+import org.springframework.util.xml.DomUtils;
 
 /**
  * Base class parser for elements that create handler-invoking endpoints.
@@ -51,10 +48,6 @@ public abstract class AbstractHandlerEndpointParser extends AbstractSingleBeanDe
 	protected static final String OUTPUT_CHANNEL_ATTRIBUTE = "output-channel";
 
 	protected static final String RETURN_ADDRESS_OVERRIDES_ATTRIBUTE = "return-address-overrides";
-
-	private static final String PERIOD_ATTRIBUTE = "period";
-
-	private static final String SCHEDULE_ELEMENT = "schedule";
 
 	private static final String POLLER_ELEMENT = "poller";
 
@@ -96,32 +89,24 @@ public abstract class AbstractHandlerEndpointParser extends AbstractSingleBeanDe
 		else {
 			builder.addConstructorArgReference(ref);
 		}
-		Schedule schedule = null;
-		NodeList childNodes = element.getChildNodes();
-		for (int i = 0; i < childNodes.getLength(); i++) {
-			Node child = childNodes.item(i);
-			if (child.getNodeType() == Node.ELEMENT_NODE) {
-				Element childElement = (Element) child;
-				String localName = child.getLocalName();
-				if (SCHEDULE_ELEMENT.equals(localName)) {
-					schedule = this.parseSchedule(childElement);
-				}
-				else if (POLLER_ELEMENT.equals(localName)) {
-					builder.addPropertyReference("messageExchangeTemplate",
-							IntegrationNamespaceUtils.parsePoller(childElement, parserContext));
-				}
-				else if (INTERCEPTORS_ELEMENT.equals(localName)) {
-					EndpointInterceptorParser parser = new EndpointInterceptorParser();
-					ManagedList interceptors = parser.parseInterceptors(childElement, parserContext);
-					builder.addPropertyValue("interceptors", interceptors);
-				}
-			}
+		String inputChannel = element.getAttribute(INPUT_CHANNEL_ATTRIBUTE);
+		if (!StringUtils.hasText(inputChannel)) {
+			throw new ConfigurationException("the '" + INPUT_CHANNEL_ATTRIBUTE + "' attribute is required");
 		}
-		if (schedule != null) {
-			builder.addPropertyValue("schedule", schedule);
+		Element pollerElement = DomUtils.getChildElementByTagName(element, POLLER_ELEMENT);
+		if (pollerElement != null) {
+			String pollerBeanName = IntegrationNamespaceUtils.parsePoller(inputChannel, pollerElement, parserContext);
+			builder.addPropertyReference("source", pollerBeanName);
 		}
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(
-				builder, element, INPUT_CHANNEL_ATTRIBUTE, "inputChannelName");
+		else {
+			builder.addPropertyReference("source", inputChannel);
+		}
+		Element interceptorsElement = DomUtils.getChildElementByTagName(element, INTERCEPTORS_ELEMENT);
+		if (interceptorsElement != null) {
+			EndpointInterceptorParser parser = new EndpointInterceptorParser();
+			ManagedList interceptors = parser.parseInterceptors(interceptorsElement, parserContext);
+			builder.addPropertyValue("interceptors", interceptors);
+		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(
 				builder, element, OUTPUT_CHANNEL_ATTRIBUTE, "outputChannelName");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, SELECTOR_ATTRIBUTE);
@@ -149,15 +134,6 @@ public abstract class AbstractHandlerEndpointParser extends AbstractSingleBeanDe
 		BeanDefinitionHolder holder = new BeanDefinitionHolder(builder.getBeanDefinition(), adapterBeanName);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(holder));
 		return adapterBeanName;
-	}
-
-	private Schedule parseSchedule(Element scheduleElement) {
-		PollingSchedule schedule = new PollingSchedule(0);
-		String period = scheduleElement.getAttribute(PERIOD_ATTRIBUTE);
-		if (StringUtils.hasText(period)) {
-			schedule.setPeriod(Integer.parseInt(period));
-		}
-		return schedule;
 	}
 
 }

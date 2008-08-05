@@ -20,7 +20,7 @@
 	</handler-chain>
 
 	<service-activator input-channel="testChannel" ref="chain" output-channel="replyChannel">
-		<schedule period="100"/>
+		<poller period="100"/>
 	</service-activator>
 
 	<beans:bean id="handler1" class="org.springframework.integration.config.TestConcatenatingHandler">

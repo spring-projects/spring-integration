@@ -25,8 +25,11 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
+import org.springframework.integration.dispatcher.PollingDispatcher;
+import org.springframework.integration.dispatcher.SimpleDispatcher;
 import org.springframework.integration.message.AsyncMessageExchangeTemplate;
 import org.springframework.integration.message.MessageExchangeTemplate;
+import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
@@ -135,26 +138,30 @@ public abstract class IntegrationNamespaceUtils {
 
 	/**
 	 * Parse a "poller" element and return the bean name of the poller instance.
-	 * The name will be generated for a newly created bean, or if the poller
-	 * element simply provides a "ref", that value will be returned.
 	 * 
+	 * @param sourceBeanName the name of the PollableSource bean
 	 * @param element the "poller" element to parse
 	 * @param parserContext the parserContext for registering a newly created bean definition
 	 * @return the name of the poller bean definition
 	 */
-	public static String parsePoller(Element element, ParserContext parserContext) {
-		String ref = element.getAttribute("ref");
+	public static String parsePoller(String sourceBeanName, Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PollingDispatcher.class);
+		Long period = Long.valueOf(element.getAttribute("period"));
+		PollingSchedule schedule = new PollingSchedule(period);
+		String templateBeanName = parseMessageExhangeTemplate(element, parserContext);
+		builder.addConstructorArgReference(sourceBeanName);
+		builder.addConstructorArgValue(schedule);
+		builder.addConstructorArgValue(new SimpleDispatcher());
+		builder.addConstructorArgReference(templateBeanName);
+		setValueIfAttributeDefined(builder, element, "receive-timeout");
+		setValueIfAttributeDefined(builder, element, "send-timeout");
+		setValueIfAttributeDefined(builder, element, "max-messages-per-poll");
+		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
+	}
+
+	private static String parseMessageExhangeTemplate(Element element, ParserContext parserContext) {
 		String taskExecutorRef = element.getAttribute("task-executor");
 		Element txElement = DomUtils.getChildElementByTagName(element, "transactional");
-		if (StringUtils.hasText(ref)) {
-			if (StringUtils.hasText(taskExecutorRef) || (txElement != null)) {
-				parserContext.getReaderContext().error(
-						"Neither the 'task-executor' attribute or 'transactional' sub-element "
-						+ "should be provided when using the 'ref' attribute.",
-						parserContext.extractSource(element));
-			}
-			return ref;
-		}
 		Class<?> beanClass = (StringUtils.hasText(taskExecutorRef)) ?
 				AsyncMessageExchangeTemplate.class : MessageExchangeTemplate.class;
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(beanClass);

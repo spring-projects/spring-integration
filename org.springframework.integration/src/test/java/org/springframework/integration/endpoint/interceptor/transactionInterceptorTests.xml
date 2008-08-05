@@ -17,7 +17,7 @@
 	                  ref="testBean"
 	                  method="bad"
                       output-channel="output">
-        <schedule period="100"/>
+        <poller period="100"/>
     	<interceptors>
 			<transaction-interceptor transaction-manager="txManager"/>
     	</interceptors>
@@ -27,7 +27,7 @@
 	                  ref="testBean"
 	                  method="good"
                       output-channel="output">
-        <schedule period="100"/>
+        <poller period="100"/>
 		<interceptors>
 			<transaction-interceptor transaction-manager="txManager" propagation="REQUIRED"/>
 		</interceptors>

@@ -17,7 +17,7 @@
 	                  ref="testBean"
 	                  method="good"
                       output-channel="output">
-        <schedule period="10000"/>
+        <poller period="10000"/>
     	<interceptors>
 			<transaction-interceptor transaction-manager="txManager" propagation="REQUIRED"/>
     	</interceptors>
@@ -28,7 +28,7 @@
 	                  ref="testBean"
 	                  method="good"
                       output-channel="output">
-        <schedule period="10000"/>
+        <poller period="10000"/>
     	<interceptors>
 			<transaction-interceptor transaction-manager="txManager" propagation="REQUIRES_NEW"/>
     	</interceptors>
@@ -39,7 +39,7 @@
 	                  ref="testBean"
 	                  method="good"
                       output-channel="output">
-        <schedule period="10000"/>
+        <poller period="10000"/>
     	<interceptors>
 			<transaction-interceptor transaction-manager="txManager" propagation="SUPPORTS"/>
     	</interceptors>
@@ -50,7 +50,7 @@
 	                  ref="testBean"
 	                  method="good"
                       output-channel="output">
-        <schedule period="10000"/>
+        <poller period="10000"/>
     	<interceptors>
 			<transaction-interceptor transaction-manager="txManager" propagation="NOT_SUPPORTED"/>
     	</interceptors>
@@ -61,7 +61,7 @@
 	                  ref="testBean"
 	                  method="good"
                       output-channel="output">
-        <schedule period="10000"/>
+        <poller period="10000"/>
     	<interceptors>
 			<transaction-interceptor transaction-manager="txManager" propagation="MANDATORY"/>
     	</interceptors>

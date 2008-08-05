@@ -344,6 +344,11 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 		}
 		if (source != null && source instanceof SubscribableSource) {
 			((SubscribableSource) source).subscribe(endpoint);
+			if (source instanceof PollingDispatcher) {
+				PollingDispatcher poller = (PollingDispatcher) source;
+				this.pollingDispatchers.add(poller);
+				this.taskScheduler.schedule(poller);
+			}
 			if (logger.isInfoEnabled()) {
 				logger.info("activated subscription to channel '"
 						+ source + "' for endpoint '" + endpoint + "'");

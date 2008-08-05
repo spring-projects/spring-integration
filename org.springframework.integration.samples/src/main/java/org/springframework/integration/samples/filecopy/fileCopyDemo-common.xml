@@ -16,7 +16,7 @@
 	<service-activator input-channel="channel1"
 	                   output-channel="channel2"
                        ref="exclaimer" method="exclaim">
-    	<schedule period="5000"/>
+    	<poller period="5000"/>
     </service-activator>
 
 	<channel-adapter id="channel2" target="fileTarget"/>

@@ -17,7 +17,7 @@
 	                   input-channel="testChannel"
 	                   ref="testHandler"
 	                   output-channel="replyChannel">
-		<schedule period="100"/>
+		<poller period="100"/>
 		<interceptors>
 			<beans:bean class="org.springframework.integration.config.TestPreSendInterceptor"/>
 			<beans:bean class="org.springframework.integration.config.TestAroundSendEndpointInterceptor"/>
@@ -28,7 +28,7 @@
 	                   input-channel="testChannel"
 	                   ref="testHandler"
 	                   output-channel="replyChannel">
-		<schedule period="100"/>
+		<poller period="100"/>
 		<interceptors>
 			<ref bean="preInterceptor"/>
 			<ref bean="aroundInterceptor"/>
