@@ -240,8 +240,8 @@ public class MessageExchangeTemplate implements InitializingBean {
 			return sent;
 		}
 		catch (Exception e) {
-			MessagingException exception = new MessagingException(
-					"exception occurred in receive-and-forward exchange", e);
+			MessagingException exception = (e instanceof MessagingException) ? (MessagingException) e
+					: new MessagingException("exception occurred in receive-and-forward exchange", e);
 			if (source instanceof MessageDeliveryAware) {
 				((MessageDeliveryAware) source).onFailure(exception);
 			}
