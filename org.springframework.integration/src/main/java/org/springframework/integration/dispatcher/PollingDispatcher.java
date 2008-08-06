@@ -36,7 +36,7 @@ public class PollingDispatcher implements SchedulableTask, SubscribableSource {
 
 	public final static int MAX_MESSAGES_UNBOUNDED = -1;
 
-	public final static long DEFAULT_RECEIVE_TIMEOUT = 5000;
+	public final static long DEFAULT_RECEIVE_TIMEOUT = -1;
 
 
 	private final Log logger = LogFactory.getLog(this.getClass());
@@ -80,8 +80,8 @@ public class PollingDispatcher implements SchedulableTask, SubscribableSource {
 	 * Note that this value will only be applicable if the source is an instance
 	 * of {@link BlockingSource}.
 	 * <p/>
-	 * A negative value indicates that receive calls should block indefinitely.
-	 * The default value is 5000 (5 seconds).
+	 * A negative value indicates that receive calls should block indefinitely,
+	 * and that is the default behavior.
 	 */
 	public void setReceiveTimeout(long receiveTimeout) {
 		this.messageExchangeTemplate.setReceiveTimeout(receiveTimeout);
@@ -90,7 +90,7 @@ public class PollingDispatcher implements SchedulableTask, SubscribableSource {
 	/**
 	 * Specify the timeout to use when sending to a target (in milliseconds).
 	 * Note that this value will only be applicable if the target is an instance
-	 * of {@link BlockingTarget}. The default value is 0.
+	 * of {@link BlockingTarget}.
 	 */
 	public void setSendTimeout(long sendTimeout) {
 		this.dispatcher.setTimeout(sendTimeout);

@@ -124,9 +124,6 @@ public class RouterMessageHandlerAdapter extends AbstractMessageHandlerAdapter i
 			}
 			return false;
 		}
-		if (logger.isDebugEnabled()) {
-			logger.debug("sending message to channel '" + channelName + "'");
-		}
 		return this.sendMessage(message, channel);
 	}
 
