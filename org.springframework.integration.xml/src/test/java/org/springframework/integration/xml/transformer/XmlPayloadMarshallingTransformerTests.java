@@ -37,9 +37,10 @@ import org.springframework.xml.transform.StringResult;
 public class XmlPayloadMarshallingTransformerTests {
 
 	@Test
-	public void testStringToStringResult() {
+	public void testStringToStringResult() throws Exception {
 		TestMarshaller marshaller = new TestMarshaller();
-		XmlPayloadMarshallingTransformer transformer = new XmlPayloadMarshallingTransformer(marshaller);
+		XmlPayloadMarshallingTransformer transformer = new XmlPayloadMarshallingTransformer(
+				marshaller);
 		transformer.setResultFactory(new StringResultFactory());
 		Object result = transformer.transform("world");
 		assertEquals(StringResult.class, result.getClass());
@@ -48,14 +49,14 @@ public class XmlPayloadMarshallingTransformerTests {
 	}
 
 	@Test
-	public void testDefaultResultFactory() {
+	public void testDefaultResultFactory() throws Exception {
 		TestMarshaller marshaller = new TestMarshaller();
-		XmlPayloadMarshallingTransformer transformer = new XmlPayloadMarshallingTransformer(marshaller);
+		XmlPayloadMarshallingTransformer transformer = new XmlPayloadMarshallingTransformer(
+				marshaller);
 		Object result = transformer.transform("world");
 		assertEquals(DOMResult.class, result.getClass());
 		assertEquals("world", marshaller.payloads.get(0));
 	}
-
 
 	private static class TestMarshaller implements Marshaller {
 
@@ -66,7 +67,8 @@ public class XmlPayloadMarshallingTransformerTests {
 			return true;
 		}
 
-		public void marshal(Object originalPayload, Result result) throws XmlMappingException, IOException {
+		public void marshal(Object originalPayload, Result result)
+				throws XmlMappingException, IOException {
 			payloads.add(originalPayload);
 			if (result instanceof StringResult) {
 				((StringResult) result).getWriter().write("hello world");

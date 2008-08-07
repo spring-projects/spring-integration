@@ -16,6 +16,9 @@
 
 package org.springframework.integration.xml.result;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Result;
 import javax.xml.transform.dom.DOMResult;
 
@@ -24,8 +27,18 @@ import javax.xml.transform.dom.DOMResult;
  */
 public class DomResultFactory implements ResultFactory {
 
-	public Result createResult(Object payload) {
-		return new DOMResult();
+	private final DocumentBuilder documentBuilder;
+	
+	public DomResultFactory(DocumentBuilder documentBuilder){
+		this.documentBuilder = documentBuilder;
+	}
+	
+	public DomResultFactory() throws ParserConfigurationException{
+		this(DocumentBuilderFactory.newInstance().newDocumentBuilder());
+	} 
+	
+	public synchronized Result createResult(Object payload) {
+		return new DOMResult(documentBuilder.newDocument());
 	}
 
 }

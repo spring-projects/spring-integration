@@ -16,6 +16,7 @@
 
 package org.springframework.integration.xml.transformer;
 
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
 import javax.xml.transform.Templates;
@@ -45,15 +46,16 @@ public class XsltPayloadTransformer implements PayloadTransformer<Object, Result
 
 	private SourceFactory sourceFactory = new DomSourceFactory();
 
-	private ResultFactory resultFactory = new DomResultFactory();
+	private ResultFactory resultFactory;
 
 
-	public XsltPayloadTransformer(Templates templates) {
+	public XsltPayloadTransformer(Templates templates) throws ParserConfigurationException {
 		this.templates = templates;
+		resultFactory = new DomResultFactory();
 	}
 
 	public XsltPayloadTransformer(Resource xslResource) throws Exception {
-		this.templates = TransformerFactory.newInstance().newTemplates(new StreamSource(xslResource.getInputStream()));
+		this(TransformerFactory.newInstance().newTemplates(new StreamSource(xslResource.getInputStream())));
 	}
 
 

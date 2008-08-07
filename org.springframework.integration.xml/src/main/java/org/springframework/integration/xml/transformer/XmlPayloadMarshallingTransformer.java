@@ -18,6 +18,7 @@ package org.springframework.integration.xml.transformer;
 
 import java.io.IOException;
 
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Result;
 
 import org.springframework.integration.message.MessagingException;
@@ -38,12 +39,13 @@ public class XmlPayloadMarshallingTransformer implements PayloadTransformer<Obje
 
 	private final Marshaller marshaller;
 
-	private ResultFactory resultFactory = new DomResultFactory();
+	private ResultFactory resultFactory;
 
 
-	public XmlPayloadMarshallingTransformer(Marshaller marshaller) {
+	public XmlPayloadMarshallingTransformer(Marshaller marshaller) throws ParserConfigurationException {
 		Assert.notNull(marshaller, "a marshaller is required");
 		this.marshaller = marshaller;
+		resultFactory = new DomResultFactory();
 	}
 
 
