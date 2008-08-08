@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:si="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="
+			http://www.springframework.org/schema/beans 
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
+
+	<si:message-bus />
+
+	<bean id="ftpSource"
+		class="org.springframework.integration.adapter.ftp.FtpSource"
+		p:host="localhost" p:password="kaas" p:username="ftp-user"
+		p:remoteWorkingDirectory="ftp-test">
+		<constructor-arg>
+			<bean
+				class="org.springframework.integration.message.DefaultMessageCreator" />
+		</constructor-arg>
+	</bean>
+
+	<si:channel-adapter id="input" source="ftpSource" />
+
+	<si:splitter output-channel="output" input-channel="input" ref="defaultSplitter" method="split"/>
+
+	<bean id="defaultSplitter"
+		class="org.springframework.integration.util.CollectionSplitter" />
+
+	<si:channel id="output"/>
+</beans>

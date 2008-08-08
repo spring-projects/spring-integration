@@ -61,7 +61,7 @@ public class DirectoryContentManager {
 		 * messages in the processing buffer something is wrong because they
 		 * were not processed, nor raised as failed.
 		 */
-		Assert.isTrue(processingBuffer.get().isEmpty());
+		Assert.isTrue(processingBuffer.get().isEmpty(), "Processing buffer not emptied before poll.");
 		Iterator<Map.Entry<String, FileInfo>> iter = this.backlog.entrySet().iterator();
 		while (iter.hasNext()) {
 			String fileName = iter.next().getKey();
@@ -97,15 +97,13 @@ public class DirectoryContentManager {
 		}
 	}
 
-	public synchronized void fileNotProcessed(String... fileNames) {
-		for (String fileName : fileNames) {
-			if (fileName != null) {
-				if (logger.isDebugEnabled()) {
-					logger.debug("File '" + fileName + "' was not processed. Moving it back to the backlog");
-				}
-				this.backlog.put(fileName, this.processingBuffer.get().remove(fileName));
-			}
+	public synchronized void processingFailed() {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Moving all files from processing buffer to backlog. Processing has failed");
 		}
+		Map<String, FileInfo> processing = this.processingBuffer.get();
+		this.backlog.putAll(processing);
+		processing.clear();
 	}
 
 	public synchronized void fileProcessed(String... fileNames) {

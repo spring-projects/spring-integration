@@ -3,13 +3,20 @@ package org.springframework.integration.adapter.ftp.config;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.adapter.ftp.FtpSource;
+import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.channel.PollableChannel;
+import org.springframework.integration.config.MessageBusParser;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageCreator;
@@ -64,6 +71,15 @@ public class FtpSourceIntegrationTests {
 		Message<List<File>> received = ftpSource.receive();
 		assertTrue(received.getPayload().iterator().next().exists());
 	}
-
 	
+	@Test public void withChannelAdapter() {
+		ApplicationContext context = new ClassPathXmlApplicationContext("ftpSourceWithChannelAdapter.xml", this.getClass());
+		ChannelRegistry channelRegistry = (ChannelRegistry) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
+		PollableChannel input = (PollableChannel) channelRegistry.lookupChannel("output");
+		List<File> files = new ArrayList<File>();
+		files.add((File) input.receive().getPayload());
+		files.add((File) input.receive().getPayload());
+		assertTrue(files.containsAll(Arrays.asList(new File("file1"), new File("file2"))));
+	}
+
 }

@@ -48,6 +48,7 @@ import org.junit.Test;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageCreator;
+import org.springframework.integration.message.MessagingException;
 
 @SuppressWarnings("unchecked")
 public class FtpSourceTests {
@@ -92,9 +93,9 @@ public class FtpSourceTests {
 		ftpClient.connect(HOST, 21);
 		expect(ftpClient.login(USER, PASS)).andReturn(true);
 		expect(ftpClient.setFileType(anyInt())).andReturn(true);
-		expect(ftpClient.printWorkingDirectory()).andReturn("/");
-		expect(ftpClient.listFiles()).andReturn(mockedFTPFilesNamed("test"));
-		expect(ftpClient.retrieveFile(eq("test"), isA(OutputStream.class))).andReturn(true);
+		expect(ftpClient.printWorkingDirectory()).andReturn("/").anyTimes();
+		expect(ftpClient.listFiles()).andReturn(mockedFTPFilesNamed("test1"));
+		expect(ftpClient.retrieveFile(eq("test1"), isA(OutputStream.class))).andReturn(true);
 		// create message
 		expect(messageCreator.createMessage(isA(List.class))).andReturn(
 				new GenericMessage(Arrays.asList(new File("test1"))));
@@ -130,7 +131,7 @@ public class FtpSourceTests {
 		ftpClient.connect(HOST, 21);
 		expect(ftpClient.login(USER, PASS)).andReturn(true);
 		expect(ftpClient.setFileType(anyInt())).andReturn(true);
-		expect(ftpClient.printWorkingDirectory()).andReturn("/");
+		expect(ftpClient.printWorkingDirectory()).andReturn("/").anyTimes();
 
 		// get files
 		expect(ftpClient.listFiles()).andReturn(mockedFTPFilesNamed("test1", "test2")).times(2);
@@ -274,6 +275,24 @@ public class FtpSourceTests {
 		receivesDone.await();
 		verify(globalMocks);
 	}
+	
+	@Test public void onFailure() throws Exception{
+			// connect client and get file
+			expect(ftpClient.isConnected()).andReturn(true).anyTimes();
+
+			expect(ftpClient.listFiles()).andReturn(mockedFTPFilesNamed("test1")).times(2);
+			expect(ftpClient.retrieveFile(eq("test1"), isA(OutputStream.class))).andReturn(true).times(2);
+			// create message
+			expect(messageCreator.createMessage(isA(List.class))).andReturn(
+					new GenericMessage(Arrays.asList(new File("test1")))).times(2);
+			ftpClient.disconnect();
+			ftpClient.disconnect();
+			replay(globalMocks);
+			Message<List<File>> received = ftpSource.receive();
+			ftpSource.onFailure(new MessagingException(received));
+			assertEquals(received, ftpSource.receive());
+			verify(globalMocks);
+		}
 
 	@AfterClass
 	public static void deleteFiles() {

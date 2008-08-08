@@ -110,6 +110,7 @@ public abstract class AbstractDirectorySource<T> implements PollableSource<T>, M
 		if (this.logger.isWarnEnabled()) {
 			logger.warn("Failure notification received by " + this.getClass().getSimpleName(), exception);
 		}
+		directoryContentManager.processingFailed();
 	}
 
 	/**
@@ -126,8 +127,8 @@ public abstract class AbstractDirectorySource<T> implements PollableSource<T>, M
 	 */
 	protected abstract T retrieveNextPayload() throws IOException;
 
-	protected final void fileProcessed(String fileName) {
-		this.directoryContentManager.fileProcessed(fileName);
+	protected final void fileProcessed(String ... fileNames) {
+		this.directoryContentManager.fileProcessed(fileNames);
 	}
 
 }
