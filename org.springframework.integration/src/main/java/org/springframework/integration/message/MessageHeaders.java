@@ -36,6 +36,8 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	public static final String CORRELATION_ID = "internal.header.correlationId";
 
+	public static final String NEXT_TARGET = "internal.header.nextTarget";
+
 	public static final String RETURN_ADDRESS = "internal.header.returnAddress";
 
 	public static final String EXPIRATION_DATE = "internal.header.exprirationDate";
@@ -70,6 +72,10 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	public Object getReturnAddress() {
 		return this.get(RETURN_ADDRESS);
+	}
+
+	public Object getNextTarget() {
+		return this.get(NEXT_TARGET);
 	}
 
 	public Integer getSequenceNumber() {

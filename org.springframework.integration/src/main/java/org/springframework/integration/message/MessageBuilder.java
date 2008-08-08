@@ -111,7 +111,19 @@ public final class MessageBuilder<T> {
 		return this.setHeader(MessageHeaders.CORRELATION_ID, correlationId);
 	}
 
-	public MessageBuilder<T> setReturnAddress(Object returnAddress) {
+	public MessageBuilder<T> setNextTarget(MessageTarget nextTarget) {
+		return this.setHeader(MessageHeaders.NEXT_TARGET, nextTarget);
+	}
+
+	public MessageBuilder<T> setNextTarget(String nextTarget) {
+		return this.setHeader(MessageHeaders.NEXT_TARGET, nextTarget);
+	}
+
+	public MessageBuilder<T> setReturnAddress(MessageTarget returnAddress) {
+		return this.setHeader(MessageHeaders.RETURN_ADDRESS, returnAddress);
+	}
+
+	public MessageBuilder<T> setReturnAddress(String returnAddress) {
 		return this.setHeader(MessageHeaders.RETURN_ADDRESS, returnAddress);
 	}
 
