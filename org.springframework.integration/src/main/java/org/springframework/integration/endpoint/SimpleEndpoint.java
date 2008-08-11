@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.CompositeMessage;
@@ -120,6 +121,9 @@ public class SimpleEndpoint<T extends MessageHandler> implements MessageTarget, 
 	}
 
 	public void setChannelRegistry(ChannelRegistry channelRegistry) {
+		if (this.handler instanceof ChannelRegistryAware) {
+			((ChannelRegistryAware) this.handler).setChannelRegistry(channelRegistry);
+		}
 		this.channelRegistry = channelRegistry;
 	}
 
