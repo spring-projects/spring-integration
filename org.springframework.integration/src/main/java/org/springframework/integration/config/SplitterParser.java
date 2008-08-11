@@ -16,14 +16,10 @@
 
 package org.springframework.integration.config;
 
-import org.w3c.dom.Element;
-
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.endpoint.MessageEndpoint;
+import org.springframework.integration.endpoint.SimpleEndpoint;
 import org.springframework.integration.handler.MessageHandler;
-import org.springframework.integration.router.SplitterMessageHandlerAdapter;
-import org.springframework.util.StringUtils;
+import org.springframework.integration.splitter.SplitterMessageHandler;
 
 /**
  * Parser for the &lt;splitter/&gt; element.
@@ -33,17 +29,13 @@ import org.springframework.util.StringUtils;
 public class SplitterParser extends AbstractHandlerEndpointParser {
 
 	@Override
-	protected Class<? extends MessageHandler> getHandlerAdapterClass() {
-		return SplitterMessageHandlerAdapter.class;
+	protected Class<? extends MessageEndpoint> getEndpointClass() {
+		return SimpleEndpoint.class;
 	}
 
 	@Override
-	protected void postProcessAdapterBean(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
-		String outputChannelName = element.getAttribute("output-channel");
-		if (!StringUtils.hasText(outputChannelName)) {
-			throw new ConfigurationException("The 'output-channel' attribute is required.");
-		}
-		builder.addPropertyValue("outputChannelName", outputChannelName);
+	protected Class<? extends MessageHandler> getHandlerAdapterClass() {
+		return SplitterMessageHandler.class;
 	}
 
 }
