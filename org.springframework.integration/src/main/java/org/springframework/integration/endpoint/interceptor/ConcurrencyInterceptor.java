@@ -17,8 +17,10 @@
 package org.springframework.integration.endpoint.interceptor;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -36,9 +38,10 @@ import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.EndpointInterceptor;
+import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerRejectedExecutionException;
+import org.springframework.integration.message.AsyncMessage;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.scheduling.MessagePublishingErrorHandler;
 import org.springframework.integration.util.ErrorHandler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
@@ -118,30 +121,36 @@ public class ConcurrencyInterceptor extends EndpointInterceptorAdapter
 	}
 
 	@Override
-	public boolean aroundSend(final Message<?> message, final MessageTarget endpoint) {
+	@SuppressWarnings("unchecked")
+	public Message<?> aroundHandle(final Message<?> requestMessage, final MessageHandler handler) {
 		try {
-			this.executor.execute(new Runnable() {
-				public void run() {
+			FutureTask<Message<?>> task = new FutureTask<Message<?>>(new Callable<Message<?>>() {
+				public Message<?> call() throws Exception {
 					try {
-						endpoint.send(message);
+						return handler.handle(requestMessage);
 					}
-					catch (Throwable t) {
+					catch (Exception e) {
 						if (logger.isDebugEnabled()) {
-							logger.debug("error occurred in handler execution", t);
+							logger.debug("error occurred in handler execution", e);
 						}
 						if (errorHandler != null) {
-							errorHandler.handle(t);
+							errorHandler.handle(e);
 						}
-						else if (logger.isWarnEnabled() && !logger.isDebugEnabled()) {
-							logger.warn("error occurred in handler execution", t);
+						else {
+							if (logger.isWarnEnabled() && !logger.isDebugEnabled()) {
+								logger.warn("error occurred in handler execution", e);
+							}
+							throw e;
 						}
 					}
+					return null;
 				}
-			});
-			return true;
+			});	
+			this.executor.execute(task);
+			return new AsyncMessage(task);
 		}
 		catch (RuntimeException e) {
-			throw new MessageHandlerRejectedExecutionException(message, e);
+			throw new MessageHandlerRejectedExecutionException(requestMessage, e);
 		}
 	}
 

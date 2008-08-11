@@ -22,8 +22,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.endpoint.EndpointInterceptor;
+import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageTarget;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
@@ -83,20 +83,18 @@ public class TransactionInterceptor extends EndpointInterceptorAdapter implement
 	}
 
 	@Override
-	public boolean aroundSend(final Message<?> message, final MessageTarget endpoint) {
+	public Message<?> aroundHandle(final Message<?> message, final MessageHandler handler) {
 		if (this.transactionTemplate == null) {
 			throw new ConfigurationException("TransactionInterceptor has not been initialized");
 		}
-		this.transactionTemplate.execute(new TransactionCallback() {
+		return (Message<?>) this.transactionTemplate.execute(new TransactionCallback() {
 			public Object doInTransaction(TransactionStatus status) {
 				if (logger.isDebugEnabled()) {
-					logger.debug("Executing endpoint '" + endpoint + "' within transaction [" + status + "]");
+					logger.debug("Invoking handler '" + handler + "' within transaction [" + status + "]");
 				}
-				endpoint.send(message);
-				return null;
+				return handler.handle(message);
             }
 		});
-		return true;
 	}
 
 }

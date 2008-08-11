@@ -34,9 +34,9 @@ public class TestPreSendInterceptor extends EndpointInterceptorAdapter {
 	}
 
 	@Override
-	public boolean preSend(Message<?> message) {
+	public Message<?> preHandle(Message<?> message) {
 		this.counter.incrementAndGet();
-		return true;
+		return message;
 	}
 
 }

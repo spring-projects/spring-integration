@@ -332,8 +332,15 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 
 	private void activateEndpoint(MessageEndpoint endpoint) {
 		Assert.notNull(endpoint, "'endpoint' must not be null");
-		if (endpoint.getTarget() == null) {
-			this.lookupOrCreateChannel(endpoint.getOutputChannelName());
+		if (endpoint instanceof ChannelRegistryAware) {
+			((ChannelRegistryAware) endpoint).setChannelRegistry(this);
+		}
+		MessageTarget target = endpoint.getTarget();
+		if (target == null) {
+			target = this.lookupOrCreateChannel(endpoint.getOutputChannelName());
+			if (target != null) {
+				endpoint.setTarget(target);
+			}
 		}
 		MessageSource<?> source = endpoint.getSource();
 		if (source == null) {

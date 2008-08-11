@@ -18,7 +18,6 @@ package org.springframework.integration.security.endpoint;
 
 import org.springframework.integration.endpoint.interceptor.EndpointInterceptorAdapter;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.security.SecurityContextUtils;
 import org.springframework.security.AccessDecisionManager;
 import org.springframework.security.ConfigAttributeDefinition;
@@ -42,7 +41,7 @@ public class SecurityEndpointInterceptor extends EndpointInterceptorAdapter {
 	}
 
 	@Override
-	public boolean aroundSend(Message<?> message, MessageTarget endpoint) {
+	public Message<?> preHandle(Message<?> message) {
 		SecurityContext securityContext = null;
 		if (message != null) {
 			securityContext = SecurityContextUtils.getSecurityContextFromHeader(message);
@@ -51,8 +50,8 @@ public class SecurityEndpointInterceptor extends EndpointInterceptorAdapter {
 			try {
 				SecurityContextHolder.setContext(securityContext);
 				this.accessDecisionManager.decide(SecurityContextHolder.getContext().getAuthentication(),
-						endpoint, this.targetSecurityAttributes);
-				return endpoint.send(message);
+						message, this.targetSecurityAttributes);
+				return message;
 			}
 			finally {
 				SecurityContextHolder.clearContext();
@@ -60,8 +59,8 @@ public class SecurityEndpointInterceptor extends EndpointInterceptorAdapter {
 		}
 		else {
 			this.accessDecisionManager.decide(SecurityContextHolder.getContext().getAuthentication(),
-					endpoint, this.targetSecurityAttributes);
-			return endpoint.send(message);
+					message, this.targetSecurityAttributes);
+			return message;
 		}
 	}
 

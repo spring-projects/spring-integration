@@ -19,8 +19,8 @@ package org.springframework.integration.config;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.integration.endpoint.interceptor.EndpointInterceptorAdapter;
+import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageTarget;
 
 /**
  * @author Mark Fisher
@@ -35,11 +35,11 @@ public class TestAroundSendEndpointInterceptor extends EndpointInterceptorAdapte
 	}
 
 	@Override
-	public boolean aroundSend(Message<?> message, MessageTarget endpoint) {
+	public Message<?> aroundHandle(Message<?> message, MessageHandler handler) {
 		this.counter.incrementAndGet();
-		boolean result = endpoint.send(message);
+		Message<?> reply = handler.handle(message);
 		this.counter.incrementAndGet();
-		return result;
+		return reply;
 	}
 
 }

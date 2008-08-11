@@ -22,12 +22,8 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertNull;
 
-import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.integration.endpoint.HandlerEndpoint;
-import org.springframework.integration.endpoint.MessageEndpoint;
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.security.SecurityContextUtils;
@@ -44,32 +40,18 @@ import org.springframework.security.context.SecurityContextHolder;
  */
 public class SecurityEndpointInterceptorTests {
 
-	private MessageEndpoint endpoint;
-
-
-	@Before
-	public void createEndpoint() throws Exception {
-		HandlerEndpoint endpoint = new HandlerEndpoint(new MessageHandler() {
-			public Message<?> handle(Message<?> message) {
-				return null;
-			}
-		});
-		endpoint.afterPropertiesSet();
-		this.endpoint = endpoint;
-	}
-
-
 	@Test(expected = AccessDeniedException.class)
 	public void testUnauthenticatedAccessToSecuredEndpointWithNullMessage() throws Throwable {
 		try {
+			Message<?> message = null;
 			ConfigAttributeDefinition attDefintion = new ConfigAttributeDefinition("ROLE_ADMIN");
 			AccessDecisionManager adm = createMock(AccessDecisionManager.class);
-			adm.decide(null, endpoint, attDefintion);
+			adm.decide(null, message, attDefintion);
 			expectLastCall().andThrow(new AccessDeniedException("nope"));
 			replay(adm);
 
 			SecurityEndpointInterceptor interceptor = new SecurityEndpointInterceptor(attDefintion, adm);
-			interceptor.aroundSend(null, endpoint);
+			interceptor.preHandle(message);
 			verify(adm);
 		}
 		finally {
@@ -81,14 +63,15 @@ public class SecurityEndpointInterceptorTests {
 	@Test(expected = AccessDeniedException.class)
 	public void testUnauthenticatedAccessToSecuredEndpointWithNoSecurityContext() throws Throwable {
 		try {
+			Message<?> message = this.createMessageWithoutContext();
 			ConfigAttributeDefinition attDefintion = new ConfigAttributeDefinition("ROLE_ADMIN");
 			AccessDecisionManager adm = createMock(AccessDecisionManager.class);
-			adm.decide(null, endpoint, attDefintion);
+			adm.decide(null, message, attDefintion);
 			expectLastCall().andThrow(new AccessDeniedException("nope"));
 			replay(adm);
 
 			SecurityEndpointInterceptor interceptor = new SecurityEndpointInterceptor(attDefintion, adm);
-			interceptor.aroundSend(this.createMessageWithoutContext(), endpoint);
+			interceptor.preHandle(message);
 			verify(adm);
 		}
 		finally {
@@ -103,14 +86,15 @@ public class SecurityEndpointInterceptorTests {
 			SecurityContext context = SecurityTestUtil.createContext("bob", "bobspassword",
 					new String[] { "ROLE_ADMIN" });
 			ConfigAttributeDefinition attDefintion = new ConfigAttributeDefinition("ROLE_ADMIN");
+			Message<?> message = this.createMessageWithContext(context);
 
 			AccessDecisionManager adm = createMock(AccessDecisionManager.class);
-			adm.decide(context.getAuthentication(), endpoint, attDefintion);
+			adm.decide(context.getAuthentication(), message, attDefintion);
 			expectLastCall().andThrow(new AccessDeniedException("nope"));
 			replay(adm);
 
 			SecurityEndpointInterceptor interceptor = new SecurityEndpointInterceptor(attDefintion, adm);
-			interceptor.aroundSend(this.createMessageWithContext(context), endpoint);
+			interceptor.preHandle(message);
 			verify(adm);
 		}
 		finally {
@@ -125,13 +109,14 @@ public class SecurityEndpointInterceptorTests {
 			SecurityContext context = SecurityTestUtil.createContext("bob", "bobspassword",
 					new String[] { "ROLE_ADMIN" });
 			ConfigAttributeDefinition attDefintion = new ConfigAttributeDefinition("ROLE_ADMIN");
+			Message<?> message = this.createMessageWithContext(context);
 			AccessDecisionManager adm = createMock(AccessDecisionManager.class);
-			adm.decide(context.getAuthentication(), endpoint, attDefintion);
+			adm.decide(context.getAuthentication(), message, attDefintion);
 			expectLastCall();
 			replay(adm);
 
 			SecurityEndpointInterceptor interceptor = new SecurityEndpointInterceptor(attDefintion, adm);
-			interceptor.aroundSend(this.createMessageWithContext(context), endpoint);
+			interceptor.preHandle(message);
 			verify(adm);
 		}
 		finally {

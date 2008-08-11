@@ -27,6 +27,7 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.TransactionStatus;
@@ -156,11 +157,16 @@ public class TransactionInterceptorTests {
 	}
 
 	@Test(expected = IllegalTransactionStateException.class)
-	public void testPropagationMandatoryCalledWithoutTransaction() {
+	public void testPropagationMandatoryCalledWithoutTransaction() throws Throwable {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"transactionInterceptorPropagationTests.xml", this.getClass());
 		final MessageEndpoint endpoint = (MessageEndpoint) context.getBean("mandatory");
-		endpoint.send(new StringMessage("test"));
+		try {
+			endpoint.send(new StringMessage("test"));
+		}
+		catch (MessageHandlingException e) {
+			throw e.getCause();
+		}
 	}
 
 }

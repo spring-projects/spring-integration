@@ -18,6 +18,7 @@ package org.springframework.integration.endpoint;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
@@ -34,17 +35,19 @@ import org.springframework.integration.message.StringMessage;
 public class ReturnAddressTests {
 
 	@Test
-	public void testReturnAddressOverrides() {
+	public void testNextTargetOverrides() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"returnAddressTests.xml", this.getClass());
 		MessageChannel channel1 = (MessageChannel) context.getBean("channel1WithOverride");
 		PollableChannel replyChannel = (PollableChannel) context.getBean("replyChannel");
 		context.start();
 		Message<String> message = MessageBuilder.fromPayload("*")
-				.setReturnAddress("replyChannel").build();
+				.setNextTarget("replyChannel").build();
 		channel1.send(message);
 		Message<?> response = replyChannel.receive(3000);
 		assertNotNull(response);
+		PollableChannel outputChannel = (PollableChannel) context.getBean("channel2");
+		assertNull(outputChannel.receive(0));
 		assertEquals("**", response.getPayload());
 	}
 

@@ -14,20 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint;
+package org.springframework.integration.handler;
 
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.MessageHeaders;
 
 /**
+ * The default MessageHandler implementation. Creates a Message for the reply payload.
+ * The request Message's headers are copied and the request Message's ID is set as this
+ * reply Message's correlationId.
+ * 
  * @author Mark Fisher
  */
-public interface EndpointInterceptor {
+public class DefaultMessageHandler extends AbstractMessageHandler {
 
-	Message<?> preHandle(Message<?> requestMessage);
-
-	Message<?> aroundHandle(Message<?> message, MessageHandler handler);
-
-	Message<?> postHandle(Message<?> requestMessage, Message<?> replyMessage);
+	@Override
+	protected Message<?> createReplyMessage(Object result, MessageHeaders requestHeaders) {
+		return MessageBuilder.fromPayload(result).copyHeaders(requestHeaders).setCorrelationId(requestHeaders.getId()).build();
+	}
 
 }

@@ -17,7 +17,9 @@
 package org.springframework.integration.endpoint;
 
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,11 +31,16 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.CompositeMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageExchangeTemplate;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageHeaders;
+import org.springframework.integration.message.MessageRejectedException;
+import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.MessagingException;
+import org.springframework.integration.message.selector.MessageSelector;
+import org.springframework.integration.scheduling.Schedule;
 import org.springframework.integration.util.ErrorHandler;
 import org.springframework.util.Assert;
 
@@ -59,7 +66,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class SimpleEndpoint<T extends MessageHandler> implements MessageTarget, BeanNameAware {
+public class SimpleEndpoint<T extends MessageHandler> implements MessageEndpoint, ChannelRegistryAware, BeanNameAware {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -74,6 +81,10 @@ public class SimpleEndpoint<T extends MessageHandler> implements MessageTarget, 
 	private volatile ChannelRegistry channelRegistry;
 
 	private volatile boolean requiresReply = false;
+
+	private volatile MessageSelector selector;
+
+	private final List<EndpointInterceptor> interceptors = new ArrayList<EndpointInterceptor>();
 
 	private final MessageExchangeTemplate messageExchangeTemplate = new MessageExchangeTemplate();
 
@@ -120,6 +131,21 @@ public class SimpleEndpoint<T extends MessageHandler> implements MessageTarget, 
 		this.errorHandler = errorHandler;
 	}
 
+	public void setSelector(MessageSelector selector) {
+		this.selector = selector;
+	}
+
+	public void addInterceptor(EndpointInterceptor interceptor) {
+		this.interceptors.add(interceptor);
+	}
+
+	public void setInterceptors(List<EndpointInterceptor> interceptors) {
+		this.interceptors.clear();
+		for (EndpointInterceptor interceptor : interceptors) {
+			this.addInterceptor(interceptor);
+		}
+	}
+
 	public void setChannelRegistry(ChannelRegistry channelRegistry) {
 		if (this.handler instanceof ChannelRegistryAware) {
 			((ChannelRegistryAware) this.handler).setChannelRegistry(channelRegistry);
@@ -149,9 +175,15 @@ public class SimpleEndpoint<T extends MessageHandler> implements MessageTarget, 
 		this.messageExchangeTemplate.setSendTimeout(replyTimeout);
 	}
 
-	public boolean send(Message<?> requestMessage) {
+	public final boolean send(Message<?> requestMessage) {
+		if (requestMessage == null || requestMessage.getPayload() == null) {
+			throw new IllegalArgumentException("Message and its payload must not be null");
+		}
+		if (this.logger.isDebugEnabled()) {
+			this.logger.debug("endpoint '" + this + "' handling message: " + requestMessage);
+		}
 		try {
-			Message<?> replyMessage = this.handler.handle(requestMessage);
+			Message<?> replyMessage = this.handleMessage(requestMessage, 0);
 			if (!this.isValidReply(replyMessage)) {
 				if (this.requiresReply) {
 					throw new MessageHandlingException(requestMessage,
@@ -180,6 +212,48 @@ public class SimpleEndpoint<T extends MessageHandler> implements MessageTarget, 
 		}
 	}
 
+	private Message<?> handleMessage(Message<?> requestMessage, final int index) {
+		if (requestMessage == null || requestMessage.getPayload() == null) {
+			return null;
+		}
+		if (index == 0) {
+			for (EndpointInterceptor interceptor : this.interceptors) {
+				requestMessage = interceptor.preHandle(requestMessage);
+				if (requestMessage == null) {
+					return null;
+				}
+			}
+		}
+		if (index == this.interceptors.size()) {
+			if (!this.supports(requestMessage)) {
+				throw new MessageRejectedException(requestMessage, "unsupported message");
+			}
+			Message<?> replyMessage = this.handler.handle(requestMessage);
+			for (int i = index - 1; i >= 0; i--) {
+				EndpointInterceptor interceptor = this.interceptors.get(i);
+				replyMessage = interceptor.postHandle(requestMessage, replyMessage);
+			}
+			return replyMessage;
+		}
+		EndpointInterceptor nextInterceptor = this.interceptors.get(index);
+		return nextInterceptor.aroundHandle(requestMessage, new MessageHandler() {
+			@SuppressWarnings("unchecked")
+			public Message<?> handle(Message message) {
+				return SimpleEndpoint.this.handleMessage(message, index + 1);
+			}
+		});
+	}
+
+	protected boolean supports(Message<?> message) {
+		if (this.selector != null && !this.selector.accept(message)) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("selector for endpoint '" + this + "' rejected message: " + message);
+			}
+			return false;
+		}
+		return true;
+	}
+
 	private void sendReplyMessage(Message<?> replyMessage, Message<?> requestMessage) {
 		if (replyMessage == null) {
 			throw new MessageHandlingException(requestMessage, "reply message must not be null");
@@ -189,6 +263,9 @@ public class SimpleEndpoint<T extends MessageHandler> implements MessageTarget, 
 			throw new MessageEndpointReplyException(replyMessage, requestMessage,
 					"unable to resolve reply target");
 		}
+		replyMessage = MessageBuilder.fromMessage(replyMessage)
+				.copyHeadersIfAbsent(requestMessage.getHeaders())
+				.setHeaderIfAbsent(MessageHeaders.CORRELATION_ID, requestMessage.getHeaders().getId()).build();
 		if (!this.messageExchangeTemplate.send(replyMessage, replyTarget)) {
 			throw new MessageEndpointReplyException(replyMessage, requestMessage,
 					"failed to send reply to '" + replyTarget + "'");
@@ -247,6 +324,55 @@ public class SimpleEndpoint<T extends MessageHandler> implements MessageTarget, 
 			}
 		}
 		return replyTarget;
+	}
+
+	public String toString() {
+		return (this.name != null) ? this.name : super.toString();
+	}
+
+	/* TODO: remove the following methods after they are removed from the MessageEndpoint interface. */
+
+	private String inputChannelName;
+	private String outputChannelName;
+	private MessageSource<?> source;
+
+	public String getInputChannelName() {
+		return this.inputChannelName;
+	}
+
+	public void setInputChannelName(String inputChannelName) {
+		this.inputChannelName = inputChannelName;
+	}
+
+	public String getOutputChannelName() {
+		return this.outputChannelName;
+	}
+
+	public void setOutputChannelName(String outputChannelName) {
+		this.outputChannelName = outputChannelName;
+	}
+
+	public void setReturnAddressOverrides(boolean b) {
+	}
+
+	public Schedule getSchedule() {
+		return null;
+	}
+
+	public MessageSource<?> getSource() {
+		return this.source;
+	}
+
+	public MessageTarget getTarget() {
+		return this.outputChannel;
+	}
+
+	public void setSource(MessageSource<?> source) {
+		this.source = source;
+	}
+
+	public void setTarget(MessageTarget target) {
+		this.outputChannel = (MessageChannel) target;
 	}
 
 }

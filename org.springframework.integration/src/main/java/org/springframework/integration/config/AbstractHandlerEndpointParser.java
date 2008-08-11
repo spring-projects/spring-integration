@@ -28,6 +28,7 @@ import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.endpoint.HandlerEndpoint;
+import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
@@ -58,7 +59,7 @@ public abstract class AbstractHandlerEndpointParser extends AbstractSingleBeanDe
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
-		return HandlerEndpoint.class;
+		return this.getEndpointClass();
 	}
 
 	@Override
@@ -116,7 +117,18 @@ public abstract class AbstractHandlerEndpointParser extends AbstractSingleBeanDe
 		this.postProcessEndpointBean(builder, element, parserContext);
 	}
 
+	/**
+	 * Subclasses must override this to return the MessageHandler class.
+	 * @return
+	 */
 	protected abstract Class<? extends MessageHandler> getHandlerAdapterClass();
+
+	/**
+	 * Subclasses may override this to return a specific MessageEndpoint class.
+	 */
+	protected Class<? extends MessageEndpoint> getEndpointClass() {
+		return HandlerEndpoint.class;
+	}
 
 	protected void postProcessEndpointBean(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
 	}

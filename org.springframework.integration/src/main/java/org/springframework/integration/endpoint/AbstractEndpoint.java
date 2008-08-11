@@ -27,6 +27,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageExchangeTemplate;
 import org.springframework.integration.message.MessageRejectedException;
@@ -208,43 +209,39 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 		if (logger.isDebugEnabled()) {
 			logger.debug("endpoint '" + this + "' handling message: " + message);
 		}
-		return this.send(message, 0);
+		this.handleMessage(message, 0);
+		return true;
 	}
 
-	private boolean send(final Message<?> message, final int index) {
+	private Message<?> handleMessage(Message<?> message, final int index) {
 		if (index == 0) {
 			for (EndpointInterceptor interceptor : interceptors) {
-				if (!interceptor.preSend(message)) {
-					return false;
+				message = interceptor.preHandle(message);
+				if (message == null) {
+					return null;
 				}
 			}
 		}
 		if (index == interceptors.size()) {
-			boolean result = this.doSend(message);
+			if (!this.supports(message)) {
+				throw new MessageRejectedException(message, "unsupported message");
+			}
+			Message<?> reply = this.handleMessage(message);
 			for (int i = index - 1; i >= 0; i--) {
 				EndpointInterceptor interceptor = this.interceptors.get(i);
-				interceptor.postSend(message, result);
+				reply = interceptor.postHandle(message, reply);
 			}
-			return result;
+			if (reply != null) {
+				this.getMessageExchangeTemplate().send(message, this.target);
+			}
+			return null;
 		}
 		EndpointInterceptor nextInterceptor = interceptors.get(index);
-		return nextInterceptor.aroundSend(message, new MessageTarget() {
-			@SuppressWarnings("unchecked")
-			public boolean send(Message message) {
-				return AbstractEndpoint.this.send(message, index + 1);
+		return nextInterceptor.aroundHandle(message, new MessageHandler() {
+			public Message<?> handle(Message<?> message) {
+				return AbstractEndpoint.this.handleMessage(message, index + 1);
 			}
 		});
-	}
-
-	private boolean doSend(Message<?> message) {
-		if (!this.supports(message)) {
-			throw new MessageRejectedException(message, "unsupported message");
-		}
-		Message<?> result = this.handleMessage(message);
-		if (result != null) {
-			return this.getMessageExchangeTemplate().send(message, this.target);
-		}
-		return true;
 	}
 
 	protected boolean supports(Message<?> message) {

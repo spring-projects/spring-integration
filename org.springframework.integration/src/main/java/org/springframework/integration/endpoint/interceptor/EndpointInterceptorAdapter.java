@@ -17,8 +17,8 @@
 package org.springframework.integration.endpoint.interceptor;
 
 import org.springframework.integration.endpoint.EndpointInterceptor;
+import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageTarget;
 
 /**
  * A convenience base class for implementing {@link EndpointInterceptor EndpointInterceptors}.
@@ -27,15 +27,16 @@ import org.springframework.integration.message.MessageTarget;
  */
 public class EndpointInterceptorAdapter implements EndpointInterceptor {
 
-	public boolean preSend(Message<?> message) {
-		return true;
+	public Message<?> preHandle(Message<?> requestMessage) {
+		return requestMessage;
 	}
 
-	public boolean aroundSend(Message<?> message, MessageTarget endpoint) {
-		return endpoint.send(message);
+	public Message<?> aroundHandle(Message<?> message, MessageHandler handler) {
+		return handler.handle(message);
 	}
 
-	public void postSend(Message<?> message, boolean result) {
+	public Message<?> postHandle(Message<?> requestMessage, Message<?> replyMessage) {
+		return replyMessage;
 	}
 
 }

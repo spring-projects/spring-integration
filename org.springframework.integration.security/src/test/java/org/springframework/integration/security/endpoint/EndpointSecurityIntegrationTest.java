@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.security.SecurityTestUtil;
 import org.springframework.security.AccessDeniedException;
@@ -67,9 +68,14 @@ public class EndpointSecurityIntegrationTest extends AbstractJUnit4SpringContext
 
 	@Test(expected = AccessDeniedException.class)
 	@DirtiesContext
-	public void testWithoutPermision() {
+	public void testWithoutPermision() throws Throwable {
 		login("bob", "bobspassword", "ROLE_USER");
-		input.send(new StringMessage("test"));
+		try {
+			input.send(new StringMessage("test"));
+		}
+		catch (MessageDeliveryException e) {
+			throw e.getCause().getCause();
+		}
 	}
 
 
