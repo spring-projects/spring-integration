@@ -43,7 +43,7 @@ public abstract class AbstractDirectorySource<T> implements PollableSource<T>, M
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private final DirectoryContentManager directoryContentManager = new DirectoryContentManager();
+	private final Backlog<FileInfo> directoryContentManager = new Backlog<FileInfo>();
 
 	private final MessageCreator<T, T> messageCreator;
 
@@ -52,7 +52,7 @@ public abstract class AbstractDirectorySource<T> implements PollableSource<T>, M
 		this.messageCreator = messageCreator;
 	}
 
-	protected DirectoryContentManager getDirectoryContentManager() {
+	protected Backlog<FileInfo> getDirectoryContentManager() {
 		return this.directoryContentManager;
 	}
 
@@ -78,12 +78,12 @@ public abstract class AbstractDirectorySource<T> implements PollableSource<T>, M
 	/**
 	 * Naive implementation that ignores thread safety. Subclasses that want to
 	 * be thread safe and use the reservation facilities of
-	 * {@link DirectoryContentManager} override this method and call
-	 * <code>directoryContentManager.fileProcessing(...)</code with the appropriate arguments
+	 * {@link Backlog} override this method and call
+	 * <code>directoryContentManager.fileProcessing(...)</code> with the appropriate arguments.
 	 * @param directoryContentManager
 	 * @throws IOException
 	 */
-	protected void refreshSnapshotAndMarkProcessing(DirectoryContentManager directoryContentManager) throws IOException {
+	protected void refreshSnapshotAndMarkProcessing(Backlog<FileInfo> directoryContentManager) throws IOException {
 		HashMap<String, FileInfo> snapshot = new HashMap<String, FileInfo>();
 		this.populateSnapshot(snapshot);
 		directoryContentManager.processSnapshot(snapshot);

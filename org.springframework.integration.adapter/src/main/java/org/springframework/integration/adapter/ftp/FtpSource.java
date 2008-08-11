@@ -33,7 +33,7 @@ import org.apache.commons.net.ftp.FTPFile;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.integration.adapter.file.AbstractDirectorySource;
-import org.springframework.integration.adapter.file.DirectoryContentManager;
+import org.springframework.integration.adapter.file.Backlog;
 import org.springframework.integration.adapter.file.FileInfo;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageCreator;
@@ -117,14 +117,14 @@ public class FtpSource extends AbstractDirectorySource<List<File>> implements Di
 	}
 
 	@Override
-	protected void refreshSnapshotAndMarkProcessing(DirectoryContentManager directoryContentManager) throws IOException {
+	protected void refreshSnapshotAndMarkProcessing(Backlog<FileInfo> directoryContentManager) throws IOException {
 		Map<String, FileInfo> snapshot = new HashMap<String, FileInfo>();
 		synchronized (directoryContentManager) {
 			populateSnapshot(snapshot);
 			directoryContentManager.processSnapshot(snapshot);
 			ArrayList<String> backlog = new ArrayList<String>(directoryContentManager.getBacklog().keySet());
 			int toIndex = maxFilesPerPayload == -1 ? backlog.size() : Math.min(maxFilesPerPayload, backlog.size());
-			directoryContentManager.fileProcessing(backlog.subList(0, toIndex).toArray(new String[] {}));
+			directoryContentManager.itemProcessing(backlog.subList(0, toIndex).toArray(new String[] {}));
 		}
 	}
 
@@ -220,5 +220,4 @@ public class FtpSource extends AbstractDirectorySource<List<File>> implements Di
 			fileProcessed(file.getName());
 		}
 	}
-
 }
