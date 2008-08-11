@@ -16,7 +16,6 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.integration.message.MessageExchangeTemplate;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.scheduling.Schedule;
@@ -43,7 +42,5 @@ public interface MessageEndpoint extends MessageTarget {
 	String getInputChannelName();
 
 	String getOutputChannelName();
-
-	MessageExchangeTemplate getMessageExchangeTemplate();
 
 }
