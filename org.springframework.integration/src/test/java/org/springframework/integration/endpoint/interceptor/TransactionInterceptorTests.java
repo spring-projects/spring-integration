@@ -51,7 +51,7 @@ public class TransactionInterceptorTests {
 		assertEquals(0, txManager.getRollbackCount());
 		input.send(new StringMessage("test"));
 		txManager.waitForCompletion(1000);
-		Message<?> message = output.receive(0);
+		Message<?> message = output.receive(500);
 		assertNotNull(message);		
 		assertEquals(1, txManager.getCommitCount());
 		assertEquals(0, txManager.getRollbackCount());		
@@ -68,7 +68,7 @@ public class TransactionInterceptorTests {
 		assertEquals(0, txManager.getRollbackCount());
 		input.send(new StringMessage("test"));
 		txManager.waitForCompletion(1000);
-		Message<?> message = output.receive(0);
+		Message<?> message = output.receive(500);
 		assertNull(message);
 		assertEquals(0, txManager.getCommitCount());
 		assertEquals(1, txManager.getRollbackCount());		
