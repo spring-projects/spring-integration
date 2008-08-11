@@ -101,7 +101,7 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle {
 	public Message<?> preSend(Message<?> message, MessageChannel channel) {
 		if (this.running && this.selectorsAccept(message)) {
 			Message<?> duplicate = MessageBuilder.fromMessage(message)
-					.setHeader(ORIGINAL_MESSAGE_ID_KEY, message.getId())
+					.setHeader(ORIGINAL_MESSAGE_ID_KEY, message.getHeaders().getId())
 					.build();
 			if (!this.secondaryChannel.send(duplicate, 0)) {
 				if (logger.isWarnEnabled()) {

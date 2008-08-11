@@ -56,7 +56,7 @@ public class CorrelationIdTests {
 		adapter.setMethodName("upperCase");
 		adapter.afterPropertiesSet();
 		Message<?> reply = adapter.handle(message);
-		assertEquals(message.getId(), reply.getHeaders().getCorrelationId());
+		assertEquals(message.getHeaders().getId(), reply.getHeaders().getCorrelationId());
 	}
 
 	@Test
@@ -127,8 +127,8 @@ public class CorrelationIdTests {
 		splitter.handle(message);
 		Message<?> reply1 = testChannel.receive(100);
 		Message<?> reply2 = testChannel.receive(100);
-		assertEquals(message.getId(), reply1.getHeaders().getCorrelationId());
-		assertEquals(message.getId(), reply2.getHeaders().getCorrelationId());		
+		assertEquals(message.getHeaders().getId(), reply1.getHeaders().getCorrelationId());
+		assertEquals(message.getHeaders().getId(), reply2.getHeaders().getCorrelationId());		
 	}
 
 

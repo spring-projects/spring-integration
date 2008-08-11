@@ -65,31 +65,20 @@ public class AsyncMessage<T> implements Future<Message<T>>, Message<T> {
 		return this.future.isDone();
 	}
 
-	public MessageHeaders getHeaders() {
-		try {
-			return this.future.get().getHeaders();
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			return null;
-		} catch (ExecutionException e) {
-			throw new MessagingException("failure occurred in AsyncMessage", e);
-		}
-	}
-
-	public Object getId() {
-		try {
-			return this.future.get().getId();
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			return null;
-		} catch (ExecutionException e) {
-			throw new MessagingException("failure occurred in AsyncMessage", e);
-		}
-	}
-
 	public T getPayload() {
 		try {
 			return this.future.get().getPayload();
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			return null;
+		} catch (ExecutionException e) {
+			throw new MessagingException("failure occurred in AsyncMessage", e);
+		}
+	}
+
+	public MessageHeaders getHeaders() {
+		try {
+			return this.future.get().getHeaders();
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 			return null;

@@ -161,7 +161,7 @@ public class SimpleMessagingGatewayTests {
 		expect(replyChannel.getName()).andReturn("replyChannel").anyTimes();
 		expect(messageMock.getHeaders()).andReturn(messageHeadersMock);
 		expect(requestChannel.send(messageMock)).andReturn(true);
-		expect(messageMock.getId()).andReturn(1);
+		expect(messageHeadersMock.getId()).andReturn(1);
 
 		//play scenario
 		replay(allmocks);
@@ -198,7 +198,7 @@ public class SimpleMessagingGatewayTests {
 		expect(messageMock.getHeaders()).andReturn(messageHeadersMock);
 		expect(messageHeadersMock.getReturnAddress()).andReturn(replyChannel);
 		expect(requestChannel.send(messageMock)).andReturn(true);
-		expect(messageMock.getId()).andReturn(1);
+		expect(messageHeadersMock.getId()).andReturn(1);
 
 		replay(allmocks);
 		this.simpleMessagingGateway.sendAndReceiveMessage(messageMock);

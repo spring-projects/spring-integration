@@ -95,7 +95,7 @@ public class GatewayParserTests {
 			public void run() {
 				Message<?> request = requestChannel.receive();
 				Message<String> reply = MessageBuilder.fromPayload(request.getPayload() + "bar")
-						.setCorrelationId(request.getId()).build();
+						.setCorrelationId(request.getHeaders().getId()).build();
 				replyChannel.send(reply);
 			}
 		});

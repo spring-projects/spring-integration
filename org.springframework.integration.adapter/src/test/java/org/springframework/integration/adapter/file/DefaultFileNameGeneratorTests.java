@@ -44,7 +44,7 @@ public class DefaultFileNameGeneratorTests {
 		Message<String> message = new GenericMessage<String>("testing");
 		FileNameGenerator generator = new DefaultFileNameGenerator();
 		String filename = generator.generateFileName(message);
-		assertTrue(filename.startsWith("" + message.getId()));
+		assertTrue(filename.startsWith("" + message.getHeaders().getId()));
 		assertTrue(filename.endsWith(".msg"));
 	}
 

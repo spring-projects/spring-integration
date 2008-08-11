@@ -24,8 +24,6 @@ package org.springframework.integration.message;
  */
 public interface Message<T> {
 
-	Object getId();
-
 	T getPayload();
 
 	MessageHeaders getHeaders();

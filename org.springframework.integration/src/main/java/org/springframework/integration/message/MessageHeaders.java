@@ -24,6 +24,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.integration.util.IdGenerator;
+import org.springframework.integration.util.RandomUuidGenerator;
+
 /**
  * The headers for a {@link Message}.
  * 
@@ -31,6 +34,8 @@ import java.util.Set;
  * @author Mark Fisher
  */
 public final class MessageHeaders implements Map<String, Object>, Serializable {
+
+	public static final String ID = "internal.header.id";
 
 	public static final String TIMESTAMP = "internal.header.timestamp";
 
@@ -51,12 +56,19 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	private final Map<String, Object> headers;
 
+	private transient final IdGenerator idGenerator = new RandomUuidGenerator();
+
 
 	public MessageHeaders(Map<String, Object> headers) {
 		this.headers = (headers != null ? headers : new HashMap<String, Object>());
+		this.headers.put(ID, this.idGenerator.generateId());
 		this.headers.put(TIMESTAMP, new Long(System.currentTimeMillis()));
 	}
 
+
+	public Object getId() {
+		return this.get(ID);
+	}
 
 	public Long getTimestamp() {
 		return this.get(TIMESTAMP, Long.class);
@@ -169,7 +181,7 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 	}
 
 	public String toString() {
-		return headers.toString();
+		return this.headers.toString();
 	}
 
 }

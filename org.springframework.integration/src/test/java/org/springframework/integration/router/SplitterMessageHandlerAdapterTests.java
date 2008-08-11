@@ -225,12 +225,12 @@ public class SplitterMessageHandlerAdapterTests {
 		assertNotNull(reply1);
 		assertEquals(new Integer(2), reply1.getHeaders().getSequenceSize());
 		assertEquals(new Integer(1), reply1.getHeaders().getSequenceNumber());
-		assertEquals(message.getId(), reply1.getHeaders().getCorrelationId());
+		assertEquals(message.getHeaders().getId(), reply1.getHeaders().getCorrelationId());
 		Message<?> reply2 = testChannel.receive(0);
 		assertNotNull(reply2);
 		assertEquals(new Integer(2), reply2.getHeaders().getSequenceSize());
 		assertEquals(new Integer(2), reply2.getHeaders().getSequenceNumber());
-		assertEquals(message.getId(), reply2.getHeaders().getCorrelationId());
+		assertEquals(message.getHeaders().getId(), reply2.getHeaders().getCorrelationId());
 	}
 
 	@Test
@@ -242,12 +242,12 @@ public class SplitterMessageHandlerAdapterTests {
 		assertNotNull(reply1);
 		assertEquals(new Integer(2), reply1.getHeaders().getSequenceSize());
 		assertEquals(new Integer(1), reply1.getHeaders().getSequenceNumber());
-		assertEquals(message.getId(), reply1.getHeaders().getCorrelationId());
+		assertEquals(message.getHeaders().getId(), reply1.getHeaders().getCorrelationId());
 		Message<?> reply2 = testChannel.receive(0);
 		assertNotNull(reply2);
 		assertEquals(new Integer(2), reply2.getHeaders().getSequenceSize());
 		assertEquals(new Integer(2), reply2.getHeaders().getSequenceNumber());
-		assertEquals(message.getId(), reply2.getHeaders().getCorrelationId());
+		assertEquals(message.getHeaders().getId(), reply2.getHeaders().getCorrelationId());
 	}
 
 

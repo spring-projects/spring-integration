@@ -88,9 +88,9 @@ public class WireTapTests {
 		mainChannel.send(new StringMessage("testing"));
 		Message<?> original = mainChannel.receive(0);
 		Message<?> duplicate = secondaryChannel.receive(0);	
-		Object duplicateId = duplicate.getId();
+		Object duplicateId = duplicate.getHeaders().getId();
 		assertNotNull(duplicateId);
-		assertFalse("message ids should not match", original.getId().equals(duplicateId));
+		assertFalse("message ids should not match", original.getHeaders().getId().equals(duplicateId));
 	}
 
 	@Test
@@ -103,7 +103,7 @@ public class WireTapTests {
 		Message<?> duplicate = secondaryChannel.receive(0);
 		Object originalIdAttribute = duplicate.getHeaders().get(WireTap.ORIGINAL_MESSAGE_ID_KEY);
 		assertNotNull(originalIdAttribute);
-		assertEquals(original.getId(), originalIdAttribute);
+		assertEquals(original.getHeaders().getId(), originalIdAttribute);
 	}
 
 	@Test

@@ -85,7 +85,7 @@ public class SplitterMessageHandlerAdapter extends AbstractMessageHandlerAdapter
 				Message<?> splitMessage = (item instanceof Message<?>) ?
 						(Message<?>) item : this.createReplyMessage(item, originalMessage);
 				splitMessage = MessageBuilder.fromMessage(splitMessage)
-						.setCorrelationId(originalMessage.getId())
+						.setCorrelationId(originalMessage.getHeaders().getId())
 						.setSequenceNumber(++sequenceNumber)
 						.setSequenceSize(sequenceSize).build();
 				this.sendMessage(splitMessage, this.outputChannelName);
@@ -99,7 +99,7 @@ public class SplitterMessageHandlerAdapter extends AbstractMessageHandlerAdapter
 				Message<?> splitMessage = (item instanceof Message<?>) ?
 						(Message<?>) item : this.createReplyMessage(item, originalMessage);
 				splitMessage = MessageBuilder.fromMessage(splitMessage)
-						.setCorrelationId(originalMessage.getId())
+						.setCorrelationId(originalMessage.getHeaders().getId())
 						.setSequenceNumber(++sequenceNumber)
 						.setSequenceSize(sequenceSize).build();	
 				this.sendMessage(splitMessage, this.outputChannelName);

@@ -273,7 +273,7 @@ public class HandlerEndpointTests {
 				.setReturnAddress(replyChannel).build();
 		endpoint.send(message);
 		Message<?> reply = replyChannel.receive(500);
-		assertEquals(message.getId(), reply.getHeaders().getCorrelationId());
+		assertEquals(message.getHeaders().getId(), reply.getHeaders().getCorrelationId());
 	}
 
 	@Test
@@ -290,7 +290,7 @@ public class HandlerEndpointTests {
 		endpoint.send(message);
 		Message<?> reply = replyChannel.receive(500);
 		Object correlationId = reply.getHeaders().getCorrelationId();
-		assertFalse(message.getId().equals(correlationId));
+		assertFalse(message.getHeaders().getId().equals(correlationId));
 		assertEquals("ABC-123", correlationId);
 	}
 

@@ -192,8 +192,8 @@ public class SimpleMessagingGateway extends MessagingGatewaySupport implements M
 		message = MessageBuilder.fromMessage(message).setReturnAddress(this.replyChannel).build();
 		this.send(message);
 		return (this.replyTimeout >= 0)
-				? this.replyMessageCorrelator.getReply(message.getId(), this.replyTimeout)
-				: this.replyMessageCorrelator.getReply(message.getId());
+				? this.replyMessageCorrelator.getReply(message.getHeaders().getId(), this.replyTimeout)
+				: this.replyMessageCorrelator.getReply(message.getHeaders().getId());
 	}
 
 	private void registerReplyMessageCorrelator() {

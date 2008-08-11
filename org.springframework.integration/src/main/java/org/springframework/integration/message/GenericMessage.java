@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.integration.util.IdGenerator;
-import org.springframework.integration.util.RandomUuidGenerator;
 import org.springframework.util.Assert;
 
 /**
@@ -31,13 +30,9 @@ import org.springframework.util.Assert;
  */
 public class GenericMessage<T> implements Message<T>, Serializable {
 
-	private final static String ID_HEADER_KEY = "id";
-
 	private volatile T payload;
 
 	private final MessageHeaders headers;
-
-	private transient final IdGenerator defaultIdGenerator = new RandomUuidGenerator();
 
 
 	/**
@@ -67,25 +62,20 @@ public class GenericMessage<T> implements Message<T>, Serializable {
 		else if (headers instanceof MessageHeaders) {
 			headers = new HashMap<String, Object>(headers);
 		}
-		headers.put(ID_HEADER_KEY, this.defaultIdGenerator.generateId());
 		this.headers = new MessageHeaders(headers);
 	}
 
 
-	public Object getId() {
-		return this.headers.get(ID_HEADER_KEY);
+	public T getPayload() {
+		return this.payload;
 	}
 
 	public MessageHeaders getHeaders() {
 		return this.headers;
 	}
 
-	public T getPayload() {
-		return this.payload;
-	}
-
 	public String toString() {
-		return "[ID=" + this.getId() + "][Headers=" + this.headers + "][Payload='" + this.payload + "']";
+		return "[Payload=" + this.payload + "][Headers=" + this.headers + "]";
 	}
 
 }

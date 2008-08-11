@@ -117,7 +117,7 @@ public class HandlerEndpoint extends AbstractEndpoint {
 			Object correlationId = replyMessage.getHeaders().getCorrelationId();
 			if (correlationId == null) {
 				replyMessage = MessageBuilder.fromMessage(replyMessage)
-						.setHeader(MessageHeaders.CORRELATION_ID, message.getId()).build();
+						.setHeader(MessageHeaders.CORRELATION_ID, message.getHeaders().getId()).build();
 			}
 			if (replyMessage != null) {
 				MessageTarget returnAddress = resolveReturnAddress(replyMessage);

@@ -30,7 +30,7 @@ public class DefaultFileNameGenerator implements FileNameGenerator {
 	public String generateFileName(Message<?> message) {
 		String filenameProperty = message.getHeaders().get(FILENAME_PROPERTY_KEY, String.class);
 		return StringUtils.hasText(filenameProperty) ?
-				filenameProperty : message.getId() + ".msg";
+				filenameProperty : message.getHeaders().getId() + ".msg";
 	}
 
 }

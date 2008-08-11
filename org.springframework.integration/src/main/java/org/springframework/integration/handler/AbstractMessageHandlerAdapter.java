@@ -130,7 +130,7 @@ public abstract class AbstractMessageHandlerAdapter extends AbstractMethodInvoki
 			return null;
 		}
 		return MessageBuilder.fromMessage(reply).copyHeadersIfAbsent(originalMessage.getHeaders())
-				.setHeaderIfAbsent(MessageHeaders.CORRELATION_ID, originalMessage.getId()).build();
+				.setHeaderIfAbsent(MessageHeaders.CORRELATION_ID, originalMessage.getHeaders().getId()).build();
 	}
 
 	/**
