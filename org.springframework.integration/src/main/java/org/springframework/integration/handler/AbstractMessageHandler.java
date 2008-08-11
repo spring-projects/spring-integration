@@ -79,17 +79,14 @@ public abstract class AbstractMessageHandler implements MessageHandler, Initiali
 
 	public AbstractMessageHandler(Object object, Method method) {
 		Assert.notNull(object, "object must not be null");
-		Assert.notNull(method, "method must not be null");
 		this.object = object;
-		this.method = method;
-		this.methodName = method.getName();
+		this.setMethod(method);
 	}
 
 	public AbstractMessageHandler(Object object, String methodName) {
 		Assert.notNull(object, "object must not be null");
-		Assert.notNull(methodName, "methodName must not be null");
 		this.object = object;
-		this.methodName = methodName;
+		this.setMethodName(methodName);
 	}
 
 	public AbstractMessageHandler() {
@@ -102,6 +99,12 @@ public abstract class AbstractMessageHandler implements MessageHandler, Initiali
 
 	public void setMethod(Method method) {
 		Assert.notNull(method, "method must not be null");
+		if (method.getParameterTypes().length == 0) {
+			throw new IllegalArgumentException("method must accept at least one parameter");
+		}
+		if (method.getParameterTypes()[0].equals(Message.class)) {
+			this.methodExpectsMessage = true;
+		}
 		this.method = method;
 		this.methodName = method.getName();
 	}
@@ -137,7 +140,7 @@ public abstract class AbstractMessageHandler implements MessageHandler, Initiali
 								+ "' on target class [" + this.object.getClass() + "]"); 
 					}
 					if (candidates.size() == 1) {
-						this.method = candidates.get(0);
+						this.setMethod(candidates.get(0));
 					}
 				}
 				if (this.method != null) {
@@ -226,11 +229,12 @@ public abstract class AbstractMessageHandler implements MessageHandler, Initiali
 			}
 			catch (NoSuchMethodException e) {
 				try {
-					result = this.invoker.invokeMethod(args);
+					result = this.invoker.invokeMethod(message);
 					this.methodExpectsMessage = true;
 				}
 				catch (NoSuchMethodException e2) {
-					throw new MessageHandlingException(message, "unable to determine method match");
+					throw new MessageHandlingException(message, "unable to resolve method for args: "
+							+ StringUtils.arrayToCommaDelimitedString(args));
 				}
 			}
 			if (result == null) {
