@@ -84,10 +84,9 @@ public final class MessageBuilder<T> {
 	public MessageBuilder<T> copyHeaders(Map<String, Object> headersToCopy) {
 		Set<String> keys = headersToCopy.keySet();
 		for (String key : keys) {
-			if (key.equals(MessageHeaders.TIMESTAMP)) {
-				continue;
+			if (this.isEligibleForCopying(key)) {
+				this.setHeader(key, headersToCopy.get(key));
 			}
-			this.setHeader(key, headersToCopy.get(key));
 		}
 		return this;
 	}
@@ -95,10 +94,9 @@ public final class MessageBuilder<T> {
 	public MessageBuilder<T> copyHeadersIfAbsent(Map<String, Object> headersToCopy) {
 		Set<String> keys = headersToCopy.keySet();
 		for (String key : keys) {
-			if (key.equals(MessageHeaders.TIMESTAMP)) {
-				continue;
+			if (this.isEligibleForCopying(key)) {
+				this.setHeaderIfAbsent(key, headersToCopy.get(key));
 			}
-			this.setHeaderIfAbsent(key, headersToCopy.get(key));
 		}
 		return this;
 	}
@@ -141,6 +139,10 @@ public final class MessageBuilder<T> {
 
 	public Message<T> build() {
 		return new GenericMessage<T>(this.payload, this.headers);
+	}
+
+	private boolean isEligibleForCopying(String key) {
+		return !(key.equals(MessageHeaders.ID) || key.equals(MessageHeaders.TIMESTAMP));
 	}
 
 }
