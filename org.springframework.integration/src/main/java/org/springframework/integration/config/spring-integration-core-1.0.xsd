@@ -418,9 +418,21 @@
 						<xsd:attribute name="bean" use="required"/>
 					</xsd:complexType>
 				</xsd:element>
+				<xsd:element name="wire-tap" type="wireTapType" minOccurs="0" maxOccurs="unbounded"/>
 				<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded"/>
 			</xsd:choice>
 		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="wireTapType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a Wire Tap Channel Interceptor.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="target" type="xsd:string" use="required"/>
+		<xsd:attribute name="selector" type="xsd:string" use="optional"/>
+		<xsd:attribute name="timeout" type="xsd:long" use="optional"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="endpointInterceptorsType">

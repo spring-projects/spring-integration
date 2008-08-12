@@ -16,19 +16,22 @@
 
 package org.springframework.integration.config;
 
-import java.util.HashMap;
-import java.util.Map;
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.selector.MessageSelector;
 
 /**
  * @author Mark Fisher
  */
-public class ChannelInterceptorParser extends AbstractInterceptorParser {
+public class TestSelector implements MessageSelector {
 
-	@Override
-	protected Map<String, BeanDefinitionRegisteringParser> getParserMap() {
-		Map<String, BeanDefinitionRegisteringParser> parsers = new HashMap<String, BeanDefinitionRegisteringParser>();
-		parsers.put("wire-tap", new WireTapParser());
-		return parsers;
+	private final boolean accept;
+
+	public TestSelector(boolean accept) {
+		this.accept = accept;
+	}
+
+	public boolean accept(Message<?> message) {
+		return this.accept;
 	}
 
 }

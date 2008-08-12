@@ -16,19 +16,24 @@
 
 package org.springframework.integration.config;
 
-import java.util.HashMap;
-import java.util.Map;
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageTarget;
 
 /**
  * @author Mark Fisher
  */
-public class ChannelInterceptorParser extends AbstractInterceptorParser {
+public class WireTapTestTarget implements MessageTarget {
 
-	@Override
-	protected Map<String, BeanDefinitionRegisteringParser> getParserMap() {
-		Map<String, BeanDefinitionRegisteringParser> parsers = new HashMap<String, BeanDefinitionRegisteringParser>();
-		parsers.put("wire-tap", new WireTapParser());
-		return parsers;
+	private volatile Message<?> lastMessage;
+
+
+	public Message<?> getLastMessage() {
+		return this.lastMessage;
+	}
+
+	public boolean send(Message<?> message) {
+		this.lastMessage= message;
+		return true;
 	}
 
 }

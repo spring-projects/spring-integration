@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
+
+	<channel id="simple">
+		<interceptors>
+			<wire-tap target="testTarget"/>
+		</interceptors>
+	</channel>
+
+	<channel id="accepting">
+		<interceptors>
+			<wire-tap target="testTarget" selector="acceptingSelector"/>
+		</interceptors>
+	</channel>
+
+	<channel id="rejecting">
+		<interceptors>
+			<wire-tap target="testTarget" selector="rejectingSelector"/>
+		</interceptors>
+	</channel>
+
+	<channel id="timeout">
+		<interceptors>
+			<wire-tap target="testTarget" timeout="1234"/>
+		</interceptors>
+	</channel>
+
+	<beans:bean id="testTarget" class="org.springframework.integration.config.WireTapTestTarget"/>
+
+	<beans:bean id="acceptingSelector" class="org.springframework.integration.config.TestSelector">
+		<beans:constructor-arg value="true"/>
+	</beans:bean>
+
+	<beans:bean id="rejectingSelector" class="org.springframework.integration.config.TestSelector">
+		<beans:constructor-arg value="false"/>
+	</beans:bean>
+
+</beans:beans>

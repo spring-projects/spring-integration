@@ -16,9 +16,6 @@
 
 package org.springframework.integration.channel.interceptor;
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -39,39 +36,50 @@ import org.springframework.util.Assert;
  */
 public class WireTap extends ChannelInterceptorAdapter implements Lifecycle {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
+	private static final Log logger = LogFactory.getLog(WireTap.class);
 
 	private final MessageTarget target;
 
-	private final List<MessageSelector> selectors = new CopyOnWriteArrayList<MessageSelector>();
+	private volatile long timeout = 0;
+
+	private final MessageSelector selector;
 
 	private volatile boolean running = true;
 
 
 	/**
-	 * Create a new wire tap with <em>no</em> {@link MessageSelector MessageSelectors}.
+	 * Create a new wire tap with <em>no</em> {@link MessageSelector}.
 	 * 
 	 * @param target the MessageTarget to which intercepted messages will be sent
 	 */
 	public WireTap(MessageTarget target) {
-		Assert.notNull(target, "target must not be null");
-		this.target = target;
+		this(target, null);
 	}
 
 	/**
-	 * Create a new wire tap with {@link MessageSelector MessageSelectors}.
+	 * Create a new wire tap with the provided {@link MessageSelector}.
 	 * 
 	 * @param target the target to which intercepted messages will be sent
-	 * @param selectors the list of selectors that must accept a message for it to
+	 * @param selector the selector that must accept a message for it to
 	 * be sent to the intercepting target
 	 */
-	public WireTap(MessageTarget target, List<MessageSelector> selectors) {
-		this(target);
-		if (selectors != null) {
-			this.selectors.addAll(selectors);
-		}
+	public WireTap(MessageTarget target, MessageSelector selector) {
+		Assert.notNull(target, "target must not be null");
+		this.target = target;
+		this.selector = selector;
 	}
 
+
+	/**
+	 * Specify the timeout value for sending to the intercepting target. Note
+	 * that this value will only apply if the target is a {@link BlockingTarget}.
+	 * The default value is 0.
+	 * 
+	 * @param timeout the timeout in milliseconds
+	 */
+	public void setTimeout(long timeout) {
+		this.timeout = timeout;
+	}
 
 	/**
 	 * Check whether the wire tap is currently running.
@@ -94,30 +102,22 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle {
 		this.running = false;
 	}
 
+	/**
+	 * Intercept the Message and, <em>if accepted</em> by the {@link MessageSelector},
+	 * send it to the secondary target. If this wire tap's {@link MessageSelector} is
+	 * <code>null</code>, it will accept all messages.
+	 */
 	@Override
 	public Message<?> preSend(Message<?> message, MessageChannel channel) {
-		if (this.running && this.selectorsAccept(message)) {
-			boolean sent = (this.target instanceof BlockingTarget) ?
-					((BlockingTarget) this.target).send(message, 0) : this.target.send(message);
+		if (this.running && (this.selector == null || this.selector.accept(message))) {
+			boolean sent = (this.target instanceof BlockingTarget)
+					? ((BlockingTarget) this.target).send(message, this.timeout)
+					: this.target.send(message);
 			if (!sent && logger.isWarnEnabled()) {
-					logger.warn("failed to send message to WireTap target '" + this.target + "'");
+				logger.warn("failed to send message to WireTap target '" + this.target + "'");
 			}
 		}
 		return message;
-	}
-
-	/**
-	 * If this wire tap has any {@link MessageSelector MessageSelectors}, check
-	 * whether they accept the current message. If any of them do not accept it,
-	 * the message will <em>not</em> be sent to the intercepting target.
-	 */
-	private boolean selectorsAccept(Message<?> message) {
-		for (MessageSelector selector : this.selectors) {
-			if (!selector.accept(message)) {
-				return false;
-			}
-		}
-		return true;
 	}
 
 }

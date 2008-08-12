@@ -20,9 +20,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.Test;
 
 import org.springframework.integration.channel.QueueChannel;
@@ -38,7 +35,7 @@ import org.springframework.integration.message.selector.MessageSelector;
 public class WireTapTests {
 
 	@Test
-	public void wireTapWithNoSelectors() {
+	public void wireTapWithNoSelector() {
 		QueueChannel mainChannel = new QueueChannel();
 		QueueChannel secondaryChannel = new QueueChannel();
 		mainChannel.addInterceptor(new WireTap(secondaryChannel));
@@ -54,10 +51,7 @@ public class WireTapTests {
 	public void wireTapWithRejectingSelector() {
 		QueueChannel mainChannel = new QueueChannel();
 		QueueChannel secondaryChannel = new QueueChannel();
-		List<MessageSelector> selectors = new ArrayList<MessageSelector>();
-		selectors.add(new TestSelector(true));
-		selectors.add(new TestSelector(false));
-		mainChannel.addInterceptor(new WireTap(secondaryChannel, selectors));
+		mainChannel.addInterceptor(new WireTap(secondaryChannel, new TestSelector(false)));
 		mainChannel.send(new StringMessage("testing"));
 		Message<?> original = mainChannel.receive(0);
 		assertNotNull(original);
@@ -66,13 +60,10 @@ public class WireTapTests {
 	}
 
 	@Test
-	public void wireTapWithAcceptingSelectors() {
+	public void wireTapWithAcceptingSelector() {
 		QueueChannel mainChannel = new QueueChannel();
 		QueueChannel secondaryChannel = new QueueChannel();
-		List<MessageSelector> selectors = new ArrayList<MessageSelector>();
-		selectors.add(new TestSelector(true));
-		selectors.add(new TestSelector(true));
-		mainChannel.addInterceptor(new WireTap(secondaryChannel, selectors));
+		mainChannel.addInterceptor(new WireTap(secondaryChannel, new TestSelector(true)));
 		mainChannel.send(new StringMessage("testing"));
 		Message<?> original = mainChannel.receive(0);
 		assertNotNull(original);
