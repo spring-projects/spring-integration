@@ -25,26 +25,23 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.message.BlockingTarget;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.util.Assert;
 
 /**
  * A {@link ChannelInterceptor} that publishes a copy of the intercepted message
- * to a secondary channel while still sending the original message to the main channel.
+ * to a secondary target while still sending the original message to the main channel.
  * 
  * @author Mark Fisher
  */
 public class WireTap extends ChannelInterceptorAdapter implements Lifecycle {
 
-	/** key for the attribute containing the original Message's id */
-	public final static String ORIGINAL_MESSAGE_ID_KEY = "_wireTap.originalMessageId";
-
-
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private final MessageChannel secondaryChannel;
+	private final MessageTarget target;
 
 	private final List<MessageSelector> selectors = new CopyOnWriteArrayList<MessageSelector>();
 
@@ -54,22 +51,22 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle {
 	/**
 	 * Create a new wire tap with <em>no</em> {@link MessageSelector MessageSelectors}.
 	 * 
-	 * @param secondaryChannel the channel to which duplicate messages will be sent
+	 * @param target the MessageTarget to which intercepted messages will be sent
 	 */
-	public WireTap(MessageChannel secondaryChannel) {
-		Assert.notNull(secondaryChannel, "'secondaryChannel' must not be null");
-		this.secondaryChannel = secondaryChannel;
+	public WireTap(MessageTarget target) {
+		Assert.notNull(target, "target must not be null");
+		this.target = target;
 	}
 
 	/**
 	 * Create a new wire tap with {@link MessageSelector MessageSelectors}.
 	 * 
-	 * @param secondaryChannel the channel to which duplicate messages will be sent
+	 * @param target the target to which intercepted messages will be sent
 	 * @param selectors the list of selectors that must accept a message for it to
-	 * be sent to the secondary channel
+	 * be sent to the intercepting target
 	 */
-	public WireTap(MessageChannel secondaryChannel, List<MessageSelector> selectors) {
-		this(secondaryChannel);
+	public WireTap(MessageTarget target, List<MessageSelector> selectors) {
+		this(target);
 		if (selectors != null) {
 			this.selectors.addAll(selectors);
 		}
@@ -100,14 +97,10 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle {
 	@Override
 	public Message<?> preSend(Message<?> message, MessageChannel channel) {
 		if (this.running && this.selectorsAccept(message)) {
-			Message<?> duplicate = MessageBuilder.fromMessage(message)
-					.setHeader(ORIGINAL_MESSAGE_ID_KEY, message.getHeaders().getId())
-					.build();
-			if (!this.secondaryChannel.send(duplicate, 0)) {
-				if (logger.isWarnEnabled()) {
-					logger.warn("Failed to send message to secondary channel '" + this.secondaryChannel.getName()
-							+ "'. Check its capacity and whether it has any subscribers.");
-				}
+			boolean sent = (this.target instanceof BlockingTarget) ?
+					((BlockingTarget) this.target).send(message, 0) : this.target.send(message);
+			if (!sent && logger.isWarnEnabled()) {
+					logger.warn("failed to send message to WireTap target '" + this.target + "'");
 			}
 		}
 		return message;
@@ -116,7 +109,7 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle {
 	/**
 	 * If this wire tap has any {@link MessageSelector MessageSelectors}, check
 	 * whether they accept the current message. If any of them do not accept it,
-	 * the message will <em>not</em> be sent to the secondary channel.
+	 * the message will <em>not</em> be sent to the intercepting target.
 	 */
 	private boolean selectorsAccept(Message<?> message) {
 		for (MessageSelector selector : this.selectors) {
