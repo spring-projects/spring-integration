@@ -37,9 +37,9 @@ import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelRegistryAware;
-import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.ConcurrencyPolicy;
-import org.springframework.integration.endpoint.HandlerEndpoint;
+import org.springframework.integration.endpoint.MessageEndpoint;
+import org.springframework.integration.endpoint.SimpleEndpoint;
 import org.springframework.integration.endpoint.interceptor.ConcurrencyInterceptor;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
@@ -129,9 +129,9 @@ public class HandlerAnnotationPostProcessor extends AbstractAnnotationMethodPost
 		return handlerChain;
 	}
 
-	public AbstractEndpoint createEndpoint(Object bean, String beanName, Class<?> originalBeanClass,
+	public MessageEndpoint createEndpoint(Object bean, String beanName, Class<?> originalBeanClass,
 			org.springframework.integration.annotation.MessageEndpoint endpointAnnotation) {
-		HandlerEndpoint endpoint = new HandlerEndpoint((MessageHandler) bean);
+		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>((MessageHandler) bean);
 		String outputChannelName = endpointAnnotation.output();
 		if (StringUtils.hasText(outputChannelName)) {
 			endpoint.setOutputChannelName(outputChannelName);

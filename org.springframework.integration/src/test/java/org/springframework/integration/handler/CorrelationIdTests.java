@@ -21,13 +21,12 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import org.springframework.integration.channel.ChannelRegistry;
-import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.endpoint.SimpleEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.router.SplitterMessageHandlerAdapter;
+import org.springframework.integration.splitter.SplitterMessageHandler;
 
 /**
  * @author Mark Fisher
@@ -112,19 +111,13 @@ public class CorrelationIdTests {
 	@Test
 	public void testCorrelationIdWithSplitter() throws Exception {
 		Message<?> message = new StringMessage("test1,test2");
-		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
-		adapter.setObject(new TestBean());
-		adapter.setMethodName("upperCase");
-		adapter.afterPropertiesSet();
 		QueueChannel testChannel = new QueueChannel();
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		channelRegistry.registerChannel("testChannel", testChannel);
-		SplitterMessageHandlerAdapter splitter = new SplitterMessageHandlerAdapter(
+		SplitterMessageHandler splitter = new SplitterMessageHandler(
 				new TestBean(), TestBean.class.getMethod("split", String.class));
-		splitter.setOutputChannelName("testChannel");
-		splitter.setChannelRegistry(channelRegistry);
+		SimpleEndpoint<SplitterMessageHandler> endpoint = new SimpleEndpoint<SplitterMessageHandler>(splitter);
+		endpoint.setOutputChannel(testChannel);
 		splitter.afterPropertiesSet();
-		splitter.handle(message);
+		endpoint.send(message);
 		Message<?> reply1 = testChannel.receive(100);
 		Message<?> reply2 = testChannel.receive(100);
 		assertEquals(message.getHeaders().getId(), reply1.getHeaders().getCorrelationId());

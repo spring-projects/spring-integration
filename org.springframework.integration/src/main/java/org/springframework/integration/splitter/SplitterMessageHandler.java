@@ -71,8 +71,9 @@ public class SplitterMessageHandler extends AbstractMessageHandler {
 		this.delimiters = delimiters;
 	}
 
-	protected CompositeMessage createReplyMessage(Object result, MessageHeaders requestHeaders) {
-		List<Message<?>> results = new ArrayList<Message<?>>();		
+	protected CompositeMessage createReplyMessage(Object result, Message<?> requestMessage) {
+		MessageHeaders requestHeaders = requestMessage.getHeaders();
+		List<Message<?>> results = new ArrayList<Message<?>>();
 		if (result instanceof Collection) {
 			Collection<?> items = (Collection<?>) result;
 			int sequenceNumber = 0;

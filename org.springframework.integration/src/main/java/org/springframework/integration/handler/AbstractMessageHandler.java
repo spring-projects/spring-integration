@@ -181,8 +181,8 @@ public abstract class AbstractMessageHandler implements MessageHandler, Initiali
 		}
 	}
 
-	public Message<?> handle(Message<?> message) {
-		if (message == null || message.getPayload() == null) {
+	public Message<?> handle(Message<?> requestMessage) {
+		if (requestMessage == null || requestMessage.getPayload() == null) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("message handler received a null message");
 			}
@@ -191,21 +191,22 @@ public abstract class AbstractMessageHandler implements MessageHandler, Initiali
 		if (!this.initialized) {
 			this.afterPropertiesSet();
 		}
-		Object result = (this.invoker != null) ? this.invokeHandlerMethod(message) : message.getPayload();
+		Object result = (this.invoker != null) ?
+				this.invokeHandlerMethod(requestMessage) : requestMessage.getPayload();
 		if (result == null) {
 			return null;
 		}
-		return this.createReplyMessage(result, message.getHeaders());
+		return this.createReplyMessage(result, requestMessage);
 	}
 
 	/**
 	 * Subclasses must implement this method to generate the reply Message.
 	 * 
 	 * @param result the return value from an adapter method, or the Message payload if not acting as an adapter
-	 * @param requestHeaders the MessageHeaders of the original request Message
+	 * @param requestMessage the original request Message
 	 * @return the Message to be sent to the reply MessageTarget
 	 */
-	protected abstract Message<?> createReplyMessage(Object result, MessageHeaders requestHeaders);
+	protected abstract Message<?> createReplyMessage(Object result, Message<?> requestMessage);
 
 
 	private Object invokeHandlerMethod(Message<?> message) {

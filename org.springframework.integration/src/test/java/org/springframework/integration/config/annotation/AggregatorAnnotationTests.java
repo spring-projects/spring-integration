@@ -30,7 +30,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.config.MessageBusParser;
-import org.springframework.integration.endpoint.HandlerEndpoint;
+import org.springframework.integration.endpoint.SimpleEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.router.AggregatingMessageHandler;
 import org.springframework.integration.router.CompletionStrategyAdapter;
@@ -111,8 +111,8 @@ public class AggregatorAnnotationTests {
 	@SuppressWarnings("unchecked")
 	private DirectFieldAccessor getDirectFieldAccessorForAggregatingHandler(ApplicationContext context, final String endpointName) {
 		MessageBus messageBus = this.getMessageBus(context);
-		HandlerEndpoint endpoint = (HandlerEndpoint) messageBus.lookupEndpoint(endpointName +  ".MessageHandler.endpoint");
-		MessageHandler handler = endpoint.getHandler();
+		SimpleEndpoint<?> endpoint = (SimpleEndpoint<?>) messageBus.lookupEndpoint(endpointName +  ".MessageHandler.endpoint");
+		MessageHandler handler = (MessageHandler) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		try {
 			if (AopUtils.isAopProxy(handler)) {
 				DelegatingIntroductionInterceptor interceptor = (DelegatingIntroductionInterceptor)
@@ -124,7 +124,7 @@ public class AggregatorAnnotationTests {
 		catch (Exception e) {
 			// will return the accessor for the handler
 		}
-		return new DirectFieldAccessor(endpoint.getHandler());
+		return new DirectFieldAccessor(handler);
 	}
 
 	private MessageBus getMessageBus(ApplicationContext context) {

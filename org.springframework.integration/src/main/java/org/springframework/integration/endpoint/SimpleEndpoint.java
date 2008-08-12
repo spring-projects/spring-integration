@@ -332,9 +332,10 @@ public class SimpleEndpoint<T extends MessageHandler> implements MessageEndpoint
 
 	/* TODO: remove the following methods after they are removed from the MessageEndpoint interface. */
 
-	private String inputChannelName;
-	private String outputChannelName;
-	private MessageSource<?> source;
+	private volatile String inputChannelName;
+	private volatile String outputChannelName;
+	private volatile MessageSource<?> source;
+	private volatile Schedule schedule;
 
 	public String getInputChannelName() {
 		return this.inputChannelName;
@@ -356,7 +357,11 @@ public class SimpleEndpoint<T extends MessageHandler> implements MessageEndpoint
 	}
 
 	public Schedule getSchedule() {
-		return null;
+		return this.schedule;
+	}
+
+	public void setSchedule(Schedule schedule) {
+		this.schedule = schedule;
 	}
 
 	public MessageSource<?> getSource() {

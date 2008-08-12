@@ -56,7 +56,7 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.EndpointInterceptor;
-import org.springframework.integration.endpoint.HandlerEndpoint;
+import org.springframework.integration.endpoint.SimpleEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
@@ -185,7 +185,7 @@ public class MessagingAnnotationPostProcessorTests {
 		postProcessor.afterPropertiesSet();
 		ConcurrencyAnnotationTestBean testBean = new ConcurrencyAnnotationTestBean();
 		postProcessor.postProcessAfterInitialization(testBean, "testBean");
-		HandlerEndpoint endpoint = (HandlerEndpoint) messageBus.lookupEndpoint("testBean.MessageHandler.endpoint");
+		SimpleEndpoint<?> endpoint = (SimpleEndpoint<?>) messageBus.lookupEndpoint("testBean.MessageHandler.endpoint");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
 		List<EndpointInterceptor> interceptors = (List<EndpointInterceptor>) accessor.getPropertyValue("interceptors");
 		assertEquals(1, interceptors.size());
@@ -363,7 +363,7 @@ public class MessagingAnnotationPostProcessorTests {
 		postProcessor.afterPropertiesSet();
 		AnnotatedEndpointWithPolledAnnotation endpoint = new AnnotatedEndpointWithPolledAnnotation();
 		postProcessor.postProcessAfterInitialization(endpoint, "testBean");
-		HandlerEndpoint processedEndpoint = (HandlerEndpoint) messageBus.lookupEndpoint("testBean.MessageHandler.endpoint");
+		SimpleEndpoint<?> processedEndpoint = (SimpleEndpoint<?>) messageBus.lookupEndpoint("testBean.MessageHandler.endpoint");
 		Schedule schedule = processedEndpoint.getSchedule();
 		assertEquals(PollingSchedule.class, schedule.getClass());
 		PollingSchedule pollingSchedule = (PollingSchedule) schedule;

@@ -18,7 +18,6 @@ package org.springframework.integration.handler;
 
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessageHeaders;
 
 /**
  * The default MessageHandler implementation. Creates a Message for the reply payload.
@@ -30,8 +29,11 @@ import org.springframework.integration.message.MessageHeaders;
 public class DefaultMessageHandler extends AbstractMessageHandler {
 
 	@Override
-	protected Message<?> createReplyMessage(Object result, MessageHeaders requestHeaders) {
-		return MessageBuilder.fromPayload(result).copyHeaders(requestHeaders).setCorrelationId(requestHeaders.getId()).build();
+	protected Message<?> createReplyMessage(Object result, Message<?> requestMessage) {
+		return MessageBuilder.fromPayload(result)
+				.copyHeaders(requestMessage.getHeaders())
+				.setCorrelationId(requestMessage.getHeaders().getId())
+				.build();
 	}
 
 }
