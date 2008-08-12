@@ -24,7 +24,7 @@ import org.springframework.integration.message.Message;
 /**
  * @author Mark Fisher
  */
-public class TestPreSendInterceptor extends EndpointInterceptorAdapter {
+public class TestPostHandleInterceptor extends EndpointInterceptorAdapter {
 
 	private AtomicInteger counter = new AtomicInteger();
 
@@ -34,9 +34,9 @@ public class TestPreSendInterceptor extends EndpointInterceptorAdapter {
 	}
 
 	@Override
-	public Message<?> preHandle(Message<?> message) {
+	public Message<?> postHandle(Message<?> replyMessage) {
 		this.counter.incrementAndGet();
-		return message;
+		return replyMessage;
 	}
 
 }

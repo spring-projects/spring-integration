@@ -229,7 +229,7 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 			Message<?> reply = this.handleMessage(message);
 			for (int i = index - 1; i >= 0; i--) {
 				EndpointInterceptor interceptor = this.interceptors.get(i);
-				reply = interceptor.postHandle(message, reply);
+				reply = interceptor.postHandle(reply);
 			}
 			if (reply != null) {
 				this.getMessageExchangeTemplate().send(message, this.target);

@@ -26,8 +26,8 @@ public interface EndpointInterceptor {
 
 	Message<?> preHandle(Message<?> requestMessage);
 
-	Message<?> aroundHandle(Message<?> message, MessageHandler handler);
+	Message<?> aroundHandle(Message<?> requestMessage, MessageHandler handler);
 
-	Message<?> postHandle(Message<?> requestMessage, Message<?> replyMessage);
+	Message<?> postHandle(Message<?> replyMessage);
 
 }

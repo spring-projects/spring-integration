@@ -19,13 +19,12 @@ package org.springframework.integration.config;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.springframework.integration.endpoint.interceptor.EndpointInterceptorAdapter;
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 
 /**
  * @author Mark Fisher
  */
-public class TestAroundSendEndpointInterceptor extends EndpointInterceptorAdapter {
+public class TestPreHandleInterceptor extends EndpointInterceptorAdapter {
 
 	private AtomicInteger counter = new AtomicInteger();
 
@@ -35,11 +34,9 @@ public class TestAroundSendEndpointInterceptor extends EndpointInterceptorAdapte
 	}
 
 	@Override
-	public Message<?> aroundHandle(Message<?> message, MessageHandler handler) {
+	public Message<?> preHandle(Message<?> message) {
 		this.counter.incrementAndGet();
-		Message<?> reply = handler.handle(message);
-		this.counter.incrementAndGet();
-		return reply;
+		return message;
 	}
 
 }

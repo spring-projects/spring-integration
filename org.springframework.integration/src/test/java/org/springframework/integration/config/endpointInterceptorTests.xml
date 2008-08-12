@@ -19,8 +19,8 @@
 	                   output-channel="replyChannel">
 		<poller period="100"/>
 		<interceptors>
-			<beans:bean class="org.springframework.integration.config.TestPreSendInterceptor"/>
-			<beans:bean class="org.springframework.integration.config.TestAroundSendEndpointInterceptor"/>
+			<beans:bean class="org.springframework.integration.config.TestPreHandleInterceptor"/>
+			<beans:bean class="org.springframework.integration.config.TestPostHandleInterceptor"/>
 		</interceptors>
 	</service-activator>
 
@@ -31,15 +31,15 @@
 		<poller period="100"/>
 		<interceptors>
 			<ref bean="preInterceptor"/>
-			<ref bean="aroundInterceptor"/>
+			<ref bean="postInterceptor"/>
 		</interceptors>
 	</service-activator>
 
 
 	<beans:bean id="testHandler" class="org.springframework.integration.config.TestHandler"/>
 
-	<beans:bean id="preInterceptor" class="org.springframework.integration.config.TestPreSendInterceptor"/>
+	<beans:bean id="preInterceptor" class="org.springframework.integration.config.TestPreHandleInterceptor"/>
 
-	<beans:bean id="aroundInterceptor" class="org.springframework.integration.config.TestAroundSendEndpointInterceptor"/>
+	<beans:bean id="postInterceptor" class="org.springframework.integration.config.TestPostHandleInterceptor"/>
 
 </beans:beans>

@@ -52,23 +52,23 @@ public class EndpointInterceptorTests {
 
 	@SuppressWarnings("unchecked")
 	private static void testInterceptors(MessageEndpoint endpoint, ClassPathXmlApplicationContext context, boolean innerBeans) {
-		TestPreSendInterceptor preInterceptor = null;
-		TestAroundSendEndpointInterceptor aroundInterceptor = null;
+		TestPreHandleInterceptor preInterceptor = null;
+		TestPostHandleInterceptor postInterceptor = null;
 		if (innerBeans) {
 			DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
 			List<EndpointInterceptor> interceptors = (List<EndpointInterceptor>) accessor.getPropertyValue("interceptors");
-			preInterceptor = (TestPreSendInterceptor) interceptors.get(0);
-			aroundInterceptor = (TestAroundSendEndpointInterceptor) interceptors.get(1);
+			preInterceptor = (TestPreHandleInterceptor) interceptors.get(0);
+			postInterceptor = (TestPostHandleInterceptor) interceptors.get(1);
 		}
 		else {
-			preInterceptor = (TestPreSendInterceptor) context.getBean("preInterceptor");
-			aroundInterceptor = (TestAroundSendEndpointInterceptor) context.getBean("aroundInterceptor");
+			preInterceptor = (TestPreHandleInterceptor) context.getBean("preInterceptor");
+			postInterceptor = (TestPostHandleInterceptor) context.getBean("postInterceptor");
 		}
 		assertEquals(0, preInterceptor.getCount());
-		assertEquals(0, aroundInterceptor.getCount());
+		assertEquals(0, postInterceptor.getCount());
 		endpoint.send(new StringMessage("test"));
 		assertEquals(1, preInterceptor.getCount());
-		assertEquals(2, aroundInterceptor.getCount());
+		assertEquals(1, postInterceptor.getCount());
 		context.stop();
 	}
 

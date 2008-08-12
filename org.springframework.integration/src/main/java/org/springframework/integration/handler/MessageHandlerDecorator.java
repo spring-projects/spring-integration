@@ -17,6 +17,7 @@
 package org.springframework.integration.handler;
 
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.util.Assert;
 
 /**
@@ -24,18 +25,31 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public abstract class InterceptingMessageHandler implements MessageHandler {
+public abstract class MessageHandlerDecorator implements MessageHandler {
 
-	private MessageHandler target;
+	private MessageHandler handler;
 
 
-	public InterceptingMessageHandler(MessageHandler target) {
-		Assert.notNull(target, "target must not be null");
-		this.target = target;
+	public MessageHandlerDecorator(MessageHandler handler) {
+		Assert.notNull(handler, "handler must not be null");
+		this.handler = handler;
+	}
+
+	public MessageHandlerDecorator() {
+	}
+
+
+	public void setHandler(MessageHandler handler) {
+		Assert.notNull(handler, "handler must not be null");
+		this.handler = handler;
 	}
 
 	public final Message<?> handle(Message<?> message) {
-		return handle(message, this.target);
+		if (this.handler == null) {
+			throw new MessageHandlingException(message,
+					"MessageHandlerDecorator's handler must not be null");
+		}
+		return this.handleInternal(message, this.handler);
 	}
 
 
@@ -43,9 +57,9 @@ public abstract class InterceptingMessageHandler implements MessageHandler {
 	 * The handler method for subclasses to implement.
 	 * 
 	 * @param message the message to handle
-	 * @param target the intercepted handler
+	 * @param handler the intercepted handler
 	 * @return a reply message or null
 	 */
-	public abstract Message<?> handle(Message<?> message, MessageHandler target);
+	public abstract Message<?> handleInternal(Message<?> message, MessageHandler handler);
 
 }

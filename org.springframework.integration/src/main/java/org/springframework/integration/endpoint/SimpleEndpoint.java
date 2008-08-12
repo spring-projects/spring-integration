@@ -231,7 +231,7 @@ public class SimpleEndpoint<T extends MessageHandler> implements MessageEndpoint
 			Message<?> replyMessage = this.handler.handle(requestMessage);
 			for (int i = index - 1; i >= 0; i--) {
 				EndpointInterceptor interceptor = this.interceptors.get(i);
-				replyMessage = interceptor.postHandle(requestMessage, replyMessage);
+				replyMessage = interceptor.postHandle(replyMessage);
 			}
 			return replyMessage;
 		}

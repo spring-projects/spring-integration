@@ -40,11 +40,11 @@ public class MessageHandlerChainTests {
 	}
 
 	@Test
-	public void testChainWithInterceptors() {
+	public void testChainWithDecorators() {
 		MessageHandler handler1 = new TestHandler("*"); 
-		MessageHandler handler2 = new TestInterceptingHandler("2", handler1);
-		MessageHandler handler3 = new TestInterceptingHandler("3", handler2);
-		MessageHandler handler4 = new TestInterceptingHandler("4", handler3);
+		MessageHandler handler2 = new TestHandlerDecorator("2", handler1);
+		MessageHandler handler3 = new TestHandlerDecorator("3", handler2);
+		MessageHandler handler4 = new TestHandlerDecorator("4", handler3);
 		MessageHandlerChain chain = new MessageHandlerChain();
 		chain.add(new TestHandler("a"));
 		chain.add(handler4);
@@ -68,17 +68,18 @@ public class MessageHandlerChainTests {
 	}
 
 
-	private static class TestInterceptingHandler extends InterceptingMessageHandler {
+	private static class TestHandlerDecorator extends MessageHandlerDecorator {
 
 		private String text;
 
-		TestInterceptingHandler(String text, MessageHandler target) {
-			super(target);
+		TestHandlerDecorator(String text, MessageHandler handler) {
+			super(handler);
 			this.text = text;
 		}
 
-		public Message<?> handle(Message<?> message, MessageHandler target) {
-			message = target.handle(new StringMessage(text + message.getPayload()));
+		@Override
+		public Message<?> handleInternal(Message<?> message, MessageHandler handler) {
+			message = handler.handle(new StringMessage(text + message.getPayload()));
 			return new StringMessage(message.getPayload() + text);
 		}
 	}

@@ -31,11 +31,11 @@ public class EndpointInterceptorAdapter implements EndpointInterceptor {
 		return requestMessage;
 	}
 
-	public Message<?> aroundHandle(Message<?> message, MessageHandler handler) {
-		return handler.handle(message);
+	public Message<?> aroundHandle(Message<?> requestMessage, MessageHandler handler) {
+		return handler.handle(requestMessage);
 	}
 
-	public Message<?> postHandle(Message<?> requestMessage, Message<?> replyMessage) {
+	public Message<?> postHandle(Message<?> replyMessage) {
 		return replyMessage;
 	}
 
