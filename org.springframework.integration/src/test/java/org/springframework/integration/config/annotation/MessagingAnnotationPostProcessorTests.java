@@ -162,14 +162,13 @@ public class MessagingAnnotationPostProcessorTests {
 	@Test
 	public void testTargetAnnotation() throws InterruptedException {
 		MessageBus messageBus = new DefaultMessageBus();
-		QueueChannel testChannel = new QueueChannel();
-		messageBus.registerChannel("testChannel", testChannel);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
 		postProcessor.afterPropertiesSet();
 		CountDownLatch latch = new CountDownLatch(1);
 		TargetAnnotationTestBean testBean = new TargetAnnotationTestBean(latch);
 		postProcessor.postProcessAfterInitialization(testBean, "testBean");
 		messageBus.start();
+		MessageChannel testChannel = messageBus.lookupChannel("testChannel");
 		testChannel.send(new StringMessage("foo"));
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
@@ -399,7 +398,7 @@ public class MessagingAnnotationPostProcessorTests {
 	}
 
 
-	@MessageEndpoint(input="testChannel")
+	@ChannelAdapter("testChannel")
 	private static class TargetAnnotationTestBean {
 
 		private String messageText;

@@ -22,16 +22,12 @@ import java.util.List;
 
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.annotation.Concurrency;
+import org.springframework.integration.annotation.ChannelAdapter;
 import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.channel.PollableChannelAdapter;
 import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.endpoint.ConcurrencyPolicy;
-import org.springframework.integration.endpoint.TargetEndpoint;
-import org.springframework.integration.endpoint.interceptor.ConcurrencyInterceptor;
 import org.springframework.integration.handler.MethodInvokingTarget;
 import org.springframework.integration.message.MessageTarget;
-import org.springframework.integration.scheduling.Schedule;
-import org.springframework.util.StringUtils;
 
 /**
  * Post-processor for classes annotated with {@link MessageTarget @MessageTarget}.
@@ -45,10 +41,16 @@ public class TargetAnnotationPostProcessor extends AbstractAnnotationMethodPostP
 	}
 
 
-	public MessageTarget processMethod(Object bean, Method method, Annotation annotation) {
+	protected MessageTarget processMethod(Object bean, Method method, Annotation annotation) {
 		MethodInvokingTarget target = new MethodInvokingTarget();
 		target.setObject(bean);
-		target.setMethod(method);
+		target.setMethodName(method.getName());
+		ChannelAdapter channelAdapterAnnotation = AnnotationUtils.findAnnotation(bean.getClass(), ChannelAdapter.class);
+		if (channelAdapterAnnotation != null) {
+			String channelName = channelAdapterAnnotation.value();
+			PollableChannelAdapter adapter = new PollableChannelAdapter(channelName, null, target);
+			this.getMessageBus().registerChannel(channelName, adapter);
+		}
 		return target;
 	}
 
@@ -61,24 +63,7 @@ public class TargetAnnotationPostProcessor extends AbstractAnnotationMethodPostP
 
 	public AbstractEndpoint createEndpoint(Object bean, String beanName, Class<?> originalBeanClass,
 			org.springframework.integration.annotation.MessageEndpoint endpointAnnotation) {
-		TargetEndpoint endpoint = new TargetEndpoint((MessageTarget) bean);
-		String inputChannelName = endpointAnnotation.input();
-		if (StringUtils.hasText(inputChannelName)) {
-			endpoint.setInputChannelName(inputChannelName);
-		}
-		Schedule schedule = this.extractSchedule(originalBeanClass);
-		if (schedule != null) {
-			endpoint.setSchedule(schedule);
-		}
-		Concurrency concurrencyAnnotation = AnnotationUtils.findAnnotation(originalBeanClass, Concurrency.class);
-		if (concurrencyAnnotation != null) {
-			ConcurrencyPolicy concurrencyPolicy = new ConcurrencyPolicy(concurrencyAnnotation.coreSize(),
-					concurrencyAnnotation.maxSize());
-			concurrencyPolicy.setKeepAliveSeconds(concurrencyAnnotation.keepAliveSeconds());
-			concurrencyPolicy.setQueueCapacity(concurrencyAnnotation.queueCapacity());
-			endpoint.addInterceptor(new ConcurrencyInterceptor(concurrencyPolicy, beanName));
-		}
-		return endpoint;
+		return null;
 	}
 
 }
