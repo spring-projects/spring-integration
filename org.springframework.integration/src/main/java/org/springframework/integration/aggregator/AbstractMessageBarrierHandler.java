@@ -32,8 +32,10 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.message.BlockingTarget;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.message.MessageTarget;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -201,18 +203,23 @@ public abstract class AbstractMessageBarrierHandler implements MessageHandler, I
 	private void afterRelease(Object correlationId, List<Message<?>> releasedMessages) {
 		Message<?>[] processedMessages = this.processReleasedMessages(correlationId, releasedMessages);
 		for (Message<?> result : processedMessages) {
-			MessageChannel replyChannel = this.resolveReplyChannelFromMessage(result);
-			if (replyChannel == null) {
-				replyChannel = this.resolveReplyChannelFromMessage(releasedMessages.get(0));
-				if (replyChannel == null) {
-					replyChannel = this.outputChannel;
+			MessageTarget replyTarget = this.outputChannel;
+			if (replyTarget == null) {
+				replyTarget = this.resolveReplyTargetFromMessage(result);
+				if (replyTarget == null) {
+					replyTarget = this.resolveReplyTargetFromMessage(releasedMessages.get(0));
 				}
 			}
-			if (replyChannel != null) {
-				replyChannel.send(result, this.sendTimeout);
+			if (replyTarget != null) {
+				if (replyTarget instanceof BlockingTarget && this.sendTimeout >= 0) {
+					((BlockingTarget) replyTarget).send(result, this.sendTimeout);
+				}
+				else {
+					replyTarget.send(result);
+				}
 			}
 			else if (logger.isWarnEnabled()) {
-				logger.warn("unable to determine reply channel for aggregation result: " + result);
+				logger.warn("unable to determine reply target for aggregation result: " + result);
 			}
 		}
 	}
@@ -227,14 +234,14 @@ public abstract class AbstractMessageBarrierHandler implements MessageHandler, I
 		}
 	}
 
-	protected MessageChannel resolveReplyChannelFromMessage(Message<?> message) {
+	protected MessageTarget resolveReplyTargetFromMessage(Message<?> message) {
 		Object returnAddress = message.getHeaders().getReturnAddress();
 		if (returnAddress != null) {
-			if (returnAddress instanceof MessageChannel) {
-				return (MessageChannel) returnAddress;
+			if (returnAddress instanceof MessageTarget) {
+				return (MessageTarget) returnAddress;
 			}
 			if (logger.isWarnEnabled()) {
-				logger.warn("Aggregator can only reply to a 'returnAddress' of type MessageChannel.");
+				logger.warn("Aggregator can only reply to a 'returnAddress' of type MessageTarget.");
 			}
 		}
 		return null;
