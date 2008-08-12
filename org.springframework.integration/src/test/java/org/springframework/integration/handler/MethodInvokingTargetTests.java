@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.QueueChannel;
@@ -50,32 +51,36 @@ public class MethodInvokingTargetTests {
 		assertTrue(result);
 	}
 
-	@Test(expected=MessagingException.class)
+	@Test(expected = ConfigurationException.class)
 	public void testInvalidMethodWithNoArgs() {
 		MethodInvokingTarget target = new MethodInvokingTarget();
 		target.setObject(new TestSink());
 		target.setMethodName("invalidMethodWithNoArgs");
 		target.afterPropertiesSet();
-		target.send(new StringMessage("test"));
 	}
 
-	@Test(expected=MessagingException.class)
+	@Test(expected = MessagingException.class)
 	public void testMethodWithReturnValue() {
-		MethodInvokingTarget target = new MethodInvokingTarget();
-		target.setObject(new TestSink());
-		target.setMethodName("methodWithReturnValue");
-		target.afterPropertiesSet();
-		boolean result = target.send(new StringMessage("test"));
-		assertTrue(result);
+		Message<?> message = new StringMessage("test");
+		try {
+			MethodInvokingTarget target = new MethodInvokingTarget();
+			target.setObject(new TestSink());
+			target.setMethodName("methodWithReturnValue");
+			target.afterPropertiesSet();
+			target.send(message);
+		}
+		catch (MessagingException e) {
+			assertEquals(e.getFailedMessage(), message);
+			throw e;
+		}
 	}
 
-	@Test(expected=MessagingException.class)
+	@Test(expected = ConfigurationException.class)
 	public void testNoMatchingMethodName() {
 		MethodInvokingTarget target = new MethodInvokingTarget();
 		target.setObject(new TestSink());
 		target.setMethodName("noSuchMethod");
 		target.afterPropertiesSet();
-		target.send(new StringMessage("test"));
 	}
 
 	@Test

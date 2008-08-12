@@ -17,15 +17,15 @@
 package org.springframework.integration.handler;
 
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.MessageTarget;
+import org.springframework.integration.message.MessagingException;
 
 /**
  * A messaging target that invokes the specified method on the provided object.
  * 
  * @author Mark Fisher
  */
-public class MethodInvokingTarget extends AbstractMessageHandlerAdapter implements MessageTarget {
+public class MethodInvokingTarget extends AbstractMessageHandler implements MessageTarget {
 
 	public boolean send(Message<?> message) {
 		this.handle(message);
@@ -33,9 +33,9 @@ public class MethodInvokingTarget extends AbstractMessageHandlerAdapter implemen
 	}
 
 	@Override
-	protected Message<?> handleReturnValue(Object returnValue, Message<?> originalMessage) {
-		if (returnValue != null) {
-			throw new MessagingException(originalMessage, "The target method returned a non-null Object. " +
+	protected Message<?> createReplyMessage(Object result, Message<?> requestMessage) {
+		if (result != null) {
+			throw new MessagingException(requestMessage, "The target method returned a non-null Object. " +
 					"MethodInvokingTarget should only be used for methods that return no value (preferably void).");
 		}
 		return null;

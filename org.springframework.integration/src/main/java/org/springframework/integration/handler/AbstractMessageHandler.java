@@ -100,7 +100,7 @@ public abstract class AbstractMessageHandler implements MessageHandler, Initiali
 	public void setMethod(Method method) {
 		Assert.notNull(method, "method must not be null");
 		if (method.getParameterTypes().length == 0) {
-			throw new IllegalArgumentException("method must accept at least one parameter");
+			throw new ConfigurationException("method must accept at least one parameter");
 		}
 		if (method.getParameterTypes()[0].equals(Message.class)) {
 			this.methodExpectsMessage = true;
