@@ -14,7 +14,7 @@
  * limitations under the License.
  */
  
-package org.springframework.integration.router;
+package org.springframework.integration.aggregator;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -25,6 +25,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.aggregator.AggregatorAdapter;
+import org.springframework.integration.aggregator.CompletionStrategy;
+import org.springframework.integration.aggregator.CompletionStrategyAdapter;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 

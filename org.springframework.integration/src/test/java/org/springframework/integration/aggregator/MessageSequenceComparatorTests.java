@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.router;
+package org.springframework.integration.aggregator;
 
 import static org.junit.Assert.assertEquals;
 

@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.router;
+package org.springframework.integration.aggregator;
 
 import java.lang.reflect.Method;
 import java.util.List;
 
+import org.springframework.integration.handler.MessageListMethodAdapter;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 

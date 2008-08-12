@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.router.config;
+package org.springframework.integration.splitter;
 
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -25,7 +25,6 @@ import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.handler.AbstractMessageHandlerAdapter;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.config.AbstractMessageHandlerCreator;
-import org.springframework.integration.splitter.SplitterMessageHandler;
 
 /**
  * Creates a {@link MessageHandler} adapter for splitter methods.

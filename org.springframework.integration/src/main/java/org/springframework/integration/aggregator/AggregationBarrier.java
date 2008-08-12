@@ -14,20 +14,35 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config;
+package org.springframework.integration.aggregator;
 
 import java.util.List;
 
-import org.springframework.integration.aggregator.CompletionStrategy;
 import org.springframework.integration.message.Message;
 
 /**
+ * MessageBarrier implementation for message aggregation. Delegates to a
+ * {@link CompletionStrategy} to determine when the group of messages is ready
+ * for aggregation.
+ * 
  * @author Marius Bogoevici
+ * @author Mark Fisher
  */
-public class TestCompletionStrategy implements CompletionStrategy {
+public class AggregationBarrier extends AbstractMessageBarrier {
 
-	public boolean isComplete(List<Message<?>> messages) {
-		throw new UnsupportedOperationException("This is not intended to be implemented, but to verify injection into an <aggregator>");
+	protected final CompletionStrategy completionStrategy;
+
+
+	public AggregationBarrier(CompletionStrategy completionStrategy) {
+		this.completionStrategy = completionStrategy;
 	}
 
+
+	protected List<Message<?>> releaseAvailableMessages() {
+		return (this.isComplete()) ? this.getMessages() : null;
+	}
+
+	protected boolean hasReceivedAllMessages() {
+		return completionStrategy.isComplete(this.messages);
+	}
 }

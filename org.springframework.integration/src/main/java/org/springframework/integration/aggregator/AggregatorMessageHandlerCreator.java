@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.router.config;
+package org.springframework.integration.aggregator;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -27,9 +27,6 @@ import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.config.AbstractMessageHandlerCreator;
-import org.springframework.integration.router.AggregatingMessageHandler;
-import org.springframework.integration.router.AggregatorAdapter;
-import org.springframework.integration.router.CompletionStrategyAdapter;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 

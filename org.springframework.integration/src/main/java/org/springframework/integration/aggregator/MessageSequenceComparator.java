@@ -14,28 +14,30 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.router;
+package org.springframework.integration.aggregator;
 
-import java.util.List;
+import java.util.Comparator;
 
 import org.springframework.integration.message.Message;
-import org.springframework.util.CollectionUtils;
 
 /**
- * An implementation of {@link CompletionStrategy} that simply compares the
- * current size of the message list to the expected 'sequenceSize' according to
- * the first {@link Message} in the list.
+ * A {@link Comparator} implementation based on the 'sequence number'
+ * property of a {@link Message Message's} header.
  * 
  * @author Mark Fisher
- * @author Marius Bogoevici
  */
-public class SequenceSizeCompletionStrategy implements CompletionStrategy {
+public class MessageSequenceComparator implements Comparator<Message<?>> {
 
-	public boolean isComplete(List<Message<?>> messages) {
-		if (CollectionUtils.isEmpty(messages)) {
-			return false;
+	public int compare(Message<?> message1, Message<?> message2) {
+		Integer s1 = message1.getHeaders().getSequenceNumber();
+		Integer s2 = message2.getHeaders().getSequenceNumber();
+		if (s1 == null) {
+			s1 = 0;
 		}
-		return messages.size() != 0 && (messages.size() >= messages.get(0).getHeaders().getSequenceSize());
+		if (s2 == null) {
+			s2 = 0;
+		}
+		return s1.compareTo(s2);
 	}
 
 }

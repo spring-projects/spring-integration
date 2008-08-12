@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.router;
+package org.springframework.integration.aggregator;
 
 import java.util.List;
 import java.util.Map;
@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandler;
@@ -39,9 +40,9 @@ import org.springframework.util.CollectionUtils;
 /**
  * Base class for {@link MessageBarrier}-based MessageHandlers.
  * A {@link MessageHandler} implementation that waits for a group of
- * {@link Message Messages} to arrive and process them together.
- * Uses a {@link MessageBarrier} to store messages and to decide on how
- * the messages can be released.
+ * {@link Message Messages} to arrive and processes them together.
+ * Uses a {@link MessageBarrier} to store messages and to decide how
+ * the messages should be released.
  * <p>
  * Each {@link Message} that is received by this handler will be associated with
  * a group based upon the '<code>correlationId</code>' property of its
@@ -53,7 +54,7 @@ import org.springframework.util.CollectionUtils;
  * The default value is 1 minute. If the timeout elapses prior to completion,
  * then Messages with that timed-out 'correlationId' will be sent to the
  * 'discardChannel' if provided.
- *
+ * 
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
@@ -75,8 +76,8 @@ public abstract class AbstractMessageBarrierHandler implements MessageHandler, I
 
 	protected volatile long sendTimeout = DEFAULT_SEND_TIMEOUT;
 
-	protected final ConcurrentMap<Object, MessageBarrier> barriers
-			= new ConcurrentHashMap<Object, MessageBarrier>();
+	protected final ConcurrentMap<Object, MessageBarrier> barriers =
+			new ConcurrentHashMap<Object, MessageBarrier>();
 
 	private volatile long timeout = DEFAULT_TIMEOUT;
 
@@ -250,6 +251,7 @@ public abstract class AbstractMessageBarrierHandler implements MessageHandler, I
 			}
 		}
 	}
+
 
 	private class ReaperTask implements Runnable {
 

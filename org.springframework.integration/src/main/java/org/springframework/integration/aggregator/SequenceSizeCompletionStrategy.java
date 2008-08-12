@@ -14,21 +14,28 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.router;
+package org.springframework.integration.aggregator;
 
 import java.util.List;
 
 import org.springframework.integration.message.Message;
+import org.springframework.util.CollectionUtils;
 
 /**
- * Strategy for determining when a group of messages reaches a state of
- * completion (i.e. can trip a barrier).
+ * An implementation of {@link CompletionStrategy} that simply compares the
+ * current size of the message list to the expected 'sequenceSize' according to
+ * the first {@link Message} in the list.
  * 
  * @author Mark Fisher
- * @see AggregationBarrier
+ * @author Marius Bogoevici
  */
-public interface CompletionStrategy {
+public class SequenceSizeCompletionStrategy implements CompletionStrategy {
 
-	boolean isComplete(List<Message<?>> messages);
+	public boolean isComplete(List<Message<?>> messages) {
+		if (CollectionUtils.isEmpty(messages)) {
+			return false;
+		}
+		return messages.size() != 0 && (messages.size() >= messages.get(0).getHeaders().getSequenceSize());
+	}
 
 }

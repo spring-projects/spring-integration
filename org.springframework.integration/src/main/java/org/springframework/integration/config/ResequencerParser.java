@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.router.config;
+package org.springframework.integration.config;
 
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
-import org.springframework.integration.config.IntegrationNamespaceUtils;
-import org.springframework.integration.router.ResequencingMessageHandler;
+import org.springframework.integration.aggregator.ResequencingMessageHandler;
 
 /**
- * Parser for the &lt;resequencer&gt; tag.
+ * Parser for the &lt;resequencer&gt; element.
  * 
  * @author Marius Bogoevici
  */

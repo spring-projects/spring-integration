@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.router;
+package org.springframework.integration.aggregator;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -25,6 +25,7 @@ import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
+import org.springframework.integration.aggregator.ResequencingMessageHandler;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;

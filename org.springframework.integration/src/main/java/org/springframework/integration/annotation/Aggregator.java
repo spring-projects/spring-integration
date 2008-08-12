@@ -22,7 +22,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.springframework.integration.router.AggregatingMessageHandler;
+import org.springframework.integration.aggregator.AggregatingMessageHandler;
 
 /**
  * Indicates that a method is capable of aggregating messages. 

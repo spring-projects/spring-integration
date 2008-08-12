@@ -28,13 +28,13 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.aggregator.AggregatingMessageHandler;
+import org.springframework.integration.aggregator.CompletionStrategyAdapter;
+import org.springframework.integration.aggregator.SequenceSizeCompletionStrategy;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.config.MessageBusParser;
 import org.springframework.integration.endpoint.SimpleEndpoint;
 import org.springframework.integration.handler.MessageHandler;
-import org.springframework.integration.router.AggregatingMessageHandler;
-import org.springframework.integration.router.CompletionStrategyAdapter;
-import org.springframework.integration.router.SequenceSizeCompletionStrategy;
 
 /**
  * @author Marius Bogoevici

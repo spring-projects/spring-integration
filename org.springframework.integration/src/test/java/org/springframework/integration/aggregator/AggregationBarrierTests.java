@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.router;
+package org.springframework.integration.aggregator;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -25,6 +25,8 @@ import java.util.List;
 
 import org.junit.Test;
 
+import org.springframework.integration.aggregator.AggregationBarrier;
+import org.springframework.integration.aggregator.CompletionStrategy;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 

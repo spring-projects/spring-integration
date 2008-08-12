@@ -16,28 +16,21 @@
 
 package org.springframework.integration.router;
 
-import java.util.Comparator;
+import java.lang.reflect.Method;
+import java.util.Map;
 
-import org.springframework.integration.message.Message;
+import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.handler.config.AbstractMessageHandlerCreator;
 
 /**
- * A {@link Comparator} implementation based on the 'sequence number'
- * property of a {@link Message Message's} header.
+ * Creates a {@link MessageHandler} adapter for router methods.
  * 
  * @author Mark Fisher
  */
-public class MessageSequenceComparator implements Comparator<Message<?>> {
+public class RouterMessageHandlerCreator extends AbstractMessageHandlerCreator {
 
-	public int compare(Message<?> message1, Message<?> message2) {
-		Integer s1 = message1.getHeaders().getSequenceNumber();
-		Integer s2 = message2.getHeaders().getSequenceNumber();
-		if (s1 == null) {
-			s1 = 0;
-		}
-		if (s2 == null) {
-			s2 = 0;
-		}
-		return s1.compareTo(s2);
+	public MessageHandler doCreateHandler(Object object, Method method, Map<String, ?> attributes) {
+		return new RouterMessageHandlerAdapter(object, method);
 	}
 
 }

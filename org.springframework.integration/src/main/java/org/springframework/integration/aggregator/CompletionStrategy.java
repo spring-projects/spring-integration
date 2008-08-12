@@ -14,26 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.router;
+package org.springframework.integration.aggregator;
 
 import java.util.List;
 
 import org.springframework.integration.message.Message;
 
 /**
- * Common interface for routing components that release a list of
- * {@link Message Messages} based upon a condition that is met when a
- * {@link Message} arrives.
+ * Strategy for determining when a group of messages reaches a state of
+ * completion (i.e. can trip a barrier).
  * 
  * @author Mark Fisher
- * @author Marius Bogoevici
+ * @see AggregationBarrier
  */
-public interface MessageBarrier {
+public interface CompletionStrategy {
 
-	List<Message<?>> addAndRelease(Message<?> message);
-
-	long getTimestamp();
-
-	List<Message<?>> getMessages();
+	boolean isComplete(List<Message<?>> messages);
 
 }

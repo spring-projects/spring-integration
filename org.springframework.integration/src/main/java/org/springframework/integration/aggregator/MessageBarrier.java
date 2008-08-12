@@ -14,35 +14,26 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.router;
+package org.springframework.integration.aggregator;
 
 import java.util.List;
 
 import org.springframework.integration.message.Message;
 
 /**
- * MessageBarrier implementation for message aggregation. Delegates to a
- * {@link CompletionStrategy} to determine when the group of messages is ready
- * for aggregation.
+ * Common interface for routing components that release a list of
+ * {@link Message Messages} based upon a condition that is met when a
+ * {@link Message} arrives.
  * 
- * @author Marius Bogoevici
  * @author Mark Fisher
+ * @author Marius Bogoevici
  */
-public class AggregationBarrier extends AbstractMessageBarrier {
+public interface MessageBarrier {
 
-	protected final CompletionStrategy completionStrategy;
+	List<Message<?>> addAndRelease(Message<?> message);
 
+	long getTimestamp();
 
-	public AggregationBarrier(CompletionStrategy completionStrategy) {
-		this.completionStrategy = completionStrategy;
-	}
+	List<Message<?>> getMessages();
 
-
-	protected List<Message<?>> releaseAvailableMessages() {
-		return (this.isComplete()) ? this.getMessages() : null;
-	}
-
-	protected boolean hasReceivedAllMessages() {
-		return completionStrategy.isComplete(this.messages);
-	}
 }

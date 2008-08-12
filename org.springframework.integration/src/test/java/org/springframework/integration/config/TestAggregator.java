@@ -22,10 +22,10 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.springframework.integration.aggregator.Aggregator;
+import org.springframework.integration.aggregator.MessageSequenceComparator;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.router.Aggregator;
-import org.springframework.integration.router.MessageSequenceComparator;
 
 /**
  * @author Marius Bogoevici

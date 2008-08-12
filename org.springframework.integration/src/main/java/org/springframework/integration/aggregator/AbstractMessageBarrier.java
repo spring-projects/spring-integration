@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.router;
+
+package org.springframework.integration.aggregator;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,6 +23,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.message.Message;
 
 /**
@@ -51,7 +53,7 @@ public abstract class AbstractMessageBarrier implements MessageBarrier {
 		return this.timestamp;
 	}
 
-	protected boolean isComplete(){
+	protected boolean isComplete() {
 		return this.complete;
 	}
 
@@ -68,9 +70,9 @@ public abstract class AbstractMessageBarrier implements MessageBarrier {
 				}
 				return null;
 			}
-			addMessage(message);
-			this.complete = hasReceivedAllMessages();
-			return releaseAvailableMessages();
+			this.addMessage(message);
+			this.complete = this.hasReceivedAllMessages();
+			return this.releaseAvailableMessages();
 		}
 		finally {
 			this.lock.unlock();
@@ -86,14 +88,14 @@ public abstract class AbstractMessageBarrier implements MessageBarrier {
 	}
 
 	/**
-	 * Subclasses will implement this method to indicate if all possible messages that could be received by
-	 * a given barrier have already been received (e.g. all messages from a given sequence)
+	 * Subclasses must implement this method to indicate if all possible messages that could be received by
+	 * a given barrier have already been received (e.g. all messages from a given sequence).
 	 */
 	protected abstract boolean hasReceivedAllMessages();
 
 
 	/**
-	 * Subclasses will implement this method to return the messages that can be released by this barrier, after
+	 * Subclasses must implement this method to return the messages that can be released by this barrier after
 	 * the receipt of a given message. It might be possible that a number of messages are released before the barrier
 	 * has ended its work (partial release) and this depends completely on the implementation of the barrier.
 	 * However, once hasReceivedAllMessages() is deemed true, only one call to releaseAvailableMessages() shall
