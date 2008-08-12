@@ -45,7 +45,7 @@ public class PollableAnnotationPostProcessor extends AbstractAnnotationMethodPos
 	protected MessageSource<?> processMethod(Object bean, Method method, Annotation annotation) {
 		MethodInvokingSource source = new MethodInvokingSource();
 		source.setObject(bean);
-		source.setMethodName(method.getName());
+		source.setMethod(method);
 		ChannelAdapter channelAdapterAnnotation = AnnotationUtils.findAnnotation(bean.getClass(), ChannelAdapter.class);
 		if (channelAdapterAnnotation != null) {
 			String channelName = channelAdapterAnnotation.value();

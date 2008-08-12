@@ -21,6 +21,8 @@ import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.util.DefaultMethodInvoker;
+import org.springframework.integration.util.MethodInvoker;
 import org.springframework.integration.util.MethodValidator;
 import org.springframework.integration.util.NameResolvingMethodInvoker;
 import org.springframework.util.Assert;
@@ -33,16 +35,24 @@ import org.springframework.util.Assert;
  */
 public class MethodInvokingSource implements PollableSource<Object>, InitializingBean {
 
-	private Object object;
+	private volatile Object object;
 
-	private String methodName;
+	private volatile Method method;
 
-	private NameResolvingMethodInvoker invoker;
+	private volatile String methodName;
+
+	private volatile MethodInvoker invoker;
 
 
 	public void setObject(Object object) {
 		Assert.notNull(object, "'object' must not be null");
 		this.object = object;
+	}
+
+	public void setMethod(Method method) {
+		Assert.notNull(method, "'method' must not be null");
+		this.method = method;
+		this.methodName = method.getName();
 	}
 
 	public void setMethodName(String methodName) {
@@ -51,8 +61,17 @@ public class MethodInvokingSource implements PollableSource<Object>, Initializin
 	}
 
 	public void afterPropertiesSet() {
-		this.invoker = new NameResolvingMethodInvoker(this.object, this.methodName);
-		this.invoker.setMethodValidator(new MessageReceivingMethodValidator());
+		if (this.method != null) {
+			this.invoker = new DefaultMethodInvoker(this.object, this.method);
+		}
+		else if (this.methodName != null) {
+			NameResolvingMethodInvoker nrmi = new NameResolvingMethodInvoker(this.object, this.methodName);
+			nrmi.setMethodValidator(new MessageReceivingMethodValidator());
+			this.invoker = nrmi;
+		}
+		else {
+			throw new ConfigurationException("either 'method' or 'methodName' is required");
+		}
 	}
 
 	public Message<Object> receive() {
