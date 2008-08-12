@@ -52,7 +52,6 @@ import org.springframework.integration.endpoint.EndpointRegistry;
 import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.MessagingGateway;
-import org.springframework.integration.endpoint.TargetEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
@@ -262,13 +261,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 	public void registerHandler(String name, MessageHandler handler, Object input, Schedule schedule) {
 		Assert.notNull(handler, "'handler' must not be null");
 		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
-		this.configureEndpoint(endpoint, name, input, schedule);
-		this.registerEndpoint(endpoint);
-	}
-
-	public void registerTarget(String name, MessageTarget target, Object input, Schedule schedule) {
-		Assert.notNull(target, "'target' must not be null");
-		TargetEndpoint endpoint = new TargetEndpoint(target);
 		this.configureEndpoint(endpoint, name, input, schedule);
 		this.registerEndpoint(endpoint);
 	}

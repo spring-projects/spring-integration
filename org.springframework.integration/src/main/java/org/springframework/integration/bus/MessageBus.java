@@ -23,7 +23,6 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.factory.ChannelFactory;
 import org.springframework.integration.endpoint.EndpointRegistry;
 import org.springframework.integration.handler.MessageHandler;
-import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.scheduling.Schedule;
 
 /**
@@ -38,7 +37,5 @@ public interface MessageBus extends ChannelRegistry, EndpointRegistry, Lifecycle
 	ChannelFactory getChannelFactory();
 
 	void registerHandler(String name, MessageHandler handler, Object input, Schedule schedule);
-
-	void registerTarget(String name, MessageTarget target, Object input, Schedule schedule);
 
 }

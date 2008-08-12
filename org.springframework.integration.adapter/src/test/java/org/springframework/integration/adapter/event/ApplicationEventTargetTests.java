@@ -17,17 +17,13 @@
 package org.springframework.integration.adapter.event;
 
 import static org.junit.Assert.assertEquals;
-
-import java.util.concurrent.CountDownLatch;
+import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.integration.bus.DefaultMessageBus;
-import org.springframework.integration.bus.MessageBus;
-import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.dispatcher.DirectChannel;
+import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -38,23 +34,29 @@ public class ApplicationEventTargetTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testSendingEvent() throws InterruptedException {
-		final CountDownLatch latch = new CountDownLatch(1);
-		ApplicationEventPublisher publisher = new ApplicationEventPublisher() {
-			public void publishEvent(ApplicationEvent event) {
-				latch.countDown();
-			}
-		};
-		MessageChannel channel = new DirectChannel();
+		TestApplicationEventPublisher publisher = new TestApplicationEventPublisher();
 		ApplicationEventTarget adapter = new ApplicationEventTarget();
 		adapter.setApplicationEventPublisher(publisher);
-		MessageBus bus = new DefaultMessageBus();
-		bus.registerChannel("channel", channel);
-		bus.registerTarget("adapter", adapter, channel, null);
-		bus.start();
-		assertEquals(1, latch.getCount());
-		channel.send(new StringMessage("testing"));
-		assertEquals(0, latch.getCount());
-		bus.stop();
+		assertNull(publisher.getLastEvent());
+		Message<?> message = new StringMessage("testing");
+		adapter.send(message);
+		ApplicationEvent event = publisher.getLastEvent();
+		assertEquals(MessagingEvent.class, event.getClass());
+		assertEquals(message, ((MessagingEvent<?>) event).getMessage());
+	}
+
+
+	private static class TestApplicationEventPublisher implements ApplicationEventPublisher {
+
+		private volatile ApplicationEvent lastEvent;
+
+		public ApplicationEvent getLastEvent() {
+			return this.lastEvent;
+		}
+
+		public void publishEvent(ApplicationEvent event) {
+			this.lastEvent = event;
+		}
 	}
 
 }
