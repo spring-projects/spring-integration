@@ -30,7 +30,7 @@ import org.springframework.integration.handler.config.AbstractMessageHandlerCrea
 public class RouterMessageHandlerCreator extends AbstractMessageHandlerCreator {
 
 	public MessageHandler doCreateHandler(Object object, Method method, Map<String, ?> attributes) {
-		return new RouterMessageHandlerAdapter(object, method);
+		return new RouterMessageHandler(object, method);
 	}
 
 }
