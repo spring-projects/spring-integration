@@ -25,7 +25,7 @@ import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.annotation.ChannelAdapter;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.PollableChannelAdapter;
-import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.handler.MethodInvokingTarget;
 import org.springframework.integration.message.MessageTarget;
 
@@ -61,7 +61,7 @@ public class TargetAnnotationPostProcessor extends AbstractAnnotationMethodPostP
 		return (results.size() == 1) ? results.get(0) : null;
 	}
 
-	public AbstractEndpoint createEndpoint(Object bean, String beanName, Class<?> originalBeanClass,
+	public MessageEndpoint createEndpoint(Object bean, String beanName, Class<?> originalBeanClass,
 			org.springframework.integration.annotation.MessageEndpoint endpointAnnotation) {
 		return null;
 	}
