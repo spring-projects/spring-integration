@@ -24,7 +24,7 @@ import org.springframework.integration.handler.DefaultMessageHandler;
  * 
  * @author Mark Fisher
  */
-public class ServiceActivatorParser extends AbstractHandlerEndpointParser {
+public class ServiceActivatorParser extends AbstractMessageEndpointParser {
 
 	@Override
 	protected Class<? extends MessageHandler> getHandlerAdapterClass() {

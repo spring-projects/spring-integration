@@ -34,7 +34,7 @@ import org.springframework.util.StringUtils;
  * @author Marius Bogoevici
  * @author Mark Fisher
  */
-public class AggregatorParser extends AbstractHandlerEndpointParser {
+public class AggregatorParser extends AbstractMessageEndpointParser {
 
 	public static final String COMPLETION_STRATEGY_REF_ATTRIBUTE = "completion-strategy";
 

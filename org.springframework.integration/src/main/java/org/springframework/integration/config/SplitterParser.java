@@ -24,7 +24,7 @@ import org.springframework.integration.splitter.SplitterMessageHandler;
  * 
  * @author Mark Fisher
  */
-public class SplitterParser extends AbstractHandlerEndpointParser {
+public class SplitterParser extends AbstractMessageEndpointParser {
 
 	@Override
 	protected Class<? extends MessageHandler> getHandlerAdapterClass() {

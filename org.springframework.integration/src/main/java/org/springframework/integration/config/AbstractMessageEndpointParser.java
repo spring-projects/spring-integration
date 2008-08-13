@@ -34,11 +34,11 @@ import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
- * Base class parser for elements that create handler-invoking endpoints.
+ * Base class parser for elements that create Message Dndpoints.
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractHandlerEndpointParser extends AbstractSingleBeanDefinitionParser {
+public abstract class AbstractMessageEndpointParser extends AbstractSingleBeanDefinitionParser {
 
 	protected static final String REF_ATTRIBUTE = "ref";
 
@@ -82,8 +82,8 @@ public abstract class AbstractHandlerEndpointParser extends AbstractSingleBeanDe
 		if (!StringUtils.hasText(ref)) {
 			throw new ConfigurationException("The '" + REF_ATTRIBUTE + "' attribute is required.");
 		}
-		String method = element.getAttribute(METHOD_ATTRIBUTE);
 		if (this.shouldCreateAdapter(element)) {
+			String method = element.getAttribute(METHOD_ATTRIBUTE);
 			String adapterBeanName = this.parseAdapter(ref, method, element, parserContext);
 			builder.addConstructorArgReference(adapterBeanName);
 		}

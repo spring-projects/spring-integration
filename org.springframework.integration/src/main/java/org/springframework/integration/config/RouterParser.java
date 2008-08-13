@@ -24,7 +24,7 @@ import org.springframework.integration.router.RouterMessageHandler;
  * 
  * @author Mark Fisher
  */
-public class RouterParser extends AbstractHandlerEndpointParser {
+public class RouterParser extends AbstractMessageEndpointParser {
 
 	@Override
 	protected Class<? extends MessageHandler> getHandlerAdapterClass() {
