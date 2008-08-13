@@ -22,8 +22,8 @@ import org.springframework.integration.bus.MessageBusAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.endpoint.EndpointRegistry;
-import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.endpoint.MessagingGateway;
+import org.springframework.integration.endpoint.SimpleEndpoint;
 import org.springframework.integration.handler.ReplyMessageCorrelator;
 import org.springframework.integration.message.DefaultMessageCreator;
 import org.springframework.integration.message.DefaultMessageMapper;
@@ -205,9 +205,9 @@ public class SimpleMessagingGateway extends MessagingGatewaySupport implements M
 				throw new ConfigurationException("No EndpointRegistry available. Cannot register ReplyMessageCorrelator.");
 			}
 			ReplyMessageCorrelator correlator = new ReplyMessageCorrelator(this.replyMapCapacity);
-			HandlerEndpoint endpoint = new HandlerEndpoint(correlator);
+			SimpleEndpoint<ReplyMessageCorrelator> endpoint = new SimpleEndpoint<ReplyMessageCorrelator>(correlator);
+			endpoint.setBeanName("internal.correlator." + this);
 			endpoint.setSource(this.replyChannel);
-			endpoint.setName("internal.correlator." + this);
 			this.endpointRegistry.registerEndpoint(endpoint);
 			this.replyMessageCorrelator = correlator;
 		}

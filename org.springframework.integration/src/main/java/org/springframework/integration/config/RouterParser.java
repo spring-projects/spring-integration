@@ -16,8 +16,6 @@
 
 package org.springframework.integration.config;
 
-import org.springframework.integration.endpoint.MessageEndpoint;
-import org.springframework.integration.endpoint.SimpleEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.router.RouterMessageHandler;
 
@@ -27,11 +25,6 @@ import org.springframework.integration.router.RouterMessageHandler;
  * @author Mark Fisher
  */
 public class RouterParser extends AbstractHandlerEndpointParser {
-
-	@Override
-	protected Class<? extends MessageEndpoint> getEndpointClass() {
-		return SimpleEndpoint.class;
-	}
 
 	@Override
 	protected Class<? extends MessageHandler> getHandlerAdapterClass() {
