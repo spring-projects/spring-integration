@@ -22,55 +22,59 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import org.apache.commons.net.ftp.FTPClient;
+
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageMapper;
 import org.springframework.integration.message.MessageTarget;
+import org.springframework.util.Assert;
 
 /**
- * Target adapter for sending files to an ftp server.
+ * Target adapter for sending files to an FTP server.
  * 
  * @author Iwein Fuld
- *
  */
 public class FtpTarget implements MessageTarget {
 
 	private final MessageMapper<?, File> messageMapper;
 
-	private FTPClientPool ftpClientPool = new FTPClientPool();
+	private volatile FTPClientPool ftpClientPool = new FTPClientPool();
+
 
 	public FtpTarget(MessageMapper<?, File> messageMapper) {
+		Assert.notNull(messageMapper, "MessageMapper must not be null");
 		this.messageMapper = messageMapper;
 	}
 
+
+	public void setFtpClientPool(FTPClientPool ftpClientPool) {
+		Assert.notNull(ftpClientPool, "ftpClientPool must not be null");
+		this.ftpClientPool = ftpClientPool;
+	}
+
 	public boolean send(Message message) {
-boolean sent = false;
-		File file = messageMapper.mapMessage(message);
-		if (file.exists()) {
-			FTPClient client=null;
-			FileInputStream fileInputStream = null;
+		boolean sent = false;
+		File file = this.messageMapper.mapMessage(message);
+		if (file != null && file.exists()) {
+			FTPClient client = null;
 			try {
-				fileInputStream = new FileInputStream(file);
-					client = ftpClientPool.getClient();
+				FileInputStream fileInputStream = new FileInputStream(file);
+				client = this.ftpClientPool.getClient();
 				sent = client.storeFile(file.getName(), fileInputStream);
 				fileInputStream.close();
-				}
+			}
 			catch (FileNotFoundException e) {
-				throw new MessageDeliveryException(message, "File " + file + " lost from local working directory", e);
+				throw new MessageDeliveryException(message, "File [" + file + "] lost from local working directory", e);
 			}
 			catch (IOException e) {
-				throw new MessageDeliveryException(message, "Error transferring " + file
-						+ " from local working directory to remote ftp directory", e);
+				throw new MessageDeliveryException(message, "Error transferring File [" + file
+						+ "] from local working directory to remote FTP directory", e);
 			}
 			finally {
 				ftpClientPool.releaseClient(client);
 			}
 		}
 		return sent;
-	}
-
-	public void setFtpClientPool(FTPClientPool ftpClientPool) {
-		this.ftpClientPool = ftpClientPool;
 	}
 
 }

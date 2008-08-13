@@ -59,10 +59,6 @@ public class ByteArrayMailMessageMapper implements MessageMapper<byte[], MailMes
 		this.attachmentFilename = attachmentFilename;
 	}
 
-	public Message<byte[]> toMessage(MailMessage source) {
-		throw new UnsupportedOperationException("mapping from MailMessage to byte array not supported");
-	}
-
 	public MailMessage mapMessage(Message<byte[]> message) {
 		try {
 			MimeMessage mimeMessage = this.mailSender.createMimeMessage();
