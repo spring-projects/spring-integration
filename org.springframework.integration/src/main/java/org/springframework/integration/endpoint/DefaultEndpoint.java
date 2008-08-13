@@ -21,10 +21,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
@@ -38,10 +34,8 @@ import org.springframework.integration.message.MessageHeaders;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
-import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.integration.scheduling.Schedule;
-import org.springframework.integration.util.ErrorHandler;
 import org.springframework.util.Assert;
 
 /**
@@ -66,21 +60,13 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class DefaultEndpoint<T extends MessageHandler> implements MessageEndpoint, ChannelRegistryAware, BeanNameAware {
-
-	private final Log logger = LogFactory.getLog(this.getClass());
-
-	private volatile String name;
+public class DefaultEndpoint<T extends MessageHandler> extends AbstractEndpoint implements ChannelRegistryAware {
 
 	private final T handler;
 
 	private volatile MessageChannel outputChannel;
 
-	private volatile ErrorHandler errorHandler;
-
 	private volatile ChannelRegistry channelRegistry;
-
-	private volatile boolean requiresReply = false;
 
 	private volatile MessageSelector selector;
 
@@ -98,17 +84,6 @@ public class DefaultEndpoint<T extends MessageHandler> implements MessageEndpoin
 	}
 
 
-	public void setBeanName(String name) {
-		this.name = name;
-	}
-
-	/**
-	 * Return the name of this endpoint.
-	 */
-	public String getName() {
-		return this.name;
-	}
-
 	/**
 	 * Specify the channel where reply Messages should be sent if
 	 * no 'nextTarget' header value is available on the reply Message.
@@ -119,16 +94,6 @@ public class DefaultEndpoint<T extends MessageHandler> implements MessageEndpoin
 
 	protected T getHandler() {
 		return this.handler;
-	}
-
-	/**
-	 * Provide an error handler for any Exceptions that occur
-	 * upon invocation of this endpoint. If none is provided,
-	 * the Exception messages will be logged (at warn level),
-	 * and the Exception rethrown.
-	 */
-	public void setErrorHandler(ErrorHandler errorHandler) {
-		this.errorHandler = errorHandler;
 	}
 
 	public void setSelector(MessageSelector selector) {
@@ -158,16 +123,6 @@ public class DefaultEndpoint<T extends MessageHandler> implements MessageEndpoin
 	}
 
 	/**
-	 * Specify whether this endpoint should throw an Exception when
-	 * its handler returns an invalid reply Message. The reply Message
-	 * is considered invalid if it is null, has a null payload, or has
-	 * an empty Array or Collection as its payload. 
-	 */
-	public void setRequiresReply(boolean requiresReply) {
-		this.requiresReply = requiresReply;
-	}
-
-	/**
 	 * Specify the timeout for sending reply Messages to the reply
 	 * target. The default value indicates an indefinite timeout. 
 	 */
@@ -175,44 +130,53 @@ public class DefaultEndpoint<T extends MessageHandler> implements MessageEndpoin
 		this.messageExchangeTemplate.setSendTimeout(replyTimeout);
 	}
 
-	public final boolean send(Message<?> requestMessage) {
-		if (requestMessage == null || requestMessage.getPayload() == null) {
-			throw new IllegalArgumentException("Message and its payload must not be null");
-		}
-		if (this.logger.isDebugEnabled()) {
-			this.logger.debug("endpoint '" + this + "' handling message: " + requestMessage);
-		}
-		try {
-			Message<?> replyMessage = this.handleMessage(requestMessage, 0);
-			if (!this.isValidReply(replyMessage)) {
-				if (this.requiresReply) {
-					throw new MessageHandlingException(requestMessage,
-							"endpoint requires reply but none was received");
-				}
-			}
-			else if (replyMessage instanceof CompositeMessage) {
-				for (Message<?> nextReply : (CompositeMessage) replyMessage) {
-					this.sendReplyMessage(nextReply, requestMessage);
-				}
-			}
-			else {
-				this.sendReplyMessage(replyMessage, requestMessage);
-			}
-			return true;
-		}
-		catch (Exception e) {
-			if (e instanceof MessagingException) {
-				this.handleException((MessagingException) e);
-			}
-			else {
-				this.handleException(new MessageHandlingException(requestMessage,
-						"failure occurred in endpoint's send operation", e));
-			}
+	@Override
+	public final Message<?> handleRequestMessage(Message<?> requestMessage) {
+		return this.doHandleRequestMessage(requestMessage, 0);
+	}
+
+	/**
+	 * The reply Message is considered invalid if it is null, has a null payload,
+	 * or has an empty Array or Collection as its payload.
+	 */
+	@Override
+	protected boolean isValidReplyMessage(Message<?> replyMessage) {
+		if (replyMessage == null) {
 			return false;
+		}
+		Object payload = replyMessage.getPayload();
+		if (payload == null) {
+			return false;
+		}
+		if (payload.getClass().isArray() && Array.getLength(payload) == 0) {
+			return false;
+		}
+		if (payload instanceof Collection && ((Collection<?>) payload).size() == 0) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
+	protected void sendReplyMessage(Message<?> replyMessage, Message<?> requestMessage) {
+		if (replyMessage == null) {
+			throw new MessageHandlingException(requestMessage, "reply message must not be null");
+		}
+		MessageTarget replyTarget = this.resolveReplyTarget(replyMessage, requestMessage.getHeaders());
+		if (replyTarget == null) {
+			throw new MessageEndpointReplyException(replyMessage, requestMessage,
+					"unable to resolve reply target");
+		}
+		replyMessage = MessageBuilder.fromMessage(replyMessage)
+				.copyHeadersIfAbsent(requestMessage.getHeaders())
+				.setHeaderIfAbsent(MessageHeaders.CORRELATION_ID, requestMessage.getHeaders().getId()).build();
+		if (!this.messageExchangeTemplate.send(replyMessage, replyTarget)) {
+			throw new MessageEndpointReplyException(replyMessage, requestMessage,
+					"failed to send reply to '" + replyTarget + "'");
 		}
 	}
 
-	private Message<?> handleMessage(Message<?> requestMessage, final int index) {
+	private Message<?> doHandleRequestMessage(Message<?> requestMessage, final int index) {
 		if (requestMessage == null || requestMessage.getPayload() == null) {
 			return null;
 		}
@@ -239,7 +203,7 @@ public class DefaultEndpoint<T extends MessageHandler> implements MessageEndpoin
 		return nextInterceptor.aroundHandle(requestMessage, new MessageHandler() {
 			@SuppressWarnings("unchecked")
 			public Message<?> handle(Message message) {
-				return DefaultEndpoint.this.handleMessage(message, index + 1);
+				return doHandleRequestMessage(message, index + 1);
 			}
 		});
 	}
@@ -249,51 +213,6 @@ public class DefaultEndpoint<T extends MessageHandler> implements MessageEndpoin
 			if (logger.isDebugEnabled()) {
 				logger.debug("selector for endpoint '" + this + "' rejected message: " + message);
 			}
-			return false;
-		}
-		return true;
-	}
-
-	private void sendReplyMessage(Message<?> replyMessage, Message<?> requestMessage) {
-		if (replyMessage == null) {
-			throw new MessageHandlingException(requestMessage, "reply message must not be null");
-		}
-		MessageTarget replyTarget = this.resolveReplyTarget(replyMessage, requestMessage.getHeaders());
-		if (replyTarget == null) {
-			throw new MessageEndpointReplyException(replyMessage, requestMessage,
-					"unable to resolve reply target");
-		}
-		replyMessage = MessageBuilder.fromMessage(replyMessage)
-				.copyHeadersIfAbsent(requestMessage.getHeaders())
-				.setHeaderIfAbsent(MessageHeaders.CORRELATION_ID, requestMessage.getHeaders().getId()).build();
-		if (!this.messageExchangeTemplate.send(replyMessage, replyTarget)) {
-			throw new MessageEndpointReplyException(replyMessage, requestMessage,
-					"failed to send reply to '" + replyTarget + "'");
-		}
-	}
-
-	private void handleException(MessagingException exception) {
-		if (this.errorHandler == null) {
-			if (this.logger.isWarnEnabled()) {
-				this.logger.warn("exception occurred in endpoint '" + this.name + "'", exception);
-			}
-			throw exception;
-		}
-		this.errorHandler.handle(exception);
-	}
-
-	private boolean isValidReply(Message<?> replyMessage) {
-		if (replyMessage == null) {
-			return false;
-		}
-		Object payload = replyMessage.getPayload();
-		if (payload == null) {
-			return false;
-		}
-		if (payload.getClass().isArray() && Array.getLength(payload) == 0) {
-			return false;
-		}
-		if (payload instanceof Collection && ((Collection<?>) payload).size() == 0) {
 			return false;
 		}
 		return true;
@@ -324,10 +243,6 @@ public class DefaultEndpoint<T extends MessageHandler> implements MessageEndpoin
 			}
 		}
 		return replyTarget;
-	}
-
-	public String toString() {
-		return (this.name != null) ? this.name : super.toString();
 	}
 
 	/* TODO: the following properties/methods are candidates for removal from the MessageEndpoint interface. */
