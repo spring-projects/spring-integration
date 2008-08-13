@@ -46,13 +46,10 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.factory.ChannelFactory;
 import org.springframework.integration.channel.factory.QueueChannelFactory;
 import org.springframework.integration.dispatcher.PollingDispatcher;
-import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.DefaultEndpointRegistry;
 import org.springframework.integration.endpoint.EndpointRegistry;
-import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.MessagingGateway;
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.PollableSource;
@@ -256,27 +253,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 
 	public MessageChannel unregisterChannel(String name) {
 		return this.channelRegistry.unregisterChannel(name);
-	}
-
-	public void registerHandler(String name, MessageHandler handler, Object input, Schedule schedule) {
-		Assert.notNull(handler, "'handler' must not be null");
-		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
-		this.configureEndpoint(endpoint, name, input, schedule);
-		this.registerEndpoint(endpoint);
-	}
-
-	private void configureEndpoint(AbstractEndpoint endpoint, String name, Object input, Schedule schedule) {
-		endpoint.setName(name);
-		if (input instanceof MessageChannel) {
-			endpoint.setSource((MessageChannel) input);
-		}
-		else if (input instanceof String) {
-			endpoint.setInputChannelName((String) input);
-		}
-		else {
-			throw new ConfigurationException("'input' must be a MessageChannel or String");
-		}
-		endpoint.setSchedule(schedule);
 	}
 
 	public void registerEndpoint(MessageEndpoint endpoint) {

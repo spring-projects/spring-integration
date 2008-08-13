@@ -41,6 +41,8 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.config.ChannelParserTests;
 import org.springframework.integration.dispatcher.DirectChannel;
+import org.springframework.integration.endpoint.SimpleEndpoint;
+import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.scheduling.spi.ProviderTaskScheduler;
 
@@ -73,7 +75,10 @@ public class MessageBusParserTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageBusWithDefaults.xml", this.getClass());
 		MessageBus bus = (MessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
-		bus.registerHandler("handler", TestHandlers.nullHandler(), "unknownChannel", null);
+		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(TestHandlers.nullHandler());
+		endpoint.setBeanName("testEndpoint");
+		endpoint.setInputChannelName("unknownChannel");
+		bus.registerEndpoint(endpoint);
 	}
 
 	@Test
@@ -81,7 +86,10 @@ public class MessageBusParserTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageBusWithAutoCreateChannels.xml", this.getClass());
 		MessageBus bus = (MessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
-		bus.registerHandler("handler", TestHandlers.nullHandler(), "channelToCreate", null);
+		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(TestHandlers.nullHandler());
+		endpoint.setBeanName("testEndpoint");
+		endpoint.setInputChannelName("channelToCreate");
+		bus.registerEndpoint(endpoint);
 		bus.start();
 		assertNotNull(bus.lookupChannel("channelToCreate"));
 		bus.stop();

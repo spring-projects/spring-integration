@@ -28,7 +28,8 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.Subscriber;
 import org.springframework.integration.bus.MessageBus;
-import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
+import org.springframework.integration.endpoint.SimpleEndpoint;
+import org.springframework.integration.handler.DefaultMessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
@@ -85,13 +86,16 @@ public class SubscriberAnnotationPostProcessor implements BeanPostProcessor {
 				Annotation annotation = method.getAnnotation(subscriberAnnotationType);
 				if (annotation != null) {
 					String channelName = (String) AnnotationUtils.getValue(annotation, channelNameAttribute);
-					DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
-					adapter.setMethodName(method.getName());
-					adapter.setObject(bean);
-					adapter.afterPropertiesSet();
-					String adapterName = ClassUtils.getShortNameAsProperty(targetClass) + 
-							"-" + method.getName() + "-endpoint";
-					messageBus.registerHandler(adapterName, adapter, channelName, null);
+					DefaultMessageHandler handler = new DefaultMessageHandler();
+					handler.setObject(bean);
+					handler.setMethod(method);
+					handler.afterPropertiesSet();
+					String endpointName = ClassUtils.getShortNameAsProperty(targetClass) + 
+							"." + method.getName() + ".endpoint";
+					SimpleEndpoint<DefaultMessageHandler> endpoint = new SimpleEndpoint<DefaultMessageHandler>(handler);
+					endpoint.setBeanName(endpointName);
+					endpoint.setInputChannelName(channelName);
+					messageBus.registerEndpoint(endpoint);
 				}
 			}
 		});

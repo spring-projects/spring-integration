@@ -38,6 +38,7 @@ public class DefaultEndpointRegistry implements EndpointRegistry {
 
 	public void registerEndpoint(MessageEndpoint endpoint) {
 		Assert.notNull(endpoint, "'endpoint' must not be null");
+		Assert.notNull(endpoint.getName(), "endpoint name must not be null");
 		this.endpoints.put(endpoint.getName(), endpoint);
 	}
 

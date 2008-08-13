@@ -34,6 +34,7 @@ import org.springframework.integration.channel.PollableChannelAdapter;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.dispatcher.PublishSubscribeChannel;
 import org.springframework.integration.endpoint.HandlerEndpoint;
+import org.springframework.integration.endpoint.SimpleEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
@@ -63,7 +64,10 @@ public class DefaultMessageBusTests {
 				return message;
 			}
 		};
-		bus.registerHandler("handler", handler, sourceChannel, null);
+		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(handler);
+		endpoint.setBeanName("testEndpoint");
+		endpoint.setSource(sourceChannel);
+		bus.registerEndpoint(endpoint);
 		bus.start();
 		Message<?> result = targetChannel.receive(3000);
 		assertEquals("test", result.getPayload());
@@ -85,7 +89,10 @@ public class DefaultMessageBusTests {
 				return message;
 			}
 		};
-		bus.registerHandler("handler", handler, "sourceChannel", null);
+		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(handler);
+		endpoint.setBeanName("testEndpoint");
+		endpoint.setInputChannelName("sourceChannel");
+		bus.registerEndpoint(endpoint);
 		bus.start();
 		Message<?> result = targetChannel.receive(3000);
 		assertEquals("test", result.getPayload());
@@ -127,21 +134,27 @@ public class DefaultMessageBusTests {
 		MessageHandler handler1 = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				return MessageBuilder.fromMessage(message)
-						.setReturnAddress("output1").build();
+						.setNextTarget("output1").build();
 			}
 		};
 		MessageHandler handler2 = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				return MessageBuilder.fromMessage(message)
-						.setReturnAddress("output2").build();
+						.setNextTarget("output2").build();
 			}
 		};
 		MessageBus bus = new DefaultMessageBus();
 		bus.registerChannel("input", inputChannel);
 		bus.registerChannel("output1", outputChannel1);
 		bus.registerChannel("output2", outputChannel2);
-		bus.registerHandler("handler1", handler1, inputChannel, null);
-		bus.registerHandler("handler2", handler2, inputChannel, null);
+		SimpleEndpoint<MessageHandler> endpoint1 = new SimpleEndpoint<MessageHandler>(handler1);
+		endpoint1.setBeanName("testEndpoint1");
+		endpoint1.setSource(inputChannel);
+		SimpleEndpoint<MessageHandler> endpoint2 = new SimpleEndpoint<MessageHandler>(handler2);
+		endpoint2.setBeanName("testEndpoint2");
+		endpoint2.setSource(inputChannel);
+		bus.registerEndpoint(endpoint1);
+		bus.registerEndpoint(endpoint2);
 		bus.start();
 		inputChannel.send(new StringMessage("testing"));
 		Message<?> message1 = outputChannel1.receive(500);
@@ -159,7 +172,7 @@ public class DefaultMessageBusTests {
 		MessageHandler handler1 = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				Message<?> reply = MessageBuilder.fromMessage(message)
-						.setReturnAddress("output1").build();
+						.setNextTarget("output1").build();
 				latch.countDown();
 				return reply;
 			}
@@ -167,7 +180,7 @@ public class DefaultMessageBusTests {
 		MessageHandler handler2 = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				Message<?> reply = MessageBuilder.fromMessage(message)
-						.setReturnAddress("output2").build();
+						.setNextTarget("output2").build();
 				latch.countDown();
 				return reply;
 			}
@@ -176,8 +189,14 @@ public class DefaultMessageBusTests {
 		bus.registerChannel("input", inputChannel);
 		bus.registerChannel("output1", outputChannel1);
 		bus.registerChannel("output2", outputChannel2);
-		bus.registerHandler("handler1", handler1, inputChannel, null);
-		bus.registerHandler("handler2", handler2, inputChannel, null);
+		SimpleEndpoint<MessageHandler> endpoint1 = new SimpleEndpoint<MessageHandler>(handler1);
+		endpoint1.setBeanName("testEndpoint1");
+		endpoint1.setSource(inputChannel);
+		SimpleEndpoint<MessageHandler> endpoint2 = new SimpleEndpoint<MessageHandler>(handler2);
+		endpoint2.setBeanName("testEndpoint2");
+		endpoint2.setSource(inputChannel);
+		bus.registerEndpoint(endpoint1);
+		bus.registerEndpoint(endpoint2);
 		bus.start();
 		inputChannel.send(new StringMessage("testing"));
 		latch.await(500, TimeUnit.MILLISECONDS);
@@ -240,7 +259,10 @@ public class DefaultMessageBusTests {
 				return null;
 			}
 		};
-		bus.registerHandler("testHandler", handler, MessageBus.ERROR_CHANNEL_NAME, null);
+		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(handler);
+		endpoint.setBeanName("testEndpoint");
+		endpoint.setInputChannelName(MessageBus.ERROR_CHANNEL_NAME);
+		bus.registerEndpoint(endpoint);
 		bus.start();
 		errorChannel.send(new ErrorMessage(new RuntimeException("test-exception")));
 		latch.await(1000, TimeUnit.MILLISECONDS);
