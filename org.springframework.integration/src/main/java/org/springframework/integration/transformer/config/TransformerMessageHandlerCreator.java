@@ -21,7 +21,7 @@ import java.util.Map;
 
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.config.AbstractMessageHandlerCreator;
-import org.springframework.integration.transformer.AnnotationMethodTransformerAdapter;
+import org.springframework.integration.transformer.TransformerMessageHandler;
 
 /**
  * @author Mark Fisher
@@ -29,11 +29,11 @@ import org.springframework.integration.transformer.AnnotationMethodTransformerAd
 public class TransformerMessageHandlerCreator extends AbstractMessageHandlerCreator {
 
 	public MessageHandler doCreateHandler(Object object, Method method, Map<String, ?> attributes) {
-		AnnotationMethodTransformerAdapter adapter = new AnnotationMethodTransformerAdapter();
-		adapter.setObject(object);
-		adapter.setMethodName(method.getName());
-		adapter.afterPropertiesSet();
-		return adapter;
+		TransformerMessageHandler handler = new TransformerMessageHandler();
+		handler.setObject(object);
+		handler.setMethodName(method.getName());
+		handler.afterPropertiesSet();
+		return handler;
 	}
 
 }

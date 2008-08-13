@@ -29,7 +29,7 @@ import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
+import org.springframework.integration.handler.DefaultMessageHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.util.StringUtils;
 
@@ -81,6 +81,7 @@ public class HandlerParser implements BeanDefinitionParser {
 		return beanDefinition;
 	}
 
+	@SuppressWarnings("unchecked")
 	private BeanDefinition parseHandler(Element element, ParserContext parserContext, ManagedList handlers) {
 		boolean isInnerHandler = (handlers != null);
 		String ref = element.getAttribute("ref");
@@ -113,15 +114,15 @@ public class HandlerParser implements BeanDefinitionParser {
 	}
 
 	private BeanDefinitionHolder parseHandlerAdapter(String id, String handlerRef, String handlerMethod, ParserContext parserContext, boolean isInnerHandler) {
-		BeanDefinition handlerAdapterDef = new RootBeanDefinition(DefaultMessageHandlerAdapter.class);
-		handlerAdapterDef.getPropertyValues().addPropertyValue(OBJECT_PROPERTY, new RuntimeBeanReference(handlerRef));
-		handlerAdapterDef.getPropertyValues().addPropertyValue(METHOD_NAME_PROPERTY, handlerMethod);
-		String adapterBeanName = (StringUtils.hasText(id)) ? id :
-				BeanDefinitionReaderUtils.generateBeanName(handlerAdapterDef, parserContext.getRegistry(), isInnerHandler);
+		BeanDefinition handlerDef = new RootBeanDefinition(DefaultMessageHandler.class);
+		handlerDef.getPropertyValues().addPropertyValue(OBJECT_PROPERTY, new RuntimeBeanReference(handlerRef));
+		handlerDef.getPropertyValues().addPropertyValue(METHOD_NAME_PROPERTY, handlerMethod);
+		String handlerBeanName = (StringUtils.hasText(id)) ? id :
+				BeanDefinitionReaderUtils.generateBeanName(handlerDef, parserContext.getRegistry(), isInnerHandler);
 		if (!isInnerHandler) {
-			parserContext.registerBeanComponent(new BeanComponentDefinition(handlerAdapterDef, adapterBeanName));
+			parserContext.registerBeanComponent(new BeanComponentDefinition(handlerDef, handlerBeanName));
 		}
-		return new BeanDefinitionHolder(handlerAdapterDef, adapterBeanName);
+		return new BeanDefinitionHolder(handlerDef, handlerBeanName);
 	}
 
 }

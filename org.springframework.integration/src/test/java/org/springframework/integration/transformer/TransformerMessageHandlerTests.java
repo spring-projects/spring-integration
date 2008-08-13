@@ -36,84 +36,95 @@ import org.springframework.integration.message.StringMessage;
 /**
  * @author Mark Fisher
  */
-public class AnnotationMethodTransformerAdapterTests {
+public class TransformerMessageHandlerTests {
 
 	@Test
-	public void testSimplePayload() throws Exception {
+	public void simplePayload() throws Exception {
 		TestBean testBean = new TestBean();
-		AnnotationMethodTransformerAdapter adapter = new AnnotationMethodTransformerAdapter();
-		adapter.setObject(testBean);
-		adapter.setMethod(testBean.getClass().getMethod("exclaim", String.class));
+		TransformerMessageHandler handler = new TransformerMessageHandler();
+		handler.setObject(testBean);
+		handler.setMethod(testBean.getClass().getMethod("exclaim", String.class));
 		Message<?> message = new StringMessage("foo");
-		Message<?> result = adapter.handle(message);
+		Message<?> result = handler.handle(message);
 		assertEquals("FOO!", result.getPayload());
 	}
 
 	@Test
-	public void testTypeConversion() throws Exception {
+	public void typeConversion() throws Exception {
 		TestBean testBean = new TestBean();
-		AnnotationMethodTransformerAdapter adapter = new AnnotationMethodTransformerAdapter();
-		adapter.setObject(testBean);
-		adapter.setMethod(testBean.getClass().getMethod("exclaim", String.class));
+		TransformerMessageHandler handler = new TransformerMessageHandler();
+		handler.setObject(testBean);
+		handler.setMethod(testBean.getClass().getMethod("exclaim", String.class));
 		Message<?> message = new GenericMessage<Integer>(123);
-		Message<?> result = adapter.handle(message);
+		Message<?> result = handler.handle(message);
 		assertEquals("123!", result.getPayload());
 	}
 
-	@Test(expected=MessagingException.class)
-	public void testTypeConversionFailure() throws Exception {
+	@Test(expected = MessagingException.class)
+	public void typeConversionFailure() throws Exception {
 		TestBean testBean = new TestBean();
-		AnnotationMethodTransformerAdapter adapter = new AnnotationMethodTransformerAdapter();
-		adapter.setObject(testBean);
-		adapter.setMethod(testBean.getClass().getMethod("exclaim", String.class));
+		TransformerMessageHandler handler = new TransformerMessageHandler();
+		handler.setObject(testBean);
+		handler.setMethod(testBean.getClass().getMethod("exclaim", String.class));
 		Message<?> message = new GenericMessage<Date>(new Date());
-		adapter.handle(message);
+		handler.handle(message);
 	}
 
 	@Test
-	public void testHeaderAnnotation() throws Exception {
+	public void headerAnnotation() throws Exception {
 		TestBean testBean = new TestBean();
-		AnnotationMethodTransformerAdapter adapter = new AnnotationMethodTransformerAdapter();
-		adapter.setObject(testBean);
-		adapter.setMethod(testBean.getClass().getMethod("headerTest", String.class, Integer.class));
+		TransformerMessageHandler handler = new TransformerMessageHandler();
+		handler.setObject(testBean);
+		handler.setMethod(testBean.getClass().getMethod("headerTest", String.class, Integer.class));
 		Message<String> message = MessageBuilder.fromPayload("foo")
 				.setHeader("number", 123).build();
-		Message<?> result = adapter.handle(message);
+		Message<?> result = handler.handle(message);
 		assertEquals("foo123", result.getPayload());
 	}
 
-	@Test(expected=MessageHandlingException.class)
-	public void testHeaderValueNotProvided() throws Exception {
+	@Test(expected = MessageHandlingException.class)
+	public void headerValueNotProvided() throws Exception {
 		TestBean testBean = new TestBean();
-		AnnotationMethodTransformerAdapter adapter = new AnnotationMethodTransformerAdapter();
-		adapter.setObject(testBean);
-		adapter.setMethod(testBean.getClass().getMethod("headerTest", String.class, Integer.class));
+		TransformerMessageHandler handler = new TransformerMessageHandler();
+		handler.setObject(testBean);
+		handler.setMethod(testBean.getClass().getMethod("headerTest", String.class, Integer.class));
 		Message<String> message = MessageBuilder.fromPayload("foo")
 				.setHeader("wrong", 123).build();
-		adapter.handle(message);
+		handler.handle(message);
 	}
 
 	@Test
-	public void testOptionalHeaderAnnotation() throws Exception {
+	public void optionalHeaderAnnotation() throws Exception {
 		TestBean testBean = new TestBean();
-		AnnotationMethodTransformerAdapter adapter = new AnnotationMethodTransformerAdapter();
-		adapter.setObject(testBean);
-		adapter.setMethod(testBean.getClass().getMethod("optionalHeaderTest", String.class, Integer.class));
+		TransformerMessageHandler handler = new TransformerMessageHandler();
+		handler.setObject(testBean);
+		handler.setMethod(testBean.getClass().getMethod("optionalHeaderTest", String.class, Integer.class));
+		Message<String> message = MessageBuilder.fromPayload("foo").setHeader("number", 99).build();
+		Message<?> result = handler.handle(message);
+		assertEquals("foo99", result.getPayload());
+	}
+
+	@Test
+	public void optionalHeaderValueNotProvided() throws Exception {
+		TestBean testBean = new TestBean();
+		TransformerMessageHandler handler = new TransformerMessageHandler();
+		handler.setObject(testBean);
+		handler.setMethod(testBean.getClass().getMethod("optionalHeaderTest", String.class, Integer.class));
 		Message<String> message = MessageBuilder.fromPayload("foo").build();
-		Message<?> result = adapter.handle(message);
+		Message<?> result = handler.handle(message);
 		assertEquals("foonull", result.getPayload());
 	}
 
 	@Test
-	public void testHeaderEnricher() throws Exception {
+	public void headerEnricher() throws Exception {
 		TestBean testBean = new TestBean();
-		AnnotationMethodTransformerAdapter adapter = new AnnotationMethodTransformerAdapter();
-		adapter.setObject(testBean);
-		adapter.setMethod(testBean.getClass().getMethod("propertyEnricherTest", String.class));
+		TransformerMessageHandler handler = new TransformerMessageHandler();
+		handler.setObject(testBean);
+		handler.setMethod(testBean.getClass().getMethod("propertyEnricherTest", String.class));
 		Message<String> message = MessageBuilder.fromPayload("test")
 				.setHeader("prop1", "bad")
 				.setHeader("prop3", "baz").build();
-		Message<?> result = adapter.handle(message);
+		Message<?> result = handler.handle(message);
 		assertEquals("test", result.getPayload());
 		assertEquals("foo", result.getHeaders().get("prop1"));
 		assertEquals("bar", result.getHeaders().get("prop2"));
@@ -122,16 +133,16 @@ public class AnnotationMethodTransformerAdapterTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void testPropertiesPayload() throws Exception {
+	public void propertiesPayload() throws Exception {
 		TestBean testBean = new TestBean();
-		AnnotationMethodTransformerAdapter adapter = new AnnotationMethodTransformerAdapter();
-		adapter.setObject(testBean);
-		adapter.setMethod(testBean.getClass().getMethod("propertyPayloadTest", Properties.class));
+		TransformerMessageHandler handler = new TransformerMessageHandler();
+		handler.setObject(testBean);
+		handler.setMethod(testBean.getClass().getMethod("propertyPayloadTest", Properties.class));
 		Properties props = new Properties();
 		props.setProperty("prop1", "bad");
 		props.setProperty("prop3", "baz");
 		Message<Properties> message = new GenericMessage<Properties>(props);
-		Message<Properties> result = (Message<Properties>) adapter.handle(message);
+		Message<Properties> result = (Message<Properties>) handler.handle(message);
 		assertEquals(Properties.class, result.getPayload().getClass());
 		Properties payload = result.getPayload();
 		assertEquals("foo", payload.getProperty("prop1"));

@@ -19,32 +19,23 @@ package org.springframework.integration.handler.config;
 import java.lang.reflect.Method;
 import java.util.Map;
 
-import org.springframework.core.annotation.Order;
-import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
+import org.springframework.integration.handler.DefaultMessageHandler;
 import org.springframework.integration.handler.MessageHandler;
-import org.springframework.integration.message.Message;
 
 /**
  * Default implementation of the handler creator strategy that creates a
- * {@link DefaultMessageHandlerAdapter} for the provided object and method.
- * This version does not even consider the attributes. It does however respect
- * an {@link Order} annotation if present.
+ * {@link DefaultMessageHandler} for the provided object and method.
  * 
  * @author Mark Fisher
  */
 public class DefaultMessageHandlerCreator extends AbstractMessageHandlerCreator {
 
 	public MessageHandler doCreateHandler(Object object, Method method, Map<String, ?> attributes) {
-		Class<?>[] types = method.getParameterTypes();
-		if (types.length != 1) {
-			throw new ConfigurationException("exactly one method parameter is required");
-		}
-		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
-		adapter.setObject(object);
-		adapter.setMethodName(method.getName());
-		adapter.setMethodExpectsMessage(Message.class.isAssignableFrom(types[0]));
-		return adapter;
+		DefaultMessageHandler handler = new DefaultMessageHandler();
+		handler.setObject(object);
+		handler.setMethod(method);
+		handler.afterPropertiesSet();
+		return handler;
 	}
 
 }

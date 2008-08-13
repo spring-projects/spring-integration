@@ -29,80 +29,50 @@ import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageHeaders;
 import org.springframework.integration.message.MessageMapper;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**
- * A {@link MessageMapper} implementation for annotated handler methods.
- * Method parameters are matched against the Message payload as well as its
- * headers. If a method parameter is annotated with {@link Header @Header},
- * the annotation's value will be used as a header name. If such an annotation
- * contains no value, then the parameter name will be used as long as
- * the information is available in the class file (requires compilation with
- * debug settings for parameter names). If neither annotation is present, then
- * the parameter will typically match the Message payload. However, if a Map or
- * Properties object is expected, and the paylaod is not itself assignable to
- * that type, then the MessageHeaders' values will be passed in the case of
- * a Map-typed parameter, or the MessageHeaders' String-based values will be
- * passed in the case of a Properties-typed parameter. 
+ * Prepares arguments for handler methods. The method parameters are matched
+ * against the Message payload as well as its headers. If a method parameter
+ * is annotated with {@link Header @Header}, the annotation's value will be
+ * used as a header name. If such an annotation contains no value, then the
+ * parameter name will be used as long as the information is available in the
+ * class file (requires compilation with debug settings for parameter names).
+ * If the {@link Header @Header} annotation is not present, then the parameter
+ * will typically match the Message payload. However, if a Map or Properties
+ * object is expected, and the paylaod is not itself assignable to that type,
+ * then the MessageHeaders' values will be passed in the case of a Map-typed
+ * parameter, or the MessageHeaders' String-based values will be passed in the
+ * case of a Properties-typed parameter.
  * 
  * @author Mark Fisher
  */
-public class AnnotationMethodMessageMapper implements MessageMapper {
-
-	private ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
+public class MethodArgumentMessageMapper<T extends Object> implements MessageMapper<T, Object[]> {
 
 	private final Method method;
 
-	private MethodParameterMetadata[] parameterMetadata;
+	private volatile MethodParameterMetadata[] parameterMetadata;
 
-	private volatile boolean initialized;
-
-	private final Object initializationMonitor = new Object();
+	private final ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 
 
-	public AnnotationMethodMessageMapper(Method method) {
+	public MethodArgumentMessageMapper(Method method) {
 		Assert.notNull(method, "method must not be null");
 		this.method = method;
+		this.initializeParameterMetadata();
 	}
 
 
-	public void initialize() {
-		synchronized (this.initializationMonitor) {
-			if (this.initialized) {
-				return;
-			}
-			Class<?>[] paramTypes = this.method.getParameterTypes();			
-			this.parameterMetadata = new MethodParameterMetadata[paramTypes.length];
-			for (int i = 0; i < parameterMetadata.length; i++) {
-				MethodParameter methodParam = new MethodParameter(this.method, i);
-				methodParam.initParameterNameDiscovery(this.parameterNameDiscoverer);
-				GenericTypeResolver.resolveParameterType(methodParam, this.method.getDeclaringClass());
-				Object[] paramAnnotations = methodParam.getParameterAnnotations();
-				String headerName = null;
-				for (int j = 0; j < paramAnnotations.length; j++) {
-					if (Header.class.isInstance(paramAnnotations[j])) {
-						Header headerAnnotation = (Header) paramAnnotations[j];
-						headerName = this.resolveParameterNameIfNecessary(headerAnnotation.value(), methodParam);
-						parameterMetadata[i] = new MethodParameterMetadata(Header.class, headerName, headerAnnotation.required());
-					}
-				}
-				if (headerName == null) {
-					parameterMetadata[i] = new MethodParameterMetadata(methodParam.getParameterType(), null, false);
-				}
-			}
-			this.initialized = true;
-		}
-	}
-
-	public Object[] mapMessage(Message message) {
+	public Object[] mapMessage(Message<T> message) {
 		if (message == null) {
 			return null;
 		}
 		if (message.getPayload() == null) {
 			throw new IllegalArgumentException("Message payload must not be null.");
 		}
-		if (!this.initialized) {
-			this.initialize();
+		if (ObjectUtils.isEmpty(this.parameterMetadata)) {
+			return new Object[] { message.getPayload() };
 		}
 		Object[] args = new Object[this.parameterMetadata.length];
 		for (int i = 0; i < this.parameterMetadata.length; i++) {
@@ -133,6 +103,28 @@ public class AnnotationMethodMessageMapper implements MessageMapper {
 			}
 		}
 		return args;
+	}
+
+	private void initializeParameterMetadata() {
+		Class<?>[] paramTypes = this.method.getParameterTypes();			
+		this.parameterMetadata = new MethodParameterMetadata[paramTypes.length];
+		for (int i = 0; i < parameterMetadata.length; i++) {
+			MethodParameter methodParam = new MethodParameter(this.method, i);
+			methodParam.initParameterNameDiscovery(this.parameterNameDiscoverer);
+			GenericTypeResolver.resolveParameterType(methodParam, this.method.getDeclaringClass());
+			Object[] paramAnnotations = methodParam.getParameterAnnotations();
+			String headerName = null;
+			for (int j = 0; j < paramAnnotations.length; j++) {
+				if (Header.class.isInstance(paramAnnotations[j])) {
+					Header headerAnnotation = (Header) paramAnnotations[j];
+					headerName = this.resolveParameterNameIfNecessary(headerAnnotation.value(), methodParam);
+					parameterMetadata[i] = new MethodParameterMetadata(Header.class, headerName, headerAnnotation.required());
+				}
+			}
+			if (headerName == null) {
+				parameterMetadata[i] = new MethodParameterMetadata(methodParam.getParameterType(), null, false);
+			}
+		}
 	}
 
 	private Properties getStringTypedHeaders(Message<?> message) {

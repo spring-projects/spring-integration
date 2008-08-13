@@ -29,6 +29,7 @@ import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.message.CompositeMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageTarget;
 
 /**
@@ -99,6 +100,12 @@ public class RouterMessageHandler extends AbstractMessageHandler {
 			replies.add(builder.build());
 		}
 		return new CompositeMessage(replies);
+	}
+
+	@Override
+	protected Message<?> postProcessReplyMessage(Message<?> replyMessage, Message<?> requestMessage) {
+		throw new MessageHandlingException(requestMessage,
+				"router method must return type 'MessageChannel' or 'String', but a Message was returned: " + replyMessage);
 	}
 
 }

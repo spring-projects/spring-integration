@@ -108,6 +108,23 @@ public class SplitterMessageHandler extends AbstractMessageHandler {
 		return new CompositeMessage(results);
 	}
 
+	@Override
+	protected Message<?> postProcessReplyMessage(Message<?> replyMessage, Message<?> requestMessage) {
+		Object requestId = requestMessage.getHeaders().getId();
+		if (replyMessage instanceof CompositeMessage) {
+			List<Message<?>> sequentialMessages = new ArrayList<Message<?>>();
+			List<Message<?>> replyList = ((CompositeMessage) replyMessage).getPayload();
+			int sequenceSize = replyList.size();
+			int sequenceNumber = 0;
+			for (Message<?> message : replyList) {
+				sequentialMessages.add(this.setSplitMessageHeaders(
+						MessageBuilder.fromMessage(message), requestId, ++sequenceNumber, sequenceSize));
+			}
+			return new CompositeMessage(sequentialMessages);
+		}
+		return this.setSplitMessageHeaders(MessageBuilder.fromMessage(replyMessage), requestId, 1, 1);
+	}
+
 	private Message<?> createSplitMessage(Object item, MessageHeaders requestHeaders, int sequenceNumber, int sequenceSize) {
 		if (item instanceof Message<?>) {
 			return this.setSplitMessageHeaders(MessageBuilder.fromMessage((Message<?>) item),

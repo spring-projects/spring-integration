@@ -34,11 +34,21 @@ public class MethodInvokingTarget extends AbstractMessageHandler implements Mess
 
 	@Override
 	protected Message<?> createReplyMessage(Object result, Message<?> requestMessage) {
-		if (result != null) {
-			throw new MessagingException(requestMessage, "The target method returned a non-null Object. " +
-					"MethodInvokingTarget should only be used for methods that return no value (preferably void).");
-		}
+		this.failIfNotNull(result, requestMessage);
 		return null;
+	}
+
+	@Override
+	protected Message<?> postProcessReplyMessage(Message<?> replyMessage, Message<?> requestMessage) {
+		this.failIfNotNull(replyMessage, requestMessage);
+		return null;
+	}
+
+	private void failIfNotNull(Object result, Message<?> requestMessage) {
+		if (result != null) {
+			throw new MessagingException(requestMessage, "the MethodInvokingTarget method must have a void or null return, "
+					+ "but '" + this + "' received a non-null value: [" + result + "]");
+		}
 	}
 
 }

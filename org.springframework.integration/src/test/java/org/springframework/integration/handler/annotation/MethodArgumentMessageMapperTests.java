@@ -27,23 +27,20 @@ import java.util.Properties;
 import org.junit.Test;
 
 import org.springframework.integration.annotation.Handler;
-import org.springframework.integration.handler.DefaultMessageHandlerAdapter;
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
  */
-public class AnnotationMethodMessageMapperTests {
+public class MethodArgumentMessageMapperTests {
 
 	@Test
 	public void testOptionalHeader() throws Exception {
 		Method method = TestHandler.class.getMethod("optionalHeader", Integer.class);
-		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
+		MethodArgumentMessageMapper<String> mapper = new MethodArgumentMessageMapper<String>(method);
 		Object[] args = (Object[]) mapper.mapMessage(new StringMessage("foo"));
 		assertEquals(1, args.length);
 		assertNull(args[0]);
@@ -52,14 +49,14 @@ public class AnnotationMethodMessageMapperTests {
 	@Test(expected=MessageHandlingException.class)
 	public void testRequiredHeaderNotProvided() throws Exception {
 		Method method = TestHandler.class.getMethod("requiredHeader", Integer.class);
-		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
+		MethodArgumentMessageMapper<String> mapper = new MethodArgumentMessageMapper<String>(method);
 		mapper.mapMessage(new StringMessage("foo"));
 	}
 
 	@Test
 	public void testRequiredHeaderProvided() throws Exception {
 		Method method = TestHandler.class.getMethod("requiredHeader", Integer.class);
-		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
+		MethodArgumentMessageMapper<String> mapper = new MethodArgumentMessageMapper<String>(method);
 		Message<String> message = MessageBuilder.fromPayload("foo")
 				.setHeader("num", new Integer(123)).build(); 
 		Object[] args = (Object[]) mapper.mapMessage(message);
@@ -70,7 +67,7 @@ public class AnnotationMethodMessageMapperTests {
 	@Test(expected=MessageHandlingException.class)
 	public void testOptionalAndRequiredHeaderWithOnlyOptionalHeaderProvided() throws Exception {
 		Method method = TestHandler.class.getMethod("optionalAndRequiredHeader", String.class, Integer.class);
-		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
+		MethodArgumentMessageMapper<String> mapper = new MethodArgumentMessageMapper<String>(method);
 		Message<String> message = MessageBuilder.fromPayload("foo")
 				.setHeader("prop", "bar").build(); 
 		mapper.mapMessage(message);
@@ -79,7 +76,7 @@ public class AnnotationMethodMessageMapperTests {
 	@Test
 	public void testOptionalAndRequiredHeaderWithOnlyRequiredHeaderProvided() throws Exception {
 		Method method = TestHandler.class.getMethod("optionalAndRequiredHeader", String.class, Integer.class);
-		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
+		MethodArgumentMessageMapper<String> mapper = new MethodArgumentMessageMapper<String>(method);
 		Message<String> message = MessageBuilder.fromPayload("foo")
 				.setHeader("num", new Integer(123)).build(); 
 		Object[] args = (Object[]) mapper.mapMessage(message);
@@ -91,7 +88,7 @@ public class AnnotationMethodMessageMapperTests {
 	@Test
 	public void testOptionalAndRequiredHeaderWithBothHeadersProvided() throws Exception {
 		Method method = TestHandler.class.getMethod("optionalAndRequiredHeader", String.class, Integer.class);
-		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
+		MethodArgumentMessageMapper<String> mapper = new MethodArgumentMessageMapper<String>(method);
 		Message<String> message = MessageBuilder.fromPayload("foo")
 				.setHeader("num", new Integer(123))
 				.setHeader("prop", "bar")
@@ -105,7 +102,7 @@ public class AnnotationMethodMessageMapperTests {
 	@Test
 	public void testPropertiesMethodWithNonPropertiesPayload() throws Exception {
 		Method method = TestHandler.class.getMethod("propertiesMethod", Properties.class);
-		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
+		MethodArgumentMessageMapper<String> mapper = new MethodArgumentMessageMapper<String>(method);
 		Message<String> message = MessageBuilder.fromPayload("test")
 				.setHeader("prop1", "foo").setHeader("prop2", "bar").build();
 		Object[] args = (Object[]) mapper.mapMessage(message);
@@ -118,7 +115,7 @@ public class AnnotationMethodMessageMapperTests {
 	@Test
 	public void testPropertiesMethodWithPropertiesPayload() throws Exception {
 		Method method = TestHandler.class.getMethod("propertiesMethod", Properties.class);
-		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
+		MethodArgumentMessageMapper<Properties> mapper = new MethodArgumentMessageMapper<Properties>(method);
 		Properties payload = new Properties();
 		payload.setProperty("prop1", "foo");
 		payload.setProperty("prop2", "bar");
@@ -135,7 +132,7 @@ public class AnnotationMethodMessageMapperTests {
 	@SuppressWarnings("unchecked")
 	public void testMapMethodWithNonMapPayload() throws Exception {
 		Method method = TestHandler.class.getMethod("mapMethod", Map.class);
-		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
+		MethodArgumentMessageMapper<String> mapper = new MethodArgumentMessageMapper<String>(method);
 		Message<String> message = MessageBuilder.fromPayload("test")
 				.setHeader("attrib1", new Integer(123))
 				.setHeader("attrib2", new Integer(456)).build();
@@ -149,7 +146,7 @@ public class AnnotationMethodMessageMapperTests {
 	@SuppressWarnings("unchecked")
 	public void testMapMethodWithMapPayload() throws Exception {
 		Method method = TestHandler.class.getMethod("mapMethod", Map.class);
-		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
+		MethodArgumentMessageMapper<Map<String,Integer>> mapper = new MethodArgumentMessageMapper<Map<String,Integer>>(method);
 		Map<String, Integer> payload = new HashMap<String, Integer>();
 		payload.put("attrib1", new Integer(123));
 		payload.put("attrib2", new Integer(456));
@@ -161,89 +158,6 @@ public class AnnotationMethodMessageMapperTests {
 		assertEquals(2, result.size());
 		assertEquals(new Integer(123), result.get("attrib1"));
 		assertEquals(new Integer(456), result.get("attrib2"));
-	}
-
-	@Test
-	public void testMessageOnlyWithAdapter() throws Exception {
-		TestHandler handler = new TestHandler();
-		Method method = handler.getClass().getMethod("messageOnly", Message.class);
-		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
-		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
-		adapter.setObject(handler);
-		adapter.setMethod(method);
-		adapter.setMessageMapper(mapper);
-		Message<?> result = adapter.handle(new StringMessage("foo"));
-		assertEquals("foo", result.getPayload());
-	}
-
-	@Test
-	public void testPayloadWithAdapter() throws Exception {
-		TestHandler handler = new TestHandler();
-		Method method = handler.getClass().getMethod("integerMethod", Integer.class);
-		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
-		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
-		adapter.setObject(handler);
-		adapter.setMethod(method);
-		adapter.setMessageMapper(mapper);
-		Message<?> result = adapter.handle(new GenericMessage<Integer>(new Integer(123)));
-		assertEquals(new Integer(123), result.getPayload());
-	}
-
-	@Test
-	public void testConvertedPayloadWithAdapter() throws Exception {
-		TestHandler handler = new TestHandler();
-		Method method = handler.getClass().getMethod("integerMethod", Integer.class);
-		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
-		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
-		adapter.setObject(handler);
-		adapter.setMethod(method);
-		adapter.setMessageMapper(mapper);
-		Message<?> result = adapter.handle(new StringMessage("456"));
-		assertEquals(new Integer(456), result.getPayload());
-	}
-
-	@Test(expected=MessagingException.class)
-	public void testConversionFailureWithAdapter() throws Exception {
-		TestHandler handler = new TestHandler();
-		Method method = handler.getClass().getMethod("integerMethod", Integer.class);
-		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
-		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
-		adapter.setObject(handler);
-		adapter.setMethod(method);
-		adapter.setMessageMapper(mapper);
-		Message<?> result = adapter.handle(new StringMessage("foo"));
-		assertEquals(new Integer(123), result.getPayload());
-	}
-
-	@Test
-	public void testMessageAndHeaderWithAdapter() throws Exception {
-		TestHandler handler = new TestHandler();
-		Method method = handler.getClass().getMethod("messageAndHeader", Message.class, Integer.class);
-		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
-		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
-		adapter.setObject(handler);
-		adapter.setMethod(method);
-		adapter.setMessageMapper(mapper);
-		Message<String> message = MessageBuilder.fromPayload("foo")
-				.setHeader("number", 42).build();
-		Message<?> result = adapter.handle(message);
-		assertEquals("foo-42", result.getPayload());
-	}
-
-	@Test
-	public void testMultipleHeadersWithAdapter() throws Exception {
-		TestHandler handler = new TestHandler();
-		Method method = handler.getClass().getMethod("twoHeaders", String.class, Integer.class);
-		AnnotationMethodMessageMapper mapper = new AnnotationMethodMessageMapper(method);
-		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
-		adapter.setObject(handler);
-		adapter.setMethod(method);
-		adapter.setMessageMapper(mapper);
-		Message<String> message = MessageBuilder.fromPayload("foo")
-				.setHeader("prop", "bar")
-				.setHeader("number", 42).build();
-		Message<?> result = adapter.handle(message);
-		assertEquals("bar-42", result.getPayload());
 	}
 
 
@@ -294,7 +208,7 @@ public class AnnotationMethodMessageMapperTests {
 		public Integer integerMethod(Integer i) {
 			return i;
 		}
-
 	}
+
 
 }

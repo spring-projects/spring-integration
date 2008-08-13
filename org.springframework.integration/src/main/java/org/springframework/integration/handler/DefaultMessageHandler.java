@@ -18,6 +18,7 @@ package org.springframework.integration.handler;
 
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.MessageHeaders;
 
 /**
  * The default MessageHandler implementation. Creates a Message for the reply payload.
@@ -30,9 +31,17 @@ public class DefaultMessageHandler extends AbstractMessageHandler {
 
 	@Override
 	protected Message<?> createReplyMessage(Object result, Message<?> requestMessage) {
-		return MessageBuilder.fromPayload(result)
-				.copyHeaders(requestMessage.getHeaders())
-				.setCorrelationId(requestMessage.getHeaders().getId())
+		return this.prepareReplyMessage(MessageBuilder.fromPayload(result), requestMessage.getHeaders());
+	}
+
+	@Override
+	protected Message<?> postProcessReplyMessage(Message<?> replyMessage, Message<?> requestMessage) {
+		return this.prepareReplyMessage(MessageBuilder.fromMessage(replyMessage), requestMessage.getHeaders());
+	}
+
+	private Message<?> prepareReplyMessage(MessageBuilder<?> builder, MessageHeaders requestHeaders) {
+		return builder.copyHeadersIfAbsent(requestHeaders)
+				.setHeaderIfAbsent(MessageHeaders.CORRELATION_ID, requestHeaders.getId())
 				.build();
 	}
 

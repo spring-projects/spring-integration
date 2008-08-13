@@ -39,22 +39,22 @@ public class CorrelationIdTests {
 		Object correlationId = "123-ABC";
 		Message<String> message = MessageBuilder.fromPayload("test")
 				.setCorrelationId(correlationId).build();
-		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
-		adapter.setObject(new TestBean());
-		adapter.setMethodName("upperCase");
-		adapter.afterPropertiesSet();
-		Message<?> reply = adapter.handle(message);
+		DefaultMessageHandler handler = new DefaultMessageHandler();
+		handler.setObject(new TestBean());
+		handler.setMethodName("upperCase");
+		handler.afterPropertiesSet();
+		Message<?> reply = handler.handle(message);
 		assertEquals(correlationId, reply.getHeaders().getCorrelationId());
 	}
 
 	@Test
 	public void testCorrelationIdCopiedFromMessageIdByDefault() {
 		Message<String> message = MessageBuilder.fromPayload("test").build();
-		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
-		adapter.setObject(new TestBean());
-		adapter.setMethodName("upperCase");
-		adapter.afterPropertiesSet();
-		Message<?> reply = adapter.handle(message);
+		DefaultMessageHandler handler = new DefaultMessageHandler();
+		handler.setObject(new TestBean());
+		handler.setMethodName("upperCase");
+		handler.afterPropertiesSet();
+		Message<?> reply = handler.handle(message);
 		assertEquals(message.getHeaders().getId(), reply.getHeaders().getCorrelationId());
 	}
 
@@ -62,11 +62,11 @@ public class CorrelationIdTests {
 	public void testCorrelationIdCopiedFromMessageCorrelationIdIfAvailable() {
 		Message<String> message = MessageBuilder.fromPayload("test")
 				.setCorrelationId("correlationId").build();
-		DefaultMessageHandlerAdapter adapter = new DefaultMessageHandlerAdapter();
-		adapter.setObject(new TestBean());
-		adapter.setMethodName("upperCase");
-		adapter.afterPropertiesSet();
-		Message<?> reply = adapter.handle(message);
+		DefaultMessageHandler handler = new DefaultMessageHandler();
+		handler.setObject(new TestBean());
+		handler.setMethodName("upperCase");
+		handler.afterPropertiesSet();
+		Message<?> reply = handler.handle(message);
 		assertEquals(message.getHeaders().getCorrelationId(), reply.getHeaders().getCorrelationId());
 		assertTrue(message.getHeaders().getCorrelationId().equals(reply.getHeaders().getCorrelationId()));
 	}

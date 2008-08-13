@@ -20,22 +20,17 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.core.GenericTypeResolver;
-import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
-import org.springframework.core.MethodParameter;
-import org.springframework.core.ParameterNameDiscoverer;
+import org.springframework.core.Ordered;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.handler.annotation.Header;
+import org.springframework.integration.handler.annotation.MethodArgumentMessageMapper;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.message.MessageHeaders;
+import org.springframework.integration.message.MessageMapper;
 import org.springframework.integration.util.DefaultMethodInvoker;
 import org.springframework.integration.util.MethodInvoker;
 import org.springframework.integration.util.NameResolvingMethodInvoker;
@@ -54,9 +49,9 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractMessageHandler implements MessageHandler, InitializingBean {
+public abstract class AbstractMessageHandler implements MessageHandler, Ordered, InitializingBean {
 
-	private static final Log logger = LogFactory.getLog(AbstractMessageHandler.class);
+	protected static final Log logger = LogFactory.getLog(AbstractMessageHandler.class);
 
 	private volatile boolean methodExpectsMessage;
 
@@ -66,11 +61,11 @@ public abstract class AbstractMessageHandler implements MessageHandler, Initiali
 
 	private volatile String methodName;
 
+	private volatile MessageMapper<Object, Object[]> methodArgumentMapper;
+
 	private volatile MethodInvoker invoker;
 
-	private volatile MethodParameterMetadata[] parameterMetadata;
-
-	private final ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
+	private volatile int order = Ordered.LOWEST_PRECEDENCE;
 
 	private volatile boolean initialized;
 
@@ -99,10 +94,11 @@ public abstract class AbstractMessageHandler implements MessageHandler, Initiali
 
 	public void setMethod(Method method) {
 		Assert.notNull(method, "method must not be null");
-		if (method.getParameterTypes().length == 0) {
+		Class<?>[] parameterTypes = method.getParameterTypes();
+		if (parameterTypes.length == 0) {
 			throw new ConfigurationException("method must accept at least one parameter");
 		}
-		if (method.getParameterTypes()[0].equals(Message.class)) {
+		if (parameterTypes.length == 1 && Message.class.isAssignableFrom(parameterTypes[0])) {
 			this.methodExpectsMessage = true;
 		}
 		this.method = method;
@@ -115,6 +111,14 @@ public abstract class AbstractMessageHandler implements MessageHandler, Initiali
 			this.method = null;
 		}
 		this.methodName = methodName;
+	}
+
+	public void setOrder(int order) {
+		this.order = order;
+	}
+
+	public int getOrder() {
+		return order;
 	}
 
 	public void afterPropertiesSet() {
@@ -145,39 +149,14 @@ public abstract class AbstractMessageHandler implements MessageHandler, Initiali
 				}
 				if (this.method != null) {
 					this.invoker = new DefaultMethodInvoker(this.object, this.method);
+					this.methodArgumentMapper = new MethodArgumentMessageMapper(this.method);
 				}
 				else {
 					// TODO: resolve the candidate method and/or create a dynamic resolver
 					this.invoker = new NameResolvingMethodInvoker(this.object, this.methodName);
 				}
-				this.configureParameterMetadata();
 			}
 			this.initialized = true;
-		}
-	}
-
-	private void configureParameterMetadata() {
-		if (this.method == null) {
-			return;
-		}
-		Class<?>[] paramTypes = this.method.getParameterTypes();			
-		this.parameterMetadata = new MethodParameterMetadata[paramTypes.length];
-		for (int i = 0; i < parameterMetadata.length; i++) {
-			MethodParameter methodParam = new MethodParameter(this.method, i);
-			methodParam.initParameterNameDiscovery(this.parameterNameDiscoverer);
-			GenericTypeResolver.resolveParameterType(methodParam, this.method.getDeclaringClass());
-			Object[] paramAnnotations = methodParam.getParameterAnnotations();
-			String headerName = null;
-			for (int j = 0; j < paramAnnotations.length; j++) {
-				if (Header.class.isInstance(paramAnnotations[j])) {
-					Header headerAnnotation = (Header) paramAnnotations[j];
-					headerName = this.resolveParameterNameIfNecessary(headerAnnotation.value(), methodParam);
-					parameterMetadata[i] = new MethodParameterMetadata(Header.class, headerName, headerAnnotation.required());
-				}
-			}
-			if (headerName == null) {
-				parameterMetadata[i] = new MethodParameterMetadata(methodParam.getParameterType(), null, false);
-			}
 		}
 	}
 
@@ -196,11 +175,25 @@ public abstract class AbstractMessageHandler implements MessageHandler, Initiali
 		if (result == null) {
 			return null;
 		}
+		if (result instanceof Message) {
+			return this.postProcessReplyMessage((Message<?>) result, requestMessage);
+		}
 		return this.createReplyMessage(result, requestMessage);
 	}
 
 	/**
-	 * Subclasses must implement this method to generate the reply Message.
+	 * Subclasses must implement this method to process a return value that
+	 * is already a Message instance.
+	 * 
+	 * @param replyMessage the Message returned from an adapter method
+	 * @param requestMessage the original request Message
+	 * @return the Message to be sent to the reply MessageTarget
+	 */
+	protected abstract Message<?> postProcessReplyMessage(Message<?> replyMessage, Message<?> requestMessage);
+
+	/**
+	 * Subclasses must implement this method to generate the reply Message when
+	 * the return value is not a Message instance.
 	 * 
 	 * @param result the return value from an adapter method, or the Message payload if not acting as an adapter
 	 * @param requestMessage the original request Message
@@ -210,9 +203,6 @@ public abstract class AbstractMessageHandler implements MessageHandler, Initiali
 
 
 	private Object invokeHandlerMethod(Message<?> message) {
-		if (this.invoker == null) {
-			throw new IllegalStateException("cannot invoke method, invoker is null");
-		}
 		Object args[] = null;
 		Object mappingResult = this.methodExpectsMessage ? message
 				: this.mapMessageToMethodArguments(message);
@@ -253,86 +243,11 @@ public abstract class AbstractMessageHandler implements MessageHandler, Initiali
 		}
 	}
 
-
-	private Object[] mapMessageToMethodArguments(Message<?> message) {
-		if (message == null) {
-			return null;
+	private Object[] mapMessageToMethodArguments(Message message) {
+		if (this.methodArgumentMapper != null) {
+			return this.methodArgumentMapper.mapMessage(message);
 		}
-		if (message.getPayload() == null) {
-			throw new IllegalArgumentException("Message payload must not be null.");
-		}
-		if (ObjectUtils.isEmpty(this.parameterMetadata)) {
-			return new Object[] { message.getPayload() };
-		}
-		Object[] args = new Object[this.parameterMetadata.length];
-		for (int i = 0; i < this.parameterMetadata.length; i++) {
-			MethodParameterMetadata metadata = this.parameterMetadata[i];
-			Class<?> expectedType = metadata.type;
-			if (expectedType.equals(Header.class)) {
-				Object value = message.getHeaders().get(metadata.key);
-				if (value == null && metadata.required) {
-					throw new MessageHandlingException(message,
-							"required header '" + metadata.key + "' not available");
-				}
-				args[i] = value;
-			}
-			else if (expectedType.isAssignableFrom(message.getClass())) {
-				args[i] = message;
-			}
-			else if (expectedType.isAssignableFrom(message.getPayload().getClass())) {
-				args[i] = message.getPayload();
-			}
-			else if (expectedType.equals(Map.class)) {
-				args[i] = message.getHeaders();
-			}
-			else if (expectedType.equals(Properties.class)) {
-				args[i] = this.getStringTypedHeaders(message);
-			}
-			else {
-				args[i] = message.getPayload();
-			}
-		}
-		return args;
-	}
-
-	private Properties getStringTypedHeaders(Message<?> message) {
-		Properties properties = new Properties();
-		MessageHeaders headers = message.getHeaders();
-		for (String key : headers.keySet()) {
-			Object value = headers.get(key);
-			if (value instanceof String) {
-				properties.setProperty(key, (String) value);
-			}
-		}
-		return properties;
-	}
-
-	private String resolveParameterNameIfNecessary(String paramName, MethodParameter methodParam) {
-		if (!StringUtils.hasText(paramName)) {
-			paramName = methodParam.getParameterName();
-			if (paramName == null) {
-				throw new IllegalStateException("No parameter name specified and not available in class file.");
-			}
-		}
-		return paramName;
-	}
-
-
-	private static class MethodParameterMetadata {
-
-		private final Class<?> type;
-
-		private final String key;
-
-		private final boolean required;
-
-
-		MethodParameterMetadata(Class<?> type, String key, boolean required) {
-			this.type = type;
-			this.key = key;
-			this.required = required;
-		}
-
+		return new Object[] { message.getPayload() };
 	}
 
 }

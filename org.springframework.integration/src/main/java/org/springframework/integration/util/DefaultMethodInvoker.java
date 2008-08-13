@@ -38,7 +38,7 @@ public class DefaultMethodInvoker implements MethodInvoker {
 
 	private final Object object;
 
-	private final Method method;
+	private volatile Method method;
 
 	private volatile TypeConverter typeConverter;
 
@@ -85,7 +85,18 @@ public class DefaultMethodInvoker implements MethodInvoker {
 		if (this.logger.isDebugEnabled()) {
 			logger.debug("invoking method '" + this.method.getName() + "' with arguments " + ObjectUtils.nullSafeToString(convertedArgs));
 		}
-		return this.method.invoke(this.object, convertedArgs);
+		try {
+			return this.method.invoke(this.object, convertedArgs);
+		}
+		catch (IllegalArgumentException e) {
+			org.springframework.util.MethodInvoker helper = new org.springframework.util.MethodInvoker();
+			helper.setTargetObject(this.object);
+			helper.setTargetMethod(this.method.getName());
+			helper.setArguments(convertedArgs);
+			helper.prepare();
+			this.method = helper.getPreparedMethod();
+			return this.method.invoke(this.object, convertedArgs);
+		}
 	}
 
 }
