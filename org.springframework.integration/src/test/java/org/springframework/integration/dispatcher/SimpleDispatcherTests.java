@@ -25,7 +25,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
-import org.springframework.integration.endpoint.HandlerEndpoint;
+
+import org.springframework.integration.endpoint.SimpleEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.message.Message;
@@ -73,9 +74,9 @@ public class SimpleDispatcherTests {
 		final AtomicInteger counter2 = new AtomicInteger();
 		final AtomicInteger counter3 = new AtomicInteger();
 		final AtomicInteger selectorCounter = new AtomicInteger();
-		HandlerEndpoint endpoint1 = createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch));
-		HandlerEndpoint endpoint2 = createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch));
-		HandlerEndpoint endpoint3 = createEndpoint(TestHandlers.countingCountDownHandler(counter3, latch));
+		SimpleEndpoint<?> endpoint1 = createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch));
+		SimpleEndpoint<?> endpoint2 = createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch));
+		SimpleEndpoint<?> endpoint3 = createEndpoint(TestHandlers.countingCountDownHandler(counter3, latch));
 		endpoint1.setSelector(new TestMessageSelector(selectorCounter, false));
 		endpoint2.setSelector(new TestMessageSelector(selectorCounter, false));
 		endpoint3.setSelector(new TestMessageSelector(selectorCounter, true));
@@ -100,9 +101,9 @@ public class SimpleDispatcherTests {
 		final AtomicInteger counter2 = new AtomicInteger();
 		final AtomicInteger counter3 = new AtomicInteger();
 		final AtomicInteger selectorCounter = new AtomicInteger();
-		HandlerEndpoint endpoint1 = createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch));
-		HandlerEndpoint endpoint2 = createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch));
-		HandlerEndpoint endpoint3 = createEndpoint(TestHandlers.countingCountDownHandler(counter3, latch));
+		SimpleEndpoint<?> endpoint1 = createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch));
+		SimpleEndpoint<?> endpoint2 = createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch));
+		SimpleEndpoint<?> endpoint3 = createEndpoint(TestHandlers.countingCountDownHandler(counter3, latch));
 		endpoint1.setSelector(new TestMessageSelector(selectorCounter, false));
 		endpoint2.setSelector(new TestMessageSelector(selectorCounter, false));
 		endpoint3.setSelector(new TestMessageSelector(selectorCounter, false));
@@ -132,9 +133,9 @@ public class SimpleDispatcherTests {
 		TestMessageHandler handler1 = new TestMessageHandler(handlerCounter, 4);
 		TestMessageHandler handler2 = new TestMessageHandler(handlerCounter, 4);
 		TestMessageHandler handler3 = new TestMessageHandler(handlerCounter, 2);
-		HandlerEndpoint endpoint1 = new HandlerEndpoint(handler1);
-		HandlerEndpoint endpoint2 = new HandlerEndpoint(handler2);
-		HandlerEndpoint endpoint3 = new HandlerEndpoint(handler3);
+		SimpleEndpoint<?> endpoint1 = new SimpleEndpoint<MessageHandler>(handler1);
+		SimpleEndpoint<?> endpoint2 = new SimpleEndpoint<MessageHandler>(handler2);
+		SimpleEndpoint<?> endpoint3 = new SimpleEndpoint<MessageHandler>(handler3);
 		dispatcher.addTarget(endpoint1);
 		dispatcher.addTarget(endpoint2);
 		dispatcher.addTarget(endpoint3);
@@ -146,8 +147,8 @@ public class SimpleDispatcherTests {
 	}
 
 
-	private static HandlerEndpoint createEndpoint(MessageHandler handler) {
-		return new HandlerEndpoint(handler);
+	private static SimpleEndpoint<MessageHandler> createEndpoint(MessageHandler handler) {
+		return new SimpleEndpoint<MessageHandler>(handler);
 	}
 
 

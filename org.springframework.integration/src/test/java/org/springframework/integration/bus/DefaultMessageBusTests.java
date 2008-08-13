@@ -33,7 +33,6 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.PollableChannelAdapter;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.dispatcher.PublishSubscribeChannel;
-import org.springframework.integration.endpoint.HandlerEndpoint;
 import org.springframework.integration.endpoint.SimpleEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.ErrorMessage;
@@ -219,8 +218,8 @@ public class DefaultMessageBusTests {
 				return message;
 			}
 		};
-		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
-		endpoint.setName("testEndpoint");
+		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(handler);
+		endpoint.setBeanName("testEndpoint");
 		endpoint.setSource(channelAdapter);
 		bus.registerEndpoint(endpoint);
 		bus.start();

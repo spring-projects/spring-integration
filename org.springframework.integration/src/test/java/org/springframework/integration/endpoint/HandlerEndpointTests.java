@@ -46,7 +46,7 @@ import org.springframework.integration.message.selector.MessageSelectorChain;
 public class HandlerEndpointTests {
 
 	@Test
-	public void testDefaultReplyChannel() throws Exception {
+	public void testOutputChannel() throws Exception {
 		QueueChannel replyChannel = new QueueChannel();
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel("replyChannel", replyChannel);
@@ -55,9 +55,9 @@ public class HandlerEndpointTests {
 				return new StringMessage("hello " + message.getPayload());
 			}
 		};
-		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
+		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(handler);
 		endpoint.setChannelRegistry(channelRegistry);
-		endpoint.setOutputChannelName("replyChannel");
+		endpoint.setTarget(replyChannel);
 		endpoint.send(new StringMessage("test"));
 		Message<?> reply = replyChannel.receive(50);
 		assertNotNull(reply);
@@ -72,7 +72,7 @@ public class HandlerEndpointTests {
 				return new StringMessage("hello " + message.getPayload());
 			}
 		};
-		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
+		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(handler);
 		Message<String> testMessage = MessageBuilder.fromPayload("test")
 				.setReturnAddress(replyChannel).build();
 		endpoint.send(testMessage);
@@ -91,7 +91,7 @@ public class HandlerEndpointTests {
 				return new StringMessage("hello " + message.getPayload());
 			}
 		};
-		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
+		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(handler);
 		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> testMessage = MessageBuilder.fromPayload("test")
 				.setReturnAddress(replyChannel).build();
@@ -112,7 +112,7 @@ public class HandlerEndpointTests {
 				return new StringMessage("hello " + message.getPayload());
 			}
 		};
-		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
+		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(handler);
 		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> testMessage1 = MessageBuilder.fromPayload("test")
 				.setReturnAddress(replyChannel1).build();
@@ -144,7 +144,7 @@ public class HandlerEndpointTests {
 				return null;
 			}
 		};
-		HandlerEndpoint endpoint = new HandlerEndpoint(handler);
+		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(handler);
 		endpoint.setChannelRegistry(channelRegistry);
 		endpoint.setOutputChannelName("replyChannel");
 		endpoint.send(new StringMessage("test"));
@@ -156,7 +156,7 @@ public class HandlerEndpointTests {
 
 	@Test(expected=MessageRejectedException.class)
 	public void testEndpointWithSelectorRejecting() {
-		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.nullHandler());
+		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(TestHandlers.nullHandler());
 		endpoint.setSelector(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return false;
@@ -168,7 +168,7 @@ public class HandlerEndpointTests {
 	@Test
 	public void testEndpointWithSelectorAccepting() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
-		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.countDownHandler(latch));
+		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(TestHandlers.countDownHandler(latch));
 		endpoint.setSelector(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return true;
@@ -182,7 +182,7 @@ public class HandlerEndpointTests {
 	@Test
 	public void testEndpointWithMultipleSelectorsAndFirstRejects() {
 		final AtomicInteger counter = new AtomicInteger();
-		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.countingHandler(counter));
+		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(TestHandlers.countingHandler(counter));
 		MessageSelectorChain selectorChain = new MessageSelectorChain();
 		selectorChain.add(new MessageSelector() {
 			public boolean accept(Message<?> message) {
@@ -212,7 +212,7 @@ public class HandlerEndpointTests {
 	public void testEndpointWithMultipleSelectorsAndFirstAccepts() {
 		final AtomicInteger selectorCounter = new AtomicInteger();
 		AtomicInteger handlerCounter = new AtomicInteger();
-		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.countingHandler(handlerCounter));
+		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(TestHandlers.countingHandler(handlerCounter));
 		MessageSelectorChain selectorChain = new MessageSelectorChain();
 		selectorChain.add(new MessageSelector() {
 			public boolean accept(Message<?> message) {
@@ -242,7 +242,7 @@ public class HandlerEndpointTests {
 	@Test
 	public void testEndpointWithMultipleSelectorsAndBothAccept() {
 		final AtomicInteger counter = new AtomicInteger();
-		HandlerEndpoint endpoint = new HandlerEndpoint(TestHandlers.countingHandler(counter));
+		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(TestHandlers.countingHandler(counter));
 		MessageSelectorChain selectorChain = new MessageSelectorChain();
 		selectorChain.add(new MessageSelector() {
 			public boolean accept(Message<?> message) {
@@ -264,7 +264,7 @@ public class HandlerEndpointTests {
 	@Test
 	public void testCorrelationId() {
 		QueueChannel replyChannel = new QueueChannel(1);
-		HandlerEndpoint endpoint = new HandlerEndpoint(new MessageHandler() {
+		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				return message;
 			}
@@ -279,7 +279,7 @@ public class HandlerEndpointTests {
 	@Test
 	public void testCorrelationIdSetByHandlerTakesPrecedence() {
 		QueueChannel replyChannel = new QueueChannel(1);
-		HandlerEndpoint endpoint = new HandlerEndpoint(new MessageHandler() {
+		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				return MessageBuilder.fromMessage(message)
 						.setCorrelationId("ABC-123").build();
