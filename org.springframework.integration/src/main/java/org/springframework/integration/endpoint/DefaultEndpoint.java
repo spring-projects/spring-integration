@@ -45,7 +45,7 @@ import org.springframework.integration.util.ErrorHandler;
 import org.springframework.util.Assert;
 
 /**
- * The most basic Message Endpoint implementation. Serves as a "host" for any
+ * The default Message Endpoint implementation. Serves as a "host" for any
  * {@link MessageHandler} and resolves the target for any reply Message(s)
  * returned by that handler. If the handler returns a non-empty
  * {@link CompositeMessage}, each Message in its list will be sent
@@ -66,7 +66,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class SimpleEndpoint<T extends MessageHandler> implements MessageEndpoint, ChannelRegistryAware, BeanNameAware {
+public class DefaultEndpoint<T extends MessageHandler> implements MessageEndpoint, ChannelRegistryAware, BeanNameAware {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -92,7 +92,7 @@ public class SimpleEndpoint<T extends MessageHandler> implements MessageEndpoint
 	/**
 	 * Create an endpoint for the given handler.
 	 */
-	public SimpleEndpoint(T handler) {
+	public DefaultEndpoint(T handler) {
 		Assert.notNull(handler, "handler must not be null");
 		this.handler = handler;
 	}
@@ -239,7 +239,7 @@ public class SimpleEndpoint<T extends MessageHandler> implements MessageEndpoint
 		return nextInterceptor.aroundHandle(requestMessage, new MessageHandler() {
 			@SuppressWarnings("unchecked")
 			public Message<?> handle(Message message) {
-				return SimpleEndpoint.this.handleMessage(message, index + 1);
+				return DefaultEndpoint.this.handleMessage(message, index + 1);
 			}
 		});
 	}
@@ -330,7 +330,7 @@ public class SimpleEndpoint<T extends MessageHandler> implements MessageEndpoint
 		return (this.name != null) ? this.name : super.toString();
 	}
 
-	/* TODO: remove the following methods after they are removed from the MessageEndpoint interface. */
+	/* TODO: the following properties/methods are candidates for removal from the MessageEndpoint interface. */
 
 	private volatile String inputChannelName;
 	private volatile String outputChannelName;

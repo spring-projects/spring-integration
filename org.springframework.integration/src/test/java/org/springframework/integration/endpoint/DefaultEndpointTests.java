@@ -46,13 +46,13 @@ import org.springframework.integration.message.selector.MessageSelectorChain;
 /**
  * @author Mark Fisher
  */
-public class HandlerEndpointTests {
+public class DefaultEndpointTests {
 
 	@Test
 	public void outputChannel() {
 		QueueChannel channel = new QueueChannel(1);
 		MessageHandler handler = new TestHandler();
-		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(handler);
+		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
 		endpoint.setOutputChannel(channel);
 		Message<?> message = MessageBuilder.fromPayload("foo").build();
 		endpoint.send(message);
@@ -65,7 +65,7 @@ public class HandlerEndpointTests {
 	public void returnAddressHeader() {
 		QueueChannel channel = new QueueChannel(1);
 		MessageHandler handler = new TestHandler();
-		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(handler);
+		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
 		Message<?> message = MessageBuilder.fromPayload("foo").setReturnAddress(channel).build();
 		endpoint.send(message);
 		Message<?> reply = channel.receive(0);
@@ -79,7 +79,7 @@ public class HandlerEndpointTests {
 		QueueChannel channel2 = new QueueChannel(1);
 		QueueChannel channel3 = new QueueChannel(1);
 		MessageHandler handler = new TestNextTargetSettingHandler(channel1);
-		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(handler);
+		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
 		endpoint.setOutputChannel(channel2);
 		Message<?> message = MessageBuilder.fromPayload("foo").setReturnAddress(channel3).build();
 		endpoint.send(message);
@@ -98,7 +98,7 @@ public class HandlerEndpointTests {
 		ChannelRegistry channelRegistry = new DefaultMessageBus();
 		channelRegistry.registerChannel("testChannel", channel);
 		MessageHandler handler = new TestHandler();
-		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(handler);
+		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
 		endpoint.setChannelRegistry(channelRegistry);
 		Message<?> message = MessageBuilder.fromPayload("foo").setReturnAddress("testChannel").build();
 		endpoint.send(message);
@@ -115,7 +115,7 @@ public class HandlerEndpointTests {
 		ChannelRegistry channelRegistry = new DefaultMessageBus();
 		channelRegistry.registerChannel("testChannel", channel1);
 		MessageHandler handler = new TestNextTargetSettingHandler("testChannel");
-		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(handler);
+		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
 		endpoint.setChannelRegistry(channelRegistry);
 		endpoint.setOutputChannel(channel2);
 		Message<?> message = MessageBuilder.fromPayload("foo").setReturnAddress(channel3).build();
@@ -140,7 +140,7 @@ public class HandlerEndpointTests {
 				return new StringMessage("foo" + message.getPayload());
 			}
 		};
-		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(handler);
+		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
 		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> testMessage1 = MessageBuilder.fromPayload("bar")
 				.setReturnAddress(replyChannel1).build();
@@ -164,7 +164,7 @@ public class HandlerEndpointTests {
 	public void noOutputChannelFallsBackToReturnAddress() {
 		QueueChannel channel = new QueueChannel(1);
 		MessageHandler handler = new TestHandler();
-		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(handler);
+		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
 		Message<?> message = MessageBuilder.fromPayload("foo").setReturnAddress(channel).build();
 		endpoint.send(message);
 		Message<?> reply = channel.receive(0);
@@ -176,7 +176,7 @@ public class HandlerEndpointTests {
 	public void unknownNextTargetChannelFallsBackToOutputChannel() {
 		QueueChannel channel = new QueueChannel(1);
 		MessageHandler handler = new TestHandler();
-		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(handler);
+		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
 		endpoint.setOutputChannel(channel);
 		Message<?> message = MessageBuilder.fromPayload("foo").setNextTarget("unknown").build();
 		endpoint.send(message);
@@ -188,7 +188,7 @@ public class HandlerEndpointTests {
 	@Test(expected = MessageEndpointReplyException.class)
 	public void noReplyTarget() {
 		MessageHandler handler = new TestHandler();
-		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(handler);
+		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
 		Message<?> message = MessageBuilder.fromPayload("foo").build();
 		endpoint.send(message);
 	}
@@ -197,7 +197,7 @@ public class HandlerEndpointTests {
 	public void noReplyMessage() {
 		QueueChannel channel = new QueueChannel(1);
 		MessageHandler handler = new TestNullReplyHandler();
-		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(handler);
+		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
 		endpoint.setOutputChannel(channel);
 		Message<?> message = MessageBuilder.fromPayload("foo").build();
 		endpoint.send(message);
@@ -208,7 +208,7 @@ public class HandlerEndpointTests {
 	public void noReplyMessageWithRequiresReply() {
 		QueueChannel channel = new QueueChannel(1);
 		MessageHandler handler = new TestNullReplyHandler();
-		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(handler);
+		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
 		endpoint.setRequiresReply(true);
 		endpoint.setOutputChannel(channel);
 		Message<?> message = MessageBuilder.fromPayload("foo").build();
@@ -217,7 +217,7 @@ public class HandlerEndpointTests {
 
 	@Test(expected=MessageRejectedException.class)
 	public void endpointWithSelectorRejecting() {
-		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(TestHandlers.nullHandler());
+		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(TestHandlers.nullHandler());
 		endpoint.setSelector(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return false;
@@ -229,7 +229,7 @@ public class HandlerEndpointTests {
 	@Test
 	public void endpointWithSelectorAccepting() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
-		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(TestHandlers.countDownHandler(latch));
+		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(TestHandlers.countDownHandler(latch));
 		endpoint.setSelector(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return true;
@@ -243,7 +243,7 @@ public class HandlerEndpointTests {
 	@Test
 	public void endpointWithMultipleSelectorsAndFirstRejects() {
 		final AtomicInteger counter = new AtomicInteger();
-		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(TestHandlers.countingHandler(counter));
+		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(TestHandlers.countingHandler(counter));
 		MessageSelectorChain selectorChain = new MessageSelectorChain();
 		selectorChain.add(new MessageSelector() {
 			public boolean accept(Message<?> message) {
@@ -273,7 +273,7 @@ public class HandlerEndpointTests {
 	public void endpointWithMultipleSelectorsAndFirstAccepts() {
 		final AtomicInteger selectorCounter = new AtomicInteger();
 		AtomicInteger handlerCounter = new AtomicInteger();
-		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(TestHandlers.countingHandler(handlerCounter));
+		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(TestHandlers.countingHandler(handlerCounter));
 		MessageSelectorChain selectorChain = new MessageSelectorChain();
 		selectorChain.add(new MessageSelector() {
 			public boolean accept(Message<?> message) {
@@ -303,7 +303,7 @@ public class HandlerEndpointTests {
 	@Test
 	public void endpointWithMultipleSelectorsAndBothAccept() {
 		final AtomicInteger counter = new AtomicInteger();
-		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(TestHandlers.countingHandler(counter));
+		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(TestHandlers.countingHandler(counter));
 		MessageSelectorChain selectorChain = new MessageSelectorChain();
 		selectorChain.add(new MessageSelector() {
 			public boolean accept(Message<?> message) {
@@ -325,7 +325,7 @@ public class HandlerEndpointTests {
 	@Test
 	public void correlationId() {
 		QueueChannel replyChannel = new QueueChannel(1);
-		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(new MessageHandler() {
+		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				return message;
 			}
@@ -340,7 +340,7 @@ public class HandlerEndpointTests {
 	@Test
 	public void correlationIdSetByHandlerTakesPrecedence() {
 		QueueChannel replyChannel = new QueueChannel(1);
-		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(new MessageHandler() {
+		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				return MessageBuilder.fromMessage(message)
 						.setCorrelationId("ABC-123").build();

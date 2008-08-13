@@ -29,7 +29,7 @@ import org.junit.Test;
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.endpoint.SimpleEndpoint;
+import org.springframework.integration.endpoint.DefaultEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
@@ -53,7 +53,7 @@ public class MessageExchangeTemplateTests {
 		};
 		MessageBus bus = new DefaultMessageBus();
 		bus.registerChannel("requestChannel", requestChannel);
-		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(testHandler);
+		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(testHandler);
 		endpoint.setBeanName("testEndpoint");
 		endpoint.setSource(requestChannel);
 		bus.registerEndpoint(endpoint);

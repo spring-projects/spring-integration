@@ -32,7 +32,7 @@ import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.MessageEndpoint;
-import org.springframework.integration.endpoint.SimpleEndpoint;
+import org.springframework.integration.endpoint.DefaultEndpoint;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
@@ -99,7 +99,7 @@ public class MethodInvokingTargetTests {
 		assertNull(queue.poll());
 		MessageBus bus = new DefaultMessageBus();
 		bus.registerChannel("channel", channel);
-		MessageEndpoint endpoint = new SimpleEndpoint<MethodInvokingTarget>(target);
+		MessageEndpoint endpoint = new DefaultEndpoint<MethodInvokingTarget>(target);
 		endpoint.setBeanName("testEndpoint");
 		endpoint.setSource(channel);
 		bus.registerEndpoint(endpoint);

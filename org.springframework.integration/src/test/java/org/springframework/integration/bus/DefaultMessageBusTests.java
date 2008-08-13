@@ -33,7 +33,7 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.PollableChannelAdapter;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.dispatcher.PublishSubscribeChannel;
-import org.springframework.integration.endpoint.SimpleEndpoint;
+import org.springframework.integration.endpoint.DefaultEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
@@ -63,7 +63,7 @@ public class DefaultMessageBusTests {
 				return message;
 			}
 		};
-		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(handler);
+		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
 		endpoint.setBeanName("testEndpoint");
 		endpoint.setSource(sourceChannel);
 		bus.registerEndpoint(endpoint);
@@ -88,7 +88,7 @@ public class DefaultMessageBusTests {
 				return message;
 			}
 		};
-		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(handler);
+		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
 		endpoint.setBeanName("testEndpoint");
 		endpoint.setInputChannelName("sourceChannel");
 		bus.registerEndpoint(endpoint);
@@ -146,10 +146,10 @@ public class DefaultMessageBusTests {
 		bus.registerChannel("input", inputChannel);
 		bus.registerChannel("output1", outputChannel1);
 		bus.registerChannel("output2", outputChannel2);
-		SimpleEndpoint<MessageHandler> endpoint1 = new SimpleEndpoint<MessageHandler>(handler1);
+		DefaultEndpoint<MessageHandler> endpoint1 = new DefaultEndpoint<MessageHandler>(handler1);
 		endpoint1.setBeanName("testEndpoint1");
 		endpoint1.setSource(inputChannel);
-		SimpleEndpoint<MessageHandler> endpoint2 = new SimpleEndpoint<MessageHandler>(handler2);
+		DefaultEndpoint<MessageHandler> endpoint2 = new DefaultEndpoint<MessageHandler>(handler2);
 		endpoint2.setBeanName("testEndpoint2");
 		endpoint2.setSource(inputChannel);
 		bus.registerEndpoint(endpoint1);
@@ -188,10 +188,10 @@ public class DefaultMessageBusTests {
 		bus.registerChannel("input", inputChannel);
 		bus.registerChannel("output1", outputChannel1);
 		bus.registerChannel("output2", outputChannel2);
-		SimpleEndpoint<MessageHandler> endpoint1 = new SimpleEndpoint<MessageHandler>(handler1);
+		DefaultEndpoint<MessageHandler> endpoint1 = new DefaultEndpoint<MessageHandler>(handler1);
 		endpoint1.setBeanName("testEndpoint1");
 		endpoint1.setSource(inputChannel);
-		SimpleEndpoint<MessageHandler> endpoint2 = new SimpleEndpoint<MessageHandler>(handler2);
+		DefaultEndpoint<MessageHandler> endpoint2 = new DefaultEndpoint<MessageHandler>(handler2);
 		endpoint2.setBeanName("testEndpoint2");
 		endpoint2.setSource(inputChannel);
 		bus.registerEndpoint(endpoint1);
@@ -218,7 +218,7 @@ public class DefaultMessageBusTests {
 				return message;
 			}
 		};
-		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(handler);
+		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
 		endpoint.setBeanName("testEndpoint");
 		endpoint.setSource(channelAdapter);
 		bus.registerEndpoint(endpoint);
@@ -258,7 +258,7 @@ public class DefaultMessageBusTests {
 				return null;
 			}
 		};
-		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(handler);
+		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
 		endpoint.setBeanName("testEndpoint");
 		endpoint.setInputChannelName(MessageBus.ERROR_CHANNEL_NAME);
 		bus.registerEndpoint(endpoint);

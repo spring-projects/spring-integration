@@ -28,7 +28,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.ThreadLocalChannel;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
 import org.springframework.integration.dispatcher.DirectChannel;
-import org.springframework.integration.endpoint.SimpleEndpoint;
+import org.springframework.integration.endpoint.DefaultEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
@@ -55,7 +55,7 @@ public class DirectChannelSubscriptionTests {
 
 	@Test
 	public void testSendAndReceiveForRegisteredEndpoint() {
-		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(new TestHandler());
+		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(new TestHandler());
 		endpoint.setInputChannelName("sourceChannel");
 		endpoint.setOutputChannelName("targetChannel");
 		endpoint.setBeanName("testEndpoint");
@@ -84,7 +84,7 @@ public class DirectChannelSubscriptionTests {
 	public void testExceptionThrownFromRegisteredEndpoint() {
 		QueueChannel errorChannel = new QueueChannel();
 		bus.setErrorChannel(errorChannel);
-		SimpleEndpoint<MessageHandler> endpoint = new SimpleEndpoint<MessageHandler>(new MessageHandler() {
+		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				throw new RuntimeException("intentional test failure");
 			}

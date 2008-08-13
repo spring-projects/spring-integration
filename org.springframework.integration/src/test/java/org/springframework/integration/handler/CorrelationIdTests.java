@@ -22,7 +22,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.endpoint.SimpleEndpoint;
+import org.springframework.integration.endpoint.DefaultEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
@@ -114,7 +114,7 @@ public class CorrelationIdTests {
 		QueueChannel testChannel = new QueueChannel();
 		SplitterMessageHandler splitter = new SplitterMessageHandler(
 				new TestBean(), TestBean.class.getMethod("split", String.class));
-		SimpleEndpoint<SplitterMessageHandler> endpoint = new SimpleEndpoint<SplitterMessageHandler>(splitter);
+		DefaultEndpoint<SplitterMessageHandler> endpoint = new DefaultEndpoint<SplitterMessageHandler>(splitter);
 		endpoint.setOutputChannel(testChannel);
 		splitter.afterPropertiesSet();
 		endpoint.send(message);

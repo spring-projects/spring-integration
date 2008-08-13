@@ -33,7 +33,7 @@ import org.springframework.integration.aggregator.CompletionStrategy;
 import org.springframework.integration.aggregator.CompletionStrategyAdapter;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
-import org.springframework.integration.endpoint.SimpleEndpoint;
+import org.springframework.integration.endpoint.DefaultEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.util.MethodInvoker;
@@ -54,7 +54,7 @@ public class AggregatorParserTests {
 
 	@Test
 	public void testAggregation() {
-		SimpleEndpoint<?> endpoint = (SimpleEndpoint<?>) context.getBean("aggregatorWithReference");
+		DefaultEndpoint<?> endpoint = (DefaultEndpoint<?>) context.getBean("aggregatorWithReference");
 		AggregatingMessageHandler aggregatingHandler =
 				(AggregatingMessageHandler) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		TestAggregator aggregatorBean = (TestAggregator) context.getBean("aggregatorBean");
@@ -74,7 +74,7 @@ public class AggregatorParserTests {
 
 	@Test
 	public void testPropertyAssignment() throws Exception {
-		SimpleEndpoint<?> endpoint = (SimpleEndpoint<?>) context.getBean("completelyDefinedAggregator");
+		DefaultEndpoint<?> endpoint = (DefaultEndpoint<?>) context.getBean("completelyDefinedAggregator");
 		AggregatingMessageHandler completeAggregatingMessageHandler =
 				(AggregatingMessageHandler) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		TestAggregator testAggregator = (TestAggregator) context.getBean("aggregatorBean");
@@ -108,7 +108,7 @@ public class AggregatorParserTests {
 	@Test
 	public void testSimpleJavaBeanAggregator() {
 		List<Message<?>> outboundMessages = new ArrayList<Message<?>>();
-		SimpleEndpoint<?> endpoint = (SimpleEndpoint<?>) context.getBean("aggregatorWithReferenceAndMethod");
+		DefaultEndpoint<?> endpoint = (DefaultEndpoint<?>) context.getBean("aggregatorWithReferenceAndMethod");
 		AggregatingMessageHandler addingAggregator =
 				(AggregatingMessageHandler) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		outboundMessages.add(createMessage(1l, "id1", 3, 1, null));
@@ -135,7 +135,7 @@ public class AggregatorParserTests {
 
 	@Test
 	public void testAggregatorWithPojoCompletionStrategy(){
-		SimpleEndpoint<?> endpoint = (SimpleEndpoint<?>) context.getBean("aggregatorWithPojoCompletionStrategy");
+		DefaultEndpoint<?> endpoint = (DefaultEndpoint<?>) context.getBean("aggregatorWithPojoCompletionStrategy");
 		AggregatingMessageHandler aggregatorWithPojoCompletionStrategy =
 				(AggregatingMessageHandler) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		CompletionStrategy completionStrategy = (CompletionStrategy)

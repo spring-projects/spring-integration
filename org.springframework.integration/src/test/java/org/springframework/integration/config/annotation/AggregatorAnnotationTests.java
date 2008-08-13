@@ -33,7 +33,7 @@ import org.springframework.integration.aggregator.CompletionStrategyAdapter;
 import org.springframework.integration.aggregator.SequenceSizeCompletionStrategy;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.config.MessageBusParser;
-import org.springframework.integration.endpoint.SimpleEndpoint;
+import org.springframework.integration.endpoint.DefaultEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 
 /**
@@ -111,7 +111,7 @@ public class AggregatorAnnotationTests {
 	@SuppressWarnings("unchecked")
 	private DirectFieldAccessor getDirectFieldAccessorForAggregatingHandler(ApplicationContext context, final String endpointName) {
 		MessageBus messageBus = this.getMessageBus(context);
-		SimpleEndpoint<?> endpoint = (SimpleEndpoint<?>) messageBus.lookupEndpoint(endpointName +  ".MessageHandler.endpoint");
+		DefaultEndpoint<?> endpoint = (DefaultEndpoint<?>) messageBus.lookupEndpoint(endpointName +  ".MessageHandler.endpoint");
 		MessageHandler handler = (MessageHandler) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		try {
 			if (AopUtils.isAopProxy(handler)) {
