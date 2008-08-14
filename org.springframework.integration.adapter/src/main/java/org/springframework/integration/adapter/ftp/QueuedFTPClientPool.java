@@ -35,7 +35,7 @@ import org.springframework.util.Assert;
  * 
  * @author Iwein Fuld
  */
-public class QueuedFTPClientPool {
+public class QueuedFTPClientPool implements FTPClientPool {
 
 	private static final int DEFAULT_POOL_SIZE = 5;
 
