@@ -18,7 +18,6 @@ package org.springframework.integration.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.integration.channel.config.AbstractChannelParser;
 import org.springframework.integration.dispatcher.DirectChannel;
 
 /**

@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.channel.config;
+package org.springframework.integration.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.integration.channel.ThreadLocalChannel;
+import org.springframework.integration.channel.RendezvousChannel;
 
 /**
- * Parser for the &lt;thread-local-channel&gt; element.
+ * Parser for the &lt;rendezvous-channel&gt; element.
  * 
  * @author Mark Fisher
  */
-public class ThreadLocalChannelParser extends AbstractChannelParser {
+public class RendezvousChannelParser extends AbstractChannelParser {
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
-		return ThreadLocalChannel.class;
+		return RendezvousChannel.class;
 	}
 
 }

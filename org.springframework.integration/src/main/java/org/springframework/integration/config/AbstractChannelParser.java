@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.channel.config;
+package org.springframework.integration.config;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -28,7 +28,6 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.channel.interceptor.MessageSelectingInterceptor;
-import org.springframework.integration.config.ChannelInterceptorParser;
 import org.springframework.integration.message.selector.PayloadTypeSelector;
 import org.springframework.util.StringUtils;
 

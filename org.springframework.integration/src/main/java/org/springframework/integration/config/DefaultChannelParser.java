@@ -17,7 +17,6 @@
 package org.springframework.integration.config;
 
 import org.springframework.integration.bus.DefaultChannelFactoryBean;
-import org.springframework.integration.channel.config.AbstractChannelParser;
 
 import org.w3c.dom.Element;
 

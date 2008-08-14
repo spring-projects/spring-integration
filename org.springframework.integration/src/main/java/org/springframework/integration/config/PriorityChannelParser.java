@@ -14,32 +14,33 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.channel.config;
+package org.springframework.integration.config;
 
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.channel.PriorityChannel;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for the &lt;queue-channel&gt; element.
+ * Parser for the &lt;priority-channel&gt; element.
  * 
  * @author Mark Fisher
  */
-public class QueueChannelParser extends AbstractChannelParser {
+public class PriorityChannelParser extends QueueChannelParser {
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
-		return QueueChannel.class;
+		return PriorityChannel.class;
 	}
 
 	@Override
 	protected void postProcess(BeanDefinitionBuilder builder, Element element) {
-		String capacityAttribute = element.getAttribute("capacity");
-		int capacity = (StringUtils.hasText(capacityAttribute)) ?
-				Integer.parseInt(capacityAttribute) : QueueChannel.DEFAULT_CAPACITY;
-		builder.addConstructorArgValue(capacity);
+		super.postProcess(builder, element);
+		String comparator = element.getAttribute("comparator");
+		if (StringUtils.hasText(comparator)) {
+			builder.addConstructorArgReference(comparator);
+		}
 	}
 
 }
