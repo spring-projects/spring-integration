@@ -49,7 +49,7 @@ public class SimpleMessagingGateway extends MessagingGatewaySupport implements M
 
 	private volatile PollableChannel replyChannel;
 
-	private volatile long replyTimeout = 5000;
+	private volatile long replyTimeout = -1;
 
 	private volatile int replyMapCapacity = 100;
 
