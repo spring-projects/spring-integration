@@ -32,6 +32,7 @@ import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageRejectedException;
+import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.selector.MessageSelector;
 
@@ -41,7 +42,7 @@ import org.springframework.integration.message.selector.MessageSelector;
 public class SimpleDispatcherTests {
 
 	@Test
-	public void testSingleMessage() throws InterruptedException {
+	public void singleMessage() throws InterruptedException {
 		SimpleDispatcher dispatcher = new SimpleDispatcher();
 		final CountDownLatch latch = new CountDownLatch(1);
 		dispatcher.subscribe(createEndpoint(TestHandlers.countDownHandler(latch)));
@@ -51,7 +52,7 @@ public class SimpleDispatcherTests {
 	}
 
 	@Test
-	public void testPointToPoint() throws InterruptedException {
+	public void pointToPoint() throws InterruptedException {
 		SimpleDispatcher dispatcher = new SimpleDispatcher();
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicInteger counter1 = new AtomicInteger();
@@ -65,7 +66,56 @@ public class SimpleDispatcherTests {
 	}
 
 	@Test
-	public void testHandlersWithSelectorsAndOneAccepts() throws InterruptedException {
+	public void noDuplicateSubscriptions() {
+		SimpleDispatcher dispatcher = new SimpleDispatcher();
+		final AtomicInteger counter = new AtomicInteger();
+		MessageTarget target = new CountingFalseReturningTestTarget(counter);
+		dispatcher.subscribe(target);
+		dispatcher.subscribe(target);
+		dispatcher.send(new StringMessage("test"));
+		assertEquals("target should not have duplicate subscriptions", 1, counter.get());
+	}
+
+	@Test
+	public void unsubscribeBeforeSend() {
+		SimpleDispatcher dispatcher = new SimpleDispatcher();
+		final AtomicInteger counter = new AtomicInteger();
+		MessageTarget target1 = new CountingFalseReturningTestTarget(counter);
+		MessageTarget target2 = new CountingFalseReturningTestTarget(counter);
+		MessageTarget target3 = new CountingFalseReturningTestTarget(counter);
+		dispatcher.subscribe(target1);
+		dispatcher.subscribe(target2);
+		dispatcher.subscribe(target3);
+		dispatcher.unsubscribe(target2);
+		dispatcher.send(new StringMessage("test"));
+		assertEquals(2, counter.get());
+	}
+
+	@Test
+	public void unsubscribeBetweenSends() {
+		SimpleDispatcher dispatcher = new SimpleDispatcher();
+		final AtomicInteger counter = new AtomicInteger();
+		MessageTarget target1 = new CountingFalseReturningTestTarget(counter);
+		MessageTarget target2 = new CountingFalseReturningTestTarget(counter);
+		MessageTarget target3 = new CountingFalseReturningTestTarget(counter);
+		dispatcher.subscribe(target1);
+		dispatcher.subscribe(target2);
+		dispatcher.subscribe(target3);
+		dispatcher.send(new StringMessage("test1"));
+		assertEquals(3, counter.get());
+		dispatcher.unsubscribe(target2);
+		dispatcher.send(new StringMessage("test2"));
+		assertEquals(5, counter.get());
+		dispatcher.unsubscribe(target1);
+		dispatcher.send(new StringMessage("test3"));
+		assertEquals(6, counter.get());
+		dispatcher.unsubscribe(target3);
+		dispatcher.send(new StringMessage("test4"));
+		assertEquals(6, counter.get());
+	}
+
+	@Test
+	public void handlersWithSelectorsAndOneAccepts() throws InterruptedException {
 		SimpleDispatcher dispatcher = new SimpleDispatcher();
 		dispatcher.setRejectionLimit(5);
 		dispatcher.setRetryInterval(5);
@@ -91,8 +141,8 @@ public class SimpleDispatcherTests {
 		assertEquals("handler with accepting selector should have received the message", 1, counter3.get());	
 	}
 
-	@Test()
-	public void testHandlersWithSelectorsAndNoneAccept() throws InterruptedException {
+	@Test
+	public void handlersWithSelectorsAndNoneAccept() throws InterruptedException {
 		SimpleDispatcher dispatcher = new SimpleDispatcher();
 		dispatcher.setRejectionLimit(5);
 		dispatcher.setRetryInterval(5);
@@ -125,7 +175,7 @@ public class SimpleDispatcherTests {
 	}
 
 	@Test
-	public void testHandlersThrowingExceptionUntilRetried() throws InterruptedException {
+	public void handlersThrowingExceptionUntilRetried() throws InterruptedException {
 		SimpleDispatcher dispatcher = new SimpleDispatcher();
 		dispatcher.setRejectionLimit(5);
 		dispatcher.setRetryInterval(5);
@@ -202,6 +252,21 @@ public class SimpleDispatcherTests {
 			else {
 				throw new MessageHandlingException(message, "intentional test failure");
 			}
+		}
+	}
+
+
+	private static class CountingFalseReturningTestTarget implements MessageTarget {
+
+		private final AtomicInteger counter;
+
+		CountingFalseReturningTestTarget(AtomicInteger counter) {
+			this.counter = counter;
+		}
+
+		public boolean send(Message<?> message) {
+			this.counter.incrementAndGet();
+			return false;
 		}
 	}
 

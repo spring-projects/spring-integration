@@ -16,8 +16,8 @@
 
 package org.springframework.integration.dispatcher;
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -36,7 +36,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	protected final List<MessageTarget> targets = new CopyOnWriteArrayList<MessageTarget>();
+	protected final Set<MessageTarget> targets = new CopyOnWriteArraySet<MessageTarget>();
 
 	private volatile TaskExecutor taskExecutor;
 
@@ -68,6 +68,9 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 		return this.taskExecutor;
 	}
 
+	/**
+	 * A convenience method for subclasses to send a Message to a single target.
+	 */
 	protected final boolean sendMessageToTarget(Message<?> message, MessageTarget target) {
 		return this.messageExchangeTemplate.send(message, target);
 	}
