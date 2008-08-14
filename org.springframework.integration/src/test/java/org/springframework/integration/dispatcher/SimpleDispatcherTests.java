@@ -44,7 +44,7 @@ public class SimpleDispatcherTests {
 	public void testSingleMessage() throws InterruptedException {
 		SimpleDispatcher dispatcher = new SimpleDispatcher();
 		final CountDownLatch latch = new CountDownLatch(1);
-		dispatcher.addTarget(createEndpoint(TestHandlers.countDownHandler(latch)));
+		dispatcher.subscribe(createEndpoint(TestHandlers.countDownHandler(latch)));
 		dispatcher.send(new StringMessage("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
@@ -56,8 +56,8 @@ public class SimpleDispatcherTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicInteger counter1 = new AtomicInteger();
 		final AtomicInteger counter2 = new AtomicInteger();
-		dispatcher.addTarget(createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch)));
-		dispatcher.addTarget(createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch)));
+		dispatcher.subscribe(createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch)));
+		dispatcher.subscribe(createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch)));
 		dispatcher.send(new StringMessage("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
@@ -80,9 +80,9 @@ public class SimpleDispatcherTests {
 		endpoint1.setSelector(new TestMessageSelector(selectorCounter, false));
 		endpoint2.setSelector(new TestMessageSelector(selectorCounter, false));
 		endpoint3.setSelector(new TestMessageSelector(selectorCounter, true));
-		dispatcher.addTarget(endpoint1);
-		dispatcher.addTarget(endpoint2);
-		dispatcher.addTarget(endpoint3);
+		dispatcher.subscribe(endpoint1);
+		dispatcher.subscribe(endpoint2);
+		dispatcher.subscribe(endpoint3);
 		dispatcher.send(new StringMessage("test"));
 		assertEquals(0, latch.getCount());
 		assertEquals("selectors should have been invoked one time each", 3, selectorCounter.get());
@@ -107,9 +107,9 @@ public class SimpleDispatcherTests {
 		endpoint1.setSelector(new TestMessageSelector(selectorCounter, false));
 		endpoint2.setSelector(new TestMessageSelector(selectorCounter, false));
 		endpoint3.setSelector(new TestMessageSelector(selectorCounter, false));
-		dispatcher.addTarget(endpoint1);
-		dispatcher.addTarget(endpoint2);
-		dispatcher.addTarget(endpoint3);
+		dispatcher.subscribe(endpoint1);
+		dispatcher.subscribe(endpoint2);
+		dispatcher.subscribe(endpoint3);
 		boolean exceptionThrown = false;
 		try {
 			dispatcher.send(new StringMessage("test"));
@@ -136,9 +136,9 @@ public class SimpleDispatcherTests {
 		DefaultEndpoint<?> endpoint1 = new DefaultEndpoint<MessageHandler>(handler1);
 		DefaultEndpoint<?> endpoint2 = new DefaultEndpoint<MessageHandler>(handler2);
 		DefaultEndpoint<?> endpoint3 = new DefaultEndpoint<MessageHandler>(handler3);
-		dispatcher.addTarget(endpoint1);
-		dispatcher.addTarget(endpoint2);
-		dispatcher.addTarget(endpoint3);
+		dispatcher.subscribe(endpoint1);
+		dispatcher.subscribe(endpoint2);
+		dispatcher.subscribe(endpoint3);
 		dispatcher.send(new StringMessage("test"));
 		assertEquals("handlers should have been invoked 9 times in total", 9, handlerCounter.get());
 		assertFalse("first handler should not have handled the message", handler1.handledMessage);

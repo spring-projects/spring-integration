@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.adapter.mail;
 
 import javax.mail.Message;
@@ -20,6 +21,7 @@ import javax.mail.internet.MimeMessage;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.task.TaskExecutor;
@@ -27,17 +29,18 @@ import org.springframework.integration.adapter.mail.monitor.AsyncMonitoringStrat
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.SubscribableSource;
+import org.springframework.util.Assert;
 
 /**
- * Broadcasts all mail messages recovered to subscribed {@link MessageTarget}
- * The given {@link FolderConnection} should be using an
- * {@link AsyncMonitoringStrategy} to retrieve mail
+ * Broadcasts all mail messages recovered to subscribed {@link MessageTarget MessageTargets}.
+ * The given {@link FolderConnection} should be using an {@link AsyncMonitoringStrategy} to
+ * retrieve mail.
  * 
  * @author Jonas Partner
- * 
  */
-public class SubscribableMailSource implements SubscribableSource, Lifecycle,
-		DisposableBean {
+public class SubscribableMailSource implements SubscribableSource, Lifecycle, DisposableBean {
+
+	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final BroadcastingDispatcher dispatcher = new BroadcastingDispatcher();
 
@@ -45,29 +48,29 @@ public class SubscribableMailSource implements SubscribableSource, Lifecycle,
 
 	private final MonitorRunnable monitorRunnable;
 
-	private boolean monitorRunning = false;
+	private volatile boolean monitorRunning = false;
 
-	private final Log logger = LogFactory.getLog(getClass());
+	private volatile MailMessageConverter converter = new DefaultMailMessageConverter();
 
-	private MailMessageConverter converter = new DefaultMailMessageConverter();
 
-	public SubscribableMailSource(FolderConnection folderConnection,
-			TaskExecutor taskExecutor) {
+	public SubscribableMailSource(FolderConnection folderConnection, TaskExecutor taskExecutor) {
+		Assert.notNull(folderConnection, "FolderConnection must not be null");
+		Assert.notNull(taskExecutor, "TaskExecutor must not be null");
 		this.monitorRunnable = new MonitorRunnable(folderConnection);
 		this.taskExecutor = taskExecutor;
-
 	}
+
 
 	public void setApplySequence(boolean applySequence) {
 		this.dispatcher.setApplySequence(applySequence);
 	}
 
 	public boolean subscribe(MessageTarget target) {
-		return this.dispatcher.addTarget(target);
+		return this.dispatcher.subscribe(target);
 	}
 
 	public boolean unsubscribe(MessageTarget target) {
-		return this.dispatcher.removeTarget(target);
+		return this.dispatcher.unsubscribe(target);
 	}
 
 	public void setConverter(MailMessageConverter converter) {
@@ -75,60 +78,77 @@ public class SubscribableMailSource implements SubscribableSource, Lifecycle,
 	}
 
 	public void destroy() throws Exception {
-		stop();
+		this.stop();
 	}
 
 	public void start() {
-		logger.info("Starting to monitor mailbox");
-		startMonitor();
-		logger.info("Started to monitor mailbox");
+		if (logger.isInfoEnabled()) {
+			logger.info("Starting to monitor mailbox");
+		}
+		this.startMonitor();
+		if (logger.isInfoEnabled()) {
+			logger.info("Started to monitor mailbox");
+		}
 
 	}
 
 	public void stop() {
-		logger.info("Stopping monitoring of mailbox");
-		stopMonitor();
-		logger.info("Stopped monitoring mailbox");
+		if (logger.isInfoEnabled()) {
+			logger.info("Stopping monitoring of mailbox");
+		}
+		this.stopMonitor();
+		if (logger.isInfoEnabled()) {
+			logger.info("Stopped monitoring mailbox");
+		}
 	}
 
 	public boolean isRunning() {
-		return monitorRunning;
+		return this.monitorRunning;
 	}
 
-	protected synchronized void startMonitor() {
-		if (!monitorRunning) {
-			taskExecutor.execute(monitorRunnable);
+	protected void startMonitor() {
+		synchronized (this.monitorRunnable) {
+			if (!this.monitorRunning) {
+				this.taskExecutor.execute(this.monitorRunnable);
+			}
+			this.monitorRunning = true;
 		}
 	}
 
-	protected synchronized void stopMonitor() {
-		if (monitorRunning) {
-			monitorRunnable.interrupt();
+	protected void stopMonitor() {
+		synchronized (this.monitorRunnable) {
+			if (this.monitorRunning) {
+				this.monitorRunnable.interrupt();
+			}
+			this.monitorRunning = false;
 		}
 	}
+
 
 	private class MonitorRunnable implements Runnable {
+
 		private volatile Thread thread;
 
 		private final FolderConnection folderConnection;
 
-		protected MonitorRunnable(FolderConnection folderConnection) {
+
+		private MonitorRunnable(FolderConnection folderConnection) {
 			this.folderConnection = folderConnection;
 		}
 
+
 		public synchronized void interrupt() {
-			thread.interrupt();
+			this.thread.interrupt();
 		}
 
 		public void run() {
-			thread = Thread.currentThread();
+			this.thread = Thread.currentThread();
 			while (!Thread.currentThread().isInterrupted()) {
-				Message[] messages = folderConnection.receive();
+				Message[] messages = this.folderConnection.receive();
 				for (Message message : messages) {
 					dispatcher.send(converter.create((MimeMessage) message));
 				}
 			}
-
 		}
 	}
 

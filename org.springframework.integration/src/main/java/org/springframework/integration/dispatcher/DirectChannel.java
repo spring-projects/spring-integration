@@ -16,16 +16,13 @@
 
 package org.springframework.integration.dispatcher;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.springframework.integration.channel.AbstractMessageChannel;
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.SubscribableSource;
 import org.springframework.integration.message.MessageTarget;
 
 /**
- * A channel that invokes the subscribed {@link MessageHandler handler(s)} in
+ * A channel that invokes the subscribed {@link MessageTarget target(s)} in
  * the sender's thread (returning after at most one handles the message).
  * 
  * @author Dave Syer
@@ -35,31 +32,18 @@ public class DirectChannel extends AbstractMessageChannel implements Subscribabl
 
 	private final SimpleDispatcher dispatcher = new SimpleDispatcher();
 
-	private final AtomicInteger handlerCount = new AtomicInteger();
-
 
 	public boolean subscribe(MessageTarget target) {
-		boolean added = this.dispatcher.addTarget(target);
-		if (added) {
-			this.handlerCount.incrementAndGet();
-		}
-		return added;
+		return this.dispatcher.subscribe(target);
 	}
 
 	public boolean unsubscribe(MessageTarget target) {
-		boolean removed = this.dispatcher.removeTarget(target);
-		if (removed) {
-			this.handlerCount.decrementAndGet();
-		}
-		return removed;
+		return this.dispatcher.unsubscribe(target);
 	}
 
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
-		if (message != null && this.handlerCount.get() > 0) {
-			return this.dispatcher.send(message);
-		}
-		return false;
+		return this.dispatcher.send(message);
 	}
 
 }

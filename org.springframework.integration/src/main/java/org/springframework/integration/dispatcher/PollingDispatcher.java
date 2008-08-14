@@ -110,11 +110,11 @@ public class PollingDispatcher implements SchedulableTask, SubscribableSource {
 	}
 
 	public boolean subscribe(MessageTarget target) {
-		return this.dispatcher.addTarget(target);
+		return this.dispatcher.subscribe(target);
 	}
 
 	public boolean unsubscribe(MessageTarget target) {
-		return this.dispatcher.removeTarget(target);
+		return this.dispatcher.unsubscribe(target);
 	}
 
 	public Schedule getSchedule() {

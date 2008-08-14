@@ -71,8 +71,8 @@ public class BroadcastingDispatcherTests {
 	@Test
 	public void publishSubcribe() throws Exception {
 		dispatcher.setTaskExecutor(null);
-		dispatcher.addTarget(targetMock);
-		dispatcher.addTarget(targetMock);
+		dispatcher.subscribe(targetMock);
+		dispatcher.subscribe(targetMock);
 		expect(targetMock.send(messageMock)).andReturn(true).times(2);
 		replay(globalMocks);
 		dispatcher.send(messageMock);
@@ -82,9 +82,9 @@ public class BroadcastingDispatcherTests {
 	@Test
 	public void multipleTargetsWithExecutor() {
 		// should the same target be allowed to be added twice?
-		dispatcher.addTarget(targetMock);
-		dispatcher.addTarget(targetMock);
-		dispatcher.addTarget(targetMock);
+		dispatcher.subscribe(targetMock);
+		dispatcher.subscribe(targetMock);
+		dispatcher.subscribe(targetMock);
 		expect(targetMock.send(messageMock)).andReturn(true).times(3);
 		replay(globalMocks);
 		dispatcher.send(messageMock);
@@ -94,9 +94,9 @@ public class BroadcastingDispatcherTests {
 	@Test
 	public void multipleTargetsPartialFailure() {
 		reset(taskExecutorMock);
-		dispatcher.addTarget(targetMock);
-		dispatcher.addTarget(targetMock);
-		dispatcher.addTarget(targetMock);
+		dispatcher.subscribe(targetMock);
+		dispatcher.subscribe(targetMock);
+		dispatcher.subscribe(targetMock);
 		partialFailingExecutorMock(true, false, true);
 		expect(targetMock.send(messageMock)).andReturn(true).times(2);
 		replay(globalMocks);
@@ -107,9 +107,9 @@ public class BroadcastingDispatcherTests {
 	@Test(timeout = 500)
 	public void multipleTargetsPartialTimeout() throws Exception {
 		reset(taskExecutorMock);
-		dispatcher.addTarget(targetMock);
-		dispatcher.addTarget(targetMock);
-		dispatcher.addTarget(targetMock);
+		dispatcher.subscribe(targetMock);
+		dispatcher.subscribe(targetMock);
+		dispatcher.subscribe(targetMock);
 		dispatcher.setTimeout(50);
 		// three threads invoking targets
 		final CountDownLatch latch = new CountDownLatch(3);
@@ -160,8 +160,8 @@ public class BroadcastingDispatcherTests {
 				return true;
 			}
 		};
-		dispatcher.addTarget(target);
-		dispatcher.addTarget(target);
+		dispatcher.subscribe(target);
+		dispatcher.subscribe(target);
 		dispatcher.send(new StringMessage("test"));
 		assertEquals(2, messages.size());
 		assertEquals(0, (int) messages.get(0).getHeaders().getSequenceNumber());
@@ -181,9 +181,9 @@ public class BroadcastingDispatcherTests {
 				return true;
 			}
 		};
-		dispatcher.addTarget(target);
-		dispatcher.addTarget(target);
-		dispatcher.addTarget(target);
+		dispatcher.subscribe(target);
+		dispatcher.subscribe(target);
+		dispatcher.subscribe(target);
 		dispatcher.send(new StringMessage("test"));
 		assertEquals(3, messages.size());
 		assertEquals(1, (int) messages.get(0).getHeaders().getSequenceNumber());

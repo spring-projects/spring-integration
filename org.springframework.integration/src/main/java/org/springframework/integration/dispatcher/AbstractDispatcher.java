@@ -47,11 +47,11 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 		this.messageExchangeTemplate.setSendTimeout(timeout);
 	}
 
-	public boolean addTarget(MessageTarget target) {
+	public boolean subscribe(MessageTarget target) {
 		return this.targets.add(target);
 	}
 
-	public boolean removeTarget(MessageTarget target) {
+	public boolean unsubscribe(MessageTarget target) {
 		return this.targets.remove(target);
 	}
 

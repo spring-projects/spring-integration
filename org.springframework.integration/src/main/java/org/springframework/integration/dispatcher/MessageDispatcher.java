@@ -18,25 +18,25 @@ package org.springframework.integration.dispatcher;
 
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageTarget;
+import org.springframework.integration.message.SubscribableSource;
 
 /**
  * Strategy interface for dispatching messages.
  * 
  * @author Mark Fisher
  */
-public interface MessageDispatcher extends MessageTarget {
+public interface MessageDispatcher extends MessageTarget, SubscribableSource {
 
 	boolean send(Message<?> message);
 
 	/**
 	 * Specify the timeout for sending to a target (in milliseconds).
 	 * Note that this value will only be applicable for blocking targets.
-	 * The default value is 0.
 	 */
 	void setTimeout(long timeout);
 
-	boolean addTarget(MessageTarget target);
+	boolean subscribe(MessageTarget target);
 
-	boolean removeTarget(MessageTarget target);
+	boolean unsubscribe(MessageTarget target);
 
 }
