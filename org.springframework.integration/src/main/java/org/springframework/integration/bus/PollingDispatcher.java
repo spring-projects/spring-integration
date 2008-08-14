@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.dispatcher;
+package org.springframework.integration.bus;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.integration.dispatcher.MessageDispatcher;
+import org.springframework.integration.dispatcher.SimpleDispatcher;
 import org.springframework.integration.message.BlockingSource;
 import org.springframework.integration.message.BlockingTarget;
 import org.springframework.integration.message.MessageExchangeTemplate;

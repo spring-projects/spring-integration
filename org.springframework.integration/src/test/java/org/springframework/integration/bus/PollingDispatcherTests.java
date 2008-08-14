@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.dispatcher;
+package org.springframework.integration.bus;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
@@ -25,6 +25,7 @@ import static org.easymock.EasyMock.verify;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.message.BlockingSource;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.scheduling.Schedule;

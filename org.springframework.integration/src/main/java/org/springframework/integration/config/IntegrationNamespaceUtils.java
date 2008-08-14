@@ -25,7 +25,7 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
-import org.springframework.integration.dispatcher.PollingDispatcher;
+import org.springframework.integration.bus.PollingDispatcher;
 import org.springframework.integration.dispatcher.SimpleDispatcher;
 import org.springframework.integration.message.AsyncMessageExchangeTemplate;
 import org.springframework.integration.message.MessageExchangeTemplate;
