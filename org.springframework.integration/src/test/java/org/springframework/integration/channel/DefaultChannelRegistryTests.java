@@ -30,8 +30,9 @@ public class DefaultChannelRegistryTests {
 	@Test
 	public void testLookupRegisteredChannel() {
 		QueueChannel testChannel = new QueueChannel();
+		testChannel.setBeanName("testChannel");
 		DefaultChannelRegistry registry = new DefaultChannelRegistry();
-		registry.registerChannel("testChannel", testChannel);
+		registry.registerChannel(testChannel);
 		MessageChannel lookedUpChannel = registry.lookupChannel("testChannel");
 		assertNotNull(testChannel);
 		assertSame(testChannel, lookedUpChannel);
@@ -47,8 +48,9 @@ public class DefaultChannelRegistryTests {
 	@Test
 	public void testLookupUnregisteredChannel() {
 		QueueChannel testChannel = new QueueChannel();
+		testChannel.setBeanName("testChannel");
 		DefaultChannelRegistry registry = new DefaultChannelRegistry();
-		registry.registerChannel("testChannel", testChannel);
+		registry.registerChannel(testChannel);
 		MessageChannel lookedUpChannel1 = registry.lookupChannel("testChannel");
 		assertNotNull(lookedUpChannel1);
 		assertSame(testChannel, lookedUpChannel1);

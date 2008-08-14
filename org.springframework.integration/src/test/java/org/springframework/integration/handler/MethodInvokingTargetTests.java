@@ -94,11 +94,12 @@ public class MethodInvokingTargetTests {
 		target.setMethodName("foo");
 		target.afterPropertiesSet();
 		QueueChannel channel = new QueueChannel();
+		channel.setBeanName("channel");
 		Message<String> message = new GenericMessage<String>("testing");
 		channel.send(message);
 		assertNull(queue.poll());
 		MessageBus bus = new DefaultMessageBus();
-		bus.registerChannel("channel", channel);
+		bus.registerChannel(channel);
 		MessageEndpoint endpoint = new DefaultEndpoint<MethodInvokingTarget>(target);
 		endpoint.setBeanName("testEndpoint");
 		endpoint.setSource(channel);

@@ -173,7 +173,7 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 			String channelName = entry.getKey();
 			MessageChannel previousChannel = this.lookupChannel(channelName);
 			if (previousChannel == null) {
-				this.registerChannel(channelName, entry.getValue());
+				this.registerChannel(entry.getValue());
 			}
 			else if (!previousChannel.equals(entry.getValue())) {
 				throw new ConfigurationException("A different channel instance has already "
@@ -213,7 +213,7 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 				this.taskScheduler = new ProviderTaskScheduler(new SimpleScheduleServiceProvider(executor));
 			}
 			if (this.getErrorChannel() == null) {
-				this.setErrorChannel(new DefaultErrorChannel());
+				this.registerChannel(new DefaultErrorChannel());
 			}
 			this.initialized = true;
 			this.initializing = false;
@@ -224,30 +224,22 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 		return this.lookupChannel(ERROR_CHANNEL_NAME);
 	}
 
-	public void setErrorChannel(MessageChannel errorChannel) {
-		this.registerChannel(ERROR_CHANNEL_NAME, errorChannel);
-	}
-
 	public MessageChannel lookupChannel(String channelName) {
 		MessageChannel channel = this.channelRegistry.lookupChannel(channelName);
 		if (channel == null && this.applicationContext != null && this.applicationContext.containsBean(channelName)) {
 			Object bean = this.applicationContext.getBean(channelName);
 			if (bean instanceof MessageChannel) {
 				channel = (MessageChannel) bean;
-				this.registerChannel(channelName, channel);
+				this.registerChannel(channel);
 			}
 		}
 		return channel;
 	}
 
-	public void registerChannel(String name, MessageChannel channel) {
-		if (!this.initialized) {
-			this.initialize();
-		}
-		channel.setName(name);
-		this.channelRegistry.registerChannel(name, channel);
+	public void registerChannel(MessageChannel channel) {
+		this.channelRegistry.registerChannel(channel);
 		if (logger.isInfoEnabled()) {
-			logger.info("registered channel '" + name + "'");
+			logger.info("registered channel '" + channel.getName() + "'");
 		}
 	}
 
@@ -354,7 +346,7 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 				logger.info("auto-creating channel '" + channelName + "'");
 			}
 			channel = channelFactory.getChannel(channelName, null);
-			this.registerChannel(channelName, channel);
+			this.registerChannel(channel);
 		}
 		return channel;
 	}

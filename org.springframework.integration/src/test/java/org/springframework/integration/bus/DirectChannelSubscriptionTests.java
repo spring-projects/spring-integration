@@ -23,8 +23,8 @@ import org.junit.Test;
 
 import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.ThreadLocalChannel;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
@@ -41,15 +41,17 @@ public class DirectChannelSubscriptionTests {
 
 	private DefaultMessageBus bus = new DefaultMessageBus();
 
-	private MessageChannel sourceChannel = new DirectChannel();
+	private DirectChannel sourceChannel = new DirectChannel();
 
 	private ThreadLocalChannel targetChannel = new ThreadLocalChannel();
 
 
 	@Before
 	public void setupChannels() {
-		bus.registerChannel("sourceChannel", sourceChannel);
-		bus.registerChannel("targetChannel", targetChannel);
+		sourceChannel.setBeanName("sourceChannel");
+		targetChannel.setBeanName("targetChannel");
+		bus.registerChannel(sourceChannel);
+		bus.registerChannel(targetChannel);
 	}
 
 
@@ -83,7 +85,8 @@ public class DirectChannelSubscriptionTests {
 	@Test(expected=RuntimeException.class)
 	public void testExceptionThrownFromRegisteredEndpoint() {
 		QueueChannel errorChannel = new QueueChannel();
-		bus.setErrorChannel(errorChannel);
+		errorChannel.setBeanName(ChannelRegistry.ERROR_CHANNEL_NAME);
+		bus.registerChannel(errorChannel);
 		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				throw new RuntimeException("intentional test failure");
@@ -100,7 +103,8 @@ public class DirectChannelSubscriptionTests {
 	@Test(expected=MessagingException.class)
 	public void testExceptionThrownFromAnnotatedEndpoint() {
 		QueueChannel errorChannel = new QueueChannel();
-		bus.setErrorChannel(errorChannel);
+		errorChannel.setBeanName(ChannelRegistry.ERROR_CHANNEL_NAME);
+		bus.registerChannel(errorChannel);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(bus);
 		postProcessor.afterPropertiesSet();
 		FailingTestEndpoint endpoint = new FailingTestEndpoint();

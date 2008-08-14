@@ -28,7 +28,7 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.PollableChannelAdapter;
 import org.springframework.integration.channel.PublishSubscribeChannel;
@@ -53,11 +53,13 @@ public class DefaultMessageBusTests {
 		DefaultMessageBus bus = new DefaultMessageBus();
 		QueueChannel sourceChannel = new QueueChannel();
 		QueueChannel targetChannel = new QueueChannel();
-		bus.registerChannel("sourceChannel", sourceChannel);
+		sourceChannel.setBeanName("sourceChannel");
+		targetChannel.setBeanName("targetChannel");
+		bus.registerChannel(sourceChannel);
 		Message<String> message = MessageBuilder.fromPayload("test")
 				.setReturnAddress("targetChannel").build();
 		sourceChannel.send(message);
-		bus.registerChannel("targetChannel", targetChannel);
+		bus.registerChannel(targetChannel);
 		MessageHandler handler = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				return message;
@@ -78,11 +80,13 @@ public class DefaultMessageBusTests {
 		MessageBus bus = new DefaultMessageBus();
 		QueueChannel sourceChannel = new QueueChannel();
 		QueueChannel targetChannel = new QueueChannel();
-		bus.registerChannel("sourceChannel", sourceChannel);
+		sourceChannel.setBeanName("sourceChannel");
+		targetChannel.setBeanName("targetChannel");
+		bus.registerChannel(sourceChannel);
 		Message<String> message = MessageBuilder.fromPayload("test")
 				.setReturnAddress("targetChannel").build();
 		sourceChannel.send(message);
-		bus.registerChannel("targetChannel", targetChannel);
+		bus.registerChannel(targetChannel);
 		MessageHandler handler = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				return message;
@@ -102,10 +106,12 @@ public class DefaultMessageBusTests {
 	public void testChannelsWithoutHandlers() {
 		MessageBus bus = new DefaultMessageBus();
 		QueueChannel sourceChannel = new QueueChannel();
+		sourceChannel.setBeanName("sourceChannel");
 		sourceChannel.send(new StringMessage("test"));
 		QueueChannel targetChannel = new QueueChannel();
-		bus.registerChannel("sourceChannel", sourceChannel);
-		bus.registerChannel("targetChannel", targetChannel);
+		targetChannel.setBeanName("targetChannel");
+		bus.registerChannel(sourceChannel);
+		bus.registerChannel(targetChannel);
 		bus.start();
 		Message<?> result = targetChannel.receive(100);
 		assertNull(result);
@@ -143,9 +149,12 @@ public class DefaultMessageBusTests {
 			}
 		};
 		MessageBus bus = new DefaultMessageBus();
-		bus.registerChannel("input", inputChannel);
-		bus.registerChannel("output1", outputChannel1);
-		bus.registerChannel("output2", outputChannel2);
+		inputChannel.setBeanName("input");
+		outputChannel1.setBeanName("output1");
+		outputChannel2.setBeanName("output2");
+		bus.registerChannel(inputChannel);
+		bus.registerChannel(outputChannel1);
+		bus.registerChannel(outputChannel2);
 		DefaultEndpoint<MessageHandler> endpoint1 = new DefaultEndpoint<MessageHandler>(handler1);
 		endpoint1.setBeanName("testEndpoint1");
 		endpoint1.setSource(inputChannel);
@@ -185,9 +194,12 @@ public class DefaultMessageBusTests {
 			}
 		};
 		MessageBus bus = new DefaultMessageBus();
-		bus.registerChannel("input", inputChannel);
-		bus.registerChannel("output1", outputChannel1);
-		bus.registerChannel("output2", outputChannel2);
+		inputChannel.setBeanName("input");
+		outputChannel1.setBeanName("output1");
+		outputChannel2.setBeanName("output2");
+		bus.registerChannel(inputChannel);
+		bus.registerChannel(outputChannel1);
+		bus.registerChannel(outputChannel2);
 		DefaultEndpoint<MessageHandler> endpoint1 = new DefaultEndpoint<MessageHandler>(handler1);
 		endpoint1.setBeanName("testEndpoint1");
 		endpoint1.setSource(inputChannel);
@@ -240,17 +252,19 @@ public class DefaultMessageBusTests {
 
 	@Test
 	public void testErrorChannelRegistration() {
-		MessageChannel errorChannel = new QueueChannel();
 		DefaultMessageBus bus = new DefaultMessageBus();
-		bus.setErrorChannel(errorChannel);
+		QueueChannel errorChannel = new QueueChannel();
+		errorChannel.setBeanName(ChannelRegistry.ERROR_CHANNEL_NAME);
+		bus.registerChannel(errorChannel);
 		assertEquals(errorChannel, bus.getErrorChannel());
 	}
 
 	@Test
 	public void testHandlerSubscribedToErrorChannel() throws InterruptedException {
-		MessageChannel errorChannel = new QueueChannel();
 		DefaultMessageBus bus = new DefaultMessageBus();
-		bus.setErrorChannel(errorChannel);
+		QueueChannel errorChannel = new QueueChannel();
+		errorChannel.setBeanName(ChannelRegistry.ERROR_CHANNEL_NAME);
+		bus.registerChannel(errorChannel);
 		final CountDownLatch latch = new CountDownLatch(1);
 		MessageHandler handler = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {

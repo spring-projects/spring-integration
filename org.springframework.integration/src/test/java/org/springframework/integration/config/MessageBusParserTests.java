@@ -55,10 +55,10 @@ public class MessageBusParserTests {
 	@Test
 	public void testErrorChannelReference() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"messageBusWithErrorChannelReference.xml", this.getClass());
+				"messageBusWithErrorChannel.xml", this.getClass());
 		DefaultMessageBus bus = (DefaultMessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		bus.initialize();
-		assertEquals(context.getBean("testErrorChannel"), bus.getErrorChannel());
+		assertEquals(context.getBean("errorChannel"), bus.getErrorChannel());
 	}
 
 	@Test

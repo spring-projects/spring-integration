@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.integration.bus.DefaultMessageBus;
@@ -31,28 +32,26 @@ import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.DefaultEndpoint;
 import org.springframework.integration.handler.MessageHandler;
-import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessageExchangeTemplate;
-import org.springframework.integration.message.MessageTarget;
-import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
  */
 public class MessageExchangeTemplateTests {
 
-	private final QueueChannel requestChannel = new QueueChannel();
+	private QueueChannel requestChannel;
 
 
-	public MessageExchangeTemplateTests() {
+	@Before
+	public void setUp() {
+		this.requestChannel = new QueueChannel();
+		this.requestChannel.setBeanName("requestChannel");
 		MessageHandler testHandler = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				return new StringMessage(message.getPayload().toString().toUpperCase());
 			}		
 		};
 		MessageBus bus = new DefaultMessageBus();
-		bus.registerChannel("requestChannel", requestChannel);
+		bus.registerChannel(requestChannel);
 		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(testHandler);
 		endpoint.setBeanName("testEndpoint");
 		endpoint.setSource(requestChannel);

@@ -11,7 +11,7 @@
 	<bean id="messageChannel"
 		class="org.springframework.integration.channel.QueueChannel" />
 
-	<si:message-bus error-channel="errors" />
+	<si:message-bus/>
 
 	<si:channel id="inputOne" />
 	<si:channel id="inputTwo" />
@@ -19,7 +19,7 @@
 	<si:channel id="outputOne" />
 	<si:channel id="outputTwo" />
 
-	<si:channel id="errors" />
+	<si:channel id="errorChannel" />
 
 	<si-xml:xpath-router id="routerOne"
 		xpath-expression-ref="xpathExpression" />

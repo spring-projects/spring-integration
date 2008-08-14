@@ -34,7 +34,6 @@
 			<xsd:attribute name="auto-startup" type="xsd:boolean"/>
 			<xsd:attribute name="auto-create-channels" type="xsd:boolean"/>
 			<xsd:attribute name="channel-factory" type="xsd:string"/>
-			<xsd:attribute name="error-channel" type="xsd:string"/>
 			<xsd:attribute name="dispatcher-pool-size" type="xsd:int"/>
 			<xsd:attribute name="configure-async-event-multicaster" type="xsd:boolean"/>
 		</xsd:complexType>

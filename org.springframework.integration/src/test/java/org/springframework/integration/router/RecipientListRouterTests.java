@@ -62,9 +62,11 @@ public class RecipientListRouterTests {
 	public void testRoutingWithChannelNames() {
 		QueueChannel channel1 = new QueueChannel();
 		QueueChannel channel2 = new QueueChannel();
+		channel1.setBeanName("channel1");
+		channel2.setBeanName("channel2");
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		channelRegistry.registerChannel("channel1", channel1);
-		channelRegistry.registerChannel("channel2", channel2);
+		channelRegistry.registerChannel(channel1);
+		channelRegistry.registerChannel(channel2);
 		RecipientListRouter router = new RecipientListRouter();
 		router.setChannelNames(new String[] {"channel1", "channel2"});
 		router.setChannelRegistry(channelRegistry);
@@ -83,9 +85,11 @@ public class RecipientListRouterTests {
 	public void testRoutingToSingleChannelByName() {
 		QueueChannel channel1 = new QueueChannel();
 		QueueChannel channel2 = new QueueChannel();
+		channel1.setBeanName("channel1");
+		channel2.setBeanName("channel2");
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		channelRegistry.registerChannel("channel1", channel1);
-		channelRegistry.registerChannel("channel2", channel2);
+		channelRegistry.registerChannel(channel1);
+		channelRegistry.registerChannel(channel2);
 		RecipientListRouter router = new RecipientListRouter();
 		router.setChannelNames(new String[] {"channel1"});
 		router.setChannelRegistry(channelRegistry);
@@ -103,12 +107,14 @@ public class RecipientListRouterTests {
 	public void testConfigurationExceptionWhenBothChannelsAndNamesAreProvided() {
 		QueueChannel channel1 = new QueueChannel();
 		QueueChannel channel2 = new QueueChannel();
+		channel1.setBeanName("channel1");
+		channel2.setBeanName("channel2");
 		List<MessageChannel> channels = new ArrayList<MessageChannel>();
 		channels.add(channel1);
 		channels.add(channel2);
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		channelRegistry.registerChannel("channel1", channel1);
-		channelRegistry.registerChannel("channel2", channel2);
+		channelRegistry.registerChannel(channel1);
+		channelRegistry.registerChannel(channel2);
 		RecipientListRouter router = new RecipientListRouter();
 		router.setChannels(channels);
 		router.setChannelNames(new String[] {"channel1"});

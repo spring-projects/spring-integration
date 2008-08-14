@@ -85,7 +85,7 @@ public class ReturnAddressTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"returnAddressTests.xml", this.getClass());
 		MessageChannel channel3 = (MessageChannel) context.getBean("channel3");
-		PollableChannel errorChannel = (PollableChannel) context.getBean("customErrorChannel");
+		PollableChannel errorChannel = (PollableChannel) context.getBean("errorChannel");
 		context.start();
 		StringMessage message = new StringMessage("*");
 		channel3.send(message);
@@ -98,7 +98,7 @@ public class ReturnAddressTests {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"returnAddressTests.xml", this.getClass());
 		MessageChannel channel3 = (MessageChannel) context.getBean("channel3WithOverride");
-		PollableChannel errorChannel = (PollableChannel) context.getBean("customErrorChannel");
+		PollableChannel errorChannel = (PollableChannel) context.getBean("errorChannel");
 		context.start();
 		StringMessage message = new StringMessage("*");
 		channel3.send(message);

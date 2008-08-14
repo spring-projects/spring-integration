@@ -48,8 +48,8 @@ public class XPathRouterParserTests extends AbstractJUnit4SpringContextTests{
 	@Autowired @Qualifier("outputTwo")
 	PollableChannel outputTwo;
 
-	@Autowired @Qualifier("errors")
-	PollableChannel errors;
+	@Autowired @Qualifier("errorChannel")
+	PollableChannel errorChannel;
 
 
 	@SuppressWarnings("unchecked")
@@ -78,7 +78,7 @@ public class XPathRouterParserTests extends AbstractJUnit4SpringContextTests{
 		Document doc = XmlTestUtil.getDocumentForString("<name>outputThree</name>");
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		inputOne.send(docMessage);
-		GenericMessage<Document> received = (GenericMessage<Document>) errors.receive(1000);
+		GenericMessage<Document> received = (GenericMessage<Document>) errorChannel.receive(1000);
 		assertNotNull("Did not recevie message on errors", received);
 		
 	}
@@ -109,7 +109,7 @@ public class XPathRouterParserTests extends AbstractJUnit4SpringContextTests{
 		Document doc = XmlTestUtil.getDocumentForString("<name>outputThree</name>");
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		inputTwo.send(docMessage);
-		GenericMessage<Document> received = (GenericMessage<Document>) errors.receive(1000);
+		GenericMessage<Document> received = (GenericMessage<Document>) errorChannel.receive(1000);
 		assertNotNull("Did not recevie message on errors", received);
 	}
 

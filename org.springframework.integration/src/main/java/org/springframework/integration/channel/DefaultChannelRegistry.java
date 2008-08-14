@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,10 +35,10 @@ public class DefaultChannelRegistry implements ChannelRegistry {
 		return this.channels.get(channelName);
 	}
 
-	public void registerChannel(String name, MessageChannel channel) {
-		Assert.notNull(name, "'name' must not be null");
+	public void registerChannel(MessageChannel channel) {
 		Assert.notNull(channel, "'channel' must not be null");
-		this.channels.put(name, channel);
+		Assert.notNull(channel.getName(), "channel name must not be null");
+		this.channels.put(channel.getName(), channel);
 	}
 
 	public MessageChannel unregisterChannel(String name) {

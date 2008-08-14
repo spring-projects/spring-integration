@@ -95,8 +95,9 @@ public class DefaultEndpointTests {
 	@Test
 	public void returnAddressHeaderWithChannelName() {
 		QueueChannel channel = new QueueChannel(1);
+		channel.setBeanName("testChannel");
 		ChannelRegistry channelRegistry = new DefaultMessageBus();
-		channelRegistry.registerChannel("testChannel", channel);
+		channelRegistry.registerChannel(channel);
 		MessageHandler handler = new TestHandler();
 		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
 		endpoint.setChannelRegistry(channelRegistry);
@@ -112,8 +113,9 @@ public class DefaultEndpointTests {
 		QueueChannel channel1 = new QueueChannel(1);
 		QueueChannel channel2 = new QueueChannel(1);
 		QueueChannel channel3 = new QueueChannel(1);
+		channel1.setBeanName("testChannel");
 		ChannelRegistry channelRegistry = new DefaultMessageBus();
-		channelRegistry.registerChannel("testChannel", channel1);
+		channelRegistry.registerChannel(channel1);
 		MessageHandler handler = new TestNextTargetSettingHandler("testChannel");
 		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
 		endpoint.setChannelRegistry(channelRegistry);
@@ -133,8 +135,9 @@ public class DefaultEndpointTests {
 	public void dynamicReplyChannel() throws Exception {
 		final QueueChannel replyChannel1 = new QueueChannel();
 		final QueueChannel replyChannel2 = new QueueChannel();
+		replyChannel2.setBeanName("replyChannel2");
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		channelRegistry.registerChannel("replyChannel2", replyChannel2);
+		channelRegistry.registerChannel(replyChannel2);
 		MessageHandler handler = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
 				return new StringMessage("foo" + message.getPayload());

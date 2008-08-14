@@ -61,8 +61,9 @@ public class SingleChannelRouterTests {
 			}
 		};
 		QueueChannel channel = new QueueChannel();
+		channel.setBeanName("testChannel");
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		channelRegistry.registerChannel("testChannel", channel);
+		channelRegistry.registerChannel(channel);
 		SingleChannelRouter router = new SingleChannelRouter();
 		router.setChannelNameResolver(channelNameResolver);
 		router.setChannelRegistry(channelRegistry);

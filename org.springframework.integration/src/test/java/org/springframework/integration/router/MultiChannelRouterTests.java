@@ -72,9 +72,11 @@ public class MultiChannelRouterTests {
 		};
 		QueueChannel channel1 = new QueueChannel();
 		QueueChannel channel2 = new QueueChannel();
+		channel1.setBeanName("channel1");
+		channel2.setBeanName("channel2");
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		channelRegistry.registerChannel("channel1", channel1);
-		channelRegistry.registerChannel("channel2", channel2);
+		channelRegistry.registerChannel(channel1);
+		channelRegistry.registerChannel(channel2);
 		MultiChannelRouter router = new MultiChannelRouter();
 		router.setChannelNameResolver(channelNameResolver);
 		router.setChannelRegistry(channelRegistry);

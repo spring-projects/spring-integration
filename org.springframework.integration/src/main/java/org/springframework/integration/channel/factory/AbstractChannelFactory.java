@@ -40,7 +40,7 @@ public abstract class AbstractChannelFactory implements ChannelFactory {
 			channel.setInterceptors(interceptors);
 		}
 		if (name != null && channel.getName() == null) {
-			channel.setName(name);
+			channel.setBeanName(name);
 		}
 		return channel;
 	}

@@ -28,15 +28,13 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.core.Conventions;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.bus.MessageBusAwareBeanPostProcessor;
-import org.springframework.util.StringUtils;
 
 /**
- * Parser for the <em>message-bus</em> element of the integration namespace.
+ * Parser for the &lt;message-bus&gt; element of the integration namespace.
  * 
  * @author Mark Fisher
  * @author Marius Bogoevici
@@ -46,8 +44,6 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 	public static final String MESSAGE_BUS_BEAN_NAME = "internal.MessageBus";
 
 	public static final String MESSAGE_BUS_AWARE_POST_PROCESSOR_BEAN_NAME = "internal.MessageBusAwareBeanPostProcessor";
-
-	private static final String ERROR_CHANNEL_ATTRIBUTE = "error-channel";
 
 	private static final String CHANNEL_FACTORY_ATTRIBUTE = "channel-factory";
 	
@@ -75,28 +71,18 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
-		return !ERROR_CHANNEL_ATTRIBUTE.equals(attributeName) &&
-				!CHANNEL_FACTORY_ATTRIBUTE.equals(attributeName) &&
+		return !CHANNEL_FACTORY_ATTRIBUTE.equals(attributeName) &&
 				super.isEligibleAttribute(attributeName);
 	}
 
 	@Override
-	protected void postProcess(BeanDefinitionBuilder beanDefinition, Element element) {
-		String errorChannelRef = element.getAttribute(ERROR_CHANNEL_ATTRIBUTE);
-		if (StringUtils.hasText(errorChannelRef)) {
-			beanDefinition.addPropertyReference(Conventions.attributeNameToPropertyName(
-					ERROR_CHANNEL_ATTRIBUTE), errorChannelRef);
-		}
-		String channelFactoryRef = element.getAttribute(CHANNEL_FACTORY_ATTRIBUTE);
-		if (StringUtils.hasText(channelFactoryRef)) {
-			beanDefinition.addPropertyReference(Conventions.attributeNameToPropertyName(
-					CHANNEL_FACTORY_ATTRIBUTE), channelFactoryRef);
-		}
-		this.processChildElements(beanDefinition, element);
+	protected void postProcess(BeanDefinitionBuilder builder, Element element) {
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, CHANNEL_FACTORY_ATTRIBUTE);
+		this.processChildElements(builder, element);
 	}
 
 	@SuppressWarnings("unchecked")
-	private void processChildElements(BeanDefinitionBuilder beanDefinition, Element element) {
+	private void processChildElements(BeanDefinitionBuilder builder, Element element) {
 		NodeList childNodes = element.getChildNodes();
 		ManagedList interceptors = new ManagedList();
 		for (int i = 0; i < childNodes.getLength(); i++) {
@@ -109,7 +95,7 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 			}
 		}
 		if (interceptors.size() > 0) {
-			beanDefinition.addPropertyValue(INTERCEPTORS_PROPERTY, interceptors);
+			builder.addPropertyValue(INTERCEPTORS_PROPERTY, interceptors);
 		}
 	}
 

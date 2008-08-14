@@ -31,9 +31,4 @@ public interface MessageChannel extends MessageSource, BlockingTarget {
 	 */
 	String getName();
 
-	/**
-	 * Set the name of this channel.
-	 */
-	void setName(String name);
-
 }

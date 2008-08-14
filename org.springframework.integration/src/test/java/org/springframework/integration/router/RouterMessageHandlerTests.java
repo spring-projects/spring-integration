@@ -150,10 +150,12 @@ public class RouterMessageHandlerTests {
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
-		MessageChannel fooChannel = new QueueChannel();
-		MessageChannel barChannel = new QueueChannel();
-		channelRegistry.registerChannel("foo-channel", fooChannel);
-		channelRegistry.registerChannel("bar-channel", barChannel);
+		QueueChannel fooChannel = new QueueChannel();
+		QueueChannel barChannel = new QueueChannel();
+		fooChannel.setBeanName("foo-channel");
+		barChannel.setBeanName("bar-channel");
+		channelRegistry.registerChannel(fooChannel);
+		channelRegistry.registerChannel(barChannel);
 		Message<?> result1 = ((CompositeMessage) handler.handle(fooMessage)).getPayload().get(0);
 		assertNotNull(result1);
 		assertEquals("foo", result1.getPayload());
@@ -185,8 +187,10 @@ public class RouterMessageHandlerTests {
 	private void doTestChannelInstanceResolutionByMessage(RouterMessageHandler handler, ChannelRegistry channelRegistry) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
-		channelRegistry.registerChannel("foo-channel", fooChannel);
-		channelRegistry.registerChannel("bar-channel", barChannel);
+		fooChannel.setBeanName("foo-channel");
+		barChannel.setBeanName("bar-channel");
+		channelRegistry.registerChannel(fooChannel);
+		channelRegistry.registerChannel(barChannel);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
@@ -221,8 +225,10 @@ public class RouterMessageHandlerTests {
 	private void doTestMultiChannelNameResolutionByPayload(RouterMessageHandler handler, ChannelRegistry channelRegistry) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
-		channelRegistry.registerChannel("foo-channel", fooChannel);
-		channelRegistry.registerChannel("bar-channel", barChannel);
+		fooChannel.setBeanName("foo-channel");
+		barChannel.setBeanName("bar-channel");
+		channelRegistry.registerChannel(fooChannel);
+		channelRegistry.registerChannel(barChannel);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
@@ -267,8 +273,10 @@ public class RouterMessageHandlerTests {
 	private void doTestMultiChannelNameResolutionByMessage(RouterMessageHandler handler, ChannelRegistry channelRegistry) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
-		channelRegistry.registerChannel("foo-channel", fooChannel);
-		channelRegistry.registerChannel("bar-channel", barChannel);
+		fooChannel.setBeanName("foo-channel");
+		barChannel.setBeanName("bar-channel");
+		channelRegistry.registerChannel(fooChannel);
+		channelRegistry.registerChannel(barChannel);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
@@ -313,8 +321,10 @@ public class RouterMessageHandlerTests {
 	private void doTestMultiChannelNameArrayResolutionByMessage(RouterMessageHandler handler, ChannelRegistry channelRegistry) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
-		channelRegistry.registerChannel("foo-channel", fooChannel);
-		channelRegistry.registerChannel("bar-channel", barChannel);
+		fooChannel.setBeanName("foo-channel");
+		barChannel.setBeanName("bar-channel");
+		channelRegistry.registerChannel(fooChannel);
+		channelRegistry.registerChannel(barChannel);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
@@ -359,8 +369,10 @@ public class RouterMessageHandlerTests {
 	private void doTestMultiChannelListResolutionByPayload(RouterMessageHandler handler, ChannelRegistry channelRegistry) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
-		channelRegistry.registerChannel("foo-channel", fooChannel);
-		channelRegistry.registerChannel("bar-channel", barChannel);
+		fooChannel.setBeanName("foo-channel");
+		barChannel.setBeanName("bar-channel");
+		channelRegistry.registerChannel(fooChannel);
+		channelRegistry.registerChannel(barChannel);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
@@ -405,8 +417,10 @@ public class RouterMessageHandlerTests {
 	private void doTestMultiChannelListResolutionByMessage(RouterMessageHandler handler, ChannelRegistry channelRegistry) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
-		channelRegistry.registerChannel("foo-channel", fooChannel);
-		channelRegistry.registerChannel("bar-channel", barChannel);
+		fooChannel.setBeanName("foo-channel");
+		barChannel.setBeanName("bar-channel");
+		channelRegistry.registerChannel(fooChannel);
+		channelRegistry.registerChannel(barChannel);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
@@ -451,8 +465,10 @@ public class RouterMessageHandlerTests {
 	private void doTestMultiChannelArrayResolutionByMessage(RouterMessageHandler handler, ChannelRegistry channelRegistry) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
-		channelRegistry.registerChannel("foo-channel", fooChannel);
-		channelRegistry.registerChannel("bar-channel", barChannel);
+		fooChannel.setBeanName("foo-channel");
+		barChannel.setBeanName("bar-channel");
+		channelRegistry.registerChannel(fooChannel);
+		channelRegistry.registerChannel(barChannel);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");

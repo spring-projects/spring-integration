@@ -33,7 +33,7 @@ public class AbstractChannelAdapter extends AbstractMessageChannel {
 
 	public AbstractChannelAdapter(String name, MessageTarget target) {
 		Assert.notNull(name, "name must not be null");
-		this.setName(name);
+		this.setBeanName(name);
 		this.target = target;
 	}
 

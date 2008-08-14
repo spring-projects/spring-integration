@@ -19,6 +19,7 @@ package org.springframework.integration.bus;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.RendezvousChannel;
 import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
@@ -36,6 +37,7 @@ public class DefaultErrorChannel extends RendezvousChannel {
 
 	public DefaultErrorChannel() {
 		this.addInterceptor(new ErrorLoggingInterceptor());
+		this.setBeanName(ChannelRegistry.ERROR_CHANNEL_NAME);
 	}
 
 

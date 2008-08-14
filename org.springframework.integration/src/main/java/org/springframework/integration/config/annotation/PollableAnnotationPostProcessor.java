@@ -50,7 +50,7 @@ public class PollableAnnotationPostProcessor extends AbstractAnnotationMethodPos
 		if (channelAdapterAnnotation != null) {
 			String channelName = channelAdapterAnnotation.value();
 			PollableChannelAdapter adapter = new PollableChannelAdapter(channelName, source, null);
-			this.getMessageBus().registerChannel(channelName, adapter);
+			this.getMessageBus().registerChannel(adapter);
 		}
 		return source;
 	}

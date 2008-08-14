@@ -268,10 +268,12 @@ public class MessagingAnnotationPostProcessorTests {
 	@Test
 	public void testMessageEndpointAnnotationInheritedFromInterface() {
 		MessageBus messageBus = new DefaultMessageBus();
-		MessageChannel inputChannel = new QueueChannel();
+		QueueChannel inputChannel = new QueueChannel();
 		QueueChannel outputChannel = new QueueChannel();
-		messageBus.registerChannel("inputChannel", inputChannel);
-		messageBus.registerChannel("outputChannel", outputChannel);
+		inputChannel.setBeanName("inputChannel");
+		outputChannel.setBeanName("outputChannel");
+		messageBus.registerChannel(inputChannel);
+		messageBus.registerChannel(outputChannel);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
 		postProcessor.afterPropertiesSet();
 		postProcessor.postProcessAfterInitialization(new SimpleAnnotatedEndpointImplementation(), "impl");
@@ -299,10 +301,12 @@ public class MessagingAnnotationPostProcessorTests {
 	@Test
 	public void testMessageEndpointAnnotationInheritedFromInterfaceWithProxy() {
 		MessageBus messageBus = new DefaultMessageBus();
-		MessageChannel inputChannel = new QueueChannel();
+		QueueChannel inputChannel = new QueueChannel();
 		QueueChannel outputChannel = new QueueChannel();
-		messageBus.registerChannel("inputChannel", inputChannel);
-		messageBus.registerChannel("outputChannel", outputChannel);
+		inputChannel.setBeanName("inputChannel");
+		outputChannel.setBeanName("outputChannel");
+		messageBus.registerChannel(inputChannel);
+		messageBus.registerChannel(outputChannel);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
 		postProcessor.afterPropertiesSet();
 		ProxyFactory proxyFactory = new ProxyFactory(new SimpleAnnotatedEndpointImplementation());
@@ -319,8 +323,10 @@ public class MessagingAnnotationPostProcessorTests {
 		MessageBus messageBus = new DefaultMessageBus();
 		QueueChannel input = new QueueChannel();
 		QueueChannel output = new QueueChannel();
-		messageBus.registerChannel("input", input);
-		messageBus.registerChannel("output", output);
+		input.setBeanName("input");
+		output.setBeanName("output");
+		messageBus.registerChannel(input);
+		messageBus.registerChannel(output);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
 		postProcessor.afterPropertiesSet();
 		SplitterAnnotationTestEndpoint endpoint = new SplitterAnnotationTestEndpoint();
@@ -346,7 +352,8 @@ public class MessagingAnnotationPostProcessorTests {
 	public void testEndpointWithNoHandlerMethod() {
 		MessageBus messageBus = new DefaultMessageBus();
 		QueueChannel testChannel = new QueueChannel();
-		messageBus.registerChannel("testChannel", testChannel);
+		testChannel.setBeanName("testChannel");
+		messageBus.registerChannel(testChannel);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
 		postProcessor.afterPropertiesSet();
 		AnnotatedEndpointWithNoHandlerMethod endpoint = new AnnotatedEndpointWithNoHandlerMethod();
@@ -357,7 +364,8 @@ public class MessagingAnnotationPostProcessorTests {
 	public void testEndpointWithPollerAnnotation() {
 		MessageBus messageBus = new DefaultMessageBus();
 		QueueChannel testChannel = new QueueChannel();
-		messageBus.registerChannel("testChannel", testChannel);
+		testChannel.setBeanName("testChannel");
+		messageBus.registerChannel(testChannel);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
 		postProcessor.afterPropertiesSet();
 		AnnotatedEndpointWithPolledAnnotation endpoint = new AnnotatedEndpointWithPolledAnnotation();

@@ -44,9 +44,10 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 
 
 	/**
-	 * Set the name of this channel.
+	 * Set the name of this channel. This will be invoked automatically whenever
+	 * the channel is configured explicitly with a bean definition.
 	 */
-	public void setName(String name) {
+	public void setBeanName(String name) {
 		this.name = name;
 	}
 
@@ -55,15 +56,6 @@ public abstract class AbstractMessageChannel implements MessageChannel, BeanName
 	 */
 	public String getName() {
 		return this.name;
-	}
-
-	/**
-	 * Set the name of this channel to its bean name. This will be invoked
-	 * automatically whenever the channel is configured explicitly with a bean
-	 * definition.
-	 */
-	public void setBeanName(String beanName) {
-		this.setName(beanName);
 	}
 
 	/**
