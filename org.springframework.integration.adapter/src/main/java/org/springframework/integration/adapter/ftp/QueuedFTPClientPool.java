@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.adapter.ftp;
 
 import java.io.IOException;
@@ -25,6 +26,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPClientConfig;
+
 import org.springframework.util.Assert;
 
 /**
@@ -32,9 +34,8 @@ import org.springframework.util.Assert;
  * default pool size of 5, but this is configurable with a constructor argument.
  * 
  * @author Iwein Fuld
- * 
  */
-public class QueuedFTPClientPool implements FTPClientPool {
+public class QueuedFTPClientPool {
 
 	private static final int DEFAULT_POOL_SIZE = 5;
 
@@ -54,9 +55,11 @@ public class QueuedFTPClientPool implements FTPClientPool {
 
 	private final Log log = LogFactory.getLog(this.getClass());
 
+
 	public QueuedFTPClientPool() {
 		this(DEFAULT_POOL_SIZE);
 	}
+
 
 	/**
 	 * @param maxPoolSize the maximum size of the pool
@@ -82,17 +85,6 @@ public class QueuedFTPClientPool implements FTPClientPool {
 		}
 	}
 
-	private class DefaultFactory implements FTPClientFactory {
-
-		public FTPClient getClient() throws SocketException, IOException {
-			FTPClient client = new FTPClient();
-			client.configure(config);
-			client.connect(host, port);
-			client.login(user, pass);
-			return client;
-		}
-	}
-
 	public void setConfig(FTPClientConfig config) {
 		Assert.notNull(config);
 		this.config = config;
@@ -104,7 +96,7 @@ public class QueuedFTPClientPool implements FTPClientPool {
 	}
 
 	public void setPort(int port) {
-		Assert.isTrue(port != 0, "Port number should be > 0");
+		Assert.isTrue(port > 0, "Port number should be > 0");
 		this.port = port;
 	}
 
@@ -122,4 +114,17 @@ public class QueuedFTPClientPool implements FTPClientPool {
 		Assert.notNull(factory);
 		this.factory = factory;
 	}
+
+
+	private class DefaultFactory implements FTPClientFactory {
+
+		public FTPClient getClient() throws SocketException, IOException {
+			FTPClient client = new FTPClient();
+			client.configure(config);
+			client.connect(host, port);
+			client.login(user, pass);
+			return client;
+		}
+	}
+
 }
