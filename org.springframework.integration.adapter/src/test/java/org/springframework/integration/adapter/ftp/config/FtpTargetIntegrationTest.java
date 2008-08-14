@@ -25,7 +25,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.springframework.integration.adapter.ftp.FTPClientPool;
+import org.springframework.integration.adapter.ftp.QueuedFTPClientPool;
 import org.springframework.integration.adapter.ftp.FtpTarget;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
@@ -46,7 +46,7 @@ public class FtpTargetIntegrationTest {
 				return message.getPayload();
 			}
 		});
-		FTPClientPool clientPool = new FTPClientPool();
+		QueuedFTPClientPool clientPool = new QueuedFTPClientPool();
 		clientPool.setHost("localhost");
 		clientPool.setUser("ftp-user");
 		clientPool.setPass("kaas");
