@@ -72,39 +72,26 @@ public class CorrelationIdTests {
 	}
 
 	@Test
-	public void testCorrelationNotPassedIfAlreadySetByHandler() throws Exception {
+	public void testCorrelationNotPassedFromRequestHeaderIfAlreadySetByHandler() throws Exception {
 		Object correlationId = "123-ABC";
 		Message<String> message = MessageBuilder.fromPayload("test")
 				.setCorrelationId(correlationId).build();
-		AbstractMessageHandlerAdapter adapter = new AbstractMessageHandlerAdapter() {
-			@Override
-            protected Message<?> handleReturnValue(Object returnValue, Message<?> originalMessage) {
-				Message<?> resultMessage = this.createReplyMessage(returnValue, originalMessage);
-				return MessageBuilder.fromMessage(resultMessage)
-						.setCorrelationId("456-XYZ").build();
-            }
-		};
-		adapter.setObject(new TestBean());
-		adapter.setMethodName("upperCase");
-		adapter.afterPropertiesSet();
-		Message<?> reply = adapter.handle(message);
+		DefaultMessageHandler handler = new DefaultMessageHandler();
+		handler.setObject(new TestBean());
+		handler.setMethodName("createMessage");
+		handler.afterPropertiesSet();
+		Message<?> reply = handler.handle(message);
 		assertEquals("456-XYZ", reply.getHeaders().getCorrelationId());
 	}
 
 	@Test
-	public void testCorrelationNotCopiedIfAlreadySetByHandler() throws Exception {
+	public void testCorrelationNotCopiedFromRequestMessgeIdIfAlreadySetByHandler() throws Exception {
 		Message<?> message = new StringMessage("test");
-		AbstractMessageHandlerAdapter adapter = new AbstractMessageHandlerAdapter() {
-			@Override
-            protected Message<?> handleReturnValue(Object returnValue, Message<?> originalMessage) {
-				Message<?> resultMessage = this.createReplyMessage(returnValue, originalMessage);
-				return MessageBuilder.fromMessage(resultMessage).setCorrelationId("456-XYZ").build();
-            }
-		};
-		adapter.setObject(new TestBean());
-		adapter.setMethodName("upperCase");
-		adapter.afterPropertiesSet();
-		Message<?> reply = adapter.handle(message);
+		DefaultMessageHandler handler = new DefaultMessageHandler();
+		handler.setObject(new TestBean());
+		handler.setMethodName("createMessage");
+		handler.afterPropertiesSet();
+		Message<?> reply = handler.handle(message);
 		assertEquals("456-XYZ", reply.getHeaders().getCorrelationId());
 	}
 
@@ -133,6 +120,10 @@ public class CorrelationIdTests {
 
 		public String[] split(String input) {
 			return input.split(",");
+		}
+
+		public Message<?> createMessage(String input) {
+			return MessageBuilder.fromPayload(input).setCorrelationId("456-XYZ").build();
 		}
 	}
 
