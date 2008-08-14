@@ -46,6 +46,7 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.channel.factory.ChannelFactory;
 import org.springframework.integration.channel.factory.QueueChannelFactory;
+import org.springframework.integration.dispatcher.PollingDispatcher;
 import org.springframework.integration.endpoint.DefaultEndpointRegistry;
 import org.springframework.integration.endpoint.EndpointRegistry;
 import org.springframework.integration.endpoint.MessageEndpoint;

@@ -23,9 +23,9 @@ import java.io.StringWriter;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.integration.bus.PollingDispatcher;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
+import org.springframework.integration.dispatcher.PollingDispatcher;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.scheduling.PollingSchedule;
