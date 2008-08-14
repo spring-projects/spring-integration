@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.dispatcher;
+package org.springframework.integration.channel;
 
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.channel.DirectChannel;
 
 /**
  * @author Mark Fisher

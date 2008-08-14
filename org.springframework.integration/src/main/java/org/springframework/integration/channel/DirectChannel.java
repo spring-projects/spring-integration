@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.dispatcher;
+package org.springframework.integration.channel;
 
-import org.springframework.integration.channel.AbstractMessageChannel;
+import org.springframework.integration.dispatcher.SimpleDispatcher;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.SubscribableSource;
 import org.springframework.integration.message.MessageTarget;

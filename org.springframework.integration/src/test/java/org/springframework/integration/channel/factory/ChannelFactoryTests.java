@@ -33,6 +33,7 @@ import org.springframework.integration.bus.DefaultChannelFactoryBean;
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PriorityChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -40,8 +41,6 @@ import org.springframework.integration.channel.RendezvousChannel;
 import org.springframework.integration.channel.ThreadLocalChannel;
 import org.springframework.integration.channel.config.ChannelParserTests;
 import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
-import org.springframework.integration.dispatcher.DirectChannel;
-import org.springframework.integration.dispatcher.DirectChannelFactory;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 

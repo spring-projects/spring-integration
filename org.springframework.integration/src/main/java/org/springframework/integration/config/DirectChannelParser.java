@@ -18,7 +18,7 @@ package org.springframework.integration.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.integration.dispatcher.DirectChannel;
+import org.springframework.integration.channel.DirectChannel;
 
 /**
  * Parser for the &lt;direct-channel&gt; element.

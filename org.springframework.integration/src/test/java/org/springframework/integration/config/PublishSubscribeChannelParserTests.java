@@ -27,8 +27,8 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
-import org.springframework.integration.dispatcher.PublishSubscribeChannel;
 
 /**
  * @author Mark Fisher

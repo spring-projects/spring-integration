@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.dispatcher;
+package org.springframework.integration.channel;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.StringMessage;
