@@ -35,8 +35,7 @@ public final class MessageBuilder<T> {
 
 
 	/**
-	 * Create a new {@link Message} instance with no header values using
-	 * the provided payload instance.
+	 * Private constructor to be invoked from the static factory methods only.
 	 */
 	private MessageBuilder(T payload) {
 		Assert.notNull(payload, "payload must not be null");
@@ -49,7 +48,8 @@ public final class MessageBuilder<T> {
 	 * all of the headers copied from the provided message. The payload will
 	 * also be taken from the provided message.
 	 * 
-	 * @param messageToCopy the Message from which all headers should be copied
+	 * @param messageToCopy the Message from which the paylaod and all headers
+	 * will be copied
 	 */
 	public static <T> MessageBuilder<T> fromMessage(Message<T> message) {
 		MessageBuilder<T> builder = new MessageBuilder<T>(message.getPayload());
@@ -58,8 +58,7 @@ public final class MessageBuilder<T> {
 	}
 
 	/**
-	 * Create a builder for a new {@link Message} instance with no header
-	 * values using the provided payload instance.
+	 * Create a builder for a new {@link Message} instance with the provided payload.
 	 * 
 	 * @param payload the payload for the new message
 	 */
@@ -69,18 +68,42 @@ public final class MessageBuilder<T> {
 	}
 
 
+	/**
+	 * Set the value for the given header name. If the provided value is
+	 * <code>null</code>, the header will be removed.
+	 */
 	public MessageBuilder<T> setHeader(String headerName, Object headerValue) {
-		this.headers.put(headerName, headerValue);
-		return this;
-	}
-
-	public MessageBuilder<T> setHeaderIfAbsent(String headerName, Object headerValue) {
-		if (this.headers.get(headerName) == null) {
-			this.headers.put(headerName, headerValue);
+		if (headerName != null) {
+			if (headerValue == null) {
+				this.headers.remove(headerName);
+			}
+			else {
+				this.headers.put(headerName, headerValue);
+			}
 		}
 		return this;
 	}
 
+	/**
+	 * Set the value for the given header name only if the header name
+	 * is not already associated with a value.
+	 */
+	public MessageBuilder<T> setHeaderIfAbsent(String headerName, Object headerValue) {
+		if (this.headers.get(headerName) == null) {
+			this.setHeader(headerName, headerValue);
+		}
+		return this;
+	}
+
+	/**
+	 * Copy the name-value pairs from the provided Map. This operation will
+	 * overwrite any existing values. Use {{@link #copyHeadersIfAbsent(Map)}
+	 * to avoid overwriting values. Note that the 'id' and 'timestamp' header
+	 * values will never be overwritten.
+	 * 
+	 * @see MessageHeaders#ID
+	 * @see MessageHeaders#TIMESTAMP
+	 */
 	public MessageBuilder<T> copyHeaders(Map<String, Object> headersToCopy) {
 		Set<String> keys = headersToCopy.keySet();
 		for (String key : keys) {
@@ -91,6 +114,10 @@ public final class MessageBuilder<T> {
 		return this;
 	}
 
+	/**
+	 * Copy the name-value pairs from the provided Map. This operation will
+	 * <em>not</em> overwrite any existing values.
+	 */
 	public MessageBuilder<T> copyHeadersIfAbsent(Map<String, Object> headersToCopy) {
 		Set<String> keys = headersToCopy.keySet();
 		for (String key : keys) {
