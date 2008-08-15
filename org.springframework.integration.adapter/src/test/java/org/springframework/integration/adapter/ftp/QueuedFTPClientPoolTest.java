@@ -18,10 +18,7 @@ package org.springframework.integration.adapter.ftp;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertSame;
 import static junit.framework.Assert.assertTrue;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,8 +58,8 @@ public class QueuedFTPClientPoolTest {
 
 	@Test
 	public void getMultipleGet() throws Exception {
-		FTPClient[] expectedClients = new FTPClient[] { new FTPClient(), new FTPClient(), new FTPClient(),
-				new FTPClient(), new FTPClient(), new FTPClient() };
+		FTPClient[] expectedClients = new FTPClient[] { connectedFTPClient(), connectedFTPClient(),
+				connectedFTPClient(), connectedFTPClient(), connectedFTPClient(), connectedFTPClient() };
 		for (FTPClient client : expectedClients) {
 			expect(factoryMock.getClient()).andReturn(client);
 		}
@@ -75,8 +72,8 @@ public class QueuedFTPClientPoolTest {
 
 	@Test
 	public void getMultipleGetReleaseGet() throws Exception {
-		FTPClient[] expectedClients = new FTPClient[] { new FTPClient(), new FTPClient(), new FTPClient(),
-				new FTPClient(), new FTPClient() };
+		FTPClient[] expectedClients = new FTPClient[] { connectedFTPClient(), connectedFTPClient(),
+				connectedFTPClient(), connectedFTPClient(), connectedFTPClient() };
 		for (FTPClient client : expectedClients) {
 			expect(factoryMock.getClient()).andReturn(client);
 		}
@@ -94,5 +91,14 @@ public class QueuedFTPClientPoolTest {
 			assertTrue("Failed on element " + i, removed);
 		}
 		verify(allMocks);
+	}
+
+	private FTPClient connectedFTPClient() {
+		return new FTPClient() {
+			@Override
+			public boolean isConnected() {
+				return true;
+			}
+		};
 	}
 }

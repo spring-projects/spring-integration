@@ -41,25 +41,23 @@ public class QueuedFTPClientPool implements FTPClientPool {
 
 	private final Queue<FTPClient> pool;
 
-	private FTPClientConfig config;
+	private volatile FTPClientConfig config;
 
-	private String host;
+	private volatile String host;
 
-	private int port = FTP.DEFAULT_PORT;
+	private volatile int port = FTP.DEFAULT_PORT;
 
-	private String user;
+	private volatile String user;
 
-	private String pass;
+	private volatile String pass;
 
-	private FTPClientFactory factory = new DefaultFactory();
+	private volatile FTPClientFactory factory = new DefaultFactory();
 
 	private final Log log = LogFactory.getLog(this.getClass());
-
 
 	public QueuedFTPClientPool() {
 		this(DEFAULT_POOL_SIZE);
 	}
-
 
 	/**
 	 * @param maxPoolSize the maximum size of the pool
@@ -73,7 +71,7 @@ public class QueuedFTPClientPool implements FTPClientPool {
 	}
 
 	public synchronized void releaseClient(FTPClient client) {
-		if (client != null) {
+		if (client != null && client.isConnected()) {
 			if (!pool.offer(client)) {
 				try {
 					client.disconnect();
@@ -114,7 +112,6 @@ public class QueuedFTPClientPool implements FTPClientPool {
 		Assert.notNull(factory);
 		this.factory = factory;
 	}
-
 
 	private class DefaultFactory implements FTPClientFactory {
 
