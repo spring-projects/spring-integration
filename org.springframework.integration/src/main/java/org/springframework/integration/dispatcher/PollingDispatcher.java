@@ -93,7 +93,7 @@ public class PollingDispatcher implements SchedulableTask, SubscribableSource {
 	 * of {@link BlockingTarget}.
 	 */
 	public void setSendTimeout(long sendTimeout) {
-		this.dispatcher.setTimeout(sendTimeout);
+		this.dispatcher.setSendTimeout(sendTimeout);
 	}
 
 	/**

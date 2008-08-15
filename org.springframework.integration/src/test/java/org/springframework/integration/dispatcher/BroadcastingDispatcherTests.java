@@ -219,7 +219,7 @@ public class BroadcastingDispatcherTests {
 		dispatcher.subscribe(targetMock1);
 		dispatcher.subscribe(targetMock2);
 		dispatcher.subscribe(targetMock3);
-		dispatcher.setTimeout(50);
+		dispatcher.setSendTimeout(50);
 		// three threads invoking targets
 		final CountDownLatch latch = new CountDownLatch(3);
 		threadedExecutorMock(3);

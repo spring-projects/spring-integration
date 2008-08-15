@@ -43,8 +43,8 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	private final MessageExchangeTemplate messageExchangeTemplate = new MessageExchangeTemplate();
 
 
-	public void setTimeout(long timeout) {
-		this.messageExchangeTemplate.setSendTimeout(timeout);
+	public void setSendTimeout(long sendTimeout) {
+		this.messageExchangeTemplate.setSendTimeout(sendTimeout);
 	}
 
 	public boolean subscribe(MessageTarget target) {

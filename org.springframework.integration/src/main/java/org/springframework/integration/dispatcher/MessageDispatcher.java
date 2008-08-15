@@ -33,7 +33,7 @@ public interface MessageDispatcher extends MessageTarget, SubscribableSource {
 	 * Specify the timeout for sending to a target (in milliseconds).
 	 * Note that this value will only be applicable for blocking targets.
 	 */
-	void setTimeout(long timeout);
+	void setSendTimeout(long sendTimeout);
 
 	boolean subscribe(MessageTarget target);
 
