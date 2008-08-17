@@ -26,8 +26,11 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPClientConfig;
+import org.apache.commons.net.ftp.FTPReply;
 
+import org.springframework.integration.message.MessagingException;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * FTPClientPool implementation based on a Queue. This implementation has a
@@ -39,6 +42,8 @@ public class QueuedFTPClientPool implements FTPClientPool {
 
 	private static final int DEFAULT_POOL_SIZE = 5;
 
+	private static final String DEFAULT_REMOTE_WORKING_DIRECTORY = "/";
+
 	private final Queue<FTPClient> pool;
 
 	private volatile FTPClientConfig config;
@@ -47,13 +52,15 @@ public class QueuedFTPClientPool implements FTPClientPool {
 
 	private volatile int port = FTP.DEFAULT_PORT;
 
-	private volatile String user;
+	private volatile String username;
 
-	private volatile String pass;
+	private volatile String password;
 
 	private volatile FTPClientFactory factory = new DefaultFactory();
 
 	private final Log log = LogFactory.getLog(this.getClass());
+
+	private volatile String remoteWorkingDirectory = DEFAULT_REMOTE_WORKING_DIRECTORY;
 
 	public QueuedFTPClientPool() {
 		this(DEFAULT_POOL_SIZE);
@@ -98,14 +105,19 @@ public class QueuedFTPClientPool implements FTPClientPool {
 		this.port = port;
 	}
 
-	public void setUser(String user) {
+	public void setUsername(String user) {
 		Assert.hasText(user);
-		this.user = user;
+		this.username = user;
 	}
 
-	public void setPass(String pass) {
+	public void setPassword(String pass) {
 		Assert.notNull(pass);
-		this.pass = pass;
+		this.password = pass;
+	}
+
+	public void setRemoteWorkingDirectory(String remoteWorkingDirectory) {
+		Assert.notNull(remoteWorkingDirectory);
+		this.remoteWorkingDirectory = remoteWorkingDirectory.replaceAll("^$", "/");
 	}
 
 	public void setFactory(FTPClientFactory factory) {
@@ -118,8 +130,33 @@ public class QueuedFTPClientPool implements FTPClientPool {
 		public FTPClient getClient() throws SocketException, IOException {
 			FTPClient client = new FTPClient();
 			client.configure(config);
+			if (!StringUtils.hasText(username)) {
+				throw new MessagingException("username is required");
+			}
 			client.connect(host, port);
-			client.login(user, pass);
+			if (!FTPReply.isPositiveCompletion(client.getReplyCode())) {
+				throw new MessagingException("Connecting to server [" + host + ":" + port
+						+ "] failed, please check the connection");
+			}
+			if (log.isDebugEnabled()) {
+				log.debug("Connected to server [" + host + ":" + port + "]");
+			}
+			if (!client.login(username, password)) {
+				throw new MessagingException("Login failed. Please check the username and password.");
+			}
+			if (log.isDebugEnabled()) {
+				log.debug("login successful");
+			}
+			client.setFileType(FTP.BINARY_FILE_TYPE);
+
+			if (!remoteWorkingDirectory.equals(client.printWorkingDirectory())
+					&& !client.changeWorkingDirectory(remoteWorkingDirectory)) {
+				throw new MessagingException("Could not change directory to '" + remoteWorkingDirectory
+						+ "'. Please check the path.");
+			}
+			if (log.isDebugEnabled()) {
+				log.debug("working directory is: " + client.printWorkingDirectory());
+			}
 			return client;
 		}
 	}

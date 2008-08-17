@@ -30,7 +30,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.integration.adapter.file.AbstractDirectorySource;
 import org.springframework.integration.adapter.file.Backlog;
@@ -48,67 +47,24 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Iwein Fuld
  */
-public class FtpSource extends AbstractDirectorySource<List<File>> implements DisposableBean {
-
-	private final static String DEFAULT_HOST = "localhost";
-
-	private final static int DEFAULT_PORT = 21;
-
-	private final static String DEFAULT_REMOTE_WORKING_DIRECTORY = "/";
+public class FtpSource extends AbstractDirectorySource<List<File>> {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
-
-	private volatile String username;
-
-	private volatile String password;
-
-	private volatile String host = DEFAULT_HOST;
-
-	private volatile int port = DEFAULT_PORT;
-
-	private volatile String remoteWorkingDirectory = DEFAULT_REMOTE_WORKING_DIRECTORY;
 
 	private volatile File localWorkingDirectory;
 
 	private int maxFilesPerPayload = -1;
 
-	private final FTPClient client;
+	private final FTPClientPool clientPool;
 
-	public FtpSource(MessageCreator<List<File>, List<File>> messageCreator) {
-		this(messageCreator, new FTPClient());
-	}
-
-	public FtpSource(MessageCreator<List<File>, List<File>> messageCreator, FTPClient client) {
+	public FtpSource(MessageCreator<List<File>, List<File>> messageCreator, FTPClientPool clientPool) {
 		super(messageCreator);
-		this.client = client;
-	}
-
-	public void setHost(String host) {
-		this.host = host;
-	}
-
-	public void setPort(int port) {
-		this.port = port;
-	}
-
-	@Required
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
+		this.clientPool = clientPool;
 	}
 
 	public void setMaxMessagesPerPayload(int maxMessagesPerPayload) {
 		Assert.isTrue(maxMessagesPerPayload > 0, "'maxMessagesPerPayload' should greater than 0");
 		this.maxFilesPerPayload = maxMessagesPerPayload;
-	}
-
-	public void setRemoteWorkingDirectory(String remoteWorkingDirectory) {
-		Assert.notNull(remoteWorkingDirectory, "'remoteWorkingDirectory' cannot be null");
-		// FtpClient is picky about "", so we make it happy
-		this.remoteWorkingDirectory = remoteWorkingDirectory.replaceAll("^$", "/");
 	}
 
 	public void setLocalWorkingDirectory(File localWorkingDirectory) {
@@ -130,87 +86,48 @@ public class FtpSource extends AbstractDirectorySource<List<File>> implements Di
 
 	@Override
 	protected void populateSnapshot(Map<String, FileInfo> snapshot) throws IOException {
-		establishConnection();
-		FTPFile[] fileList = this.client.listFiles();
-
-		for (FTPFile ftpFile : fileList) {
-			/*
-			 * according to the FTPFile javadoc the list can contain nulls if
-			 * files couldn't be parsed
-			 */
-			if (ftpFile != null) {
-				FileInfo fileInfo = new FileInfo(ftpFile.getName(), ftpFile.getTimestamp().getTimeInMillis(), ftpFile
-						.getSize());
-				snapshot.put(ftpFile.getName(), fileInfo);
+		FTPClient client = clientPool.getClient();
+		FTPFile[] fileList = client.listFiles();
+		try {
+			for (FTPFile ftpFile : fileList) {
+				/*
+				 * according to the FTPFile javadoc the list can contain nulls
+				 * if files couldn't be parsed
+				 */
+				if (ftpFile != null) {
+					FileInfo fileInfo = new FileInfo(ftpFile.getName(), ftpFile.getTimestamp().getTimeInMillis(),
+							ftpFile.getSize());
+					snapshot.put(ftpFile.getName(), fileInfo);
+				}
 			}
 		}
-	}
-
-	protected void establishConnection() throws IOException {
-		if (this.client.isConnected()) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("client already connected");
-			}
-			return;
-		}
-		if (!StringUtils.hasText(this.username)) {
-			throw new MessagingException("username is required");
-		}
-		this.client.connect(this.host, this.port);
-		if (!this.client.login(this.username, this.password)) {
-			throw new MessagingException("Login failed. Please check the username and password.");
-		}
-		if (logger.isDebugEnabled()) {
-			logger.debug("login successful");
-		}
-		this.client.setFileType(FTP.IMAGE_FILE_TYPE);
-		if (!this.remoteWorkingDirectory.equals(this.client.printWorkingDirectory())
-				&& !this.client.changeWorkingDirectory(this.remoteWorkingDirectory)) {
-			throw new MessagingException("Could not change directory to '" + remoteWorkingDirectory
-					+ "'. Please check the path.");
-		}
-		if (logger.isDebugEnabled()) {
-			logger.debug("working directory is: " + this.client.printWorkingDirectory());
+		finally {
+			clientPool.releaseClient(client);
 		}
 	}
 
 	protected List<File> retrieveNextPayload() throws IOException {
-		establishConnection();
-		List<File> files = new ArrayList<File>();
-		Set<String> toDo = this.getDirectoryContentManager().getProcessingBuffer().keySet();
-		for (String fileName : toDo) {
-			File file = new File(this.localWorkingDirectory, fileName);
-			if (file.exists()) {
-				file.delete();
-			}
-			FileOutputStream fileOutputStream = new FileOutputStream(file);
-			this.client.retrieveFile(fileName, fileOutputStream);
-			fileOutputStream.close();
-			files.add(file);
-		}
-		disconnect();
-		return files;
-	}
-
-	protected void disconnect() {
+		FTPClient client = clientPool.getClient();
 		try {
-			if (this.client.isConnected()) {
-				this.client.disconnect();
-				if (logger.isDebugEnabled()) {
-					logger.debug("connection closed");
+			List<File> files = new ArrayList<File>();
+			Set<String> toDo = this.getDirectoryContentManager().getProcessingBuffer().keySet();
+			for (String fileName : toDo) {
+				File file = new File(this.localWorkingDirectory, fileName);
+				if (file.exists()) {
+					file.delete();
 				}
+				FileOutputStream fileOutputStream = new FileOutputStream(file);
+				client.retrieveFile(fileName, fileOutputStream);
+				fileOutputStream.close();
+				files.add(file);
 			}
+			return files;
 		}
-		catch (IOException ioe) {
-			if (logger.isErrorEnabled()) {
-				logger.error("Error when disconnecting from ftp.", ioe);
-			}
+		finally {
+			clientPool.releaseClient(client);
 		}
 	}
 
-	public void destroy() throws Exception {
-		disconnect();
-	}
 
 	@SuppressWarnings("unchecked")
 	@Override

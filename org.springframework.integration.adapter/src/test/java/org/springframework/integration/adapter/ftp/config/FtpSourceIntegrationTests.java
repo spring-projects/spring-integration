@@ -14,6 +14,7 @@ import org.junit.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.adapter.ftp.FtpSource;
+import org.springframework.integration.adapter.ftp.QueuedFTPClientPool;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.config.MessageBusParser;
@@ -57,12 +58,13 @@ public class FtpSourceIntegrationTests {
 
 	@Before
 	public void initializeFtpSource() throws Exception {
-		ftpSource = new FtpSource(messageCreator);
-		ftpSource.setHost("localhost");
-		ftpSource.setUsername("ftp-user");
-		ftpSource.setPassword("kaas");
+		QueuedFTPClientPool queuedFTPClientPool = new QueuedFTPClientPool();
+		ftpSource = new FtpSource(messageCreator, queuedFTPClientPool);
+		queuedFTPClientPool.setHost("localhost");
+		queuedFTPClientPool.setUsername("ftp-user");
+		queuedFTPClientPool.setPassword("kaas");
 		ftpSource.setLocalWorkingDirectory(localWorkDir);
-		ftpSource.setRemoteWorkingDirectory("ftp-test");
+		queuedFTPClientPool.setRemoteWorkingDirectory("ftp-test");
 	}
 
 	@SuppressWarnings("unchecked")

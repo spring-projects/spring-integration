@@ -38,18 +38,14 @@ public class FtpTarget implements MessageTarget {
 
 	private final MessageMapper<?, File> messageMapper;
 
-	private volatile FTPClientPool ftpClientPool = new QueuedFTPClientPool();
+	private final FTPClientPool ftpClientPool;
 
 
-	public FtpTarget(MessageMapper<?, File> messageMapper) {
-		Assert.notNull(messageMapper, "MessageMapper must not be null");
-		this.messageMapper = messageMapper;
-	}
-
-
-	public void setFtpClientPool(FTPClientPool ftpClientPool) {
+	public FtpTarget(MessageMapper<?, File> messageMapper, FTPClientPool ftpClientPool) {
+		Assert.notNull(messageMapper, "messageMapper must not be null");
 		Assert.notNull(ftpClientPool, "ftpClientPool must not be null");
 		this.ftpClientPool = ftpClientPool;
+		this.messageMapper = messageMapper;
 	}
 
 	public boolean send(Message message) {

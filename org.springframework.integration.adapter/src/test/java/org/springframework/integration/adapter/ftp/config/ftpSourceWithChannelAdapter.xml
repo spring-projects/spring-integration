@@ -12,21 +12,25 @@
 	<si:message-bus />
 
 	<bean id="ftpSource"
-		class="org.springframework.integration.adapter.ftp.FtpSource"
-		p:host="localhost" p:password="kaas" p:username="ftp-user"
-		p:remoteWorkingDirectory="ftp-test">
+		class="org.springframework.integration.adapter.ftp.FtpSource">
 		<constructor-arg>
 			<bean
 				class="org.springframework.integration.message.DefaultMessageCreator" />
+		</constructor-arg>
+		<constructor-arg>
+			<bean
+				class="org.springframework.integration.adapter.ftp.QueuedFTPClientPool"
+				p:host="localhost" p:password="kaas" p:username="ftp-user"
+				p:remoteWorkingDirectory="ftp-test" />
 		</constructor-arg>
 	</bean>
 
 	<si:channel-adapter id="input" source="ftpSource" />
 
-	<si:splitter output-channel="output" input-channel="input" ref="defaultSplitter" method="split"/>
+	<bean id="splitter"
+		class="org.springframework.integration.adapter.ftp.config.CollectionSplitter" />
+	<si:splitter output-channel="output" input-channel="input"
+		ref="splitter" method="split" />
 
-	<bean id="defaultSplitter"
-		class="org.springframework.integration.util.CollectionSplitter" />
-
-	<si:channel id="output"/>
+	<si:channel id="output" />
 </beans>

@@ -16,27 +16,63 @@
 
 package org.springframework.integration.adapter.ftp.config;
 
-import org.w3c.dom.Element;
-
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.integration.adapter.file.config.AbstractDirectorySourceParser;
 import org.springframework.integration.adapter.ftp.FtpSource;
+import org.springframework.integration.adapter.ftp.QueuedFTPClientPool;
+import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;ftp-source/&gt; element.
  * 
  * @author Mark Fisher
  * @author Marius Bogoevici
+ * @author Iwein Fuld
  */
 public class FtpSourceParser extends AbstractDirectorySourceParser {
+	private static final String POOL_ATTRIBUTE_USER = "username";
+
+	private static final String POOL_ATTRIBUTE_PASS = "password";
+
+	private static final String POOL_ATTRIBUTE_HOST = "host";
+
+	private static final String POOL_ATTRIBUTE_PORT = "port";
+
+	private static final String POOL_ATTRIBUTE_REMOTEDIR = "remote-working-directory";
 
 	public FtpSourceParser() {
 		super(true);
 	}
-
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
 		return FtpSource.class;
 	}
 
+	@Override
+	protected boolean isEligibleAttribute(String attributeName) {
+		return !POOL_ATTRIBUTE_HOST.equals(attributeName) 
+				&& !POOL_ATTRIBUTE_PASS.equals(attributeName)
+				&& !POOL_ATTRIBUTE_PORT.equals(attributeName)
+				&& !POOL_ATTRIBUTE_USER.equals(attributeName)
+				&& !POOL_ATTRIBUTE_REMOTEDIR.equals(attributeName)
+				&& super.isEligibleAttribute(attributeName);
+	}
+	
+	@Override
+	protected void postProcess(BeanDefinitionBuilder beanDefinition, Element element) {
+		super.postProcess(beanDefinition, element);
+		String user = element.getAttribute(POOL_ATTRIBUTE_USER);
+		String pass = element.getAttribute(POOL_ATTRIBUTE_PASS);
+		String host = element.getAttribute(POOL_ATTRIBUTE_HOST);
+		String port = element.getAttribute(POOL_ATTRIBUTE_PORT);
+		String remoteWorkingDirectory = element.getAttribute(POOL_ATTRIBUTE_REMOTEDIR);
+		QueuedFTPClientPool queuedFTPClientPool = new QueuedFTPClientPool();
+		queuedFTPClientPool.setUsername(user);
+		queuedFTPClientPool.setPassword(pass);
+		queuedFTPClientPool.setHost(host);
+		queuedFTPClientPool.setPort(Integer.parseInt(port));
+		queuedFTPClientPool.setRemoteWorkingDirectory(remoteWorkingDirectory);
+		beanDefinition.addConstructorArgValue(queuedFTPClientPool);
+	}
 }

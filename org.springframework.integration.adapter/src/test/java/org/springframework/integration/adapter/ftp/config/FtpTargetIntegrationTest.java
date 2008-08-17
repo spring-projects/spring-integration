@@ -25,32 +25,27 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.springframework.integration.adapter.ftp.QueuedFTPClientPool;
 import org.springframework.integration.adapter.ftp.FtpTarget;
+import org.springframework.integration.adapter.ftp.QueuedFTPClientPool;
+import org.springframework.integration.message.DefaultMessageMapper;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageMapper;
 
 /**
  * @author Iwein Fuld
  */
-@Ignore
+//@Ignore
 public class FtpTargetIntegrationTest {
 
 	private FtpTarget ftpTarget;
 
 	@Before
 	public void initFtpTarget() {
-		ftpTarget = new FtpTarget(new MessageMapper<File, File>() {
-			public File mapMessage(Message<File> message) {
-				return message.getPayload();
-			}
-		});
 		QueuedFTPClientPool clientPool = new QueuedFTPClientPool();
 		clientPool.setHost("localhost");
-		clientPool.setUser("ftp-user");
-		clientPool.setPass("kaas");
-		ftpTarget.setFtpClientPool(clientPool);
+		clientPool.setUsername("ftp-user");
+		clientPool.setPassword("kaas");
+		clientPool.setRemoteWorkingDirectory("ftp-test");
+		ftpTarget = new FtpTarget(new DefaultMessageMapper<File>(), clientPool);
 	}
 
 	@Test

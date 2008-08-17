@@ -22,9 +22,9 @@ package org.springframework.integration.message;
  * 
  * @author Mark Fisher
  */
-public class DefaultMessageMapper implements MessageMapper {
+public class DefaultMessageMapper<T> implements MessageMapper<T,T> {
 
-	public Object mapMessage(Message message) {
+	public T mapMessage(Message<T> message) {
 		return (message != null) ? message.getPayload() : null;
 	}
 

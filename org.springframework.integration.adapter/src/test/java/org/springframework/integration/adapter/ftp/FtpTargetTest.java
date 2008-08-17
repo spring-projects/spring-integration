@@ -64,8 +64,7 @@ public class FtpTargetTest {
 
 	@Before
 	public void intitializeSubject() {
-		this.ftpTarget = new FtpTarget(messageMapper);
-		ftpTarget.setFtpClientPool(ftpClientPool);
+		this.ftpTarget = new FtpTarget(messageMapper, ftpClientPool);
 	}
 
 	// Tests
