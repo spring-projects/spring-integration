@@ -33,7 +33,7 @@ import org.springframework.integration.message.GenericMessage;
 /**
  * @author Iwein Fuld
  */
-//@Ignore
+@Ignore
 public class FtpTargetIntegrationTest {
 
 	private FtpTarget ftpTarget;
