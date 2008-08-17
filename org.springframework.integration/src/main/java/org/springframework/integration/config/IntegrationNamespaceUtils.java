@@ -25,12 +25,7 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
-import org.springframework.integration.dispatcher.PollingDispatcher;
-import org.springframework.integration.dispatcher.SimpleDispatcher;
-import org.springframework.integration.message.AsyncMessageExchangeTemplate;
-import org.springframework.integration.message.MessageExchangeTemplate;
 import org.springframework.integration.scheduling.PollingSchedule;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -145,7 +140,7 @@ public abstract class IntegrationNamespaceUtils {
 	 * @return the name of the poller bean definition
 	 */
 	public static String parsePoller(String sourceBeanName, Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PollingDispatcher.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PollingDispatcherFactoryBean.class);
 		Long period = Long.valueOf(element.getAttribute("period"));
 		PollingSchedule schedule = new PollingSchedule(period);
 		String initialDelay = element.getAttribute("initial-delay");
@@ -158,41 +153,20 @@ public abstract class IntegrationNamespaceUtils {
 		else {
 			schedule.setFixedRate(false);
 		}
-		String templateBeanName = parseMessageExhangeTemplate(element, parserContext);
-		builder.addConstructorArgReference(sourceBeanName);
-		builder.addConstructorArgValue(schedule);
-		builder.addConstructorArgValue(new SimpleDispatcher());
-		builder.addConstructorArgReference(templateBeanName);
-		setValueIfAttributeDefined(builder, element, "receive-timeout");
-		setValueIfAttributeDefined(builder, element, "send-timeout");
-		setValueIfAttributeDefined(builder, element, "max-messages-per-poll");
-		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
-	}
-
-	private static String parseMessageExhangeTemplate(Element element, ParserContext parserContext) {
-		String taskExecutorRef = element.getAttribute("task-executor");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
 		Element txElement = DomUtils.getChildElementByTagName(element, "transactional");
-		Class<?> beanClass = (StringUtils.hasText(taskExecutorRef)) ?
-				AsyncMessageExchangeTemplate.class : MessageExchangeTemplate.class;
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(beanClass);
-		if (StringUtils.hasText(taskExecutorRef)) {
-			builder.addConstructorArgReference(taskExecutorRef);
-		}
 		if (txElement != null) {
 			builder.addPropertyReference("transactionManager", txElement.getAttribute("transaction-manager"));
-			builder.addPropertyValue("propagationBehaviorName", DefaultTransactionDefinition.PREFIX_PROPAGATION + txElement.getAttribute("propagation"));
-			builder.addPropertyValue("isolationLevelName", DefaultTransactionDefinition.PREFIX_ISOLATION + txElement.getAttribute("isolation"));
+			builder.addPropertyValue("propagationBehaviorName", txElement.getAttribute("propagation"));
+			builder.addPropertyValue("isolationLevelName", txElement.getAttribute("isolation"));
 			builder.addPropertyValue("transactionTimeout", txElement.getAttribute("timeout"));
 			builder.addPropertyValue("transactionReadOnly", txElement.getAttribute("read-only"));
 		}
-		String receiveTimeout = element.getAttribute("receive-timeout");
-		if (StringUtils.hasText(receiveTimeout)) {
-			builder.addPropertyValue("receiveTimeout", Long.parseLong(receiveTimeout));
-		}
-		String sendTimeout = element.getAttribute("send-timeout");
-		if (StringUtils.hasText(sendTimeout)) {
-			builder.addPropertyValue("sendTimeout", Long.parseLong(sendTimeout));
-		}
+		builder.addPropertyReference("source", sourceBeanName);
+		builder.addPropertyValue("schedule", schedule);
+		setValueIfAttributeDefined(builder, element, "receive-timeout");
+		setValueIfAttributeDefined(builder, element, "send-timeout");
+		setValueIfAttributeDefined(builder, element, "max-messages-per-poll");
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
 	}
 

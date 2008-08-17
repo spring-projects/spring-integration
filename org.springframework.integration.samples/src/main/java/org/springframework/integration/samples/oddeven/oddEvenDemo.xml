@@ -13,11 +13,11 @@
 	<channel id="even"/>
 	<channel id="odd"/>
 
-	<channel-adapter id="numbers" source="counter"/>
-
-	<router ref="parityResolver" method="getParity" input-channel="numbers">
+	<channel-adapter id="numbers" source="counter">
 		<poller period="3000" max-messages-per-poll="1"/>
-	</router>
+	</channel-adapter>
+
+	<router ref="parityResolver" method="getParity" input-channel="numbers"/>
 
 	<service-activator ref="oddLogger" input-channel="odd"/>
 

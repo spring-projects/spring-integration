@@ -24,11 +24,17 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.annotation.ChannelAdapter;
 import org.springframework.integration.annotation.Pollable;
+import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.bus.MessageBus;
-import org.springframework.integration.channel.PollableChannelAdapter;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.dispatcher.PollingDispatcher;
+import org.springframework.integration.endpoint.InboundChannelAdapter;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MethodInvokingSource;
+import org.springframework.integration.message.PollableSource;
+import org.springframework.integration.scheduling.PollingSchedule;
 
 /**
  * Post-processor for methods annotated with {@link Pollable @Pollable}.
@@ -48,9 +54,39 @@ public class PollableAnnotationPostProcessor extends AbstractAnnotationMethodPos
 		source.setMethod(method);
 		ChannelAdapter channelAdapterAnnotation = AnnotationUtils.findAnnotation(bean.getClass(), ChannelAdapter.class);
 		if (channelAdapterAnnotation != null) {
+			Poller pollerAnnotation = AnnotationUtils.findAnnotation(bean.getClass(), Poller.class);
+			if (pollerAnnotation == null) {
+				throw new ConfigurationException("The @Poller annotation is required (at class-level) "
+						+ "when using the @ChannelAdapter annotation with a @Pollable method annotation.");
+			}
+			PollingSchedule schedule = new PollingSchedule(pollerAnnotation.period());
+			schedule.setInitialDelay(pollerAnnotation.initialDelay());
+			schedule.setFixedRate(pollerAnnotation.fixedRate());
+			schedule.setTimeUnit(pollerAnnotation.timeUnit());
+			PollingDispatcher poller = new PollingDispatcher((PollableSource<?>) source, schedule);
+			int maxMessagesPerPoll = pollerAnnotation.maxMessagesPerPoll();
+			if (maxMessagesPerPoll == -1) {
+				// the default is 1 since a MethodInvokingSource might return a non-null value
+				// every time it is invoked, thus producing an infinite number of messages per poll
+				maxMessagesPerPoll = 1;
+			}
+			poller.setMaxMessagesPerPoll(maxMessagesPerPoll);
+			InboundChannelAdapter adapter = new InboundChannelAdapter();
+			adapter.setSource(poller);
 			String channelName = channelAdapterAnnotation.value();
-			PollableChannelAdapter adapter = new PollableChannelAdapter(channelName, source, null);
-			this.getMessageBus().registerChannel(adapter);
+			MessageChannel channel = this.getMessageBus().lookupChannel(channelName);
+			if (channel == null) {
+				adapter.setBeanName(channelName + ".adapter");
+				DirectChannel directChannel = new DirectChannel();
+				directChannel.setBeanName(channelName);
+				this.getMessageBus().registerChannel(directChannel);
+				channel = directChannel;
+			}
+			else {
+				adapter.setBeanName(channelName);
+			}
+			adapter.setTarget(channel);
+			this.getMessageBus().registerEndpoint(adapter);
 		}
 		return source;
 	}

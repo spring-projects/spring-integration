@@ -162,12 +162,13 @@
 	MessageTarget. Therefore, either "source" or "target" should be provided (but never both).
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:complexContent>
-				<xsd:extension base="channelType">
-					<xsd:attribute name="source" type="xsd:string"/>
-					<xsd:attribute name="target" type="xsd:string"/>
-				</xsd:extension>
-			</xsd:complexContent>
+			<xsd:sequence>
+				<xsd:element ref="poller" minOccurs="0" maxOccurs="1"/>
+			</xsd:sequence>
+			<xsd:attribute name="id" type="xsd:ID"/>
+			<xsd:attribute name="source" type="xsd:string"/>
+			<xsd:attribute name="target" type="xsd:string"/>
+			<xsd:attribute name="channel" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
 

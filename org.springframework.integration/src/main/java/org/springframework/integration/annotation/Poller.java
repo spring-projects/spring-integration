@@ -39,7 +39,7 @@ import org.springframework.integration.scheduling.PollingSchedule;
 @Documented
 public @interface Poller {
 
-	int period() default 0;
+	int period();
 
 	long initialDelay() default PollingSchedule.DEFAULT_INITIAL_DELAY;
 
@@ -47,6 +47,6 @@ public @interface Poller {
 
 	TimeUnit timeUnit() default TimeUnit.MILLISECONDS;
 
-	int maxMessagesPerPoll() default 1;
+	int maxMessagesPerPoll() default -1;
 
 }

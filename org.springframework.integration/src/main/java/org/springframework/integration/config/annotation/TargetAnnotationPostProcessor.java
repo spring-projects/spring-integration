@@ -24,10 +24,15 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.annotation.ChannelAdapter;
 import org.springframework.integration.bus.MessageBus;
-import org.springframework.integration.channel.PollableChannelAdapter;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.dispatcher.PollingDispatcher;
 import org.springframework.integration.endpoint.MessageEndpoint;
+import org.springframework.integration.endpoint.OutboundChannelAdapter;
 import org.springframework.integration.handler.MethodInvokingTarget;
 import org.springframework.integration.message.MessageTarget;
+import org.springframework.integration.message.PollableSource;
+import org.springframework.integration.scheduling.PollingSchedule;
 
 /**
  * Post-processor for classes annotated with {@link MessageTarget @MessageTarget}.
@@ -47,9 +52,29 @@ public class TargetAnnotationPostProcessor extends AbstractAnnotationMethodPostP
 		target.setMethod(method);
 		ChannelAdapter channelAdapterAnnotation = AnnotationUtils.findAnnotation(bean.getClass(), ChannelAdapter.class);
 		if (channelAdapterAnnotation != null) {
+			OutboundChannelAdapter adapter = new OutboundChannelAdapter();
 			String channelName = channelAdapterAnnotation.value();
-			PollableChannelAdapter adapter = new PollableChannelAdapter(channelName, null, target);
-			this.getMessageBus().registerChannel(adapter);
+			MessageChannel channel = this.getMessageBus().lookupChannel(channelName);
+			if (channel == null) {
+				adapter.setBeanName(channelName + ".adapter");
+				DirectChannel directChannel = new DirectChannel();
+				directChannel.setBeanName(channelName);
+				this.getMessageBus().registerChannel(directChannel);
+				channel = directChannel;
+			}
+			else {
+				adapter.setBeanName(channelName);
+			}
+			if (channel instanceof PollableSource) {
+				// TODO: add poller config if period, etc is provided (add to @Pollable)
+				PollingDispatcher poller = new PollingDispatcher((PollableSource<?>) channel, new PollingSchedule(0));
+				adapter.setSource(poller);
+			}
+			else {
+				adapter.setSource(channel);
+			}
+			adapter.setTarget(target);
+			this.getMessageBus().registerEndpoint(adapter);
 		}
 		return target;
 	}

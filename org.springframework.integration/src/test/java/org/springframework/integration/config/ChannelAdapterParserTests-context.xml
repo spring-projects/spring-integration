@@ -9,9 +9,7 @@
 
 	<message-bus/>
 
-	<channel-adapter id="targetOnly" target="target"/>
-
-	<channel-adapter id="targetWithDatatype" target="target" datatype="java.lang.String"/>
+	<channel-adapter id="outboundWithImplicitChannel" target="target"/>
 
 	<beans:bean id="target" class="org.springframework.integration.config.TestTarget"/>
 

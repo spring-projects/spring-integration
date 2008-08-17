@@ -11,13 +11,13 @@
 
 	<message-bus/>
 
-	<channel-adapter id="channel1" source="fileSource"/>
+	<channel-adapter id="channel1" source="fileSource">
+		<poller period="5000"/>
+	</channel-adapter>
 
 	<service-activator input-channel="channel1"
 	                   output-channel="channel2"
-                       ref="exclaimer" method="exclaim">
-    	<poller period="5000"/>
-    </service-activator>
+                       ref="exclaimer" method="exclaim"/>
 
 	<channel-adapter id="channel2" target="fileTarget"/>
 

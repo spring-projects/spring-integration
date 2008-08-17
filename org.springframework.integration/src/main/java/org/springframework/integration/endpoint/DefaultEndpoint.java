@@ -28,14 +28,11 @@ import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.CompositeMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessageExchangeTemplate;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageHeaders;
 import org.springframework.integration.message.MessageRejectedException;
-import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.selector.MessageSelector;
-import org.springframework.integration.scheduling.Schedule;
 import org.springframework.util.Assert;
 
 /**
@@ -60,19 +57,15 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class DefaultEndpoint<T extends MessageHandler> extends AbstractEndpoint implements ChannelRegistryAware {
+public class DefaultEndpoint<T extends MessageHandler> extends AbstractRequestReplyEndpoint implements ChannelRegistryAware {
 
 	private final T handler;
-
-	private volatile MessageChannel outputChannel;
 
 	private volatile ChannelRegistry channelRegistry;
 
 	private volatile MessageSelector selector;
 
 	private final List<EndpointInterceptor> interceptors = new ArrayList<EndpointInterceptor>();
-
-	private final MessageExchangeTemplate messageExchangeTemplate = new MessageExchangeTemplate();
 
 
 	/**
@@ -81,15 +74,6 @@ public class DefaultEndpoint<T extends MessageHandler> extends AbstractEndpoint 
 	public DefaultEndpoint(T handler) {
 		Assert.notNull(handler, "handler must not be null");
 		this.handler = handler;
-	}
-
-
-	/**
-	 * Specify the channel where reply Messages should be sent if
-	 * no 'nextTarget' header value is available on the reply Message.
-	 */
-	public void setOutputChannel(MessageChannel outputChannel) {
-		this.outputChannel = outputChannel;
 	}
 
 	protected T getHandler() {
@@ -127,7 +111,7 @@ public class DefaultEndpoint<T extends MessageHandler> extends AbstractEndpoint 
 	 * target. The default value indicates an indefinite timeout. 
 	 */
 	public void setReplyTimeout(long replyTimeout) {
-		this.messageExchangeTemplate.setSendTimeout(replyTimeout);
+		this.getMessageExchangeTemplate().setSendTimeout(replyTimeout);
 	}
 
 	@Override
@@ -170,7 +154,7 @@ public class DefaultEndpoint<T extends MessageHandler> extends AbstractEndpoint 
 		replyMessage = MessageBuilder.fromMessage(replyMessage)
 				.copyHeadersIfAbsent(requestMessage.getHeaders())
 				.setHeaderIfAbsent(MessageHeaders.CORRELATION_ID, requestMessage.getHeaders().getId()).build();
-		if (!this.messageExchangeTemplate.send(replyMessage, replyTarget)) {
+		if (!this.getMessageExchangeTemplate().send(replyMessage, replyTarget)) {
 			throw new MessageEndpointReplyException(replyMessage, requestMessage,
 					"failed to send reply to '" + replyTarget + "'");
 		}
@@ -221,7 +205,7 @@ public class DefaultEndpoint<T extends MessageHandler> extends AbstractEndpoint 
 	private MessageTarget resolveReplyTarget(Message<?> replyMessage, MessageHeaders requestHeaders) {
 		MessageTarget replyTarget = this.resolveTargetAttribute(replyMessage.getHeaders().getNextTarget());
 		if (replyTarget == null) {
-			replyTarget = this.outputChannel;
+			replyTarget = this.getTarget();
 		}
 		if (replyTarget == null) {
 			replyTarget = this.resolveTargetAttribute(requestHeaders.getReturnAddress());
@@ -245,54 +229,17 @@ public class DefaultEndpoint<T extends MessageHandler> extends AbstractEndpoint 
 		return replyTarget;
 	}
 
-	/* TODO: the following properties/methods are candidates for removal from the MessageEndpoint interface. */
+	// TODO: remove
 
-	private volatile String inputChannelName;
-	private volatile String outputChannelName;
-	private volatile MessageSource<?> source;
-	private volatile Schedule schedule;
-
-	public String getInputChannelName() {
-		return this.inputChannelName;
+	public void setReturnAddressOverrides(boolean returnAddressOverrides) {
 	}
 
-	public void setInputChannelName(String inputChannelName) {
-		this.inputChannelName = inputChannelName;
-	}
-
-	public String getOutputChannelName() {
-		return this.outputChannelName;
-	}
-
-	public void setOutputChannelName(String outputChannelName) {
-		this.outputChannelName = outputChannelName;
-	}
-
-	public void setReturnAddressOverrides(boolean b) {
-	}
-
-	public Schedule getSchedule() {
-		return this.schedule;
-	}
-
-	public void setSchedule(Schedule schedule) {
-		this.schedule = schedule;
-	}
-
-	public MessageSource<?> getSource() {
-		return this.source;
-	}
-
-	public MessageTarget getTarget() {
-		return this.outputChannel;
-	}
-
-	public void setSource(MessageSource<?> source) {
-		this.source = source;
-	}
-
-	public void setTarget(MessageTarget target) {
-		this.outputChannel = (MessageChannel) target;
+	/**
+	 * Specify the channel where reply Messages should be sent if
+	 * no 'nextTarget' header value is available on the reply Message.
+	 */
+	public void setOutputChannel(MessageChannel outputChannel) {
+		this.setTarget(outputChannel);
 	}
 
 }

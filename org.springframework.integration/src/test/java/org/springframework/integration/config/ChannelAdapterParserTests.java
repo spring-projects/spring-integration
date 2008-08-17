@@ -16,15 +16,18 @@
 
 package org.springframework.integration.config;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.PollableChannel;
-import org.springframework.integration.channel.PollableChannelAdapter;
-import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.endpoint.OutboundChannelAdapter;
+import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
@@ -37,24 +40,20 @@ public class ChannelAdapterParserTests extends AbstractJUnit4SpringContextTests 
 
 	@Test
 	public void targetOnly() {
-		Object bean = this.applicationContext.getBean("targetOnly");
-		assertTrue(bean instanceof MessageChannel);
-		assertTrue(bean instanceof PollableChannel);
-		assertTrue(bean instanceof PollableChannelAdapter);
-		MessageChannel channel = (MessageChannel) bean;
-		assertTrue(channel.send(new StringMessage("test")));
-	}
-
-	@Test
-	public void targetWithDatatypeAccepts() {
-		MessageChannel channel = (MessageChannel) this.applicationContext.getBean("targetWithDatatype");
-		assertTrue(channel.send(new StringMessage("test")));
-	}
-
-	@Test(expected = MessageDeliveryException.class)
-	public void targetWithDatatypeRejects() {
-		MessageChannel channel = (MessageChannel) this.applicationContext.getBean("targetWithDatatype");
-		channel.send(new GenericMessage<Integer>(123));
+		String beanName = "outboundWithImplicitChannel";
+		Object channel = this.applicationContext.getBean(beanName);
+		assertTrue(channel instanceof DirectChannel);
+		MessageBus bus = (MessageBus) this.applicationContext.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
+		assertNotNull(bus.lookupChannel(beanName));
+		Object adapter = bus.lookupEndpoint(beanName + ".adapter");
+		assertNotNull(adapter);
+		assertTrue(adapter instanceof OutboundChannelAdapter);
+		TestTarget target = (TestTarget) this.applicationContext.getBean("target");
+		assertNull(target.getLastMessage());
+		Message<?> message = new StringMessage("test");
+		assertTrue(((MessageChannel) channel).send(message));
+		assertNotNull(target.getLastMessage());
+		assertEquals(message, target.getLastMessage());
 	}
 
 }

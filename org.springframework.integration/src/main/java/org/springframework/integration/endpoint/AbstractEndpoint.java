@@ -20,10 +20,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.integration.message.CompositeMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageExchangeTemplate;
 import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.message.MessageSource;
+import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.MessagingException;
+import org.springframework.integration.scheduling.Schedule;
 import org.springframework.integration.util.ErrorHandler;
 
 /**
@@ -37,14 +40,16 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 
 	private volatile String name;
 
+	private MessageSource<?> source;
+
+	private MessageTarget target;
+
+	private volatile Schedule schedule;
+
 	private volatile ErrorHandler errorHandler;
 
-	private volatile boolean requiresReply = false;
+	private final MessageExchangeTemplate messageExchangeTemplate = new MessageExchangeTemplate();
 
-
-	public void setBeanName(String name) {
-		this.name = name;
-	}
 
 	/**
 	 * Return the name of this endpoint.
@@ -53,12 +58,36 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 		return this.name;
 	}
 
-	/**
-	 * Specify whether this endpoint should throw an Exception when
-	 * it returns an invalid reply Message after handling the request.
-	 */
-	public void setRequiresReply(boolean requiresReply) {
-		this.requiresReply = requiresReply;
+	public void setBeanName(String name) {
+		this.name = name;
+	}
+
+	public MessageSource<?> getSource() {
+		return this.source;
+	}
+
+	public void setSource(MessageSource<?> source) {
+		this.source = source;
+	}
+
+	public MessageTarget getTarget() {
+		return this.target;
+	}
+
+	public void setTarget(MessageTarget target) {
+		this.target = target;
+	}
+
+	public Schedule getSchedule() {
+		return this.schedule;
+	}
+
+	public void setSchedule(Schedule schedule) {
+		this.schedule = schedule;
+	}
+
+	protected MessageExchangeTemplate getMessageExchangeTemplate() {
+		return this.messageExchangeTemplate;
 	}
 
 	/**
@@ -71,49 +100,29 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 		this.errorHandler = errorHandler;
 	}
 
-	public final boolean send(Message<?> requestMessage) {
-		if (requestMessage == null || requestMessage.getPayload() == null) {
+	public final boolean send(Message<?> message) {
+		if (message == null || message.getPayload() == null) {
 			throw new IllegalArgumentException("Message and its payload must not be null");
 		}
 		if (this.logger.isDebugEnabled()) {
-			this.logger.debug("endpoint '" + this + "' handling message: " + requestMessage);
+			this.logger.debug("endpoint '" + this + "' processing message: " + message);
 		}
 		try {
-			Message<?> replyMessage = this.handleRequestMessage(requestMessage);
-			if (!this.isValidReplyMessage(replyMessage)) {
-				if (this.requiresReply) {
-					throw new MessageHandlingException(requestMessage,
-							"endpoint requires reply but none was received");
-				}
-			}
-			else if (replyMessage instanceof CompositeMessage) {
-				for (Message<?> nextReply : (CompositeMessage) replyMessage) {
-					this.sendReplyMessage(nextReply, requestMessage);
-				}
-			}
-			else {
-				this.sendReplyMessage(replyMessage, requestMessage);
-			}
-			return true;
+			return this.sendInternal(message);
 		}
 		catch (Exception e) {
 			if (e instanceof MessagingException) {
 				this.handleException((MessagingException) e);
 			}
 			else {
-				this.handleException(new MessageHandlingException(requestMessage,
+				this.handleException(new MessageHandlingException(message,
 						"failure occurred in endpoint's send operation", e));
 			}
 			return false;
 		}
 	}
 
-	protected abstract Message<?> handleRequestMessage(Message<?> requestMessage);
-
-	protected abstract boolean isValidReplyMessage(Message<?> replyMessage);
-
-	protected abstract void sendReplyMessage(Message<?> replyMessage, Message<?> requestMessage);
-
+	protected abstract boolean sendInternal(Message<?> message);
 
 	private void handleException(MessagingException exception) {
 		if (this.errorHandler == null) {
@@ -124,7 +133,6 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 		}
 		this.errorHandler.handle(exception);
 	}
-
 
 	public String toString() {
 		return (this.name != null) ? this.name : super.toString();

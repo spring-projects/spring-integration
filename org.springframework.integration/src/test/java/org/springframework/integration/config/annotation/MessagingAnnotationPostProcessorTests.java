@@ -29,12 +29,12 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.annotation.Order;
@@ -52,6 +52,7 @@ import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -91,22 +92,24 @@ public class MessagingAnnotationPostProcessorTests {
 
 	@Test
 	public void testSimpleHandlerWithContext() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
+		AbstractApplicationContext context = new ClassPathXmlApplicationContext(
 				"handlerAnnotationPostProcessorTests.xml", this.getClass());
 		MessageHandler handler = (MessageHandler) context.getBean("simpleHandler");
 		Message<?> reply = handler.handle(new StringMessage("world"));
 		assertEquals("hello world", reply.getPayload());
+		context.stop();
 	}
 
 	@Test
 	public void testSimpleHandlerEndpointWithContext() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
+		AbstractApplicationContext context = new ClassPathXmlApplicationContext(
 				"handlerAnnotationPostProcessorTests.xml", this.getClass());
 		MessageChannel inputChannel = (MessageChannel) context.getBean("inputChannel");
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		inputChannel.send(new StringMessage("foo"));
 		Message<?> reply = outputChannel.receive(1000);
 		assertEquals("hello foo", reply.getPayload());
+		context.stop();
 	}
 
 	@Test
@@ -381,16 +384,27 @@ public class MessagingAnnotationPostProcessorTests {
 	}
 
 	@Test
-	public void testChannelAdapterAnnotation() {
+	public void testChannelAdapterAnnotation() throws InterruptedException {
 		MessageBus messageBus = new DefaultMessageBus();
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
 		postProcessor.afterPropertiesSet();
 		ChannelAdapterAnnotationTestBean testBean = new ChannelAdapterAnnotationTestBean();
 		postProcessor.postProcessAfterInitialization(testBean, "testBean");
 		messageBus.start();
-		PollableChannel testChannel = (PollableChannel) messageBus.lookupChannel("testChannel");
-		Message<?> message = testChannel.receive(1000);
-		assertEquals("test", message.getPayload());
+		DirectChannel testChannel = (DirectChannel) messageBus.lookupChannel("testChannel");
+		final CountDownLatch latch = new CountDownLatch(1);
+		final AtomicReference<Message<?>> receivedMessage = new AtomicReference<Message<?>>();
+		testChannel.subscribe(new org.springframework.integration.message.MessageTarget() {
+			public boolean send(Message<?> message) {
+				receivedMessage.set(message);
+				latch.countDown();
+				return false;
+			}
+		});
+		latch.await(3, TimeUnit.SECONDS);
+		assertEquals(0, latch.getCount());
+		assertNotNull(receivedMessage.get());
+		assertEquals("test", receivedMessage.get().getPayload());
 		messageBus.stop();
 	}
 
@@ -534,6 +548,7 @@ public class MessagingAnnotationPostProcessorTests {
 
 
 	@ChannelAdapter("testChannel")
+	@Poller(period = 1000, initialDelay = 0, maxMessagesPerPoll = 1)
 	private static class ChannelAdapterAnnotationTestBean {
 
 		@Pollable

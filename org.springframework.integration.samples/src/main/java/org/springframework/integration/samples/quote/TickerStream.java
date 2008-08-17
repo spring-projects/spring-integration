@@ -20,11 +20,13 @@ import java.util.Random;
 
 import org.springframework.integration.annotation.ChannelAdapter;
 import org.springframework.integration.annotation.Pollable;
+import org.springframework.integration.annotation.Poller;
 
 /**
  * @author Mark Fisher
  */
 @ChannelAdapter("tickers")
+@Poller(period = 300)
 public class TickerStream {
 
 	@Pollable

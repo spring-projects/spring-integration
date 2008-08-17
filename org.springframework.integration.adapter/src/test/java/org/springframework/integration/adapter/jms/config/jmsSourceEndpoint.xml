@@ -9,7 +9,11 @@
 
 	<si:message-bus/>
 
-	<si:channel-adapter id="channel" source="jmsSource"/>
+	<si:channel id="channel"/>
+
+	<si:channel-adapter source="jmsSource" channel="channel">
+		<si:poller period="5000" initial-delay="0" max-messages-per-poll="1"/>
+	</si:channel-adapter>
 
 	<si:jms-source id="jmsSource" jms-template="jmsTemplate"/>
 

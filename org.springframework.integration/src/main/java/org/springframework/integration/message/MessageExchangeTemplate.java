@@ -32,6 +32,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.util.Assert;
 
 /**
  * This is the central class for invoking message exchange operations
@@ -192,6 +193,7 @@ public class MessageExchangeTemplate implements InitializingBean {
 
 
 	private boolean doSend(Message<?> message, MessageTarget target) {
+		Assert.notNull(target, "target must not be null");
 		long timeout = this.sendTimeout;
 		boolean sent = (timeout >= 0 && target instanceof BlockingTarget)
 				? ((BlockingTarget) target).send(message, timeout)
@@ -203,6 +205,7 @@ public class MessageExchangeTemplate implements InitializingBean {
 	}
 
 	private Message<?> doReceive(PollableSource<?> source) {
+		Assert.notNull(source, "source must not be null");
 		long timeout = this.receiveTimeout;
 		Message<?> message = (timeout >= 0 && source instanceof BlockingSource)
 				? ((BlockingSource<?>) source).receive(timeout)

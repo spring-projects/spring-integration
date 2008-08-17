@@ -24,7 +24,15 @@ import org.springframework.integration.message.MessageTarget;
  */
 public class TestTarget implements MessageTarget {
 
+	private volatile Message<?> lastMessage;
+
+
+	public Message<?> getLastMessage() {
+		return this.lastMessage;
+	}
+
 	public boolean send(Message<?> message) {
+		this.lastMessage = message;
 		return true;
 	}
 

@@ -30,10 +30,10 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.PollableChannel;
-import org.springframework.integration.channel.PollableChannelAdapter;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.DefaultEndpoint;
+import org.springframework.integration.endpoint.InboundChannelAdapter;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
@@ -223,17 +223,10 @@ public class DefaultMessageBusTests {
 	public void testErrorChannelWithFailedDispatch() throws InterruptedException {
 		MessageBus bus = new DefaultMessageBus();
 		CountDownLatch latch = new CountDownLatch(1);
-		PollableChannelAdapter channelAdapter = new PollableChannelAdapter(
-				"testChannel", new FailingSource(latch), null);
-		MessageHandler handler = new MessageHandler() {
-			public Message<?> handle(Message<?> message) {
-				return message;
-			}
-		};
-		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
-		endpoint.setBeanName("testEndpoint");
-		endpoint.setSource(channelAdapter);
-		bus.registerEndpoint(endpoint);
+		InboundChannelAdapter channelAdapter = new InboundChannelAdapter();
+		channelAdapter.setSource(new FailingSource(latch));
+		channelAdapter.setBeanName("testChannel");
+		bus.registerEndpoint(channelAdapter);
 		bus.start();
 		latch.await(2000, TimeUnit.MILLISECONDS);
 		Message<?> message = ((PollableChannel) bus.getErrorChannel()).receive(5000);
