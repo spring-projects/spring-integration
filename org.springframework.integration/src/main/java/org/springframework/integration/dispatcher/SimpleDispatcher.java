@@ -16,58 +16,22 @@
 
 package org.springframework.integration.dispatcher;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.MessageTarget;
-import org.springframework.util.Assert;
 
 /**
  * Basic implementation of {@link MessageDispatcher} that will attempt
- * to send a {@link Message} to one of its targets (the first that accepts).
+ * to send a {@link Message} to one of its targets. As soon as <em>one</em>
+ * of the targets accepts the Message, the dispatcher will return 'true'.
+ * <p>
+ * If all targets reject the Message, the dispatcher will throw a
+ * MessageRejectedException. If all targets return 'false' (e.g. due
+ * to a timeout), the dispatcher will return 'false'.
  * 
  * @author Mark Fisher
  */
 public class SimpleDispatcher extends AbstractDispatcher {
-
-	public final static int DEFAULT_REJECTION_LIMIT = 1;
-
-	public final static long DEFAULT_RETRY_INTERVAL = 1000;
-
-
-	private volatile int rejectionLimit = DEFAULT_REJECTION_LIMIT;
-
-	private volatile long retryInterval = DEFAULT_RETRY_INTERVAL;
-
-	private volatile boolean shouldFailOnRejectionLimit = true;
-
-
-	/**
-	 * Set the maximum number of retries upon rejection. 
-	 */
-	public void setRejectionLimit(int rejectionLimit) {
-		Assert.isTrue(rejectionLimit > 0, "'rejectionLimit' must be at least 1");
-		this.rejectionLimit = rejectionLimit;
-	}
-
-	/**
-	 * Set the amount of time in milliseconds to wait between rejections.
-	 */
-	public void setRetryInterval(long retryInterval) {
-		Assert.isTrue(retryInterval >= 0, "'retryInterval' must not be negative");
-		this.retryInterval = retryInterval;
-	}
-
-	/**
-	 * Specify whether an exception should be thrown when this dispatcher's
-	 * {@link #rejectionLimit} is reached. The default value is 'true'.
-	 */
-	public void setShouldFailOnRejectionLimit(boolean shouldFailOnRejectionLimit) {
-		this.shouldFailOnRejectionLimit = shouldFailOnRejectionLimit;
-	}
 
 	public boolean send(Message<?> message) {
 		if (this.targets.size() == 0) {
@@ -76,44 +40,13 @@ public class SimpleDispatcher extends AbstractDispatcher {
 			}
 			return false;
 		}
-		int attempts = 0;
-		MessageHandlingException lastException = null;
-		while (attempts < this.rejectionLimit) {
-			Iterator<MessageTarget> iter = new ArrayList<MessageTarget>(this.targets).iterator();
-			if (!iter.hasNext()) {
-				return false;
-			}
-			if (attempts > 0) {
-				try {
-					this.waitBetweenAttempts(attempts);
-				}
-				catch (InterruptedException iex) {
-					Thread.currentThread().interrupt();
-					return false;
-				}
-			}
-			lastException = sendMessageToFirstAcceptingTarget(message, iter);
-			if (lastException == null) {
-				return true;
-			}
-			attempts++;
-		}
-		if (this.shouldFailOnRejectionLimit) {
-			throw lastException;
-		}
-		return false;
-	}
-
-	private MessageHandlingException sendMessageToFirstAcceptingTarget(Message<?> message, Iterator<MessageTarget> iter) {
-		MessageHandlingException exception = null;
 		int count = 0;
 		int rejectedExceptionCount = 0;
-		while (iter.hasNext()) {
+		for (MessageTarget target : this.targets) {
 			count++;
-			MessageTarget target = iter.next();
 			try {
 				if (this.sendMessageToTarget(message, target)) {
-					return null;
+					return true;
 				}
 				if (logger.isDebugEnabled()) {
 					logger.debug("Failed to send message to target, continuing with other targets if available.");
@@ -125,28 +58,11 @@ public class SimpleDispatcher extends AbstractDispatcher {
 					logger.debug("Target '" + target + "' rejected Message, continuing with other targets if available.", e);
 				}
 			}
-			catch (MessageHandlingException e) {
-				if (exception == null) {
-					exception = e;
-				}
-				if (logger.isDebugEnabled()) {
-					logger.debug("Target '" + target + "' threw an exception, continuing with other targets if available.", e);
-				}
-			}
 		}
 		if (rejectedExceptionCount == count) {
 			throw new MessageRejectedException(message, "All of dispatcher's targets rejected Message.");
 		}
-		return exception;
-	}
-
-	private void waitBetweenAttempts(int attempts) throws InterruptedException {
-		if (logger.isDebugEnabled()) {
-			logger.debug("target(s) unable to handle message after " + attempts +
-					" attempt(s), will try again after 'retryInterval' of " +
-					this.retryInterval + " milliseconds");
-		}
-		Thread.sleep(this.retryInterval);
+		return false;
 	}
 
 }
