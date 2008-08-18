@@ -44,6 +44,7 @@ import org.springframework.integration.channel.config.ChannelParserTests;
 import org.springframework.integration.endpoint.DefaultEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.TestHandlers;
+import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.integration.scheduling.spi.ProviderTaskScheduler;
 
 /**
@@ -184,6 +185,17 @@ public class MessageBusParserTests {
 		TestMessageBusStopInterceptor stopInterceptor = (TestMessageBusStopInterceptor) context.getBean(
 				"stopInterceptor");
 		MessageBusInterceptorTests.executeInterceptorsTest(messageBus, startInterceptor, stopInterceptor);
+	}
+
+	@Test
+	public void testMessageBusWithTaskScheduler() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"messageBusWithTaskScheduler.xml", this.getClass());
+		MessageBus messageBus = (MessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
+		StubTaskScheduler schedulerBean = (StubTaskScheduler) context.getBean("testScheduler");
+		TaskScheduler busScheduler = (TaskScheduler) new DirectFieldAccessor(messageBus).getPropertyValue("taskScheduler");
+		assertNotNull(busScheduler);
+		assertEquals(schedulerBean, busScheduler);
 	}
 
 }

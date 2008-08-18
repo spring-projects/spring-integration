@@ -32,8 +32,8 @@
 				</xsd:element>
 			</xsd:sequence>
 			<xsd:attribute name="auto-startup" type="xsd:boolean"/>
+			<xsd:attribute name="task-scheduler" type="xsd:string"/>
 			<xsd:attribute name="channel-factory" type="xsd:string"/>
-			<xsd:attribute name="dispatcher-pool-size" type="xsd:int"/>
 			<xsd:attribute name="configure-async-event-multicaster" type="xsd:boolean"/>
 		</xsd:complexType>
 	</xsd:element>

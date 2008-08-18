@@ -45,8 +45,10 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 
 	public static final String MESSAGE_BUS_AWARE_POST_PROCESSOR_BEAN_NAME = "internal.MessageBusAwareBeanPostProcessor";
 
+	private static final String TASK_SCHEDULER_ATTRIBUTE = "task-scheduler";
+
 	private static final String CHANNEL_FACTORY_ATTRIBUTE = "channel-factory";
-	
+
 	private static final String INTERCEPTOR_ELEMENT = "interceptor";
 	
 	private static final String REFERENCE_ATTRIBUTE = "ref";
@@ -71,12 +73,14 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
-		return !CHANNEL_FACTORY_ATTRIBUTE.equals(attributeName) &&
+		return !TASK_SCHEDULER_ATTRIBUTE.equals(attributeName) &&
+				!CHANNEL_FACTORY_ATTRIBUTE.equals(attributeName) &&
 				super.isEligibleAttribute(attributeName);
 	}
 
 	@Override
 	protected void postProcess(BeanDefinitionBuilder builder, Element element) {
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, TASK_SCHEDULER_ATTRIBUTE);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, CHANNEL_FACTORY_ATTRIBUTE);
 		this.processChildElements(builder, element);
 	}
