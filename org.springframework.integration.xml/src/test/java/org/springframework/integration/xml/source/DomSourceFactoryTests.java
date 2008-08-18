@@ -16,7 +16,7 @@
 
 package org.springframework.integration.xml.source;
 
-import static org.junit.Assert.*;
+import static org.custommonkey.xmlunit.XMLAssert.*;
 
 import java.io.StringReader;
 
@@ -57,7 +57,7 @@ public class DomSourceFactoryTests {
 		Source source = sourceFactory.createSource(doc);
 		assertNotNull("Returned source was null", source);
 		assertEquals("Expected DOMSource", DOMSource.class, source.getClass());
-		assertEquals("Wrong content in source ", docContent, getAsString(source));
+		assertXMLEqual("Wrong content in source ", docContent, getAsString(source));
 	}
 
 	@Test
@@ -65,7 +65,7 @@ public class DomSourceFactoryTests {
 		Source source = sourceFactory.createSource(docContent);
 		assertNotNull("Returned source was null", source);
 		assertEquals("Expected DOMSource", DOMSource.class, source.getClass());
-		assertEquals("Wrong content in source ", docContent, getAsString(source));
+		assertXMLEqual("Wrong content in source ", docContent, getAsString(source));
 	}
 
 	@Test(expected = MessagingException.class)

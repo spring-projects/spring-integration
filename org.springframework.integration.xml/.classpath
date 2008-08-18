@@ -13,5 +13,6 @@
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework.ws/org.springframework.xml/1.5.1.A/org.springframework.xml-1.5.1.A.jar" sourcepath="/IVY_CACHE/org.springframework.ws/org.springframework.xml/1.5.1.A/org.springframework.xml-sources-1.5.1.A.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/org.springframework.integration"/>
 	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.test/2.5.5.A/org.springframework.test-2.5.5.A.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.test/2.5.5.A/org.springframework.test-sources-2.5.5.A.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.custommonkey.xmlunit/com.springsource.org.custommonkey.xmlunit/1.2.0/com.springsource.org.custommonkey.xmlunit-1.2.0.jar" sourcepath="/IVY_CACHE/org.custommonkey.xmlunit/com.springsource.org.custommonkey.xmlunit/1.2.0/com.springsource.org.custommonkey.xmlunit-sources-1.2.0.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
