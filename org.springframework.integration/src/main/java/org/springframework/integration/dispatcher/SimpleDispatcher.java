@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.MessageTarget;
@@ -100,13 +99,13 @@ public class SimpleDispatcher extends AbstractDispatcher {
 			attempts++;
 		}
 		if (this.shouldFailOnRejectionLimit) {
-			throw new MessageDeliveryException(message, "Dispatcher reached rejection limit of " + this.rejectionLimit, lastException);
+			throw lastException;
 		}
 		return false;
 	}
 
 	private MessageHandlingException sendMessageToFirstAcceptingTarget(Message<?> message, Iterator<MessageTarget> iter) {
-		MessageHandlingException lastException = null;
+		MessageHandlingException exception = null;
 		int count = 0;
 		int rejectedExceptionCount = 0;
 		while (iter.hasNext()) {
@@ -127,7 +126,9 @@ public class SimpleDispatcher extends AbstractDispatcher {
 				}
 			}
 			catch (MessageHandlingException e) {
-				lastException = e;
+				if (exception == null) {
+					exception = e;
+				}
 				if (logger.isDebugEnabled()) {
 					logger.debug("Target '" + target + "' threw an exception, continuing with other targets if available.", e);
 				}
@@ -136,7 +137,7 @@ public class SimpleDispatcher extends AbstractDispatcher {
 		if (rejectedExceptionCount == count) {
 			throw new MessageRejectedException(message, "All of dispatcher's targets rejected Message.");
 		}
-		return lastException;
+		return exception;
 	}
 
 	private void waitBetweenAttempts(int attempts) throws InterruptedException {

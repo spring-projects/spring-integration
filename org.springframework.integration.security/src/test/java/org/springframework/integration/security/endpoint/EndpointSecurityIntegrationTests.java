@@ -24,7 +24,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.security.SecurityTestUtil;
 import org.springframework.security.AccessDeniedException;
@@ -39,7 +39,7 @@ import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
  * @author Mark Fisher
  */
 @ContextConfiguration
-public class EndpointSecurityIntegrationTest extends AbstractJUnit4SpringContextTests {
+public class EndpointSecurityIntegrationTests extends AbstractJUnit4SpringContextTests {
 
 	@Autowired
 	@Qualifier("input")
@@ -73,8 +73,8 @@ public class EndpointSecurityIntegrationTest extends AbstractJUnit4SpringContext
 		try {
 			input.send(new StringMessage("test"));
 		}
-		catch (MessageDeliveryException e) {
-			throw e.getCause().getCause();
+		catch (MessagingException e) {
+			throw e.getCause();
 		}
 	}
 
