@@ -26,6 +26,7 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageCreator;
+import org.springframework.util.Assert;
 
 /**
  * Interceptor that publishes a target method's return value to a channel.
@@ -34,15 +35,25 @@ import org.springframework.integration.message.MessageCreator;
  */
 public class MessagePublishingInterceptor implements MethodInterceptor {
 
+	public static enum PayloadType { RETURN_VALUE, ARGUMENTS, EXCEPTION };
+
+
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	private volatile MessageCreator messageCreator;
 
 	private volatile MessageChannel defaultChannel;
 
+	private volatile PayloadType payloadType = PayloadType.RETURN_VALUE;
+
 
 	public void setDefaultChannel(MessageChannel defaultChannel) {
 		this.defaultChannel = defaultChannel;
+	}
+
+	public void setPayloadType(PayloadType payloadType) {
+		Assert.notNull(payloadType, "'payloadType' must not be null");
+		this.payloadType = payloadType;
 	}
 
 	/**
@@ -59,8 +70,32 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 	 * Invoke the target method and publish its return value.
 	 */
 	public Object invoke(MethodInvocation invocation) throws Throwable {
-		Object retval = invocation.proceed();
-		if (retval != null) {
+		PayloadType payloadType = this.determinePayloadType(invocation);
+		if (payloadType.equals(PayloadType.ARGUMENTS)) {
+			this.sendMessage(invocation.getArguments(), invocation);
+		}
+		Object retval = null;
+		Throwable throwable = null;
+		try {
+			retval = invocation.proceed();
+			return retval;
+		}
+		catch (Throwable t) {
+			throwable = t;
+			throw t;
+		}
+		finally {
+			if (payloadType.equals(PayloadType.RETURN_VALUE)) {
+				this.sendMessage(retval, invocation);
+			}
+			else if (payloadType.equals(PayloadType.EXCEPTION)) {
+				this.sendMessage(throwable, invocation);
+			}
+		}
+	}
+
+	private void sendMessage(Object payload, MethodInvocation invocation) {
+		if (payload != null) {
 			MessageChannel channel = this.resolveChannel(invocation);
 			if (channel == null) {
 				if (logger.isWarnEnabled()) {
@@ -69,11 +104,11 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 				}
 			}
 			else {
-				Message<?> message = (this.messageCreator != null) ? this.messageCreator.createMessage(retval) : new GenericMessage<Object>(retval);
+				Message<?> message = (this.messageCreator != null) ?
+						this.messageCreator.createMessage(payload) : new GenericMessage<Object>(payload);
 				channel.send(message);
 			}
 		}
-		return retval;
 	}
 
 	/**
@@ -81,6 +116,10 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 	 */
 	protected MessageChannel resolveChannel(MethodInvocation invocation) {
 		return this.defaultChannel;
+	}
+
+	protected PayloadType determinePayloadType(MethodInvocation invocation) {
+		return this.payloadType;
 	}
 
 }

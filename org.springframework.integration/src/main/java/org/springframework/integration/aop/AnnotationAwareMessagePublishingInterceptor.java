@@ -70,4 +70,18 @@ public class AnnotationAwareMessagePublishingInterceptor extends MessagePublishi
 		return super.resolveChannel(invocation);
 	}
 
+	@Override
+	protected PayloadType determinePayloadType(MethodInvocation invocation) {
+		Class<?> targetClass = AopUtils.getTargetClass(invocation.getThis());
+		Method method = AopUtils.getMostSpecificMethod(invocation.getMethod(), targetClass);
+		Annotation annotation = AnnotationUtils.getAnnotation(method, this.publisherAnnotationType);
+		if (annotation != null) {
+			PayloadType payloadType = (PayloadType) AnnotationUtils.getValue(annotation, "payloadType");
+			if (payloadType != null) {
+				return payloadType;
+			}
+		}
+		return super.determinePayloadType(invocation);
+	}
+
 }

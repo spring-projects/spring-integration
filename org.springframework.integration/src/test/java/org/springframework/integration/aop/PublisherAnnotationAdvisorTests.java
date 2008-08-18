@@ -19,6 +19,7 @@ package org.springframework.integration.aop;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -61,6 +62,61 @@ public class PublisherAnnotationAdvisorTests {
 		assertNull(message);
 	}
 
+	@Test
+	public void testPublishArguments() {
+		final QueueChannel channel = new QueueChannel();
+		channel.setBeanName("testChannel");
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		channelRegistry.registerChannel(channel);
+		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor(channelRegistry);
+		TestService proxy = (TestService) this.createProxy(new TestServiceImpl("hello world"), advisor);
+		proxy.publishArguments("foo", 99);
+		Message<?> message = channel.receive(0);
+		assertNotNull(message);
+		assertTrue(message.getPayload() instanceof Object[]);
+		Object[] args = (Object[]) message.getPayload();
+		assertEquals(2, args.length);
+		assertEquals("foo", args[0]);
+		assertEquals(99, args[1]);
+	}
+
+	@Test
+	public void testPublishException() {
+		final QueueChannel channel = new QueueChannel();
+		channel.setBeanName("testChannel");
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		channelRegistry.registerChannel(channel);
+		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor(channelRegistry);
+		TestService proxy = (TestService) this.createProxy(new TestServiceImpl("hello world"), advisor);
+		RuntimeException caughtException = null;
+		try {
+			proxy.publishException();
+		}
+		catch (RuntimeException e) {
+			caughtException = e;
+		}
+		assertNotNull(caughtException);
+		Message<?> message = channel.receive(0);
+		assertNotNull(message);
+		assertTrue(message.getPayload() instanceof RuntimeException);
+		RuntimeException publishedException = (RuntimeException) message.getPayload();
+		assertEquals(caughtException, publishedException);
+	}
+
+	@Test
+	public void testPublishReturnValue() {
+		final QueueChannel channel = new QueueChannel();
+		channel.setBeanName("testChannel");
+		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		channelRegistry.registerChannel(channel);
+		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor(channelRegistry);
+		TestService proxy = (TestService) this.createProxy(new TestServiceImpl("hello world"), advisor);
+		Integer actualReturnValue = proxy.publishReturnValue();
+		Message<?> message = channel.receive(0);
+		assertNotNull(message);
+		assertEquals(actualReturnValue, message.getPayload());
+	}
+
 
 	private Object createProxy(Object target, PublisherAnnotationAdvisor advisor) {
 		ProxyFactory factory = new ProxyFactory(target);
@@ -74,6 +130,13 @@ public class PublisherAnnotationAdvisorTests {
 		String publisherTest();
 
 		String noPublisherTest();
+
+		void publishArguments(String s, Integer n);
+
+		Integer publishReturnValue();
+
+		void publishException();
+
 	}
 
 
@@ -92,6 +155,20 @@ public class PublisherAnnotationAdvisorTests {
 
 		public String noPublisherTest() {
 			return this.message;
+		}
+
+		@Publisher(channel="testChannel", payloadType=MessagePublishingInterceptor.PayloadType.ARGUMENTS)
+		public void publishArguments(String s, Integer n) {
+		}
+
+		@Publisher(channel="testChannel", payloadType=MessagePublishingInterceptor.PayloadType.EXCEPTION)
+		public void publishException() {
+			throw new RuntimeException("test failure");
+		}
+
+		@Publisher(channel="testChannel", payloadType=MessagePublishingInterceptor.PayloadType.RETURN_VALUE)
+		public Integer publishReturnValue() {
+			return 123;
 		}
 
 	}
