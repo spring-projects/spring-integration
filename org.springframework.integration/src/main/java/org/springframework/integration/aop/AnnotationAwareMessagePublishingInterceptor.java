@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,16 +55,11 @@ public class AnnotationAwareMessagePublishingInterceptor extends MessagePublishi
 
 	@Override
 	protected MessageChannel resolveChannel(MethodInvocation invocation) {
-		Class<?> targetClass = AopUtils.getTargetClass(invocation.getThis());
-		Method method = AopUtils.getMostSpecificMethod(invocation.getMethod(), targetClass);
-		Annotation annotation = AnnotationUtils.getAnnotation(method, this.publisherAnnotationType);
-		if (annotation != null) {
-			String channelName = (String) AnnotationUtils.getValue(annotation, this.channelAttributeName);
-			if (channelName != null) {
-				MessageChannel channel = this.channelRegistry.lookupChannel(channelName);
-				if (channel != null) {
-					return channel;
-				}
+		String channelName = this.extractAnnotationValue(invocation, this.channelAttributeName, String.class);
+		if (channelName != null) {
+			MessageChannel channel = this.channelRegistry.lookupChannel(channelName);
+			if (channel != null) {
+				return channel;
 			}
 		}
 		return super.resolveChannel(invocation);
@@ -72,16 +67,25 @@ public class AnnotationAwareMessagePublishingInterceptor extends MessagePublishi
 
 	@Override
 	protected PayloadType determinePayloadType(MethodInvocation invocation) {
+		PayloadType payloadType = this.extractAnnotationValue(invocation, "payloadType", PayloadType.class);
+		if (payloadType != null) {
+			return payloadType;
+		}
+		return super.determinePayloadType(invocation);
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T> T extractAnnotationValue(MethodInvocation invocation, String attributeName, Class<T> type) {
 		Class<?> targetClass = AopUtils.getTargetClass(invocation.getThis());
 		Method method = AopUtils.getMostSpecificMethod(invocation.getMethod(), targetClass);
 		Annotation annotation = AnnotationUtils.getAnnotation(method, this.publisherAnnotationType);
 		if (annotation != null) {
-			PayloadType payloadType = (PayloadType) AnnotationUtils.getValue(annotation, "payloadType");
-			if (payloadType != null) {
-				return payloadType;
+			Object value = AnnotationUtils.getValue(annotation, attributeName);
+			if (value != null && type.isAssignableFrom(value.getClass())) {
+				return (T) value;
 			}
 		}
-		return super.determinePayloadType(invocation);
+		return null;
 	}
 
 }
