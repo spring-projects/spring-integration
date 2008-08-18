@@ -18,28 +18,22 @@ package org.springframework.integration.adapter.mail;
 
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageMapper;
-import org.springframework.integration.message.StringMessage;
 import org.springframework.mail.MailMessage;
 import org.springframework.mail.SimpleMailMessage;
-import org.springframework.util.Assert;
 
 /**
- * Message mapper for transforming integration messages with a String payload
- * into simple text e-mail messages. The body of the e-mail message will be the
- * content of the integration message's payload.
+ * Message mapper for transforming integration messages into simple text
+ * e-mail messages. The body of the e-mail message will be the result of
+ * invoking the message payload's toString() method.
  * 
  * @author Marius Bogoevici
+ * @author Mark Fisher
  */
 public class TextMailMessageMapper implements MessageMapper<String, MailMessage> {
 
-	public Message<String> toMessage(MailMessage source) {
-		Assert.isInstanceOf(SimpleMailMessage.class, source, "source must be a SimpleMailMessage");
-		return new StringMessage(((SimpleMailMessage) source).getText());
-	}
-
-	public MailMessage mapMessage(Message<String> stringMessage) {
+	public MailMessage mapMessage(Message<String> message) {
 		SimpleMailMessage mailMessage = new SimpleMailMessage();
-		mailMessage.setText(stringMessage.getPayload());
+		mailMessage.setText(message.getPayload().toString());
 		return mailMessage;
 	}
 
