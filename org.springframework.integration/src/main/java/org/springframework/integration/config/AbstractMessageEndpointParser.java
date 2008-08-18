@@ -54,6 +54,8 @@ public abstract class AbstractMessageEndpointParser extends AbstractSingleBeanDe
 
 	private static final String SELECTOR_ATTRIBUTE = "selector";
 
+	private static final String ERROR_HANDLER_ATTRIBUTE = "error-handler";
+
 	private static final String INTERCEPTORS_ELEMENT = "interceptors";
 
 
@@ -111,6 +113,7 @@ public abstract class AbstractMessageEndpointParser extends AbstractSingleBeanDe
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(
 				builder, element, OUTPUT_CHANNEL_ATTRIBUTE, "outputChannelName");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, SELECTOR_ATTRIBUTE);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, ERROR_HANDLER_ATTRIBUTE);
 		String returnAddressOverridesAttribute = element.getAttribute(RETURN_ADDRESS_OVERRIDES_ATTRIBUTE);
 		boolean returnAddressOverrides = "true".equals(returnAddressOverridesAttribute);
 		builder.addPropertyValue("returnAddressOverrides", returnAddressOverrides);

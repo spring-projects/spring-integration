@@ -9,11 +9,11 @@
 
 	<message-bus/>
 
-	<channel id="testChannel"/>
+	<direct-channel id="channel"/>
 
-	<service-activator id="endpoint" input-channel="testChannel" ref="testHandler" error-handler="errorHandler"/>
+	<service-activator id="endpoint" input-channel="channel" ref="handler" error-handler="errorHandler"/>
 
-	<beans:bean id="testHandler" class="org.springframework.integration.config.ExceptionThrowingTestHandler"/>
+	<beans:bean id="handler" class="org.springframework.integration.config.ExceptionThrowingTestHandler"/>
 
 	<beans:bean id="errorHandler" class="org.springframework.integration.config.TestErrorHandler"/>
 

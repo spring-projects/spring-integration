@@ -104,4 +104,16 @@ public class EndpointParserTests {
 		endpoint.send(message);
 	}
 
+	@Test
+	public void testEndpointWithErrorHandler() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"endpointWithErrorHandler.xml", this.getClass());		
+		MessageChannel channel = (MessageChannel) context.getBean("channel");
+		TestErrorHandler errorHandler = (TestErrorHandler) context.getBean("errorHandler");
+		assertNull(errorHandler.getLastError());
+		channel.send(new StringMessage("test"));
+		assertNotNull(errorHandler.getLastError());
+		assertEquals("intentional test failure", errorHandler.getLastError().getMessage());
+	}
+
 }
