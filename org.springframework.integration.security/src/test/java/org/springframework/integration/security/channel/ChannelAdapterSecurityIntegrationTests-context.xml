@@ -13,7 +13,7 @@
 
 	<beans:import resource="classpath:org/springframework/integration/security/config/commonSecurityConfiguration.xml"/>
 
-	<message-bus auto-create-channels="false" />
+	<message-bus/>
 
 	<si-security:secured-channels send-access="ROLE_ADMIN">
 		<si-security:channel-name-pattern>secured.*</si-security:channel-name-pattern>

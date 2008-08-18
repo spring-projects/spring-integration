@@ -11,7 +11,7 @@
               http://www.springframework.org/schema/integration-security http://www.springframework.org/schema/integration/spring-integration-security-1.0.xsd
               http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd">
 
-	<message-bus auto-create-channels="false" />
+	<message-bus/>
 
 	<direct-channel id="input"/>
 

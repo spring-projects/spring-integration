@@ -7,7 +7,10 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<message-bus auto-create-channels="true"/>
+	<message-bus/>
+
+	<channel id="inputChannel"/>
+	<channel id="outputChannel"/>
 
 	<service-activator input-channel="inputChannel"
 	                   output-channel="outputChannel"

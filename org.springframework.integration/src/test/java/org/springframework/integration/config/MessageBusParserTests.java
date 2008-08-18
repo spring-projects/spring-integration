@@ -82,20 +82,6 @@ public class MessageBusParserTests {
 	}
 
 	@Test
-	public void testAutoCreateChannelsEnabled() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"messageBusWithAutoCreateChannels.xml", this.getClass());
-		MessageBus bus = (MessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
-		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(TestHandlers.nullHandler());
-		endpoint.setBeanName("testEndpoint");
-		endpoint.setInputChannelName("channelToCreate");
-		bus.registerEndpoint(endpoint);
-		bus.start();
-		assertNotNull(bus.lookupChannel("channelToCreate"));
-		bus.stop();
-	}
-
-	@Test
 	public void testMultipleMessageBusElements() {
 		boolean exceptionThrown = false;
 		try {

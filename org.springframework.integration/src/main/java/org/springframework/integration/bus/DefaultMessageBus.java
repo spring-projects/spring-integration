@@ -96,8 +96,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 
 	private volatile boolean configureAsyncEventMulticaster = false;
 
-	private volatile boolean autoCreateChannels = false;
-
 	private volatile boolean autoStartup = true;
 
 	private volatile boolean initialized;
@@ -144,14 +142,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 	 */
 	public void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;
-	}
-
-	/**
-	 * Set whether the bus should automatically create a channel when a
-	 * subscription contains the name of a previously unregistered channel.
-	 */
-	public void setAutoCreateChannels(boolean autoCreateChannels) {
-		this.autoCreateChannels = autoCreateChannels;
 	}
 
 	/**
@@ -297,15 +287,25 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 		}
 		MessageTarget target = endpoint.getTarget();
 		if (target == null) {
-			target = this.lookupOrCreateChannel(endpoint.getOutputChannelName());
-			if (target != null) {
+			String outputChannelName = endpoint.getOutputChannelName();
+			if (outputChannelName != null) {
+				target = this.lookupChannel(outputChannelName);
+				if (target == null) {
+					throw new ConfigurationException("cannot activate endpoint '" + endpoint +
+							"', unable to resolve output-channel '" + outputChannelName + "'");
+				}
 				endpoint.setTarget(target);
 			}
 		}
 		MessageSource<?> source = endpoint.getSource();
 		if (source == null) {
-			source = this.lookupOrCreateChannel(endpoint.getInputChannelName());
-			if (source != null) {
+			String inputChannelName = endpoint.getInputChannelName();
+			if (inputChannelName != null) {
+				source = this.lookupChannel(inputChannelName);
+				if (source == null) {
+					throw new ConfigurationException("cannot activate endpoint '" + endpoint +
+							"', unable to resolve input-channel '" + inputChannelName + "'");					
+				}
 				endpoint.setSource(source);
 			}
 		}
@@ -330,25 +330,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 			this.pollingDispatchers.add(poller);
 			this.taskScheduler.schedule(poller);
 		}
-	}
-
-	private MessageChannel lookupOrCreateChannel(String channelName) {
-		if (channelName == null) {
-			return null;
-		}
-		MessageChannel channel = this.lookupChannel(channelName);
-		if (channel == null) {
-			if (!this.autoCreateChannels) {
-				throw new ConfigurationException("Cannot activate endpoint, unknown channel '" + channelName
-						+ "'. Consider enabling the 'autoCreateChannels' option for the message bus.");
-			}
-			if (this.logger.isInfoEnabled()) {
-				logger.info("auto-creating channel '" + channelName + "'");
-			}
-			channel = channelFactory.getChannel(channelName, null);
-			this.registerChannel(channel);
-		}
-		return channel;
 	}
 
 	private void registerGateway(String name, MessagingGateway gateway) {
