@@ -226,8 +226,9 @@ public class MessageExchangeTemplate implements InitializingBean {
 	}
 
 	private boolean doReceiveAndForward(PollableSource<?> source, MessageTarget target) {
+		Message<?> message = null;
 		try {
-			Message<?> message = this.doReceive(source);
+			message = this.doReceive(source);
 			if (message == null) {
 				return false;
 			}
@@ -237,18 +238,23 @@ public class MessageExchangeTemplate implements InitializingBean {
 					((MessageDeliveryAware) source).onSend(message);
 				}
 				else {
-					((MessageDeliveryAware) source).onFailure(new MessageDeliveryException(message, "failed to send message"));
+					((MessageDeliveryAware) source).onFailure(message, new MessageDeliveryException(message, "failed to send message"));
 				}
 			}
 			return sent;
 		}
 		catch (Exception e) {
-			MessagingException exception = (e instanceof MessagingException) ? (MessagingException) e
-					: new MessagingException("exception occurred in receive-and-forward exchange", e);
 			if (source instanceof MessageDeliveryAware) {
-				((MessageDeliveryAware) source).onFailure(exception);
+				((MessageDeliveryAware) source).onFailure(message, e);
 			}
-			throw exception;
+			if (e instanceof MessagingException) {
+				throw (MessagingException) e;
+			}
+			String description = "exception occurred in receive-and-forward exchange";
+			if (message != null) {
+				throw new MessagingException(message, description, e);
+			}
+			throw new MessagingException(description, e);
 		}
 	}
 

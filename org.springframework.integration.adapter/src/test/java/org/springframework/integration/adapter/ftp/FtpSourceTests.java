@@ -37,11 +37,14 @@ import org.easymock.IAnswer;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageCreator;
-import org.springframework.integration.message.MessagingException;
 
+/**
+ * @author Iwein Fuld
+ */
 @SuppressWarnings("unchecked")
 public class FtpSourceTests {
 
@@ -60,15 +63,10 @@ public class FtpSourceTests {
 
 	private Object[] globalMocks = new Object[] { messageCreator, ftpClient, ftpFile, ftpClientPool };
 
-	private static final String HOST = "testHost";
-
-	private static final String USER = "testUser";
-
-	private static final String PASS = "testPass";
-
 	private FtpSource ftpSource;
 
 	private Long size = 100l;
+
 
 	@Before
 	public void initializeFtpSource() {
@@ -79,6 +77,7 @@ public class FtpSourceTests {
 	public void clearState() {
 		reset(globalMocks);
 	}
+
 
 	@Test
 	public void retrieveSingleFile() throws Exception {
@@ -250,7 +249,7 @@ public class FtpSourceTests {
 				new GenericMessage(Arrays.asList(new File("test1")))).times(2);
 		replay(globalMocks);
 		Message<List<File>> received = ftpSource.receive();
-		ftpSource.onFailure(new MessagingException(received));
+		ftpSource.onFailure(received, new Exception("test failure"));
 		assertEquals(received, ftpSource.receive());
 		verify(globalMocks);
 	}

@@ -47,23 +47,25 @@ public abstract class AbstractDirectorySource<T> implements PollableSource<T>, M
 
 	private final MessageCreator<T, T> messageCreator;
 
+
 	public AbstractDirectorySource(MessageCreator<T, T> messageCreator) {
 		Assert.notNull(messageCreator, "The MessageCreator must not be null");
 		this.messageCreator = messageCreator;
 	}
+
 
 	protected Backlog<FileInfo> getDirectoryContentManager() {
 		return this.directoryContentManager;
 	}
 
 	public MessageCreator<T, T> getMessageCreator() {
-		return messageCreator;
+		return this.messageCreator;
 	}
 
 	@SuppressWarnings("unchecked")
 	public final Message<T> receive() {
 		try {
-			refreshSnapshotAndMarkProcessing(directoryContentManager);
+			refreshSnapshotAndMarkProcessing(this.directoryContentManager);
 			if (!(getDirectoryContentManager().getProcessingBuffer().isEmpty() & getDirectoryContentManager()
 					.getBacklog().isEmpty())) {
 				return buildNextMessage();
@@ -78,8 +80,9 @@ public abstract class AbstractDirectorySource<T> implements PollableSource<T>, M
 	/**
 	 * Naive implementation that ignores thread safety. Subclasses that want to
 	 * be thread safe and use the reservation facilities of
-	 * {@link Backlog} override this method and call
+	 * {@link Backlog} should override this method and call
 	 * <code>directoryContentManager.fileProcessing(...)</code> with the appropriate arguments.
+	 * 
 	 * @param directoryContentManager
 	 * @throws IOException
 	 */
@@ -91,9 +94,9 @@ public abstract class AbstractDirectorySource<T> implements PollableSource<T>, M
 
 	/**
 	 * Hook point for implementors to create the next message that should be
-	 * received. Implementations can use a File by File approach like
+	 * received. Implementations can use a File by File approach (like
 	 * FileSource). In cases where retrieval could be expensive because of
-	 * network latency a batched approach could be implemented here. See
+	 * network latency, a batched approach could be implemented here. See
 	 * FtpSource for an example.
 	 * 
 	 * @return the next message containing (part of) the unprocessed content of
@@ -101,20 +104,22 @@ public abstract class AbstractDirectorySource<T> implements PollableSource<T>, M
 	 * @throws IOException
 	 */
 	protected Message<T> buildNextMessage() throws IOException {
-		return messageCreator.createMessage(retrieveNextPayload());
+		return this.messageCreator.createMessage(retrieveNextPayload());
 	}
 
 	public abstract void onSend(Message<?> message);
 
-	public void onFailure(MessagingException exception) {
+	public void onFailure(Message<?> failedMessage, Throwable exception) {
 		if (this.logger.isWarnEnabled()) {
-			logger.warn("Failure notification received by " + this.getClass().getSimpleName(), exception);
+			this.logger.warn("Failure notification received by [" + this.getClass().getSimpleName()
+					+ "] for message: " + failedMessage, exception);
 		}
-		directoryContentManager.processingFailed();
+		this.directoryContentManager.processingFailed();
 	}
 
 	/**
 	 * Constructs the snapshot by iterating files.
+	 * 
 	 * @param snapshot
 	 * @throws IOException
 	 */
@@ -122,6 +127,7 @@ public abstract class AbstractDirectorySource<T> implements PollableSource<T>, M
 
 	/**
 	 * Returns the next file, based on the backlog data.
+	 * 
 	 * @return
 	 * @throws IOException
 	 */

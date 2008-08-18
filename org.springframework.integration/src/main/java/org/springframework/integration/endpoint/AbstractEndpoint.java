@@ -116,7 +116,7 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 			}
 			else {
 				this.handleException(new MessageHandlingException(message,
-						"failure occurred in endpoint's send operation", e));
+						"failure occurred in endpoint '" + this.toString() + "'", e));
 			}
 			return false;
 		}

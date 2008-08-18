@@ -32,6 +32,6 @@ public interface MessageDeliveryAware {
 	/**
 	 * Callback method invoked after a message delivery failure.
 	 */
-	void onFailure(MessagingException exception);
+	void onFailure(Message<?> failedMessage, Throwable t);
 
 }

@@ -41,12 +41,11 @@ public class InboundChannelAdapter extends AbstractEndpoint {
 			return sent;
 		}
 		catch (Exception e) {
-			MessagingException exception = (e instanceof MessagingException) ? (MessagingException) e
-					: new MessageDeliveryException(message, "channel-adapter failed to send message to target");
 			if (this.getSource() instanceof MessageDeliveryAware) {
-				((MessageDeliveryAware) this.getSource()).onFailure(exception);
+				((MessageDeliveryAware) this.getSource()).onFailure(message, e);
 			}
-			return false;
+			throw (e instanceof MessagingException) ? (MessagingException) e
+					: new MessageDeliveryException(message, "channel adapter failed to send message to target", e);
 		}
 	}
 
