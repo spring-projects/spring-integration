@@ -193,7 +193,7 @@ public class FtpSourceTests {
 				new File("test3") })));
 	}
 
-	@Test
+	@Test(timeout=60000)
 	public void concurrentPollingSunnyDay() throws Exception {
 
 		this.ftpSource.setMaxMessagesPerPayload(2);
