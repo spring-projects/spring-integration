@@ -17,6 +17,8 @@
 package org.springframework.integration.config.annotation;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.springframework.aop.Advisor;
 import org.springframework.aop.framework.Advised;
@@ -25,10 +27,12 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.Publisher;
 import org.springframework.integration.aop.PublisherAnnotationAdvisor;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.util.Assert;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * A {@link BeanPostProcessor} that adds a message publishing interceptor when
@@ -96,6 +100,7 @@ public class PublisherAnnotationPostProcessor implements BeanPostProcessor, Bean
 			}
 			else {
 				ProxyFactory pf = new ProxyFactory(bean);
+				pf.setProxyTargetClass(this.requiresClassProxying(targetClass));
 				pf.addAdvisor(this.advisor);
 				return pf.getProxy(this.beanClassLoader);
 			}
@@ -103,6 +108,31 @@ public class PublisherAnnotationPostProcessor implements BeanPostProcessor, Bean
 		else {
 			return bean;
 		}
+	}
+
+	private boolean requiresClassProxying(Class<?> targetClass) {
+		final AtomicBoolean result = new AtomicBoolean(false);
+		final Class<?>[] interfaces = targetClass.getInterfaces();
+		ReflectionUtils.doWithMethods(targetClass, new ReflectionUtils.MethodCallback() {
+			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
+				Annotation annotation = AnnotationUtils.findAnnotation(method, publisherAnnotationType);
+				if (annotation != null) {
+					boolean foundMethodOnInterface = false;
+					for (Class<?> iface : interfaces) {
+						Method ifaceMethod = ReflectionUtils.findMethod(
+								iface, method.getName(), method.getParameterTypes());
+						if (ifaceMethod != null) {
+							foundMethodOnInterface = true;
+							break;
+						}
+					}
+					if (!foundMethodOnInterface) {
+						result.set(true);
+					}
+				}
+			}
+		});
+		return result.get();
 	}
 
 }
