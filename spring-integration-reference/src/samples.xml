@@ -162,24 +162,23 @@ public class Barista {
     <para>
       When you run cafeDemo, you will see that all 100 cold drinks are prepared in roughly the same amount of time as
       only 20 of the hot drinks. This is to be expected based on their respective delays of 1000 and 5000 milliseconds.
-      However, by configuring the endpoint concurrency, you can dramatically change the results. For example, to level
-      the playing field, you could add a concurrency interceptor with 5 workers for the hot drink barista:
+      However, by configuring a poller with a concurrent task executor, you can dramatically change the results. For
+      example, you could use a thread pool executor with 5 workers for the hot drink barista:
       <programlisting language="xml"><![CDATA[<service-activator input-channel="coldDrinks" ref="barista" method="prepareColdDrink"/>
 
 <service-activator input-channel="hotDrinks" ref="barista" method="prepareHotDrink">
-    <interceptors>
-        ]]><emphasis><![CDATA[<concurrency-interceptor max="5"/>]]></emphasis><![CDATA[
-    </interceptors>
-</service-activator>]]></programlisting>
+    ]]><emphasis><![CDATA[<poller period="1000" task-executor="pool"/>]]></emphasis><![CDATA[
+</service-activator>
+
+]]><emphasis><![CDATA[<pool-executor id="pool" core-size="5"/>]]></emphasis></programlisting>
     </para>
     <para>
       Also, notice that the worker thread name is displayed with each invocation. You should see that most of
-      the hot drinks are prepared by the concurrency-interceptor threads, but that occassionally it throttles
-      the input by forcing the message-bus (the caller) to invoke the operation. In addition to experimenting
-      with the 'concurrency' settings, you can also try adding the 'schedule' sub-element as described in
-      <xref linkend="namespace-endpoint"/>. If you want to explore the sample in more detail, the source JAR
-      is available in the "src" directory:
-      'org.springframework.integration.samples-sources-1.0.0.M5.jar'.
+      the hot drinks are prepared by the task-executor threads, but that occasionally it throttles the input by
+      forcing the message-bus (the caller) to invoke the operation. In addition to experimenting with the 'concurrency'
+      settings, you can also add the 'transactional' sub-element as described in <xref linkend="namespace-endpoint"/>.
+      If you want to explore the sample in more detail, the source JAR is available in the "src" directory:
+      'org.springframework.integration.samples-sources-1.0.0.M6.jar'.
     </para>
   </section>
 </chapter>
