@@ -35,7 +35,7 @@ import org.springframework.xml.transform.StringResult;
  */
 public class ResultToDocumentTransformerTests {
 
-	private String doc = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>";
+	private String startDoc = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>";
 
 	private ResultToDocumentTransformer resToDocTransformer;
 
@@ -48,7 +48,7 @@ public class ResultToDocumentTransformerTests {
 
 	@Test
 	public void testWithDomResult() throws Exception {
-		DOMResult result = XmlTestUtil.getDomResultForString(doc);
+		DOMResult result = XmlTestUtil.getDomResultForString(startDoc);
 		Object transformed = resToDocTransformer.transformResult(result);
 		assertTrue("Wrong transformed type expected Document", transformed instanceof Document);
 		Document doc = (Document) transformed;
@@ -57,7 +57,7 @@ public class ResultToDocumentTransformerTests {
 
 	@Test
 	public void testWithStringResult() throws Exception {
-		StringResult result = XmlTestUtil.getStringResultForString(doc);
+		StringResult result = XmlTestUtil.getStringResultForString(startDoc);
 		Object transformed = resToDocTransformer.transformResult(result);
 		assertTrue("Wrong transformed type expected Document", transformed instanceof Document);
 		Document doc = (Document) transformed;

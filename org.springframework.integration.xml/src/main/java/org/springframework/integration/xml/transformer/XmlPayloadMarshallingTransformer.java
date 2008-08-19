@@ -45,7 +45,8 @@ public class XmlPayloadMarshallingTransformer implements
 	private final ResultTransformer resultTransformer;
 
 	public XmlPayloadMarshallingTransformer(Marshaller marshaller,
-			ResultTransformer resultTransformer) throws ParserConfigurationException {
+			ResultTransformer resultTransformer)
+			throws ParserConfigurationException {
 		Assert.notNull(marshaller, "a marshaller is required");
 		this.marshaller = marshaller;
 		this.resultTransformer = resultTransformer;
@@ -78,10 +79,9 @@ public class XmlPayloadMarshallingTransformer implements
 		if (transformedPayload == null) {
 			throw new MessagingException("Failed to transform payload");
 		}
-		if(resultTransformer != null){
+		if (resultTransformer != null) {
 			transformedPayload = resultTransformer.transformResult(result);
 		}
-
 		return transformedPayload;
 	}
 

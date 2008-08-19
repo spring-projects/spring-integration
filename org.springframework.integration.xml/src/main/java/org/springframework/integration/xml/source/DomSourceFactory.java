@@ -18,7 +18,9 @@ package org.springframework.integration.xml.source;
 
 import java.io.StringReader;
 
+import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 
@@ -69,8 +71,7 @@ public class DomSourceFactory implements SourceFactory {
 
 	protected DOMSource createDomSourceForString(String s) {
 		try {
-			Document doc = docBuilderFactory.newDocumentBuilder().parse(
-					new InputSource(new StringReader(s)));
+			Document doc = getNewDocumentBuilder().parse(new InputSource(new StringReader(s)));
 			DOMSource source = new DOMSource(doc.getDocumentElement());
 			return source;
 		} catch (Exception e) {
@@ -78,4 +79,10 @@ public class DomSourceFactory implements SourceFactory {
 		}
 	}
 
+	protected  DocumentBuilder getNewDocumentBuilder() throws ParserConfigurationException{
+		synchronized (docBuilderFactory) {
+			return docBuilderFactory.newDocumentBuilder();
+		}
+		
+	}
 }
