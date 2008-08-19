@@ -8,6 +8,7 @@
 		<pathelement location="${basedir}/../org.springframework.integration.xml"/>
 		<pathelement location="${basedir}/../org.springframework.integration.ws"/>
 		<pathelement location="${basedir}/../org.springframework.integration.test"/>
+		<pathelement location="${basedir}/../org.springframework.integration.quartz"/>
 		<pathelement location="${basedir}/../org.springframework.integration.samples"/>
 	</path>
 
