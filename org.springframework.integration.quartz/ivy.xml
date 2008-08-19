@@ -21,7 +21,8 @@
 
 	<dependencies>
 		<dependency org="org.springframework" name="org.springframework.context" rev="2.5.5.A" conf="compile->runtime"/>
-		<dependency org="org.springframework" name="org.springframework.context.support" rev="2.5.5.A" conf="compile->runtime"/>		
+		<dependency org="org.springframework" name="org.springframework.context.support" rev="2.5.5.A" conf="compile->runtime"/>
+		<dependency org="org.springframework" name="org.springframework.test" rev="2.5.5.A" conf="compile->runtime"/>		
 		<dependency org="com.opensymphony.quartz" name="com.springsource.org.quartz" rev="1.6.0" conf="compile->runtime"/>
 		<dependency org="javax.transaction" name="com.springsource.javax.transaction" rev="1.1.0" conf="test->runtime"/>
 		<dependency org="org.apache.commons" name="com.springsource.org.apache.commons.collections" rev="3.2.0" conf="test->runtime"/>
