@@ -23,6 +23,21 @@ package org.springframework.integration.message;
  */
 public interface MessageTarget {
 
-	boolean send(Message<?> message);
+	/**
+	 * Send a {@link Message} to this target. May throw a RuntimeException for non-recoverable
+	 * errors. Otherwise, if the Message cannot be sent for a non-fatal reason such as timeout,
+	 * then this method will return 'false', and if the Message is sent successfully, it will
+	 * return 'true'. 
+	 * 
+	 * @param message the Message to send
+	 * 
+	 * @return whether the Message has been sent successfully
+	 * 
+	 * @throws MessageRejectedException if this particular Message is not accepted by the target
+	 * (e.g. after consulting a {@link org.springframework.integration.message.selector.MessageSelector})
+	 * @throws MessageDeliveryException if this target is unable to send the Message due
+	 * to a transport error
+	 */
+	boolean send(Message<?> message) throws MessageRejectedException, MessageDeliveryException;
 
 }
