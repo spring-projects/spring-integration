@@ -25,6 +25,19 @@ import java.lang.annotation.Target;
 /**
  * Indicates that a method is capable of splitting a single message or message
  * payload to produce multiple messages or payloads.
+ * <p>
+ * A method annotated with @Splitter may accept a parameter of type
+ * {@link org.springframework.integration.message.Message} or of the expected
+ * Message payload's type. Any type conversion supported by
+ * {@link org.springframework.beans.SimpleTypeConverter} will be applied to
+ * the Message payload if necessary. Header values can also be passed as
+ * Message parameters by using the
+ * {@link org.springframework.integration.handler.annotation.Header @Header}
+ * parameter annotation.
+ * <p>
+ * Return values from the annotated method may be either a Collection or Array
+ * with elements of any type. If the type is not a Message, each will be used
+ * as the payload for creating a new Message.
  * 
  * @author Mark Fisher
  */
