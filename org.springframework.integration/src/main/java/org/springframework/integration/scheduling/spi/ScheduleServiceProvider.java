@@ -32,12 +32,15 @@ public interface ScheduleServiceProvider {
 	void shutdown(boolean waitForTasksToCompleteOnShutdown);
 
 	ScheduledFuture<?> scheduleWithInitialDelay(Runnable runnable, long initialDelay, TimeUnit timeUnit)
-			throws UnschedulableTaskException;
+			throws Exception;
 
 	ScheduledFuture<?> scheduleAtFixedRate(Runnable runnable, long initialDelay, long period, TimeUnit timeUnit)
-			throws UnschedulableTaskException;
+			throws Exception;
 
 	ScheduledFuture<?> scheduleWithFixedDelay(Runnable runnable, long initialDelay, long delay, TimeUnit timeUnit)
-			throws UnschedulableTaskException;
+			throws Exception;
+
+	ScheduledFuture<?> scheduleWithCronExpression(Runnable runnable, String cronExpression)
+			throws Exception;
 
 }

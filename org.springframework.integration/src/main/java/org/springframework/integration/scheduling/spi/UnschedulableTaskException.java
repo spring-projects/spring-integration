@@ -29,8 +29,8 @@ public class UnschedulableTaskException extends RuntimeException {
 
 	private Schedule schedule;
 
-	public UnschedulableTaskException(Schedule schedule) {
-		super();
+	public UnschedulableTaskException(Throwable t, Schedule schedule) {
+		super(t);
 		this.schedule = schedule;
 	}
 

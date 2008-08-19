@@ -227,7 +227,8 @@
 			<xsd:sequence>
 				<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1"/>
 			</xsd:sequence>
-			<xsd:attribute name="period" type="xsd:long" use="required"/>
+			<xsd:attribute name="period" type="xsd:long"/>
+			<xsd:attribute name="cron" type="xsd:string"/>
 			<xsd:attribute name="initial-delay" type="xsd:long"/>
 			<xsd:attribute name="fixed-rate" type="xsd:boolean"/>
 			<xsd:attribute name="receive-timeout" type="xsd:long"/>

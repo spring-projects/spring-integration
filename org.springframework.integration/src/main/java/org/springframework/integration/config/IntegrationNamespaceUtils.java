@@ -25,9 +25,12 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
+import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.scheduling.CronSchedule;
 import org.springframework.integration.scheduling.PollingSchedule;
+import org.springframework.integration.scheduling.Schedule;
 import org.springframework.util.StringUtils;
-import org.springframework.util.xml.DomUtils;
+import org.springframework.util.xml.DomUtils;       
 
 /**
  * Shared utility methods for integration namespace parsers.
@@ -141,17 +144,27 @@ public abstract class IntegrationNamespaceUtils {
 	 */
 	public static String parsePoller(String sourceBeanName, Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PollingDispatcherFactoryBean.class);
-		Long period = Long.valueOf(element.getAttribute("period"));
-		PollingSchedule schedule = new PollingSchedule(period);
-		String initialDelay = element.getAttribute("initial-delay");
-		if (StringUtils.hasText(initialDelay)) {
-			schedule.setInitialDelay(Long.valueOf(initialDelay));
+		Schedule schedule = null;
+		if (!(StringUtils.hasText(element.getAttribute("period")) ^ StringUtils.hasText(element.getAttribute("cron")))) {
+			throw new ConfigurationException("A <poller> element must define either a period "
+					+ "or a cron expression (but not both)");
 		}
-		if ("true".equals(element.getAttribute("fixed-rate").toLowerCase())) {
-			schedule.setFixedRate(true);
+		if (StringUtils.hasText(element.getAttribute("period"))) {
+			Long period = Long.valueOf(element.getAttribute("period"));
+			schedule = new PollingSchedule(period);
+			String initialDelay = element.getAttribute("initial-delay");
+			if (StringUtils.hasText(initialDelay)) {
+				((PollingSchedule)schedule).setInitialDelay(Long.valueOf(initialDelay));
+			}
+			if ("true".equals(element.getAttribute("fixed-rate").toLowerCase())) {
+				((PollingSchedule)schedule).setFixedRate(true);
+			}
+			else {
+				((PollingSchedule)schedule).setFixedRate(false);
+			}
 		}
-		else {
-			schedule.setFixedRate(false);
+		if (StringUtils.hasText(element.getAttribute("cron"))) {
+		   schedule = new CronSchedule(element.getAttribute("cron"));
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
 		Element txElement = DomUtils.getChildElementByTagName(element, "transactional");

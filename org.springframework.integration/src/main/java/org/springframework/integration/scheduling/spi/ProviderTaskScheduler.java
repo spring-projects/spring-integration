@@ -27,6 +27,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.integration.scheduling.CronSchedule;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.SchedulableTask;
 import org.springframework.integration.scheduling.TaskScheduler;
@@ -37,7 +38,7 @@ import org.springframework.util.Assert;
  * An implementation of {@link org.springframework.integration.scheduling.TaskScheduler} that understands
  * {@link org.springframework.integration.scheduling.PollingSchedule PollingSchedules} and delegates to
  * a {@link ScheduleServiceProvider} instance.
- * 
+ *
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
@@ -147,33 +148,41 @@ public class ProviderTaskScheduler implements TaskScheduler, DisposableBean {
 			if (logger.isDebugEnabled()) {
 				logger.debug("scheduling task: " + task);
 			}
-			TaskRunner runner = new TaskRunner(task);
-			ScheduledFuture<?> future = null;
-			if (task.getSchedule() == null) {
-				future = this.scheduleServiceProvider.scheduleWithInitialDelay(runner, 0, TimeUnit.MILLISECONDS);
-			}
-			else if (task.getSchedule() instanceof PollingSchedule) {
-				PollingSchedule ps = (PollingSchedule) task.getSchedule();
-				if (ps.getPeriod() <= 0) {
-					runner.setShouldRepeat(true);
-					future = this.scheduleServiceProvider.scheduleWithInitialDelay(runner, ps.getInitialDelay(), ps.getTimeUnit());
+			try {
+				TaskRunner runner = new TaskRunner(task);
+				ScheduledFuture<?> future = null;
+				if (task.getSchedule() == null) {
+					future = this.scheduleServiceProvider.scheduleWithInitialDelay(runner, 0, TimeUnit.MILLISECONDS);
 				}
-				else if (ps.getFixedRate()) {
-					future = this.scheduleServiceProvider.scheduleAtFixedRate(runner, ps.getInitialDelay(), ps.getPeriod(), ps.getTimeUnit());
+				else if (task.getSchedule() instanceof PollingSchedule) {
+					PollingSchedule ps = (PollingSchedule) task.getSchedule();
+					if (ps.getPeriod() <= 0) {
+						runner.setShouldRepeat(true);
+						future = this.scheduleServiceProvider.scheduleWithInitialDelay(runner, ps.getInitialDelay(),
+								ps.getTimeUnit());
+					}
+					else if (ps.getFixedRate()) {
+						future = this.scheduleServiceProvider.scheduleAtFixedRate(runner, ps.getInitialDelay(),
+								ps.getPeriod(), ps.getTimeUnit());
+					}
+					else {
+						future = this.scheduleServiceProvider.scheduleWithFixedDelay(runner, ps.getInitialDelay(),
+								ps.getPeriod(), ps.getTimeUnit());
+					}
 				}
-				else {
-					future = this.scheduleServiceProvider.scheduleWithFixedDelay(runner, ps.getInitialDelay(), ps.getPeriod(), ps.getTimeUnit());
+				else if (task.getSchedule() instanceof CronSchedule) {
+					future = this.scheduleServiceProvider.scheduleWithCronExpression(runner,
+							((CronSchedule) task.getSchedule()).getCronExpression());
 				}
+				this.scheduledTasks.put(task, future);
+				if (logger.isDebugEnabled()) {
+					logger.debug("scheduled task: " + task);
+				}
+				return future;
 			}
-			if (future == null) {
-				throw new UnsupportedOperationException(this.getClass().getName() + " does not support scheduleWithInitialDelay type '"
-						+ task.getSchedule().getClass().getName() + "'");
+			catch (Exception e) {
+				throw new UnschedulableTaskException(e, task.getSchedule());
 			}
-			this.scheduledTasks.put(task, future);
-			if (logger.isDebugEnabled()) {
-				logger.debug("scheduled task: " + task);
-			}
-			return future;
 		}
 	}
 

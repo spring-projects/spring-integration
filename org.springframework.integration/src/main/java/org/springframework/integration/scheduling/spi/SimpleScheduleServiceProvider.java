@@ -62,4 +62,9 @@ public class SimpleScheduleServiceProvider implements ScheduleServiceProvider {
 		return this.executor.scheduleWithFixedDelay(runnable, initialDelay, delay, timeUnit);
 	}
 
+	public ScheduledFuture<?> scheduleWithCronExpression(Runnable runnable, String cronExpression)
+			throws Exception {
+		throw new UnsupportedOperationException("Cron scheduling not supported");
+	}
+
 }
