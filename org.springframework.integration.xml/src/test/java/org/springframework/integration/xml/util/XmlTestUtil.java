@@ -60,6 +60,14 @@ public class XmlTestUtil {
 		return res;
 	}
 
+	public static String docToString(Document doc) throws Exception{
+		DOMSource source = new DOMSource(doc);
+		StringResult stringResult = new StringResult();
+		transform(source, stringResult);
+		return stringResult.toString();
+	}
+	
+	
 	public static void transform(Source source, Result res) throws Exception {
 		TransformerFactory.newInstance().newTransformer().transform(source, res);
 	}

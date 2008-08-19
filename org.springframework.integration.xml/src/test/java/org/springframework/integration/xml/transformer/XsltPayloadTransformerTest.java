@@ -16,20 +16,22 @@
 
 package org.springframework.integration.xml.transformer;
 
-import static org.junit.Assert.assertEquals;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
+import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
 
+import javax.xml.transform.Result;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMResult;
 
 import org.junit.Before;
 import org.junit.Test;
-
-import org.w3c.dom.Document;
-
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.xml.transform.StringSource;
+import org.w3c.dom.Document;
 
 /**
  * @author Jonas Partner
@@ -38,40 +40,72 @@ public class XsltPayloadTransformerTest {
 
 	private XsltPayloadTransformer transformer;
 
-	private String doc = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>";
+	private String docAsString = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>";
 
+	private String outputAsString = "<bob>test</bob>";
 
 	@Before
 	public void setUp() throws Exception {
 		transformer = new XsltPayloadTransformer(getXslResource());
 	}
 
-
 	@Test
 	public void testDocumentAsPayload() throws Exception {
-		Object transformed = transformer.transform(XmlTestUtil.getDocumentForString(doc));
-		DOMResult result = (DOMResult) transformed;
-		String rootNodeName = ((Document) result.getNode()).getDocumentElement().getNodeName();
-		assertEquals("Wrong name for root element after transform", "bob", rootNodeName);
+		Object transformed = transformer.transform(XmlTestUtil
+				.getDocumentForString(docAsString));
+		assertTrue("Wrong return type for document payload", Document.class
+				.isAssignableFrom(transformed.getClass()));
+		Document transformedDocument = (Document) transformed;
+		assertXMLEqual(outputAsString, XmlTestUtil
+				.docToString(transformedDocument));
 	}
 
 	@Test
 	public void testSourceAsPayload() throws Exception {
-		Object transformed = transformer.transform(new StringSource(doc));
+		Object transformed = transformer
+				.transform(new StringSource(docAsString));
+		assertEquals("Wrong return type for source payload", DOMResult.class,
+				transformed.getClass());
 		DOMResult result = (DOMResult) transformed;
-		String rootNodeName = ((Document) result.getNode()).getDocumentElement().getNodeName();
-		assertEquals("Wrong name for root element after transform", "bob", rootNodeName);
+		assertXMLEqual("Document incorrect after transformation", XmlTestUtil
+				.getDocumentForString(outputAsString), (Document) result
+				.getNode());
 	}
 
 	@Test
 	public void testStringAsPayload() throws Exception {
-		Object transformed = transformer.transform(doc);
-		DOMResult result = (DOMResult) transformed;
-		String rootNodeName = ((Document) result.getNode()).getDocumentElement().getNodeName();
-		assertEquals("Wrong name for root element after transform", "bob", rootNodeName);
+		Object transformed = transformer.transform(docAsString);
+		assertEquals("Wrong return type for string payload", String.class,
+				transformed.getClass());
+		String transformedString = (String) transformed;
+		assertXMLEqual("String incorrect after transform", outputAsString,
+				transformedString);
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test
+	public void testStringAsPayloadUseFactoriesTrue() throws Exception {
+		transformer.setAlwaysUseSourceResultFactories(true);
+		Object transformed = transformer.transform(docAsString);
+		assertEquals("Wrong return type for useFactories true",
+				DOMResult.class, transformed.getClass());
+		DOMResult result = (DOMResult) transformed;
+		assertXMLEqual("Document incorrect after transformation", XmlTestUtil
+				.getDocumentForString(outputAsString), (Document) result
+				.getNode());
+	}
+
+	@Test
+	public void testSourceWithResultTransformer() throws Exception {
+		Integer returnValue = new Integer(13);
+		transformer
+				.setResultTransformer(new StubResultTransformer(returnValue));
+		Object transformed = transformer
+				.transform(new StringSource(docAsString));
+		assertEquals("Wrong value from result conversion", returnValue,
+				transformed);
+	}
+
+	@Test(expected = TransformerException.class)
 	public void testNonXmlString() throws Exception {
 		transformer.transform("test");
 	}
@@ -81,10 +115,23 @@ public class XsltPayloadTransformerTest {
 		transformer.transform(new Long(12));
 	}
 
-
 	private Resource getXslResource() throws Exception {
 		String xsl = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\"><xsl:template match=\"order\"><bob>test</bob></xsl:template></xsl:stylesheet>";
 		return new ByteArrayResource(xsl.getBytes("UTF-8"));
+	}
+
+	public static class StubResultTransformer implements ResultTransformer {
+
+		private Object objToReturn;
+
+		public StubResultTransformer(Object objToReturn) {
+			this.objToReturn = objToReturn;
+		}
+
+		public Object transformResult(Result res) {
+			return objToReturn;
+		}
+
 	}
 
 }

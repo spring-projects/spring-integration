@@ -24,25 +24,24 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Result;
 import javax.xml.transform.dom.DOMResult;
 
+import org.springframework.integration.message.MessagingException;
+import org.springframework.xml.transform.StringResult;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
-import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.transformer.PayloadTransformer;
-import org.springframework.xml.transform.StringResult;
-
 /**
- * Creates a {@link Document} from a {@link Result} payload.
+ * Creates a {@link Document} from a {@link Result} payload. Supports
+ * {@link DOMResult} and {@link StringResult} implementations.
  * 
  * @author Jonas Partner
  */
-public class ResultToDocumentTransformer implements PayloadTransformer<Result, Document> {
+public class ResultToDocumentTransformer implements ResultTransformer {
 
 	// Not guaranteed to be thread safe
 	private final DocumentBuilderFactory documentBuilderFactory;
 
-
-	public ResultToDocumentTransformer(DocumentBuilderFactory documentBuilderFactory) {
+	public ResultToDocumentTransformer(
+			DocumentBuilderFactory documentBuilderFactory) {
 		this.documentBuilderFactory = documentBuilderFactory;
 	}
 
@@ -50,19 +49,16 @@ public class ResultToDocumentTransformer implements PayloadTransformer<Result, D
 		this(DocumentBuilderFactory.newInstance());
 	}
 
-
-	@SuppressWarnings("unchecked")
-	public Document transform(Result payload) {
+	public Object transformResult(Result res) {
 		Document doc = null;
-		if (DOMResult.class.isAssignableFrom(payload.getClass())) {
-			doc = createDocumentFromDomResult((DOMResult) payload);
-		}
-		else if (StringResult.class.isAssignableFrom(payload.getClass())) {
-			doc = createDocumentFromStringResult((StringResult) payload);
-		}
-		else {
-			throw new MessagingException("Failed to create document from payload type ["
-					+ payload.getClass().getName() + "]");
+		if (DOMResult.class.isAssignableFrom(res.getClass())) {
+			doc = createDocumentFromDomResult((DOMResult) res);
+		} else if (StringResult.class.isAssignableFrom(res.getClass())) {
+			doc = createDocumentFromStringResult((StringResult) res);
+		} else {
+			throw new MessagingException(
+					"Failed to create document from payload type ["
+							+ res.getClass().getName() + "]");
 		}
 		return doc;
 	}
@@ -73,19 +69,20 @@ public class ResultToDocumentTransformer implements PayloadTransformer<Result, D
 
 	protected Document createDocumentFromStringResult(StringResult stringResult) {
 		try {
-			return getDocumentBuilder().parse(new InputSource(new StringReader(stringResult.toString())));
-		}
-		catch (Exception e) {
-			throw new MessagingException("Failed to create Document from StringResult payload", e);
+			return getDocumentBuilder().parse(
+					new InputSource(new StringReader(stringResult.toString())));
+		} catch (Exception e) {
+			throw new MessagingException(
+					"Failed to create Document from StringResult payload", e);
 		}
 	}
 
 	protected synchronized DocumentBuilder getDocumentBuilder() {
 		try {
 			return this.documentBuilderFactory.newDocumentBuilder();
-		}
-		catch (ParserConfigurationException e) {
-			throw new MessagingException("Failed to create a new DocumentBuilder", e);
+		} catch (ParserConfigurationException e) {
+			throw new MessagingException(
+					"Failed to create a new DocumentBuilder", e);
 		}
 	}
 

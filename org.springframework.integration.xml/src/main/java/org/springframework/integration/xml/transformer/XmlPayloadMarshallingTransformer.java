@@ -39,7 +39,7 @@ public class XmlPayloadMarshallingTransformer implements PayloadTransformer<Obje
 
 	private final Marshaller marshaller;
 
-	private ResultFactory resultFactory;
+	private ResultFactory resultFactory = new DomResultFactory();
 
 
 	public XmlPayloadMarshallingTransformer(Marshaller marshaller) throws ParserConfigurationException {

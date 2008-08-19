@@ -15,7 +15,6 @@
  */
 package org.springframework.integration.xml.source;
 
-import static org.junit.Assert.*;
 import static org.custommonkey.xmlunit.XMLAssert.*;
 
 import java.io.BufferedReader;

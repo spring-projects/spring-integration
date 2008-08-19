@@ -49,7 +49,7 @@ public class ResultToDocumentTransformerTests {
 	@Test
 	public void testWithDomResult() throws Exception {
 		DOMResult result = XmlTestUtil.getDomResultForString(doc);
-		Object transformed = resToDocTransformer.transform(result);
+		Object transformed = resToDocTransformer.transformResult(result);
 		assertTrue("Wrong transformed type expected Document", transformed instanceof Document);
 		Document doc = (Document) transformed;
 		assertEquals("Wrong root element name", "order", doc.getDocumentElement().getNodeName());
@@ -58,7 +58,7 @@ public class ResultToDocumentTransformerTests {
 	@Test
 	public void testWithStringResult() throws Exception {
 		StringResult result = XmlTestUtil.getStringResultForString(doc);
-		Object transformed = resToDocTransformer.transform(result);
+		Object transformed = resToDocTransformer.transformResult(result);
 		assertTrue("Wrong transformed type expected Document", transformed instanceof Document);
 		Document doc = (Document) transformed;
 		assertEquals("Wrong root element name", "order", doc.getDocumentElement().getNodeName());
@@ -67,7 +67,7 @@ public class ResultToDocumentTransformerTests {
 	@Test(expected = MessagingException.class)
 	public void testWithUnsupportedSaxResult() throws Exception {
 		SAXResult result = new SAXResult();
-		resToDocTransformer.transform(result);
+		resToDocTransformer.transformResult(result);
 	}
 
 }
