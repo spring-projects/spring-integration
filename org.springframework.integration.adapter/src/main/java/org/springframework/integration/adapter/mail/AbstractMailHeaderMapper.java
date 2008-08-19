@@ -125,15 +125,15 @@ public abstract class AbstractMailHeaderMapper implements MessageHeaderMapper<Mi
 			message.setReplyTo(replyTo);
 		}
 	}
-	
+
 	public Map<String,Object> mapToMessageHeaders(MimeMessage mailMessage) {
 		try {
 			Map<String, Object> headers = new HashMap<String, Object>();
-			headers.put(MailAttributeKeys.FROM, toStringArray(mailMessage.getFrom()));
-			headers.put(MailAttributeKeys.BCC, toStringArray(mailMessage.getRecipients(RecipientType.BCC)));
-			headers.put(MailAttributeKeys.CC, toStringArray(mailMessage.getRecipients(RecipientType.CC)));
-			headers.put(MailAttributeKeys.TO, toStringArray(mailMessage.getRecipients(RecipientType.TO)));
-			headers.put(MailAttributeKeys.REPLY_TO, toStringArray(mailMessage.getReplyTo()));
+			headers.put(MailAttributeKeys.FROM, convertToString(mailMessage.getFrom()));
+			headers.put(MailAttributeKeys.BCC, convertToStringArray(mailMessage.getRecipients(RecipientType.BCC)));
+			headers.put(MailAttributeKeys.CC, convertToStringArray(mailMessage.getRecipients(RecipientType.CC)));
+			headers.put(MailAttributeKeys.TO, convertToStringArray(mailMessage.getRecipients(RecipientType.TO)));
+			headers.put(MailAttributeKeys.REPLY_TO, convertToString(mailMessage.getReplyTo()));
 			headers.put(MailAttributeKeys.SUBJECT, mailMessage.getSubject());
 			return headers;
 		}
@@ -141,7 +141,6 @@ public abstract class AbstractMailHeaderMapper implements MessageHeaderMapper<Mi
 			throw new MessagingException("Conversion of MailMessage headers failed", e);
 		}
 	}
-
 
 	protected String retrieveAsString(MessageHeaders headers, String key) {
 		Object value = headers.get(key);
@@ -159,8 +158,17 @@ public abstract class AbstractMailHeaderMapper implements MessageHeaderMapper<Mi
 		return null;
 	}
 
-	
-	protected String[] toStringArray(Address[] addresses) {
+	private String convertToString(Address[] addresses) {
+		if (addresses == null || addresses.length == 0) {
+			return null;
+		}
+		if (addresses.length != 1) {
+			throw new IllegalStateException("expected a single value but received an Array");
+		}
+		return addresses[0].toString();
+	}
+
+	private String[] convertToStringArray(Address[] addresses) {
 		if (addresses != null) {
 			String[] addressStrings = new String[addresses.length];
 			for (int i = 0; i < addresses.length; i++) {
