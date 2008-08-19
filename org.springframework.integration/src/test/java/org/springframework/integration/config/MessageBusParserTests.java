@@ -40,7 +40,6 @@ import org.springframework.integration.bus.TestMessageBusStopInterceptor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.channel.config.ChannelParserTests;
 import org.springframework.integration.endpoint.DefaultEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.TestHandlers;
@@ -135,8 +134,7 @@ public class MessageBusParserTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext("messageBusWithChannelFactory.xml",
 				this.getClass());
 		((MessageChannel)context.getBean("defaultTypeChannel")).getName();
-		assertEquals(DirectChannel.class,
-				ChannelParserTests.extractProxifiedChannel(context.getBean("defaultTypeChannel")).getClass());
+		assertEquals(DirectChannel.class, context.getBean("defaultTypeChannel").getClass());
 		assertEquals(QueueChannel.class, context.getBean("specifiedTypeChannel").getClass());
 	}
 

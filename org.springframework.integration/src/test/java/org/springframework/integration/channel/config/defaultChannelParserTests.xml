@@ -7,9 +7,7 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
 
-	<message-bus channel-factory="stubChannelFactory"/>
-
-    <beans:bean id="stubChannelFactory" class="org.springframework.integration.channel.factory.StubChannelFactory"/>
+    <beans:bean id="channelFactory" class="org.springframework.integration.channel.factory.StubChannelFactory"/>
 
     <channel id="defaultChannel"/>
     

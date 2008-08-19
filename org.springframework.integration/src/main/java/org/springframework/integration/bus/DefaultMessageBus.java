@@ -44,8 +44,6 @@ import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
-import org.springframework.integration.channel.factory.ChannelFactory;
-import org.springframework.integration.channel.factory.QueueChannelFactory;
 import org.springframework.integration.dispatcher.PollingDispatcher;
 import org.springframework.integration.endpoint.DefaultEndpointRegistry;
 import org.springframework.integration.endpoint.EndpointRegistry;
@@ -75,8 +73,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 	private static final int DEFAULT_DISPATCHER_POOL_SIZE = 10;
 
 	private final Log logger = LogFactory.getLog(this.getClass());
-
-	private volatile ChannelFactory channelFactory = new QueueChannelFactory();
 
 	private final ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 
@@ -108,16 +104,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 
 	private final Object lifecycleMonitor = new Object();
 
-	/**
-	 * Set the {@link ChannelFactory} to use for auto-creating channels.
-	 */
-	public void setChannelFactory(ChannelFactory channelFactory) {
-		this.channelFactory = channelFactory;
-	}
-
-	public ChannelFactory getChannelFactory() {
-		return channelFactory;
-	}
 
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		Assert.notNull(applicationContext, "'applicationContext' must not be null");

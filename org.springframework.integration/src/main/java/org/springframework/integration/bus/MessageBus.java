@@ -20,7 +20,6 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.factory.ChannelFactory;
 import org.springframework.integration.endpoint.EndpointRegistry;
 
 /**
@@ -31,7 +30,5 @@ import org.springframework.integration.endpoint.EndpointRegistry;
 public interface MessageBus extends ChannelRegistry, EndpointRegistry, Lifecycle, DisposableBean {
 
 	MessageChannel getErrorChannel();
-
-	ChannelFactory getChannelFactory();
 
 }

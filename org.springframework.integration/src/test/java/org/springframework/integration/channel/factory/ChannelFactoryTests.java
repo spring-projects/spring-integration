@@ -30,7 +30,6 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.integration.bus.DefaultChannelFactoryBean;
-import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.channel.AbstractMessageChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.channel.DirectChannel;
@@ -39,7 +38,6 @@ import org.springframework.integration.channel.PriorityChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.RendezvousChannel;
 import org.springframework.integration.channel.ThreadLocalChannel;
-import org.springframework.integration.channel.config.ChannelParserTests;
 import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
@@ -105,20 +103,16 @@ public class ChannelFactoryTests {
 
 	@Test
 	public void testDefaultChannelFactoryBean() throws Exception{
-		DefaultMessageBus messageBus = new DefaultMessageBus();
-		ChannelFactory channelFactory = new StubChannelFactory();
-		messageBus.setChannelFactory(channelFactory);
 		StaticApplicationContext applicationContext = new StaticApplicationContext();
-		BeanDefinitionBuilder messageBusDefinitionBuilder = BeanDefinitionBuilder.rootBeanDefinition(DefaultMessageBus.class);
-		messageBusDefinitionBuilder.getBeanDefinition().getPropertyValues().addPropertyValue("channelFactory", channelFactory);
-		applicationContext.registerBeanDefinition("messageBus", messageBusDefinitionBuilder.getBeanDefinition());
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(StubChannelFactory.class);
+		applicationContext.registerBeanDefinition("channelFactory", builder.getBeanDefinition());
 		DefaultChannelFactoryBean channelFactoryBean =  new DefaultChannelFactoryBean();
 		channelFactoryBean.setBeanName("testChannel");
 		channelFactoryBean.setApplicationContext(applicationContext);
 		channelFactoryBean.setInterceptors(interceptors);
 		MessageChannel channel = (MessageChannel) channelFactoryBean.getObject();      
 		channel.getName();
-		assertEquals(StubChannel.class, ChannelParserTests.extractProxifiedChannel(channel).getClass());
+		assertEquals(StubChannel.class, channel.getClass());
 		assertEquals("testChannel", channel.getName());
 		channel.send(MessageBuilder.fromPayload("").build());
 		assertTrue(appliedInterceptors.get(0) == interceptors.get(0));
