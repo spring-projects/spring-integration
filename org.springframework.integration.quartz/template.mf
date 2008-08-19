@@ -1,0 +1,5 @@
+Bundle-SymbolicName: org.springframework.integration.quartz
+Bundle-Name: Spring Integration Quartz Support
+Bundle-Vendor: SpringSource
+Bundle-ManifestVersion: 2
+
