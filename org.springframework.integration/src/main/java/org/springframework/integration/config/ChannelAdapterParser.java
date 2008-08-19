@@ -89,6 +89,9 @@ public class ChannelAdapterParser extends AbstractBeanDefinitionParser {
 				String pollerBeanName = IntegrationNamespaceUtils.parsePoller(channelName, pollerElement, parserContext);
 				adapterBuilder.addPropertyReference("source", pollerBeanName);
 			}
+			else if (StringUtils.hasText(channelName)) {
+				adapterBuilder.addPropertyReference("source", channelName);
+			}
 			else {
 				adapterBuilder.addPropertyReference("source",
 						this.createDirectChannel(element, parserContext));
