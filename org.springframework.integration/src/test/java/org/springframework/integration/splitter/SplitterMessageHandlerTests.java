@@ -26,10 +26,11 @@ import java.util.List;
 
 import org.junit.Test;
 
+import org.springframework.integration.handler.annotation.Header;
 import org.springframework.integration.message.CompositeMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.splitter.SplitterMessageHandler;
 
 /**
  * @author Mark Fisher
@@ -281,6 +282,41 @@ public class SplitterMessageHandlerTests {
 		assertEquals(message.getHeaders().getId(), reply2.getHeaders().getCorrelationId());
 	}
 
+	@Test
+	public void splitMessageHeader() throws Exception {
+		Message<String> message = MessageBuilder.fromPayload("ignored")
+				.setHeader("testHeader", "foo.bar").build();
+		SplitterMessageHandler handler = this.getHandler("splitHeader");
+		List<Message<?>> replies = invokeHandler(handler, message);
+		Message<?> reply1 = replies.get(0);
+		assertNotNull(reply1);
+		assertEquals("foo", reply1.getPayload());
+		Message<?> reply2 = replies.get(1);
+		assertNotNull(reply2);
+		assertEquals("bar", reply2.getPayload());
+	}
+
+	@Test
+	public void splitPayloadAndHeader() throws Exception {
+		Message<String> message = MessageBuilder.fromPayload("a.b")
+				.setHeader("testHeader", "c.d").build();
+		Method splittingMethod = this.testBean.getClass().getMethod("splitPayloadAndHeader", String.class, String.class);
+		SplitterMessageHandler handler = new SplitterMessageHandler(testBean, splittingMethod);
+		List<Message<?>> replies = invokeHandler(handler, message);
+		Message<?> reply1 = replies.get(0);
+		assertNotNull(reply1);
+		assertEquals("a", reply1.getPayload());
+		Message<?> reply2 = replies.get(1);
+		assertNotNull(reply2);
+		assertEquals("b", reply2.getPayload());
+		Message<?> reply3 = replies.get(2);
+		assertNotNull(reply3);
+		assertEquals("c", reply3.getPayload());
+		Message<?> reply4 = replies.get(3);
+		assertNotNull(reply4);
+		assertEquals("d", reply4.getPayload());
+	}
+
 
 	private SplitterMessageHandler getHandler(String methodName) throws Exception {
 		Class<?> paramType = methodName.startsWith("message") ? Message.class : String.class;
@@ -345,6 +381,22 @@ public class SplitterMessageHandlerTests {
 				messages.add(new StringMessage(s));
 			}
 			return messages;
+		}
+
+		public String[] splitHeader(@Header("testHeader") String input) {
+			return input.split("\\.");
+		}
+
+		public List<String> splitPayloadAndHeader(String payload, @Header("testHeader") String header) {
+			String regex = "\\.";
+			List<String> results = new ArrayList<String>();
+			for (String s: payload.split(regex)) {
+				results.add(s);
+			}
+			for (String s: header.split(regex)) {
+				results.add(s);
+			}
+			return results;
 		}
 	}
 
