@@ -17,8 +17,19 @@
 package org.springframework.integration.quartz;
 
 /**
- * @author Mark Fisher
+ * @author Marius Bogoevici
  */
-public class Placeholder {
+public class QuartzSchedulingException extends RuntimeException {
 
+	public QuartzSchedulingException() {
+		super();
+	}
+
+	public QuartzSchedulingException(Throwable cause) {
+		super(cause);
+	}
+
+	public QuartzSchedulingException(String message) {
+		super(message);
+	}
 }
