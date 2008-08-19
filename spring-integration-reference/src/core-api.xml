@@ -102,7 +102,7 @@ new GenericMessage&lt;T&gt;(T payload, Map&lt;String, Object&gt; headers)</progr
       The MessageBuilder provides two factory methods for creating Messages from either an existing Message or a
       payload Object. When building from an existing Message, the headers <emphasis>and payload</emphasis> of that
       Message will be copied to the new Message:
-      <programlisting>Message&lt;String&gt; message1 = MessageBuilder.fromPayload("test")
+      <programlisting language="java">Message&lt;String&gt; message1 = MessageBuilder.fromPayload("test")
         .setHeader("foo", "bar")
         .build();
 
@@ -114,7 +114,7 @@ assertEquals("bar", message2.getHeaders().get("foo"));</programlisting>
     <para>
       If you need to create a Message with a new payload but still want to copy the
       headers from an existing Message, you can use one of the 'copy' methods.
-      <programlisting>Message&lt;String&gt; message3 = MessageBuilder.fromPayload("test3")
+      <programlisting language="java">Message&lt;String&gt; message3 = MessageBuilder.fromPayload("test3")
         .copyHeaders(message1.getHeaders())
         .build();
 
@@ -129,7 +129,7 @@ assertEquals(123, message4.getHeaders().get("foo"));</programlisting>
       second example above, you can see how to set any user-defined header with <methodname>setHeader</methodname>.
       Finally, there are set methods available for the predefined headers as well as a non-destructive method for
       setting any header (MessageHeaders also defines constants for the pre-defined header names).
-      <programlisting>Message&lt;Integer&gt; importantMessage = MessageBuilder.fromPayload(99)
+      <programlisting language="java">Message&lt;Integer&gt; importantMessage = MessageBuilder.fromPayload(99)
         .setPriority(MessagePriority.HIGHEST)
         .build();
 
@@ -166,11 +166,21 @@ assertEquals(MessagePriority.HIGHEST, anotherMessage.getHeaders().getPriority())
   <section id="api-source">
     <title>MessageSource</title>
     <para>
-      The <interfacename>MessageSource</interfacename> interface defines a single method for receiving
-      <interfacename>Message</interfacename> objects.
-      <programlisting language="java">public interface MessageSource&lt;T&gt; {
+      As alluded to in the overview, the <interfacename>MessageSource</interfacename> interface is itself a marker
+      interface for any "source" of Messages. The two sub-interfaces - <interfacename>PollableSource</interfacename>
+      and <interfacename>SubscribableSource</interfacename> - accommodate two types of source: those that must be
+      polled and those that send Messages on their own. An example of the first type would be a source that represents
+      a directory in the File-system, and an example of the second type would be an inbound RMI invocation.
+    </para>
+    <para>
+      The PollableSource interface defines a single method for receiving <interfacename>Message</interfacename> objects.
+      <programlisting language="java">public interface PollableSource&lt;T&gt; extends MessageSource&lt;T&gt; {
     Message&lt;T&gt; receive();
 }</programlisting>
+      The <interfacename>BlockingSource</interfacename> interface extends <interfacename>PollableSource</interfacename>
+      and adds a single method with a timeout: <programlisting language="java">Message&lt;T&gt; receive(long timeout);</programlisting>
+    </para>
+    <para>
       Spring Integration also provides a <classname>MethodInvokingSource</classname> implementation that serves as an
       adapter for invoking any arbitrary method on a plain Object (i.e. there is no need to implement an interface).
       To use the <classname>MethodInvokingSource</classname>, provide the Object reference and the method name.
@@ -178,8 +188,8 @@ assertEquals(MessagePriority.HIGHEST, anotherMessage.getHeaders().getPriority())
 source.setObject(new SourceObject());
 source.setMethodName("sourceMethod");
 Message&lt;?&gt; result = source.receive();</programlisting>
-      It is generally more common to configure a <classname>MethodInvokingSource</classname> in XML by providing a
-      bean reference in the "source" attribute of a &lt;channel-adapter&gt; element.
+      It is also possible to configure a <classname>MethodInvokingSource</classname> in XML by providing a
+      bean reference in the "source" attribute of a &lt;channel-adapter&gt; element along with a "method" attribute.
       <programlisting language="xml"><![CDATA[<channel-adapter source="sourceObject" method="sourceMethod" channel="someChannel"/>]]></programlisting>
 	</para>
   </section>
@@ -210,24 +220,45 @@ target.send(new StringMessage("test"));</programlisting>
     <para>
       While the <interfacename>Message</interfacename> plays the crucial role of encapsulating data, it is the
       <interfacename>MessageChannel</interfacename> that decouples message producers from message consumers.
-      Spring Integration's <interfacename>MessageChannel</interfacename> interface is defined as follows.
-      <programlisting language="java"><![CDATA[public interface MessageChannel {
+      Spring Integration's top-level <interfacename>MessageChannel</interfacename> interface is defined as follows.
+      <programlisting language="java"><![CDATA[public interface MessageChannel extends MessageSource, BlockingTarget {
     String getName();
-    void setName(String name);
-    boolean send(Message message);
-    boolean send(Message message, long timeout);
-    Message receive();
-    Message receive(long timeout);
-    List<Message<?>> clear();
-    List<Message<?>> purge(MessageSelector selector);
 }]]></programlisting>
+      Because it extends <interfacename>BlockingTarget</interfacename>, it inherits the following methods:
+      <programlisting language="java">boolean send(Message message);
+
+boolean send(Message message, long timeout);</programlisting>
       When sending a message, the return value will be <emphasis>true</emphasis> if the message is sent successfully.
-      If the send call times out or is interrupted, then it will return <emphasis>false</emphasis>. Likewise when
-      receiving a message, the return value will be <emphasis>null</emphasis> in the case of a timeout or interrupt.
+      If the send call times out or is interrupted, then it will return <emphasis>false</emphasis>.
     </para>
     <para>
-      Spring Integration provides several different implementations of the
-      <interfacename>MessageChannel</interfacename> interface. Each is briefly described in the sections below.
+      Since Message Channels are also Message Sources, there are two sub-interfaces corresponding to the two source
+      types. Here is the definition of <interfacename>PollableChannel</interfacename>.
+      <programlisting language="java">public interface PollableChannel extends MessageChannel, BlockingSource {
+
+    List&lt;Message&lt;?&gt;&gt; clear();
+
+    List&lt;Message&lt;?&gt;&gt; purge(MessageSelector selector);
+
+}</programlisting>
+      Since the PollableChannel interface extends BlockingSource, it also inherits the following methods:
+      <programlisting language="java">Message&lt;T&gt; receive();
+
+Message&lt;T&gt; receive(long timeout);</programlisting>
+      Similar to the send methods, when receiving a message, the return value will be <emphasis>null</emphasis> in the
+      case of a timeout or interrupt.
+    </para>
+    <para>
+      The subscribable channels implement the <interfacename>SubscribableSource</interfacename> interface. Instead
+      of providing receive methods for polling, these channels will send messages directly to their subscribers.
+      The <interfacename>SubscribableSource</interfacename> interface defines the following two methods:
+      <programlisting language="java">boolean subscribe(MessageTarget target);
+
+boolean unsubscribe(MessageTarget target);</programlisting>
+    </para>
+    <para>
+      Spring Integration provides several different Message Channel implementations. Each is briefly described in the
+      sections below.
     </para>
     <section id="api-messagechannel-publishsubscribechannel">
       <title>PublishSubscribeChannel</title>
