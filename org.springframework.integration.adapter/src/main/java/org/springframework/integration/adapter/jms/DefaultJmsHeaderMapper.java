@@ -48,19 +48,19 @@ public class DefaultJmsHeaderMapper implements MessageHeaderMapper<javax.jms.Mes
 
 	public void mapFromMessageHeaders(MessageHeaders headers, javax.jms.Message jmsMessage) {
 		try {
-			Object jmsCorrelationId = headers.get(JmsAttributeKeys.CORRELATION_ID);
+			Object jmsCorrelationId = headers.get(JmsHeaders.CORRELATION_ID);
 			if (jmsCorrelationId != null && (jmsCorrelationId instanceof String)) {
 				jmsMessage.setJMSCorrelationID((String) jmsCorrelationId);
 			}
-			Object jmsReplyTo = headers.get(JmsAttributeKeys.REPLY_TO);
+			Object jmsReplyTo = headers.get(JmsHeaders.REPLY_TO);
 			if (jmsReplyTo != null && (jmsReplyTo instanceof Destination)) {
 				jmsMessage.setJMSReplyTo((Destination) jmsReplyTo);
 			}
-			Object jmsType = headers.get(JmsAttributeKeys.TYPE);
+			Object jmsType = headers.get(JmsHeaders.TYPE);
 			if (jmsType != null && (jmsType instanceof String)) {
 				jmsMessage.setJMSType((String) jmsType);
 			}
-			String prefix = JmsAttributeKeys.USER_DEFINED_ATTRIBUTE_PREFIX;
+			String prefix = JmsHeaders.USER_PREFIX;
 			Set<String> attributeNames = headers.keySet();
 			for (String attributeName : attributeNames) {
 				if (attributeName.startsWith(prefix)) {
@@ -93,22 +93,22 @@ public class DefaultJmsHeaderMapper implements MessageHeaderMapper<javax.jms.Mes
 		try {
 			String correlationId = jmsMessage.getJMSCorrelationID();
 			if (correlationId != null) {
-				headers.put(JmsAttributeKeys.CORRELATION_ID, correlationId);
+				headers.put(JmsHeaders.CORRELATION_ID, correlationId);
 			}
 			Destination replyTo = jmsMessage.getJMSReplyTo();
 			if (replyTo != null) {
-				headers.put(JmsAttributeKeys.REPLY_TO, replyTo);
+				headers.put(JmsHeaders.REPLY_TO, replyTo);
 			}
-			headers.put(JmsAttributeKeys.REDELIVERED, jmsMessage.getJMSRedelivered());
+			headers.put(JmsHeaders.REDELIVERED, jmsMessage.getJMSRedelivered());
 			String type = jmsMessage.getJMSType();
 			if (type != null) {
-				headers.put(JmsAttributeKeys.TYPE, type);
+				headers.put(JmsHeaders.TYPE, type);
 			}
 			Enumeration<?> jmsPropertyNames = jmsMessage.getPropertyNames();
 			if (jmsPropertyNames != null) {
 				while (jmsPropertyNames.hasMoreElements()) {
 					String propertyName = jmsPropertyNames.nextElement().toString();
-					headers.put(JmsAttributeKeys.USER_DEFINED_ATTRIBUTE_PREFIX + propertyName,
+					headers.put(JmsHeaders.USER_PREFIX + propertyName,
 							jmsMessage.getObjectProperty(propertyName));
 				}
 			}

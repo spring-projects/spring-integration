@@ -48,7 +48,7 @@ public class JmsGateway extends SimpleMessagingGateway implements Lifecycle, Dis
 
 	private volatile String destinationName;
 
-	private volatile MessageConverter messageConverter = new SimpleMessageConverter();
+	private volatile MessageConverter messageConverter;
 
 	private volatile TaskExecutor taskExecutor;
 
@@ -133,6 +133,12 @@ public class JmsGateway extends SimpleMessagingGateway implements Lifecycle, Dis
 		MessageListenerAdapter listener = new MessageListenerAdapter();
 		listener.setDelegate(this);
 		listener.setDefaultListenerMethod(this.expectReply ? "sendAndReceive" : "send");
+		if (this.messageConverter == null) {
+			this.messageConverter = new SimpleMessageConverter();
+		}
+		if (!(this.messageConverter instanceof HeaderMappingMessageConverter)) {
+			this.messageConverter = new HeaderMappingMessageConverter(this.messageConverter);
+		}
 		listener.setMessageConverter(this.messageConverter);
 		this.container.setMessageListener(listener);
 		if (!this.container.isActive()) {

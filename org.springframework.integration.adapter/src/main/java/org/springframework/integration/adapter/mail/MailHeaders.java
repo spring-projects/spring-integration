@@ -17,23 +17,25 @@
 package org.springframework.integration.adapter.mail;
 
 /**
- * Keys to be used for setting and/or retrieving mail attributes stored in the
- * integration message header.
+ * Pre-defined names and prefixes to be used for setting and/or retrieving Mail attributes
+ * from/to integration Message Headers.
  * 
  * @author Mark Fisher
  */
-public class MailAttributeKeys {
+public class MailHeaders {
 
-	public static final String SUBJECT = "_mail.SUBJECT";
+	public static final String TRANSFPORT_PREFIX = "spring.integration.transport.mail.";
 
-	public static final String TO = "_mail.TO";
+	public static final String SUBJECT = TRANSFPORT_PREFIX + "SUBJECT";
 
-	public static final String CC = "_mail.CC";
+	public static final String TO = TRANSFPORT_PREFIX + "TO";
 
-	public static final String BCC = "_mail.BCC";
+	public static final String CC = TRANSFPORT_PREFIX + "CC";
 
-	public static final String FROM = "_mail.FROM";
+	public static final String BCC = TRANSFPORT_PREFIX + "BCC";
 
-	public static final String REPLY_TO = "_mail.REPLY_TO";
+	public static final String FROM = TRANSFPORT_PREFIX + "FROM";
+
+	public static final String REPLY_TO = TRANSFPORT_PREFIX+ "REPLY_TO";
 
 }

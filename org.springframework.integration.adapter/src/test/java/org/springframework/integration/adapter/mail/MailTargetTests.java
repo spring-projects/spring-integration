@@ -95,12 +95,12 @@ public class MailTargetTests {
 	public void testDefaultMailHeaderGenerator() {
 		org.springframework.integration.message.Message<String> message =
 				MessageBuilder.fromPayload(MailTestsHelper.MESSAGE_TEXT)
-				.setHeader(MailAttributeKeys.SUBJECT, MailTestsHelper.SUBJECT)
-				.setHeader(MailAttributeKeys.TO, MailTestsHelper.TO)
-				.setHeader(MailAttributeKeys.CC, MailTestsHelper.CC)
-				.setHeader(MailAttributeKeys.BCC, MailTestsHelper.BCC)
-				.setHeader(MailAttributeKeys.FROM, MailTestsHelper.FROM)
-				.setHeader(MailAttributeKeys.REPLY_TO, MailTestsHelper.REPLY_TO).build();
+				.setHeader(MailHeaders.SUBJECT, MailTestsHelper.SUBJECT)
+				.setHeader(MailHeaders.TO, MailTestsHelper.TO)
+				.setHeader(MailHeaders.CC, MailTestsHelper.CC)
+				.setHeader(MailHeaders.BCC, MailTestsHelper.BCC)
+				.setHeader(MailHeaders.FROM, MailTestsHelper.FROM)
+				.setHeader(MailHeaders.REPLY_TO, MailTestsHelper.REPLY_TO).build();
 		this.mailTarget.send(message);
 		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
 		assertEquals("no mime message should have been sent",

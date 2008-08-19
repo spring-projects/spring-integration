@@ -129,12 +129,12 @@ public abstract class AbstractMailHeaderMapper implements MessageHeaderMapper<Mi
 	public Map<String,Object> mapToMessageHeaders(MimeMessage mailMessage) {
 		try {
 			Map<String, Object> headers = new HashMap<String, Object>();
-			headers.put(MailAttributeKeys.FROM, convertToString(mailMessage.getFrom()));
-			headers.put(MailAttributeKeys.BCC, convertToStringArray(mailMessage.getRecipients(RecipientType.BCC)));
-			headers.put(MailAttributeKeys.CC, convertToStringArray(mailMessage.getRecipients(RecipientType.CC)));
-			headers.put(MailAttributeKeys.TO, convertToStringArray(mailMessage.getRecipients(RecipientType.TO)));
-			headers.put(MailAttributeKeys.REPLY_TO, convertToString(mailMessage.getReplyTo()));
-			headers.put(MailAttributeKeys.SUBJECT, mailMessage.getSubject());
+			headers.put(MailHeaders.FROM, convertToString(mailMessage.getFrom()));
+			headers.put(MailHeaders.BCC, convertToStringArray(mailMessage.getRecipients(RecipientType.BCC)));
+			headers.put(MailHeaders.CC, convertToStringArray(mailMessage.getRecipients(RecipientType.CC)));
+			headers.put(MailHeaders.TO, convertToStringArray(mailMessage.getRecipients(RecipientType.TO)));
+			headers.put(MailHeaders.REPLY_TO, convertToString(mailMessage.getReplyTo()));
+			headers.put(MailHeaders.SUBJECT, mailMessage.getSubject());
 			return headers;
 		}
 		catch (Exception e) {

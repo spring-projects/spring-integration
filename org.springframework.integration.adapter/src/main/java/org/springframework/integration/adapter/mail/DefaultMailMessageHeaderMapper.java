@@ -26,32 +26,32 @@ public class DefaultMailMessageHeaderMapper extends AbstractMailHeaderMapper {
 
 	@Override
 	protected String getSubject(MessageHeaders headers) {
-		return this.retrieveAsString(headers, MailAttributeKeys.SUBJECT);
+		return this.retrieveAsString(headers, MailHeaders.SUBJECT);
 	}
 
 	@Override
 	protected String[] getTo(MessageHeaders headers) {
-		return this.retrieveAsStringArray(headers, MailAttributeKeys.TO);
+		return this.retrieveAsStringArray(headers, MailHeaders.TO);
 	}
 
 	@Override
 	protected String[] getCc(MessageHeaders headers) {
-		return this.retrieveAsStringArray(headers, MailAttributeKeys.CC);
+		return this.retrieveAsStringArray(headers, MailHeaders.CC);
 	}
 
 	@Override
 	protected String[] getBcc(MessageHeaders headers) {
-		return this.retrieveAsStringArray(headers, MailAttributeKeys.BCC);
+		return this.retrieveAsStringArray(headers, MailHeaders.BCC);
 	}
 
 	@Override
 	protected String getFrom(MessageHeaders headers) {
-		return this.retrieveAsString(headers, MailAttributeKeys.FROM);
+		return this.retrieveAsString(headers, MailHeaders.FROM);
 	}
 
 	@Override
 	protected String getReplyTo(MessageHeaders headers) {
-		return this.retrieveAsString(headers, MailAttributeKeys.REPLY_TO);
+		return this.retrieveAsString(headers, MailHeaders.REPLY_TO);
 	}
 
 }

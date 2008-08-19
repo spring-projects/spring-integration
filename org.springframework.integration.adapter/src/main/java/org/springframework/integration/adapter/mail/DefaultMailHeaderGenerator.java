@@ -21,7 +21,7 @@ import org.springframework.integration.message.Message;
 /**
  * The default implementation of {@link MailHeaderGenerator}. Configures the
  * {@link org.springframework.mail.MailMessage} properties based on attributes
- * provided with known attribute keys as defined in {@link MailAttributeKeys}.
+ * provided with known attribute keys as defined in {@link MailHeaders}.
  * 
  * @author Mark Fisher
  */
@@ -29,32 +29,32 @@ public class DefaultMailHeaderGenerator extends AbstractMailHeaderGenerator {
 
 	@Override
 	protected String getSubject(Message<?> message) {
-		return this.retrieveAsString(message, MailAttributeKeys.SUBJECT);
+		return this.retrieveAsString(message, MailHeaders.SUBJECT);
 	}
 
 	@Override
 	protected String[] getTo(Message<?> message) {
-		return this.retrieveAsStringArray(message, MailAttributeKeys.TO);
+		return this.retrieveAsStringArray(message, MailHeaders.TO);
 	}
 
 	@Override
 	protected String[] getCc(Message<?> message) {
-		return this.retrieveAsStringArray(message, MailAttributeKeys.CC);
+		return this.retrieveAsStringArray(message, MailHeaders.CC);
 	}
 
 	@Override
 	protected String[] getBcc(Message<?> message) {
-		return this.retrieveAsStringArray(message, MailAttributeKeys.BCC);
+		return this.retrieveAsStringArray(message, MailHeaders.BCC);
 	}
 
 	@Override
 	protected String getFrom(Message<?> message) {
-		return this.retrieveAsString(message, MailAttributeKeys.FROM);
+		return this.retrieveAsString(message, MailHeaders.FROM);
 	}
 
 	@Override
 	protected String getReplyTo(Message<?> message) {
-		return this.retrieveAsString(message, MailAttributeKeys.REPLY_TO);
+		return this.retrieveAsString(message, MailHeaders.REPLY_TO);
 	}
 
 

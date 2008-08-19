@@ -53,7 +53,7 @@ public class DefaultMailMessageHeaderMapperTests {
 		EasyMock.expect(mailMessageMock.getSubject()).andReturn("mail test");
 		EasyMock.replay(mailMessageMock);
 		Map<String, Object> headers = mapper.mapToMessageHeaders(mailMessageMock);
-		Object fromHeader = headers.get(MailAttributeKeys.FROM);
+		Object fromHeader = headers.get(MailHeaders.FROM);
 		assertNotNull(fromHeader);
 		assertTrue(fromHeader instanceof String);
 		assertEquals("from@example.org", fromHeader);
@@ -72,7 +72,7 @@ public class DefaultMailMessageHeaderMapperTests {
 		EasyMock.expect(mailMessageMock.getSubject()).andReturn("mail test");
 		EasyMock.replay(mailMessageMock);
 		Map<String, Object> headers = mapper.mapToMessageHeaders(mailMessageMock);
-		Object replyToHeader = headers.get(MailAttributeKeys.REPLY_TO);
+		Object replyToHeader = headers.get(MailHeaders.REPLY_TO);
 		assertNotNull(replyToHeader);
 		assertTrue(replyToHeader instanceof String);
 		assertEquals("replyTo@example.org", replyToHeader);
@@ -93,7 +93,7 @@ public class DefaultMailMessageHeaderMapperTests {
 		EasyMock.expect(mailMessageMock.getSubject()).andReturn("mail test");
 		EasyMock.replay(mailMessageMock);
 		Map<String, Object> headers = mapper.mapToMessageHeaders(mailMessageMock);
-		Object toHeader = headers.get(MailAttributeKeys.TO);
+		Object toHeader = headers.get(MailHeaders.TO);
 		assertNotNull(toHeader);
 		assertTrue(toHeader instanceof String[]);
 		String[] addresses = (String[]) toHeader;
@@ -106,7 +106,7 @@ public class DefaultMailMessageHeaderMapperTests {
 	public void mapReplyToValueFromHeadersToMimeMessage() throws MessagingException {
 		DefaultMailMessageHeaderMapper mapper = new DefaultMailMessageHeaderMapper();
 		Map<String, Object> headerMap = new HashMap<String, Object>();
-		headerMap.put(MailAttributeKeys.REPLY_TO, "replyTo@example.org");
+		headerMap.put(MailHeaders.REPLY_TO, "replyTo@example.org");
 		MessageHeaders headers = new MessageHeaders(headerMap);
 		MimeMessage mailMessageMock = EasyMock.createNiceMock(MimeMessage.class);
 		EasyMock.replay(mailMessageMock);
@@ -121,7 +121,7 @@ public class DefaultMailMessageHeaderMapperTests {
 	public void mapFromValueFromHeadersToMimeMessage() throws MessagingException {
 		DefaultMailMessageHeaderMapper mapper = new DefaultMailMessageHeaderMapper();
 		Map<String, Object> headerMap = new HashMap<String, Object>();
-		headerMap.put(MailAttributeKeys.FROM, "from@example.org");
+		headerMap.put(MailHeaders.FROM, "from@example.org");
 		MessageHeaders headers = new MessageHeaders(headerMap);
 		MimeMessage mailMessageMock = EasyMock.createNiceMock(MimeMessage.class);
 		EasyMock.replay(mailMessageMock);
@@ -137,7 +137,7 @@ public class DefaultMailMessageHeaderMapperTests {
 		DefaultMailMessageHeaderMapper mapper = new DefaultMailMessageHeaderMapper();
 		Map<String, Object> headerMap = new HashMap<String, Object>();
 		String[] addressStrings = new String[] { "a@example.org", "b@example.org", "c@example.org" };
-		headerMap.put(MailAttributeKeys.TO, addressStrings);
+		headerMap.put(MailHeaders.TO, addressStrings);
 		MessageHeaders headers = new MessageHeaders(headerMap);
 		MimeMessage mailMessageMock = EasyMock.createNiceMock(MimeMessage.class);
 		EasyMock.replay(mailMessageMock);
