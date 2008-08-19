@@ -17,8 +17,8 @@
 package org.springframework.integration.config;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -26,6 +26,8 @@ import org.junit.Test;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
+import org.springframework.integration.endpoint.InboundChannelAdapter;
 import org.springframework.integration.endpoint.OutboundChannelAdapter;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
@@ -44,6 +46,7 @@ public class ChannelAdapterParserTests extends AbstractJUnit4SpringContextTests 
 		Object channel = this.applicationContext.getBean(beanName);
 		assertTrue(channel instanceof DirectChannel);
 		MessageBus bus = (MessageBus) this.applicationContext.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
+		bus.start();
 		assertNotNull(bus.lookupChannel(beanName));
 		Object adapter = bus.lookupEndpoint(beanName + ".adapter");
 		assertNotNull(adapter);
@@ -54,6 +57,45 @@ public class ChannelAdapterParserTests extends AbstractJUnit4SpringContextTests 
 		assertTrue(((MessageChannel) channel).send(message));
 		assertNotNull(target.getLastMessage());
 		assertEquals(message, target.getLastMessage());
+		bus.stop();
+	}
+
+	@Test
+	public void methodInvokingTarget() {
+		String beanName = "methodInvokingTarget";
+		Object channel = this.applicationContext.getBean(beanName);
+		assertTrue(channel instanceof DirectChannel);
+		MessageBus bus = (MessageBus) this.applicationContext.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
+		bus.start();
+		assertNotNull(bus.lookupChannel(beanName));
+		Object adapter = bus.lookupEndpoint(beanName + ".adapter");
+		assertNotNull(adapter);
+		assertTrue(adapter instanceof OutboundChannelAdapter);
+		TestBean testBean = (TestBean) this.applicationContext.getBean("testBean");
+		assertNull(testBean.getMessage());
+		Message<?> message = new StringMessage("target test");
+		assertTrue(((MessageChannel) channel).send(message));
+		assertNotNull(testBean.getMessage());
+		assertEquals("target test", testBean.getMessage());
+		bus.stop();
+	}
+
+	@Test
+	public void methodInvokingSource() {
+		String beanName = "methodInvokingSource";
+		PollableChannel channel =  (PollableChannel) this.applicationContext.getBean("queueChannel");
+		MessageBus bus = (MessageBus) this.applicationContext.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
+		assertNull(bus.lookupChannel(beanName));
+		Object adapter = bus.lookupEndpoint(beanName);
+		assertNotNull(adapter);
+		assertTrue(adapter instanceof InboundChannelAdapter);
+		TestBean testBean = (TestBean) this.applicationContext.getBean("testBean");
+		testBean.store("source test");
+		bus.start();
+		Message<?> message = channel.receive(1000);
+		assertNotNull(message);
+		assertEquals("source test", testBean.getMessage());
+		bus.stop();
 	}
 
 }

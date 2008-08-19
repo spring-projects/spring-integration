@@ -30,6 +30,10 @@ public class TestBean {
 	private String replyMessageText = null;
 
 
+	public TestBean() {
+		this(1);
+	}
+
 	public TestBean(int countdown) {
 		this.latch = new CountDownLatch(countdown);
 	}

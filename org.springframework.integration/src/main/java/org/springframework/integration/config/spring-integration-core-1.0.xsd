@@ -166,6 +166,7 @@
 			<xsd:attribute name="id" type="xsd:ID"/>
 			<xsd:attribute name="source" type="xsd:string"/>
 			<xsd:attribute name="target" type="xsd:string"/>
+			<xsd:attribute name="method" type="xsd:string"/>
 			<xsd:attribute name="channel" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>

@@ -23,12 +23,15 @@ import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.endpoint.InboundChannelAdapter;
 import org.springframework.integration.endpoint.OutboundChannelAdapter;
+import org.springframework.integration.handler.MethodInvokingTarget;
+import org.springframework.integration.message.MethodInvokingSource;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -57,11 +60,15 @@ public class ChannelAdapterParser extends AbstractBeanDefinitionParser {
 		String source = element.getAttribute("source");
 		String target = element.getAttribute("target");
 		String channelName = element.getAttribute("channel");
+		String methodName = element.getAttribute("method");
 		Element pollerElement = DomUtils.getChildElementByTagName(element, "poller");
 		BeanDefinitionBuilder adapterBuilder = null;
 		if (StringUtils.hasText(source)) {
 			if (StringUtils.hasText(target)) {
 				throw new ConfigurationException("both 'source' and 'target' are not allowed, provide only one");
+			}
+			if (StringUtils.hasText(methodName)) {
+				source = parseMethodInvokingAdapter(source, methodName, MethodInvokingSource.class, parserContext.getRegistry());
 			}
 			adapterBuilder =  BeanDefinitionBuilder.genericBeanDefinition(InboundChannelAdapter.class);
 			if (pollerElement != null) {
@@ -80,6 +87,9 @@ public class ChannelAdapterParser extends AbstractBeanDefinitionParser {
 			}
 		}
 		else if (StringUtils.hasText(target)) {
+			if (StringUtils.hasText(methodName)) {
+				target = this.parseMethodInvokingAdapter(target, methodName, MethodInvokingTarget.class, parserContext.getRegistry());
+			}
 			adapterBuilder =  BeanDefinitionBuilder.genericBeanDefinition(OutboundChannelAdapter.class);
 			adapterBuilder.addPropertyReference("target", target);
 			if (pollerElement != null) {
@@ -101,6 +111,13 @@ public class ChannelAdapterParser extends AbstractBeanDefinitionParser {
 			throw new ConfigurationException("either 'source' or 'target' is required");
 		}
 		return adapterBuilder.getBeanDefinition();
+	}
+
+	private String parseMethodInvokingAdapter(String objectRef, String methodName, Class<?> type, BeanDefinitionRegistry registry) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(type);
+		builder.addPropertyReference("object", objectRef);
+		builder.addPropertyValue("methodName", methodName);
+		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), registry);
 	}
 
 	private String createDirectChannel(Element element, ParserContext parserContext) {

@@ -7,10 +7,20 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
 
-	<message-bus/>
+	<message-bus auto-startup="false"/>
+
+	<queue-channel id="queueChannel" capacity="10"/>
 
 	<channel-adapter id="outboundWithImplicitChannel" target="target"/>
 
+	<channel-adapter id="methodInvokingTarget" target="testBean" method="store"/>
+
+	<channel-adapter id="methodInvokingSource" source="testBean" method="getMessage" channel="queueChannel">
+		<poller period="10000" max-messages-per-poll="1"/>
+	</channel-adapter>
+
 	<beans:bean id="target" class="org.springframework.integration.config.TestTarget"/>
+
+	<beans:bean id="testBean" class="org.springframework.integration.config.TestBean"/>
 
 </beans:beans>
