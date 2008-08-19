@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2008 the original author or authors.
+ * Copyright 2002-2007 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.springframework.integration.xml.config;
 
-package org.springframework.integration.xml.source;
+import javax.xml.transform.Result;
 
-import javax.xml.transform.Source;
+import org.springframework.integration.xml.transformer.ResultTransformer;
 
-/**
- * Factory to create a {@link Source} possibly taking into account
- * the provided message payload instance.
- * 
- * @author Jonas Partner
- */
-public interface SourceFactory {
+public class StubResultTransformer implements ResultTransformer {
 
-	/**
-	 * Create appropriate {@link Source} instance for payload
-	 * @param payload
-	 * @return
-	 */
-	Source createSource(Object payload);
+	Object toReturn;
+	
+	public StubResultTransformer(Object toReturn){
+		this.toReturn = toReturn;
+	}
+	
+	public Object transformResult(Result res) {
+		return toReturn;
+	}
 
 }

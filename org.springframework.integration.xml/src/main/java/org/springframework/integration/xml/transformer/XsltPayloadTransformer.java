@@ -33,6 +33,7 @@ import org.springframework.integration.xml.result.DomResultFactory;
 import org.springframework.integration.xml.result.ResultFactory;
 import org.springframework.integration.xml.source.DomSourceFactory;
 import org.springframework.integration.xml.source.SourceFactory;
+import org.springframework.util.Assert;
 import org.springframework.xml.transform.StringResult;
 import org.springframework.xml.transform.StringSource;
 import org.w3c.dom.Document;
@@ -66,37 +67,37 @@ public class XsltPayloadTransformer implements
 
 	private final Templates templates;
 
-	private SourceFactory sourceFactory = new DomSourceFactory();
+	private final ResultTransformer resultTransformer;
 
-	private ResultFactory resultFactory = new DomResultFactory();
+	private volatile SourceFactory sourceFactory = new DomSourceFactory();
 
-	private boolean alwaysUseSourceResultFactories = false;
+	private volatile ResultFactory resultFactory = new DomResultFactory();
 
-	private ResultTransformer resultTransformer;
+	private volatile boolean alwaysUseSourceResultFactories = false;
 
 	public XsltPayloadTransformer(Templates templates)
 			throws ParserConfigurationException {
+		this(templates, null);
+	}
+
+	public XsltPayloadTransformer(Templates templates,
+			ResultTransformer resultTransformer)
+			throws ParserConfigurationException {
 		this.templates = templates;
-		resultFactory = new DomResultFactory();
+		this.resultTransformer = resultTransformer;
 	}
 
 	public XsltPayloadTransformer(Resource xslResource) throws Exception {
 		this(TransformerFactory.newInstance().newTemplates(
-				new StreamSource(xslResource.getInputStream())));
+				new StreamSource(xslResource.getInputStream())),null);
 	}
-
-	public void setSourceFactory(SourceFactory sourceFactory) {
-		this.sourceFactory = sourceFactory;
+	
+	
+	public XsltPayloadTransformer(Resource xslResource, ResultTransformer resultTransformer) throws Exception {
+		this(TransformerFactory.newInstance().newTemplates(
+				new StreamSource(xslResource.getInputStream())),resultTransformer);
 	}
-
-	public void setResultFactory(ResultFactory resultFactory) {
-		this.resultFactory = resultFactory;
-	}
-
-	public void setAlwaysUseSourceResultFactories(
-			boolean alwaysUserSourceResultFactories) {
-		this.alwaysUseSourceResultFactories = alwaysUserSourceResultFactories;
-	}
+	
 
 	public Object transform(Object payload) throws TransformerException {
 		Object transformedPayload;
@@ -104,9 +105,9 @@ public class XsltPayloadTransformer implements
 			transformedPayload = transformUsingFactories(payload);
 		} else if (payload instanceof String) {
 			transformedPayload = transformString((String) payload);
-		} else if (Document.class.isAssignableFrom(payload.getClass())) {
+		} else if (payload instanceof Document) {
 			transformedPayload = transformDocument((Document) payload);
-		} else if (Source.class.isAssignableFrom(payload.getClass())) {
+		} else if (payload instanceof Source) {
 			transformedPayload = transformSource((Source) payload, payload);
 		} else {
 			// fall back to trying factories
@@ -114,6 +115,35 @@ public class XsltPayloadTransformer implements
 		}
 		return transformedPayload;
 
+	}
+
+	/**
+	 * 
+	 * @param sourceFactory
+	 */
+	public void setSourceFactory(SourceFactory sourceFactory) {
+		Assert.notNull(sourceFactory, "SourceFactory can not be null");
+		this.sourceFactory = sourceFactory;
+	}
+
+	/**
+	 * 
+	 * @param resultFactory
+	 */
+	public void setResultFactory(ResultFactory resultFactory) {
+		Assert.notNull(sourceFactory, "ResultFactory can not be null");
+		this.resultFactory = resultFactory;
+	}
+
+	/**
+	 * Forces use of {@link ResultFactory} and {@link SourceFactory} even for
+	 * directly supported payloads such as {@link String} and {@link Document}
+	 * 
+	 * @param alwaysUserSourceResultFactories
+	 */
+	public void setAlwaysUseSourceResultFactories(
+			boolean alwaysUserSourceResultFactories) {
+		this.alwaysUseSourceResultFactories = alwaysUserSourceResultFactories;
 	}
 
 	protected Object transformUsingFactories(Object payload)
@@ -126,11 +156,12 @@ public class XsltPayloadTransformer implements
 			throws TransformerException {
 		Result result = resultFactory.createResult(payload);
 		this.templates.newTransformer().transform(source, result);
+
 		if (resultTransformer != null) {
 			return resultTransformer.transformResult(result);
-		} else {
-			return result;
 		}
+		return result;
+
 	}
 
 	protected String transformString(String stringPayload)
@@ -152,10 +183,6 @@ public class XsltPayloadTransformer implements
 		DOMResult domResult = (DOMResult) result;
 		this.templates.newTransformer().transform(source, domResult);
 		return (Document) domResult.getNode();
-	}
-
-	public void setResultTransformer(ResultTransformer resultTransformer) {
-		this.resultTransformer = resultTransformer;
 	}
 
 }

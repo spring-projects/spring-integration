@@ -70,5 +70,17 @@ public class XsltPayloadTransformerParserTests {
 		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
 		assertEquals("Wrong payload", "test", doc.getDocumentElement().getTextContent());
 	}
-
+	
+	@Test
+	public void testWithTemplatesAndResultTransformer() throws Exception {
+		MessageHandler messageTransformer = (MessageHandler) applicationContext
+				.getBean("xsltTransformerWithTemplatesAndResultTransformer");
+		GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
+		Message<?> result = messageTransformer.handle(message);
+		
+		assertEquals("Wrong payload type", String.class, result.getPayload().getClass());
+		String strResult = (String)result.getPayload();
+		assertEquals("Wrong payload", "testReturn", strResult);
+	}
+	
 }

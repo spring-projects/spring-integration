@@ -41,6 +41,8 @@ public class XsltPayloadTransformerParser extends AbstractPayloadTransformerPars
 	protected void parsePayloadTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String xslResource = element.getAttribute("xsl-resource");
 		String xslTemplates = element.getAttribute("xsl-templates");
+		String resultTransformer = element.getAttribute("result-transformer");
+		
 		boolean bothHaveText = StringUtils.hasText(xslResource) && StringUtils.hasText(xslTemplates);
 		boolean oneHasText = StringUtils.hasText(xslResource) || StringUtils.hasText(xslTemplates);
 		Assert.state(!bothHaveText && oneHasText,
@@ -60,6 +62,10 @@ public class XsltPayloadTransformerParser extends AbstractPayloadTransformerPars
 		String resultFactory = element.getAttribute("result-factory");
 		if (StringUtils.hasText(resultFactory)) {
 			builder.addPropertyReference("resultFactory", resultFactory);
+		}
+		
+		if(StringUtils.hasText(resultTransformer)){
+			builder.addConstructorArgReference(resultTransformer);
 		}
 	}
 

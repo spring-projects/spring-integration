@@ -26,6 +26,7 @@ import org.springframework.integration.xml.result.DomResultFactory;
 import org.springframework.integration.xml.result.StringResultFactory;
 import org.springframework.integration.xml.transformer.XmlPayloadMarshallingTransformer;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
 /**
@@ -45,10 +46,15 @@ public class XmlMarshallingTransformerParser extends
 			ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String resultFactory = element.getAttribute("result-factory");
 		String marshaller = element.getAttribute("marshaller");
+		String resultTransformer = element.getAttribute("result-transformer");
+		
 		Assert.hasText(marshaller, "the 'marshaller' attribute is required");
 		Assert.hasText(resultFactory,
 				"the 'result-factory' attribute is required");
 		builder.addConstructorArgReference(marshaller);
+		if(StringUtils.hasText(resultTransformer)){
+			builder.addConstructorArgReference(resultTransformer);
+		}
 
 		if (resultFactory.equals("DOMResult")) {
 			try {

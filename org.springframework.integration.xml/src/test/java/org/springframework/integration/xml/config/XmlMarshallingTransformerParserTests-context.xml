@@ -19,7 +19,18 @@
 		result-factory="DOMResult" />
 
 
+
+	<si-xml:marshalling-transformer
+		id="marshallingTransfomerWithResultTransformer"
+		marshaller="marshaller" result-transformer="resultTransformer" />
+
 	<bean id="marshaller"
 		class="org.springframework.integration.xml.config.StubMarshaller" />
-		
+
+
+	<bean id="resultTransformer"
+		class="org.springframework.integration.xml.config.StubResultTransformer">
+		<constructor-arg value="testReturn" />
+	</bean>
+
 </beans>

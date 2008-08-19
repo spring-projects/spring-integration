@@ -35,19 +35,27 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Jonas Partner
  */
-public class XmlPayloadMarshallingTransformer implements PayloadTransformer<Object, Object> {
+public class XmlPayloadMarshallingTransformer implements
+		PayloadTransformer<Object, Object> {
 
 	private final Marshaller marshaller;
 
-	private ResultFactory resultFactory = new DomResultFactory();
+	private volatile ResultFactory resultFactory;
 
+	private final ResultTransformer resultTransformer;
 
-	public XmlPayloadMarshallingTransformer(Marshaller marshaller) throws ParserConfigurationException {
+	public XmlPayloadMarshallingTransformer(Marshaller marshaller,
+			ResultTransformer resultTransformer) throws ParserConfigurationException {
 		Assert.notNull(marshaller, "a marshaller is required");
 		this.marshaller = marshaller;
+		this.resultTransformer = resultTransformer;
 		resultFactory = new DomResultFactory();
 	}
 
+	public XmlPayloadMarshallingTransformer(Marshaller marshaller)
+			throws ParserConfigurationException {
+		this(marshaller, null);
+	}
 
 	public void setResultFactory(ResultFactory resultFactory) {
 		Assert.notNull(resultFactory, "ResultFactory must not be null");
@@ -58,18 +66,22 @@ public class XmlPayloadMarshallingTransformer implements PayloadTransformer<Obje
 		Object transformedPayload = null;
 		Result result = this.resultFactory.createResult(payload);
 		if (result == null) {
-			throw new MessagingException("Unable to marshal payload, ResultFactory returned null.");
+			throw new MessagingException(
+					"Unable to marshal payload, ResultFactory returned null.");
 		}
 		try {
 			this.marshaller.marshal(payload, result);
 			transformedPayload = result;
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			throw new MessagingException("Failed to marshal payload", e);
 		}
 		if (transformedPayload == null) {
 			throw new MessagingException("Failed to transform payload");
 		}
+		if(resultTransformer != null){
+			transformedPayload = resultTransformer.transformResult(result);
+		}
+
 		return transformedPayload;
 	}
 

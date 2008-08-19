@@ -36,6 +36,7 @@
 					</xsd:restriction>
 				</xsd:simpleType>
 			</xsd:attribute>
+			<xsd:attribute name="result-transformer" type="xsd:string" use="optional" />
 		</xsd:complexType>
 	</xsd:element>
 
@@ -69,6 +70,7 @@
 				use="optional" />
 			<xsd:attribute name="result-factory" type="xsd:string"
 				use="optional" />
+			<xsd:attribute name="result-transformer" type="xsd:string" use="optional" />
 		</xsd:complexType>
 	</xsd:element>
 

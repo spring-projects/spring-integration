@@ -26,9 +26,11 @@ import org.springframework.xml.transform.StringSource;
 import org.w3c.dom.Document;
 
 /**
+ * {@link SourceFactory} implementation which supports creation of a
+ * {@link StringSource} from either a {@link Document} or {@link String} payload
  * 
  * @author Jonas Partner
- *
+ * 
  */
 public class StringSourceFactory implements SourceFactory {
 
@@ -43,14 +45,20 @@ public class StringSourceFactory implements SourceFactory {
 	}
 
 	public Source createSource(Object payload) {
-		if (Document.class.isAssignableFrom(payload.getClass())) {
-			return createStringSourceForDocument((Document) payload);
+		Source source = null;
+		if (payload instanceof Document) {
+			source = createStringSourceForDocument((Document) payload);
 		} else if (payload instanceof String) {
-			return new StringSource((String) payload);
+			source = new StringSource((String) payload);
 		}
-		throw new MessagingException(
-				"Failed to create Source for payload type ["
-						+ payload.getClass().getName() + "]");
+
+		if (source == null) {
+			throw new MessagingException(
+					"Failed to create Source for payload type ["
+							+ payload.getClass().getName() + "]");
+		}
+		return source;
+
 	}
 
 	protected StringSource createStringSourceForDocument(Document doc) {

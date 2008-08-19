@@ -97,8 +97,7 @@ public class XsltPayloadTransformerTest {
 	@Test
 	public void testSourceWithResultTransformer() throws Exception {
 		Integer returnValue = new Integer(13);
-		transformer
-				.setResultTransformer(new StubResultTransformer(returnValue));
+		transformer = new XsltPayloadTransformer(getXslResource(), new StubResultTransformer(returnValue));
 		Object transformed = transformer
 				.transform(new StringSource(docAsString));
 		assertEquals("Wrong value from result conversion", returnValue,

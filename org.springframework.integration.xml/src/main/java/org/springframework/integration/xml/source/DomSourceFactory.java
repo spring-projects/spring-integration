@@ -22,10 +22,9 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 
+import org.springframework.integration.message.MessagingException;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
-
-import org.springframework.integration.message.MessagingException;
 
 /**
  * {@link SourceFactory} implementation which supports creation of a
@@ -38,7 +37,6 @@ public class DomSourceFactory implements SourceFactory {
 
 	private final DocumentBuilderFactory docBuilderFactory;
 
-
 	public DomSourceFactory() {
 		this.docBuilderFactory = DocumentBuilderFactory.newInstance();
 	}
@@ -49,14 +47,19 @@ public class DomSourceFactory implements SourceFactory {
 
 
 	public Source createSource(Object payload) {
-		if (Document.class.isAssignableFrom(payload.getClass())) {
-			return createDomSourceForDocument((Document) payload);
+		Source source = null;
+		if (payload instanceof Document) {
+			source =  createDomSourceForDocument((Document) payload);
 		}
 		else if (payload instanceof String) {
-			return createDomSourceForString((String) payload);
+			source = createDomSourceForString((String) payload);
 		}
+		
+		if(source == null){
 		throw new MessagingException("Failed to create Source for payload type ["
 				+ payload.getClass().getName() + "]");
+		} 
+		return source;
 	}
 
 	protected DOMSource createDomSourceForDocument(Document document) {
@@ -66,11 +69,11 @@ public class DomSourceFactory implements SourceFactory {
 
 	protected DOMSource createDomSourceForString(String s) {
 		try {
-			Document doc = docBuilderFactory.newDocumentBuilder().parse(new InputSource(new StringReader(s)));
+			Document doc = docBuilderFactory.newDocumentBuilder().parse(
+					new InputSource(new StringReader(s)));
 			DOMSource source = new DOMSource(doc.getDocumentElement());
 			return source;
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			throw new MessagingException("Exception creating DOMSource", e);
 		}
 	}

@@ -68,7 +68,7 @@ public class XmlUnmarshallingTransformerParserTests {
 				"<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>");
 		Message<?> result = transformer.handle(message);
 		assertEquals("Wrong payload after unmarshalling", "unmarshalled", result.getPayload());
-		assertTrue("Wrong source passed to unmarshaller", unmarshaller.sourcesPassed.poll() instanceof DOMSource);
+		assertTrue("Wrong source passed to unmarshaller", unmarshaller.sourcesPassed.poll() instanceof StringSource);
 	}
 
 	@Test

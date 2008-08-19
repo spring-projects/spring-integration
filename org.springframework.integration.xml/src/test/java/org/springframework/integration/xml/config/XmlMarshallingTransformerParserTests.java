@@ -56,6 +56,16 @@ public class XmlMarshallingTransformerParserTests  {
 		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
 		assertEquals("Wrong palyoad", "hello", doc.getDocumentElement().getTextContent());
 	}
+	
+	@Test
+	public void testDefaultWithResultTransformer() throws Exception {
+		MessageHandler transformer = (MessageHandler) appContext.getBean("marshallingTransfomerWithResultTransformer");
+		GenericMessage<Object> message = new GenericMessage<Object>("hello");
+		Message<?> result = transformer.handle(message);
+		assertTrue("Wrong payload type", result.getPayload() instanceof String);
+		String resultPayload = (String)result.getPayload();
+		assertEquals("Wrong palyoad", "testReturn", resultPayload);
+	}
 
 	@Test
 	public void testDOMResult() throws Exception {
