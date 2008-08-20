@@ -1,6 +1,71 @@
 SPRING INTEGRATION CHANGELOG
 ============================
 
+Changes in version 1.0.0.M6 (Aug 20, 2008)
+------------------------------------------
+
+*** CORE API ***
+
+Refactored Message object to be unmodifiable after initial creation
+Refactored MessageHeaders object to be an implementation of (unmodifiable) Map<String, Object>
+Added MessageBuilder for constructing Messages (now used within internal handlers and endpoints)
+Added Quartz-based MessagingTaskScheduler to support Cron-based polling
+Reimplemented base Scheduling infrastructure to provide an SPI
+MessageBus no longer provides an option for auto-creating channels
+Added HeaderTransformer strategy interface
+MethodArgumentMessageMapper (f.k.a AnnotationMethodMessageMapper) is used across handler types
+PublishSubscribeChannels now provide an 'applySequence' property for adding sequence number/size headers
+SimpleDispatcher no longer attempts retries and does not mask exceptions with rejection limit error
+Default 'maxMessagesPerPoll' value is now unbounded
+Aggregator gives precedence to outputChannel and falls back to the returnAddress (consistent with other handlers)
+Added support for arguments, return-value, and thrown exception payload types for MessagePublishingInterceptor
+AbstractMessageDispatcher uses a Set (to avoid duplicate subscriptions) instead of a List
+AbstractMessageBarrierHandler uses returnAddress if outputChannel is null
+PublisherAnnotationPostProcessor proxies classes if the annotated method is not declared on an interface method
+Method reference is used for @Subscriber annotation (avoids NoSuchMethodException for method name ambiguity)
+MethodInvokingSource and MethodInvokingTarget now accept the actual Method reference instead of method name
+ChannelFactory behavior is now consistent with channels that are defined explicitly (no longer creates proxies)
+MessageHandlerDecorator (f.k.a. InterceptingMessageHandler) now supports setter injection
+InboundChannelAdapter (replacement for SourceEndpoint) calls MessageDeliveryAware onSend/onFailure methods
+
+*** ADAPTERS ***
+
+Added an FTP Target adapter
+FileEntryParser can be customized for the FtpSource
+Added PollingMailSource adapter to support (polled) inbound e-mail messages
+Added SubscribableMailSource adapter to support (event-driven) inbound e-mail messages
+JMS header-mapping MessageConverter is no longer nested twice when used for source and target
+JMS message headers are now propagated (JMS-specific and user-prefixed values)
+AbstractMailHeaderMapper correctly maps the FROM/REPLY_TO attributes
+
+*** CONFIGURATION ***
+
+Channel Adapter now creates a DirectChannel implicitly if no "channel" is configured
+Added namespace support for WireTap
+The "max-messages-per-poll" value can be configured on <poller/> elements
+The <poller/> element now accepts a "cron" attribute (as an alternative to "period") if Quartz support is available
+The <poller/> element now provides "initial-delay" and "fixed-rate" attributes
+Added support for hybrid XML and annotations configuration (method-level annotations with XML-based endpoint)
+Added namespace support for configuring the MessageBus' TaskScheduler
+The "error-handler" attribute is available for XML-based Message Endpoint configuration
+The "errorChannel" bean is detected within the Application Context rather than being configured on the MessageBus
+The "channelFactory" bean is detected within the Application Context rather than being configured on the MessageBus
+Exposed configuration of concurrent-consumers for the JmsGateway
+The @HeaderProperty and @HeaderAttribute annotations have been replaced with @Header
+Splitter endpoint's 'output-channel' is now configured correctly when using annotations
+
+*** WEB SERVICES AND XML ***
+
+Added XPathRouter
+DOMResultFactory now creates a DOMResult with a node for OXM Marshaller
+
+*** GENERAL ***
+
+Upgraded to Spring 2.5.5.A
+Upgraded to Spring Security 2.0.2.A
+Upgraded to Spring WS 1.5.4.A
+
+
 Changes in version 1.0.0.M5 (Jul 08, 2008)
 ------------------------------------------
 

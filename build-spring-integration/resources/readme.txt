@@ -1,9 +1,9 @@
-SPRING INTEGRATION 1.0.0.M5 (July 8, 2008)
+SPRING INTEGRATION 1.0.0.M6 (Aug 20, 2008)
 ------------------------------------------
 
-This is the 1.0 Milestone 5 release of Spring Integration.
+This is the 1.0 Milestone 6 release of Spring Integration.
 
-To find out what has changed since Milestone 4, see 'changelog.txt'
+To find out what has changed since Milestone 5, see 'changelog.txt'
 
 The following are the key messaging components defined in this release:
   org.springframework.integration.message.Message
@@ -21,12 +21,15 @@ The following adapters are also available in this release:
   org.springframework.integration.adapter.file.FileSource
   org.springframework.integration.adapter.file.FileTarget
   org.springframework.integration.adapter.ftp.FtpSource
+  org.springframework.integration.adapter.ftp.FtpTarget
   org.springframework.integration.adapter.httpinvoker.HttpInvokerGateway
   org.springframework.integration.adapter.httpinvoker.HttpInvokerHandler
   org.springframework.integration.adapter.jms.JmsGateway
   org.springframework.integration.adapter.jms.JmsSource
   org.springframework.integration.adapter.jms.JmsTarget
   org.springframework.integration.adapter.mail.MailTarget
+  org.springframework.integration.adapter.mail.PollingMailSource
+  org.springframework.integration.adapter.mail.SubscribableMailSource
   org.springframework.integration.adapter.rmi.RmiGateway
   org.springframework.integration.adapter.rmi.RmiHandler
   org.springframework.integration.adapter.stream.ByteStreamSource
