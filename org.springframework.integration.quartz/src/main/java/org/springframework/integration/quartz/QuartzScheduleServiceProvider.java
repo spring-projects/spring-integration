@@ -24,6 +24,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.quartz.CronTrigger;
 import org.quartz.InterruptableJob;
@@ -60,6 +61,7 @@ public class QuartzScheduleServiceProvider implements ScheduleServiceProvider {
 
 	private static final String TRIGGER_NAME_PARAMETER = "triggerName";
 
+	private static final AtomicLong sequenceNumber = new AtomicLong(Long.MIN_VALUE);
 
 	private final Scheduler scheduler;
 
@@ -151,7 +153,7 @@ public class QuartzScheduleServiceProvider implements ScheduleServiceProvider {
 	}
 
 	private static String generateNameForInstance(Object instance) {
-		return instance.getClass().getName() + "#" + System.identityHashCode(instance);
+		return instance.getClass().getName() +  "#" + sequenceNumber.incrementAndGet();
 	}
 
 	private static Date getFutureDate(long delay, TimeUnit timeUnit) {
