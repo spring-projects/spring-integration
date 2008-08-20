@@ -83,7 +83,8 @@
       </para>
       <para>
 		When using the "channel" element, the creation of the channel instances will be deferred to the <classname>ChannelFactory</classname>
-		defined on the <classname>MessageBus</classname> (see below). 
+		bean whose name is "channelFactory" if defined within the ApplicationContext. If no such bean is defined, the default factory will
+		be used. The default implementation is <classname>QueueChannelFactory</classname>. 
 	  </para>
 	  <para>
 	    It is also possible to use more specific elements for the various channel types (as described in
@@ -102,7 +103,7 @@
 	    <title>The &lt;publish-subscribe-channel/&gt; element</title>
 	    <para>
 	 	  To create a <classname>PublishSubscribeChannel</classname>, use the "publish-subscribe-channel" element.
-		  By using this element, you can also specify the "task-executor" used for publishing
+		  When using this element, you can also specify the "task-executor" used for publishing
 		  Messages (if none is specified it simply publishes in the sender's thread): 
 		  <programlisting language="xml">&lt;publish-subscribe-channel id="exampleChannel" task-executor="someTaskExecutor"/&gt;</programlisting>
         </para>
@@ -112,8 +113,8 @@
         <para>
           To create a <classname>PriorityChannel</classname>, use the "priority-channel" element:
           <programlisting language="xml"><![CDATA[<priority-channel id="exampleChannel"/>]]></programlisting>
-          By default, the channel will consult the <classname>MessagePriority</classname> value in the 
-          message's header. However, a custom <interfacename>Comparator</interfacename> reference may be
+          By default, the channel will consult the <classname>MessagePriority</classname> header of the 
+          message. However, a custom <interfacename>Comparator</interfacename> reference may be
           provided instead. Also, note that the <classname>PriorityChannel</classname> (like the other types)
           does support the "datatype" attribute. As with the "queue-channel", it also supports a "capacity" attribute.
           The following example demonstrates all of these:
@@ -168,15 +169,25 @@
         <para>
           A "channel-adapter" element can connect any implementation of the <interfacename>MessageSource</interfacename>
           interface to a <interfacename>MessageChannel</interfacename>. When the <interfacename>MessageBus</interfacename>
-          registers the endpoint, it will activate the subscription by assigning the endpoint to the input channel's dispatcher.
-          The dispatcher is capable of handling multiple endpoint subscriptions for its channel and delegates to a scheduler
-          for managing the tasks that pull messages from the source and push them to the channel. To configure the polling
-          period for an individual channel-adapter's schedule, provide a 'schedule' sub-element with the 'period' in
-          milliseconds:
-          <programlisting language="xml"><![CDATA[<channel-adapter source="exampleSource" channel="exampleChannel">
-    <schedule period="5000"/>
+          registers the endpoint, it will activate the subscription and if necessary create a poller for the endpoint.
+          The Message Bus delegates to a <interfacename>TaskScheduler</interfacename> for scheduling the poller based
+          on its schedule. To configure the polling 'period' or 'cronExpression' for an individual channel-adapter's
+          schedule, provide a 'poller' sub-element with the 'period' (in milliseconds) or 'cron' attribute:
+          <programlisting language="xml"><![CDATA[<channel-adapter source="source1" channel="channel1">
+    <poller period="5000"/>
+</channel-adapter>
+
+<channel-adapter source="source2" channel="channel2">
+    <poller cron="30 * * * * ?""/>
 </channel-adapter>]]></programlisting>
         </para>
+        <note>
+          <para>
+            Cron support does require the Quartz JAR and its transitive dependencies. Also, keep in mind that pollers only
+            apply for <interfacename>PollableChannel</interfacename> implementations. On the other hand, subscribable channels
+            (PublishSubscribeChannel and DirectChannel) will send Messages to their subscribed targets directly.
+          </para>
+        </note>
       </section>
       <section id="namespace-endpoint-outboundchanneladapter">
         <title>The outbound &lt;channel-adapter/&gt; with a MessageTarget</title>
@@ -184,19 +195,11 @@
           A "channel-adapter" element can also connect a <interfacename>MessageChannel</interfacename> to any implementation
           of the <interfacename>MessageTarget</interfacename> interface.
           <programlisting language="xml"><![CDATA[<channel-adapter channel="exampleChannel" target="exampleTarget"/>]]></programlisting>
-          Again, it is possible to provide a schedule:
+          Again, it is possible to provide a poller:
           <programlisting language="xml"><![CDATA[<channel-adapter channel="exampleChannel" target="exampleTarget">
-    ]]><emphasis><![CDATA[<schedule period="3000"/>]]></emphasis><![CDATA[
+    ]]><emphasis><![CDATA[<poller period="3000"/>]]></emphasis><![CDATA[
 </channel-adapter>]]></programlisting>
         </para>
-        <note>
-          <para>
-            Individual endpoint schedules only apply for "Point-to-Point" channels, since in that case only a single
-            subscriber needs to receive the message. On the other hand, when a Spring Integration channel is configured as
-            a "Publish-Subscribe" channel, then the dispatcher will drive all endpoint notifications according to its own
-            default schedule, and any 'schedule' element configured for those endpoints will be ignored.
-          </para>
-        </note>
       </section>
       <section id="namespace-service-activator">
         <title>The &lt;service-activator/&gt; element</title>
@@ -214,21 +217,15 @@
         <para>
           In either case (<interfacename>MessageHandler</interfacename> or arbitrary object/method), when the handling
           method returns a non-null value, the endpoint will attempt to send the reply message to an appropriate reply
-          channel. To determine the reply channel, it will first check if an "output-channel" was provided in the
-          endpoint configuration:
+          channel. To determine the reply channel, it will first check if the <literal>NEXT_TARGET</literal> header contains
+          a non-null value, next it will check if an "output-channel" was provided in the endpoint configuration:
           <programlisting language="xml">&lt;service-activator input-channel="exampleChannel" output-channel="replyChannel"
                   ref="somePojo" method="someMethod"/&gt;</programlisting>
-          If no "output-channel" is available, it will next check the message header's '<literal>returnAddress</literal>'
-          property. If that value is available, it will then check its type. If it is a <classname>MessageChannel</classname>,
-          the reply message will be sent to that channel. If it is a <classname>String</classname>, then the endpoint will
+          If no "output-channel" is available, it will finally check the message header's <literal>RETURN_ADDRESS</literal>
+          property. If that value is available, it will then check its type. If it is a <classname>MessageTarget</classname>,
+          the reply message will be sent to that target. If it is a <classname>String</classname>, then the endpoint will
           attempt to resolve the channel by performing a lookup in the <interfacename>ChannelRegistry</interfacename>.
-        </para>
-        <para>
-          To reverse the order so that the 'returnAddress' is given priority over the endpoint's "output-channel", then
-          provide the "return-address-overrides" attribute with a value of 'true':
-          <programlisting language="xml">&lt;service-activator input-channel="exampleChannel" output-channel="replyChannel"
-                  ref="somePojo" method="someMethod" return-address-overrides="true"/&gt;</programlisting>
-          If neither is available, then a <classname>MessageHandlingException</classname> will be thrown.
+          If the target cannot be resolved, then a <classname>MessageHandlingException</classname> will be thrown.
         </para>
       </section>
       <para>
@@ -244,11 +241,12 @@
         <classname>EndpointInterceptors</classname>. The interface is defined as follows:
         <programlisting language="java"><![CDATA[public interface EndpointInterceptor {
 
-    boolean preSend(Message<?> message);
+    Message<?> preHandle(Message<?> requestMessage);
 
-    boolean aroundSend(Message<?> message, MessageTarget endpoint);
+    Message<?> aroundHandle(Message<?> requestMessage, MessageHandler handler);
 
-    void postSend(Message<?> message, boolean result);
+    Message<?> postHandle(Message<?> replyMessage);
+
 }]]></programlisting>
         There is also an EndpointInterceptorAdapter that provides no-op methods for convenience
         when subclassing. Within an endpoint configuration, interceptors can be added within
@@ -258,7 +256,7 @@
                    ref="someObject"
                    method="someMethod"
                    output-channel="replyChannel">
-    <schedule period="1000"/>
+    <poller period="1000"/>
     <interceptors>
         <ref bean="someInterceptor"/>
         <beans:bean class="example.AnotherInterceptor"/>
@@ -266,61 +264,45 @@
 </service-activator>]]></programlisting>
       </para>
       <para>
-        Spring Integration provides a <classname>TransactionInterceptor</classname> and namespace
-        support with the &lt;transaction-interceptor&gt; element. The attributes for this element
-        should be familiar to anyone who has experience with Spring's Transaction management:
+        Spring Integration also provides transaction support for the pollers so that each receive-and-forward
+        operation can be performed as an atomic unit-of-work. To configure transactions for a poller, simply
+        add the &lt;transactional/&gt; sub-element. The attributes for this element should be familiar to anyone
+        who has experience with Spring's Transaction management:
         <programlisting language="xml"><![CDATA[<service-activator id="exampleEndpoint"
                    input-channel="requestChannel"
                    ref="someObject"
                    method="someMethod"
                    output-channel="replyChannel">
-    <schedule period="1000"/>
-    <interceptors>
-        <transaction-interceptor transaction-manager="txManager"
-                                 propagation="REQUIRES_NEW"
-                                 isolation="REPEATABLE_READ"
-                                 timeout="10000"
-                                 read-only="false"/>
-    </interceptors>
+    <poller period="1000"/>
+        <transactional transaction-manager="txManager"
+                       propagation="REQUIRES_NEW"
+                       isolation="REPEATABLE_READ"
+                       timeout="10000"
+                       read-only="false"/>
+    </poller>
 </service-activator>]]></programlisting> 
       </para>
       <para>
-        Spring Integration also provides a ConcurrencyInterceptor. By applying this, an endpoint becomes capable of
-        managing a thread pool, and the concurrency settings you provide for that pool's core size, max size,
-        and queue capacity can make a substantial difference in how the endpoint performs under load.
-        These settings are available per-endpoint since the performance characteristics of an endpoint's handler or
-        target is one of the major factors to consider (the other major factor being the expected volume on the
-        channel to which the endpoint subscribes). To enable concurrency for an endpoint that is configured with the
-        XML namespace support, provide the 'concurrency-interceptor' element within the 'interceptors' sub-element
-        and then provide one or more of the properties shown below:
+        Spring Integration also provides support for executing the pollers with a
+        <interfacename>TaskExceutor</interfacename>. This enables concurrency for an endpoint or group of
+        endpoints. As a convenience, there is also namespace support for creating a simple thread pool executor.
+        The &lt;pool-executor/&gt; element defines attributes for common concurrency settings such as core-size,
+        max-size, and queue-capacity. Configuring a thread-pooling executor can make a substantial difference in
+        how the endpoint performs under load. These settings are available per-endpoint since the performance
+        characteristics of an endpoint's handler or is one of the major factors to consider (the other major factor
+        being the expected volume on the channel to which the endpoint subscribes). To enable concurrency for an
+        endpoint that is configured with the XML namespace support, provide the 'task-executor' reference on its
+        &lt;poller/&gt; element and then provide one or more of the properties shown below:
         <programlisting language="xml"><![CDATA[<service-activator input-channel="exampleChannel" ref="exampleHandler">
-    <interceptors>    
-        ]]><emphasis><![CDATA[<concurrency-interceptor core="5" max="25" queue-capacity="20" keep-alive="120"/>]]></emphasis><![CDATA[
-    </interceptors>
-</service-activator>]]></programlisting>
-        Recall the default concurrency policy values as listed in <xref linkend="api-messagebus-concurrencypolicy"/>.
-        If no concurrency settings are provided (i.e. a <emphasis>null</emphasis>
-        <classname>ConcurrencyPolicy</classname>), the endpoint's handler or target will be invoked in the caller's thread.
-        Note that the "caller" is usually the dispatcher except in the case of a <classname>DirectChannel</classname>
-        (see <xref linkend="api-messagechannel-directchannel"/> for more detail).
+    <poller period="5000" task-executor="pool"/>
+</service-activator>
+
+<pool-executor id="pool" core-size="5" max-size="25" queue-capacity="20" keep-alive-seconds="120"/>]]></programlisting>
+        If no 'task-executor' is provided, the endpoint's handler or target will be invoked in the caller's thread.
+        Note that the "caller" is usually the MessageBus' task scheduler except in the case of a subscribable channel.
+        Also, keep in mind that you the 'task-executor' attribute can provide a reference to any implementation of
+        Spring's <interfacename>TaskExecutor</interfacename> interface.
       </para>
-      <para>
-        Another option for the concurrency-interceptor is to provide the "task-executor" attribute
-        with a reference to any implementation of Spring's <interfacename>TaskExecutor</interfacename>
-        interface.
-      </para>
-      <tip>
-        <para>
-          For the concurrency settings, the default queue capacity of 0 triggers the creation of a
-          <classname>SynchronousQueue</classname>. In many cases, this is preferable since the direct handoff eliminates
-          the chance of a message handling task being "stuck" in the queue (thread pool executors will favor adding to the
-          queue rather than increasing the pool size). Specifically, whenever a dispatcher for a Point-to-Point channel
-          has more than one subscribed endpoint, a task that is rejected due to an exhausted thread pool can be handled
-          immediately by another endpoint whose pool has one or more threads available. On the other hand, when a
-          particular channel/endpoint may be expecting bursts of activity, setting a queue capacity value might be the
-          best way to accommodate the volume.
-        </para>
-      </tip>
     </section>
 
     <section id="namespace-messagebus">
@@ -335,17 +317,17 @@
       </para>
       <para>
         The Message Bus provides default error handling for its components in the form of a configurable error channel,
-        and the 'message-bus' element accepts a reference with its 'error-channel' attribute:
-        <programlisting language="xml"><![CDATA[<message-bus error-channel="errorChannel"/>
+        and it will first check for a channel bean named 'errorChannel' within the context:
+        <programlisting language="xml"><![CDATA[<message-bus/>
 
 <channel id="errorChannel" capacity="500"/>]]></programlisting>
-        When exceptions occur in a concurrent endpoint's execution of its <interfacename>MessageHandler</interfacename>
-        callback, those exceptions will be wrapped in <classname>ErrorMessages</classname> and sent to the Message Bus'
-        'errorChannel' by default. To enable global error handling, simply register a handler on that channel. For
-        example, you can configure Spring Integration's <classname>RootCauseErrorMessageRouter</classname> as the handler of
-        an endpoint that is subscribed to the 'errorChannel'. That router can then spread the error messages across
-        multiple channels based on <classname>Exception</classname> type. However, since most of the errors will already
-        have been wrapped in <classname>MessageDeliveryException</classname> or <classname>MessageHandlingException</classname>,
+        When exceptions occur in a scheduled poller task's execution, those exceptions will be wrapped in
+        <classname>ErrorMessages</classname> and sent to the 'errorChannel' by default. To enable global error
+        handling, simply register a handler on that channel. For example, you can configure Spring Integration's
+        <classname>RootCauseErrorMessageRouter</classname> as the handler of an endpoint that is subscribed to the
+        'errorChannel'. That router can then spread the error messages across multiple channels based on
+        <classname>Exception</classname> type. However, since most of the errors will already have been wrapped in
+        <classname>MessageDeliveryException</classname> or <classname>MessageHandlingException</classname>,
         the <classname>RootCauseErrorMessageRouter</classname> is typically a better option.
 	  </para>
       <para>
@@ -356,28 +338,23 @@
         <programlisting language="xml"><![CDATA[<message-bus auto-startup="false"/>]]></programlisting>
       </para>
       <para>
-        Another configurable property is the size of the dispatcher thread pool. The dispatcher threads are responsible
-        for polling channels and then passing the messages to handlers.
+        Another configurable property is the size of the default dispatcher thread pool. The dispatcher threads are
+        responsible for polling channels and then passing the messages to handlers.
         <programlisting language="xml"><![CDATA[<message-bus dispatcher-pool-size="25"/>]]></programlisting>
         When the endpoints are concurrency-enabled as described in the previous section, the invocation of the handling
-        methods will happen within the handler thread pool and not the dispatcher pool. However, when no concurrency
-        policy is provided to an endpoint, then it will be invoked in the dispatcher's thread (with the exception of
-        <classname>DirectChannels</classname>).
-      </para>
-      <para>
-        Also, the Message Bus is capable of automatically creating channel instances if an endpoint registers a
-        subscription by providing the name of a channel that the bus does not recognize.
-        <programlisting language="xml"><![CDATA[<message-bus auto-create-channels="true"/>]]></programlisting>
+        methods will happen within the handler thread pool and not the dispatcher pool. However, when no task-executor
+        is provided to an endpoint's poller, then it will be invoked in the dispatcher's thread (with the exception of
+        subscribable channels).
       </para>
 	  <para>
-		Finally, the type of channel that gets created automatically by the bus can be customized by using the
-		"channel-factory" attribute on the "message-bus" definition as in the following example:
-		<programlisting language="xml"><![CDATA[<message-bus channel-factory="channelFactoryBean"/>
+		Finally, the type of channel that gets created automatically by the bus can be customized by defining a bean
+		that implements the ChannelFactory interface and whose name is "channelFactory".
+		<programlisting language="xml"><![CDATA[<message-bus/>
 
-<beans:bean id="channelFactoryBean" 
+<beans:bean id="channelFactory" 
     class="org.springframework.integration.channel.factory.PriorityChannelFactory"/>]]></programlisting> 
 		With this definition, all the channels created automatically will be <classname>PriorityChannel</classname> instances.
-		Without the "channel-factory" element, the Message Bus will assume a default <classname>QueueChannelFactory</classname>.
+		Without a "channelFactory" bean, the Message Bus will assume a default <classname>QueueChannelFactory</classname>.
 	  </para>
     </section>
 
