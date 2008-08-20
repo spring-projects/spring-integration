@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.annotation;
+package org.springframework.integration.aop;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -22,8 +22,6 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import org.springframework.integration.aop.MessagePublishingInterceptor;
 
 /**
  * Indicates that the method's return value should be published to the specified

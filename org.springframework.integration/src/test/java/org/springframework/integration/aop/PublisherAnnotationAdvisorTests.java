@@ -24,7 +24,6 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
-import org.springframework.integration.annotation.Publisher;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.QueueChannel;

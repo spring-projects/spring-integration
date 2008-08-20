@@ -23,7 +23,6 @@ import org.aopalliance.aop.Advice;
 import org.springframework.aop.Pointcut;
 import org.springframework.aop.support.AbstractPointcutAdvisor;
 import org.springframework.aop.support.annotation.AnnotationMatchingPointcut;
-import org.springframework.integration.annotation.Publisher;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.util.Assert;
 
