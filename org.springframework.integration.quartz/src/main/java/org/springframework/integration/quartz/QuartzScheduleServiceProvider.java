@@ -173,7 +173,7 @@ public class QuartzScheduleServiceProvider implements ScheduleServiceProvider {
 	 *  It is designed to be used for periodic tasks, therefore get() either block or throw
 	 *  {@link java.util.concurrent.CancellationException}.
 	 */
-	private class ScheduledFutureJobWrapper implements ScheduledFuture<Object> {
+	public class ScheduledFutureJobWrapper implements ScheduledFuture<Object> {
 
 		private final Scheduler scheduler;
 
@@ -249,7 +249,7 @@ public class QuartzScheduleServiceProvider implements ScheduleServiceProvider {
 	/**
 	 * Wrapper class allowing for Quartz jobs to be interrupted.
 	 */
-	private static class InterruptableMethodInvokingJob extends MethodInvokingJobDetailFactoryBean.MethodInvokingJob
+	public static class InterruptableMethodInvokingJob extends MethodInvokingJobDetailFactoryBean.MethodInvokingJob
 			implements InterruptableJob {
 
 		private Thread executionThread;
@@ -275,7 +275,7 @@ public class QuartzScheduleServiceProvider implements ScheduleServiceProvider {
 		private final String name;
 
 
-		public FixedDelayJobListener() {
+		private FixedDelayJobListener() {
 			this.name = generateNameForInstance(this);
 		}
 

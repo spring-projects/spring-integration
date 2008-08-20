@@ -55,7 +55,7 @@ public class TestQuartzScheduleServiceProvider extends AbstractJUnit4SpringConte
 		CountDownLatch latch = new CountDownLatch(1);
 		AtomicBoolean hasRun = new AtomicBoolean(false);
 		scheduleServiceProvider.execute(new SimpleRunnable(latch, hasRun));
-		latch.await(500, TimeUnit.MILLISECONDS);
+		latch.await(1000, TimeUnit.MILLISECONDS);
 		assertTrue(hasRun.get());
 	}
 
@@ -121,7 +121,7 @@ public class TestQuartzScheduleServiceProvider extends AbstractJUnit4SpringConte
 		AtomicBoolean hasRun = new AtomicBoolean(false);
 		SimpleRunnable runnable = new SimpleRunnable(latch, hasRun);
 		scheduleServiceProvider.scheduleWithFixedDelay(runnable, 500, 500, TimeUnit.MILLISECONDS);
-		latch.await(2000, TimeUnit.MILLISECONDS);
+		latch.await(3000, TimeUnit.MILLISECONDS);
 		assertTrue(hasRun.get());
 	}
 
@@ -153,7 +153,6 @@ public class TestQuartzScheduleServiceProvider extends AbstractJUnit4SpringConte
 		}
 
 		public void run() {
-			hasRun.set(latch.getCount() == 1);
 			this.executionTimes.add(new Date().getTime());
 			try {
 				Thread.sleep(500);
@@ -162,6 +161,9 @@ public class TestQuartzScheduleServiceProvider extends AbstractJUnit4SpringConte
 				Thread.currentThread().interrupt();
 			}
 			latch.countDown();
+			if (latch.getCount() == 0) {
+				hasRun.set(true);
+			}
 		}
 
 	}
