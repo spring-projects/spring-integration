@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,21 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-
 /**
  * Indicates that a method is capable of handling a message or message payload.
- * The method may only accept a single parameter, and the enclosing class should
- * be annotated with {@link MessageEndpoint @MessageEndpoint}.
+ * <p>
+ * A method annotated with @Handler may accept a parameter of type
+ * {@link org.springframework.integration.message.Message} or of the expected
+ * Message payload's type. Any type conversion supported by
+ * {@link org.springframework.beans.SimpleTypeConverter} will be applied to
+ * the Message payload if necessary. Header values can also be passed as
+ * Message parameters by using the
+ * {@link org.springframework.integration.handler.annotation.Header @Header}
+ * parameter annotation.
+ * <p>
+ * Return values from the annotated method may be of any type. If the return
+ * value is not a Message, a reply Message will be created with that object
+ * as its payload.
  * 
  * @author Mark Fisher
  */

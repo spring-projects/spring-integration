@@ -24,8 +24,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that the method's return value should be published to the specified
+ * Indicates that the method's return value, thrown exception, or
+ * invocation arguments should be published to the specified
  * channel. The value will only be published if non-null.
+ * The default payload type is 'return value'.
  * 
  * @author Mark Fisher
  */
@@ -35,8 +37,15 @@ import java.lang.annotation.Target;
 @Documented
 public @interface Publisher {
 
+	/**
+	 * name of the channel where Messages should be sent
+	 */
 	String channel();
 
+	/**
+	 * type of payload to intercept and send
+	 * @see MessagePublishingInterceptor.PayloadType
+	 */
 	MessagePublishingInterceptor.PayloadType payloadType()
 			default MessagePublishingInterceptor.PayloadType.RETURN_VALUE;
 
