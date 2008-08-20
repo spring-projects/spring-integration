@@ -269,9 +269,10 @@ boolean unsubscribe(MessageTarget target);</programlisting>
         <emphasis>Document Messages</emphasis> which are generally intended to be processed by
         a single consumer. Note that the <classname>PublishSubscribeChannel</classname> is
         intended for sending only. Since it broadcasts to its subscribers directly when its
-        <methodname>send(Message)</methodname> method is invoked, consumers cannot receive
-        Messages by invoking <methodname>receive()</methodname>. Instead, any subscriber must
-        be a <interfacename>MessageTarget</interfacename> itself, and the subscriber's
+        <methodname>send(Message)</methodname> method is invoked, consumers cannot poll for
+        Messages (it does not implement <interfacename>PollableChannel</interfacename> and
+        therefore has no <methodname>receive()</methodname> method). Instead, any subscriber
+        must be a <interfacename>MessageTarget</interfacename> itself, and the subscriber's
         <methodname>send(Message)</methodname> method will be invoked in turn.
       </para>
     </section>
@@ -300,7 +301,7 @@ boolean unsubscribe(MessageTarget target);</programlisting>
         Whereas the <classname>QueueChannel</classname> enforces first-in/first-out (FIFO) ordering, the
         <classname>PriorityChannel</classname> is an alternative implementation that allows for messages to be ordered
         within the channel based upon a priority. By default the priority is determined by the
-        '<literal>priority</literal>' property within each message's header. However, for custom priority determination
+        '<literal>priority</literal>' header within each message. However, for custom priority determination
         logic, a comparator of type <classname>Comparator&lt;Message&lt;?&gt;&gt;</classname> can be provided to the
         <classname>PriorityChannel</classname>'s constructor.
       </para>
@@ -330,8 +331,10 @@ boolean unsubscribe(MessageTarget target);</programlisting>
       <para>
         The <classname>DirectChannel</classname> has point-to-point semantics, but otherwise is more similar
         to the <classname>PublishSubscribeChannel</classname> than any of the queue-based channel implementations
-        described above. In other words, it also dispatches Messages directly but only to a single receiver. Its
-        primary purpose is to enable a single thread to perform the operations on "both sides" of the channel. For
+        described above. In other words, it does not implement the <interfacename>PollableChannel</interfacename>
+        interface, but rather dispatches Messages directly to a subscriber. As a point-to-point channel, however,
+        it will only send each Message to a <emphasis>single</emphasis> subscribed <classname>MessageTarget</classname>.
+        Its primary purpose is to enable a single thread to perform the operations on "both sides" of the channel. For
         example, if a receiving target is subscribed to a <classname>DirectChannel</classname>, then sending a
         Message to that channel will trigger invocation of that target's <methodname>send(Message)</methodname>
         method <emphasis>directly in the sender's thread</emphasis>. The key motivation for providing a channel
@@ -350,7 +353,7 @@ boolean unsubscribe(MessageTarget target);</programlisting>
         While probably the least common type of channel, this is useful for situations where
         <classname>DirectChannels</classname> are being used to enforce a single thread of operation but any reply
         Messages should be sent to a "terminal" channel. If that terminal channel is a
-        <classname>ThreadLocalChannel</classname>, the original sending thread could collect its replies.
+        <classname>ThreadLocalChannel</classname>, the original sending thread can collect its replies from it.
       </para>
     </section>
   </section>
@@ -365,30 +368,37 @@ boolean unsubscribe(MessageTarget target);</programlisting>
       the send and receive operations. The <interfacename>ChannelInterceptor</interfacename> strategy interface
       provides methods for each of those operations:
       <programlisting language="java"><![CDATA[public interface ChannelInterceptor {
-    boolean preSend(Message<?> message, MessageChannel channel);
+
+    Message<?> preSend(Message<?> message, MessageChannel channel);
+
     void postSend(Message<?> message, MessageChannel channel, boolean sent);
+
     boolean preReceive(MessageChannel channel);
-    void postReceive(Message<?> message, MessageChannel channel);
+
+    Message<?> postReceive(Message<?> message, MessageChannel channel);
 }]]></programlisting>
       After implementing the interface, registering the interceptor with a channel is just a matter of calling:
       <programlisting language="java">channel.addInterceptor(someChannelInterceptor);</programlisting>
-      The methods that return a <literal>boolean</literal> value can return '<literal>false</literal>' to prevent the
-      send or receive operation from proceeding (send would return 'false' and receive would return 'null').
+      The methods that return a Message instance can be used for transforming the Message or can return 'null'
+      to prevent further processing (of course, any of the methods can throw an Exception). Also, the
+      <methodname>preReceive</methodname> method can return '<literal>false</literal>' to prevent the receive
+      operation from proceeding.
     </para>
     <para>
       Because it is rarely necessary to implement all of the interceptor methods, a
       <classname>ChannelInterceptorAdapter</classname> class is also available for sub-classing. It provides no-op
-      methods (the <literal>void</literal> methods are empty, and the <literal>boolean</literal> methods return
-      <literal>true</literal>). Therefore, it is often easiest to extend that class and just implement the method(s)
-      that you need as in the following example.
+      methods (the <literal>void</literal> method is empty, the <classname>Message</classname> returning methods
+      return the Message parameter as-is, and the <literal>boolean</literal> method returns <literal>true</literal>).
+      Therefore, it is often easiest to extend that class and just implement the method(s) that you need as in the
+      following example.
       <programlisting language="java"><![CDATA[public class CountingChannelInterceptor extends ChannelInterceptorAdapter {
 
     private final AtomicInteger sendCount = new AtomicInteger();
 
     @Override
-    public boolean preSend(Message<?> message, MessageChannel channel) {
+    public Message<?> preSend(Message<?> message, MessageChannel channel) {
         sendCount.incrementAndGet();
-        return true;
+        return message;
     }
 }]]></programlisting>
     </para>
@@ -413,17 +423,22 @@ boolean unsubscribe(MessageTarget target);</programlisting>
   <section id="api-messagebus">
     <title>MessageBus</title>
     <para>
-      So far, you have seen that the <interfacename>MessageChannel</interfacename> provides a
-      <methodname>receive()</methodname> method that returns a <interfacename>Message</interfacename>, and the
-      <interfacename>MessageHandler</interfacename> provides a <methodname>handle()</methodname> method that accepts a
-      <interfacename>Message</interfacename>, but how do the messages get passed from the channel to the handler?
-      As mentioned earlier, the <classname>MessageBus</classname> provides a runtime form of inversion of control, and
-      one of the primary responsibilities that it assumes is connecting the channels to the handlers. It also connects
-      MessageSources and MessageTargets to channels, and it manages the scheduling of pollers and dispatchers.
+      So far, you have seen that the <interfacename>PollableChannel</interfacename> provides a
+      <methodname>receive()</methodname> method that returns a <interfacename>Message</interfacename>, the subscribable
+      MessageChannels invoke one or more subscribers directly, and the <interfacename>MessageHandler</interfacename>
+      provides a <methodname>handle()</methodname> method that accepts a <interfacename>Message</interfacename>.
+      However, we have not yet discussed how messages get passed from a channel to a handler. As mentioned earlier,
+      the <classname>MessageBus</classname> provides a runtime form of inversion of control, and one of the primary
+      responsibilities that it assumes is connecting the channels to the handlers. It also connects MessageSources and
+      MessageTargets to channels (thereby creating Channel Adapters), and it manages the scheduling of polling
+      dispatchers. Ultimately, every MessageHandler should be invoked as if it is an event-driven consumer, and this
+      works fine when the handler's input source is a <interfacename>SubscribableSource</interfacename>. However, the
+      bus creates and manages these polling dispatchers so that even when handlers receive input from a
+      <interfacename>PollableSource</interfacename>, they will still behave as event-driven consumers.
     </para>
     <para>
-      The <interfacename>MessageBus</interfacename> is an example of a mediator. It performs a number of roles - mostly
-      by delegating to other strategies. One of its main responsibilities is to manage registration of the
+      The <interfacename>MessageBus</interfacename> is an example of a mediator. It performs a number of roles -
+      mostly by delegating to other strategies. One of its main responsibilities is to manage registration of the
       <interfacename>MessageChannels</interfacename> and endpoints, such as <emphasis>Channel Adapters</emphasis>
       and <emphasis>Service Activators</emphasis>. It recognizes any of these instances that have been defined
       within its <interfacename>ApplicationContext</interfacename>.
@@ -437,11 +452,13 @@ boolean unsubscribe(MessageTarget target);</programlisting>
       (we will look at examples of both configuration options shortly).
     </para>
     <para>
-      The bus creates and schedules triggers for all of its registered endpoints. When an endpoint
-      receives a trigger event, it will poll the <interfacename>MessageSource</interfacename> that
-      was provided in its metadata. For example, a <emphasis>Channel Adapter</emphasis> will poll the
-      referenced "source", and a <emphasis>Service Activator</emphasis> will poll the referenced
-      "input-channel".
+      The bus is responsible for activating all of its registered endpoints by connecting them to channels within
+      its registry, and if necessary scheduling a poller so that the endpoint can be event-driven even when connected
+      to a channel that requires polling. For example, the poller for an outbound <emphasis>Channel Adapter</emphasis>
+      will poll the referenced "channel", and the poller for a <emphasis>Service Activator</emphasis> will poll the
+      referenced "input-channel". If that "channel" or "input-channel" is subscribable rather than pollable, the bus
+      will simply activate the subscription. The important point is that the endpoint itself does not need to know
+      whether its source is pollable or subscribable.
     </para>
   </section>
 
