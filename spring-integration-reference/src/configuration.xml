@@ -178,7 +178,7 @@
 </channel-adapter>
 
 <channel-adapter source="source2" channel="channel2">
-    <poller cron="30 * * * * ?""/>
+    <poller cron="30 * * * * ?"/>
 </channel-adapter>]]></programlisting>
         </para>
         <note>
@@ -220,7 +220,7 @@
           channel. To determine the reply channel, it will first check if the <literal>NEXT_TARGET</literal> header contains
           a non-null value, next it will check if an "output-channel" was provided in the endpoint configuration:
           <programlisting language="xml">&lt;service-activator input-channel="exampleChannel" output-channel="replyChannel"
-                  ref="somePojo" method="someMethod"/&gt;</programlisting>
+                   ref="somePojo" method="someMethod"/&gt;</programlisting>
           If no "output-channel" is available, it will finally check the message header's <literal>RETURN_ADDRESS</literal>
           property. If that value is available, it will then check its type. If it is a <classname>MessageTarget</classname>,
           the reply message will be sent to that target. If it is a <classname>String</classname>, then the endpoint will
@@ -234,7 +234,7 @@
         "selector" attribute to the endpoint definition and reference an implementation of the
         <interfacename>MessageSelector</interfacename> interface.
         <programlisting language="xml"><![CDATA[<service-activator id="endpoint" input-channel="channel" ref="handler"
-                  selector="exampleSelector"/>]]></programlisting>
+                   selector="exampleSelector"/>]]></programlisting>
       </para>
       <para>
         Another important configuration option for message endpoints is the inclusion of
@@ -273,7 +273,7 @@
                    ref="someObject"
                    method="someMethod"
                    output-channel="replyChannel">
-    <poller period="1000"/>
+    <poller period="1000">
         <transactional transaction-manager="txManager"
                        propagation="REQUIRES_NEW"
                        isolation="REPEATABLE_READ"
