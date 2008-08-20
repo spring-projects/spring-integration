@@ -11,9 +11,8 @@
       external systems or components that are not part of the messaging system. These source and target
       implementations can be configured within the same <emphasis>channel-adapter</emphasis> element that we
       have already discussed. Essentially, the external system or component sends-to and/or receives-from a
-      <interfacename>MessageChannel</interfacename>. In the 1.0 Milestone 5 release, Spring Integration includes
-      source and target implementations for JMS, Files, Streams, and Spring ApplicationEvents. A source adapter
-      for FTP is also available.
+      <interfacename>MessageChannel</interfacename>. In the 1.0 Milestone 6 release, Spring Integration includes
+      source and target implementations for JMS, Files, FTP, Streams, and Spring ApplicationEvents.
     </para>
     <para>
       Adapters that allow an external system to perform request-reply operations across Spring Integration
@@ -75,7 +74,7 @@
 </bean>]]></programlisting>
     </para>
     <para>
-      The <classname>JmsTarget</classname> implements the <interfacename>Target</interfacename> interface
+      The <classname>JmsTarget</classname> implements the <interfacename>MessageTarget</interfacename> interface
       and is capable of mapping Spring Integration <interfacename>Messages</interfacename> to JMS messages and then
       sending to a JMS destination. It requires either a 'jmsTemplate' reference or both 'connectionFactory' and
       'destination' references (again, the 'destinationName' may be provided in place of the 'destination). In
@@ -118,7 +117,7 @@ RmiHandler rmiHandler = new RmiHandler(url);
     <constructor-arg ref="someChannel"/>
 </bean>]]></programlisting>
       When not running in a Spring MVC application, simply define a servlet in 'web.xml' whose type is
-      <classname>HttpRequestHandlerServlet</classname> and whose name matches the bean name of the source
+      <classname>HttpRequestHandlerServlet</classname> and whose name matches the bean name of the gateway
       adapter. As with the <classname>RmiHandler</classname>, the
       <classname>HttpInvokerHandler</classname> only requires the URL that matches an instance of
       <classname>HttpInvokerGateway</classname> running in a web application.
@@ -170,14 +169,14 @@ RmiHandler rmiHandler = new RmiHandler(url);
       <programlisting  language="java"><![CDATA[public interface MailHeaderGenerator {
     void populateMailMessageHeader(MailMessage mailMessage, Message<?> message);
 }]]></programlisting>
-      The default implementation will look for attributes in the <classname>MessageHeader</classname> with
-      the following constants defining the keys:
-      <programlisting language="java">MailAttributeKeys.SUBJECT
-MailAttributeKeys.TO
-MailAttributeKeys.CC
-MailAttributeKeys.BCC
-MailAttributeKeys.FROM
-MailAttributeKeys.REPLY_TO</programlisting>
+      The default implementation will look for values in the <classname>MessageHeaders</classname> with
+      the following constants defining the header names:
+      <programlisting language="java">MailHeaders.SUBJECT
+MailHeaders.TO
+MailHeaders.CC
+MailHeaders.BCC
+MailHeaders.FROM
+MailHeaders.REPLY_TO</programlisting>
     </para>
     <para>
       A static implementation is also available out-of-the-box and may be useful for testing. However, when
@@ -206,7 +205,7 @@ marshallingHandler = new MarshallingWebServiceHandler(uri, marshaller);
       Either adapter can then be referenced from a <classname>service-activator</classname> element
       that is subscribed to an input-channel. The endpoint is then responsible for passing the response to the
       proper reply channel. It will first check for an "output-channel" on the service-activator and will
-      fallback to a <emphasis>returnAddress</emphasis> on the original message's header.
+      fallback to a <emphasis>RETURN_ADDRESS</emphasis> in the original message's headers.
     </para>
     <para>
       For more detail on the inner workings, see the Spring Web Services reference guide's chapter covering 
@@ -219,8 +218,8 @@ marshallingHandler = new MarshallingWebServiceHandler(uri, marshaller);
     <title>Stream Adapters</title>
     <para>
       Spring Integration also provides adapters for streams. Both <classname>ByteStreamSource</classname> and
-      <classname>CharacterStreamSource</classname> implement the <interfacename>Source</interfacename> interface. By
-      configuring one of these within a channel-adapter element, the polling period can be configured,
+      <classname>CharacterStreamSource</classname> implement the <interfacename>PollableSource</interfacename>
+      interface. By configuring one of these within a channel-adapter element, the polling period can be configured,
       and the Message Bus can automatically detect and schedule them. The byte stream version requires an
       <classname>InputStream</classname>, and the character stream version requires a <classname>Reader</classname> as
       the single constructor argument. The <classname>ByteStreamSource</classname> also accepts the 'bytesPerMessage'
@@ -249,9 +248,9 @@ marshallingHandler = new MarshallingWebServiceHandler(uri, marshaller);
     </para>
     <para>
       To send Spring <classname>ApplicationEvents</classname>, register an instance of the
-      <classname>ApplicationEventTarget</classname> class as the 'target' of a <classname>TargetEndpoint</classname>
-      (such configuration will be described in detail in <xref linkend="namespace-endpoint"/>). This target also implements
-      Spring's <interfacename>ApplicationEventPublisherAware</interfacename> interface and thus acts as a bridge between
+      <classname>ApplicationEventTarget</classname> class as the 'target' of a Channel Adapter (such configuration will
+      be described in detail in <xref linkend="namespace-endpoint"/>). This target also implements Spring's
+      <interfacename>ApplicationEventPublisherAware</interfacename> interface and thus acts as a bridge between
       Spring Integration <classname>Messages</classname> and <classname>ApplicationEvents</classname>.
     </para>
   </section>
