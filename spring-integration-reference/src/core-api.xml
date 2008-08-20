@@ -469,65 +469,23 @@ boolean unsubscribe(MessageTarget target);</programlisting>
       as the <emphasis>Channel Adapter</emphasis> (inbound or outbound) and the <emphasis>Service Activator</emphasis>.
       Spring Integration provides many other components that are also endpoints, such as Routers,
       Splitters, and Aggregators. Each endpoint may provide its own specific metadata so that the
-      <classname>MessageBus</classname> can manage its connection to a channel and its polling schedule.
+      <classname>MessageBus</classname> can manage its connection to channels and its poller (if necessary).
     </para>
     <para>
       The scheduling metadata is provided as an implementation of the <interfacename>Schedule</interfacename> interface.
-      This is an abstraction designed to allow extensibility of schedulers for messaging tasks. Currently, there is a
-      single implementation named <classname>PollingSchedule</classname> and the endpoint may set the
-      <emphasis>period</emphasis> property. The polling period may differ depending on the type of MessageSource
+      This is an abstraction designed to allow extensibility of schedulers for messaging tasks. Currently, there are two
+      implementations: <classname>PollingSchedule</classname> and <classname>CronSchedule</classname>. The former has
+      a <emphasis>period</emphasis> property, and the latter has a <emphasis>cronExpression</emphasis>. The polling
+      schedule may be configured based on throughput expectations and/or the type of MessageSource
       (e.g. file-system vs. JMS).
     </para>
     <para>
-      While the MessageBus manages the scheduling of the trigger invocation threads, it may be necessary
-      to have concurrent threads for the endpoint's processing of each receive-and-handle unit of work.
-      Spring Integration provides an endpoint interceptor called <classname>ConcurrencyInterceptor</classname>
-      for this very purpose. The interceptor's configuration is provided by the
-      <classname>ConcurrencyPolicy</classname> metadata object. When the <interfacename>MessageBus</interfacename>
-      activates an endpoint that has been defined with a ConcurrencyInterceptor, it will use these properties to
-      configure that endpoint's thread pool. These interceptors are configurable on a per-endpoint basis since
-      different endpoint handlers may have different performance characteristics and may have different
-      expectations with regard to the volume of throughput. The following table lists the available properties
-      of the <classname>ConcurrencyPolicy</classname> and their default values:
-      <table id="api-messagebus-concurrencypolicy">
-        <title>Properties of the ConcurrencyPolicy</title>
-        <tgroup cols="3">
-          <colspec align="left"/>
-          <thead>
-            <row>
-              <entry align="center">Property Name</entry>
-              <entry align="center">Default Value</entry>
-              <entry align="center">Description</entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry>coreSize</entry>
-              <entry>1</entry>
-              <entry>the core size of the thread pool</entry>
-            </row>
-            <row>
-              <entry>maxSize</entry>
-              <entry>10</entry>
-              <entry>the maximum size the thread pool can reach when under demand</entry>
-            </row>
-            <row>
-              <entry>queueCapacity</entry>
-              <entry>0</entry>
-              <entry>capacity of the queue which defers an increase of the pool size</entry>
-            </row>
-            <row>
-              <entry>keepAliveSeconds</entry>
-              <entry>60</entry>
-              <entry>how long added threads (beyond core size) should remain idle before being removed from the pool</entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-    </para>
-    <para>
-      The details of configuring this and other metadata for each endpoint will be discussed in detail in
-      <xref linkend="namespace-endpoint"/>.
+      While the MessageBus manages the scheduling of the pollers, it is often beneficial to have multiple task
+      executors with different concurrency settings for an endpoint or group of endpoints. This provides more control
+      over the number of threads available for each receive-and-handle unit of work and depending on the type of
+      task executor, may also enable dynamic adjustments. When the <interfacename>MessageBus</interfacename>
+      activates an endpoint, it will create and schedule the poller for that endpoint based on the endpoint's
+      configuration. This will be described in more detail in <xref linkend="namespace-endpoint"/>.
     </para>
   </section>
 
@@ -539,7 +497,9 @@ boolean unsubscribe(MessageTarget target);</programlisting>
       determine what messages the endpoint should receive. The <interfacename>MessageSelector</interfacename>
       strategy interface fulfills that role.
       <programlisting language="java"><![CDATA[public interface MessageSelector {
+
     boolean accept(Message<?> message);
+
 }]]></programlisting>
       A <interfacename>MessageEndpoint</interfacename> can be configured with a selector (or selector-chain)
       and will only receive messages that are accepted by each selector. Even though the interface is simple
@@ -550,8 +510,7 @@ boolean unsubscribe(MessageTarget target);</programlisting>
       <programlisting language="java"><![CDATA[PayloadTypeSelector selector = new PayloadTypeSelector(String.class, Integer.class);
 assertTrue(selector.accept(new StringMessage("example")));
 assertTrue(selector.accept(new GenericMessage<Integer>(123)));
-assertFalse(selector.accept(new GenericMessage<SomeObject>(someObject)));
-]]></programlisting>
+assertFalse(selector.accept(new GenericMessage<SomeObject>(someObject)));]]></programlisting>
       Another simple but useful <interfacename>MessageSelector</interfacename> provided out-of-the-box is the
       <classname>UnexpiredMessageSelector</classname>. As the name suggests, it only accepts messages that have
       not yet expired.
@@ -559,7 +518,7 @@ assertFalse(selector.accept(new GenericMessage<SomeObject>(someObject)));
     <para>
       Essentially, using a selector provides <emphasis>reactive</emphasis> routing whereas the Datatype Channel
       and Message Router provide <emphasis>proactive</emphasis> routing. However, selectors accommodate additional
-      uses. For example, the <interfacename>MessageChannel</interfacename>'s 'purge' method accepts a selector:
+      uses. For example, a <interfacename>PollableChannel</interfacename>'s 'purge' method accepts a selector:
       <programlisting language="java">channel.purge(someSelector);</programlisting>
       There is a <classname>ChannelPurger</classname> utility class whose purge operation is a good candidate for
       Spring's JMX support:
@@ -576,35 +535,64 @@ channel.addInterceptor(interceptor);</programlisting>
     </para>
   </section>
 
-  <section id="api-requestreplytemplate">
-    <title>RequestReplyTemplate</title>
+  <section id="api-messageexchangetemplate">
+    <title>MessageExchangeTemplate</title>
     <para>
       Whereas the <interfacename>MessageHandler</interfacename> interface provides the foundation for many of the
       components that enable non-invasive invocation of your application code <emphasis>from the messaging
       system</emphasis>, sometimes it is necessary to invoke the messaging system <emphasis>from your application
-      code</emphasis>. Spring Integration provides a <classname>RequestReplyTemplate</classname> that supports a
-      variety of request-reply scenarios. For example, it is possible to send a request and wait for a reply.
-      <programlisting language="java">RequestReplyTemplate template = new RequestReplyTemplate(requestChannel);
-Message reply = template.request(new StringMessage("test"));</programlisting>
-      In that example, a temporary anonymous channel would be used internally by the template. However, the
-      'replyChannel' may be configured explicitly in which case the template will manage the reply correlation.
-      <programlisting language="java">RequestReplyTemplate template = new RequestReplyTemplate(requestChannel);
-template.setReplyChannel(replyChannel);
-Message reply = template.request(new StringMessage("test"));</programlisting>
+      code</emphasis>. Spring Integration provides a <classname>MessageExchangeTemplate</classname> that supports a
+      variety of message-exchanges, including request/reply scenarios. For example, it is possible to send a request
+      and wait for a reply.
+      <programlisting language="java">MessageExchangeTemplate template = new MessageExchangeTemplate();
+Message reply = template.sendAndReceive(new StringMessage("test"), someChannel);</programlisting>
+      In that example, a temporary anonymous channel would be created internally by the template. The
+      'sendTimeout' and 'receiveTimeout' properties may also be set on the template, and other exchange
+      types are also supported.
+      <programlisting language="java"><![CDATA[public boolean send(final Message<?> message, final MessageTarget target) { ... }
+
+public Message<?> sendAndReceive(final Message<?> request, final MessageTarget target) { .. }
+
+public Message<?> receive(final PollableSource<?> source) { ... }
+
+public boolean receiveAndForward(final PollableSource<?> source, final MessageTarget target) { ... }]]></programlisting>
+    </para>
+    <para>
+      Additionally, a 'transactionManager' can be configured on a MessageExchangeTemplate as well as the various
+      transaction attributes:
+      <programlisting language="java">template.setTransactionManager(transactionManager);
+template.setPropagationBehaviorName(propagationBehavior);
+template.setIsolationLevelName(isolationLevel);
+template.setTransactionTimeout(transactionTimeout);
+template.setTransactionReadOnly(readOnly);
+template.setReceiveTimeout(receiveTimeout);
+template.setSendTimeout(sendTimeout);</programlisting>
+      Finally, there is a also an asynchronous version called <classname>AsyncMessageExchangeTemplate</classname>
+      whose constructor accepts a <interfacename>TaskExecutor</interfacename>, and whose Message-returning methods
+      return an <classname>AsyncMessage</classname>. That is essentially a wrapper for any Message that also
+      implements <interfacename>Future&lt;Message&lt;T&gt;&gt;</interfacename>:
+      <programlisting>AsyncMessageExchangeTemplate template = new AsyncMessageExchangeTemplate(taskExecutor);
+Message reply = template.sendAndReceive(new StringMessage("test"), someChannel);
+// do some work in the meantime
+reply.getPayload(); // blocks if still waiting for actual reply
+</programlisting>
     </para>
   </section>
 
   <section id="api-gateway">
     <title>MessagingGateway</title>
     <para>
-      Even though the <classname>RequestReplyTemplate</classname> is fairly straightforward, it does not hide the
+      Even though the <classname>MessageExchangeTemplate</classname> is fairly straightforward, it does not hide the
       details of messaging from your application code. To support working with plain Objects instead of messages,
       Spring Integration provides <classname>SimpleMessagingGateway</classname> with the following methods:
       <programlisting language="java">public void send(Object object) { ... }
+
 public Object receive() { ... }
+
 public Object sendAndReceive(Object object) { ... }
-</programlisting>
-      It enables configuration of a request and/or reply channel and delegates to the
+
+public void receiveAndForward() { ... }</programlisting>
+      It enables configuration of a request and/or reply channel and delegates to an instance of the
       <interfacename>MessageMapper</interfacename> and <interfacename>MessageCreator</interfacename> strategy
       interfaces.
       <programlisting language="java">SimpleMessagingGateway gateway = new SimpleMessagingGateway();
@@ -628,7 +616,8 @@ Object result = gateway.sendAndReceive("test");
          message-creator="messageCreator"
          message-mapper="messageMapper"/>]]></programlisting>
       Then, the "fooService" can be injected into other beans, and the code that invokes the methods on that
-      proxied instance of the FooService interface has no awareness of the Spring Integration API.
+      proxied instance of the FooService interface has no awareness of the Spring Integration API. The general
+      approach is similar to that of Spring Remoting (RMI, HttpInvoker, etc.).
     </para>
   </section>
 </chapter>
