@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
+
+	<message-bus task-scheduler="quartzTaskScheduler"/>
+	<annotation-driven/>
+
+	<channel id="even"/>
+	<channel id="odd"/>
+
+	<channel-adapter id="numbers" source="counter">
+		<poller cron="1,2,3,5,8,13,21,34,55 * * * * ?" max-messages-per-poll="1"/>
+	</channel-adapter>
+
+	<router ref="parityResolver" method="getParity" input-channel="numbers"/>
+
+	<service-activator ref="oddLogger" input-channel="odd"/>
+
+	<service-activator ref="evenLogger" input-channel="even"/>
+
+	<beans:bean id="counter" class="org.springframework.integration.message.MethodInvokingSource">
+		<beans:property name="object">
+			<beans:bean class="org.springframework.integration.samples.quartzoddeven.Counter"/>
+		</beans:property>
+		<beans:property name="methodName" value="next"/>
+	</beans:bean>
+
+	<beans:bean id="parityResolver" class="org.springframework.integration.samples.oddeven.ParityResolver"/>
+
+	<beans:bean id="oddLogger" class="org.springframework.integration.samples.quartzoddeven.OddLogger"/>
+
+	<beans:bean id="evenLogger" class="org.springframework.integration.samples.quartzoddeven.EvenLogger"/>
+
+	<beans:bean id="quartzTaskScheduler" class="org.springframework.integration.scheduling.spi.ProviderTaskScheduler">
+		<beans:constructor-arg>
+			<beans:bean class="org.springframework.integration.quartz.QuartzScheduleServiceProvider">
+				<beans:constructor-arg>
+					<beans:bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean"/>					
+				</beans:constructor-arg>
+			</beans:bean>
+		</beans:constructor-arg>
+	</beans:bean>
+
+</beans:beans>
