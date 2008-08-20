@@ -403,7 +403,7 @@
         is a File source with an endpoint whose polling will be scheduled to execute every 30 seconds by the
         <classname>MessageBus</classname>.
         <programlisting language="xml"><![CDATA[<channel-adapter source="fileSource" channel="exampleChannel">
-    <schedule period="30000"/>
+    <poller period="30000"/>
 </channel-adapter>
 
 <file-source id="fileSource" directory="/tmp/in"/>
@@ -411,11 +411,16 @@
         Likewise, here is an example of a JMS target that is registered within a 'channel-adapter' and whose Messages
         will be received from the "exampleChannel" that is polled every 500 milliseconds.
         <programlisting language="xml"><![CDATA[<channel-adapter channel="exampleChannel" target="jmsTarget">
-    <schedule period="500"/>
+    <poller period="500"/>
 </channel-adapter>
 
 <jms-target id="jmsTarget" destination="targetDestination"/>
-]]></programlisting>         
+]]></programlisting>
+      </para>
+      <para>
+        Any Channel Adapter can be created without a "channel" reference in which case it will implicitly create an
+        instance of <classname>DirectChannel</classname>. The created channel's name will match the "id" attribute
+        of the &lt;channel-adapter/&gt; element. Therefore, if the "channel" is not provided, the "id" is required.
       </para>
     </section>
 
@@ -447,57 +452,56 @@ public class FooService {
 }</programlisting>
     </para>
     <para>
+      The @MessageEndpoint is not required. If you want to configure a POJO reference from the "ref" attribute
+      of a &lt;service-activator/&gt; element, it is sufficient to provide the @Handler method annotation. As long
+      as the "annotation-driven" support is enabled, a Spring-managed object with that method annotation (or the
+      others which are described below) will be post-processed such that it can be used as a reference from an
+      XML-configured endpoint.
+    </para>
+    <para>
       In most cases, the annotated handler method should not require the <classname>Message</classname> type as its
       parameter. Instead, the method parameter type can match the message's payload type.
-      <programlisting language="java">@MessageEndpoint(input="fooChannel")
-public class FooService {
+      <programlisting language="java">public class FooService {
 
     @Handler
     public void bar(<emphasis>Foo foo</emphasis>) {
         ...
     }
+
 }</programlisting>
     </para>
     <para>
       When the method parameter should be mapped from a value in the <classname>MessageHeader</classname>, another
-      option is to use the <interfacename>@HeaderAttribute</interfacename> and/or
-      <interfacename>@HeaderProperty</interfacename> parameter annotations.
+      option is to use the parameter-level <interfacename>@Header</interfacename> annotation.
       <programlisting language="java">@MessageEndpoint(input="fooChannel")
 public class FooService {
 
     @Handler
-    public void bar(<emphasis>@HeaderAttribute("fooAttrib") Foo foo</emphasis>) {
+    public void bar(<emphasis>@Header("foo") Foo foo</emphasis>) {
         ...
     }
-}</programlisting>
-      <programlisting language="java">@MessageEndpoint(input="fooChannel")
-public class FooService {
 
-    @Handler
-    public void bar(<emphasis>@HeaderProperty("foo") String input</emphasis>) {
-        ...
-    }
 }</programlisting>
     </para>
     <para>
       As described in the previous section, when the handler method returns a non-null value, the endpoint will
       attempt to send a reply. This is consistent across both configuration options (namespace and annotations) in that
-      the the endpoint's output channel will be used if available, and the message header's 'returnAddress' value will be 
+      the the endpoint's output channel will be used if available, and the message header's RETURN_ADDRESS value will be 
       the fallback. To configure the output channel for an annotation-driven endpoint, provide the 'output'
       attribute on the <interfacename>@MessageEndpoint</interfacename>.
       <programlisting language="java">@MessageEndpoint(input="exampleChannel", output="replyChannel")</programlisting>
     </para>
     <para>
-      Just as the 'schedule' sub-element and its 'period' attribute can be provided for a namespace-based
-      endpoint, the <interfacename>@Polled</interfacename> annotation can be provided with the
+      Just as the 'poller' sub-element and its 'period' attribute can be provided for a namespace-based
+      endpoint, the <interfacename>@Poller</interfacename> annotation can be provided with the
       <interfacename>@MessageEndpoint</interfacename> annotation.
       <programlisting language="java">@MessageEndpoint(input="exampleChannel")
-@Polled(period=3000)
+@Poller(period=3000)
 public class FooService {
     ...
 }</programlisting>
       Likewise, <interfacename>@Concurrency</interfacename> provides an annotation-based equivalent of the
-      &lt;concurrency/&gt; element:
+      &lt;pool-executor/&gt; element:
       <programlisting language="java">@MessageEndpoint(input="fooChannel")
 @Concurrency(coreSize=5, maxSize=20)
 public class FooService {
@@ -506,13 +510,19 @@ public class FooService {
     public void bar(Foo foo) {
         ...
     }
+
 }</programlisting>
     </para>
     <para>
-      Two additional annotations are supported, and both act as a special form of handler method:
-      <interfacename>@Router</interfacename> and <interfacename>@Splitter</interfacename>. As with the
-      <interfacename>@Handler</interfacename> annotation, methods annotated with either of these two annotations can
-      either accept the <classname>Message</classname> itself or the message payload type as the parameter.
+      Several additional annotations are supported, and three of these act as a special form of handler method:
+      <interfacename>@Router</interfacename>, <interfacename>@Splitter</interfacename> and
+      <interfacename>@Aggregator</interfacename>. As with the <interfacename>@Handler</interfacename> annotation,
+      methods annotated with these annotations can either accept the <classname>Message</classname> itself, the
+      message payload, or a header value (with @Header) as the parameter. In fact, the method can accept a combination,
+      such as:
+      <programlisting language="java">someMethod(String payload, @Header("x") int valueX, @Header("y") int valueY);</programlisting>
+    </para>
+    <para>
       When using the <interfacename>@Router</interfacename> annotation, the annotated method can return either the
       <interfacename>MessageChannel</interfacename> or <classname>String</classname> type. In the case of the latter,
       the endpoint will resolve the channel name as it does for the default output. Additionally, the method can return
@@ -534,12 +544,9 @@ public List&lt;String&gt; route(Foo payload) {...}</programlisting>
       In addition to payload-based routing, a common requirement is to route based on metadata available within the
       message header as either a property or attribute. Rather than requiring use of the
       <interfacename>Message</interfacename> type as the method parameter, the <interfacename>@Router</interfacename>
-      annotation may also use the same parameter annotations that were introduced above.
+      annotation may also use the same @Header parameter annotation that was introduced above.
       <programlisting language="java">@Router
-public String route(@HeaderProperty("customerType") String customerType)
-
-@Router
-public List&lt;String&gt; route(@HeaderAttribute("orderStatus") OrderStatus status)</programlisting>
+public List&lt;String&gt; route(@Header("orderStatus") OrderStatus status)</programlisting>
     </para>
     <para>
       The <interfacename>@Splitter</interfacename> annotation is also applicable to methods that expect either the
@@ -553,22 +560,33 @@ List&lt;LineItem&gt; extractItems(Order order) {
 }</programlisting>
     </para>
     <para>
-      The <interfacename>@Publisher</interfacename> annotation is convenient for sending messages with AOP
-      <emphasis>after-returning advice</emphasis>. For example, each time the following method is invoked, its return
-      value will be sent to the "fooChannel":
+      The <interfacename>@Aggregator</interfacename> annotation may be used on a method that accepts a collection
+      of Messages or Message payload types and whose return value is a single Message or single Object that will
+      be used as the payload of a Message.
+      <programlisting language="java"><![CDATA[@Aggregator
+public Message<?> aggregateMessages(List<Message<?>> messages) { ... }
+
+@Aggregator
+public Order aggregateOrder(List<LineItem> items) { ... }]]></programlisting>
+    </para>
+    <para>
+      Finally, the <interfacename>@Publisher</interfacename> is an annotation that triggers the creation of a Spring
+      AOP Proxy such that the return value, exception, or method invcation arguments can be sent to a Message Channel.
+      For example, each time the following method is invoked, its return value will be sent to the "fooChannel":
       <programlisting language="java"><![CDATA[@Publisher(channel="fooChannel")
 public String foo() {
     return "bar";
 }]]></programlisting>
-    </para>
-    <para>
-      Similarly, the <interfacename>@Subscriber</interfacename> annotation triggers the retrieval of messages from a
-      channel, and the payload of each message will then be sent as input to an arbitrary method. This is one of the
-      simplest ways to configure asynchronous, event-driven behavior:
-      <programlisting language="java"><![CDATA[@Subscriber(channel="fooChannel")
-public void log(String foo) {
-    System.out.println(foo);
-}]]></programlisting>
+      The return value is published by default, but you can also configure the payload type:
+      <programlisting>@Publisher(channel="testChannel", payloadType=MessagePublishingInterceptor.PayloadType.ARGUMENTS)
+public void publishArguments(String s, Integer n) {
+    ...
+}
+
+@Publisher(channel="testChannel", payloadType=MessagePublishingInterceptor.PayloadType.EXCEPTION)
+public void publishException() {
+    throw new RuntimeException("oops!");
+}</programlisting>
     </para>
   </section>
 </chapter>
