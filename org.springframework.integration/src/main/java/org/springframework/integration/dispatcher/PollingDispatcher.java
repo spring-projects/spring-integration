@@ -36,7 +36,7 @@ public class PollingDispatcher implements SchedulableTask, SubscribableSource {
 
 	public final static int MAX_MESSAGES_UNBOUNDED = -1;
 
-	public final static long DEFAULT_RECEIVE_TIMEOUT = -1;
+	public final static long DEFAULT_RECEIVE_TIMEOUT = 5000;
 
 
 	private final Log logger = LogFactory.getLog(this.getClass());
