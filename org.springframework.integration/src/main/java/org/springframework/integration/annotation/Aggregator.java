@@ -26,6 +26,10 @@ import org.springframework.integration.aggregator.AggregatingMessageHandler;
 
 /**
  * Indicates that a method is capable of aggregating messages. 
+ * <p>
+ * A method annotated with @Aggregator may accept a collection
+ * of Messages or Message payloads and should return a single
+ * Message or a single Object to be used as a Message payload.
  * 
  * @author Marius Bogoevici
  */
@@ -35,16 +39,36 @@ import org.springframework.integration.aggregator.AggregatingMessageHandler;
 @Handler
 public @interface Aggregator {
 
+	/**
+	 * channel name for sending discarded messages (due to a timeout)
+	 */
 	String discardChannel() default "";
 
+	/**
+	 * timeout for sending results to the reply target (in milliseconds)
+	 */
 	long sendTimeout() default AggregatingMessageHandler.DEFAULT_SEND_TIMEOUT;
 
+	/**
+	 * maximum time to wait for completion (in milliseconds) 
+	 */
 	long timeout() default AggregatingMessageHandler.DEFAULT_TIMEOUT;
 
+	/**
+	 * indicates whether to send an incomplete aggregate on timeout
+	 */
 	boolean sendPartialResultsOnTimeout() default false;
 
+	/**
+	 * interval for the task that checks for timed-out aggregates
+	 */
 	long reaperInterval() default AggregatingMessageHandler.DEFAULT_REAPER_INTERVAL;
 
+	/**
+	 * maximum number of correlation IDs to maintain so that received messages
+	 * may be recognized as belonging to an aggregate that has already completed
+	 * or timed out
+	 */
 	int trackedCorrelationIdCapacity() default AggregatingMessageHandler.DEFAULT_TRACKED_CORRRELATION_ID_CAPACITY; 
 
 }
