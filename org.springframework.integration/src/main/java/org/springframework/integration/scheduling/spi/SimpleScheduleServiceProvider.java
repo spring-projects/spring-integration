@@ -21,7 +21,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- * An implementation
+ * A {@link ScheduleServiceProvider} implementation using an underlying {@link ScheduledExecutorService}.
  * @author Marius Bogoevici
  */
 public class SimpleScheduleServiceProvider implements ScheduleServiceProvider {
