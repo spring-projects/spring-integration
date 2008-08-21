@@ -25,20 +25,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
-import org.springframework.beans.factory.annotation.Required;
+
 import org.springframework.integration.adapter.file.AbstractDirectorySource;
 import org.springframework.integration.adapter.file.Backlog;
 import org.springframework.integration.adapter.file.FileInfo;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageCreator;
-import org.springframework.integration.message.MessagingException;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * A source adapter for receiving files via FTP.
@@ -49,22 +44,22 @@ import org.springframework.util.StringUtils;
  */
 public class FtpSource extends AbstractDirectorySource<List<File>> {
 
-	private final Log logger = LogFactory.getLog(this.getClass());
-
 	private volatile File localWorkingDirectory;
 
-	private int maxFilesPerPayload = -1;
+	private volatile int maxFilesPerMessage = -1;
 
 	private final FTPClientPool clientPool;
+
 
 	public FtpSource(MessageCreator<List<File>, List<File>> messageCreator, FTPClientPool clientPool) {
 		super(messageCreator);
 		this.clientPool = clientPool;
 	}
 
-	public void setMaxMessagesPerPayload(int maxMessagesPerPayload) {
-		Assert.isTrue(maxMessagesPerPayload > 0, "'maxMessagesPerPayload' should greater than 0");
-		this.maxFilesPerPayload = maxMessagesPerPayload;
+
+	public void setMaxFilesPerMessage(int maxFilesPerMessage) {
+		Assert.isTrue(maxFilesPerMessage > 0, "'maxFilesPerMessage' must be greater than 0");
+		this.maxFilesPerMessage = maxFilesPerMessage;
 	}
 
 	public void setLocalWorkingDirectory(File localWorkingDirectory) {
@@ -79,14 +74,14 @@ public class FtpSource extends AbstractDirectorySource<List<File>> {
 			populateSnapshot(snapshot);
 			directoryContentManager.processSnapshot(snapshot);
 			ArrayList<String> backlog = new ArrayList<String>(directoryContentManager.getBacklog().keySet());
-			int toIndex = maxFilesPerPayload == -1 ? backlog.size() : Math.min(maxFilesPerPayload, backlog.size());
+			int toIndex = this.maxFilesPerMessage == -1 ? backlog.size() : Math.min(this.maxFilesPerMessage, backlog.size());
 			directoryContentManager.itemProcessing(backlog.subList(0, toIndex).toArray(new String[] {}));
 		}
 	}
 
 	@Override
 	protected void populateSnapshot(Map<String, FileInfo> snapshot) throws IOException {
-		FTPClient client = clientPool.getClient();
+		FTPClient client = this.clientPool.getClient();
 		FTPFile[] fileList = client.listFiles();
 		try {
 			for (FTPFile ftpFile : fileList) {
@@ -102,12 +97,12 @@ public class FtpSource extends AbstractDirectorySource<List<File>> {
 			}
 		}
 		finally {
-			clientPool.releaseClient(client);
+			this.clientPool.releaseClient(client);
 		}
 	}
 
 	protected List<File> retrieveNextPayload() throws IOException {
-		FTPClient client = clientPool.getClient();
+		FTPClient client = this.clientPool.getClient();
 		try {
 			List<File> files = new ArrayList<File>();
 			Set<String> toDo = this.getDirectoryContentManager().getProcessingBuffer().keySet();
@@ -124,17 +119,29 @@ public class FtpSource extends AbstractDirectorySource<List<File>> {
 			return files;
 		}
 		finally {
-			clientPool.releaseClient(client);
+			this.clientPool.releaseClient(client);
 		}
 	}
 
-
-	@SuppressWarnings("unchecked")
 	@Override
 	public void onSend(Message<?> message) {
-		List<File> files = ((Message<List<File>>) message).getPayload();
-		for (File file : files) {
-			fileProcessed(file.getName());
+		Object payload = message.getPayload();
+		if (payload instanceof List) {
+			List<?> items = (List<?>) payload;
+			for (Object item : items) {
+				if (item instanceof File) {
+					fileProcessed(((File) item).getName());
+				}
+				else if (logger.isWarnEnabled()) {
+					logger.warn("FtpSource.onSend() expects Files in the List payload, "
+							+ "but received an item of type [" + item.getClass() + "]");
+				}
+			}
+		}
+		else if (logger.isWarnEnabled()) {
+			logger.warn("FtpSource.onSend() exepects a Message with a List of Files, "
+					+ "but received payload of type [" + message.getPayload().getClass() + "].");
 		}
 	}
+
 }

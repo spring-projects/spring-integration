@@ -41,7 +41,8 @@ public abstract class AbstractDirectorySource<T> implements PollableSource<T>, M
 
 	public final static String FILE_INFO_PROPERTY = "file.info";
 
-	private final Log logger = LogFactory.getLog(this.getClass());
+
+	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private final Backlog<FileInfo> directoryContentManager = new Backlog<FileInfo>();
 

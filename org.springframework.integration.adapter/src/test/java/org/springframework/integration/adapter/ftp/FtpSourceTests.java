@@ -156,9 +156,9 @@ public class FtpSourceTests {
 	}
 
 	@Test
-	public void retrieveMaxFilesPerPayload() throws Exception {
+	public void retrieveMaxFilesPerMessage() throws Exception {
 
-		this.ftpSource.setMaxMessagesPerPayload(2);
+		this.ftpSource.setMaxFilesPerMessage(2);
 		// assume client already connected
 		FTPFile[] mockedFTPFiles = mockedFTPFilesNamed("test1", "test2", "test3");
 
@@ -195,7 +195,7 @@ public class FtpSourceTests {
 	@Test(timeout=60000)
 	public void concurrentPollingSunnyDay() throws Exception {
 
-		this.ftpSource.setMaxMessagesPerPayload(2);
+		this.ftpSource.setMaxFilesPerMessage(2);
 		// first run
 		FTPFile[] mockedFTPFiles = mockedFTPFilesNamed("test1", "test2", "test3", "test4", "test5");
 		expect(ftpClient.listFiles()).andReturn(mockedFTPFiles);
