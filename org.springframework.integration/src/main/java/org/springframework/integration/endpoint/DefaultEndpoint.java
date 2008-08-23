@@ -153,7 +153,9 @@ public class DefaultEndpoint<T extends MessageHandler> extends AbstractRequestRe
 		}
 		replyMessage = MessageBuilder.fromMessage(replyMessage)
 				.copyHeadersIfAbsent(requestMessage.getHeaders())
-				.setHeaderIfAbsent(MessageHeaders.CORRELATION_ID, requestMessage.getHeaders().getId()).build();
+				.setHeaderIfAbsent(MessageHeaders.CORRELATION_ID, requestMessage.getHeaders().getId())
+                .setNextTarget((String)null)
+                .build();
 		if (!this.getMessageExchangeTemplate().send(replyMessage, replyTarget)) {
 			throw new MessageEndpointReplyException(replyMessage, requestMessage,
 					"failed to send reply to '" + replyTarget + "'");

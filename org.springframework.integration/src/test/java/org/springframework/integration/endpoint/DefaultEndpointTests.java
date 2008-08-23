@@ -16,15 +16,15 @@
 
 package org.springframework.integration.endpoint;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
@@ -45,6 +45,7 @@ import org.springframework.integration.message.selector.MessageSelectorChain;
 
 /**
  * @author Mark Fisher
+ * @author Marius Bogoevici
  */
 public class DefaultEndpointTests {
 
@@ -357,6 +358,32 @@ public class DefaultEndpointTests {
 		assertFalse(message.getHeaders().getId().equals(correlationId));
 		assertEquals("ABC-123", correlationId);
 	}
+
+
+    @Test
+    public void nextTargetNotPropagatedPastCurrentEndpoint() {
+        final QueueChannel intermediateItemChannel = new QueueChannel(1);
+        final QueueChannel finalChannel = new QueueChannel(1);
+        DefaultEndpoint<MessageHandler> primaryEndpoint = new DefaultEndpoint<MessageHandler>(new MessageHandler() {
+			public Message<?> handle(Message<?> message) {
+				return MessageBuilder.fromMessage(message).setNextTarget(intermediateItemChannel).build();
+			}
+		});
+        DefaultEndpoint<MessageHandler> secondaryEndpoint = new DefaultEndpoint<MessageHandler>(new MessageHandler() {
+			public Message<?> handle(Message<?> message) {
+				return message;
+			}
+		});
+        secondaryEndpoint.setOutputChannel(finalChannel);
+        Message<String> message = MessageBuilder.fromPayload("test").build();
+        primaryEndpoint.send(message);
+        Message<?> reply = intermediateItemChannel.receive(500);
+        secondaryEndpoint.send(reply);
+        Message<?> replyOnIntermediateChannel = intermediateItemChannel.receive(500);
+        assertNull(replyOnIntermediateChannel);
+        Message<?> replyOnFinalChannel = finalChannel.receive(500);
+        assertNotNull(replyOnFinalChannel);
+    }
 
 
 	private static class TestHandler implements MessageHandler {
