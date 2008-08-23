@@ -16,35 +16,46 @@
 
 package org.springframework.integration.samples.cafe;
 
+import java.util.List;
+
 /**
  * @author Marius Bogoevici
  */
-public class Drink {
+public class Delivery {
 
-    private boolean iced;
+	private static final String SEPARATOR = "-----------------------";
 
-    private int shots;
 
-    private DrinkType drinkType;
+    private List<Drink> deliveredDrinks;
 
 	private int orderNumber;
 
-	
-    public Drink(int orderNumber, DrinkType drinkType, boolean hot, int shots) {
-	    this.orderNumber = orderNumber;
-        this.drinkType = drinkType;
-        this.iced = hot;
-        this.shots = shots;
+
+
+	public Delivery(List<Drink> deliveredDrinks) {
+		assert (deliveredDrinks.size() > 0);
+        this.deliveredDrinks = deliveredDrinks;
+		this.orderNumber = deliveredDrinks.get(0).getOrderNumber();
     }
 
 
-	public int getOrderNumber() {
+    public int getOrderNumber() {
 		return orderNumber;
 	}
 
-	@Override
-    public String toString() {
-        return (iced?"Iced":"Hot")  + " " + drinkType.toString() + ", " + shots + " shots.";
+	public List<Drink> getDeliveredDrinks() {
+        return deliveredDrinks;
     }
 
+	@Override
+	public String toString() {
+		StringBuffer buffer = new StringBuffer(SEPARATOR + "\n");
+		buffer.append("Order #" + getOrderNumber() + "\n");
+		for (Drink drink : getDeliveredDrinks()) {
+			buffer.append(drink);
+			buffer.append("\n");
+		}
+		buffer.append(SEPARATOR + "\n");
+		return buffer.toString();
+	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,20 @@
 
 package org.springframework.integration.samples.cafe;
 
+import java.util.List;
+
+import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.MessageEndpoint;
-import org.springframework.integration.annotation.Router;
 
 /**
- * @author Mark Fisher
+ * @author Marius Bogoevici
  */
-@MessageEndpoint(input="drinks")
-public class DrinkRouter {
+@MessageEndpoint(input = "preparedDrinks",output = "deliveries")
+public class DeliveryAssembler {
 
-	@Router
-	public String resolveOrderItemChannel(OrderItem orderItem) {
-		return (orderItem.isIced()) ? "coldDrinks" : "hotDrinks";
-	}
+    @Aggregator
+    public Delivery prepareDelivery(List<Drink> drinks) {
+        return new Delivery(drinks);
+    }
 
 }

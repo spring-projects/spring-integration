@@ -16,18 +16,33 @@
 
 package org.springframework.integration.samples.cafe;
 
-import org.springframework.integration.annotation.MessageEndpoint;
-import org.springframework.integration.annotation.Router;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Mark Fisher
+ * @author Marius Bogoevici
  */
-@MessageEndpoint(input="drinks")
-public class DrinkRouter {
+public class Order {
 
-	@Router
-	public String resolveOrderItemChannel(OrderItem orderItem) {
-		return (orderItem.isIced()) ? "coldDrinks" : "hotDrinks";
+	private List<OrderItem> orderItems = new ArrayList<OrderItem>();
+
+	private int number;
+
+	public Order(int number) {
+		this.number = number;
+	}
+
+	public void addItem(DrinkType drinkType, int shots, boolean iced) {
+		this.orderItems.add(new OrderItem(this, drinkType, shots, iced));
+	}
+
+	public int getNumber() {
+		return number;
+	}
+
+	public List<OrderItem> getDrinks() {
+		return this.orderItems;
 	}
 
 }

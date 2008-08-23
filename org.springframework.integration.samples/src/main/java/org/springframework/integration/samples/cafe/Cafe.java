@@ -17,11 +17,11 @@
 package org.springframework.integration.samples.cafe;
 
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.message.MessageBuilder;
 
 /**
  * The entry point for {@link CafeDemo}. When the '<code>placeOrder</code>'
- * method is invoked, it passes the {@link DrinkOrder} as the payload of a
+ * method is invoked, it passes the {@link Order} as the payload of a
  * {@link org.springframework.integration.message.Message} to the
  * 'orderChannel'. The channel reference is configured in the "cafe" bean
  * definition within 'cafeDemo.xml'.
@@ -37,8 +37,8 @@ public class Cafe {
 		this.orderChannel = orderChannel;
 	}
 
-	public void placeOrder(DrinkOrder order) {
-		this.orderChannel.send(new GenericMessage<DrinkOrder>(order));
+	public void placeOrder(Order order) {
+		this.orderChannel.send(MessageBuilder.fromPayload(order).build());
 	}
 
 }

@@ -28,7 +28,7 @@ import org.springframework.integration.annotation.Splitter;
 public class OrderSplitter {
 
 	@Splitter
-	public List<Drink> split(DrinkOrder order) {
+	public List<OrderItem> split(Order order) {
 		return order.getDrinks();
 	}
 

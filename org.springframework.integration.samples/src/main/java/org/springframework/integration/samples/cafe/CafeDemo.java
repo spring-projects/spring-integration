@@ -28,6 +28,7 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
  * OrderSplitter, DrinkRouter, and Barista classes).
  * 
  * @author Mark Fisher
+ * @author Marius Bogoevici
  */
 public class CafeDemo {
 
@@ -40,12 +41,10 @@ public class CafeDemo {
 			context = new ClassPathXmlApplicationContext("cafeDemo.xml", CafeDemo.class);
 		}
 		Cafe cafe = (Cafe) context.getBean("cafe");
-		DrinkOrder order = new DrinkOrder();
-		Drink hotDoubleLatte = new Drink(DrinkType.LATTE, 2, false);
-		Drink icedTripleMocha = new Drink(DrinkType.MOCHA, 3, true);
-		order.addDrink(hotDoubleLatte);
-		order.addDrink(icedTripleMocha);
-		for (int i = 0; i < 100; i++) {
+		for (int i = 1; i <= 100; i++) {
+			Order order = new Order(i);
+			order.addItem(DrinkType.LATTE, 2, false);
+			order.addItem(DrinkType.MOCHA, 3, true);
 			cafe.placeOrder(order);
 		}
 	}

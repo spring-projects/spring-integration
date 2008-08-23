@@ -16,22 +16,47 @@
 
 package org.springframework.integration.samples.cafe;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * @author Mark Fisher
+ * @author Marius Bogoevici
  */
-public class DrinkOrder {
+public class OrderItem {
 
-	private List<Drink> drinks = new ArrayList<Drink>();
+    private DrinkType type;
 
-	public void addDrink(Drink drink) {
-		this.drinks.add(drink);
+    private int shots = 1;
+
+    private boolean iced = false;
+
+	private final Order order;
+
+
+	public OrderItem(Order order, DrinkType type, int shots, boolean iced) {
+        this.order = order;
+		this.type = type;
+        this.shots = shots;
+        this.iced = iced;
+    }
+
+
+	public Order getOrder() {
+		return this.order;
 	}
 
-	public List<Drink> getDrinks() {
-		return this.drinks;
-	}
+	public boolean isIced() {
+        return this.iced;
+    }
+
+    public int getShots() {
+        return shots;
+    }
+
+    public DrinkType getDrinkType() {
+        return this.type;
+    }
+
+    public String toString() {
+        return ((this.iced) ? "iced " : "hot ") + this.shots + " shot " + this.type;
+    }
 
 }

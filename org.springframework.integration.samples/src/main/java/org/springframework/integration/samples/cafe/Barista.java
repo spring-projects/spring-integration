@@ -22,16 +22,17 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author Mark Fisher
+ * @author Marius Bogoevici
  */
 @Component
 public class Barista {
 
 	private long hotDrinkDelay = 5000;
 
-	private long coldDrinkDelay = 1000; 
+	private long coldDrinkDelay = 1000;
 
 	private AtomicInteger hotDrinkCounter = new AtomicInteger();
-	
+
 	private AtomicInteger coldDrinkCounter = new AtomicInteger();
 
 
@@ -43,24 +44,32 @@ public class Barista {
 		this.coldDrinkDelay = coldDrinkDelay;
 	}
 
-	public void prepareHotDrink(Drink drink) {
+	public Drink prepareHotDrink(OrderItem orderItem) {
 		try {
 			Thread.sleep(this.hotDrinkDelay);
 			System.out.println(Thread.currentThread().getName()
-				+ " prepared hot drink #" + hotDrinkCounter.incrementAndGet() + ": " + drink);
+					+ " prepared hot drink #" + hotDrinkCounter.incrementAndGet() + " for order #"
+					+ orderItem.getOrder().getNumber() + ": " + orderItem);
+			return new Drink(orderItem.getOrder().getNumber(), orderItem.getDrinkType(), orderItem.isIced(),
+					orderItem.getShots());
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
+		return null;
 	}
 
-	public void prepareColdDrink(Drink drink) {
+	public Drink prepareColdDrink(OrderItem orderItem) {
 		try {
 			Thread.sleep(this.coldDrinkDelay);
 			System.out.println(Thread.currentThread().getName()
-				+ " prepared cold drink #" + coldDrinkCounter.incrementAndGet() + ": " + drink);
+					+ " prepared cold drink #" + coldDrinkCounter.incrementAndGet() + " for order #"
+					+ orderItem.getOrder().getNumber() + ": " + orderItem);
+			return new Drink(orderItem.getOrder().getNumber(), orderItem.getDrinkType(), orderItem.isIced(),
+					orderItem.getShots());
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 		}
+		return null;
 	}
 
 }
