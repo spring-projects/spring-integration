@@ -16,7 +16,15 @@
 
 package org.springframework.integration.adapter.ftp;
 
-import static org.easymock.classextension.EasyMock.*;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.getCurrentArguments;
+import static org.easymock.EasyMock.isA;
+import static org.easymock.classextension.EasyMock.createMock;
+import static org.easymock.classextension.EasyMock.createNiceMock;
+import static org.easymock.classextension.EasyMock.replay;
+import static org.easymock.classextension.EasyMock.reset;
+import static org.easymock.classextension.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -37,7 +45,6 @@ import org.easymock.IAnswer;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageCreator;
@@ -67,7 +74,6 @@ public class FtpSourceTests {
 
 	private Long size = 100l;
 
-
 	@Before
 	public void initializeFtpSource() {
 		ftpSource = new FtpSource(messageCreator, ftpClientPool);
@@ -77,7 +83,6 @@ public class FtpSourceTests {
 	public void clearState() {
 		reset(globalMocks);
 	}
-
 
 	@Test
 	public void retrieveSingleFile() throws Exception {
@@ -192,9 +197,9 @@ public class FtpSourceTests {
 				new File("test3") })));
 	}
 
-	@Test(timeout=60000)
+	@Test(timeout = 6000)
 	public void concurrentPollingSunnyDay() throws Exception {
-
+		final CountDownLatch recorded = new CountDownLatch(1);
 		this.ftpSource.setMaxFilesPerMessage(2);
 		// first run
 		FTPFile[] mockedFTPFiles = mockedFTPFilesNamed("test1", "test2", "test3", "test4", "test5");
@@ -215,17 +220,21 @@ public class FtpSourceTests {
 				return new GenericMessage(getCurrentArguments()[0]);
 			}
 		}).times(3);
-
 		replay(globalMocks);
+		recorded.countDown();
 
 		final CountDownLatch receivesDone = new CountDownLatch(3);
 
 		for (int i = 0; i < 3; i++) {
 			new Thread(new Runnable() {
 				public void run() {
-					Message<List<File>> recievedFiles = ftpSource.receive();
-					receivesDone.countDown();
+					Message<List<File>> recievedFiles = null;
 					try {
+						// make sure receive happens after recording
+						recorded.await();
+						recievedFiles = ftpSource.receive();
+						receivesDone.countDown();
+						//make sure onSend happens after all receives
 						receivesDone.await();
 					}
 					catch (InterruptedException e) {

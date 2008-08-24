@@ -20,18 +20,13 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
-
 import org.springframework.integration.adapter.file.AbstractDirectorySource;
 import org.springframework.integration.adapter.file.Backlog;
-import org.springframework.integration.adapter.file.FileInfo;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.adapter.file.FileSnapshot;
 import org.springframework.integration.message.MessageCreator;
 import org.springframework.util.Assert;
 
@@ -50,12 +45,10 @@ public class FtpSource extends AbstractDirectorySource<List<File>> {
 
 	private final FTPClientPool clientPool;
 
-
 	public FtpSource(MessageCreator<List<File>, List<File>> messageCreator, FTPClientPool clientPool) {
 		super(messageCreator);
 		this.clientPool = clientPool;
 	}
-
 
 	public void setMaxFilesPerMessage(int maxFilesPerMessage) {
 		Assert.isTrue(maxFilesPerMessage > 0, "'maxFilesPerMessage' must be greater than 0");
@@ -68,19 +61,17 @@ public class FtpSource extends AbstractDirectorySource<List<File>> {
 	}
 
 	@Override
-	protected void refreshSnapshotAndMarkProcessing(Backlog<FileInfo> directoryContentManager) throws IOException {
-		Map<String, FileInfo> snapshot = new HashMap<String, FileInfo>();
+	protected void refreshSnapshotAndMarkProcessing(Backlog<FileSnapshot> directoryContentManager) throws IOException {
+		List<FileSnapshot> snapshot = new ArrayList<FileSnapshot>();
 		synchronized (directoryContentManager) {
 			populateSnapshot(snapshot);
 			directoryContentManager.processSnapshot(snapshot);
-			ArrayList<String> backlog = new ArrayList<String>(directoryContentManager.getBacklog().keySet());
-			int toIndex = this.maxFilesPerMessage == -1 ? backlog.size() : Math.min(this.maxFilesPerMessage, backlog.size());
-			directoryContentManager.itemProcessing(backlog.subList(0, toIndex).toArray(new String[] {}));
+			directoryContentManager.prepareForProcessing(maxFilesPerMessage);
 		}
 	}
 
 	@Override
-	protected void populateSnapshot(Map<String, FileInfo> snapshot) throws IOException {
+	protected void populateSnapshot(List<FileSnapshot> snapshot) throws IOException {
 		FTPClient client = this.clientPool.getClient();
 		FTPFile[] fileList = client.listFiles();
 		try {
@@ -90,9 +81,9 @@ public class FtpSource extends AbstractDirectorySource<List<File>> {
 				 * if files couldn't be parsed
 				 */
 				if (ftpFile != null) {
-					FileInfo fileInfo = new FileInfo(ftpFile.getName(), ftpFile.getTimestamp().getTimeInMillis(),
-							ftpFile.getSize());
-					snapshot.put(ftpFile.getName(), fileInfo);
+					FileSnapshot fileSnapshot = new FileSnapshot(ftpFile.getName(), ftpFile.getTimestamp()
+							.getTimeInMillis(), ftpFile.getSize());
+					snapshot.add(fileSnapshot);
 				}
 			}
 		}
@@ -105,14 +96,15 @@ public class FtpSource extends AbstractDirectorySource<List<File>> {
 		FTPClient client = this.clientPool.getClient();
 		try {
 			List<File> files = new ArrayList<File>();
-			Set<String> toDo = this.getDirectoryContentManager().getProcessingBuffer().keySet();
-			for (String fileName : toDo) {
-				File file = new File(this.localWorkingDirectory, fileName);
+			List<FileSnapshot> toDo = this.getBacklog().getProcessingBuffer();
+			for (FileSnapshot fileSnapshot : toDo) {
+				//some awkwardness here because the local path may be different from the remote path
+				File file = new File(this.localWorkingDirectory, fileSnapshot.getFileName());
 				if (file.exists()) {
 					file.delete();
 				}
 				FileOutputStream fileOutputStream = new FileOutputStream(file);
-				client.retrieveFile(fileName, fileOutputStream);
+				client.retrieveFile(fileSnapshot.getFileName(), fileOutputStream);
 				fileOutputStream.close();
 				files.add(file);
 			}
@@ -120,27 +112,6 @@ public class FtpSource extends AbstractDirectorySource<List<File>> {
 		}
 		finally {
 			this.clientPool.releaseClient(client);
-		}
-	}
-
-	@Override
-	public void onSend(Message<?> message) {
-		Object payload = message.getPayload();
-		if (payload instanceof List) {
-			List<?> items = (List<?>) payload;
-			for (Object item : items) {
-				if (item instanceof File) {
-					fileProcessed(((File) item).getName());
-				}
-				else if (logger.isWarnEnabled()) {
-					logger.warn("FtpSource.onSend() expects Files in the List payload, "
-							+ "but received an item of type [" + item.getClass() + "]");
-				}
-			}
-		}
-		else if (logger.isWarnEnabled()) {
-			logger.warn("FtpSource.onSend() exepects a Message with a List of Files, "
-					+ "but received payload of type [" + message.getPayload().getClass() + "].");
 		}
 	}
 
