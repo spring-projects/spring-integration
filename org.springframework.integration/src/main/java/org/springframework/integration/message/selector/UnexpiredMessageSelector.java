@@ -16,24 +16,23 @@
 
 package org.springframework.integration.message.selector;
 
-import java.util.Date;
-
 import org.springframework.integration.message.Message;
 
 /**
  * A {@link MessageSelector} that accepts {@link Message Messages} that are
- * <em>not</em> expired.
+ * <em>not</em> yet expired. If a Message's expiration date header is
+ * <code>null</code>, that Message <em>never</em> expires.
  * 
  * @author Mark Fisher
  */
 public class UnexpiredMessageSelector implements MessageSelector {
 
 	public boolean accept(Message<?> message) {
-		Date expirationDate = message.getHeaders().getExpirationDate();
+		Long expirationDate = message.getHeaders().getExpirationDate();
 		if (expirationDate == null) {
 			return true;
 		}
-		return expirationDate.getTime() > System.currentTimeMillis();
+		return expirationDate > System.currentTimeMillis();
 	}
 
 }

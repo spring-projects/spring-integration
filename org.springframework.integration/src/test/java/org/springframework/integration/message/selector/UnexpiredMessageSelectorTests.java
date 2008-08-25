@@ -19,8 +19,6 @@ package org.springframework.integration.message.selector;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Date;
-
 import org.junit.Test;
 
 import org.springframework.integration.message.Message;
@@ -35,7 +33,7 @@ public class UnexpiredMessageSelectorTests {
 	public void testExpiredMessageRejected() {
 		long past = System.currentTimeMillis() - 60000;
 		Message<String> message = MessageBuilder.fromPayload("expired")
-				.setExpirationDate(new Date(past)).build();
+				.setExpirationDate(past).build();
 		UnexpiredMessageSelector selector = new UnexpiredMessageSelector();
 		assertFalse(selector.accept(message));
 	}
@@ -44,7 +42,7 @@ public class UnexpiredMessageSelectorTests {
 	public void testUnexpiredMessageAccepted() {
 		long future = System.currentTimeMillis() + 60000;
 		Message<String> message = MessageBuilder.fromPayload("unexpired")
-				.setExpirationDate(new Date(future)).build();
+				.setExpirationDate(future).build();
 		UnexpiredMessageSelector selector = new UnexpiredMessageSelector();
 		assertTrue(selector.accept(message));
 	}

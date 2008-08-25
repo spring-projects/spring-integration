@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Arjen Poutsma
@@ -45,10 +46,10 @@ public final class MessageBuilder<T> {
 
 	/**
 	 * Create a builder for a new {@link Message} instance pre-populated with
-	 * all of the headers copied from the provided message. The payload will
-	 * also be taken from the provided message.
+	 * all of the headers copied from the provided message. The payload of the
+	 * provided Message will also be used as the payload for the new message.
 	 * 
-	 * @param messageToCopy the Message from which the paylaod and all headers
+	 * @param messageToCopy the Message from which the payload and all headers
 	 * will be copied
 	 */
 	public static <T> MessageBuilder<T> fromMessage(Message<T> message) {
@@ -73,7 +74,7 @@ public final class MessageBuilder<T> {
 	 * <code>null</code>, the header will be removed.
 	 */
 	public MessageBuilder<T> setHeader(String headerName, Object headerValue) {
-		if (headerName != null) {
+		if (StringUtils.hasLength(headerName)) {
 			if (headerValue == null) {
 				this.headers.remove(headerName);
 			}
@@ -128,8 +129,17 @@ public final class MessageBuilder<T> {
 		return this;
 	}
 
-	public MessageBuilder<T> setExpirationDate(Date expirationDate) {
+	public MessageBuilder<T> setExpirationDate(Long expirationDate) {
 		return this.setHeader(MessageHeaders.EXPIRATION_DATE, expirationDate);
+	}
+
+	public MessageBuilder<T> setExpirationDate(Date expirationDate) {
+		if (expirationDate != null) {
+			return this.setHeader(MessageHeaders.EXPIRATION_DATE, expirationDate.getTime());
+		}
+		else {
+			return this.setHeader(MessageHeaders.EXPIRATION_DATE, null);
+		}
 	}
 
 	public MessageBuilder<T> setCorrelationId(Object correlationId) {

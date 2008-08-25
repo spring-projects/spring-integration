@@ -19,13 +19,10 @@ package org.springframework.integration.message;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
-import org.springframework.integration.util.IdGenerator;
-import org.springframework.integration.util.RandomUuidGenerator;
+import java.util.UUID;
 
 /**
  * The headers for a {@link Message}.
@@ -56,12 +53,11 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	private final Map<String, Object> headers;
 
-	private transient final IdGenerator idGenerator = new RandomUuidGenerator();
-
 
 	public MessageHeaders(Map<String, Object> headers) {
-		this.headers = (headers != null ? headers : new HashMap<String, Object>());
-		this.headers.put(ID, this.idGenerator.generateId());
+		this.headers = (headers != null ? headers
+				: new HashMap<String, Object>());
+		this.headers.put(ID, UUID.randomUUID());
 		this.headers.put(TIMESTAMP, new Long(System.currentTimeMillis()));
 	}
 
@@ -74,8 +70,8 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 		return this.get(TIMESTAMP, Long.class);
 	}
 
-	public Date getExpirationDate() {
-		return this.get(EXPIRATION_DATE, Date.class);
+	public Long getExpirationDate() {
+		return this.get(EXPIRATION_DATE, Long.class);
 	}
 
 	public Object getCorrelationId() {
@@ -104,22 +100,6 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 		return this.get(PRIORITY, MessagePriority.class);
 	}
 
-	public void clear() {
-		this.headers.clear();
-	}
-
-	public boolean containsKey(Object key) {
-		return this.headers.containsKey(key);
-	}
-
-	public boolean containsValue(Object value) {
-		return this.headers.containsValue(value);
-	}
-
-	public Set<Map.Entry<String, Object>> entrySet() {
-		return Collections.unmodifiableSet(this.headers.entrySet());
-	}
-
 	@SuppressWarnings("unchecked")
 	public <T> T get(Object key, Class<T> type) {
 		Object value = this.headers.get(key);
@@ -127,42 +107,12 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 			return null;
 		}
 		if (!type.isAssignableFrom(value.getClass())) {
-			throw new IllegalArgumentException("Incorrect type specified for header '" + key
-					+ "'. Expected [" + type + "] but actual type is [" + value.getClass() + "]");
+			throw new IllegalArgumentException(
+					"Incorrect type specified for header '" + key
+							+ "'. Expected [" + type + "] but actual type is ["
+							+ value.getClass() + "]");
 		}
 		return (T) value;
-	}
-
-	public Object get(Object key) {
-		return this.headers.get(key);
-	}
-
-	public boolean isEmpty() {
-		return this.headers.isEmpty();
-	}
-
-	public Set<String> keySet() {
-		return Collections.unmodifiableSet(this.headers.keySet());
-	}
-
-	public Object put(String key, Object value) {
-		throw new UnsupportedOperationException("MessageHeaders is immutable.");
-	}
-
-	public void putAll(Map<? extends String, ? extends Object> t) {
-		throw new UnsupportedOperationException("MessageHeaders is immutable.");
-	}
-
-	public Object remove(Object key) {
-		throw new UnsupportedOperationException("MessageHeaders is immutable.");
-	}
-
-	public int size() {
-		return this.headers.size();
-	}
-
-	public Collection<Object> values() {
-		return Collections.unmodifiableCollection(this.headers.values());
 	}
 
 	public int hashCode() {
@@ -182,6 +132,62 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	public String toString() {
 		return this.headers.toString();
+	}
+
+	/*
+	 * Map implementation
+	 */
+
+	public void clear() {
+		this.headers.clear();
+	}
+
+	public boolean containsKey(Object key) {
+		return this.headers.containsKey(key);
+	}
+
+	public boolean containsValue(Object value) {
+		return this.headers.containsValue(value);
+	}
+
+	public Set<Map.Entry<String, Object>> entrySet() {
+		return Collections.unmodifiableSet(this.headers.entrySet());
+	}
+
+	public Object get(Object key) {
+		return this.headers.get(key);
+	}
+
+	public boolean isEmpty() {
+		return this.headers.isEmpty();
+	}
+
+	public Set<String> keySet() {
+		return Collections.unmodifiableSet(this.headers.keySet());
+	}
+
+	public int size() {
+		return this.headers.size();
+	}
+
+	public Collection<Object> values() {
+		return Collections.unmodifiableCollection(this.headers.values());
+	}
+
+	/*
+	 * Unsupported operations
+	 */
+
+	public Object put(String key, Object value) {
+		throw new UnsupportedOperationException("MessageHeaders is immutable.");
+	}
+
+	public void putAll(Map<? extends String, ? extends Object> t) {
+		throw new UnsupportedOperationException("MessageHeaders is immutable.");
+	}
+
+	public Object remove(Object key) {
+		throw new UnsupportedOperationException("MessageHeaders is immutable.");
 	}
 
 }

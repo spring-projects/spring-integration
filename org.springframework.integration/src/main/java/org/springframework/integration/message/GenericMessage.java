@@ -17,6 +17,7 @@
 package org.springframework.integration.message;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,14 +56,14 @@ public class GenericMessage<T> implements Message<T>, Serializable {
 	 */
 	public GenericMessage(T payload, Map<String, Object> headers) {
 		Assert.notNull(payload, "payload must not be null");
-		this.payload = payload;
 		if (headers == null) {
 			headers = new HashMap<String, Object>();
 		}
-		else if (headers instanceof MessageHeaders) {
+		else {
 			headers = new HashMap<String, Object>(headers);
 		}
 		this.headers = new MessageHeaders(headers);
+		this.payload = payload;
 	}
 
 

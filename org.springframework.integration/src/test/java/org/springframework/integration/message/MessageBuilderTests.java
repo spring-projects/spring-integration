@@ -101,10 +101,18 @@ public class MessageBuilderTests {
 	}
 
 	@Test
-	public void testExpirationDate() {
-		Date past = new Date(System.currentTimeMillis() - (60 * 1000));
+	public void testExpirationDateSetAsLong() {
+		Long past = System.currentTimeMillis() - (60 * 1000);
 		Message<Integer> expiredMessage = MessageBuilder.fromPayload(1)
 				.setExpirationDate(past).build();
+		assertEquals(past, expiredMessage.getHeaders().getExpirationDate()); 
+	}
+
+	@Test
+	public void testExpirationDateSetAsDate() {
+		Long past = System.currentTimeMillis() - (60 * 1000);
+		Message<Integer> expiredMessage = MessageBuilder.fromPayload(1)
+				.setExpirationDate(new Date(past)).build();
 		assertEquals(past, expiredMessage.getHeaders().getExpirationDate()); 
 	}
 

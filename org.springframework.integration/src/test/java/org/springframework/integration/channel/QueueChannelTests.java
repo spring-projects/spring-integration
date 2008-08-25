@@ -21,7 +21,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -224,8 +223,8 @@ public class QueueChannelTests {
 		QueueChannel channel = new QueueChannel(2);
 		long minute = 60 * 1000;
 		long time = System.currentTimeMillis();
-		Date past = new Date(time - minute);
-		Date future = new Date(time + minute);
+		long past = time - minute;
+		long future = time + minute;
 		Message<String> expiredMessage = MessageBuilder.fromPayload("test1")
 				.setExpirationDate(past).build();
 		Message<String> unexpiredMessage = MessageBuilder.fromPayload("test2")
