@@ -27,7 +27,7 @@ public abstract class JmsHeaders {
 	/**
 	 * Prefix for any message header that should be passed for usage by the JMS transport.
 	 */
-	public static final String TRANSFPORT_PREFIX = "spring.integration.transport.jms.";
+	public static final String TRANSPORT_PREFIX = "spring.integration.transport.jms.";
 
 	/**
 	 * Prefix for any user-defined message header that should be passed within JMS properties.
@@ -35,12 +35,12 @@ public abstract class JmsHeaders {
 	public static final String USER_PREFIX = "spring.integration.user.jms.";
 
 
-	public static final String CORRELATION_ID = TRANSFPORT_PREFIX + "JMSCorrelationID";
+	public static final String CORRELATION_ID = TRANSPORT_PREFIX + "JMSCorrelationID";
 
-	public static final String REPLY_TO = TRANSFPORT_PREFIX + "JMSReplyTo";
+	public static final String REPLY_TO = TRANSPORT_PREFIX + "JMSReplyTo";
 
-	public static final String REDELIVERED = TRANSFPORT_PREFIX + "JMSRedelivered";
+	public static final String REDELIVERED = TRANSPORT_PREFIX + "JMSRedelivered";
 
-	public static final String TYPE = TRANSFPORT_PREFIX + "JMSType";
+	public static final String TYPE = TRANSPORT_PREFIX + "JMSType";
 
 }
