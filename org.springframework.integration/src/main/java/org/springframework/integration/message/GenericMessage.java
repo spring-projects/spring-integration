@@ -17,11 +17,9 @@
 package org.springframework.integration.message;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.integration.util.IdGenerator;
 import org.springframework.util.Assert;
 
 /**
@@ -67,12 +65,12 @@ public class GenericMessage<T> implements Message<T>, Serializable {
 	}
 
 
-	public T getPayload() {
-		return this.payload;
-	}
-
 	public MessageHeaders getHeaders() {
 		return this.headers;
+	}
+
+	public T getPayload() {
+		return this.payload;
 	}
 
 	public String toString() {
