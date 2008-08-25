@@ -41,6 +41,42 @@ public class SplitterMessageHandlerTests {
 
 
 	@Test
+	public void splitMessageWithArrayPayload() throws Exception {
+		String[] payload = new String[] { "x", "y", "z" };
+		Message<String[]> message = MessageBuilder.fromPayload(payload).build();
+		SplitterMessageHandler handler = new SplitterMessageHandler();
+		List<Message<?>> replies = invokeHandler(handler, message);
+		assertEquals(3, replies.size());
+		Message<?> reply1 = replies.get(0);
+		assertNotNull(reply1);
+		assertEquals("x", reply1.getPayload());
+		Message<?> reply2 = replies.get(1);
+		assertNotNull(reply2);
+		assertEquals("y", reply2.getPayload());
+		Message<?> reply3 = replies.get(2);
+		assertNotNull(reply3);
+		assertEquals("z", reply3.getPayload());
+	}
+
+	@Test
+	public void splitMessageWithCollectionPayload() throws Exception {
+		List<String> payload = Arrays.asList(new String[] { "x", "y", "z" });
+		Message<List<String>> message = MessageBuilder.fromPayload(payload).build();
+		SplitterMessageHandler handler = new SplitterMessageHandler();
+		List<Message<?>> replies = invokeHandler(handler, message);
+		assertEquals(3, replies.size());
+		Message<?> reply1 = replies.get(0);
+		assertNotNull(reply1);
+		assertEquals("x", reply1.getPayload());
+		Message<?> reply2 = replies.get(1);
+		assertNotNull(reply2);
+		assertEquals("y", reply2.getPayload());
+		Message<?> reply3 = replies.get(2);
+		assertNotNull(reply3);
+		assertEquals("z", reply3.getPayload());
+	}
+
+	@Test
 	public void splitStringToStringArray() throws Exception {
 		StringMessage message = new StringMessage("foo.bar");
 		SplitterMessageHandler handler = this.getHandler("stringToStringArray");

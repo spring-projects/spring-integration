@@ -209,7 +209,7 @@
 					<xsd:element ref="poller" minOccurs="0" maxOccurs="1"/>
 					<xsd:element name="interceptors" type="endpointInterceptorsType" minOccurs="0" maxOccurs="1"/>
 				</xsd:all>
-				<xsd:attribute name="ref" type="xsd:string" use="required"/>
+				<xsd:attribute name="ref" type="xsd:string"/>
 				<xsd:attribute name="method" type="xsd:string"/>
 				<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
 				<xsd:attribute name="selector" type="xsd:string"/>
