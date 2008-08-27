@@ -27,7 +27,6 @@ import java.util.List;
 import org.junit.Test;
 
 import org.springframework.integration.annotation.Header;
-import org.springframework.integration.message.CompositeMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
@@ -35,52 +34,16 @@ import org.springframework.integration.message.StringMessage;
 /**
  * @author Mark Fisher
  */
-public class SplitterMessageHandlerTests {
+public class MethodInvokingSplitterTests {
 
 	private SplitterTestBean testBean = new SplitterTestBean();
 
 
 	@Test
-	public void splitMessageWithArrayPayload() throws Exception {
-		String[] payload = new String[] { "x", "y", "z" };
-		Message<String[]> message = MessageBuilder.fromPayload(payload).build();
-		SplitterMessageHandler handler = new SplitterMessageHandler();
-		List<Message<?>> replies = invokeHandler(handler, message);
-		assertEquals(3, replies.size());
-		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals("x", reply1.getPayload());
-		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals("y", reply2.getPayload());
-		Message<?> reply3 = replies.get(2);
-		assertNotNull(reply3);
-		assertEquals("z", reply3.getPayload());
-	}
-
-	@Test
-	public void splitMessageWithCollectionPayload() throws Exception {
-		List<String> payload = Arrays.asList(new String[] { "x", "y", "z" });
-		Message<List<String>> message = MessageBuilder.fromPayload(payload).build();
-		SplitterMessageHandler handler = new SplitterMessageHandler();
-		List<Message<?>> replies = invokeHandler(handler, message);
-		assertEquals(3, replies.size());
-		Message<?> reply1 = replies.get(0);
-		assertNotNull(reply1);
-		assertEquals("x", reply1.getPayload());
-		Message<?> reply2 = replies.get(1);
-		assertNotNull(reply2);
-		assertEquals("y", reply2.getPayload());
-		Message<?> reply3 = replies.get(2);
-		assertNotNull(reply3);
-		assertEquals("z", reply3.getPayload());
-	}
-
-	@Test
 	public void splitStringToStringArray() throws Exception {
 		StringMessage message = new StringMessage("foo.bar");
-		SplitterMessageHandler handler = this.getHandler("stringToStringArray");
-		List<Message<?>> replies = invokeHandler(handler, message);
+		MethodInvokingSplitter splitter = this.getSplitter("stringToStringArray");
+		List<Message<?>> replies = splitter.split(message);
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
 		assertEquals("foo", reply1.getPayload());
@@ -92,8 +55,8 @@ public class SplitterMessageHandlerTests {
 	@Test
 	public void splitStringToStringList() throws Exception {
 		StringMessage message = new StringMessage("foo.bar");
-		SplitterMessageHandler handler = this.getHandler("stringToStringList");
-		List<Message<?>> replies = invokeHandler(handler, message);
+		MethodInvokingSplitter splitter = this.getSplitter("stringToStringList");
+		List<Message<?>> replies = splitter.split(message);
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
 		assertEquals("foo", reply1.getPayload());
@@ -105,8 +68,8 @@ public class SplitterMessageHandlerTests {
 	@Test
 	public void splitMessageToStringArray() throws Exception {
 		StringMessage message = new StringMessage("foo.bar");
-		SplitterMessageHandler handler = this.getHandler("messageToStringArray");
-		List<Message<?>> replies = invokeHandler(handler, message);
+		MethodInvokingSplitter splitter = this.getSplitter("messageToStringArray");
+		List<Message<?>> replies = splitter.split(message);
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
 		assertEquals("foo", reply1.getPayload());
@@ -118,8 +81,8 @@ public class SplitterMessageHandlerTests {
 	@Test
 	public void splitMessageToStringList() throws Exception {
 		StringMessage message = new StringMessage("foo.bar");
-		SplitterMessageHandler handler = this.getHandler("messageToStringList");
-		List<Message<?>> replies = invokeHandler(handler, message);
+		MethodInvokingSplitter splitter = this.getSplitter("messageToStringList");
+		List<Message<?>> replies = splitter.split(message);
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
 		assertEquals("foo", reply1.getPayload());
@@ -131,8 +94,8 @@ public class SplitterMessageHandlerTests {
 	@Test
 	public void splitMessageToMessageArray() throws Exception {
 		StringMessage message = new StringMessage("foo.bar");
-		SplitterMessageHandler handler = this.getHandler("messageToMessageArray");
-		List<Message<?>> replies = invokeHandler(handler, message);
+		MethodInvokingSplitter splitter = this.getSplitter("messageToMessageArray");
+		List<Message<?>> replies = splitter.split(message);
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
 		assertEquals("foo", reply1.getPayload());
@@ -144,8 +107,8 @@ public class SplitterMessageHandlerTests {
 	@Test
 	public void splitMessageToMessageList() throws Exception {
 		StringMessage message = new StringMessage("foo.bar");
-		SplitterMessageHandler handler = this.getHandler("messageToMessageList");
-		List<Message<?>> replies = invokeHandler(handler, message);
+		MethodInvokingSplitter splitter = this.getSplitter("messageToMessageList");
+		List<Message<?>> replies = splitter.split(message);
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
 		assertEquals("foo", reply1.getPayload());
@@ -157,8 +120,8 @@ public class SplitterMessageHandlerTests {
 	@Test
 	public void splitStringToMessageArray() throws Exception {
 		StringMessage message = new StringMessage("foo.bar");
-		SplitterMessageHandler handler = this.getHandler("stringToMessageArray");
-		List<Message<?>> replies = invokeHandler(handler, message);
+		MethodInvokingSplitter splitter = this.getSplitter("stringToMessageArray");
+		List<Message<?>> replies = splitter.split(message);
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
 		assertEquals("foo", reply1.getPayload());
@@ -170,8 +133,8 @@ public class SplitterMessageHandlerTests {
 	@Test
 	public void splitStringToMessageList() throws Exception {
 		StringMessage message = new StringMessage("foo.bar");
-		SplitterMessageHandler handler = this.getHandler("stringToMessageList");
-		List<Message<?>> replies = invokeHandler(handler, message);
+		MethodInvokingSplitter splitter = this.getSplitter("stringToMessageList");
+		List<Message<?>> replies = splitter.split(message);
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
 		assertEquals("foo", reply1.getPayload());
@@ -183,8 +146,8 @@ public class SplitterMessageHandlerTests {
 	@Test
 	public void splitStringToStringArrayConfiguredByMethodName() throws Exception {
 		StringMessage message = new StringMessage("foo.bar");
-		SplitterMessageHandler handler = new SplitterMessageHandler(testBean, "stringToStringArray");
-		List<Message<?>> replies = invokeHandler(handler, message);
+		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "stringToStringArray");
+		List<Message<?>> replies = splitter.split(message);
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
 		assertEquals("foo", reply1.getPayload());
@@ -196,8 +159,8 @@ public class SplitterMessageHandlerTests {
 	@Test
 	public void splitStringToStringListConfiguredByMethodName() throws Exception {
 		StringMessage message = new StringMessage("foo.bar");
-		SplitterMessageHandler handler = new SplitterMessageHandler(testBean, "stringToStringList");
-		List<Message<?>> replies = invokeHandler(handler, message);
+		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "stringToStringList");
+		List<Message<?>> replies = splitter.split(message);
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
 		assertEquals("foo", reply1.getPayload());
@@ -209,8 +172,8 @@ public class SplitterMessageHandlerTests {
 	@Test
 	public void splitMessageToStringArrayConfiguredByMethodName() throws Exception {
 		StringMessage message = new StringMessage("foo.bar");
-		SplitterMessageHandler handler = new SplitterMessageHandler(testBean, "messageToStringArray");
-		List<Message<?>> replies = invokeHandler(handler, message);
+		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "messageToStringArray");
+		List<Message<?>> replies = splitter.split(message);
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
 		assertEquals("foo", reply1.getPayload());
@@ -222,8 +185,8 @@ public class SplitterMessageHandlerTests {
 	@Test
 	public void splitMessageToStringListConfiguredByMethodName() throws Exception {
 		StringMessage message = new StringMessage("foo.bar");
-		SplitterMessageHandler handler = new SplitterMessageHandler(testBean, "messageToStringList");
-		List<Message<?>> replies = invokeHandler(handler, message);
+		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "messageToStringList");
+		List<Message<?>> replies = splitter.split(message);
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
 		assertEquals("foo", reply1.getPayload());
@@ -235,8 +198,8 @@ public class SplitterMessageHandlerTests {
 	@Test
 	public void splitMessageToMessageArrayConfiguredByMethodName() throws Exception {
 		StringMessage message = new StringMessage("foo.bar");
-		SplitterMessageHandler handler = new SplitterMessageHandler(testBean, "messageToMessageArray");
-		List<Message<?>> replies = invokeHandler(handler, message);
+		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "messageToMessageArray");
+		List<Message<?>> replies = splitter.split(message);
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
 		assertEquals("foo", reply1.getPayload());
@@ -248,8 +211,8 @@ public class SplitterMessageHandlerTests {
 	@Test
 	public void splitMessageToMessageListConfiguredByMethodName() throws Exception {
 		StringMessage message = new StringMessage("foo.bar");
-		SplitterMessageHandler handler = new SplitterMessageHandler(testBean, "messageToMessageList");
-		List<Message<?>> replies = invokeHandler(handler, message);
+		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "messageToMessageList");
+		List<Message<?>> replies = splitter.split(message);
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
 		assertEquals("foo", reply1.getPayload());
@@ -261,8 +224,8 @@ public class SplitterMessageHandlerTests {
 	@Test
 	public void splitStringToMessageArrayConfiguredByMethodName() throws Exception {
 		StringMessage message = new StringMessage("foo.bar");
-		SplitterMessageHandler handler = new SplitterMessageHandler(testBean, "stringToMessageArray");
-		List<Message<?>> replies = invokeHandler(handler, message);
+		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "stringToMessageArray");
+		List<Message<?>> replies = splitter.split(message);
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
 		assertEquals("foo", reply1.getPayload());
@@ -274,8 +237,8 @@ public class SplitterMessageHandlerTests {
 	@Test
 	public void splitStringToMessageListConfiguredByMethodName() throws Exception {
 		StringMessage message = new StringMessage("foo.bar");
-		SplitterMessageHandler handler = new SplitterMessageHandler(testBean, "stringToMessageList");
-		List<Message<?>> replies = invokeHandler(handler, message);
+		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "stringToMessageList");
+		List<Message<?>> replies = splitter.split(message);
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
 		assertEquals("foo", reply1.getPayload());
@@ -287,8 +250,8 @@ public class SplitterMessageHandlerTests {
 	@Test
 	public void testHeaderForObjectReturnValues() throws Exception {
 		StringMessage message = new StringMessage("foo.bar");
-		SplitterMessageHandler handler = this.getHandler("stringToStringArray");
-		List<Message<?>> replies = invokeHandler(handler, message);
+		MethodInvokingSplitter splitter = this.getSplitter("stringToStringArray");
+		List<Message<?>> replies = splitter.split(message);
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
 		assertEquals(new Integer(2), reply1.getHeaders().getSequenceSize());
@@ -304,8 +267,8 @@ public class SplitterMessageHandlerTests {
 	@Test
 	public void testHeaderForMessageReturnValues() throws Exception {
 		StringMessage message = new StringMessage("foo.bar");
-		SplitterMessageHandler handler = this.getHandler("messageToMessageList");
-		List<Message<?>> replies = invokeHandler(handler, message);
+		MethodInvokingSplitter splitter = this.getSplitter("messageToMessageList");
+		List<Message<?>> replies = splitter.split(message);
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
 		assertEquals(new Integer(2), reply1.getHeaders().getSequenceSize());
@@ -322,8 +285,8 @@ public class SplitterMessageHandlerTests {
 	public void splitMessageHeader() throws Exception {
 		Message<String> message = MessageBuilder.fromPayload("ignored")
 				.setHeader("testHeader", "foo.bar").build();
-		SplitterMessageHandler handler = this.getHandler("splitHeader");
-		List<Message<?>> replies = invokeHandler(handler, message);
+		MethodInvokingSplitter splitter = this.getSplitter("splitHeader");
+		List<Message<?>> replies = splitter.split(message);
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
 		assertEquals("foo", reply1.getPayload());
@@ -337,8 +300,8 @@ public class SplitterMessageHandlerTests {
 		Message<String> message = MessageBuilder.fromPayload("a.b")
 				.setHeader("testHeader", "c.d").build();
 		Method splittingMethod = this.testBean.getClass().getMethod("splitPayloadAndHeader", String.class, String.class);
-		SplitterMessageHandler handler = new SplitterMessageHandler(testBean, splittingMethod);
-		List<Message<?>> replies = invokeHandler(handler, message);
+		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, splittingMethod);
+		List<Message<?>> replies = splitter.split(message);
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
 		assertEquals("a", reply1.getPayload());
@@ -354,14 +317,10 @@ public class SplitterMessageHandlerTests {
 	}
 
 
-	private SplitterMessageHandler getHandler(String methodName) throws Exception {
+	private MethodInvokingSplitter getSplitter(String methodName) throws Exception {
 		Class<?> paramType = methodName.startsWith("message") ? Message.class : String.class;
 		Method splittingMethod = this.testBean.getClass().getMethod(methodName, paramType);
-		return new SplitterMessageHandler(testBean, splittingMethod);
-	}
-
-	private static List<Message<?>> invokeHandler(SplitterMessageHandler handler, Message<?> message) {
-		return ((CompositeMessage) handler.handle(message)).getPayload();
+		return new MethodInvokingSplitter(testBean, splittingMethod);
 	}
 
 

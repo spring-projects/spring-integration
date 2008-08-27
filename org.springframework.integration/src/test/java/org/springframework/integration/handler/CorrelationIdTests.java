@@ -22,11 +22,11 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.endpoint.DefaultEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.splitter.SplitterMessageHandler;
+import org.springframework.integration.splitter.MethodInvokingSplitter;
+import org.springframework.integration.splitter.SplitterEndpoint;
 
 /**
  * @author Mark Fisher
@@ -99,10 +99,10 @@ public class CorrelationIdTests {
 	public void testCorrelationIdWithSplitter() throws Exception {
 		Message<?> message = new StringMessage("test1,test2");
 		QueueChannel testChannel = new QueueChannel();
-		SplitterMessageHandler splitter = new SplitterMessageHandler(
+		MethodInvokingSplitter splitter = new MethodInvokingSplitter(
 				new TestBean(), TestBean.class.getMethod("split", String.class));
-		DefaultEndpoint<SplitterMessageHandler> endpoint = new DefaultEndpoint<SplitterMessageHandler>(splitter);
-		endpoint.setOutputChannel(testChannel);
+		SplitterEndpoint endpoint = new SplitterEndpoint(splitter);
+		endpoint.setTarget(testChannel);
 		splitter.afterPropertiesSet();
 		endpoint.send(message);
 		Message<?> reply1 = testChannel.receive(100);
