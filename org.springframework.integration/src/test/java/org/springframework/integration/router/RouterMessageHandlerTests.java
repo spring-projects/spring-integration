@@ -26,12 +26,12 @@ import java.util.List;
 
 import org.junit.Test;
 
+import org.springframework.integration.annotation.Header;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.handler.annotation.Header;
 import org.springframework.integration.message.CompositeMessage;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;

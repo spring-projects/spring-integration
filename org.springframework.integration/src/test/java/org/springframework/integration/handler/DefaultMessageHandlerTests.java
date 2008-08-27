@@ -25,7 +25,7 @@ import java.util.Properties;
 import org.junit.Test;
 
 import org.springframework.integration.annotation.Handler;
-import org.springframework.integration.handler.annotation.Header;
+import org.springframework.integration.annotation.Header;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
