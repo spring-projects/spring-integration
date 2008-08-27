@@ -57,11 +57,9 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class DefaultEndpoint<T extends MessageHandler> extends AbstractRequestReplyEndpoint implements ChannelRegistryAware {
+public class DefaultEndpoint<T extends MessageHandler> extends AbstractRequestReplyEndpoint {
 
 	private final T handler;
-
-	private volatile ChannelRegistry channelRegistry;
 
 	private volatile MessageSelector selector;
 
@@ -76,8 +74,17 @@ public class DefaultEndpoint<T extends MessageHandler> extends AbstractRequestRe
 		this.handler = handler;
 	}
 
+
 	protected T getHandler() {
 		return this.handler;
+	}
+
+	@Override
+	public void setChannelRegistry(ChannelRegistry channelRegistry) {
+		super.setChannelRegistry(channelRegistry);
+		if (this.handler instanceof ChannelRegistryAware) {
+			((ChannelRegistryAware) this.handler).setChannelRegistry(channelRegistry);
+		}
 	}
 
 	public void setSelector(MessageSelector selector) {
@@ -93,17 +100,6 @@ public class DefaultEndpoint<T extends MessageHandler> extends AbstractRequestRe
 		for (EndpointInterceptor interceptor : interceptors) {
 			this.addInterceptor(interceptor);
 		}
-	}
-
-	public void setChannelRegistry(ChannelRegistry channelRegistry) {
-		if (this.handler instanceof ChannelRegistryAware) {
-			((ChannelRegistryAware) this.handler).setChannelRegistry(channelRegistry);
-		}
-		this.channelRegistry = channelRegistry;
-	}
-
-	protected ChannelRegistry getChannelRegistry() {
-		return this.channelRegistry;
 	}
 
 	/**
@@ -222,18 +218,13 @@ public class DefaultEndpoint<T extends MessageHandler> extends AbstractRequestRe
 				replyTarget = (MessageTarget) targetAttribute;
 			}
 			else if (targetAttribute instanceof String) {
-				ChannelRegistry registry = getChannelRegistry();
+				ChannelRegistry registry = this.getChannelRegistry();
 				if (registry != null) {
 					replyTarget = registry.lookupChannel((String) targetAttribute);
 				}
 			}
 		}
 		return replyTarget;
-	}
-
-	// TODO: remove
-
-	public void setReturnAddressOverrides(boolean returnAddressOverrides) {
 	}
 
 	/**

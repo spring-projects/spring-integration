@@ -48,8 +48,6 @@ public abstract class AbstractMessageEndpointParser extends AbstractSingleBeanDe
 
 	protected static final String OUTPUT_CHANNEL_ATTRIBUTE = "output-channel";
 
-	protected static final String RETURN_ADDRESS_OVERRIDES_ATTRIBUTE = "return-address-overrides";
-
 	private static final String POLLER_ELEMENT = "poller";
 
 	private static final String SELECTOR_ATTRIBUTE = "selector";
@@ -114,9 +112,6 @@ public abstract class AbstractMessageEndpointParser extends AbstractSingleBeanDe
 				builder, element, OUTPUT_CHANNEL_ATTRIBUTE, "outputChannelName");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, SELECTOR_ATTRIBUTE);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, ERROR_HANDLER_ATTRIBUTE);
-		String returnAddressOverridesAttribute = element.getAttribute(RETURN_ADDRESS_OVERRIDES_ATTRIBUTE);
-		boolean returnAddressOverrides = "true".equals(returnAddressOverridesAttribute);
-		builder.addPropertyValue("returnAddressOverrides", returnAddressOverrides);
 		this.postProcessEndpointBean(builder, element, parserContext);
 	}
 

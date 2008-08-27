@@ -20,6 +20,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageExchangeTemplate;
 import org.springframework.integration.message.MessageHandlingException;
@@ -34,7 +36,7 @@ import org.springframework.integration.util.ErrorHandler;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware {
+public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegistryAware, BeanNameAware {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
@@ -47,6 +49,8 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 	private volatile Schedule schedule;
 
 	private volatile ErrorHandler errorHandler;
+
+	private volatile ChannelRegistry channelRegistry;
 
 	private final MessageExchangeTemplate messageExchangeTemplate = new MessageExchangeTemplate();
 
@@ -84,6 +88,14 @@ public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware
 
 	public void setSchedule(Schedule schedule) {
 		this.schedule = schedule;
+	}
+
+	protected ChannelRegistry getChannelRegistry() {
+		return this.channelRegistry;
+	}
+
+	public void setChannelRegistry(ChannelRegistry channelRegistry) {
+		this.channelRegistry = channelRegistry;
 	}
 
 	protected MessageExchangeTemplate getMessageExchangeTemplate() {

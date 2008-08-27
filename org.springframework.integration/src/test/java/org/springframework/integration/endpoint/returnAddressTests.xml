@@ -18,12 +18,8 @@
 	<si:channel id="replyChannel"/>
 	<si:channel id="errorChannel"/>
 
-	<si:service-activator input-channel="channel1WithOverride" ref="testBean" method="duplicate"
-                 output-channel="channel2" return-address-overrides="true"/>
-
-	<si:service-activator input-channel="channel3WithOverride" ref="testBean" method="duplicate"
-                 return-address-overrides="true"/>
-
+	<si:service-activator input-channel="channel1WithOverride" ref="testBean" method="duplicate" output-channel="channel2"/>
+	<si:service-activator input-channel="channel3WithOverride" ref="testBean" method="duplicate"/>
 	<si:service-activator input-channel="channel1" ref="testBean" method="duplicate" output-channel="channel2"/>
 	<si:service-activator input-channel="channel2" ref="testBean" method="duplicate" output-channel="channel3"/>
 	<si:service-activator input-channel="channel3" ref="testBean" method="duplicate"/>
