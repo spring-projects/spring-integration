@@ -16,7 +16,11 @@
 
 package org.springframework.integration.config.annotation;
 
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.aop.support.AopUtils;
@@ -37,6 +41,7 @@ import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.scheduling.PollingSchedule;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 /**
@@ -81,10 +86,11 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Init
 	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
 		Object originalBean = bean;
 		Class<?> beanClass = this.getBeanClass(bean);
-		MessageEndpoint endpointAnnotation = AnnotationUtils.findAnnotation(beanClass, MessageEndpoint.class);
-		if (endpointAnnotation == null) {
+		if (!this.isStereotype(beanClass)) {
+			// we only post-process stereotype components
 			return bean;
 		}
+		MessageEndpoint endpointAnnotation = AnnotationUtils.findAnnotation(beanClass, MessageEndpoint.class);
 		for (Map.Entry<Class<?>, AnnotationMethodPostProcessor> entry : this.postProcessors.entrySet()) {
 			AnnotationMethodPostProcessor postProcessor = entry.getValue();
 			bean = postProcessor.postProcess(bean, beanName, beanClass);
@@ -136,6 +142,21 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Init
 	private Class<?> getBeanClass(Object bean) {
 		Class<?> targetClass = AopUtils.getTargetClass(bean);
 		return (targetClass != null) ? targetClass : bean.getClass();
+	}
+
+	private boolean isStereotype(Class<?> beanClass) {
+		List<Annotation> annotations = new ArrayList<Annotation>(Arrays.asList(beanClass.getAnnotations()));
+		Class<?>[] interfaces = beanClass.getInterfaces();
+		for (Class<?> iface : interfaces) {
+			annotations.addAll(Arrays.asList(iface.getAnnotations()));
+		}
+		for (Annotation annotation : annotations) {
+			Class<? extends Annotation> annotationType = annotation.annotationType();
+			if (annotationType.equals(Component.class) || annotationType.isAnnotationPresent(Component.class)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

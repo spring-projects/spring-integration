@@ -138,14 +138,12 @@ public class DefaultMessageBusTests {
 		QueueChannel outputChannel2 = new QueueChannel();
 		MessageHandler handler1 = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
-				return MessageBuilder.fromMessage(message)
-						.setNextTarget("output1").build();
+				return MessageBuilder.fromMessage(message).build();
 			}
 		};
 		MessageHandler handler2 = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
-				return MessageBuilder.fromMessage(message)
-						.setNextTarget("output2").build();
+				return MessageBuilder.fromMessage(message).build();
 			}
 		};
 		MessageBus bus = new DefaultMessageBus();
@@ -158,9 +156,11 @@ public class DefaultMessageBusTests {
 		DefaultEndpoint<MessageHandler> endpoint1 = new DefaultEndpoint<MessageHandler>(handler1);
 		endpoint1.setBeanName("testEndpoint1");
 		endpoint1.setSource(inputChannel);
+		endpoint1.setOutputChannel(outputChannel1);
 		DefaultEndpoint<MessageHandler> endpoint2 = new DefaultEndpoint<MessageHandler>(handler2);
 		endpoint2.setBeanName("testEndpoint2");
 		endpoint2.setSource(inputChannel);
+		endpoint2.setOutputChannel(outputChannel2);
 		bus.registerEndpoint(endpoint1);
 		bus.registerEndpoint(endpoint2);
 		bus.start();
@@ -179,16 +179,14 @@ public class DefaultMessageBusTests {
 		final CountDownLatch latch = new CountDownLatch(2);
 		MessageHandler handler1 = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
-				Message<?> reply = MessageBuilder.fromMessage(message)
-						.setNextTarget("output1").build();
+				Message<?> reply = MessageBuilder.fromMessage(message).build();
 				latch.countDown();
 				return reply;
 			}
 		};
 		MessageHandler handler2 = new MessageHandler() {
 			public Message<?> handle(Message<?> message) {
-				Message<?> reply = MessageBuilder.fromMessage(message)
-						.setNextTarget("output2").build();
+				Message<?> reply = MessageBuilder.fromMessage(message).build();
 				latch.countDown();
 				return reply;
 			}
@@ -203,9 +201,11 @@ public class DefaultMessageBusTests {
 		DefaultEndpoint<MessageHandler> endpoint1 = new DefaultEndpoint<MessageHandler>(handler1);
 		endpoint1.setBeanName("testEndpoint1");
 		endpoint1.setSource(inputChannel);
+		endpoint1.setOutputChannel(outputChannel1);
 		DefaultEndpoint<MessageHandler> endpoint2 = new DefaultEndpoint<MessageHandler>(handler2);
 		endpoint2.setBeanName("testEndpoint2");
 		endpoint2.setSource(inputChannel);
+		endpoint2.setOutputChannel(outputChannel2);
 		bus.registerEndpoint(endpoint1);
 		bus.registerEndpoint(endpoint2);
 		bus.start();

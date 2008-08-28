@@ -38,7 +38,6 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageRejectedException;
-import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.integration.message.selector.MessageSelectorChain;
@@ -63,6 +62,21 @@ public class DefaultEndpointTests {
 	}
 
 	@Test
+	public void outputChannelTakesPrecedence() {
+		QueueChannel channel1 = new QueueChannel(1);
+		QueueChannel channel2 = new QueueChannel(1);
+		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(new TestHandler());
+		endpoint.setOutputChannel(channel1);
+		Message<?> message = MessageBuilder.fromPayload("foo").setReturnAddress(channel2).build();
+		endpoint.send(message);
+		Message<?> reply1 = channel1.receive(0);
+		assertNotNull(reply1);
+		assertEquals("FOO", reply1.getPayload());
+		Message<?> reply2 = channel2.receive(0);
+		assertNull(reply2);
+	}
+
+	@Test
 	public void returnAddressHeader() {
 		QueueChannel channel = new QueueChannel(1);
 		MessageHandler handler = new TestHandler();
@@ -72,25 +86,6 @@ public class DefaultEndpointTests {
 		Message<?> reply = channel.receive(0);
 		assertNotNull(reply);
 		assertEquals("FOO", reply.getPayload());
-	}
-
-	@Test
-	public void nextTargetHeaderTakesPrecedence() {
-		QueueChannel channel1 = new QueueChannel(1);
-		QueueChannel channel2 = new QueueChannel(1);
-		QueueChannel channel3 = new QueueChannel(1);
-		MessageHandler handler = new TestNextTargetSettingHandler(channel1);
-		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
-		endpoint.setOutputChannel(channel2);
-		Message<?> message = MessageBuilder.fromPayload("foo").setReturnAddress(channel3).build();
-		endpoint.send(message);
-		Message<?> reply1 = channel1.receive(0);
-		assertNotNull(reply1);
-		assertEquals("foo", reply1.getPayload());
-		Message<?> reply2 = channel2.receive(0);
-		assertNull(reply2);
-		Message<?> reply3 = channel3.receive(0);
-		assertNull(reply3);
 	}
 
 	@Test
@@ -107,29 +102,6 @@ public class DefaultEndpointTests {
 		Message<?> reply = channel.receive(0);
 		assertNotNull(reply);
 		assertEquals("FOO", reply.getPayload());
-	}
-
-	@Test
-	public void nextTargetHeaderWithChannelName() {
-		QueueChannel channel1 = new QueueChannel(1);
-		QueueChannel channel2 = new QueueChannel(1);
-		QueueChannel channel3 = new QueueChannel(1);
-		channel1.setBeanName("testChannel");
-		ChannelRegistry channelRegistry = new DefaultMessageBus();
-		channelRegistry.registerChannel(channel1);
-		MessageHandler handler = new TestNextTargetSettingHandler("testChannel");
-		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
-		endpoint.setChannelRegistry(channelRegistry);
-		endpoint.setOutputChannel(channel2);
-		Message<?> message = MessageBuilder.fromPayload("foo").setReturnAddress(channel3).build();
-		endpoint.send(message);
-		Message<?> reply1 = channel1.receive(0);
-		assertNotNull(reply1);
-		assertEquals("foo", reply1.getPayload());
-		Message<?> reply2 = channel2.receive(0);
-		assertNull(reply2);
-		Message<?> reply3 = channel3.receive(0);
-		assertNull(reply3);
 	}
 
 	@Test
@@ -170,19 +142,6 @@ public class DefaultEndpointTests {
 		MessageHandler handler = new TestHandler();
 		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
 		Message<?> message = MessageBuilder.fromPayload("foo").setReturnAddress(channel).build();
-		endpoint.send(message);
-		Message<?> reply = channel.receive(0);
-		assertNotNull(reply);
-		assertEquals("FOO", reply.getPayload());
-	}
-
-	@Test
-	public void unknownNextTargetChannelFallsBackToOutputChannel() {
-		QueueChannel channel = new QueueChannel(1);
-		MessageHandler handler = new TestHandler();
-		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
-		endpoint.setOutputChannel(channel);
-		Message<?> message = MessageBuilder.fromPayload("foo").setNextTarget("unknown").build();
 		endpoint.send(message);
 		Message<?> reply = channel.receive(0);
 		assertNotNull(reply);
@@ -360,55 +319,10 @@ public class DefaultEndpointTests {
 	}
 
 
-    @Test
-    public void nextTargetNotPropagatedPastCurrentEndpoint() {
-        final QueueChannel intermediateItemChannel = new QueueChannel(1);
-        final QueueChannel finalChannel = new QueueChannel(1);
-        DefaultEndpoint<MessageHandler> primaryEndpoint = new DefaultEndpoint<MessageHandler>(new MessageHandler() {
-			public Message<?> handle(Message<?> message) {
-				return MessageBuilder.fromMessage(message).setNextTarget(intermediateItemChannel).build();
-			}
-		});
-        DefaultEndpoint<MessageHandler> secondaryEndpoint = new DefaultEndpoint<MessageHandler>(new MessageHandler() {
-			public Message<?> handle(Message<?> message) {
-				return message;
-			}
-		});
-        secondaryEndpoint.setOutputChannel(finalChannel);
-        Message<String> message = MessageBuilder.fromPayload("test").build();
-        primaryEndpoint.send(message);
-        Message<?> reply = intermediateItemChannel.receive(500);
-        secondaryEndpoint.send(reply);
-        Message<?> replyOnIntermediateChannel = intermediateItemChannel.receive(500);
-        assertNull(replyOnIntermediateChannel);
-        Message<?> replyOnFinalChannel = finalChannel.receive(500);
-        assertNotNull(replyOnFinalChannel);
-    }
-
-
 	private static class TestHandler implements MessageHandler {
 		
 		public Message<?> handle(Message<?> message) {
 			return new StringMessage(message.getPayload().toString().toUpperCase());
-		}
-	}
-
-
-	private static class TestNextTargetSettingHandler implements MessageHandler {
-
-		private final Object nextTarget;
-
-		TestNextTargetSettingHandler(Object nextTarget) {
-			this.nextTarget = nextTarget;
-		}
-
-		public Message<?> handle(Message<?> message) {
-			if (nextTarget instanceof MessageTarget) {
-				return MessageBuilder.fromPayload(message.getPayload())
-						.setNextTarget((MessageTarget) nextTarget).build();
-			}
-			return MessageBuilder.fromPayload(message.getPayload())
-					.setNextTarget((String) nextTarget).build();
 		}
 	}
 

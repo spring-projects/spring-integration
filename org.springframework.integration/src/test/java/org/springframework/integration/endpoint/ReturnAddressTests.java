@@ -35,24 +35,54 @@ import org.springframework.integration.message.StringMessage;
 public class ReturnAddressTests {
 
 	@Test
-	public void testNextTargetOverrides() {
+	public void returnAddressFallbackWithChannelReference() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"returnAddressTests.xml", this.getClass());
-		MessageChannel channel1 = (MessageChannel) context.getBean("channel1WithOverride");
-		PollableChannel replyChannel = (PollableChannel) context.getBean("replyChannel");
+		MessageChannel channel3 = (MessageChannel) context.getBean("channel3");
+		PollableChannel channel5 = (PollableChannel) context.getBean("channel5");
 		context.start();
 		Message<String> message = MessageBuilder.fromPayload("*")
-				.setNextTarget("replyChannel").build();
-		channel1.send(message);
-		Message<?> response = replyChannel.receive(3000);
+				.setReturnAddress(channel5).build();
+		channel3.send(message);
+		Message<?> response = channel5.receive(3000);
 		assertNotNull(response);
-		PollableChannel outputChannel = (PollableChannel) context.getBean("channel2");
-		assertNull(outputChannel.receive(0));
 		assertEquals("**", response.getPayload());
 	}
 
 	@Test
-	public void testOutputTakesPrecedenceByDefault() {
+	public void returnAddressFallbackWithChannelName() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"returnAddressTests.xml", this.getClass());
+		MessageChannel channel3 = (MessageChannel) context.getBean("channel3");
+		PollableChannel channel5 = (PollableChannel) context.getBean("channel5");
+		context.start();
+		Message<String> message = MessageBuilder.fromPayload("*")
+				.setReturnAddress("channel5").build();
+		channel3.send(message);
+		Message<?> response = channel5.receive(3000);
+		assertNotNull(response);
+		assertEquals("**", response.getPayload());
+	}
+
+	@Test
+	public void returnAddressWithChannelReferenceAfterMultipleEndpoints() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"returnAddressTests.xml", this.getClass());
+		MessageChannel channel1 = (MessageChannel) context.getBean("channel1");
+		PollableChannel replyChannel = (PollableChannel) context.getBean("replyChannel");
+		context.start();
+		Message<String> message = MessageBuilder.fromPayload("*")
+				.setReturnAddress(replyChannel).build();
+		channel1.send(message);
+		Message<?> response = replyChannel.receive(3000);
+		assertNotNull(response);
+		assertEquals("********", response.getPayload());
+		PollableChannel channel2 = (PollableChannel) context.getBean("channel2");
+		assertNull(channel2.receive(0));
+	}
+
+	@Test
+	public void returnAddressWithChannelNameAfterMultipleEndpoints() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"returnAddressTests.xml", this.getClass());
 		MessageChannel channel1 = (MessageChannel) context.getBean("channel1");
@@ -64,10 +94,25 @@ public class ReturnAddressTests {
 		Message<?> response = replyChannel.receive(3000);
 		assertNotNull(response);
 		assertEquals("********", response.getPayload());
+		PollableChannel channel2 = (PollableChannel) context.getBean("channel2");
+		assertNull(channel2.receive(0));
 	}
 
 	@Test
-	public void testOutputTakesPrecedenceAndNoReturnAddress() {
+	public void returnAddressFallbackButNotAvailable() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"returnAddressTests.xml", this.getClass());
+		MessageChannel channel3 = (MessageChannel) context.getBean("channel3");
+		PollableChannel errorChannel = (PollableChannel) context.getBean("errorChannel");
+		context.start();
+		StringMessage message = new StringMessage("*");
+		channel3.send(message);
+		Message<?> errorMessage = errorChannel.receive(3000);
+		assertNotNull(errorMessage.getPayload());
+	}
+
+	@Test
+	public void outputChannelWithNoReturnAddress() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"returnAddressTests.xml", this.getClass());
 		MessageChannel channel4 = (MessageChannel) context.getBean("channel4");
@@ -81,29 +126,20 @@ public class ReturnAddressTests {
 	}
 
 	@Test
-	public void testReturnAddressFallbackButNotAvailable() {
+	public void outputChannelTakesPrecedence() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"returnAddressTests.xml", this.getClass());
-		MessageChannel channel3 = (MessageChannel) context.getBean("channel3");
-		PollableChannel errorChannel = (PollableChannel) context.getBean("errorChannel");
+		MessageChannel channel4 = (MessageChannel) context.getBean("channel4");
+		PollableChannel replyChannel = (PollableChannel) context.getBean("replyChannel");
 		context.start();
-		StringMessage message = new StringMessage("*");
-		channel3.send(message);
-		Message<?> errorMessage = errorChannel.receive(3000);
-		assertNotNull(errorMessage.getPayload());
-	}
-
-	@Test
-	public void testOutputFallbackButNotAvailable() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"returnAddressTests.xml", this.getClass());
-		MessageChannel channel3 = (MessageChannel) context.getBean("channel3WithOverride");
-		PollableChannel errorChannel = (PollableChannel) context.getBean("errorChannel");
-		context.start();
-		StringMessage message = new StringMessage("*");
-		channel3.send(message);
-		Message<?> errorMessage = errorChannel.receive(3000);
-		assertNotNull(errorMessage.getPayload());
+		Message<String> message = MessageBuilder.fromPayload("*")
+				.setReturnAddress("channel5").build();
+		channel4.send(message);
+		Message<?> response = replyChannel.receive(3000);
+		assertNotNull(response);
+		assertEquals("**", response.getPayload());
+		PollableChannel channel5 = (PollableChannel) context.getBean("channel5");
+		assertNull(channel5.receive(0));
 	}
 
 }

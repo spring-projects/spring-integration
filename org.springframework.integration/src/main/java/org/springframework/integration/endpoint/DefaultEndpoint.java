@@ -44,14 +44,12 @@ import org.springframework.util.Assert;
  * 
  * <p>The reply target is resolved according to the following order:
  * <ol>
- *   <li>the 'nextTarget' header value of the reply Message</li>
  *   <li>the 'outputChannel' of this Message Endpoint</li>
  *   <li>the 'returnAddress' header value of the request Message</li>
  * </ol>
- * For the 'nextTarget' and 'returnAddress' values, either a
- * {@link MessageTarget} instance or String is accepted. If the
- * value is a String, then the endpoint will consult its
- * {@link ChannelRegistry} (typically provided by the MessageBus).
+ * For the 'returnAddress' value, either a {@link MessageTarget} instance
+ * or String is accepted. If the value is a String, then the endpoint will
+ * consult its {@link ChannelRegistry} (typically provided by the MessageBus).
  * If no reply target can be determined for a non-null reply Message,
  * a {@link MessageEndpointReplyException} will be thrown.
  * 
@@ -150,7 +148,6 @@ public class DefaultEndpoint<T extends MessageHandler> extends AbstractRequestRe
 		replyMessage = MessageBuilder.fromMessage(replyMessage)
 				.copyHeadersIfAbsent(requestMessage.getHeaders())
 				.setHeaderIfAbsent(MessageHeaders.CORRELATION_ID, requestMessage.getHeaders().getId())
-                .setNextTarget((String)null)
                 .build();
 		if (!this.getMessageExchangeTemplate().send(replyMessage, replyTarget)) {
 			throw new MessageEndpointReplyException(replyMessage, requestMessage,
@@ -201,26 +198,18 @@ public class DefaultEndpoint<T extends MessageHandler> extends AbstractRequestRe
 	}
 
 	private MessageTarget resolveReplyTarget(Message<?> replyMessage, MessageHeaders requestHeaders) {
-		MessageTarget replyTarget = this.resolveTargetAttribute(replyMessage.getHeaders().getNextTarget());
+		MessageTarget replyTarget = this.getTarget();
 		if (replyTarget == null) {
-			replyTarget = this.getTarget();
-		}
-		if (replyTarget == null) {
-			replyTarget = this.resolveTargetAttribute(requestHeaders.getReturnAddress());
-		}
-		return replyTarget;
-	}
-
-	private MessageTarget resolveTargetAttribute(Object targetAttribute) {
-		MessageTarget replyTarget = null;
-		if (targetAttribute != null) {
-			if (targetAttribute instanceof MessageTarget) {
-				replyTarget = (MessageTarget) targetAttribute;
-			}
-			else if (targetAttribute instanceof String) {
-				ChannelRegistry registry = this.getChannelRegistry();
-				if (registry != null) {
-					replyTarget = registry.lookupChannel((String) targetAttribute);
+			Object returnAddress = requestHeaders.getReturnAddress();
+			if (returnAddress != null) {
+				if (returnAddress instanceof MessageTarget) {
+					replyTarget = (MessageTarget) returnAddress;
+				}
+				else if (returnAddress instanceof String) {
+					ChannelRegistry registry = this.getChannelRegistry();
+					if (registry != null) {
+						replyTarget = registry.lookupChannel((String) returnAddress);
+					}
 				}
 			}
 		}
@@ -228,8 +217,7 @@ public class DefaultEndpoint<T extends MessageHandler> extends AbstractRequestRe
 	}
 
 	/**
-	 * Specify the channel where reply Messages should be sent if
-	 * no 'nextTarget' header value is available on the reply Message.
+	 * Specify the channel where reply Messages should be sent.
 	 */
 	public void setOutputChannel(MessageChannel outputChannel) {
 		this.setTarget(outputChannel);
