@@ -59,7 +59,7 @@ public class XPathRouterParserTests extends AbstractJUnit4SpringContextTests{
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		inputOne.send(docMessage);
 		GenericMessage<Document> received = (GenericMessage<Document>) outputOne.receive(1000);
-		assertNotNull("Did not recevie message from outputOne", received);
+		assertNotNull("Did not receive message from outputOne", received);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -69,7 +69,7 @@ public class XPathRouterParserTests extends AbstractJUnit4SpringContextTests{
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		inputOne.send(docMessage);
 		GenericMessage<Document> received = (GenericMessage<Document>) outputTwo.receive(1000);
-		assertNotNull("Did not recevie message from two", received);
+		assertNotNull("Did not receive message from two", received);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -79,7 +79,7 @@ public class XPathRouterParserTests extends AbstractJUnit4SpringContextTests{
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		inputOne.send(docMessage);
 		GenericMessage<Document> received = (GenericMessage<Document>) errorChannel.receive(1000);
-		assertNotNull("Did not recevie message on errors", received);
+		assertNotNull("Did not receive message on errors", received);
 		
 	}
 	
@@ -90,7 +90,7 @@ public class XPathRouterParserTests extends AbstractJUnit4SpringContextTests{
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		inputTwo.send(docMessage);
 		GenericMessage<Document> received = (GenericMessage<Document>) outputOne.receive(1000);
-		assertNotNull("Did not recevie message from outputOne", received);
+		assertNotNull("Did not receive message from outputOne", received);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -100,7 +100,7 @@ public class XPathRouterParserTests extends AbstractJUnit4SpringContextTests{
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		inputTwo.send(docMessage);
 		GenericMessage<Document> received = (GenericMessage<Document>) outputTwo.receive(1000);
-		assertNotNull("Did not recevie message from two", received);
+		assertNotNull("Did not receive message from two", received);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -110,7 +110,7 @@ public class XPathRouterParserTests extends AbstractJUnit4SpringContextTests{
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		inputTwo.send(docMessage);
 		GenericMessage<Document> received = (GenericMessage<Document>) errorChannel.receive(1000);
-		assertNotNull("Did not recevie message on errors", received);
+		assertNotNull("Did not receive message on errors", received);
 	}
 
 }

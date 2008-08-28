@@ -89,10 +89,7 @@
 				use="optional" />
 			<xsd:attribute name="multi-channel" type="xsd:boolean"
 				default="false" />
-			<xsd:attribute name="resolution-required" type="xsd:boolean"
-				default="true" />
 		</xsd:complexType>
 	</xsd:element>
-
 
 </xsd:schema>

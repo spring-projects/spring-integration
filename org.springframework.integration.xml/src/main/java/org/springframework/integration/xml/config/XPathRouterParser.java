@@ -48,7 +48,6 @@ public class XPathRouterParser extends AbstractSingleBeanDefinitionParser {
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		boolean multiChannel = Boolean.parseBoolean(element.getAttribute("multi-channel"));
-		boolean resolutionRequired = Boolean.parseBoolean(element.getAttribute("resolution-required"));
 		String xPathExpression = element.getAttribute("xpath-expression");
 		String xPathExpressionRef = element.getAttribute("xpath-expression-ref");
 		if ((StringUtils.hasText(xPathExpression) && StringUtils.hasText(xPathExpressionRef))
@@ -75,7 +74,6 @@ public class XPathRouterParser extends AbstractSingleBeanDefinitionParser {
 		else {
 			resolverDefinitionBuilder.addConstructorArgReference(xPathExpressionRef);
 		}
-		builder.addPropertyValue("resolutionRequired", resolutionRequired);
 		builder.addPropertyValue("channelNameResolver", resolverDefinitionBuilder.getBeanDefinition());
 	}
 
