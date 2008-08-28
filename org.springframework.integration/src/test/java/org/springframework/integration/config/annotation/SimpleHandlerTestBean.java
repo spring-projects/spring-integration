@@ -17,10 +17,12 @@
 package org.springframework.integration.config.annotation;
 
 import org.springframework.integration.annotation.Handler;
+import org.springframework.integration.annotation.MessageEndpoint;
 
 /**
  * @author Mark Fisher
  */
+@MessageEndpoint
 public class SimpleHandlerTestBean {
 
 	@Handler

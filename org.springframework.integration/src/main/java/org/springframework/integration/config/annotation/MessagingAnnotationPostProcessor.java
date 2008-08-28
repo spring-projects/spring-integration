@@ -82,6 +82,9 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Init
 		Object originalBean = bean;
 		Class<?> beanClass = this.getBeanClass(bean);
 		MessageEndpoint endpointAnnotation = AnnotationUtils.findAnnotation(beanClass, MessageEndpoint.class);
+		if (endpointAnnotation == null) {
+			return bean;
+		}
 		for (Map.Entry<Class<?>, AnnotationMethodPostProcessor> entry : this.postProcessors.entrySet()) {
 			AnnotationMethodPostProcessor postProcessor = entry.getValue();
 			bean = postProcessor.postProcess(bean, beanName, beanClass);

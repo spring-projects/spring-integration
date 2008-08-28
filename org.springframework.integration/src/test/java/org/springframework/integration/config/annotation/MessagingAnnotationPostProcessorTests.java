@@ -425,6 +425,7 @@ public class MessagingAnnotationPostProcessorTests {
 	}
 
 
+	@MessageEndpoint
 	@ChannelAdapter("testChannel")
 	private static class TargetAnnotationTestBean {
 
@@ -525,6 +526,7 @@ public class MessagingAnnotationPostProcessorTests {
 	}
 
 
+	@MessageEndpoint
 	private static class HandlerAnnotatedBean {
 
 		@Handler
@@ -542,6 +544,7 @@ public class MessagingAnnotationPostProcessorTests {
 	}
 
 
+	@MessageEndpoint
 	private static class CustomHandlerAnnotatedBean {
 
 		@CustomHandler
@@ -552,6 +555,7 @@ public class MessagingAnnotationPostProcessorTests {
 	}
 
 
+	@MessageEndpoint
 	@ChannelAdapter("testChannel")
 	@Poller(period = 1000, initialDelay = 0, maxMessagesPerPoll = 1)
 	private static class ChannelAdapterAnnotationTestBean {
@@ -563,6 +567,7 @@ public class MessagingAnnotationPostProcessorTests {
 	}
 
 
+	@MessageEndpoint
 	private static class HandlerWithTransformers {
 
 		@Transformer
