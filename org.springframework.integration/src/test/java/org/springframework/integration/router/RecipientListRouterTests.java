@@ -39,7 +39,7 @@ import org.springframework.integration.message.StringMessage;
 public class RecipientListRouterTests {
 
 	@Test
-	public void testRoutingWithChannelList() {
+	public void routeWithChannelList() {
 		QueueChannel channel1 = new QueueChannel();
 		QueueChannel channel2 = new QueueChannel();
 		List<MessageChannel> channels = new ArrayList<MessageChannel>();
@@ -49,7 +49,7 @@ public class RecipientListRouterTests {
 		router.setChannels(channels);
 		router.afterPropertiesSet();
 		Message<String> message = new StringMessage("test");
-		router.handle(message);
+		router.route(message);
 		Message<?> result1 = channel1.receive(25);
 		assertNotNull(result1);
 		assertEquals("test", result1.getPayload());
@@ -59,7 +59,7 @@ public class RecipientListRouterTests {
 	}
 
 	@Test
-	public void testRoutingWithChannelNames() {
+	public void routeWithChannelNames() {
 		QueueChannel channel1 = new QueueChannel();
 		QueueChannel channel2 = new QueueChannel();
 		channel1.setBeanName("channel1");
@@ -72,7 +72,7 @@ public class RecipientListRouterTests {
 		router.setChannelRegistry(channelRegistry);
 		router.afterPropertiesSet();
 		Message<String> message = new StringMessage("test");
-		router.handle(message);
+		router.route(message);
 		Message<?> result1 = channel1.receive(25);
 		assertNotNull(result1);
 		assertEquals("test", result1.getPayload());
@@ -82,7 +82,7 @@ public class RecipientListRouterTests {
 	}
 
 	@Test
-	public void testRoutingToSingleChannelByName() {
+	public void routeToSingleChannelByName() {
 		QueueChannel channel1 = new QueueChannel();
 		QueueChannel channel2 = new QueueChannel();
 		channel1.setBeanName("channel1");
@@ -95,7 +95,7 @@ public class RecipientListRouterTests {
 		router.setChannelRegistry(channelRegistry);
 		router.afterPropertiesSet();
 		Message<String> message = new StringMessage("test");
-		router.handle(message);
+		router.route(message);
 		Message<?> result1 = channel1.receive(25);
 		assertNotNull(result1);
 		assertEquals("test", result1.getPayload());
@@ -103,8 +103,8 @@ public class RecipientListRouterTests {
 		assertNull(result2);
 	}
 
-	@Test(expected=ConfigurationException.class)
-	public void testConfigurationExceptionWhenBothChannelsAndNamesAreProvided() {
+	@Test(expected = ConfigurationException.class)
+	public void configurationExceptionWhenBothChannelsAndNamesAreProvided() {
 		QueueChannel channel1 = new QueueChannel();
 		QueueChannel channel2 = new QueueChannel();
 		channel1.setBeanName("channel1");

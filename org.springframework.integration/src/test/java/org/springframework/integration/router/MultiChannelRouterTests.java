@@ -30,7 +30,7 @@ import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -39,7 +39,7 @@ import org.springframework.integration.message.StringMessage;
 public class MultiChannelRouterTests {
 
 	@Test
-	public void testRoutingWithChannelResolver() {
+	public void routeWithChannelResolver() {
 		final QueueChannel channel1 = new QueueChannel();
 		final QueueChannel channel2 = new QueueChannel();
 		MultiChannelResolver channelResolver = new MultiChannelResolver() {
@@ -54,7 +54,7 @@ public class MultiChannelRouterTests {
 		router.setChannelResolver(channelResolver);
 		router.afterPropertiesSet();
 		Message<String> message = new StringMessage("test");
-		router.handle(message);
+		router.route(message);
 		Message<?> result1 = channel1.receive(25);
 		assertNotNull(result1);
 		assertEquals("test", result1.getPayload());
@@ -64,7 +64,7 @@ public class MultiChannelRouterTests {
 	}
 
 	@Test
-	public void testRoutingWithChannelNameResolver() {
+	public void routeWithChannelNameResolver() {
 		MultiChannelNameResolver channelNameResolver = new MultiChannelNameResolver() {
 			public String[] resolve(Message<?> message) {
 				return new String[] {"channel1", "channel2"};
@@ -82,7 +82,7 @@ public class MultiChannelRouterTests {
 		router.setChannelRegistry(channelRegistry);
 		router.afterPropertiesSet();
 		Message<String> message = new StringMessage("test");
-		router.handle(message);
+		router.route(message);
 		Message<?> result1 = channel1.receive(25);
 		assertNotNull(result1);
 		assertEquals("test", result1.getPayload());
@@ -91,8 +91,8 @@ public class MultiChannelRouterTests {
 		assertEquals("test", result2.getPayload());
 	}
 
-	@Test(expected=ConfigurationException.class)
-	public void testConfiguringBothChannelResolverAndChannelNameResolverIsNotAllowed() {
+	@Test(expected = ConfigurationException.class)
+	public void configuringBothChannelResolverAndChannelNameResolverIsNotAllowed() {
 		MultiChannelResolver channelResolver = new MultiChannelResolver() {
 			public List<MessageChannel> resolve(Message<?> message) {
 				return null;
@@ -109,37 +109,8 @@ public class MultiChannelRouterTests {
 		router.afterPropertiesSet();
 	}
 
-	@Test
-	public void testChannelResolutionFailureIgnoredByDefault() {
-		MultiChannelResolver channelResolver = new MultiChannelResolver() {
-			public List<MessageChannel> resolve(Message<?> message) {
-				return null;
-			}
-		};
-		MultiChannelRouter router = new MultiChannelRouter();
-		router.setChannelResolver(channelResolver);
-		router.afterPropertiesSet();
-		Message<String> message = new StringMessage("test");
-		router.handle(message);
-	}
-
-	@Test(expected=MessageHandlingException.class)
-	public void testChannelResolutionFailureThrowsExceptionWhenResolutionRequired() {
-		MultiChannelResolver channelResolver = new MultiChannelResolver() {
-			public List<MessageChannel> resolve(Message<?> message) {
-				return null;
-			}
-		};
-		MultiChannelRouter router = new MultiChannelRouter();
-		router.setChannelResolver(channelResolver);
-		router.setResolutionRequired(true);
-		router.afterPropertiesSet();
-		Message<String> message = new StringMessage("test");
-		router.handle(message);
-	}
-
-	@Test
-	public void testChannelNameResolutionFailureIgnoredByDefault() {
+	@Test(expected = MessageDeliveryException.class)
+	public void channelNameLookupFailure() {
 		MultiChannelNameResolver channelNameResolver = new MultiChannelNameResolver() {
 			public String[] resolve(Message<?> message) {
 				return new String[] {"noSuchChannel"};
@@ -151,52 +122,11 @@ public class MultiChannelRouterTests {
 		router.setChannelRegistry(channelRegistry);
 		router.afterPropertiesSet();
 		Message<String> message = new StringMessage("test");
-		router.handle(message);
+		router.route(message);
 	}
 
-	@Test(expected=MessageHandlingException.class)
-	public void testChannelNameResolutionFailureThrowsExceptionWhenResolutionRequired() {
-		MultiChannelNameResolver channelNameResolver = new MultiChannelNameResolver() {
-			public String[] resolve(Message<?> message) {
-				return null;
-			}
-		};
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		MultiChannelRouter router = new MultiChannelRouter();
-		router.setChannelNameResolver(channelNameResolver);
-		router.setChannelRegistry(channelRegistry);
-		router.setResolutionRequired(true);
-		router.afterPropertiesSet();
-		Message<String> message = new StringMessage("test");
-		router.handle(message);
-	}
-
-	@Test(expected=ConfigurationException.class)
-	public void testChannelRegistryIsRequiredWhenUsingChannelNameResolver() {
-		MultiChannelNameResolver channelNameResolver = new MultiChannelNameResolver() {
-			public String[] resolve(Message<?> message) {
-				return new String[] {"notImportant"};
-			}
-		};
-		MultiChannelRouter router = new MultiChannelRouter();
-		router.setChannelNameResolver(channelNameResolver);
-		router.resolveChannels(new StringMessage("this should fail"));
-	}
-
-	@Test(expected=ConfigurationException.class)
-	public void testValidateChannelRegistryIsPresentWhenUsingChannelNameResolver() {
-		MultiChannelNameResolver channelNameResolver = new MultiChannelNameResolver() {
-			public String[] resolve(Message<?> message) {
-				return new String[] {"notImportant"};
-			}
-		};
-		MultiChannelRouter router = new MultiChannelRouter();
-		router.setChannelNameResolver(channelNameResolver);
-		router.afterPropertiesSet();
-	}
-
-	@Test(expected=ConfigurationException.class)
-	public void testChannelResolverIsRequired() {
+	@Test(expected = ConfigurationException.class)
+	public void channelResolverIsRequired() {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		MultiChannelRouter router = new MultiChannelRouter();
 		router.setChannelRegistry(channelRegistry);

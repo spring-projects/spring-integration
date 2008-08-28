@@ -17,95 +17,40 @@
 package org.springframework.integration.router;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
 
-import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.annotation.Router;
-import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.handler.AbstractMessageHandler;
-import org.springframework.integration.message.CompositeMessage;
+import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.channel.ChannelRegistryAware;
+import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.message.MessageTarget;
 
 /**
  * MessageHandler adapter for methods annotated with {@link Router @Router}.
  * 
  * @author Mark Fisher
  */
-public class RouterMessageHandler extends AbstractMessageHandler {
+public class RouterMessageHandler implements MessageHandler, ChannelRegistryAware {
 
-	private volatile MessageChannel defaultChannel;
+	private final Router router;
 
 
 	public RouterMessageHandler(Object object, Method method) {
-		super(object, method);
+		this.router = new MethodInvokingRouter(object, method);
 	}
 
 	public RouterMessageHandler(Object object, String methodName) {
-		super(object, methodName);
-	}
-
-	public RouterMessageHandler() {
+		this.router = new MethodInvokingRouter(object, methodName);
 	}
 
 
-	public void setDefaultChannel(MessageChannel defaultChannel) {
-		this.defaultChannel = defaultChannel;
+	public Message<?> handle(Message<?> message) {
+		this.router.route(message);
+		return null;
 	}
 
-	@Override
-	protected Message<?> createReplyMessage(Object result, Message<?> requestMessage) {
-		final List<Object> channels = new ArrayList<Object>();
-		if (result != null) {
-			if (result instanceof Collection) {
-				channels.addAll((Collection<?>) result);
-			}
-			else if (result instanceof MessageChannel[]) {
-				channels.addAll(Arrays.asList((MessageChannel[]) result));
-			}
-			else if (result instanceof String[]) {
-				channels.addAll(Arrays.asList((String[]) result));
-			}
-			else if (result instanceof MessageChannel) {
-				channels.add((MessageChannel) result);
-			}
-			else if (result instanceof String) {
-				channels.add(result);
-			}
-			else {
-				throw new ConfigurationException(
-						"router method must return type 'MessageChannel' or 'String'");
-			}
+	public void setChannelRegistry(ChannelRegistry channelRegistry) {
+		if (this.router instanceof ChannelRegistryAware) {
+			((ChannelRegistryAware) this.router).setChannelRegistry(channelRegistry);
 		}
-		if (channels.size() == 0) {
-			if (this.defaultChannel != null) {
-				return MessageBuilder.fromMessage(requestMessage).setNextTarget(this.defaultChannel).build();
-			}
-			return null;
-		}
-		List<Message<?>> replies = new ArrayList<Message<?>>();
-		for (Object channel : channels) {
-			MessageBuilder<?> builder = MessageBuilder.fromMessage(requestMessage);
-			if (channel instanceof MessageTarget) {
-				builder.setNextTarget((MessageTarget) channel);
-			}
-			else if (channel instanceof String) {
-				builder.setNextTarget((String) channel);
-			}
-			replies.add(builder.build());
-		}
-		return new CompositeMessage(replies);
-	}
-
-	@Override
-	protected Message<?> postProcessReplyMessage(Message<?> replyMessage, Message<?> requestMessage) {
-		throw new MessageHandlingException(requestMessage,
-				"router method must return type 'MessageChannel' or 'String', but a Message was returned: " + replyMessage);
 	}
 
 }

@@ -47,8 +47,8 @@ public class PayloadTypeRouterTests {
 		router.afterPropertiesSet();
 		Message<String> message1 = new StringMessage("test");
 		Message<Integer> message2 = new GenericMessage<Integer>(123);
-		router.handle(message1);
-		router.handle(message2);
+		router.route(message1);
+		router.route(message2);
 		Message<?> result1 = stringChannel.receive(25);
 		assertNotNull(result1);
 		assertEquals("test", result1.getPayload());
@@ -69,8 +69,8 @@ public class PayloadTypeRouterTests {
 		router.afterPropertiesSet();
 		Message<String> message1 = new StringMessage("test");
 		Message<Integer> message2 = new GenericMessage<Integer>(123);
-		router.handle(message1);
-		router.handle(message2);
+		router.route(message1);
+		router.route(message2);
 		Message<?> result1 = stringChannel.receive(25);
 		assertNotNull(result1);
 		assertEquals("test", result1.getPayload());

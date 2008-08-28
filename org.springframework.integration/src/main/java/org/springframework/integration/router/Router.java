@@ -14,27 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config;
+package org.springframework.integration.router;
 
-import org.springframework.integration.endpoint.MessageEndpoint;
-import org.springframework.integration.router.MethodInvokingRouter;
-import org.springframework.integration.router.RouterEndpoint;
+import org.springframework.integration.message.Message;
 
 /**
- * Parser for the &lt;router/&gt; element.
- * 
+ * Strategy interface for routing a Message to one or more channels.
+ *
  * @author Mark Fisher
  */
-public class RouterParser extends AbstractEndpointParser {
+public interface Router {
 
-	@Override
-	protected Class<? extends MessageEndpoint> getEndpointClass() {
-		return RouterEndpoint.class;
-	}
-
-	@Override
-	protected Class<?> getMethodInvokingAdapterClass() {
-		return MethodInvokingRouter.class;
-	}
+	boolean route(Message<?> message);
 
 }

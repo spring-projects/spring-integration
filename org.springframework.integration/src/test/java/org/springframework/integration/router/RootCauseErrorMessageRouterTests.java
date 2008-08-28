@@ -65,7 +65,7 @@ public class RootCauseErrorMessageRouterTests {
 		router.setChannelMappings(channelMappings);
 		router.setDefaultChannel(defaultChannel);
 		router.afterPropertiesSet();
-		router.handle(message);
+		router.route(message);
 		assertNotNull(illegalArgumentChannel.receive(1000));
 		assertNull(defaultChannel.receive(0));
 		assertNull(runtimeExceptionChannel.receive(0));
@@ -87,7 +87,7 @@ public class RootCauseErrorMessageRouterTests {
 		router.setChannelMappings(channelMappings);
 		router.setDefaultChannel(defaultChannel);
 		router.afterPropertiesSet();
-		router.handle(message);
+		router.route(message);
 		assertNotNull(runtimeExceptionChannel.receive(1000));
 		assertNull(illegalArgumentChannel.receive(0));
 		assertNull(defaultChannel.receive(0));
@@ -108,7 +108,7 @@ public class RootCauseErrorMessageRouterTests {
 		router.setChannelMappings(channelMappings);
 		router.setDefaultChannel(defaultChannel);
 		router.afterPropertiesSet();
-		router.handle(message);
+		router.route(message);
 		assertNotNull(messageHandlingExceptionChannel.receive(1000));
 		assertNull(runtimeExceptionChannel.receive(0));
 		assertNull(illegalArgumentChannel.receive(0));
@@ -125,14 +125,14 @@ public class RootCauseErrorMessageRouterTests {
 		RootCauseErrorMessageRouter router = new RootCauseErrorMessageRouter();
 		router.setDefaultChannel(defaultChannel);
 		router.afterPropertiesSet();
-		router.handle(message);
+		router.route(message);
 		assertNotNull(defaultChannel.receive(1000));
 		assertNull(runtimeExceptionChannel.receive(0));
 		assertNull(illegalArgumentChannel.receive(0));
 		assertNull(messageHandlingExceptionChannel.receive(0));
 	}
 
-	@Test(expected=MessageHandlingException.class)
+	@Test(expected = MessageDeliveryException.class)
 	public void testNoMatchAndNoDefaultChannel() {
 		Message<?> failedMessage = new StringMessage("foo");
 		IllegalArgumentException rootCause = new IllegalArgumentException("bad argument");
@@ -145,8 +145,9 @@ public class RootCauseErrorMessageRouterTests {
 		channelMappings.put(MessageDeliveryException.class, messageDeliveryExceptionChannel);
 		router.setChannelMappings(channelMappings);
 		router.afterPropertiesSet();
-		router.setResolutionRequired(true);
-		router.handle(message);
+		RouterEndpoint endpoint = new RouterEndpoint(router);
+		endpoint.setResolutionRequired(true);
+		endpoint.send(message);
 	}
 
 	@Test
@@ -165,7 +166,7 @@ public class RootCauseErrorMessageRouterTests {
 		router.setChannelMappings(channelMappings);
 		router.setDefaultChannel(defaultChannel);
 		router.afterPropertiesSet();
-		router.handle(message);
+		router.route(message);
 		assertNotNull(illegalArgumentChannel.receive(1000));
 		assertNull(defaultChannel.receive(0));
 		assertNull(runtimeExceptionChannel.receive(0));
@@ -187,7 +188,7 @@ public class RootCauseErrorMessageRouterTests {
 		router.setChannelMappings(channelMappings);
 		router.setDefaultChannel(defaultChannel);
 		router.afterPropertiesSet();
-		router.handle(message);
+		router.route(message);
 		assertNotNull(illegalArgumentChannel.receive(1000));
 		assertNull(defaultChannel.receive(0));
 		assertNull(runtimeExceptionChannel.receive(0));

@@ -16,94 +16,25 @@
 
 package org.springframework.integration.config;
 
-import org.w3c.dom.Element;
-
-import org.springframework.beans.factory.config.BeanDefinitionHolder;
-import org.springframework.beans.factory.parsing.BeanComponentDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
-import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.splitter.MethodInvokingSplitter;
 import org.springframework.integration.splitter.SplitterEndpoint;
-import org.springframework.util.StringUtils;
-import org.springframework.util.xml.DomUtils;
 
 /**
  * Parser for the &lt;splitter/&gt; element.
  * 
  * @author Mark Fisher
  */
-public class SplitterParser extends AbstractSingleBeanDefinitionParser {
-
-	protected static final String REF_ATTRIBUTE = "ref";
-
-	protected static final String METHOD_ATTRIBUTE = "method";
-
-	protected static final String INPUT_CHANNEL_ATTRIBUTE = "input-channel";
-
-	protected static final String OUTPUT_CHANNEL_ATTRIBUTE = "output-channel";
-
-	private static final String POLLER_ELEMENT = "poller";
-
-	private static final String ERROR_HANDLER_ATTRIBUTE = "error-handler";
-
+public class SplitterParser extends AbstractEndpointParser {
 
 	@Override
-	protected Class<?> getBeanClass(Element element) {
+	protected Class<? extends MessageEndpoint> getEndpointClass() {
 		return SplitterEndpoint.class;
 	}
 
 	@Override
-	protected boolean shouldGenerateId() {
-		return false;
-	}
-
-	@Override
-	protected boolean shouldGenerateIdAsFallback() {
-		return true;
-	}
-
-	@Override
-	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		String ref = element.getAttribute(REF_ATTRIBUTE);
-		if (!StringUtils.hasText(ref)) {
-			throw new ConfigurationException("The '" + REF_ATTRIBUTE + "' attribute is required.");
-		}
-		if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
-			String method = element.getAttribute(METHOD_ATTRIBUTE);
-			String adapterBeanName = this.parseAdapter(ref, method, element, parserContext);
-			builder.addConstructorArgReference(adapterBeanName);
-		}
-		else {
-			builder.addConstructorArgReference(ref);
-		}
-		String inputChannel = element.getAttribute(INPUT_CHANNEL_ATTRIBUTE);
-		if (!StringUtils.hasText(inputChannel)) {
-			throw new ConfigurationException("the '" + INPUT_CHANNEL_ATTRIBUTE + "' attribute is required");
-		}
-		Element pollerElement = DomUtils.getChildElementByTagName(element, POLLER_ELEMENT);
-		if (pollerElement != null) {
-			String pollerBeanName = IntegrationNamespaceUtils.parsePoller(inputChannel, pollerElement, parserContext);
-			builder.addPropertyReference("source", pollerBeanName);
-		}
-		else {
-			builder.addPropertyValue("inputChannelName", inputChannel);
-		}
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(
-				builder, element, OUTPUT_CHANNEL_ATTRIBUTE, "target");
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, ERROR_HANDLER_ATTRIBUTE);
-	}
-
-	private String parseAdapter(String ref, String method, Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingSplitter.class);
-		builder.addConstructorArgReference(ref);
-		builder.addConstructorArgValue(method);
-		String adapterBeanName = BeanDefinitionReaderUtils.generateBeanName(builder.getBeanDefinition(), parserContext.getRegistry());
-		BeanDefinitionHolder holder = new BeanDefinitionHolder(builder.getBeanDefinition(), adapterBeanName);
-		parserContext.registerBeanComponent(new BeanComponentDefinition(holder));
-		return adapterBeanName;
+	protected Class<?> getMethodInvokingAdapterClass() {
+		return MethodInvokingSplitter.class;
 	}
 
 }

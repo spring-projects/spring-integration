@@ -7,7 +7,6 @@
 		http://www.springframework.org/schema/integration-xml http://www.springframework.org/schema/integration/spring-integration-xml-1.0.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-
 	<bean id="messageChannel"
 		class="org.springframework.integration.channel.QueueChannel" />
 
@@ -23,11 +22,11 @@
 
 	<si-xml:xpath-router id="routerOne"
 		xpath-expression-ref="xpathExpression" />
-	<si:service-activator ref="routerOne" input-channel="inputOne" />
+	<si:router ref="routerOne" input-channel="inputOne" />
 
 	<si-xml:xpath-router id="routerTwo"
 		xpath-expression-ref="xpathExpressionMulti" multi-channel="true" />
-	<si:service-activator ref="routerTwo" input-channel="inputTwo" />
+	<si:router ref="routerTwo" input-channel="inputTwo" />
 
 
 	<bean id="xpathExpression"
