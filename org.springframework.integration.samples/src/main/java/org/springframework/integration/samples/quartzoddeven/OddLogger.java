@@ -20,11 +20,13 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.springframework.integration.annotation.Handler;
+import org.springframework.integration.annotation.MessageEndpoint;
 
 /**
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
+@MessageEndpoint
 public class OddLogger {
 
 	@Handler

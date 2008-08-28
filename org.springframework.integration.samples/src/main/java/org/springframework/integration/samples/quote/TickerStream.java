@@ -19,12 +19,14 @@ package org.springframework.integration.samples.quote;
 import java.util.Random;
 
 import org.springframework.integration.annotation.ChannelAdapter;
+import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Pollable;
 import org.springframework.integration.annotation.Poller;
 
 /**
  * @author Mark Fisher
  */
+@MessageEndpoint
 @ChannelAdapter("tickers")
 @Poller(period = 300)
 public class TickerStream {
