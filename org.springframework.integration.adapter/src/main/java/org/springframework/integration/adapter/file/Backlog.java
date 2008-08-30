@@ -54,6 +54,7 @@ public class Backlog<T extends Comparable<T>> {
 	};
 
 	private Set<T> doneProcessing = Collections.synchronizedSet(new HashSet<T>());
+
 	private Set<T> currentlyProcessing = Collections.synchronizedSet(new HashSet<T>());
 
 	public synchronized void processSnapshot(List<T> currentSnapshot) {
@@ -83,8 +84,9 @@ public class Backlog<T extends Comparable<T>> {
 	 * this method can be used to mark a subset of the processing buffer as
 	 * processed. Calling this method in a threaded scenario without using
 	 * <code>{@link #prepareForProcessing(int)}</code> will manipulate the
-	 * backlog directly and allows for race conditions. This is only recommended
-	 * when message duplication is not an issue.
+	 * backlog directly and allows for race conditions. In threaded scenarios a
+	 * call to {@link #selectForProcessing(int)} followed by a call to
+	 * {@link #processed()} is recommended.
 	 * @param items the items that have been processed
 	 */
 	public void fileProcessed(T... items) {
@@ -109,13 +111,25 @@ public class Backlog<T extends Comparable<T>> {
 	 */
 	public void prepareForProcessing(int maxBatchSize) {
 		List<T> processingBuffer = this.processingBuffer.get();
-		if (maxBatchSize == -1) {
-			this.backlog.drainTo(processingBuffer);
+		/*
+		 * It is important to properly lock the access to backlog and
+		 * currentlyProcessing in this case, because the removal from the
+		 * backlog happens before addition to currently processed. If another
+		 * thread accesses this type of state it might duplicate messages from
+		 * the source into the backlog.
+		 */
+		synchronized (this) {
+			if (maxBatchSize == -1) {
+				this.backlog.drainTo(processingBuffer);
+			}
+			else {
+				this.backlog.drainTo(processingBuffer, maxBatchSize);
+			}
+			currentlyProcessing.addAll(processingBuffer);
 		}
-		else {
-			this.backlog.drainTo(processingBuffer, maxBatchSize);
+		if (logger.isDebugEnabled()) {
+			logger.debug("Preparing " + processingBuffer + " for processing");
 		}
-		currentlyProcessing.addAll(processingBuffer);
 	}
 
 	/**
@@ -134,6 +148,15 @@ public class Backlog<T extends Comparable<T>> {
 	 * with <code>{@link #prepareForProcessing(int)}</code>
 	 */
 	public void processed() {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Moving processing buffer " + processingBuffer.get() + " to doneProcessing");
+		}
+		/*
+		 * this doesn't need synchronization because the processing buffer will
+		 * first be moved to doneProcessing before it is removed from currently
+		 * processing. The order and the thread safety of the used collections
+		 * is essential.
+		 */
 		this.doneProcessing.addAll(this.processingBuffer.get());
 		currentlyProcessing.removeAll(processingBuffer.get());
 		this.processingBuffer.get().clear();
@@ -145,11 +168,18 @@ public class Backlog<T extends Comparable<T>> {
 	 */
 	public void processingFailed() {
 		if (logger.isDebugEnabled()) {
-			logger.debug("Moving all items from processing buffer to backlog. Processing has failed");
+			logger.debug("Moving processing buffer " + processingBuffer.get()
+					+ " back to backlog. Processing has failed");
 		}
+		/*
+		 * this doesn't need synchronization because the processing buffer will
+		 * first be moved to doneProcessing before it is removed from currently
+		 * processing. The order and the thread safety of the used collections
+		 * is essential.
+		 */
 		List<T> processing = this.processingBuffer.get();
-		currentlyProcessing.removeAll(processing);
 		this.backlog.addAll(processing);
+		currentlyProcessing.removeAll(processing);
 		processing.clear();
 	}
 
@@ -158,6 +188,10 @@ public class Backlog<T extends Comparable<T>> {
 	}
 
 	/**
+	 * Asks the backlog if there are any more items to process. This means that
+	 * this method is intended to return different results in different threads
+	 * when at least one of the thread is processing. It is unlikely that it is
+	 * useful to call this method during processing.
 	 * @return <code>true</code> if both the thread local processing buffer and
 	 * the backlog are empty.
 	 */
