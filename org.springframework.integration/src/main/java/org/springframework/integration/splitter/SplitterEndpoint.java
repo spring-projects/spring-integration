@@ -18,18 +18,15 @@ package org.springframework.integration.splitter;
 
 import java.util.List;
 
-import org.springframework.integration.channel.ChannelRegistry;
-import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.endpoint.AbstractInOutEndpoint;
+import org.springframework.integration.message.CompositeMessage;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageTarget;
-import org.springframework.integration.message.MessagingException;
 import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
  */
-public class SplitterEndpoint extends AbstractEndpoint {
+public class SplitterEndpoint extends AbstractInOutEndpoint {
 
 	private final Splitter splitter;
 
@@ -40,57 +37,18 @@ public class SplitterEndpoint extends AbstractEndpoint {
 	}
 
 
-	// TODO: move to superclass
-	private MessageTarget resolveReplyTarget(Object returnAddress) {
-		MessageTarget replyTarget = this.getTarget();
-		if (replyTarget == null && returnAddress != null) {
-			if (returnAddress instanceof MessageTarget) {
-				replyTarget = (MessageTarget) returnAddress;
-			}
-			else if (returnAddress instanceof String) {
-				ChannelRegistry channelRegistry = this.getChannelRegistry();
-				if (channelRegistry != null) {
-					replyTarget = channelRegistry.lookupChannel((String) returnAddress);
-				}
-			}
-		}
-		if (replyTarget == null) {
-			throw new MessagingException("unable to resolve reply target");
-		}
-		return replyTarget;
+	@Override
+	protected boolean shouldSplitComposite() {
+		return true;
 	}
 
 	@Override
-	protected boolean sendInternal(Message<?> message) {
+	protected Message<?> handle(Message<?> message) {
 		List<Message<?>> results = this.splitter.split(message);
-		if (results != null) {
-			for (Message<?> splitMessage : results) {
-				MessageTarget replyTarget = this.resolveReplyTarget(message.getHeaders().getReturnAddress());
-				this.getMessageExchangeTemplate().send(splitMessage, replyTarget);
-			}
-			return true;
+		if (results == null || results.isEmpty()) {
+			return null;
 		}
-		return false;
-	}
-
-
-	// TODO: remove these methods after refactoring
-
-	private volatile String inputChannelName;
-
-	public String getInputChannelName() {
-		return this.inputChannelName;
-	}
-
-	public void setInputChannelName(String inputChannelName) {
-		this.inputChannelName = inputChannelName;
-	}
-
-	public String getOutputChannelName() {
-		if (this.getTarget() instanceof MessageChannel) {
-			return ((MessageChannel) this.getTarget()).getName();
-		}
-		return null;
+		return new CompositeMessage(results);
 	}
 
 }

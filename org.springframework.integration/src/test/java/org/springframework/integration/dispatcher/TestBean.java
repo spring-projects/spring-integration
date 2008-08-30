@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint.interceptor;
+package org.springframework.integration.dispatcher;
 
 /**
  * @author Mark Fisher

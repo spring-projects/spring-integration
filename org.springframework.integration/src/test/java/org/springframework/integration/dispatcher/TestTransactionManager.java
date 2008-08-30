@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint.interceptor;
+package org.springframework.integration.dispatcher;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;

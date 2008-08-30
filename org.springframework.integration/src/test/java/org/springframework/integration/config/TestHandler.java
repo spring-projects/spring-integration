@@ -47,7 +47,7 @@ public class TestHandler implements MessageHandler {
 		this.replyMessageText = replyMessageText;
 	}
 
-	public Message handle(Message message) {
+	public Message<?> handle(Message<?> message) {
 		this.messageString = message.getPayload().toString();
 		this.latch.countDown();
 		return (this.replyMessageText != null) ? new StringMessage(this.replyMessageText) : null;

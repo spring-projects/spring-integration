@@ -22,6 +22,7 @@ import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
+import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
@@ -46,7 +47,11 @@ public abstract class AbstractEndpointParser extends AbstractSingleBeanDefinitio
 
 	private static final String POLLER_ELEMENT = "poller";
 
+	private static final String SELECTOR_ATTRIBUTE = "selector";
+
 	private static final String ERROR_HANDLER_ATTRIBUTE = "error-handler";
+
+	private static final String INTERCEPTORS_ELEMENT = "interceptors";
 
 
 	@Override
@@ -92,7 +97,14 @@ public abstract class AbstractEndpointParser extends AbstractSingleBeanDefinitio
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(
 				builder, element, OUTPUT_CHANNEL_ATTRIBUTE, "target");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, SELECTOR_ATTRIBUTE);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, ERROR_HANDLER_ATTRIBUTE);
+		Element interceptorsElement = DomUtils.getChildElementByTagName(element, INTERCEPTORS_ELEMENT);
+		if (interceptorsElement != null) {
+			EndpointInterceptorParser parser = new EndpointInterceptorParser();
+			ManagedList interceptors = parser.parseInterceptors(interceptorsElement, parserContext);
+			builder.addPropertyValue("interceptors", interceptors);
+		}
 	}
 
 	private String parseAdapter(String ref, String method, Element element, ParserContext parserContext) {

@@ -17,24 +17,22 @@
 	                  ref="testBean"
 	                  method="bad"
                       output-channel="output">
-        <poller period="100"/>
-    	<interceptors>
-			<transaction-interceptor transaction-manager="txManager"/>
-    	</interceptors>
+        <poller period="10000" max-messages-per-poll="1">
+        	<transactional transaction-manager="txManager"/>
+        </poller>
     </service-activator>
 
 	<service-activator input-channel="goodInput"
 	                  ref="testBean"
 	                  method="good"
                       output-channel="output">
-        <poller period="100"/>
-		<interceptors>
-			<transaction-interceptor transaction-manager="txManager" propagation="REQUIRED"/>
-		</interceptors>
+        <poller period="10000" max-messages-per-poll="1">
+        	<transactional transaction-manager="txManager" propagation="REQUIRED"/>
+        </poller>
 	</service-activator>
 
-	<beans:bean id="testBean" class="org.springframework.integration.endpoint.interceptor.TestBean"/>
+	<beans:bean id="testBean" class="org.springframework.integration.dispatcher.TestBean"/>
 
-	<beans:bean id="txManager" class="org.springframework.integration.endpoint.interceptor.TestTransactionManager"/>
+	<beans:bean id="txManager" class="org.springframework.integration.dispatcher.TestTransactionManager"/>
 
 </beans:beans>

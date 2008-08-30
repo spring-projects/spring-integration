@@ -16,19 +16,25 @@
 
 package org.springframework.integration.config;
 
-import org.springframework.integration.handler.MessageHandler;
-import org.springframework.integration.handler.DefaultMessageHandler;
+import org.springframework.integration.endpoint.MessageEndpoint;
+import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
+import org.springframework.integration.message.MessageMappingMethodInvoker;
 
 /**
  * Parser for the &lt;service-activator&gt; element.
  * 
  * @author Mark Fisher
  */
-public class ServiceActivatorParser extends AbstractMessageEndpointParser {
+public class ServiceActivatorParser extends AbstractEndpointParser {
 
 	@Override
-	protected Class<? extends MessageHandler> getHandlerAdapterClass() {
-		return DefaultMessageHandler.class;
+	protected Class<? extends MessageEndpoint> getEndpointClass() {
+		return ServiceActivatorEndpoint.class;
+	}
+
+	@Override
+	protected Class<?> getMethodInvokingAdapterClass() {
+		return MessageMappingMethodInvoker.class;
 	}
 
 }

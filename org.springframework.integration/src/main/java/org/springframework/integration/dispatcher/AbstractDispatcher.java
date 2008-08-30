@@ -75,4 +75,8 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 		return this.messageExchangeTemplate.send(message, target);
 	}
 
+	public String toString() {
+		return this.getClass().getSimpleName() + " with targets: " + this.targets;
+	}
+
 }
