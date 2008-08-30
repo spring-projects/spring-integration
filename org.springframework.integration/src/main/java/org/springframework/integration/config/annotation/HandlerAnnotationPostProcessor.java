@@ -31,17 +31,14 @@ import org.springframework.core.annotation.Order;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.aggregator.AggregatorMessageHandlerCreator;
 import org.springframework.integration.annotation.Aggregator;
-import org.springframework.integration.annotation.Concurrency;
 import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelRegistryAware;
-import org.springframework.integration.endpoint.ConcurrencyPolicy;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.DefaultEndpoint;
-import org.springframework.integration.endpoint.interceptor.ConcurrencyInterceptor;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.integration.handler.config.DefaultMessageHandlerCreator;
@@ -143,14 +140,6 @@ public class HandlerAnnotationPostProcessor extends AbstractAnnotationMethodPost
 		Schedule schedule = this.extractSchedule(originalBeanClass);
 		if (schedule != null) {
 			endpoint.setSchedule(schedule);
-		}
-		Concurrency concurrencyAnnotation = AnnotationUtils.findAnnotation(originalBeanClass, Concurrency.class);
-		if (concurrencyAnnotation != null) {
-			ConcurrencyPolicy concurrencyPolicy = new ConcurrencyPolicy(
-					concurrencyAnnotation.coreSize(), concurrencyAnnotation.maxSize());
-			concurrencyPolicy.setKeepAliveSeconds(concurrencyAnnotation.keepAliveSeconds());
-			concurrencyPolicy.setQueueCapacity(concurrencyAnnotation.queueCapacity());
-			endpoint.addInterceptor(new ConcurrencyInterceptor(concurrencyPolicy, beanName));
 		}
 		return endpoint;
 	}

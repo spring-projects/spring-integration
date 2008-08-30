@@ -110,7 +110,26 @@ public class DefaultEndpoint<T extends MessageHandler> extends AbstractRequestRe
 
 	@Override
 	public final Message<?> handleRequestMessage(Message<?> requestMessage) {
-		return this.doHandleRequestMessage(requestMessage, 0);
+		if (requestMessage == null || requestMessage.getPayload() == null) {
+			return null;
+		}
+		for (EndpointInterceptor interceptor : this.interceptors) {
+			requestMessage = interceptor.preHandle(requestMessage);
+			if (requestMessage == null) {
+				return null;
+			}
+		}
+		if (!this.supports(requestMessage)) {
+			throw new MessageRejectedException(requestMessage, "unsupported message");
+		}
+		Message<?> replyMessage = this.handler.handle(requestMessage);
+		for (int i = this.interceptors.size() - 1; i >= 0; i--) {
+			EndpointInterceptor interceptor = this.interceptors.get(i);
+			if (interceptor != null) {
+				replyMessage = interceptor.postHandle(replyMessage);
+			}
+		}
+		return replyMessage;
 	}
 
 	/**
@@ -153,38 +172,6 @@ public class DefaultEndpoint<T extends MessageHandler> extends AbstractRequestRe
 			throw new MessageEndpointReplyException(replyMessage, requestMessage,
 					"failed to send reply to '" + replyTarget + "'");
 		}
-	}
-
-	private Message<?> doHandleRequestMessage(Message<?> requestMessage, final int index) {
-		if (requestMessage == null || requestMessage.getPayload() == null) {
-			return null;
-		}
-		if (index == 0) {
-			for (EndpointInterceptor interceptor : this.interceptors) {
-				requestMessage = interceptor.preHandle(requestMessage);
-				if (requestMessage == null) {
-					return null;
-				}
-			}
-		}
-		if (index == this.interceptors.size()) {
-			if (!this.supports(requestMessage)) {
-				throw new MessageRejectedException(requestMessage, "unsupported message");
-			}
-			Message<?> replyMessage = this.handler.handle(requestMessage);
-			for (int i = index - 1; i >= 0; i--) {
-				EndpointInterceptor interceptor = this.interceptors.get(i);
-				replyMessage = interceptor.postHandle(replyMessage);
-			}
-			return replyMessage;
-		}
-		EndpointInterceptor nextInterceptor = this.interceptors.get(index);
-		return nextInterceptor.aroundHandle(requestMessage, new MessageHandler() {
-			@SuppressWarnings("unchecked")
-			public Message<?> handle(Message message) {
-				return doHandleRequestMessage(message, index + 1);
-			}
-		});
 	}
 
 	protected boolean supports(Message<?> message) {

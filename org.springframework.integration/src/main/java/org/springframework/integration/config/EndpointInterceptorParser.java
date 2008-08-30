@@ -26,10 +26,7 @@ public class EndpointInterceptorParser extends AbstractInterceptorParser {
 
 	@Override
 	protected Map<String, BeanDefinitionRegisteringParser> getParserMap() {
-		Map<String, BeanDefinitionRegisteringParser> parsers = new HashMap<String, BeanDefinitionRegisteringParser>();
-		parsers.put("transaction-interceptor", new TransactionInterceptorParser());
-		parsers.put("concurrency-interceptor", new ConcurrencyInterceptorParser());
-		return parsers;
+		return new HashMap<String, BeanDefinitionRegisteringParser>();
 	}
 
 }

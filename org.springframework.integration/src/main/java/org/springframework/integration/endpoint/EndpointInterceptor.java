@@ -16,7 +16,6 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 
 /**
@@ -25,8 +24,6 @@ import org.springframework.integration.message.Message;
 public interface EndpointInterceptor {
 
 	Message<?> preHandle(Message<?> requestMessage);
-
-	Message<?> aroundHandle(Message<?> requestMessage, MessageHandler handler);
 
 	Message<?> postHandle(Message<?> replyMessage);
 
