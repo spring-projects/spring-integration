@@ -50,7 +50,6 @@ import org.springframework.integration.endpoint.EndpointRegistry;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.MessagingGateway;
 import org.springframework.integration.message.MessageSource;
-import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.PollableSource;
 import org.springframework.integration.message.SubscribableSource;
 import org.springframework.integration.scheduling.PollingSchedule;
@@ -268,29 +267,9 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 		if (endpoint instanceof ChannelRegistryAware) {
 			((ChannelRegistryAware) endpoint).setChannelRegistry(this);
 		}
-		MessageTarget target = endpoint.getTarget();
-		if (target == null) {
-			String outputChannelName = endpoint.getOutputChannelName();
-			if (outputChannelName != null) {
-				target = this.lookupChannel(outputChannelName);
-				if (target == null) {
-					throw new ConfigurationException("cannot activate endpoint '" + endpoint +
-							"', unable to resolve output-channel '" + outputChannelName + "'");
-				}
-				endpoint.setTarget(target);
-			}
-		}
 		MessageSource<?> source = endpoint.getSource();
 		if (source == null) {
-			String inputChannelName = endpoint.getInputChannelName();
-			if (inputChannelName != null) {
-				source = this.lookupChannel(inputChannelName);
-				if (source == null) {
-					throw new ConfigurationException("cannot activate endpoint '" + endpoint +
-							"', unable to resolve input-channel '" + inputChannelName + "'");					
-				}
-				endpoint.setSource(source);
-			}
+			throw new ConfigurationException("endpoint '" + endpoint + "' has no source");
 		}
 		if (source != null && source instanceof SubscribableSource) {
 			((SubscribableSource) source).subscribe(endpoint);

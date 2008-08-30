@@ -23,7 +23,6 @@ import java.util.List;
 
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.CompositeMessage;
 import org.springframework.integration.message.Message;
@@ -201,13 +200,6 @@ public class DefaultEndpoint<T extends MessageHandler> extends AbstractRequestRe
 			}
 		}
 		return replyTarget;
-	}
-
-	/**
-	 * Specify the channel where reply Messages should be sent.
-	 */
-	public void setOutputChannel(MessageChannel outputChannel) {
-		this.setTarget(outputChannel);
 	}
 
 }

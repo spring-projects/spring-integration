@@ -32,18 +32,4 @@ public class OutboundChannelAdapter extends AbstractEndpoint {
 		return this.getMessageExchangeTemplate().send(message, this.getTarget());
 	}
 
-	public String getInputChannelName() {
-		if (this.getSource() instanceof MessageChannel) {
-			return ((MessageChannel) this.getSource()).getName();
-		}
-		return null;
-	}
-
-	public String getOutputChannelName() {
-		return null;
-	}
-
-	public void setInputChannelName(String inputChannelName) {
-	}
-
 }

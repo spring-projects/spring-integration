@@ -37,10 +37,4 @@ public interface MessageEndpoint extends MessageTarget, BeanNameAware {
 
 	MessageTarget getTarget();
 
-	void setInputChannelName(String inputChannelName);
-
-	String getInputChannelName();
-
-	String getOutputChannelName();
-
 }

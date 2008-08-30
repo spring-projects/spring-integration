@@ -53,7 +53,7 @@ public class DefaultEndpointTests {
 		QueueChannel channel = new QueueChannel(1);
 		MessageHandler handler = new TestHandler();
 		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
-		endpoint.setOutputChannel(channel);
+		endpoint.setTarget(channel);
 		Message<?> message = MessageBuilder.fromPayload("foo").build();
 		endpoint.send(message);
 		Message<?> reply = channel.receive(0);
@@ -66,7 +66,7 @@ public class DefaultEndpointTests {
 		QueueChannel channel1 = new QueueChannel(1);
 		QueueChannel channel2 = new QueueChannel(1);
 		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(new TestHandler());
-		endpoint.setOutputChannel(channel1);
+		endpoint.setTarget(channel1);
 		Message<?> message = MessageBuilder.fromPayload("foo").setReturnAddress(channel2).build();
 		endpoint.send(message);
 		Message<?> reply1 = channel1.receive(0);
@@ -161,7 +161,7 @@ public class DefaultEndpointTests {
 		QueueChannel channel = new QueueChannel(1);
 		MessageHandler handler = new TestNullReplyHandler();
 		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
-		endpoint.setOutputChannel(channel);
+		endpoint.setTarget(channel);
 		Message<?> message = MessageBuilder.fromPayload("foo").build();
 		endpoint.send(message);
 		assertNull(channel.receive(0));
@@ -173,7 +173,7 @@ public class DefaultEndpointTests {
 		MessageHandler handler = new TestNullReplyHandler();
 		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
 		endpoint.setRequiresReply(true);
-		endpoint.setOutputChannel(channel);
+		endpoint.setTarget(channel);
 		Message<?> message = MessageBuilder.fromPayload("foo").build();
 		endpoint.send(message);
 	}

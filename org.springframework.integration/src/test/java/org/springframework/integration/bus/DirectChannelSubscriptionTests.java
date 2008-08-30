@@ -58,8 +58,8 @@ public class DirectChannelSubscriptionTests {
 	@Test
 	public void testSendAndReceiveForRegisteredEndpoint() {
 		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(new TestHandler());
-		endpoint.setInputChannelName("sourceChannel");
-		endpoint.setOutputChannelName("targetChannel");
+		endpoint.setSource(sourceChannel);
+		endpoint.setTarget(targetChannel);
 		endpoint.setBeanName("testEndpoint");
 		bus.registerEndpoint(endpoint);
 		bus.start();
@@ -92,8 +92,8 @@ public class DirectChannelSubscriptionTests {
 				throw new RuntimeException("intentional test failure");
 			}
 		});
-		endpoint.setInputChannelName("sourceChannel");
-		endpoint.setOutputChannelName("targetChannel");
+		endpoint.setSource(sourceChannel);
+		endpoint.setTarget(targetChannel);
 		endpoint.setBeanName("testEndpoint");
 		bus.registerEndpoint(endpoint);
 		bus.start();

@@ -13,7 +13,7 @@
 	<bean id="endpoint" class="org.springframework.integration.endpoint.DefaultEndpoint">
 		<constructor-arg ref="handler"/>
 		<property name="source" ref="sourceChannel"/>
-		<property name="outputChannelName" value="targetChannel"/>
+		<property name="target" ref="targetChannel"/>
 	</bean>
 
 	<bean id="handler" class="org.springframework.integration.handler.TestHandlers" factory-method="echoHandler"/>
@@ -23,4 +23,5 @@
 	</bean>
 	
 	<bean id= "messageBusAwareBean" class="org.springframework.integration.bus.TestMessageBusAwareImpl"/>
+
 </beans>

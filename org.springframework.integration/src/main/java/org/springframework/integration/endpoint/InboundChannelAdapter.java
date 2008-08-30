@@ -49,18 +49,4 @@ public class InboundChannelAdapter extends AbstractEndpoint {
 		}
 	}
 
-	public String getInputChannelName() {
-		return null;
-	}
-
-	public String getOutputChannelName() {
-		if (this.getTarget() instanceof MessageChannel) {
-			return ((MessageChannel) this.getTarget()).getName();
-		}
-		return null;
-	}
-
-	public void setInputChannelName(String inputChannelName) {
-	}
-
 }

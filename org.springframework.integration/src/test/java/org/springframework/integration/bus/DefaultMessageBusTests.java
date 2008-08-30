@@ -76,33 +76,6 @@ public class DefaultMessageBusTests {
 	}
 
 	@Test
-	public void testRegistrationWithInputChannelName() {
-		MessageBus bus = new DefaultMessageBus();
-		QueueChannel sourceChannel = new QueueChannel();
-		QueueChannel targetChannel = new QueueChannel();
-		sourceChannel.setBeanName("sourceChannel");
-		targetChannel.setBeanName("targetChannel");
-		bus.registerChannel(sourceChannel);
-		Message<String> message = MessageBuilder.fromPayload("test")
-				.setReturnAddress("targetChannel").build();
-		sourceChannel.send(message);
-		bus.registerChannel(targetChannel);
-		MessageHandler handler = new MessageHandler() {
-			public Message<?> handle(Message<?> message) {
-				return message;
-			}
-		};
-		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
-		endpoint.setBeanName("testEndpoint");
-		endpoint.setInputChannelName("sourceChannel");
-		bus.registerEndpoint(endpoint);
-		bus.start();
-		Message<?> result = targetChannel.receive(3000);
-		assertEquals("test", result.getPayload());
-		bus.stop();
-	}
-
-	@Test
 	public void testChannelsWithoutHandlers() {
 		MessageBus bus = new DefaultMessageBus();
 		QueueChannel sourceChannel = new QueueChannel();
@@ -156,11 +129,11 @@ public class DefaultMessageBusTests {
 		DefaultEndpoint<MessageHandler> endpoint1 = new DefaultEndpoint<MessageHandler>(handler1);
 		endpoint1.setBeanName("testEndpoint1");
 		endpoint1.setSource(inputChannel);
-		endpoint1.setOutputChannel(outputChannel1);
+		endpoint1.setTarget(outputChannel1);
 		DefaultEndpoint<MessageHandler> endpoint2 = new DefaultEndpoint<MessageHandler>(handler2);
 		endpoint2.setBeanName("testEndpoint2");
 		endpoint2.setSource(inputChannel);
-		endpoint2.setOutputChannel(outputChannel2);
+		endpoint2.setTarget(outputChannel2);
 		bus.registerEndpoint(endpoint1);
 		bus.registerEndpoint(endpoint2);
 		bus.start();
@@ -201,11 +174,11 @@ public class DefaultMessageBusTests {
 		DefaultEndpoint<MessageHandler> endpoint1 = new DefaultEndpoint<MessageHandler>(handler1);
 		endpoint1.setBeanName("testEndpoint1");
 		endpoint1.setSource(inputChannel);
-		endpoint1.setOutputChannel(outputChannel1);
+		endpoint1.setTarget(outputChannel1);
 		DefaultEndpoint<MessageHandler> endpoint2 = new DefaultEndpoint<MessageHandler>(handler2);
 		endpoint2.setBeanName("testEndpoint2");
 		endpoint2.setSource(inputChannel);
-		endpoint2.setOutputChannel(outputChannel2);
+		endpoint2.setTarget(outputChannel2);
 		bus.registerEndpoint(endpoint1);
 		bus.registerEndpoint(endpoint2);
 		bus.start();
@@ -267,7 +240,7 @@ public class DefaultMessageBusTests {
 		};
 		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
 		endpoint.setBeanName("testEndpoint");
-		endpoint.setInputChannelName(MessageBus.ERROR_CHANNEL_NAME);
+		endpoint.setSource(errorChannel);
 		bus.registerEndpoint(endpoint);
 		bus.start();
 		errorChannel.send(new ErrorMessage(new RuntimeException("test-exception")));

@@ -123,6 +123,17 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Init
 							throw new ConfigurationException("The @Poller annotation should only be provided for a PollableSource");
 						}
 					}
+					else {
+						endpoint.setSource(inputChannel);
+					}
+					String outputChannelName = endpointAnnotation.output();
+					if (StringUtils.hasText(outputChannelName)) {
+						MessageChannel outputChannel = this.messageBus.lookupChannel(outputChannelName);
+						if (outputChannel == null) {
+							throw new ConfigurationException("unable to resolve output channel '" + outputChannelName + "'");
+						}
+						endpoint.setTarget(outputChannel);
+					}
 					this.messageBus.registerEndpoint(endpoint);
 				}
 			}

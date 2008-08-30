@@ -16,40 +16,17 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.CompositeMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.message.MessageSource;
-import org.springframework.integration.message.MessageTarget;
 
 /**
  * @author Mark Fisher
  */
 public abstract class AbstractRequestReplyEndpoint extends AbstractEndpoint {
 
-	private volatile String inputChannelName;
-
-	private volatile String outputChannelName;
-
 	private volatile boolean requiresReply = false;
 
-
-	public String getInputChannelName() {
-		return this.inputChannelName;
-	}
-
-	public void setInputChannelName(String inputChannelName) {
-		this.inputChannelName = inputChannelName;
-	}
-
-	public String getOutputChannelName() {
-		return this.outputChannelName;
-	}
-
-	public void setOutputChannelName(String outputChannelName) {
-		this.outputChannelName = outputChannelName;
-	}
 
 	/**
 	 * Specify whether this endpoint should throw an Exception when
@@ -84,21 +61,5 @@ public abstract class AbstractRequestReplyEndpoint extends AbstractEndpoint {
 	protected abstract boolean isValidReplyMessage(Message<?> replyMessage);
 
 	protected abstract void sendReplyMessage(Message<?> replyMessage, Message<?> requestMessage);
-
-	@Override
-	public void setSource(MessageSource<?> source) {
-		if (source instanceof MessageChannel) {
-			this.setInputChannelName(((MessageChannel) source).getName());
-		}
-		super.setSource(source);
-	}
-
-	@Override
-	public void setTarget(MessageTarget target) {
-		if (target instanceof MessageChannel) {
-			this.setOutputChannelName(((MessageChannel) target).getName());
-		}
-		super.setTarget(target);
-	}
 
 }

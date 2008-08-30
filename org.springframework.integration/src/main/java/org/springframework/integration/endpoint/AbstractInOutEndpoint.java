@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.springframework.integration.channel.ChannelRegistry;
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.CompositeMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
@@ -157,25 +156,6 @@ public abstract class AbstractInOutEndpoint extends AbstractEndpoint {
 			throw new MessagingException("unable to resolve reply target");
 		}
 		return replyTarget;
-	}
-
-	// TODO: remove these methods after refactoring
-
-	private volatile String inputChannelName;
-
-	public String getInputChannelName() {
-		return this.inputChannelName;
-	}
-
-	public void setInputChannelName(String inputChannelName) {
-		this.inputChannelName = inputChannelName;
-	}
-
-	public String getOutputChannelName() {
-		if (this.getTarget() instanceof MessageChannel) {
-			return ((MessageChannel) this.getTarget()).getName();
-		}
-		return null;
 	}
 
 }

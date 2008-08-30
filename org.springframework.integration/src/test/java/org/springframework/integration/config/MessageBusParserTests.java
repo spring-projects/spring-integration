@@ -40,9 +40,6 @@ import org.springframework.integration.bus.TestMessageBusStopInterceptor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.endpoint.DefaultEndpoint;
-import org.springframework.integration.handler.MessageHandler;
-import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.integration.scheduling.spi.ProviderTaskScheduler;
 
@@ -68,17 +65,6 @@ public class MessageBusParserTests {
 		DefaultMessageBus bus = (DefaultMessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		bus.initialize();
 		assertNotNull("bus should have created a default error channel", bus.getErrorChannel());
-	}
-
-	@Test(expected = ConfigurationException.class)
-	public void testAutoCreateChannelsDisabledByDefault() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"messageBusWithDefaults.xml", this.getClass());
-		MessageBus bus = (MessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
-		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(TestHandlers.nullHandler());
-		endpoint.setBeanName("testEndpoint");
-		endpoint.setInputChannelName("unknownChannel");
-		bus.registerEndpoint(endpoint);
 	}
 
 	@Test

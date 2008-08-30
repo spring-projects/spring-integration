@@ -100,7 +100,7 @@ public abstract class AbstractMessageEndpointParser extends AbstractSingleBeanDe
 			builder.addPropertyReference("source", pollerBeanName);
 		}
 		else {
-			builder.addPropertyValue("inputChannelName", inputChannel);
+			builder.addPropertyReference("source", inputChannel);
 		}
 		Element interceptorsElement = DomUtils.getChildElementByTagName(element, INTERCEPTORS_ELEMENT);
 		if (interceptorsElement != null) {
@@ -108,8 +108,8 @@ public abstract class AbstractMessageEndpointParser extends AbstractSingleBeanDe
 			ManagedList interceptors = parser.parseInterceptors(interceptorsElement, parserContext);
 			builder.addPropertyValue("interceptors", interceptors);
 		}
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(
-				builder, element, OUTPUT_CHANNEL_ATTRIBUTE, "outputChannelName");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(
+				builder, element, OUTPUT_CHANNEL_ATTRIBUTE, "target");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, SELECTOR_ATTRIBUTE);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, ERROR_HANDLER_ATTRIBUTE);
 		this.postProcessEndpointBean(builder, element, parserContext);

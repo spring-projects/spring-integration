@@ -26,13 +26,16 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.annotation.Subscriber;
 import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.DefaultEndpoint;
 import org.springframework.integration.handler.DefaultMessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * A {@link BeanPostProcessor} that creates a method-invoking handler adapter
@@ -86,6 +89,9 @@ public class SubscriberAnnotationPostProcessor implements BeanPostProcessor {
 				Annotation annotation = method.getAnnotation(subscriberAnnotationType);
 				if (annotation != null) {
 					String channelName = (String) AnnotationUtils.getValue(annotation, channelNameAttribute);
+					if (!StringUtils.hasText(channelName)) {
+						throw new ConfigurationException("no channel name provided for subscriber");
+					}
 					DefaultMessageHandler handler = new DefaultMessageHandler();
 					handler.setObject(bean);
 					handler.setMethod(method);
@@ -94,7 +100,11 @@ public class SubscriberAnnotationPostProcessor implements BeanPostProcessor {
 							"." + method.getName() + ".endpoint";
 					DefaultEndpoint<DefaultMessageHandler> endpoint = new DefaultEndpoint<DefaultMessageHandler>(handler);
 					endpoint.setBeanName(endpointName);
-					endpoint.setInputChannelName(channelName);
+					MessageChannel inputChannel = messageBus.lookupChannel(channelName);
+					if (inputChannel == null) {
+						throw new ConfigurationException("unable to resolve channel '" + channelName + "' for subscriber");
+					}
+					endpoint.setSource(inputChannel);
 					messageBus.registerEndpoint(endpoint);
 				}
 			}

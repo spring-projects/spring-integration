@@ -46,7 +46,6 @@ import org.springframework.integration.handler.config.MessageHandlerCreator;
 import org.springframework.integration.router.RouterMessageHandlerCreator;
 import org.springframework.integration.splitter.SplitterMessageHandlerCreator;
 import org.springframework.integration.transformer.config.TransformerMessageHandlerCreator;
-import org.springframework.util.StringUtils;
 
 /**
  * Post-processor for the {@link Handler @Handler} annotation.
@@ -127,16 +126,7 @@ public class HandlerAnnotationPostProcessor extends AbstractAnnotationMethodPost
 
 	public MessageEndpoint createEndpoint(Object bean, String beanName, Class<?> originalBeanClass,
 			org.springframework.integration.annotation.MessageEndpoint endpointAnnotation) {
-		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>((MessageHandler) bean);
-		String outputChannelName = endpointAnnotation.output();
-		if (StringUtils.hasText(outputChannelName)) {
-			endpoint.setOutputChannelName(outputChannelName);
-		}
-		String inputChannelName = endpointAnnotation.input();
-		if (StringUtils.hasText(inputChannelName)) {
-			endpoint.setInputChannelName(inputChannelName);
-		}
-		return endpoint;
+		return new DefaultEndpoint<MessageHandler>((MessageHandler) bean);
 	}
 
 }

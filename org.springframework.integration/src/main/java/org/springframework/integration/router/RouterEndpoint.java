@@ -87,21 +87,4 @@ public class RouterEndpoint extends AbstractEndpoint {
 		return sent;
 	}
 
-
-	// TODO: remove these methods after refactoring
-
-	private volatile String inputChannelName;
-
-	public String getInputChannelName() {
-		return this.inputChannelName;
-	}
-
-	public void setInputChannelName(String inputChannelName) {
-		this.inputChannelName = inputChannelName;
-	}
-
-	public String getOutputChannelName() {
-		return null;
-	}
-
 }

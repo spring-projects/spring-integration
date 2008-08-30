@@ -93,7 +93,7 @@ public abstract class AbstractEndpointParser extends AbstractSingleBeanDefinitio
 			builder.addPropertyReference("source", pollerBeanName);
 		}
 		else {
-			builder.addPropertyValue("inputChannelName", inputChannel);
+			builder.addPropertyReference("source", inputChannel);
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(
 				builder, element, OUTPUT_CHANNEL_ATTRIBUTE, "target");
