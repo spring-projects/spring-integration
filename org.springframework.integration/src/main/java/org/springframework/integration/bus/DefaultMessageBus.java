@@ -306,9 +306,7 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 			return;
 		}
 		if (source != null && source instanceof PollableSource) {
-			Schedule schedule = endpoint.getSchedule();
-			schedule = schedule != null ? schedule : this.defaultPollerSchedule;
-			PollingDispatcher poller = new PollingDispatcher((PollableSource<?>) source, schedule);
+			PollingDispatcher poller = new PollingDispatcher((PollableSource<?>) source, this.defaultPollerSchedule);
 			poller.subscribe(endpoint);
 			this.pollingDispatchers.add(poller);
 			this.taskScheduler.schedule(poller);

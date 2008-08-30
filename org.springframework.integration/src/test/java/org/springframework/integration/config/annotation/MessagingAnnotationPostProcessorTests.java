@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.annotation.Order;
@@ -55,7 +56,9 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.DefaultEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.message.SubscribableSource;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
 
@@ -167,6 +170,9 @@ public class MessagingAnnotationPostProcessorTests {
 	@Test
 	public void testChannelRegistryAwareBean() {
 		MessageBus messageBus = new DefaultMessageBus();
+		QueueChannel inputChannel = new QueueChannel();
+		inputChannel.setBeanName("inputChannel");
+		messageBus.registerChannel(inputChannel);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
 		postProcessor.afterPropertiesSet();
 		ChannelRegistryAwareTestBean testBean = new ChannelRegistryAwareTestBean();
@@ -351,7 +357,10 @@ public class MessagingAnnotationPostProcessorTests {
 		AnnotatedEndpointWithPolledAnnotation endpoint = new AnnotatedEndpointWithPolledAnnotation();
 		postProcessor.postProcessAfterInitialization(endpoint, "testBean");
 		DefaultEndpoint<?> processedEndpoint = (DefaultEndpoint<?>) messageBus.lookupEndpoint("testBean.MessageHandler.endpoint");
-		Schedule schedule = processedEndpoint.getSchedule();
+		DirectFieldAccessor accessor = new DirectFieldAccessor(processedEndpoint);
+		MessageSource<?> source = (MessageSource<?>) accessor.getPropertyValue("source");
+		assertTrue(source instanceof SubscribableSource);
+		Schedule schedule = (Schedule) new DirectFieldAccessor(source).getPropertyValue("schedule");
 		assertEquals(PollingSchedule.class, schedule.getClass());
 		PollingSchedule pollingSchedule = (PollingSchedule) schedule;
 		assertEquals(1234, pollingSchedule.getPeriod());

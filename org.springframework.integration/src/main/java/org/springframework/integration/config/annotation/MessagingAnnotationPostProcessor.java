@@ -43,6 +43,7 @@ import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * A {@link BeanPostProcessor} implementation that processes method-level
@@ -99,28 +100,28 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Init
 						postProcessor.createEndpoint(bean, beanName, beanClass, endpointAnnotation);
 				if (endpoint != null) {
 					endpoint.setBeanName(beanName + "." + entry.getKey().getSimpleName() + ".endpoint");
+					String inputChannelName = endpointAnnotation.input();
+					if (!StringUtils.hasText(inputChannelName)) {
+						continue;
+					}
+					MessageChannel inputChannel = this.messageBus.lookupChannel(inputChannelName);
+					if (inputChannel == null) {
+						throw new ConfigurationException("unable to resolve input channel '" + inputChannelName + "'");
+					}
 					Poller pollerAnnotation = AnnotationUtils.findAnnotation(beanClass, Poller.class);
 					if (pollerAnnotation != null) {
-						PollingSchedule schedule = new PollingSchedule(pollerAnnotation.period());
-						schedule.setInitialDelay(pollerAnnotation.initialDelay());
-						schedule.setFixedRate(pollerAnnotation.fixedRate());
-						schedule.setTimeUnit(pollerAnnotation.timeUnit());
-						String inputChannelName = endpointAnnotation.input();
-						MessageChannel inputChannel = this.messageBus.lookupChannel(inputChannelName);
-						if (inputChannel != null) {
-							if (inputChannel instanceof PollableChannel) {
-								PollingDispatcher poller = new PollingDispatcher((PollableChannel) inputChannel, schedule);
-								poller.setMaxMessagesPerPoll(pollerAnnotation.maxMessagesPerPoll());
-								endpoint.setSource(poller);
-							}
-							else {
-								endpoint.setSource(inputChannel);
-							}
+						if (inputChannel instanceof PollableChannel) {
+							PollingSchedule schedule = new PollingSchedule(pollerAnnotation.period());
+							schedule.setInitialDelay(pollerAnnotation.initialDelay());
+							schedule.setFixedRate(pollerAnnotation.fixedRate());
+							schedule.setTimeUnit(pollerAnnotation.timeUnit());
+							PollingDispatcher poller = new PollingDispatcher((PollableChannel) inputChannel, schedule);
+							poller.setMaxMessagesPerPoll(pollerAnnotation.maxMessagesPerPoll());
+							endpoint.setSource(poller);
 						}
 						else {
-							endpoint.setInputChannelName(inputChannelName);
+							throw new ConfigurationException("The @Poller annotation should only be provided for a PollableSource");
 						}
-						endpoint.setSchedule(schedule);
 					}
 					this.messageBus.registerEndpoint(endpoint);
 				}

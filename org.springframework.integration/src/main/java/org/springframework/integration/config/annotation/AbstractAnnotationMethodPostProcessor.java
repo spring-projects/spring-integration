@@ -27,10 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.DelegatingIntroductionInterceptor;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.bus.MessageBus;
-import org.springframework.integration.scheduling.PollingSchedule;
-import org.springframework.integration.scheduling.Schedule;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
@@ -95,18 +92,6 @@ public abstract class AbstractAnnotationMethodPostProcessor<T> implements Annota
 			}
 		}
 		return null;
-	}
-
-	protected Schedule extractSchedule(Class<?> originalBeanClass) {
-		PollingSchedule schedule = null;
-		Poller pollerAnnotation = AnnotationUtils.findAnnotation(originalBeanClass, Poller.class);
-		if (pollerAnnotation != null) {
-			schedule = new PollingSchedule(pollerAnnotation.period());
-			schedule.setInitialDelay(pollerAnnotation.initialDelay());
-			schedule.setFixedRate(pollerAnnotation.fixedRate());
-			schedule.setTimeUnit(pollerAnnotation.timeUnit());
-		}
-		return schedule;
 	}
 
 

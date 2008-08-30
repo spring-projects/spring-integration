@@ -19,7 +19,6 @@ package org.springframework.integration.endpoint;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
-import org.springframework.integration.scheduling.Schedule;
 
 /**
  * Base interface for message endpoints.
@@ -29,10 +28,6 @@ import org.springframework.integration.scheduling.Schedule;
 public interface MessageEndpoint extends MessageTarget, BeanNameAware {
 
 	String getName();
-
-	void setSchedule(Schedule schedule);
-
-	Schedule getSchedule();
 
 	void setSource(MessageSource<?> source);
 

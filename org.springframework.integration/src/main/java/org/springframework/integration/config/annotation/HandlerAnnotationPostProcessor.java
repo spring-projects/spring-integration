@@ -44,7 +44,6 @@ import org.springframework.integration.handler.MessageHandlerChain;
 import org.springframework.integration.handler.config.DefaultMessageHandlerCreator;
 import org.springframework.integration.handler.config.MessageHandlerCreator;
 import org.springframework.integration.router.RouterMessageHandlerCreator;
-import org.springframework.integration.scheduling.Schedule;
 import org.springframework.integration.splitter.SplitterMessageHandlerCreator;
 import org.springframework.integration.transformer.config.TransformerMessageHandlerCreator;
 import org.springframework.util.StringUtils;
@@ -136,10 +135,6 @@ public class HandlerAnnotationPostProcessor extends AbstractAnnotationMethodPost
 		String inputChannelName = endpointAnnotation.input();
 		if (StringUtils.hasText(inputChannelName)) {
 			endpoint.setInputChannelName(inputChannelName);
-		}
-		Schedule schedule = this.extractSchedule(originalBeanClass);
-		if (schedule != null) {
-			endpoint.setSchedule(schedule);
 		}
 		return endpoint;
 	}

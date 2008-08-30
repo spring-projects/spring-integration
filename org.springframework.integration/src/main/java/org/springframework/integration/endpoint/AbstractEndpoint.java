@@ -28,7 +28,6 @@ import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.scheduling.Schedule;
 import org.springframework.integration.util.ErrorHandler;
 
 /**
@@ -45,8 +44,6 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 	private MessageSource<?> source;
 
 	private MessageTarget target;
-
-	private volatile Schedule schedule;
 
 	private volatile ErrorHandler errorHandler;
 
@@ -80,14 +77,6 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 
 	public void setTarget(MessageTarget target) {
 		this.target = target;
-	}
-
-	public Schedule getSchedule() {
-		return this.schedule;
-	}
-
-	public void setSchedule(Schedule schedule) {
-		this.schedule = schedule;
 	}
 
 	protected ChannelRegistry getChannelRegistry() {
