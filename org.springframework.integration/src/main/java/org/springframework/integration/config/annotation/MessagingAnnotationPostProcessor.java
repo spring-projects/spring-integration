@@ -37,6 +37,7 @@ import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.dispatcher.PollingDispatcher;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
@@ -96,8 +97,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Init
 			AnnotationMethodPostProcessor postProcessor = entry.getValue();
 			bean = postProcessor.postProcess(bean, beanName, beanClass);
 			if (endpointAnnotation != null && entry.getKey().isAssignableFrom(bean.getClass())) {
-				org.springframework.integration.endpoint.MessageEndpoint endpoint =
-						postProcessor.createEndpoint(bean, beanName, beanClass, endpointAnnotation);
+				AbstractEndpoint endpoint = postProcessor.createEndpoint(bean);
 				if (endpoint != null) {
 					endpoint.setBeanName(beanName + "." + entry.getKey().getSimpleName() + ".endpoint");
 					String inputChannelName = endpointAnnotation.input();

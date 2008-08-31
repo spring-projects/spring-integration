@@ -29,11 +29,7 @@ public interface MessageEndpoint extends MessageTarget, BeanNameAware {
 
 	String getName();
 
-	void setSource(MessageSource<?> source);
-
 	MessageSource<?> getSource();
-
-	void setTarget(MessageTarget target);
 
 	MessageTarget getTarget();
 

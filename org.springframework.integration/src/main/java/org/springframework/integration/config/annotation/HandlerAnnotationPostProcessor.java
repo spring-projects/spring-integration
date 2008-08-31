@@ -37,7 +37,7 @@ import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelRegistryAware;
-import org.springframework.integration.endpoint.MessageEndpoint;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.DefaultEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.MessageHandlerChain;
@@ -124,9 +124,11 @@ public class HandlerAnnotationPostProcessor extends AbstractAnnotationMethodPost
 		return handlerChain;
 	}
 
-	public MessageEndpoint createEndpoint(Object bean, String beanName, Class<?> originalBeanClass,
-			org.springframework.integration.annotation.MessageEndpoint endpointAnnotation) {
-		return new DefaultEndpoint<MessageHandler>((MessageHandler) bean);
+	public AbstractEndpoint createEndpoint(Object bean) {
+		if (bean instanceof MessageHandler) {
+			return new DefaultEndpoint<MessageHandler>((MessageHandler) bean);
+		}
+		return null;
 	}
 
 }

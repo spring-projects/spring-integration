@@ -16,7 +16,7 @@
 
 package org.springframework.integration.config.annotation;
 
-import org.springframework.integration.endpoint.MessageEndpoint;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 
 /**
  * Strategy interface for post-processing annotated methods.
@@ -27,7 +27,6 @@ public interface AnnotationMethodPostProcessor {
 
 	Object postProcess(Object bean, String beanName, Class<?> originalBeanClass);
 
-	MessageEndpoint createEndpoint(Object bean, String beanName, Class<?> originalBeanClass,
-			org.springframework.integration.annotation.MessageEndpoint endpointAnnotation);
+	AbstractEndpoint createEndpoint(Object bean);
 
 }

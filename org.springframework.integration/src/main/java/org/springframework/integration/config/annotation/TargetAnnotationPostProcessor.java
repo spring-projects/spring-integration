@@ -27,7 +27,7 @@ import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.dispatcher.PollingDispatcher;
-import org.springframework.integration.endpoint.MessageEndpoint;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.OutboundChannelAdapter;
 import org.springframework.integration.handler.MethodInvokingTarget;
 import org.springframework.integration.message.MessageTarget;
@@ -86,8 +86,7 @@ public class TargetAnnotationPostProcessor extends AbstractAnnotationMethodPostP
 		return (results.size() == 1) ? results.get(0) : null;
 	}
 
-	public MessageEndpoint createEndpoint(Object bean, String beanName, Class<?> originalBeanClass,
-			org.springframework.integration.annotation.MessageEndpoint endpointAnnotation) {
+	public AbstractEndpoint createEndpoint(Object bean) {
 		return null;
 	}
 
