@@ -30,8 +30,8 @@ import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.annotation.Subscriber;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.endpoint.DefaultEndpoint;
-import org.springframework.integration.handler.DefaultMessageHandler;
+import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
+import org.springframework.integration.message.MessageMappingMethodInvoker;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
@@ -92,13 +92,11 @@ public class SubscriberAnnotationPostProcessor implements BeanPostProcessor {
 					if (!StringUtils.hasText(channelName)) {
 						throw new ConfigurationException("no channel name provided for subscriber");
 					}
-					DefaultMessageHandler handler = new DefaultMessageHandler();
-					handler.setObject(bean);
-					handler.setMethod(method);
-					handler.afterPropertiesSet();
+					MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(bean, method);
+					invoker.afterPropertiesSet();
 					String endpointName = ClassUtils.getShortNameAsProperty(targetClass) + 
 							"." + method.getName() + ".endpoint";
-					DefaultEndpoint<DefaultMessageHandler> endpoint = new DefaultEndpoint<DefaultMessageHandler>(handler);
+					ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(invoker);
 					endpoint.setBeanName(endpointName);
 					MessageChannel inputChannel = messageBus.lookupChannel(channelName);
 					if (inputChannel == null) {
