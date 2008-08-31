@@ -39,16 +39,6 @@ import org.springframework.util.StringUtils;
 public abstract class AbstractChannelParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override
-	protected boolean shouldGenerateId() {
-		return false;
-	}
-
-	@Override
-	protected boolean shouldGenerateIdAsFallback() {
-		return true;
-	}
-
-	@Override
 	protected abstract Class<?> getBeanClass(Element element);
 
 	protected void postProcess(BeanDefinitionBuilder builder, Element element) {

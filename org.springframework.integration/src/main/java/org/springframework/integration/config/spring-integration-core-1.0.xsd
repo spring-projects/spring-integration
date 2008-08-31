@@ -171,7 +171,7 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="service-activator" type="inputOutputHandlerEndpointType">
+	<xsd:element name="service-activator" type="inputOutputEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
 	Defines an endpoint for exposing any bean reference as a service that receives
@@ -182,7 +182,7 @@
 		</xsd:annotation>
 	</xsd:element>
 
-	<xsd:complexType name="inputOutputHandlerEndpointType">
+	<xsd:complexType name="inputOutputEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
 	Base type for handler endpoint elements that accept Messages from an input-channel
@@ -190,13 +190,13 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
-			<xsd:extension base="inputHandlerEndpointType">
+			<xsd:extension base="inputEndpointType">
 				<xsd:attribute name="output-channel" type="xsd:string"/>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
 
-	<xsd:complexType name="inputHandlerEndpointType">
+	<xsd:complexType name="inputEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
 	Base type for handler endpoint elements that accept Messages from an input-channel.
@@ -290,19 +290,6 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:complexType name="concurrencyInterceptorType">
-		<xsd:annotation>
-			<xsd:documentation>
-	Defines a ConcurrencyInterceptor for endpoints.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:attribute name="task-executor" type="xsd:string"/>
-		<xsd:attribute name="core" type="xsd:int"/>
-		<xsd:attribute name="max" type="xsd:int"/>
-		<xsd:attribute name="queue-capacity" type="xsd:int"/>
-		<xsd:attribute name="keep-alive" type="xsd:int"/>
-	</xsd:complexType>
-
 	<xsd:element name="pool-executor">
 		<xsd:complexType>
 			<xsd:annotation>
@@ -333,7 +320,7 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="router" type="inputHandlerEndpointType">
+	<xsd:element name="router" type="inputEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
 	Defines a Router.
@@ -341,7 +328,7 @@
 		</xsd:annotation>
 	</xsd:element>
 
-	<xsd:element name="splitter" type="inputOutputHandlerEndpointType">
+	<xsd:element name="splitter" type="inputOutputEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
 	Defines a Splitter.
@@ -357,7 +344,7 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
-				<xsd:extension base="inputOutputHandlerEndpointType">
+				<xsd:extension base="inputOutputEndpointType">
 					<xsd:attribute name="completion-strategy" type="xsd:string" use="optional"/>
 					<xsd:attribute name="completion-strategy-method" type="xsd:string" use="optional"/>
 					<xsd:attribute name="discard-channel" type="xsd:string" use="optional"/>
@@ -448,8 +435,6 @@
 						<xsd:attribute name="bean" use="required"/>
 					</xsd:complexType>
 				</xsd:element>
-				<xsd:element name="transaction-interceptor" type="transactionalType" minOccurs="0" maxOccurs="1"/>
-				<xsd:element name="concurrency-interceptor" type="concurrencyInterceptorType" minOccurs="0" maxOccurs="1"/>
 				<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded"/>
 			</xsd:choice>
 		</xsd:sequence>
