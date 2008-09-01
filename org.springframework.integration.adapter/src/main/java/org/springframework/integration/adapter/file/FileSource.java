@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.core.io.Resource;
@@ -46,22 +47,32 @@ public class FileSource extends AbstractDirectorySource<File> implements Message
 
 	private volatile FilenameFilter filenameFilter;
 
+	/**
+	 * Creates a default FileSource on the specified directory
+	 * @param directory
+	 */
 	public FileSource(Resource directory) {
-		this(directory, new FileMessageCreator());
+		this(directory, new FileMessageCreator(), null);
 	}
 
-	@Override
-	protected Message<File> buildNextMessage() throws IOException {
-		File file = retrieveNextPayload();
-		Message<File> message = this.getMessageCreator().createMessage(file);
-		message = MessageBuilder.fromMessage(message)
-				.setHeader(FileNameGenerator.FILENAME_PROPERTY_KEY, file.getName()).setHeader(FILE_INFO_PROPERTY,
-						getBacklog().getProcessingBuffer().get(0)).build();
-		return message;
+	public FileSource(Resource directory, Comparator<FileSnapshot> comparator) {
+		this(directory, new FileMessageCreator(), comparator);
 	}
 
 	public FileSource(Resource directory, MessageCreator<File, File> messageCreator) {
-		super(messageCreator);
+		this(directory, messageCreator, null);
+	}
+
+	/**
+	 * Creates a FileSource with the specified strategies.
+	 * @param directory
+	 * @param messageCreator the MessageCreator used to convert Files into
+	 * Messages
+	 * @param comparator the comparator is used to order the backlog. If
+	 * <code>null</code> natural order is used.
+	 */
+	public FileSource(Resource directory, MessageCreator<File, File> messageCreator, Comparator<FileSnapshot> comparator) {
+		super(messageCreator, comparator);
 		Assert.notNull(directory, "The directory must not be null");
 		try {
 			this.directory = directory.getFile();
@@ -75,11 +86,21 @@ public class FileSource extends AbstractDirectorySource<File> implements Message
 		}
 	}
 
+	@Override
+	protected Message<File> buildNextMessage() throws IOException {
+		File file = retrieveNextPayload();
+		Message<File> message = this.getMessageCreator().createMessage(file);
+		message = MessageBuilder.fromMessage(message)
+				.setHeader(FileNameGenerator.FILENAME_PROPERTY_KEY, file.getName()).setHeader(FILE_INFO_PROPERTY,
+						getBacklog().getProcessingBuffer().get(0)).build();
+		return message;
+	}
+
 	/**
 	 * Sets a FilenameFilter to be used with the
 	 * <code>{@link File#listFiles()}</code> command. Note that either a
 	 * FileFilter or a FilenameFilter is used to filter the list of files.
-	 * Calling this setter overwrites the FileFilter if it was set before.
+	 * Calling this setter overwrites the FileNameFilter if it was set before.
 	 * @param fileFilter
 	 */
 	public void setFileFilter(FileFilter fileFilter) {
@@ -126,9 +147,10 @@ public class FileSource extends AbstractDirectorySource<File> implements Message
 	@Override
 	protected File retrieveNextPayload() throws IOException {
 		List<FileSnapshot> selectedForProcessing = this.getBacklog().selectForProcessing(1);
-		if(!selectedForProcessing.isEmpty()){
+		if (!selectedForProcessing.isEmpty()) {
 			return selectedForProcessing.get(0).getFile();
-		} else{
+		}
+		else {
 			return null;
 		}
 	}

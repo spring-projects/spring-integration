@@ -19,6 +19,7 @@ package org.springframework.integration.adapter.file;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,14 +38,29 @@ import org.springframework.util.Assert;
  */
 public class Backlog<T extends Comparable<T>> {
 
+	private static final int INITIAL_QUEUE_CAPACITY = 5;
+
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private PriorityBlockingQueue<T> backlog = new PriorityBlockingQueue<T>();
+	/*
+	 * Backlog, doneProcessing and currentlyProcessing should be in consistent
+	 * state together. To do that access to them is synchronized on this and
+	 * atomic operations have been defined on this class. It is not a problem if
+	 * items exist in more than one of these collections at the same time, but the
+	 * item should not be removed from one collection before it is added to the
+	 * next.
+	 */
+	private final PriorityBlockingQueue<T> backlog;
 
-	/**
+	// @GuardedBy(this)
+	private Set<T> doneProcessing = new HashSet<T>();
+
+	// @GuardedBy(this)
+	private Set<T> currentlyProcessing = new HashSet<T>();
+
+	/*
 	 * This is the storage for backlog that is being processed by a specific
-	 * thread. Not initialized means that we're not in thread safe mode (just
-	 * working directly on the backlog)
+	 * thread.
 	 */
 	private ThreadLocal<List<T>> processingBuffer = new ThreadLocal<List<T>>() {
 		@Override
@@ -53,11 +69,25 @@ public class Backlog<T extends Comparable<T>> {
 		}
 	};
 
-	private Set<T> doneProcessing = Collections.synchronizedSet(new HashSet<T>());
+	/**
+	 * Constructs a Backlog around a naturally ordered
+	 * {@link PriorityBlockingQueue}.
+	 */
+	public Backlog() {
+		this.backlog = new PriorityBlockingQueue<T>();
+	}
 
-	private Set<T> currentlyProcessing = Collections.synchronizedSet(new HashSet<T>());
+	/**
+	 * Constructs a backlog around a {@link PriorityBlockingQueue} that is
+	 * created with the supplied comparator. For natural ordering use
+	 * {@link #Backlog()}.
+	 * @param comparator
+	 */
+	public Backlog(Comparator<? super T> comparator) {
+		this.backlog = new PriorityBlockingQueue<T>(INITIAL_QUEUE_CAPACITY, comparator);
+	}
 
-	public synchronized void processSnapshot(List<T> currentSnapshot) {
+	public void processSnapshot(List<T> currentSnapshot) {
 		/*
 		 * clear the threadLocal backlog. When the thread processes a new
 		 * snapshot it is done with the previous message. If there are still
@@ -65,16 +95,20 @@ public class Backlog<T extends Comparable<T>> {
 		 * were not processed, nor raised as failed.
 		 */
 		Assert.isTrue(processingBuffer.get().isEmpty(), "Processing buffer not emptied before poll.");
-		// remove everything that is not in the latest snapshot from the backlog
-		backlog.retainAll(currentSnapshot);
-		doneProcessing.retainAll(currentSnapshot);
-		// add everything that is new to the backlog preventing side effect on
-		// currentSnapshot
+		/*
+		 * compute everything that is new to the backlog preventing side effect
+		 * on currentSnapshot.
+		 */
 		Collection<T> newInCurrentSnapshot = new ArrayList<T>(currentSnapshot);
-		newInCurrentSnapshot.removeAll(backlog);
-		newInCurrentSnapshot.removeAll(doneProcessing);
-		newInCurrentSnapshot.removeAll(currentlyProcessing);
-		backlog.addAll(newInCurrentSnapshot);
+		synchronized (this) {
+			newInCurrentSnapshot.removeAll(backlog);
+			newInCurrentSnapshot.removeAll(currentlyProcessing);
+			newInCurrentSnapshot.removeAll(doneProcessing);
+
+			backlog.retainAll(currentSnapshot);
+			doneProcessing.retainAll(currentSnapshot);
+			backlog.addAll(newInCurrentSnapshot);
+		}
 	}
 
 	/**
@@ -84,20 +118,20 @@ public class Backlog<T extends Comparable<T>> {
 	 * this method can be used to mark a subset of the processing buffer as
 	 * processed. Calling this method in a threaded scenario without using
 	 * <code>{@link #prepareForProcessing(int)}</code> will manipulate the
-	 * backlog directly and allows for race conditions. In threaded scenarios a
-	 * call to {@link #selectForProcessing(int)} followed by a call to
+	 * backlog directly. In threaded scenarios a call to
+	 * {@link #selectForProcessing(int)} followed by a call to
 	 * {@link #processed()} is recommended.
 	 * @param items the items that have been processed
 	 */
-	public void fileProcessed(T... items) {
+	public synchronized void fileProcessed(T... items) {
 		for (T item : items) {
 			if (item != null) {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Removing item '" + item + "' from the undo buffer. It has been processed.");
 				}
-				this.processingBuffer.get().remove(item);
-				this.backlog.remove(item);
 				this.doneProcessing.add(item);
+				this.backlog.remove(item);
+				this.processingBuffer.get().remove(item);
 			}
 		}
 	}
@@ -151,14 +185,10 @@ public class Backlog<T extends Comparable<T>> {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Moving processing buffer " + processingBuffer.get() + " to doneProcessing");
 		}
-		/*
-		 * this doesn't need synchronization because the processing buffer will
-		 * first be moved to doneProcessing before it is removed from currently
-		 * processing. The order and the thread safety of the used collections
-		 * is essential.
-		 */
-		this.doneProcessing.addAll(this.processingBuffer.get());
-		currentlyProcessing.removeAll(processingBuffer.get());
+		synchronized (this) {
+			this.doneProcessing.addAll(this.processingBuffer.get());
+			currentlyProcessing.removeAll(processingBuffer.get());
+		}
 		this.processingBuffer.get().clear();
 	}
 
@@ -171,15 +201,11 @@ public class Backlog<T extends Comparable<T>> {
 			logger.debug("Moving processing buffer " + processingBuffer.get()
 					+ " back to backlog. Processing has failed");
 		}
-		/*
-		 * this doesn't need synchronization because the processing buffer will
-		 * first be moved to doneProcessing before it is removed from currently
-		 * processing. The order and the thread safety of the used collections
-		 * is essential.
-		 */
 		List<T> processing = this.processingBuffer.get();
-		this.backlog.addAll(processing);
-		currentlyProcessing.removeAll(processing);
+		synchronized (this) {
+			this.backlog.addAll(processing);
+			currentlyProcessing.removeAll(processing);
+		}
 		processing.clear();
 	}
 

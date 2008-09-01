@@ -26,7 +26,12 @@ public class ConcurrentBacklogTests {
 		CountDownLatch start = new CountDownLatch(1);
 		CountDownLatch done = doConcurrently(5, todo, start);
 		start.countDown();
-		done.await();
+		try {
+			done.await();
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
 		assertTrue(backlog.isEmpty());
 	}
 
@@ -46,7 +51,12 @@ public class ConcurrentBacklogTests {
 		CountDownLatch start = new CountDownLatch(1);
 		CountDownLatch done = doConcurrently(3, todo, start);
 		start.countDown();
-		done.await();
+		try {
+			done.await();
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
 		assertTrue("currentlyProcessing not emptied correctly", ((Collection) new DirectFieldAccessor(backlog)
 				.getPropertyValue("currentlyProcessing")).isEmpty());
 		assertTrue("doneProcessing not populated correctly", ((Collection) new DirectFieldAccessor(backlog)
@@ -69,7 +79,12 @@ public class ConcurrentBacklogTests {
 		CountDownLatch start = new CountDownLatch(1);
 		CountDownLatch done = doConcurrently(3, todo, start);
 		start.countDown();
-		done.await();
+		try {
+			done.await();
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
 		assertTrue("currentlyProcessing not emptied correctly", ((Collection) new DirectFieldAccessor(backlog)
 				.getPropertyValue("currentlyProcessing")).isEmpty());
 		assertTrue("backlog not repopulated correctly", ((Collection) new DirectFieldAccessor(backlog)
@@ -79,7 +94,7 @@ public class ConcurrentBacklogTests {
 	@Test(timeout = 1000)
 	public void concurrentSuccessFailure() throws Exception {
 		final Backlog backlog = new Backlog();
-		List<String> items = Arrays.asList(new String[] { "bert", "ernie", "pino", "whatsherface" });
+		List<String> items = Arrays.asList(new String[] { "ham", "chicken", "burger", "cheeze" });
 		backlog.processSnapshot(items);
 		final AtomicBoolean properlyBackedUp = new AtomicBoolean(true);
 		final AtomicBoolean properlyUnloaded = new AtomicBoolean(true);
@@ -93,16 +108,26 @@ public class ConcurrentBacklogTests {
 		Runnable doSuccess = new Runnable() {
 			public void run() {
 				backlog.prepareForProcessing(1);
+				//make sure we process a message
+				while (backlog.getProcessingBuffer().size() == 0) {
+					Thread.yield();
+					backlog.prepareForProcessing(1);
+				}
 				backlog.processed();
 				properlyUnloaded.set(backlog.getProcessingBuffer().isEmpty() && properlyUnloaded.get());
 			}
 		};
 		CountDownLatch start = new CountDownLatch(1);
+		CountDownLatch doneFailure = doConcurrently(20, doFailure, start);
 		CountDownLatch doneSuccess = doConcurrently(2, doSuccess, start);
-		CountDownLatch doneFailure = doConcurrently(3, doFailure, start);
 		start.countDown();
-		doneSuccess.await();
-		doneFailure.await();
+		try {
+			doneSuccess.await();
+			doneFailure.await();
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
 		assertTrue(properlyBackedUp.get());
 		assertTrue(properlyUnloaded.get());
 		assertTrue("currentlyProcessing not emptied correctly", ((Collection) new DirectFieldAccessor(backlog)

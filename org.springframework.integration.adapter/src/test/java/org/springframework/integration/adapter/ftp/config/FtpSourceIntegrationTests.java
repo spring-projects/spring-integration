@@ -67,7 +67,6 @@ public class FtpSourceIntegrationTests {
 		queuedFTPClientPool.setRemoteWorkingDirectory("ftp-test");
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void receive() {
 		Message<List<File>> received = ftpSource.receive();

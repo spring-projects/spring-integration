@@ -18,6 +18,7 @@ package org.springframework.integration.adapter.file;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
@@ -42,17 +43,22 @@ public abstract class AbstractDirectorySource<T> implements PollableSource<T>, M
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	private final Backlog<FileSnapshot> directoryContentManager = new Backlog<FileSnapshot>();
+	private final Backlog<FileSnapshot> backlog;
 
 	private final MessageCreator<T, T> messageCreator;
 
 	public AbstractDirectorySource(MessageCreator<T, T> messageCreator) {
+		this(messageCreator, null);
+	}
+
+	public AbstractDirectorySource(MessageCreator<T, T> messageCreator, Comparator<FileSnapshot> comparator) {
+		this.backlog = comparator == null ? new Backlog<FileSnapshot>() : new Backlog<FileSnapshot>(comparator);
 		Assert.notNull(messageCreator, "The MessageCreator must not be null");
 		this.messageCreator = messageCreator;
 	}
 
 	protected Backlog<FileSnapshot> getBacklog() {
-		return this.directoryContentManager;
+		return this.backlog;
 	}
 
 	public MessageCreator<T, T> getMessageCreator() {
@@ -61,7 +67,7 @@ public abstract class AbstractDirectorySource<T> implements PollableSource<T>, M
 
 	public final Message<T> receive() {
 		try {
-			refreshSnapshotAndMarkProcessing(this.directoryContentManager);
+			refreshSnapshotAndMarkProcessing(this.backlog);
 			if (!getBacklog().isEmpty()) {
 				return buildNextMessage();
 			}
@@ -72,20 +78,10 @@ public abstract class AbstractDirectorySource<T> implements PollableSource<T>, M
 		}
 	}
 
-	/**
-	 * Naive implementation that ignores thread safety. Subclasses that want to
-	 * be thread safe and use the reservation facilities of {@link Backlog}
-	 * should override this method and call
-	 * <code>directoryContentManager.fileProcessing(...)</code> with the
-	 * appropriate arguments.
-	 * 
-	 * @param directoryContentManager
-	 * @throws IOException
-	 */
-	protected void refreshSnapshotAndMarkProcessing(Backlog<FileSnapshot> directoryContentManager) throws IOException {
+	protected void refreshSnapshotAndMarkProcessing(Backlog<FileSnapshot> backlog) throws IOException {
 		List<FileSnapshot> snapshot = new ArrayList<FileSnapshot>();
 		this.populateSnapshot(snapshot);
-		directoryContentManager.processSnapshot(snapshot);
+		backlog.processSnapshot(snapshot);
 	}
 
 	/**
@@ -107,7 +103,7 @@ public abstract class AbstractDirectorySource<T> implements PollableSource<T>, M
 		if (logger.isDebugEnabled()) {
 			logger.debug(message + " processed successfully. Files will be removed from backlog");
 		}
-		this.directoryContentManager.processed();
+		this.backlog.processed();
 	}
 
 	public void onFailure(Message<?> failedMessage, Throwable exception) {
@@ -115,7 +111,7 @@ public abstract class AbstractDirectorySource<T> implements PollableSource<T>, M
 			this.logger.warn("Failure notification received by [" + this.getClass().getSimpleName() + "] for message: "
 					+ failedMessage + ". Selected files will be moved back to the backlog.", exception);
 		}
-		this.directoryContentManager.processingFailed();
+		this.backlog.processingFailed();
 	}
 
 	/**
@@ -135,6 +131,6 @@ public abstract class AbstractDirectorySource<T> implements PollableSource<T>, M
 	protected abstract T retrieveNextPayload() throws IOException;
 
 	protected final void filesProcessed() {
-		this.directoryContentManager.processed();
+		this.backlog.processed();
 	}
 }
