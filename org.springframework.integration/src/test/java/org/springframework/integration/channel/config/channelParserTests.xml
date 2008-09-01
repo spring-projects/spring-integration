@@ -7,20 +7,28 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
 
-	<queue-channel id="capacityChannel" capacity="10"/>
+	<channel id="capacityChannel">
+		<queue capacity="10"/>
+	</channel>
 
-	<channel id="queueChannelByDefault"/>
+	<channel id="defaultChannel"/>
 
 	<publish-subscribe-channel id="publishSubscribeChannel"/>
 
 	<publish-subscribe-channel id="publishSubscribeChannelWithTaskExecutorRef"
 	                           task-executor="taskExecutor"/>
 
-	<channel id="integerChannel" datatype="java.lang.Integer"/>
+	<channel id="integerChannel" datatype="java.lang.Integer">
+		<queue capacity="10"/>
+	</channel>
 
-	<channel id="numberChannel" datatype="java.lang.Number"/>
+	<channel id="numberChannel" datatype="java.lang.Number">
+		<queue capacity="10"/>
+	</channel>
 
-	<channel id="stringOrNumberChannel" datatype="java.lang.String,java.lang.Number"/>
+	<channel id="stringOrNumberChannel" datatype="java.lang.String,java.lang.Number">
+		<queue capacity="10"/>
+	</channel>
 
 	<beans:bean id="taskExecutor" class="org.springframework.core.task.SimpleAsyncTaskExecutor"/>
 

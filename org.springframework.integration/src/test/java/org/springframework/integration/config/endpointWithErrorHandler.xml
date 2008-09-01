@@ -9,7 +9,7 @@
 
 	<message-bus/>
 
-	<direct-channel id="channel"/>
+	<channel id="channel"/>
 
 	<service-activator id="endpoint" input-channel="channel" ref="handler" error-handler="errorHandler"/>
 

@@ -18,6 +18,8 @@ package org.springframework.integration.config;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.channel.ThreadLocalChannel;
 
 /**
@@ -28,8 +30,8 @@ import org.springframework.integration.channel.ThreadLocalChannel;
 public class ThreadLocalChannelParser extends AbstractChannelParser {
 
 	@Override
-	protected Class<?> getBeanClass(Element element) {
-		return ThreadLocalChannel.class;
+	protected BeanDefinitionBuilder buildBeanDefinition(Element element, ParserContext parserContext) {
+		return BeanDefinitionBuilder.genericBeanDefinition(ThreadLocalChannel.class);
 	}
 
 }

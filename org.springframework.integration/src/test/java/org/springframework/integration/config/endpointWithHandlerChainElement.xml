@@ -9,9 +9,13 @@
 
 	<message-bus/>
 
-	<queue-channel id="testChannel" capacity="50"/>
+	<channel id="testChannel">
+		<queue capacity="5"/>
+	</channel>
 
-	<channel id="replyChannel"/>
+	<channel id="replyChannel">
+		<queue capacity="5"/>
+	</channel>
 
 	<handler-chain id="chain">
 		<handler ref="handler1"/>

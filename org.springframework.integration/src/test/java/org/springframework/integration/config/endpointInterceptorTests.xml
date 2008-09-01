@@ -7,17 +7,18 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
 
-	<message-bus auto-startup="false"/>
+	<message-bus/>
 
-	<channel id="testChannel"/>
-
-	<channel id="replyChannel"/>
+	<channel id="inputChannelForBeans"/>
+	<channel id="inputChannelForRefs"/>
+	<channel id="outputChannel">
+		<queue capacity="10"/>
+	</channel>
 
 	<service-activator id="endpointWithBeanInterceptors"
-	                   input-channel="testChannel"
+	                   input-channel="inputChannelForBeans"
 	                   ref="testHandler"
-	                   output-channel="replyChannel">
-		<poller period="10000" max-messages-per-poll="1"/>
+	                   output-channel="outputChannel">
 		<interceptors>
 			<beans:bean class="org.springframework.integration.config.TestPreHandleInterceptor"/>
 			<beans:bean class="org.springframework.integration.config.TestPostHandleInterceptor"/>
@@ -25,10 +26,9 @@
 	</service-activator>
 
 	<service-activator id="endpointWithRefInterceptors"
-	                   input-channel="testChannel"
+	                   input-channel="inputChannelForRefs"
 	                   ref="testHandler"
-	                   output-channel="replyChannel">
-		<poller period="10000" max-messages-per-poll="1"/>
+	                   output-channel="outputChannel">
 		<interceptors>
 			<ref bean="preInterceptor"/>
 			<ref bean="postInterceptor"/>

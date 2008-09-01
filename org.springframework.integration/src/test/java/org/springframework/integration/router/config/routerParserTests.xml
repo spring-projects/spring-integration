@@ -11,9 +11,13 @@
 
 	<channel id="input"/>
 
-	<channel id="output1"/>
+	<channel id="output1">
+		<queue capacity="1"/>
+	</channel>
 
-	<channel id="output2"/>
+	<channel id="output2">
+		<queue capacity="1"/>
+	</channel>
 
 	<router id="router" ref="pojo" method="route" input-channel="input"/>
 

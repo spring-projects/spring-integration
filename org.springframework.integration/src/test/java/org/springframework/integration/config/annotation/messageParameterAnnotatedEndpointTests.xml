@@ -13,7 +13,9 @@
 
 	<integration:channel id="inputChannel"/>
 
-	<integration:channel id="outputChannel"/>
+	<integration:channel id="outputChannel">
+		<integration:queue capacity="5"/>
+	</integration:channel>
 
 	<bean id="endpoint" class="org.springframework.integration.endpoint.annotation.MessageParameterAnnotatedEndpoint"/>
 

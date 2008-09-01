@@ -10,7 +10,9 @@
 	<message-bus/>
 
 	<channel id="inputChannel"/>
-	<channel id="outputChannel"/>
+	<channel id="outputChannel">
+		<queue capacity="10"/>
+	</channel>
 
 	<service-activator input-channel="inputChannel"
 	                   output-channel="outputChannel"

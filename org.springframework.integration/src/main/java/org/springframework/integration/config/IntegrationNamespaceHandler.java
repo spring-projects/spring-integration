@@ -49,13 +49,13 @@ public class IntegrationNamespaceHandler extends NamespaceHandlerSupport {
 	public void init() {
 		registerBeanDefinitionParser("message-bus", new MessageBusParser());
 		registerBeanDefinitionParser("annotation-driven", new AnnotationDrivenParser());
-		registerBeanDefinitionParser("channel", new QueueChannelParser());
-		registerBeanDefinitionParser("queue-channel", new QueueChannelParser());
-		registerBeanDefinitionParser("publish-subscribe-channel", new PublishSubscribeChannelParser());
-		registerBeanDefinitionParser("direct-channel", new DirectChannelParser());
-		registerBeanDefinitionParser("priority-channel", new PriorityChannelParser());
-		registerBeanDefinitionParser("rendezvous-channel", new RendezvousChannelParser());
+		registerBeanDefinitionParser("channel", new PointToPointChannelParser());
+		registerBeanDefinitionParser("queue-channel", new PointToPointChannelParser());
+		registerBeanDefinitionParser("direct-channel", new PointToPointChannelParser());
+		registerBeanDefinitionParser("priority-channel", new PointToPointChannelParser());
+		registerBeanDefinitionParser("rendezvous-channel", new PointToPointChannelParser());
 		registerBeanDefinitionParser("thread-local-channel", new ThreadLocalChannelParser());
+		registerBeanDefinitionParser("publish-subscribe-channel", new PublishSubscribeChannelParser());
 		registerBeanDefinitionParser("service-activator", new ServiceActivatorParser());
 		registerBeanDefinitionParser("channel-adapter", new ChannelAdapterParser());
 		registerBeanDefinitionParser("gateway", new GatewayParser());

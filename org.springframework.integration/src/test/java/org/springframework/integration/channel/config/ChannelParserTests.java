@@ -26,10 +26,10 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.FatalBeanException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
-import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.TestChannelInterceptor;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
@@ -61,13 +61,11 @@ public class ChannelParserTests {
 	}
 
 	@Test
-	public void testQueueChannelByDefault() throws InterruptedException {
+	public void testDirectChannelByDefault() throws InterruptedException {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"channelParserTests.xml", this.getClass());
-		MessageChannel channel = (MessageChannel) context.getBean("queueChannelByDefault");
-		//called to initialize the channel instance
-		channel.getName();
-		assertEquals(QueueChannel.class, channel.getClass());
+		MessageChannel channel = (MessageChannel) context.getBean("defaultChannel");
+		assertEquals(DirectChannel.class, channel.getClass());
 	}
 
 	@Test

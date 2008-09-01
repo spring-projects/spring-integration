@@ -17,44 +17,36 @@
 package org.springframework.integration.config;
 
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
+import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.channel.interceptor.MessageSelectingInterceptor;
 import org.springframework.integration.message.selector.PayloadTypeSelector;
 import org.springframework.util.StringUtils;
+import org.springframework.util.xml.DomUtils;
 
 /**
  * Base class for channel parsers.
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractChannelParser extends AbstractSingleBeanDefinitionParser {
-
-	@Override
-	protected abstract Class<?> getBeanClass(Element element);
-
-	protected void postProcess(BeanDefinitionBuilder builder, Element element) {
-	}
+public abstract class AbstractChannelParser extends AbstractBeanDefinitionParser {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = this.buildBeanDefinition(element, parserContext);
 		ManagedList interceptors = null;
-		NodeList childNodes = element.getChildNodes();
-		for (int i = 0; i < childNodes.getLength(); i++) {
-			Node child = childNodes.item(i);
-			if (child.getNodeType() == Node.ELEMENT_NODE && child.getLocalName().equals("interceptors")) {
-				ChannelInterceptorParser interceptorParser = new ChannelInterceptorParser();
-				interceptors = interceptorParser.parseInterceptors((Element) child, parserContext);
-			}
+		Element interceptorsElement = DomUtils.getChildElementByTagName(element, "interceptors");
+		if (interceptorsElement != null) {
+			ChannelInterceptorParser interceptorParser = new ChannelInterceptorParser();
+			interceptors = interceptorParser.parseInterceptors(interceptorsElement, parserContext);
 		}
 		if (interceptors == null) {
 			interceptors = new ManagedList();
@@ -75,7 +67,16 @@ public abstract class AbstractChannelParser extends AbstractSingleBeanDefinition
 			interceptors.add(new RuntimeBeanReference(interceptorBeanName));
 		}
 		builder.addPropertyValue("interceptors", interceptors);
-		this.postProcess(builder, element);
+		return builder.getBeanDefinition();
 	}
+
+	/**
+	 * Subclasses must implement this method to create the bean definition.
+	 * The class must be defined, and any implementation-specific constructor
+	 * arguments or properties should be configured. This base class will
+	 * configure the interceptors including the 'datatype' interceptor if
+	 * the 'datatype' attribute is defined on the channel element.
+	 */
+	protected abstract BeanDefinitionBuilder buildBeanDefinition(Element element, ParserContext parserContext);
 
 }

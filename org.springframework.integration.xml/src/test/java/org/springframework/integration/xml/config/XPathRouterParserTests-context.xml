@@ -15,18 +15,24 @@
 	<si:channel id="inputOne" />
 	<si:channel id="inputTwo" />
 
-	<si:channel id="outputOne" />
-	<si:channel id="outputTwo" />
+	<si:channel id="outputOne">
+		<si:queue capacity="10"/>
+	</si:channel>
+	<si:channel id="outputTwo">
+		<si:queue capacity="10"/>
+	</si:channel>
 
-	<si:channel id="errorChannel" />
+	<si:channel id="errorChannel">
+		<si:queue capacity="10"/>
+	</si:channel>
 
 	<si-xml:xpath-router id="routerOne"
 		xpath-expression-ref="xpathExpression" />
-	<si:router ref="routerOne" input-channel="inputOne" />
+	<si:router ref="routerOne" input-channel="inputOne" error-handler="errorHandler"/>
 
 	<si-xml:xpath-router id="routerTwo"
 		xpath-expression-ref="xpathExpressionMulti" multi-channel="true" />
-	<si:router ref="routerTwo" input-channel="inputTwo" />
+	<si:router ref="routerTwo" input-channel="inputTwo" error-handler="errorHandler"/>
 
 
 	<bean id="xpathExpression"
@@ -37,6 +43,10 @@
 	<bean id="xpathExpressionMulti"
 		class="org.springframework.xml.xpath.XPathExpressionFactoryBean">
 		<property name="expression" value="//name" />
+	</bean>
+
+	<bean id="errorHandler" class="org.springframework.integration.channel.MessagePublishingErrorHandler">
+		<property name="errorChannel" ref="errorChannel"/>
 	</bean>
 
 </beans>

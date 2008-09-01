@@ -9,7 +9,9 @@
 
 	<beans:bean id="messageBus" class="org.springframework.integration.bus.DefaultMessageBus"/>
 
-	<queue-channel id="testChannel" capacity="50"/>
+	<channel id="testChannel">
+		<queue capacity="50"/>
+	</channel>
 
 	<service-activator input-channel="testChannel" ref="testHandler">
 		<poller period="100"/>

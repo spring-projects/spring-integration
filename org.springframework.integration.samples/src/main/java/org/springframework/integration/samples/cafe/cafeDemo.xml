@@ -17,8 +17,15 @@
 
 	<channel id="orders"/>
 	<channel id="drinks"/>
-	<channel id="coldDrinks"/>
-	<channel id="hotDrinks"/>
+
+	<channel id="coldDrinks">
+		<queue capacity="100"/>
+	</channel>
+
+	<channel id="hotDrinks">
+		<queue capacity="100"/>
+	</channel>
+
     <channel id="preparedDrinks"/>
     <channel id="deliveries"/>
 

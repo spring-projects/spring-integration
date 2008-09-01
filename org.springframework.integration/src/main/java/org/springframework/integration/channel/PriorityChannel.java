@@ -32,15 +32,18 @@ import org.springframework.integration.message.MessagePriority;
  */
 public class PriorityChannel extends QueueChannel {
 
+	private static final int DEFAULT_MAX_CAPACITY = Integer.MAX_VALUE;
+
+
 	private final Semaphore semaphore;
 
 
 	/**
 	 * Create a channel with the specified queue capacity.
-	 * Priority will be based upon the provided {@link Comparator}.
+	 * Priority will be determined by the provided {@link Comparator}.
 	 */
 	public PriorityChannel(int capacity, Comparator<Message<?>> comparator) {
-		super(new PriorityBlockingQueue<Message<?>>(capacity, comparator));
+		super(new PriorityBlockingQueue<Message<?>>(11, comparator));
 		this.semaphore = new Semaphore(capacity, true);
 	}
 
@@ -53,11 +56,19 @@ public class PriorityChannel extends QueueChannel {
 	}
 
 	/**
-	 * Create a channel with the default queue capacity and dispatcher policy.
+	 * Create a channel with the default queue capacity of {@link Integer#MAX_VALUE}.
+	 * Priority will be determined by the provided {@link Comparator}.
+	 */
+	public PriorityChannel(Comparator<Message<?>> comparator) {
+		this(DEFAULT_MAX_CAPACITY, comparator);
+	}
+
+	/**
+	 * Create a channel with the default queue capacity of {@link Integer#MAX_VALUE}.
 	 * Priority will be based on the value of {@link MessageHeader#getPriority()}.
 	 */
 	public PriorityChannel() {
-		this(DEFAULT_CAPACITY, new MessagePriorityComparator());
+		this(DEFAULT_MAX_CAPACITY, new MessagePriorityComparator());
 	}
 
 

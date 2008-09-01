@@ -37,9 +37,6 @@ import org.springframework.util.Assert;
  */
 public class QueueChannel extends AbstractPollableChannel {
 
-	public static final int DEFAULT_CAPACITY = 100;
-
-
 	private final BlockingQueue<Message<?>> queue;
 
 
@@ -61,11 +58,12 @@ public class QueueChannel extends AbstractPollableChannel {
 	}
 
 	/**
-	 * Create a channel with the default queue capacity.
-	 * @see #DEFAULT_CAPACITY
+	 * Create a channel with "unbounded" queue capacity. The actual capacity value is
+	 * {@link Integer#MAX_VALUE}. Note that a bounded queue is recommended, since an
+	 * unbounded queue may lead to OutOfMemoryErrors.
 	 */
 	public QueueChannel() {
-		this(DEFAULT_CAPACITY);
+		this(new LinkedBlockingQueue<Message<?>>());
 	}
 
 

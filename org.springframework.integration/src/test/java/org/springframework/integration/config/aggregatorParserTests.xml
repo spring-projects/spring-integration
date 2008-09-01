@@ -10,8 +10,12 @@
 	<message-bus/>
 
 	<channel id="inputChannel"/>
-	<channel id="outputChannel"/>
-	<channel id="discardChannel"/>
+	<channel id="outputChannel">
+		<queue capacity="5"/>
+	</channel>
+	<channel id="discardChannel">
+		<queue capacity="5"/>
+	</channel>
 
 	<aggregator id="aggregatorWithReference" ref="aggregatorBean" input-channel="inputChannel"/>
 

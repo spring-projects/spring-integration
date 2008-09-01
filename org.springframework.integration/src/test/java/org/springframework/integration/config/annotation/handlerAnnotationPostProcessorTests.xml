@@ -10,7 +10,10 @@
 	<message-bus/>
 
 	<channel id="inputChannel"/>
-	<channel id="outputChannel"/>
+
+	<channel id="outputChannel">
+		<queue capacity="5"/>
+	</channel>
 
 	<service-activator input-channel="inputChannel" ref="simpleHandler" output-channel="outputChannel"/>
 

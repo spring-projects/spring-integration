@@ -8,11 +8,15 @@
 			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
 
 	<message-bus/>
-	
-	<channel id="outputChannel" />
 
-	<channel id="discardChannel" />
-	
+	<channel id="outputChannel">
+		<queue capacity="5"/>
+	</channel>
+
+	<channel id="discardChannel">
+		<queue capacity="5"/>
+	</channel>
+
 	<resequencer id="defaultResequencer"/>
 
 	<resequencer id="completelyDefinedResequencer" 

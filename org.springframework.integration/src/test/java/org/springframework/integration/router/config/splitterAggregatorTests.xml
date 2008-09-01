@@ -9,9 +9,11 @@
 
 	<message-bus/>
 
-	<direct-channel id="numbers"/>
-	<direct-channel id="splits"/>
-	<channel id="results"/>
+	<channel id="numbers"/>
+	<channel id="splits"/>
+	<channel id="results">
+		<queue capacity="10"/>
+	</channel>
 
 	<splitter ref="splitter" method="split" input-channel="numbers" output-channel="splits"/>
 	<aggregator ref="aggregator" method="sum" input-channel="splits" output-channel="results"/>

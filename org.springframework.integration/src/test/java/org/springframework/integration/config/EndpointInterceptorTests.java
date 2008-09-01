@@ -17,6 +17,7 @@
 package org.springframework.integration.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
@@ -24,6 +25,7 @@ import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.EndpointInterceptor;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.StringMessage;
@@ -52,21 +54,24 @@ public class EndpointInterceptorTests {
 
 	@SuppressWarnings("unchecked")
 	private static void testInterceptors(MessageEndpoint endpoint, ClassPathXmlApplicationContext context, boolean innerBeans) {
+		MessageChannel channel = null;
 		TestPreHandleInterceptor preInterceptor = null;
 		TestPostHandleInterceptor postInterceptor = null;
 		if (innerBeans) {
+			channel = (MessageChannel) context.getBean("inputChannelForBeans");
 			DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
 			List<EndpointInterceptor> interceptors = (List<EndpointInterceptor>) accessor.getPropertyValue("interceptors");
 			preInterceptor = (TestPreHandleInterceptor) interceptors.get(0);
 			postInterceptor = (TestPostHandleInterceptor) interceptors.get(1);
 		}
 		else {
+			channel = (MessageChannel) context.getBean("inputChannelForRefs");
 			preInterceptor = (TestPreHandleInterceptor) context.getBean("preInterceptor");
 			postInterceptor = (TestPostHandleInterceptor) context.getBean("postInterceptor");
 		}
 		assertEquals(0, preInterceptor.getCount());
 		assertEquals(0, postInterceptor.getCount());
-		endpoint.send(new StringMessage("test"));
+		assertTrue(channel.send(new StringMessage("test")));
 		assertEquals(1, preInterceptor.getCount());
 		assertEquals(1, postInterceptor.getCount());
 		context.stop();

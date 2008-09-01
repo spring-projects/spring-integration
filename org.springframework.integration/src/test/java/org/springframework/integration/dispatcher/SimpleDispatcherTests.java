@@ -30,6 +30,7 @@ import org.springframework.integration.endpoint.DefaultEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.StringMessage;
@@ -108,9 +109,18 @@ public class SimpleDispatcherTests {
 		dispatcher.unsubscribe(target1);
 		dispatcher.send(new StringMessage("test3"));
 		assertEquals(6, counter.get());
-		dispatcher.unsubscribe(target3);
-		dispatcher.send(new StringMessage("test4"));
-		assertEquals(6, counter.get());
+	}
+
+	@Test(expected = MessageDeliveryException.class)
+	public void unsubscribeLastTargetCausesDeliveryException() {
+		SimpleDispatcher dispatcher = new SimpleDispatcher();
+		final AtomicInteger counter = new AtomicInteger();
+		MessageTarget target = new CountingTestTarget(counter, false);
+		dispatcher.subscribe(target);
+		dispatcher.send(new StringMessage("test1"));
+		assertEquals(1, counter.get());
+		dispatcher.unsubscribe(target);
+		dispatcher.send(new StringMessage("test2"));
 	}
 
 	@Test

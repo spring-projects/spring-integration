@@ -8,12 +8,14 @@
 			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
 
 	<channel id="channelWithInterceptorRef">
+		<queue capacity="5"/>
 		<interceptors>
 			<ref bean="interceptor"/>
 		</interceptors>
 	</channel>
 
 	<channel id="channelWithInterceptorInnerBean">
+		<queue capacity="5"/>
 		<interceptors>
 			<beans:bean class="org.springframework.integration.transformer.MessageTransformingChannelInterceptor">
 				<beans:constructor-arg>

@@ -9,7 +9,9 @@
 
 	<message-bus/>
 
-	<queue-channel id="testChannel" capacity="50"/>
+	<channel id="testChannel">
+		<queue capacity="50"/>
+	</channel>
 
 	<service-activator id="endpoint" input-channel="testChannel"
 	                  ref="testHandler" selector="typeSelector">

@@ -12,6 +12,7 @@
 	<channel id="requestChannel"/>
 
 	<channel id="replyChannel">
+		<queue capacity="100"/>
 		<interceptors>
 			<ref bean="interceptor"/>
 		</interceptors>

@@ -80,7 +80,6 @@ public class XPathRouterParserTests extends AbstractJUnit4SpringContextTests{
 		inputOne.send(docMessage);
 		GenericMessage<Document> received = (GenericMessage<Document>) errorChannel.receive(1000);
 		assertNotNull("Did not receive message on errors", received);
-		
 	}
 	
 	@SuppressWarnings("unchecked")

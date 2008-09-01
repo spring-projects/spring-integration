@@ -7,9 +7,11 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<si:message-bus/>
+	<si:message-bus auto-startup="false"/>
 
-	<si:channel id="requestChannel"/>
+	<si:channel id="requestChannel">
+		<si:queue capacity="10"/>	
+	</si:channel>
 
 	<si:jms-gateway id="defaultGateway"
 	                destination="testDestination"

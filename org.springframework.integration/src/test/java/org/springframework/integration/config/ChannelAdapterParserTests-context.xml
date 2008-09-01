@@ -9,7 +9,9 @@
 
 	<message-bus auto-startup="false"/>
 
-	<queue-channel id="queueChannel" capacity="10"/>
+	<channel id="queueChannel">
+		<queue capacity="10"/>
+	</channel>
 
 	<channel-adapter id="outboundWithImplicitChannel" target="target"/>
 

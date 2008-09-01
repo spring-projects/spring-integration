@@ -8,24 +8,28 @@
 			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
 
 	<channel id="simple">
+		<queue capacity="10"/>
 		<interceptors>
 			<wire-tap target="testTarget"/>
 		</interceptors>
 	</channel>
 
 	<channel id="accepting">
+		<queue capacity="10"/>
 		<interceptors>
 			<wire-tap target="testTarget" selector="acceptingSelector"/>
 		</interceptors>
 	</channel>
 
 	<channel id="rejecting">
+		<queue capacity="10"/>
 		<interceptors>
 			<wire-tap target="testTarget" selector="rejectingSelector"/>
 		</interceptors>
 	</channel>
 
 	<channel id="timeout">
+		<queue capacity="10"/>
 		<interceptors>
 			<wire-tap target="testTarget" timeout="1234"/>
 		</interceptors>

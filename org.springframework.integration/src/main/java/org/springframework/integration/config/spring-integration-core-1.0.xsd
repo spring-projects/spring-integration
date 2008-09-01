@@ -47,32 +47,86 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="channel" type="channelType">
+	<xsd:element name="channel">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a generic channel type. The actual channel type 
-	will be determined by the channel factory set on the message bus.
+	Defines a Point-to-Point MessageChannel.
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="channelType">
+					<xsd:sequence>
+						<xsd:choice minOccurs="0" maxOccurs="1">
+							<xsd:element ref="queue"/>
+							<xsd:element ref="priority-queue"/>
+							<xsd:element ref="rendezvous-queue"/>
+						</xsd:choice>
+						<xsd:element name="interceptors" type="channelInterceptorsType" minOccurs="0" maxOccurs="1"/>
+					</xsd:sequence>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="queue-channel" type="capacityChannelType">
-		<xsd:annotation>
-			<xsd:documentation>
-	Defines a channel that buffers messages in a queue.
-			</xsd:documentation>
-		</xsd:annotation>
+	<xsd:element name="queue">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a bounded queue for messages.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="capacity" use="required">
+				<xsd:simpleType>
+					<xsd:union>
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:integer"/>
+						</xsd:simpleType>
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:enumeration value="UNBOUNDED"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:union>
+				</xsd:simpleType>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="priority-queue">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a queue with priority-ordering for message reception.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="capacity" type="xsd:integer" use="required"/>
+			<xsd:attribute name="comparator" type="xsd:string"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="rendezvous-queue">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a rendezvous queue where a sender will block until the receiver arrives or vice-versa.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="publish-subscribe-channel">
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a publish-subscribe channel that broadcasts to its targets.
+	Defines a Publish-Subscribe channel that broadcasts messages to its subscribers.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="channelType">
+					<xsd:sequence>
+						<xsd:element name="interceptors" type="channelInterceptorsType" minOccurs="0" maxOccurs="1"/>
+					</xsd:sequence>
 					<xsd:attribute name="task-executor" type="xsd:string"/>
 					<xsd:attribute name="apply-sequence" type="xsd:string"/>
 				</xsd:extension>
@@ -80,45 +134,7 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="direct-channel" type="channelType">
-		<xsd:annotation>
-			<xsd:documentation>
-	Defines a channel that invokes its handlers directly in the sender's thread.
-			</xsd:documentation>
-		</xsd:annotation>
-	</xsd:element>
-
-	<xsd:element name="priority-channel">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-	Defines a channel with priority-ordering for message reception.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:complexContent>
-				<xsd:extension base="capacityChannelType">
-					<xsd:attribute name="comparator" type="xsd:string"/>
-				</xsd:extension>
-			</xsd:complexContent>
-		</xsd:complexType>
-	</xsd:element>
-
-	<xsd:element name="rendezvous-channel" type="channelType"/>
-
 	<xsd:element name="thread-local-channel" type="channelType"/>
-
-	<xsd:complexType name="capacityChannelType">
-		<xsd:annotation>
-			<xsd:documentation>
-	Defines a channel with a configurable capacity.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="channelType">
-				<xsd:attribute name="capacity" type="xsd:integer"/>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
 
 	<xsd:complexType name="channelType">
 		<xsd:annotation>
@@ -126,9 +142,6 @@
 	Defines a message channel.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="interceptors" type="channelInterceptorsType" minOccurs="0" maxOccurs="1"/>
-		</xsd:sequence>
 		<xsd:attribute name="id" type="xsd:ID" use="required"/>
 		<xsd:attribute name="datatype" type="xsd:string"/>
 	</xsd:complexType>

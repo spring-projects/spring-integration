@@ -9,9 +9,17 @@
 
 	<message-bus/>
 
-	<channel id="badInput"/>
-	<channel id="goodInput"/>
-	<channel id="output"/>
+	<channel id="badInput">
+		<queue capacity="1"/>
+	</channel>
+
+	<channel id="goodInput">
+		<queue capacity="1"/>
+	</channel>
+
+	<channel id="output">
+		<queue capacity="1"/>
+	</channel>
 
 	<service-activator input-channel="badInput"
 	                  ref="testBean"
@@ -27,7 +35,7 @@
 	                  method="good"
                       output-channel="output">
         <poller period="10000" max-messages-per-poll="1">
-        	<transactional transaction-manager="txManager" propagation="REQUIRED"/>
+        	<transactional transaction-manager="txManager"/>
         </poller>
 	</service-activator>
 

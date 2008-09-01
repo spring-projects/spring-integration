@@ -36,7 +36,7 @@ public interface MessageTarget {
 	 * @throws MessageRejectedException if this particular Message is not accepted by the target
 	 * (e.g. after consulting a {@link org.springframework.integration.message.selector.MessageSelector})
 	 * @throws MessageDeliveryException if this target is unable to send the Message due
-	 * to a transport error
+	 * to a transport error.
 	 */
 	boolean send(Message<?> message) throws MessageRejectedException, MessageDeliveryException;
 

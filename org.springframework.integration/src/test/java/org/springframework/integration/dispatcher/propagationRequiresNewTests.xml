@@ -9,8 +9,13 @@
 
 	<message-bus/>
 
-	<channel id="input"/>
-	<channel id="output"/>
+	<channel id="input">
+		<queue capacity="1"/>
+	</channel>
+
+	<channel id="output">
+		<queue capacity="1"/>
+	</channel>
 
 	<service-activator id="requiresNew"
 	                   input-channel="input"

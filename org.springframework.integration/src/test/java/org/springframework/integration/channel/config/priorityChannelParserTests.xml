@@ -7,11 +7,17 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
 
-	<priority-channel id="priorityChannelWithDefaultComparator"/>
+	<channel id="priorityChannelWithDefaultComparator">
+		<priority-queue capacity="10"/>
+	</channel>
 
-	<priority-channel id="priorityChannelWithCustomComparator" comparator="payloadComparator"/>
+	<channel id="priorityChannelWithCustomComparator">
+		<priority-queue capacity="10" comparator="payloadComparator"/>
+	</channel>
 
-	<priority-channel id="integerOnlyPriorityChannel" datatype="java.lang.Integer" comparator="payloadComparator"/>
+	<channel id="integerOnlyPriorityChannel" datatype="java.lang.Integer">
+		<priority-queue capacity="10" comparator="payloadComparator"/>
+	</channel>
 
 	<beans:bean id="payloadComparator"
 			class="org.springframework.integration.channel.MessagePayloadTestComparator"/>

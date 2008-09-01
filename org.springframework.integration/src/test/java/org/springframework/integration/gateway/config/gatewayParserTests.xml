@@ -9,9 +9,13 @@
 
 	<message-bus/>
 
-	<channel id="requestChannel"/>
+	<channel id="requestChannel">
+		<queue capacity="100"/>
+	</channel>
 
-	<channel id="replyChannel"/>
+	<channel id="replyChannel">
+		<queue capacity="100"/>
+	</channel>
 
 	<gateway id="oneWay"
 	         service-interface="org.springframework.integration.gateway.TestService"

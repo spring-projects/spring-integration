@@ -17,6 +17,7 @@
 package org.springframework.integration.dispatcher;
 
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.MessageTarget;
 
@@ -25,9 +26,10 @@ import org.springframework.integration.message.MessageTarget;
  * to send a {@link Message} to one of its targets. As soon as <em>one</em>
  * of the targets accepts the Message, the dispatcher will return 'true'.
  * <p>
- * If all targets reject the Message, the dispatcher will throw a
- * MessageRejectedException. If all targets return 'false' (e.g. due
- * to a timeout), the dispatcher will return 'false'.
+ * If the dispatcher has no targets, a {@link MessageDeliveryException}
+ * will be thrown. If all targets reject the Message, the dispatcher will
+ * throw a MessageRejectedException. If all targets return 'false'
+ * (e.g. due to a timeout), the dispatcher will return 'false'.
  * 
  * @author Mark Fisher
  */
@@ -35,10 +37,7 @@ public class SimpleDispatcher extends AbstractDispatcher {
 
 	public boolean send(Message<?> message) {
 		if (this.targets.size() == 0) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("Dispatcher has no targets.");
-			}
-			return false;
+			throw new MessageDeliveryException(message, "Dispatcher has no targets.");
 		}
 		int count = 0;
 		int rejectedExceptionCount = 0;
