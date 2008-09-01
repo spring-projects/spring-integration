@@ -22,7 +22,7 @@
 				   remote-working-directory="/remote"
 			       username="testUser"
 			       password="testPassword"
-			       type="text"/>
+			    />
 			 
 	<si:ftp-source id="ftpSourceBinary" 
 				   host="testHost"
@@ -31,7 +31,7 @@
 				   remote-working-directory="/remote"
 			       username="testUser"
 			       password="testPassword"
-			       type="binary"/>
+			      />
 			       
 	<si:ftp-source id="ftpSourceFile" 
 				   host="testHost"
@@ -40,7 +40,7 @@
 				   remote-working-directory="/remote"
 			       username="testUser"
 			       password="testPassword"
-			       type="file"/>
+			    />
 			       		       
 	<si:ftp-source id="ftpSourceCustom" 
 				   host="testHost"

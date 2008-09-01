@@ -234,7 +234,7 @@ public class FtpSourceTests {
 						recorded.await();
 						recievedFiles = ftpSource.receive();
 						receivesDone.countDown();
-						//make sure onSend happens after all receives
+						// make sure onSend happens after all receives
 						receivesDone.await();
 					}
 					catch (InterruptedException e) {
@@ -245,7 +245,12 @@ public class FtpSourceTests {
 				}
 			}).start();
 		}
-		receivesDone.await();
+		try {
+			receivesDone.await();
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
 		verify(globalMocks);
 	}
 

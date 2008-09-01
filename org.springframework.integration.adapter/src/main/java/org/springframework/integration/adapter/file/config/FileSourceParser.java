@@ -23,8 +23,10 @@ import java.util.regex.Pattern;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.adapter.file.ByteArrayFileMessageCreator;
 import org.springframework.integration.adapter.file.FileSource;
 import org.springframework.integration.adapter.file.RegexPatternFilenameFilter;
+import org.springframework.integration.adapter.file.TextFileMessageCreator;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
@@ -36,6 +38,8 @@ import org.w3c.dom.Element;
  */
 public class FileSourceParser extends AbstractDirectorySourceParser {
 
+	public static final String TYPE_ATTRIBUTE = "type";
+
 	public static final String DIRECTORY_ATTRIBUTE = "directory";
 
 	public static final String FILE_FILTER_ATTRIBUTE = "file-filter";
@@ -44,12 +48,6 @@ public class FileSourceParser extends AbstractDirectorySourceParser {
 
 	public static final String FILENAME_PATTERN_ATTRIBUTE = "filename-pattern";
 
-
-	public FileSourceParser() {
-		super(false);
-	}
-
-
 	@Override
 	protected Class<?> getBeanClass(Element element) {
 		return FileSource.class;
@@ -57,18 +55,16 @@ public class FileSourceParser extends AbstractDirectorySourceParser {
 
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
-		return !DIRECTORY_ATTRIBUTE.equals(attributeName)
-				&& !FILE_FILTER_ATTRIBUTE.equals(attributeName)
+		return !DIRECTORY_ATTRIBUTE.equals(attributeName) && !FILE_FILTER_ATTRIBUTE.equals(attributeName)
 				&& !FILENAME_FILTER_ATTRIBUTE.equals(attributeName)
-				&& !FILENAME_PATTERN_ATTRIBUTE.equals(attributeName)
+				&& !FILENAME_PATTERN_ATTRIBUTE.equals(attributeName) && !TYPE_ATTRIBUTE.equals(attributeName)
 				&& super.isEligibleAttribute(attributeName);
 	}
 
 	@Override
 	protected void postProcess(BeanDefinitionBuilder beanDefinition, Element element) {
 		String directoryLocation = element.getAttribute(DIRECTORY_ATTRIBUTE);
-		if (!directoryLocation.startsWith(ResourceLoader.CLASSPATH_URL_PREFIX)
-				&& !isUrl(directoryLocation)) {
+		if (!directoryLocation.startsWith(ResourceLoader.CLASSPATH_URL_PREFIX) && !isUrl(directoryLocation)) {
 			directoryLocation = "file:" + directoryLocation;
 		}
 		beanDefinition.addConstructorArgValue(directoryLocation);
@@ -88,6 +84,22 @@ public class FileSourceParser extends AbstractDirectorySourceParser {
 			beanDefinition.addPropertyValue("filenameFilter", regexFilter);
 		}
 		super.postProcess(beanDefinition, element);
+		processTypeAttribute(beanDefinition, element);
+	}
+
+	private void processTypeAttribute(BeanDefinitionBuilder beanDefinition, Element element) {
+		if (beanDefinition.getRawBeanDefinition().getConstructorArgumentValues().getArgumentCount() == 2) {
+			// message-creator already defined, ignore type property
+		}
+		else {
+			String type = element.getAttribute(TYPE_ATTRIBUTE);
+			if ("text".equals(type)) {
+				beanDefinition.addConstructorArgValue(new TextFileMessageCreator(false));
+			}
+			else if ("binary".equals(type)) {
+				beanDefinition.addConstructorArgValue(new ByteArrayFileMessageCreator(false));
+			}
+		}
 	}
 
 	private boolean isUrl(String directoryLocation) {
@@ -100,14 +112,13 @@ public class FileSourceParser extends AbstractDirectorySourceParser {
 		}
 	}
 
-	private void verifyAtMostOneAttributeSpecified(String ... attributes) {
+	private void verifyAtMostOneAttributeSpecified(String... attributes) {
 		boolean attributeSpecified = false;
 		for (String attribute : attributes) {
 			if (StringUtils.hasText(attribute)) {
 				if (attributeSpecified) {
-					throw new ConfigurationException("FileSource supports at most one of '"
-							+ FILE_FILTER_ATTRIBUTE + "', '" + FILENAME_FILTER_ATTRIBUTE
-							+ "', and '" + FILENAME_PATTERN_ATTRIBUTE + "'.");
+					throw new ConfigurationException("FileSource supports at most one of '" + FILE_FILTER_ATTRIBUTE
+							+ "', '" + FILENAME_FILTER_ATTRIBUTE + "', and '" + FILENAME_PATTERN_ATTRIBUTE + "'.");
 				}
 				attributeSpecified = true;
 			}

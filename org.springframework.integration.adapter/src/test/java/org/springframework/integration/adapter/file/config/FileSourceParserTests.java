@@ -51,7 +51,7 @@ public class FileSourceParserTests {
 		FileSource fileSource = (FileSource) context.getBean("fileSourceDefault");
 		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(fileSource);
 		File directory = (File) sourceAccessor.getPropertyValue("directory");
-		Object messageCreator =  sourceAccessor.getPropertyValue("messageCreator");
+		Object messageCreator = sourceAccessor.getPropertyValue("messageCreator");
 		assertEquals(System.getProperty("java.io.tmpdir"), directory.getAbsolutePath());
 		assertTrue(messageCreator instanceof FileMessageCreator);
 	}
@@ -62,7 +62,7 @@ public class FileSourceParserTests {
 		FileSource fileSource = (FileSource) context.getBean("fileSourceText");
 		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(fileSource);
 		File directory = (File) sourceAccessor.getPropertyValue("directory");
-		Object messageCreator =  sourceAccessor.getPropertyValue("messageCreator");
+		Object messageCreator = sourceAccessor.getPropertyValue("messageCreator");
 		assertEquals(System.getProperty("java.io.tmpdir"), directory.getAbsolutePath());
 		assertTrue(messageCreator instanceof TextFileMessageCreator);
 	}
@@ -73,7 +73,7 @@ public class FileSourceParserTests {
 		FileSource fileSource = (FileSource) context.getBean("fileSourceBinary");
 		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(fileSource);
 		File directory = (File) sourceAccessor.getPropertyValue("directory");
-		Object messageCreator =  sourceAccessor.getPropertyValue("messageCreator");
+		Object messageCreator = sourceAccessor.getPropertyValue("messageCreator");
 		assertEquals(System.getProperty("java.io.tmpdir"), directory.getAbsolutePath());
 		assertTrue(messageCreator instanceof ByteArrayFileMessageCreator);
 	}
@@ -84,19 +84,9 @@ public class FileSourceParserTests {
 		FileSource fileSource = (FileSource) context.getBean("fileSourceFile");
 		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(fileSource);
 		File directory = (File) sourceAccessor.getPropertyValue("directory");
-		Object messageCreator =  sourceAccessor.getPropertyValue("messageCreator");
+		Object messageCreator = sourceAccessor.getPropertyValue("messageCreator");
 		assertEquals(System.getProperty("java.io.tmpdir"), directory.getAbsolutePath());
 		assertTrue(messageCreator instanceof FileMessageCreator);
-	}
-
-	@Test(expected=ConfigurationException.class)
-	public void testInvalidFileSource() throws Throwable {
-		try {
-			new ClassPathXmlApplicationContext("invalidFileSourceTests.xml", this.getClass());
-			fail();
-		} catch (BeanDefinitionStoreException e) {
-			throw e.getCause();
-		}
 	}
 
 	@Test
@@ -105,7 +95,18 @@ public class FileSourceParserTests {
 		FileSource fileSource = (FileSource) context.getBean("fileSourceWithCustomMessageCreator");
 		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(fileSource);
 		File directory = (File) sourceAccessor.getPropertyValue("directory");
-		Object messageCreator =  sourceAccessor.getPropertyValue("messageCreator");
+		Object messageCreator = sourceAccessor.getPropertyValue("messageCreator");
+		assertEquals(System.getProperty("java.io.tmpdir"), directory.getAbsolutePath());
+		assertTrue(messageCreator instanceof CustomMessageCreator);
+	}
+
+	@Test
+	public void testFileSourceWithTypeAndCustomMessageCreator() {
+		ApplicationContext context = new ClassPathXmlApplicationContext("fileSourceParserTests.xml", this.getClass());
+		FileSource fileSource = (FileSource) context.getBean("fileSourceTypeAndCustom");
+		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(fileSource);
+		File directory = (File) sourceAccessor.getPropertyValue("directory");
+		Object messageCreator = sourceAccessor.getPropertyValue("messageCreator");
 		assertEquals(System.getProperty("java.io.tmpdir"), directory.getAbsolutePath());
 		assertTrue(messageCreator instanceof CustomMessageCreator);
 	}
@@ -138,12 +139,13 @@ public class FileSourceParserTests {
 		assertTrue(filter.accept(null, "foo.txt"));
 	}
 
-	@Test(expected=ConfigurationException.class)
+	@Test(expected = ConfigurationException.class)
 	public void testFileSourceWithFileFilterAndFilenameFilterNotAllowed() throws Throwable {
 		try {
 			new ClassPathXmlApplicationContext("fileSourceWithTooManyFilters.xml", this.getClass());
 			fail();
-		} catch (BeanDefinitionStoreException e) {
+		}
+		catch (BeanDefinitionStoreException e) {
 			throw e.getCause();
 		}
 	}
@@ -152,8 +154,9 @@ public class FileSourceParserTests {
 	public void testFileSourceWithFileAndNotDirectory() {
 		try {
 			new ClassPathXmlApplicationContext("fileSourceWithFileDirectory.xml", this.getClass());
-		    fail();
-		} catch (BeanCreationException ex) {
+			fail();
+		}
+		catch (BeanCreationException ex) {
 			assertTrue(ex.getCause().getCause().getMessage().indexOf("is not a directory") > 0);
 		}
 	}

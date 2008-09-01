@@ -40,10 +40,6 @@ public class FtpSourceParser extends AbstractDirectorySourceParser {
 
 	private static final String POOL_ATTRIBUTE_REMOTEDIR = "remote-working-directory";
 
-	public FtpSourceParser() {
-		super(true);
-	}
-
 	@Override
 	protected Class<?> getBeanClass(Element element) {
 		return FtpSource.class;

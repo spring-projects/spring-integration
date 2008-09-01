@@ -27,6 +27,7 @@ import org.apache.commons.net.ftp.FTPFile;
 import org.springframework.integration.adapter.file.AbstractDirectorySource;
 import org.springframework.integration.adapter.file.Backlog;
 import org.springframework.integration.adapter.file.FileSnapshot;
+import org.springframework.integration.message.DefaultMessageCreator;
 import org.springframework.integration.message.MessageCreator;
 import org.springframework.util.Assert;
 
@@ -44,6 +45,10 @@ public class FtpSource extends AbstractDirectorySource<List<File>> {
 	private volatile int maxFilesPerMessage = -1;
 
 	private final FTPClientPool clientPool;
+
+	public FtpSource(FTPClientPool clientPool) {
+		this(new DefaultMessageCreator<List<File>>(), clientPool);
+	}
 
 	public FtpSource(MessageCreator<List<File>, List<File>> messageCreator, FTPClientPool clientPool) {
 		super(messageCreator);
@@ -63,11 +68,9 @@ public class FtpSource extends AbstractDirectorySource<List<File>> {
 	@Override
 	protected void refreshSnapshotAndMarkProcessing(Backlog<FileSnapshot> directoryContentManager) throws IOException {
 		List<FileSnapshot> snapshot = new ArrayList<FileSnapshot>();
-		synchronized (directoryContentManager) {
-			populateSnapshot(snapshot);
-			directoryContentManager.processSnapshot(snapshot);
-			directoryContentManager.prepareForProcessing(maxFilesPerMessage);
-		}
+		populateSnapshot(snapshot);
+		directoryContentManager.processSnapshot(snapshot);
+		directoryContentManager.prepareForProcessing(maxFilesPerMessage);
 	}
 
 	@Override
@@ -98,7 +101,8 @@ public class FtpSource extends AbstractDirectorySource<List<File>> {
 			List<File> files = new ArrayList<File>();
 			List<FileSnapshot> toDo = this.getBacklog().getProcessingBuffer();
 			for (FileSnapshot fileSnapshot : toDo) {
-				//some awkwardness here because the local path may be different from the remote path
+				// some awkwardness here because the local path may be different
+				// from the remote path
 				File file = new File(this.localWorkingDirectory, fileSnapshot.getFileName());
 				if (file.exists()) {
 					file.delete();

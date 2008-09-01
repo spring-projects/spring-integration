@@ -23,7 +23,6 @@ import static org.junit.Assert.fail;
 import java.io.File;
 
 import org.junit.Test;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.ApplicationContext;
@@ -34,6 +33,7 @@ import org.springframework.integration.adapter.file.FileMessageCreator;
 import org.springframework.integration.adapter.file.TextFileMessageCreator;
 import org.springframework.integration.adapter.file.config.CustomMessageCreator;
 import org.springframework.integration.adapter.ftp.FtpSource;
+import org.springframework.integration.message.DefaultMessageCreator;
 
 /**
  * @author Mark Fisher
@@ -55,63 +55,7 @@ public class FtpSourceParserTests {
 		assertEquals("testUser", accessor.getPropertyValue("username"));
 		assertEquals("testPassword", accessor.getPropertyValue("password"));
 		Object messageCreator = sourceAccessor.getPropertyValue("messageCreator");
-		assertTrue(messageCreator instanceof FileMessageCreator);
-		DirectFieldAccessor messageCreatorAccessor = new DirectFieldAccessor(messageCreator);
-		assertEquals(messageCreatorAccessor.getPropertyValue("deleteFileAfterCreation"), false);
-	}
-
-	@Test
-	public void testFtpSourceTextType() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("ftpSourceParserTests.xml", this.getClass());
-		FtpSource ftpSource = (FtpSource) context.getBean("ftpSourceText");
-		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(ftpSource);
-		DirectFieldAccessor accessor = new DirectFieldAccessor(sourceAccessor.getPropertyValue("clientPool"));
-		assertEquals("testHost", accessor.getPropertyValue("host"));
-		assertEquals(2121, accessor.getPropertyValue("port"));
-		assertEquals(new File("/local"), sourceAccessor.getPropertyValue("localWorkingDirectory"));
-		assertEquals("/remote", accessor.getPropertyValue("remoteWorkingDirectory"));
-		assertEquals("testUser", accessor.getPropertyValue("username"));
-		assertEquals("testPassword", accessor.getPropertyValue("password"));
-		Object messageCreator = sourceAccessor.getPropertyValue("messageCreator");
-		assertTrue(messageCreator instanceof TextFileMessageCreator);
-		DirectFieldAccessor messageCreatorAccessor = new DirectFieldAccessor(messageCreator);
-		assertEquals(messageCreatorAccessor.getPropertyValue("deleteFileAfterCreation"), true);
-	}
-
-	@Test
-	public void testFtpSourceBinaryType() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("ftpSourceParserTests.xml", this.getClass());
-		FtpSource ftpSource = (FtpSource) context.getBean("ftpSourceBinary");
-		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(ftpSource);
-		DirectFieldAccessor accessor = new DirectFieldAccessor(sourceAccessor.getPropertyValue("clientPool"));
-		assertEquals("testHost", accessor.getPropertyValue("host"));
-		assertEquals(2121, accessor.getPropertyValue("port"));
-		assertEquals(new File("/local"), sourceAccessor.getPropertyValue("localWorkingDirectory"));
-		assertEquals("/remote", accessor.getPropertyValue("remoteWorkingDirectory"));
-		assertEquals("testUser", accessor.getPropertyValue("username"));
-		assertEquals("testPassword", accessor.getPropertyValue("password"));
-		Object messageCreator = sourceAccessor.getPropertyValue("messageCreator");
-		assertTrue(messageCreator instanceof ByteArrayFileMessageCreator);
-		DirectFieldAccessor messageCreatorAccessor = new DirectFieldAccessor(messageCreator);
-		assertEquals(messageCreatorAccessor.getPropertyValue("deleteFileAfterCreation"), true);
-	}
-
-	@Test
-	public void testFtpSourceFileType() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("ftpSourceParserTests.xml", this.getClass());
-		FtpSource ftpSource = (FtpSource) context.getBean("ftpSourceFile");
-		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(ftpSource);
-		DirectFieldAccessor accessor = new DirectFieldAccessor(sourceAccessor.getPropertyValue("clientPool"));
-		assertEquals("testHost", accessor.getPropertyValue("host"));
-		assertEquals(2121, accessor.getPropertyValue("port"));
-		assertEquals(new File("/local"), sourceAccessor.getPropertyValue("localWorkingDirectory"));
-		assertEquals("/remote", accessor.getPropertyValue("remoteWorkingDirectory"));
-		assertEquals("testUser", accessor.getPropertyValue("username"));
-		assertEquals("testPassword", accessor.getPropertyValue("password"));
-		Object messageCreator = sourceAccessor.getPropertyValue("messageCreator");
-		assertTrue(messageCreator instanceof FileMessageCreator);
-		DirectFieldAccessor messageCreatorAccessor = new DirectFieldAccessor(messageCreator);
-		assertEquals(messageCreatorAccessor.getPropertyValue("deleteFileAfterCreation"), false);
+		assertTrue(messageCreator instanceof DefaultMessageCreator);
 	}
 
 	@Test
@@ -128,19 +72,6 @@ public class FtpSourceParserTests {
 		assertEquals("testPassword", accessor.getPropertyValue("password"));
 		Object messageCreator = sourceAccessor.getPropertyValue("messageCreator");
 		assertTrue(messageCreator instanceof CustomMessageCreator);
-		// not testing for deleteFileAfterCreation - this is completely left up
-		// to the implementation
-	}
-
-	@Test
-	public void testInvalidFtpSource() {
-		try {
-			new ClassPathXmlApplicationContext("invalidFtpSourceTests.xml", this.getClass());
-			fail();
-		}
-		catch (BeanDefinitionStoreException e) {
-			assertTrue(e.getCause() instanceof ConfigurationException);
-		}
 	}
 
 }

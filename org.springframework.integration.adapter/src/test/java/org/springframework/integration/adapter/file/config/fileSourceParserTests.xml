@@ -25,6 +25,8 @@
 	<si:file-source id="fileSourceWithCustomFilenameFilter" filename-filter="customFilenameFilter" directory="${java.io.tmpdir}"/>
 
 	<si:file-source id="fileSourceWithRegexFilter" filename-pattern="fo+\.[tx]{3}" directory="${java.io.tmpdir}"/>
+	
+	<si:file-source id="fileSourceTypeAndCustom" type="text" message-creator="customMessageCreator" directory="${java.io.tmpdir}"/>
 
 	<bean id="customMessageCreator" class="org.springframework.integration.adapter.file.config.CustomMessageCreator"/>
 

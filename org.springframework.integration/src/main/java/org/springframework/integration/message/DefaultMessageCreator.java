@@ -22,13 +22,15 @@ package org.springframework.integration.message;
  * 
  * @author Mark Fisher
  */
-public class DefaultMessageCreator implements MessageCreator {
+public class DefaultMessageCreator<T> implements MessageCreator<T,T> {
 
-	public Message createMessage(Object object) {
+	@SuppressWarnings("unchecked")
+	public Message<T> createMessage(T object) {
+		//prevent nesting messages
 		if (object instanceof Message) {
-			return (Message) object;
+			return (Message<T>) object;
 		}
-		return (object != null) ? new GenericMessage(object) : null;
+		return (object != null) ? new GenericMessage<T>(object) : null;
 	}
 
 }
