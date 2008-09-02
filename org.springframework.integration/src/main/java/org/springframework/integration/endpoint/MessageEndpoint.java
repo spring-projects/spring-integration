@@ -31,6 +31,4 @@ public interface MessageEndpoint extends MessageTarget, BeanNameAware {
 
 	MessageSource<?> getSource();
 
-	MessageTarget getTarget();
-
 }
