@@ -17,6 +17,7 @@
 package org.springframework.integration.message;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import java.util.Date;
 
@@ -114,6 +115,26 @@ public class MessageBuilderTests {
 		Message<Integer> expiredMessage = MessageBuilder.fromPayload(1)
 				.setExpirationDate(new Date(past)).build();
 		assertEquals(past, expiredMessage.getHeaders().getExpirationDate()); 
+	}
+
+	@Test
+	public void testRemove() {
+		Message<Integer> message1 = MessageBuilder.fromPayload(1)
+			.setHeader("foo", "bar").build();
+		Message<Integer> message2 = MessageBuilder.fromMessage(message1)
+			.removeHeader("foo")
+			.build();
+		assertFalse(message2.getHeaders().containsKey("foo"));
+	}
+
+	@Test
+	public void testSettingToNullRemoves() {
+		Message<Integer> message1 = MessageBuilder.fromPayload(1)
+			.setHeader("foo", "bar").build();
+		Message<Integer> message2 = MessageBuilder.fromMessage(message1)
+			.setHeader("foo", null)
+			.build();
+		assertFalse(message2.getHeaders().containsKey("foo"));
 	}
 
 }

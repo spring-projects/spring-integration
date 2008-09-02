@@ -97,6 +97,16 @@ public final class MessageBuilder<T> {
 	}
 
 	/**
+	 * Remove the value for the given header name.
+	 */
+	public MessageBuilder<T> removeHeader(String headerName) {
+		if (StringUtils.hasLength(headerName)) {
+			this.headers.remove(headerName);
+		}
+		return this;
+	}
+
+	/**
 	 * Copy the name-value pairs from the provided Map. This operation will
 	 * overwrite any existing values. Use {{@link #copyHeadersIfAbsent(Map)}
 	 * to avoid overwriting values. Note that the 'id' and 'timestamp' header
