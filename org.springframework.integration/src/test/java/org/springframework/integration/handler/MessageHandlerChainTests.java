@@ -29,7 +29,7 @@ import org.springframework.integration.message.StringMessage;
 public class MessageHandlerChainTests {
 
 	@Test
-	public void testSimpleChain() {
+	public void testChain() {
 		MessageHandlerChain chain = new MessageHandlerChain();
 		chain.add(new TestHandler("a"));
 		chain.add(new TestHandler("b"));
@@ -37,20 +37,6 @@ public class MessageHandlerChainTests {
 		chain.add(new TestHandler("d"));
 		Message<?> result = chain.handle(new StringMessage("!"));
 		assertEquals("!abcd", result.getPayload());
-	}
-
-	@Test
-	public void testChainWithDecorators() {
-		MessageHandler handler1 = new TestHandler("*"); 
-		MessageHandler handler2 = new TestHandlerDecorator("2", handler1);
-		MessageHandler handler3 = new TestHandlerDecorator("3", handler2);
-		MessageHandler handler4 = new TestHandlerDecorator("4", handler3);
-		MessageHandlerChain chain = new MessageHandlerChain();
-		chain.add(new TestHandler("a"));
-		chain.add(handler4);
-		chain.add(new TestHandler("b"));		
-		Message<?> result = chain.handle(new StringMessage("!"));
-		assertEquals("234!a*234b", result.getPayload());
 	}
 
 
@@ -63,23 +49,6 @@ public class MessageHandlerChainTests {
 		}
 
 		public Message<?> handle(Message<?> message) {
-			return new StringMessage(message.getPayload() + text);
-		}
-	}
-
-
-	private static class TestHandlerDecorator extends MessageHandlerDecorator {
-
-		private String text;
-
-		TestHandlerDecorator(String text, MessageHandler handler) {
-			super(handler);
-			this.text = text;
-		}
-
-		@Override
-		public Message<?> handleInternal(Message<?> message, MessageHandler handler) {
-			message = handler.handle(new StringMessage(text + message.getPayload()));
 			return new StringMessage(message.getPayload() + text);
 		}
 	}
