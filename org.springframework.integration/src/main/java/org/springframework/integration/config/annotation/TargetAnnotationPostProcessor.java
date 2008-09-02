@@ -47,9 +47,7 @@ public class TargetAnnotationPostProcessor extends AbstractAnnotationMethodPostP
 
 
 	protected MessageTarget processMethod(Object bean, Method method, Annotation annotation) {
-		MethodInvokingTarget target = new MethodInvokingTarget();
-		target.setObject(bean);
-		target.setMethod(method);
+		MethodInvokingTarget target = new MethodInvokingTarget(bean, method);
 		ChannelAdapter channelAdapterAnnotation = AnnotationUtils.findAnnotation(bean.getClass(), ChannelAdapter.class);
 		if (channelAdapterAnnotation != null) {
 			OutboundChannelAdapter adapter = new OutboundChannelAdapter();

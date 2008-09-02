@@ -16,7 +16,10 @@
 
 package org.springframework.integration.handler;
 
+import java.lang.reflect.Method;
+
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageMappingMethodInvoker;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.MessagingException;
 
@@ -25,30 +28,24 @@ import org.springframework.integration.message.MessagingException;
  * 
  * @author Mark Fisher
  */
-public class MethodInvokingTarget extends AbstractMessageHandler implements MessageTarget {
+public class MethodInvokingTarget extends MessageMappingMethodInvoker implements MessageTarget {
+
+	public MethodInvokingTarget(Object object, Method method) {
+		super(object, method);
+	}
+
+	public MethodInvokingTarget(Object object, String methodName) {
+		super(object, methodName);
+	}
+
 
 	public boolean send(Message<?> message) {
-		this.handle(message);
-		return true;
-	}
-
-	@Override
-	protected Message<?> createReplyMessage(Object result, Message<?> requestMessage) {
-		this.failIfNotNull(result, requestMessage);
-		return null;
-	}
-
-	@Override
-	protected Message<?> postProcessReplyMessage(Message<?> replyMessage, Message<?> requestMessage) {
-		this.failIfNotNull(replyMessage, requestMessage);
-		return null;
-	}
-
-	private void failIfNotNull(Object result, Message<?> requestMessage) {
+		Object result = this.invokeMethod(message);
 		if (result != null) {
-			throw new MessagingException(requestMessage, "the MethodInvokingTarget method must have a void or null return, "
-					+ "but '" + this + "' received a non-null value: [" + result + "]");
+			throw new MessagingException(message, "the MethodInvokingTarget method must have a void or null return, "
+					+ "but '" + this + "' received a non-null value: [" + result + "]");			
 		}
+		return true;
 	}
 
 }

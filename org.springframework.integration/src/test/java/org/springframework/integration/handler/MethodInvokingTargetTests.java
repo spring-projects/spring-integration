@@ -44,9 +44,7 @@ public class MethodInvokingTargetTests {
 
 	@Test
 	public void testValidMethod() {
-		MethodInvokingTarget target = new MethodInvokingTarget();
-		target.setObject(new TestSink());
-		target.setMethodName("validMethod");
+		MethodInvokingTarget target = new MethodInvokingTarget(new TestSink(), "validMethod");
 		target.afterPropertiesSet();
 		boolean result = target.send(new GenericMessage<String>("test"));
 		assertTrue(result);
@@ -54,9 +52,7 @@ public class MethodInvokingTargetTests {
 
 	@Test(expected = ConfigurationException.class)
 	public void testInvalidMethodWithNoArgs() {
-		MethodInvokingTarget target = new MethodInvokingTarget();
-		target.setObject(new TestSink());
-		target.setMethodName("invalidMethodWithNoArgs");
+		MethodInvokingTarget target = new MethodInvokingTarget(new TestSink(), "invalidMethodWithNoArgs");
 		target.afterPropertiesSet();
 	}
 
@@ -64,9 +60,7 @@ public class MethodInvokingTargetTests {
 	public void testMethodWithReturnValue() {
 		Message<?> message = new StringMessage("test");
 		try {
-			MethodInvokingTarget target = new MethodInvokingTarget();
-			target.setObject(new TestSink());
-			target.setMethodName("methodWithReturnValue");
+			MethodInvokingTarget target = new MethodInvokingTarget(new TestSink(), "methodWithReturnValue");
 			target.afterPropertiesSet();
 			target.send(message);
 		}
@@ -78,9 +72,7 @@ public class MethodInvokingTargetTests {
 
 	@Test(expected = ConfigurationException.class)
 	public void testNoMatchingMethodName() {
-		MethodInvokingTarget target = new MethodInvokingTarget();
-		target.setObject(new TestSink());
-		target.setMethodName("noSuchMethod");
+		MethodInvokingTarget target = new MethodInvokingTarget(new TestSink(), "noSuchMethod");
 		target.afterPropertiesSet();
 	}
 
@@ -88,9 +80,7 @@ public class MethodInvokingTargetTests {
 	public void testSubscription() throws Exception {
 		SynchronousQueue<String> queue = new SynchronousQueue<String>();
 		TestBean testBean = new TestBean(queue);
-		MethodInvokingTarget target = new MethodInvokingTarget();
-		target.setObject(testBean);
-		target.setMethodName("foo");
+		MethodInvokingTarget target = new MethodInvokingTarget(testBean, "foo");
 		target.afterPropertiesSet();
 		QueueChannel channel = new QueueChannel();
 		channel.setBeanName("channel");
