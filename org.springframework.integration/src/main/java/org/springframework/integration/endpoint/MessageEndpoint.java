@@ -16,7 +16,6 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
 
@@ -25,7 +24,7 @@ import org.springframework.integration.message.MessageTarget;
  * 
  * @author Mark Fisher
  */
-public interface MessageEndpoint extends MessageTarget, BeanNameAware {
+public interface MessageEndpoint extends MessageTarget {
 
 	String getName();
 
