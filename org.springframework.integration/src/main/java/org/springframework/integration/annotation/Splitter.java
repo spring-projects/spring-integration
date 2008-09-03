@@ -45,4 +45,8 @@ import java.lang.annotation.Target;
 @Handler
 public @interface Splitter {
 
+	String inputChannel() default "";
+
+	String outputChannel() default "";
+
 }

@@ -49,4 +49,8 @@ import java.lang.annotation.Target;
 @Handler
 public @interface Router {
 
+	String inputChannel() default "";
+
+	String defaultOutputChannel() default "";
+
 }
