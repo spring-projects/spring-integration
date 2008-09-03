@@ -16,16 +16,16 @@
 
 package org.springframework.integration.config.annotation;
 
-import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.annotation.ServiceActivator;
 
 /**
  * @author Mark Fisher
  */
 @MessageEndpoint
-public class SimpleHandlerTestBean {
+public class SimpleServiceActivatorTestBean {
 
-	@Handler
+	@ServiceActivator
 	public String sayHello(String input) {
 		return "hello " + input;
 	}

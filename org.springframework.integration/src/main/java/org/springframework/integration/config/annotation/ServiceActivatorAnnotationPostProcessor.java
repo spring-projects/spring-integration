@@ -18,7 +18,7 @@ package org.springframework.integration.config.annotation;
 
 import java.lang.reflect.Method;
 
-import org.springframework.integration.annotation.Handler;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.DefaultServiceInvoker;
@@ -26,9 +26,11 @@ import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
 import org.springframework.integration.endpoint.ServiceInvoker;
 
 /**
+ * Post-processor for Methods annotated with {@link ServiceActivator @ServiceActivator}.
+ * 
  * @author Mark Fisher
  */
-public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Handler> {
+public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<ServiceActivator> {
 
 	public ServiceActivatorAnnotationPostProcessor(MessageBus messageBus) {
 		super(messageBus);
@@ -36,7 +38,7 @@ public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnot
 
 
 	@Override
-	protected Object createMethodInvokingAdapter(Object bean, Method method, Handler annotation) {
+	protected Object createMethodInvokingAdapter(Object bean, Method method, ServiceActivator annotation) {
 		return new DefaultServiceInvoker(bean, method);
 	}
 

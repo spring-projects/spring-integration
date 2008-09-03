@@ -42,7 +42,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Handler
 public @interface Splitter {
 
 	String inputChannel() default "";

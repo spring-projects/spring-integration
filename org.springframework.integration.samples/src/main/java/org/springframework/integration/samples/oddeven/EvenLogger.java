@@ -16,8 +16,8 @@
 
 package org.springframework.integration.samples.oddeven;
 
-import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.annotation.ServiceActivator;
 
 /**
  * @author Mark Fisher
@@ -25,7 +25,7 @@ import org.springframework.integration.annotation.MessageEndpoint;
 @MessageEndpoint
 public class EvenLogger {
 
-	@Handler
+	@ServiceActivator
 	public void log(int i) {
 		System.out.println("even: " + i);
 	}

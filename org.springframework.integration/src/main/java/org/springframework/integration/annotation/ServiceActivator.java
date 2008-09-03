@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
 /**
  * Indicates that a method is capable of handling a message or message payload.
  * <p>
- * A method annotated with @Handler may accept a parameter of type
+ * A method annotated with @ServiceActivator may accept a parameter of type
  * {@link org.springframework.integration.message.Message} or of the expected
  * Message payload's type. Any type conversion supported by
  * {@link org.springframework.beans.SimpleTypeConverter} will be applied to
@@ -39,11 +39,11 @@ import java.lang.annotation.Target;
  * 
  * @author Mark Fisher
  */
-@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+@Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-public @interface Handler {
+public @interface ServiceActivator {
 
 	String inputChannel() default "";
 

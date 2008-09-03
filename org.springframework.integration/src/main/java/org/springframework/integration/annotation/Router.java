@@ -46,7 +46,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-@Handler
 public @interface Router {
 
 	String inputChannel() default "";

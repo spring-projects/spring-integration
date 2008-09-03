@@ -27,8 +27,8 @@ import org.junit.Test;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -38,16 +38,16 @@ import org.springframework.integration.message.StringMessage;
 /**
  * @author Mark Fisher
  */
-public class SubscriberAnnotationPostProcessorTests {
+public class ServiceActivatorAnnotationPostProcessorTests {
 
 	@Test
-	public void testAnnotatedSubscriber() throws InterruptedException {
+	public void testAnnotatedMethod() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
 		GenericApplicationContext context = new GenericApplicationContext();
 		context.registerBeanDefinition("testChannel", new RootBeanDefinition(QueueChannel.class));
-		RootBeanDefinition subscriberDef = new RootBeanDefinition(SubscriberAnnotationTestBean.class);
-		subscriberDef.getConstructorArgumentValues().addGenericArgumentValue(latch);
-		context.registerBeanDefinition("testBean", subscriberDef);
+		RootBeanDefinition beanDefinition = new RootBeanDefinition(SimpleServiceActivatorAnnotationTestBean.class);
+		beanDefinition.getConstructorArgumentValues().addGenericArgumentValue(latch);
+		context.registerBeanDefinition("testBean", beanDefinition);
 		String busBeanName = MessageBusParser.MESSAGE_BUS_BEAN_NAME;
 		context.registerBeanDefinition(busBeanName, new RootBeanDefinition(DefaultMessageBus.class));
 		RootBeanDefinition postProcessorDef = new RootBeanDefinition(MessagingAnnotationPostProcessor.class);
@@ -55,7 +55,7 @@ public class SubscriberAnnotationPostProcessorTests {
 		context.registerBeanDefinition("postProcessor", postProcessorDef);
 		context.refresh();
 		context.start();
-		SubscriberAnnotationTestBean testBean = (SubscriberAnnotationTestBean) context.getBean("testBean");
+		SimpleServiceActivatorAnnotationTestBean testBean = (SimpleServiceActivatorAnnotationTestBean) context.getBean("testBean");
 		assertEquals(1, latch.getCount());
 		assertNull(testBean.getMessageText());
 		MessageChannel testChannel = (MessageChannel) context.getBean("testChannel");
@@ -67,13 +67,13 @@ public class SubscriberAnnotationPostProcessorTests {
 	}
 
 
-	public static class AbstractSubscriberAnnotationTestBean {
+	public static class AbstractServiceActivatorAnnotationTestBean {
 
 		protected String messageText;
 
 		private CountDownLatch latch;
 
-		public AbstractSubscriberAnnotationTestBean(CountDownLatch latch) {
+		public AbstractServiceActivatorAnnotationTestBean(CountDownLatch latch) {
 			this.latch = latch;
 		}
 
@@ -87,14 +87,14 @@ public class SubscriberAnnotationPostProcessorTests {
 	}
 
 
-	@MessageEndpoint
-	public static class SubscriberAnnotationTestBean extends SubscriberAnnotationPostProcessorTests.AbstractSubscriberAnnotationTestBean {
+	@MessageEndpoint	
+	public static class SimpleServiceActivatorAnnotationTestBean extends AbstractServiceActivatorAnnotationTestBean {
 
-		public SubscriberAnnotationTestBean(CountDownLatch latch) {
+		public SimpleServiceActivatorAnnotationTestBean(CountDownLatch latch) {
 			super(latch);
 		}
 
-		@Handler(inputChannel="testChannel")
+		@ServiceActivator(inputChannel="testChannel")
 		public void testMethod(String messageText) {
 			this.messageText = messageText;
 			this.countDown();

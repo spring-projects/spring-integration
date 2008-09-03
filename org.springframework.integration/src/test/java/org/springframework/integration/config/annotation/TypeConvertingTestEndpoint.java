@@ -16,8 +16,8 @@
 
 package org.springframework.integration.config.annotation;
 
-import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.annotation.ServiceActivator;
 
 /**
  * @author Mark Fisher
@@ -25,7 +25,7 @@ import org.springframework.integration.annotation.MessageEndpoint;
 @MessageEndpoint
 public class TypeConvertingTestEndpoint {
 
-	@Handler(inputChannel="inputChannel", outputChannel="outputChannel")
+	@ServiceActivator(inputChannel="inputChannel", outputChannel="outputChannel")
 	public int multiplyByTwo(int number) {
 		return number * 2;
 	}

@@ -21,8 +21,8 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -125,7 +125,7 @@ public class DirectChannelSubscriptionTests {
 	@MessageEndpoint
 	public static class TestEndpoint {
 
-		@Handler(inputChannel="sourceChannel", outputChannel="targetChannel")
+		@ServiceActivator(inputChannel="sourceChannel", outputChannel="targetChannel")
 		public Message<?> handle(Message<?> message) {
 			return new StringMessage(message.getPayload() + "-from-annotated-endpoint");
 		}
@@ -135,7 +135,7 @@ public class DirectChannelSubscriptionTests {
 	@MessageEndpoint
 	public static class FailingTestEndpoint {
 
-		@Handler(inputChannel="sourceChannel", outputChannel="targetChannel")
+		@ServiceActivator(inputChannel="sourceChannel", outputChannel="targetChannel")
 		public Message<?> handle(Message<?> message) {
 			throw new RuntimeException("intentional test failure");
 		}

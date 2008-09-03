@@ -36,8 +36,8 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.ChannelAdapter;
-import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.Router;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.bus.MessageBus;
@@ -78,8 +78,8 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Init
 	public void afterPropertiesSet() {
 		postProcessors.put(Aggregator.class, new AggregatorAnnotationPostProcessor(this.messageBus));
 		postProcessors.put(ChannelAdapter.class, new ChannelAdapterAnnotationPostProcessor(this.messageBus));
-		postProcessors.put(Handler.class, new ServiceActivatorAnnotationPostProcessor(this.messageBus));
 		postProcessors.put(Router.class, new RouterAnnotationPostProcessor(this.messageBus));
+		postProcessors.put(ServiceActivator.class, new ServiceActivatorAnnotationPostProcessor(this.messageBus));
 		postProcessors.put(Splitter.class, new SplitterAnnotationPostProcessor(this.messageBus));
 		postProcessors.put(Transformer.class, new TransformerAnnotationPostProcessor(this.messageBus));
 	}

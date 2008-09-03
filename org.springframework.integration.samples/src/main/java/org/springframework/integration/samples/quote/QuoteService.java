@@ -20,8 +20,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Random;
 
-import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.annotation.ServiceActivator;
 
 /**
  * @author Mark Fisher
@@ -29,7 +29,7 @@ import org.springframework.integration.annotation.MessageEndpoint;
 @MessageEndpoint
 public class QuoteService {
 
-	@Handler(inputChannel="tickers", outputChannel="quotes")
+	@ServiceActivator(inputChannel="tickers", outputChannel="quotes")
 	public Quote lookupQuote(String ticker) {
 		BigDecimal price = new BigDecimal(new Random().nextDouble() * 100);		
 		return new Quote(ticker, price.setScale(2, RoundingMode.HALF_EVEN));	

@@ -8,6 +8,7 @@
 			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
 
 	<message-bus/>
+	<annotation-driven/>
 
 	<channel id="inputChannel"/>
 
@@ -15,12 +16,8 @@
 		<queue capacity="5"/>
 	</channel>
 
-	<service-activator input-channel="inputChannel" ref="simpleHandler" output-channel="outputChannel"/>
+	<service-activator input-channel="inputChannel" ref="testBean" output-channel="outputChannel"/>
 
-	<beans:bean class="org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor">
-		<beans:constructor-arg ref="internal.MessageBus"/>
-	</beans:bean>
-
-	<beans:bean id="simpleHandler" class="org.springframework.integration.config.annotation.SimpleHandlerTestBean"/>
+	<beans:bean id="testBean" class="org.springframework.integration.config.annotation.SimpleServiceActivatorTestBean"/>
 
 </beans:beans>

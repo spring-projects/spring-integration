@@ -32,9 +32,9 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.annotation.ChannelAdapter;
-import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Poller;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.bus.MessageBus;
@@ -71,8 +71,8 @@ public class MessagingAnnotationPostProcessorTests {
 	@Test
 	public void testSimpleHandlerWithContext() {
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext(
-				"handlerAnnotationPostProcessorTests.xml", this.getClass());
-		ServiceInvoker invoker = (ServiceInvoker) context.getBean("simpleHandler");
+				"serviceActivatorAnnotationPostProcessorTests.xml", this.getClass());
+		ServiceInvoker invoker = (ServiceInvoker) context.getBean("testBean");
 		String reply = (String) invoker.invoke(new StringMessage("world"));
 		assertEquals("hello world", reply);
 		context.stop();
@@ -81,7 +81,7 @@ public class MessagingAnnotationPostProcessorTests {
 	@Test
 	public void testSimpleHandlerEndpointWithContext() {
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext(
-				"handlerAnnotationPostProcessorTests.xml", this.getClass());
+				"serviceActivatorAnnotationPostProcessorTests.xml", this.getClass());
 		MessageChannel inputChannel = (MessageChannel) context.getBean("inputChannel");
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		inputChannel.send(new StringMessage("foo"));
@@ -294,7 +294,7 @@ public class MessagingAnnotationPostProcessorTests {
 		postProcessor.afterPropertiesSet();
 		AnnotatedEndpointWithPolledAnnotation endpoint = new AnnotatedEndpointWithPolledAnnotation();
 		postProcessor.postProcessAfterInitialization(endpoint, "testBean");
-		ServiceActivatorEndpoint processedEndpoint = (ServiceActivatorEndpoint) messageBus.lookupEndpoint("testBean.handler");
+		ServiceActivatorEndpoint processedEndpoint = (ServiceActivatorEndpoint) messageBus.lookupEndpoint("testBean.serviceActivator");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(processedEndpoint);
 		MessageSource<?> source = (MessageSource<?>) accessor.getPropertyValue("source");
 		assertTrue(source instanceof SubscribableSource);
@@ -382,7 +382,7 @@ public class MessagingAnnotationPostProcessorTests {
 			return this.channelRegistry;
 		}
 
-		@Handler(inputChannel="inputChannel")
+		@ServiceActivator(inputChannel="inputChannel")
 		public Message<?> handle(Message<?> message) {
 			return null;
 		}
@@ -401,7 +401,7 @@ public class MessagingAnnotationPostProcessorTests {
 
 	private static class SimpleAnnotatedEndpointImplementation implements SimpleAnnotatedEndpointInterface {
 
-		@Handler(inputChannel="inputChannel", outputChannel="outputChannel")
+		@ServiceActivator(inputChannel="inputChannel", outputChannel="outputChannel")
 		public String test(String input) {
 			return "test-"  + input;
 		}
@@ -411,7 +411,7 @@ public class MessagingAnnotationPostProcessorTests {
 	@MessageEndpoint
 	private static class AnnotatedEndpointWithPolledAnnotation {
 
-		@Handler(inputChannel="testChannel")
+		@ServiceActivator(inputChannel="testChannel")
 		@Poller(period=1234, initialDelay=5678, fixedRate=true, timeUnit=TimeUnit.SECONDS)
 		public String prependFoo(String s) {
 			return "foo" + s;
@@ -422,7 +422,7 @@ public class MessagingAnnotationPostProcessorTests {
 	@MessageEndpoint
 	private static class HandlerAnnotatedBean {
 
-		@Handler
+		@ServiceActivator
 		public String test(String s) {
 			return s + s;
 		}

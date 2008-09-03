@@ -33,7 +33,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-@Handler
 public @interface Transformer {
 
 	String inputChannel() default "";

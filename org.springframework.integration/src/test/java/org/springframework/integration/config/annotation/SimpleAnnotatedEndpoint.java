@@ -16,8 +16,8 @@
 
 package org.springframework.integration.config.annotation;
 
-import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.endpoint.annotation.ITestEndpoint;
 
 /**
@@ -26,7 +26,7 @@ import org.springframework.integration.endpoint.annotation.ITestEndpoint;
 @MessageEndpoint
 public class SimpleAnnotatedEndpoint implements ITestEndpoint {
 
-	@Handler(inputChannel="inputChannel", outputChannel="outputChannel")
+	@ServiceActivator(inputChannel="inputChannel", outputChannel="outputChannel")
 	public String sayHello(String name) {
 		return "hello " + name;
 	}

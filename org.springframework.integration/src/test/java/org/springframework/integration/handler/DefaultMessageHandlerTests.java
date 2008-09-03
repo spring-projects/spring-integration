@@ -24,7 +24,6 @@ import java.util.Properties;
 
 import org.junit.Test;
 
-import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
@@ -111,7 +110,7 @@ public class DefaultMessageHandlerTests {
 
 	@Test
 	public void messageOnlyWithAnnotatedMethod() throws Exception {
-		AnnotatedTestHandler handler = new AnnotatedTestHandler();
+		AnnotatedTestService handler = new AnnotatedTestService();
 		Method method = handler.getClass().getMethod("messageOnly", Message.class);
 		DefaultMessageHandler adapter = new DefaultMessageHandler();
 		adapter.setObject(handler);
@@ -122,7 +121,7 @@ public class DefaultMessageHandlerTests {
 
 	@Test
 	public void payloadWithAnnotatedMethod() throws Exception {
-		AnnotatedTestHandler handler = new AnnotatedTestHandler();
+		AnnotatedTestService handler = new AnnotatedTestService();
 		Method method = handler.getClass().getMethod("integerMethod", Integer.class);
 		DefaultMessageHandler adapter = new DefaultMessageHandler();
 		adapter.setObject(handler);
@@ -133,7 +132,7 @@ public class DefaultMessageHandlerTests {
 
 	@Test
 	public void convertedPayloadWithAnnotatedMethod() throws Exception {
-		AnnotatedTestHandler handler = new AnnotatedTestHandler();
+		AnnotatedTestService handler = new AnnotatedTestService();
 		Method method = handler.getClass().getMethod("integerMethod", Integer.class);
 		DefaultMessageHandler adapter = new DefaultMessageHandler();
 		adapter.setObject(handler);
@@ -144,7 +143,7 @@ public class DefaultMessageHandlerTests {
 
 	@Test(expected = MessagingException.class)
 	public void conversionFailureWithAnnotatedMethod() throws Exception {
-		AnnotatedTestHandler handler = new AnnotatedTestHandler();
+		AnnotatedTestService handler = new AnnotatedTestService();
 		Method method = handler.getClass().getMethod("integerMethod", Integer.class);
 		DefaultMessageHandler adapter = new DefaultMessageHandler();
 		adapter.setObject(handler);
@@ -155,7 +154,7 @@ public class DefaultMessageHandlerTests {
 
 	@Test
 	public void messageAndHeaderWithAnnotatedMethod() throws Exception {
-		AnnotatedTestHandler handler = new AnnotatedTestHandler();
+		AnnotatedTestService handler = new AnnotatedTestService();
 		Method method = handler.getClass().getMethod("messageAndHeader", Message.class, Integer.class);
 		DefaultMessageHandler adapter = new DefaultMessageHandler();
 		adapter.setObject(handler);
@@ -168,7 +167,7 @@ public class DefaultMessageHandlerTests {
 
 	@Test
 	public void multipleHeadersWithAnnotatedMethod() throws Exception {
-		AnnotatedTestHandler handler = new AnnotatedTestHandler();
+		AnnotatedTestService handler = new AnnotatedTestService();
 		Method method = handler.getClass().getMethod("twoHeaders", String.class, Integer.class);
 		DefaultMessageHandler adapter = new DefaultMessageHandler();
 		adapter.setObject(handler);
@@ -212,50 +211,41 @@ public class DefaultMessageHandlerTests {
 		}
 	}
 
-	private static class AnnotatedTestHandler {
+	private static class AnnotatedTestService {
 
-		@Handler
 		public String messageOnly(Message<?> message) {
 			return (String) message.getPayload();
 		}
 
-		@Handler
 		public String messageAndHeader(Message<?> message, @Header("number") Integer num) {
 			return (String) message.getPayload() + "-" + num.toString();
 		}
 
-		@Handler
 		public String twoHeaders(@Header String prop, @Header("number") Integer num) {
 			return prop + "-" + num.toString();
 		}
 
-		@Handler
 		public Integer optionalHeader(@Header(required=false) Integer num) {
 			return num;
 		}
 
-		@Handler
 		public Integer requiredHeader(@Header(value="num", required=true) Integer num) {
 			return num;
 		}
 
-		@Handler
 		public String optionalAndRequiredHeader(@Header(required=false) String prop, @Header(value="num", required=true) Integer num) {
 			return prop + num;
 		}
 
-		@Handler
 		public Properties propertiesMethod(Properties properties) {
 			return properties;
 		}
 
-		@Handler
 		@SuppressWarnings("unchecked")
 		public Map mapMethod(Map map) {
 			return map;
 		}
 
-		@Handler
 		public Integer integerMethod(Integer i) {
 			return i;
 		}

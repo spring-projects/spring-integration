@@ -36,7 +36,6 @@ import org.springframework.integration.aggregator.AggregatingMessageHandler;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Handler
 public @interface Aggregator {
 
 	/**

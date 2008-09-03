@@ -16,8 +16,8 @@
 
 package org.springframework.integration.endpoint.annotation;
 
-import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 
@@ -27,7 +27,7 @@ import org.springframework.integration.message.StringMessage;
 @MessageEndpoint
 public class MessageParameterAnnotatedEndpoint {
 
-	@Handler(inputChannel="inputChannel", outputChannel="outputChannel")
+	@ServiceActivator(inputChannel="inputChannel", outputChannel="outputChannel")
 	public StringMessage sayHello(Message<?> message) {
 		return new StringMessage("hello " + message.getPayload());
 	}
