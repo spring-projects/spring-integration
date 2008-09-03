@@ -18,7 +18,7 @@ package org.springframework.integration.xml.transformer;
 
 import javax.xml.transform.Source;
 
-import org.springframework.integration.transformer.PayloadTransformer;
+import org.springframework.integration.transformer.AbstractPayloadTransformer;
 import org.springframework.integration.xml.source.DomSourceFactory;
 import org.springframework.integration.xml.source.SourceFactory;
 
@@ -28,7 +28,7 @@ import org.springframework.integration.xml.source.SourceFactory;
  * 
  * @author Jonas Partner
  */
-public class SourceCreatingTransformer implements PayloadTransformer<Object, Source> {
+public class SourceCreatingTransformer extends AbstractPayloadTransformer<Object, Source> {
 
 	private final SourceFactory sourceFactory;
 
@@ -41,8 +41,8 @@ public class SourceCreatingTransformer implements PayloadTransformer<Object, Sou
 		this.sourceFactory = sourceFactory;
 	}
 
-
-	public Source transform(Object payload) {
+	@Override
+	public Source transformPayload(Object payload) {
 		return this.sourceFactory.createSource(payload);
 	}
 

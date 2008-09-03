@@ -22,7 +22,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Result;
 
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.transformer.PayloadTransformer;
+import org.springframework.integration.transformer.AbstractPayloadTransformer;
 import org.springframework.integration.xml.result.DomResultFactory;
 import org.springframework.integration.xml.result.ResultFactory;
 import org.springframework.oxm.Marshaller;
@@ -35,8 +35,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Jonas Partner
  */
-public class XmlPayloadMarshallingTransformer implements
-		PayloadTransformer<Object, Object> {
+public class XmlPayloadMarshallingTransformer extends AbstractPayloadTransformer<Object, Object> {
 
 	private final Marshaller marshaller;
 
@@ -44,8 +43,7 @@ public class XmlPayloadMarshallingTransformer implements
 
 	private final ResultTransformer resultTransformer;
 
-	public XmlPayloadMarshallingTransformer(Marshaller marshaller,
-			ResultTransformer resultTransformer)
+	public XmlPayloadMarshallingTransformer(Marshaller marshaller, ResultTransformer resultTransformer)
 			throws ParserConfigurationException {
 		Assert.notNull(marshaller, "a marshaller is required");
 		this.marshaller = marshaller;
@@ -53,17 +51,18 @@ public class XmlPayloadMarshallingTransformer implements
 		resultFactory = new DomResultFactory();
 	}
 
-	public XmlPayloadMarshallingTransformer(Marshaller marshaller)
-			throws ParserConfigurationException {
+	public XmlPayloadMarshallingTransformer(Marshaller marshaller) throws ParserConfigurationException {
 		this(marshaller, null);
 	}
+
 
 	public void setResultFactory(ResultFactory resultFactory) {
 		Assert.notNull(resultFactory, "ResultFactory must not be null");
 		this.resultFactory = resultFactory;
 	}
 
-	public Object transform(Object payload) {
+	@Override
+	public Object transformPayload(Object payload) {
 		Object transformedPayload = null;
 		Result result = this.resultFactory.createResult(payload);
 		if (result == null) {

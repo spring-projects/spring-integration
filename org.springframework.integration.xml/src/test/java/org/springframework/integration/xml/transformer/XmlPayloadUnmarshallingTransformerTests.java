@@ -37,7 +37,7 @@ public class XmlPayloadUnmarshallingTransformerTests {
 	public void testStringSourceToString() {
 		Unmarshaller unmarshaller = new TestUnmarshaller();
 		XmlPayloadUnmarshallingTransformer transformer = new XmlPayloadUnmarshallingTransformer(unmarshaller);
-		Object transformed = transformer.transform(new StringSource("world"));
+		Object transformed = transformer.transformPayload(new StringSource("world"));
 		assertEquals(String.class, transformed.getClass());
 		assertEquals("hello world", transformed.toString());
 	}

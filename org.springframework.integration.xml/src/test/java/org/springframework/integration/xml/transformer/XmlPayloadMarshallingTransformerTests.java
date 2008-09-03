@@ -42,7 +42,7 @@ public class XmlPayloadMarshallingTransformerTests {
 		XmlPayloadMarshallingTransformer transformer = new XmlPayloadMarshallingTransformer(
 				marshaller);
 		transformer.setResultFactory(new StringResultFactory());
-		Object result = transformer.transform("world");
+		Object result = transformer.transformPayload("world");
 		assertEquals(StringResult.class, result.getClass());
 		assertEquals("hello world", result.toString());
 		assertEquals("world", marshaller.payloads.get(0));
@@ -53,7 +53,7 @@ public class XmlPayloadMarshallingTransformerTests {
 		TestMarshaller marshaller = new TestMarshaller();
 		XmlPayloadMarshallingTransformer transformer = new XmlPayloadMarshallingTransformer(
 				marshaller);
-		Object result = transformer.transform("world");
+		Object result = transformer.transformPayload("world");
 		assertEquals(DOMResult.class, result.getClass());
 		assertEquals("world", marshaller.payloads.get(0));
 	}

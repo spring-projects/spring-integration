@@ -18,26 +18,26 @@ package org.springframework.integration.xml.config;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.transformer.PayloadTransformer;
+import org.springframework.integration.transformer.AbstractPayloadTransformer;
 import org.springframework.integration.transformer.config.AbstractPayloadTransformerParser;
 import org.springframework.integration.xml.result.DomResultFactory;
 import org.springframework.integration.xml.result.StringResultFactory;
 import org.springframework.integration.xml.transformer.XmlPayloadMarshallingTransformer;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * @author Jonas Partner
  * @author Mark Fisher
  */
-public class XmlMarshallingTransformerParser extends
-		AbstractPayloadTransformerParser {
+public class XmlMarshallingTransformerParser extends AbstractPayloadTransformerParser {
 
 	@Override
-	protected Class<? extends PayloadTransformer<?, ?>> getTransformerClass() {
+	protected Class<? extends AbstractPayloadTransformer<?, ?>> getTransformerClass() {
 		return XmlPayloadMarshallingTransformer.class;
 	}
 
@@ -47,7 +47,6 @@ public class XmlMarshallingTransformerParser extends
 		String resultFactory = element.getAttribute("result-factory");
 		String marshaller = element.getAttribute("marshaller");
 		String resultTransformer = element.getAttribute("result-transformer");
-		
 		Assert.hasText(marshaller, "the 'marshaller' attribute is required");
 		Assert.hasText(resultFactory,
 				"the 'result-factory' attribute is required");
@@ -55,20 +54,18 @@ public class XmlMarshallingTransformerParser extends
 		if(StringUtils.hasText(resultTransformer)){
 			builder.addConstructorArgReference(resultTransformer);
 		}
-
 		if (resultFactory.equals("DOMResult")) {
 			try {
-				builder.addPropertyValue("resultFactory",
-						new DomResultFactory());
-
-			} catch (ParserConfigurationException e) {
+				builder.addPropertyValue("resultFactory", new DomResultFactory());
+			}
+			catch (ParserConfigurationException e) {
 				throw new org.springframework.integration.ConfigurationException(
 						"Exception creating DomResultFactory");
 			}
-		} else if (resultFactory.equals("StringResult")) {
-			builder
-					.addPropertyValue("resultFactory",
-							new StringResultFactory());
+		}
+		else if (resultFactory.equals("StringResult")) {
+			builder.addPropertyValue("resultFactory", new StringResultFactory());
 		}
 	}
+
 }

@@ -28,9 +28,9 @@ import org.w3c.dom.Document;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.transformer.Transformer;
 import org.springframework.integration.xml.util.XmlTestUtil;
 
 /**
@@ -51,10 +51,10 @@ public class XsltPayloadTransformerParserTests {
 
 	@Test
 	public void testWithResourceProvided() throws Exception {
-		MessageHandler messageTransformer = (MessageHandler) applicationContext
+		Transformer transformer = (Transformer) applicationContext
 				.getBean("xsltTransformerWithResource");
 		GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
-		Message<?> result = messageTransformer.handle(message);
+		Message<?> result = transformer.transform(message);
 		assertTrue("Payload was not a DOMResult", result.getPayload() instanceof DOMResult);
 		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
 		assertEquals("Wrong payload", "test", doc.getDocumentElement().getTextContent());
@@ -62,25 +62,24 @@ public class XsltPayloadTransformerParserTests {
 
 	@Test
 	public void testWithTemplatesProvided() throws Exception {
-		MessageHandler messageTransformer = (MessageHandler) applicationContext
+		Transformer transformer = (Transformer) applicationContext
 				.getBean("xsltTransformerWithTemplates");
 		GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
-		Message<?> result = messageTransformer.handle(message);
+		Message<?> result = transformer.transform(message);
 		assertTrue("Payload was not a DOMResult", result.getPayload() instanceof DOMResult);
 		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
 		assertEquals("Wrong payload", "test", doc.getDocumentElement().getTextContent());
 	}
-	
+
 	@Test
 	public void testWithTemplatesAndResultTransformer() throws Exception {
-		MessageHandler messageTransformer = (MessageHandler) applicationContext
+		Transformer transformer = (Transformer) applicationContext
 				.getBean("xsltTransformerWithTemplatesAndResultTransformer");
 		GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
-		Message<?> result = messageTransformer.handle(message);
-		
+		Message<?> result = transformer.transform(message);
 		assertEquals("Wrong payload type", String.class, result.getPayload().getClass());
 		String strResult = (String)result.getPayload();
 		assertEquals("Wrong payload", "testReturn", strResult);
 	}
-	
+
 }

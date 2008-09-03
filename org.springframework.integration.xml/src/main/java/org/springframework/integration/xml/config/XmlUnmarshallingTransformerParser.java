@@ -20,7 +20,7 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.transformer.PayloadTransformer;
+import org.springframework.integration.transformer.AbstractPayloadTransformer;
 import org.springframework.integration.transformer.config.AbstractPayloadTransformerParser;
 import org.springframework.integration.xml.transformer.XmlPayloadUnmarshallingTransformer;
 import org.springframework.util.Assert;
@@ -32,7 +32,7 @@ import org.springframework.util.Assert;
 public class XmlUnmarshallingTransformerParser extends AbstractPayloadTransformerParser {
 
 	@Override
-	protected Class<? extends PayloadTransformer<?, ?>> getTransformerClass() {
+	protected Class<? extends AbstractPayloadTransformer<?, ?>> getTransformerClass() {
 		return XmlPayloadUnmarshallingTransformer.class;
 	}
 

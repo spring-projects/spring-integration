@@ -6,30 +6,23 @@
 		http://www.springframework.org/schema/integration-xml http://www.springframework.org/schema/integration/spring-integration-xml-1.0.xsd">
 
 	<si-xml:marshalling-transformer
-		id="marshallingTransfomerNoResultFactory" marshaller="marshaller" />
-
-
+		id="marshallingTransformerNoResultFactory" marshaller="marshaller" />
 
 	<si-xml:marshalling-transformer
-		id="marshallingTransfomerStringResultFactory" marshaller="marshaller"
+		id="marshallingTransformerStringResultFactory" marshaller="marshaller"
 		result-factory="StringResult" />
 
 	<si-xml:marshalling-transformer
-		id="marshallingTransfomerDOMResultFactory" marshaller="marshaller"
+		id="marshallingTransformerDOMResultFactory" marshaller="marshaller"
 		result-factory="DOMResult" />
 
-
-
 	<si-xml:marshalling-transformer
-		id="marshallingTransfomerWithResultTransformer"
+		id="marshallingTransformerWithResultTransformer"
 		marshaller="marshaller" result-transformer="resultTransformer" />
 
-	<bean id="marshaller"
-		class="org.springframework.integration.xml.config.StubMarshaller" />
+	<bean id="marshaller" class="org.springframework.integration.xml.config.StubMarshaller" />
 
-
-	<bean id="resultTransformer"
-		class="org.springframework.integration.xml.config.StubResultTransformer">
+	<bean id="resultTransformer" class="org.springframework.integration.xml.config.StubResultTransformer">
 		<constructor-arg value="testReturn" />
 	</bean>
 

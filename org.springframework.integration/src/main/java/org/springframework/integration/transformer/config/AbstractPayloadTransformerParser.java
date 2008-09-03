@@ -19,11 +19,9 @@ package org.springframework.integration.transformer.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.transformer.PayloadTransformer;
-import org.springframework.integration.transformer.PayloadTransformingMessageHandler;
+import org.springframework.integration.transformer.AbstractPayloadTransformer;
 
 /**
  * @author Mark Fisher
@@ -42,19 +40,15 @@ public abstract class AbstractPayloadTransformerParser extends AbstractSingleBea
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
-		return PayloadTransformingMessageHandler.class;
+		return this.getTransformerClass();
 	}
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		BeanDefinitionBuilder transformerBuilder = BeanDefinitionBuilder.genericBeanDefinition(this.getTransformerClass());
-		this.parsePayloadTransformer(element, parserContext, transformerBuilder);
-		String transformerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
-				transformerBuilder.getBeanDefinition(), parserContext.getRegistry());
-		builder.addConstructorArgReference(transformerBeanName);
+		this.parsePayloadTransformer(element, parserContext, builder);
 	}
 
-	protected abstract Class<? extends PayloadTransformer<?, ?>> getTransformerClass();
+	protected abstract Class<? extends AbstractPayloadTransformer<?, ?>> getTransformerClass();
 
 	protected abstract void parsePayloadTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder);
 

@@ -51,7 +51,7 @@ public class XsltPayloadTransformerTest {
 
 	@Test
 	public void testDocumentAsPayload() throws Exception {
-		Object transformed = transformer.transform(XmlTestUtil
+		Object transformed = transformer.transformPayload(XmlTestUtil
 				.getDocumentForString(docAsString));
 		assertTrue("Wrong return type for document payload", Document.class
 				.isAssignableFrom(transformed.getClass()));
@@ -63,7 +63,7 @@ public class XsltPayloadTransformerTest {
 	@Test
 	public void testSourceAsPayload() throws Exception {
 		Object transformed = transformer
-				.transform(new StringSource(docAsString));
+				.transformPayload(new StringSource(docAsString));
 		assertEquals("Wrong return type for source payload", DOMResult.class,
 				transformed.getClass());
 		DOMResult result = (DOMResult) transformed;
@@ -74,7 +74,7 @@ public class XsltPayloadTransformerTest {
 
 	@Test
 	public void testStringAsPayload() throws Exception {
-		Object transformed = transformer.transform(docAsString);
+		Object transformed = transformer.transformPayload(docAsString);
 		assertEquals("Wrong return type for string payload", String.class,
 				transformed.getClass());
 		String transformedString = (String) transformed;
@@ -85,7 +85,7 @@ public class XsltPayloadTransformerTest {
 	@Test
 	public void testStringAsPayloadUseFactoriesTrue() throws Exception {
 		transformer.setAlwaysUseSourceResultFactories(true);
-		Object transformed = transformer.transform(docAsString);
+		Object transformed = transformer.transformPayload(docAsString);
 		assertEquals("Wrong return type for useFactories true",
 				DOMResult.class, transformed.getClass());
 		DOMResult result = (DOMResult) transformed;
@@ -99,19 +99,19 @@ public class XsltPayloadTransformerTest {
 		Integer returnValue = new Integer(13);
 		transformer = new XsltPayloadTransformer(getXslResource(), new StubResultTransformer(returnValue));
 		Object transformed = transformer
-				.transform(new StringSource(docAsString));
+				.transformPayload(new StringSource(docAsString));
 		assertEquals("Wrong value from result conversion", returnValue,
 				transformed);
 	}
 
 	@Test(expected = TransformerException.class)
 	public void testNonXmlString() throws Exception {
-		transformer.transform("test");
+		transformer.transformPayload("test");
 	}
 
 	@Test(expected = MessagingException.class)
 	public void testUnsupportedPayloadType() throws Exception {
-		transformer.transform(new Long(12));
+		transformer.transformPayload(new Long(12));
 	}
 
 	private Resource getXslResource() throws Exception {

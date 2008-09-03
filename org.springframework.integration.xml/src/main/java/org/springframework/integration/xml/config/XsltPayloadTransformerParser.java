@@ -20,7 +20,7 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.transformer.PayloadTransformer;
+import org.springframework.integration.transformer.AbstractPayloadTransformer;
 import org.springframework.integration.transformer.config.AbstractPayloadTransformerParser;
 import org.springframework.integration.xml.transformer.XsltPayloadTransformer;
 import org.springframework.util.Assert;
@@ -33,7 +33,7 @@ import org.springframework.util.StringUtils;
 public class XsltPayloadTransformerParser extends AbstractPayloadTransformerParser {
 
 	@Override
-	protected Class<? extends PayloadTransformer<?, ?>> getTransformerClass() {
+	protected Class<? extends AbstractPayloadTransformer<?, ?>> getTransformerClass() {
 		return XsltPayloadTransformer.class; 
 	}
 
@@ -47,14 +47,12 @@ public class XsltPayloadTransformerParser extends AbstractPayloadTransformerPars
 		boolean oneHasText = StringUtils.hasText(xslResource) || StringUtils.hasText(xslTemplates);
 		Assert.state(!bothHaveText && oneHasText,
 				"Exactly one of 'xsl-resource' or 'xsl-templates' is required.");
-
 		if (StringUtils.hasText(xslResource)) {
 			builder.addConstructorArgValue(xslResource);
 		}
 		else if (StringUtils.hasText(xslTemplates)) {
 			builder.addConstructorArgReference(xslTemplates);
 		}
-
 		String sourceFactory = element.getAttribute("source-factory");
 		if (StringUtils.hasText(sourceFactory)) {
 			builder.addPropertyReference("sourceFactory", sourceFactory);
@@ -63,7 +61,6 @@ public class XsltPayloadTransformerParser extends AbstractPayloadTransformerPars
 		if (StringUtils.hasText(resultFactory)) {
 			builder.addPropertyReference("resultFactory", resultFactory);
 		}
-		
 		if(StringUtils.hasText(resultTransformer)){
 			builder.addConstructorArgReference(resultTransformer);
 		}
