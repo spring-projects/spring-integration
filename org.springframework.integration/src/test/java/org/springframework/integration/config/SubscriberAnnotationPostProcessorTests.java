@@ -19,10 +19,6 @@ package org.springframework.integration.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -31,11 +27,12 @@ import org.junit.Test;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.integration.annotation.Subscriber;
+import org.springframework.integration.annotation.Handler;
+import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.config.annotation.SubscriberAnnotationPostProcessor;
+import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -53,8 +50,8 @@ public class SubscriberAnnotationPostProcessorTests {
 		context.registerBeanDefinition("testBean", subscriberDef);
 		String busBeanName = MessageBusParser.MESSAGE_BUS_BEAN_NAME;
 		context.registerBeanDefinition(busBeanName, new RootBeanDefinition(DefaultMessageBus.class));
-		RootBeanDefinition postProcessorDef = new RootBeanDefinition(SubscriberAnnotationPostProcessor.class);
-		postProcessorDef.getPropertyValues().addPropertyValue("messageBus", new RuntimeBeanReference(busBeanName));
+		RootBeanDefinition postProcessorDef = new RootBeanDefinition(MessagingAnnotationPostProcessor.class);
+		postProcessorDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(busBeanName));
 		context.registerBeanDefinition("postProcessor", postProcessorDef);
 		context.refresh();
 		context.start();
@@ -66,34 +63,6 @@ public class SubscriberAnnotationPostProcessorTests {
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
 		assertEquals("test-123", testBean.getMessageText());
-		context.stop();
-	}
-
-	@Test
-	public void testCustomAnnotation() throws InterruptedException {
-		CountDownLatch latch = new CountDownLatch(1);
-		GenericApplicationContext context = new GenericApplicationContext();
-		context.registerBeanDefinition("testChannel", new RootBeanDefinition(QueueChannel.class));
-		RootBeanDefinition subscriberDef = new RootBeanDefinition(CustomAnnotationTestBean.class);
-		subscriberDef.getConstructorArgumentValues().addGenericArgumentValue(latch);
-		context.registerBeanDefinition("testBean", subscriberDef);
-		String busBeanName = MessageBusParser.MESSAGE_BUS_BEAN_NAME;
-		context.registerBeanDefinition(busBeanName, new RootBeanDefinition(DefaultMessageBus.class));
-		RootBeanDefinition postProcessorDef = new RootBeanDefinition(SubscriberAnnotationPostProcessor.class);
-		postProcessorDef.getPropertyValues().addPropertyValue("messageBus", new RuntimeBeanReference(busBeanName));
-		postProcessorDef.getPropertyValues().addPropertyValue("subscriberAnnotationType", CustomSubscriberAnnotation.class);
-		postProcessorDef.getPropertyValues().addPropertyValue("channelNameAttribute", "subscribeTo");
-		context.registerBeanDefinition("postProcessor", postProcessorDef);
-		context.refresh();
-		context.start();
-		CustomAnnotationTestBean testBean = (CustomAnnotationTestBean) context.getBean("testBean");
-		assertEquals(1, latch.getCount());
-		assertNull(testBean.getMessageText());
-		MessageChannel testChannel = (MessageChannel) context.getBean("testChannel");
-		testChannel.send(new StringMessage("test-456"));
-		latch.await(1000, TimeUnit.MILLISECONDS);
-		assertEquals(0, latch.getCount());
-		assertEquals("test-456", testBean.getMessageText());
 		context.stop();
 	}
 
@@ -118,38 +87,18 @@ public class SubscriberAnnotationPostProcessorTests {
 	}
 
 
+	@MessageEndpoint
 	public static class SubscriberAnnotationTestBean extends SubscriberAnnotationPostProcessorTests.AbstractSubscriberAnnotationTestBean {
 
 		public SubscriberAnnotationTestBean(CountDownLatch latch) {
 			super(latch);
 		}
 
-		@Subscriber(channel="testChannel")
+		@Handler(inputChannel="testChannel")
 		public void testMethod(String messageText) {
 			this.messageText = messageText;
 			this.countDown();
 		}
-	}
-
-
-	public static class CustomAnnotationTestBean extends SubscriberAnnotationPostProcessorTests.AbstractSubscriberAnnotationTestBean {
-
-		public CustomAnnotationTestBean(CountDownLatch latch) {
-			super(latch);
-		}
-
-		@CustomSubscriberAnnotation(subscribeTo="testChannel")
-		public void testMethod(String messageText) {
-			this.messageText = messageText;
-			this.countDown();
-		}
-	}
-
-
-	@Target(ElementType.METHOD)
-	@Retention(RetentionPolicy.RUNTIME)
-	public static @interface CustomSubscriberAnnotation {
-		String subscribeTo();
 	}
 
 }

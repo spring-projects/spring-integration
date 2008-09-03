@@ -37,16 +37,12 @@ public class AnnotationDrivenParser implements BeanDefinitionParser {
 	private static final String PUBLISHER_ANNOTATION_POST_PROCESSOR_BEAN_NAME =
 			"internal.PublisherAnnotationPostProcessor";
 
-	private static final String SUBSCRIBER_ANNOTATION_POST_PROCESSOR_BEAN_NAME = 
-			"internal.SubscriberAnnotationPostProcessor";
-
 	private static final String MESSAGING_ANNOTATION_POST_PROCESSOR_BEAN_NAME =
 			"internal.MessagingAnnotationPostProcessor";
 
 
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
 		this.registerPublisherPostProcessor(parserContext);
-		this.registerSubscriberPostProcessor(parserContext);
 		this.registerMessagingAnnotationPostProcessor(parserContext);
 		return null;
 	}
@@ -57,15 +53,6 @@ public class AnnotationDrivenParser implements BeanDefinitionParser {
 				new RuntimeBeanReference(MessageBusParser.MESSAGE_BUS_BEAN_NAME));
 		BeanComponentDefinition bcd = new BeanComponentDefinition(
 				bd, PUBLISHER_ANNOTATION_POST_PROCESSOR_BEAN_NAME);
-		parserContext.registerBeanComponent(bcd);
-	}
-
-	private void registerSubscriberPostProcessor(ParserContext parserContext) {
-		BeanDefinition bd = new RootBeanDefinition(SubscriberAnnotationPostProcessor.class);
-		bd.getPropertyValues().addPropertyValue("messageBus",
-				new RuntimeBeanReference(MessageBusParser.MESSAGE_BUS_BEAN_NAME));
-		BeanComponentDefinition bcd = new BeanComponentDefinition(
-				bd, SUBSCRIBER_ANNOTATION_POST_PROCESSOR_BEAN_NAME);
 		parserContext.registerBeanComponent(bcd);
 	}
 
