@@ -30,37 +30,34 @@ import org.springframework.integration.message.StringMessage;
 /**
  * @author Mark Fisher
  */
-public class PayloadTransformingMessageHandlerTests {
+public class PayloadTransformerTests {
 
 	@Test
 	public void testSuccessfulTransformation() {
-		PayloadTransformingMessageHandler handler = new PayloadTransformingMessageHandler(
-				new TestPayloadTransformer());
+		TestPayloadTransformer transformer = new TestPayloadTransformer();
 		Message<?> message = new StringMessage("foo");
-		Message<?> result = handler.handle(message);
+		Message<?> result = transformer.transform(message);
 		assertEquals(3, result.getPayload());
 	}
 
 	@Test(expected=MessagingException.class)
 	public void testExceptionThrownByTransformer() {
-		PayloadTransformingMessageHandler handler = new PayloadTransformingMessageHandler(
-				new TestPayloadTransformer());
+		TestPayloadTransformer transformer = new TestPayloadTransformer();
 		Message<?> message = new StringMessage("bad");
-		handler.handle(message);
+		transformer.transform(message);
 	}
 
 	@Test(expected=MessagingException.class)
 	public void testWrongPayloadType() {
-		PayloadTransformingMessageHandler handler = new PayloadTransformingMessageHandler(
-				new TestPayloadTransformer());
+		TestPayloadTransformer transformer = new TestPayloadTransformer();
 		Message<?> message = new GenericMessage<Date>(new Date());
-		handler.handle(message);
+		transformer.transform(message);
 	}
 
 
-	private static class TestPayloadTransformer implements PayloadTransformer<String, Integer> {
+	private static class TestPayloadTransformer extends AbstractPayloadTransformer<String, Integer> {
 
-		public Integer transform(String s) throws Exception {
+		public Integer transformPayload(String s) throws Exception {
 			if (s.equals("bad")) {
 				throw new Exception("bad input!");
 			}

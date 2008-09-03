@@ -29,45 +29,45 @@ import org.springframework.integration.message.MessageBuilder;
 /**
  * @author Mark Fisher
  */
-public class HeaderTransformingMessageHandlerTests {
+public class HeaderTransformerTests {
 
 	@Test
 	public void addHeader() {
-		HeaderTransformer transformer = new HeaderTransformer() {
-			public void transform(Map<String, Object> headers) {
+		AbstractHeaderTransformer transformer = new AbstractHeaderTransformer() {
+			@Override
+			protected void transformHeaders(Map<String, Object> headers) {
 				headers.put("header2", "baz");
 			}
 		};
-		HeaderTransformingMessageHandler handler = new HeaderTransformingMessageHandler(transformer);
 		Message<String> message = MessageBuilder.fromPayload("foo").setHeader("header1", "bar").build();
-		Message<?> result = handler.handle(message);
+		Message<?> result = transformer.transform(message);
 		assertEquals("bar", result.getHeaders().get("header1"));
 		assertEquals("baz", result.getHeaders().get("header2"));
 	}
 
 	@Test
 	public void replaceHeader() {
-		HeaderTransformer transformer = new HeaderTransformer() {
-			public void transform(Map<String, Object> headers) {
+		AbstractHeaderTransformer transformer = new AbstractHeaderTransformer() {
+			@Override
+			protected void transformHeaders(Map<String, Object> headers) {
 				headers.put("header1", "baz");
 			}
 		};
-		HeaderTransformingMessageHandler handler = new HeaderTransformingMessageHandler(transformer);
 		Message<String> message = MessageBuilder.fromPayload("foo").setHeader("header1", "bar").build();
-		Message<?> result = handler.handle(message);
+		Message<?> result = transformer.transform(message);
 		assertEquals("baz", result.getHeaders().get("header1"));
 	}
 
 	@Test
 	public void removeHeader() {
-		HeaderTransformer transformer = new HeaderTransformer() {
-			public void transform(Map<String, Object> headers) {
+		AbstractHeaderTransformer transformer = new AbstractHeaderTransformer() {
+			@Override
+			protected void transformHeaders(Map<String, Object> headers) {
 				headers.remove("header1");
 			}
 		};
-		HeaderTransformingMessageHandler handler = new HeaderTransformingMessageHandler(transformer);
 		Message<String> message = MessageBuilder.fromPayload("foo").setHeader("header1", "bar").build();
-		Message<?> result = handler.handle(message);
+		Message<?> result = transformer.transform(message);
 		assertNull(result.getHeaders().get("header1"));
 	}
 

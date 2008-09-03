@@ -22,33 +22,31 @@ import java.util.Date;
 
 import org.junit.Test;
 
+import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.message.StringMessage;
+
 /**
  * @author Mark Fisher
  */
-public class MethodInvokingPayloadTransformerTests {
+public class MethodInvokingTransformerTests {
 
 	@Test
 	public void testSimpleMethod() throws Exception {
-		MethodInvokingPayloadTransformer transformer = new MethodInvokingPayloadTransformer();
-		transformer.setObject(new TestBean());
-		transformer.setMethodName("exclaim");
-		assertEquals("FOO!", transformer.transform("foo"));
+		MethodInvokingTransformer transformer = new MethodInvokingTransformer(new TestBean(), "exclaim");
+		assertEquals("FOO!", transformer.transform(new StringMessage("foo")).getPayload());
 	}
 
 	@Test
 	public void testTypeConversion() throws Exception {
-		MethodInvokingPayloadTransformer transformer = new MethodInvokingPayloadTransformer();
-		transformer.setObject(new TestBean());
-		transformer.setMethodName("exclaim");
-		assertEquals("123!", transformer.transform(123));
+		MethodInvokingTransformer transformer = new MethodInvokingTransformer(new TestBean(), "exclaim");
+		assertEquals("123!", transformer.transform(new GenericMessage<Integer>(123)).getPayload());
 	}
 
-	@Test(expected=NoSuchMethodException.class)
+	@Test(expected = MessageHandlingException.class)
 	public void testTypeConversionFailure() throws Exception {
-		MethodInvokingPayloadTransformer transformer = new MethodInvokingPayloadTransformer();
-		transformer.setObject(new TestBean());
-		transformer.setMethodName("exclaim");
-		transformer.transform(new Date());
+		MethodInvokingTransformer transformer = new MethodInvokingTransformer(new TestBean(), "exclaim");
+		transformer.transform(new GenericMessage<Date>(new Date()));
 	}
 
 
