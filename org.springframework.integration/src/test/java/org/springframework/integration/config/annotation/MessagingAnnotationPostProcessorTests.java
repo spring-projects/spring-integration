@@ -21,10 +21,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -35,15 +31,10 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.core.annotation.Order;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.annotation.ChannelAdapter;
 import org.springframework.integration.annotation.Handler;
 import org.springframework.integration.annotation.MessageEndpoint;
-import org.springframework.integration.annotation.MessageTarget;
-import org.springframework.integration.annotation.Pollable;
 import org.springframework.integration.annotation.Poller;
-import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.bus.MessageBus;
@@ -53,8 +44,8 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.endpoint.DefaultEndpoint;
-import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
+import org.springframework.integration.endpoint.ServiceInvoker;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.StringMessage;
@@ -74,26 +65,16 @@ public class MessagingAnnotationPostProcessorTests {
 		postProcessor.afterPropertiesSet();
 		HandlerAnnotatedBean bean = new HandlerAnnotatedBean();
 		Object result = postProcessor.postProcessAfterInitialization(bean, "testBean");
-		assertTrue(result instanceof MessageHandler);
-	}
-
-	@Test
-	public void testCustomHandlerAnnotation() {
-		MessageBus messageBus = new DefaultMessageBus();
-		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
-		postProcessor.afterPropertiesSet();
-		CustomHandlerAnnotatedBean bean = new CustomHandlerAnnotatedBean();
-		Object result = postProcessor.postProcessAfterInitialization(bean, "testBean");
-		assertTrue(result instanceof MessageHandler);
+		assertTrue(result instanceof ServiceInvoker);
 	}
 
 	@Test
 	public void testSimpleHandlerWithContext() {
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext(
 				"handlerAnnotationPostProcessorTests.xml", this.getClass());
-		MessageHandler handler = (MessageHandler) context.getBean("simpleHandler");
-		Message<?> reply = handler.handle(new StringMessage("world"));
-		assertEquals("hello world", reply.getPayload());
+		ServiceInvoker invoker = (ServiceInvoker) context.getBean("simpleHandler");
+		String reply = (String) invoker.invoke(new StringMessage("world"));
+		assertEquals("hello world", reply);
 		context.stop();
 	}
 
@@ -304,49 +285,6 @@ public class MessagingAnnotationPostProcessorTests {
 	}
 
 	@Test
-	public void testSplitterAnnotation() throws InterruptedException {
-		MessageBus messageBus = new DefaultMessageBus();
-		QueueChannel input = new QueueChannel();
-		QueueChannel output = new QueueChannel();
-		input.setBeanName("input");
-		output.setBeanName("output");
-		messageBus.registerChannel(input);
-		messageBus.registerChannel(output);
-		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
-		postProcessor.afterPropertiesSet();
-		SplitterAnnotationTestEndpoint endpoint = new SplitterAnnotationTestEndpoint();
-		postProcessor.postProcessAfterInitialization(endpoint, "endpoint");
-		messageBus.start();
-		input.send(new StringMessage("this.is.a.test"));
-		Message<?> message1 = output.receive(500);
-		assertNotNull(message1);
-		assertEquals("this", message1.getPayload());
-		Message<?> message2 = output.receive(500);
-		assertNotNull(message2);
-		assertEquals("is", message2.getPayload());
-		Message<?> message3 = output.receive(500);
-		assertNotNull(message3);
-		assertEquals("a", message3.getPayload());
-		Message<?> message4 = output.receive(500);
-		assertNotNull(message4);
-		assertEquals("test", message4.getPayload());
-		assertNull(output.receive(500));
-		messageBus.stop();
-	}
-
-	@Test(expected=ConfigurationException.class)
-	public void testEndpointWithNoHandlerMethod() {
-		MessageBus messageBus = new DefaultMessageBus();
-		QueueChannel testChannel = new QueueChannel();
-		testChannel.setBeanName("testChannel");
-		messageBus.registerChannel(testChannel);
-		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
-		postProcessor.afterPropertiesSet();
-		AnnotatedEndpointWithNoHandlerMethod endpoint = new AnnotatedEndpointWithNoHandlerMethod();
-		postProcessor.postProcessAfterInitialization(endpoint, "endpoint");
-	}
-
-	@Test
 	public void testEndpointWithPollerAnnotation() {
 		MessageBus messageBus = new DefaultMessageBus();
 		QueueChannel testChannel = new QueueChannel();
@@ -356,7 +294,7 @@ public class MessagingAnnotationPostProcessorTests {
 		postProcessor.afterPropertiesSet();
 		AnnotatedEndpointWithPolledAnnotation endpoint = new AnnotatedEndpointWithPolledAnnotation();
 		postProcessor.postProcessAfterInitialization(endpoint, "testBean");
-		DefaultEndpoint<?> processedEndpoint = (DefaultEndpoint<?>) messageBus.lookupEndpoint("testBean.MessageHandler.endpoint");
+		ServiceActivatorEndpoint processedEndpoint = (ServiceActivatorEndpoint) messageBus.lookupEndpoint("testBean.handler");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(processedEndpoint);
 		MessageSource<?> source = (MessageSource<?>) accessor.getPropertyValue("source");
 		assertTrue(source instanceof SubscribableSource);
@@ -395,19 +333,19 @@ public class MessagingAnnotationPostProcessorTests {
 	}
 
 	@Test
-	public void testHandlerWithTransformers() {
+	public void testTransformer() {
 		MessageBus messageBus = new DefaultMessageBus();
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
 		postProcessor.afterPropertiesSet();
-		HandlerWithTransformers testBean = new HandlerWithTransformers();
-		MessageHandler handler = (MessageHandler) postProcessor.postProcessAfterInitialization(testBean, "testBean");
-		Message<?> reply = handler.handle(new StringMessage("foo"));
-		assertEquals("PRE.FOO.post", reply.getPayload());
+		TransformerAnnotationTestBean testBean = new TransformerAnnotationTestBean();
+		org.springframework.integration.transformer.Transformer transformer =
+				(org.springframework.integration.transformer.Transformer) postProcessor.postProcessAfterInitialization(testBean, "testBean");
+		Message<?> reply = transformer.transform(new StringMessage("foo"));
+		assertEquals("FOO", reply.getPayload());
 	}
 
 
 	@MessageEndpoint
-	@ChannelAdapter("testChannel")
 	private static class TargetAnnotationTestBean {
 
 		private String messageText;
@@ -423,7 +361,7 @@ public class MessagingAnnotationPostProcessorTests {
 			return this.messageText;
 		}
 
-		@MessageTarget
+		@ChannelAdapter("testChannel")
 		public void countdown(String input) {
 			this.messageText = input;
 			latch.countDown();
@@ -431,7 +369,7 @@ public class MessagingAnnotationPostProcessorTests {
 	}
 
 
-	@MessageEndpoint(input="inputChannel")
+	@MessageEndpoint
 	private static class ChannelRegistryAwareTestBean implements ChannelRegistryAware {
 
 		private ChannelRegistry channelRegistry;
@@ -444,7 +382,7 @@ public class MessagingAnnotationPostProcessorTests {
 			return this.channelRegistry;
 		}
 
-		@Handler
+		@Handler(inputChannel="inputChannel")
 		public Message<?> handle(Message<?> message) {
 			return null;
 		}
@@ -455,7 +393,7 @@ public class MessagingAnnotationPostProcessorTests {
 	}
 
 
-	@MessageEndpoint(input="inputChannel", output="outputChannel")
+	@MessageEndpoint
 	private static interface SimpleAnnotatedEndpointInterface {
 		String test(String input);
 	}
@@ -463,33 +401,18 @@ public class MessagingAnnotationPostProcessorTests {
 
 	private static class SimpleAnnotatedEndpointImplementation implements SimpleAnnotatedEndpointInterface {
 
-		@Handler
+		@Handler(inputChannel="inputChannel", outputChannel="outputChannel")
 		public String test(String input) {
 			return "test-"  + input;
 		}
 	}
 
 
-	@MessageEndpoint(input="input", output="output")
-	private static class SplitterAnnotationTestEndpoint {
-
-		@Splitter
-		public String[] split(String input) {
-			return input.split("\\.");
-		}
-	}
-
-
-	@MessageEndpoint(input="testChannel")
-	private static class AnnotatedEndpointWithNoHandlerMethod {
-	}
-
-
-	@MessageEndpoint(input="testChannel")
-	@Poller(period=1234, initialDelay=5678, fixedRate=true, timeUnit=TimeUnit.SECONDS)
+	@MessageEndpoint
 	private static class AnnotatedEndpointWithPolledAnnotation {
 
-		@Handler
+		@Handler(inputChannel="testChannel")
+		@Poller(period=1234, initialDelay=5678, fixedRate=true, timeUnit=TimeUnit.SECONDS)
 		public String prependFoo(String s) {
 			return "foo" + s;
 		}
@@ -507,30 +430,11 @@ public class MessagingAnnotationPostProcessorTests {
 	}
 
 
-	@Target(ElementType.METHOD)
-	@Retention(RetentionPolicy.RUNTIME)
-	@Handler
-	private static @interface CustomHandler {		
-	}
-
-
 	@MessageEndpoint
-	private static class CustomHandlerAnnotatedBean {
-
-		@CustomHandler
-		public String test(String s) {
-			return s + s;
-		}
-
-	}
-
-
-	@MessageEndpoint
-	@ChannelAdapter("testChannel")
-	@Poller(period = 1000, initialDelay = 0, maxMessagesPerPoll = 1)
 	private static class ChannelAdapterAnnotationTestBean {
 
-		@Pollable
+		@ChannelAdapter("testChannel")
+		@Poller(period = 1000, initialDelay = 0, maxMessagesPerPoll = 1)
 		public String test() {
 			return "test";
 		}
@@ -538,24 +442,11 @@ public class MessagingAnnotationPostProcessorTests {
 
 
 	@MessageEndpoint
-	private static class HandlerWithTransformers {
+	private static class TransformerAnnotationTestBean {
 
 		@Transformer
-		@Order(-1)
 		public String transformBefore(String input) {
-			return "pre." + input;
-		}
-
-		@Handler
-		@Order(0)
-		public String handle(String input) {
 			return input.toUpperCase();
-		}
-
-		@Transformer
-		@Order(1)
-		public String transformAfter(String input) {
-			return input + ".post";
 		}
 	}
 

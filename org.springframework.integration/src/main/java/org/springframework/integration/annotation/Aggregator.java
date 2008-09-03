@@ -40,6 +40,16 @@ import org.springframework.integration.aggregator.AggregatingMessageHandler;
 public @interface Aggregator {
 
 	/**
+	 * channel name for receiving messages to be aggregated
+	 */
+	String inputChannel() default "";
+
+	/**
+	 * channel name for sending aggregated result messages
+	 */
+	String outputChannel() default "";
+
+	/**
 	 * channel name for sending discarded messages (due to a timeout)
 	 */
 	String discardChannel() default "";

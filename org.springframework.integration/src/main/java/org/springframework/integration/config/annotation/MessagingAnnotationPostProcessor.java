@@ -17,40 +17,40 @@
 package org.springframework.integration.config.annotation;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
+import org.springframework.aop.support.DelegatingIntroductionInterceptor;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.annotation.MessageEndpoint;
-import org.springframework.integration.annotation.Poller;
+import org.springframework.integration.annotation.Aggregator;
+import org.springframework.integration.annotation.ChannelAdapter;
+import org.springframework.integration.annotation.Handler;
+import org.springframework.integration.annotation.Router;
+import org.springframework.integration.annotation.Splitter;
+import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelRegistryAware;
-import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.PollableChannel;
-import org.springframework.integration.dispatcher.PollingDispatcher;
-import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.handler.MessageHandler;
-import org.springframework.integration.message.MessageSource;
-import org.springframework.integration.message.MessageTarget;
-import org.springframework.integration.scheduling.PollingSchedule;
+import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * A {@link BeanPostProcessor} implementation that processes method-level
- * messaging annotations such as @Handler, @MessageSource, and @MessageTarget.
- * It also generates endpoints for classes annotated with the class-level
- * {@link MessageEndpoint @MessageEndpoint} annotation.
+ * messaging annotations such as @Transformer, @Splitter, and @Router.
  * 
  * @author Mark Fisher
  * @author Marius Bogoevici
@@ -59,10 +59,10 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Init
 
 	private final MessageBus messageBus;
 
-	private volatile ClassLoader beanClassLoader;
+	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
 
-	private final Map<Class<?>, AnnotationMethodPostProcessor> postProcessors =
-			new HashMap<Class<?>, AnnotationMethodPostProcessor>();
+	private final Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> postProcessors =
+			new HashMap<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>>();
 
 
 	public MessagingAnnotationPostProcessor(MessageBus messageBus) {
@@ -76,77 +76,69 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Init
 	}
 
 	public void afterPropertiesSet() {
-		this.postProcessors.put(MessageHandler.class, new HandlerAnnotationPostProcessor(this.messageBus, this.beanClassLoader));
-		this.postProcessors.put(MessageSource.class, new PollableAnnotationPostProcessor(this.messageBus, this.beanClassLoader));
-		this.postProcessors.put(MessageTarget.class, new TargetAnnotationPostProcessor(this.messageBus, this.beanClassLoader));
+		postProcessors.put(Aggregator.class, new AggregatorAnnotationPostProcessor(this.messageBus));
+		postProcessors.put(ChannelAdapter.class, new ChannelAdapterAnnotationPostProcessor(this.messageBus));
+		postProcessors.put(Handler.class, new ServiceActivatorAnnotationPostProcessor(this.messageBus));
+		postProcessors.put(Router.class, new RouterAnnotationPostProcessor(this.messageBus));
+		postProcessors.put(Splitter.class, new SplitterAnnotationPostProcessor(this.messageBus));
+		postProcessors.put(Transformer.class, new TransformerAnnotationPostProcessor(this.messageBus));
 	}
 
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 		return bean;
 	}
 
-	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-		Object originalBean = bean;
-		Class<?> beanClass = this.getBeanClass(bean);
+	public Object postProcessAfterInitialization(Object bean, final String beanName) throws BeansException {
+		final Object originalBean = bean;
+		final Class<?> beanClass = this.getBeanClass(bean);
 		if (!this.isStereotype(beanClass)) {
 			// we only post-process stereotype components
 			return bean;
 		}
-		MessageEndpoint endpointAnnotation = AnnotationUtils.findAnnotation(beanClass, MessageEndpoint.class);
-		for (Map.Entry<Class<?>, AnnotationMethodPostProcessor> entry : this.postProcessors.entrySet()) {
-			AnnotationMethodPostProcessor postProcessor = entry.getValue();
-			bean = postProcessor.postProcess(bean, beanName, beanClass);
-			if (endpointAnnotation != null && entry.getKey().isAssignableFrom(bean.getClass())) {
-				AbstractEndpoint endpoint = postProcessor.createEndpoint(bean);
-				if (endpoint != null) {
-					endpoint.setBeanName(beanName + "." + entry.getKey().getSimpleName() + ".endpoint");
-					String inputChannelName = endpointAnnotation.input();
-					if (!StringUtils.hasText(inputChannelName)) {
-						continue;
-					}
-					MessageChannel inputChannel = this.messageBus.lookupChannel(inputChannelName);
-					if (inputChannel == null) {
-						throw new ConfigurationException("unable to resolve input channel '" + inputChannelName + "'");
-					}
-					Poller pollerAnnotation = AnnotationUtils.findAnnotation(beanClass, Poller.class);
-					if (pollerAnnotation != null) {
-						if (inputChannel instanceof PollableChannel) {
-							PollingSchedule schedule = new PollingSchedule(pollerAnnotation.period());
-							schedule.setInitialDelay(pollerAnnotation.initialDelay());
-							schedule.setFixedRate(pollerAnnotation.fixedRate());
-							schedule.setTimeUnit(pollerAnnotation.timeUnit());
-							PollingDispatcher poller = new PollingDispatcher((PollableChannel) inputChannel, schedule);
-							poller.setMaxMessagesPerPoll(pollerAnnotation.maxMessagesPerPoll());
-							endpoint.setSource(poller);
+		final ProxyFactory proxyFactory = new ProxyFactory(bean);
+		final AtomicBoolean isProxy = new AtomicBoolean(false);
+		ReflectionUtils.doWithMethods(beanClass, new ReflectionUtils.MethodCallback() {
+			@SuppressWarnings("unchecked")
+			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
+				Annotation[] annotations = AnnotationUtils.getAnnotations(method);
+				for (Annotation annotation : annotations) {
+					MethodAnnotationPostProcessor postProcessor = postProcessors.get(annotation.annotationType());
+					if (postProcessor != null) {
+						Object result = postProcessor.postProcess(originalBean, beanName, method, annotation);
+						if (result != null) {
+							if (result instanceof MessageEndpoint) {
+								messageBus.registerEndpoint((MessageEndpoint) result);
+							}
+							else {
+								boolean shouldProxy = false;
+								Class<?>[] interfaces = ClassUtils.getAllInterfaces(result);
+								for (Class<?> iface : interfaces) {
+									if (!iface.getPackage().getName().startsWith("org.springframework.integration")) {
+										continue;
+									}
+									if (proxyFactory.isInterfaceProxied(iface)) {
+										throw new ConfigurationException("interface [" + iface + "] is already proxied");
+									}
+									shouldProxy = true;
+								}
+								if (result instanceof ChannelRegistryAware) {
+									((ChannelRegistryAware) result).setChannelRegistry(messageBus);
+								}
+								if (shouldProxy) {
+									proxyFactory.addAdvice(new DelegatingIntroductionInterceptor(result));
+									isProxy.set(true);
+								}
+							}
 						}
-						else {
-							throw new ConfigurationException("The @Poller annotation should only be provided for a PollableSource");
-						}
 					}
-					else {
-						endpoint.setSource(inputChannel);
-					}
-					String outputChannelName = endpointAnnotation.output();
-					if (StringUtils.hasText(outputChannelName)) {
-						MessageChannel outputChannel = this.messageBus.lookupChannel(outputChannelName);
-						if (outputChannel == null) {
-							throw new ConfigurationException("unable to resolve output channel '" + outputChannelName + "'");
-						}
-						endpoint.setTarget(outputChannel);
-					}
-					this.messageBus.registerEndpoint(endpoint);
 				}
 			}
-		}
+		});
 		if (bean instanceof ChannelRegistryAware) {
-			((ChannelRegistryAware) bean).setChannelRegistry(this.messageBus);
+			((ChannelRegistryAware) bean).setChannelRegistry(messageBus);
 		}
-		if (!bean.equals(originalBean) && originalBean instanceof ChannelRegistryAware) {
-			((ChannelRegistryAware) originalBean).setChannelRegistry(this.messageBus);
-		}
-		if (endpointAnnotation != null && bean.equals(originalBean)) {
-			throw new ConfigurationException("Class [" + beanClass.getName()
-					+ "] is annotated with @MessageEndpoint but contains no source, target, or handler method annotations.");
+		if (isProxy.get()) {
+			return proxyFactory.getProxy(this.beanClassLoader);
 		}
 		return bean;
 	}

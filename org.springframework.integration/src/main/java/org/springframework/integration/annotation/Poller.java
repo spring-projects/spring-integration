@@ -27,13 +27,13 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.integration.scheduling.PollingSchedule;
 
 /**
- * Annotation that can be specified at class-level alongside a
- * {@link MessageEndpoint @MessageEndpoint} annotation in order to provide the
+ * Annotation that can be specified at method-level alongside a Message Endpoint
+ * annotation (e.g. @Splitter, @ChannelAdapter, etc.) in order to provide the
  * polling metadata and scheduling information for that endpoint.
  * 
  * @author Mark Fisher
  */
-@Target(ElementType.TYPE)
+@Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented

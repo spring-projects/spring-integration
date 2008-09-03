@@ -22,10 +22,10 @@ import org.springframework.integration.annotation.Router;
 /**
  * @author Mark Fisher
  */
-@MessageEndpoint(input="drinks")
+@MessageEndpoint
 public class DrinkRouter {
 
-	@Router
+	@Router(inputChannel="drinks")
 	public String resolveOrderItemChannel(OrderItem orderItem) {
 		return (orderItem.isIced()) ? "coldDrinks" : "hotDrinks";
 	}

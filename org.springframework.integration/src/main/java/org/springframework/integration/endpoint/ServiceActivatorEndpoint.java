@@ -19,7 +19,6 @@ package org.springframework.integration.endpoint;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageMappingMethodInvoker;
 import org.springframework.util.Assert;
 
 /**
@@ -27,12 +26,12 @@ import org.springframework.util.Assert;
  */
 public class ServiceActivatorEndpoint extends AbstractInOutEndpoint implements InitializingBean {
 
-	private final MessageMappingMethodInvoker invoker;
+	private final ServiceInvoker invoker;
 
 	private final MessageHandler handler;
 
 
-	public ServiceActivatorEndpoint(MessageMappingMethodInvoker invoker) {
+	public ServiceActivatorEndpoint(ServiceInvoker invoker) {
 		Assert.notNull(invoker, "invoker must not be null");
 		this.invoker = invoker;
 		this.handler = null;
@@ -46,15 +45,15 @@ public class ServiceActivatorEndpoint extends AbstractInOutEndpoint implements I
 
 
 	public void afterPropertiesSet() throws Exception {
-		if (this.invoker != null) {
-			this.invoker.afterPropertiesSet();
+		if (this.invoker != null && (this.invoker instanceof InitializingBean)) {
+			((InitializingBean) this.invoker).afterPropertiesSet();
 		}
 	}
 
 	@Override
 	protected Object handle(Message<?> message) {
 		if (this.invoker != null) {
-			return this.invoker.invokeMethod(message);
+			return this.invoker.invoke(message);
 		}
 		return this.handler.handle(message);
 	}

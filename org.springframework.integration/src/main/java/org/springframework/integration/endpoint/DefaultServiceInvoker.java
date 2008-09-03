@@ -14,19 +14,29 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config.annotation;
+package org.springframework.integration.endpoint;
 
-import org.springframework.integration.endpoint.AbstractEndpoint;
+import java.lang.reflect.Method;
+
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageMappingMethodInvoker;
 
 /**
- * Strategy interface for post-processing annotated methods.
- * 
  * @author Mark Fisher
  */
-public interface AnnotationMethodPostProcessor {
+public class DefaultServiceInvoker extends MessageMappingMethodInvoker implements ServiceInvoker {
 
-	Object postProcess(Object bean, String beanName, Class<?> originalBeanClass);
+	public DefaultServiceInvoker(Object object, Method method) {
+		super(object, method);
+	}
 
-	AbstractEndpoint createEndpoint(Object bean);
+	public DefaultServiceInvoker(Object object, String methodName) {
+		super(object, methodName);
+	}
+
+
+	public Object invoke(Message<?> message) {
+		return this.invokeMethod(message);
+	}
 
 }

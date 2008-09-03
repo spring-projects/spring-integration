@@ -122,20 +122,20 @@ public class DirectChannelSubscriptionTests {
 	}
 
 
-	@MessageEndpoint(input="sourceChannel", output="targetChannel")
+	@MessageEndpoint
 	public static class TestEndpoint {
 
-		@Handler
+		@Handler(inputChannel="sourceChannel", outputChannel="targetChannel")
 		public Message<?> handle(Message<?> message) {
 			return new StringMessage(message.getPayload() + "-from-annotated-endpoint");
 		}
 	}
 
 
-	@MessageEndpoint(input="sourceChannel", output="targetChannel")
+	@MessageEndpoint
 	public static class FailingTestEndpoint {
 
-		@Handler
+		@Handler(inputChannel="sourceChannel", outputChannel="targetChannel")
 		public Message<?> handle(Message<?> message) {
 			throw new RuntimeException("intentional test failure");
 		}

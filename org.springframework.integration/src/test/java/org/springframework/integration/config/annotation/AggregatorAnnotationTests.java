@@ -25,7 +25,6 @@ import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.aop.support.DelegatingIntroductionInterceptor;
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
@@ -91,27 +90,23 @@ public class AggregatorAnnotationTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				new String[] { "classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml" });
 		final String endpointName = "endpointWithDefaultAnnotationAndCustomCompletionStrategy";
-		DirectFieldAccessor aggregatingMessageHandlerAccessor = getDirectFieldAccessorForAggregatingHandler(context,
-				endpointName);
-		Assert.assertTrue(aggregatingMessageHandlerAccessor.getPropertyValue("completionStrategy") instanceof CompletionStrategyAdapter);
-		DirectFieldAccessor invokerAccessor = new DirectFieldAccessor(new DirectFieldAccessor(
-				aggregatingMessageHandlerAccessor.getPropertyValue("completionStrategy")).getPropertyValue("invoker"));
-		Assert.assertSame(((Advised) context.getBean(endpointName)).getTargetSource().getTarget(), invokerAccessor.getPropertyValue("object"));
+		DirectFieldAccessor aggregatingMessageHandlerAccessor = getDirectFieldAccessorForAggregatingHandler(context, endpointName);
+		Object completionStrategy = aggregatingMessageHandlerAccessor.getPropertyValue("completionStrategy");
+		Assert.assertTrue(completionStrategy instanceof CompletionStrategyAdapter);
+		CompletionStrategyAdapter completionStrategyAdapter = (CompletionStrategyAdapter) completionStrategy;
+		DirectFieldAccessor invokerAccessor = new DirectFieldAccessor(
+				new DirectFieldAccessor(completionStrategyAdapter).getPropertyValue("invoker"));
+		Object targetObject = invokerAccessor.getPropertyValue("object");
+		Assert.assertSame(context.getBean(endpointName), targetObject);
 		Method completionCheckerMethod = (Method) invokerAccessor.getPropertyValue("method");
 		Assert.assertEquals("completionChecker", completionCheckerMethod.getName());
-	}
-
-	@Test(expected=BeanCreationException.class)
-	public void testInvalidCompletionStrategyAnnotation() {
-		new ClassPathXmlApplicationContext(new String[] {
-				"classpath:/org/springframework/integration/config/annotation/testInvalidCompletionStrategyAnnotation.xml" });
 	}
 
 
 	@SuppressWarnings("unchecked")
 	private DirectFieldAccessor getDirectFieldAccessorForAggregatingHandler(ApplicationContext context, final String endpointName) {
 		MessageBus messageBus = this.getMessageBus(context);
-		DefaultEndpoint<?> endpoint = (DefaultEndpoint<?>) messageBus.lookupEndpoint(endpointName +  ".MessageHandler.endpoint");
+		DefaultEndpoint<?> endpoint = (DefaultEndpoint<?>) messageBus.lookupEndpoint(endpointName + ".aggregator");
 		MessageHandler handler = (MessageHandler) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		try {
 			if (AopUtils.isAopProxy(handler)) {

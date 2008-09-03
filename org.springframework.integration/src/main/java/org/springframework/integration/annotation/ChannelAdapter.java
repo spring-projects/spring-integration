@@ -26,17 +26,26 @@ import java.lang.annotation.Target;
 import org.springframework.stereotype.Component;
 
 /**
- * Indicates that a class is capable of serving as a message channel.
+ * Indicates that a method is capable of serving as a message channel.
+ * If the method accepts no arguments but does define a non-void return
+ * type, an inbound Channel Adapter will be created. If the method does
+ * accept an argument and has a void return, an outbound Channel Adapter
+ * will be created. If the method does not conform to either contract,
+ * an Exception will be thrown.
  * 
  * @author Mark Fisher
  */
-@Target(ElementType.TYPE)
+@Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
 @Component
 public @interface ChannelAdapter {
 
+	/**
+	 * The name of the channel being adapted. If the channel
+	 * name is not resolvable, a new channel will be created.
+	 */
 	String value();
 
 }

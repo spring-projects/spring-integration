@@ -28,18 +28,16 @@ import org.springframework.integration.annotation.CompletionStrategy;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Marius Bogoevici
  */
-@MessageEndpoint(input="inputChannel")
-@Component("endpointWithDefaultAnnotationAndCustomCompletionStrategy")
+@MessageEndpoint("endpointWithDefaultAnnotationAndCustomCompletionStrategy")
 public class TestAnnotatedEndpointWithCompletionStrategy {
 
 	private final ConcurrentMap<Object, Message<?>> aggregatedMessages = new ConcurrentHashMap<Object, Message<?>>();
 
-	@Aggregator
+	@Aggregator(inputChannel = "inputChannel")
 	public Message<?> aggregatingMethod(List<Message<?>> messages) {
 		List<Message<?>> sortableList = new ArrayList<Message<?>>(messages);
 		Collections.sort(sortableList, new MessageSequenceComparator());

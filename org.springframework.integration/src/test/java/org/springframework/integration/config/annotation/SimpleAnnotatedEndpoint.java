@@ -23,10 +23,10 @@ import org.springframework.integration.endpoint.annotation.ITestEndpoint;
 /**
  * @author Mark Fisher
  */
-@MessageEndpoint(input="inputChannel", output="outputChannel")
+@MessageEndpoint
 public class SimpleAnnotatedEndpoint implements ITestEndpoint {
 
-	@Handler
+	@Handler(inputChannel="inputChannel", outputChannel="outputChannel")
 	public String sayHello(String name) {
 		return "hello " + name;
 	}

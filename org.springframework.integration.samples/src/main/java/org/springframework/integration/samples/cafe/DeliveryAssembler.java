@@ -24,10 +24,10 @@ import org.springframework.integration.annotation.MessageEndpoint;
 /**
  * @author Marius Bogoevici
  */
-@MessageEndpoint(input = "preparedDrinks",output = "deliveries")
+@MessageEndpoint
 public class DeliveryAssembler {
 
-    @Aggregator
+    @Aggregator(inputChannel = "preparedDrinks", outputChannel = "deliveries")
     public Delivery prepareDelivery(List<Drink> drinks) {
         return new Delivery(drinks);
     }

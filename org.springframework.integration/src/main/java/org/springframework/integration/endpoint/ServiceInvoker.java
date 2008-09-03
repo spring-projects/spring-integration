@@ -14,28 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.annotation;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+package org.springframework.integration.endpoint;
 
 import org.springframework.integration.message.Message;
 
 /**
- * Indicates that a method is capable of producing messages. The method must
- * accept no parameters and return either a {@link Message} or an Object to
- * be passed as the message payload. The enclosing class may also be annotated
- * with {@link ChannelAdapter @ChannelAdapter}.
- * 
  * @author Mark Fisher
  */
-@java.lang.annotation.Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
-@Inherited
-@Documented
-public @interface Pollable {
+public interface ServiceInvoker {
+
+	Object invoke(Message<?> message);
 
 }

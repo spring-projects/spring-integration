@@ -36,4 +36,8 @@ import java.lang.annotation.Target;
 @Handler
 public @interface Transformer {
 
+	String inputChannel() default "";
+
+	String outputChannel() default "";
+
 }

@@ -26,10 +26,10 @@ import org.springframework.integration.annotation.MessageEndpoint;
 /**
  * @author Mark Fisher
  */
-@MessageEndpoint(input="tickers", output="quotes")
+@MessageEndpoint
 public class QuoteService {
 
-	@Handler
+	@Handler(inputChannel="tickers", outputChannel="quotes")
 	public Quote lookupQuote(String ticker) {
 		BigDecimal price = new BigDecimal(new Random().nextDouble() * 100);		
 		return new Quote(ticker, price.setScale(2, RoundingMode.HALF_EVEN));	

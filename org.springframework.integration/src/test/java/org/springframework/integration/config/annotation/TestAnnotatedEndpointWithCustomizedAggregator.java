@@ -24,7 +24,6 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.springframework.integration.aggregator.MessageSequenceComparator;
 import org.springframework.integration.annotation.Aggregator;
-import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.stereotype.Component;
@@ -32,13 +31,15 @@ import org.springframework.stereotype.Component;
 /**
  * @author Marius Bogoevici
  */
-@MessageEndpoint(input = "inputChannel", output = "outputChannel")
 @Component("endpointWithCustomizedAnnotation")
 public class TestAnnotatedEndpointWithCustomizedAggregator {
 
 	private final ConcurrentMap<Object, Message<?>> aggregatedMessages = new ConcurrentHashMap<Object, Message<?>>();
 
-	@Aggregator(discardChannel = "discardChannel", 
+	@Aggregator(
+			inputChannel = "inputChannel",
+			outputChannel = "outputChannel",
+			discardChannel = "discardChannel", 
 			reaperInterval = 1234, sendPartialResultsOnTimeout = true, 
 			sendTimeout = 98765432, timeout = 4567890, trackedCorrelationIdCapacity = 42)
 	public Message<?> aggregatingMethod(List<Message<?>> messages) {

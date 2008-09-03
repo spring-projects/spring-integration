@@ -20,18 +20,16 @@ import java.util.Random;
 
 import org.springframework.integration.annotation.ChannelAdapter;
 import org.springframework.integration.annotation.MessageEndpoint;
-import org.springframework.integration.annotation.Pollable;
 import org.springframework.integration.annotation.Poller;
 
 /**
  * @author Mark Fisher
  */
 @MessageEndpoint
-@ChannelAdapter("tickers")
-@Poller(period = 300)
 public class TickerStream {
 
-	@Pollable
+	@ChannelAdapter("tickers")
+	@Poller(period = 300)
 	public String nextTicker() {
 		char[] chars = new char[3];
 		for (int i = 0; i < 3; i++) {

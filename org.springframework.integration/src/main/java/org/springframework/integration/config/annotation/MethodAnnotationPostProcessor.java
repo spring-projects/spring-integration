@@ -16,23 +16,16 @@
 
 package org.springframework.integration.config.annotation;
 
-import java.util.List;
-
-import org.springframework.integration.annotation.CompletionStrategy;
-import org.springframework.integration.annotation.MessageEndpoint;
-import org.springframework.integration.message.Message;
-import org.springframework.stereotype.Component;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 
 /**
- * @author Marius Bogoevici
+ * Strategy interface for post-processing annotated methods.
+ * 
+ * @author Mark Fisher
  */
-@MessageEndpoint(input="inputChannel")
-@Component("endpointWithoutAggregatorAndWithCompletionStrategy")
-public class TestAnnotatedEndpointWithCompletionStrategyOnly {
+public interface MethodAnnotationPostProcessor<T extends Annotation> {
 
-	@CompletionStrategy
-	public boolean checkCompleteness(List<Message<?>> messages) {
-		throw new UnsupportedOperationException("Not intended to be called");
-	}
+	Object postProcess(Object bean, String beanName, Method method, T annotation);
 
 }

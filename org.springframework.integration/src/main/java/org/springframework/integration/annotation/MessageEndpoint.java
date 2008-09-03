@@ -26,7 +26,8 @@ import java.lang.annotation.Target;
 import org.springframework.stereotype.Component;
 
 /**
- * Indicates that a class is capable of serving as a message endpoint.
+ * Stereotype annotation indicating that a class is capable of serving as a
+ * Message Endpoint.
  * 
  * @author Mark Fisher
  */
@@ -37,8 +38,12 @@ import org.springframework.stereotype.Component;
 @Component
 public @interface MessageEndpoint {
 
-	String input() default "";
-
-	String output() default "";
+	/**
+	 * The value may indicate a suggestion for a logical component name,
+	 * to be turned into a Spring bean in case of an autodetected component.
+	 * 
+	 * @return the suggested component name, if any
+	 */
+	String value() default "";
 
 }

@@ -22,10 +22,10 @@ import org.springframework.integration.annotation.MessageEndpoint;
 /**
  * @author Mark Fisher
  */
-@MessageEndpoint(input="inputChannel", output="outputChannel")
+@MessageEndpoint
 public class TypeConvertingTestEndpoint {
 
-	@Handler
+	@Handler(inputChannel="inputChannel", outputChannel="outputChannel")
 	public int multiplyByTwo(int number) {
 		return number * 2;
 	}

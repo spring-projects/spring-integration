@@ -24,10 +24,10 @@ import org.springframework.integration.message.StringMessage;
 /**
  * @author Mark Fisher
  */
-@MessageEndpoint(input="inputChannel", output="outputChannel")
+@MessageEndpoint
 public class MessageParameterAnnotatedEndpoint {
 
-	@Handler
+	@Handler(inputChannel="inputChannel", outputChannel="outputChannel")
 	public StringMessage sayHello(Message<?> message) {
 		return new StringMessage("hello " + message.getPayload());
 	}

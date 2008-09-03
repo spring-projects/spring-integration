@@ -16,9 +16,9 @@
 
 package org.springframework.integration.config;
 
+import org.springframework.integration.endpoint.DefaultServiceInvoker;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
-import org.springframework.integration.message.MessageMappingMethodInvoker;
 
 /**
  * Parser for the &lt;service-activator&gt; element.
@@ -34,7 +34,7 @@ public class ServiceActivatorParser extends AbstractEndpointParser {
 
 	@Override
 	protected Class<?> getMethodInvokingAdapterClass() {
-		return MessageMappingMethodInvoker.class;
+		return DefaultServiceInvoker.class;
 	}
 
 }
