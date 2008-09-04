@@ -16,16 +16,16 @@
 
 package org.springframework.integration.channel.config;
 
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.transformer.Transformer;
 
 /**
  * @author Mark Fisher
  */
-public class TestTransformer implements MessageHandler {
+public class TestTransformer implements Transformer {
 
-	public Message<?> handle(Message<?> message) {
+	public Message<?> transform(Message<?> message) {
 		return MessageBuilder.fromPayload(message.getPayload().toString().toUpperCase()).build();
 	}
 
