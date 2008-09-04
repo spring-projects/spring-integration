@@ -30,8 +30,7 @@ import org.junit.Test;
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.endpoint.DefaultEndpoint;
-import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.endpoint.AbstractInOutEndpoint;
 
 /**
  * @author Mark Fisher
@@ -45,14 +44,13 @@ public class MessageExchangeTemplateTests {
 	public void setUp() {
 		this.requestChannel = new QueueChannel();
 		this.requestChannel.setBeanName("requestChannel");
-		MessageHandler testHandler = new MessageHandler() {
+		AbstractInOutEndpoint endpoint = new AbstractInOutEndpoint() {
 			public Message<?> handle(Message<?> message) {
 				return new StringMessage(message.getPayload().toString().toUpperCase());
 			}		
 		};
 		MessageBus bus = new DefaultMessageBus();
 		bus.registerChannel(requestChannel);
-		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(testHandler);
 		endpoint.setBeanName("testEndpoint");
 		endpoint.setSource(requestChannel);
 		bus.registerEndpoint(endpoint);

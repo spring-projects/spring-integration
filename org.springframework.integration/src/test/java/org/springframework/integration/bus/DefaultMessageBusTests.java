@@ -32,9 +32,8 @@ import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.endpoint.DefaultEndpoint;
+import org.springframework.integration.endpoint.AbstractInOutEndpoint;
 import org.springframework.integration.endpoint.InboundChannelAdapter;
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
@@ -60,12 +59,11 @@ public class DefaultMessageBusTests {
 				.setReturnAddress("targetChannel").build();
 		sourceChannel.send(message);
 		bus.registerChannel(targetChannel);
-		MessageHandler handler = new MessageHandler() {
+		AbstractInOutEndpoint endpoint = new AbstractInOutEndpoint() {
 			public Message<?> handle(Message<?> message) {
 				return message;
 			}
 		};
-		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
 		endpoint.setBeanName("testEndpoint");
 		endpoint.setSource(sourceChannel);
 		bus.registerEndpoint(endpoint);
@@ -109,12 +107,12 @@ public class DefaultMessageBusTests {
 		QueueChannel inputChannel = new QueueChannel();
 		QueueChannel outputChannel1 = new QueueChannel();
 		QueueChannel outputChannel2 = new QueueChannel();
-		MessageHandler handler1 = new MessageHandler() {
+		AbstractInOutEndpoint endpoint1 = new AbstractInOutEndpoint() {
 			public Message<?> handle(Message<?> message) {
 				return MessageBuilder.fromMessage(message).build();
 			}
 		};
-		MessageHandler handler2 = new MessageHandler() {
+		AbstractInOutEndpoint endpoint2 = new AbstractInOutEndpoint() {
 			public Message<?> handle(Message<?> message) {
 				return MessageBuilder.fromMessage(message).build();
 			}
@@ -126,11 +124,9 @@ public class DefaultMessageBusTests {
 		bus.registerChannel(inputChannel);
 		bus.registerChannel(outputChannel1);
 		bus.registerChannel(outputChannel2);
-		DefaultEndpoint<MessageHandler> endpoint1 = new DefaultEndpoint<MessageHandler>(handler1);
 		endpoint1.setBeanName("testEndpoint1");
 		endpoint1.setSource(inputChannel);
 		endpoint1.setTarget(outputChannel1);
-		DefaultEndpoint<MessageHandler> endpoint2 = new DefaultEndpoint<MessageHandler>(handler2);
 		endpoint2.setBeanName("testEndpoint2");
 		endpoint2.setSource(inputChannel);
 		endpoint2.setTarget(outputChannel2);
@@ -150,14 +146,14 @@ public class DefaultMessageBusTests {
 		QueueChannel outputChannel1 = new QueueChannel();
 		QueueChannel outputChannel2 = new QueueChannel();
 		final CountDownLatch latch = new CountDownLatch(2);
-		MessageHandler handler1 = new MessageHandler() {
+		AbstractInOutEndpoint endpoint1 = new AbstractInOutEndpoint() {
 			public Message<?> handle(Message<?> message) {
 				Message<?> reply = MessageBuilder.fromMessage(message).build();
 				latch.countDown();
 				return reply;
 			}
 		};
-		MessageHandler handler2 = new MessageHandler() {
+		AbstractInOutEndpoint endpoint2 = new AbstractInOutEndpoint() {
 			public Message<?> handle(Message<?> message) {
 				Message<?> reply = MessageBuilder.fromMessage(message).build();
 				latch.countDown();
@@ -171,11 +167,9 @@ public class DefaultMessageBusTests {
 		bus.registerChannel(inputChannel);
 		bus.registerChannel(outputChannel1);
 		bus.registerChannel(outputChannel2);
-		DefaultEndpoint<MessageHandler> endpoint1 = new DefaultEndpoint<MessageHandler>(handler1);
 		endpoint1.setBeanName("testEndpoint1");
 		endpoint1.setSource(inputChannel);
 		endpoint1.setTarget(outputChannel1);
-		DefaultEndpoint<MessageHandler> endpoint2 = new DefaultEndpoint<MessageHandler>(handler2);
 		endpoint2.setBeanName("testEndpoint2");
 		endpoint2.setSource(inputChannel);
 		endpoint2.setTarget(outputChannel2);
@@ -232,13 +226,12 @@ public class DefaultMessageBusTests {
 		errorChannel.setBeanName(ChannelRegistry.ERROR_CHANNEL_NAME);
 		bus.registerChannel(errorChannel);
 		final CountDownLatch latch = new CountDownLatch(1);
-		MessageHandler handler = new MessageHandler() {
+		AbstractInOutEndpoint endpoint = new AbstractInOutEndpoint() {
 			public Message<?> handle(Message<?> message) {
 				latch.countDown();
 				return null;
 			}
 		};
-		DefaultEndpoint<MessageHandler> endpoint = new DefaultEndpoint<MessageHandler>(handler);
 		endpoint.setBeanName("testEndpoint");
 		endpoint.setSource(errorChannel);
 		bus.registerEndpoint(endpoint);

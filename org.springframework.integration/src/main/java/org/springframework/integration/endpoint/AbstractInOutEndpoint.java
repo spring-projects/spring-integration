@@ -24,6 +24,7 @@ import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.message.CompositeMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageHeaders;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.MessageTarget;
@@ -37,11 +38,17 @@ public abstract class AbstractInOutEndpoint extends AbstractEndpoint {
 
 	private volatile MessageSelector selector;
 
+	private volatile boolean requiresReply = false;
+
 	private final List<EndpointInterceptor> interceptors = new CopyOnWriteArrayList<EndpointInterceptor>();
 
 
 	public void setSelector(MessageSelector selector) {
 		this.selector = selector;
+	}
+
+	public void setRequiresReply(boolean requiresReply) {
+		this.requiresReply = requiresReply;
 	}
 
 	public void addInterceptor(EndpointInterceptor interceptor) {
@@ -68,15 +75,21 @@ public abstract class AbstractInOutEndpoint extends AbstractEndpoint {
 		}
 		Object result = this.handle(message);
 		if (result == null) {
-			return false;
+			if (this.requiresReply) {
+				throw new MessageHandlingException(message, "endpoint '" + this.getName()
+						+ " requires a reply, but no reply was received");
+			}
+			return true;
 		}
 		Message<?> reply = buildReplyMessage(result, message.getHeaders());
 		MessageTarget replyTarget = this.resolveReplyTarget(message);
 		if (reply instanceof CompositeMessage && this.shouldSplitComposite()) {
+			boolean sentAtLeastOne = false;
 			for (Message<?> nextReply : (CompositeMessage) reply) {
-				this.sendReplyMessage(nextReply, replyTarget);
+				boolean sent = this.sendReplyMessage(nextReply, replyTarget);
+				sentAtLeastOne = (sentAtLeastOne || sent);
 			}
-			return true;
+			return sentAtLeastOne;
 		}
 		else {
 			return this.sendReplyMessage(reply, replyTarget);
