@@ -31,13 +31,13 @@ import org.springframework.integration.message.Message;
  * @author Marius Bogoevici
  * @author Mark Fisher
  */
-public class AggregatorAdapter extends MessageListMethodAdapter implements Aggregator {
+public class MethodInvokingAggregator extends MessageListMethodAdapter implements Aggregator {
 
-	public AggregatorAdapter(Object object, Method method) {
+	public MethodInvokingAggregator(Object object, Method method) {
 		super(object, method);
 	}
 
-	public AggregatorAdapter(Object object, String methodName) {
+	public MethodInvokingAggregator(Object object, String methodName) {
 		super(object, methodName);
 	}
 

@@ -26,7 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.aggregator.Aggregator;
-import org.springframework.integration.aggregator.AggregatorAdapter;
+import org.springframework.integration.aggregator.MethodInvokingAggregator;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 
@@ -34,7 +34,7 @@ import org.springframework.integration.message.Message;
  * @author Marius Bogoevici
  * @author Mark Fisher
  */
-public class AggregatorAdapterTests {
+public class MethodInvokingAggregatorTests {
 
 	private SimpleAggregator simpleAggregator;
 
@@ -46,7 +46,7 @@ public class AggregatorAdapterTests {
 
 	@Test
 	public void testAdapterWithNonParameterizedMessageListBasedMethod() {
-		Aggregator aggregator = new AggregatorAdapter(simpleAggregator, "doAggregationOnNonParameterizedListOfMessages");
+		Aggregator aggregator = new MethodInvokingAggregator(simpleAggregator, "doAggregationOnNonParameterizedListOfMessages");
 		List<Message<?>> messages = createListOfMessages();	
 		Message<?> returnedMessge = aggregator.aggregate(messages);
 		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
@@ -55,7 +55,7 @@ public class AggregatorAdapterTests {
 
 	@Test
 	public void testAdapterWithWildcardParametrizedMessageBasedMethod() {
-		Aggregator aggregator = new AggregatorAdapter(simpleAggregator, "doAggregationOnListOfMessagesParametrizedWithWildcard");
+		Aggregator aggregator = new MethodInvokingAggregator(simpleAggregator, "doAggregationOnListOfMessagesParametrizedWithWildcard");
 		List<Message<?>> messages = createListOfMessages();	
 		Message<?> returnedMessge = aggregator.aggregate(messages);
 		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
@@ -64,7 +64,7 @@ public class AggregatorAdapterTests {
 
 	@Test
 	public void testAdapterWithTypeParametrizedMessageBasedMethod() {
-		Aggregator aggregator = new AggregatorAdapter(simpleAggregator, "doAggregationOnListOfMessagesParametrizedWithString");
+		Aggregator aggregator = new MethodInvokingAggregator(simpleAggregator, "doAggregationOnListOfMessagesParametrizedWithString");
 		List<Message<?>> messages = createListOfMessages();	
 		Message<?> returnedMessge = aggregator.aggregate(messages);
 		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
@@ -73,7 +73,7 @@ public class AggregatorAdapterTests {
 	
 	@Test
 	public void testAdapterWithPojoBasedMethod() {
-		Aggregator aggregator = new AggregatorAdapter(simpleAggregator, "doAggregationOnListOfStrings");
+		Aggregator aggregator = new MethodInvokingAggregator(simpleAggregator, "doAggregationOnListOfStrings");
 		List<Message<?>> messages = createListOfMessages();	
 		Message<?> returnedMessge = aggregator.aggregate(messages);
 		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
@@ -82,7 +82,7 @@ public class AggregatorAdapterTests {
 
 	@Test
 	public void testAdapterWithPojoBasedMethodReturningObject() {
-		Aggregator aggregator = new AggregatorAdapter(simpleAggregator, "doAggregationOnListOfStringsReturningLong");
+		Aggregator aggregator = new MethodInvokingAggregator(simpleAggregator, "doAggregationOnListOfStringsReturningLong");
 		List<Message<?>> messages = createListOfMessages();	
 		Message<?> returnedMessge = aggregator.aggregate(messages);
 		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
@@ -91,68 +91,68 @@ public class AggregatorAdapterTests {
 
 	@Test(expected=ConfigurationException.class)
 	public void testAdapterWithWrongMethodName() {
-		new AggregatorAdapter(simpleAggregator, "methodThatDoesNotExist");
+		new MethodInvokingAggregator(simpleAggregator, "methodThatDoesNotExist");
 	}
 
 	@Test(expected=ConfigurationException.class)
 	public void testInvalidParameterTypeUsingMethodName() {
-		new AggregatorAdapter(simpleAggregator, "invalidParameterType");
+		new MethodInvokingAggregator(simpleAggregator, "invalidParameterType");
 	}
 
 	@Test(expected=ConfigurationException.class)
 	public void testTooManyParametersUsingMethodName() {
-		new AggregatorAdapter(simpleAggregator, "tooManyParameters");
+		new MethodInvokingAggregator(simpleAggregator, "tooManyParameters");
 	}
 
 	@Test(expected=ConfigurationException.class)
 	public void testNotEnoughParametersUsingMethodName() {
-		new AggregatorAdapter(simpleAggregator, "notEnoughParameters");
+		new MethodInvokingAggregator(simpleAggregator, "notEnoughParameters");
 	}
 
 	@Test(expected=ConfigurationException.class)
 	public void testListSubclassParameterUsingMethodName() {
-		new AggregatorAdapter(simpleAggregator, "ListSubclassParameter");
+		new MethodInvokingAggregator(simpleAggregator, "ListSubclassParameter");
 	}
 
 	@Test(expected=ConfigurationException.class)
 	public void testInvalidParameterTypeUsingMethodObject() throws SecurityException, NoSuchMethodException {
-		new AggregatorAdapter(simpleAggregator, simpleAggregator.getClass().getMethod(
+		new MethodInvokingAggregator(simpleAggregator, simpleAggregator.getClass().getMethod(
 				"invalidParameterType", String.class));
 	}
 
 	@Test(expected=ConfigurationException.class)
 	public void testTooManyParametersUsingMethodObject() throws SecurityException, NoSuchMethodException {
-		new AggregatorAdapter(simpleAggregator, simpleAggregator.getClass().getMethod(
+		new MethodInvokingAggregator(simpleAggregator, simpleAggregator.getClass().getMethod(
 				"tooManyParameters", List.class, List.class));
 	}
 
 	@Test(expected=ConfigurationException.class)
 	public void testNotEnoughParametersUsingMethodObject() throws SecurityException, NoSuchMethodException {
-		new AggregatorAdapter(simpleAggregator, simpleAggregator.getClass().getMethod(
+		new MethodInvokingAggregator(simpleAggregator, simpleAggregator.getClass().getMethod(
 				"notEnoughParameters", new Class[] {} ));
 	}
 
 	@Test(expected= ConfigurationException.class)
 	public void testListSubclassParameterUsingMethodObject() throws SecurityException, NoSuchMethodException {
-		new AggregatorAdapter(simpleAggregator, simpleAggregator.getClass().getMethod(
+		new MethodInvokingAggregator(simpleAggregator, simpleAggregator.getClass().getMethod(
 				"listSubclassParameter", new Class[] {LinkedList.class} ));
 	}
 
 	@Test(expected=IllegalArgumentException.class)
 	public void testNullObject() {
-		new AggregatorAdapter(null, "doesNotMatter");
+		new MethodInvokingAggregator(null, "doesNotMatter");
 	}
 
 	@Test(expected=IllegalArgumentException.class)
 	public void testNullMethodName() {
 		String methodName = null;
-		new AggregatorAdapter(simpleAggregator, methodName);
+		new MethodInvokingAggregator(simpleAggregator, methodName);
 	}
 
 	@Test(expected=IllegalArgumentException.class)
 	public void testNullMethodObject() {
 		Method method = null;
-		new AggregatorAdapter(simpleAggregator, method);
+		new MethodInvokingAggregator(simpleAggregator, method);
 	}
 
 

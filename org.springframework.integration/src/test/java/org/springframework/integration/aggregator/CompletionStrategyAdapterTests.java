@@ -25,7 +25,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.aggregator.AggregatorAdapter;
+import org.springframework.integration.aggregator.MethodInvokingAggregator;
 import org.springframework.integration.aggregator.CompletionStrategy;
 import org.springframework.integration.aggregator.CompletionStrategyAdapter;
 import org.springframework.integration.message.GenericMessage;
@@ -130,7 +130,7 @@ public class CompletionStrategyAdapterTests {
 
 	@Test(expected = ConfigurationException.class)
 	public void testInvalidParameterTypeUsingMethodObject() throws SecurityException, NoSuchMethodException {
-		new AggregatorAdapter(simpleCompletionStrategy, simpleCompletionStrategy.getClass().getMethod(
+		new MethodInvokingAggregator(simpleCompletionStrategy, simpleCompletionStrategy.getClass().getMethod(
 				"invalidParameterType", String.class));
 	}
 
@@ -160,19 +160,19 @@ public class CompletionStrategyAdapterTests {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testNullObject() {
-		new AggregatorAdapter(null, "doesNotMatter");
+		new MethodInvokingAggregator(null, "doesNotMatter");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testNullMethodName() {
 		String methodName = null;
-		new AggregatorAdapter(simpleCompletionStrategy, methodName);
+		new MethodInvokingAggregator(simpleCompletionStrategy, methodName);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testNullMethodObject() {
 		Method method = null;
-		new AggregatorAdapter(simpleCompletionStrategy, method);
+		new MethodInvokingAggregator(simpleCompletionStrategy, method);
 	}
 
 	private static List<Message<?>> createListOfMessages() {

@@ -23,7 +23,7 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHeaders;
 
 /**
- * An {@link AbstractMessageBarrierHandler} that waits for a group of
+ * An {@link AbstractMessageBarrierEndpoint} that waits for a group of
  * {@link Message Messages} to arrive and re-sends them in order, sorted
  * by their <code>sequenceNumber</code>.
  * <p>
@@ -31,12 +31,12 @@ import org.springframework.integration.message.MessageHeaders;
  * wait for the whole sequence to arrive before re-sending them.
  * <p>
  * All considerations regarding <code>timeout</code> and grouping by
- * '<code>correlationId</code>' from {@link AbstractMessageBarrierHandler} apply
+ * '<code>correlationId</code>' from {@link AbstractMessageBarrierEndpoint} apply
  * here as well.
  *
  * @author Marius Bogoevici
  */
-public class ResequencingMessageHandler extends AbstractMessageBarrierHandler {
+public class ResequencingMessageHandler extends AbstractMessageBarrierEndpoint {
 
 	private volatile boolean releasePartialSequences = true;
 

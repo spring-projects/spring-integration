@@ -21,8 +21,8 @@ import java.lang.reflect.Method;
 
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.aggregator.AggregatingMessageHandler;
-import org.springframework.integration.aggregator.AggregatorAdapter;
+import org.springframework.integration.aggregator.AggregatorEndpoint;
+import org.springframework.integration.aggregator.MethodInvokingAggregator;
 import org.springframework.integration.aggregator.CompletionStrategyAdapter;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.CompletionStrategy;
@@ -47,13 +47,13 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 
 	@Override
 	protected Object createMethodInvokingAdapter(Object bean, Method method, Aggregator annotation) {
-		return new AggregatorAdapter(bean, method);
+		return new MethodInvokingAggregator(bean, method);
 	}
 
 	@Override
 	protected AbstractEndpoint createEndpoint(Object originalBean, Object adapter) {
 		if (adapter instanceof org.springframework.integration.aggregator.Aggregator) {
-			AggregatingMessageHandler endpoint = new AggregatingMessageHandler((org.springframework.integration.aggregator.Aggregator) adapter);
+			AggregatorEndpoint endpoint = new AggregatorEndpoint((org.springframework.integration.aggregator.Aggregator) adapter);
 			this.configureCompletionStrategy(originalBean, endpoint);
 			return endpoint;
 		}
@@ -63,7 +63,7 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 	@Override
 	protected void configureEndpoint(AbstractEndpoint endpoint, Aggregator annotation, Poller pollerAnnotation) {
 		super.configureEndpoint(endpoint, annotation, pollerAnnotation);
-		AggregatingMessageHandler aggregatorEndpoint = (AggregatingMessageHandler) endpoint;
+		AggregatorEndpoint aggregatorEndpoint = (AggregatorEndpoint) endpoint;
 		String discardChannelName = annotation.discardChannel();
 		if (StringUtils.hasText(discardChannelName)) {
 			MessageChannel discardChannel = this.getChannelRegistry().lookupChannel(discardChannelName);
@@ -80,7 +80,7 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 		aggregatorEndpoint.afterPropertiesSet();
 	}
 
-	private void configureCompletionStrategy(final Object object, final AggregatingMessageHandler handler) {
+	private void configureCompletionStrategy(final Object object, final AggregatorEndpoint handler) {
 		ReflectionUtils.doWithMethods(object.getClass(), new ReflectionUtils.MethodCallback() {
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
 				Annotation annotation = AnnotationUtils.getAnnotation(method, CompletionStrategy.class);

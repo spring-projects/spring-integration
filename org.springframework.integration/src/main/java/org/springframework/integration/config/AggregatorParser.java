@@ -21,8 +21,8 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.aggregator.AggregatingMessageHandler;
-import org.springframework.integration.aggregator.AggregatorAdapter;
+import org.springframework.integration.aggregator.AggregatorEndpoint;
+import org.springframework.integration.aggregator.MethodInvokingAggregator;
 import org.springframework.integration.aggregator.CompletionStrategyAdapter;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.util.StringUtils;
@@ -59,12 +59,12 @@ public class AggregatorParser extends AbstractEndpointParser {
 
 	@Override
 	protected Class<? extends MessageEndpoint> getEndpointClass() {
-		return AggregatingMessageHandler.class;
+		return AggregatorEndpoint.class;
 	}
 
 	@Override
 	protected Class<?> getMethodInvokingAdapterClass() {
-		return AggregatorAdapter.class;
+		return MethodInvokingAggregator.class;
 	}
 
 	@Override

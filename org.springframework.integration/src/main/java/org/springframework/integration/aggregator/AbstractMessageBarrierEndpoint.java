@@ -32,7 +32,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.AbstractInOutEndpoint;
-import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.BlockingTarget;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
@@ -43,12 +43,12 @@ import org.springframework.util.ObjectUtils;
 
 /**
  * Base class for {@link MessageBarrier}-based MessageHandlers.
- * A {@link MessageHandler} implementation that waits for a group of
+ * A {@link MessageEndpoint} implementation that waits for a group of
  * {@link Message Messages} to arrive and processes them together.
  * Uses a {@link MessageBarrier} to store messages and to decide how
  * the messages should be released.
  * <p>
- * Each {@link Message} that is received by this handler will be associated with
+ * Each {@link Message} that is received by this endpoint will be associated with
  * a group based upon the '<code>correlationId</code>' property of its
  * header. If no such property is available, a {@link MessageHandlingException}
  * will be thrown.
@@ -62,7 +62,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public abstract class AbstractMessageBarrierHandler extends AbstractInOutEndpoint implements InitializingBean {
+public abstract class AbstractMessageBarrierEndpoint extends AbstractInOutEndpoint implements InitializingBean {
 
 	public final static long DEFAULT_SEND_TIMEOUT = 1000;
 
@@ -96,7 +96,7 @@ public abstract class AbstractMessageBarrierHandler extends AbstractInOutEndpoin
 	private volatile boolean initialized;
 
 
-	public AbstractMessageBarrierHandler(ScheduledExecutorService executor) {
+	public AbstractMessageBarrierEndpoint(ScheduledExecutorService executor) {
 		this.executor = (executor != null) ? executor : Executors.newSingleThreadScheduledExecutor();		
 	}
 

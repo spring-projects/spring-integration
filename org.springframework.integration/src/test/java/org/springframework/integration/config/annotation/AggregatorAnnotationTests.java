@@ -24,7 +24,7 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.aggregator.AggregatingMessageHandler;
+import org.springframework.integration.aggregator.AggregatorEndpoint;
 import org.springframework.integration.aggregator.CompletionStrategyAdapter;
 import org.springframework.integration.aggregator.SequenceSizeCompletionStrategy;
 import org.springframework.integration.bus.MessageBus;
@@ -46,14 +46,14 @@ public class AggregatorAnnotationTests {
 		Assert.assertTrue(aggregatingMessageHandlerAccessor.getPropertyValue("completionStrategy") instanceof SequenceSizeCompletionStrategy);
 		Assert.assertNull(aggregatingMessageHandlerAccessor.getPropertyValue("target"));
 		Assert.assertNull(aggregatingMessageHandlerAccessor.getPropertyValue("discardChannel"));
-		Assert.assertEquals(AggregatingMessageHandler.DEFAULT_SEND_TIMEOUT, aggregatingMessageHandlerAccessor
+		Assert.assertEquals(AggregatorEndpoint.DEFAULT_SEND_TIMEOUT, aggregatingMessageHandlerAccessor
 				.getPropertyValue("sendTimeout"));
-		Assert.assertEquals(AggregatingMessageHandler.DEFAULT_TIMEOUT, aggregatingMessageHandlerAccessor
+		Assert.assertEquals(AggregatorEndpoint.DEFAULT_TIMEOUT, aggregatingMessageHandlerAccessor
 				.getPropertyValue("timeout"));
 		Assert.assertEquals(false, aggregatingMessageHandlerAccessor.getPropertyValue("sendPartialResultOnTimeout"));
-		Assert.assertEquals(AggregatingMessageHandler.DEFAULT_REAPER_INTERVAL, aggregatingMessageHandlerAccessor
+		Assert.assertEquals(AggregatorEndpoint.DEFAULT_REAPER_INTERVAL, aggregatingMessageHandlerAccessor
 				.getPropertyValue("reaperInterval"));
-		Assert.assertEquals(AggregatingMessageHandler.DEFAULT_TRACKED_CORRRELATION_ID_CAPACITY,
+		Assert.assertEquals(AggregatorEndpoint.DEFAULT_TRACKED_CORRRELATION_ID_CAPACITY,
 				aggregatingMessageHandlerAccessor.getPropertyValue("trackedCorrelationIdCapacity"));
 	}
 
@@ -101,7 +101,7 @@ public class AggregatorAnnotationTests {
 	@SuppressWarnings("unchecked")
 	private DirectFieldAccessor getDirectFieldAccessorForAggregatingHandler(ApplicationContext context, final String endpointName) {
 		MessageBus messageBus = this.getMessageBus(context);
-		AggregatingMessageHandler endpoint = (AggregatingMessageHandler) messageBus.lookupEndpoint(endpointName + ".aggregator");
+		AggregatorEndpoint endpoint = (AggregatorEndpoint) messageBus.lookupEndpoint(endpointName + ".aggregator");
 		return new DirectFieldAccessor(endpoint);
 	}
 

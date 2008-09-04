@@ -28,7 +28,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.aggregator.AggregatingMessageHandler;
+import org.springframework.integration.aggregator.AggregatorEndpoint;
 import org.springframework.integration.aggregator.CompletionStrategy;
 import org.springframework.integration.aggregator.CompletionStrategyAdapter;
 import org.springframework.integration.channel.MessageChannel;
@@ -53,15 +53,15 @@ public class AggregatorParserTests {
 
 	@Test
 	public void testAggregation() {
-		AggregatingMessageHandler aggregatingHandler =
-				(AggregatingMessageHandler) context.getBean("aggregatorWithReference");
+		AggregatorEndpoint endpoint =
+				(AggregatorEndpoint) context.getBean("aggregatorWithReference");
 		TestAggregator aggregatorBean = (TestAggregator) context.getBean("aggregatorBean");
 		List<Message<?>> outboundMessages = new ArrayList<Message<?>>();
 		outboundMessages.add(createMessage("123", "id1", 3, 1, null));
 		outboundMessages.add(createMessage("789", "id1", 3, 3, null));
 		outboundMessages.add(createMessage("456", "id1", 3, 2, null));
 		for (Message<?> message : outboundMessages) {
-			aggregatingHandler.send(message);
+			endpoint.send(message);
 		}
 		Assert.assertEquals("One and only one message must have been aggregated", 1, aggregatorBean
 				.getAggregatedMessages().size());
@@ -72,41 +72,41 @@ public class AggregatorParserTests {
 
 	@Test
 	public void testPropertyAssignment() throws Exception {
-		AggregatingMessageHandler completeAggregatingMessageHandler =
-					(AggregatingMessageHandler) context.getBean("completelyDefinedAggregator");
+		AggregatorEndpoint endpoint =
+					(AggregatorEndpoint) context.getBean("completelyDefinedAggregator");
 		TestAggregator testAggregator = (TestAggregator) context.getBean("aggregatorBean");
 		CompletionStrategy completionStrategy = (CompletionStrategy) context.getBean("completionStrategy");
 		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
 		MessageChannel discardChannel = (MessageChannel) context.getBean("discardChannel");
-		DirectFieldAccessor messageHandlerFieldAccessor = new DirectFieldAccessor(completeAggregatingMessageHandler);
-		Assert.assertEquals("The AggregatingMessageHandler is not injected with the appropriate Aggregator instance",
-				testAggregator, messageHandlerFieldAccessor.getPropertyValue("aggregator"));
+		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
+		Assert.assertEquals("The AggregatorEndpoint is not injected with the appropriate Aggregator instance",
+				testAggregator, accessor.getPropertyValue("aggregator"));
 		Assert.assertEquals(
-				"The AggregatingMessageHandler is not injected with the appropriate CompletionStrategy instance",
-				completionStrategy, messageHandlerFieldAccessor.getPropertyValue("completionStrategy"));
-		Assert.assertEquals("The AggregatingMessageHandler is not injected with the appropriate output channel",
-				outputChannel, messageHandlerFieldAccessor.getPropertyValue("target"));
-		Assert.assertEquals("The AggregatingMessageHandler is not injected with the appropriate discard channel",
-				discardChannel, messageHandlerFieldAccessor.getPropertyValue("discardChannel"));
-		Assert.assertEquals("The AggregatingMessageHandler is not set with the appropriate timeout value", 86420000l,
-				messageHandlerFieldAccessor.getPropertyValue("sendTimeout"));
+				"The AggregatorEndpoint is not injected with the appropriate CompletionStrategy instance",
+				completionStrategy, accessor.getPropertyValue("completionStrategy"));
+		Assert.assertEquals("The AggregatorEndpoint is not injected with the appropriate output channel",
+				outputChannel, accessor.getPropertyValue("target"));
+		Assert.assertEquals("The AggregatorEndpoint is not injected with the appropriate discard channel",
+				discardChannel, accessor.getPropertyValue("discardChannel"));
+		Assert.assertEquals("The AggregatorEndpoint is not set with the appropriate timeout value",
+				86420000l, accessor.getPropertyValue("sendTimeout"));
 		Assert.assertEquals(
-						"The AggregatingMessageHandler is not configured with the appropriate 'send partial results on timeout' flag",
-						true, messageHandlerFieldAccessor.getPropertyValue("sendPartialResultOnTimeout"));
-		Assert.assertEquals("The AggregatingMessageHandler is not configured with the appropriate reaper interval",
-				135l, messageHandlerFieldAccessor.getPropertyValue("reaperInterval"));
+				"The AggregatorEndpoint is not configured with the appropriate 'send partial results on timeout' flag",
+				true, accessor.getPropertyValue("sendPartialResultOnTimeout"));
+		Assert.assertEquals("The AggregatorEndpoint is not configured with the appropriate reaper interval",
+				135l, accessor.getPropertyValue("reaperInterval"));
 		Assert.assertEquals(
-				"The AggregatingMessageHandler is not configured with the appropriate tracked correlationId capacity",
-				99, messageHandlerFieldAccessor.getPropertyValue("trackedCorrelationIdCapacity"));
-		Assert.assertEquals("The AggregatingMessageHandler is not configured with the appropriate timeout",
-				42l, messageHandlerFieldAccessor.getPropertyValue("timeout"));
+				"The AggregatorEndpoint is not configured with the appropriate tracked correlationId capacity",
+				99, accessor.getPropertyValue("trackedCorrelationIdCapacity"));
+		Assert.assertEquals("The AggregatorEndpoint is not configured with the appropriate timeout",
+				42l, accessor.getPropertyValue("timeout"));
 	}
 
 	@Test
 	public void testSimpleJavaBeanAggregator() {
 		List<Message<?>> outboundMessages = new ArrayList<Message<?>>();
-		AggregatingMessageHandler addingAggregator =
-				(AggregatingMessageHandler) context.getBean("aggregatorWithReferenceAndMethod");
+		AggregatorEndpoint addingAggregator =
+				(AggregatorEndpoint) context.getBean("aggregatorWithReferenceAndMethod");
 		outboundMessages.add(createMessage(1l, "id1", 3, 1, null));
 		outboundMessages.add(createMessage(2l, "id1", 3, 3, null));
 		outboundMessages.add(createMessage(3l, "id1", 3, 2, null));
@@ -131,8 +131,8 @@ public class AggregatorParserTests {
 
 	@Test
 	public void testAggregatorWithPojoCompletionStrategy(){
-		AggregatingMessageHandler aggregatorWithPojoCompletionStrategy =
-				(AggregatingMessageHandler) context.getBean("aggregatorWithPojoCompletionStrategy");
+		AggregatorEndpoint aggregatorWithPojoCompletionStrategy =
+				(AggregatorEndpoint) context.getBean("aggregatorWithPojoCompletionStrategy");
 		CompletionStrategy completionStrategy = (CompletionStrategy)
 				new DirectFieldAccessor(aggregatorWithPojoCompletionStrategy).getPropertyValue("completionStrategy");
 		Assert.assertTrue(completionStrategy instanceof CompletionStrategyAdapter);

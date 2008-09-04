@@ -25,7 +25,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 /**
- * An {@link AbstractMessageBarrierHandler} that waits for a <em>complete</em>
+ * An {@link AbstractMessageBarrierEndpoint} that waits for a <em>complete</em>
  * group of {@link Message Messages} to arrive and then delegates to an
  * {@link Aggregator} to combine them into a single {@link Message}.
  * <p>
@@ -34,13 +34,13 @@ import org.springframework.util.CollectionUtils;
  * custom implementation of the {@link CompletionStrategy} may be provided.
  * <p>
  * All considerations regarding <code>timeout</code> and grouping by
- * '<code>correlationId</code>' from {@link AbstractMessageBarrierHandler} apply
+ * '<code>correlationId</code>' from {@link AbstractMessageBarrierEndpoint} apply
  * here as well.
  * 
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class AggregatingMessageHandler extends AbstractMessageBarrierHandler {
+public class AggregatorEndpoint extends AbstractMessageBarrierEndpoint {
 
 	private final Aggregator aggregator;
 
@@ -48,18 +48,18 @@ public class AggregatingMessageHandler extends AbstractMessageBarrierHandler {
 
 
 	/**
-	 * Create a handler that delegates to the provided aggregator to combine a
+	 * Create an endpoint that delegates to the provided Aggregator to combine a
 	 * group of messages into a single message. The executor will be used for
 	 * scheduling a background maintenance thread. If <code>null</code>, a new
 	 * single-threaded executor will be created.
 	 */
-	public AggregatingMessageHandler(Aggregator aggregator, ScheduledExecutorService executor) {
+	public AggregatorEndpoint(Aggregator aggregator, ScheduledExecutorService executor) {
 		super(executor);
 		Assert.notNull(aggregator, "'aggregator' must not be null");
 		this.aggregator = aggregator;
 	}
 
-	public AggregatingMessageHandler(Aggregator aggregator) {
+	public AggregatorEndpoint(Aggregator aggregator) {
 		this(aggregator, null);
 	}
 
