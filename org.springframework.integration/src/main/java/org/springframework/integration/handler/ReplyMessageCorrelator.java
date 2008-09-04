@@ -16,6 +16,7 @@
 
 package org.springframework.integration.handler;
 
+import org.springframework.integration.endpoint.AbstractInOutEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.RetrievalBlockingMessageStore;
@@ -27,7 +28,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class ReplyMessageCorrelator implements MessageHandler {
+public class ReplyMessageCorrelator extends AbstractInOutEndpoint {
 
 	private volatile long defaultTimeout = 5000;
 
@@ -44,6 +45,7 @@ public class ReplyMessageCorrelator implements MessageHandler {
 		this.defaultTimeout = defaultTimeout;
 	}
 
+	@Override
 	public Message<?> handle(Message<?> message) {
 		Object correlationId = this.getCorrelationId(message);
 		if (correlationId == null) {
