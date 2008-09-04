@@ -36,16 +36,16 @@ import org.springframework.integration.message.MessageHeaders;
  *
  * @author Marius Bogoevici
  */
-public class ResequencingMessageHandler extends AbstractMessageBarrierEndpoint {
+public class ResequencerEndpoint extends AbstractMessageBarrierEndpoint {
 
 	private volatile boolean releasePartialSequences = true;
 
 
-	public ResequencingMessageHandler() {
+	public ResequencerEndpoint() {
 		this(null);
 	}
 
-	public ResequencingMessageHandler(ScheduledExecutorService executor) {
+	public ResequencerEndpoint(ScheduledExecutorService executor) {
 		super(executor);
 	}
 

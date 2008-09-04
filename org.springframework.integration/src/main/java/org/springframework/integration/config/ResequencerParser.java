@@ -20,7 +20,7 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
-import org.springframework.integration.aggregator.ResequencingMessageHandler;
+import org.springframework.integration.aggregator.ResequencerEndpoint;
 
 /**
  * Parser for the &lt;resequencer&gt; element.
@@ -38,7 +38,7 @@ public class ResequencerParser extends AbstractSimpleBeanDefinitionParser {
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
-		return ResequencingMessageHandler.class;
+		return ResequencerEndpoint.class;
 	}
 
 	@Override

@@ -25,7 +25,7 @@ import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
-import org.springframework.integration.aggregator.ResequencingMessageHandler;
+import org.springframework.integration.aggregator.ResequencerEndpoint;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
@@ -34,11 +34,11 @@ import org.springframework.integration.message.MessageBuilder;
 /**
  * @author Marius Bogoevici
  */
-public class ResequencerMessageHandlerTests {
+public class ResequencerEndpointTests {
 
 	@Test
 	public void testBasicResequencing() throws InterruptedException {
-		ResequencingMessageHandler resequencer = new ResequencingMessageHandler();
+		ResequencerEndpoint resequencer = new ResequencerEndpoint();
 		resequencer.setReleasePartialSequences(false);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 3, 3, replyChannel);
@@ -62,7 +62,7 @@ public class ResequencerMessageHandlerTests {
 
 	@Test
 	public void testResequencingWithIncompleteSequenceRelease() throws InterruptedException {
-		ResequencingMessageHandler resequencer = new ResequencingMessageHandler();
+		ResequencerEndpoint resequencer = new ResequencerEndpoint();
 		resequencer.setReleasePartialSequences(true);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 4, 2, replyChannel);
@@ -98,7 +98,7 @@ public class ResequencerMessageHandlerTests {
 
 	@Test
 	public void testResequencingWithCompleteSequenceRelease() throws InterruptedException {
-		ResequencingMessageHandler resequencer = new ResequencingMessageHandler();
+		ResequencerEndpoint resequencer = new ResequencerEndpoint();
 		resequencer.setReleasePartialSequences(false);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 4, 2, replyChannel);

@@ -26,7 +26,7 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.aggregator.ResequencingMessageHandler;
+import org.springframework.integration.aggregator.ResequencerEndpoint;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.message.Message;
@@ -70,56 +70,54 @@ public class ResequencerParserTests {
 
 	@Test
 	public void testDefaultResequencerProperties() {
-		ResequencingMessageHandler resequencingHandler = (ResequencingMessageHandler) context
-				.getBean("defaultResequencer");
-		DirectFieldAccessor messageHandlerFieldAccessor = new DirectFieldAccessor(resequencingHandler);
-		Assert.assertNull(messageHandlerFieldAccessor.getPropertyValue("target"));
-		Assert.assertNull(messageHandlerFieldAccessor.getPropertyValue("discardChannel"));
-		Assert.assertEquals("The ResequencingMessageHandler is not set with the appropriate timeout value", 1000l,
-				messageHandlerFieldAccessor.getPropertyValue("sendTimeout"));
+		ResequencerEndpoint endpoint = (ResequencerEndpoint) context.getBean("defaultResequencer");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
+		Assert.assertNull(accessor.getPropertyValue("target"));
+		Assert.assertNull(accessor.getPropertyValue("discardChannel"));
+		Assert.assertEquals("The ResequencerEndpoint is not set with the appropriate timeout value",
+				1000l, accessor.getPropertyValue("sendTimeout"));
 		Assert.assertEquals(
-						"The ResequencingMessageHandler is not configured with the appropriate 'send partial results on timeout' flag",
-						false, messageHandlerFieldAccessor.getPropertyValue("sendPartialResultOnTimeout"));
-		Assert.assertEquals("The ResequencingMessageHandler is not configured with the appropriate reaper interval",
-				1000l, messageHandlerFieldAccessor.getPropertyValue("reaperInterval"));
+				"The ResequencerEndpoint is not configured with the appropriate 'send partial results on timeout' flag",
+				false, accessor.getPropertyValue("sendPartialResultOnTimeout"));
+		Assert.assertEquals("The ResequencerEndpoint is not configured with the appropriate reaper interval",
+				1000l, accessor.getPropertyValue("reaperInterval"));
 		Assert.assertEquals(
-				"The ResequencingMessageHandler is not configured with the appropriate tracked correlationId capacity",
-				1000, messageHandlerFieldAccessor.getPropertyValue("trackedCorrelationIdCapacity"));
-		Assert.assertEquals("The ResequencingMessageHandler is not configured with the appropriate timeout",
-				60000l, messageHandlerFieldAccessor.getPropertyValue("timeout"));
-		Assert.assertEquals("The ResequencingMessageHandler is not configured with the appropriate 'release partial sequences' flag",
-				true, messageHandlerFieldAccessor.getPropertyValue("releasePartialSequences"));		
+				"The ResequencerEndpoint is not configured with the appropriate tracked correlationId capacity",
+				1000, accessor.getPropertyValue("trackedCorrelationIdCapacity"));
+		Assert.assertEquals("The ResequencerEndpoint is not configured with the appropriate timeout",
+				60000l, accessor.getPropertyValue("timeout"));
+		Assert.assertEquals("The ResequencerEndpoint is not configured with the appropriate 'release partial sequences' flag",
+				true, accessor.getPropertyValue("releasePartialSequences"));		
 	}
 
 	@Test
 	public void testPropertyAssignment() throws Exception {
-		ResequencingMessageHandler completeResequencingMessageHandler = (ResequencingMessageHandler) context
-				.getBean("completelyDefinedResequencer");
+		ResequencerEndpoint endpoint = (ResequencerEndpoint) context.getBean("completelyDefinedResequencer");
 		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
 		MessageChannel discardChannel = (MessageChannel) context.getBean("discardChannel");
-		DirectFieldAccessor messageHandlerFieldAccessor = new DirectFieldAccessor(completeResequencingMessageHandler);
-		Assert.assertEquals("The ResequencingMessageHandler is not injected with the appropriate output channel",
-				outputChannel, messageHandlerFieldAccessor.getPropertyValue("target"));
-		Assert.assertEquals("The ResequencingMessageHandler is not injected with the appropriate discard channel",
-				discardChannel, messageHandlerFieldAccessor.getPropertyValue("discardChannel"));
-		Assert.assertEquals("The ResequencingMessageHandler is not set with the appropriate timeout value", 86420000l,
-				messageHandlerFieldAccessor.getPropertyValue("sendTimeout"));
+		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
+		Assert.assertEquals("The ResequencerEndpoint is not injected with the appropriate output channel",
+				outputChannel, accessor.getPropertyValue("target"));
+		Assert.assertEquals("The ResequencerEndpoint is not injected with the appropriate discard channel",
+				discardChannel, accessor.getPropertyValue("discardChannel"));
+		Assert.assertEquals("The ResequencerEndpoint is not set with the appropriate timeout value",
+				86420000l, accessor.getPropertyValue("sendTimeout"));
 		Assert.assertEquals(
-						"The ResequencingMessageHandler is not configured with the appropriate 'send partial results on timeout' flag",
-						true, messageHandlerFieldAccessor.getPropertyValue("sendPartialResultOnTimeout"));
-		Assert.assertEquals("The ResequencingMessageHandler is not configured with the appropriate reaper interval",
-				135l, messageHandlerFieldAccessor.getPropertyValue("reaperInterval"));
+				"The ResequencerEndpoint is not configured with the appropriate 'send partial results on timeout' flag",
+				true, accessor.getPropertyValue("sendPartialResultOnTimeout"));
+		Assert.assertEquals("The ResequencerEndpoint is not configured with the appropriate reaper interval",
+				135l, accessor.getPropertyValue("reaperInterval"));
 		Assert.assertEquals(
-				"The ResequencingMessageHandler is not configured with the appropriate tracked correlationId capacity",
-				99, messageHandlerFieldAccessor.getPropertyValue("trackedCorrelationIdCapacity"));
-		Assert.assertEquals("The ResequencingMessageHandler is not configured with the appropriate timeout",
-				42l, messageHandlerFieldAccessor.getPropertyValue("timeout"));
-		Assert.assertEquals("The ResequencingMessageHandler is not configured with the appropriate 'release partial sequences' flag",
-				false, messageHandlerFieldAccessor.getPropertyValue("releasePartialSequences"));
+				"The ResequencerEndpoint is not configured with the appropriate tracked correlationId capacity",
+				99, accessor.getPropertyValue("trackedCorrelationIdCapacity"));
+		Assert.assertEquals("The ResequencerEndpoint is not configured with the appropriate timeout",
+				42l, accessor.getPropertyValue("timeout"));
+		Assert.assertEquals("The ResequencerEndpoint is not configured with the appropriate 'release partial sequences' flag",
+				false, accessor.getPropertyValue("releasePartialSequences"));
 	}
 
-	private static <T> Message<T> createMessage(T payload, Object correlationId, int sequenceSize, int sequenceNumber,
-			MessageChannel outputChannel) {
+	private static <T> Message<T> createMessage(T payload, Object correlationId,
+			int sequenceSize, int sequenceNumber, MessageChannel outputChannel) {
 		return MessageBuilder.fromPayload(payload)
 				.setCorrelationId(correlationId)
 				.setSequenceSize(sequenceSize)
