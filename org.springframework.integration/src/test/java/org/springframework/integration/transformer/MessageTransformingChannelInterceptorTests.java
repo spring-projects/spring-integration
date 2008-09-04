@@ -22,7 +22,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 
@@ -71,13 +70,13 @@ public class MessageTransformingChannelInterceptorTests {
 	}
 
 
-	private static class TestTransformer implements MessageHandler {
+	private static class TestTransformer implements Transformer {
 
 		boolean invoked = false;
 
 		int invokedCount = 0;
 
-		public Message<?> handle(Message<?> message) {
+		public Message<?> transform(Message<?> message) {
 			invoked = true;
 			invokedCount++;
 			return message;
