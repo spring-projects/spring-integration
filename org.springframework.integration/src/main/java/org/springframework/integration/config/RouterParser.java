@@ -17,7 +17,7 @@
 package org.springframework.integration.config;
 
 import org.springframework.integration.endpoint.MessageEndpoint;
-import org.springframework.integration.router.MethodInvokingRouter;
+import org.springframework.integration.router.MethodInvokingChannelResolver;
 import org.springframework.integration.router.RouterEndpoint;
 
 /**
@@ -34,7 +34,7 @@ public class RouterParser extends AbstractEndpointParser {
 
 	@Override
 	protected Class<?> getMethodInvokingAdapterClass() {
-		return MethodInvokingRouter.class;
+		return MethodInvokingChannelResolver.class;
 	}
 
 }

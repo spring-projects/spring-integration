@@ -16,15 +16,31 @@
 
 package org.springframework.integration.router;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 
 /**
- * Strategy interface for content-based routing to a channel name.
- * 
  * @author Mark Fisher
  */
-public interface ChannelNameResolver {
+public abstract class AbstractMultiChannelNameResolver extends AbstractChannelResolver {
 
-	String resolve(Message<?> message);
+	@Override
+	public Collection<MessageChannel> resolveChannels(Message<?> message) {
+		Collection<MessageChannel> channels = new ArrayList<MessageChannel>();
+		String[] channelNames = this.resolveChannelNames(message);
+		if (channelNames == null) {
+			return null;
+		}
+		for (String channelName : channelNames) {
+			MessageChannel channel = this.lookupChannel(channelName, true);
+			channels.add(channel);
+		}
+		return channels;
+	}
+
+	protected abstract String[] resolveChannelNames(Message<?> message);
 
 }

@@ -24,13 +24,12 @@ import java.util.List;
 
 import org.junit.Test;
 
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -42,19 +41,17 @@ public class MultiChannelRouterTests {
 	public void routeWithChannelResolver() {
 		final QueueChannel channel1 = new QueueChannel();
 		final QueueChannel channel2 = new QueueChannel();
-		MultiChannelResolver channelResolver = new MultiChannelResolver() {
-			public List<MessageChannel> resolve(Message<?> message) {
+		AbstractChannelResolver channelResolver = new AbstractChannelResolver() {
+			public List<MessageChannel> resolveChannels(Message<?> message) {
 				List<MessageChannel> channels = new ArrayList<MessageChannel>();
 				channels.add(channel1);
 				channels.add(channel2);
 				return channels;
 			}
 		};
-		MultiChannelRouter router = new MultiChannelRouter();
-		router.setChannelResolver(channelResolver);
-		router.afterPropertiesSet();
+		RouterEndpoint endpoint = new RouterEndpoint(channelResolver);
 		Message<String> message = new StringMessage("test");
-		router.route(message);
+		endpoint.send(message);
 		Message<?> result1 = channel1.receive(25);
 		assertNotNull(result1);
 		assertEquals("test", result1.getPayload());
@@ -65,8 +62,8 @@ public class MultiChannelRouterTests {
 
 	@Test
 	public void routeWithChannelNameResolver() {
-		MultiChannelNameResolver channelNameResolver = new MultiChannelNameResolver() {
-			public String[] resolve(Message<?> message) {
+		AbstractMultiChannelNameResolver channelNameResolver = new AbstractMultiChannelNameResolver() {
+			public String[] resolveChannelNames(Message<?> message) {
 				return new String[] {"channel1", "channel2"};
 			}
 		};
@@ -77,12 +74,10 @@ public class MultiChannelRouterTests {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel(channel1);
 		channelRegistry.registerChannel(channel2);
-		MultiChannelRouter router = new MultiChannelRouter();
-		router.setChannelNameResolver(channelNameResolver);
-		router.setChannelRegistry(channelRegistry);
-		router.afterPropertiesSet();
+		RouterEndpoint endpoint = new RouterEndpoint(channelNameResolver);
+		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> message = new StringMessage("test");
-		router.route(message);
+		endpoint.send(message);
 		Message<?> result1 = channel1.receive(25);
 		assertNotNull(result1);
 		assertEquals("test", result1.getPayload());
@@ -91,46 +86,30 @@ public class MultiChannelRouterTests {
 		assertEquals("test", result2.getPayload());
 	}
 
-	@Test(expected = ConfigurationException.class)
-	public void configuringBothChannelResolverAndChannelNameResolverIsNotAllowed() {
-		MultiChannelResolver channelResolver = new MultiChannelResolver() {
-			public List<MessageChannel> resolve(Message<?> message) {
-				return null;
-			}
-		};
-		MultiChannelNameResolver channelNameResolver = new MultiChannelNameResolver() {
-			public String[] resolve(Message<?> message) {
-				return null;
-			}
-		};
-		MultiChannelRouter router = new MultiChannelRouter();
-		router.setChannelResolver(channelResolver);		
-		router.setChannelNameResolver(channelNameResolver);
-		router.afterPropertiesSet();
-	}
-
-	@Test(expected = MessageDeliveryException.class)
+	@Test(expected = MessagingException.class)
 	public void channelNameLookupFailure() {
-		MultiChannelNameResolver channelNameResolver = new MultiChannelNameResolver() {
-			public String[] resolve(Message<?> message) {
+		AbstractMultiChannelNameResolver channelNameResolver = new AbstractMultiChannelNameResolver() {
+			public String[] resolveChannelNames(Message<?> message) {
 				return new String[] {"noSuchChannel"};
 			}
 		};
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		MultiChannelRouter router = new MultiChannelRouter();
-		router.setChannelNameResolver(channelNameResolver);
-		router.setChannelRegistry(channelRegistry);
-		router.afterPropertiesSet();
+		RouterEndpoint endpoint = new RouterEndpoint(channelNameResolver);
+		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> message = new StringMessage("test");
-		router.route(message);
+		endpoint.send(message);
 	}
 
-	@Test(expected = ConfigurationException.class)
-	public void channelResolverIsRequired() {
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		MultiChannelRouter router = new MultiChannelRouter();
-		router.setChannelRegistry(channelRegistry);
-		router.afterPropertiesSet();
+	@Test(expected = MessagingException.class)
+	public void channelRegistryNotAvailable() {
+		AbstractMultiChannelNameResolver channelNameResolver = new AbstractMultiChannelNameResolver() {
+			public String[] resolveChannelNames(Message<?> message) {
+				return new String[] {"noSuchChannel"};
+			}
+		};
+		RouterEndpoint endpoint = new RouterEndpoint(channelNameResolver);
+		Message<String> message = new StringMessage("test");
+		endpoint.send(message);
 	}
 
 }

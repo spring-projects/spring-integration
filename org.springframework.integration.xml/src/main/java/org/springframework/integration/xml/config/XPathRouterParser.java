@@ -22,8 +22,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.router.MultiChannelRouter;
-import org.springframework.integration.router.SingleChannelRouter;
 import org.springframework.integration.xml.router.XPathMultiChannelNameResolver;
 import org.springframework.integration.xml.router.XPathSingleChannelNameResolver;
 import org.springframework.util.StringUtils;
@@ -54,27 +52,19 @@ public class XPathRouterParser extends AbstractSingleBeanDefinitionParser {
 				|| (!StringUtils.hasText(xPathExpression) && !StringUtils.hasText(xPathExpressionRef))) {
 			throw new ConfigurationException("Exactly one of 'xpath-expression' or 'xpath-expression-ref' is required.");
 		}
-
-		BeanDefinitionBuilder resolverDefinitionBuilder = null;
 		if (multiChannel) {
-			builder.getBeanDefinition().setBeanClass(MultiChannelRouter.class);
-			resolverDefinitionBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(XPathMultiChannelNameResolver.class);
+			builder.getBeanDefinition().setBeanClass(XPathMultiChannelNameResolver.class);
 		}
 		else {
-			builder.getBeanDefinition().setBeanClass(SingleChannelRouter.class);
-			resolverDefinitionBuilder = BeanDefinitionBuilder
-					.genericBeanDefinition(XPathSingleChannelNameResolver.class);
+			builder.getBeanDefinition().setBeanClass(XPathSingleChannelNameResolver.class);
 		}
-
 		if (StringUtils.hasText(xPathExpression)) {
 			XPathExpression expression = XPathExpressionFactory.createXPathExpression(xPathExpression);
-			resolverDefinitionBuilder.addConstructorArgValue(expression);
+			builder.addConstructorArgValue(expression);
 		}
 		else {
-			resolverDefinitionBuilder.addConstructorArgReference(xPathExpressionRef);
+			builder.addConstructorArgReference(xPathExpressionRef);
 		}
-		builder.addPropertyValue("channelNameResolver", resolverDefinitionBuilder.getBeanDefinition());
 	}
 
 }

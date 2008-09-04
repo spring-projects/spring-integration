@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,27 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.xml.router;
+package org.springframework.integration.xml.util;
+
+import org.w3c.dom.Node;
 
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
-import org.w3c.dom.Node;
 
 /**
- * 
  * @author Jonas Partner
- * 
+ * @author Mark Fisher
  */
-public class AbstractXPathChannelNameResolver {
+public abstract class XPathUtils {
 
-	protected Node extractNode(Message<?> message) {
+	/**
+	 * Return the given Message's payload as a Node if possible, else an Exception will be thrown.
+	 */
+	public static Node extractPayloadAsNode(Message<?> message) {
 		if (!Node.class.isAssignableFrom(message.getPayload().getClass())) {
-			throw new MessagingException(message, "Payload does not implement org.w3c.dom.Node so can not be evaluated");
+			throw new MessagingException(message, "payload is not assignable to [" + Node.class.getName() + "] so can not be evaluated");
 		}
 		return (Node) message.getPayload();
 	}
+
 }

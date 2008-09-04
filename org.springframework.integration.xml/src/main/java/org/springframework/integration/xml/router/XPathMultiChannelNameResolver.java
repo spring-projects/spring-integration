@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,39 +18,41 @@ package org.springframework.integration.xml.router;
 
 import java.util.List;
 
-import org.springframework.integration.message.Message;
-import org.springframework.integration.router.MultiChannelNameResolver;
-import org.springframework.util.Assert;
-import org.springframework.xml.xpath.NodeMapper;
-import org.springframework.xml.xpath.XPathExpression;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Node;
 
+import org.springframework.integration.message.Message;
+import org.springframework.integration.router.AbstractMultiChannelNameResolver;
+import org.springframework.integration.xml.util.XPathUtils;
+import org.springframework.util.Assert;
+import org.springframework.xml.xpath.NodeMapper;
+import org.springframework.xml.xpath.XPathExpression;
+
 /**
- * 
  * @author Jonas Partner
- * 
  */
-public class XPathMultiChannelNameResolver extends AbstractXPathChannelNameResolver implements MultiChannelNameResolver {
+public class XPathMultiChannelNameResolver extends AbstractMultiChannelNameResolver {
 
 	private final XPathExpression xPathExpression;
 
-	private NodeMapper nodeMapper = new TextContentNodeMapper();
+	private volatile NodeMapper nodeMapper = new TextContentNodeMapper();
+
 
 	public XPathMultiChannelNameResolver(XPathExpression xPathExpression) {
-		Assert.notNull("XPAthExpression must be provided");
+		Assert.notNull("XPathExpression must not be null");
 		this.xPathExpression = xPathExpression;
 	}
 
+
 	public void setNodeMapper(NodeMapper nodeMapper) {
-		Assert.notNull(nodeMapper, "NodeMapper can not be null");
+		Assert.notNull(nodeMapper, "NodeMapper must not be null");
 		this.nodeMapper = nodeMapper;
 	}
 
 	@SuppressWarnings("unchecked")
-	public String[] resolve(Message<?> message) {
-		Node node = extractNode(message);
-		List channelNamesList = xPathExpression.evaluate(node, nodeMapper);
+	public String[] resolveChannelNames(Message<?> message) {
+		Node node = XPathUtils.extractPayloadAsNode(message);
+		List channelNamesList = this.xPathExpression.evaluate(node, this.nodeMapper);
 		return (String[]) channelNamesList.toArray(new String[channelNamesList.size()]);
 	}
 

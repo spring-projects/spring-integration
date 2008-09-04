@@ -24,21 +24,14 @@ import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
 
 /**
- * A router implementation that resolves the {@link MessageChannel} based on the
- * {@link Message Message's} payload type.
+ * A ChannelResolver implementation that resolves the {@link MessageChannel} based
+ * on the {@link Message Message's} payload type.
  * 
  * @author Mark Fisher
  */
-public class PayloadTypeRouter extends SingleChannelRouter {
+public class PayloadTypeChannelResolver extends AbstractSingleChannelResolver {
 
 	private Map<Class<?>, MessageChannel> channelMappings = new ConcurrentHashMap<Class<?>, MessageChannel>();
-
-	private MessageChannel defaultChannel;
-
-
-	public PayloadTypeRouter() {
-		this.setChannelResolver(new PayloadTypeChannelResolver());
-	}
 
 
 	public void setChannelMappings(Map<Class<?>, MessageChannel> channelMappings) {
@@ -46,17 +39,9 @@ public class PayloadTypeRouter extends SingleChannelRouter {
 		this.channelMappings = channelMappings;
 	}
 
-	public void setDefaultChannel(MessageChannel defaultChannel) {
-		this.defaultChannel = defaultChannel;
-	}
-
-
-	private class PayloadTypeChannelResolver implements ChannelResolver {
-
-		public MessageChannel resolve(Message<?> message) {
-			MessageChannel channel = channelMappings.get(message.getPayload().getClass());
-			return channel != null ? channel : defaultChannel;
-		}
+	@Override
+	protected MessageChannel resolveChannel(Message<?> message) {
+		return this.channelMappings.get(message.getPayload().getClass());
 	}
 
 }

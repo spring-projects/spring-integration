@@ -16,18 +16,20 @@
 
 package org.springframework.integration.router;
 
-import java.util.List;
-
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 
 /**
- * Strategy interface for content-based routing to multiple channels.
- * 
  * @author Mark Fisher
  */
-public interface MultiChannelResolver {
+public abstract class AbstractSingleChannelNameResolver extends AbstractSingleChannelResolver {
 
-	List<MessageChannel> resolve(Message<?> message);
+	@Override
+	protected MessageChannel resolveChannel(Message<?> message) {
+		String channelName = this.resolveChannelName(message);
+		return this.lookupChannel(channelName, true);
+	}
+
+	protected abstract String resolveChannelName(Message<?> message);
 
 }

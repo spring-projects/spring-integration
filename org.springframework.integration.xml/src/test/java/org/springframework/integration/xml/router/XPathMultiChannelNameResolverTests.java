@@ -34,24 +34,24 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
  */
 public class XPathMultiChannelNameResolverTests {
 
-	@SuppressWarnings("unchecked")
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testSimpleSingleeAttribute() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<doc type=\"one\" />");
 		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/doc/@type");
 		XPathMultiChannelNameResolver resolver = new XPathMultiChannelNameResolver(expression);
-		String[] channelNames = resolver.resolve(new GenericMessage(doc));
+		String[] channelNames = resolver.resolveChannelNames(new GenericMessage(doc));
 		assertEquals("Wrong number of channels returend", 1, channelNames.length);
 		assertEquals("Wrong channel name", "one", channelNames[0]);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testMultipleNodeValues() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<doc type=\"one\"><book>bOne</book><book>bTwo</book></doc>");
 		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/doc/book");
 		XPathMultiChannelNameResolver resolver = new XPathMultiChannelNameResolver(expression);
-		String[] channelNames = resolver.resolve(new GenericMessage(doc));
+		String[] channelNames = resolver.resolveChannelNames(new GenericMessage(doc));
 		assertEquals("Wrong number of channels returend", 2, channelNames.length);
 		assertEquals("Wrong channel name", "bOne", channelNames[0]);
 		assertEquals("Wrong channel name", "bTwo", channelNames[1]);
@@ -61,7 +61,7 @@ public class XPathMultiChannelNameResolverTests {
 	public void testNonNodePayload() throws Exception {
 		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/doc/@type");
 		XPathMultiChannelNameResolver resolver = new XPathMultiChannelNameResolver(expression);
-		resolver.resolve(new StringMessage("test"));
+		resolver.resolveChannelNames(new StringMessage("test"));
 	}
 
 }

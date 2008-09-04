@@ -24,7 +24,6 @@ import org.w3c.dom.Document;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.xml.router.XPathSingleChannelNameResolver;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.xml.xpath.XPathExpression;
 import org.springframework.xml.xpath.XPathExpressionFactory;
@@ -34,13 +33,13 @@ import org.springframework.xml.xpath.XPathExpressionFactory;
  */
 public class XPathSingleChannelNameResolverTests {
 
-	@SuppressWarnings("unchecked")
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testSimpleDocType() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<doc type=\"one\" />");
 		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/doc/@type");
 		XPathSingleChannelNameResolver resolver = new XPathSingleChannelNameResolver(expression);
-		String channelName = resolver.resolve(new GenericMessage(doc));
+		String channelName = resolver.resolveChannelName(new GenericMessage(doc));
 		assertEquals("Wrong channel name", "one", channelName);
 	}
 
@@ -48,7 +47,7 @@ public class XPathSingleChannelNameResolverTests {
 	public void testNonNodePayload() throws Exception {
 		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/doc/@type");
 		XPathSingleChannelNameResolver resolver = new XPathSingleChannelNameResolver(expression);
-		resolver.resolve(new StringMessage("test"));
+		resolver.resolveChannelName(new StringMessage("test"));
 	}
 
 }

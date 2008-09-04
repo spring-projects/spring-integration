@@ -19,8 +19,10 @@ package org.springframework.integration.router;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.junit.Test;
@@ -39,17 +41,35 @@ import org.springframework.integration.message.StringMessage;
 public class RecipientListRouterTests {
 
 	@Test
+	public void resolveWithChannelList() {
+		QueueChannel channel1 = new QueueChannel();
+		QueueChannel channel2 = new QueueChannel();
+		List<MessageChannel> channels = new ArrayList<MessageChannel>();
+		channels.add(channel1);
+		channels.add(channel2);
+		RecipientListChannelResolver resolver = new RecipientListChannelResolver();
+		resolver.setChannels(channels);
+		resolver.afterPropertiesSet();
+		Message<String> message = new StringMessage("test");
+		Collection<MessageChannel> resolved = resolver.resolveChannels(message);
+		assertEquals(2, resolved.size());
+		assertTrue(resolved.contains(channel1));
+		assertTrue(resolved.contains(channel2));
+	}
+
+	@Test
 	public void routeWithChannelList() {
 		QueueChannel channel1 = new QueueChannel();
 		QueueChannel channel2 = new QueueChannel();
 		List<MessageChannel> channels = new ArrayList<MessageChannel>();
 		channels.add(channel1);
 		channels.add(channel2);
-		RecipientListRouter router = new RecipientListRouter();
-		router.setChannels(channels);
-		router.afterPropertiesSet();
+		RecipientListChannelResolver resolver = new RecipientListChannelResolver();
+		resolver.setChannels(channels);
+		resolver.afterPropertiesSet();
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
 		Message<String> message = new StringMessage("test");
-		router.route(message);
+		endpoint.send(message);
 		Message<?> result1 = channel1.receive(25);
 		assertNotNull(result1);
 		assertEquals("test", result1.getPayload());
@@ -67,12 +87,13 @@ public class RecipientListRouterTests {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel(channel1);
 		channelRegistry.registerChannel(channel2);
-		RecipientListRouter router = new RecipientListRouter();
-		router.setChannelNames(new String[] {"channel1", "channel2"});
-		router.setChannelRegistry(channelRegistry);
-		router.afterPropertiesSet();
+		RecipientListChannelResolver resolver = new RecipientListChannelResolver();
+		resolver.setChannelNames(new String[] {"channel1", "channel2"});
+		resolver.afterPropertiesSet();
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> message = new StringMessage("test");
-		router.route(message);
+		endpoint.send(message);
 		Message<?> result1 = channel1.receive(25);
 		assertNotNull(result1);
 		assertEquals("test", result1.getPayload());
@@ -90,12 +111,13 @@ public class RecipientListRouterTests {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel(channel1);
 		channelRegistry.registerChannel(channel2);
-		RecipientListRouter router = new RecipientListRouter();
-		router.setChannelNames(new String[] {"channel1"});
-		router.setChannelRegistry(channelRegistry);
-		router.afterPropertiesSet();
+		RecipientListChannelResolver resolver = new RecipientListChannelResolver();
+		resolver.setChannelNames(new String[] {"channel1"});
+		resolver.afterPropertiesSet();
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> message = new StringMessage("test");
-		router.route(message);
+		endpoint.send(message);
 		Message<?> result1 = channel1.receive(25);
 		assertNotNull(result1);
 		assertEquals("test", result1.getPayload());
@@ -115,11 +137,11 @@ public class RecipientListRouterTests {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel(channel1);
 		channelRegistry.registerChannel(channel2);
-		RecipientListRouter router = new RecipientListRouter();
-		router.setChannels(channels);
-		router.setChannelNames(new String[] {"channel1"});
-		router.setChannelRegistry(channelRegistry);
-		router.afterPropertiesSet();
+		RecipientListChannelResolver resolver = new RecipientListChannelResolver();
+		resolver.setChannels(channels);
+		resolver.setChannelNames(new String[] {"channel1"});
+		resolver.setChannelRegistry(channelRegistry);
+		resolver.afterPropertiesSet();
 	}
 
 }

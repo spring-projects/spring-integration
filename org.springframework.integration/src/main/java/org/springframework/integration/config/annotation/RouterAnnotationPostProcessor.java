@@ -24,7 +24,7 @@ import org.springframework.integration.annotation.Router;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.router.MethodInvokingRouter;
+import org.springframework.integration.router.MethodInvokingChannelResolver;
 import org.springframework.integration.router.RouterEndpoint;
 import org.springframework.util.StringUtils;
 
@@ -42,13 +42,13 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 
 	@Override
 	protected Object createMethodInvokingAdapter(Object bean, Method method, Router annotation) {
-		return new MethodInvokingRouter(bean, method);
+		return new MethodInvokingChannelResolver(bean, method);
 	}
 
 	@Override
 	protected AbstractEndpoint createEndpoint(Object adapter) {
-		if (adapter instanceof MethodInvokingRouter) {
-			return new RouterEndpoint((MethodInvokingRouter) adapter);
+		if (adapter instanceof MethodInvokingChannelResolver) {
+			return new RouterEndpoint((MethodInvokingChannelResolver) adapter);
 		}
 		return null;
 	}

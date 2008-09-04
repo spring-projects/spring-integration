@@ -24,23 +24,16 @@ import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
 
 /**
- * A router implementation that resolves the {@link MessageChannel} for messages
- * whose payload is an Exception. The channel resolution is based upon the most
- * specific cause of the error for which a channel-mapping exists.
+ * A ChannelResolver implementation that resolves the {@link MessageChannel} for
+ * messages whose payload is an Exception. The channel resolution is based upon the
+ * most specific cause of the error for which a channel-mapping exists.
  * 
  * @author Mark Fisher
  */
-public class RootCauseErrorMessageRouter extends SingleChannelRouter {
+public class RootCauseErrorMessageChannelResolver extends AbstractSingleChannelResolver {
 
 	private Map<Class<? extends Throwable>, MessageChannel> channelMappings =
 			new ConcurrentHashMap<Class<? extends Throwable>, MessageChannel>();
-
-	private MessageChannel defaultChannel;
-
-
-	public RootCauseErrorMessageRouter() {
-		this.setChannelResolver(new RootCauseResolver());
-	}
 
 
 	public void setChannelMappings(Map<Class<? extends Throwable>, MessageChannel> channelMappings) {
@@ -48,28 +41,22 @@ public class RootCauseErrorMessageRouter extends SingleChannelRouter {
 		this.channelMappings = channelMappings;
 	}
 
-	public void setDefaultChannel(MessageChannel defaultChannel) {
-		this.defaultChannel = defaultChannel;
-	}
 
-
-	private class RootCauseResolver implements ChannelResolver {
-
-		public MessageChannel resolve(Message<?> message) {
-			MessageChannel channel = null;
-			Object payload = message.getPayload();
-			if (payload != null && (payload instanceof Throwable)) {
-				Throwable mostSpecificCause = (Throwable) payload;
-				while (mostSpecificCause != null) {
-					MessageChannel mappedChannel = channelMappings.get(mostSpecificCause.getClass());
-					if (mappedChannel != null) {
-						channel = mappedChannel;
-					}
-					mostSpecificCause = mostSpecificCause.getCause();
+	@Override
+	protected MessageChannel resolveChannel(Message<?> message) {
+		MessageChannel channel = null;
+		Object payload = message.getPayload();
+		if (payload != null && (payload instanceof Throwable)) {
+			Throwable mostSpecificCause = (Throwable) payload;
+			while (mostSpecificCause != null) {
+				MessageChannel mappedChannel = this.channelMappings.get(mostSpecificCause.getClass());
+				if (mappedChannel != null) {
+					channel = mappedChannel;
 				}
+				mostSpecificCause = mostSpecificCause.getCause();
 			}
-			return channel != null ? channel : defaultChannel;
 		}
+		return channel;
 	}
 
 }

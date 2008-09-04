@@ -22,13 +22,12 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -39,16 +38,14 @@ public class SingleChannelRouterTests {
 	@Test
 	public void routeWithChannelResolver() {
 		final QueueChannel channel = new QueueChannel();
-		ChannelResolver channelResolver = new ChannelResolver() {
-			public MessageChannel resolve(Message<?> message) {
+		AbstractSingleChannelResolver channelResolver = new AbstractSingleChannelResolver() {
+			public MessageChannel resolveChannel(Message<?> message) {
 				return channel;
 			}
 		};
-		SingleChannelRouter router = new SingleChannelRouter();
-		router.setChannelResolver(channelResolver);
-		router.afterPropertiesSet();
+		RouterEndpoint endpoint = new RouterEndpoint(channelResolver);
 		Message<String> message = new StringMessage("test");
-		router.route(message);
+		endpoint.send(message);
 		Message<?> result = channel.receive(25);
 		assertNotNull(result);
 		assertEquals("test", result.getPayload());
@@ -56,8 +53,8 @@ public class SingleChannelRouterTests {
 
 	@Test
 	public void routeWithChannelNameResolver() {
-		ChannelNameResolver channelNameResolver = new ChannelNameResolver() {
-			public String resolve(Message<?> message) {
+		AbstractSingleChannelNameResolver channelNameResolver = new AbstractSingleChannelNameResolver() {
+			public String resolveChannelName(Message<?> message) {
 				return "testChannel";
 			}
 		};
@@ -65,71 +62,39 @@ public class SingleChannelRouterTests {
 		channel.setBeanName("testChannel");
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel(channel);
-		SingleChannelRouter router = new SingleChannelRouter();
-		router.setChannelNameResolver(channelNameResolver);
-		router.setChannelRegistry(channelRegistry);
-		router.afterPropertiesSet();
+		RouterEndpoint endpoint = new RouterEndpoint(channelNameResolver);
+		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> message = new StringMessage("test");
-		router.route(message);
+		endpoint.send(message);
 		Message<?> result = channel.receive(25);
 		assertNotNull(result);
 		assertEquals("test", result.getPayload());
 	}
 
-	@Test(expected = ConfigurationException.class)
-	public void configuringBothChannelResolverAndChannelNameResolverIsNotAllowed() {
-		ChannelResolver channelResolver = new ChannelResolver() {
-			public MessageChannel resolve(Message<?> message) {
-				return new QueueChannel();
-			}
-		};
-		ChannelNameResolver channelNameResolver = new ChannelNameResolver() {
-			public String resolve(Message<?> message) {
-				return "";
-			}
-		};
-		SingleChannelRouter router = new SingleChannelRouter();
-		router.setChannelResolver(channelResolver);		
-		router.setChannelNameResolver(channelNameResolver);
-		router.afterPropertiesSet();
-	}
-
 	@Test
 	public void nullChannelResult() {
-		ChannelResolver channelResolver = new ChannelResolver() {
-			public MessageChannel resolve(Message<?> message) {
+		AbstractSingleChannelResolver channelResolver = new AbstractSingleChannelResolver() {
+			public MessageChannel resolveChannel(Message<?> message) {
 				return null;
 			}
 		};
-		SingleChannelRouter router = new SingleChannelRouter();
-		router.setChannelResolver(channelResolver);
-		router.afterPropertiesSet();
+		RouterEndpoint endpoint = new RouterEndpoint(channelResolver);
 		Message<String> message = new StringMessage("test");
-		assertFalse(router.route(message));
+		assertFalse(endpoint.send(message));
 	}
 
-	@Test(expected = MessageDeliveryException.class)
+	@Test(expected = MessagingException.class)
 	public void channelNameResolutionFailure() {
-		ChannelNameResolver channelNameResolver = new ChannelNameResolver() {
-			public String resolve(Message<?> message) {
+		AbstractSingleChannelNameResolver channelNameResolver = new AbstractSingleChannelNameResolver() {
+			public String resolveChannelName(Message<?> message) {
 				return "noSuchChannel";
 			}
 		};
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		SingleChannelRouter router = new SingleChannelRouter();
-		router.setChannelNameResolver(channelNameResolver);
-		router.setChannelRegistry(channelRegistry);
-		router.afterPropertiesSet();
+		RouterEndpoint endpoint = new RouterEndpoint(channelNameResolver);
+		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> message = new StringMessage("test");
-		router.route(message);
-	}
-
-	@Test(expected = ConfigurationException.class)
-	public void testChannelResolverIsRequired() {
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-		SingleChannelRouter router = new SingleChannelRouter();
-		router.setChannelRegistry(channelRegistry);
-		router.afterPropertiesSet();
+		endpoint.send(message);
 	}
 
 }

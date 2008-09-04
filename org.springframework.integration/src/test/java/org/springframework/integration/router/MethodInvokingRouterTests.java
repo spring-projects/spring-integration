@@ -53,10 +53,11 @@ public class MethodInvokingRouterTests {
 		channelRegistry.registerChannel(barChannel);		
 		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
-		MethodInvokingRouter router = new MethodInvokingRouter(testBean, routingMethod);
-		router.setChannelRegistry(channelRegistry);
+		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, routingMethod);
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> message = new GenericMessage<String>("bar");
-		assertTrue(router.route(message));
+		assertTrue(endpoint.send(message));
 		Message<?> replyMessage = barChannel.receive();
 		assertNotNull(replyMessage);
 		assertEquals(message, replyMessage);
@@ -69,10 +70,11 @@ public class MethodInvokingRouterTests {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel(barChannel);		
 		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
-		MethodInvokingRouter router = new MethodInvokingRouter(testBean, "routePayload");
-		router.setChannelRegistry(channelRegistry);
+		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, "routePayload");
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> message = new GenericMessage<String>("bar");
-		assertTrue(router.route(message));
+		assertTrue(endpoint.send(message));
 		Message<?> replyMessage = barChannel.receive();
 		assertNotNull(replyMessage);
 		assertEquals(message, replyMessage);
@@ -89,11 +91,12 @@ public class MethodInvokingRouterTests {
 		channelRegistry.registerChannel(barChannel);
 		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routeByHeader", String.class);
-		MethodInvokingRouter router = new MethodInvokingRouter(testBean, routingMethod);
-		router.setChannelRegistry(channelRegistry);
+		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, routingMethod);
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> message = MessageBuilder.fromPayload("bar")
 				.setHeader("targetChannel", "foo").build();
-		assertTrue(router.route(message));
+		assertTrue(endpoint.send(message));
 		Message<?> fooReply = fooChannel.receive(0);
 		Message<?> barReply = barChannel.receive(0);
 		assertNotNull(fooReply);
@@ -105,26 +108,29 @@ public class MethodInvokingRouterTests {
 	public void failsWhenRequiredHeaderIsNotProvided() throws Exception {
 		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routeByHeader", String.class);
-		MethodInvokingRouter router = new MethodInvokingRouter(testBean, routingMethod);
-		router.route(new GenericMessage<String>("testing"));
+		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, routingMethod);
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		endpoint.send(new GenericMessage<String>("testing"));
 	}
 
 	@Test
 	public void channelNameResolutionByMessageConfiguredByMethodReference() throws Exception {
 		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routeMessage", Message.class);
-		MethodInvokingRouter router = new MethodInvokingRouter(testBean, routingMethod);
-		this.doTestChannelNameResolutionByMessage(router);
+		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, routingMethod);
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		this.doTestChannelNameResolutionByMessage(endpoint);
 	}
 
 	@Test
 	public void channelNameResolutionByMessageConfiguredByMethodName() {
 		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
-		MethodInvokingRouter router = new MethodInvokingRouter(testBean, "routeMessage");
-		this.doTestChannelNameResolutionByMessage(router);
+		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, "routeMessage");
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		this.doTestChannelNameResolutionByMessage(endpoint);
 	}
 
-	private void doTestChannelNameResolutionByMessage(MethodInvokingRouter router) {
+	private void doTestChannelNameResolutionByMessage(RouterEndpoint endpoint) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
 		fooChannel.setBeanName("foo-channel");
@@ -132,19 +138,19 @@ public class MethodInvokingRouterTests {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel(fooChannel);
 		channelRegistry.registerChannel(barChannel);
-		router.setChannelRegistry(channelRegistry);
+		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
-		assertTrue(router.route(fooMessage));
+		assertTrue(endpoint.send(fooMessage));
 		Message<?> result1 = fooChannel.receive(0);
 		assertNotNull(result1);
 		assertEquals("foo", result1.getPayload());
-		assertTrue(router.route(barMessage));
+		assertTrue(endpoint.send(barMessage));
 		Message<?> result2 = barChannel.receive(0);
 		assertNotNull(result2);
 		assertEquals("bar", result2.getPayload());
-		assertFalse(router.route(badMessage));
+		assertFalse(endpoint.send(badMessage));
 	}
 
 	@Test
@@ -152,19 +158,21 @@ public class MethodInvokingRouterTests {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		SingleChannelInstanceRoutingTestBean testBean = new SingleChannelInstanceRoutingTestBean(channelRegistry);
 		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
-		MethodInvokingRouter router = new MethodInvokingRouter(testBean, routingMethod);
-		this.doTestChannelInstanceResolutionByPayload(router, channelRegistry);
+		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, routingMethod);
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		this.doTestChannelInstanceResolutionByPayload(endpoint, channelRegistry);
 	}
 
 	@Test
 	public void channelInstanceResolutionByPayloadConfiguredByMethodName() {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		SingleChannelInstanceRoutingTestBean testBean = new SingleChannelInstanceRoutingTestBean(channelRegistry);
-		MethodInvokingRouter router = new MethodInvokingRouter(testBean, "routePayload");
-		this.doTestChannelInstanceResolutionByPayload(router, channelRegistry);
+		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, "routePayload");
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		this.doTestChannelInstanceResolutionByPayload(endpoint, channelRegistry);
 	}
 
-	private void doTestChannelInstanceResolutionByPayload(MethodInvokingRouter router, ChannelRegistry channelRegistry) {
+	private void doTestChannelInstanceResolutionByPayload(RouterEndpoint endpoint, ChannelRegistry channelRegistry) {
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
@@ -174,16 +182,16 @@ public class MethodInvokingRouterTests {
 		barChannel.setBeanName("bar-channel");
 		channelRegistry.registerChannel(fooChannel);
 		channelRegistry.registerChannel(barChannel);
-		router.setChannelRegistry(channelRegistry);
-		assertTrue(router.route(fooMessage));
+		endpoint.setChannelRegistry(channelRegistry);
+		assertTrue(endpoint.send(fooMessage));
 		Message<?> result1 = fooChannel.receive(0);
 		assertNotNull(result1);
 		assertEquals("foo", result1.getPayload());
-		assertTrue(router.route(barMessage));
+		assertTrue(endpoint.send(barMessage));
 		Message<?> result2 = barChannel.receive(0);
 		assertNotNull(result2);
 		assertEquals("bar", result2.getPayload());
-		assertFalse(router.route(badMessage));
+		assertFalse(endpoint.send(badMessage));
 	}
 
 	@Test
@@ -191,38 +199,40 @@ public class MethodInvokingRouterTests {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		SingleChannelInstanceRoutingTestBean testBean = new SingleChannelInstanceRoutingTestBean(channelRegistry);
 		Method routingMethod = testBean.getClass().getMethod("routeMessage", Message.class);
-		MethodInvokingRouter router = new MethodInvokingRouter(testBean, routingMethod);
-		this.doTestChannelInstanceResolutionByMessage(router, channelRegistry);
+		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, routingMethod);
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		this.doTestChannelInstanceResolutionByMessage(endpoint, channelRegistry);
 	}
 
 	@Test
 	public void channelInstanceResolutionByMessageConfiguredByMethodName() {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		SingleChannelInstanceRoutingTestBean testBean = new SingleChannelInstanceRoutingTestBean(channelRegistry);
-		MethodInvokingRouter router = new MethodInvokingRouter(testBean, "routeMessage");
-		this.doTestChannelInstanceResolutionByMessage(router, channelRegistry);
+		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, "routeMessage");
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		this.doTestChannelInstanceResolutionByMessage(endpoint, channelRegistry);
 	}
 
-	private void doTestChannelInstanceResolutionByMessage(MethodInvokingRouter router, ChannelRegistry channelRegistry) {
+	private void doTestChannelInstanceResolutionByMessage(RouterEndpoint endpoint, ChannelRegistry channelRegistry) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
 		fooChannel.setBeanName("foo-channel");
 		barChannel.setBeanName("bar-channel");
 		channelRegistry.registerChannel(fooChannel);
 		channelRegistry.registerChannel(barChannel);
-		router.setChannelRegistry(channelRegistry);
+		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
-		assertTrue(router.route(fooMessage));
+		assertTrue(endpoint.send(fooMessage));
 		Message<?> result1 = fooChannel.receive(0);
 		assertNotNull(result1);
 		assertEquals("foo", result1.getPayload());
-		assertTrue(router.route(barMessage));
+		assertTrue(endpoint.send(barMessage));
 		Message<?> result2 = barChannel.receive(0);
 		assertNotNull(result2);
 		assertEquals("bar", result2.getPayload());
-		assertFalse(router.route(badMessage));
+		assertFalse(endpoint.send(badMessage));
 	}
 
 	@Test
@@ -230,44 +240,46 @@ public class MethodInvokingRouterTests {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
-		MethodInvokingRouter router = new MethodInvokingRouter(testBean, routingMethod);
-		this.doTestMultiChannelNameResolutionByPayload(router, channelRegistry);
+		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, routingMethod);
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		this.doTestMultiChannelNameResolutionByPayload(endpoint, channelRegistry);
 	}
 
 	@Test
 	public void multiChannelNameResolutionByPayloadConfiguredByMethodName() {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
-		MethodInvokingRouter router = new MethodInvokingRouter(testBean, "routePayload");
-		this.doTestMultiChannelNameResolutionByPayload(router, channelRegistry);
+		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, "routePayload");
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		this.doTestMultiChannelNameResolutionByPayload(endpoint, channelRegistry);
 	}
 
-	private void doTestMultiChannelNameResolutionByPayload(MethodInvokingRouter router, ChannelRegistry channelRegistry) {
+	private void doTestMultiChannelNameResolutionByPayload(RouterEndpoint endpoint, ChannelRegistry channelRegistry) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
 		fooChannel.setBeanName("foo-channel");
 		barChannel.setBeanName("bar-channel");
 		channelRegistry.registerChannel(fooChannel);
 		channelRegistry.registerChannel(barChannel);
-		router.setChannelRegistry(channelRegistry);
+		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
-		assertTrue(router.route(fooMessage));
+		assertTrue(endpoint.send(fooMessage));
 		Message<?> result1a = fooChannel.receive(0);
 		Message<?> result1b = barChannel.receive(0);
 		assertNotNull(result1a);
 		assertEquals("foo", result1a.getPayload());
 		assertNotNull(result1b);
 		assertEquals("foo", result1b.getPayload());
-		assertTrue(router.route(barMessage));
+		assertTrue(endpoint.send(barMessage));
 		Message<?> result2a = fooChannel.receive(0);
 		Message<?> result2b = barChannel.receive(0);
 		assertNotNull(result2a);
 		assertEquals("bar", result2a.getPayload());
 		assertNotNull(result2b);
 		assertEquals("bar", result2b.getPayload());
-		assertFalse(router.route(badMessage));
+		assertFalse(endpoint.send(badMessage));
 	}
 
 	@Test
@@ -275,44 +287,46 @@ public class MethodInvokingRouterTests {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routeMessage", Message.class);
-		MethodInvokingRouter router = new MethodInvokingRouter(testBean, routingMethod);
-		this.doTestMultiChannelNameResolutionByMessage(router, channelRegistry);
+		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, routingMethod);
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		this.doTestMultiChannelNameResolutionByMessage(endpoint, channelRegistry);
 	}
 
 	@Test
 	public void multiChannelNameResolutionByMessageConfiguredByMethodName() throws Exception {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
-		MethodInvokingRouter router = new MethodInvokingRouter(testBean, "routeMessage");
-		this.doTestMultiChannelNameResolutionByMessage(router, channelRegistry);
+		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, "routeMessage");
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		this.doTestMultiChannelNameResolutionByMessage(endpoint, channelRegistry);
 	}
 
-	private void doTestMultiChannelNameResolutionByMessage(MethodInvokingRouter router, ChannelRegistry channelRegistry) {
+	private void doTestMultiChannelNameResolutionByMessage(RouterEndpoint endpoint, ChannelRegistry channelRegistry) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
 		fooChannel.setBeanName("foo-channel");
 		barChannel.setBeanName("bar-channel");
 		channelRegistry.registerChannel(fooChannel);
 		channelRegistry.registerChannel(barChannel);
-		router.setChannelRegistry(channelRegistry);
+		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
-		assertTrue(router.route(fooMessage));
+		assertTrue(endpoint.send(fooMessage));
 		Message<?> result1a = fooChannel.receive(0);
 		assertNotNull(result1a);
 		assertEquals("foo", result1a.getPayload());
 		Message<?> result1b = barChannel.receive(0);
 		assertNotNull(result1b);
 		assertEquals("foo", result1b.getPayload());
-		assertTrue(router.route(barMessage));
+		assertTrue(endpoint.send(barMessage));
 		Message<?> result2a = fooChannel.receive(0);
 		assertNotNull(result2a);
 		assertEquals("bar", result2a.getPayload());
 		Message<?> result2b = barChannel.receive(0);
 		assertNotNull(result2b);
 		assertEquals("bar", result2b.getPayload());
-		assertFalse(router.route(badMessage));
+		assertFalse(endpoint.send(badMessage));
 	}
 
 	@Test
@@ -320,44 +334,46 @@ public class MethodInvokingRouterTests {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routeMessageToArray", Message.class);
-		MethodInvokingRouter router = new MethodInvokingRouter(testBean, routingMethod);
-		this.doTestMultiChannelNameArrayResolutionByMessage(router, channelRegistry);
+		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, routingMethod);
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		this.doTestMultiChannelNameArrayResolutionByMessage(endpoint, channelRegistry);
 	}
 
 	@Test
 	public void multiChannelNameArrayResolutionByMessageConfiguredByMethodName() {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
-		MethodInvokingRouter router = new MethodInvokingRouter(testBean, "routeMessageToArray");
-		this.doTestMultiChannelNameArrayResolutionByMessage(router, channelRegistry);
+		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, "routeMessageToArray");
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		this.doTestMultiChannelNameArrayResolutionByMessage(endpoint, channelRegistry);
 	}
 
-	private void doTestMultiChannelNameArrayResolutionByMessage(MethodInvokingRouter router, ChannelRegistry channelRegistry) {
+	private void doTestMultiChannelNameArrayResolutionByMessage(RouterEndpoint endpoint, ChannelRegistry channelRegistry) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
 		fooChannel.setBeanName("foo-channel");
 		barChannel.setBeanName("bar-channel");
 		channelRegistry.registerChannel(fooChannel);
 		channelRegistry.registerChannel(barChannel);
-		router.setChannelRegistry(channelRegistry);
+		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
-		assertTrue(router.route(fooMessage));
+		assertTrue(endpoint.send(fooMessage));
 		Message<?> result1a = fooChannel.receive(0);
 		assertNotNull(result1a);
 		assertEquals("foo", result1a.getPayload());
 		Message<?> result1b = barChannel.receive(0);
 		assertNotNull(result1b);
 		assertEquals("foo", result1b.getPayload());
-		assertTrue(router.route(barMessage));
+		assertTrue(endpoint.send(barMessage));
 		Message<?> result2a = fooChannel.receive(0);
 		assertNotNull(result2a);
 		assertEquals("bar", result2a.getPayload());
 		Message<?> result2b = barChannel.receive(0);
 		assertNotNull(result2b);
 		assertEquals("bar", result2b.getPayload());
-		assertFalse(router.route(badMessage));
+		assertFalse(endpoint.send(badMessage));
 	}
 
 	@Test
@@ -365,44 +381,46 @@ public class MethodInvokingRouterTests {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelRegistry);
 		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
-		MethodInvokingRouter router = new MethodInvokingRouter(testBean, routingMethod);
-		this.doTestMultiChannelListResolutionByPayload(router, channelRegistry);
+		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, routingMethod);
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		this.doTestMultiChannelListResolutionByPayload(endpoint, channelRegistry);
 	}
 
 	@Test
 	public void multiChannelListResolutionByPayloadConfiguredByMethodName() {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelRegistry);
-		MethodInvokingRouter router = new MethodInvokingRouter(testBean, "routePayload");
-		this.doTestMultiChannelListResolutionByPayload(router, channelRegistry);
+		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, "routePayload");
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		this.doTestMultiChannelListResolutionByPayload(endpoint, channelRegistry);
 	}
 
-	private void doTestMultiChannelListResolutionByPayload(MethodInvokingRouter router, ChannelRegistry channelRegistry) {
+	private void doTestMultiChannelListResolutionByPayload(RouterEndpoint endpoint, ChannelRegistry channelRegistry) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
 		fooChannel.setBeanName("foo-channel");
 		barChannel.setBeanName("bar-channel");
 		channelRegistry.registerChannel(fooChannel);
 		channelRegistry.registerChannel(barChannel);
-		router.setChannelRegistry(channelRegistry);
+		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
-		assertTrue(router.route(fooMessage));
+		assertTrue(endpoint.send(fooMessage));
 		Message<?> result1a = fooChannel.receive(0);
 		Message<?> result1b = barChannel.receive(0);
 		assertNotNull(result1a);
 		assertEquals("foo", result1a.getPayload());
 		assertNotNull(result1b);
 		assertEquals("foo", result1b.getPayload());
-		assertTrue(router.route(barMessage));
+		assertTrue(endpoint.send(barMessage));
 		Message<?> result2a = fooChannel.receive(0);
 		Message<?> result2b = barChannel.receive(0);
 		assertNotNull(result2a);
 		assertEquals("bar", result2a.getPayload());
 		assertNotNull(result2b);
 		assertEquals("bar", result2b.getPayload());
-		assertFalse(router.route(badMessage));
+		assertFalse(endpoint.send(badMessage));
 	}
 
 	@Test
@@ -410,44 +428,46 @@ public class MethodInvokingRouterTests {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelRegistry);
 		Method routingMethod = testBean.getClass().getMethod("routeMessage", Message.class);
-		MethodInvokingRouter router = new MethodInvokingRouter(testBean, routingMethod);
-		this.doTestMultiChannelListResolutionByMessage(router, channelRegistry);
+		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, routingMethod);
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		this.doTestMultiChannelListResolutionByMessage(endpoint, channelRegistry);
 	}
 
 	@Test
 	public void multiChannelListResolutionByMessageConfiguredByMethodName() {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelRegistry);
-		MethodInvokingRouter router = new MethodInvokingRouter(testBean, "routeMessage");
-		this.doTestMultiChannelListResolutionByMessage(router, channelRegistry);
+		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, "routeMessage");
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		this.doTestMultiChannelListResolutionByMessage(endpoint, channelRegistry);
 	}
 
-	private void doTestMultiChannelListResolutionByMessage(MethodInvokingRouter router, ChannelRegistry channelRegistry) {
+	private void doTestMultiChannelListResolutionByMessage(RouterEndpoint endpoint, ChannelRegistry channelRegistry) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
 		fooChannel.setBeanName("foo-channel");
 		barChannel.setBeanName("bar-channel");
 		channelRegistry.registerChannel(fooChannel);
 		channelRegistry.registerChannel(barChannel);
-		router.setChannelRegistry(channelRegistry);
+		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
-		assertTrue(router.route(fooMessage));
+		assertTrue(endpoint.send(fooMessage));
 		Message<?> result1a = fooChannel.receive(0);
 		Message<?> result1b = barChannel.receive(0);
 		assertNotNull(result1a);
 		assertEquals("foo", result1a.getPayload());
 		assertNotNull(result1b);
 		assertEquals("foo", result1b.getPayload());
-		assertTrue(router.route(barMessage));
+		assertTrue(endpoint.send(barMessage));
 		Message<?> result2a = fooChannel.receive(0);
 		Message<?> result2b = barChannel.receive(0);
 		assertNotNull(result2a);
 		assertEquals("bar", result2a.getPayload());
 		assertNotNull(result2b);
 		assertEquals("bar", result2b.getPayload());
-		assertFalse(router.route(badMessage));
+		assertFalse(endpoint.send(badMessage));
 	}
 
 	@Test
@@ -455,44 +475,46 @@ public class MethodInvokingRouterTests {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelRegistry);
 		Method routingMethod = testBean.getClass().getMethod("routeMessageToArray", Message.class);
-		MethodInvokingRouter router = new MethodInvokingRouter(testBean, routingMethod);
-		this.doTestMultiChannelArrayResolutionByMessage(router, channelRegistry);
+		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, routingMethod);
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		this.doTestMultiChannelArrayResolutionByMessage(endpoint, channelRegistry);
 	}
 
 	@Test
 	public void multiChannelArrayResolutionByMessageConfiguredByMethodName() {
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelRegistry);
-		MethodInvokingRouter router = new MethodInvokingRouter(testBean, "routeMessageToArray");
-		this.doTestMultiChannelArrayResolutionByMessage(router, channelRegistry);
+		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, "routeMessageToArray");
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		this.doTestMultiChannelArrayResolutionByMessage(endpoint, channelRegistry);
 	}
 
-	private void doTestMultiChannelArrayResolutionByMessage(MethodInvokingRouter router, ChannelRegistry channelRegistry) {
+	private void doTestMultiChannelArrayResolutionByMessage(RouterEndpoint endpoint, ChannelRegistry channelRegistry) {
 		QueueChannel fooChannel = new QueueChannel();
 		QueueChannel barChannel = new QueueChannel();
 		fooChannel.setBeanName("foo-channel");
 		barChannel.setBeanName("bar-channel");
 		channelRegistry.registerChannel(fooChannel);
 		channelRegistry.registerChannel(barChannel);
-		router.setChannelRegistry(channelRegistry);
+		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
-		assertTrue(router.route(fooMessage));
+		assertTrue(endpoint.send(fooMessage));
 		Message<?> result1a = fooChannel.receive(0);
 		Message<?> result1b = barChannel.receive(0);
 		assertNotNull(result1a);
 		assertEquals("foo", result1a.getPayload());
 		assertNotNull(result1b);
 		assertEquals("foo", result1b.getPayload());
-		assertTrue(router.route(barMessage));
+		assertTrue(endpoint.send(barMessage));
 		Message<?> result2a = fooChannel.receive(0);
 		Message<?> result2b = barChannel.receive(0);
 		assertNotNull(result2a);
 		assertEquals("bar", result2a.getPayload());
 		assertNotNull(result2b);
 		assertEquals("bar", result2b.getPayload());
-		assertFalse(router.route(badMessage));
+		assertFalse(endpoint.send(badMessage));
 	}
 
 

@@ -56,16 +56,16 @@ public class RootCauseErrorMessageRouterTests {
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		ErrorMessage message = new ErrorMessage(error);
-		RootCauseErrorMessageRouter router = new RootCauseErrorMessageRouter();
+		RootCauseErrorMessageChannelResolver resolver = new RootCauseErrorMessageChannelResolver();
 		Map<Class<? extends Throwable>, MessageChannel> channelMappings =
 				new HashMap<Class<? extends Throwable>, MessageChannel>();
 		channelMappings.put(IllegalArgumentException.class, illegalArgumentChannel);
 		channelMappings.put(RuntimeException.class, runtimeExceptionChannel);
 		channelMappings.put(MessageHandlingException.class, messageHandlingExceptionChannel);
-		router.setChannelMappings(channelMappings);
-		router.setDefaultChannel(defaultChannel);
-		router.afterPropertiesSet();
-		router.route(message);
+		resolver.setChannelMappings(channelMappings);
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		endpoint.setDefaultOutputChannel(defaultChannel);
+		endpoint.send(message);
 		assertNotNull(illegalArgumentChannel.receive(1000));
 		assertNull(defaultChannel.receive(0));
 		assertNull(runtimeExceptionChannel.receive(0));
@@ -79,15 +79,15 @@ public class RootCauseErrorMessageRouterTests {
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		ErrorMessage message = new ErrorMessage(error);
-		RootCauseErrorMessageRouter router = new RootCauseErrorMessageRouter();
+		RootCauseErrorMessageChannelResolver resolver = new RootCauseErrorMessageChannelResolver();
 		Map<Class<? extends Throwable>, MessageChannel> channelMappings =
 				new HashMap<Class<? extends Throwable>, MessageChannel>();
 		channelMappings.put(RuntimeException.class, runtimeExceptionChannel);
 		channelMappings.put(MessageHandlingException.class, messageHandlingExceptionChannel);
-		router.setChannelMappings(channelMappings);
-		router.setDefaultChannel(defaultChannel);
-		router.afterPropertiesSet();
-		router.route(message);
+		resolver.setChannelMappings(channelMappings);
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		endpoint.setDefaultOutputChannel(defaultChannel);
+		endpoint.send(message);
 		assertNotNull(runtimeExceptionChannel.receive(1000));
 		assertNull(illegalArgumentChannel.receive(0));
 		assertNull(defaultChannel.receive(0));
@@ -101,14 +101,14 @@ public class RootCauseErrorMessageRouterTests {
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		ErrorMessage message = new ErrorMessage(error);
-		RootCauseErrorMessageRouter router = new RootCauseErrorMessageRouter();
+		RootCauseErrorMessageChannelResolver resolver = new RootCauseErrorMessageChannelResolver();
 		Map<Class<? extends Throwable>, MessageChannel> channelMappings =
 				new HashMap<Class<? extends Throwable>, MessageChannel>();
 		channelMappings.put(MessageHandlingException.class, messageHandlingExceptionChannel);
-		router.setChannelMappings(channelMappings);
-		router.setDefaultChannel(defaultChannel);
-		router.afterPropertiesSet();
-		router.route(message);
+		resolver.setChannelMappings(channelMappings);
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		endpoint.setDefaultOutputChannel(defaultChannel);
+		endpoint.send(message);
 		assertNotNull(messageHandlingExceptionChannel.receive(1000));
 		assertNull(runtimeExceptionChannel.receive(0));
 		assertNull(illegalArgumentChannel.receive(0));
@@ -122,10 +122,10 @@ public class RootCauseErrorMessageRouterTests {
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		ErrorMessage message = new ErrorMessage(error);
-		RootCauseErrorMessageRouter router = new RootCauseErrorMessageRouter();
-		router.setDefaultChannel(defaultChannel);
-		router.afterPropertiesSet();
-		router.route(message);
+		RootCauseErrorMessageChannelResolver resolver = new RootCauseErrorMessageChannelResolver();
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		endpoint.setDefaultOutputChannel(defaultChannel);
+		endpoint.send(message);
 		assertNotNull(defaultChannel.receive(1000));
 		assertNull(runtimeExceptionChannel.receive(0));
 		assertNull(illegalArgumentChannel.receive(0));
@@ -139,13 +139,12 @@ public class RootCauseErrorMessageRouterTests {
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		ErrorMessage message = new ErrorMessage(error);
-		RootCauseErrorMessageRouter router = new RootCauseErrorMessageRouter();
+		RootCauseErrorMessageChannelResolver resolver = new RootCauseErrorMessageChannelResolver();
 		Map<Class<? extends Throwable>, MessageChannel> channelMappings =
 				new HashMap<Class<? extends Throwable>, MessageChannel>();
 		channelMappings.put(MessageDeliveryException.class, messageDeliveryExceptionChannel);
-		router.setChannelMappings(channelMappings);
-		router.afterPropertiesSet();
-		RouterEndpoint endpoint = new RouterEndpoint(router);
+		resolver.setChannelMappings(channelMappings);
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
 		endpoint.setResolutionRequired(true);
 		endpoint.send(message);
 	}
@@ -157,16 +156,16 @@ public class RootCauseErrorMessageRouterTests {
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		Message<?> message = new GenericMessage<Exception>(error);
-		RootCauseErrorMessageRouter router = new RootCauseErrorMessageRouter();
+		RootCauseErrorMessageChannelResolver resolver = new RootCauseErrorMessageChannelResolver();
 		Map<Class<? extends Throwable>, MessageChannel> channelMappings =
 				new HashMap<Class<? extends Throwable>, MessageChannel>();
 		channelMappings.put(IllegalArgumentException.class, illegalArgumentChannel);
 		channelMappings.put(RuntimeException.class, runtimeExceptionChannel);
 		channelMappings.put(MessageHandlingException.class, messageHandlingExceptionChannel);
-		router.setChannelMappings(channelMappings);
-		router.setDefaultChannel(defaultChannel);
-		router.afterPropertiesSet();
-		router.route(message);
+		resolver.setChannelMappings(channelMappings);
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		endpoint.setDefaultOutputChannel(defaultChannel);
+		endpoint.send(message);
 		assertNotNull(illegalArgumentChannel.receive(1000));
 		assertNull(defaultChannel.receive(0));
 		assertNull(runtimeExceptionChannel.receive(0));
@@ -180,15 +179,15 @@ public class RootCauseErrorMessageRouterTests {
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		ErrorMessage message = new ErrorMessage(error);
-		RootCauseErrorMessageRouter router = new RootCauseErrorMessageRouter();
+		RootCauseErrorMessageChannelResolver resolver = new RootCauseErrorMessageChannelResolver();
 		Map<Class<? extends Throwable>, MessageChannel> channelMappings =
 				new HashMap<Class<? extends Throwable>, MessageChannel>();
 		channelMappings.put(IllegalArgumentException.class, illegalArgumentChannel);
 		channelMappings.put(MessageHandlingException.class, messageHandlingExceptionChannel);
-		router.setChannelMappings(channelMappings);
-		router.setDefaultChannel(defaultChannel);
-		router.afterPropertiesSet();
-		router.route(message);
+		resolver.setChannelMappings(channelMappings);
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		endpoint.setDefaultOutputChannel(defaultChannel);
+		endpoint.send(message);
 		assertNotNull(illegalArgumentChannel.receive(1000));
 		assertNull(defaultChannel.receive(0));
 		assertNull(runtimeExceptionChannel.receive(0));

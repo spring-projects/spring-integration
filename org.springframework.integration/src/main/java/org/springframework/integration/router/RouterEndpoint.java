@@ -16,12 +16,15 @@
 
 package org.springframework.integration.router;
 
+import java.util.Collection;
+
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.message.MessageExchangeTemplate;
 import org.springframework.util.Assert;
 
 /**
@@ -29,24 +32,26 @@ import org.springframework.util.Assert;
  */
 public class RouterEndpoint extends AbstractEndpoint {
 
-	private final Router router;
+	private final ChannelResolver channelResolver;
 
 	private volatile MessageChannel defaultOutputChannel;
 
 	private volatile boolean resolutionRequired;
 
+	private final MessageExchangeTemplate messageExchangeTemplate = new MessageExchangeTemplate();
 
-	public RouterEndpoint(Router router) {
-		Assert.notNull(router, "router must not be null");
-		this.router = router;
+
+	public RouterEndpoint(ChannelResolver channelResolver) {
+		Assert.notNull(channelResolver, "ChannelResolver must not be null");
+		this.channelResolver = channelResolver;
 	}
 
 
 	@Override
 	public void setChannelRegistry(ChannelRegistry channelRegistry) {
 		super.setChannelRegistry(channelRegistry);
-		if (this.router instanceof ChannelRegistryAware) {
-			((ChannelRegistryAware) this.router).setChannelRegistry(channelRegistry);
+		if (this.channelResolver instanceof ChannelRegistryAware) {
+			((ChannelRegistryAware) this.channelResolver).setChannelRegistry(channelRegistry);
 		}
 	}
 
@@ -74,7 +79,17 @@ public class RouterEndpoint extends AbstractEndpoint {
 
 	@Override
 	protected boolean sendInternal(Message<?> message) {
-		boolean sent = this.router.route(message); 
+		boolean sent = false;
+		Collection<MessageChannel> results = this.channelResolver.resolveChannels(message);
+		if (results != null) {
+			for (MessageChannel channel : results) {
+				if (channel != null) {
+					if (this.messageExchangeTemplate.send(message, channel)) {
+						sent = true;
+					}
+				}
+			}
+		}
 		if (!sent) {
 			if (this.defaultOutputChannel != null) {
 				sent = this.getMessageExchangeTemplate().send(message, this.defaultOutputChannel);

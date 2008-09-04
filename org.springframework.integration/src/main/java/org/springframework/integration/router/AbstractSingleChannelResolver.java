@@ -16,15 +16,23 @@
 
 package org.springframework.integration.router;
 
+import java.util.Collection;
+import java.util.Collections;
+
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 
 /**
- * Strategy interface for routing a Message to one or more channels.
- *
  * @author Mark Fisher
  */
-public interface Router {
+public abstract class AbstractSingleChannelResolver extends AbstractChannelResolver {
 
-	boolean route(Message<?> message);
+	public Collection<MessageChannel> resolveChannels(Message<?> message) {
+		MessageChannel channel = this.resolveChannel(message);
+		return (channel != null) ?
+				Collections.singletonList(channel) : null;
+	}
+
+	protected abstract MessageChannel resolveChannel(Message<?> message);
 
 }

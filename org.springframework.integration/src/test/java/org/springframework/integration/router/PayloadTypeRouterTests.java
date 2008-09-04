@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.junit.Test;
 
+import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
@@ -36,41 +37,67 @@ import org.springframework.integration.message.StringMessage;
 public class PayloadTypeRouterTests {
 
 	@Test
-	public void testRoutingByPayloadType() {
+	public void resolveByPayloadType() {
 		QueueChannel stringChannel = new QueueChannel();
 		QueueChannel integerChannel = new QueueChannel();
 		Map<Class<?>, MessageChannel> channelMappings = new ConcurrentHashMap<Class<?>, MessageChannel>();
 		channelMappings.put(String.class, stringChannel);
 		channelMappings.put(Integer.class, integerChannel);
-		PayloadTypeRouter router = new PayloadTypeRouter();
-		router.setChannelMappings(channelMappings);
-		router.afterPropertiesSet();
+		PayloadTypeChannelResolver resolver = new PayloadTypeChannelResolver();
+		resolver.setChannelMappings(channelMappings);
 		Message<String> message1 = new StringMessage("test");
 		Message<Integer> message2 = new GenericMessage<Integer>(123);
-		router.route(message1);
-		router.route(message2);
-		Message<?> result1 = stringChannel.receive(25);
-		assertNotNull(result1);
-		assertEquals("test", result1.getPayload());
-		Message<?> result2 = integerChannel.receive(25);
-		assertNotNull(result2);
-		assertEquals(123, result2.getPayload());
+		MessageChannel result1 = resolver.resolveChannel(message1);
+		MessageChannel result2 = resolver.resolveChannel(message2);
+		assertEquals(stringChannel, result1);
+		assertEquals(integerChannel, result2);
 	}
 
 	@Test
-	public void testRoutingToDefaultChannelWhenNoTypeMatches() {
+	public void resolveByPayloadTypeWithRouterEndpoint() {
 		QueueChannel stringChannel = new QueueChannel();
-		QueueChannel defaultChannel = new QueueChannel();
+		QueueChannel integerChannel = new QueueChannel();
+		stringChannel.setBeanName("stringChannel");
+		integerChannel.setBeanName("integerChannel");
 		Map<Class<?>, MessageChannel> channelMappings = new ConcurrentHashMap<Class<?>, MessageChannel>();
 		channelMappings.put(String.class, stringChannel);
-		PayloadTypeRouter router = new PayloadTypeRouter();
-		router.setChannelMappings(channelMappings);
-		router.setDefaultChannel(defaultChannel);
-		router.afterPropertiesSet();
+		channelMappings.put(Integer.class, integerChannel);
+		DefaultChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		channelRegistry.registerChannel(stringChannel);
+		channelRegistry.registerChannel(integerChannel);
+		PayloadTypeChannelResolver resolver = new PayloadTypeChannelResolver();
+		resolver.setChannelMappings(channelMappings);
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> message1 = new StringMessage("test");
 		Message<Integer> message2 = new GenericMessage<Integer>(123);
-		router.route(message1);
-		router.route(message2);
+		endpoint.send(message1);
+		endpoint.send(message2);
+		Message<?> reply1 = stringChannel.receive(0);
+		Message<?> reply2 = integerChannel.receive(0);
+		assertEquals("test", reply1.getPayload());
+		assertEquals(123, reply2.getPayload());
+	}
+
+	@Test
+	public void routingToDefaultChannelWhenNoTypeMatches() {
+		QueueChannel stringChannel = new QueueChannel();
+		stringChannel.setBeanName("stringChannel");
+		QueueChannel defaultChannel = new QueueChannel();
+		defaultChannel.setBeanName("defaultChannel");
+		DefaultChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		channelRegistry.registerChannel(stringChannel);
+		channelRegistry.registerChannel(defaultChannel);
+		Map<Class<?>, MessageChannel> channelMappings = new ConcurrentHashMap<Class<?>, MessageChannel>();
+		channelMappings.put(String.class, stringChannel);
+		PayloadTypeChannelResolver resolver = new PayloadTypeChannelResolver();
+		resolver.setChannelMappings(channelMappings);
+		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		endpoint.setDefaultOutputChannel(defaultChannel);
+		Message<String> message1 = new StringMessage("test");
+		Message<Integer> message2 = new GenericMessage<Integer>(123);
+		endpoint.send(message1);
+		endpoint.send(message2);
 		Message<?> result1 = stringChannel.receive(25);
 		assertNotNull(result1);
 		assertEquals("test", result1.getPayload());
