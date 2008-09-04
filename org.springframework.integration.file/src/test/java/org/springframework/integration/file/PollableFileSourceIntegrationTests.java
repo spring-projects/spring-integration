@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.integration.file;
 
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
@@ -31,7 +31,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.message.Message;
@@ -51,7 +50,6 @@ public class PollableFileSourceIntegrationTests {
 
 	private static File inputDir;
 
-
 	@BeforeClass
 	public static void setupInputDir() {
 		inputDir = new File(System.getProperty("java.io.tmpdir") + "/"
@@ -61,16 +59,15 @@ public class PollableFileSourceIntegrationTests {
 
 	@Before
 	public void generateTestFiles() throws Exception {
-		File.createTempFile("test", null, inputDir);
-		File.createTempFile("test", null, inputDir);
-		File.createTempFile("test", null, inputDir);
+		File.createTempFile("test", null, inputDir).setLastModified(System.currentTimeMillis() - 1000);
+		File.createTempFile("test", null, inputDir).setLastModified(System.currentTimeMillis() - 1000);
+		File.createTempFile("test", null, inputDir).setLastModified(System.currentTimeMillis() - 1000);
 	}
 
 	@After
-	public void resetTimestamp() {
-		((AtomicLong) new DirectFieldAccessor(pollableFileSource)
-				.getPropertyValue("lastListTimestamp"))
-				.set(System.currentTimeMillis() - 5000);
+	public void resetTimestamps() {
+		((AtomicLong) new DirectFieldAccessor(pollableFileSource).getPropertyValue("previousListTimestamp")).set(0);
+		((AtomicLong) new DirectFieldAccessor(pollableFileSource).getPropertyValue("currentListTimestamp")).set(0);
 	}
 
 	@After
@@ -86,7 +83,6 @@ public class PollableFileSourceIntegrationTests {
 		inputDir.delete();
 	}
 
-
 	@Test
 	public void configured() throws Exception {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(pollableFileSource);
@@ -95,9 +91,8 @@ public class PollableFileSourceIntegrationTests {
 
 	@Test
 	public void getFiles() throws Exception {
-		Thread.sleep(1000);
 		Message<?> received1 = pollableFileSource.receive();
-		assertNotNull(received1);
+		assertNotNull("This should return the first message", received1);
 		pollableFileSource.onSend(received1);
 		Message<?> received2 = pollableFileSource.receive();
 		assertNotNull(received2);
@@ -120,8 +115,20 @@ public class PollableFileSourceIntegrationTests {
 		assertNotSame(received2 + " == " + received3, received2, received3);
 	}
 
-	@Test(timeout = 10000)
-	@Repeat(100)
+	@Test
+	public void delayedRecieve() throws Exception {
+		pollableFileSource.receive();
+		pollableFileSource.receive();
+		pollableFileSource.receive();
+		File tempFile = File.createTempFile("test", null, inputDir);
+		assertNull(pollableFileSource.receive());
+		Thread.sleep(2000);
+		tempFile.setLastModified(System.currentTimeMillis() - 1000);
+		assertEquals(tempFile, pollableFileSource.receive().getPayload());
+	}
+
+	@Test(timeout = 1000)
+	@Repeat(15)
 	public void concurrentProcessing() throws Exception {
 		CountDownLatch go = new CountDownLatch(1);
 		Runnable succesfulConsumer = new Runnable() {
@@ -145,8 +152,13 @@ public class PollableFileSourceIntegrationTests {
 		CountDownLatch succesfulDone = doConcurrently(3, succesfulConsumer, go);
 		CountDownLatch failingDone = doConcurrently(10, failingConsumer, go);
 		go.countDown();
-		succesfulDone.await();
-		failingDone.await();
+		try {
+			succesfulDone.await();
+			failingDone.await();
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
 		// make sure three different files were taken
 		Message<File> received = pollableFileSource.receive();
 		if (received != null) {
@@ -160,13 +172,15 @@ public class PollableFileSourceIntegrationTests {
 	 * 
 	 * @param numberOfThreads
 	 * @param todo the runnable that should be run by all the threads
-	 * @return a latch that will be counted down once all threads have run their runnable.
+	 * @return a latch that will be counted down once all threads have run their
+	 * runnable.
 	 */
 	private CountDownLatch doConcurrently(int numberOfThreads, final Runnable todo, final CountDownLatch start) {
 		final CountDownLatch started = new CountDownLatch(numberOfThreads);
 		final CountDownLatch done = new CountDownLatch(numberOfThreads);
 		for (int i = 0; i < numberOfThreads; i++) {
 			new Thread(new Runnable() {
+
 				public void run() {
 					started.countDown();
 					try {
@@ -183,5 +197,4 @@ public class PollableFileSourceIntegrationTests {
 		}
 		return done;
 	}
-
 }

@@ -13,29 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.integration.file;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * Composition that delegates to multiple {@link FileFilter}s. The composition
+ * Composition that delegates to multiple {@link FileFilter}s. The compostition
  * is AND based, meaning that all filters must {@link #accept(File)} in order
- * for a File to be accepted by the composite.
+ * for a file to be accepted by the composite.
  * 
  * @author Iwein Fuld
  */
-public class CompositeFileFilter implements FileFilter {
+class CompositeFileFilter implements FileFilter {
 
-	private final List<FileFilter> fileFilters;
-
+	private final Set<FileFilter> fileFilters;
 
 	public CompositeFileFilter(FileFilter... fileFilters) {
-		this.fileFilters = new ArrayList<FileFilter>(Arrays.asList(fileFilters));
+		this.fileFilters = new HashSet<FileFilter>(Arrays.asList(fileFilters));
+	}
+
+	public CompositeFileFilter(HashSet<FileFilter> fileFilters) {
+		this.fileFilters = new HashSet<FileFilter>(fileFilters);
 	}
 
 	/**
@@ -50,12 +53,25 @@ public class CompositeFileFilter implements FileFilter {
 		return true;
 	}
 
-	public void addFilter(FileFilter... filters) {
-		fileFilters.addAll(Arrays.asList(filters));
+	/**
+	 * @see #addFilters(Collection)
+	 * @param filters one or more new filters to be used
+	 * @return a new CompositeFileFilter with the additional filters
+	 */
+	public CompositeFileFilter addFilter(FileFilter... filters) {
+		return addFilters(Arrays.asList(filters));
 	}
 
-	public static CompositeFileFilter with(FileFilter... fileFilters) {
-		return new CompositeFileFilter(fileFilters);
+	/**
+	 * Creates a new CompositeFileFilter that delegates to both the filters of
+	 * this Composite and the new filters passed in.
+	 * 
+	 * @param filtersToAdd
+	 * @return a new CompositeFileFilter with the added filters
+	 */
+	public CompositeFileFilter addFilters(Collection<FileFilter> filtersToAdd) {
+		HashSet<FileFilter> newFilterSet = new HashSet<FileFilter>(filtersToAdd);
+		newFilterSet.addAll(fileFilters);
+		return new CompositeFileFilter(newFilterSet);
 	}
-
 }

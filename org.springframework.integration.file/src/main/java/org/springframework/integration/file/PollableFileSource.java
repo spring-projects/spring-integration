@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.integration.file;
 
 import java.io.File;
@@ -29,7 +28,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.message.Message;
@@ -37,34 +35,41 @@ import org.springframework.integration.message.MessageCreator;
 import org.springframework.integration.message.MessageDeliveryAware;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.PollableSource;
+import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 
 /**
- * PollableSource that creates messages from a file system directory.
+ * PollableSource that creates messages from a file system directory. To prevent
+ * messages from showing up on the source you can supply a FileFilter to it.
+ * This can also be useful to prevent messages to be created for unfinished
+ * files.
  * 
  * @author Iwein Fuld
  * 
- * @param <T>
+ * @param <T> the class of the payload of the message received from this
+ * {@link #PollableFileSource()}
  */
 public class PollableFileSource<T> implements PollableSource<T>, MessageDeliveryAware, InitializingBean {
 
-	private final Log log = LogFactory.getLog(this.getClass());
+	private static Log log = LogFactory.getLog(PollableFileSource.class);
 
-	private volatile Queue<File> queue = new PriorityBlockingQueue<File>();
+	private volatile Queue<File> fileQueue = new PriorityBlockingQueue<File>();
 
 	private volatile MessageCreator<File, T> messageCreator;
 
 	private volatile File inputDirectory;
 
-	private final Map<Message<T>, File> tracker = new ConcurrentHashMap<Message<T>, File>();
+	private final Map<Message<T>, File> messagesInFlight = new ConcurrentHashMap<Message<T>, File>();
 
-	private final AtomicLong lastListTimestamp = new AtomicLong();
+	private final AtomicLong currentListTimestamp = new AtomicLong();
 
-	private final CompositeFileFilter filter =
-			CompositeFileFilter.with(new ModificationTimeFileFilter(lastListTimestamp));
+	private final AtomicLong previousListTimestamp = new AtomicLong();
 
+	private volatile CompositeFileFilter filter = new CompositeFileFilter(new ModificationTimeFileFilter());
 
+	// Setters
 	public void setQueue(Queue<File> queue) {
-		this.queue = queue;
+		this.fileQueue = queue;
 	}
 
 	public void setMessageCreator(MessageCreator<File, T> messageCreator) {
@@ -75,109 +80,130 @@ public class PollableFileSource<T> implements PollableSource<T>, MessageDelivery
 		this.inputDirectory = inputDirectory;
 	}
 
-	public void setFilter(FileFilter filter) {
-		this.filter.addFilter(filter);
+	public void setFilter(FileFilter... filters) {
+		Assert.notEmpty(filters);
+		this.filter = filter.addFilter(filters);
 	}
 
 	public void afterPropertiesSet() throws Exception {
 		if (this.messageCreator == null) {
-			throw new ConfigurationException(MessageCreator.class.getSimpleName() + " is required");
+			throw new ConfigurationException(MessageCreator.class.getSimpleName() + "is required.");
 		}
 		if (this.inputDirectory == null) {
-			throw new ConfigurationException("inputDirectory is required");
+			throw new ConfigurationException("inputDirectory cannot be null");
 		}
 		if (!this.inputDirectory.exists()) {
-			throw new ConfigurationException("inputDirectory [" + inputDirectory + "] does not exist");
+			throw new ConfigurationException(inputDirectory + " doesn't exist.");
 		}
 		if (!this.inputDirectory.canRead()) {
-			throw new ConfigurationException("unable to read from inputDirector [" + inputDirectory + "]");
+			throw new ConfigurationException("No read permissions on " + inputDirectory);
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return the Message created by the {@link #messageCreator} based on the
+	 * next file from the {@link #fileQueue}. If the file doesn't exist
+	 * (anymore) it is up to the {@link MessageCreator} to deal with this.
+	 */
 	public Message<T> receive() throws MessagingException {
-		refreshQueue(queue);
-		File file = queue.poll();
-		// ignore files that have been deleted
-		while (file != null && !file.exists()) {
-			file = queue.poll();
-		}
+		traceState();
+		refreshQueue();
+		Message<T> message = null;
+		File file = fileQueue.poll();
+		// we cannot rely on isEmpty, so we have to do a null check
 		if (file != null) {
+			message = createAndTrackMessage(file);
 			if (log.isInfoEnabled()) {
-				log.info("preparing to send a message for file: [" + file + "]");
+				log.info("Created message: [" + message + "]");
 			}
-			return createAndTrackMessage(file);
 		}
-		// queue is empty
-		return null;
+		traceState();
+		return message;
 	}
 
 	private Message<T> createAndTrackMessage(File file) throws MessagingException {
+		if (log.isDebugEnabled()) {
+			log.debug("Preparing message for file: [" + file + "]");
+		}
 		Message<T> message;
 		try {
 			message = messageCreator.createMessage(file);
-			tracker.put(message, file);
+			messagesInFlight.put(message, file);
 		}
 		catch (Exception e) {
-			log.warn("Error occured while attempting to create message. Requeuing file [" + file + "]", e);
-			queue.add(file);
-			throw new MessagingException("Error while polling for messages", e);
-		}
-		if (log.isDebugEnabled()) {
-			log.debug("created message: [" + message + "]");
-		}
-		if (log.isTraceEnabled()) {
-			log.trace("queue: [" + queue + "]");
-			log.trace("tracker: [" + tracker.values() + "]");
+			fileQueue.add(file);
+			throw new MessagingException("Error creating message for file: [" + file + "]", e);
 		}
 		return message;
 	}
 
-	private void refreshQueue(Queue<File> queue) {
+	private void refreshQueue() {
 		File[] freshFiles = getFreshFilesAndIncrementTimestamp();
-		if (freshFiles != null) {
+		if (!ObjectUtils.isEmpty(freshFiles)) {
 			List<File> freshFilesList = new ArrayList<File>(Arrays.asList(freshFiles));
 			// don't duplicate what's on the queue already
-			freshFilesList.removeAll(queue);
-			freshFilesList.removeAll(tracker.values());
-			if (log.isTraceEnabled()) {
-				log.trace("queue: [" + queue + "]");
-				log.trace("tracker: [" + tracker.values() + "]");
-			}
-			queue.addAll(freshFilesList);
+			freshFilesList.removeAll(fileQueue);
+			freshFilesList.removeAll(messagesInFlight.values());
+			fileQueue.addAll(freshFilesList);
 			if (log.isDebugEnabled()) {
-				log.debug("added to queue: " + freshFilesList);
+				log.debug("Added to queue: " + freshFilesList);
 			}
 		}
 	}
 
 	/*
-	 * This is synchronized to prevent concurrent listings from causing
-	 * duplication.
+	 * This is synchronized on this instance to prevent concurrent listings from
+	 * causing duplication.
+	 * 
+	 * All filesystems provide a modification time precision to the second, so
+	 * we allow at most one refresh per second.
 	 */
 	private synchronized File[] getFreshFilesAndIncrementTimestamp() {
-		File[] freshFiles = inputDirectory.listFiles(filter);
-		lastListTimestamp.set(System.currentTimeMillis());
-		return freshFiles;
-	}
-
-	public void onSend(Message<?> sentMessage) {
-		if (log.isDebugEnabled()) {
-			log.debug("sent: " + sentMessage);
+		previousListTimestamp.set(currentListTimestamp.getAndSet(System.currentTimeMillis() / 1000 * 1000));
+		File[] freshFiles = new File[] {};
+		if (currentListTimestamp.get() > previousListTimestamp.get()) {
+			freshFiles = inputDirectory.listFiles(filter);
 		}
-		tracker.remove(sentMessage);
+		return freshFiles;
 	}
 
 	/**
 	 * In concurrent scenarios onFailure() might cause failing files to be
 	 * ignored. If this is not acceptable access to this method should be
-	 * synchronized.
-	 * 
-	 * {@inheritDoc} 
+	 * synchronized on this instance externally.
 	 */
 	public void onFailure(Message<?> failedMessage, Throwable t) {
-		log.warn("not sent: " + failedMessage);
-		queue.add(tracker.get(failedMessage));
-		tracker.remove(failedMessage);
+		log.warn("Failed to send: " + failedMessage);
+		fileQueue.add(messagesInFlight.get(failedMessage));
+		messagesInFlight.remove(failedMessage);
 	}
 
+	public void onSend(Message<?> sentMessage) {
+		if (log.isDebugEnabled()) {
+			log.debug("Sent: " + sentMessage);
+		}
+		messagesInFlight.remove(sentMessage);
+	}
+
+	/*
+	 * utility method to trace the stateful collections of this instance.
+	 */
+	private void traceState() {
+		if (log.isTraceEnabled()) {
+			log.trace("Files to be received: [" + fileQueue + "]");
+			log.trace("Messages in flight: [" + messagesInFlight.keySet() + "]");
+		}
+	}
+
+	/*
+	 * Helper to filter files based on a modification time
+	 */
+	private class ModificationTimeFileFilter implements FileFilter {
+		public boolean accept(File file) {
+			long lastModified = file.lastModified();
+			return lastModified > previousListTimestamp.get() && lastModified < currentListTimestamp.get();
+		}
+	}
 }
