@@ -42,7 +42,7 @@ public class SplitterAnnotationPostProcessor extends AbstractMethodAnnotationPos
 	}
 
 	@Override
-	protected AbstractEndpoint createEndpoint(Object adapter) {
+	protected AbstractEndpoint createEndpoint(Object originalBean, Object adapter) {
 		if (adapter instanceof MethodInvokingSplitter) {
 			return new SplitterEndpoint((MethodInvokingSplitter) adapter);
 		}

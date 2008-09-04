@@ -20,15 +20,16 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.aggregator.AggregatingMessageHandler;
 import org.springframework.integration.aggregator.AggregatorAdapter;
 import org.springframework.integration.aggregator.CompletionStrategyAdapter;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.CompletionStrategy;
+import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.endpoint.DefaultEndpoint;
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -46,32 +47,37 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 
 	@Override
 	protected Object createMethodInvokingAdapter(Object bean, Method method, Aggregator annotation) {
-		Aggregator aggregatorAnnotation = (Aggregator) annotation;
-		AggregatingMessageHandler messageHandler = new AggregatingMessageHandler(new AggregatorAdapter(bean, method));
-		String outputChannelName = aggregatorAnnotation.outputChannel();
-		if (StringUtils.hasText(outputChannelName)) {
-			messageHandler.setOutputChannel(this.getChannelRegistry().lookupChannel(outputChannelName));
-		}
-		String discardChannelName = aggregatorAnnotation.discardChannel();
-		if (StringUtils.hasText(discardChannelName)) {
-			messageHandler.setDiscardChannel(this.getChannelRegistry().lookupChannel(discardChannelName));
-		}
-		messageHandler.setSendTimeout(aggregatorAnnotation.sendTimeout());
-		messageHandler.setSendPartialResultOnTimeout(aggregatorAnnotation.sendPartialResultsOnTimeout());
-		messageHandler.setReaperInterval(aggregatorAnnotation.reaperInterval());
-		messageHandler.setTimeout(aggregatorAnnotation.timeout());
-		messageHandler.setTrackedCorrelationIdCapacity(aggregatorAnnotation.trackedCorrelationIdCapacity());
-		this.configureCompletionStrategy(bean, messageHandler);
-		messageHandler.afterPropertiesSet();
-		return messageHandler;
+		return new AggregatorAdapter(bean, method);
 	}
 
 	@Override
-	protected AbstractEndpoint createEndpoint(Object adapter) {
-		if (adapter instanceof MessageHandler) {
-			return new DefaultEndpoint<MessageHandler>((MessageHandler) adapter);
+	protected AbstractEndpoint createEndpoint(Object originalBean, Object adapter) {
+		if (adapter instanceof org.springframework.integration.aggregator.Aggregator) {
+			AggregatingMessageHandler endpoint = new AggregatingMessageHandler((org.springframework.integration.aggregator.Aggregator) adapter);
+			this.configureCompletionStrategy(originalBean, endpoint);
+			return endpoint;
 		}
 		return null;
+	}
+
+	@Override
+	protected void configureEndpoint(AbstractEndpoint endpoint, Aggregator annotation, Poller pollerAnnotation) {
+		super.configureEndpoint(endpoint, annotation, pollerAnnotation);
+		AggregatingMessageHandler aggregatorEndpoint = (AggregatingMessageHandler) endpoint;
+		String discardChannelName = annotation.discardChannel();
+		if (StringUtils.hasText(discardChannelName)) {
+			MessageChannel discardChannel = this.getChannelRegistry().lookupChannel(discardChannelName);
+			if (discardChannel == null) {
+				throw new ConfigurationException("unable to resolve discardChannel '" + discardChannelName + "'");
+			}
+			aggregatorEndpoint.setDiscardChannel(discardChannel);
+		}
+		aggregatorEndpoint.setSendTimeout(annotation.sendTimeout());
+		aggregatorEndpoint.setSendPartialResultOnTimeout(annotation.sendPartialResultsOnTimeout());
+		aggregatorEndpoint.setReaperInterval(annotation.reaperInterval());
+		aggregatorEndpoint.setTimeout(annotation.timeout());
+		aggregatorEndpoint.setTrackedCorrelationIdCapacity(annotation.trackedCorrelationIdCapacity());
+		aggregatorEndpoint.afterPropertiesSet();
 	}
 
 	private void configureCompletionStrategy(final Object object, final AggregatingMessageHandler handler) {

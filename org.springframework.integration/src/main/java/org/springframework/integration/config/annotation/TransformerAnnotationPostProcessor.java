@@ -42,7 +42,7 @@ public class TransformerAnnotationPostProcessor extends AbstractMethodAnnotation
 	}
 
 	@Override
-	protected AbstractEndpoint createEndpoint(Object adapter) {
+	protected AbstractEndpoint createEndpoint(Object originalBean, Object adapter) {
 		if (adapter instanceof MethodInvokingTransformer) {
 			return new TransformerEndpoint((MethodInvokingTransformer) adapter);
 		}

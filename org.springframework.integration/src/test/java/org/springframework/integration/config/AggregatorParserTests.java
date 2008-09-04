@@ -33,7 +33,6 @@ import org.springframework.integration.aggregator.CompletionStrategy;
 import org.springframework.integration.aggregator.CompletionStrategyAdapter;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
-import org.springframework.integration.endpoint.DefaultEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.util.MethodInvoker;
@@ -54,16 +53,15 @@ public class AggregatorParserTests {
 
 	@Test
 	public void testAggregation() {
-		DefaultEndpoint<?> endpoint = (DefaultEndpoint<?>) context.getBean("aggregatorWithReference");
 		AggregatingMessageHandler aggregatingHandler =
-				(AggregatingMessageHandler) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
+				(AggregatingMessageHandler) context.getBean("aggregatorWithReference");
 		TestAggregator aggregatorBean = (TestAggregator) context.getBean("aggregatorBean");
 		List<Message<?>> outboundMessages = new ArrayList<Message<?>>();
 		outboundMessages.add(createMessage("123", "id1", 3, 1, null));
 		outboundMessages.add(createMessage("789", "id1", 3, 3, null));
 		outboundMessages.add(createMessage("456", "id1", 3, 2, null));
 		for (Message<?> message : outboundMessages) {
-			aggregatingHandler.handle(message);
+			aggregatingHandler.send(message);
 		}
 		Assert.assertEquals("One and only one message must have been aggregated", 1, aggregatorBean
 				.getAggregatedMessages().size());
@@ -74,9 +72,8 @@ public class AggregatorParserTests {
 
 	@Test
 	public void testPropertyAssignment() throws Exception {
-		DefaultEndpoint<?> endpoint = (DefaultEndpoint<?>) context.getBean("completelyDefinedAggregator");
 		AggregatingMessageHandler completeAggregatingMessageHandler =
-				(AggregatingMessageHandler) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
+					(AggregatingMessageHandler) context.getBean("completelyDefinedAggregator");
 		TestAggregator testAggregator = (TestAggregator) context.getBean("aggregatorBean");
 		CompletionStrategy completionStrategy = (CompletionStrategy) context.getBean("completionStrategy");
 		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
@@ -88,7 +85,7 @@ public class AggregatorParserTests {
 				"The AggregatingMessageHandler is not injected with the appropriate CompletionStrategy instance",
 				completionStrategy, messageHandlerFieldAccessor.getPropertyValue("completionStrategy"));
 		Assert.assertEquals("The AggregatingMessageHandler is not injected with the appropriate output channel",
-				outputChannel, messageHandlerFieldAccessor.getPropertyValue("outputChannel"));
+				outputChannel, messageHandlerFieldAccessor.getPropertyValue("target"));
 		Assert.assertEquals("The AggregatingMessageHandler is not injected with the appropriate discard channel",
 				discardChannel, messageHandlerFieldAccessor.getPropertyValue("discardChannel"));
 		Assert.assertEquals("The AggregatingMessageHandler is not set with the appropriate timeout value", 86420000l,
@@ -108,14 +105,13 @@ public class AggregatorParserTests {
 	@Test
 	public void testSimpleJavaBeanAggregator() {
 		List<Message<?>> outboundMessages = new ArrayList<Message<?>>();
-		DefaultEndpoint<?> endpoint = (DefaultEndpoint<?>) context.getBean("aggregatorWithReferenceAndMethod");
 		AggregatingMessageHandler addingAggregator =
-				(AggregatingMessageHandler) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
+				(AggregatingMessageHandler) context.getBean("aggregatorWithReferenceAndMethod");
 		outboundMessages.add(createMessage(1l, "id1", 3, 1, null));
 		outboundMessages.add(createMessage(2l, "id1", 3, 3, null));
 		outboundMessages.add(createMessage(3l, "id1", 3, 2, null));
 		for (Message<?> message : outboundMessages) {
-			addingAggregator.handle(message);
+			addingAggregator.send(message);
 		}
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		Message<?> response = outputChannel.receive();
@@ -135,9 +131,8 @@ public class AggregatorParserTests {
 
 	@Test
 	public void testAggregatorWithPojoCompletionStrategy(){
-		DefaultEndpoint<?> endpoint = (DefaultEndpoint<?>) context.getBean("aggregatorWithPojoCompletionStrategy");
 		AggregatingMessageHandler aggregatorWithPojoCompletionStrategy =
-				(AggregatingMessageHandler) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
+				(AggregatingMessageHandler) context.getBean("aggregatorWithPojoCompletionStrategy");
 		CompletionStrategy completionStrategy = (CompletionStrategy)
 				new DirectFieldAccessor(aggregatorWithPojoCompletionStrategy).getPropertyValue("completionStrategy");
 		Assert.assertTrue(completionStrategy instanceof CompletionStrategyAdapter);
@@ -145,13 +140,13 @@ public class AggregatorParserTests {
 		MethodInvoker invoker = (MethodInvoker) completionStrategyAccessor.getPropertyValue("invoker");
 		Assert.assertTrue(new DirectFieldAccessor(invoker).getPropertyValue("object") instanceof MaxValueCompletionStrategy);
 		Assert.assertTrue(((Method)completionStrategyAccessor.getPropertyValue("method")).getName().equals("checkCompleteness"));
-		aggregatorWithPojoCompletionStrategy.handle(createMessage(1l, "id1", 0 , 0, null));
-		aggregatorWithPojoCompletionStrategy.handle(createMessage(2l, "id1", 0 , 0, null));
-		aggregatorWithPojoCompletionStrategy.handle(createMessage(3l, "id1", 0 , 0, null));
+		aggregatorWithPojoCompletionStrategy.send(createMessage(1l, "id1", 0 , 0, null));
+		aggregatorWithPojoCompletionStrategy.send(createMessage(2l, "id1", 0 , 0, null));
+		aggregatorWithPojoCompletionStrategy.send(createMessage(3l, "id1", 0 , 0, null));
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		Message<?> reply = outputChannel.receive(0);
 		Assert.assertNull(reply);
-		aggregatorWithPojoCompletionStrategy.handle(createMessage(5l, "id1", 0 , 0, null));
+		aggregatorWithPojoCompletionStrategy.send(createMessage(5l, "id1", 0 , 0, null));
 		reply = outputChannel.receive(0);
 		Assert.assertNotNull(reply);		
 		Assert.assertEquals(11l, reply.getPayload());

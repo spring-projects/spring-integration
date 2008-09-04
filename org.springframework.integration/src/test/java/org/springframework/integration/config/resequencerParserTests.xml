@@ -9,6 +9,8 @@
 
 	<message-bus/>
 
+	<channel id="inputChannel"/>
+
 	<channel id="outputChannel">
 		<queue capacity="5"/>
 	</channel>
@@ -17,9 +19,12 @@
 		<queue capacity="5"/>
 	</channel>
 
-	<resequencer id="defaultResequencer"/>
+	<resequencer id="defaultResequencer" input-channel="inputChannel"/>
+
+	<channel id="inputChannel2"/>
 
 	<resequencer id="completelyDefinedResequencer" 
+		input-channel="inputChannel2"
 		output-channel="outputChannel" 
 		discard-channel="discardChannel"
 		send-timeout="86420000" 

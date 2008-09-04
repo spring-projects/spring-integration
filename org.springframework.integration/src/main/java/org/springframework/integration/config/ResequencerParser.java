@@ -29,6 +29,8 @@ import org.springframework.integration.aggregator.ResequencingMessageHandler;
  */
 public class ResequencerParser extends AbstractSimpleBeanDefinitionParser {
 
+	public static final String INPUT_CHANNEL_ATTRIBUTE = "input-channel";
+
 	public static final String OUTPUT_CHANNEL_ATTRIBUTE = "output-channel";
 
 	public static final String DISCARD_CHANNEL_ATTRIBUTE = "discard-channel";
@@ -41,14 +43,16 @@ public class ResequencerParser extends AbstractSimpleBeanDefinitionParser {
 
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
-		return !OUTPUT_CHANNEL_ATTRIBUTE.equals(attributeName)
+		return !INPUT_CHANNEL_ATTRIBUTE.equals(attributeName)
+				&&!OUTPUT_CHANNEL_ATTRIBUTE.equals(attributeName)
 				&& !DISCARD_CHANNEL_ATTRIBUTE.equals(attributeName)
 				&& super.isEligibleAttribute(attributeName);
 	}
 
 	@Override
 	protected void postProcess(BeanDefinitionBuilder builder, Element element) {
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, OUTPUT_CHANNEL_ATTRIBUTE);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, INPUT_CHANNEL_ATTRIBUTE, "source");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, OUTPUT_CHANNEL_ATTRIBUTE, "target");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, DISCARD_CHANNEL_ATTRIBUTE);
 	}
 

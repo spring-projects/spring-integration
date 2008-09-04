@@ -31,6 +31,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.endpoint.AbstractInOutEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.BlockingTarget;
 import org.springframework.integration.message.Message;
@@ -38,6 +39,7 @@ import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 /**
  * Base class for {@link MessageBarrier}-based MessageHandlers.
@@ -60,7 +62,7 @@ import org.springframework.util.CollectionUtils;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public abstract class AbstractMessageBarrierHandler implements MessageHandler, InitializingBean {
+public abstract class AbstractMessageBarrierHandler extends AbstractInOutEndpoint implements InitializingBean {
 
 	public final static long DEFAULT_SEND_TIMEOUT = 1000;
 
@@ -71,8 +73,6 @@ public abstract class AbstractMessageBarrierHandler implements MessageHandler, I
 	public final static int DEFAULT_TRACKED_CORRRELATION_ID_CAPACITY = 1000;
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
-
-	protected volatile MessageChannel outputChannel;
 
 	private volatile MessageChannel discardChannel;
 
@@ -100,15 +100,6 @@ public abstract class AbstractMessageBarrierHandler implements MessageHandler, I
 		this.executor = (executor != null) ? executor : Executors.newSingleThreadScheduledExecutor();		
 	}
 
-
-	/**
-	 * Set the output channel for sending aggregated Messages. Note that
-	 * precedence will be given to the 'returnAddress' of the aggregated
-	 * message itself, then to the 'returnAddress' of the original message.
-	 */
-	public void setOutputChannel(MessageChannel outputChannel) {
-		this.outputChannel = outputChannel;
-	}
 
 	/**
 	 * Specify a channel for sending Messages that arrive after their aggregation
@@ -150,16 +141,6 @@ public abstract class AbstractMessageBarrierHandler implements MessageHandler, I
 	}
 
 	/**
-	 * Initialize this handler.
-	 */
-	public void afterPropertiesSet() {
-		this.trackedCorrelationIds = new ArrayBlockingQueue<Object>(this.trackedCorrelationIdCapacity);
-		this.executor.scheduleWithFixedDelay(new ReaperTask(),
-				this.reaperInterval, this.reaperInterval, TimeUnit.MILLISECONDS);
-		this.initialized = true;
-	}
-
-	/**
 	 * Maximum time to wait (in milliseconds) for the completion strategy to
 	 * become true. The default is 60000 (1 minute).
 	 */
@@ -168,7 +149,18 @@ public abstract class AbstractMessageBarrierHandler implements MessageHandler, I
 		this.timeout = timeout;
 	}
 
-	public Message<?> handle(Message<?> message) {
+	/**
+	 * Initialize this endpoint.
+	 */
+	public void afterPropertiesSet() {
+		this.trackedCorrelationIds = new ArrayBlockingQueue<Object>(this.trackedCorrelationIdCapacity);
+		this.executor.scheduleWithFixedDelay(new ReaperTask(),
+				this.reaperInterval, this.reaperInterval, TimeUnit.MILLISECONDS);
+		this.initialized = true;
+	}
+
+	@Override
+	protected final Message<?> handle(Message<?> message) {
 		if (!this.initialized) {
 			this.afterPropertiesSet();
 		}
@@ -196,6 +188,10 @@ public abstract class AbstractMessageBarrierHandler implements MessageHandler, I
 		if (isBarrierRemovable(correlationId, releasedMessages)) {
 			this.removeBarrier(correlationId);
 		}
+		Message<?>[] processedMessages = this.processReleasedMessages(correlationId, releasedMessages);
+		if (ObjectUtils.isEmpty(processedMessages)) {
+			return null;
+		}
 		afterRelease(correlationId, releasedMessages);
 		return null;
 	}
@@ -203,7 +199,7 @@ public abstract class AbstractMessageBarrierHandler implements MessageHandler, I
 	private void afterRelease(Object correlationId, List<Message<?>> releasedMessages) {
 		Message<?>[] processedMessages = this.processReleasedMessages(correlationId, releasedMessages);
 		for (Message<?> result : processedMessages) {
-			MessageTarget replyTarget = this.outputChannel;
+			MessageTarget replyTarget = this.getTarget();
 			if (replyTarget == null) {
 				replyTarget = this.resolveReplyTargetFromMessage(result);
 				if (replyTarget == null) {
@@ -283,15 +279,14 @@ public abstract class AbstractMessageBarrierHandler implements MessageHandler, I
 	}
 
 	/**
-	 * Factory method for creating a suitable MessageBarrier
-	 * implementation.
+	 * Factory method for creating a suitable MessageBarrier implementation.
 	 */
 	protected abstract MessageBarrier createMessageBarrier();
 
 	/**
 	 * Implements the logic for deciding whether, based on what the
 	 * MessageBarrier has released so far, work for the correlationId
-	 * can be considered done and the barrier can be released.
+	 * can be considered complete and the barrier can be released.
 	 */
 	protected abstract boolean isBarrierRemovable(Object correlationId, List<Message<?>> releasedMessages);
 

@@ -48,15 +48,14 @@ public class ResequencerParserTests {
 
 	@Test
 	public void testResequencing() {
-		ResequencingMessageHandler resequencingHandler = (ResequencingMessageHandler) context
-				.getBean("defaultResequencer");
+		MessageChannel inputChannel = (MessageChannel) context.getBean("inputChannel");
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		List<Message<?>> outboundMessages = new ArrayList<Message<?>>();
 		outboundMessages.add(createMessage("123", "id1", 3, 3, outputChannel));
 		outboundMessages.add(createMessage("789", "id1", 3, 1, outputChannel));
 		outboundMessages.add(createMessage("456", "id1", 3, 2, outputChannel));
 		for (Message<?> message : outboundMessages) {
-			resequencingHandler.handle(message);
+			inputChannel.send(message);
 		}
 		Message<?> message1 = outputChannel.receive(500);
 		Message<?> message2 = outputChannel.receive(500);
@@ -74,7 +73,7 @@ public class ResequencerParserTests {
 		ResequencingMessageHandler resequencingHandler = (ResequencingMessageHandler) context
 				.getBean("defaultResequencer");
 		DirectFieldAccessor messageHandlerFieldAccessor = new DirectFieldAccessor(resequencingHandler);
-		Assert.assertNull(messageHandlerFieldAccessor.getPropertyValue("outputChannel"));
+		Assert.assertNull(messageHandlerFieldAccessor.getPropertyValue("target"));
 		Assert.assertNull(messageHandlerFieldAccessor.getPropertyValue("discardChannel"));
 		Assert.assertEquals("The ResequencingMessageHandler is not set with the appropriate timeout value", 1000l,
 				messageHandlerFieldAccessor.getPropertyValue("sendTimeout"));
@@ -100,7 +99,7 @@ public class ResequencerParserTests {
 		MessageChannel discardChannel = (MessageChannel) context.getBean("discardChannel");
 		DirectFieldAccessor messageHandlerFieldAccessor = new DirectFieldAccessor(completeResequencingMessageHandler);
 		Assert.assertEquals("The ResequencingMessageHandler is not injected with the appropriate output channel",
-				outputChannel, messageHandlerFieldAccessor.getPropertyValue("outputChannel"));
+				outputChannel, messageHandlerFieldAccessor.getPropertyValue("target"));
 		Assert.assertEquals("The ResequencingMessageHandler is not injected with the appropriate discard channel",
 				discardChannel, messageHandlerFieldAccessor.getPropertyValue("discardChannel"));
 		Assert.assertEquals("The ResequencingMessageHandler is not set with the appropriate timeout value", 86420000l,

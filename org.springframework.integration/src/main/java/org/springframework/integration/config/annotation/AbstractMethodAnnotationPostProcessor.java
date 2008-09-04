@@ -61,7 +61,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	public Object postProcess(Object bean, String beanName, Method method, T annotation) {
 		Object adapter = this.createMethodInvokingAdapter(bean, method, annotation);
 		if (adapter != null && this.shouldCreateEndpoint(annotation)) {
-			AbstractEndpoint endpoint = this.createEndpoint(adapter);
+			AbstractEndpoint endpoint = this.createEndpoint(bean, adapter);
 			if (endpoint != null) {
 				Poller pollerAnnotation = AnnotationUtils.findAnnotation(method, Poller.class);
 				this.configureEndpoint(endpoint, annotation, pollerAnnotation);
@@ -126,6 +126,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	protected abstract Object createMethodInvokingAdapter(Object bean, Method method, T annotation);
 
-	protected abstract AbstractEndpoint createEndpoint(Object adapter);
+	protected abstract AbstractEndpoint createEndpoint(Object originalBean, Object adapter);
 
 }

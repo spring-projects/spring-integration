@@ -43,7 +43,7 @@ public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnot
 	}
 
 	@Override
-	protected AbstractEndpoint createEndpoint(Object adapter) {
+	protected AbstractEndpoint createEndpoint(Object originalBean, Object adapter) {
 		if (adapter instanceof ServiceInvoker) {
 			return new ServiceActivatorEndpoint((ServiceInvoker) adapter);
 		}

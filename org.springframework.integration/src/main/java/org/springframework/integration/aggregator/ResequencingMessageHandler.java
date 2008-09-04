@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 
 import org.springframework.integration.message.Message;
-
+import org.springframework.integration.message.MessageHeaders;
 
 /**
  * An {@link AbstractMessageBarrierHandler} that waits for a group of
@@ -36,9 +36,10 @@ import org.springframework.integration.message.Message;
  *
  * @author Marius Bogoevici
  */
-public class ResequencingMessageHandler extends AbstractMessageBarrierHandler{
+public class ResequencingMessageHandler extends AbstractMessageBarrierHandler {
 
 	private volatile boolean releasePartialSequences = true;
+
 
 	public ResequencingMessageHandler() {
 		this(null);
@@ -47,14 +48,14 @@ public class ResequencingMessageHandler extends AbstractMessageBarrierHandler{
 	public ResequencingMessageHandler(ScheduledExecutorService executor) {
 		super(executor);
 	}
-	
-	
+
+
 	public void setReleasePartialSequences(boolean releasePartialSequences) {
 		this.releasePartialSequences = releasePartialSequences;
 	}
 
 	protected MessageBarrier createMessageBarrier() {
-		return new ResequencingMessageBarrier(releasePartialSequences);
+		return new ResequencingMessageBarrier(this.releasePartialSequences);
 	}
 
 	protected Message<?>[] processReleasedMessages(Object correlationId, List<Message<?>> messages) {
@@ -62,8 +63,8 @@ public class ResequencingMessageHandler extends AbstractMessageBarrierHandler{
 	}
 
 	protected boolean isBarrierRemovable(Object correlationId, List<Message<?>> releasedMessages) {
-		return (releasedMessages.get(releasedMessages.size() - 1).getHeaders().getSequenceNumber() ==
-				releasedMessages.get(releasedMessages.size() - 1).getHeaders().getSequenceSize());
+		MessageHeaders lastMessageHeaders = releasedMessages.get(releasedMessages.size() - 1).getHeaders(); 
+		return (lastMessageHeaders.getSequenceNumber() == lastMessageHeaders.getSequenceSize());
 	}
-	
+
 }

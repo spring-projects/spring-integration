@@ -21,9 +21,6 @@ import java.lang.reflect.Method;
 import org.junit.Assert;
 import org.junit.Test;
 
-import org.springframework.aop.framework.Advised;
-import org.springframework.aop.support.AopUtils;
-import org.springframework.aop.support.DelegatingIntroductionInterceptor;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -32,8 +29,6 @@ import org.springframework.integration.aggregator.CompletionStrategyAdapter;
 import org.springframework.integration.aggregator.SequenceSizeCompletionStrategy;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.config.MessageBusParser;
-import org.springframework.integration.endpoint.DefaultEndpoint;
-import org.springframework.integration.handler.MessageHandler;
 
 /**
  * @author Marius Bogoevici
@@ -49,7 +44,7 @@ public class AggregatorAnnotationTests {
 		DirectFieldAccessor aggregatingMessageHandlerAccessor = getDirectFieldAccessorForAggregatingHandler(context,
 				endpointName);
 		Assert.assertTrue(aggregatingMessageHandlerAccessor.getPropertyValue("completionStrategy") instanceof SequenceSizeCompletionStrategy);
-		Assert.assertNull(aggregatingMessageHandlerAccessor.getPropertyValue("outputChannel"));
+		Assert.assertNull(aggregatingMessageHandlerAccessor.getPropertyValue("target"));
 		Assert.assertNull(aggregatingMessageHandlerAccessor.getPropertyValue("discardChannel"));
 		Assert.assertEquals(AggregatingMessageHandler.DEFAULT_SEND_TIMEOUT, aggregatingMessageHandlerAccessor
 				.getPropertyValue("sendTimeout"));
@@ -71,7 +66,7 @@ public class AggregatorAnnotationTests {
 				endpointName);
 		Assert.assertTrue(aggregatingMessageHandlerAccessor.getPropertyValue("completionStrategy") instanceof SequenceSizeCompletionStrategy);
 		Assert.assertEquals(getMessageBus(context).lookupChannel("outputChannel"), aggregatingMessageHandlerAccessor
-				.getPropertyValue("outputChannel"));
+				.getPropertyValue("target"));
 		Assert.assertEquals(getMessageBus(context).lookupChannel("discardChannel"), aggregatingMessageHandlerAccessor
 				.getPropertyValue("discardChannel"));
 		Assert.assertEquals(98765432l, aggregatingMessageHandlerAccessor
@@ -106,20 +101,8 @@ public class AggregatorAnnotationTests {
 	@SuppressWarnings("unchecked")
 	private DirectFieldAccessor getDirectFieldAccessorForAggregatingHandler(ApplicationContext context, final String endpointName) {
 		MessageBus messageBus = this.getMessageBus(context);
-		DefaultEndpoint<?> endpoint = (DefaultEndpoint<?>) messageBus.lookupEndpoint(endpointName + ".aggregator");
-		MessageHandler handler = (MessageHandler) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
-		try {
-			if (AopUtils.isAopProxy(handler)) {
-				DelegatingIntroductionInterceptor interceptor = (DelegatingIntroductionInterceptor)
-						((Advised) handler).getAdvisors()[0].getAdvice();
-				Object delegate = new DirectFieldAccessor(interceptor).getPropertyValue("delegate");
-				return new DirectFieldAccessor(delegate);
-			}
-		}
-		catch (Exception e) {
-			// will return the accessor for the handler
-		}
-		return new DirectFieldAccessor(handler);
+		AggregatingMessageHandler endpoint = (AggregatingMessageHandler) messageBus.lookupEndpoint(endpointName + ".aggregator");
+		return new DirectFieldAccessor(endpoint);
 	}
 
 	private MessageBus getMessageBus(ApplicationContext context) {

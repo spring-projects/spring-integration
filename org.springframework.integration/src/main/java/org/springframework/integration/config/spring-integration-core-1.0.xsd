@@ -353,7 +353,7 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines an aggregating message handler.
+	Defines an aggregating message endpoint.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
@@ -375,12 +375,11 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a resequencing message handler.
+	Defines a resequencing message endpoint.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
-				<xsd:extension base="beans:identifiedType">
-					<xsd:attribute name="output-channel" type="xsd:string" use="optional"/>
+				<xsd:extension base="inputOutputEndpointType">
 					<xsd:attribute name="discard-channel" type="xsd:string" use="optional"/>
 					<xsd:attribute name="send-timeout" type="xsd:long" use="optional"/>
 					<xsd:attribute name="release-partial-sequences" type="xsd:boolean" use="optional"/>
