@@ -59,7 +59,7 @@ public class PollableFileSource<T> implements PollableSource<T>, MessageDelivery
 
 	private volatile File inputDirectory;
 
-	private final Map<Message<T>, File> messagesInFlight = new ConcurrentHashMap<Message<T>, File>();
+	private final Map<Message<T>, File> undeliveredMessagesToFiles = new ConcurrentHashMap<Message<T>, File>();
 
 	private final AtomicLong currentListTimestamp = new AtomicLong();
 
@@ -130,7 +130,7 @@ public class PollableFileSource<T> implements PollableSource<T>, MessageDelivery
 		Message<T> message;
 		try {
 			message = messageCreator.createMessage(file);
-			messagesInFlight.put(message, file);
+			undeliveredMessagesToFiles.put(message, file);
 		}
 		catch (Exception e) {
 			fileQueue.add(file);
@@ -145,7 +145,7 @@ public class PollableFileSource<T> implements PollableSource<T>, MessageDelivery
 			List<File> freshFilesList = new ArrayList<File>(Arrays.asList(freshFiles));
 			// don't duplicate what's on the queue already
 			freshFilesList.removeAll(fileQueue);
-			freshFilesList.removeAll(messagesInFlight.values());
+			freshFilesList.removeAll(undeliveredMessagesToFiles.values());
 			fileQueue.addAll(freshFilesList);
 			if (log.isDebugEnabled()) {
 				log.debug("Added to queue: " + freshFilesList);
@@ -176,15 +176,15 @@ public class PollableFileSource<T> implements PollableSource<T>, MessageDelivery
 	 */
 	public void onFailure(Message<?> failedMessage, Throwable t) {
 		log.warn("Failed to send: " + failedMessage);
-		fileQueue.add(messagesInFlight.get(failedMessage));
-		messagesInFlight.remove(failedMessage);
+		fileQueue.add(undeliveredMessagesToFiles.get(failedMessage));
+		undeliveredMessagesToFiles.remove(failedMessage);
 	}
 
 	public void onSend(Message<?> sentMessage) {
 		if (log.isDebugEnabled()) {
 			log.debug("Sent: " + sentMessage);
 		}
-		messagesInFlight.remove(sentMessage);
+		undeliveredMessagesToFiles.remove(sentMessage);
 	}
 
 	/*
@@ -193,7 +193,7 @@ public class PollableFileSource<T> implements PollableSource<T>, MessageDelivery
 	private void traceState() {
 		if (log.isTraceEnabled()) {
 			log.trace("Files to be received: [" + fileQueue + "]");
-			log.trace("Messages in flight: [" + messagesInFlight.keySet() + "]");
+			log.trace("Messages in flight: [" + undeliveredMessagesToFiles.keySet() + "]");
 		}
 	}
 
