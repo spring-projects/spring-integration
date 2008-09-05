@@ -14,28 +14,28 @@
 	<channel id="noSelectors">
 		<queue capacity="10"/>
 		<interceptors>
-			<wire-tap target="wireTapChannel"/>
+			<wire-tap channel="wireTapChannel"/>
 		</interceptors>
 	</channel>
 
 	<channel id="accepting">
 		<queue capacity="10"/>
 		<interceptors>
-			<wire-tap target="wireTapChannel" selector="acceptingSelector"/>
+			<wire-tap channel="wireTapChannel" selector="acceptingSelector"/>
 		</interceptors>
 	</channel>
 
 	<channel id="rejecting">
 		<queue capacity="10"/>
 		<interceptors>
-			<wire-tap target="wireTapChannel" selector="rejectingSelector"/>
+			<wire-tap channel="wireTapChannel" selector="rejectingSelector"/>
 		</interceptors>
 	</channel>
 
 	<channel id="timeout">
 		<queue capacity="10"/>
 		<interceptors>
-			<wire-tap target="wireTapChannel" timeout="1234"/>
+			<wire-tap channel="wireTapChannel" timeout="1234"/>
 		</interceptors>
 	</channel>
 

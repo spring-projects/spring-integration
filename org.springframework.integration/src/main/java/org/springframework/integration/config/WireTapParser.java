@@ -34,9 +34,9 @@ public class WireTapParser implements BeanDefinitionRegisteringParser {
 
 	public String parse(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(WireTap.class);
-		String targetRef = element.getAttribute("target");
+		String targetRef = element.getAttribute("channel");
 		if (!StringUtils.hasText(targetRef)) {
-			throw new ConfigurationException("the 'target' attribute is required");
+			throw new ConfigurationException("the 'channel' attribute is required");
 		}
 		builder.addConstructorArgReference(targetRef);
 		String selectorRef = element.getAttribute("selector");

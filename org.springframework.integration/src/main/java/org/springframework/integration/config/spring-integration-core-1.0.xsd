@@ -429,7 +429,7 @@
 	Defines a Wire Tap Channel Interceptor.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:attribute name="target" type="xsd:string" use="required"/>
+		<xsd:attribute name="channel" type="xsd:string" use="required"/>
 		<xsd:attribute name="selector" type="xsd:string" use="optional"/>
 		<xsd:attribute name="timeout" type="xsd:long" use="optional"/>
 	</xsd:complexType>
