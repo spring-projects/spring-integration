@@ -11,9 +11,9 @@
 
 	<channel id="channel"/>
 
-	<service-activator id="endpoint" input-channel="channel" ref="handler" error-handler="errorHandler"/>
+	<service-activator id="endpoint" input-channel="channel" ref="testBean" error-handler="errorHandler"/>
 
-	<beans:bean id="handler" class="org.springframework.integration.config.ExceptionThrowingTestHandler"/>
+	<beans:bean id="testBean" class="org.springframework.integration.config.ExceptionThrowingTestBean"/>
 
 	<beans:bean id="errorHandler" class="org.springframework.integration.config.TestErrorHandler"/>
 

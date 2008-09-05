@@ -18,14 +18,13 @@ package org.springframework.integration.config;
 
 import java.util.concurrent.CountDownLatch;
 
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
  */
-public class TestHandler implements MessageHandler {
+public class TestHandler {
 
 	private String messageString;
 

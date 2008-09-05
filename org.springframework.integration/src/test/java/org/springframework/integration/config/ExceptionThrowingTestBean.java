@@ -16,25 +16,16 @@
 
 package org.springframework.integration.config;
 
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.message.MessageHandlingException;
 
 /**
  * @author Mark Fisher
  */
-public class TestConcatenatingHandler implements MessageHandler {
+public class ExceptionThrowingTestBean {
 
-	private String value;
-
-
-	public TestConcatenatingHandler(String value) {
-		this.value = value;
-	}
-
-
-	public Message<?> handle(Message<?> message) {
-		return new StringMessage(message.getPayload() + this.value);
+	public void handle(Message<?> message) {
+		throw new MessageHandlingException(message, "intentional test failure");
 	}
 
 }
