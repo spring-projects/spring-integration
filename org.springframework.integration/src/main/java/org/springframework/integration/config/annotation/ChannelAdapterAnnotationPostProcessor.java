@@ -91,7 +91,7 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 		PollingDispatcher poller = this.createPoller(source, pollerAnnotation);
 		InboundChannelAdapter adapter = new InboundChannelAdapter();
 		adapter.setSource(poller);
-		adapter.setOutputChannel(channel);
+		adapter.setChannel(channel);
 		adapter.setBeanName(this.generateUniqueName(channel.getName() + ".inboundAdapter"));
 		return adapter;
 	}

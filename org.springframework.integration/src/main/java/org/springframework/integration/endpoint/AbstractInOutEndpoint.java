@@ -36,12 +36,22 @@ import org.springframework.integration.message.selector.MessageSelector;
  */
 public abstract class AbstractInOutEndpoint extends AbstractEndpoint {
 
+	private MessageChannel outputChannel;
+
 	private volatile MessageSelector selector;
 
 	private volatile boolean requiresReply = false;
 
 	private final List<EndpointInterceptor> interceptors = new CopyOnWriteArrayList<EndpointInterceptor>();
 
+
+	public void setOutputChannel(MessageChannel outputChannel) {
+		this.outputChannel = outputChannel;
+	}
+
+	public MessageChannel getOutputChannel() {
+		return this.outputChannel;
+	}
 
 	public void setSelector(MessageSelector selector) {
 		this.selector = selector;

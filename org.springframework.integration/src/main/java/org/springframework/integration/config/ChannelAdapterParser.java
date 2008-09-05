@@ -81,10 +81,10 @@ public class ChannelAdapterParser extends AbstractBeanDefinitionParser {
 				adapterBuilder.addPropertyReference("source", source);
 			}
 			if (StringUtils.hasText(channelName)) {
-				adapterBuilder.addPropertyReference("outputChannel", channelName);
+				adapterBuilder.addPropertyReference("channel", channelName);
 			}
 			else {
-				adapterBuilder.addPropertyReference("outputChannel", this.createDirectChannel(element, parserContext));
+				adapterBuilder.addPropertyReference("channel", this.createDirectChannel(element, parserContext));
 			}
 		}
 		else if (StringUtils.hasText(target)) {

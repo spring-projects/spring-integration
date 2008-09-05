@@ -31,10 +31,20 @@ import org.springframework.integration.message.MessagingException;
  */
 public class InboundChannelAdapter extends AbstractEndpoint {
 
+	private MessageChannel channel;
+
+
+	public void setChannel(MessageChannel channel) {
+		this.channel = channel;
+	}
+
 	@Override
 	protected boolean sendInternal(Message<?> message) {
+		if (this.channel == null) {
+			throw new MessageDeliveryException(message, "no channel has been provided");
+		}
 		try {
-			boolean sent = this.getMessageExchangeTemplate().send(message, this.getOutputChannel());
+			boolean sent = this.getMessageExchangeTemplate().send(message, this.channel);
 			if (sent && this.getSource() instanceof MessageDeliveryAware) {
 				((MessageDeliveryAware) this.getSource()).onSend(message);
 			}
