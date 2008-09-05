@@ -20,6 +20,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.message.Message;
@@ -27,6 +29,7 @@ import org.springframework.integration.message.MessageExchangeTemplate;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessagingException;
+import org.springframework.integration.message.SubscribableSource;
 import org.springframework.integration.util.ErrorHandler;
 
 /**
@@ -34,7 +37,7 @@ import org.springframework.integration.util.ErrorHandler;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegistryAware, BeanNameAware {
+public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegistryAware, BeanNameAware, InitializingBean {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
@@ -88,6 +91,27 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 	 */
 	public void setErrorHandler(ErrorHandler errorHandler) {
 		this.errorHandler = errorHandler;
+	}
+
+	public final void afterPropertiesSet() {
+		if (this.source != null && (this.source instanceof SubscribableSource)) {
+			((SubscribableSource) this.source).subscribe(this);
+		}
+		try {
+			this.initialize();
+		}
+		catch (Exception e) {
+			if (e instanceof RuntimeException) {
+				throw (RuntimeException) e;
+			}
+			throw new ConfigurationException("failed to initialize endpoint '" + this.getName() + "'", e);
+		}
+	}
+
+	/**
+	 * Subclasses may override this method for custom initialization requirements.
+	 */
+	protected void initialize()  throws Exception {
 	}
 
 	public final boolean send(Message<?> message) {

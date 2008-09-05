@@ -17,10 +17,14 @@
 package org.springframework.integration.handler;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.selector.MessageSelector;
@@ -31,7 +35,7 @@ import org.springframework.integration.message.selector.MessageSelector;
 public class MessageFilterTests {
 
 	@Test
-	public void testFilterAcceptsMessage() {
+	public void filterAcceptsMessage() {
 		MessageFilter filter = new MessageFilter(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return true;
@@ -42,13 +46,49 @@ public class MessageFilterTests {
 	}
 
 	@Test
-	public void testFilterRejectsMessage() {
+	public void filterRejectsMessage() {
 		MessageFilter filter = new MessageFilter(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return false;
 			}
 		});
 		assertNull(filter.handle(new StringMessage("test")));
+	}
+
+	@Test
+	public void filterAcceptsWithChannels() {
+		DirectChannel inputChannel = new DirectChannel();
+		QueueChannel outputChannel = new QueueChannel();
+		MessageFilter filter = new MessageFilter(new MessageSelector() {
+			public boolean accept(Message<?> message) {
+				return true;
+			}
+		});
+		filter.setSource(inputChannel);
+		filter.setOutputChannel(outputChannel);
+		filter.afterPropertiesSet();
+		Message<?> message = new StringMessage("test");
+		assertTrue(inputChannel.send(message));
+		Message<?> reply = outputChannel.receive(0);
+		assertNotNull(reply);
+		assertEquals(message, reply);
+	}
+
+	@Test
+	public void filterRejectsWithChannels() {
+		DirectChannel inputChannel = new DirectChannel();
+		QueueChannel outputChannel = new QueueChannel();
+		MessageFilter filter = new MessageFilter(new MessageSelector() {
+			public boolean accept(Message<?> message) {
+				return false;
+			}
+		});
+		filter.setSource(inputChannel);
+		filter.setOutputChannel(outputChannel);
+		filter.afterPropertiesSet();
+		Message<?> message = new StringMessage("test");
+		assertTrue(inputChannel.send(message));
+		assertNull(outputChannel.receive(0));
 	}
 
 }

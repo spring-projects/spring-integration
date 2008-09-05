@@ -287,12 +287,28 @@ public class ServiceActivatorEndpointTests {
 	}
 
 	@Test
-	public void correlationId() {
+	public void correlationIdNotSetIfMessageIsReturnedUnaltered() {
 		QueueChannel replyChannel = new QueueChannel(1);
 		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(new Object() {
 			@SuppressWarnings("unused")
 			public Message<?> handle(Message<?> message) {
 				return message;
+			}
+		}, "handle");
+		Message<String> message = MessageBuilder.fromPayload("test")
+				.setReturnAddress(replyChannel).build();
+		endpoint.send(message);
+		Message<?> reply = replyChannel.receive(500);
+		assertNull(reply.getHeaders().getCorrelationId());
+	}
+
+	@Test
+	public void correlationIdSetForReplyMessage() {
+		QueueChannel replyChannel = new QueueChannel(1);
+		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(new Object() {
+			@SuppressWarnings("unused")
+			public Message<?> handle(Message<?> message) {
+				return MessageBuilder.fromMessage(message).build();
 			}
 		}, "handle");
 		Message<String> message = MessageBuilder.fromPayload("test")

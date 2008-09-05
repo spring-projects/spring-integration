@@ -16,25 +16,30 @@
 
 package org.springframework.integration.handler;
 
+import org.springframework.integration.endpoint.AbstractInOutEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.selector.MessageSelector;
+import org.springframework.util.Assert;
 
 /**
- * Handler for deciding whether to pass a message. Implements
- * {@link MessageHandler} and simply delegates to a {@link MessageSelector}.
+ * Message Endpoint that decides whether to pass a message along to its
+ * output channel. Delegates to a {@link MessageSelector}.
  * 
  * @author Mark Fisher
  */
-public class MessageFilter implements MessageHandler {
+public class MessageFilter extends AbstractInOutEndpoint {
 
 	private MessageSelector selector;
 
 
 	public MessageFilter(MessageSelector selector) {
+		Assert.notNull(selector, "selector must not be null");
 		this.selector = selector;
 	}
 
-	public Message<?> handle(Message<?> message) {
+
+	@Override
+	protected Message<?> handle(Message<?> message) {
 		if (this.selector.accept(message)) {
 			return message;
 		}

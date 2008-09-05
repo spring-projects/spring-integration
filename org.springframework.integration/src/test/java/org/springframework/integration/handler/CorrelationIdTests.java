@@ -21,7 +21,9 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
@@ -39,22 +41,28 @@ public class CorrelationIdTests {
 		Object correlationId = "123-ABC";
 		Message<String> message = MessageBuilder.fromPayload("test")
 				.setCorrelationId(correlationId).build();
-		DefaultMessageHandler handler = new DefaultMessageHandler();
-		handler.setObject(new TestBean());
-		handler.setMethodName("upperCase");
-		handler.afterPropertiesSet();
-		Message<?> reply = handler.handle(message);
+		DirectChannel inputChannel = new DirectChannel();
+		QueueChannel outputChannel = new QueueChannel(1);
+		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(new TestBean(), "upperCase");
+		endpoint.setSource(inputChannel);
+		endpoint.setOutputChannel(outputChannel);
+		endpoint.afterPropertiesSet();
+		assertTrue(inputChannel.send(message));
+		Message<?> reply = outputChannel.receive(0);
 		assertEquals(correlationId, reply.getHeaders().getCorrelationId());
 	}
 
 	@Test
 	public void testCorrelationIdCopiedFromMessageIdByDefault() {
 		Message<String> message = MessageBuilder.fromPayload("test").build();
-		DefaultMessageHandler handler = new DefaultMessageHandler();
-		handler.setObject(new TestBean());
-		handler.setMethodName("upperCase");
-		handler.afterPropertiesSet();
-		Message<?> reply = handler.handle(message);
+		DirectChannel inputChannel = new DirectChannel();
+		QueueChannel outputChannel = new QueueChannel(1);
+		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(new TestBean(), "upperCase");
+		endpoint.setSource(inputChannel);
+		endpoint.setOutputChannel(outputChannel);
+		endpoint.afterPropertiesSet();
+		assertTrue(inputChannel.send(message));
+		Message<?> reply = outputChannel.receive(0);
 		assertEquals(message.getHeaders().getId(), reply.getHeaders().getCorrelationId());
 	}
 
@@ -62,11 +70,14 @@ public class CorrelationIdTests {
 	public void testCorrelationIdCopiedFromMessageCorrelationIdIfAvailable() {
 		Message<String> message = MessageBuilder.fromPayload("test")
 				.setCorrelationId("correlationId").build();
-		DefaultMessageHandler handler = new DefaultMessageHandler();
-		handler.setObject(new TestBean());
-		handler.setMethodName("upperCase");
-		handler.afterPropertiesSet();
-		Message<?> reply = handler.handle(message);
+		DirectChannel inputChannel = new DirectChannel();
+		QueueChannel outputChannel = new QueueChannel(1);
+		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(new TestBean(), "upperCase");
+		endpoint.setSource(inputChannel);
+		endpoint.setOutputChannel(outputChannel);
+		endpoint.afterPropertiesSet();
+		assertTrue(inputChannel.send(message));
+		Message<?> reply = outputChannel.receive(0);
 		assertEquals(message.getHeaders().getCorrelationId(), reply.getHeaders().getCorrelationId());
 		assertTrue(message.getHeaders().getCorrelationId().equals(reply.getHeaders().getCorrelationId()));
 	}
@@ -76,22 +87,28 @@ public class CorrelationIdTests {
 		Object correlationId = "123-ABC";
 		Message<String> message = MessageBuilder.fromPayload("test")
 				.setCorrelationId(correlationId).build();
-		DefaultMessageHandler handler = new DefaultMessageHandler();
-		handler.setObject(new TestBean());
-		handler.setMethodName("createMessage");
-		handler.afterPropertiesSet();
-		Message<?> reply = handler.handle(message);
+		DirectChannel inputChannel = new DirectChannel();
+		QueueChannel outputChannel = new QueueChannel(1);
+		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(new TestBean(), "createMessage");
+		endpoint.setSource(inputChannel);
+		endpoint.setOutputChannel(outputChannel);
+		endpoint.afterPropertiesSet();
+		assertTrue(inputChannel.send(message));
+		Message<?> reply = outputChannel.receive(0);
 		assertEquals("456-XYZ", reply.getHeaders().getCorrelationId());
 	}
 
 	@Test
 	public void testCorrelationNotCopiedFromRequestMessgeIdIfAlreadySetByHandler() throws Exception {
 		Message<?> message = new StringMessage("test");
-		DefaultMessageHandler handler = new DefaultMessageHandler();
-		handler.setObject(new TestBean());
-		handler.setMethodName("createMessage");
-		handler.afterPropertiesSet();
-		Message<?> reply = handler.handle(message);
+		DirectChannel inputChannel = new DirectChannel();
+		QueueChannel outputChannel = new QueueChannel(1);
+		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(new TestBean(), "createMessage");
+		endpoint.setSource(inputChannel);
+		endpoint.setOutputChannel(outputChannel);
+		endpoint.afterPropertiesSet();
+		assertTrue(inputChannel.send(message));
+		Message<?> reply = outputChannel.receive(0);
 		assertEquals("456-XYZ", reply.getHeaders().getCorrelationId());
 	}
 

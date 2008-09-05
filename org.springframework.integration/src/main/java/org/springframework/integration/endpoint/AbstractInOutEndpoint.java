@@ -91,7 +91,14 @@ public abstract class AbstractInOutEndpoint extends AbstractEndpoint {
 			}
 			return true;
 		}
-		Message<?> reply = buildReplyMessage(result, message.getHeaders());
+		Message<?> reply = null;
+		if (result instanceof Message && result.equals(message)) {
+			// we simply pass along an unaltered request Message
+			reply = (Message<?>) result;
+		}
+		else {
+			reply = buildReplyMessage(result, message.getHeaders());
+		}
 		MessageChannel replyChannel = this.resolveReplyChannel(message);
 		if (reply instanceof CompositeMessage && this.shouldSplitComposite()) {
 			boolean sentAtLeastOne = false;

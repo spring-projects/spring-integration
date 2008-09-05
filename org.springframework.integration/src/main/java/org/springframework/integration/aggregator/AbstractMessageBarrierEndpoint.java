@@ -29,7 +29,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.channel.BlockingChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.AbstractInOutEndpoint;
@@ -61,7 +60,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public abstract class AbstractMessageBarrierEndpoint extends AbstractInOutEndpoint implements InitializingBean {
+public abstract class AbstractMessageBarrierEndpoint extends AbstractInOutEndpoint {
 
 	public final static long DEFAULT_SEND_TIMEOUT = 1000;
 
@@ -151,7 +150,8 @@ public abstract class AbstractMessageBarrierEndpoint extends AbstractInOutEndpoi
 	/**
 	 * Initialize this endpoint.
 	 */
-	public void afterPropertiesSet() {
+	@Override
+	protected void initialize() {
 		this.trackedCorrelationIds = new ArrayBlockingQueue<Object>(this.trackedCorrelationIdCapacity);
 		this.executor.scheduleWithFixedDelay(new ReaperTask(),
 				this.reaperInterval, this.reaperInterval, TimeUnit.MILLISECONDS);

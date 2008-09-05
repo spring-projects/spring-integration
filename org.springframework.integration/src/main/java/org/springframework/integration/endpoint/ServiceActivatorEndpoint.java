@@ -26,7 +26,7 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  */
-public class ServiceActivatorEndpoint extends AbstractInOutEndpoint implements InitializingBean {
+public class ServiceActivatorEndpoint extends AbstractInOutEndpoint {
 
 	public static final String DEFAULT_LISTENER_METHOD = "handle";
 
@@ -48,7 +48,8 @@ public class ServiceActivatorEndpoint extends AbstractInOutEndpoint implements I
 	}
 
 
-	public void afterPropertiesSet() throws Exception {
+	@Override
+	protected void initialize() throws Exception {
 		if (this.invoker instanceof InitializingBean) {
 			((InitializingBean) this.invoker).afterPropertiesSet();
 		}
