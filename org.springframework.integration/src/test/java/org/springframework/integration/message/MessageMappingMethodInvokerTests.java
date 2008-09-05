@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler;
+package org.springframework.integration.message;
 
 import static org.junit.Assert.assertEquals;
 
@@ -28,159 +28,133 @@ import org.springframework.integration.annotation.Header;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessagingException;
+import org.springframework.integration.message.MessageMappingMethodInvoker;
 import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
  */
-public class DefaultMessageHandlerTests {
+public class MessageMappingMethodInvokerTests {
 
 	@Test
 	public void payloadAsMethodParameterAndObjectAsReturnValue() {
-		DefaultMessageHandler handler = new DefaultMessageHandler();
-		handler.setObject(new TestHandler());
-		handler.setMethodName("acceptPayloadAndReturnObject");
-		handler.afterPropertiesSet();
-		Message<?> result = handler.handle(new StringMessage("testing"));
-		assertEquals("testing-1", result.getPayload());
+		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(
+				new TestBean(), "acceptPayloadAndReturnObject");
+		Object result = invoker.invokeMethod(new StringMessage("testing"));
+		assertEquals("testing-1", result);
 	}
 
 	@Test
 	public void payloadAsMethodParameterAndMessageAsReturnValue() {
-		DefaultMessageHandler handler = new DefaultMessageHandler();
-		handler.setObject(new TestHandler());
-		handler.setMethodName("acceptPayloadAndReturnMessage");
-		handler.afterPropertiesSet();
-		Message<?> result = handler.handle(new StringMessage("testing"));
+		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(
+				new TestBean(), "acceptPayloadAndReturnMessage");
+		Message<?> result = (Message<?>) invoker.invokeMethod(new StringMessage("testing"));
 		assertEquals("testing-2", result.getPayload());
 	}
 
 	@Test
 	public void messageAsMethodParameterAndObjectAsReturnValue() {
-		DefaultMessageHandler handler = new DefaultMessageHandler();
-		handler.setObject(new TestHandler());
-		handler.setMethodName("acceptMessageAndReturnObject");
-		handler.afterPropertiesSet();
-		Message<?> result = handler.handle(new StringMessage("testing"));
-		assertEquals("testing-3", result.getPayload());
+		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(
+				new TestBean(), "acceptMessageAndReturnObject");
+		Object result = invoker.invokeMethod(new StringMessage("testing"));
+		assertEquals("testing-3", result);
 	}
 
 	@Test
 	public void messageAsMethodParameterAndMessageAsReturnValue() {
-		DefaultMessageHandler handler = new DefaultMessageHandler();
-		handler.setObject(new TestHandler());
-		handler.setMethodName("acceptMessageAndReturnMessage");
-		handler.afterPropertiesSet();
-		Message<?> result = handler.handle(new StringMessage("testing"));
+		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(
+				new TestBean(), "acceptMessageAndReturnMessage");
+		Message<?> result = (Message<?>) invoker.invokeMethod(new StringMessage("testing"));
 		assertEquals("testing-4", result.getPayload());
 	}
 
 	@Test
 	public void messageSubclassAsMethodParameterAndMessageAsReturnValue() {
-		DefaultMessageHandler handler = new DefaultMessageHandler();
-		handler.setObject(new TestHandler());
-		handler.setMethodName("acceptMessageSubclassAndReturnMessage");
-		handler.afterPropertiesSet();
-		Message<?> result = handler.handle(new StringMessage("testing"));
+		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(
+				new TestBean(), "acceptMessageSubclassAndReturnMessage");
+		Message<?> result = (Message<?>) invoker.invokeMethod(new StringMessage("testing"));
 		assertEquals("testing-5", result.getPayload());
 	}
 
 	@Test
 	public void messageSubclassAsMethodParameterAndMessageSubclassAsReturnValue() {
-		DefaultMessageHandler handler = new DefaultMessageHandler();
-		handler.setObject(new TestHandler());
-		handler.setMethodName("acceptMessageSubclassAndReturnMessageSubclass");
-		handler.afterPropertiesSet();
-		Message<?> result = handler.handle(new StringMessage("testing"));
+		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(
+				new TestBean(), "acceptMessageSubclassAndReturnMessageSubclass");
+		Message<?> result = (Message<?>) invoker.invokeMethod(new StringMessage("testing"));
 		assertEquals("testing-6", result.getPayload());
 	}
 
 	@Test
 	public void payloadAndHeaderAnnotationMethodParametersAndObjectAsReturnValue() {
-		DefaultMessageHandler handler = new DefaultMessageHandler();
-		handler.setObject(new TestHandler());
-		handler.setMethodName("acceptPayloadAndHeaderAndReturnObject");
-		handler.afterPropertiesSet();
+		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(
+				new TestBean(), "acceptPayloadAndHeaderAndReturnObject");
 		Message<?> request = MessageBuilder.fromPayload("testing")
 				.setHeader("number", new Integer(123)).build();
-		Message<?> result = handler.handle(request);
-		assertEquals("testing-123", result.getPayload());
+		Object result = invoker.invokeMethod(request);
+		assertEquals("testing-123", result);
 	}
 
 	@Test
 	public void messageOnlyWithAnnotatedMethod() throws Exception {
-		AnnotatedTestService handler = new AnnotatedTestService();
-		Method method = handler.getClass().getMethod("messageOnly", Message.class);
-		DefaultMessageHandler adapter = new DefaultMessageHandler();
-		adapter.setObject(handler);
-		adapter.setMethod(method);
-		Message<?> result = adapter.handle(new StringMessage("foo"));
-		assertEquals("foo", result.getPayload());
+		AnnotatedTestService service = new AnnotatedTestService();
+		Method method = service.getClass().getMethod("messageOnly", Message.class);
+		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(service, method);
+		Object result = invoker.invokeMethod(new StringMessage("foo"));
+		assertEquals("foo", result);
 	}
 
 	@Test
 	public void payloadWithAnnotatedMethod() throws Exception {
-		AnnotatedTestService handler = new AnnotatedTestService();
-		Method method = handler.getClass().getMethod("integerMethod", Integer.class);
-		DefaultMessageHandler adapter = new DefaultMessageHandler();
-		adapter.setObject(handler);
-		adapter.setMethod(method);
-		Message<?> result = adapter.handle(new GenericMessage<Integer>(new Integer(123)));
-		assertEquals(new Integer(123), result.getPayload());
+		AnnotatedTestService service = new AnnotatedTestService();
+		Method method = service.getClass().getMethod("integerMethod", Integer.class);
+		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(service, method);
+		Object result = invoker.invokeMethod(new GenericMessage<Integer>(new Integer(123)));
+		assertEquals(new Integer(123), result);
 	}
 
 	@Test
 	public void convertedPayloadWithAnnotatedMethod() throws Exception {
-		AnnotatedTestService handler = new AnnotatedTestService();
-		Method method = handler.getClass().getMethod("integerMethod", Integer.class);
-		DefaultMessageHandler adapter = new DefaultMessageHandler();
-		adapter.setObject(handler);
-		adapter.setMethod(method);
-		Message<?> result = adapter.handle(new StringMessage("456"));
-		assertEquals(new Integer(456), result.getPayload());
+		AnnotatedTestService service = new AnnotatedTestService();
+		Method method = service.getClass().getMethod("integerMethod", Integer.class);
+		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(service, method);
+		Object result = invoker.invokeMethod(new StringMessage("456"));
+		assertEquals(new Integer(456), result);
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void conversionFailureWithAnnotatedMethod() throws Exception {
-		AnnotatedTestService handler = new AnnotatedTestService();
-		Method method = handler.getClass().getMethod("integerMethod", Integer.class);
-		DefaultMessageHandler adapter = new DefaultMessageHandler();
-		adapter.setObject(handler);
-		adapter.setMethod(method);
-		Message<?> result = adapter.handle(new StringMessage("foo"));
-		assertEquals(new Integer(123), result.getPayload());
+		AnnotatedTestService service = new AnnotatedTestService();
+		Method method = service.getClass().getMethod("integerMethod", Integer.class);
+		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(service, method);
+		Object result = invoker.invokeMethod(new StringMessage("foo"));
+		assertEquals(new Integer(123), result);
 	}
 
 	@Test
 	public void messageAndHeaderWithAnnotatedMethod() throws Exception {
-		AnnotatedTestService handler = new AnnotatedTestService();
-		Method method = handler.getClass().getMethod("messageAndHeader", Message.class, Integer.class);
-		DefaultMessageHandler adapter = new DefaultMessageHandler();
-		adapter.setObject(handler);
-		adapter.setMethod(method);
+		AnnotatedTestService service = new AnnotatedTestService();
+		Method method = service.getClass().getMethod("messageAndHeader", Message.class, Integer.class);
+		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(service, method);
 		Message<String> message = MessageBuilder.fromPayload("foo")
 				.setHeader("number", 42).build();
-		Message<?> result = adapter.handle(message);
-		assertEquals("foo-42", result.getPayload());
+		Object result = invoker.invokeMethod(message);
+		assertEquals("foo-42", result);
 	}
 
 	@Test
 	public void multipleHeadersWithAnnotatedMethod() throws Exception {
-		AnnotatedTestService handler = new AnnotatedTestService();
-		Method method = handler.getClass().getMethod("twoHeaders", String.class, Integer.class);
-		DefaultMessageHandler adapter = new DefaultMessageHandler();
-		adapter.setObject(handler);
-		adapter.setMethod(method);
+		AnnotatedTestService service = new AnnotatedTestService();
+		Method method = service.getClass().getMethod("twoHeaders", String.class, Integer.class);
+		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(service, method);
 		Message<String> message = MessageBuilder.fromPayload("foo")
 				.setHeader("prop", "bar")
 				.setHeader("number", 42).build();
-		Message<?> result = adapter.handle(message);
-		assertEquals("bar-42", result.getPayload());
+		Object result = invoker.invokeMethod(message);
+		assertEquals("bar-42", result);
 	}
 
 
-	private static class TestHandler {
+	private static class TestBean {
 
 		public String acceptPayloadAndReturnObject(String s) {
 			return s + "-1";
