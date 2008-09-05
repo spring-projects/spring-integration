@@ -19,13 +19,12 @@ package org.springframework.integration.security.endpoint;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 
 /**
  * @author Mark Fisher
  */
-public class TestHandler implements MessageHandler {
+public class TestHandler {
 
 	public List<Message<?>> sentMessages = new ArrayList<Message<?>>();
 
