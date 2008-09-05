@@ -41,20 +41,17 @@ public class AggregatorAnnotationTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				new String[] { "classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml" });
 		final String endpointName = "endpointWithDefaultAnnotation";
-		DirectFieldAccessor aggregatingMessageHandlerAccessor = getDirectFieldAccessorForAggregatingHandler(context,
+		DirectFieldAccessor accessor = getDirectFieldAccessorForAggregatingHandler(context,
 				endpointName);
-		Assert.assertTrue(aggregatingMessageHandlerAccessor.getPropertyValue("completionStrategy") instanceof SequenceSizeCompletionStrategy);
-		Assert.assertNull(aggregatingMessageHandlerAccessor.getPropertyValue("target"));
-		Assert.assertNull(aggregatingMessageHandlerAccessor.getPropertyValue("discardChannel"));
-		Assert.assertEquals(AggregatorEndpoint.DEFAULT_SEND_TIMEOUT, aggregatingMessageHandlerAccessor
-				.getPropertyValue("sendTimeout"));
-		Assert.assertEquals(AggregatorEndpoint.DEFAULT_TIMEOUT, aggregatingMessageHandlerAccessor
-				.getPropertyValue("timeout"));
-		Assert.assertEquals(false, aggregatingMessageHandlerAccessor.getPropertyValue("sendPartialResultOnTimeout"));
-		Assert.assertEquals(AggregatorEndpoint.DEFAULT_REAPER_INTERVAL, aggregatingMessageHandlerAccessor
-				.getPropertyValue("reaperInterval"));
+		Assert.assertTrue(accessor.getPropertyValue("completionStrategy") instanceof SequenceSizeCompletionStrategy);
+		Assert.assertNull(accessor.getPropertyValue("outputChannel"));
+		Assert.assertNull(accessor.getPropertyValue("discardChannel"));
+		Assert.assertEquals(AggregatorEndpoint.DEFAULT_SEND_TIMEOUT, accessor.getPropertyValue("sendTimeout"));
+		Assert.assertEquals(AggregatorEndpoint.DEFAULT_TIMEOUT, accessor.getPropertyValue("timeout"));
+		Assert.assertEquals(false, accessor.getPropertyValue("sendPartialResultOnTimeout"));
+		Assert.assertEquals(AggregatorEndpoint.DEFAULT_REAPER_INTERVAL, accessor.getPropertyValue("reaperInterval"));
 		Assert.assertEquals(AggregatorEndpoint.DEFAULT_TRACKED_CORRRELATION_ID_CAPACITY,
-				aggregatingMessageHandlerAccessor.getPropertyValue("trackedCorrelationIdCapacity"));
+				accessor.getPropertyValue("trackedCorrelationIdCapacity"));
 	}
 
 	@Test
@@ -62,22 +59,15 @@ public class AggregatorAnnotationTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				new String[] { "classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml" });
 		final String endpointName = "endpointWithCustomizedAnnotation";
-		DirectFieldAccessor aggregatingMessageHandlerAccessor = getDirectFieldAccessorForAggregatingHandler(context,
-				endpointName);
-		Assert.assertTrue(aggregatingMessageHandlerAccessor.getPropertyValue("completionStrategy") instanceof SequenceSizeCompletionStrategy);
-		Assert.assertEquals(getMessageBus(context).lookupChannel("outputChannel"), aggregatingMessageHandlerAccessor
-				.getPropertyValue("target"));
-		Assert.assertEquals(getMessageBus(context).lookupChannel("discardChannel"), aggregatingMessageHandlerAccessor
-				.getPropertyValue("discardChannel"));
-		Assert.assertEquals(98765432l, aggregatingMessageHandlerAccessor
-				.getPropertyValue("sendTimeout"));
-		Assert.assertEquals(4567890l, aggregatingMessageHandlerAccessor
-				.getPropertyValue("timeout"));
-		Assert.assertEquals(true, aggregatingMessageHandlerAccessor.getPropertyValue("sendPartialResultOnTimeout"));
-		Assert.assertEquals(1234l, aggregatingMessageHandlerAccessor
-				.getPropertyValue("reaperInterval"));
-		Assert.assertEquals(42,
-				aggregatingMessageHandlerAccessor.getPropertyValue("trackedCorrelationIdCapacity"));
+		DirectFieldAccessor accessor = getDirectFieldAccessorForAggregatingHandler(context, endpointName);
+		Assert.assertTrue(accessor.getPropertyValue("completionStrategy") instanceof SequenceSizeCompletionStrategy);
+		Assert.assertEquals(getMessageBus(context).lookupChannel("outputChannel"), accessor.getPropertyValue("outputChannel"));
+		Assert.assertEquals(getMessageBus(context).lookupChannel("discardChannel"), accessor.getPropertyValue("discardChannel"));
+		Assert.assertEquals(98765432l, accessor.getPropertyValue("sendTimeout"));
+		Assert.assertEquals(4567890l, accessor.getPropertyValue("timeout"));
+		Assert.assertEquals(true, accessor.getPropertyValue("sendPartialResultOnTimeout"));
+		Assert.assertEquals(1234l, accessor.getPropertyValue("reaperInterval"));
+		Assert.assertEquals(42, accessor.getPropertyValue("trackedCorrelationIdCapacity"));
 	}
 
 	@Test

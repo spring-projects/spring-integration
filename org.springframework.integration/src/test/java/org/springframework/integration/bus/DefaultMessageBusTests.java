@@ -126,10 +126,10 @@ public class DefaultMessageBusTests {
 		bus.registerChannel(outputChannel2);
 		endpoint1.setBeanName("testEndpoint1");
 		endpoint1.setSource(inputChannel);
-		endpoint1.setTarget(outputChannel1);
+		endpoint1.setOutputChannel(outputChannel1);
 		endpoint2.setBeanName("testEndpoint2");
 		endpoint2.setSource(inputChannel);
-		endpoint2.setTarget(outputChannel2);
+		endpoint2.setOutputChannel(outputChannel2);
 		bus.registerEndpoint(endpoint1);
 		bus.registerEndpoint(endpoint2);
 		bus.start();
@@ -169,10 +169,10 @@ public class DefaultMessageBusTests {
 		bus.registerChannel(outputChannel2);
 		endpoint1.setBeanName("testEndpoint1");
 		endpoint1.setSource(inputChannel);
-		endpoint1.setTarget(outputChannel1);
+		endpoint1.setOutputChannel(outputChannel1);
 		endpoint2.setBeanName("testEndpoint2");
 		endpoint2.setSource(inputChannel);
-		endpoint2.setTarget(outputChannel2);
+		endpoint2.setOutputChannel(outputChannel2);
 		bus.registerEndpoint(endpoint1);
 		bus.registerEndpoint(endpoint2);
 		bus.start();

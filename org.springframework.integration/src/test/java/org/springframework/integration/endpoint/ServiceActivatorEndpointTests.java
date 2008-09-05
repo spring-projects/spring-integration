@@ -52,7 +52,7 @@ public class ServiceActivatorEndpointTests {
 	public void outputChannel() {
 		QueueChannel channel = new QueueChannel(1);
 		ServiceActivatorEndpoint endpoint = this.createEndpoint();
-		endpoint.setTarget(channel);
+		endpoint.setOutputChannel(channel);
 		Message<?> message = MessageBuilder.fromPayload("foo").build();
 		endpoint.send(message);
 		Message<?> reply = channel.receive(0);
@@ -65,7 +65,7 @@ public class ServiceActivatorEndpointTests {
 		QueueChannel channel1 = new QueueChannel(1);
 		QueueChannel channel2 = new QueueChannel(1);
 		ServiceActivatorEndpoint endpoint = this.createEndpoint();
-		endpoint.setTarget(channel1);
+		endpoint.setOutputChannel(channel1);
 		Message<?> message = MessageBuilder.fromPayload("foo").setReturnAddress(channel2).build();
 		endpoint.send(message);
 		Message<?> reply1 = channel1.receive(0);
@@ -157,7 +157,7 @@ public class ServiceActivatorEndpointTests {
 		QueueChannel channel = new QueueChannel(1);
 		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(
 				new TestNullReplyBean(), "handle");
-		endpoint.setTarget(channel);
+		endpoint.setOutputChannel(channel);
 		Message<?> message = MessageBuilder.fromPayload("foo").build();
 		endpoint.send(message);
 		assertNull(channel.receive(0));
@@ -169,7 +169,7 @@ public class ServiceActivatorEndpointTests {
 		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(
 				new TestNullReplyBean(), "handle");
 		endpoint.setRequiresReply(true);
-		endpoint.setTarget(channel);
+		endpoint.setOutputChannel(channel);
 		Message<?> message = MessageBuilder.fromPayload("foo").build();
 		endpoint.send(message);
 	}

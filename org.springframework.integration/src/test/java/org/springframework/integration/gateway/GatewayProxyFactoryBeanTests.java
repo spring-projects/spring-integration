@@ -28,10 +28,10 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -87,7 +87,7 @@ public class GatewayProxyFactoryBeanTests {
 			public void run() {
 				Message<?> input = requestChannel.receive();
 				StringMessage response = new StringMessage(input.getPayload() + "456");
-				((MessageTarget) input.getHeaders().getReturnAddress()).send(response);
+				((MessageChannel) input.getHeaders().getReturnAddress()).send(response);
 			}
 		}).start();
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
@@ -174,7 +174,7 @@ public class GatewayProxyFactoryBeanTests {
 			public void run() {
 				Message<?> input = requestChannel.receive();
 				StringMessage response = new StringMessage(input.getPayload() + "bar");
-				((MessageTarget) input.getHeaders().getReturnAddress()).send(response);
+				((MessageChannel) input.getHeaders().getReturnAddress()).send(response);
 			}
 		}).start();
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
@@ -218,7 +218,7 @@ public class GatewayProxyFactoryBeanTests {
 			public void run() {
 				Message<?> input = requestChannel.receive();
 				StringMessage response = new StringMessage(input.getPayload() + "bar");
-				((MessageTarget) input.getHeaders().getReturnAddress()).send(response);
+				((MessageChannel) input.getHeaders().getReturnAddress()).send(response);
 			}
 		}).start();
 	}

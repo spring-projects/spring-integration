@@ -25,14 +25,10 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.easymock.IAnswer;
 import org.junit.Before;
@@ -213,57 +209,6 @@ public class BroadcastingDispatcherTests {
 		verify(globalMocks);
 	}
 
-	@Test(timeout = 500)
-	public void multipleTargetsPartialTimeout() throws Exception {
-		reset(taskExecutorMock);
-		dispatcher.subscribe(targetMock1);
-		dispatcher.subscribe(targetMock2);
-		dispatcher.subscribe(targetMock3);
-		dispatcher.setSendTimeout(50);
-		// three threads invoking targets
-		final CountDownLatch latch = new CountDownLatch(3);
-		threadedExecutorMock(3);
-		final AtomicBoolean timingOutStarted = new AtomicBoolean(false);
-		final AtomicBoolean testNotTimedOut = new AtomicBoolean(false);
-		expect(targetMock1.send(messageMock)).andAnswer(new IAnswer<Boolean>() {
-			public Boolean answer() throws Throwable {
-				latch.countDown();
-				return true;
-			}
-		});
-		expect(targetMock2.send(messageMock)).andAnswer(new IAnswer<Boolean>() {
-			public Boolean answer() throws Throwable {
-				latch.countDown();
-				return true;
-			}
-		});
-		/*
-		 * Watch out, this is tricky. The send() method will be invoked but due
-		 * to the faked time out it will never return. Therefore the expectation
-		 * needs to be there, but during the verify it will be called 0 times.
-		 * This is something that EasyMock doesn't support so I've worked around
-		 * it with an AtomicBoolean and a latch. It isn't pretty, but it sort of works
-		 */
-		expect(targetMock3.send(messageMock)).andAnswer(new IAnswer<Boolean>() {
-			public Boolean answer() throws Throwable {
-				// this should happen
-				timingOutStarted.compareAndSet(false, true);
-				latch.countDown();
-				// cause timeout here
-				Thread.sleep(1000);
-				testNotTimedOut.compareAndSet(false, true);
-				//in a long running suite this will run until the end, but the test will already be over
-				return true;
-			}
-		}).anyTimes();
-		replay(globalMocks);
-		dispatcher.send(messageMock);
-		latch.await();
-		verify(globalMocks);
-		assertFalse("Test not timed out properly", testNotTimedOut.get());
-		assertTrue("Timing out Runnable not executed", timingOutStarted.get());
-	}
-
 	@Test
 	public void applySequenceDisabledByDefault() {
 		BroadcastingDispatcher dispatcher = new BroadcastingDispatcher();
@@ -327,21 +272,6 @@ public class BroadcastingDispatcherTests {
 				}
 			});
 		}
-	}
-
-	/*
-	 * expect count calls to the taskExecutorMock.execute and have them run the runnable
-	 * in a new Thread.
-	 */
-	private void threadedExecutorMock(int count) {
-		taskExecutorMock.execute(isA(Runnable.class));
-		expectLastCall().andAnswer(new IAnswer<Object>() {
-			public Object answer() throws Throwable {
-				final Runnable runnable = (Runnable) getCurrentArguments()[0];
-				new Thread(runnable).start();
-				return null;
-			}
-		}).times(count);
 	}
 
 

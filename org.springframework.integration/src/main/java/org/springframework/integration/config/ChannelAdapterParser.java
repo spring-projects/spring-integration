@@ -81,11 +81,10 @@ public class ChannelAdapterParser extends AbstractBeanDefinitionParser {
 				adapterBuilder.addPropertyReference("source", source);
 			}
 			if (StringUtils.hasText(channelName)) {
-				adapterBuilder.addPropertyReference("target", channelName);
+				adapterBuilder.addPropertyReference("outputChannel", channelName);
 			}
 			else {
-				adapterBuilder.addPropertyReference("target",
-						this.createDirectChannel(element, parserContext));
+				adapterBuilder.addPropertyReference("outputChannel", this.createDirectChannel(element, parserContext));
 			}
 		}
 		else if (StringUtils.hasText(target)) {
@@ -96,7 +95,7 @@ public class ChannelAdapterParser extends AbstractBeanDefinitionParser {
 				target = BeanDefinitionReaderUtils.registerWithGeneratedName(invokerBuilder.getBeanDefinition(), parserContext.getRegistry());
 			}
 			adapterBuilder =  BeanDefinitionBuilder.genericBeanDefinition(OutboundChannelAdapter.class);
-			adapterBuilder.addPropertyReference("target", target);
+			adapterBuilder.addConstructorArgReference(target);
 			if (pollerElement != null) {
 				if (!StringUtils.hasText(channelName)) {
 					throw new ConfigurationException("outbound channel-adapter with a 'poller' requires a 'channel' to poll");

@@ -108,7 +108,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				if (outputChannel == null) {
 					throw new ConfigurationException("unable to resolve outputChannel '" + outputChannelName + "'");
 				}
-				endpoint.setTarget(outputChannel);
+				endpoint.setOutputChannel(outputChannel);
 			}
 		}
 	}

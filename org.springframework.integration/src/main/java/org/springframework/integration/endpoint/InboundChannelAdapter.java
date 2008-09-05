@@ -34,7 +34,7 @@ public class InboundChannelAdapter extends AbstractEndpoint {
 	@Override
 	protected boolean sendInternal(Message<?> message) {
 		try {
-			boolean sent = this.getMessageExchangeTemplate().send(message, this.getTarget());
+			boolean sent = this.getMessageExchangeTemplate().send(message, this.getOutputChannel());
 			if (sent && this.getSource() instanceof MessageDeliveryAware) {
 				((MessageDeliveryAware) this.getSource()).onSend(message);
 			}

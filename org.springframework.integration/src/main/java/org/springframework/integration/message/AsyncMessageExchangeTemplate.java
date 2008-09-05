@@ -20,9 +20,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageExchangeTemplate;
-import org.springframework.integration.message.MessageTarget;
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.util.Assert;
 
 /**
@@ -42,30 +40,30 @@ public class AsyncMessageExchangeTemplate extends MessageExchangeTemplate {
 
 
 	/**
-	 * Send the provided message to the given target. Note that the actual
+	 * Send the provided message to the given channel. Note that the actual
 	 * sending occurs asynchronously, so this method will always return
 	 * <code>true</code> unless an exception is thrown by the executor.
 	 */
 	@Override
-	public boolean send(final Message<?> message, final MessageTarget target) {
+	public boolean send(final Message<?> message, final MessageChannel channel) {
 		this.taskExecutor.execute(new Runnable() {
 			public void run() {
-				AsyncMessageExchangeTemplate.super.send(message, target);
+				AsyncMessageExchangeTemplate.super.send(message, channel);
 			}
 		});
 		return true;
 	}
 
 	/**
-	 * Send the provided message to the given target and receive the
+	 * Send the provided message to the given channel and receive the
 	 * result as an {@link AsyncMessage}.
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public Message<?> sendAndReceive(final Message<?> request, final MessageTarget target) {
+	public Message<?> sendAndReceive(final Message<?> request, final MessageChannel channel) {
 		FutureTask<Message<?>> task = new FutureTask<Message<?>>(new Callable<Message<?>>() {
 			public Message<?> call() throws Exception {
-				return AsyncMessageExchangeTemplate.super.sendAndReceive(request, target);
+				return AsyncMessageExchangeTemplate.super.sendAndReceive(request, channel);
 			}
 		});
 		this.taskExecutor.execute(task);
@@ -89,15 +87,15 @@ public class AsyncMessageExchangeTemplate extends MessageExchangeTemplate {
 
 	/**
 	 * Receive a Message from the provided source and if not <code>null</code>,
-	 * send it to the given target. Note that the receive and send operations
+	 * send it to the given channel. Note that the receive and send operations
 	 * occur asynchronously, so this method will always return <code>true</code>
 	 * unless an exception is thrown by the executor.
 	 */
 	@Override
-	public boolean receiveAndForward(final PollableSource<?> source, final MessageTarget target) {
+	public boolean receiveAndForward(final PollableSource<?> source, final MessageChannel channel) {
 		this.taskExecutor.execute(new Runnable() {
 			public void run() {
-				AsyncMessageExchangeTemplate.super.receiveAndForward(source, target);
+				AsyncMessageExchangeTemplate.super.receiveAndForward(source, channel);
 			}
 		});
 		return true;

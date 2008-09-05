@@ -30,13 +30,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.channel.BlockingChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.AbstractInOutEndpoint;
 import org.springframework.integration.endpoint.MessageEndpoint;
-import org.springframework.integration.message.BlockingTarget;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.message.MessageTarget;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -199,19 +198,19 @@ public abstract class AbstractMessageBarrierEndpoint extends AbstractInOutEndpoi
 	private void afterRelease(Object correlationId, List<Message<?>> releasedMessages) {
 		Message<?>[] processedMessages = this.processReleasedMessages(correlationId, releasedMessages);
 		for (Message<?> result : processedMessages) {
-			MessageTarget replyTarget = this.getTarget();
-			if (replyTarget == null) {
-				replyTarget = this.resolveReplyTargetFromMessage(result);
-				if (replyTarget == null) {
-					replyTarget = this.resolveReplyTargetFromMessage(releasedMessages.get(0));
+			MessageChannel replyChannel = this.getOutputChannel();
+			if (replyChannel == null) {
+				replyChannel = this.resolveReplyChannelFromMessage(result);
+				if (replyChannel == null) {
+					replyChannel = this.resolveReplyChannelFromMessage(releasedMessages.get(0));
 				}
 			}
-			if (replyTarget != null) {
-				if (replyTarget instanceof BlockingTarget && this.sendTimeout >= 0) {
-					((BlockingTarget) replyTarget).send(result, this.sendTimeout);
+			if (replyChannel != null) {
+				if (replyChannel instanceof BlockingChannel && this.sendTimeout >= 0) {
+					((BlockingChannel) replyChannel).send(result, this.sendTimeout);
 				}
 				else {
-					replyTarget.send(result);
+					replyChannel.send(result);
 				}
 			}
 			else if (logger.isWarnEnabled()) {
@@ -222,7 +221,10 @@ public abstract class AbstractMessageBarrierEndpoint extends AbstractInOutEndpoi
 
 	private void sendToDiscardChannelIfAvailable(Message<?> message) {
 		if (this.discardChannel != null) {
-			if (!this.discardChannel.send(message, this.sendTimeout)) {
+			boolean sent = (this.discardChannel instanceof BlockingChannel && this.sendTimeout >= 0)
+					? ((BlockingChannel) this.discardChannel).send(message, this.sendTimeout)
+					: this.discardChannel.send(message);
+			if (!sent) {
 				if (logger.isWarnEnabled()) {
 					logger.warn("unable to send to 'discardChannel', message: " + message);
 				}
@@ -230,14 +232,14 @@ public abstract class AbstractMessageBarrierEndpoint extends AbstractInOutEndpoi
 		}
 	}
 
-	protected MessageTarget resolveReplyTargetFromMessage(Message<?> message) {
+	protected MessageChannel resolveReplyChannelFromMessage(Message<?> message) {
 		Object returnAddress = message.getHeaders().getReturnAddress();
 		if (returnAddress != null) {
-			if (returnAddress instanceof MessageTarget) {
-				return (MessageTarget) returnAddress;
+			if (returnAddress instanceof MessageChannel) {
+				return (MessageChannel) returnAddress;
 			}
 			if (logger.isWarnEnabled()) {
-				logger.warn("Aggregator can only reply to a 'returnAddress' of type MessageTarget.");
+				logger.warn("Aggregator can only reply to a 'returnAddress' of type MessageChannel.");
 			}
 		}
 		return null;

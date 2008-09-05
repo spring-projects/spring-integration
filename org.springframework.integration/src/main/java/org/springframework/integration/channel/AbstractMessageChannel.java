@@ -34,7 +34,7 @@ import org.springframework.integration.message.Message;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractMessageChannel implements MessageChannel, BeanNameAware {
+public abstract class AbstractMessageChannel implements BlockingChannel, BeanNameAware {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 

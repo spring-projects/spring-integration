@@ -85,7 +85,7 @@ public class AggregatorParserTests {
 				"The AggregatorEndpoint is not injected with the appropriate CompletionStrategy instance",
 				completionStrategy, accessor.getPropertyValue("completionStrategy"));
 		Assert.assertEquals("The AggregatorEndpoint is not injected with the appropriate output channel",
-				outputChannel, accessor.getPropertyValue("target"));
+				outputChannel, accessor.getPropertyValue("outputChannel"));
 		Assert.assertEquals("The AggregatorEndpoint is not injected with the appropriate discard channel",
 				discardChannel, accessor.getPropertyValue("discardChannel"));
 		Assert.assertEquals("The AggregatorEndpoint is not set with the appropriate timeout value",

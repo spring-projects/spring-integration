@@ -95,8 +95,7 @@ public abstract class AbstractEndpointParser extends AbstractSingleBeanDefinitio
 		else {
 			builder.addPropertyReference("source", inputChannel);
 		}
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(
-				builder, element, OUTPUT_CHANNEL_ATTRIBUTE, "target");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, OUTPUT_CHANNEL_ATTRIBUTE);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, SELECTOR_ATTRIBUTE);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, ERROR_HANDLER_ATTRIBUTE);
 		Element interceptorsElement = DomUtils.getChildElementByTagName(element, INTERCEPTORS_ELEMENT);

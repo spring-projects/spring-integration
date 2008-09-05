@@ -29,6 +29,7 @@ import org.junit.Test;
 
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.AbstractInOutEndpoint;
 
@@ -69,7 +70,10 @@ public class MessageExchangeTemplateTests {
 	public void testSendWithReturnAddress() throws InterruptedException {
 		final List<String> replies = new ArrayList<String>(3);
 		final CountDownLatch latch = new CountDownLatch(3);
-		MessageTarget replyTarget = new MessageTarget() {
+		MessageChannel replyChannel = new MessageChannel() {
+			public String getName() {
+				return "testReplyChannel";
+			}
 			public boolean send(Message<?> replyMessage) {
 				replies.add((String) replyMessage.getPayload());
 				latch.countDown();
@@ -77,9 +81,9 @@ public class MessageExchangeTemplateTests {
 			}
 		};
 		MessageExchangeTemplate template = new MessageExchangeTemplate();
-		Message<String> message1 = MessageBuilder.fromPayload("test1").setReturnAddress(replyTarget).build();
-		Message<String> message2 = MessageBuilder.fromPayload("test2").setReturnAddress(replyTarget).build();
-		Message<String> message3 = MessageBuilder.fromPayload("test3").setReturnAddress(replyTarget).build();
+		Message<String> message1 = MessageBuilder.fromPayload("test1").setReturnAddress(replyChannel).build();
+		Message<String> message2 = MessageBuilder.fromPayload("test2").setReturnAddress(replyChannel).build();
+		Message<String> message3 = MessageBuilder.fromPayload("test3").setReturnAddress(replyChannel).build();
 		template.send(message1, this.requestChannel);
 		template.send(message2, this.requestChannel);
 		template.send(message3, this.requestChannel);

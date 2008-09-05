@@ -16,6 +16,7 @@
 
 package org.springframework.integration.dispatcher;
 
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.SubscribableSource;
@@ -25,15 +26,9 @@ import org.springframework.integration.message.SubscribableSource;
  * 
  * @author Mark Fisher
  */
-public interface MessageDispatcher extends MessageTarget, SubscribableSource {
+public interface MessageDispatcher extends MessageChannel, SubscribableSource {
 
 	boolean send(Message<?> message);
-
-	/**
-	 * Specify the timeout for sending to a target (in milliseconds).
-	 * Note that this value will only be applicable for blocking targets.
-	 */
-	void setSendTimeout(long sendTimeout);
 
 	boolean subscribe(MessageTarget target);
 

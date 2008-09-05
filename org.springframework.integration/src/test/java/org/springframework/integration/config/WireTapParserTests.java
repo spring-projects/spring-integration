@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
@@ -40,12 +41,12 @@ public class WireTapParserTests {
 	public void simpleWireTap() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"wireTapParserTests.xml", this.getClass());
-		MessageChannel channel = (MessageChannel) context.getBean("simple");
-		WireTapTestTarget target = (WireTapTestTarget) context.getBean("testTarget");
-		assertNull(target.getLastMessage());
+		MessageChannel mainChannel = (MessageChannel) context.getBean("noSelectors");
+		PollableChannel wireTapChannel = (PollableChannel) context.getBean("wireTapChannel");
+		assertNull(wireTapChannel.receive(0));
 		Message<?> original = new StringMessage("test");
-		channel.send(original);
-		Message<?> intercepted = target.getLastMessage();
+		mainChannel.send(original);
+		Message<?> intercepted = wireTapChannel.receive(0);
 		assertNotNull(intercepted);
 		assertEquals(original, intercepted);
 	}
@@ -54,12 +55,12 @@ public class WireTapParserTests {
 	public void wireTapWithAcceptingSelector() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"wireTapParserTests.xml", this.getClass());
-		MessageChannel channel = (MessageChannel) context.getBean("accepting");
-		WireTapTestTarget target = (WireTapTestTarget) context.getBean("testTarget");
-		assertNull(target.getLastMessage());
+		MessageChannel mainChannel = (MessageChannel) context.getBean("accepting");
+		PollableChannel wireTapChannel = (PollableChannel) context.getBean("wireTapChannel");
+		assertNull(wireTapChannel.receive(0));
 		Message<?> original = new StringMessage("test");
-		channel.send(original);
-		Message<?> intercepted = target.getLastMessage();
+		mainChannel.send(original);
+		Message<?> intercepted = wireTapChannel.receive(0);
 		assertNotNull(intercepted);
 		assertEquals(original, intercepted);
 	}
@@ -68,12 +69,12 @@ public class WireTapParserTests {
 	public void wireTapWithRejectingSelector() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"wireTapParserTests.xml", this.getClass());
-		MessageChannel channel = (MessageChannel) context.getBean("rejecting");
-		WireTapTestTarget target = (WireTapTestTarget) context.getBean("testTarget");
-		assertNull(target.getLastMessage());
+		MessageChannel mainChannel = (MessageChannel) context.getBean("rejecting");
+		PollableChannel wireTapChannel = (PollableChannel) context.getBean("wireTapChannel");
+		assertNull(wireTapChannel.receive(0));
 		Message<?> original = new StringMessage("test");
-		channel.send(original);
-		Message<?> intercepted = target.getLastMessage();
+		mainChannel.send(original);
+		Message<?> intercepted = wireTapChannel.receive(0);
 		assertNull(intercepted);
 	}
 

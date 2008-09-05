@@ -22,10 +22,10 @@ import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.selector.MessageSelector;
 
@@ -80,13 +80,13 @@ public class WireTapTests {
 	@Test
 	public void simpleTargetWireTap() {
 		QueueChannel mainChannel = new QueueChannel();
-		TestTarget secondaryTarget = new TestTarget();
-		mainChannel.addInterceptor(new WireTap(secondaryTarget));
-		assertNull(secondaryTarget.getLastMessage());
+		TestChannel secondaryChannel = new TestChannel();
+		mainChannel.addInterceptor(new WireTap(secondaryChannel));
+		assertNull(secondaryChannel.getLastMessage());
 		Message<?> message = new StringMessage("testing");
 		mainChannel.send(message);
 		Message<?> original = mainChannel.receive(0);
-		Message<?> intercepted = secondaryTarget.getLastMessage();
+		Message<?> intercepted = secondaryChannel.getLastMessage();
 		assertNotNull(original);
 		assertNotNull(intercepted);
 		assertEquals(original, intercepted);
@@ -124,9 +124,13 @@ public class WireTapTests {
 		}
 	}
 
-	private static class TestTarget implements MessageTarget {
+	private static class TestChannel implements MessageChannel {
 
 		private volatile Message<?> lastMessage;
+
+		public String getName() {
+			return "testChannel";
+		}
 
 		public boolean send(Message<?> message) {
 			this.lastMessage = message;

@@ -18,6 +18,8 @@ package org.springframework.integration.endpoint;
 
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageTarget;
+import org.springframework.util.Assert;
 
 /**
  * A Channel Adapter implementation for connecting a {@link MessageChannel}
@@ -27,9 +29,18 @@ import org.springframework.integration.message.Message;
  */
 public class OutboundChannelAdapter extends AbstractEndpoint {
 
+	private final MessageTarget target;
+
+
+	public OutboundChannelAdapter(MessageTarget target) {
+		Assert.notNull(target, "target must not be null");
+		this.target = target;
+	}
+
+
 	@Override
 	protected boolean sendInternal(Message<?> message) {
-		return this.getMessageExchangeTemplate().send(message, this.getTarget());
+		return this.target.send(message);
 	}
 
 }

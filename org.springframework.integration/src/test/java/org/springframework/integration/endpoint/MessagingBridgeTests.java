@@ -40,7 +40,12 @@ public class MessagingBridgeTests {
 	public void simplePassThrough() throws InterruptedException {
 		final CountDownLatch latch = new CountDownLatch(1);
 		DefaultMessageBus bus = new DefaultMessageBus();
-		MessagingBridge bridge = new MessagingBridge();
+		MessagingBridge bridge = new MessagingBridge(new MessageTarget() {
+			public boolean send(Message<?> message) {
+				latch.countDown();
+				return true;
+			}
+		});
 		bridge.setBeanName("bridge");
 		PollableSource<String> source = new PollableSource<String>() {
 			public Message<String> receive() {
@@ -50,12 +55,6 @@ public class MessagingBridgeTests {
 		PollingDispatcher poller = new PollingDispatcher(source, new PollingSchedule(1000));
 		poller.setMaxMessagesPerPoll(1);
 		bridge.setSource(poller);
-		bridge.setTarget(new MessageTarget() {
-			public boolean send(Message<?> message) {
-				latch.countDown();
-				return true;
-			}
-		});
 		bus.registerEndpoint(bridge);
 		bus.start();
 		latch.await(1, TimeUnit.SECONDS);

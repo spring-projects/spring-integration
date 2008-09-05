@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -156,7 +157,7 @@ public final class MessageBuilder<T> {
 		return this.setHeader(MessageHeaders.CORRELATION_ID, correlationId);
 	}
 
-	public MessageBuilder<T> setReturnAddress(MessageTarget returnAddress) {
+	public MessageBuilder<T> setReturnAddress(MessageChannel returnAddress) {
 		return this.setHeader(MessageHeaders.RETURN_ADDRESS, returnAddress);
 	}
 

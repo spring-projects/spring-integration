@@ -62,7 +62,7 @@ public class DirectChannelSubscriptionTests {
 		MethodInvoker invoker = new MessageMappingMethodInvoker(new TestBean(), "handle");
 		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(invoker);
 		endpoint.setSource(sourceChannel);
-		endpoint.setTarget(targetChannel);
+		endpoint.setOutputChannel(targetChannel);
 		endpoint.setBeanName("testEndpoint");
 		bus.registerEndpoint(endpoint);
 		bus.start();
@@ -96,7 +96,7 @@ public class DirectChannelSubscriptionTests {
 			}
 		};
 		endpoint.setSource(sourceChannel);
-		endpoint.setTarget(targetChannel);
+		endpoint.setOutputChannel(targetChannel);
 		endpoint.setBeanName("testEndpoint");
 		bus.registerEndpoint(endpoint);
 		bus.start();

@@ -7,35 +7,37 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd">
 
-	<channel id="simple">
+	<channel id="wireTapChannel">
+		<queue capacity="1"/>
+	</channel>
+
+	<channel id="noSelectors">
 		<queue capacity="10"/>
 		<interceptors>
-			<wire-tap target="testTarget"/>
+			<wire-tap target="wireTapChannel"/>
 		</interceptors>
 	</channel>
 
 	<channel id="accepting">
 		<queue capacity="10"/>
 		<interceptors>
-			<wire-tap target="testTarget" selector="acceptingSelector"/>
+			<wire-tap target="wireTapChannel" selector="acceptingSelector"/>
 		</interceptors>
 	</channel>
 
 	<channel id="rejecting">
 		<queue capacity="10"/>
 		<interceptors>
-			<wire-tap target="testTarget" selector="rejectingSelector"/>
+			<wire-tap target="wireTapChannel" selector="rejectingSelector"/>
 		</interceptors>
 	</channel>
 
 	<channel id="timeout">
 		<queue capacity="10"/>
 		<interceptors>
-			<wire-tap target="testTarget" timeout="1234"/>
+			<wire-tap target="wireTapChannel" timeout="1234"/>
 		</interceptors>
 	</channel>
-
-	<beans:bean id="testTarget" class="org.springframework.integration.config.WireTapTestTarget"/>
 
 	<beans:bean id="acceptingSelector" class="org.springframework.integration.config.TestSelector">
 		<beans:constructor-arg value="true"/>

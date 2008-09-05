@@ -17,11 +17,22 @@
 package org.springframework.integration.endpoint;
 
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageTarget;
+import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
  */
 public class MessagingBridge extends AbstractRequestReplyEndpoint {
+
+	private final MessageTarget target;
+
+
+	public MessagingBridge(MessageTarget target) {
+		Assert.notNull(target, "target must not be null");
+		this.target = target;
+	}
+
 
 	@Override
 	protected Message<?> handleRequestMessage(Message<?> requestMessage) {
@@ -35,7 +46,7 @@ public class MessagingBridge extends AbstractRequestReplyEndpoint {
 
 	@Override
 	protected void sendReplyMessage(Message<?> replyMessage, Message<?> requestMessage) {
-		this.getMessageExchangeTemplate().send(replyMessage, this.getTarget());
+		this.target.send(replyMessage);
 	}
 
 }

@@ -21,13 +21,13 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.CompositeMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageHeaders;
 import org.springframework.integration.message.MessageRejectedException;
-import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.selector.MessageSelector;
 
@@ -82,17 +82,17 @@ public abstract class AbstractInOutEndpoint extends AbstractEndpoint {
 			return true;
 		}
 		Message<?> reply = buildReplyMessage(result, message.getHeaders());
-		MessageTarget replyTarget = this.resolveReplyTarget(message);
+		MessageChannel replyChannel = this.resolveReplyChannel(message);
 		if (reply instanceof CompositeMessage && this.shouldSplitComposite()) {
 			boolean sentAtLeastOne = false;
 			for (Message<?> nextReply : (CompositeMessage) reply) {
-				boolean sent = this.sendReplyMessage(nextReply, replyTarget);
+				boolean sent = this.sendReplyMessage(nextReply, replyChannel);
 				sentAtLeastOne = (sentAtLeastOne || sent);
 			}
 			return sentAtLeastOne;
 		}
 		else {
-			return this.sendReplyMessage(reply, replyTarget);
+			return this.sendReplyMessage(reply, replyChannel);
 		}
 	}
 
@@ -112,7 +112,7 @@ public abstract class AbstractInOutEndpoint extends AbstractEndpoint {
 		return false;
 	}
 
-	private boolean sendReplyMessage(Message<?> replyMessage, MessageTarget replyTarget) {
+	private boolean sendReplyMessage(Message<?> replyMessage, MessageChannel replyChannel) {
 		for (int i = this.interceptors.size() - 1; i >= 0; i--) {
 			EndpointInterceptor interceptor = this.interceptors.get(i);
 			if (interceptor != null) {
@@ -122,7 +122,7 @@ public abstract class AbstractInOutEndpoint extends AbstractEndpoint {
 				}
 			}
 		}
-		return this.getMessageExchangeTemplate().send(replyMessage, replyTarget);
+		return this.getMessageExchangeTemplate().send(replyMessage, replyChannel);
 	}
 
 	private Message<?> buildReplyMessage(Object result, MessageHeaders requestHeaders) {
@@ -149,26 +149,30 @@ public abstract class AbstractInOutEndpoint extends AbstractEndpoint {
 			.build();
 	}
 
-	private MessageTarget resolveReplyTarget(Message<?> requestMessage) {
-		MessageTarget replyTarget = this.getTarget();
-		if (replyTarget == null) {
+	private MessageChannel resolveReplyChannel(Message<?> requestMessage) {
+		MessageChannel replyChannel = this.getOutputChannel();
+		if (replyChannel == null) {
 			Object returnAddress = requestMessage.getHeaders().getReturnAddress();
 			if (returnAddress != null) {
-				if (returnAddress instanceof MessageTarget) {
-					replyTarget = (MessageTarget) returnAddress;
+				if (returnAddress instanceof MessageChannel) {
+					replyChannel = (MessageChannel) returnAddress;
 				}
 				else if (returnAddress instanceof String) {
 					ChannelRegistry channelRegistry = this.getChannelRegistry();
 					if (channelRegistry != null) {
-						replyTarget = channelRegistry.lookupChannel((String) returnAddress);
+						replyChannel = channelRegistry.lookupChannel((String) returnAddress);
 					}
+				}
+				else {
+					throw new MessagingException("expected a MessageChannel or String for 'returnAddress', but type is ["
+							+ returnAddress.getClass() + "]");
 				}
 			}
 		}
-		if (replyTarget == null) {
-			throw new MessagingException("unable to resolve reply target");
+		if (replyChannel == null) {
+			throw new MessagingException("unable to resolve reply channel");
 		}
-		return replyTarget;
+		return replyChannel;
 	}
 
 }

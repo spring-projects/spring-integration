@@ -20,11 +20,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.context.Lifecycle;
+import org.springframework.integration.channel.BlockingChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.BlockingTarget;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.util.Assert;
 
@@ -38,7 +38,7 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle {
 
 	private static final Log logger = LogFactory.getLog(WireTap.class);
 
-	private final MessageTarget target;
+	private final MessageChannel channel;
 
 	private volatile long timeout = 0;
 
@@ -50,22 +50,22 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle {
 	/**
 	 * Create a new wire tap with <em>no</em> {@link MessageSelector}.
 	 * 
-	 * @param target the MessageTarget to which intercepted messages will be sent
+	 * @param channel the MessageChannel to which intercepted messages will be sent
 	 */
-	public WireTap(MessageTarget target) {
-		this(target, null);
+	public WireTap(MessageChannel channel) {
+		this(channel, null);
 	}
 
 	/**
 	 * Create a new wire tap with the provided {@link MessageSelector}.
 	 * 
-	 * @param target the target to which intercepted messages will be sent
-	 * @param selector the selector that must accept a message for it to
-	 * be sent to the intercepting target
+	 * @param channel the channel to which intercepted messages will be sent
+	 * @param selector the selector that must accept a message for it to be
+	 * sent to the intercepting channel
 	 */
-	public WireTap(MessageTarget target, MessageSelector selector) {
-		Assert.notNull(target, "target must not be null");
-		this.target = target;
+	public WireTap(MessageChannel channel, MessageSelector selector) {
+		Assert.notNull(channel, "channel must not be null");
+		this.channel = channel;
 		this.selector = selector;
 	}
 
@@ -110,11 +110,11 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle {
 	@Override
 	public Message<?> preSend(Message<?> message, MessageChannel channel) {
 		if (this.running && (this.selector == null || this.selector.accept(message))) {
-			boolean sent = (this.target instanceof BlockingTarget)
-					? ((BlockingTarget) this.target).send(message, this.timeout)
-					: this.target.send(message);
+			boolean sent = (this.channel instanceof BlockingChannel && this.timeout >= 0)
+					? ((BlockingChannel) this.channel).send(message, this.timeout)
+					: this.channel.send(message);
 			if (!sent && logger.isWarnEnabled()) {
-				logger.warn("failed to send message to WireTap target '" + this.target + "'");
+				logger.warn("failed to send message to WireTap channel '" + this.channel + "'");
 			}
 		}
 		return message;

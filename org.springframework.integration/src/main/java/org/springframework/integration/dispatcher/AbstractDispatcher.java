@@ -24,7 +24,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageExchangeTemplate;
 import org.springframework.integration.message.MessageTarget;
 
 /**
@@ -40,11 +39,11 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	private volatile TaskExecutor taskExecutor;
 
-	private final MessageExchangeTemplate messageExchangeTemplate = new MessageExchangeTemplate();
 
-
-	public void setSendTimeout(long sendTimeout) {
-		this.messageExchangeTemplate.setSendTimeout(sendTimeout);
+	// TODO: dispatcher should not implement channel, need to move TX support into the poller
+	//       so that the messageExchangeTemplate is not required for sending to a dispatcher
+	public String getName() {
+		return "dispatcher";
 	}
 
 	public boolean subscribe(MessageTarget target) {
@@ -72,7 +71,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	 * A convenience method for subclasses to send a Message to a single target.
 	 */
 	protected final boolean sendMessageToTarget(Message<?> message, MessageTarget target) {
-		return this.messageExchangeTemplate.send(message, target);
+		return target.send(message);
 	}
 
 	public String toString() {

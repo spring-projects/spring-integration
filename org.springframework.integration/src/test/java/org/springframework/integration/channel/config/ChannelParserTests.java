@@ -26,6 +26,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.FatalBeanException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.channel.BlockingChannel;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
@@ -52,7 +53,7 @@ public class ChannelParserTests {
 	public void testChannelWithCapacity() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"channelParserTests.xml", this.getClass());
-		MessageChannel channel = (MessageChannel) context.getBean("capacityChannel");
+		BlockingChannel channel = (BlockingChannel) context.getBean("capacityChannel");
 		for (int i = 0; i < 10; i++) {
 			boolean result = channel.send(new GenericMessage<String>("test"), 10);
 			assertTrue(result);

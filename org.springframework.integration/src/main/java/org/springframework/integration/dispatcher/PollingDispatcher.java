@@ -20,7 +20,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.message.BlockingSource;
-import org.springframework.integration.message.BlockingTarget;
 import org.springframework.integration.message.MessageExchangeTemplate;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.PollableSource;
@@ -85,15 +84,6 @@ public class PollingDispatcher implements SchedulableTask, SubscribableSource {
 	 */
 	public void setReceiveTimeout(long receiveTimeout) {
 		this.messageExchangeTemplate.setReceiveTimeout(receiveTimeout);
-	}
-
-	/**
-	 * Specify the timeout to use when sending to a target (in milliseconds).
-	 * Note that this value will only be applicable if the target is an instance
-	 * of {@link BlockingTarget}.
-	 */
-	public void setSendTimeout(long sendTimeout) {
-		this.dispatcher.setSendTimeout(sendTimeout);
 	}
 
 	/**

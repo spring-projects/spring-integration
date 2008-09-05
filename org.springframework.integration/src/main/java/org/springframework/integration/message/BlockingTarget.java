@@ -23,27 +23,6 @@ package org.springframework.integration.message;
  */
 public interface BlockingTarget extends MessageTarget {
 
-	/**
-	 * Send a message, blocking indefinitely if necessary.
-	 * 
-	 * @param message the {@link Message} to send
-	 * 
-	 * @return <code>true</code> if the message is sent successfully,
-	 * <code>false</false> if interrupted
-	 */
-	boolean send(Message<?> message);
 
-	/**
-	 * Send a message, blocking until either the message is accepted or the
-	 * specified timeout period elapses.
-	 * 
-	 * @param message the {@link Message} to send
-	 * @param timeout the timeout in milliseconds
-	 * 
-	 * @return <code>true</code> if the message is sent successfully,
-	 * <code>false</false> if the specified timeout period elapses or
-	 * the send is interrupted
-	 */
-	boolean send(Message<?> message, long timeout);
 
 }

@@ -22,11 +22,11 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageExchangeTemplate;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageSource;
-import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.util.ErrorHandler;
 
@@ -43,7 +43,7 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 
 	private MessageSource<?> source;
 
-	private MessageTarget target;
+	private MessageChannel outputChannel;
 
 	private volatile ErrorHandler errorHandler;
 
@@ -71,12 +71,12 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 		this.source = source;
 	}
 
-	public MessageTarget getTarget() {
-		return this.target;
+	public MessageChannel getOutputChannel() {
+		return this.outputChannel;
 	}
 
-	public void setTarget(MessageTarget target) {
-		this.target = target;
+	public void setOutputChannel(MessageChannel outputChannel) {
+		this.outputChannel = outputChannel;
 	}
 
 	protected ChannelRegistry getChannelRegistry() {

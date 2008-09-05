@@ -102,7 +102,7 @@ public class CorrelationIdTests {
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(
 				new TestBean(), TestBean.class.getMethod("split", String.class));
 		SplitterEndpoint endpoint = new SplitterEndpoint(splitter);
-		endpoint.setTarget(testChannel);
+		endpoint.setOutputChannel(testChannel);
 		splitter.afterPropertiesSet();
 		endpoint.send(message);
 		Message<?> reply1 = testChannel.receive(100);

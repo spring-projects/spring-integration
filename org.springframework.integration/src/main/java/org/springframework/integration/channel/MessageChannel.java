@@ -16,7 +16,7 @@
 
 package org.springframework.integration.channel;
 
-import org.springframework.integration.message.BlockingTarget;
+import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageSource;
 
 /**
@@ -24,11 +24,21 @@ import org.springframework.integration.message.MessageSource;
  * 
  * @author Mark Fisher
  */
-public interface MessageChannel extends MessageSource, BlockingTarget {
+public interface MessageChannel extends MessageSource {
 
 	/**
 	 * Return the name of this channel.
 	 */
 	String getName();
+
+	/**
+	 * Send a {@link Message} to this channel. May throw a RuntimeException for non-recoverable
+	 * errors. Otherwise, if the Message cannot be sent for a non-fatal reason this method will
+	 * return 'false', and if the Message is sent successfully, it will return 'true'. 
+	 * 
+	 * @param message the Message to send
+	 * @return whether the Message has been sent successfully
+	 */
+	boolean send(Message<?> message);
 
 }
