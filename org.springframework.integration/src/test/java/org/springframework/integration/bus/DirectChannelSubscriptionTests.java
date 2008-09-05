@@ -30,10 +30,11 @@ import org.springframework.integration.channel.ThreadLocalChannel;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
 import org.springframework.integration.endpoint.AbstractInOutEndpoint;
 import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageMappingMethodInvoker;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.util.MethodInvoker;
 
 /**
  * @author Mark Fisher
@@ -58,7 +59,8 @@ public class DirectChannelSubscriptionTests {
 
 	@Test
 	public void testSendAndReceiveForRegisteredEndpoint() {
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(new TestHandler());
+		MethodInvoker invoker = new MessageMappingMethodInvoker(new TestBean(), "handle");
+		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(invoker);
 		endpoint.setSource(sourceChannel);
 		endpoint.setTarget(targetChannel);
 		endpoint.setBeanName("testEndpoint");
@@ -115,7 +117,7 @@ public class DirectChannelSubscriptionTests {
 	}
 
 
-	private static class TestHandler implements MessageHandler {
+	private static class TestBean {
 
 		public Message<?> handle(Message<?> message) {
 			return new StringMessage(message.getPayload() + "!");
