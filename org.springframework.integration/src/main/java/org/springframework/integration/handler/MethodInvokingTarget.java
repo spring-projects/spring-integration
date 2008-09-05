@@ -18,8 +18,8 @@ package org.springframework.integration.handler;
 
 import java.lang.reflect.Method;
 
-import org.springframework.integration.endpoint.DefaultServiceInvoker;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageMappingMethodInvoker;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.MessagingException;
 
@@ -28,7 +28,7 @@ import org.springframework.integration.message.MessagingException;
  * 
  * @author Mark Fisher
  */
-public class MethodInvokingTarget extends DefaultServiceInvoker implements MessageTarget {
+public class MethodInvokingTarget extends MessageMappingMethodInvoker implements MessageTarget {
 
 	public MethodInvokingTarget(Object object, Method method) {
 		super(object, method);

@@ -19,6 +19,8 @@ package org.springframework.integration.endpoint;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.util.MethodInvoker;
 import org.springframework.util.Assert;
 
 /**
@@ -26,12 +28,12 @@ import org.springframework.util.Assert;
  */
 public class ServiceActivatorEndpoint extends AbstractInOutEndpoint implements InitializingBean {
 
-	private final ServiceInvoker invoker;
+	private final MethodInvoker invoker;
 
 	private final MessageHandler handler;
 
 
-	public ServiceActivatorEndpoint(ServiceInvoker invoker) {
+	public ServiceActivatorEndpoint(MethodInvoker invoker) {
 		Assert.notNull(invoker, "invoker must not be null");
 		this.invoker = invoker;
 		this.handler = null;
@@ -53,7 +55,11 @@ public class ServiceActivatorEndpoint extends AbstractInOutEndpoint implements I
 	@Override
 	protected Object handle(Message<?> message) {
 		if (this.invoker != null) {
-			return this.invoker.invoke(message);
+			try {
+				return this.invoker.invokeMethod(message);
+			} catch (Exception e) {
+				throw new MessageHandlingException(message, "failure occurred in endpoint '" + this.getName() + "'", e);
+			}
 		}
 		return this.handler.handle(message);
 	}

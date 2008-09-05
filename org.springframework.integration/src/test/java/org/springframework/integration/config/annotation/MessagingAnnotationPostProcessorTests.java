@@ -45,13 +45,13 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
-import org.springframework.integration.endpoint.ServiceInvoker;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.SubscribableSource;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
+import org.springframework.integration.util.MethodInvoker;
 
 /**
  * @author Mark Fisher
@@ -65,15 +65,15 @@ public class MessagingAnnotationPostProcessorTests {
 		postProcessor.afterPropertiesSet();
 		HandlerAnnotatedBean bean = new HandlerAnnotatedBean();
 		Object result = postProcessor.postProcessAfterInitialization(bean, "testBean");
-		assertTrue(result instanceof ServiceInvoker);
+		assertTrue(result instanceof MethodInvoker);
 	}
 
 	@Test
-	public void testSimpleHandlerWithContext() {
+	public void testSimpleHandlerWithContext() throws Exception {
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext(
 				"serviceActivatorAnnotationPostProcessorTests.xml", this.getClass());
-		ServiceInvoker invoker = (ServiceInvoker) context.getBean("testBean");
-		String reply = (String) invoker.invoke(new StringMessage("world"));
+		MethodInvoker invoker = (MethodInvoker) context.getBean("testBean");
+		String reply = (String) invoker.invokeMethod(new StringMessage("world"));
 		assertEquals("hello world", reply);
 		context.stop();
 	}

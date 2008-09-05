@@ -43,7 +43,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class MessageMappingMethodInvoker implements InitializingBean {
+public class MessageMappingMethodInvoker implements MethodInvoker, InitializingBean {
 
 	protected static final Log logger = LogFactory.getLog(MessageMappingMethodInvoker.class);
 
@@ -121,28 +121,23 @@ public class MessageMappingMethodInvoker implements InitializingBean {
 		}
 	}
 
-	public Object invokeMethod(Message<?> message) {
-		if (message == null || message.getPayload() == null) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("received null message or payload");
-			}
-			return null;
-		}
+	public Object invokeMethod(Object... args) {
 		if (!this.initialized) {
 			this.afterPropertiesSet();
 		}
-		if (this.invoker == null) {
-			return message.getPayload();
+		if (ObjectUtils.isEmpty(args)) {
+			return null;
 		}
-		Object args[] = null;
-		Object mappingResult = this.methodExpectsMessage
-				? message : this.resolveParameters(message);
-		if (mappingResult != null && mappingResult.getClass().isArray()
-				&& (Object.class.isAssignableFrom(mappingResult.getClass().getComponentType()))) {
-			args = (Object[]) mappingResult;
-		}
-		else {
-			args = new Object[] { mappingResult }; 
+		Message<?> message = null;
+		if (args.length == 1 && args[0] != null && (args[0] instanceof Message)) {
+			message = (Message<?>) args[0];
+			if (message.getPayload() == null) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("received null payload");
+				}
+				return null;
+			}
+			args = this.createArgumentArrayFromMessage(message);
 		}
 		try {
 			Object result = null;
@@ -151,8 +146,10 @@ public class MessageMappingMethodInvoker implements InitializingBean {
 			}
 			catch (NoSuchMethodException e) {
 				try {
-					result = this.invoker.invokeMethod(message);
-					this.methodExpectsMessage = true;
+					if (message != null) {
+						result = this.invoker.invokeMethod(message);
+						this.methodExpectsMessage = true;
+					}
 				}
 				catch (NoSuchMethodException e2) {
 					throw new MessageHandlingException(message, "unable to resolve method for args: "
@@ -172,6 +169,20 @@ public class MessageMappingMethodInvoker implements InitializingBean {
 			throw new MessageHandlingException(message, "Failed to invoke handler method '"
 					+ this.methodName + "' with arguments: " + ObjectUtils.nullSafeToString(args), e);
 		}
+	}
+
+	private Object[] createArgumentArrayFromMessage(Message<?> message) {
+		Object args[] = null;
+		Object mappingResult = this.methodExpectsMessage
+				? message : this.resolveParameters(message);
+		if (mappingResult != null && mappingResult.getClass().isArray()
+				&& (Object.class.isAssignableFrom(mappingResult.getClass().getComponentType()))) {
+			args = (Object[]) mappingResult;
+		}
+		else {
+			args = new Object[] { mappingResult }; 
+		}
+		return args;
 	}
 
 	private Object[] resolveParameters(Message<?> message) {
