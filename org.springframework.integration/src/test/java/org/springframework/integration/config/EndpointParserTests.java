@@ -27,7 +27,6 @@ import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
@@ -52,31 +51,6 @@ public class EndpointParserTests {
 		channel.send(new GenericMessage<String>("test"));
 		handler.getLatch().await(500, TimeUnit.MILLISECONDS);
 		assertEquals("test", handler.getMessageString());
-	}
-
-	@Test
-	public void testHandlerAdapterEndpoint() throws InterruptedException {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"handlerAdapterEndpointTests.xml", this.getClass());
-		context.start();
-		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
-		TestBean bean = (TestBean) context.getBean("testBean");
-		assertNull(bean.getMessage());
-		channel.send(new GenericMessage<String>("test"));
-		bean.getLatch().await(500, TimeUnit.MILLISECONDS);
-		assertEquals("test", bean.getMessage());
-	}
-
-	@Test
-	public void testHandlerChainEndpoint() throws InterruptedException {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"endpointWithHandlerChainElement.xml", this.getClass());
-		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
-		PollableChannel replyChannel = (PollableChannel) context.getBean("replyChannel");
-		channel.send(new StringMessage("test"));
-		Message<?> reply = replyChannel.receive(500);
-		assertNotNull(reply);
-		assertEquals("test-1-2-3", reply.getPayload());
 	}
 
 	@Test
