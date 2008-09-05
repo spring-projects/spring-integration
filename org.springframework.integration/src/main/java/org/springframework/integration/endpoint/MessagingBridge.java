@@ -23,7 +23,7 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  */
-public class MessagingBridge extends AbstractRequestReplyEndpoint {
+public class MessagingBridge extends AbstractInOutEndpoint {
 
 	private final MessageTarget target;
 
@@ -33,20 +33,10 @@ public class MessagingBridge extends AbstractRequestReplyEndpoint {
 		this.target = target;
 	}
 
-
 	@Override
-	protected Message<?> handleRequestMessage(Message<?> requestMessage) {
-		return requestMessage;
-	}
-
-	@Override
-	protected boolean isValidReplyMessage(Message<?> replyMessage) {
-		return replyMessage != null && replyMessage.getPayload() != null;
-	}
-
-	@Override
-	protected void sendReplyMessage(Message<?> replyMessage, Message<?> requestMessage) {
-		this.target.send(replyMessage);
+	protected Object handle(Message<?> message) {
+		this.target.send(message);
+		return null;
 	}
 
 }
