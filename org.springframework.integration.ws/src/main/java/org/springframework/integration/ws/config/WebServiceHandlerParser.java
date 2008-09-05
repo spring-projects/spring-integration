@@ -56,6 +56,12 @@ public class WebServiceHandlerParser extends AbstractSingleBeanDefinitionParser 
 			throw new ConfigurationException("The 'uri' attribute is required.");
 		}
 		builder.addConstructorArgValue(uri);
+		String inputChannel = element.getAttribute("input-channel");
+		builder.addPropertyReference("source", inputChannel);
+		String outputChannel = element.getAttribute("output-channel");
+		if (StringUtils.hasText(outputChannel)) {
+			builder.addPropertyReference("outputChannel", outputChannel);
+		}
 		String marshallerRef = element.getAttribute("marshaller");
 		if (StringUtils.hasText(marshallerRef)) {
 			builder.addConstructorArgReference(marshallerRef);

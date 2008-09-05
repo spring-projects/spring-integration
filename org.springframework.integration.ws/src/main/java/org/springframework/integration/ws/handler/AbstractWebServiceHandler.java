@@ -19,6 +19,7 @@ package org.springframework.integration.ws.handler;
 import java.io.IOException;
 import java.net.URI;
 
+import org.springframework.integration.endpoint.AbstractInOutEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
@@ -36,7 +37,7 @@ import org.springframework.ws.soap.client.core.SoapActionCallback;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractWebServiceHandler implements MessageHandler {
+public abstract class AbstractWebServiceHandler extends AbstractInOutEndpoint {
 
 	public static final String SOAP_ACTION_PROPERTY_KEY = "_ws.soapAction";
 
@@ -70,6 +71,7 @@ public abstract class AbstractWebServiceHandler implements MessageHandler {
 		return this.webServiceTemplate;
 	}
 
+	@Override
 	public final Message<?> handle(Message<?> message) {
 		Object responsePayload = this.doHandle(message.getPayload(), this.getRequestCallback(message));
 		return responsePayload != null ? new GenericMessage<Object>(responsePayload, message.getHeaders()) : null;

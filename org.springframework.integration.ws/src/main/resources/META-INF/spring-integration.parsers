@@ -1,1 +1,1 @@
-ws-handler=org.springframework.integration.ws.config.WebServiceHandlerParser
+ws-service-activator=org.springframework.integration.ws.config.WebServiceHandlerParser

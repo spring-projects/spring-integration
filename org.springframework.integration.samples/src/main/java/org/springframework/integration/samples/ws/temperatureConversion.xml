@@ -11,15 +11,12 @@
 
 	<channel id="fahrenheitChannel"/>
 
-	<!-- The service activator receives from the 'fahrenheitChannel',
-	     invokes the handler, and sends the reply Message to the 'celsiusChannel'. -->
-	<service-activator input-channel="fahrenheitChannel"
-	                   ref="temperatureConverter"
-	                   output-channel="celsiusChannel"/>
-
-	<!-- The handler invokes the WebService for the given URI and returns a reply Message. -->
-	<ws-handler id="temperatureConverter" 
-				uri="http://www.w3schools.com/webservices/tempconvert.asmx"/>
+	<!-- The service activator receives from the 'fahrenheitChannel', invokes the
+	     Web Service for the given URI, and sends the reply Message to the 'celsiusChannel'. -->
+	<ws-service-activator id="temperatureConverter"
+				          input-channel="fahrenheitChannel" 
+				          output-channel="celsiusChannel"
+				          uri="http://www.w3schools.com/webservices/tempconvert.asmx"/>
 
 	<!-- The response from the service is logged to the console. -->
 	<channel-adapter id="celsiusChannel" target="console"/>

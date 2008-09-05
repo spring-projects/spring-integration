@@ -23,7 +23,7 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.ws.handler.MarshallingWebServiceHandler;
 import org.springframework.integration.ws.handler.SimpleWebServiceHandler;
 import org.springframework.oxm.Marshaller;
@@ -42,9 +42,9 @@ public class WebServiceHandlerParserTests {
 	public void testSimpleWebServiceHandlerWithDefaultSourceExtractor() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"simpleWebServiceHandlerParserTests.xml", this.getClass());
-		MessageHandler handler = (MessageHandler) context.getBean("handlerWithDefaultSourceExtractor");
-		assertEquals(SimpleWebServiceHandler.class, handler.getClass());
-		DirectFieldAccessor accessor = new DirectFieldAccessor(handler);
+		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("handlerWithDefaultSourceExtractor");
+		assertEquals(SimpleWebServiceHandler.class, endpoint.getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
 		assertEquals("DefaultSourceExtractor", accessor.getPropertyValue("sourceExtractor").getClass().getSimpleName());
 	}
 
@@ -52,9 +52,9 @@ public class WebServiceHandlerParserTests {
 	public void testSimpleWebServiceHandlerWithCustomSourceExtractor() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"simpleWebServiceHandlerParserTests.xml", this.getClass());
-		MessageHandler handler = (MessageHandler) context.getBean("handlerWithCustomSourceExtractor");
-		assertEquals(SimpleWebServiceHandler.class, handler.getClass());
-		DirectFieldAccessor accessor = new DirectFieldAccessor(handler);
+		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("handlerWithCustomSourceExtractor");
+		assertEquals(SimpleWebServiceHandler.class, endpoint.getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
 		SourceExtractor sourceExtractor = (SourceExtractor) context.getBean("sourceExtractor");
 		assertEquals(sourceExtractor, accessor.getPropertyValue("sourceExtractor"));
 	}
@@ -63,9 +63,9 @@ public class WebServiceHandlerParserTests {
 	public void testSimpleWebServiceHandlerWithCustomRequestCallback() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"simpleWebServiceHandlerParserTests.xml", this.getClass());
-		MessageHandler handler = (MessageHandler) context.getBean("handlerWithCustomRequestCallback");
-		assertEquals(SimpleWebServiceHandler.class, handler.getClass());
-		DirectFieldAccessor accessor = new DirectFieldAccessor(handler);
+		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("handlerWithCustomRequestCallback");
+		assertEquals(SimpleWebServiceHandler.class, endpoint.getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
 		WebServiceMessageCallback callback = (WebServiceMessageCallback) context.getBean("requestCallback");
 		assertEquals(callback, accessor.getPropertyValue("requestCallback"));
 	}
@@ -74,9 +74,9 @@ public class WebServiceHandlerParserTests {
 	public void testSimpleWebServiceHandlerWithCustomMessageFactory() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"simpleWebServiceHandlerParserTests.xml", this.getClass());
-		MessageHandler handler = (MessageHandler) context.getBean("handlerWithCustomMessageFactory");
-		assertEquals(SimpleWebServiceHandler.class, handler.getClass());
-		DirectFieldAccessor accessor = new DirectFieldAccessor(handler);
+		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("handlerWithCustomMessageFactory");
+		assertEquals(SimpleWebServiceHandler.class, endpoint.getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("webServiceTemplate"));
 		WebServiceMessageFactory factory = (WebServiceMessageFactory) context.getBean("messageFactory");
 		assertEquals(factory, accessor.getPropertyValue("messageFactory"));
@@ -86,10 +86,10 @@ public class WebServiceHandlerParserTests {
 	public void testSimpleWebServiceHandlerWithCustomSourceExtractorAndMessageFactory() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"simpleWebServiceHandlerParserTests.xml", this.getClass());
-		MessageHandler handler = (MessageHandler) context.getBean("handlerWithCustomSourceExtractorAndMessageFactory");
+		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("handlerWithCustomSourceExtractorAndMessageFactory");
 		SourceExtractor sourceExtractor = (SourceExtractor) context.getBean("sourceExtractor");
-		assertEquals(SimpleWebServiceHandler.class, handler.getClass());
-		DirectFieldAccessor accessor = new DirectFieldAccessor(handler);
+		assertEquals(SimpleWebServiceHandler.class, endpoint.getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
 		assertEquals(sourceExtractor, accessor.getPropertyValue("sourceExtractor"));
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("webServiceTemplate"));
 		WebServiceMessageFactory factory = (WebServiceMessageFactory) context.getBean("messageFactory");
@@ -100,9 +100,9 @@ public class WebServiceHandlerParserTests {
 	public void testSimpleWebServiceHandlerWithCustomFaultMessageResolver() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"simpleWebServiceHandlerParserTests.xml", this.getClass());
-		MessageHandler handler = (MessageHandler) context.getBean("handlerWithCustomFaultMessageResolver");
-		assertEquals(SimpleWebServiceHandler.class, handler.getClass());
-		DirectFieldAccessor accessor = new DirectFieldAccessor(handler);
+		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("handlerWithCustomFaultMessageResolver");
+		assertEquals(SimpleWebServiceHandler.class, endpoint.getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("webServiceTemplate"));
 		FaultMessageResolver resolver = (FaultMessageResolver) context.getBean("faultMessageResolver");
 		assertEquals(resolver, accessor.getPropertyValue("faultMessageResolver"));
@@ -112,9 +112,9 @@ public class WebServiceHandlerParserTests {
 	public void testWebServiceHandlerWithAllInOneMarshaller() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"marshallingWebServiceHandlerParserTests.xml", this.getClass());
-		MessageHandler handler = (MessageHandler) context.getBean("handlerWithAllInOneMarshaller");
-		assertEquals(MarshallingWebServiceHandler.class, handler.getClass());
-		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("handlerWithAllInOneMarshaller");
+		assertEquals(MarshallingWebServiceHandler.class, endpoint.getClass());
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(endpoint);
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(
 				handlerAccessor.getPropertyValue("webServiceTemplate"));
 		Marshaller marshaller = (Marshaller) context.getBean("marshallerAndUnmarshaller");
@@ -126,9 +126,9 @@ public class WebServiceHandlerParserTests {
 	public void testWebServiceHandlerWithSeparateMarshallerAndUnmarshaller() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"marshallingWebServiceHandlerParserTests.xml", this.getClass());
-		MessageHandler handler = (MessageHandler) context.getBean("handlerWithSeparateMarshallerAndUnmarshaller");
-		assertEquals(MarshallingWebServiceHandler.class, handler.getClass());
-		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("handlerWithSeparateMarshallerAndUnmarshaller");
+		assertEquals(MarshallingWebServiceHandler.class, endpoint.getClass());
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(endpoint);
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(
 				handlerAccessor.getPropertyValue("webServiceTemplate"));
 		Marshaller marshaller = (Marshaller) context.getBean("marshaller");
@@ -141,9 +141,9 @@ public class WebServiceHandlerParserTests {
 	public void testMarshallingWebServiceHandlerWithCustomRequestCallback() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"marshallingWebServiceHandlerParserTests.xml", this.getClass());
-		MessageHandler handler = (MessageHandler) context.getBean("handlerWithCustomRequestCallback");
-		assertEquals(MarshallingWebServiceHandler.class, handler.getClass());
-		DirectFieldAccessor accessor = new DirectFieldAccessor(handler);
+		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("handlerWithCustomRequestCallback");
+		assertEquals(MarshallingWebServiceHandler.class, endpoint.getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
 		WebServiceMessageCallback callback = (WebServiceMessageCallback) context.getBean("requestCallback");
 		assertEquals(callback, accessor.getPropertyValue("requestCallback"));
 	}
@@ -152,9 +152,9 @@ public class WebServiceHandlerParserTests {
 	public void testWebServiceHandlerWithAllInOneMarshallerAndMessageFactory() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"marshallingWebServiceHandlerParserTests.xml", this.getClass());
-		MessageHandler handler = (MessageHandler) context.getBean("handlerWithAllInOneMarshallerAndMessageFactory");
-		assertEquals(MarshallingWebServiceHandler.class, handler.getClass());
-		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("handlerWithAllInOneMarshallerAndMessageFactory");
+		assertEquals(MarshallingWebServiceHandler.class, endpoint.getClass());
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(endpoint);
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(
 				handlerAccessor.getPropertyValue("webServiceTemplate"));
 		Marshaller marshaller = (Marshaller) context.getBean("marshallerAndUnmarshaller");
@@ -168,9 +168,9 @@ public class WebServiceHandlerParserTests {
 	public void testWebServiceHandlerWithSeparateMarshallerAndUnmarshallerAndMessageFactory() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"marshallingWebServiceHandlerParserTests.xml", this.getClass());
-		MessageHandler handler = (MessageHandler) context.getBean("handlerWithSeparateMarshallerAndUnmarshallerAndMessageFactory");
-		assertEquals(MarshallingWebServiceHandler.class, handler.getClass());
-		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
+		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("handlerWithSeparateMarshallerAndUnmarshallerAndMessageFactory");
+		assertEquals(MarshallingWebServiceHandler.class, endpoint.getClass());
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(endpoint);
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(
 				handlerAccessor.getPropertyValue("webServiceTemplate"));
 		Marshaller marshaller = (Marshaller) context.getBean("marshaller");

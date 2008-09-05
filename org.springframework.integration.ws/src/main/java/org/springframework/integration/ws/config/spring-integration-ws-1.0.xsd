@@ -19,14 +19,16 @@
 		]]></xsd:documentation>
 	</xsd:annotation>
 
-	<xsd:element name="ws-handler">
+	<xsd:element name="ws-service-activator">
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a Web Service MessageHandler adapter.
+	Defines a Web Service based Service Activator endpoint.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
+			<xsd:attribute name="output-channel" type="xsd:string"/>
 			<xsd:attribute name="uri" type="xsd:string" use="required"/>
 			<xsd:attribute name="marshaller" type="xsd:string"/>
 			<xsd:attribute name="unmarshaller" type="xsd:string"/>			
