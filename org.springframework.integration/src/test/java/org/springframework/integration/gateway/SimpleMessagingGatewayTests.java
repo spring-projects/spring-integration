@@ -147,6 +147,7 @@ public class SimpleMessagingGatewayTests {
 		expect(replyChannel.getName()).andReturn("replyChannel").anyTimes();
 		expect(requestChannel.send(isA(Message.class))).andReturn(true);
 		replay(allmocks);
+		this.simpleMessagingGateway.setReplyTimeout(0);
 		this.simpleMessagingGateway.sendAndReceive("test");
 		verify(allmocks);
 	}
@@ -184,6 +185,7 @@ public class SimpleMessagingGatewayTests {
 		expect(replyChannel.getName()).andReturn("replyChannel").anyTimes();
 		expect(requestChannel.send(isA(Message.class))).andReturn(true);
 		replay(allmocks);
+		this.simpleMessagingGateway.setReplyTimeout(0);
 		this.simpleMessagingGateway.sendAndReceiveMessage("test");
 		verify(allmocks);
 	}

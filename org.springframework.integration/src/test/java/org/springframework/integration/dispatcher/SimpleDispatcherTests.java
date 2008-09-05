@@ -28,7 +28,6 @@ import org.junit.Test;
 
 import org.springframework.integration.endpoint.AbstractInOutEndpoint;
 import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
@@ -223,7 +222,7 @@ public class SimpleDispatcherTests {
 	}
 
 
-	private static ServiceActivatorEndpoint createEndpoint(MessageHandler handler) {
+	private static ServiceActivatorEndpoint createEndpoint(Object handler) {
 		return new ServiceActivatorEndpoint(handler);
 	}
 

@@ -22,18 +22,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.integration.message.Message;
 
 /**
- * Factory for {@link MessageHandler} implementations that are useful for
- * testing.
+ * Factory for handler beans that are useful for testing.
  * 
  * @author Mark Fisher
  */
+@SuppressWarnings("unused")
 public abstract class TestHandlers {
 
 	/**
-	 * Create a {@link MessageHandler} that always returns null.
+	 * Create a handler that always returns null.
 	 */
-	public final static MessageHandler nullHandler() {
-		return new MessageHandler() {
+	public final static Object nullHandler() {
+		return new Object() {
 			public Message<?> handle(Message<?> message) {
 				return null;
 			}
@@ -41,10 +41,10 @@ public abstract class TestHandlers {
 	}
 
 	/**
-	 * Create a {@link MessageHandler} that simply returns the {@link Message} it receives.
+	 * Create a handler that simply returns the {@link Message} it receives.
 	 */
-	public final static MessageHandler echoHandler() {
-		return new MessageHandler() {
+	public final static Object echoHandler() {
+		return new Object() {
 			public Message<?> handle(Message<?> message) {
 				return message;
 			}
@@ -52,10 +52,10 @@ public abstract class TestHandlers {
 	}
 
 	/**
-	 * Create a {@link MessageHandler} that throws a {@link MessageHandlerRejectedExecutionException}.
+	 * Create a handler that throws a {@link MessageHandlerRejectedExecutionException}.
 	 */
-	public final static MessageHandler rejectingHandler() {
-		return new MessageHandler() {
+	public final static Object rejectingHandler() {
+		return new Object() {
 			public Message<?> handle(Message<?> message) {
 				throw new MessageHandlerRejectedExecutionException(message);
 			}
@@ -63,11 +63,11 @@ public abstract class TestHandlers {
 	}
 
 	/**
-	 * Create a {@link MessageHandler} that counts down on the provided latch and 
+	 * Create a handler that counts down on the provided latch and 
 	 * then throws a {@link MessageHandlerRejectedExecutionException}.
 	 */
-	public final static MessageHandler rejectingCountDownHandler(final CountDownLatch latch) {
-		return new MessageHandler() {
+	public final static Object rejectingCountDownHandler(final CountDownLatch latch) {
+		return new Object() {
 			public Message<?> handle(Message<?> message) {
 				latch.countDown();
 				throw new MessageHandlerRejectedExecutionException(message);
@@ -76,10 +76,10 @@ public abstract class TestHandlers {
 	}
 
 	/**
-	 * Create a {@link MessageHandler} that increments the provided counter.
+	 * Create a handler that increments the provided counter.
 	 */
-	public final static MessageHandler countingHandler(final AtomicInteger counter) {
-		return new MessageHandler() {
+	public final static Object countingHandler(final AtomicInteger counter) {
+		return new Object() {
 			public Message<?> handle(Message<?> message) {
 				counter.incrementAndGet();
 				return null;
@@ -88,10 +88,10 @@ public abstract class TestHandlers {
 	}
 
 	/**
-	 * Create a {@link MessageHandler} that counts down on the provided latch.
+	 * Create a handler that counts down on the provided latch.
 	 */
-	public final static MessageHandler countDownHandler(final CountDownLatch latch) {
-		return new MessageHandler() {
+	public final static Object countDownHandler(final CountDownLatch latch) {
+		return new Object() {
 			public Message<?> handle(Message<?> message) {
 				latch.countDown();
 				return null;
@@ -100,11 +100,11 @@ public abstract class TestHandlers {
 	}
 
 	/**
-	 * Create a {@link MessageHandler} that counts down on the provided latch
+	 * Create a handler that counts down on the provided latch
 	 * and also increments the provided counter.
 	 */
-	public final static MessageHandler countingCountDownHandler(final AtomicInteger counter, final CountDownLatch latch) {
-		return new MessageHandler() {
+	public final static Object countingCountDownHandler(final AtomicInteger counter, final CountDownLatch latch) {
+		return new Object() {
 			public Message<?> handle(Message<?> message) {
 				counter.incrementAndGet();
 				latch.countDown();

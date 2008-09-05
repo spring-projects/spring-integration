@@ -11,13 +11,13 @@
 
 	<channel id="requestChannel"/>
 
-	<service-activator ref="handler" input-channel="requestChannel"/>
+	<service-activator ref="testHandler" input-channel="requestChannel"/>
 
 	<beans:bean id="proxy" class="org.springframework.integration.gateway.GatewayProxyFactoryBean">
 		<beans:property name="serviceInterface" value="org.springframework.integration.gateway.TestService"/>
 		<beans:property name="requestChannel" ref="requestChannel"/>
 	</beans:bean>
 
-	<beans:bean id="handler" class="org.springframework.integration.gateway.TestHandler"/>
+	<beans:bean id="testHandler" class="org.springframework.integration.gateway.TestHandler"/>
 
 </beans:beans>

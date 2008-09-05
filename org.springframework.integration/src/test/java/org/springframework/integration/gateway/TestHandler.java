@@ -16,17 +16,15 @@
 
 package org.springframework.integration.gateway;
 
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
  */
-public class TestHandler implements MessageHandler {
+public class TestHandler {
 
-	public Message<?> handle(Message<?> message) {
-		return new StringMessage(message.getPayload() + "!!!");
+	public String handle(Message<?> message) {
+		return message.getPayload() + "!!!";
 	}
 
 }
