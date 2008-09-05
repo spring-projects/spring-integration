@@ -162,10 +162,16 @@ public class MessageMappingMethodInvoker implements MethodInvoker, InitializingB
 			return result;
 		}
 		catch (InvocationTargetException e) {
+			if (e.getCause() != null && e.getCause() instanceof RuntimeException) {
+				throw (RuntimeException) e.getCause();
+			}
 			throw new MessageHandlingException(message, "Handler method '"
-					+ this.methodName + "' threw an Exception.", e.getTargetException());
+					+ this.methodName + "' threw an Exception.", e.getCause());
 		}
-		catch (Throwable e) {
+		catch (Exception e) {
+			if (e instanceof RuntimeException) {
+				throw (RuntimeException) e;
+			}
 			throw new MessageHandlingException(message, "Failed to invoke handler method '"
 					+ this.methodName + "' with arguments: " + ObjectUtils.nullSafeToString(args), e);
 		}

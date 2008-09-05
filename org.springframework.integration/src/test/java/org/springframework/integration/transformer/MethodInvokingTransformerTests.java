@@ -31,7 +31,6 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -77,7 +76,7 @@ public class MethodInvokingTransformerTests {
 		assertEquals("123!", result.getPayload());
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void typeConversionFailureConfiguredWithMethodReference() throws Exception {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("exclaim", String.class);
@@ -86,7 +85,7 @@ public class MethodInvokingTransformerTests {
 		transformer.transform(message);
 	}
 
-	@Test(expected = MessagingException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void typeConversionFailureConfiguredWithMethodName() throws Exception {
 		TestBean testBean = new TestBean();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "exclaim");

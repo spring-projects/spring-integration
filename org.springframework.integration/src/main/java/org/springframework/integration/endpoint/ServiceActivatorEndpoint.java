@@ -17,9 +17,9 @@
 package org.springframework.integration.endpoint;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.message.MessageMappingMethodInvoker;
 import org.springframework.integration.util.MethodInvoker;
 import org.springframework.util.Assert;
 
@@ -28,40 +28,43 @@ import org.springframework.util.Assert;
  */
 public class ServiceActivatorEndpoint extends AbstractInOutEndpoint implements InitializingBean {
 
-	private final MethodInvoker invoker;
+	public static final String DEFAULT_LISTENER_METHOD = "handle";
 
-	private final MessageHandler handler;
+
+	private final MethodInvoker invoker;
 
 
 	public ServiceActivatorEndpoint(MethodInvoker invoker) {
 		Assert.notNull(invoker, "invoker must not be null");
 		this.invoker = invoker;
-		this.handler = null;
 	}
 
-	public ServiceActivatorEndpoint(MessageHandler handler) {
-		Assert.notNull(handler, "handler must not be null");
-		this.handler = handler;
-		this.invoker = null;
+	public ServiceActivatorEndpoint(Object object) {
+		this(object, DEFAULT_LISTENER_METHOD);
+	}
+
+	public ServiceActivatorEndpoint(Object object, String methodName) {
+		this(new MessageMappingMethodInvoker(object, methodName));
 	}
 
 
 	public void afterPropertiesSet() throws Exception {
-		if (this.invoker != null && (this.invoker instanceof InitializingBean)) {
+		if (this.invoker instanceof InitializingBean) {
 			((InitializingBean) this.invoker).afterPropertiesSet();
 		}
 	}
 
 	@Override
 	protected Object handle(Message<?> message) {
-		if (this.invoker != null) {
-			try {
-				return this.invoker.invokeMethod(message);
-			} catch (Exception e) {
-				throw new MessageHandlingException(message, "failure occurred in endpoint '" + this.getName() + "'", e);
-			}
+		try {
+			return this.invoker.invokeMethod(message);
 		}
-		return this.handler.handle(message);
+		catch (Exception e) {
+			if (e instanceof RuntimeException) {
+				throw (RuntimeException) e;
+			}
+			throw new MessageHandlingException(message, "failure occurred in endpoint '" + this.getName() + "'", e);
+		}
 	}
 
 }

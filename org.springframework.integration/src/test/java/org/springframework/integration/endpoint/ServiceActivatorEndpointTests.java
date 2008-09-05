@@ -32,7 +32,6 @@ import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
@@ -52,8 +51,7 @@ public class ServiceActivatorEndpointTests {
 	@Test
 	public void outputChannel() {
 		QueueChannel channel = new QueueChannel(1);
-		MessageHandler handler = new TestHandler();
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(handler);
+		ServiceActivatorEndpoint endpoint = this.createEndpoint();
 		endpoint.setTarget(channel);
 		Message<?> message = MessageBuilder.fromPayload("foo").build();
 		endpoint.send(message);
@@ -66,7 +64,7 @@ public class ServiceActivatorEndpointTests {
 	public void outputChannelTakesPrecedence() {
 		QueueChannel channel1 = new QueueChannel(1);
 		QueueChannel channel2 = new QueueChannel(1);
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(new TestHandler());
+		ServiceActivatorEndpoint endpoint = this.createEndpoint();
 		endpoint.setTarget(channel1);
 		Message<?> message = MessageBuilder.fromPayload("foo").setReturnAddress(channel2).build();
 		endpoint.send(message);
@@ -80,8 +78,7 @@ public class ServiceActivatorEndpointTests {
 	@Test
 	public void returnAddressHeader() {
 		QueueChannel channel = new QueueChannel(1);
-		MessageHandler handler = new TestHandler();
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(handler);
+		ServiceActivatorEndpoint endpoint = this.createEndpoint();
 		Message<?> message = MessageBuilder.fromPayload("foo").setReturnAddress(channel).build();
 		endpoint.send(message);
 		Message<?> reply = channel.receive(0);
@@ -95,8 +92,7 @@ public class ServiceActivatorEndpointTests {
 		channel.setBeanName("testChannel");
 		ChannelRegistry channelRegistry = new DefaultMessageBus();
 		channelRegistry.registerChannel(channel);
-		MessageHandler handler = new TestHandler();
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(handler);
+		ServiceActivatorEndpoint endpoint = this.createEndpoint();
 		endpoint.setChannelRegistry(channelRegistry);
 		Message<?> message = MessageBuilder.fromPayload("foo").setReturnAddress("testChannel").build();
 		endpoint.send(message);
@@ -112,12 +108,13 @@ public class ServiceActivatorEndpointTests {
 		replyChannel2.setBeanName("replyChannel2");
 		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 		channelRegistry.registerChannel(replyChannel2);
-		MessageHandler handler = new MessageHandler() {
+		Object handler = new Object() {
+			@SuppressWarnings("unused")
 			public Message<?> handle(Message<?> message) {
 				return new StringMessage("foo" + message.getPayload());
 			}
 		};
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(handler);
+		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(handler, "handle");
 		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> testMessage1 = MessageBuilder.fromPayload("bar")
 				.setReturnAddress(replyChannel1).build();
@@ -140,8 +137,7 @@ public class ServiceActivatorEndpointTests {
 	@Test
 	public void noOutputChannelFallsBackToReturnAddress() {
 		QueueChannel channel = new QueueChannel(1);
-		MessageHandler handler = new TestHandler();
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(handler);
+		ServiceActivatorEndpoint endpoint = this.createEndpoint();
 		Message<?> message = MessageBuilder.fromPayload("foo").setReturnAddress(channel).build();
 		endpoint.send(message);
 		Message<?> reply = channel.receive(0);
@@ -151,8 +147,7 @@ public class ServiceActivatorEndpointTests {
 
 	@Test(expected = MessagingException.class)
 	public void noReplyTarget() {
-		MessageHandler handler = new TestHandler();
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(handler);
+		ServiceActivatorEndpoint endpoint = this.createEndpoint();
 		Message<?> message = MessageBuilder.fromPayload("foo").build();
 		endpoint.send(message);
 	}
@@ -160,8 +155,8 @@ public class ServiceActivatorEndpointTests {
 	@Test
 	public void noReplyMessage() {
 		QueueChannel channel = new QueueChannel(1);
-		MessageHandler handler = new TestNullReplyHandler();
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(handler);
+		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(
+				new TestNullReplyBean(), "handle");
 		endpoint.setTarget(channel);
 		Message<?> message = MessageBuilder.fromPayload("foo").build();
 		endpoint.send(message);
@@ -171,8 +166,8 @@ public class ServiceActivatorEndpointTests {
 	@Test(expected = MessageHandlingException.class)
 	public void noReplyMessageWithRequiresReply() {
 		QueueChannel channel = new QueueChannel(1);
-		MessageHandler handler = new TestNullReplyHandler();
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(handler);
+		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(
+				new TestNullReplyBean(), "handle");
 		endpoint.setRequiresReply(true);
 		endpoint.setTarget(channel);
 		Message<?> message = MessageBuilder.fromPayload("foo").build();
@@ -181,7 +176,8 @@ public class ServiceActivatorEndpointTests {
 
 	@Test(expected=MessageRejectedException.class)
 	public void endpointWithSelectorRejecting() {
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(TestHandlers.nullHandler());
+		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(
+				TestHandlers.nullHandler(), "handle");
 		endpoint.setSelector(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return false;
@@ -193,7 +189,8 @@ public class ServiceActivatorEndpointTests {
 	@Test
 	public void endpointWithSelectorAccepting() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(TestHandlers.countDownHandler(latch));
+		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(
+				TestHandlers.countDownHandler(latch), "handle");
 		endpoint.setSelector(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return true;
@@ -207,7 +204,8 @@ public class ServiceActivatorEndpointTests {
 	@Test
 	public void endpointWithMultipleSelectorsAndFirstRejects() {
 		final AtomicInteger counter = new AtomicInteger();
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(TestHandlers.countingHandler(counter));
+		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(
+				TestHandlers.countingHandler(counter), "handle");
 		MessageSelectorChain selectorChain = new MessageSelectorChain();
 		selectorChain.add(new MessageSelector() {
 			public boolean accept(Message<?> message) {
@@ -237,7 +235,8 @@ public class ServiceActivatorEndpointTests {
 	public void endpointWithMultipleSelectorsAndFirstAccepts() {
 		final AtomicInteger selectorCounter = new AtomicInteger();
 		AtomicInteger handlerCounter = new AtomicInteger();
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(TestHandlers.countingHandler(handlerCounter));
+		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(
+				TestHandlers.countingHandler(handlerCounter), "handle");
 		MessageSelectorChain selectorChain = new MessageSelectorChain();
 		selectorChain.add(new MessageSelector() {
 			public boolean accept(Message<?> message) {
@@ -267,7 +266,8 @@ public class ServiceActivatorEndpointTests {
 	@Test
 	public void endpointWithMultipleSelectorsAndBothAccept() {
 		final AtomicInteger counter = new AtomicInteger();
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(TestHandlers.countingHandler(counter));
+		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(
+				TestHandlers.countingHandler(counter), "handle");
 		MessageSelectorChain selectorChain = new MessageSelectorChain();
 		selectorChain.add(new MessageSelector() {
 			public boolean accept(Message<?> message) {
@@ -289,11 +289,12 @@ public class ServiceActivatorEndpointTests {
 	@Test
 	public void correlationId() {
 		QueueChannel replyChannel = new QueueChannel(1);
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(new MessageHandler() {
+		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(new Object() {
+			@SuppressWarnings("unused")
 			public Message<?> handle(Message<?> message) {
 				return message;
 			}
-		});
+		}, "handle");
 		Message<String> message = MessageBuilder.fromPayload("test")
 				.setReturnAddress(replyChannel).build();
 		endpoint.send(message);
@@ -304,12 +305,13 @@ public class ServiceActivatorEndpointTests {
 	@Test
 	public void correlationIdSetByHandlerTakesPrecedence() {
 		QueueChannel replyChannel = new QueueChannel(1);
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(new MessageHandler() {
+		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(new Object() {
+			@SuppressWarnings("unused")
 			public Message<?> handle(Message<?> message) {
 				return MessageBuilder.fromMessage(message)
 						.setCorrelationId("ABC-123").build();
 			}
-		});
+		}, "handle");
 		Message<String> message = MessageBuilder.fromPayload("test")
 				.setReturnAddress(replyChannel).build();
 		endpoint.send(message);
@@ -320,15 +322,20 @@ public class ServiceActivatorEndpointTests {
 	}
 
 
-	private static class TestHandler implements MessageHandler {
-		
+	private ServiceActivatorEndpoint createEndpoint() {
+		 return new ServiceActivatorEndpoint(new TestBean(), "handle");
+	}
+
+
+	private static class TestBean {
+
 		public Message<?> handle(Message<?> message) {
 			return new StringMessage(message.getPayload().toString().toUpperCase());
 		}
 	}
 
 
-	private static class TestNullReplyHandler implements MessageHandler {
+	private static class TestNullReplyBean {
 
 		public Message<?> handle(Message<?> message) {
 			return null;
