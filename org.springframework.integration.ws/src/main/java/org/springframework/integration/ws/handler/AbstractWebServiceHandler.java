@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.net.URI;
 
 import org.springframework.integration.endpoint.AbstractInOutEndpoint;
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
@@ -33,7 +32,7 @@ import org.springframework.ws.soap.SoapMessage;
 import org.springframework.ws.soap.client.core.SoapActionCallback;
 
 /**
- * Base class for Web Service {@link MessageHandler} adapters.
+ * Base class for outbound Web Service-invoking adapters.
  * 
  * @author Mark Fisher
  */
