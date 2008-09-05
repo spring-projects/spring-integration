@@ -16,9 +16,6 @@
 
 package org.springframework.integration.aggregator;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -44,14 +41,12 @@ public class ResequencerEndpointTests {
 		Message<?> message1 = createMessage("123", "ABC", 3, 3, replyChannel);
 		Message<?> message2 = createMessage("456", "ABC", 3, 1, replyChannel);
 		Message<?> message3 = createMessage("789", "ABC", 3, 2, replyChannel);
-		CountDownLatch latch = new CountDownLatch(3);
 		resequencer.handle(message1);
 		resequencer.handle(message3);
 		resequencer.handle(message2);
-		latch.await(1000, TimeUnit.MILLISECONDS);
-		Message<?> reply1 = replyChannel.receive(500);
-		Message<?> reply2 = replyChannel.receive(500);
-		Message<?> reply3 = replyChannel.receive(500);
+		Message<?> reply1 = replyChannel.receive(0);
+		Message<?> reply2 = replyChannel.receive(0);
+		Message<?> reply3 = replyChannel.receive(0);
 		assertNotNull(reply1);
 		assertEquals(new Integer(1), reply1.getHeaders().getSequenceNumber());
 		assertNotNull(reply2);
@@ -69,26 +64,22 @@ public class ResequencerEndpointTests {
 		Message<?> message2 = createMessage("456", "ABC", 4, 1, replyChannel);
 		Message<?> message3 = createMessage("789", "ABC", 4, 4, replyChannel);
 		Message<?> message4 = createMessage("XYZ", "ABC", 4, 3, replyChannel);
-		CountDownLatch latch = new CountDownLatch(3);
 		resequencer.handle(message1);
 		resequencer.handle(message2);
 		resequencer.handle(message3);
-		latch.await(1000, TimeUnit.MILLISECONDS);
-		Message<?> reply1 = replyChannel.receive(500);
-		Message<?> reply2 = replyChannel.receive(500);
-		Message<?> reply3 = replyChannel.receive(500);
-		// only messages 1 and 2 must have been received by now
+		Message<?> reply1 = replyChannel.receive(0);
+		Message<?> reply2 = replyChannel.receive(0);
+		Message<?> reply3 = replyChannel.receive(0);
+		// only messages 1 and 2 should have been received by now
 		assertNotNull(reply1);
 		assertEquals(new Integer(1), reply1.getHeaders().getSequenceNumber());
 		assertNotNull(reply2);
 		assertEquals(new Integer(2), reply2.getHeaders().getSequenceNumber());
 		assertNull(reply3);
 		// when sending the last message, the whole sequence must have been sent
-		latch = new CountDownLatch(1);
 		resequencer.handle(message4);
-		latch.await(1000, TimeUnit.MILLISECONDS);
-		reply3 = replyChannel.receive(500);
-		Message<?> reply4 = replyChannel.receive(500);
+		reply3 = replyChannel.receive(0);
+		Message<?> reply4 = replyChannel.receive(0);
 		assertNotNull(reply3);
 		assertEquals(new Integer(3), reply3.getHeaders().getSequenceNumber());
 		assertNotNull(reply4);
@@ -105,26 +96,22 @@ public class ResequencerEndpointTests {
 		Message<?> message2 = createMessage("456", "ABC", 4, 1, replyChannel);
 		Message<?> message3 = createMessage("789", "ABC", 4, 4, replyChannel);
 		Message<?> message4 = createMessage("XYZ", "ABC", 4, 3, replyChannel);
-		CountDownLatch latch = new CountDownLatch(3);
 		resequencer.handle(message1);
 		resequencer.handle(message2);
 		resequencer.handle(message3);
-		latch.await(1000, TimeUnit.MILLISECONDS);
-		Message<?> reply1 = replyChannel.receive(500);
-		Message<?> reply2 = replyChannel.receive(500);
-		Message<?> reply3 = replyChannel.receive(500);
-		// no message must have been received by now
+		Message<?> reply1 = replyChannel.receive(0);
+		Message<?> reply2 = replyChannel.receive(0);
+		Message<?> reply3 = replyChannel.receive(0);
+		// no messages should have been received yet
 		assertNull(reply1);
 		assertNull(reply2);
 		assertNull(reply3);
-		// when sending the last message, the whole sequence must have been sent
-		latch = new CountDownLatch(1);
+		// after sending the last message, the whole sequence should have been sent
 		resequencer.handle(message4);
-		latch.await(1000, TimeUnit.MILLISECONDS);
-		reply1 = replyChannel.receive(500);
-		reply2 = replyChannel.receive(500);
-		reply3 = replyChannel.receive(500);
-		Message<?> reply4 = replyChannel.receive(500);
+		reply1 = replyChannel.receive(0);
+		reply2 = replyChannel.receive(0);
+		reply3 = replyChannel.receive(0);
+		Message<?> reply4 = replyChannel.receive(0);
 		assertNotNull(reply1);
 		assertEquals(new Integer(1), reply1.getHeaders().getSequenceNumber());
 		assertNotNull(reply2);
