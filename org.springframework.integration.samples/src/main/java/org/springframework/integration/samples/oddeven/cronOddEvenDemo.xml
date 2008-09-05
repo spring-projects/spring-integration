@@ -25,16 +25,16 @@
 
 	<beans:bean id="counter" class="org.springframework.integration.message.MethodInvokingSource">
 		<beans:property name="object">
-			<beans:bean class="org.springframework.integration.samples.quartzoddeven.Counter"/>
+			<beans:bean class="org.springframework.integration.samples.oddeven.Counter"/>
 		</beans:property>
 		<beans:property name="methodName" value="next"/>
 	</beans:bean>
 
 	<beans:bean id="parityResolver" class="org.springframework.integration.samples.oddeven.ParityResolver"/>
 
-	<beans:bean id="oddLogger" class="org.springframework.integration.samples.quartzoddeven.OddLogger"/>
+	<beans:bean id="oddLogger" class="org.springframework.integration.samples.oddeven.OddLogger"/>
 
-	<beans:bean id="evenLogger" class="org.springframework.integration.samples.quartzoddeven.EvenLogger"/>
+	<beans:bean id="evenLogger" class="org.springframework.integration.samples.oddeven.EvenLogger"/>
 
 	<beans:bean id="quartzTaskScheduler" class="org.springframework.integration.scheduling.spi.ProviderTaskScheduler">
 		<beans:constructor-arg>

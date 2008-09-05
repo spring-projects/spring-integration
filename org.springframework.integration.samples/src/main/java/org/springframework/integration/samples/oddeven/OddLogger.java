@@ -16,18 +16,22 @@
 
 package org.springframework.integration.samples.oddeven;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
 
 /**
  * @author Mark Fisher
+ * @author Marius Bogoevici
  */
 @MessageEndpoint
 public class OddLogger {
 
 	@ServiceActivator
 	public void log(int i) {
-		System.out.println("odd:  " + i);
+		System.out.println("odd:  " + i  + " at " + new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(new Date()));
 	}
 
 }

@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.samples.quartzoddeven;
+package org.springframework.integration.samples.oddeven;
+
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * @author Mark Fisher
  */
-public class ParityResolver {
+public class CronOddEvenDemo {
 
-	public String getParity(int i) {
-		if (i % 2 == 0) {
-			return "even";
-		}
-		return "odd";
+	public static void main(String[] args) {
+		new ClassPathXmlApplicationContext("cronOddEvenDemo.xml", CronOddEvenDemo.class);
 	}
 
 }

@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.samples.quartzoddeven;
+package org.springframework.integration.samples.oddeven;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * @author Mark Fisher
  */
-public class Counter {
+public class IntervalOddEvenDemo {
 
-	private final AtomicInteger count = new AtomicInteger();
-
-	public int next() {
-		return count.incrementAndGet();
+	public static void main(String[] args) {
+		new ClassPathXmlApplicationContext("intervalOddEvenDemo.xml", IntervalOddEvenDemo.class);
 	}
 
 }
