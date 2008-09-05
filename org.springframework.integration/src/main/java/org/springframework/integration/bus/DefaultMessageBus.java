@@ -271,24 +271,24 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 		if (source == null) {
 			throw new ConfigurationException("endpoint '" + endpoint + "' has no source");
 		}
-		if (source != null && source instanceof SubscribableSource) {
+		if (source instanceof SubscribableSource) {
 			((SubscribableSource) source).subscribe(endpoint);
 			if (source instanceof PollingDispatcher) {
 				PollingDispatcher poller = (PollingDispatcher) source;
 				this.pollingDispatchers.add(poller);
 				this.taskScheduler.schedule(poller);
 			}
-			if (logger.isInfoEnabled()) {
-				logger.info("activated subscription to channel '"
-						+ source + "' for endpoint '" + endpoint + "'");
-			}
 			return;
 		}
-		if (source != null && source instanceof PollableSource) {
+		else if (source instanceof PollableSource) {
 			PollingDispatcher poller = new PollingDispatcher((PollableSource<?>) source, this.defaultPollerSchedule);
 			poller.subscribe(endpoint);
 			this.pollingDispatchers.add(poller);
 			this.taskScheduler.schedule(poller);
+		}
+		if (logger.isInfoEnabled()) {
+			logger.info("activated subscription to channel '"
+					+ source + "' for endpoint '" + endpoint + "'");
 		}
 	}
 

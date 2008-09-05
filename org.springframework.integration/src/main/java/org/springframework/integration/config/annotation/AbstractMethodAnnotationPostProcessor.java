@@ -69,6 +69,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				if (endpoint.getName() == null) {
 					endpoint.setBeanName(this.generateEndpointName(beanName, annotation));
 				}
+				endpoint.afterPropertiesSet();
 				return endpoint;
 			}
 		}
