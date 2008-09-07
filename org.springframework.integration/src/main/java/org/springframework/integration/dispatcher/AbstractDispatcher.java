@@ -23,8 +23,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageTarget;
 
 /**
  * Base class for {@link MessageDispatcher} implementations.
@@ -35,7 +35,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	protected final Set<MessageTarget> targets = new CopyOnWriteArraySet<MessageTarget>();
+	protected final Set<MessageEndpoint> endpoints = new CopyOnWriteArraySet<MessageEndpoint>();
 
 	private volatile TaskExecutor taskExecutor;
 
@@ -46,18 +46,18 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 		return "dispatcher";
 	}
 
-	public boolean subscribe(MessageTarget target) {
-		return this.targets.add(target);
+	public boolean subscribe(MessageEndpoint endpoint) {
+		return this.endpoints.add(endpoint);
 	}
 
-	public boolean unsubscribe(MessageTarget target) {
-		return this.targets.remove(target);
+	public boolean unsubscribe(MessageEndpoint endpoint) {
+		return this.endpoints.remove(endpoint);
 	}
 
 	/**
-	 * Specify a {@link TaskExecutor} for invoking the target endpoints.
+	 * Specify a {@link TaskExecutor} for invoking the endpoints.
 	 * If none is provided, the invocation will occur in the thread
-	 * that runs this polling dispatcher.  
+	 * that runs this polling dispatcher.
 	 */
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
 		this.taskExecutor = taskExecutor;
@@ -68,14 +68,14 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	}
 
 	/**
-	 * A convenience method for subclasses to send a Message to a single target.
+	 * A convenience method for subclasses to send a Message to a single endpoint.
 	 */
-	protected final boolean sendMessageToTarget(Message<?> message, MessageTarget target) {
-		return target.send(message);
+	protected final boolean sendMessageToEndpoint(Message<?> message, MessageEndpoint endpoint) {
+		return endpoint.send(message);
 	}
 
 	public String toString() {
-		return this.getClass().getSimpleName() + " with targets: " + this.targets;
+		return this.getClass().getSimpleName() + " with endpoints: " + this.endpoints;
 	}
 
 }

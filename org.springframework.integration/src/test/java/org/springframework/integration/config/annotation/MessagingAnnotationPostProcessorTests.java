@@ -318,11 +318,17 @@ public class MessagingAnnotationPostProcessorTests {
 		DirectChannel testChannel = (DirectChannel) messageBus.lookupChannel("testChannel");
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicReference<Message<?>> receivedMessage = new AtomicReference<Message<?>>();
-		testChannel.subscribe(new org.springframework.integration.message.MessageTarget() {
+		testChannel.subscribe(new org.springframework.integration.endpoint.MessageEndpoint() {
 			public boolean send(Message<?> message) {
 				receivedMessage.set(message);
 				latch.countDown();
 				return false;
+			}
+			public String getName() {
+				return null;
+			}
+			public MessageSource<?> getSource() {
+				return null;
 			}
 		});
 		latch.await(3, TimeUnit.SECONDS);

@@ -16,6 +16,8 @@
 
 package org.springframework.integration.message;
 
+import org.springframework.integration.endpoint.MessageEndpoint;
+
 /**
  * Interface for any source of messages that accepts subscribers.
  * 
@@ -24,13 +26,13 @@ package org.springframework.integration.message;
 public interface SubscribableSource extends MessageSource {
 
 	/**
-	 * Register a {@link MessageTarget} as a subscriber to this source.
+	 * Register a {@link MessageEndpoint} as a subscriber to this source.
 	 */
-	boolean subscribe(MessageTarget target);
+	boolean subscribe(MessageEndpoint endpoint);
 
 	/**
-	 * Remove a {@link MessageTarget} from the subscribers of this source.
+	 * Remove a {@link MessageEndpoint} from the subscribers of this source.
 	 */
-	boolean unsubscribe(MessageTarget target);
+	boolean unsubscribe(MessageEndpoint endpoint);
 
 }

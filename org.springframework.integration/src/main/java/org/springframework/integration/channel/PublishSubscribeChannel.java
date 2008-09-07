@@ -18,8 +18,8 @@ package org.springframework.integration.channel;
 
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
+import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.SubscribableSource;
 
 /**
@@ -48,12 +48,12 @@ public class PublishSubscribeChannel extends AbstractMessageChannel implements S
 		this.dispatcher.setApplySequence(applySequence);
 	}
 
-	public boolean subscribe(MessageTarget target) {
-		return this.dispatcher.subscribe(target);
+	public boolean subscribe(MessageEndpoint endpoint) {
+		return this.dispatcher.subscribe(endpoint);
 	}
 
-	public boolean unsubscribe(MessageTarget target) {
-		return this.dispatcher.unsubscribe(target);
+	public boolean unsubscribe(MessageEndpoint endpoint) {
+		return this.dispatcher.unsubscribe(endpoint);
 	}
 
 	@Override

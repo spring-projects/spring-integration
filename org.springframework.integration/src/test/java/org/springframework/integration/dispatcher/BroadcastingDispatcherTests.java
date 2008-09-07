@@ -35,8 +35,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageTarget;
+import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -51,11 +52,11 @@ public class BroadcastingDispatcherTests {
 
 	private Message<?> messageMock = createMock(Message.class);
 
-	private MessageTarget targetMock1 = createMock(MessageTarget.class);
+	private MessageEndpoint targetMock1 = createMock(MessageEndpoint.class);
 
-	private MessageTarget targetMock2 = createMock(MessageTarget.class);
+	private MessageEndpoint targetMock2 = createMock(MessageEndpoint.class);
 
-	private MessageTarget targetMock3 = createMock(MessageTarget.class);
+	private MessageEndpoint targetMock3 = createMock(MessageEndpoint.class);
 
 	private Object[] globalMocks = new Object[] {
 			messageMock, taskExecutorMock, targetMock1, targetMock2, targetMock3 };
@@ -213,8 +214,8 @@ public class BroadcastingDispatcherTests {
 	public void applySequenceDisabledByDefault() {
 		BroadcastingDispatcher dispatcher = new BroadcastingDispatcher();
 		final List<Message<?>> messages = Collections.synchronizedList(new ArrayList<Message<?>>());
-		MessageTarget target1 = new MessageStoringTestTarget(messages);
-		MessageTarget target2 = new MessageStoringTestTarget(messages);
+		MessageEndpoint target1 = new MessageStoringTestEndpoint(messages);
+		MessageEndpoint target2 = new MessageStoringTestEndpoint(messages);
 		dispatcher.subscribe(target1);
 		dispatcher.subscribe(target2);
 		dispatcher.send(new StringMessage("test"));
@@ -230,9 +231,9 @@ public class BroadcastingDispatcherTests {
 		BroadcastingDispatcher dispatcher = new BroadcastingDispatcher();
 		dispatcher.setApplySequence(true);
 		final List<Message<?>> messages = Collections.synchronizedList(new ArrayList<Message<?>>());
-		MessageTarget target1 = new MessageStoringTestTarget(messages);
-		MessageTarget target2 = new MessageStoringTestTarget(messages);
-		MessageTarget target3 = new MessageStoringTestTarget(messages);
+		MessageEndpoint target1 = new MessageStoringTestEndpoint(messages);
+		MessageEndpoint target2 = new MessageStoringTestEndpoint(messages);
+		MessageEndpoint target3 = new MessageStoringTestEndpoint(messages);
 		dispatcher.subscribe(target1);
 		dispatcher.subscribe(target2);
 		dispatcher.subscribe(target3);
@@ -275,17 +276,25 @@ public class BroadcastingDispatcherTests {
 	}
 
 
-	private static class MessageStoringTestTarget implements MessageTarget {
+	private static class MessageStoringTestEndpoint implements MessageEndpoint {
 
 		private final List<Message<?>> messageList;
 
-		MessageStoringTestTarget(List<Message<?>> messageList) {
+		MessageStoringTestEndpoint(List<Message<?>> messageList) {
 			this.messageList = messageList;
 		}
 
 		public boolean send(Message<?> message) {
 			this.messageList.add(message);
 			return true;
+		}
+
+		public String getName() {
+			return null;
+		}
+
+		public MessageSource<?> getSource() {
+			return null;
 		}
 	};
 

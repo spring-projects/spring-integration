@@ -26,9 +26,9 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.adapter.mail.monitor.AsyncMonitoringStrategy;
-import org.springframework.integration.dispatcher.BroadcastingDispatcher;
+import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessageTarget;
-import org.springframework.integration.message.SubscribableSource;
 import org.springframework.util.Assert;
 
 /**
@@ -38,11 +38,11 @@ import org.springframework.util.Assert;
  * 
  * @author Jonas Partner
  */
-public class SubscribableMailSource implements SubscribableSource, Lifecycle, DisposableBean {
+public class SubscribableMailSource implements MessageSource, Lifecycle, DisposableBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private final BroadcastingDispatcher dispatcher = new BroadcastingDispatcher();
+	private volatile MessageChannel outputChannel;
 
 	private final TaskExecutor taskExecutor;
 
@@ -61,16 +61,8 @@ public class SubscribableMailSource implements SubscribableSource, Lifecycle, Di
 	}
 
 
-	public void setApplySequence(boolean applySequence) {
-		this.dispatcher.setApplySequence(applySequence);
-	}
-
-	public boolean subscribe(MessageTarget target) {
-		return this.dispatcher.subscribe(target);
-	}
-
-	public boolean unsubscribe(MessageTarget target) {
-		return this.dispatcher.unsubscribe(target);
+	public void setOutputChannel(MessageChannel outputChannel) {
+		this.outputChannel = outputChannel;
 	}
 
 	public void setConverter(MailMessageConverter converter) {
@@ -146,7 +138,7 @@ public class SubscribableMailSource implements SubscribableSource, Lifecycle, Di
 			while (!Thread.currentThread().isInterrupted()) {
 				Message[] messages = this.folderConnection.receive();
 				for (Message message : messages) {
-					dispatcher.send(converter.create((MimeMessage) message));
+					outputChannel.send(converter.create((MimeMessage) message));
 				}
 			}
 		}

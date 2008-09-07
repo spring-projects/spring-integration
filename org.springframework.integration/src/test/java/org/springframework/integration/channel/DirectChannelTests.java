@@ -25,8 +25,9 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageTarget;
+import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -61,7 +62,7 @@ public class DirectChannelTests {
 	}
 
 
-	private static class ThreadNameExtractingTestTarget implements MessageTarget {
+	private static class ThreadNameExtractingTestTarget implements MessageEndpoint {
 
 		private String threadName;
 
@@ -82,6 +83,15 @@ public class DirectChannelTests {
 				this.latch.countDown();
 			}
 			return true;
+		}
+
+		// TODO: remove once this is a consumer instead of endpoint
+		public String getName() {
+			return null;
+		}
+
+		public MessageSource<?> getSource() {
+			return null;
 		}
 	}
 

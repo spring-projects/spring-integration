@@ -23,16 +23,16 @@ import java.io.OutputStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.message.MessageTarget;
 
 /**
  * A target that writes a byte array to an {@link OutputStream}.
  * 
  * @author Mark Fisher
  */
-public class ByteStreamTarget implements MessageTarget {
+public class ByteStreamTarget extends AbstractEndpoint {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -53,7 +53,8 @@ public class ByteStreamTarget implements MessageTarget {
 	}
 
 
-	public boolean send(Message message) {
+	@Override
+	public boolean sendInternal(Message message) {
 		Object payload = message.getPayload();
 		if (payload == null) {
 			if (logger.isWarnEnabled()) {

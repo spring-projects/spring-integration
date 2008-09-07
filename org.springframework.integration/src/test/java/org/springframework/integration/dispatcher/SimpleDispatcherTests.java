@@ -27,12 +27,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
 import org.springframework.integration.endpoint.AbstractInOutEndpoint;
+import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
 import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageRejectedException;
-import org.springframework.integration.message.MessageTarget;
+import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.selector.MessageSelector;
 
@@ -69,7 +70,7 @@ public class SimpleDispatcherTests {
 	public void noDuplicateSubscriptions() {
 		SimpleDispatcher dispatcher = new SimpleDispatcher();
 		final AtomicInteger counter = new AtomicInteger();
-		MessageTarget target = new CountingTestTarget(counter, false);
+		MessageEndpoint target = new CountingTestEndpoint(counter, false);
 		dispatcher.subscribe(target);
 		dispatcher.subscribe(target);
 		dispatcher.send(new StringMessage("test"));
@@ -80,9 +81,9 @@ public class SimpleDispatcherTests {
 	public void unsubscribeBeforeSend() {
 		SimpleDispatcher dispatcher = new SimpleDispatcher();
 		final AtomicInteger counter = new AtomicInteger();
-		MessageTarget target1 = new CountingTestTarget(counter, false);
-		MessageTarget target2 = new CountingTestTarget(counter, false);
-		MessageTarget target3 = new CountingTestTarget(counter, false);
+		MessageEndpoint target1 = new CountingTestEndpoint(counter, false);
+		MessageEndpoint target2 = new CountingTestEndpoint(counter, false);
+		MessageEndpoint target3 = new CountingTestEndpoint(counter, false);
 		dispatcher.subscribe(target1);
 		dispatcher.subscribe(target2);
 		dispatcher.subscribe(target3);
@@ -95,9 +96,9 @@ public class SimpleDispatcherTests {
 	public void unsubscribeBetweenSends() {
 		SimpleDispatcher dispatcher = new SimpleDispatcher();
 		final AtomicInteger counter = new AtomicInteger();
-		MessageTarget target1 = new CountingTestTarget(counter, false);
-		MessageTarget target2 = new CountingTestTarget(counter, false);
-		MessageTarget target3 = new CountingTestTarget(counter, false);
+		MessageEndpoint target1 = new CountingTestEndpoint(counter, false);
+		MessageEndpoint target2 = new CountingTestEndpoint(counter, false);
+		MessageEndpoint target3 = new CountingTestEndpoint(counter, false);
 		dispatcher.subscribe(target1);
 		dispatcher.subscribe(target2);
 		dispatcher.subscribe(target3);
@@ -115,7 +116,7 @@ public class SimpleDispatcherTests {
 	public void unsubscribeLastTargetCausesDeliveryException() {
 		SimpleDispatcher dispatcher = new SimpleDispatcher();
 		final AtomicInteger counter = new AtomicInteger();
-		MessageTarget target = new CountingTestTarget(counter, false);
+		MessageEndpoint target = new CountingTestEndpoint(counter, false);
 		dispatcher.subscribe(target);
 		dispatcher.send(new StringMessage("test1"));
 		assertEquals(1, counter.get());
@@ -183,9 +184,9 @@ public class SimpleDispatcherTests {
 	public void firstHandlerReturnsTrue() {
 		SimpleDispatcher dispatcher = new SimpleDispatcher();
 		final AtomicInteger counter = new AtomicInteger();
-		MessageTarget target1 = new CountingTestTarget(counter, true);
-		MessageTarget target2 = new CountingTestTarget(counter, false);
-		MessageTarget target3 = new CountingTestTarget(counter, false);
+		MessageEndpoint target1 = new CountingTestEndpoint(counter, true);
+		MessageEndpoint target2 = new CountingTestEndpoint(counter, false);
+		MessageEndpoint target3 = new CountingTestEndpoint(counter, false);
 		dispatcher.subscribe(target1);
 		dispatcher.subscribe(target2);
 		dispatcher.subscribe(target3);
@@ -197,9 +198,9 @@ public class SimpleDispatcherTests {
 	public void middleHandlerReturnsTrue() {
 		SimpleDispatcher dispatcher = new SimpleDispatcher();
 		final AtomicInteger counter = new AtomicInteger();
-		MessageTarget target1 = new CountingTestTarget(counter, false);
-		MessageTarget target2 = new CountingTestTarget(counter, true);
-		MessageTarget target3 = new CountingTestTarget(counter, false);
+		MessageEndpoint target1 = new CountingTestEndpoint(counter, false);
+		MessageEndpoint target2 = new CountingTestEndpoint(counter, true);
+		MessageEndpoint target3 = new CountingTestEndpoint(counter, false);
 		dispatcher.subscribe(target1);
 		dispatcher.subscribe(target2);
 		dispatcher.subscribe(target3);
@@ -211,9 +212,9 @@ public class SimpleDispatcherTests {
 	public void allHandlersReturnFalse() {
 		SimpleDispatcher dispatcher = new SimpleDispatcher();
 		final AtomicInteger counter = new AtomicInteger();
-		MessageTarget target1 = new CountingTestTarget(counter, false);
-		MessageTarget target2 = new CountingTestTarget(counter, false);
-		MessageTarget target3 = new CountingTestTarget(counter, false);
+		MessageEndpoint target1 = new CountingTestEndpoint(counter, false);
+		MessageEndpoint target2 = new CountingTestEndpoint(counter, false);
+		MessageEndpoint target3 = new CountingTestEndpoint(counter, false);
 		dispatcher.subscribe(target1);
 		dispatcher.subscribe(target2);
 		dispatcher.subscribe(target3);
@@ -245,13 +246,13 @@ public class SimpleDispatcherTests {
 	}
 
 
-	private static class CountingTestTarget implements MessageTarget {
+	private static class CountingTestEndpoint implements MessageEndpoint {
 
 		private final AtomicInteger counter;
 
 		private final boolean returnValue;
 
-		CountingTestTarget(AtomicInteger counter, boolean returnValue) {
+		CountingTestEndpoint(AtomicInteger counter, boolean returnValue) {
 			this.counter = counter;
 			this.returnValue = returnValue;
 		}
@@ -259,6 +260,14 @@ public class SimpleDispatcherTests {
 		public boolean send(Message<?> message) {
 			this.counter.incrementAndGet();
 			return this.returnValue;
+		}
+
+		public String getName() {
+			return null;
+		}
+
+		public MessageSource<?> getSource() {
+			return null;
 		}
 	}
 

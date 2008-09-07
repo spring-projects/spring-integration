@@ -19,8 +19,6 @@
 				          uri="http://www.w3schools.com/webservices/tempconvert.asmx"/>
 
 	<!-- The response from the service is logged to the console. -->
-	<channel-adapter id="celsiusChannel" target="console"/>
-
-	<console-target id="console"/>
+	<stdout-channel-adapter id="celsiusChannel"/>
 
 </beans:beans>

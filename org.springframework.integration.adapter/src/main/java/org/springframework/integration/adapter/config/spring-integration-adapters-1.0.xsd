@@ -254,9 +254,6 @@
 			<xsd:attribute name="mail-convertor" type="xsd:string" use="optional"/>
 		</xsd:complexType>
 	</xsd:element>
-	
-	
-	
 
 	<xsd:element name="console-source">
 		<xsd:complexType>
@@ -270,20 +267,22 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="console-target">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-	Configures a target that writes to stdout (System.out) or to stderr (System.err)
-	if the "error" attribute is set to true.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="charset" type="xsd:string"/>
-			<xsd:attribute name="error" type="xsd:boolean" default="false"/>
-			<xsd:attribute name="append-newline" type="xsd:boolean" default="false"/>
-		</xsd:complexType>
-	</xsd:element>
+	<xsd:element name="stdout-channel-adapter" type="consoleOutboundChannelAdapterType"/>
+
+	<xsd:element name="stderr-channel-adapter" type="consoleOutboundChannelAdapterType"/>
+
+	<xsd:complexType name="consoleOutboundChannelAdapterType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Configures an outbound Channel Adapter that writes to stdout (System.out)
+	or to stderr (System.err) depending on the element name.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="id" type="xsd:string"/>
+		<xsd:attribute name="channel" type="xsd:string"/>
+		<xsd:attribute name="charset" type="xsd:string"/>
+		<xsd:attribute name="append-newline" type="xsd:boolean" default="false"/>
+	</xsd:complexType>
 
 	<xsd:complexType name="gatewayType">
 		<xsd:annotation>

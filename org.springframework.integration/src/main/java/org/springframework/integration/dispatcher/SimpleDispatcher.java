@@ -16,19 +16,19 @@
 
 package org.springframework.integration.dispatcher;
 
+import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageRejectedException;
-import org.springframework.integration.message.MessageTarget;
 
 /**
  * Basic implementation of {@link MessageDispatcher} that will attempt
- * to send a {@link Message} to one of its targets. As soon as <em>one</em>
- * of the targets accepts the Message, the dispatcher will return 'true'.
+ * to send a {@link Message} to one of its endpoints. As soon as <em>one</em>
+ * of the endpoints accepts the Message, the dispatcher will return 'true'.
  * <p>
- * If the dispatcher has no targets, a {@link MessageDeliveryException}
- * will be thrown. If all targets reject the Message, the dispatcher will
- * throw a MessageRejectedException. If all targets return 'false'
+ * If the dispatcher has no endpoints, a {@link MessageDeliveryException}
+ * will be thrown. If all endpoints reject the Message, the dispatcher will
+ * throw a MessageRejectedException. If all endpoints return 'false'
  * (e.g. due to a timeout), the dispatcher will return 'false'.
  * 
  * @author Mark Fisher
@@ -36,30 +36,30 @@ import org.springframework.integration.message.MessageTarget;
 public class SimpleDispatcher extends AbstractDispatcher {
 
 	public boolean send(Message<?> message) {
-		if (this.targets.size() == 0) {
-			throw new MessageDeliveryException(message, "Dispatcher has no targets.");
+		if (this.endpoints.size() == 0) {
+			throw new MessageDeliveryException(message, "Dispatcher has no subscribers.");
 		}
 		int count = 0;
 		int rejectedExceptionCount = 0;
-		for (MessageTarget target : this.targets) {
+		for (MessageEndpoint endpoint : this.endpoints) {
 			count++;
 			try {
-				if (this.sendMessageToTarget(message, target)) {
+				if (this.sendMessageToEndpoint(message, endpoint)) {
 					return true;
 				}
 				if (logger.isDebugEnabled()) {
-					logger.debug("Failed to send message to target, continuing with other targets if available.");
+					logger.debug("Failed to send message to endpoint, continuing with other endpoints if available.");
 				}
 			}
 			catch (MessageRejectedException e) {
 				rejectedExceptionCount++;
 				if (logger.isDebugEnabled()) {
-					logger.debug("Target '" + target + "' rejected Message, continuing with other targets if available.", e);
+					logger.debug("Endpoint '" + endpoint + "' rejected Message, continuing with other endpoints if available.", e);
 				}
 			}
 		}
 		if (rejectedExceptionCount == count) {
-			throw new MessageRejectedException(message, "All of dispatcher's targets rejected Message.");
+			throw new MessageRejectedException(message, "All of dispatcher's endpoints rejected Message.");
 		}
 		return false;
 	}

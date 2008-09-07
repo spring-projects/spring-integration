@@ -17,15 +17,15 @@
 package org.springframework.integration.dispatcher;
 
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessageTarget;
 
 /**
  * A broadcasting dispatcher implementation. It makes a best effort to
- * send the message to each of its targets. If it fails to send to any
- * one target, it will log a warn-level message but continue to send
- * to the other targets.
+ * send the message to each of its endpoints. If it fails to send to any
+ * one endpoints, it will log a warn-level message but continue to send
+ * to the other endpoints.
  * 
  * @author Mark Fisher
  */
@@ -36,7 +36,7 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 
 	/**
 	 * Specify whether to apply sequence numbers to the messages
-	 * prior to sending to the targets. By default, sequence
+	 * prior to sending to the endpoints. By default, sequence
 	 * numbers will <em>not</em> be applied
 	 */
 	public void setApplySequence(boolean applySequence) {
@@ -45,8 +45,8 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 
 	public boolean send(Message<?> message) {
 		int sequenceNumber = 1;
-		int sequenceSize = this.targets.size();
-		for (final MessageTarget target : this.targets) {
+		int sequenceSize = this.endpoints.size();
+		for (final MessageEndpoint endpoint : this.endpoints) {
 			final Message<?> messageToSend = (!this.applySequence) ? message
 				: MessageBuilder.fromMessage(message)
 						.setSequenceNumber(sequenceNumber++)
@@ -56,12 +56,12 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 			if (executor != null) {
 				executor.execute(new Runnable() {
 					public void run() {
-						sendMessageToTarget(messageToSend, target);
+						sendMessageToEndpoint(messageToSend, endpoint);
 					}
 				});
 			}
 			else {
-				this.sendMessageToTarget(messageToSend, target);
+				this.sendMessageToEndpoint(messageToSend, endpoint);
 			}
 		}
 		return true;

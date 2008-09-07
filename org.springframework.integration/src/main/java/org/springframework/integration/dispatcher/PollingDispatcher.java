@@ -19,9 +19,9 @@ package org.springframework.integration.dispatcher;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.BlockingSource;
 import org.springframework.integration.message.MessageExchangeTemplate;
-import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.PollableSource;
 import org.springframework.integration.message.SubscribableSource;
 import org.springframework.integration.scheduling.SchedulableTask;
@@ -99,12 +99,12 @@ public class PollingDispatcher implements SchedulableTask, SubscribableSource {
 		this.maxMessagesPerPoll = maxMessagesPerPoll;
 	}
 
-	public boolean subscribe(MessageTarget target) {
-		return this.dispatcher.subscribe(target);
+	public boolean subscribe(MessageEndpoint endpoint) {
+		return this.dispatcher.subscribe(endpoint);
 	}
 
-	public boolean unsubscribe(MessageTarget target) {
-		return this.dispatcher.unsubscribe(target);
+	public boolean unsubscribe(MessageEndpoint endpoint) {
+		return this.dispatcher.unsubscribe(endpoint);
 	}
 
 	public Schedule getSchedule() {

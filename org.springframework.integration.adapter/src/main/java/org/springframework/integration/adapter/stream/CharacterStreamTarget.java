@@ -27,9 +27,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.message.MessageTarget;
 import org.springframework.util.Assert;
 
 /**
@@ -41,7 +41,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class CharacterStreamTarget implements MessageTarget {
+public class CharacterStreamTarget extends AbstractEndpoint {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -117,7 +117,8 @@ public class CharacterStreamTarget implements MessageTarget {
 		this.shouldAppendNewLine = shouldAppendNewLine;
 	}
 
-	public boolean send(Message message) {
+	@Override
+	public boolean sendInternal(Message message) {
 		Object payload = message.getPayload();
 		if (payload == null) {
 			if (logger.isWarnEnabled()) {

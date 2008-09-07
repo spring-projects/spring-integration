@@ -17,13 +17,13 @@
 package org.springframework.integration.channel;
 
 import org.springframework.integration.dispatcher.SimpleDispatcher;
+import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.SubscribableSource;
-import org.springframework.integration.message.MessageTarget;
 
 /**
- * A channel that invokes the subscribed {@link MessageTarget target(s)} in
- * the sender's thread (returning after at most one handles the message).
+ * A channel that invokes the subscribed {@link MessageEndpoint endpoint(s)}
+ * in the sender's thread (returning after at most one accepts the message).
  * 
  * @author Dave Syer
  * @author Mark Fisher
@@ -33,12 +33,12 @@ public class DirectChannel extends AbstractMessageChannel implements Subscribabl
 	private final SimpleDispatcher dispatcher = new SimpleDispatcher();
 
 
-	public boolean subscribe(MessageTarget target) {
-		return this.dispatcher.subscribe(target);
+	public boolean subscribe(MessageEndpoint endpoint) {
+		return this.dispatcher.subscribe(endpoint);
 	}
 
-	public boolean unsubscribe(MessageTarget target) {
-		return this.dispatcher.unsubscribe(target);
+	public boolean unsubscribe(MessageEndpoint endpoint) {
+		return this.dispatcher.unsubscribe(endpoint);
 	}
 
 	@Override
