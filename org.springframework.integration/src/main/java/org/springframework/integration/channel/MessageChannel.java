@@ -17,14 +17,13 @@
 package org.springframework.integration.channel;
 
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageSource;
 
 /**
  * Base channel interface defining common behavior for message sending and receiving.
  * 
  * @author Mark Fisher
  */
-public interface MessageChannel extends MessageSource {
+public interface MessageChannel {
 
 	/**
 	 * Return the name of this channel.
