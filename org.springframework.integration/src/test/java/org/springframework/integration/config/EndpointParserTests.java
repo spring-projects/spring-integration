@@ -19,7 +19,6 @@ package org.springframework.integration.config;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.TimeUnit;
 
@@ -28,10 +27,10 @@ import org.junit.Test;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.StringMessage;
 
@@ -57,11 +56,11 @@ public class EndpointParserTests {
 	public void testEndpointWithSelectorAccepts() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"endpointWithSelector.xml", this.getClass());		
-		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("endpoint");
+		MessageConsumer endpoint = (MessageConsumer) context.getBean("endpoint");
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.fromPayload("test")
 				.setReturnAddress(replyChannel).build();
-		assertTrue(endpoint.send(message));
+		endpoint.onMessage(message);
 		Message<?> reply = replyChannel.receive(500);
 		assertNotNull(reply);
 		assertEquals("foo", reply.getPayload());
@@ -71,11 +70,11 @@ public class EndpointParserTests {
 	public void testEndpointWithSelectorRejects() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"endpointWithSelector.xml", this.getClass());		
-		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("endpoint");
+		MessageConsumer endpoint = (MessageConsumer) context.getBean("endpoint");
 		MessageChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.fromPayload(123)
 				.setReturnAddress(replyChannel).build();
-		endpoint.send(message);
+		endpoint.onMessage(message);
 	}
 
 	@Test

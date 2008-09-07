@@ -50,7 +50,7 @@ public class CharacterStreamTargetTests {
 	public void testSingleString() {
 		StringWriter writer = new StringWriter();
 		CharacterStreamTarget target = new CharacterStreamTarget(writer);
-		target.send(new StringMessage("foo"));
+		target.onMessage(new StringMessage("foo"));
 		assertEquals("foo", writer.toString());
 	}
 

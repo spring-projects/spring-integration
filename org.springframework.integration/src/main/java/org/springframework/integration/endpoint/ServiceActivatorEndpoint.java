@@ -50,6 +50,7 @@ public class ServiceActivatorEndpoint extends AbstractInOutEndpoint {
 
 	@Override
 	protected void initialize() throws Exception {
+		super.initialize();
 		if (this.invoker instanceof InitializingBean) {
 			((InitializingBean) this.invoker).afterPropertiesSet();
 		}

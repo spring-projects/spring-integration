@@ -19,6 +19,7 @@ package org.springframework.integration.channel;
 import org.springframework.integration.dispatcher.SimpleDispatcher;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.SubscribableSource;
 
 /**
@@ -33,12 +34,12 @@ public class DirectChannel extends AbstractMessageChannel implements Subscribabl
 	private final SimpleDispatcher dispatcher = new SimpleDispatcher();
 
 
-	public boolean subscribe(MessageEndpoint endpoint) {
-		return this.dispatcher.subscribe(endpoint);
+	public boolean subscribe(MessageConsumer consumer) {
+		return this.dispatcher.subscribe(consumer);
 	}
 
-	public boolean unsubscribe(MessageEndpoint endpoint) {
-		return this.dispatcher.unsubscribe(endpoint);
+	public boolean unsubscribe(MessageConsumer consumer) {
+		return this.dispatcher.unsubscribe(consumer);
 	}
 
 	@Override

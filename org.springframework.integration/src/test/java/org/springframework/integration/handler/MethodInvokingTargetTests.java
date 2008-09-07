@@ -91,7 +91,7 @@ public class MethodInvokingTargetTests {
 		bus.registerChannel(channel);
 		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(target);
 		endpoint.setBeanName("testEndpoint");
-		endpoint.setSource(channel);
+		endpoint.setInputChannel(channel);
 		bus.registerEndpoint(endpoint);
 		bus.start();
 		String result = queue.poll(1000, TimeUnit.MILLISECONDS);

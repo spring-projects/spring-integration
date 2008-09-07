@@ -18,6 +18,7 @@ package org.springframework.integration.endpoint;
 
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.util.Assert;
 
@@ -27,7 +28,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class OutboundChannelAdapter extends AbstractEndpoint {
+public class OutboundChannelAdapter extends AbstractMessageConsumingEndpoint {
 
 	private final MessageTarget target;
 
@@ -39,8 +40,10 @@ public class OutboundChannelAdapter extends AbstractEndpoint {
 
 
 	@Override
-	protected boolean sendInternal(Message<?> message) {
-		return this.target.send(message);
+	protected void processMessage(Message<?> message) {
+		if (!this.target.send(message)) {
+			throw new MessageDeliveryException(message, "failed to deliver Message to target");
+		}
 	}
 
 }

@@ -16,8 +16,6 @@
 
 package org.springframework.integration.router;
 
-import static org.junit.Assert.assertFalse;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -45,7 +43,7 @@ public class RouterEndpointTests {
 		};
 		RouterEndpoint endpoint = new RouterEndpoint(channelResolver);
 		Message<String> message = new StringMessage("test");
-		assertFalse(endpoint.send(message));
+		endpoint.onMessage(message);
 	}
 
 	@Test(expected = MessageDeliveryException.class)
@@ -58,7 +56,7 @@ public class RouterEndpointTests {
 		RouterEndpoint endpoint = new RouterEndpoint(channelResolver);
 		endpoint.setResolutionRequired(true);
 		Message<String> message = new StringMessage("test");
-		endpoint.send(message);
+		endpoint.onMessage(message);
 	}
 
 	@Test
@@ -70,7 +68,7 @@ public class RouterEndpointTests {
 		};
 		RouterEndpoint endpoint = new RouterEndpoint(channelResolver);
 		Message<String> message = new StringMessage("test");
-		assertFalse(endpoint.send(message));
+		endpoint.onMessage(message);
 	}
 
 	@Test(expected = MessageDeliveryException.class)
@@ -83,7 +81,7 @@ public class RouterEndpointTests {
 		RouterEndpoint endpoint = new RouterEndpoint(channelResolver);
 		endpoint.setResolutionRequired(true);
 		Message<String> message = new StringMessage("test");
-		endpoint.send(message);
+		endpoint.onMessage(message);
 	}
 
 	@Test
@@ -97,7 +95,7 @@ public class RouterEndpointTests {
 		RouterEndpoint endpoint = new RouterEndpoint(channelNameResolver);
 		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> message = new StringMessage("test");
-		assertFalse(endpoint.send(message));
+		endpoint.onMessage(message);
 	}
 
 	@Test(expected = MessageDeliveryException.class)
@@ -112,7 +110,7 @@ public class RouterEndpointTests {
 		endpoint.setChannelRegistry(channelRegistry);
 		endpoint.setResolutionRequired(true);
 		Message<String> message = new StringMessage("test");
-		endpoint.send(message);
+		endpoint.onMessage(message);
 	}
 
 
@@ -127,7 +125,7 @@ public class RouterEndpointTests {
 		RouterEndpoint endpoint = new RouterEndpoint(channelNameResolver);
 		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> message = new StringMessage("test");
-		assertFalse(endpoint.send(message));
+		endpoint.onMessage(message);
 	}
 
 	@Test(expected = MessageDeliveryException.class)
@@ -142,7 +140,7 @@ public class RouterEndpointTests {
 		endpoint.setChannelRegistry(channelRegistry);
 		endpoint.setResolutionRequired(true);
 		Message<String> message = new StringMessage("test");
-		endpoint.send(message);
+		endpoint.onMessage(message);
 	}
 
 	@Test(expected = MessagingException.class)
@@ -153,7 +151,7 @@ public class RouterEndpointTests {
 			}
 		};
 		RouterEndpoint endpoint = new RouterEndpoint(channelNameResolver);
-		endpoint.send(new StringMessage("this should fail"));
+		endpoint.onMessage(new StringMessage("this should fail"));
 	}
 
 	@Test(expected = MessagingException.class)
@@ -164,7 +162,7 @@ public class RouterEndpointTests {
 			}
 		};
 		RouterEndpoint endpoint = new RouterEndpoint(channelNameResolver);
-		endpoint.send(new StringMessage("this should fail"));
+		endpoint.onMessage(new StringMessage("this should fail"));
 	}
 
 	@Test(expected = IllegalArgumentException.class)

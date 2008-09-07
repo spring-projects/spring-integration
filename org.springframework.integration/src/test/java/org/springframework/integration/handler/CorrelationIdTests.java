@@ -44,9 +44,9 @@ public class CorrelationIdTests {
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel(1);
 		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(new TestBean(), "upperCase");
-		endpoint.setSource(inputChannel);
+		endpoint.setInputChannel(inputChannel);
 		endpoint.setOutputChannel(outputChannel);
-		endpoint.afterPropertiesSet();
+		endpoint.start();
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);
 		assertEquals(correlationId, reply.getHeaders().getCorrelationId());
@@ -58,9 +58,9 @@ public class CorrelationIdTests {
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel(1);
 		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(new TestBean(), "upperCase");
-		endpoint.setSource(inputChannel);
+		endpoint.setInputChannel(inputChannel);
 		endpoint.setOutputChannel(outputChannel);
-		endpoint.afterPropertiesSet();
+		endpoint.start();
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);
 		assertEquals(message.getHeaders().getId(), reply.getHeaders().getCorrelationId());
@@ -73,9 +73,9 @@ public class CorrelationIdTests {
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel(1);
 		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(new TestBean(), "upperCase");
-		endpoint.setSource(inputChannel);
+		endpoint.setInputChannel(inputChannel);
 		endpoint.setOutputChannel(outputChannel);
-		endpoint.afterPropertiesSet();
+		endpoint.start();
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);
 		assertEquals(message.getHeaders().getCorrelationId(), reply.getHeaders().getCorrelationId());
@@ -90,9 +90,9 @@ public class CorrelationIdTests {
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel(1);
 		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(new TestBean(), "createMessage");
-		endpoint.setSource(inputChannel);
+		endpoint.setInputChannel(inputChannel);
 		endpoint.setOutputChannel(outputChannel);
-		endpoint.afterPropertiesSet();
+		endpoint.start();
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);
 		assertEquals("456-XYZ", reply.getHeaders().getCorrelationId());
@@ -104,9 +104,9 @@ public class CorrelationIdTests {
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel(1);
 		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(new TestBean(), "createMessage");
-		endpoint.setSource(inputChannel);
+		endpoint.setInputChannel(inputChannel);
 		endpoint.setOutputChannel(outputChannel);
-		endpoint.afterPropertiesSet();
+		endpoint.start();
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);
 		assertEquals("456-XYZ", reply.getHeaders().getCorrelationId());
@@ -121,7 +121,7 @@ public class CorrelationIdTests {
 		SplitterEndpoint endpoint = new SplitterEndpoint(splitter);
 		endpoint.setOutputChannel(testChannel);
 		splitter.afterPropertiesSet();
-		endpoint.send(message);
+		endpoint.onMessage(message);
 		Message<?> reply1 = testChannel.receive(100);
 		Message<?> reply2 = testChannel.receive(100);
 		assertEquals(message.getHeaders().getId(), reply1.getHeaders().getCorrelationId());

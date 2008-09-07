@@ -23,8 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.endpoint.MessageEndpoint;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageConsumer;
 
 /**
  * Base class for {@link MessageDispatcher} implementations.
@@ -35,21 +34,21 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	protected final Set<MessageEndpoint> endpoints = new CopyOnWriteArraySet<MessageEndpoint>();
+	protected final Set<MessageConsumer> subscribers = new CopyOnWriteArraySet<MessageConsumer>();
 
 	private volatile TaskExecutor taskExecutor;
 
 
-	public boolean subscribe(MessageEndpoint endpoint) {
-		return this.endpoints.add(endpoint);
+	public boolean subscribe(MessageConsumer consumer) {
+		return this.subscribers.add(consumer);
 	}
 
-	public boolean unsubscribe(MessageEndpoint endpoint) {
-		return this.endpoints.remove(endpoint);
+	public boolean unsubscribe(MessageConsumer consumer) {
+		return this.subscribers.remove(consumer);
 	}
 
 	/**
-	 * Specify a {@link TaskExecutor} for invoking the endpoints.
+	 * Specify a {@link TaskExecutor} for invoking the consumers.
 	 * If none is provided, the invocation will occur in the thread
 	 * that runs this polling dispatcher.
 	 */
@@ -61,15 +60,8 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 		return this.taskExecutor;
 	}
 
-	/**
-	 * A convenience method for subclasses to send a Message to a single endpoint.
-	 */
-	protected final boolean sendMessageToEndpoint(Message<?> message, MessageEndpoint endpoint) {
-		return endpoint.send(message);
-	}
-
 	public String toString() {
-		return this.getClass().getSimpleName() + " with endpoints: " + this.endpoints;
+		return this.getClass().getSimpleName() + " with subscribers: " + this.subscribers;
 	}
 
 }

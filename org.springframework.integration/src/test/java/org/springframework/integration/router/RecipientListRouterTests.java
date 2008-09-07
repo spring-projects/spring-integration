@@ -69,7 +69,7 @@ public class RecipientListRouterTests {
 		resolver.afterPropertiesSet();
 		RouterEndpoint endpoint = new RouterEndpoint(resolver);
 		Message<String> message = new StringMessage("test");
-		endpoint.send(message);
+		endpoint.onMessage(message);
 		Message<?> result1 = channel1.receive(25);
 		assertNotNull(result1);
 		assertEquals("test", result1.getPayload());
@@ -93,7 +93,7 @@ public class RecipientListRouterTests {
 		RouterEndpoint endpoint = new RouterEndpoint(resolver);
 		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> message = new StringMessage("test");
-		endpoint.send(message);
+		endpoint.onMessage(message);
 		Message<?> result1 = channel1.receive(25);
 		assertNotNull(result1);
 		assertEquals("test", result1.getPayload());
@@ -117,7 +117,7 @@ public class RecipientListRouterTests {
 		RouterEndpoint endpoint = new RouterEndpoint(resolver);
 		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> message = new StringMessage("test");
-		endpoint.send(message);
+		endpoint.onMessage(message);
 		Message<?> result1 = channel1.receive(25);
 		assertNotNull(result1);
 		assertEquals("test", result1.getPayload());

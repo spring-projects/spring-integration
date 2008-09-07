@@ -12,7 +12,7 @@
 
 	<bean id="endpoint" class="org.springframework.integration.endpoint.ServiceActivatorEndpoint">
 		<constructor-arg ref="handler"/>
-		<property name="source" ref="sourceChannel"/>
+		<property name="inputChannel" ref="sourceChannel"/>
 		<property name="outputChannel" ref="targetChannel"/>
 	</bean>
 

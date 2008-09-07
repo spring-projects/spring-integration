@@ -21,19 +21,15 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.endpoint.ChannelPoller;
-import org.springframework.integration.endpoint.SourcePoller;
 import org.springframework.integration.scheduling.CronSchedule;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.StringUtils;
-import org.springframework.util.xml.DomUtils;
 
 /**
  * Shared utility methods for integration namespace parsers.
@@ -138,71 +134,54 @@ public abstract class IntegrationNamespaceUtils {
 	}
 
 	/**
-	 * Parse a "poller" element to create a ChannelPoller and return the bean name of the poller instance.
+	 * Parse a "poller" element to create a Schedule and add it to the property values of the target builder.
 	 * 
-	 * @param channelBeanName the name of the PollableChannel bean
-	 * @param element the "poller" element to parse
-	 * @param parserContext the parserContext for registering a newly created bean definition
-	 * @return the name of the ChannelPoller bean definition
+	 * @param pollerElement the "poller" element to parse
+	 * @param targetBuilder the builder that expects the "schedule" property
 	 */
-	public static String parseChannelPoller(String channelBeanName, Element element, ParserContext parserContext) {
-		return parsePoller(channelBeanName, element, parserContext, true);
-	}
-
-	/**
-	 * Parse a "poller" element to create a SourcePoller and return the bean name of the poller instance.
-	 * 
-	 * @param sourceBeanName the name of the PollableSource bean
-	 * @param element the "poller" element to parse
-	 * @param parserContext the parserContext for registering a newly created bean definition
-	 * @return the name of the poller bean definition
-	 */
-	public static String parseSourcePoller(String sourceBeanName, Element element, ParserContext parserContext) {
-		return parsePoller(sourceBeanName, element, parserContext, false);
-	}
-
-	private static String parsePoller(String sourceBeanName, Element element, ParserContext parserContext, boolean isChannel) {
-		Class<?> beanClass = isChannel ? ChannelPoller.class : SourcePoller.class;
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(beanClass);
+	public static void configureSchedule(Element pollerElement, BeanDefinitionBuilder targetBuilder) {
 		Schedule schedule = null;
-		if (!(StringUtils.hasText(element.getAttribute("period")) ^ StringUtils.hasText(element.getAttribute("cron")))) {
+		if (!(StringUtils.hasText(pollerElement.getAttribute("period")) ^ StringUtils.hasText(pollerElement.getAttribute("cron")))) {
 			throw new ConfigurationException("A <poller> element must define either a period "
 					+ "or a cron expression (but not both)");
 		}
-		if (StringUtils.hasText(element.getAttribute("period"))) {
-			Long period = Long.valueOf(element.getAttribute("period"));
+		if (StringUtils.hasText(pollerElement.getAttribute("period"))) {
+			Long period = Long.valueOf(pollerElement.getAttribute("period"));
 			schedule = new PollingSchedule(period);
-			String initialDelay = element.getAttribute("initial-delay");
+			String initialDelay = pollerElement.getAttribute("initial-delay");
 			if (StringUtils.hasText(initialDelay)) {
 				((PollingSchedule)schedule).setInitialDelay(Long.valueOf(initialDelay));
 			}
-			if ("true".equals(element.getAttribute("fixed-rate").toLowerCase())) {
+			if ("true".equals(pollerElement.getAttribute("fixed-rate").toLowerCase())) {
 				((PollingSchedule)schedule).setFixedRate(true);
 			}
 			else {
 				((PollingSchedule)schedule).setFixedRate(false);
 			}
 		}
-		if (StringUtils.hasText(element.getAttribute("cron"))) {
-		   schedule = new CronSchedule(element.getAttribute("cron"));
+		if (StringUtils.hasText(pollerElement.getAttribute("cron"))) {
+		   schedule = new CronSchedule(pollerElement.getAttribute("cron"));
 		}
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-executor");
-		Element txElement = DomUtils.getChildElementByTagName(element, "transactional");
-		if (txElement != null) {
-			builder.addPropertyReference("transactionManager", txElement.getAttribute("transaction-manager"));
-			builder.addPropertyValue("propagationBehaviorName",
-					DefaultTransactionDefinition.PREFIX_PROPAGATION + txElement.getAttribute("propagation"));
-			builder.addPropertyValue("isolationLevelName",
-					DefaultTransactionDefinition.PREFIX_ISOLATION + txElement.getAttribute("isolation"));
-			builder.addPropertyValue("transactionTimeout", txElement.getAttribute("timeout"));
-			builder.addPropertyValue("transactionReadOnly", txElement.getAttribute("read-only"));
-		}
-		builder.addConstructorArgReference(sourceBeanName);
-		builder.addConstructorArgValue(schedule);
-		setValueIfAttributeDefined(builder, element, "receive-timeout");
-		setValueIfAttributeDefined(builder, element, "send-timeout");
-		setValueIfAttributeDefined(builder, element, "max-messages-per-poll");
-		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
+		targetBuilder.addPropertyValue("schedule", schedule);
+	}
+
+	/**
+	 * Parse a "transactional" element and configure the "transactionManager" and "transactionDefinition"
+	 * properties for the target builder.
+	 * 
+	 * @param txElement the "transactional" element to parse
+	 * @param targetBuilder the builder that expects the "transactionManager" and "transactionDefinition" properties
+	 */
+	public static void configureTransactionAttributes(Element txElement, BeanDefinitionBuilder targetBuilder) {
+		targetBuilder.addPropertyReference("transactionManager", txElement.getAttribute("transaction-manager"));
+		DefaultTransactionDefinition txDefinition = new DefaultTransactionDefinition();
+		txDefinition.setPropagationBehaviorName(
+				DefaultTransactionDefinition.PREFIX_PROPAGATION + txElement.getAttribute("propagation"));
+		txDefinition.setIsolationLevelName(
+				DefaultTransactionDefinition.PREFIX_ISOLATION + txElement.getAttribute("isolation"));
+		txDefinition.setTimeout(Integer.valueOf(txElement.getAttribute("timeout")));
+		txDefinition.setReadOnly(txElement.getAttribute("read-only").equalsIgnoreCase("true"));
+		targetBuilder.addPropertyValue("transactionDefinition", txDefinition);
 	}
 
 }

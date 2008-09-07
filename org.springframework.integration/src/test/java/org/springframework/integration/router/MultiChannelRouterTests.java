@@ -51,7 +51,7 @@ public class MultiChannelRouterTests {
 		};
 		RouterEndpoint endpoint = new RouterEndpoint(channelResolver);
 		Message<String> message = new StringMessage("test");
-		endpoint.send(message);
+		endpoint.onMessage(message);
 		Message<?> result1 = channel1.receive(25);
 		assertNotNull(result1);
 		assertEquals("test", result1.getPayload());
@@ -77,7 +77,7 @@ public class MultiChannelRouterTests {
 		RouterEndpoint endpoint = new RouterEndpoint(channelNameResolver);
 		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> message = new StringMessage("test");
-		endpoint.send(message);
+		endpoint.onMessage(message);
 		Message<?> result1 = channel1.receive(25);
 		assertNotNull(result1);
 		assertEquals("test", result1.getPayload());
@@ -97,7 +97,7 @@ public class MultiChannelRouterTests {
 		RouterEndpoint endpoint = new RouterEndpoint(channelNameResolver);
 		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> message = new StringMessage("test");
-		endpoint.send(message);
+		endpoint.onMessage(message);
 	}
 
 	@Test(expected = MessagingException.class)
@@ -109,7 +109,7 @@ public class MultiChannelRouterTests {
 		};
 		RouterEndpoint endpoint = new RouterEndpoint(channelNameResolver);
 		Message<String> message = new StringMessage("test");
-		endpoint.send(message);
+		endpoint.onMessage(message);
 	}
 
 }

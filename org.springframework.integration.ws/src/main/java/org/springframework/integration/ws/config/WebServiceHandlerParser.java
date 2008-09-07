@@ -57,7 +57,7 @@ public class WebServiceHandlerParser extends AbstractSingleBeanDefinitionParser 
 		}
 		builder.addConstructorArgValue(uri);
 		String inputChannel = element.getAttribute("input-channel");
-		builder.addPropertyReference("source", inputChannel);
+		builder.addPropertyReference("inputChannel", inputChannel);
 		String outputChannel = element.getAttribute("output-channel");
 		if (StringUtils.hasText(outputChannel)) {
 			builder.addPropertyReference("outputChannel", outputChannel);

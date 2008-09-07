@@ -17,10 +17,8 @@
 package org.springframework.integration.router;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -57,7 +55,7 @@ public class MethodInvokingRouterTests {
 		RouterEndpoint endpoint = new RouterEndpoint(resolver);
 		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> message = new GenericMessage<String>("bar");
-		assertTrue(endpoint.send(message));
+		endpoint.onMessage(message);
 		Message<?> replyMessage = barChannel.receive();
 		assertNotNull(replyMessage);
 		assertEquals(message, replyMessage);
@@ -74,7 +72,7 @@ public class MethodInvokingRouterTests {
 		RouterEndpoint endpoint = new RouterEndpoint(resolver);
 		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> message = new GenericMessage<String>("bar");
-		assertTrue(endpoint.send(message));
+		endpoint.onMessage(message);
 		Message<?> replyMessage = barChannel.receive();
 		assertNotNull(replyMessage);
 		assertEquals(message, replyMessage);
@@ -96,7 +94,7 @@ public class MethodInvokingRouterTests {
 		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> message = MessageBuilder.fromPayload("bar")
 				.setHeader("targetChannel", "foo").build();
-		assertTrue(endpoint.send(message));
+		endpoint.onMessage(message);
 		Message<?> fooReply = fooChannel.receive(0);
 		Message<?> barReply = barChannel.receive(0);
 		assertNotNull(fooReply);
@@ -110,7 +108,7 @@ public class MethodInvokingRouterTests {
 		Method routingMethod = testBean.getClass().getMethod("routeByHeader", String.class);
 		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, routingMethod);
 		RouterEndpoint endpoint = new RouterEndpoint(resolver);
-		endpoint.send(new GenericMessage<String>("testing"));
+		endpoint.onMessage(new GenericMessage<String>("testing"));
 	}
 
 	@Test
@@ -142,15 +140,15 @@ public class MethodInvokingRouterTests {
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
-		assertTrue(endpoint.send(fooMessage));
+		endpoint.onMessage(fooMessage);
 		Message<?> result1 = fooChannel.receive(0);
 		assertNotNull(result1);
 		assertEquals("foo", result1.getPayload());
-		assertTrue(endpoint.send(barMessage));
+		endpoint.onMessage(barMessage);
 		Message<?> result2 = barChannel.receive(0);
 		assertNotNull(result2);
 		assertEquals("bar", result2.getPayload());
-		assertFalse(endpoint.send(badMessage));
+		endpoint.onMessage(badMessage);
 	}
 
 	@Test
@@ -183,15 +181,15 @@ public class MethodInvokingRouterTests {
 		channelRegistry.registerChannel(fooChannel);
 		channelRegistry.registerChannel(barChannel);
 		endpoint.setChannelRegistry(channelRegistry);
-		assertTrue(endpoint.send(fooMessage));
+		endpoint.onMessage(fooMessage);
 		Message<?> result1 = fooChannel.receive(0);
 		assertNotNull(result1);
 		assertEquals("foo", result1.getPayload());
-		assertTrue(endpoint.send(barMessage));
+		endpoint.onMessage(barMessage);
 		Message<?> result2 = barChannel.receive(0);
 		assertNotNull(result2);
 		assertEquals("bar", result2.getPayload());
-		assertFalse(endpoint.send(badMessage));
+		endpoint.onMessage(badMessage);
 	}
 
 	@Test
@@ -224,15 +222,15 @@ public class MethodInvokingRouterTests {
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
-		assertTrue(endpoint.send(fooMessage));
+		endpoint.onMessage(fooMessage);
 		Message<?> result1 = fooChannel.receive(0);
 		assertNotNull(result1);
 		assertEquals("foo", result1.getPayload());
-		assertTrue(endpoint.send(barMessage));
+		endpoint.onMessage(barMessage);
 		Message<?> result2 = barChannel.receive(0);
 		assertNotNull(result2);
 		assertEquals("bar", result2.getPayload());
-		assertFalse(endpoint.send(badMessage));
+		endpoint.onMessage(badMessage);
 	}
 
 	@Test
@@ -265,21 +263,21 @@ public class MethodInvokingRouterTests {
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
-		assertTrue(endpoint.send(fooMessage));
+		endpoint.onMessage(fooMessage);
 		Message<?> result1a = fooChannel.receive(0);
 		Message<?> result1b = barChannel.receive(0);
 		assertNotNull(result1a);
 		assertEquals("foo", result1a.getPayload());
 		assertNotNull(result1b);
 		assertEquals("foo", result1b.getPayload());
-		assertTrue(endpoint.send(barMessage));
+		endpoint.onMessage(barMessage);
 		Message<?> result2a = fooChannel.receive(0);
 		Message<?> result2b = barChannel.receive(0);
 		assertNotNull(result2a);
 		assertEquals("bar", result2a.getPayload());
 		assertNotNull(result2b);
 		assertEquals("bar", result2b.getPayload());
-		assertFalse(endpoint.send(badMessage));
+		endpoint.onMessage(badMessage);
 	}
 
 	@Test
@@ -312,21 +310,21 @@ public class MethodInvokingRouterTests {
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
-		assertTrue(endpoint.send(fooMessage));
+		endpoint.onMessage(fooMessage);
 		Message<?> result1a = fooChannel.receive(0);
 		assertNotNull(result1a);
 		assertEquals("foo", result1a.getPayload());
 		Message<?> result1b = barChannel.receive(0);
 		assertNotNull(result1b);
 		assertEquals("foo", result1b.getPayload());
-		assertTrue(endpoint.send(barMessage));
+		endpoint.onMessage(barMessage);
 		Message<?> result2a = fooChannel.receive(0);
 		assertNotNull(result2a);
 		assertEquals("bar", result2a.getPayload());
 		Message<?> result2b = barChannel.receive(0);
 		assertNotNull(result2b);
 		assertEquals("bar", result2b.getPayload());
-		assertFalse(endpoint.send(badMessage));
+		endpoint.onMessage(badMessage);
 	}
 
 	@Test
@@ -359,21 +357,21 @@ public class MethodInvokingRouterTests {
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
-		assertTrue(endpoint.send(fooMessage));
+		endpoint.onMessage(fooMessage);
 		Message<?> result1a = fooChannel.receive(0);
 		assertNotNull(result1a);
 		assertEquals("foo", result1a.getPayload());
 		Message<?> result1b = barChannel.receive(0);
 		assertNotNull(result1b);
 		assertEquals("foo", result1b.getPayload());
-		assertTrue(endpoint.send(barMessage));
+		endpoint.onMessage(barMessage);
 		Message<?> result2a = fooChannel.receive(0);
 		assertNotNull(result2a);
 		assertEquals("bar", result2a.getPayload());
 		Message<?> result2b = barChannel.receive(0);
 		assertNotNull(result2b);
 		assertEquals("bar", result2b.getPayload());
-		assertFalse(endpoint.send(badMessage));
+		endpoint.onMessage(badMessage);
 	}
 
 	@Test
@@ -406,21 +404,21 @@ public class MethodInvokingRouterTests {
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
-		assertTrue(endpoint.send(fooMessage));
+		endpoint.onMessage(fooMessage);
 		Message<?> result1a = fooChannel.receive(0);
 		Message<?> result1b = barChannel.receive(0);
 		assertNotNull(result1a);
 		assertEquals("foo", result1a.getPayload());
 		assertNotNull(result1b);
 		assertEquals("foo", result1b.getPayload());
-		assertTrue(endpoint.send(barMessage));
+		endpoint.onMessage(barMessage);
 		Message<?> result2a = fooChannel.receive(0);
 		Message<?> result2b = barChannel.receive(0);
 		assertNotNull(result2a);
 		assertEquals("bar", result2a.getPayload());
 		assertNotNull(result2b);
 		assertEquals("bar", result2b.getPayload());
-		assertFalse(endpoint.send(badMessage));
+		endpoint.onMessage(badMessage);
 	}
 
 	@Test
@@ -453,21 +451,21 @@ public class MethodInvokingRouterTests {
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
-		assertTrue(endpoint.send(fooMessage));
+		endpoint.onMessage(fooMessage);
 		Message<?> result1a = fooChannel.receive(0);
 		Message<?> result1b = barChannel.receive(0);
 		assertNotNull(result1a);
 		assertEquals("foo", result1a.getPayload());
 		assertNotNull(result1b);
 		assertEquals("foo", result1b.getPayload());
-		assertTrue(endpoint.send(barMessage));
+		endpoint.onMessage(barMessage);
 		Message<?> result2a = fooChannel.receive(0);
 		Message<?> result2b = barChannel.receive(0);
 		assertNotNull(result2a);
 		assertEquals("bar", result2a.getPayload());
 		assertNotNull(result2b);
 		assertEquals("bar", result2b.getPayload());
-		assertFalse(endpoint.send(badMessage));
+		endpoint.onMessage(badMessage);
 	}
 
 	@Test
@@ -500,21 +498,21 @@ public class MethodInvokingRouterTests {
 		Message<String> fooMessage = new StringMessage("foo");
 		Message<String> barMessage = new StringMessage("bar");
 		Message<String> badMessage = new StringMessage("bad");
-		assertTrue(endpoint.send(fooMessage));
+		endpoint.onMessage(fooMessage);
 		Message<?> result1a = fooChannel.receive(0);
 		Message<?> result1b = barChannel.receive(0);
 		assertNotNull(result1a);
 		assertEquals("foo", result1a.getPayload());
 		assertNotNull(result1b);
 		assertEquals("foo", result1b.getPayload());
-		assertTrue(endpoint.send(barMessage));
+		endpoint.onMessage(barMessage);
 		Message<?> result2a = fooChannel.receive(0);
 		Message<?> result2b = barChannel.receive(0);
 		assertNotNull(result2a);
 		assertEquals("bar", result2a.getPayload());
 		assertNotNull(result2b);
 		assertEquals("bar", result2b.getPayload());
-		assertFalse(endpoint.send(badMessage));
+		endpoint.onMessage(badMessage);
 	}
 
 

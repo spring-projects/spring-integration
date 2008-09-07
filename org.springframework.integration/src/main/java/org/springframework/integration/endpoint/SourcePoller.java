@@ -16,30 +16,34 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.integration.dispatcher.SimpleDispatcher;
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.BlockingSource;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageDeliveryAware;
+import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.PollableSource;
-import org.springframework.integration.message.SubscribableSource;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
  */
-public class SourcePoller extends AbstractPoller implements SubscribableSource {
+public class SourcePoller extends AbstractPoller {
 
 	private final PollableSource<?> source;
 
-	private final SimpleDispatcher dispatcher = new SimpleDispatcher();
+	private final MessageChannel channel;
 
 	private volatile long receiveTimeout = 1000;
 
 
-	public SourcePoller(PollableSource<?> source, Schedule schedule) {
+	public SourcePoller(PollableSource<?> source, MessageChannel channel, Schedule schedule) {
 		super(schedule);
 		Assert.notNull(source, "source must not be null");
+		Assert.notNull(channel, "channel must not be null");
 		this.source = source;
+		this.channel = channel;
 	}
 
 
@@ -54,14 +58,6 @@ public class SourcePoller extends AbstractPoller implements SubscribableSource {
 		this.receiveTimeout = receiveTimeout;
 	}
 
-	public boolean subscribe(MessageEndpoint endpoint) {
-		return this.dispatcher.subscribe(endpoint);
-	}
-
-	public boolean unsubscribe(MessageEndpoint endpoint) {
-		return this.dispatcher.unsubscribe(endpoint);
-	}
-
 	@Override
 	protected boolean doPoll() {
 		Message<?> message = (this.receiveTimeout >= 0 && this.source instanceof BlockingSource)
@@ -70,7 +66,20 @@ public class SourcePoller extends AbstractPoller implements SubscribableSource {
 		if (message == null) {
 			return false;
 		}
-		return this.dispatcher.dispatch(message);
+		try {
+			boolean sent = this.channel.send(message); 
+			if (sent && this.source instanceof MessageDeliveryAware) {
+				((MessageDeliveryAware) this.source).onSend(message);
+			}
+			return sent;
+		}
+		catch (Exception e) {
+			if (this.source instanceof MessageDeliveryAware) {
+				((MessageDeliveryAware) this.source).onFailure(message, e);
+			}
+			throw (e instanceof MessagingException) ? (MessagingException) e
+					: new MessageDeliveryException(message, "source poller failed to send message to channel", e);
+		}
 	}
 
 }

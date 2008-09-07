@@ -44,18 +44,12 @@ import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
-import org.springframework.integration.channel.PollableChannel;
-import org.springframework.integration.endpoint.AbstractPoller;
-import org.springframework.integration.endpoint.ChannelPoller;
 import org.springframework.integration.endpoint.DefaultEndpointRegistry;
 import org.springframework.integration.endpoint.EndpointRegistry;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.MessagingGateway;
-import org.springframework.integration.message.MessageSource;
-import org.springframework.integration.message.SubscribableSource;
-import org.springframework.integration.scheduling.PollingSchedule;
-import org.springframework.integration.scheduling.Schedule;
 import org.springframework.integration.scheduling.TaskScheduler;
+import org.springframework.integration.scheduling.TaskSchedulerAware;
 import org.springframework.integration.scheduling.spi.ProviderTaskScheduler;
 import org.springframework.integration.scheduling.spi.SimpleScheduleServiceProvider;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
@@ -78,13 +72,9 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 
 	private final EndpointRegistry endpointRegistry = new DefaultEndpointRegistry();
 
-	private final Set<AbstractPoller> pollers = new CopyOnWriteArraySet<AbstractPoller>();
-
-	private volatile Schedule defaultPollerSchedule = new PollingSchedule(0);
-
-	private final List<Lifecycle> lifecycleEndpoints = new CopyOnWriteArrayList<Lifecycle>();
-
 	private final MessageBusInterceptorsList interceptors = new MessageBusInterceptorsList();
+
+	private final Set<Lifecycle> lifecycleGateways = new CopyOnWriteArraySet<Lifecycle>();
 
 	private volatile TaskScheduler taskScheduler;
 
@@ -263,58 +253,52 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 		}
 	}
 
+	private void deactivateEndpoints() {
+		Set<String> endpointNames = this.endpointRegistry.getEndpointNames();
+		for (String name : endpointNames) {
+			MessageEndpoint endpoint = this.endpointRegistry.lookupEndpoint(name);
+			if (endpoint != null) {
+				this.deactivateEndpoint(endpoint);
+			}
+		}
+	}
+
 	private void activateEndpoint(MessageEndpoint endpoint) {
 		Assert.notNull(endpoint, "'endpoint' must not be null");
 		if (endpoint instanceof ChannelRegistryAware) {
 			((ChannelRegistryAware) endpoint).setChannelRegistry(this);
 		}
-		MessageSource<?> source = endpoint.getSource();
-		if (source == null) {
-			throw new ConfigurationException("endpoint '" + endpoint + "' has no source");
+		if (endpoint instanceof TaskSchedulerAware) {
+			((TaskSchedulerAware) endpoint).setTaskScheduler(this.taskScheduler);
 		}
-		if (source instanceof SubscribableSource) {
-			((SubscribableSource) source).subscribe(endpoint);
-			if (source instanceof AbstractPoller) {
-				AbstractPoller poller = (AbstractPoller) source;
-				this.pollers.add(poller);
-				this.taskScheduler.schedule(poller);
-			}
-			return;
-		}
-		else if (source instanceof PollableChannel) {
-			ChannelPoller poller = new ChannelPoller((PollableChannel) source, this.defaultPollerSchedule);
-			poller.subscribe(endpoint);
-			this.pollers.add(poller);
-			this.taskScheduler.schedule(poller);
+		if (endpoint instanceof Lifecycle) {
+			((Lifecycle) endpoint).start();
 		}
 		if (logger.isInfoEnabled()) {
-			logger.info("activated subscription to channel '"
-					+ source + "' for endpoint '" + endpoint + "'");
+			logger.info("activated endpoint '" + endpoint + "'");
 		}
 	}
 
+	public void deactivateEndpoint(MessageEndpoint endpoint) {
+		Assert.notNull(endpoint, "'endpoint' must not be null");
+		if (endpoint instanceof Lifecycle) {
+			((Lifecycle) endpoint).stop();
+			if (this.logger.isInfoEnabled()) {
+				logger.info("deactivated endpoint '" + endpoint + "'");
+			}
+		}
+	}
+
+	// TODO: once gateways are endpoints, remove this 
 	private void registerGateway(String name, MessagingGateway gateway) {
 		if (gateway instanceof Lifecycle) {
-			this.lifecycleEndpoints.add((Lifecycle) gateway);
+			this.lifecycleGateways.add((Lifecycle) gateway);
 			if (this.isRunning()) {
 				((Lifecycle) gateway).start();
 			}
 		}
 		if (logger.isInfoEnabled()) {
 			logger.info("registered gateway '" + name + "'");
-		}
-	}
-
-	public void deactivateEndpoint(MessageEndpoint endpoint) {
-		Assert.notNull(endpoint, "'endpoint' must not be null");
-		for (AbstractPoller poller : this.pollers) {
-			boolean removed = ((AbstractPoller) poller).unsubscribe(endpoint);
-			if (removed && this.logger.isInfoEnabled()) {
-				logger.info("unsubscribed endpoint '" + endpoint + "' from poller '" + poller + "'");
-			}
-		}
-		if (endpoint instanceof Lifecycle) {
-			((Lifecycle) endpoint).stop();
 		}
 	}
 
@@ -335,14 +319,11 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 		this.starting = true;
 		synchronized (this.lifecycleMonitor) {
 			this.activateEndpoints();
+			for (Lifecycle gateway : this.lifecycleGateways) {
+				gateway.start();
+			}
 			this.taskScheduler.setErrorHandler(new MessagePublishingErrorHandler(this.getErrorChannel()));
 			this.taskScheduler.start();
-			for (Lifecycle endpoint : this.lifecycleEndpoints) {
-				endpoint.start();
-				if (logger.isInfoEnabled()) {
-					logger.info("started endpoint '" + endpoint + "'");
-				}
-			}
 		}
 		this.running = true;
 		this.starting = false;
@@ -358,14 +339,12 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 		}
 		this.interceptors.preStop();
 		synchronized (this.lifecycleMonitor) {
+			this.deactivateEndpoints();
+			for (Lifecycle gateway : this.lifecycleGateways) {
+				gateway.stop();
+			}
 			this.running = false;
 			this.taskScheduler.stop();
-			for (Lifecycle endpoint : this.lifecycleEndpoints) {
-				endpoint.stop();
-				if (logger.isInfoEnabled()) {
-					logger.info("stopped endpoint '" + endpoint + "'");
-				}
-			}
 		}
 		this.interceptors.postStop();
 		if (logger.isInfoEnabled()) {

@@ -64,9 +64,9 @@ public class MessageFilterTests {
 				return true;
 			}
 		});
-		filter.setSource(inputChannel);
+		filter.setInputChannel(inputChannel);
 		filter.setOutputChannel(outputChannel);
-		filter.afterPropertiesSet();
+		filter.start();
 		Message<?> message = new StringMessage("test");
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);
@@ -83,9 +83,9 @@ public class MessageFilterTests {
 				return false;
 			}
 		});
-		filter.setSource(inputChannel);
+		filter.setInputChannel(inputChannel);
 		filter.setOutputChannel(outputChannel);
-		filter.afterPropertiesSet();
+		filter.start();
 		Message<?> message = new StringMessage("test");
 		assertTrue(inputChannel.send(message));
 		assertNull(outputChannel.receive(0));

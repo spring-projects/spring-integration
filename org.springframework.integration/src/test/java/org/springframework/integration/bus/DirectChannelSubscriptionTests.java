@@ -61,7 +61,7 @@ public class DirectChannelSubscriptionTests {
 	public void testSendAndReceiveForRegisteredEndpoint() {
 		MethodInvoker invoker = new MessageMappingMethodInvoker(new TestBean(), "handle");
 		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(invoker);
-		endpoint.setSource(sourceChannel);
+		endpoint.setInputChannel(sourceChannel);
 		endpoint.setOutputChannel(targetChannel);
 		endpoint.setBeanName("testEndpoint");
 		bus.registerEndpoint(endpoint);
@@ -95,7 +95,7 @@ public class DirectChannelSubscriptionTests {
 				throw new RuntimeException("intentional test failure");
 			}
 		};
-		endpoint.setSource(sourceChannel);
+		endpoint.setInputChannel(sourceChannel);
 		endpoint.setOutputChannel(targetChannel);
 		endpoint.setBeanName("testEndpoint");
 		bus.registerEndpoint(endpoint);

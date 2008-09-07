@@ -24,30 +24,34 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
-import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageExchangeTemplate;
-import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.message.SubscribableSource;
+import org.springframework.integration.scheduling.TaskScheduler;
+import org.springframework.integration.scheduling.TaskSchedulerAware;
 import org.springframework.integration.util.ErrorHandler;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 
 /**
  * The base class for Message Endpoint implementations.
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegistryAware, BeanNameAware, InitializingBean {
+public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegistryAware, TaskSchedulerAware, BeanNameAware, InitializingBean {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile String name;
 
-	private MessageSource<?> source;
+	private volatile ChannelRegistry channelRegistry;
+
+	private volatile TaskScheduler taskScheduler;
+
+	private volatile PlatformTransactionManager transactionManager;
+
+	private volatile TransactionDefinition transactionDefinition;
 
 	private volatile ErrorHandler errorHandler;
-
-	private volatile ChannelRegistry channelRegistry;
 
 	private final MessageExchangeTemplate messageExchangeTemplate = new MessageExchangeTemplate();
 
@@ -63,20 +67,28 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 		this.name = name;
 	}
 
-	public MessageSource<?> getSource() {
-		return this.source;
-	}
-
-	public void setSource(MessageSource<?> source) {
-		this.source = source;
-	}
-
 	protected ChannelRegistry getChannelRegistry() {
 		return this.channelRegistry;
 	}
 
 	public void setChannelRegistry(ChannelRegistry channelRegistry) {
 		this.channelRegistry = channelRegistry;
+	}
+
+	protected TaskScheduler getTaskScheduler() {
+		return this.taskScheduler;
+	}
+
+	public void setTaskScheduler(TaskScheduler taskScheduler) {
+		this.taskScheduler = taskScheduler;
+	}
+
+	public void setTransactionManager(PlatformTransactionManager transactionManager) {
+		this.transactionManager = transactionManager;
+	}
+
+	public void setTransactionDefinition(TransactionDefinition transactionDefinition) {
+		this.transactionDefinition= transactionDefinition;
 	}
 
 	protected MessageExchangeTemplate getMessageExchangeTemplate() {
@@ -94,9 +106,6 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 	}
 
 	public final void afterPropertiesSet() {
-		if (this.source != null && (this.source instanceof SubscribableSource)) {
-			((SubscribableSource) this.source).subscribe(this);
-		}
 		try {
 			this.initialize();
 		}
@@ -114,31 +123,7 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 	protected void initialize()  throws Exception {
 	}
 
-	public final boolean send(Message<?> message) {
-		if (message == null || message.getPayload() == null) {
-			throw new IllegalArgumentException("Message and its payload must not be null");
-		}
-		if (this.logger.isDebugEnabled()) {
-			this.logger.debug("endpoint '" + this + "' processing message: " + message);
-		}
-		try {
-			return this.sendInternal(message);
-		}
-		catch (Exception e) {
-			if (e instanceof MessagingException) {
-				this.handleException((MessagingException) e);
-			}
-			else {
-				this.handleException(new MessageHandlingException(message,
-						"failure occurred in endpoint '" + this.toString() + "'", e));
-			}
-			return false;
-		}
-	}
-
-	protected abstract boolean sendInternal(Message<?> message);
-
-	private void handleException(MessagingException exception) {
+	protected void handleException(MessagingException exception) {
 		if (this.errorHandler == null) {
 			if (this.logger.isWarnEnabled()) {
 				this.logger.warn("exception occurred in endpoint '" + this.name + "'", exception);
@@ -146,6 +131,18 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 			throw exception;
 		}
 		this.errorHandler.handle(exception);
+	}
+
+	protected final void configureTransactionSettingsForPoller(AbstractPoller poller) {
+		if (this.transactionManager != null) {
+			poller.setTransactionManager(this.transactionManager);
+		}
+		if (this.transactionDefinition != null) {
+			poller.setPropagationBehavior(this.transactionDefinition.getPropagationBehavior());
+			poller.setIsolationLevel(this.transactionDefinition.getIsolationLevel());
+			poller.setTransactionReadOnly(this.transactionDefinition.isReadOnly());
+			poller.setTransactionTimeout(this.transactionDefinition.getTimeout());
+		}
 	}
 
 	public String toString() {

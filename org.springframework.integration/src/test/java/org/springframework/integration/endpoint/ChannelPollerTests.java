@@ -18,6 +18,7 @@ package org.springframework.integration.endpoint;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
@@ -26,9 +27,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.integration.channel.PollableChannel;
-import org.springframework.integration.endpoint.ChannelPoller;
-import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.scheduling.Schedule;
 
 /**
@@ -40,7 +41,7 @@ public class ChannelPollerTests {
 	private ChannelPoller poller;
 	private Schedule scheduleMock = createMock(Schedule.class);
 	private PollableChannel channelMock = createMock(PollableChannel.class);
-	private MessageEndpoint endpointMock = createMock(MessageEndpoint.class);
+	private MessageConsumer endpointMock = createMock(MessageConsumer.class);
 	private Message messageMock = createMock(Message.class);
 	private Object[] globalMocks = new Object[] { scheduleMock, channelMock, endpointMock, messageMock };
 
@@ -57,7 +58,8 @@ public class ChannelPollerTests {
 	@Test
 	public void singleMessage() {
 		expect(channelMock.receive()).andReturn(messageMock);
-		expect(endpointMock.send(messageMock)).andReturn(true);
+		endpointMock.onMessage(messageMock);
+		expectLastCall();
 		replay(globalMocks);
 		poller.setMaxMessagesPerPoll(1);
 		poller.run();
@@ -67,7 +69,8 @@ public class ChannelPollerTests {
 	@Test
 	public void multipleMessages() {
 		expect(channelMock.receive()).andReturn(messageMock).times(5);
-		expect(endpointMock.send(messageMock)).andReturn(true).times(5);
+		endpointMock.onMessage(messageMock);
+		expectLastCall().times(5);
 		replay(globalMocks);
 		poller.setMaxMessagesPerPoll(5);
 		poller.run();
@@ -78,26 +81,29 @@ public class ChannelPollerTests {
 	public void multipleMessages_underrun() {
 		expect(channelMock.receive()).andReturn(messageMock).times(5);
 		expect(channelMock.receive()).andReturn(null);
-		expect(endpointMock.send(messageMock)).andReturn(true).times(5);
+		endpointMock.onMessage(messageMock);
+		expectLastCall().times(5);
 		replay(globalMocks);
 		poller.setMaxMessagesPerPoll(6);
 		poller.run();
 		verify(globalMocks);
 	}
 
-	@Test
-	public void droppedMessage() {
+	@Test(expected = MessageRejectedException.class)
+	public void rejectedMessage() {
 		expect(channelMock.receive()).andReturn(messageMock);
-		expect(endpointMock.send(messageMock)).andReturn(false);
+		endpointMock.onMessage(messageMock);
+		expectLastCall().andThrow(new MessageRejectedException(messageMock, "intentional test failure"));
 		replay(globalMocks);
 		poller.run();
 		verify(globalMocks);
 	}
 
-	@Test
+	@Test(expected = MessageRejectedException.class)
 	public void droppedMessage_onePerPoll() {
 		expect(channelMock.receive()).andReturn(messageMock).times(1);
-		expect(endpointMock.send(messageMock)).andReturn(false).anyTimes();
+		endpointMock.onMessage(messageMock);
+		expectLastCall().andThrow(new MessageRejectedException(messageMock, "intentional test failure")).anyTimes();
 		replay(globalMocks);
 		poller.setMaxMessagesPerPoll(10);
 		poller.run();
@@ -121,9 +127,11 @@ public class ChannelPollerTests {
 		poller = new ChannelPoller(channelMock, scheduleMock);
 		poller.subscribe(endpointMock);
 		expect(channelMock.receive(1)).andReturn(messageMock);
-		expect(endpointMock.send(messageMock)).andReturn(false);
+		endpointMock.onMessage(messageMock);
+		expectLastCall();
 		replay(globalMocks);
 		poller.setReceiveTimeout(1);
+		poller.setMaxMessagesPerPoll(1);
 		poller.run();
 		verify(globalMocks);
 	}

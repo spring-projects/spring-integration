@@ -16,8 +16,6 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageSource;
 
 /**
  * Base interface for message endpoints.
@@ -27,9 +25,5 @@ import org.springframework.integration.message.MessageSource;
 public interface MessageEndpoint {
 
 	String getName();
-
-	MessageSource<?> getSource();
-
-	boolean send(Message<?> message);
 
 }

@@ -27,7 +27,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.endpoint.AbstractMessageConsumingEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.util.Assert;
@@ -41,7 +41,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class CharacterStreamTarget extends AbstractEndpoint {
+public class CharacterStreamTarget extends AbstractMessageConsumingEndpoint {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -118,13 +118,13 @@ public class CharacterStreamTarget extends AbstractEndpoint {
 	}
 
 	@Override
-	public boolean sendInternal(Message message) {
+	public void processMessage(Message<?> message) {
 		Object payload = message.getPayload();
 		if (payload == null) {
 			if (logger.isWarnEnabled()) {
 				logger.warn("target received null payload");
 			}
-			return false;
+			return;
 		}
 		try {
 			if (payload instanceof String) {
@@ -143,7 +143,6 @@ public class CharacterStreamTarget extends AbstractEndpoint {
 				writer.newLine();
 			}
 			writer.flush();
-			return true;
 		}
 		catch (IOException e) {
 			throw new MessagingException("IO failure occurred in target", e);

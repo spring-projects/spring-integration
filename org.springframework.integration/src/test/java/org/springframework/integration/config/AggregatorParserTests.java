@@ -61,7 +61,7 @@ public class AggregatorParserTests {
 		outboundMessages.add(createMessage("789", "id1", 3, 3, null));
 		outboundMessages.add(createMessage("456", "id1", 3, 2, null));
 		for (Message<?> message : outboundMessages) {
-			endpoint.send(message);
+			endpoint.onMessage(message);
 		}
 		Assert.assertEquals("One and only one message must have been aggregated", 1, aggregatorBean
 				.getAggregatedMessages().size());
@@ -111,7 +111,7 @@ public class AggregatorParserTests {
 		outboundMessages.add(createMessage(2l, "id1", 3, 3, null));
 		outboundMessages.add(createMessage(3l, "id1", 3, 2, null));
 		for (Message<?> message : outboundMessages) {
-			addingAggregator.send(message);
+			addingAggregator.onMessage(message);
 		}
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		Message<?> response = outputChannel.receive();
@@ -140,13 +140,13 @@ public class AggregatorParserTests {
 		MethodInvoker invoker = (MethodInvoker) completionStrategyAccessor.getPropertyValue("invoker");
 		Assert.assertTrue(new DirectFieldAccessor(invoker).getPropertyValue("object") instanceof MaxValueCompletionStrategy);
 		Assert.assertTrue(((Method)completionStrategyAccessor.getPropertyValue("method")).getName().equals("checkCompleteness"));
-		aggregatorWithPojoCompletionStrategy.send(createMessage(1l, "id1", 0 , 0, null));
-		aggregatorWithPojoCompletionStrategy.send(createMessage(2l, "id1", 0 , 0, null));
-		aggregatorWithPojoCompletionStrategy.send(createMessage(3l, "id1", 0 , 0, null));
+		aggregatorWithPojoCompletionStrategy.onMessage(createMessage(1l, "id1", 0 , 0, null));
+		aggregatorWithPojoCompletionStrategy.onMessage(createMessage(2l, "id1", 0 , 0, null));
+		aggregatorWithPojoCompletionStrategy.onMessage(createMessage(3l, "id1", 0 , 0, null));
 		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
 		Message<?> reply = outputChannel.receive(0);
 		Assert.assertNull(reply);
-		aggregatorWithPojoCompletionStrategy.send(createMessage(5l, "id1", 0 , 0, null));
+		aggregatorWithPojoCompletionStrategy.onMessage(createMessage(5l, "id1", 0 , 0, null));
 		reply = outputChannel.receive(0);
 		Assert.assertNotNull(reply);		
 		Assert.assertEquals(11l, reply.getPayload());

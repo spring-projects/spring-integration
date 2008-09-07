@@ -53,7 +53,7 @@ public class MessageExchangeTemplateTests {
 		MessageBus bus = new DefaultMessageBus();
 		bus.registerChannel(requestChannel);
 		endpoint.setBeanName("testEndpoint");
-		endpoint.setSource(requestChannel);
+		endpoint.setInputChannel(requestChannel);
 		bus.registerEndpoint(endpoint);
 		bus.start();
 	}

@@ -19,6 +19,7 @@ package org.springframework.integration.endpoint;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.dispatcher.SimpleDispatcher;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.SubscribableSource;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.util.Assert;
@@ -50,12 +51,12 @@ public class ChannelPoller extends AbstractPoller implements SubscribableSource 
 		this.receiveTimeout = receiveTimeout;
 	}
 
-	public boolean subscribe(MessageEndpoint endpoint) {
-		return this.dispatcher.subscribe(endpoint);
+	public boolean subscribe(MessageConsumer consumer) {
+		return this.dispatcher.subscribe(consumer);
 	}
 
-	public boolean unsubscribe(MessageEndpoint endpoint) {
-		return this.dispatcher.unsubscribe(endpoint);
+	public boolean unsubscribe(MessageConsumer consumer) {
+		return this.dispatcher.unsubscribe(consumer);
 	}
 
 	@Override

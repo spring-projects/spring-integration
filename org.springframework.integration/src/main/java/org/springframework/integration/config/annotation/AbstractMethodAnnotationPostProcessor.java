@@ -28,7 +28,7 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.AbstractInOutEndpoint;
-import org.springframework.integration.endpoint.ChannelPoller;
+import org.springframework.integration.endpoint.AbstractMessageConsumingEndpoint;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -87,22 +87,22 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			if (inputChannel == null) {
 				throw new ConfigurationException("unable to resolve inputChannel '" + inputChannelName + "'");
 			}
-			if (pollerAnnotation != null) {
-				if (inputChannel instanceof PollableChannel) {
-					PollingSchedule schedule = new PollingSchedule(pollerAnnotation.period());
-					schedule.setInitialDelay(pollerAnnotation.initialDelay());
-					schedule.setFixedRate(pollerAnnotation.fixedRate());
-					schedule.setTimeUnit(pollerAnnotation.timeUnit());
-					ChannelPoller poller = new ChannelPoller((PollableChannel) inputChannel, schedule);
-					poller.setMaxMessagesPerPoll(pollerAnnotation.maxMessagesPerPoll());
-					endpoint.setSource(poller);
+			if (endpoint instanceof AbstractMessageConsumingEndpoint) {
+				AbstractMessageConsumingEndpoint consumingEndpoint = (AbstractMessageConsumingEndpoint) endpoint;
+				if (pollerAnnotation != null) {	
+					if (inputChannel instanceof PollableChannel) {
+						PollingSchedule schedule = new PollingSchedule(pollerAnnotation.period());
+						schedule.setInitialDelay(pollerAnnotation.initialDelay());
+						schedule.setFixedRate(pollerAnnotation.fixedRate());
+						schedule.setTimeUnit(pollerAnnotation.timeUnit());
+						consumingEndpoint.setSchedule(schedule);
+						consumingEndpoint.setMaxMessagesPerPoll(pollerAnnotation.maxMessagesPerPoll());
+					}
+					else {
+						throw new ConfigurationException("The @Poller annotation should only be provided for a PollableChannel");
+					}
 				}
-				else {
-					throw new ConfigurationException("The @Poller annotation should only be provided for a PollableSource");
-				}
-			}
-			else {
-				endpoint.setSource(inputChannel);
+				consumingEndpoint.setInputChannel(inputChannel);
 			}
 			if (endpoint instanceof AbstractInOutEndpoint) {
 				String outputChannelName = (String) AnnotationUtils.getValue(annotation, OUTPUT_CHANNEL_ATTRIBUTE);

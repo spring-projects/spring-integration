@@ -26,11 +26,9 @@ import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
-import org.springframework.integration.endpoint.ChannelPoller;
 import org.springframework.integration.endpoint.InboundChannelAdapter;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.OutboundChannelAdapter;
-import org.springframework.integration.endpoint.SourcePoller;
 import org.springframework.integration.handler.MethodInvokingTarget;
 import org.springframework.integration.message.MethodInvokingSource;
 import org.springframework.integration.scheduling.PollingSchedule;
@@ -90,32 +88,22 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 					+ "when using the @ChannelAdapter annotation with a no-arg method.");
 		}
 		Schedule schedule = this.createSchedule(pollerAnnotation);
-		SourcePoller poller = new SourcePoller(source, schedule);
-		int maxMessagesPerPoll = pollerAnnotation.maxMessagesPerPoll();
-		if (maxMessagesPerPoll == -1) {
-			// the default is 1 since a MethodInvokingSource might return a non-null value
-			// every time it is invoked, thus producing an infinite number of messages per poll
-			maxMessagesPerPoll = 1;
-		}
-		poller.setMaxMessagesPerPoll(maxMessagesPerPoll);
 		InboundChannelAdapter adapter = new InboundChannelAdapter();
-		adapter.setSource(poller);
+		adapter.setSource(source);
 		adapter.setChannel(channel);
+		adapter.setSchedule(schedule);
 		adapter.setBeanName(this.generateUniqueName(channel.getName() + ".inboundAdapter"));
 		return adapter;
 	}
 
 	private OutboundChannelAdapter createOutboundChannelAdapter(MethodInvokingTarget target, MessageChannel channel, Poller pollerAnnotation) {
 		OutboundChannelAdapter adapter = new OutboundChannelAdapter(target);
+		adapter.setInputChannel(channel);
 		if (channel instanceof PollableChannel) {
 			Schedule schedule = (pollerAnnotation != null)
 					? this.createSchedule(pollerAnnotation)
 					: new PollingSchedule(0);
-			ChannelPoller poller = new ChannelPoller((PollableChannel) channel, schedule);
-			adapter.setSource(poller);
-		}
-		else {
-			adapter.setSource(channel);
+			adapter.setSchedule(schedule);
 		}
 		adapter.setBeanName(this.generateUniqueName(channel.getName() + ".outboundAdapter"));
 		return adapter;

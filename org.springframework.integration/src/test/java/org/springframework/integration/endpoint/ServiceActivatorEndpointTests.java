@@ -54,7 +54,7 @@ public class ServiceActivatorEndpointTests {
 		ServiceActivatorEndpoint endpoint = this.createEndpoint();
 		endpoint.setOutputChannel(channel);
 		Message<?> message = MessageBuilder.fromPayload("foo").build();
-		endpoint.send(message);
+		endpoint.onMessage(message);
 		Message<?> reply = channel.receive(0);
 		assertNotNull(reply);
 		assertEquals("FOO", reply.getPayload());
@@ -67,7 +67,7 @@ public class ServiceActivatorEndpointTests {
 		ServiceActivatorEndpoint endpoint = this.createEndpoint();
 		endpoint.setOutputChannel(channel1);
 		Message<?> message = MessageBuilder.fromPayload("foo").setReturnAddress(channel2).build();
-		endpoint.send(message);
+		endpoint.onMessage(message);
 		Message<?> reply1 = channel1.receive(0);
 		assertNotNull(reply1);
 		assertEquals("FOO", reply1.getPayload());
@@ -80,7 +80,7 @@ public class ServiceActivatorEndpointTests {
 		QueueChannel channel = new QueueChannel(1);
 		ServiceActivatorEndpoint endpoint = this.createEndpoint();
 		Message<?> message = MessageBuilder.fromPayload("foo").setReturnAddress(channel).build();
-		endpoint.send(message);
+		endpoint.onMessage(message);
 		Message<?> reply = channel.receive(0);
 		assertNotNull(reply);
 		assertEquals("FOO", reply.getPayload());
@@ -95,7 +95,7 @@ public class ServiceActivatorEndpointTests {
 		ServiceActivatorEndpoint endpoint = this.createEndpoint();
 		endpoint.setChannelRegistry(channelRegistry);
 		Message<?> message = MessageBuilder.fromPayload("foo").setReturnAddress("testChannel").build();
-		endpoint.send(message);
+		endpoint.onMessage(message);
 		Message<?> reply = channel.receive(0);
 		assertNotNull(reply);
 		assertEquals("FOO", reply.getPayload());
@@ -118,7 +118,7 @@ public class ServiceActivatorEndpointTests {
 		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> testMessage1 = MessageBuilder.fromPayload("bar")
 				.setReturnAddress(replyChannel1).build();
-		endpoint.send(testMessage1);
+		endpoint.onMessage(testMessage1);
 		Message<?> reply1 = replyChannel1.receive(50);
 		assertNotNull(reply1);
 		assertEquals("foobar", reply1.getPayload());
@@ -126,7 +126,7 @@ public class ServiceActivatorEndpointTests {
 		assertNull(reply2);
 		Message<String> testMessage2 = MessageBuilder.fromMessage(testMessage1)
 				.setReturnAddress("replyChannel2").build();
-		endpoint.send(testMessage2);
+		endpoint.onMessage(testMessage2);
 		reply1 = replyChannel1.receive(0);
 		assertNull(reply1);
 		reply2 = replyChannel2.receive(0);
@@ -139,7 +139,7 @@ public class ServiceActivatorEndpointTests {
 		QueueChannel channel = new QueueChannel(1);
 		ServiceActivatorEndpoint endpoint = this.createEndpoint();
 		Message<?> message = MessageBuilder.fromPayload("foo").setReturnAddress(channel).build();
-		endpoint.send(message);
+		endpoint.onMessage(message);
 		Message<?> reply = channel.receive(0);
 		assertNotNull(reply);
 		assertEquals("FOO", reply.getPayload());
@@ -149,7 +149,7 @@ public class ServiceActivatorEndpointTests {
 	public void noReplyTarget() {
 		ServiceActivatorEndpoint endpoint = this.createEndpoint();
 		Message<?> message = MessageBuilder.fromPayload("foo").build();
-		endpoint.send(message);
+		endpoint.onMessage(message);
 	}
 
 	@Test
@@ -159,7 +159,7 @@ public class ServiceActivatorEndpointTests {
 				new TestNullReplyBean(), "handle");
 		endpoint.setOutputChannel(channel);
 		Message<?> message = MessageBuilder.fromPayload("foo").build();
-		endpoint.send(message);
+		endpoint.onMessage(message);
 		assertNull(channel.receive(0));
 	}
 
@@ -171,7 +171,7 @@ public class ServiceActivatorEndpointTests {
 		endpoint.setRequiresReply(true);
 		endpoint.setOutputChannel(channel);
 		Message<?> message = MessageBuilder.fromPayload("foo").build();
-		endpoint.send(message);
+		endpoint.onMessage(message);
 	}
 
 	@Test(expected=MessageRejectedException.class)
@@ -183,7 +183,7 @@ public class ServiceActivatorEndpointTests {
 				return false;
 			}
 		});
-		endpoint.send(new StringMessage("test"));
+		endpoint.onMessage(new StringMessage("test"));
 	}
 
 	@Test
@@ -196,7 +196,7 @@ public class ServiceActivatorEndpointTests {
 				return true;
 			}
 		});
-		endpoint.send(new StringMessage("test"));
+		endpoint.onMessage(new StringMessage("test"));
 		latch.await(100, TimeUnit.MILLISECONDS);
 		assertEquals("handler should have been invoked", 0, latch.getCount());
 	}
@@ -222,7 +222,7 @@ public class ServiceActivatorEndpointTests {
 		endpoint.setSelector(selectorChain);
 		boolean exceptionWasThrown = false;
 		try {
-			endpoint.send(new StringMessage("test"));
+			endpoint.onMessage(new StringMessage("test"));
 		}
 		catch (MessageRejectedException e) {
 			exceptionWasThrown = true;
@@ -253,7 +253,7 @@ public class ServiceActivatorEndpointTests {
 		endpoint.setSelector(selectorChain);
 		boolean exceptionWasThrown = false;
 		try {
-			endpoint.send(new StringMessage("test"));
+			endpoint.onMessage(new StringMessage("test"));
 		}
 		catch (MessageRejectedException e) {
 			exceptionWasThrown = true;
@@ -282,7 +282,7 @@ public class ServiceActivatorEndpointTests {
 			}
 		});
 		endpoint.setSelector(selectorChain);
-		assertTrue(endpoint.send(new StringMessage("test")));
+		endpoint.onMessage(new StringMessage("test"));
 		assertEquals("both selectors and handler should have been invoked", 3, counter.get());
 	}
 
@@ -297,7 +297,7 @@ public class ServiceActivatorEndpointTests {
 		}, "handle");
 		Message<String> message = MessageBuilder.fromPayload("test")
 				.setReturnAddress(replyChannel).build();
-		endpoint.send(message);
+		endpoint.onMessage(message);
 		Message<?> reply = replyChannel.receive(500);
 		assertNull(reply.getHeaders().getCorrelationId());
 	}
@@ -313,7 +313,7 @@ public class ServiceActivatorEndpointTests {
 		}, "handle");
 		Message<String> message = MessageBuilder.fromPayload("test")
 				.setReturnAddress(replyChannel).build();
-		endpoint.send(message);
+		endpoint.onMessage(message);
 		Message<?> reply = replyChannel.receive(500);
 		assertEquals(message.getHeaders().getId(), reply.getHeaders().getCorrelationId());
 	}
@@ -330,7 +330,7 @@ public class ServiceActivatorEndpointTests {
 		}, "handle");
 		Message<String> message = MessageBuilder.fromPayload("test")
 				.setReturnAddress(replyChannel).build();
-		endpoint.send(message);
+		endpoint.onMessage(message);
 		Message<?> reply = replyChannel.receive(500);
 		Object correlationId = reply.getHeaders().getCorrelationId();
 		assertFalse(message.getHeaders().getId().equals(correlationId));

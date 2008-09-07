@@ -21,7 +21,7 @@ import java.util.Collection;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.endpoint.AbstractMessageConsumingEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageExchangeTemplate;
@@ -30,7 +30,7 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  */
-public class RouterEndpoint extends AbstractEndpoint {
+public class RouterEndpoint extends AbstractMessageConsumingEndpoint {
 
 	private final ChannelResolver channelResolver;
 
@@ -78,7 +78,7 @@ public class RouterEndpoint extends AbstractEndpoint {
 	}
 
 	@Override
-	protected boolean sendInternal(Message<?> message) {
+	protected void processMessage(Message<?> message) {
 		boolean sent = false;
 		Collection<MessageChannel> results = this.channelResolver.resolveChannels(message);
 		if (results != null) {
@@ -99,7 +99,6 @@ public class RouterEndpoint extends AbstractEndpoint {
 						"no target resolved by router and no default output channel defined");
 			}
 		}
-		return sent;
 	}
 
 }

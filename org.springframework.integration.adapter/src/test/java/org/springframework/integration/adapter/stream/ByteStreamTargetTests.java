@@ -51,7 +51,7 @@ public class ByteStreamTargetTests {
 	public void testSingleByteArray() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		ByteStreamTarget target = new ByteStreamTarget(stream);
-		target.send(new GenericMessage<byte[]>(new byte[] {1,2,3}));
+		target.onMessage(new GenericMessage<byte[]>(new byte[] {1,2,3}));
 		byte[] result = stream.toByteArray();
 		assertEquals(3, result.length);
 		assertEquals(1, result[0]);
@@ -63,7 +63,7 @@ public class ByteStreamTargetTests {
 	public void testSingleString() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		ByteStreamTarget target = new ByteStreamTarget(stream);
-		target.send(new StringMessage("foo"));
+		target.onMessage(new StringMessage("foo"));
 		byte[] result = stream.toByteArray();
 		assertEquals(3, result.length);
 		assertEquals("foo", new String(result));

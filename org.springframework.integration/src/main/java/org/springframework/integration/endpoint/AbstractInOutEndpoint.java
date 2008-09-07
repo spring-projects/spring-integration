@@ -34,7 +34,7 @@ import org.springframework.integration.message.selector.MessageSelector;
 /**
  * @author Mark Fisher
  */
-public abstract class AbstractInOutEndpoint extends AbstractEndpoint {
+public abstract class AbstractInOutEndpoint extends AbstractMessageConsumingEndpoint {
 
 	private MessageChannel outputChannel;
 
@@ -73,11 +73,11 @@ public abstract class AbstractInOutEndpoint extends AbstractEndpoint {
 	}
 
 	@Override
-	protected boolean sendInternal(Message<?> message) {
+	protected void processMessage(Message<?> message) {
 		for (EndpointInterceptor interceptor : this.interceptors) {
 			message = interceptor.preHandle(message);
 			if (message == null) {
-				return false;
+				return;
 			}
 		}
 		if (!this.supports(message)) {
@@ -89,7 +89,7 @@ public abstract class AbstractInOutEndpoint extends AbstractEndpoint {
 				throw new MessageHandlingException(message, "endpoint '" + this.getName()
 						+ " requires a reply, but no reply was received");
 			}
-			return true;
+			return;
 		}
 		Message<?> reply = null;
 		if (result instanceof Message && result.equals(message)) {
@@ -106,10 +106,9 @@ public abstract class AbstractInOutEndpoint extends AbstractEndpoint {
 				boolean sent = this.sendReplyMessage(nextReply, replyChannel);
 				sentAtLeastOne = (sentAtLeastOne || sent);
 			}
-			return sentAtLeastOne;
 		}
 		else {
-			return this.sendReplyMessage(reply, replyChannel);
+			this.sendReplyMessage(reply, replyChannel);
 		}
 	}
 

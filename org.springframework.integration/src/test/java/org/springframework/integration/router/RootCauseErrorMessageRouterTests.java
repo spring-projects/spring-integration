@@ -65,7 +65,7 @@ public class RootCauseErrorMessageRouterTests {
 		resolver.setChannelMappings(channelMappings);
 		RouterEndpoint endpoint = new RouterEndpoint(resolver);
 		endpoint.setDefaultOutputChannel(defaultChannel);
-		endpoint.send(message);
+		endpoint.onMessage(message);
 		assertNotNull(illegalArgumentChannel.receive(1000));
 		assertNull(defaultChannel.receive(0));
 		assertNull(runtimeExceptionChannel.receive(0));
@@ -87,7 +87,7 @@ public class RootCauseErrorMessageRouterTests {
 		resolver.setChannelMappings(channelMappings);
 		RouterEndpoint endpoint = new RouterEndpoint(resolver);
 		endpoint.setDefaultOutputChannel(defaultChannel);
-		endpoint.send(message);
+		endpoint.onMessage(message);
 		assertNotNull(runtimeExceptionChannel.receive(1000));
 		assertNull(illegalArgumentChannel.receive(0));
 		assertNull(defaultChannel.receive(0));
@@ -108,7 +108,7 @@ public class RootCauseErrorMessageRouterTests {
 		resolver.setChannelMappings(channelMappings);
 		RouterEndpoint endpoint = new RouterEndpoint(resolver);
 		endpoint.setDefaultOutputChannel(defaultChannel);
-		endpoint.send(message);
+		endpoint.onMessage(message);
 		assertNotNull(messageHandlingExceptionChannel.receive(1000));
 		assertNull(runtimeExceptionChannel.receive(0));
 		assertNull(illegalArgumentChannel.receive(0));
@@ -125,7 +125,7 @@ public class RootCauseErrorMessageRouterTests {
 		RootCauseErrorMessageChannelResolver resolver = new RootCauseErrorMessageChannelResolver();
 		RouterEndpoint endpoint = new RouterEndpoint(resolver);
 		endpoint.setDefaultOutputChannel(defaultChannel);
-		endpoint.send(message);
+		endpoint.onMessage(message);
 		assertNotNull(defaultChannel.receive(1000));
 		assertNull(runtimeExceptionChannel.receive(0));
 		assertNull(illegalArgumentChannel.receive(0));
@@ -146,7 +146,7 @@ public class RootCauseErrorMessageRouterTests {
 		resolver.setChannelMappings(channelMappings);
 		RouterEndpoint endpoint = new RouterEndpoint(resolver);
 		endpoint.setResolutionRequired(true);
-		endpoint.send(message);
+		endpoint.onMessage(message);
 	}
 
 	@Test
@@ -165,7 +165,7 @@ public class RootCauseErrorMessageRouterTests {
 		resolver.setChannelMappings(channelMappings);
 		RouterEndpoint endpoint = new RouterEndpoint(resolver);
 		endpoint.setDefaultOutputChannel(defaultChannel);
-		endpoint.send(message);
+		endpoint.onMessage(message);
 		assertNotNull(illegalArgumentChannel.receive(1000));
 		assertNull(defaultChannel.receive(0));
 		assertNull(runtimeExceptionChannel.receive(0));
@@ -187,7 +187,7 @@ public class RootCauseErrorMessageRouterTests {
 		resolver.setChannelMappings(channelMappings);
 		RouterEndpoint endpoint = new RouterEndpoint(resolver);
 		endpoint.setDefaultOutputChannel(defaultChannel);
-		endpoint.send(message);
+		endpoint.onMessage(message);
 		assertNotNull(illegalArgumentChannel.receive(1000));
 		assertNull(defaultChannel.receive(0));
 		assertNull(runtimeExceptionChannel.receive(0));

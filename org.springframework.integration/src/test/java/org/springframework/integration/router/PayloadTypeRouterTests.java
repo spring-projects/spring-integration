@@ -71,8 +71,8 @@ public class PayloadTypeRouterTests {
 		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> message1 = new StringMessage("test");
 		Message<Integer> message2 = new GenericMessage<Integer>(123);
-		endpoint.send(message1);
-		endpoint.send(message2);
+		endpoint.onMessage(message1);
+		endpoint.onMessage(message2);
 		Message<?> reply1 = stringChannel.receive(0);
 		Message<?> reply2 = integerChannel.receive(0);
 		assertEquals("test", reply1.getPayload());
@@ -96,8 +96,8 @@ public class PayloadTypeRouterTests {
 		endpoint.setDefaultOutputChannel(defaultChannel);
 		Message<String> message1 = new StringMessage("test");
 		Message<Integer> message2 = new GenericMessage<Integer>(123);
-		endpoint.send(message1);
-		endpoint.send(message2);
+		endpoint.onMessage(message1);
+		endpoint.onMessage(message2);
 		Message<?> result1 = stringChannel.receive(25);
 		assertNotNull(result1);
 		assertEquals("test", result1.getPayload());

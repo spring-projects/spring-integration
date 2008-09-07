@@ -17,7 +17,6 @@
 package org.springframework.integration.router;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
@@ -45,7 +44,7 @@ public class SingleChannelRouterTests {
 		};
 		RouterEndpoint endpoint = new RouterEndpoint(channelResolver);
 		Message<String> message = new StringMessage("test");
-		endpoint.send(message);
+		endpoint.onMessage(message);
 		Message<?> result = channel.receive(25);
 		assertNotNull(result);
 		assertEquals("test", result.getPayload());
@@ -65,14 +64,14 @@ public class SingleChannelRouterTests {
 		RouterEndpoint endpoint = new RouterEndpoint(channelNameResolver);
 		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> message = new StringMessage("test");
-		endpoint.send(message);
+		endpoint.onMessage(message);
 		Message<?> result = channel.receive(25);
 		assertNotNull(result);
 		assertEquals("test", result.getPayload());
 	}
 
 	@Test
-	public void nullChannelResult() {
+	public void nullChannelResultIgnored() {
 		AbstractSingleChannelResolver channelResolver = new AbstractSingleChannelResolver() {
 			public MessageChannel resolveChannel(Message<?> message) {
 				return null;
@@ -80,7 +79,7 @@ public class SingleChannelRouterTests {
 		};
 		RouterEndpoint endpoint = new RouterEndpoint(channelResolver);
 		Message<String> message = new StringMessage("test");
-		assertFalse(endpoint.send(message));
+		endpoint.onMessage(message);
 	}
 
 	@Test(expected = MessagingException.class)
@@ -94,7 +93,7 @@ public class SingleChannelRouterTests {
 		RouterEndpoint endpoint = new RouterEndpoint(channelNameResolver);
 		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> message = new StringMessage("test");
-		endpoint.send(message);
+		endpoint.onMessage(message);
 	}
 
 }

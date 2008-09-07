@@ -72,10 +72,10 @@ public class ConsoleTargetParser extends AbstractSingleBeanDefinitionParser {
 		}
 		String channelName = element.getAttribute("channel");
 		if (StringUtils.hasText(channelName)) {
-			builder.addPropertyReference("source", channelName);
+			builder.addPropertyReference("inputChannel", channelName);
 		}
 		else {
-			builder.addPropertyReference("source", this.createDirectChannel(element, parserContext));
+			builder.addPropertyReference("inputChannel", this.createDirectChannel(element, parserContext));
 		}
 	}
 

@@ -19,8 +19,8 @@ package org.springframework.integration.channel.config;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.SubscribableSource;
 
 /**
@@ -28,20 +28,20 @@ import org.springframework.integration.message.SubscribableSource;
  */
 public class TestSubscribableSource implements SubscribableSource {
 
-	private final List<MessageEndpoint> endpoints = new CopyOnWriteArrayList<MessageEndpoint>();
+	private final List<MessageConsumer> subscibers = new CopyOnWriteArrayList<MessageConsumer>();
 
 
-	public boolean subscribe(MessageEndpoint endpoint) {
-		return this.endpoints.add(endpoint);
+	public boolean subscribe(MessageConsumer subsciber) {
+		return this.subscibers.add(subsciber);
 	}
 
-	public boolean unsubscribe(MessageEndpoint endpoint) {
-		return this.endpoints.remove(endpoint);
+	public boolean unsubscribe(MessageConsumer subsciber) {
+		return this.subscibers.remove(subsciber);
 	}
 
 	public void publishMessage(Message<?> message) {
-		for (MessageEndpoint endpoint : this.endpoints) {
-			endpoint.send(message);
+		for (MessageConsumer subsciber : this.subscibers) {
+			subsciber.onMessage(message);
 		}
 	}
 

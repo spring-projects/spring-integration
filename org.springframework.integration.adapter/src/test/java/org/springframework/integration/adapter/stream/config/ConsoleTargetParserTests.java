@@ -72,7 +72,7 @@ public class ConsoleTargetParserTests {
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
 		assertEquals(Charset.defaultCharset(), writerCharset);
 		this.resetStreams();
-		target.send(new StringMessage("foo"));
+		target.onMessage(new StringMessage("foo"));
 		assertEquals("foo", out.toString());
 		assertEquals("", err.toString());
 	}
@@ -92,7 +92,7 @@ public class ConsoleTargetParserTests {
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
 		assertEquals(Charset.forName("UTF-8"), writerCharset);
 		this.resetStreams();
-		target.send(new StringMessage("bar"));
+		target.onMessage(new StringMessage("bar"));
 		assertEquals("bar", out.toString());
 		assertEquals("", err.toString());
 	}
@@ -128,7 +128,7 @@ public class ConsoleTargetParserTests {
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
 		assertEquals(Charset.defaultCharset(), writerCharset);
 		this.resetStreams();
-		target.send(new StringMessage("bad"));
+		target.onMessage(new StringMessage("bad"));
 		assertEquals("", out.toString());
 		assertEquals("bad", err.toString());
 	}
@@ -148,7 +148,7 @@ public class ConsoleTargetParserTests {
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
 		assertEquals(Charset.defaultCharset(), writerCharset);
 		this.resetStreams();
-		target.send(new StringMessage("foo"));
+		target.onMessage(new StringMessage("foo"));
 		assertEquals("foo\n", out.toString());
 	}
 

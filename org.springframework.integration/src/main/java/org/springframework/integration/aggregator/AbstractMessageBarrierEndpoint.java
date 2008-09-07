@@ -151,7 +151,8 @@ public abstract class AbstractMessageBarrierEndpoint extends AbstractInOutEndpoi
 	 * Initialize this endpoint.
 	 */
 	@Override
-	protected void initialize() {
+	protected void initialize()  throws Exception {
+		super.initialize();
 		this.trackedCorrelationIds = new ArrayBlockingQueue<Object>(this.trackedCorrelationIdCapacity);
 		this.executor.scheduleWithFixedDelay(new ReaperTask(),
 				this.reaperInterval, this.reaperInterval, TimeUnit.MILLISECONDS);

@@ -44,11 +44,11 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.endpoint.ChannelPoller;
 import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageSource;
+import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.message.SubscribableSource;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.integration.util.MethodInvoker;
@@ -295,10 +295,10 @@ public class MessagingAnnotationPostProcessorTests {
 		AnnotatedEndpointWithPolledAnnotation endpoint = new AnnotatedEndpointWithPolledAnnotation();
 		postProcessor.postProcessAfterInitialization(endpoint, "testBean");
 		ServiceActivatorEndpoint processedEndpoint = (ServiceActivatorEndpoint) messageBus.lookupEndpoint("testBean.serviceActivator");
+		processedEndpoint.afterPropertiesSet();
 		DirectFieldAccessor accessor = new DirectFieldAccessor(processedEndpoint);
-		MessageSource<?> source = (MessageSource<?>) accessor.getPropertyValue("source");
-		assertTrue(source instanceof SubscribableSource);
-		Schedule schedule = (Schedule) new DirectFieldAccessor(source).getPropertyValue("schedule");
+		ChannelPoller poller = (ChannelPoller) accessor.getPropertyValue("poller");
+		Schedule schedule = (Schedule) new DirectFieldAccessor(poller).getPropertyValue("schedule");
 		assertEquals(PollingSchedule.class, schedule.getClass());
 		PollingSchedule pollingSchedule = (PollingSchedule) schedule;
 		assertEquals(1234, pollingSchedule.getPeriod());
@@ -318,17 +318,10 @@ public class MessagingAnnotationPostProcessorTests {
 		DirectChannel testChannel = (DirectChannel) messageBus.lookupChannel("testChannel");
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicReference<Message<?>> receivedMessage = new AtomicReference<Message<?>>();
-		testChannel.subscribe(new org.springframework.integration.endpoint.MessageEndpoint() {
-			public boolean send(Message<?> message) {
+		testChannel.subscribe(new MessageConsumer() {
+			public void onMessage(Message<?> message) {
 				receivedMessage.set(message);
 				latch.countDown();
-				return false;
-			}
-			public String getName() {
-				return null;
-			}
-			public MessageSource<?> getSource() {
-				return null;
 			}
 		});
 		latch.await(3, TimeUnit.SECONDS);

@@ -17,9 +17,9 @@
 package org.springframework.integration.dispatcher;
 
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.MessageConsumer;
 
 /**
  * A broadcasting dispatcher implementation. It makes a best effort to
@@ -45,8 +45,8 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 
 	public boolean dispatch(Message<?> message) {
 		int sequenceNumber = 1;
-		int sequenceSize = this.endpoints.size();
-		for (final MessageEndpoint endpoint : this.endpoints) {
+		int sequenceSize = this.subscribers.size();
+		for (final MessageConsumer consumer : this.subscribers) {
 			final Message<?> messageToSend = (!this.applySequence) ? message
 				: MessageBuilder.fromMessage(message)
 						.setSequenceNumber(sequenceNumber++)
@@ -56,12 +56,12 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 			if (executor != null) {
 				executor.execute(new Runnable() {
 					public void run() {
-						sendMessageToEndpoint(messageToSend, endpoint);
+						consumer.onMessage(messageToSend);
 					}
 				});
 			}
 			else {
-				this.sendMessageToEndpoint(messageToSend, endpoint);
+				consumer.onMessage(messageToSend);
 			}
 		}
 		return true;

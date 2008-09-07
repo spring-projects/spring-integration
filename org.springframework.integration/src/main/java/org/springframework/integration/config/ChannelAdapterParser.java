@@ -73,18 +73,20 @@ public class ChannelAdapterParser extends AbstractBeanDefinitionParser {
 				source = BeanDefinitionReaderUtils.registerWithGeneratedName(invokerBuilder.getBeanDefinition(), parserContext.getRegistry());
 			}
 			adapterBuilder =  BeanDefinitionBuilder.genericBeanDefinition(InboundChannelAdapter.class);
-			if (pollerElement != null) {
-				String pollerBeanName = IntegrationNamespaceUtils.parseSourcePoller(source, pollerElement, parserContext);
-				adapterBuilder.addPropertyReference("source", pollerBeanName);
-			}
-			else {
-				adapterBuilder.addPropertyReference("source", source);
-			}
+			adapterBuilder.addPropertyReference("source", source);
 			if (StringUtils.hasText(channelName)) {
 				adapterBuilder.addPropertyReference("channel", channelName);
 			}
 			else {
 				adapterBuilder.addPropertyReference("channel", this.createDirectChannel(element, parserContext));
+			}
+			if (pollerElement != null) {
+				IntegrationNamespaceUtils.configureSchedule(pollerElement, adapterBuilder);
+				IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, pollerElement, "max-messages-per-poll");
+				Element txElement = DomUtils.getChildElementByTagName(pollerElement, "transactional");
+				if (txElement != null) {
+					IntegrationNamespaceUtils.configureTransactionAttributes(txElement, adapterBuilder);
+				}
 			}
 		}
 		else if (StringUtils.hasText(target)) {
@@ -100,14 +102,17 @@ public class ChannelAdapterParser extends AbstractBeanDefinitionParser {
 				if (!StringUtils.hasText(channelName)) {
 					throw new ConfigurationException("outbound channel-adapter with a 'poller' requires a 'channel' to poll");
 				}
-				String pollerBeanName = IntegrationNamespaceUtils.parseChannelPoller(channelName, pollerElement, parserContext);
-				adapterBuilder.addPropertyReference("source", pollerBeanName);
+				IntegrationNamespaceUtils.configureSchedule(pollerElement, adapterBuilder);
+				Element txElement = DomUtils.getChildElementByTagName(pollerElement, "transactional");
+				if (txElement != null) {
+					IntegrationNamespaceUtils.configureTransactionAttributes(txElement, adapterBuilder);
+				}
 			}
-			else if (StringUtils.hasText(channelName)) {
-				adapterBuilder.addPropertyReference("source", channelName);
+			if (StringUtils.hasText(channelName)) {
+				adapterBuilder.addPropertyReference("inputChannel", channelName);
 			}
 			else {
-				adapterBuilder.addPropertyReference("source",
+				adapterBuilder.addPropertyReference("inputChannel",
 						this.createDirectChannel(element, parserContext));
 			}
 		}

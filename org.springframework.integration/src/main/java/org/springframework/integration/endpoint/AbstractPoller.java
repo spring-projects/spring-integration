@@ -18,11 +18,11 @@ package org.springframework.integration.endpoint;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.message.SubscribableSource;
 import org.springframework.integration.scheduling.SchedulableTask;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
@@ -30,7 +30,7 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  */
-public abstract class AbstractPoller implements SubscribableSource, SchedulableTask, InitializingBean {
+public abstract class AbstractPoller implements SchedulableTask, InitializingBean {
 
 	public static final int MAX_MESSAGES_UNBOUNDED = -1;
 
@@ -45,11 +45,11 @@ public abstract class AbstractPoller implements SubscribableSource, SchedulableT
 
 	private volatile TransactionTemplate transactionTemplate;
 
-	private volatile String propagationBehaviorName = "PROPAGATION_REQUIRED";
+	private volatile int propagationBehavior = DefaultTransactionDefinition.PROPAGATION_REQUIRED;
 
-	private volatile String isolationLevelName = "ISOLATION_DEFAULT";
+	private volatile int isolationLevel = DefaultTransactionDefinition.ISOLATION_DEFAULT;
 
-	private volatile int transactionTimeout = -1;
+	private volatile int transactionTimeout = DefaultTransactionDefinition.TIMEOUT_DEFAULT;
 
 	private volatile boolean readOnly = false;
 
@@ -94,12 +94,12 @@ public abstract class AbstractPoller implements SubscribableSource, SchedulableT
 		this.transactionManager = transactionManager;
 	}
 
-	public void setPropagationBehaviorName(String propagationBehaviorName) {
-		this.propagationBehaviorName = propagationBehaviorName;
+	public void setPropagationBehavior(int propagationBehavior) {
+		this.propagationBehavior = propagationBehavior;
 	}
 
-	public void setIsolationLevelName(String isolationLevelName) {
-		this.isolationLevelName = isolationLevelName;
+	public void setIsolationLevel(int isolationLevel) {
+		this.isolationLevel = isolationLevel;
 	}
 
 	public void setTransactionTimeout(int transactionTimeout) {
@@ -124,8 +124,8 @@ public abstract class AbstractPoller implements SubscribableSource, SchedulableT
 			}
 			if (this.transactionManager != null) {
 				TransactionTemplate template = new TransactionTemplate(this.transactionManager);
-				template.setPropagationBehaviorName(this.propagationBehaviorName);
-				template.setIsolationLevelName(this.isolationLevelName);
+				template.setPropagationBehavior(this.propagationBehavior);
+				template.setIsolationLevel(this.isolationLevel);
 				template.setTimeout(this.transactionTimeout);
 				template.setReadOnly(this.readOnly);
 				this.transactionTemplate = template;

@@ -205,7 +205,7 @@ public class SimpleMessagingGateway extends MessagingGatewaySupport implements M
 			}
 			ReplyMessageCorrelator correlator = new ReplyMessageCorrelator(this.replyMapCapacity);
 			correlator.setBeanName("internal.correlator." + this);
-			correlator.setSource(this.replyChannel);
+			correlator.setInputChannel(this.replyChannel);
 			correlator.afterPropertiesSet();
 			this.endpointRegistry.registerEndpoint(correlator);
 			this.replyMessageCorrelator = correlator;

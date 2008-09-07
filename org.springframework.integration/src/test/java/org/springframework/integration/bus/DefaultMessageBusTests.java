@@ -34,7 +34,6 @@ import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.AbstractInOutEndpoint;
 import org.springframework.integration.endpoint.InboundChannelAdapter;
-import org.springframework.integration.endpoint.SourcePoller;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
@@ -66,7 +65,7 @@ public class DefaultMessageBusTests {
 			}
 		};
 		endpoint.setBeanName("testEndpoint");
-		endpoint.setSource(sourceChannel);
+		endpoint.setInputChannel(sourceChannel);
 		bus.registerEndpoint(endpoint);
 		bus.start();
 		Message<?> result = targetChannel.receive(3000);
@@ -126,10 +125,10 @@ public class DefaultMessageBusTests {
 		bus.registerChannel(outputChannel1);
 		bus.registerChannel(outputChannel2);
 		endpoint1.setBeanName("testEndpoint1");
-		endpoint1.setSource(inputChannel);
+		endpoint1.setInputChannel(inputChannel);
 		endpoint1.setOutputChannel(outputChannel1);
 		endpoint2.setBeanName("testEndpoint2");
-		endpoint2.setSource(inputChannel);
+		endpoint2.setInputChannel(inputChannel);
 		endpoint2.setOutputChannel(outputChannel2);
 		bus.registerEndpoint(endpoint1);
 		bus.registerEndpoint(endpoint2);
@@ -169,10 +168,10 @@ public class DefaultMessageBusTests {
 		bus.registerChannel(outputChannel1);
 		bus.registerChannel(outputChannel2);
 		endpoint1.setBeanName("testEndpoint1");
-		endpoint1.setSource(inputChannel);
+		endpoint1.setInputChannel(inputChannel);
 		endpoint1.setOutputChannel(outputChannel1);
 		endpoint2.setBeanName("testEndpoint2");
-		endpoint2.setSource(inputChannel);
+		endpoint2.setInputChannel(inputChannel);
 		endpoint2.setOutputChannel(outputChannel2);
 		bus.registerEndpoint(endpoint1);
 		bus.registerEndpoint(endpoint2);
@@ -191,18 +190,21 @@ public class DefaultMessageBusTests {
 	public void testErrorChannelWithFailedDispatch() throws InterruptedException {
 		MessageBus bus = new DefaultMessageBus();
 		QueueChannel errorChannel = new QueueChannel();
+		QueueChannel outputChannel = new QueueChannel();
 		errorChannel.setBeanName("errorChannel");
 		bus.registerChannel(errorChannel);
 		CountDownLatch latch = new CountDownLatch(1);
 		InboundChannelAdapter channelAdapter = new InboundChannelAdapter();
-		SourcePoller poller = new SourcePoller(new FailingSource(latch), new PollingSchedule(1000));
-		channelAdapter.setSource(poller);
+		channelAdapter.setSource(new FailingSource(latch));
+		channelAdapter.setSchedule(new PollingSchedule(1000));
+		channelAdapter.setChannel(outputChannel);
 		channelAdapter.setBeanName("testChannel");
 		bus.registerEndpoint(channelAdapter);
 		bus.start();
 		latch.await(2000, TimeUnit.MILLISECONDS);
 		Message<?> message = errorChannel.receive(5000);
 		bus.stop();
+		assertNull(outputChannel.receive(0));
 		assertNotNull("message should not be null", message);
 		assertTrue(message instanceof ErrorMessage);
 		Throwable exception = ((ErrorMessage) message).getPayload();
@@ -237,7 +239,7 @@ public class DefaultMessageBusTests {
 			}
 		};
 		endpoint.setBeanName("testEndpoint");
-		endpoint.setSource(errorChannel);
+		endpoint.setInputChannel(errorChannel);
 		bus.registerEndpoint(endpoint);
 		bus.start();
 		errorChannel.send(new ErrorMessage(new RuntimeException("test-exception")));
