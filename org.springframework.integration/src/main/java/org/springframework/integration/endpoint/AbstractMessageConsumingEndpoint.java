@@ -24,7 +24,7 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.message.SubscribableSource;
+import org.springframework.integration.message.Subscribable;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
 
@@ -93,8 +93,8 @@ public abstract class AbstractMessageConsumingEndpoint extends AbstractEndpoint 
 			if (this.inputChannel == null) {
 				throw new ConfigurationException("failed to start endpoint, inputChannel is required");
 			}
-			if (this.inputChannel instanceof SubscribableSource) {
-				((SubscribableSource) inputChannel).subscribe(this);
+			if (this.inputChannel instanceof Subscribable) {
+				((Subscribable) inputChannel).subscribe(this);
 			}
 			else if (this.inputChannel instanceof PollableChannel) {
 				if (this.getTaskScheduler() == null) {
@@ -111,8 +111,8 @@ public abstract class AbstractMessageConsumingEndpoint extends AbstractEndpoint 
 			if (!this.running) {
 				return;
 			}
-			if (this.inputChannel instanceof SubscribableSource) {
-				((SubscribableSource) inputChannel).unsubscribe(this);
+			if (this.inputChannel instanceof Subscribable) {
+				((Subscribable) inputChannel).unsubscribe(this);
 			}
 			else if (this.poller != null) {
 				this.getTaskScheduler().cancel(poller, true);

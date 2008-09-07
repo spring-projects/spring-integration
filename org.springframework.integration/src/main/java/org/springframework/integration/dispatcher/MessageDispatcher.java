@@ -17,14 +17,14 @@
 package org.springframework.integration.dispatcher;
 
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.SubscribableSource;
+import org.springframework.integration.message.Subscribable;
 
 /**
  * Strategy interface for dispatching messages.
  * 
  * @author Mark Fisher
  */
-public interface MessageDispatcher extends SubscribableSource {
+public interface MessageDispatcher extends Subscribable {
 
 	boolean dispatch(Message<?> message);
 

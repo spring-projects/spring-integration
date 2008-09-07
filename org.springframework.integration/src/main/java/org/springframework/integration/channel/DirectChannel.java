@@ -20,7 +20,7 @@ import org.springframework.integration.dispatcher.SimpleDispatcher;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageConsumer;
-import org.springframework.integration.message.SubscribableSource;
+import org.springframework.integration.message.Subscribable;
 
 /**
  * A channel that invokes the subscribed {@link MessageEndpoint endpoint(s)}
@@ -29,7 +29,7 @@ import org.springframework.integration.message.SubscribableSource;
  * @author Dave Syer
  * @author Mark Fisher
  */
-public class DirectChannel extends AbstractMessageChannel implements SubscribableSource {
+public class DirectChannel extends AbstractMessageChannel implements Subscribable {
 
 	private final SimpleDispatcher dispatcher = new SimpleDispatcher();
 

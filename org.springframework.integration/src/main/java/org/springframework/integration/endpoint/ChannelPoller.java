@@ -20,14 +20,14 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.dispatcher.SimpleDispatcher;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageConsumer;
-import org.springframework.integration.message.SubscribableSource;
+import org.springframework.integration.message.Subscribable;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
  */
-public class ChannelPoller extends AbstractPoller implements SubscribableSource {
+public class ChannelPoller extends AbstractPoller implements Subscribable {
 
 	private final PollableChannel channel;
 

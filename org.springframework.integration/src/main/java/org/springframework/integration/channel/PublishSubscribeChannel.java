@@ -20,12 +20,12 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageConsumer;
-import org.springframework.integration.message.SubscribableSource;
+import org.springframework.integration.message.Subscribable;
 
 /**
  * @author Mark Fisher
  */
-public class PublishSubscribeChannel extends AbstractMessageChannel implements SubscribableSource {
+public class PublishSubscribeChannel extends AbstractMessageChannel implements Subscribable {
 
 	private final BroadcastingDispatcher dispatcher = new BroadcastingDispatcher();
 

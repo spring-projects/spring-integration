@@ -21,7 +21,7 @@ package org.springframework.integration.message;
  * 
  * @author Mark Fisher
  */
-public interface SubscribableSource extends MessageSource {
+public interface Subscribable {
 
 	/**
 	 * Register a {@link MessageConsumer} as a subscriber to this source.

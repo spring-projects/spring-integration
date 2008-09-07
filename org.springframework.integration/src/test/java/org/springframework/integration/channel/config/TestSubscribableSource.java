@@ -21,12 +21,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageConsumer;
-import org.springframework.integration.message.SubscribableSource;
+import org.springframework.integration.message.Subscribable;
 
 /**
  * @author Mark Fisher
  */
-public class TestSubscribableSource implements SubscribableSource {
+public class TestSubscribableSource implements Subscribable {
 
 	private final List<MessageConsumer> subscibers = new CopyOnWriteArrayList<MessageConsumer>();
 
