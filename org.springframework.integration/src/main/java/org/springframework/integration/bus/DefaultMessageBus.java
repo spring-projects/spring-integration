@@ -44,13 +44,14 @@ import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
-import org.springframework.integration.dispatcher.PollingDispatcher;
+import org.springframework.integration.channel.PollableChannel;
+import org.springframework.integration.endpoint.AbstractPoller;
+import org.springframework.integration.endpoint.ChannelPoller;
 import org.springframework.integration.endpoint.DefaultEndpointRegistry;
 import org.springframework.integration.endpoint.EndpointRegistry;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.MessagingGateway;
 import org.springframework.integration.message.MessageSource;
-import org.springframework.integration.message.PollableSource;
 import org.springframework.integration.message.SubscribableSource;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
@@ -77,7 +78,7 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 
 	private final EndpointRegistry endpointRegistry = new DefaultEndpointRegistry();
 
-	private final Set<PollingDispatcher> pollingDispatchers = new CopyOnWriteArraySet<PollingDispatcher>();
+	private final Set<AbstractPoller> pollers = new CopyOnWriteArraySet<AbstractPoller>();
 
 	private volatile Schedule defaultPollerSchedule = new PollingSchedule(0);
 
@@ -273,17 +274,17 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 		}
 		if (source instanceof SubscribableSource) {
 			((SubscribableSource) source).subscribe(endpoint);
-			if (source instanceof PollingDispatcher) {
-				PollingDispatcher poller = (PollingDispatcher) source;
-				this.pollingDispatchers.add(poller);
+			if (source instanceof AbstractPoller) {
+				AbstractPoller poller = (AbstractPoller) source;
+				this.pollers.add(poller);
 				this.taskScheduler.schedule(poller);
 			}
 			return;
 		}
-		else if (source instanceof PollableSource) {
-			PollingDispatcher poller = new PollingDispatcher((PollableSource<?>) source, this.defaultPollerSchedule);
+		else if (source instanceof PollableChannel) {
+			ChannelPoller poller = new ChannelPoller((PollableChannel) source, this.defaultPollerSchedule);
 			poller.subscribe(endpoint);
-			this.pollingDispatchers.add(poller);
+			this.pollers.add(poller);
 			this.taskScheduler.schedule(poller);
 		}
 		if (logger.isInfoEnabled()) {
@@ -306,10 +307,10 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 
 	public void deactivateEndpoint(MessageEndpoint endpoint) {
 		Assert.notNull(endpoint, "'endpoint' must not be null");
-		for (PollingDispatcher poller : this.pollingDispatchers) {
-			boolean removed = poller.unsubscribe(endpoint);
+		for (AbstractPoller poller : this.pollers) {
+			boolean removed = ((AbstractPoller) poller).unsubscribe(endpoint);
 			if (removed && this.logger.isInfoEnabled()) {
-				logger.info("removed endpoint '" + endpoint + "' from dispatcher '" + poller + "'");
+				logger.info("unsubscribed endpoint '" + endpoint + "' from poller '" + poller + "'");
 			}
 		}
 		if (endpoint instanceof Lifecycle) {

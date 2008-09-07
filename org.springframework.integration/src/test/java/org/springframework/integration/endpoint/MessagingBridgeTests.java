@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import org.springframework.integration.bus.DefaultMessageBus;
-import org.springframework.integration.dispatcher.PollingDispatcher;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageTarget;
 import org.springframework.integration.message.PollableSource;
@@ -52,7 +51,7 @@ public class MessagingBridgeTests {
 				return new StringMessage("test");
 			}
 		};
-		PollingDispatcher poller = new PollingDispatcher(source, new PollingSchedule(1000));
+		SourcePoller poller = new SourcePoller(source, new PollingSchedule(1000));
 		poller.setMaxMessagesPerPoll(1);
 		bridge.setSource(poller);
 		bus.registerEndpoint(bridge);

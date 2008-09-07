@@ -47,7 +47,7 @@ public class SimpleDispatcherTests {
 		SimpleDispatcher dispatcher = new SimpleDispatcher();
 		final CountDownLatch latch = new CountDownLatch(1);
 		dispatcher.subscribe(createEndpoint(TestHandlers.countDownHandler(latch)));
-		dispatcher.send(new StringMessage("test"));
+		dispatcher.dispatch(new StringMessage("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
 	}
@@ -60,7 +60,7 @@ public class SimpleDispatcherTests {
 		final AtomicInteger counter2 = new AtomicInteger();
 		dispatcher.subscribe(createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch)));
 		dispatcher.subscribe(createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch)));
-		dispatcher.send(new StringMessage("test"));
+		dispatcher.dispatch(new StringMessage("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
 		assertEquals("only 1 handler should have received the message", 1, counter1.get() + counter2.get());
@@ -73,7 +73,7 @@ public class SimpleDispatcherTests {
 		MessageEndpoint target = new CountingTestEndpoint(counter, false);
 		dispatcher.subscribe(target);
 		dispatcher.subscribe(target);
-		dispatcher.send(new StringMessage("test"));
+		dispatcher.dispatch(new StringMessage("test"));
 		assertEquals("target should not have duplicate subscriptions", 1, counter.get());
 	}
 
@@ -88,7 +88,7 @@ public class SimpleDispatcherTests {
 		dispatcher.subscribe(target2);
 		dispatcher.subscribe(target3);
 		dispatcher.unsubscribe(target2);
-		dispatcher.send(new StringMessage("test"));
+		dispatcher.dispatch(new StringMessage("test"));
 		assertEquals(2, counter.get());
 	}
 
@@ -102,13 +102,13 @@ public class SimpleDispatcherTests {
 		dispatcher.subscribe(target1);
 		dispatcher.subscribe(target2);
 		dispatcher.subscribe(target3);
-		dispatcher.send(new StringMessage("test1"));
+		dispatcher.dispatch(new StringMessage("test1"));
 		assertEquals(3, counter.get());
 		dispatcher.unsubscribe(target2);
-		dispatcher.send(new StringMessage("test2"));
+		dispatcher.dispatch(new StringMessage("test2"));
 		assertEquals(5, counter.get());
 		dispatcher.unsubscribe(target1);
-		dispatcher.send(new StringMessage("test3"));
+		dispatcher.dispatch(new StringMessage("test3"));
 		assertEquals(6, counter.get());
 	}
 
@@ -118,10 +118,10 @@ public class SimpleDispatcherTests {
 		final AtomicInteger counter = new AtomicInteger();
 		MessageEndpoint target = new CountingTestEndpoint(counter, false);
 		dispatcher.subscribe(target);
-		dispatcher.send(new StringMessage("test1"));
+		dispatcher.dispatch(new StringMessage("test1"));
 		assertEquals(1, counter.get());
 		dispatcher.unsubscribe(target);
-		dispatcher.send(new StringMessage("test2"));
+		dispatcher.dispatch(new StringMessage("test2"));
 	}
 
 	@Test
@@ -141,7 +141,7 @@ public class SimpleDispatcherTests {
 		dispatcher.subscribe(endpoint1);
 		dispatcher.subscribe(endpoint2);
 		dispatcher.subscribe(endpoint3);
-		dispatcher.send(new StringMessage("test"));
+		dispatcher.dispatch(new StringMessage("test"));
 		assertEquals(0, latch.getCount());
 		assertEquals("selectors should have been invoked one time each", 3, selectorCounter.get());
 		assertEquals("handler with rejecting selector should not have received the message", 0, counter1.get());
@@ -168,7 +168,7 @@ public class SimpleDispatcherTests {
 		dispatcher.subscribe(endpoint3);
 		boolean exceptionThrown = false;
 		try {
-			dispatcher.send(new StringMessage("test"));
+			dispatcher.dispatch(new StringMessage("test"));
 		}
 		catch (MessageRejectedException e) {
 			exceptionThrown = true;
@@ -190,7 +190,7 @@ public class SimpleDispatcherTests {
 		dispatcher.subscribe(target1);
 		dispatcher.subscribe(target2);
 		dispatcher.subscribe(target3);
-		assertTrue(dispatcher.send(new StringMessage("test")));
+		assertTrue(dispatcher.dispatch(new StringMessage("test")));
 		assertEquals("only the first target should have been invoked", 1, counter.get());
 	}
 
@@ -204,7 +204,7 @@ public class SimpleDispatcherTests {
 		dispatcher.subscribe(target1);
 		dispatcher.subscribe(target2);
 		dispatcher.subscribe(target3);
-		assertTrue(dispatcher.send(new StringMessage("test")));
+		assertTrue(dispatcher.dispatch(new StringMessage("test")));
 		assertEquals("first two targets should have been invoked", 2, counter.get());
 	}
 
@@ -218,7 +218,7 @@ public class SimpleDispatcherTests {
 		dispatcher.subscribe(target1);
 		dispatcher.subscribe(target2);
 		dispatcher.subscribe(target3);
-		assertFalse(dispatcher.send(new StringMessage("test")));
+		assertFalse(dispatcher.dispatch(new StringMessage("test")));
 		assertEquals("each target should have been invoked", 3, counter.get());
 	}
 

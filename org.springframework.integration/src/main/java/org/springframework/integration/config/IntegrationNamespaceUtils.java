@@ -26,11 +26,14 @@ import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
 import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.endpoint.ChannelPoller;
+import org.springframework.integration.endpoint.SourcePoller;
 import org.springframework.integration.scheduling.CronSchedule;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.StringUtils;
-import org.springframework.util.xml.DomUtils;       
+import org.springframework.util.xml.DomUtils;
 
 /**
  * Shared utility methods for integration namespace parsers.
@@ -135,15 +138,32 @@ public abstract class IntegrationNamespaceUtils {
 	}
 
 	/**
-	 * Parse a "poller" element and return the bean name of the poller instance.
+	 * Parse a "poller" element to create a ChannelPoller and return the bean name of the poller instance.
+	 * 
+	 * @param channelBeanName the name of the PollableChannel bean
+	 * @param element the "poller" element to parse
+	 * @param parserContext the parserContext for registering a newly created bean definition
+	 * @return the name of the ChannelPoller bean definition
+	 */
+	public static String parseChannelPoller(String channelBeanName, Element element, ParserContext parserContext) {
+		return parsePoller(channelBeanName, element, parserContext, true);
+	}
+
+	/**
+	 * Parse a "poller" element to create a SourcePoller and return the bean name of the poller instance.
 	 * 
 	 * @param sourceBeanName the name of the PollableSource bean
 	 * @param element the "poller" element to parse
 	 * @param parserContext the parserContext for registering a newly created bean definition
 	 * @return the name of the poller bean definition
 	 */
-	public static String parsePoller(String sourceBeanName, Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PollingDispatcherFactoryBean.class);
+	public static String parseSourcePoller(String sourceBeanName, Element element, ParserContext parserContext) {
+		return parsePoller(sourceBeanName, element, parserContext, false);
+	}
+
+	private static String parsePoller(String sourceBeanName, Element element, ParserContext parserContext, boolean isChannel) {
+		Class<?> beanClass = isChannel ? ChannelPoller.class : SourcePoller.class;
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(beanClass);
 		Schedule schedule = null;
 		if (!(StringUtils.hasText(element.getAttribute("period")) ^ StringUtils.hasText(element.getAttribute("cron")))) {
 			throw new ConfigurationException("A <poller> element must define either a period "
@@ -170,13 +190,15 @@ public abstract class IntegrationNamespaceUtils {
 		Element txElement = DomUtils.getChildElementByTagName(element, "transactional");
 		if (txElement != null) {
 			builder.addPropertyReference("transactionManager", txElement.getAttribute("transaction-manager"));
-			builder.addPropertyValue("propagationBehaviorName", txElement.getAttribute("propagation"));
-			builder.addPropertyValue("isolationLevelName", txElement.getAttribute("isolation"));
+			builder.addPropertyValue("propagationBehaviorName",
+					DefaultTransactionDefinition.PREFIX_PROPAGATION + txElement.getAttribute("propagation"));
+			builder.addPropertyValue("isolationLevelName",
+					DefaultTransactionDefinition.PREFIX_ISOLATION + txElement.getAttribute("isolation"));
 			builder.addPropertyValue("transactionTimeout", txElement.getAttribute("timeout"));
 			builder.addPropertyValue("transactionReadOnly", txElement.getAttribute("read-only"));
 		}
-		builder.addPropertyReference("source", sourceBeanName);
-		builder.addPropertyValue("schedule", schedule);
+		builder.addConstructorArgReference(sourceBeanName);
+		builder.addConstructorArgValue(schedule);
 		setValueIfAttributeDefined(builder, element, "receive-timeout");
 		setValueIfAttributeDefined(builder, element, "send-timeout");
 		setValueIfAttributeDefined(builder, element, "max-messages-per-poll");

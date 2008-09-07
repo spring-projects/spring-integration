@@ -35,7 +35,7 @@ import org.springframework.integration.message.MessageRejectedException;
  */
 public class SimpleDispatcher extends AbstractDispatcher {
 
-	public boolean send(Message<?> message) {
+	public boolean dispatch(Message<?> message) {
 		if (this.endpoints.size() == 0) {
 			throw new MessageDeliveryException(message, "Dispatcher has no subscribers.");
 		}

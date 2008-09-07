@@ -58,7 +58,7 @@ public class PublishSubscribeChannel extends AbstractMessageChannel implements S
 
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
-		return this.dispatcher.send(message);
+		return this.dispatcher.dispatch(message);
 	}
 
 }

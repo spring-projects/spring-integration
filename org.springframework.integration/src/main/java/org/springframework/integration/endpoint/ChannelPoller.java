@@ -14,24 +14,41 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.channel;
+package org.springframework.integration.endpoint;
 
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.dispatcher.SimpleDispatcher;
-import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.SubscribableSource;
+import org.springframework.integration.scheduling.Schedule;
+import org.springframework.util.Assert;
 
 /**
- * A channel that invokes the subscribed {@link MessageEndpoint endpoint(s)}
- * in the sender's thread (returning after at most one accepts the message).
- * 
- * @author Dave Syer
  * @author Mark Fisher
  */
-public class DirectChannel extends AbstractMessageChannel implements SubscribableSource {
+public class ChannelPoller extends AbstractPoller implements SubscribableSource {
+
+	private final PollableChannel channel;
+
+	private volatile long receiveTimeout = 1000;
 
 	private final SimpleDispatcher dispatcher = new SimpleDispatcher();
 
+
+	public ChannelPoller(PollableChannel channel, Schedule schedule) {
+		super(schedule);
+		Assert.notNull(channel, "channel must not be null");
+		this.channel = channel;
+	}
+
+	/**
+	 * Specify the timeout to use when receiving from the channel (in milliseconds).
+	 * A negative value indicates that receive calls should block indefinitely.
+	 * The default value is 1000 (1 second).
+	 */
+	public void setReceiveTimeout(long receiveTimeout) {
+		this.receiveTimeout = receiveTimeout;
+	}
 
 	public boolean subscribe(MessageEndpoint endpoint) {
 		return this.dispatcher.subscribe(endpoint);
@@ -42,7 +59,13 @@ public class DirectChannel extends AbstractMessageChannel implements Subscribabl
 	}
 
 	@Override
-	protected boolean doSend(Message<?> message, long timeout) {
+	protected boolean doPoll() {
+		Message<?> message = (this.receiveTimeout >= 0)
+				? this.channel.receive(this.receiveTimeout)
+				: this.channel.receive();
+		if (message == null) {
+			return false;
+		}
 		return this.dispatcher.dispatch(message);
 	}
 

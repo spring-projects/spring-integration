@@ -16,8 +16,6 @@
 
 package org.springframework.integration.dispatcher;
 
-import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.SubscribableSource;
 
@@ -26,12 +24,8 @@ import org.springframework.integration.message.SubscribableSource;
  * 
  * @author Mark Fisher
  */
-public interface MessageDispatcher extends MessageChannel, SubscribableSource {
+public interface MessageDispatcher extends SubscribableSource {
 
-	boolean send(Message<?> message);
-
-	boolean subscribe(MessageEndpoint endpoint);
-
-	boolean unsubscribe(MessageEndpoint endpoint);
+	boolean dispatch(Message<?> message);
 
 }

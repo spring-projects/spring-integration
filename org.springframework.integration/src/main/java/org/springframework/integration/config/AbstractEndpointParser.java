@@ -89,7 +89,7 @@ public abstract class AbstractEndpointParser extends AbstractSingleBeanDefinitio
 		}
 		Element pollerElement = DomUtils.getChildElementByTagName(element, POLLER_ELEMENT);
 		if (pollerElement != null) {
-			String pollerBeanName = IntegrationNamespaceUtils.parsePoller(inputChannel, pollerElement, parserContext);
+			String pollerBeanName = IntegrationNamespaceUtils.parseChannelPoller(inputChannel, pollerElement, parserContext);
 			builder.addPropertyReference("source", pollerBeanName);
 		}
 		else {

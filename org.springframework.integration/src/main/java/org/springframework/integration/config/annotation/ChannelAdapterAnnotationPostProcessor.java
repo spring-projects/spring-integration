@@ -26,14 +26,15 @@ import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
-import org.springframework.integration.dispatcher.PollingDispatcher;
+import org.springframework.integration.endpoint.ChannelPoller;
 import org.springframework.integration.endpoint.InboundChannelAdapter;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.OutboundChannelAdapter;
+import org.springframework.integration.endpoint.SourcePoller;
 import org.springframework.integration.handler.MethodInvokingTarget;
 import org.springframework.integration.message.MethodInvokingSource;
-import org.springframework.integration.message.PollableSource;
 import org.springframework.integration.scheduling.PollingSchedule;
+import org.springframework.integration.scheduling.Schedule;
 import org.springframework.util.Assert;
 
 /**
@@ -88,7 +89,15 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 			throw new ConfigurationException("The @Poller annotation is required (at method-level) "
 					+ "when using the @ChannelAdapter annotation with a no-arg method.");
 		}
-		PollingDispatcher poller = this.createPoller(source, pollerAnnotation);
+		Schedule schedule = this.createSchedule(pollerAnnotation);
+		SourcePoller poller = new SourcePoller(source, schedule);
+		int maxMessagesPerPoll = pollerAnnotation.maxMessagesPerPoll();
+		if (maxMessagesPerPoll == -1) {
+			// the default is 1 since a MethodInvokingSource might return a non-null value
+			// every time it is invoked, thus producing an infinite number of messages per poll
+			maxMessagesPerPoll = 1;
+		}
+		poller.setMaxMessagesPerPoll(maxMessagesPerPoll);
 		InboundChannelAdapter adapter = new InboundChannelAdapter();
 		adapter.setSource(poller);
 		adapter.setChannel(channel);
@@ -99,9 +108,10 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 	private OutboundChannelAdapter createOutboundChannelAdapter(MethodInvokingTarget target, MessageChannel channel, Poller pollerAnnotation) {
 		OutboundChannelAdapter adapter = new OutboundChannelAdapter(target);
 		if (channel instanceof PollableChannel) {
-			PollingDispatcher poller = (pollerAnnotation != null)
-					? this.createPoller((PollableChannel) channel, pollerAnnotation)
-					: new PollingDispatcher((PollableSource<?>) channel, new PollingSchedule(0));
+			Schedule schedule = (pollerAnnotation != null)
+					? this.createSchedule(pollerAnnotation)
+					: new PollingSchedule(0);
+			ChannelPoller poller = new ChannelPoller((PollableChannel) channel, schedule);
 			adapter.setSource(poller);
 		}
 		else {
@@ -111,20 +121,12 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 		return adapter;
 	}
 
-	private PollingDispatcher createPoller(PollableSource<?> source, Poller pollerAnnotation) {
+	private Schedule createSchedule(Poller pollerAnnotation) {
 		PollingSchedule schedule = new PollingSchedule(pollerAnnotation.period());
 		schedule.setInitialDelay(pollerAnnotation.initialDelay());
 		schedule.setFixedRate(pollerAnnotation.fixedRate());
 		schedule.setTimeUnit(pollerAnnotation.timeUnit());
-		PollingDispatcher poller = new PollingDispatcher((PollableSource<?>) source, schedule);
-		int maxMessagesPerPoll = pollerAnnotation.maxMessagesPerPoll();
-		if (maxMessagesPerPoll == -1) {
-			// the default is 1 since a MethodInvokingSource might return a non-null value
-			// every time it is invoked, thus producing an infinite number of messages per poll
-			maxMessagesPerPoll = 1;
-		}
-		poller.setMaxMessagesPerPoll(maxMessagesPerPoll);
-		return poller;
+		return schedule;
 	}
 
 	private boolean hasReturnValue(Method method) {

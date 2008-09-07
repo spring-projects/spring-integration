@@ -24,8 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.dispatcher.BroadcastingDispatcher;
-import org.springframework.integration.dispatcher.PollingDispatcher;
+import org.springframework.integration.endpoint.ChannelPoller;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.scheduling.PollingSchedule;
@@ -37,13 +36,13 @@ public class CharacterStreamTargetTests {
 
 	private QueueChannel channel;
 
-	private PollingDispatcher dispatcher;
+	private ChannelPoller poller;
 
 
 	@Before
 	public void initialize() {
 		this.channel = new QueueChannel(10);
-		this.dispatcher = new PollingDispatcher(channel, new PollingSchedule(0), new BroadcastingDispatcher());
+		this.poller = new ChannelPoller(channel, new PollingSchedule(0));
 	}
 
 
@@ -59,13 +58,13 @@ public class CharacterStreamTargetTests {
 	public void testTwoStringsAndNoNewLinesByDefault() {
 		StringWriter writer = new StringWriter();
 		CharacterStreamTarget target = new CharacterStreamTarget(writer);
-		dispatcher.subscribe(target);
-		dispatcher.setMaxMessagesPerPoll(1);
+		poller.subscribe(target);
+		poller.setMaxMessagesPerPoll(1);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
-		dispatcher.run();
+		poller.run();
 		assertEquals("foo", writer.toString());
-		dispatcher.run();
+		poller.run();
 		assertEquals("foobar", writer.toString());
 	}
 
@@ -74,14 +73,14 @@ public class CharacterStreamTargetTests {
 		StringWriter writer = new StringWriter();
 		CharacterStreamTarget target = new CharacterStreamTarget(writer);
 		target.setShouldAppendNewLine(true);
-		dispatcher.subscribe(target);
-		dispatcher.setMaxMessagesPerPoll(1);
+		poller.subscribe(target);
+		poller.setMaxMessagesPerPoll(1);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
-		dispatcher.run();
+		poller.run();
 		String newLine = System.getProperty("line.separator");
 		assertEquals("foo" + newLine, writer.toString());
-		dispatcher.run();
+		poller.run();
 		assertEquals("foo" + newLine + "bar" + newLine, writer.toString());
 	}
 
@@ -89,11 +88,11 @@ public class CharacterStreamTargetTests {
 	public void testMaxMessagesPerTaskSameAsMessageCount() {
 		StringWriter writer = new StringWriter();
 		CharacterStreamTarget target = new CharacterStreamTarget(writer);
-		dispatcher.setMaxMessagesPerPoll(2);
-		dispatcher.subscribe(target);
+		poller.setMaxMessagesPerPoll(2);
+		poller.subscribe(target);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
-		dispatcher.run();
+		poller.run();
 		assertEquals("foobar", writer.toString());
 	}
 
@@ -101,13 +100,13 @@ public class CharacterStreamTargetTests {
 	public void testMaxMessagesPerTaskExceedsMessageCountWithAppendedNewLines() {
 		StringWriter writer = new StringWriter();
 		CharacterStreamTarget target = new CharacterStreamTarget(writer);
-		dispatcher.setMaxMessagesPerPoll(10);
-		dispatcher.setReceiveTimeout(0);
-		dispatcher.subscribe(target);		
+		poller.setMaxMessagesPerPoll(10);
+		poller.setReceiveTimeout(0);
+		poller.subscribe(target);		
 		target.setShouldAppendNewLine(true);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
-		dispatcher.run();
+		poller.run();
 		String newLine = System.getProperty("line.separator");
 		assertEquals("foo" + newLine + "bar" + newLine, writer.toString());
 	}
@@ -116,11 +115,11 @@ public class CharacterStreamTargetTests {
 	public void testSingleNonStringObject() {
 		StringWriter writer = new StringWriter();
 		CharacterStreamTarget target = new CharacterStreamTarget(writer);
-		dispatcher.subscribe(target);
-		dispatcher.setMaxMessagesPerPoll(1);
+		poller.subscribe(target);
+		poller.setMaxMessagesPerPoll(1);
 		TestObject testObject = new TestObject("foo");
 		channel.send(new GenericMessage<TestObject>(testObject));
-		dispatcher.run();
+		poller.run();
 		assertEquals("foo", writer.toString());
 	}
 
@@ -128,14 +127,14 @@ public class CharacterStreamTargetTests {
 	public void testTwoNonStringObjectWithOutNewLines() {
 		StringWriter writer = new StringWriter();
 		CharacterStreamTarget target = new CharacterStreamTarget(writer);
-		dispatcher.setReceiveTimeout(0);
-		dispatcher.setMaxMessagesPerPoll(2);
-		dispatcher.subscribe(target);
+		poller.setReceiveTimeout(0);
+		poller.setMaxMessagesPerPoll(2);
+		poller.subscribe(target);
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
 		channel.send(new GenericMessage<TestObject>(testObject1), 0);
 		channel.send(new GenericMessage<TestObject>(testObject2), 0);
-		dispatcher.run();
+		poller.run();
 		assertEquals("foobar", writer.toString());
 	}
 
@@ -144,14 +143,14 @@ public class CharacterStreamTargetTests {
 		StringWriter writer = new StringWriter();
 		CharacterStreamTarget target = new CharacterStreamTarget(writer);
 		target.setShouldAppendNewLine(true);
-		dispatcher.setReceiveTimeout(0);
-		dispatcher.setMaxMessagesPerPoll(2);
-		dispatcher.subscribe(target);
+		poller.setReceiveTimeout(0);
+		poller.setMaxMessagesPerPoll(2);
+		poller.subscribe(target);
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
 		channel.send(new GenericMessage<TestObject>(testObject1), 0);
 		channel.send(new GenericMessage<TestObject>(testObject2), 0);
-		dispatcher.run();
+		poller.run();
 		String newLine = System.getProperty("line.separator");
 		assertEquals("foo" + newLine + "bar" + newLine, writer.toString());
 	}

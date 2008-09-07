@@ -34,13 +34,14 @@ import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.AbstractInOutEndpoint;
 import org.springframework.integration.endpoint.InboundChannelAdapter;
+import org.springframework.integration.endpoint.SourcePoller;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.PollableSource;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.scheduling.PollingSchedule;
 
 /**
  * @author Mark Fisher
@@ -189,20 +190,23 @@ public class DefaultMessageBusTests {
 	@Test
 	public void testErrorChannelWithFailedDispatch() throws InterruptedException {
 		MessageBus bus = new DefaultMessageBus();
+		QueueChannel errorChannel = new QueueChannel();
+		errorChannel.setBeanName("errorChannel");
+		bus.registerChannel(errorChannel);
 		CountDownLatch latch = new CountDownLatch(1);
 		InboundChannelAdapter channelAdapter = new InboundChannelAdapter();
-		channelAdapter.setSource(new FailingSource(latch));
+		SourcePoller poller = new SourcePoller(new FailingSource(latch), new PollingSchedule(1000));
+		channelAdapter.setSource(poller);
 		channelAdapter.setBeanName("testChannel");
 		bus.registerEndpoint(channelAdapter);
 		bus.start();
 		latch.await(2000, TimeUnit.MILLISECONDS);
-		Message<?> message = ((PollableChannel) bus.getErrorChannel()).receive(5000);
+		Message<?> message = errorChannel.receive(5000);
 		bus.stop();
 		assertNotNull("message should not be null", message);
 		assertTrue(message instanceof ErrorMessage);
 		Throwable exception = ((ErrorMessage) message).getPayload();
-		assertTrue(exception instanceof MessagingException);
-		assertEquals("intentional test failure", exception.getCause().getMessage());
+		assertEquals("intentional test failure", exception.getMessage());
 	}
 
 	@Test(expected = BeanCreationException.class)

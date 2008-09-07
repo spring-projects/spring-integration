@@ -43,7 +43,7 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 		this.applySequence = applySequence;
 	}
 
-	public boolean send(Message<?> message) {
+	public boolean dispatch(Message<?> message) {
 		int sequenceNumber = 1;
 		int sequenceSize = this.endpoints.size();
 		for (final MessageEndpoint endpoint : this.endpoints) {

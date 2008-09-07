@@ -74,7 +74,7 @@ public class ChannelAdapterParser extends AbstractBeanDefinitionParser {
 			}
 			adapterBuilder =  BeanDefinitionBuilder.genericBeanDefinition(InboundChannelAdapter.class);
 			if (pollerElement != null) {
-				String pollerBeanName = IntegrationNamespaceUtils.parsePoller(source, pollerElement, parserContext);
+				String pollerBeanName = IntegrationNamespaceUtils.parseSourcePoller(source, pollerElement, parserContext);
 				adapterBuilder.addPropertyReference("source", pollerBeanName);
 			}
 			else {
@@ -100,7 +100,7 @@ public class ChannelAdapterParser extends AbstractBeanDefinitionParser {
 				if (!StringUtils.hasText(channelName)) {
 					throw new ConfigurationException("outbound channel-adapter with a 'poller' requires a 'channel' to poll");
 				}
-				String pollerBeanName = IntegrationNamespaceUtils.parsePoller(channelName, pollerElement, parserContext);
+				String pollerBeanName = IntegrationNamespaceUtils.parseChannelPoller(channelName, pollerElement, parserContext);
 				adapterBuilder.addPropertyReference("source", pollerBeanName);
 			}
 			else if (StringUtils.hasText(channelName)) {

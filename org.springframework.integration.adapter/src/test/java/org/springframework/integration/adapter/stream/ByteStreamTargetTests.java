@@ -25,8 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.dispatcher.BroadcastingDispatcher;
-import org.springframework.integration.dispatcher.PollingDispatcher;
+import org.springframework.integration.endpoint.ChannelPoller;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.scheduling.PollingSchedule;
@@ -38,13 +37,13 @@ public class ByteStreamTargetTests {
 
 	private QueueChannel channel;
 
-	private PollingDispatcher dispatcher;
+	private ChannelPoller poller;
 
 
 	@Before
 	public void initialize() {
 		this.channel = new QueueChannel(10);
-		this.dispatcher = new PollingDispatcher(channel, new PollingSchedule(0), new BroadcastingDispatcher());
+		this.poller = new ChannelPoller(channel, new PollingSchedule(0));
 	}
 
 
@@ -74,12 +73,12 @@ public class ByteStreamTargetTests {
 	public void testMaxMessagesPerTaskSameAsMessageCount() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		ByteStreamTarget target = new ByteStreamTarget(stream);
-		dispatcher.setMaxMessagesPerPoll(3);
-		dispatcher.subscribe(target);
+		poller.setMaxMessagesPerPoll(3);
+		poller.subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
-		dispatcher.run();
+		poller.run();
 		byte[] result = stream.toByteArray();
 		assertEquals(9, result.length);
 		assertEquals(1, result[0]);
@@ -90,12 +89,12 @@ public class ByteStreamTargetTests {
 	public void testMaxMessagesPerTaskLessThanMessageCount() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		ByteStreamTarget target = new ByteStreamTarget(stream);
-		dispatcher.setMaxMessagesPerPoll(2);
-		dispatcher.subscribe(target);
+		poller.setMaxMessagesPerPoll(2);
+		poller.subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
-		dispatcher.run();
+		poller.run();
 		byte[] result = stream.toByteArray();
 		assertEquals(6, result.length);
 		assertEquals(1, result[0]);
@@ -105,13 +104,13 @@ public class ByteStreamTargetTests {
 	public void testMaxMessagesPerTaskExceedsMessageCount() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		ByteStreamTarget target = new ByteStreamTarget(stream);
-		dispatcher.setMaxMessagesPerPoll(5);
-		dispatcher.setReceiveTimeout(0);
-		dispatcher.subscribe(target);
+		poller.setMaxMessagesPerPoll(5);
+		poller.setReceiveTimeout(0);
+		poller.subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
-		dispatcher.run();
+		poller.run();
 		byte[] result = stream.toByteArray();
 		assertEquals(9, result.length);
 		assertEquals(1, result[0]);
@@ -121,17 +120,17 @@ public class ByteStreamTargetTests {
 	public void testMaxMessagesLessThanMessageCountWithMultipleDispatches() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		ByteStreamTarget target = new ByteStreamTarget(stream);
-		dispatcher.setMaxMessagesPerPoll(2);
-		dispatcher.setReceiveTimeout(0);
-		dispatcher.subscribe(target);
+		poller.setMaxMessagesPerPoll(2);
+		poller.setReceiveTimeout(0);
+		poller.subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
-		dispatcher.run();
+		poller.run();
 		byte[] result1 = stream.toByteArray();
 		assertEquals(6, result1.length);
 		assertEquals(1, result1[0]);
-		dispatcher.run();
+		poller.run();
 		byte[] result2 = stream.toByteArray();
 		assertEquals(9, result2.length);
 		assertEquals(1, result2[0]);
@@ -142,17 +141,17 @@ public class ByteStreamTargetTests {
 	public void testMaxMessagesExceedsMessageCountWithMultipleDispatches() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		ByteStreamTarget target = new ByteStreamTarget(stream);
-		dispatcher.setMaxMessagesPerPoll(5);
-		dispatcher.setReceiveTimeout(0);
-		dispatcher.subscribe(target);
+		poller.setMaxMessagesPerPoll(5);
+		poller.setReceiveTimeout(0);
+		poller.subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
-		dispatcher.run();
+		poller.run();
 		byte[] result1 = stream.toByteArray();
 		assertEquals(9, result1.length);
 		assertEquals(1, result1[0]);
-		dispatcher.run();
+		poller.run();
 		byte[] result2 = stream.toByteArray();
 		assertEquals(9, result2.length);	
 		assertEquals(1, result2[0]);
@@ -162,17 +161,17 @@ public class ByteStreamTargetTests {
 	public void testStreamResetBetweenDispatches() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		ByteStreamTarget target = new ByteStreamTarget(stream);
-		dispatcher.setMaxMessagesPerPoll(2);
-		dispatcher.setReceiveTimeout(0);
-		dispatcher.subscribe(target);
+		poller.setMaxMessagesPerPoll(2);
+		poller.setReceiveTimeout(0);
+		poller.subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
-		dispatcher.run();
+		poller.run();
 		byte[] result1 = stream.toByteArray();
 		assertEquals(6, result1.length);
 		stream.reset();
-		dispatcher.run();
+		poller.run();
 		byte[] result2 = stream.toByteArray();
 		assertEquals(3, result2.length);
 		assertEquals(7, result2[0]);
@@ -182,18 +181,18 @@ public class ByteStreamTargetTests {
 	public void testStreamWriteBetweenDispatches() throws IOException {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		ByteStreamTarget target = new ByteStreamTarget(stream);
-		dispatcher.setMaxMessagesPerPoll(2);
-		dispatcher.setReceiveTimeout(0);
-		dispatcher.subscribe(target);
+		poller.setMaxMessagesPerPoll(2);
+		poller.setReceiveTimeout(0);
+		poller.subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
-		dispatcher.run();
+		poller.run();
 		byte[] result1 = stream.toByteArray();
 		assertEquals(6, result1.length);
 		stream.write(new byte[] {123});
 		stream.flush();
-		dispatcher.run();
+		poller.run();
 		byte[] result2 = stream.toByteArray();
 		assertEquals(10, result2.length);
 		assertEquals(1, result2[0]);

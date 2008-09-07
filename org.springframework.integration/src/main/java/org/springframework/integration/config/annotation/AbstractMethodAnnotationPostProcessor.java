@@ -26,9 +26,9 @@ import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
-import org.springframework.integration.dispatcher.PollingDispatcher;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.AbstractInOutEndpoint;
+import org.springframework.integration.endpoint.ChannelPoller;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -93,7 +93,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 					schedule.setInitialDelay(pollerAnnotation.initialDelay());
 					schedule.setFixedRate(pollerAnnotation.fixedRate());
 					schedule.setTimeUnit(pollerAnnotation.timeUnit());
-					PollingDispatcher poller = new PollingDispatcher((PollableChannel) inputChannel, schedule);
+					ChannelPoller poller = new ChannelPoller((PollableChannel) inputChannel, schedule);
 					poller.setMaxMessagesPerPoll(pollerAnnotation.maxMessagesPerPoll());
 					endpoint.setSource(poller);
 				}

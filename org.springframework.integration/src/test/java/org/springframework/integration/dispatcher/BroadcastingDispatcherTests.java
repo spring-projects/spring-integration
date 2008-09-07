@@ -77,7 +77,7 @@ public class BroadcastingDispatcherTests {
 		dispatcher.subscribe(targetMock1);
 		expect(targetMock1.send(messageMock)).andReturn(true);
 		replay(globalMocks);
-		dispatcher.send(messageMock);
+		dispatcher.dispatch(messageMock);
 		verify(globalMocks);
 	}
 
@@ -86,7 +86,7 @@ public class BroadcastingDispatcherTests {
 		dispatcher.subscribe(targetMock1);
 		expect(targetMock1.send(messageMock)).andReturn(true);
 		replay(globalMocks);
-		dispatcher.send(messageMock);
+		dispatcher.dispatch(messageMock);
 		verify(globalMocks);
 	}
 
@@ -100,7 +100,7 @@ public class BroadcastingDispatcherTests {
 		expect(targetMock2.send(messageMock)).andReturn(true);
 		expect(targetMock3.send(messageMock)).andReturn(true);
 		replay(globalMocks);
-		dispatcher.send(messageMock);
+		dispatcher.dispatch(messageMock);
 		verify(globalMocks);
 	}
 
@@ -113,7 +113,7 @@ public class BroadcastingDispatcherTests {
 		expect(targetMock2.send(messageMock)).andReturn(true);
 		expect(targetMock3.send(messageMock)).andReturn(true);
 		replay(globalMocks);
-		dispatcher.send(messageMock);
+		dispatcher.dispatch(messageMock);
 		verify(globalMocks);
 	}
 
@@ -127,7 +127,7 @@ public class BroadcastingDispatcherTests {
 		expect(targetMock2.send(messageMock)).andReturn(true);
 		expect(targetMock3.send(messageMock)).andReturn(true);
 		replay(globalMocks);
-		dispatcher.send(messageMock);
+		dispatcher.dispatch(messageMock);
 		verify(globalMocks);
 	}
 
@@ -141,7 +141,7 @@ public class BroadcastingDispatcherTests {
 		expect(targetMock1.send(messageMock)).andReturn(true);
 		expect(targetMock3.send(messageMock)).andReturn(true);
 		replay(globalMocks);
-		dispatcher.send(messageMock);
+		dispatcher.dispatch(messageMock);
 		verify(globalMocks);
 	}
 
@@ -155,7 +155,7 @@ public class BroadcastingDispatcherTests {
 		expect(targetMock1.send(messageMock)).andReturn(true);
 		expect(targetMock2.send(messageMock)).andReturn(true);
 		replay(globalMocks);
-		dispatcher.send(messageMock);
+		dispatcher.dispatch(messageMock);
 		verify(globalMocks);
 	}
 
@@ -167,7 +167,7 @@ public class BroadcastingDispatcherTests {
 		dispatcher.subscribe(targetMock3);
 		partialFailingExecutorMock(false, false, false);
 		replay(globalMocks);
-		dispatcher.send(messageMock);
+		dispatcher.dispatch(messageMock);
 		verify(globalMocks);
 	}
 
@@ -178,7 +178,7 @@ public class BroadcastingDispatcherTests {
 		dispatcher.subscribe(targetMock1);
 		expect(targetMock1.send(messageMock)).andReturn(true);
 		replay(globalMocks);
-		dispatcher.send(messageMock);
+		dispatcher.dispatch(messageMock);
 		verify(globalMocks);
 	}
 
@@ -191,7 +191,7 @@ public class BroadcastingDispatcherTests {
 		expect(targetMock1.send(messageMock)).andReturn(true);
 		expect(targetMock3.send(messageMock)).andReturn(true);
 		replay(globalMocks);
-		dispatcher.send(messageMock);
+		dispatcher.dispatch(messageMock);
 		verify(globalMocks);
 	}
 
@@ -204,9 +204,9 @@ public class BroadcastingDispatcherTests {
 		expect(targetMock2.send(messageMock)).andReturn(true);
 		expect(targetMock3.send(messageMock)).andReturn(true).times(2);
 		replay(globalMocks);
-		dispatcher.send(messageMock);
+		dispatcher.dispatch(messageMock);
 		dispatcher.unsubscribe(targetMock2);
-		dispatcher.send(messageMock);
+		dispatcher.dispatch(messageMock);
 		verify(globalMocks);
 	}
 
@@ -218,7 +218,7 @@ public class BroadcastingDispatcherTests {
 		MessageEndpoint target2 = new MessageStoringTestEndpoint(messages);
 		dispatcher.subscribe(target1);
 		dispatcher.subscribe(target2);
-		dispatcher.send(new StringMessage("test"));
+		dispatcher.dispatch(new StringMessage("test"));
 		assertEquals(2, messages.size());
 		assertEquals(0, (int) messages.get(0).getHeaders().getSequenceNumber());
 		assertEquals(0, (int) messages.get(0).getHeaders().getSequenceSize());
@@ -237,7 +237,7 @@ public class BroadcastingDispatcherTests {
 		dispatcher.subscribe(target1);
 		dispatcher.subscribe(target2);
 		dispatcher.subscribe(target3);
-		dispatcher.send(new StringMessage("test"));
+		dispatcher.dispatch(new StringMessage("test"));
 		assertEquals(3, messages.size());
 		assertEquals(1, (int) messages.get(0).getHeaders().getSequenceNumber());
 		assertEquals(3, (int) messages.get(0).getHeaders().getSequenceSize());

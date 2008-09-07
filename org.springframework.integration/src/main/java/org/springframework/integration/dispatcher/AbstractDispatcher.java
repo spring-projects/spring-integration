@@ -40,12 +40,6 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	private volatile TaskExecutor taskExecutor;
 
 
-	// TODO: dispatcher should not implement channel, need to move TX support into the poller
-	//       so that the messageExchangeTemplate is not required for sending to a dispatcher
-	public String getName() {
-		return "dispatcher";
-	}
-
 	public boolean subscribe(MessageEndpoint endpoint) {
 		return this.endpoints.add(endpoint);
 	}
