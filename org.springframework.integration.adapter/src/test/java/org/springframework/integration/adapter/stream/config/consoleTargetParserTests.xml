@@ -7,12 +7,14 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<console-target id="targetWithDefaultCharset"/>
+	<channel id="testChannel"/>
 
-	<console-target id="targetWithProvidedCharset" charset="UTF-8"/>
+	<stdout-channel-adapter id="targetWithDefaultCharset" channel="testChannel"/>
 
-	<console-target id="stderrTarget" error="true"/>
+	<stdout-channel-adapter id="targetWithProvidedCharset" charset="UTF-8" channel="testChannel"/>
 
-	<console-target id="newlineTarget" append-newline="true"/>
+	<stderr-channel-adapter id="stderrTarget" channel="testChannel"/>
+
+	<stdout-channel-adapter id="newlineTarget" append-newline="true" channel="testChannel"/>
 
 </beans:beans>

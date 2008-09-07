@@ -7,6 +7,6 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<console-target id="targetWithInvalidCharset" charset="invalid-charset-name"/>
+	<stdout-channel-adapter id="targetWithInvalidCharset" charset="invalid-charset-name"/>
 
 </beans:beans>
