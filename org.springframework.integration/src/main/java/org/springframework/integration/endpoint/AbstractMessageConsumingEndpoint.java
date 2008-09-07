@@ -17,6 +17,7 @@
 package org.springframework.integration.endpoint;
 
 import org.springframework.context.Lifecycle;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
@@ -41,6 +42,8 @@ public abstract class AbstractMessageConsumingEndpoint extends AbstractEndpoint 
 
 	private volatile ChannelPoller poller;
 
+	private volatile TaskExecutor taskExecutor;
+
 	private volatile int maxMessagesPerPoll = -1;
 
 	private volatile boolean initialized;
@@ -56,6 +59,10 @@ public abstract class AbstractMessageConsumingEndpoint extends AbstractEndpoint 
 
 	public void setSchedule(Schedule schedule) {
 		this.schedule = schedule;
+	}
+
+	public void setTaskExecutor(TaskExecutor taskExecutor) {
+		this.taskExecutor = taskExecutor;
 	}
 
 	public void setMaxMessagesPerPoll(int maxMessagesPerPoll) {
@@ -76,6 +83,9 @@ public abstract class AbstractMessageConsumingEndpoint extends AbstractEndpoint 
 				this.poller = new ChannelPoller((PollableChannel) this.inputChannel, this.schedule);
 				this.poller.setMaxMessagesPerPoll(this.maxMessagesPerPoll);
 				this.configureTransactionSettingsForPoller(this.poller);
+				if (this.taskExecutor != null) {
+					this.poller.setTaskExecutor(this.taskExecutor);
+				}
 				this.poller.subscribe(this);
 			}
 			this.initialized = true;

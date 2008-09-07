@@ -94,6 +94,7 @@ public abstract class AbstractEndpointParser extends AbstractSingleBeanDefinitio
 			if (txElement != null) {
 				IntegrationNamespaceUtils.configureTransactionAttributes(txElement, builder);
 			}
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, pollerElement, "task-executor");
 		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, INPUT_CHANNEL_ATTRIBUTE);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, OUTPUT_CHANNEL_ATTRIBUTE);
