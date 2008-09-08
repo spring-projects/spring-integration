@@ -32,14 +32,10 @@ import org.springframework.integration.message.selector.MessageSelector;
  * 
  * @author Mark Fisher
  */
-public class NullChannel implements MessageChannel {
+public class NullChannel implements PollableChannel {
 
 	private Log logger = LogFactory.getLog(this.getClass());
 
-
-	public List<Message<?>> clear() {
-		return null;
-	}
 
 	/**
 	 * Always returns <code>null</code>.
@@ -48,24 +44,22 @@ public class NullChannel implements MessageChannel {
 		return null;
 	}
 
+	public List<Message<?>> clear() {
+		return null;
+	}
+
 	public List<Message<?>> purge(MessageSelector selector) {
 		return null;
 	}
 
-	/**
-	 * The channel name cannot be set. It is always <code>null</code>.
-	 */
-	public void setName(String name) {
-	}
-
-	public Message receive() {
+	public Message<?> receive() {
 		if (logger.isDebugEnabled()) {
 			logger.debug("receive called on null-channel");
 		}		
 		return null;
 	}
 
-	public Message receive(long timeout) {
+	public Message<?> receive(long timeout) {
 		return this.receive();
 	}
 
