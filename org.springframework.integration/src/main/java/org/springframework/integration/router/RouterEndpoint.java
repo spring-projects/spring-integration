@@ -24,7 +24,6 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.AbstractMessageConsumingEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
-import org.springframework.integration.message.MessageExchangeTemplate;
 import org.springframework.util.Assert;
 
 /**
@@ -37,8 +36,6 @@ public class RouterEndpoint extends AbstractMessageConsumingEndpoint {
 	private volatile MessageChannel defaultOutputChannel;
 
 	private volatile boolean resolutionRequired;
-
-	private final MessageExchangeTemplate messageExchangeTemplate = new MessageExchangeTemplate();
 
 
 	public RouterEndpoint(ChannelResolver channelResolver) {
@@ -84,7 +81,7 @@ public class RouterEndpoint extends AbstractMessageConsumingEndpoint {
 		if (results != null) {
 			for (MessageChannel channel : results) {
 				if (channel != null) {
-					if (this.messageExchangeTemplate.send(message, channel)) {
+					if (this.getMessageExchangeTemplate().send(message, channel)) {
 						sent = true;
 					}
 				}
