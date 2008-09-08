@@ -214,9 +214,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 	}
 
 	public void registerEndpoint(MessageEndpoint endpoint) {
-		if (endpoint instanceof ChannelRegistryAware) {
-			((ChannelRegistryAware) endpoint).setChannelRegistry(this);
-		}
 		this.endpointRegistry.registerEndpoint(endpoint);
 		if (this.isRunning()) {
 			this.activateEndpoint(endpoint);
