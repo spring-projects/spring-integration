@@ -23,7 +23,7 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.message.MessageExchangeTemplate;
+import org.springframework.integration.message.MessageChannelTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -39,7 +39,7 @@ public class ApplicationEventSource implements ApplicationListener {
 
 	private List<Class<? extends ApplicationEvent>> eventTypes = new ArrayList<Class<? extends ApplicationEvent>>();
 
-	private final MessageExchangeTemplate messageExchangeTemplate = new MessageExchangeTemplate();
+	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
 
 	public ApplicationEventSource(MessageChannel channel) {
@@ -72,7 +72,7 @@ public class ApplicationEventSource implements ApplicationListener {
 	}
 
 	private boolean sendMessage(ApplicationEvent event) {
-		return this.messageExchangeTemplate.send(
+		return this.channelTemplate.send(
 				new GenericMessage<ApplicationEvent>(event), this.channel);
 	}
 

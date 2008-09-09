@@ -17,10 +17,10 @@
 package org.springframework.integration.gateway;
 
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.MessageExchangeTemplate;
+import org.springframework.integration.message.MessageChannelTemplate;
 
 /**
- * A convenient base class providing access to a {@link MessageExchangeTemplate} and exposing setter methods for
+ * A convenient base class providing access to a {@link MessageChannelTemplate} and exposing setter methods for
  * configuring request and reply {@link MessageChannel MessageChannels}. May be used as a base class for framework
  * components so that the details of messaging are well-encapsulated and hidden from application code. For example,
  * see {@link SimpleMessagingGateway}.
@@ -29,7 +29,7 @@ import org.springframework.integration.message.MessageExchangeTemplate;
  */
 public abstract class MessagingGatewaySupport {
 
-	private final MessageExchangeTemplate messageExchangeTemplate = new MessageExchangeTemplate();
+	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
 
 	/**
@@ -39,7 +39,7 @@ public abstract class MessagingGatewaySupport {
 	 * @param requestTimeout the timeout value in milliseconds
 	 */
 	public void setRequestTimeout(long requestTimeout) {
-		this.messageExchangeTemplate.setSendTimeout(requestTimeout);
+		this.channelTemplate.setSendTimeout(requestTimeout);
 	}
 
 	/**
@@ -49,15 +49,15 @@ public abstract class MessagingGatewaySupport {
 	 * @param replyTimeout the timeout value in milliseconds
 	 */
 	public void setReplyTimeout(long replyTimeout) {
-		this.messageExchangeTemplate.setReceiveTimeout(replyTimeout);
+		this.channelTemplate.setReceiveTimeout(replyTimeout);
 	}
 
 	/**
-	 * Retrieve the {@link MessageExchangeTemplate} for performing
+	 * Retrieve the {@link MessageChannelTemplate} for performing
 	 * send and receive operations across channels.
 	 */
-	protected final MessageExchangeTemplate getMessageExchangeTemplate() {
-		return this.messageExchangeTemplate;
+	protected final MessageChannelTemplate getChannelTemplate() {
+		return this.channelTemplate;
 	}
 
 }

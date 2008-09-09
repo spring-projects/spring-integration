@@ -126,7 +126,7 @@ public class SimpleMessagingGateway extends MessagingGatewaySupport implements M
 		Message<?> message = (object instanceof Message) ? (Message) object :
 				this.messageCreator.createMessage(object);
 		if (message != null) {
-			if (!this.getMessageExchangeTemplate().send(message, this.requestChannel)) {
+			if (!this.getChannelTemplate().send(message, this.requestChannel)) {
 				throw new MessageDeliveryException(message, "failed to send Message to channel");
 			}
 		}
@@ -137,7 +137,7 @@ public class SimpleMessagingGateway extends MessagingGatewaySupport implements M
 			throw new IllegalStateException(
 					"no-arg receive is not supported, because no reply channel has been configured");
 		}
-		Message<?> message = this.getMessageExchangeTemplate().receive(this.replyChannel);
+		Message<?> message = this.getChannelTemplate().receive(this.replyChannel);
 		return (message != null) ? this.messageMapper.mapMessage(message) : null;
 	}
 
@@ -171,7 +171,7 @@ public class SimpleMessagingGateway extends MessagingGatewaySupport implements M
 			return this.sendAndReceiveWithReplyMessageCorrelator(message);
 		}
 		else {
-			return this.getMessageExchangeTemplate().sendAndReceive(message, this.requestChannel);
+			return this.getChannelTemplate().sendAndReceive(message, this.requestChannel);
 		}
 	}
 

@@ -26,7 +26,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.adapter.rmi.RmiGateway;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.MessageExchangeTemplate;
+import org.springframework.integration.message.MessageChannelTemplate;
 
 /**
  * @author Mark Fisher
@@ -42,8 +42,8 @@ public class RmiGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(true, accessor.getPropertyValue("expectReply"));
 		assertEquals(channel, accessor.getPropertyValue("requestChannel"));
-		MessageExchangeTemplate template = (MessageExchangeTemplate)
-				accessor.getPropertyValue("messageExchangeTemplate");
+		MessageChannelTemplate template = (MessageChannelTemplate)
+				accessor.getPropertyValue("channelTemplate");
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(template);
 		assertEquals(-1L, templateAccessor.getPropertyValue("sendTimeout"));
 		assertEquals(-1L, templateAccessor.getPropertyValue("receiveTimeout"));
@@ -58,8 +58,8 @@ public class RmiGatewayParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(false, accessor.getPropertyValue("expectReply"));
 		assertEquals(channel, accessor.getPropertyValue("requestChannel"));
-		MessageExchangeTemplate template = (MessageExchangeTemplate)
-				accessor.getPropertyValue("messageExchangeTemplate");
+		MessageChannelTemplate template = (MessageChannelTemplate)
+				accessor.getPropertyValue("channelTemplate");
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(template);
 		assertEquals(123L, templateAccessor.getPropertyValue("sendTimeout"));
 		assertEquals(456L, templateAccessor.getPropertyValue("receiveTimeout"));

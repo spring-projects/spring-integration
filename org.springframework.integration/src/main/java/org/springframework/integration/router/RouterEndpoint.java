@@ -61,7 +61,7 @@ public class RouterEndpoint extends AbstractMessageConsumingEndpoint {
 	 * default, there is no timeout, meaning the send will block indefinitely.
 	 */
 	public void setTimeout(long timeout) {
-		this.getMessageExchangeTemplate().setSendTimeout(timeout);
+		this.getChannelTemplate().setSendTimeout(timeout);
 	}
 
 	/**
@@ -81,7 +81,7 @@ public class RouterEndpoint extends AbstractMessageConsumingEndpoint {
 		if (results != null) {
 			for (MessageChannel channel : results) {
 				if (channel != null) {
-					if (this.getMessageExchangeTemplate().send(message, channel)) {
+					if (this.getChannelTemplate().send(message, channel)) {
 						sent = true;
 					}
 				}
@@ -89,11 +89,11 @@ public class RouterEndpoint extends AbstractMessageConsumingEndpoint {
 		}
 		if (!sent) {
 			if (this.defaultOutputChannel != null) {
-				sent = this.getMessageExchangeTemplate().send(message, this.defaultOutputChannel);
+				sent = this.getChannelTemplate().send(message, this.defaultOutputChannel);
 			}
 			else if (this.resolutionRequired) {
 				throw new MessageDeliveryException(message,
-						"no target resolved by router and no default output channel defined");
+						"no channel resolved by router and no default output channel defined");
 			}
 		}
 	}

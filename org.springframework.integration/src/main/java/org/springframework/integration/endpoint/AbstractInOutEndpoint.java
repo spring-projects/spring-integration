@@ -138,7 +138,7 @@ public abstract class AbstractInOutEndpoint extends AbstractMessageConsumingEndp
 				}
 			}
 		}
-		return this.getMessageExchangeTemplate().send(replyMessage, replyChannel);
+		return this.getChannelTemplate().send(replyMessage, replyChannel);
 	}
 
 	private Message<?> buildReplyMessage(Object result, MessageHeaders requestHeaders) {

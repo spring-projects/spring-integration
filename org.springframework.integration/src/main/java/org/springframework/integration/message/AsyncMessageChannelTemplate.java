@@ -25,16 +25,16 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.util.Assert;
 
 /**
- * An asynchronous version of the {@link MessageExchangeTemplate}.
+ * An asynchronous version of the {@link MessageChannelTemplate}.
  * 
  * @author Mark Fisher
  */
-public class AsyncMessageExchangeTemplate extends MessageExchangeTemplate {
+public class AsyncMessageChannelTemplate extends MessageChannelTemplate {
 
 	private final TaskExecutor taskExecutor;
 
 
-	public AsyncMessageExchangeTemplate(TaskExecutor taskExecutor) {
+	public AsyncMessageChannelTemplate(TaskExecutor taskExecutor) {
 		Assert.notNull(taskExecutor, "TaskExecutor must not be null");
 		this.taskExecutor = taskExecutor;
 	}
@@ -49,7 +49,7 @@ public class AsyncMessageExchangeTemplate extends MessageExchangeTemplate {
 	public boolean send(final Message<?> message, final MessageChannel channel) {
 		this.taskExecutor.execute(new Runnable() {
 			public void run() {
-				AsyncMessageExchangeTemplate.super.send(message, channel);
+				AsyncMessageChannelTemplate.super.send(message, channel);
 			}
 		});
 		return true;
@@ -64,7 +64,7 @@ public class AsyncMessageExchangeTemplate extends MessageExchangeTemplate {
 	public Message<?> sendAndReceive(final Message<?> request, final MessageChannel channel) {
 		FutureTask<Message<?>> task = new FutureTask<Message<?>>(new Callable<Message<?>>() {
 			public Message<?> call() throws Exception {
-				return AsyncMessageExchangeTemplate.super.sendAndReceive(request, channel);
+				return AsyncMessageChannelTemplate.super.sendAndReceive(request, channel);
 			}
 		});
 		this.taskExecutor.execute(task);
@@ -79,7 +79,7 @@ public class AsyncMessageExchangeTemplate extends MessageExchangeTemplate {
 	public Message<?> receive(final PollableChannel channel) {
 		FutureTask<Message<?>> task = new FutureTask<Message<?>>(new Callable<Message<?>>() {
 			public Message<?> call() throws Exception {
-				return AsyncMessageExchangeTemplate.super.receive(channel);
+				return AsyncMessageChannelTemplate.super.receive(channel);
 			}
 		});
 		this.taskExecutor.execute(task);

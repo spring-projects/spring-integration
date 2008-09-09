@@ -36,7 +36,7 @@ import org.springframework.integration.endpoint.AbstractInOutEndpoint;
 /**
  * @author Mark Fisher
  */
-public class MessageExchangeTemplateTests {
+public class MessageChannelTemplateTests {
 
 	private QueueChannel requestChannel;
 
@@ -61,7 +61,7 @@ public class MessageExchangeTemplateTests {
 
 	@Test
 	public void testSendAndReceive() {
-		MessageExchangeTemplate template = new MessageExchangeTemplate();
+		MessageChannelTemplate template = new MessageChannelTemplate();
 		Message<?> reply = template.sendAndReceive(new StringMessage("test"), this.requestChannel);
 		assertEquals("TEST", reply.getPayload());
 	}
@@ -80,7 +80,7 @@ public class MessageExchangeTemplateTests {
 				return true;
 			}
 		};
-		MessageExchangeTemplate template = new MessageExchangeTemplate();
+		MessageChannelTemplate template = new MessageChannelTemplate();
 		Message<String> message1 = MessageBuilder.fromPayload("test1").setReturnAddress(replyChannel).build();
 		Message<String> message2 = MessageBuilder.fromPayload("test2").setReturnAddress(replyChannel).build();
 		Message<String> message3 = MessageBuilder.fromPayload("test3").setReturnAddress(replyChannel).build();

@@ -46,7 +46,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class MessageExchangeTemplate implements InitializingBean {
+public class MessageChannelTemplate implements InitializingBean {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
@@ -73,7 +73,6 @@ public class MessageExchangeTemplate implements InitializingBean {
 
 	/**
 	 * Specify the timeout value to use for send operations.
-	 * Note that this value will only apply to {@link BlockingTarget}s.
 	 * 
 	 * @param sendTimeout the send timeout in milliseconds
 	 */

@@ -21,7 +21,7 @@ import javax.jms.MessageListener;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
-import org.springframework.integration.message.MessageExchangeTemplate;
+import org.springframework.integration.message.MessageChannelTemplate;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.util.Assert;
@@ -38,7 +38,7 @@ public class ChannelPublishingJmsListener implements MessageListener {
 
 	private final MessageConverter converter;
 
-	private final MessageExchangeTemplate messageExchangeTemplate = new MessageExchangeTemplate();
+	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
 
 	public ChannelPublishingJmsListener(MessageChannel channel, MessageConverter converter) {
@@ -52,7 +52,7 @@ public class ChannelPublishingJmsListener implements MessageListener {
 	public void onMessage(javax.jms.Message jmsMessage) {
 		try {
 			Message<?> messageToSend = (Message<?>) this.converter.fromMessage(jmsMessage);
-			if (!this.messageExchangeTemplate.send(messageToSend, this.channel)) {
+			if (!this.channelTemplate.send(messageToSend, this.channel)) {
 				throw new MessageDeliveryException(messageToSend, "failed to send Message to channel: " + this.channel);
 			}
 		}
