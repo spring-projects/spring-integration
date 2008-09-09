@@ -50,7 +50,7 @@ public class SimpleMessagingGatewayTests {
 
 	private PollableChannel replyChannel = createMock(PollableChannel.class);
 
-	private Message<?> messageMock = createMock(Message.class);
+	private Message messageMock = createMock(Message.class);
 
 	private MessageMapper messageMapperMock = createMock(MessageMapper.class);
 
