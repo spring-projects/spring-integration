@@ -20,7 +20,7 @@ import org.springframework.integration.message.Message;
 
 /**
  * Base interface for gateway adapters. In Spring Integration, a "gateway" is a
- * component that sends messages to and receives messages from message channels
+ * component that sends messages to and/or receives messages from message channels
  * so that application code does not need to be aware of channels or even messages.
  *
  * @author Mark Fisher
@@ -34,7 +34,5 @@ public interface MessagingGateway {
 	Object sendAndReceive(Object object);
 
 	Message<?> sendAndReceiveMessage(Object object);
-
-	void receiveAndForward();
 
 }

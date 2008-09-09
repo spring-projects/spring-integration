@@ -141,15 +141,6 @@ public class SimpleMessagingGateway extends MessagingGatewaySupport implements M
 		return (message != null) ? this.messageMapper.mapMessage(message) : null;
 	}
 
-	public void receiveAndForward() {
-		if (this.replyChannel == null || this.requestChannel == null) {
-			throw new IllegalStateException(
-					"receiveAndForward is not supported, because either the request or reply channel"
-					+ " has not been configured");
-		}
-		this.getMessageExchangeTemplate().receiveAndForward(this.replyChannel, this.requestChannel);
-	}
-
 	public Object sendAndReceive(Object object) {
 		return this.sendAndReceive(object, true);
 	}

@@ -16,6 +16,7 @@
 
 package org.springframework.integration.message;
 
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -25,6 +26,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.channel.BlockingChannel;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
+import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
@@ -32,15 +35,12 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
 
 /**
- * This is the central class for invoking message exchange operations
- * across {@link PollableSource}s and {@link MessageChannel}s. It supports
- * one-way send and receive calls as well as request/reply. Additionally,
- * the {@link #receiveAndForward(PollableSource, MessageChannel)} method
- * plays the role of a polling-consumer while actually sending any
- * received message to an event-driven consumer.
- * 
- * <p>To enable transactions, configure the 'transactionManager' property
- * with a reference to an instance of Spring's {@link PlatformTransactionManager}
+ * This is the central class for invoking message exchange operations across
+ * {@link MessageChannel}s. It supports one-way send and receive calls as well
+ * as request/reply.
+ * <p>
+ * To enable transactions, configure the 'transactionManager' property with a
+ * reference to an instance of Spring's {@link PlatformTransactionManager}
  * strategy and optionally provide the other transactional attributes
  * (e.g. 'propagationBehaviorName').
  * 
@@ -83,7 +83,6 @@ public class MessageExchangeTemplate implements InitializingBean {
 
 	/**
 	 * Specify the timeout value to use for receive operations.
-	 * Note that this value will only apply to {@link BlockingSource}s.
 	 *  
 	 * @param receiveTimeout the receive timeout in milliseconds
 	 */
@@ -152,6 +151,18 @@ public class MessageExchangeTemplate implements InitializingBean {
 		return this.doSend(message, channel);
 	}
 
+	public Message<?> receive(final PollableChannel channel) {
+		TransactionTemplate txTemplate = this.getTransactionTemplate();
+		if (txTemplate != null) {
+			return (Message<?>) txTemplate.execute(new TransactionCallback() {
+				public Object doInTransaction(TransactionStatus status) {
+					return doReceive(channel);
+				}
+			});
+		}
+		return this.doReceive(channel);
+	}
+
 	public Message<?> sendAndReceive(final Message<?> request, final MessageChannel channel) {
 		TransactionTemplate txTemplate = this.getTransactionTemplate();
 		if (txTemplate != null) {
@@ -163,31 +174,6 @@ public class MessageExchangeTemplate implements InitializingBean {
 		}
 		return this.doSendAndReceive(request, channel);
 	}
-
-	public Message<?> receive(final PollableSource<?> source) {
-		TransactionTemplate txTemplate = this.getTransactionTemplate();
-		if (txTemplate != null) {
-			return (Message<?>) txTemplate.execute(new TransactionCallback() {
-				public Object doInTransaction(TransactionStatus status) {
-					return doReceive(source);
-				}
-			});
-		}
-		return this.doReceive(source);
-	}
-
-	public boolean receiveAndForward(final PollableSource<?> source, final MessageChannel channel) {
-		TransactionTemplate txTemplate = this.getTransactionTemplate();
-		if (txTemplate != null) {
-			return (Boolean) txTemplate.execute(new TransactionCallback() {
-				public Object doInTransaction(TransactionStatus status) {
-					return doReceiveAndForward(source, channel);
-				}
-			});
-		}
-		return this.doReceiveAndForward(source, channel);
-	}
-
 
 	private boolean doSend(Message<?> message, MessageChannel channel) {
 		Assert.notNull(channel, "channel must not be null");
@@ -201,14 +187,14 @@ public class MessageExchangeTemplate implements InitializingBean {
 		return sent;
 	}
 
-	private Message<?> doReceive(PollableSource<?> source) {
-		Assert.notNull(source, "source must not be null");
+	private Message<?> doReceive(PollableChannel channel) {
+		Assert.notNull(channel, "channel must not be null");
 		long timeout = this.receiveTimeout;
-		Message<?> message = (timeout >= 0 && source instanceof BlockingSource)
-				? ((BlockingSource<?>) source).receive(timeout)
-				: source.receive();
+		Message<?> message = (timeout >= 0)
+				? channel.receive(timeout)
+				: channel.receive();
 		if (message == null && this.logger.isTraceEnabled()) {
-			this.logger.trace("failed to receive message from source '" + source + "' within timeout: " + timeout);
+			this.logger.trace("failed to receive message from channel '" + channel + "' within timeout: " + timeout);
 		}
 		return message;
 	}
@@ -222,42 +208,9 @@ public class MessageExchangeTemplate implements InitializingBean {
 		return this.doReceive(returnAddress);
 	}
 
-	private boolean doReceiveAndForward(PollableSource<?> source, MessageChannel channel) {
-		Message<?> message = null;
-		try {
-			message = this.doReceive(source);
-			if (message == null) {
-				return false;
-			}
-			boolean sent = this.doSend(message, channel);
-			if (source instanceof MessageDeliveryAware) {
-				if (sent) {
-					((MessageDeliveryAware) source).onSend(message);
-				}
-				else {
-					((MessageDeliveryAware) source).onFailure(message, new MessageDeliveryException(message, "failed to send message"));
-				}
-			}
-			return sent;
-		}
-		catch (Exception e) {
-			if (source instanceof MessageDeliveryAware) {
-				((MessageDeliveryAware) source).onFailure(message, e);
-			}
-			if (e instanceof MessagingException) {
-				throw (MessagingException) e;
-			}
-			String description = "exception occurred in receive-and-forward exchange";
-			if (message != null) {
-				throw new MessagingException(message, description, e);
-			}
-			throw new MessagingException(description, e);
-		}
-	}
-
 
 	@SuppressWarnings("unchecked")
-	private static class TemporaryReturnAddress implements BlockingSource, MessageChannel {
+	private static class TemporaryReturnAddress implements PollableChannel {
 
 		private volatile Message<?> message;
 
@@ -298,6 +251,14 @@ public class MessageExchangeTemplate implements InitializingBean {
 			this.message = message;
 			this.latch.countDown();
 			return true;
+		}
+
+		public List<Message<?>> clear() {
+			return null;
+		}
+
+		public List<Message<?>> purge(MessageSelector selector) {
+			return null;
 		}
 	}
 

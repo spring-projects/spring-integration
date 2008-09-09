@@ -18,14 +18,32 @@ package org.springframework.integration.channel;
 
 import java.util.List;
 
-import org.springframework.integration.message.BlockingSource;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.selector.MessageSelector;
 
 /**
  * @author Mark Fisher
  */
-public interface PollableChannel extends MessageChannel, BlockingSource {
+public interface PollableChannel extends MessageChannel {
+
+	/**
+	 * Receive a message from this channel, blocking indefinitely if necessary.
+	 * 
+	 * @return the next available {@link Message} or <code>null</code> if
+	 * interrupted
+	 */
+	Message<?> receive();
+
+	/**
+	 * Receive a message from this channel, blocking until either a message is
+	 * available or the specified timeout period elapses.
+	 * 
+	 * @param timeout the timeout in milliseconds
+	 * 
+	 * @return the next available {@link Message} or <code>null</code> if the
+	 * specified timeout period elapses or the message reception is interrupted
+	 */
+	Message<?> receive(long timeout);
 
 	/**
 	 * Remove all {@link Message Messages} from this channel.
