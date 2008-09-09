@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.samples.cafe;
+package org.springframework.integration.samples.cafe.annotation;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.samples.cafe.Drink;
+import org.springframework.integration.samples.cafe.OrderItem;
 import org.springframework.stereotype.Component;
 
 /**
@@ -44,6 +47,7 @@ public class Barista {
 		this.coldDrinkDelay = coldDrinkDelay;
 	}
 
+	@ServiceActivator(inputChannel="hotDrinks", outputChannel="preparedDrinks")
 	public Drink prepareHotDrink(OrderItem orderItem) {
 		try {
 			Thread.sleep(this.hotDrinkDelay);
@@ -58,6 +62,7 @@ public class Barista {
 		return null;
 	}
 
+	@ServiceActivator(inputChannel="coldDrinks", outputChannel="preparedDrinks")
 	public Drink prepareColdDrink(OrderItem orderItem) {
 		try {
 			Thread.sleep(this.coldDrinkDelay);

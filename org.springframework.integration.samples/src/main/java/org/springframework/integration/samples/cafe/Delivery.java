@@ -31,9 +31,8 @@ public class Delivery {
 	private int orderNumber;
 
 
-
 	public Delivery(List<Drink> deliveredDrinks) {
-		assert (deliveredDrinks.size() > 0);
+		assert(deliveredDrinks.size() > 0);
         this.deliveredDrinks = deliveredDrinks;
 		this.orderNumber = deliveredDrinks.get(0).getOrderNumber();
     }
@@ -58,4 +57,5 @@ public class Delivery {
 		buffer.append(SEPARATOR + "\n");
 		return buffer.toString();
 	}
+
 }

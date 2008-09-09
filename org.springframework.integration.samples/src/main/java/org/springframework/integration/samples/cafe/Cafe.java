@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.MessageBuilder;
 
 /**
- * The entry point for {@link CafeDemo}. When the '<code>placeOrder</code>'
+ * The entry point for Cafe Demo. When the '<code>placeOrder</code>'
  * method is invoked, it passes the {@link Order} as the payload of a
  * {@link org.springframework.integration.message.Message} to the
  * 'orderChannel'. The channel reference is configured in the "cafe" bean

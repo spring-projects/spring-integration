@@ -13,34 +13,25 @@
 	<message-bus/>
 	<annotation-driven/>
 
-	<context:component-scan base-package="org.springframework.integration.samples.cafe"/>
+	<context:component-scan base-package="org.springframework.integration.samples.cafe.annotation"/>
 
 	<channel id="orders"/>
 	<channel id="drinks"/>
 
 	<channel id="coldDrinks">
-		<queue capacity="100"/>
+		<queue capacity="10"/>
 	</channel>
 
 	<channel id="hotDrinks">
-		<queue capacity="100"/>
+		<queue capacity="10"/>
 	</channel>
 
     <channel id="preparedDrinks"/>
-    <channel id="deliveries"/>
-
-	<service-activator input-channel="coldDrinks" ref="barista" method="prepareColdDrink" output-channel="preparedDrinks"/>
-
-	<service-activator input-channel="hotDrinks" ref="barista" method="prepareHotDrink" output-channel="preparedDrinks"/>
-
-	<service-activator input-channel="deliveries" ref="waiter" method="serve"/>	
 
 	<beans:bean id="cafe" class="org.springframework.integration.samples.cafe.Cafe">
 		<beans:property name="orderChannel" ref="orders"/>
 	</beans:bean>
-	
-    <channel-adapter channel="deliveries" target="deliveryOutput"/>
 
-    <console-target id="deliveryOutput"/>
+	<stdout-channel-adapter id="deliveries"/>
 	
 </beans:beans>

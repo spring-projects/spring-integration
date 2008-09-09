@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.samples.cafe;
+package org.springframework.integration.samples.cafe.xml;
 
-import org.springframework.stereotype.Component;
+import java.util.List;
+
+import org.springframework.integration.samples.cafe.Order;
+import org.springframework.integration.samples.cafe.OrderItem;
 
 /**
- * @author Marius Bogoevici
+ * @author Mark Fisher
  */
-@Component
-public class Waiter {
+public class OrderSplitter {
 
-	public void serve(Delivery delivery) {
-		System.out.println("\nDelivering: \n" + delivery);
+	public List<OrderItem> split(Order order) {
+		return order.getDrinks();
 	}
 
 }

@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.samples.cafe;
+package org.springframework.integration.samples.cafe.xml;
+
+import java.util.List;
+
+import org.springframework.integration.samples.cafe.Delivery;
+import org.springframework.integration.samples.cafe.Drink;
 
 /**
- * @author Mark Fisher
+ * @author Marius Bogoevici
  */
-public enum DrinkType {
+public class DeliveryAssembler {
 
-	ESPRESSO,
-	LATTE,
-	CAPPUCCINO,
-	MOCHA
+    public Delivery prepareDelivery(List<Drink> drinks) {
+        return new Delivery(drinks);
+    }
 
 }

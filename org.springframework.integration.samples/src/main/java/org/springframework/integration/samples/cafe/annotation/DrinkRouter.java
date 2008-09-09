@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.samples.cafe;
+package org.springframework.integration.samples.cafe.annotation;
 
-import java.util.List;
-
-import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.annotation.Router;
+import org.springframework.integration.samples.cafe.OrderItem;
 
 /**
- * @author Marius Bogoevici
+ * @author Mark Fisher
  */
 @MessageEndpoint
-public class DeliveryAssembler {
+public class DrinkRouter {
 
-    @Aggregator(inputChannel = "preparedDrinks", outputChannel = "deliveries")
-    public Delivery prepareDelivery(List<Drink> drinks) {
-        return new Delivery(drinks);
-    }
+	@Router(inputChannel="drinks")
+	public String resolveOrderItemChannel(OrderItem orderItem) {
+		return (orderItem.isIced()) ? "coldDrinks" : "hotDrinks";
+	}
 
 }
