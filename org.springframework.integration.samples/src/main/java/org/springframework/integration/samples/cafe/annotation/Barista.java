@@ -58,8 +58,8 @@ public class Barista {
 					orderItem.getShots());
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
+			return null;
 		}
-		return null;
 	}
 
 	@ServiceActivator(inputChannel="coldDrinks", outputChannel="preparedDrinks")
@@ -73,8 +73,8 @@ public class Barista {
 					orderItem.getShots());
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
+			return null;
 		}
-		return null;
 	}
 
 }

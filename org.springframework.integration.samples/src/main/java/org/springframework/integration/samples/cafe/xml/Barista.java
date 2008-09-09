@@ -54,8 +54,8 @@ public class Barista {
 					orderItem.getShots());
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
+			return null;
 		}
-		return null;
 	}
 
 	public Drink prepareColdDrink(OrderItem orderItem) {
@@ -68,8 +68,8 @@ public class Barista {
 					orderItem.getShots());
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
+			return null;
 		}
-		return null;
 	}
 
 }
