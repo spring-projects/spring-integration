@@ -16,29 +16,18 @@
 
 package org.springframework.integration.samples.cafe;
 
-import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.MessageBuilder;
-
 /**
- * The entry point for Cafe Demo. When the '<code>placeOrder</code>'
- * method is invoked, it passes the {@link Order} as the payload of a
+ * The entry point for Cafe Demo. The demo's main() method invokes the
+ * '<code>placeOrder</code>' method on a generated MessagingGateway proxy.
+ * The gateway then passes the {@link Order} as the payload of a
  * {@link org.springframework.integration.message.Message} to the
- * 'orderChannel'. The channel reference is configured in the "cafe" bean
- * definition within 'cafeDemo.xml'.
+ * configured <em>requestChannel</em>. The channel reference ('orders')
+ * is configured in the 'cafeDemo.xml' file.
  * 
  * @author Mark Fisher
  */
-public class Cafe {
+public interface Cafe {
 
-	private MessageChannel orderChannel;
-
-
-	public void setOrderChannel(MessageChannel orderChannel) {
-		this.orderChannel = orderChannel;
-	}
-
-	public void placeOrder(Order order) {
-		this.orderChannel.send(MessageBuilder.fromPayload(order).build());
-	}
+	void placeOrder(Order order);
 
 }

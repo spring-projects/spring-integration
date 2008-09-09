@@ -10,6 +10,8 @@
 
 	<message-bus/>
 
+	<gateway id="cafe" request-channel="orders" service-interface="org.springframework.integration.samples.cafe.Cafe"/>
+
 	<channel id="orders"/>
 	<splitter input-channel="orders" ref="orderSplitter" method="split" output-channel="drinks"/>
 
@@ -27,13 +29,9 @@
 	<service-activator input-channel="hotDrinks" ref="barista" method="prepareHotDrink" output-channel="preparedDrinks"/>
 
     <channel id="preparedDrinks"/>
-    <aggregator input-channel="preparedDrinks" ref="deliveryAssembler" method="prepareDelivery" output-channel="deliveries"/>
+    <aggregator input-channel="preparedDrinks" ref="waiter" method="prepareDelivery" output-channel="deliveries"/>
 
 	<stdout-channel-adapter id="deliveries"/>
-
-	<beans:bean id="cafe" class="org.springframework.integration.samples.cafe.Cafe">
-		<beans:property name="orderChannel" ref="orders"/>
-	</beans:bean>
 
 	<beans:bean id="orderSplitter" class="org.springframework.integration.samples.cafe.xml.OrderSplitter"/>
 
@@ -41,6 +39,6 @@
 
 	<beans:bean id="barista" class="org.springframework.integration.samples.cafe.xml.Barista"/>
 
-	<beans:bean id="deliveryAssembler" class="org.springframework.integration.samples.cafe.xml.DeliveryAssembler"/>
+	<beans:bean id="waiter" class="org.springframework.integration.samples.cafe.xml.Waiter"/>
 
 </beans:beans>

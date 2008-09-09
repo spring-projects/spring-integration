@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.samples.cafe.xml;
+package org.springframework.integration.samples.cafe.annotation;
 
 import java.util.List;
 
+import org.springframework.integration.annotation.Aggregator;
+import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.samples.cafe.Delivery;
 import org.springframework.integration.samples.cafe.Drink;
 
 /**
  * @author Marius Bogoevici
  */
-public class DeliveryAssembler {
+@MessageEndpoint
+public class Waiter {
 
+    @Aggregator(inputChannel = "preparedDrinks", outputChannel = "deliveries", timeout = 5 * 60 * 1000)
     public Delivery prepareDelivery(List<Drink> drinks) {
         return new Delivery(drinks);
     }
