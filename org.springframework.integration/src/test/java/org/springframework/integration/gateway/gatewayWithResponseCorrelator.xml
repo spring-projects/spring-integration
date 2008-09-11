@@ -18,7 +18,7 @@
 		</interceptors>
 	</channel>
 
-	<service-activator ref="handler" input-channel="requestChannel"/>
+	<service-activator ref="handler" input-channel="requestChannel" output-channel="replyChannel"/>
 
 	<beans:bean id="proxy" class="org.springframework.integration.gateway.GatewayProxyFactoryBean">
 		<beans:property name="serviceInterface" value="org.springframework.integration.gateway.TestService"/>

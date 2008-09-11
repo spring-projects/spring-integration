@@ -64,7 +64,7 @@ public class GatewayParserTests {
 		this.startResponder(requestChannel, replyChannel);
 		TestService service = (TestService) context.getBean("requestReply");
 		String result = service.requestReply("foo");
-		assertEquals("foobar", result);		
+		assertEquals("foo", result);		
 	}
 
 	@Test
@@ -75,7 +75,7 @@ public class GatewayParserTests {
 		this.startResponder(requestChannel, replyChannel);
 		TestService service = (TestService) context.getBean("requestReplyWithMessageMapper");
 		String result = service.requestReply("foo");
-		assertEquals("foobar.mapped", result);		
+		assertEquals("foo.mapped", result);		
 	}
 
 	@Test
@@ -86,7 +86,7 @@ public class GatewayParserTests {
 		this.startResponder(requestChannel, replyChannel);
 		TestService service = (TestService) context.getBean("requestReplyWithMessageCreator");
 		String result = service.requestReply("foo");
-		assertEquals("created.foobar", result);		
+		assertEquals("created.foo", result);		
 	}
 
 
@@ -94,7 +94,7 @@ public class GatewayParserTests {
 		Executors.newSingleThreadExecutor().execute(new Runnable() {
 			public void run() {
 				Message<?> request = requestChannel.receive();
-				Message<String> reply = MessageBuilder.fromPayload(request.getPayload() + "bar")
+				Message<?> reply = MessageBuilder.fromMessage(request)
 						.setCorrelationId(request.getHeaders().getId()).build();
 				replyChannel.send(reply);
 			}

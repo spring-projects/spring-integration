@@ -114,7 +114,7 @@ public class GatewayProxyFactoryBean extends SimpleMessagingGateway
 		return invocation.proceed();
 	}
 
-	private Object invokeGatewayMethod(MethodInvocation invocation) throws Throwable {
+	private Object invokeGatewayMethod(MethodInvocation invocation) throws Exception {
 		if (!this.initialized) {
 			this.afterPropertiesSet();
 		}

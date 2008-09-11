@@ -16,63 +16,45 @@
 
 package org.springframework.integration.handler;
 
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.AbstractInOutEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.message.RetrievalBlockingMessageStore;
-import org.springframework.util.Assert;
+import org.springframework.integration.message.MessagingException;
 
 /**
- * A handler for receiving messages from a "reply channel". Any component that
- * is expecting a reply message can poll by providing the correlation identifier.
+ * A handler for receiving messages from a "reply channel".
  * 
  * @author Mark Fisher
  */
 public class ReplyMessageCorrelator extends AbstractInOutEndpoint {
 
-	private volatile long defaultTimeout = 5000;
-
-	private final RetrievalBlockingMessageStore messageStore;
-
-
-	public ReplyMessageCorrelator(int capacity) {
-		this.messageStore = new RetrievalBlockingMessageStore(capacity);
-	}
-
-
-	public void setDefaultTimeout(long defaultTimeout) {
-		Assert.isTrue(defaultTimeout >= 0, "'defaultTimeout' must not be negative");
-		this.defaultTimeout = defaultTimeout;
-	}
-
 	@Override
 	public Message<?> handle(Message<?> message) {
-		Object correlationId = this.getCorrelationId(message);
-		if (correlationId == null) {
-			throw new MessageHandlingException(message, 
-					"unable to handle response, message has no correlationId: " + message);
+		Object returnAddress = message.getHeaders().getReturnAddress();
+		if (returnAddress == null) {
+			throw new MessageHandlingException(message,
+					"unable to correlate response, message has no returnAddress");
 		}
-		this.messageStore.put(correlationId, message);
+		MessageChannel replyChannel = null;
+		if (returnAddress instanceof MessageChannel) {
+			replyChannel = (MessageChannel) returnAddress;
+		}
+		else if (returnAddress instanceof String) {
+			replyChannel = this.getChannelRegistry().lookupChannel((String) returnAddress);
+			if (replyChannel == null) {
+				throw new MessagingException(message,
+						"unable to resolve returnAddress '" + returnAddress + "'");
+			}
+		}
+		else {
+			throw new MessagingException(message,
+					"invalid returnAddress type [" + returnAddress.getClass() + "]");
+		}
+		if (replyChannel != null) {
+			replyChannel.send(message);
+		}
 		return null;
-	}
-
-	public Message<?> getReply(Object correlationId) {
-		return this.getReply(correlationId, this.defaultTimeout);
-	}
-
-	public Message<?> getReply(Object correlationId, long timeout) {
-		Assert.notNull(correlationId, "'correlationId' must not be null");
-		return this.messageStore.remove(correlationId, timeout);
-	}
-
-	/**
-	 * Retrieve the correlation identifier from the provided message.
-	 * <p>
-	 * This method may be overridden by subclasses. The default implementation
-	 * returns the 'correlationId' from the message header.
-	 */
-	protected Object getCorrelationId(final Message<?> message) {
-		return message.getHeaders().getCorrelationId();
 	}
 
 }

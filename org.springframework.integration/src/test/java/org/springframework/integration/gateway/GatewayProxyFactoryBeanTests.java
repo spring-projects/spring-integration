@@ -124,7 +124,7 @@ public class GatewayProxyFactoryBeanTests {
 	public void testMultipleMessagesWithResponseCorrelator() throws InterruptedException {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"gatewayWithResponseCorrelator.xml", GatewayProxyFactoryBeanTests.class);
-		int numRequests = 5;
+		int numRequests = 500;
 		final TestService service = (TestService) context.getBean("proxy");
 		final String[] results = new String[numRequests];
 		final CountDownLatch latch = new CountDownLatch(numRequests);

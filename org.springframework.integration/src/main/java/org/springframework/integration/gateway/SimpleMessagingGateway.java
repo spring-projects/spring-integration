@@ -27,7 +27,6 @@ import org.springframework.integration.handler.ReplyMessageCorrelator;
 import org.springframework.integration.message.DefaultMessageCreator;
 import org.springframework.integration.message.DefaultMessageMapper;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageCreator;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageMapper;
@@ -47,10 +46,6 @@ public class SimpleMessagingGateway extends MessagingGatewaySupport implements M
 	private volatile MessageChannel requestChannel;
 
 	private volatile PollableChannel replyChannel;
-
-	private volatile long replyTimeout = -1;
-
-	private volatile int replyMapCapacity = 100;
 
 	private volatile MessageCreator messageCreator = new DefaultMessageCreator();
 
@@ -91,14 +86,6 @@ public class SimpleMessagingGateway extends MessagingGatewaySupport implements M
 		this.replyChannel = replyChannel;
 	}
 
-	/**
-	 * Set the max capacity for the map that is used to store replies
-	 * until requested by the correlationId. The default value is 100.
-	 */
-	public void setReplyMapCapacity(int replyMapCapacity) {
-		this.replyMapCapacity = replyMapCapacity;
-	}
-
 	public void setMessageCreator(MessageCreator<?, ?> messageCreator) {
 		Assert.notNull(messageCreator, "messageCreator must not be null");
 		this.messageCreator = messageCreator;
@@ -111,11 +98,6 @@ public class SimpleMessagingGateway extends MessagingGatewaySupport implements M
 
 	public void setMessageBus(MessageBus messageBus) {
 		this.endpointRegistry = messageBus;
-	}
-
-	public void setReplyTimeout(long replyTimeout) {
-		this.replyTimeout = replyTimeout;
-		super.setReplyTimeout(replyTimeout);
 	}
 
 	public void send(Object object) {
@@ -167,23 +149,10 @@ public class SimpleMessagingGateway extends MessagingGatewaySupport implements M
 			throw new MessageDeliveryException(message,
 					"No request channel available. Cannot send request message.");
 		}
-		if (this.replyChannel != null) {
-			return this.sendAndReceiveWithReplyMessageCorrelator(message);
-		}
-		else {
-			return this.getChannelTemplate().sendAndReceive(message, this.requestChannel);
-		}
-	}
-
-	private Message<?> sendAndReceiveWithReplyMessageCorrelator(Message<?> message) {
-		if (this.replyMessageCorrelator == null) {
+		if (this.replyChannel != null && this.replyMessageCorrelator == null) {
 			this.registerReplyMessageCorrelator();
 		}
-		message = MessageBuilder.fromMessage(message).setReturnAddress(this.replyChannel).build();
-		this.send(message);
-		return (this.replyTimeout >= 0)
-				? this.replyMessageCorrelator.getReply(message.getHeaders().getId(), this.replyTimeout)
-				: this.replyMessageCorrelator.getReply(message.getHeaders().getId());
+		return this.getChannelTemplate().sendAndReceive(message, this.requestChannel);
 	}
 
 	private void registerReplyMessageCorrelator() {
@@ -194,7 +163,7 @@ public class SimpleMessagingGateway extends MessagingGatewaySupport implements M
 			if (this.endpointRegistry == null) {
 				throw new ConfigurationException("No EndpointRegistry available. Cannot register ReplyMessageCorrelator.");
 			}
-			ReplyMessageCorrelator correlator = new ReplyMessageCorrelator(this.replyMapCapacity);
+			ReplyMessageCorrelator correlator = new ReplyMessageCorrelator();
 			correlator.setBeanName("internal.correlator." + this);
 			correlator.setInputChannel(this.replyChannel);
 			correlator.afterPropertiesSet();
