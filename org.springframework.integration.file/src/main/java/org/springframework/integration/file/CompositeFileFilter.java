@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Composition that delegates to multiple {@link FileFilter}s. The compostition
+ * Composition that delegates to multiple {@link FileFilter}s. The composition
  * is AND based, meaning that all filters must {@link #filterFiles(File)} in
  * order for a file to be accepted by the composite.
  * 

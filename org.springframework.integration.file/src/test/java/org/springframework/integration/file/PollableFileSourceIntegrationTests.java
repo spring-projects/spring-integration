@@ -22,7 +22,6 @@ import static org.junit.Assert.assertNull;
 
 import java.io.File;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.After;
 import org.junit.AfterClass;
