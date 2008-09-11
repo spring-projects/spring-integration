@@ -16,6 +16,10 @@
 
 package org.springframework.integration.config;
 
+import org.w3c.dom.Element;
+
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.router.MethodInvokingChannelResolver;
 import org.springframework.integration.router.RouterEndpoint;
@@ -35,6 +39,11 @@ public class RouterParser extends AbstractEndpointParser {
 	@Override
 	protected Class<?> getMethodInvokingAdapterClass() {
 		return MethodInvokingChannelResolver.class;
+	}
+
+	@Override
+	protected void postProcess(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "default-output-channel");
 	}
 
 }

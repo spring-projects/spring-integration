@@ -50,4 +50,20 @@ public class RouterParserTests {
 		assertNull(output1.receive(0));
 	}
 
+	@Test
+	public void testRouterWithDefaultOutputChannel() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"routerParserTests.xml", this.getClass());
+		context.start();
+		MessageChannel input = (MessageChannel) context.getBean("inputForRouterWithDefaultOutput");
+		PollableChannel output1 = (PollableChannel) context.getBean("output1");
+		PollableChannel output2 = (PollableChannel) context.getBean("output2");
+		PollableChannel defaultOutput = (PollableChannel) context.getBean("defaultOutput");
+		input.send(new StringMessage("99"));
+		assertNull(output1.receive(0));
+		assertNull(output2.receive(0));
+		Message<?> result = defaultOutput.receive(0);
+		assertEquals("99", result.getPayload());
+	}
+
 }

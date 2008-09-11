@@ -333,12 +333,19 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="router" type="inputEndpointType">
+	<xsd:element name="router">
 		<xsd:annotation>
 			<xsd:documentation>
 	Defines a Router.
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="inputEndpointType">
+					<xsd:attribute name="default-output-channel" type="xsd:string"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="splitter" type="inputOutputEndpointType">

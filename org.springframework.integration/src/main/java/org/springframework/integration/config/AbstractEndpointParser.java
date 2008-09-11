@@ -106,6 +106,7 @@ public abstract class AbstractEndpointParser extends AbstractSingleBeanDefinitio
 			ManagedList interceptors = parser.parseInterceptors(interceptorsElement, parserContext);
 			builder.addPropertyValue("interceptors", interceptors);
 		}
+		this.postProcess(element, parserContext, builder);
 	}
 
 	private String parseAdapter(String ref, String method, Element element, ParserContext parserContext) {
@@ -116,6 +117,12 @@ public abstract class AbstractEndpointParser extends AbstractSingleBeanDefinitio
 		BeanDefinitionHolder holder = new BeanDefinitionHolder(builder.getBeanDefinition(), adapterBeanName);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(holder));
 		return adapterBeanName;
+	}
+
+	/**
+	 * Subclasses may implement this method to provide additional configuration.
+	 */
+	protected void postProcess(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 	}
 
 	protected abstract Class<? extends MessageEndpoint> getEndpointClass();

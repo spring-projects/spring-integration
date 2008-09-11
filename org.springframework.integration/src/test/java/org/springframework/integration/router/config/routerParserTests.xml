@@ -11,6 +11,8 @@
 
 	<channel id="input"/>
 
+	<channel id="inputForRouterWithDefaultOutput"/>
+
 	<channel id="output1">
 		<queue capacity="1"/>
 	</channel>
@@ -19,7 +21,15 @@
 		<queue capacity="1"/>
 	</channel>
 
+	<channel id="defaultOutput">
+		<queue capacity="2"/>
+	</channel>
+
 	<router id="router" ref="pojo" method="route" input-channel="input"/>
+
+	<router id="routerWithDefaultOutputChannel" ref="pojo" method="route"
+			input-channel="inputForRouterWithDefaultOutput"
+			default-output-channel="defaultOutput"/>
 
 	<beans:bean id="pojo" class="org.springframework.integration.router.config.TestRouter"/>
 
