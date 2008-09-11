@@ -20,37 +20,37 @@ import java.io.FileFilter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
  * Composition that delegates to multiple {@link FileFilter}s. The compostition
- * is AND based, meaning that all filters must {@link #accept(File)} in order
- * for a file to be accepted by the composite.
+ * is AND based, meaning that all filters must {@link #filterFiles(File)} in
+ * order for a file to be accepted by the composite.
  * 
  * @author Iwein Fuld
  */
-class CompositeFileFilter implements FileFilter {
+public class CompositeFileFilter implements FileListFilter {
 
-	private final Set<FileFilter> fileFilters;
+	private final Set<FileListFilter> fileFilters;
 
-	public CompositeFileFilter(FileFilter... fileFilters) {
-		this.fileFilters = new HashSet<FileFilter>(Arrays.asList(fileFilters));
+	public CompositeFileFilter(FileListFilter... fileFilters) {
+		this.fileFilters = new HashSet<FileListFilter>(Arrays.asList(fileFilters));
 	}
 
-	public CompositeFileFilter(HashSet<FileFilter> fileFilters) {
-		this.fileFilters = new HashSet<FileFilter>(fileFilters);
+	public CompositeFileFilter(Collection<FileListFilter> fileFilters) {
+		this.fileFilters = new HashSet<FileListFilter>(fileFilters);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public boolean accept(File pathname) {
-		for (FileFilter fileFilter : fileFilters) {
-			if (!fileFilter.accept(pathname)) {
-				return false;
-			}
+	public List<File> filterFiles(File[] files) {
+		List<File> leftOver = Arrays.asList(files);
+		for (FileListFilter fileFilter : fileFilters) {
+			leftOver = fileFilter.filterFiles(leftOver.toArray(new File[] {}));
 		}
-		return true;
+		return leftOver;
 	}
 
 	/**
@@ -58,7 +58,7 @@ class CompositeFileFilter implements FileFilter {
 	 * @param filters one or more new filters to be used
 	 * @return a new CompositeFileFilter with the additional filters
 	 */
-	public CompositeFileFilter addFilter(FileFilter... filters) {
+	public CompositeFileFilter addFilter(FileListFilter... filters) {
 		return addFilters(Arrays.asList(filters));
 	}
 
@@ -69,8 +69,8 @@ class CompositeFileFilter implements FileFilter {
 	 * @param filtersToAdd
 	 * @return a new CompositeFileFilter with the added filters
 	 */
-	public CompositeFileFilter addFilters(Collection<FileFilter> filtersToAdd) {
-		HashSet<FileFilter> newFilterSet = new HashSet<FileFilter>(filtersToAdd);
+	public CompositeFileFilter addFilters(Collection<FileListFilter> filtersToAdd) {
+		HashSet<FileListFilter> newFilterSet = new HashSet<FileListFilter>(filtersToAdd);
 		newFilterSet.addAll(fileFilters);
 		return new CompositeFileFilter(newFilterSet);
 	}

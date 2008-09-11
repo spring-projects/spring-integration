@@ -15,12 +15,20 @@
  */
 package org.springframework.integration.file;
 
-import java.io.File;
-import java.io.FileFilter;
-import static org.easymock.classextension.EasyMock.*;
-import static org.junit.Assert.*;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.isA;
+import static org.easymock.classextension.EasyMock.createMock;
+import static org.easymock.classextension.EasyMock.createNiceMock;
+import static org.easymock.classextension.EasyMock.replay;
+import static org.easymock.classextension.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import org.junit.Before;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.Test;
 
 /**
@@ -28,40 +36,41 @@ import org.junit.Test;
  */
 public class CompositeFileFilterTest {
 
-	private FileFilter fileFilterMock1 = createMock(FileFilter.class);
-	private FileFilter fileFilterMock2 = createMock(FileFilter.class);
+	private FileListFilter fileFilterMock1 = createMock(FileListFilter.class);
+
+	private FileListFilter fileFilterMock2 = createMock(FileListFilter.class);
 
 	private File fileMock = createNiceMock(File.class);
-
-
 
 	@Test
 	public void forwardedToFilters() throws Exception {
 		CompositeFileFilter compositeFileFilter = new CompositeFileFilter(fileFilterMock1, fileFilterMock2);
-		expect(fileFilterMock1.accept(fileMock)).andReturn(true).times(1);
-		expect(fileFilterMock2.accept(fileMock)).andReturn(true).times(1);
+		List<File> returnedFiles = Arrays.asList(new File[] { fileMock });
+		expect(fileFilterMock1.filterFiles(isA(File[].class))).andReturn(returnedFiles).times(1);
+		expect(fileFilterMock2.filterFiles(isA(File[].class))).andReturn(returnedFiles).times(1);
 		replay(fileFilterMock1, fileFilterMock2);
-		assertTrue(compositeFileFilter.accept(fileMock));
+		assertEquals(returnedFiles, compositeFileFilter.filterFiles(new File[]{fileMock}));
 		verify(fileFilterMock1, fileFilterMock2);
 	}
 
 	@Test
 	public void forwardedToAddedFilters() throws Exception {
 		CompositeFileFilter compositeFileFilter = new CompositeFileFilter().addFilter(fileFilterMock1, fileFilterMock2);
-		expect(fileFilterMock1.accept(fileMock)).andReturn(true).times(1);
-		expect(fileFilterMock2.accept(fileMock)).andReturn(true).times(1);
+		List<File> returnedFiles = Arrays.asList(new File[] { fileMock });
+		expect(fileFilterMock1.filterFiles(isA(File[].class))).andReturn(returnedFiles).times(1);
+		expect(fileFilterMock2.filterFiles(isA(File[].class))).andReturn(returnedFiles).times(1);
 		replay(fileFilterMock1, fileFilterMock2);
-		assertTrue(compositeFileFilter.accept(fileMock));
+		assertEquals(returnedFiles, compositeFileFilter.filterFiles(new File[]{fileMock}));
 		verify(fileFilterMock1, fileFilterMock2);
 	}
 
 	@Test
 	public void negative() throws Exception {
 		CompositeFileFilter compositeFileFilter = new CompositeFileFilter(fileFilterMock1, fileFilterMock2);
-		expect(fileFilterMock1.accept(fileMock)).andReturn(false).times(1);
-		expect(fileFilterMock2.accept(fileMock)).andReturn(true).anyTimes();
+		expect(fileFilterMock2.filterFiles(isA(File[].class))).andReturn(new ArrayList<File>()).times(1);
+		expect(fileFilterMock1.filterFiles(isA(File[].class))).andReturn(new ArrayList<File>()).times(1);
 		replay(fileFilterMock1, fileFilterMock2);
-		assertFalse(compositeFileFilter.accept(fileMock));
+		assertTrue(compositeFileFilter.filterFiles(new File[]{fileMock}).isEmpty());
 		verify(fileFilterMock1, fileFilterMock2);
 	}
 }

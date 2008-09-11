@@ -16,16 +16,14 @@
 package org.springframework.integration.file;
 
 import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.isA;
 import static org.easymock.classextension.EasyMock.createMock;
 import static org.easymock.classextension.EasyMock.replay;
-import static org.easymock.classextension.EasyMock.reset;
 import static org.easymock.classextension.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.io.File;
-import java.io.FileFilter;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -43,11 +41,9 @@ public class PollableFileSourceTests {
 
 	private File inputDirectory;
 
-	private FileFilter filterMock = createMock(FileFilter.class);
-
 	private File fileMock = createMock(File.class);
 
-	private Object[] allMocks = new Object[] { inputDirectoryMock, filterMock, fileMock };
+	private Object[] allMocks = new Object[] { inputDirectoryMock, fileMock };
 
 	@Before
 	public void initialize() throws Exception {
@@ -56,15 +52,9 @@ public class PollableFileSourceTests {
 		pollableFileSource.setInputDirectory(inputDirectoryMock);
 	}
 
-	@Before
-	public void setDefaultExpectations() {
-		expect(fileMock.exists()).andReturn(true).anyTimes();
-	}
-
 	@Test
 	public void straightProcess() throws Exception {
-		reset(fileMock);
-		expect(inputDirectoryMock.listFiles(isA(FileFilter.class))).andReturn(new File[] { fileMock });
+		expect(inputDirectoryMock.listFiles()).andReturn(new File[] { fileMock });
 		replay(allMocks);
 		pollableFileSource.onSend(pollableFileSource.receive());
 		verify(allMocks);
@@ -72,10 +62,11 @@ public class PollableFileSourceTests {
 
 	@Test
 	public void requeueOnFailure() throws Exception {
-		expect(inputDirectoryMock.listFiles(isA(FileFilter.class))).andReturn(new File[] { fileMock });
-		expect(inputDirectoryMock.listFiles(isA(FileFilter.class))).andReturn(new File[] {});
+		expect(inputDirectoryMock.listFiles()).andReturn(new File[] { fileMock });
+		expect(inputDirectoryMock.listFiles()).andReturn(new File[] {});
 		replay(allMocks);
 		Message received = pollableFileSource.receive();
+		assertNotNull(received);
 		pollableFileSource.onFailure(received, new RuntimeException("failed"));
 		assertEquals(received.getPayload(), pollableFileSource.receive().getPayload());
 		verify(allMocks);
@@ -83,10 +74,12 @@ public class PollableFileSourceTests {
 
 	@Test
 	public void noDuplication() throws Exception {
-		expect(inputDirectoryMock.listFiles(isA(FileFilter.class))).andReturn(new File[] { fileMock });
-		expect(inputDirectoryMock.listFiles(isA(FileFilter.class))).andReturn(new File[] {});
+		expect(inputDirectoryMock.listFiles()).andReturn(new File[] { fileMock });
+		expect(inputDirectoryMock.listFiles()).andReturn(new File[] {});
 		replay(allMocks);
-		assertEquals(fileMock, pollableFileSource.receive().getPayload());
+		Message<File> received = pollableFileSource.receive();
+		assertNotNull(received);
+		assertEquals(fileMock, received.getPayload());
 		assertNull(pollableFileSource.receive());
 		verify(allMocks);
 	}

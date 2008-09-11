@@ -17,10 +17,10 @@ package org.springframework.integration.file;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.PriorityBlockingQueue;
 
 import org.apache.commons.logging.Log;
@@ -50,21 +50,13 @@ import org.springframework.util.Assert;
  */
 public class PollableFileSource implements PollableSource<File>, MessageDeliveryAware<File>, InitializingBean {
 
-	private static final Log log = LogFactory.getLog(PollableFileSource.class);
+	private static final Log logger = LogFactory.getLog(PollableFileSource.class);
 
 	private volatile File inputDirectory;
 
-	private volatile Queue<File> fileQueue = new PriorityBlockingQueue<File>();
+	private final Queue<File> toBeReceived = new PriorityBlockingQueue<File>();
 
-	private volatile FileFilter filter = new AcceptOnceFileFilter();
-
-	/**
-	 * Sets a queue to be used to hold files that are not processed yet. By
-	 * default a {@link PriorityBlockingQueue} with natural ordering is used.
-	 */
-	public void setQueue(Queue<File> queue) {
-		this.fileQueue = queue;
-	}
+	private volatile FileListFilter filter = new AcceptOnceFileFilter();
 
 	public void setInputDirectory(File inputDirectory) {
 		this.inputDirectory = inputDirectory;
@@ -78,8 +70,8 @@ public class PollableFileSource implements PollableSource<File>, MessageDelivery
 	 * {@link CompositeFileFilter} can be used to group them together <p/>
 	 * <b>Note that the supplied filter must be thread safe</b>.
 	 */
-	public void setFilter(FileFilter filter) {
-		Assert.notNull(filter);
+	public void setFilter(FileListFilter filter) {
+		Assert.notNull(filter, "'filter' should not be null");
 		this.filter = filter;
 	}
 
@@ -89,23 +81,16 @@ public class PollableFileSource implements PollableSource<File>, MessageDelivery
 		Assert.isTrue(this.inputDirectory.canRead(), "No read permissions on " + inputDirectory);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * @return the Message created by the {@link #messageCreator} based on the
-	 * next file from the {@link #fileQueue}. Existence of the file is not
-	 * guaranteed, so the consumer of the message needs to check this.
-	 */
 	public Message<File> receive() throws MessagingException {
 		traceState();
 		refreshQueue();
 		Message<File> message = null;
-		File file = fileQueue.poll();
+		File file = toBeReceived.poll();
 		// we can't rely on isEmpty for concurrency reasons
 		if (file != null) {
 			message = new GenericMessage<File>(file);
-			if (log.isInfoEnabled()) {
-				log.info("Created message: [" + message + "]");
+			if (logger.isInfoEnabled()) {
+				logger.info("Created message: [" + message + "]");
 			}
 		}
 		traceState();
@@ -113,24 +98,16 @@ public class PollableFileSource implements PollableSource<File>, MessageDelivery
 	}
 
 	private void refreshQueue() {
-		List<File> freshFiles = new ArrayList<File>(processFileList(Arrays.asList(inputDirectory.listFiles(filter))));
+		List<File> filteredFiles = filter.filterFiles((inputDirectory.listFiles()));
+		Set<File> freshFiles = new HashSet<File>(filteredFiles);
 		if (!freshFiles.isEmpty()) {
 			// don't duplicate what's on the queue already
-			freshFiles.removeAll(fileQueue);
-			fileQueue.addAll(freshFiles);
-			if (log.isDebugEnabled()) {
-				log.debug("Added to queue: " + freshFiles);
+			freshFiles.removeAll(toBeReceived);
+			toBeReceived.addAll(freshFiles);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Added to queue: " + freshFiles);
 			}
 		}
-	}
-
-	/**
-	 * TODO point to FileFilter options
-	 * @param files
-	 * @return
-	 */
-	protected List<File> processFileList(List<File> files) {
-		return files;
 	}
 
 	/**
@@ -139,15 +116,15 @@ public class PollableFileSource implements PollableSource<File>, MessageDelivery
 	 * synchronized on this instance externally.
 	 */
 	public void onFailure(Message<File> failedMessage, Throwable t) {
-		if (log.isWarnEnabled()) {
-			log.warn("Failed to send: " + failedMessage);
+		if (logger.isWarnEnabled()) {
+			logger.warn("Failed to send: " + failedMessage);
 		}
-		fileQueue.add(failedMessage.getPayload());
+		toBeReceived.add(failedMessage.getPayload());
 	}
 
 	public void onSend(Message<File> sentMessage) {
-		if (log.isDebugEnabled()) {
-			log.debug("Sent: " + sentMessage);
+		if (logger.isDebugEnabled()) {
+			logger.debug("Sent: " + sentMessage);
 		}
 	}
 
@@ -155,8 +132,8 @@ public class PollableFileSource implements PollableSource<File>, MessageDelivery
 	 * utility method to trace the stateful collections of this instance.
 	 */
 	private void traceState() {
-		if (log.isTraceEnabled()) {
-			log.trace("Files to be received: [" + fileQueue + "]");
+		if (logger.isTraceEnabled()) {
+			logger.trace("Files to be received: [" + toBeReceived + "]");
 		}
 	}
 }
