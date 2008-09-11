@@ -37,7 +37,7 @@ import org.springframework.util.Assert;
  * @author Marius Bogoevici
  * @author Iwein Fuld
  */
-public abstract class AbstractDirectorySource<T> implements PollableSource<T>, MessageDeliveryAware {
+public abstract class AbstractDirectorySource<T> implements PollableSource<T>, MessageDeliveryAware<T> {
 
 	public final static String FILE_INFO_PROPERTY = "file.info";
 
@@ -99,14 +99,14 @@ public abstract class AbstractDirectorySource<T> implements PollableSource<T>, M
 		return this.messageCreator.createMessage(retrieveNextPayload());
 	}
 
-	public void onSend(Message<?> message) {
+	public void onSend(Message<T> message) {
 		if (logger.isDebugEnabled()) {
 			logger.debug(message + " processed successfully. Files will be removed from backlog");
 		}
 		this.backlog.processed();
 	}
 
-	public void onFailure(Message<?> failedMessage, Throwable exception) {
+	public void onFailure(Message<T> failedMessage, Throwable exception) {
 		if (this.logger.isWarnEnabled()) {
 			this.logger.warn("Failure notification received by [" + this.getClass().getSimpleName() + "] for message: "
 					+ failedMessage + ". Selected files will be moved back to the backlog.", exception);

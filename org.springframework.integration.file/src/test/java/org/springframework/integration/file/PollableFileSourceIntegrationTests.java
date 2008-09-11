@@ -15,7 +15,6 @@
  */
 package org.springframework.integration.file;
 
-import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
@@ -46,7 +45,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class PollableFileSourceIntegrationTests {
 
 	@Autowired
-	PollableFileSource<File> pollableFileSource;
+	PollableFileSource pollableFileSource;
 
 	private static File inputDir;
 
@@ -62,12 +61,6 @@ public class PollableFileSourceIntegrationTests {
 		File.createTempFile("test", null, inputDir).setLastModified(System.currentTimeMillis() - 1000);
 		File.createTempFile("test", null, inputDir).setLastModified(System.currentTimeMillis() - 1000);
 		File.createTempFile("test", null, inputDir).setLastModified(System.currentTimeMillis() - 1000);
-	}
-
-	@After
-	public void resetTimestamps() {
-		((AtomicLong) new DirectFieldAccessor(pollableFileSource).getPropertyValue("previousListTimestamp")).set(0);
-		((AtomicLong) new DirectFieldAccessor(pollableFileSource).getPropertyValue("currentListTimestamp")).set(0);
 	}
 
 	@After
@@ -91,13 +84,13 @@ public class PollableFileSourceIntegrationTests {
 
 	@Test
 	public void getFiles() throws Exception {
-		Message<?> received1 = pollableFileSource.receive();
+		Message<File> received1 = pollableFileSource.receive();
 		assertNotNull("This should return the first message", received1);
 		pollableFileSource.onSend(received1);
-		Message<?> received2 = pollableFileSource.receive();
+		Message<File> received2 = pollableFileSource.receive();
 		assertNotNull(received2);
 		pollableFileSource.onSend(received2);
-		Message<?> received3 = pollableFileSource.receive();
+		Message<File> received3 = pollableFileSource.receive();
 		assertNotNull(received3);
 		pollableFileSource.onSend(received3);
 		assertNotSame(received1 + " == " + received2, received1.getPayload(), received2.getPayload());
@@ -113,18 +106,6 @@ public class PollableFileSourceIntegrationTests {
 		assertNotSame(received1 + " == " + received2, received1, received2);
 		assertNotSame(received1 + " == " + received3, received1, received3);
 		assertNotSame(received2 + " == " + received3, received2, received3);
-	}
-
-	@Test
-	public void delayedRecieve() throws Exception {
-		pollableFileSource.receive();
-		pollableFileSource.receive();
-		pollableFileSource.receive();
-		File tempFile = File.createTempFile("test", null, inputDir);
-		assertNull(pollableFileSource.receive());
-		Thread.sleep(2000);
-		tempFile.setLastModified(System.currentTimeMillis() - 1000);
-		assertEquals(tempFile, pollableFileSource.receive().getPayload());
 	}
 
 	@Test(timeout = 1000)

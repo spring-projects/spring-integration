@@ -20,101 +20,90 @@ import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.PriorityBlockingQueue;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageCreator;
 import org.springframework.integration.message.MessageDeliveryAware;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.PollableSource;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 
 /**
  * PollableSource that creates messages from a file system directory. To prevent
- * messages from showing up on the source you can supply a FileFilter to it.
- * This can also be useful to prevent messages to be created for unfinished
- * files.
+ * messages from showing up on the source you can supply a FileFilter to it. By
+ * default an {@link AcceptOnceFileFilter} is used that ensures files are picked
+ * up only once from the directory.
+ * 
+ * A common problem with reading files is that files are picked up that are not
+ * ready. The default {@link AcceptOnceFileFilter} does not prevent this. In
+ * most cases this can be prevented by renaming the files as soon as they are
+ * ready. A FileFilter that accepts only files that are ready, composed with the
+ * default {@link AcceptOnceFileFilter} would allow for this.
+ * @see CompositeFileFilter for a way to do this.
  * 
  * @author Iwein Fuld
- * 
- * @param <T> the class of the payload of the message received from this
- * {@link #PollableFileSource()}
  */
-public class PollableFileSource<T> implements PollableSource<T>, MessageDeliveryAware, InitializingBean {
+public class PollableFileSource implements PollableSource<File>, MessageDeliveryAware<File>, InitializingBean {
 
-	private static Log log = LogFactory.getLog(PollableFileSource.class);
-
-	private volatile Queue<File> fileQueue = new PriorityBlockingQueue<File>();
-
-	private volatile MessageCreator<File, T> messageCreator;
+	private static final Log log = LogFactory.getLog(PollableFileSource.class);
 
 	private volatile File inputDirectory;
 
-	private final Map<Message<T>, File> undeliveredMessagesToFiles = new ConcurrentHashMap<Message<T>, File>();
+	private volatile Queue<File> fileQueue = new PriorityBlockingQueue<File>();
 
-	private final AtomicLong currentListTimestamp = new AtomicLong();
+	private volatile FileFilter filter = new AcceptOnceFileFilter();
 
-	private final AtomicLong previousListTimestamp = new AtomicLong();
-
-	private volatile CompositeFileFilter filter = new CompositeFileFilter(new ModificationTimeFileFilter());
-
-	// Setters
+	/**
+	 * Sets a queue to be used to hold files that are not processed yet. By
+	 * default a {@link PriorityBlockingQueue} with natural ordering is used.
+	 */
 	public void setQueue(Queue<File> queue) {
 		this.fileQueue = queue;
-	}
-
-	public void setMessageCreator(MessageCreator<File, T> messageCreator) {
-		this.messageCreator = messageCreator;
 	}
 
 	public void setInputDirectory(File inputDirectory) {
 		this.inputDirectory = inputDirectory;
 	}
 
-	public void setFilter(FileFilter... filters) {
-		Assert.notEmpty(filters);
-		this.filter = filter.addFilter(filters);
+	/**
+	 * Sets a {@link FileFilter} on the {@link PollableSource}. By default a
+	 * {@link AcceptOnceFileFilter} with no bounds is used. In most cases a
+	 * customized {@link FileFilter} will be needed to deal with modification
+	 * and duplication concerns. If multiple filters are required a
+	 * {@link CompositeFileFilter} can be used to group them together <p/>
+	 * <b>Note that the supplied filter must be thread safe</b>.
+	 */
+	public void setFilter(FileFilter filter) {
+		Assert.notNull(filter);
+		this.filter = filter;
 	}
 
 	public void afterPropertiesSet() throws Exception {
-		if (this.messageCreator == null) {
-			throw new ConfigurationException(MessageCreator.class.getSimpleName() + "is required.");
-		}
-		if (this.inputDirectory == null) {
-			throw new ConfigurationException("inputDirectory cannot be null");
-		}
-		if (!this.inputDirectory.exists()) {
-			throw new ConfigurationException(inputDirectory + " doesn't exist.");
-		}
-		if (!this.inputDirectory.canRead()) {
-			throw new ConfigurationException("No read permissions on " + inputDirectory);
-		}
+		Assert.notNull(inputDirectory, "inputDirectory cannot be null");
+		Assert.isTrue(this.inputDirectory.exists(), inputDirectory + " doesn't exist.");
+		Assert.isTrue(this.inputDirectory.canRead(), "No read permissions on " + inputDirectory);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 * 
 	 * @return the Message created by the {@link #messageCreator} based on the
-	 * next file from the {@link #fileQueue}. If the file doesn't exist
-	 * (anymore) it is up to the {@link MessageCreator} to deal with this.
+	 * next file from the {@link #fileQueue}. Existence of the file is not
+	 * guaranteed, so the consumer of the message needs to check this.
 	 */
-	public Message<T> receive() throws MessagingException {
+	public Message<File> receive() throws MessagingException {
 		traceState();
 		refreshQueue();
-		Message<T> message = null;
+		Message<File> message = null;
 		File file = fileQueue.poll();
-		// we cannot rely on isEmpty, so we have to do a null check
+		// we can't rely on isEmpty for concurrency reasons
 		if (file != null) {
-			message = createAndTrackMessage(file);
+			message = new GenericMessage<File>(file);
 			if (log.isInfoEnabled()) {
 				log.info("Created message: [" + message + "]");
 			}
@@ -123,50 +112,25 @@ public class PollableFileSource<T> implements PollableSource<T>, MessageDelivery
 		return message;
 	}
 
-	private Message<T> createAndTrackMessage(File file) throws MessagingException {
-		if (log.isDebugEnabled()) {
-			log.debug("Preparing message for file: [" + file + "]");
-		}
-		Message<T> message;
-		try {
-			message = messageCreator.createMessage(file);
-			undeliveredMessagesToFiles.put(message, file);
-		}
-		catch (Exception e) {
-			fileQueue.add(file);
-			throw new MessagingException("Error creating message for file: [" + file + "]", e);
-		}
-		return message;
-	}
-
 	private void refreshQueue() {
-		File[] freshFiles = getFreshFilesAndIncrementTimestamp();
-		if (!ObjectUtils.isEmpty(freshFiles)) {
-			List<File> freshFilesList = new ArrayList<File>(Arrays.asList(freshFiles));
+		List<File> freshFiles = new ArrayList<File>(processFileList(Arrays.asList(inputDirectory.listFiles(filter))));
+		if (!freshFiles.isEmpty()) {
 			// don't duplicate what's on the queue already
-			freshFilesList.removeAll(fileQueue);
-			freshFilesList.removeAll(undeliveredMessagesToFiles.values());
-			fileQueue.addAll(freshFilesList);
+			freshFiles.removeAll(fileQueue);
+			fileQueue.addAll(freshFiles);
 			if (log.isDebugEnabled()) {
-				log.debug("Added to queue: " + freshFilesList);
+				log.debug("Added to queue: " + freshFiles);
 			}
 		}
 	}
 
-	/*
-	 * This is synchronized on this instance to prevent concurrent listings from
-	 * causing duplication.
-	 * 
-	 * All filesystems provide a modification time precision to the second, so
-	 * we allow at most one refresh per second.
+	/**
+	 * TODO point to FileFilter options
+	 * @param files
+	 * @return
 	 */
-	private synchronized File[] getFreshFilesAndIncrementTimestamp() {
-		previousListTimestamp.set(currentListTimestamp.getAndSet(System.currentTimeMillis() / 1000 * 1000));
-		File[] freshFiles = new File[] {};
-		if (currentListTimestamp.get() > previousListTimestamp.get()) {
-			freshFiles = inputDirectory.listFiles(filter);
-		}
-		return freshFiles;
+	protected List<File> processFileList(List<File> files) {
+		return files;
 	}
 
 	/**
@@ -174,17 +138,17 @@ public class PollableFileSource<T> implements PollableSource<T>, MessageDelivery
 	 * ignored. If this is not acceptable access to this method should be
 	 * synchronized on this instance externally.
 	 */
-	public void onFailure(Message<?> failedMessage, Throwable t) {
-		log.warn("Failed to send: " + failedMessage);
-		fileQueue.add(undeliveredMessagesToFiles.get(failedMessage));
-		undeliveredMessagesToFiles.remove(failedMessage);
+	public void onFailure(Message<File> failedMessage, Throwable t) {
+		if (log.isWarnEnabled()) {
+			log.warn("Failed to send: " + failedMessage);
+		}
+		fileQueue.add(failedMessage.getPayload());
 	}
 
-	public void onSend(Message<?> sentMessage) {
+	public void onSend(Message<File> sentMessage) {
 		if (log.isDebugEnabled()) {
 			log.debug("Sent: " + sentMessage);
 		}
-		undeliveredMessagesToFiles.remove(sentMessage);
 	}
 
 	/*
@@ -193,17 +157,6 @@ public class PollableFileSource<T> implements PollableSource<T>, MessageDelivery
 	private void traceState() {
 		if (log.isTraceEnabled()) {
 			log.trace("Files to be received: [" + fileQueue + "]");
-			log.trace("Messages in flight: [" + undeliveredMessagesToFiles.keySet() + "]");
-		}
-	}
-
-	/*
-	 * Helper to filter files based on a modification time
-	 */
-	private class ModificationTimeFileFilter implements FileFilter {
-		public boolean accept(File file) {
-			long lastModified = file.lastModified();
-			return lastModified > previousListTimestamp.get() && lastModified < currentListTimestamp.get();
 		}
 	}
 }

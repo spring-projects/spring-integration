@@ -2,16 +2,18 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-
-	<bean id="pollableFileSource"
-		class="org.springframework.integration.file.PollableFileSource"
+	<bean id="pollableFileSource" class="org.springframework.integration.file.PollableFileSource"
 		p:inputDirectory="${java.io.tmpdir}/PollableFileSourceIntegrationTests"
-		p:messageCreator-ref="messageCreator" p:filter-ref="someFilter" />
-		
-	<bean id="someFilter"
-		class="org.springframework.integration.file.TestFileFilter"/>
-	<bean id="messageCreator"
-		class="org.springframework.integration.message.DefaultMessageCreator" />
+		p:filter-ref="compositeFilter" />
+	<bean id="compositeFilter"
+		class="org.springframework.integration.file.CompositeFileFilter">
+		<constructor-arg>
+			<list>
+				<bean class="org.springframework.integration.file.AcceptOnceFileFilter" />
+				<bean class="org.springframework.integration.file.TestFileFilter" />
+			</list>
+		</constructor-arg>
+	</bean>
 	<bean
 		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" />
 </beans>

@@ -22,16 +22,16 @@ package org.springframework.integration.message;
  * 
  * @author Mark Fisher
  */
-public interface MessageDeliveryAware {
+public interface MessageDeliveryAware<T> {
 
 	/**
 	 * Callback method invoked after a message is sent successfully.
 	 */
-	void onSend(Message<?> sentMessage);
+	void onSend(Message<T> sentMessage);
 
 	/**
 	 * Callback method invoked after a message delivery failure.
 	 */
-	void onFailure(Message<?> failedMessage, Throwable t);
+	void onFailure(Message<T> failedMessage, Throwable t);
 
 }

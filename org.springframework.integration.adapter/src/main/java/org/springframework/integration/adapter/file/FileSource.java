@@ -35,11 +35,13 @@ import org.springframework.util.Assert;
 /**
  * A messaging source that polls a directory to retrieve files.
  * 
+ * @deprecated Replaced by org.springframework.integration.file.PollableFileSource.
+ * 
  * @author Mark Fisher
  * @author Marius Bogoevici
  * @author Iwein Fuld
  */
-public class FileSource extends AbstractDirectorySource<File> implements MessageDeliveryAware {
+public class FileSource extends AbstractDirectorySource<File> implements MessageDeliveryAware<File> {
 
 	private final File directory;
 
