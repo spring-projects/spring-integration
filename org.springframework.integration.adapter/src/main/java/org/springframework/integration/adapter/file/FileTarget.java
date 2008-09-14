@@ -24,20 +24,18 @@ import org.springframework.integration.message.MessageTarget;
 
 /**
  * A message target for writing files. The actual file writing occurs in the
- * message creator ({@link TextFileMessageCreator} or {@link ByteArrayFileMessageCreator}).
+ * message creator ({@link TextFileMessageCreator} or
+ * {@link ByteArrayFileMessageCreator}).
  * 
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
 public class FileTarget implements MessageTarget {
-
 	private MessageMapper<?, File> messageMapper;
-
 
 	public FileTarget(MessageMapper<?, File> messageMapper) {
 		this.messageMapper = messageMapper;
 	}
-
 
 	public boolean send(Message message) {
 		File file = this.messageMapper.mapMessage(message);

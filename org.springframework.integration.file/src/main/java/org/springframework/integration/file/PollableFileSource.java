@@ -82,7 +82,6 @@ public class PollableFileSource implements PollableSource<File>, MessageDelivery
 	}
 
 	public Message<File> receive() throws MessagingException {
-		traceState();
 		refreshQueue();
 		Message<File> message = null;
 		File file = toBeReceived.poll();
@@ -93,7 +92,6 @@ public class PollableFileSource implements PollableSource<File>, MessageDelivery
 				logger.info("Created message: [" + message + "]");
 			}
 		}
-		traceState();
 		return message;
 	}
 
@@ -125,15 +123,6 @@ public class PollableFileSource implements PollableSource<File>, MessageDelivery
 	public void onSend(Message<File> sentMessage) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Sent: " + sentMessage);
-		}
-	}
-
-	/*
-	 * utility method to trace the stateful collections of this instance.
-	 */
-	private void traceState() {
-		if (logger.isTraceEnabled()) {
-			logger.trace("Files to be received: [" + toBeReceived + "]");
 		}
 	}
 }

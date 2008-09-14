@@ -36,6 +36,9 @@ import org.springframework.util.StringUtils;
  * FTPClientPool implementation based on a Queue. This implementation has a
  * default pool size of 5, but this is configurable with a constructor argument.
  * 
+ * This implementation pools released clients, but gives no guarantee to the
+ * number of clients open at the same time.
+ * 
  * @author Iwein Fuld
  */
 public class QueuedFTPClientPool implements FTPClientPool {
@@ -62,34 +65,7 @@ public class QueuedFTPClientPool implements FTPClientPool {
 
 	private volatile String remoteWorkingDirectory = DEFAULT_REMOTE_WORKING_DIRECTORY;
 
-	public QueuedFTPClientPool() {
-		this(DEFAULT_POOL_SIZE);
-	}
-
-	/**
-	 * @param maxPoolSize the maximum size of the pool
-	 */
-	public QueuedFTPClientPool(int maxPoolSize) {
-		pool = new ArrayBlockingQueue<FTPClient>(maxPoolSize);
-	}
-
-	public synchronized FTPClient getClient() throws SocketException, IOException {
-		return pool.isEmpty() ? factory.getClient() : pool.poll();
-	}
-
-	public synchronized void releaseClient(FTPClient client) {
-		if (client != null && client.isConnected()) {
-			if (!pool.offer(client)) {
-				try {
-					client.disconnect();
-				}
-				catch (IOException e) {
-					log.warn("Error disconnecting ftpclient", e);
-				}
-			}
-		}
-	}
-
+	// setters
 	public void setConfig(FTPClientConfig config) {
 		Assert.notNull(config);
 		this.config = config;
@@ -106,23 +82,79 @@ public class QueuedFTPClientPool implements FTPClientPool {
 	}
 
 	public void setUsername(String user) {
-		Assert.hasText(user);
+		Assert.hasText(user, "'user' should be a nonempty string");
 		this.username = user;
 	}
 
 	public void setPassword(String pass) {
-		Assert.notNull(pass);
+		Assert.notNull(pass, "password should not be null");
 		this.password = pass;
 	}
 
 	public void setRemoteWorkingDirectory(String remoteWorkingDirectory) {
-		Assert.notNull(remoteWorkingDirectory);
+		Assert.notNull(remoteWorkingDirectory, "remote directory should not be null");
 		this.remoteWorkingDirectory = remoteWorkingDirectory.replaceAll("^$", "/");
 	}
 
 	public void setFactory(FTPClientFactory factory) {
 		Assert.notNull(factory);
 		this.factory = factory;
+	}
+
+	public QueuedFTPClientPool() {
+		this(DEFAULT_POOL_SIZE);
+	}
+
+	/**
+	 * @param maxPoolSize the maximum size of the pool
+	 */
+	public QueuedFTPClientPool(int maxPoolSize) {
+		pool = new ArrayBlockingQueue<FTPClient>(maxPoolSize);
+	}
+
+	/**
+	 * Returns an active FTPClient connected to the configured server. When no
+	 * clients are available in the queue a new client is created with the
+	 * factory.
+	 * 
+	 * It is possible that released clients are disconnected by the remote
+	 * server (@see {@link FTPClient#sendNoOp()}. In this case getClient is
+	 * called recursively to obtain a client that is still alive. For this
+	 * reason large pools are not recommended in poor networking conditions.
+	 */
+	public FTPClient getClient() throws SocketException, IOException {
+		FTPClient client = pool.poll();
+		if (client == null) {
+			client = factory.getClient();
+		}
+		else {
+			client = isClientAlive(client) ? client : getClient();
+		}
+		return client;
+	}
+
+	private boolean isClientAlive(FTPClient client) {
+		try {
+			if (client.sendNoOp()) {
+				return true;
+			}
+		}
+		catch (IOException e) {
+			log.warn("Client [" + client + "] discarded: ", e);
+		}
+		return false;
+	}
+
+	public void releaseClient(FTPClient client) {
+		Assert.notNull(client, "'client' cannot be null");
+		if (!pool.offer(client)) {
+			try {
+				client.disconnect();
+			}
+			catch (IOException e) {
+				log.warn("Error disconnecting ftpclient", e);
+			}
+		}
 	}
 
 	private class DefaultFactory implements FTPClientFactory {
@@ -160,5 +192,4 @@ public class QueuedFTPClientPool implements FTPClientPool {
 			return client;
 		}
 	}
-
 }

@@ -18,14 +18,16 @@ package org.springframework.integration.adapter.ftp;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertSame;
 import static junit.framework.Assert.assertTrue;
-import static org.easymock.EasyMock.*;
+import static org.easymock.classextension.EasyMock.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.integration.adapter.file.FileTarget;
 
 /**
  * 
@@ -58,8 +60,8 @@ public class QueuedFTPClientPoolTest {
 
 	@Test
 	public void getMultipleGet() throws Exception {
-		FTPClient[] expectedClients = new FTPClient[] { connectedFTPClient(), connectedFTPClient(),
-				connectedFTPClient(), connectedFTPClient(), connectedFTPClient(), connectedFTPClient() };
+		FTPClient[] expectedClients = new FTPClient[] { mockedFTPClient(), mockedFTPClient(),
+				mockedFTPClient(), mockedFTPClient(), mockedFTPClient(), mockedFTPClient() };
 		for (FTPClient client : expectedClients) {
 			expect(factoryMock.getClient()).andReturn(client);
 		}
@@ -72,8 +74,8 @@ public class QueuedFTPClientPoolTest {
 
 	@Test
 	public void getMultipleGetReleaseGet() throws Exception {
-		FTPClient[] expectedClients = new FTPClient[] { connectedFTPClient(), connectedFTPClient(),
-				connectedFTPClient(), connectedFTPClient(), connectedFTPClient() };
+		FTPClient[] expectedClients = new FTPClient[] { mockedFTPClient(), mockedFTPClient(),
+				mockedFTPClient(), mockedFTPClient(), mockedFTPClient() };
 		for (FTPClient client : expectedClients) {
 			expect(factoryMock.getClient()).andReturn(client);
 		}
@@ -93,12 +95,11 @@ public class QueuedFTPClientPoolTest {
 		verify(allMocks);
 	}
 
-	private FTPClient connectedFTPClient() {
-		return new FTPClient() {
-			@Override
-			public boolean isConnected() {
-				return true;
-			}
-		};
+	private FTPClient mockedFTPClient() throws Exception {
+		FTPClient mock = createNiceMock(FTPClient.class);
+		expect(mock.isConnected()).andReturn(true).anyTimes();
+		expect(mock.sendNoOp()).andReturn(true).anyTimes();
+		replay(mock);
+		return mock;
 	}
 }
