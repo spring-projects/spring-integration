@@ -33,6 +33,4 @@ public interface TaskScheduler extends SchedulingTaskExecutor, Lifecycle {
 
 	boolean cancel(Runnable task, boolean mayInterruptIfRunning);
 
-	void setErrorHandler(ErrorHandler errorHandler);
-
 }

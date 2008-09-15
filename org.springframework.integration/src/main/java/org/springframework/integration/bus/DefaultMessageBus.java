@@ -317,7 +317,9 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 			for (Lifecycle gateway : this.lifecycleGateways) {
 				gateway.start();
 			}
-			this.taskScheduler.setErrorHandler(new MessagePublishingErrorHandler(this.getErrorChannel()));
+			if (this.taskScheduler instanceof ProviderTaskScheduler) {
+				((ProviderTaskScheduler) this.taskScheduler).setErrorHandler(new MessagePublishingErrorHandler(this.getErrorChannel()));
+			}
 			this.taskScheduler.start();
 		}
 		this.running = true;
