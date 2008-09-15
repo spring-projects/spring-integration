@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.security;
 
 import org.springframework.security.GrantedAuthority;
@@ -22,9 +23,7 @@ import org.springframework.security.context.SecurityContextImpl;
 import org.springframework.security.providers.UsernamePasswordAuthenticationToken;
 
 /**
- * 
  * @author Jonas Partner
- * 
  */
 public class SecurityTestUtil {
 
@@ -44,4 +43,5 @@ public class SecurityTestUtil {
 		ctxImpl.setAuthentication(authToken);
 		return ctxImpl;
 	}
+
 }

@@ -14,26 +14,23 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-					Defines security requirements for one or more
-					message channels
+	Defines security requirements for one or more Message Channels.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:sequence>
 				<xsd:element name="channel-name-pattern" type="xsd:string" minOccurs="1" maxOccurs="unbounded"/>
 			</xsd:sequence>
-			<xsd:attribute name="receive-access" type="xsd:string" />
-			<xsd:attribute name="send-access" type="xsd:string" />
+			<xsd:attribute name="send-access" type="xsd:string"/>
+			<xsd:attribute name="receive-access" type="xsd:string"/>
 			<xsd:attribute name="access-decision-manager" type="xsd:string" default="accessDecisionManager"/>
 		</xsd:complexType>
 	</xsd:element>
-
 
 	<xsd:element name="endpoint-security-policy">
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-					Defines security requirements for one or more
-					Targets
+	Defines security requirements for one or more Message Endpoints.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:attribute name="access" type="xsd:string" use="required"/>
