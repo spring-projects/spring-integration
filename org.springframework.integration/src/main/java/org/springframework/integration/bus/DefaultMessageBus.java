@@ -19,6 +19,7 @@ package org.springframework.integration.bus;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -44,8 +45,6 @@ import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
-import org.springframework.integration.endpoint.DefaultEndpointRegistry;
-import org.springframework.integration.endpoint.EndpointRegistry;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.MessagingGateway;
 import org.springframework.integration.scheduling.TaskScheduler;
@@ -70,7 +69,7 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 
 	private final ChannelRegistry channelRegistry = new DefaultChannelRegistry();
 
-	private final EndpointRegistry endpointRegistry = new DefaultEndpointRegistry();
+	private final Map<String, MessageEndpoint> endpoints = new ConcurrentHashMap<String, MessageEndpoint>();
 
 	private final MessageBusInterceptorsList interceptors = new MessageBusInterceptorsList();
 
@@ -214,7 +213,9 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 	}
 
 	public void registerEndpoint(MessageEndpoint endpoint) {
-		this.endpointRegistry.registerEndpoint(endpoint);
+		Assert.notNull(endpoint, "'endpoint' must not be null");
+		Assert.notNull(endpoint.getName(), "endpoint name must not be null");
+		this.endpoints.put(endpoint.getName(), endpoint);
 		if (this.isRunning()) {
 			this.activateEndpoint(endpoint);
 		}
@@ -224,7 +225,8 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 	}
 
 	public MessageEndpoint unregisterEndpoint(String name) {
-		MessageEndpoint endpoint = this.endpointRegistry.unregisterEndpoint(name);
+		Assert.notNull(name, "endpoint name must not be null");
+		MessageEndpoint endpoint = this.endpoints.remove(name);
 		if (endpoint == null) {
 			return null;
 		}
@@ -233,17 +235,15 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 	}
 
 	public MessageEndpoint lookupEndpoint(String endpointName) {
-		return this.endpointRegistry.lookupEndpoint(endpointName);
+		return this.endpoints.get(endpointName);
 	}
 
 	public Set<String> getEndpointNames() {
-		return this.endpointRegistry.getEndpointNames();
+		return this.endpoints.keySet();
 	}
 
 	private void activateEndpoints() {
-		Set<String> endpointNames = this.endpointRegistry.getEndpointNames();
-		for (String name : endpointNames) {
-			MessageEndpoint endpoint = this.endpointRegistry.lookupEndpoint(name);
+		for (MessageEndpoint endpoint : this.endpoints.values()) {
 			if (endpoint != null) {
 				this.activateEndpoint(endpoint);
 			}
@@ -251,9 +251,7 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 	}
 
 	private void deactivateEndpoints() {
-		Set<String> endpointNames = this.endpointRegistry.getEndpointNames();
-		for (String name : endpointNames) {
-			MessageEndpoint endpoint = this.endpointRegistry.lookupEndpoint(name);
+		for (MessageEndpoint endpoint : this.endpoints.values()) {
 			if (endpoint != null) {
 				this.deactivateEndpoint(endpoint);
 			}
