@@ -22,6 +22,7 @@ import java.util.List;
 import org.springframework.integration.handler.MessageListMethodAdapter;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Aggregator adapter for methods annotated with {@link org.springframework.integration.annotation.Aggregator @Aggregator}
@@ -43,6 +44,9 @@ public class MethodInvokingAggregator extends MessageListMethodAdapter implement
 
 
 	public Message<?> aggregate(List<Message<?>> messages) {
+		if (CollectionUtils.isEmpty(messages)) {
+			return null;
+		}
 		Object returnedValue = this.executeMethod(messages);
 		if (returnedValue == null) {
 			return null;

@@ -22,7 +22,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 
 /**
  * An {@link AbstractMessageBarrierEndpoint} that waits for a <em>complete</em>
@@ -33,8 +32,8 @@ import org.springframework.util.CollectionUtils;
  * the '<code>sequenceSize</code>' property of the header. Alternatively, a
  * custom implementation of the {@link CompletionStrategy} may be provided.
  * <p>
- * All considerations regarding <code>timeout</code> and grouping by
- * '<code>correlationId</code>' from {@link AbstractMessageBarrierEndpoint} apply
+ * All considerations regarding <code>timeout</code> and grouping by '
+ * <code>correlationId</code>' from {@link AbstractMessageBarrierEndpoint} apply
  * here as well.
  * 
  * @author Mark Fisher
@@ -45,7 +44,6 @@ public class AggregatorEndpoint extends AbstractMessageBarrierEndpoint {
 	private final Aggregator aggregator;
 
 	private volatile CompletionStrategy completionStrategy = new SequenceSizeCompletionStrategy();
-
 
 	/**
 	 * Create an endpoint that delegates to the provided Aggregator to combine a
@@ -63,7 +61,6 @@ public class AggregatorEndpoint extends AbstractMessageBarrierEndpoint {
 		this(aggregator, null);
 	}
 
-
 	/**
 	 * Strategy to determine whether the group of messages is complete.
 	 */
@@ -79,18 +76,14 @@ public class AggregatorEndpoint extends AbstractMessageBarrierEndpoint {
 	protected boolean isBarrierRemovable(Object correlationId, List<Message<?>> releasedMessages) {
 		return releasedMessages != null && releasedMessages.size() > 0;
 	}
-	
+
 	protected Message<?>[] processReleasedMessages(Object correlationId, List<Message<?>> messages) {
-		if (CollectionUtils.isEmpty(messages)) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("no messages to aggregate");
-			}
+		Message<?> result = aggregator.aggregate(messages);
+		if (result == null) {
 			return new Message<?>[0];
 		}
-		Message<?> result = aggregator.aggregate(messages);
 		if (result.getHeaders().getCorrelationId() == null) {
-			result = MessageBuilder.fromMessage(result)
-					.setCorrelationId(correlationId).build();
+			result = MessageBuilder.fromMessage(result).setCorrelationId(correlationId).build();
 		}
 		return new Message<?>[] { result };
 	}
