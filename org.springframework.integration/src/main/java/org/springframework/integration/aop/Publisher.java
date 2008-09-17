@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
  * Indicates that the method's return value, thrown exception, or
  * invocation arguments should be published to the specified
  * channel. The value will only be published if non-null.
- * The default payload type is 'return value'.
+ * The default payload type is <em>return value</em>.
  * 
  * @author Mark Fisher
  */
