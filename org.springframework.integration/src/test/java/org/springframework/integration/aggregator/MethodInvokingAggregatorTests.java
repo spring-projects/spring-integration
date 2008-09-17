@@ -88,6 +88,24 @@ public class MethodInvokingAggregatorTests {
 		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
 		Assert.assertEquals(123456789l, returnedMessge.getPayload());
 	}
+	
+	@Test
+	public void testAdapterWithVoidReturnType() {
+		Aggregator aggregator = new MethodInvokingAggregator(simpleAggregator, "doAggregationWithNoReturn");
+		List<Message<?>> messages = createListOfMessages();	
+		Message<?> returnedMessage = aggregator.aggregate(messages);
+		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
+		Assert.assertNull(returnedMessage);
+	}
+	
+	@Test
+	public void testAdapterWithNullReturn() {
+		Aggregator aggregator = new MethodInvokingAggregator(simpleAggregator, "doAggregationWithNullReturn");
+		List<Message<?>> messages = createListOfMessages();	
+		Message<?> returnedMessage = aggregator.aggregate(messages);
+		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
+		Assert.assertNull(returnedMessage);
+	}
 
 	@Test(expected=ConfigurationException.class)
 	public void testAdapterWithWrongMethodName() {
@@ -222,6 +240,15 @@ public class MethodInvokingAggregatorTests {
 				buffer.append(payload);
 			}
 			return Long.parseLong(buffer.toString());
+		}
+		
+		public void doAggregationWithNoReturn(List<String> message) {
+			this.aggregationPerformed = true;
+		}
+		
+		public Message<?> doAggregationWithNullReturn(List<String> message) {
+			this.aggregationPerformed = true;
+			return null;
 		}
 
 		public Message<?> invalidParameterType(String invalid) {
