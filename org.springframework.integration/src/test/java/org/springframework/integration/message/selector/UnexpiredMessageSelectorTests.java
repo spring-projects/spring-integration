@@ -32,7 +32,7 @@ public class UnexpiredMessageSelectorTests {
 	@Test
 	public void testExpiredMessageRejected() {
 		long past = System.currentTimeMillis() - 60000;
-		Message<String> message = MessageBuilder.fromPayload("expired")
+		Message<String> message = MessageBuilder.withPayload("expired")
 				.setExpirationDate(past).build();
 		UnexpiredMessageSelector selector = new UnexpiredMessageSelector();
 		assertFalse(selector.accept(message));
@@ -41,7 +41,7 @@ public class UnexpiredMessageSelectorTests {
 	@Test
 	public void testUnexpiredMessageAccepted() {
 		long future = System.currentTimeMillis() + 60000;
-		Message<String> message = MessageBuilder.fromPayload("unexpired")
+		Message<String> message = MessageBuilder.withPayload("unexpired")
 				.setExpirationDate(future).build();
 		UnexpiredMessageSelector selector = new UnexpiredMessageSelector();
 		assertTrue(selector.accept(message));
@@ -49,7 +49,7 @@ public class UnexpiredMessageSelectorTests {
 
 	@Test
 	public void testMessageWithNullExpirationDateNeverExpires() {
-		Message<String> message = MessageBuilder.fromPayload("unexpired").build();
+		Message<String> message = MessageBuilder.withPayload("unexpired").build();
 		UnexpiredMessageSelector selector = new UnexpiredMessageSelector();
 		assertTrue(selector.accept(message));
 	}

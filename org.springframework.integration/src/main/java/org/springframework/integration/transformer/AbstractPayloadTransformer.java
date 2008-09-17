@@ -32,7 +32,7 @@ public abstract class AbstractPayloadTransformer<T, U> implements Transformer {
 		try {
 			@SuppressWarnings("unchecked")
 	        U result = this.transformPayload((T) message.getPayload());
-	        return MessageBuilder.fromPayload(result).copyHeaders(message.getHeaders()).build();
+	        return MessageBuilder.withPayload(result).copyHeaders(message.getHeaders()).build();
         } catch (Exception e) {
         	throw new MessagingException(message, "failed to transform message payload", e);
         }

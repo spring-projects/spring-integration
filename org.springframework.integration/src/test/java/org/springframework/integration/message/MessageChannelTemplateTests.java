@@ -81,9 +81,9 @@ public class MessageChannelTemplateTests {
 			}
 		};
 		MessageChannelTemplate template = new MessageChannelTemplate();
-		Message<String> message1 = MessageBuilder.fromPayload("test1").setReturnAddress(replyChannel).build();
-		Message<String> message2 = MessageBuilder.fromPayload("test2").setReturnAddress(replyChannel).build();
-		Message<String> message3 = MessageBuilder.fromPayload("test3").setReturnAddress(replyChannel).build();
+		Message<String> message1 = MessageBuilder.withPayload("test1").setReturnAddress(replyChannel).build();
+		Message<String> message2 = MessageBuilder.withPayload("test2").setReturnAddress(replyChannel).build();
+		Message<String> message3 = MessageBuilder.withPayload("test3").setReturnAddress(replyChannel).build();
 		template.send(message1, this.requestChannel);
 		template.send(message2, this.requestChannel);
 		template.send(message3, this.requestChannel);

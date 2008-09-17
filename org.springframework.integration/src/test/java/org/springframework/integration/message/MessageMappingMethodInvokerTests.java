@@ -88,7 +88,7 @@ public class MessageMappingMethodInvokerTests {
 	public void payloadAndHeaderAnnotationMethodParametersAndObjectAsReturnValue() {
 		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(
 				new TestBean(), "acceptPayloadAndHeaderAndReturnObject");
-		Message<?> request = MessageBuilder.fromPayload("testing")
+		Message<?> request = MessageBuilder.withPayload("testing")
 				.setHeader("number", new Integer(123)).build();
 		Object result = invoker.invokeMethod(request);
 		assertEquals("testing-123", result);
@@ -135,7 +135,7 @@ public class MessageMappingMethodInvokerTests {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("messageAndHeader", Message.class, Integer.class);
 		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(service, method);
-		Message<String> message = MessageBuilder.fromPayload("foo")
+		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("number", 42).build();
 		Object result = invoker.invokeMethod(message);
 		assertEquals("foo-42", result);
@@ -146,7 +146,7 @@ public class MessageMappingMethodInvokerTests {
 		AnnotatedTestService service = new AnnotatedTestService();
 		Method method = service.getClass().getMethod("twoHeaders", String.class, Integer.class);
 		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(service, method);
-		Message<String> message = MessageBuilder.fromPayload("foo")
+		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("prop", "bar")
 				.setHeader("number", 42).build();
 		Object result = invoker.invokeMethod(message);

@@ -41,7 +41,7 @@ public class ReturnAddressTests {
 		MessageChannel channel3 = (MessageChannel) context.getBean("channel3");
 		PollableChannel channel5 = (PollableChannel) context.getBean("channel5");
 		context.start();
-		Message<String> message = MessageBuilder.fromPayload("*")
+		Message<String> message = MessageBuilder.withPayload("*")
 				.setReturnAddress(channel5).build();
 		channel3.send(message);
 		Message<?> response = channel5.receive(3000);
@@ -56,7 +56,7 @@ public class ReturnAddressTests {
 		MessageChannel channel3 = (MessageChannel) context.getBean("channel3");
 		PollableChannel channel5 = (PollableChannel) context.getBean("channel5");
 		context.start();
-		Message<String> message = MessageBuilder.fromPayload("*")
+		Message<String> message = MessageBuilder.withPayload("*")
 				.setReturnAddress("channel5").build();
 		channel3.send(message);
 		Message<?> response = channel5.receive(3000);
@@ -71,7 +71,7 @@ public class ReturnAddressTests {
 		MessageChannel channel1 = (MessageChannel) context.getBean("channel1");
 		PollableChannel replyChannel = (PollableChannel) context.getBean("replyChannel");
 		context.start();
-		Message<String> message = MessageBuilder.fromPayload("*")
+		Message<String> message = MessageBuilder.withPayload("*")
 				.setReturnAddress(replyChannel).build();
 		channel1.send(message);
 		Message<?> response = replyChannel.receive(3000);
@@ -88,7 +88,7 @@ public class ReturnAddressTests {
 		MessageChannel channel1 = (MessageChannel) context.getBean("channel1");
 		PollableChannel replyChannel = (PollableChannel) context.getBean("replyChannel");
 		context.start();
-		Message<String> message = MessageBuilder.fromPayload("*")
+		Message<String> message = MessageBuilder.withPayload("*")
 				.setReturnAddress("replyChannel").build();
 		channel1.send(message);
 		Message<?> response = replyChannel.receive(3000);
@@ -132,7 +132,7 @@ public class ReturnAddressTests {
 		MessageChannel channel4 = (MessageChannel) context.getBean("channel4");
 		PollableChannel replyChannel = (PollableChannel) context.getBean("replyChannel");
 		context.start();
-		Message<String> message = MessageBuilder.fromPayload("*")
+		Message<String> message = MessageBuilder.withPayload("*")
 				.setReturnAddress("channel5").build();
 		channel4.send(message);
 		Message<?> response = replyChannel.receive(3000);

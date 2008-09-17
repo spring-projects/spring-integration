@@ -55,7 +55,7 @@ public class DefaultMessageBusTests {
 		sourceChannel.setBeanName("sourceChannel");
 		targetChannel.setBeanName("targetChannel");
 		bus.registerChannel(sourceChannel);
-		Message<String> message = MessageBuilder.fromPayload("test")
+		Message<String> message = MessageBuilder.withPayload("test")
 				.setReturnAddress("targetChannel").build();
 		sourceChannel.send(message);
 		bus.registerChannel(targetChannel);

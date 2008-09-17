@@ -32,7 +32,7 @@ public class DefaultFileNameGeneratorTests {
 
 	@Test
 	public void testWithFileNamePropertyProvided() {
-		Message<String> message = MessageBuilder.fromPayload("testing")
+		Message<String> message = MessageBuilder.withPayload("testing")
 				.setHeader(FileNameGenerator.FILENAME_PROPERTY_KEY, "foo.bar").build();
 		FileNameGenerator generator = new DefaultFileNameGenerator();
 		String filename = generator.generateFileName(message);

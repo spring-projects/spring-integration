@@ -158,7 +158,7 @@ public abstract class AbstractInOutEndpoint extends AbstractMessageConsumingEndp
 			builder = MessageBuilder.fromMessage((Message<?>) result);
 		}
 		else {
-			builder = MessageBuilder.fromPayload(result);
+			builder = MessageBuilder.withPayload(result);
 		}
 		return builder.copyHeadersIfAbsent(requestHeaders)
 			.setHeaderIfAbsent(MessageHeaders.CORRELATION_ID, requestHeaders.getId())

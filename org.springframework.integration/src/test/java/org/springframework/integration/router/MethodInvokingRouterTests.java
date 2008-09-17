@@ -92,7 +92,7 @@ public class MethodInvokingRouterTests {
 		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, routingMethod);
 		RouterEndpoint endpoint = new RouterEndpoint(resolver);
 		endpoint.setChannelRegistry(channelRegistry);
-		Message<String> message = MessageBuilder.fromPayload("bar")
+		Message<String> message = MessageBuilder.withPayload("bar")
 				.setHeader("targetChannel", "foo").build();
 		endpoint.onMessage(message);
 		Message<?> fooReply = fooChannel.receive(0);

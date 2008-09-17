@@ -26,7 +26,7 @@ import org.springframework.integration.transformer.Transformer;
 public class TestTransformer implements Transformer {
 
 	public Message<?> transform(Message<?> message) {
-		return MessageBuilder.fromPayload(message.getPayload().toString().toUpperCase()).build();
+		return MessageBuilder.withPayload(message.getPayload().toString().toUpperCase()).build();
 	}
 
 }

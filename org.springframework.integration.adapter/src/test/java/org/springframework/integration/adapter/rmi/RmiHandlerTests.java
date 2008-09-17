@@ -61,7 +61,7 @@ public class RmiHandlerTests {
 
 	@Test
 	public void testSerializableAttribute() throws RemoteException {
-		Message<String> requestMessage = MessageBuilder.fromPayload("test")
+		Message<String> requestMessage = MessageBuilder.withPayload("test")
 				.setHeader("testAttribute", "foo").build();
 		Message<?> replyMessage = handler.handle(requestMessage);
 		assertNotNull(replyMessage);
@@ -77,7 +77,7 @@ public class RmiHandlerTests {
 
 	@Test(expected=MessageHandlingException.class)
 	public void testNonSerializableAttribute() throws RemoteException {
-		Message<String> requestMessage = MessageBuilder.fromPayload("test")
+		Message<String> requestMessage = MessageBuilder.withPayload("test")
 				.setHeader("testAttribute", new NonSerializableTestObject()).build();
 		handler.handle(requestMessage);
 	}

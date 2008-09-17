@@ -39,7 +39,7 @@ public class CorrelationIdTests {
 	@Test
 	public void testCorrelationIdPassedIfAvailable() {
 		Object correlationId = "123-ABC";
-		Message<String> message = MessageBuilder.fromPayload("test")
+		Message<String> message = MessageBuilder.withPayload("test")
 				.setCorrelationId(correlationId).build();
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel(1);
@@ -54,7 +54,7 @@ public class CorrelationIdTests {
 
 	@Test
 	public void testCorrelationIdCopiedFromMessageIdByDefault() {
-		Message<String> message = MessageBuilder.fromPayload("test").build();
+		Message<String> message = MessageBuilder.withPayload("test").build();
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel(1);
 		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(new TestBean(), "upperCase");
@@ -68,7 +68,7 @@ public class CorrelationIdTests {
 
 	@Test
 	public void testCorrelationIdCopiedFromMessageCorrelationIdIfAvailable() {
-		Message<String> message = MessageBuilder.fromPayload("test")
+		Message<String> message = MessageBuilder.withPayload("test")
 				.setCorrelationId("correlationId").build();
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel(1);
@@ -85,7 +85,7 @@ public class CorrelationIdTests {
 	@Test
 	public void testCorrelationNotPassedFromRequestHeaderIfAlreadySetByHandler() throws Exception {
 		Object correlationId = "123-ABC";
-		Message<String> message = MessageBuilder.fromPayload("test")
+		Message<String> message = MessageBuilder.withPayload("test")
 				.setCorrelationId(correlationId).build();
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel(1);
@@ -140,7 +140,7 @@ public class CorrelationIdTests {
 		}
 
 		public Message<?> createMessage(String input) {
-			return MessageBuilder.fromPayload(input).setCorrelationId("456-XYZ").build();
+			return MessageBuilder.withPayload(input).setCorrelationId("456-XYZ").build();
 		}
 	}
 

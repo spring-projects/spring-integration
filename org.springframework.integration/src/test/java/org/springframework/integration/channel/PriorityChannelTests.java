@@ -101,7 +101,7 @@ public class PriorityChannelTests {
 
 
 	private static Message<String> createPriorityMessage(MessagePriority priority) {
-		return MessageBuilder.fromPayload("test-" + priority).setPriority(priority).build(); 
+		return MessageBuilder.withPayload("test-" + priority).setPriority(priority).build(); 
 	}
 
 

@@ -66,7 +66,7 @@ public class MethodInvokingTransformer implements Transformer {
 			return builder.build();
 		}
 		else {
-			return MessageBuilder.fromPayload(result).copyHeaders(message.getHeaders()).build();
+			return MessageBuilder.withPayload(result).copyHeaders(message.getHeaders()).build();
 		}
 	}
 

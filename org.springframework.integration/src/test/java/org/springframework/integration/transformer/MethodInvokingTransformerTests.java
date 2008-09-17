@@ -98,7 +98,7 @@ public class MethodInvokingTransformerTests {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("headerTest", String.class, Integer.class);
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
-		Message<String> message = MessageBuilder.fromPayload("foo")
+		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("number", 123).build();
 		Message<?> result = transformer.transform(message);
 		assertEquals("foo123", result.getPayload());
@@ -108,7 +108,7 @@ public class MethodInvokingTransformerTests {
 	public void headerAnnotationConfiguredWithMethodName() throws Exception {
 		TestBean testBean = new TestBean();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "headerTest");
-		Message<String> message = MessageBuilder.fromPayload("foo")
+		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("number", 123).build();
 		Message<?> result = transformer.transform(message);
 		assertEquals("foo123", result.getPayload());
@@ -119,7 +119,7 @@ public class MethodInvokingTransformerTests {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("headerTest", String.class, Integer.class);
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
-		Message<String> message = MessageBuilder.fromPayload("foo")
+		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("wrong", 123).build();
 		transformer.transform(message);
 	}
@@ -129,7 +129,7 @@ public class MethodInvokingTransformerTests {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("optionalHeaderTest", String.class, Integer.class);
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
-		Message<String> message = MessageBuilder.fromPayload("foo").setHeader("number", 99).build();
+		Message<String> message = MessageBuilder.withPayload("foo").setHeader("number", 99).build();
 		Message<?> result = transformer.transform(message);
 		assertEquals("foo99", result.getPayload());
 	}
@@ -139,7 +139,7 @@ public class MethodInvokingTransformerTests {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("optionalHeaderTest", String.class, Integer.class);
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
-		Message<String> message = MessageBuilder.fromPayload("foo").build();
+		Message<String> message = MessageBuilder.withPayload("foo").build();
 		Message<?> result = transformer.transform(message);
 		assertEquals("foonull", result.getPayload());
 	}
@@ -149,7 +149,7 @@ public class MethodInvokingTransformerTests {
 		TestBean testBean = new TestBean();
 		Method testMethod = testBean.getClass().getMethod("propertyEnricherTest", String.class);
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
-		Message<String> message = MessageBuilder.fromPayload("test")
+		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("prop1", "bad")
 				.setHeader("prop3", "baz").build();
 		Message<?> result = transformer.transform(message);
@@ -163,7 +163,7 @@ public class MethodInvokingTransformerTests {
 	public void headerEnricherConfiguredWithMethodName() throws Exception {
 		TestBean testBean = new TestBean();
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "propertyEnricherTest");
-		Message<String> message = MessageBuilder.fromPayload("test")
+		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("prop1", "bad")
 				.setHeader("prop3", "baz").build();
 		Message<?> result = transformer.transform(message);

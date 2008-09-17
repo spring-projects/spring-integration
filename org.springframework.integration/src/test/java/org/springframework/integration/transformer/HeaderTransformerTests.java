@@ -39,7 +39,7 @@ public class HeaderTransformerTests {
 				headers.put("header2", "baz");
 			}
 		};
-		Message<String> message = MessageBuilder.fromPayload("foo").setHeader("header1", "bar").build();
+		Message<String> message = MessageBuilder.withPayload("foo").setHeader("header1", "bar").build();
 		Message<?> result = transformer.transform(message);
 		assertEquals("bar", result.getHeaders().get("header1"));
 		assertEquals("baz", result.getHeaders().get("header2"));
@@ -53,7 +53,7 @@ public class HeaderTransformerTests {
 				headers.put("header1", "baz");
 			}
 		};
-		Message<String> message = MessageBuilder.fromPayload("foo").setHeader("header1", "bar").build();
+		Message<String> message = MessageBuilder.withPayload("foo").setHeader("header1", "bar").build();
 		Message<?> result = transformer.transform(message);
 		assertEquals("baz", result.getHeaders().get("header1"));
 	}
@@ -66,7 +66,7 @@ public class HeaderTransformerTests {
 				headers.remove("header1");
 			}
 		};
-		Message<String> message = MessageBuilder.fromPayload("foo").setHeader("header1", "bar").build();
+		Message<String> message = MessageBuilder.withPayload("foo").setHeader("header1", "bar").build();
 		Message<?> result = transformer.transform(message);
 		assertNull(result.getHeaders().get("header1"));
 	}

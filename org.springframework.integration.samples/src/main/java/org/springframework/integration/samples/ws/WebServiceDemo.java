@@ -40,7 +40,7 @@ public class WebServiceDemo {
 
 		// Create the Message object
 		// In this case the service expects a SoapAction header
-		Message<String> message = MessageBuilder.fromPayload(requestXml)
+		Message<String> message = MessageBuilder.withPayload(requestXml)
 				.setHeader(AbstractWebServiceHandler.SOAP_ACTION_PROPERTY_KEY, "http://tempuri.org/FahrenheitToCelsius")
 				.build();
 

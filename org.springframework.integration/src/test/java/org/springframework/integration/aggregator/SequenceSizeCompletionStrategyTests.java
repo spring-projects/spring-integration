@@ -35,7 +35,7 @@ public class SequenceSizeCompletionStrategyTests {
 
 	@Test
 	public void testIncompleteList() {
-		Message<String> message = MessageBuilder.fromPayload("test1")
+		Message<String> message = MessageBuilder.withPayload("test1")
 				.setSequenceSize(2).build();
 		List<Message<?>> messages = new ArrayList<Message<?>>();
 		messages.add(message);
@@ -45,9 +45,9 @@ public class SequenceSizeCompletionStrategyTests {
 
 	@Test
 	public void testCompleteList() {
-		Message<String> message1 = MessageBuilder.fromPayload("test1")
+		Message<String> message1 = MessageBuilder.withPayload("test1")
 				.setSequenceSize(2).build();
-		Message<String> message2 = MessageBuilder.fromPayload("test2")
+		Message<String> message2 = MessageBuilder.withPayload("test2")
 				.setSequenceSize(2).build();
 		List<Message<?>> messages = new ArrayList<Message<?>>();
 		messages.add(message1);

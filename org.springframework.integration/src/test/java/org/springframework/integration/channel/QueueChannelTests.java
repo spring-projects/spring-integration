@@ -225,9 +225,9 @@ public class QueueChannelTests {
 		long time = System.currentTimeMillis();
 		long past = time - minute;
 		long future = time + minute;
-		Message<String> expiredMessage = MessageBuilder.fromPayload("test1")
+		Message<String> expiredMessage = MessageBuilder.withPayload("test1")
 				.setExpirationDate(past).build();
-		Message<String> unexpiredMessage = MessageBuilder.fromPayload("test2")
+		Message<String> unexpiredMessage = MessageBuilder.withPayload("test2")
 				.setExpirationDate(future).build();
 		assertTrue(channel.send(expiredMessage, 0));
 		assertTrue(channel.send(unexpiredMessage, 0));

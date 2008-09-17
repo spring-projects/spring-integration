@@ -241,7 +241,7 @@ public class AggregatorEndpointTests {
 
 	private static Message<?> createMessage(String payload, Object correlationId,
 			int sequenceSize, int sequenceNumber, MessageChannel replyChannel) {
-		Message<String> message = MessageBuilder.fromPayload(payload)
+		Message<String> message = MessageBuilder.withPayload(payload)
 				.setCorrelationId(correlationId)
 				.setSequenceSize(sequenceSize)
 				.setSequenceNumber(sequenceNumber)

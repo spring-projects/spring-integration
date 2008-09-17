@@ -97,7 +97,7 @@ public class WireTapTests {
 		QueueChannel secondaryChannel = new QueueChannel();
 		mainChannel.addInterceptor(new WireTap(secondaryChannel));
 		String headerName = "testAttribute";
-		Message<String> message = MessageBuilder.fromPayload("testing")
+		Message<String> message = MessageBuilder.withPayload("testing")
 				.setHeader(headerName, new Integer(123)).build();
 		mainChannel.send(message);
 		Message<?> original = mainChannel.receive(0);

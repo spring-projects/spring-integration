@@ -57,7 +57,7 @@ public class MethodArgumentMessageMapperTests {
 	public void testRequiredHeaderProvided() throws Exception {
 		Method method = TestService.class.getMethod("requiredHeader", Integer.class);
 		MethodArgumentMessageMapper<String> mapper = new MethodArgumentMessageMapper<String>(method);
-		Message<String> message = MessageBuilder.fromPayload("foo")
+		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("num", new Integer(123)).build(); 
 		Object[] args = (Object[]) mapper.mapMessage(message);
 		assertEquals(1, args.length);
@@ -68,7 +68,7 @@ public class MethodArgumentMessageMapperTests {
 	public void testOptionalAndRequiredHeaderWithOnlyOptionalHeaderProvided() throws Exception {
 		Method method = TestService.class.getMethod("optionalAndRequiredHeader", String.class, Integer.class);
 		MethodArgumentMessageMapper<String> mapper = new MethodArgumentMessageMapper<String>(method);
-		Message<String> message = MessageBuilder.fromPayload("foo")
+		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("prop", "bar").build(); 
 		mapper.mapMessage(message);
 	}
@@ -77,7 +77,7 @@ public class MethodArgumentMessageMapperTests {
 	public void testOptionalAndRequiredHeaderWithOnlyRequiredHeaderProvided() throws Exception {
 		Method method = TestService.class.getMethod("optionalAndRequiredHeader", String.class, Integer.class);
 		MethodArgumentMessageMapper<String> mapper = new MethodArgumentMessageMapper<String>(method);
-		Message<String> message = MessageBuilder.fromPayload("foo")
+		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("num", new Integer(123)).build(); 
 		Object[] args = (Object[]) mapper.mapMessage(message);
 		assertEquals(2, args.length);
@@ -89,7 +89,7 @@ public class MethodArgumentMessageMapperTests {
 	public void testOptionalAndRequiredHeaderWithBothHeadersProvided() throws Exception {
 		Method method = TestService.class.getMethod("optionalAndRequiredHeader", String.class, Integer.class);
 		MethodArgumentMessageMapper<String> mapper = new MethodArgumentMessageMapper<String>(method);
-		Message<String> message = MessageBuilder.fromPayload("foo")
+		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("num", new Integer(123))
 				.setHeader("prop", "bar")
 				.build(); 
@@ -103,7 +103,7 @@ public class MethodArgumentMessageMapperTests {
 	public void testPropertiesMethodWithNonPropertiesPayload() throws Exception {
 		Method method = TestService.class.getMethod("propertiesMethod", Properties.class);
 		MethodArgumentMessageMapper<String> mapper = new MethodArgumentMessageMapper<String>(method);
-		Message<String> message = MessageBuilder.fromPayload("test")
+		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("prop1", "foo").setHeader("prop2", "bar").build();
 		Object[] args = (Object[]) mapper.mapMessage(message);
 		Properties result = (Properties) args[0];
@@ -119,7 +119,7 @@ public class MethodArgumentMessageMapperTests {
 		Properties payload = new Properties();
 		payload.setProperty("prop1", "foo");
 		payload.setProperty("prop2", "bar");
-		Message<Properties> message = MessageBuilder.fromPayload(payload)
+		Message<Properties> message = MessageBuilder.withPayload(payload)
 				.setHeader("prop1", "not").setHeader("prop2", "these").build();
 		Object[] args = (Object[]) mapper.mapMessage(message);
 		Properties result = (Properties) args[0];
@@ -133,7 +133,7 @@ public class MethodArgumentMessageMapperTests {
 	public void testMapMethodWithNonMapPayload() throws Exception {
 		Method method = TestService.class.getMethod("mapMethod", Map.class);
 		MethodArgumentMessageMapper<String> mapper = new MethodArgumentMessageMapper<String>(method);
-		Message<String> message = MessageBuilder.fromPayload("test")
+		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("attrib1", new Integer(123))
 				.setHeader("attrib2", new Integer(456)).build();
 		Object[] args = (Object[]) mapper.mapMessage(message);
@@ -150,7 +150,7 @@ public class MethodArgumentMessageMapperTests {
 		Map<String, Integer> payload = new HashMap<String, Integer>();
 		payload.put("attrib1", new Integer(123));
 		payload.put("attrib2", new Integer(456));
-		Message<Map<String, Integer>> message = MessageBuilder.fromPayload(payload)
+		Message<Map<String, Integer>> message = MessageBuilder.withPayload(payload)
 				.setHeader("attrib1", new Integer(123))
 				.setHeader("attrib2", new Integer(456)).build();
 		Object[] args = (Object[]) mapper.mapMessage(message);

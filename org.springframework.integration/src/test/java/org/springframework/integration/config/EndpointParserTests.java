@@ -58,7 +58,7 @@ public class EndpointParserTests {
 				"endpointWithSelector.xml", this.getClass());		
 		MessageConsumer endpoint = (MessageConsumer) context.getBean("endpoint");
 		QueueChannel replyChannel = new QueueChannel();
-		Message<?> message = MessageBuilder.fromPayload("test")
+		Message<?> message = MessageBuilder.withPayload("test")
 				.setReturnAddress(replyChannel).build();
 		endpoint.onMessage(message);
 		Message<?> reply = replyChannel.receive(500);
@@ -72,7 +72,7 @@ public class EndpointParserTests {
 				"endpointWithSelector.xml", this.getClass());		
 		MessageConsumer endpoint = (MessageConsumer) context.getBean("endpoint");
 		MessageChannel replyChannel = new QueueChannel();
-		Message<?> message = MessageBuilder.fromPayload(123)
+		Message<?> message = MessageBuilder.withPayload(123)
 				.setReturnAddress(replyChannel).build();
 		endpoint.onMessage(message);
 	}

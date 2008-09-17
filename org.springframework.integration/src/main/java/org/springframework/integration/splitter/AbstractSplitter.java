@@ -65,7 +65,7 @@ public abstract class AbstractSplitter implements Splitter {
 			return setSplitMessageHeaders(MessageBuilder.fromMessage((Message<?>) item),
 					requestHeaders.getId(), sequenceNumber, sequenceSize);
 		}
-		return setSplitMessageHeaders(MessageBuilder.fromPayload(item),
+		return setSplitMessageHeaders(MessageBuilder.withPayload(item),
 				requestHeaders.getId(), sequenceNumber, sequenceSize);
 	}
 

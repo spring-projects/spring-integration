@@ -94,7 +94,7 @@ public class MailTargetTests {
 	@Test
 	public void testDefaultMailHeaderGenerator() {
 		org.springframework.integration.message.Message<String> message =
-				MessageBuilder.fromPayload(MailTestsHelper.MESSAGE_TEXT)
+				MessageBuilder.withPayload(MailTestsHelper.MESSAGE_TEXT)
 				.setHeader(MailHeaders.SUBJECT, MailTestsHelper.SUBJECT)
 				.setHeader(MailHeaders.TO, MailTestsHelper.TO)
 				.setHeader(MailHeaders.CC, MailTestsHelper.CC)

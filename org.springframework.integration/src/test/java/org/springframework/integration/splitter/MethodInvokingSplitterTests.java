@@ -283,7 +283,7 @@ public class MethodInvokingSplitterTests {
 
 	@Test
 	public void splitMessageHeader() throws Exception {
-		Message<String> message = MessageBuilder.fromPayload("ignored")
+		Message<String> message = MessageBuilder.withPayload("ignored")
 				.setHeader("testHeader", "foo.bar").build();
 		MethodInvokingSplitter splitter = this.getSplitter("splitHeader");
 		List<Message<?>> replies = splitter.split(message);
@@ -297,7 +297,7 @@ public class MethodInvokingSplitterTests {
 
 	@Test
 	public void splitPayloadAndHeader() throws Exception {
-		Message<String> message = MessageBuilder.fromPayload("a.b")
+		Message<String> message = MessageBuilder.withPayload("a.b")
 				.setHeader("testHeader", "c.d").build();
 		Method splittingMethod = this.testBean.getClass().getMethod("splitPayloadAndHeader", String.class, String.class);
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, splittingMethod);

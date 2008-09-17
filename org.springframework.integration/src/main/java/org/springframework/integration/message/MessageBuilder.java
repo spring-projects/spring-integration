@@ -64,7 +64,7 @@ public final class MessageBuilder<T> {
 	 * 
 	 * @param payload the payload for the new message
 	 */
-	public static <T> MessageBuilder<T> fromPayload(T payload) {
+	public static <T> MessageBuilder<T> withPayload(T payload) {
 		MessageBuilder<T> builder = new MessageBuilder<T>(payload);
 		return builder;
 	}

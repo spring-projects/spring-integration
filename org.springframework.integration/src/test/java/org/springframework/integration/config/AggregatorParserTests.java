@@ -160,7 +160,7 @@ public class AggregatorParserTests {
 
 	private static <T> Message<T> createMessage(T payload, Object correlationId, int sequenceSize, int sequenceNumber,
 			MessageChannel outputChannel) {
-		return MessageBuilder.fromPayload(payload)
+		return MessageBuilder.withPayload(payload)
 				.setCorrelationId(correlationId)
 				.setSequenceSize(sequenceSize)
 				.setSequenceNumber(sequenceNumber)

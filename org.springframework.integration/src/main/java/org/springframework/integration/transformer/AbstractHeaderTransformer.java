@@ -35,7 +35,7 @@ public abstract class AbstractHeaderTransformer implements Transformer {
 		try {
 			Map<String, Object> headerMap = new HashMap<String, Object>(message.getHeaders());
 	        this.transformHeaders(headerMap);
-	        return MessageBuilder.fromPayload(message.getPayload()).copyHeaders(headerMap).build();
+	        return MessageBuilder.withPayload(message.getPayload()).copyHeaders(headerMap).build();
         } catch (Exception e) {
         	throw new MessagingException(message, "failed to transform message headers", e);
         }

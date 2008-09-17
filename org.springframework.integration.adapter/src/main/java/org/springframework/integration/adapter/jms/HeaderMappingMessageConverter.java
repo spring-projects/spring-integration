@@ -55,7 +55,7 @@ public class HeaderMappingMessageConverter implements MessageConverter {
 	public Object fromMessage(javax.jms.Message jmsMessage) throws JMSException, MessageConversionException {
 		Object payload = this.converter.fromMessage(jmsMessage);
 		Map<String, Object> headerMap = this.headerMapper.mapToMessageHeaders(jmsMessage); 
-		Message<?> message = MessageBuilder.fromPayload(payload).copyHeaders(headerMap).build();
+		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headerMap).build();
 		return message;
 	}
 

@@ -64,7 +64,7 @@ public class ApplicationEventInboundChannelAdapter extends AbstractMessageProduc
 	}
 
 	private boolean sendEventAsMessage(ApplicationEvent event) {
-		return this.sendMessage(MessageBuilder.fromPayload(event).build());
+		return this.sendMessage(MessageBuilder.withPayload(event).build());
 	}
 
 }

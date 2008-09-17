@@ -32,9 +32,9 @@ public class MessageSequenceComparatorTests {
 	@Test
 	public void testLessThan() {
 		MessageSequenceComparator comparator = new MessageSequenceComparator();
-		Message<String> message1 = MessageBuilder.fromPayload("test1")
+		Message<String> message1 = MessageBuilder.withPayload("test1")
 				.setSequenceNumber(1).build();
-		Message<String> message2 = MessageBuilder.fromPayload("test2")
+		Message<String> message2 = MessageBuilder.withPayload("test2")
 				.setSequenceNumber(2).build();
 		assertEquals(-1, comparator.compare(message1, message2));
 	}
@@ -42,9 +42,9 @@ public class MessageSequenceComparatorTests {
 	@Test
 	public void testEqual() {
 		MessageSequenceComparator comparator = new MessageSequenceComparator();
-		Message<String> message1 = MessageBuilder.fromPayload("test1")
+		Message<String> message1 = MessageBuilder.withPayload("test1")
 				.setSequenceNumber(3).build();
-		Message<String> message2 = MessageBuilder.fromPayload("test2")
+		Message<String> message2 = MessageBuilder.withPayload("test2")
 				.setSequenceNumber(3).build();
 		assertEquals(0, comparator.compare(message1, message2));
 	}
@@ -52,9 +52,9 @@ public class MessageSequenceComparatorTests {
 	@Test
 	public void testGreaterThan() {
 		MessageSequenceComparator comparator = new MessageSequenceComparator();
-		Message<String> message1 = MessageBuilder.fromPayload("test1")
+		Message<String> message1 = MessageBuilder.withPayload("test1")
 				.setSequenceNumber(5).build();
-		Message<String> message2 = MessageBuilder.fromPayload("test2")
+		Message<String> message2 = MessageBuilder.withPayload("test2")
 				.setSequenceNumber(3).build();
 		assertEquals(1, comparator.compare(message1, message2));
 	}

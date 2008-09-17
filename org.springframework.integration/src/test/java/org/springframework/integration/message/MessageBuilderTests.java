@@ -30,13 +30,13 @@ public class MessageBuilderTests {
 
 	@Test
 	public void testSimpleMessageCreation() {
-		Message<String> message = MessageBuilder.fromPayload("foo").build();
+		Message<String> message = MessageBuilder.withPayload("foo").build();
 		assertEquals("foo", message.getPayload());
 	}
 
 	@Test
 	public void testHeaderValues() {
-		Message<String> message = MessageBuilder.fromPayload("test")
+		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("foo", "bar")
 				.setHeader("count", new Integer(123))
 				.build();
@@ -46,11 +46,11 @@ public class MessageBuilderTests {
 
 	@Test
 	public void testCopiedHeaderValues() {
-		Message<String> message1 = MessageBuilder.fromPayload("test1")
+		Message<String> message1 = MessageBuilder.withPayload("test1")
 				.setHeader("foo", "1")
 				.setHeader("bar", "2")
 				.build();
-		Message<String> message2 = MessageBuilder.fromPayload("test2")
+		Message<String> message2 = MessageBuilder.withPayload("test2")
 				.copyHeaders(message1.getHeaders())
 				.setHeader("foo", "42")
 				.setHeaderIfAbsent("bar", "99")
@@ -65,9 +65,9 @@ public class MessageBuilderTests {
 
 	@Test
 	public void copyHeadersIfAbsent() {
-		Message<String> message1 = MessageBuilder.fromPayload("test1")
+		Message<String> message1 = MessageBuilder.withPayload("test1")
 				.setHeader("foo", "bar").build();
-		Message<String> message2 = MessageBuilder.fromPayload("test2")
+		Message<String> message2 = MessageBuilder.withPayload("test2")
 				.setHeader("foo", 123)
 				.copyHeadersIfAbsent(message1.getHeaders())
 				.build();
@@ -77,7 +77,7 @@ public class MessageBuilderTests {
 
 	@Test
 	public void createFromMessage() {
-		Message<String> message1 = MessageBuilder.fromPayload("test")
+		Message<String> message1 = MessageBuilder.withPayload("test")
 				.setHeader("foo", "bar").build();
 		Message<String> message2 = MessageBuilder.fromMessage(message1).build();
 		assertEquals("test", message2.getPayload());
@@ -86,14 +86,14 @@ public class MessageBuilderTests {
 
 	@Test
 	public void testPriority() {
-		Message<Integer> importantMessage = MessageBuilder.fromPayload(1)
+		Message<Integer> importantMessage = MessageBuilder.withPayload(1)
 			.setPriority(MessagePriority.HIGHEST).build();
 		assertEquals(MessagePriority.HIGHEST, importantMessage.getHeaders().getPriority());
 	}
 
 	@Test
 	public void testNonDestructiveSet() {
-		Message<Integer> message1 = MessageBuilder.fromPayload(1)
+		Message<Integer> message1 = MessageBuilder.withPayload(1)
 			.setPriority(MessagePriority.HIGHEST).build();
 		Message<Integer> message2 = MessageBuilder.fromMessage(message1)
 			.setHeaderIfAbsent(MessageHeaders.PRIORITY, MessagePriority.LOW)
@@ -104,7 +104,7 @@ public class MessageBuilderTests {
 	@Test
 	public void testExpirationDateSetAsLong() {
 		Long past = System.currentTimeMillis() - (60 * 1000);
-		Message<Integer> expiredMessage = MessageBuilder.fromPayload(1)
+		Message<Integer> expiredMessage = MessageBuilder.withPayload(1)
 				.setExpirationDate(past).build();
 		assertEquals(past, expiredMessage.getHeaders().getExpirationDate()); 
 	}
@@ -112,14 +112,14 @@ public class MessageBuilderTests {
 	@Test
 	public void testExpirationDateSetAsDate() {
 		Long past = System.currentTimeMillis() - (60 * 1000);
-		Message<Integer> expiredMessage = MessageBuilder.fromPayload(1)
+		Message<Integer> expiredMessage = MessageBuilder.withPayload(1)
 				.setExpirationDate(new Date(past)).build();
 		assertEquals(past, expiredMessage.getHeaders().getExpirationDate()); 
 	}
 
 	@Test
 	public void testRemove() {
-		Message<Integer> message1 = MessageBuilder.fromPayload(1)
+		Message<Integer> message1 = MessageBuilder.withPayload(1)
 			.setHeader("foo", "bar").build();
 		Message<Integer> message2 = MessageBuilder.fromMessage(message1)
 			.removeHeader("foo")
@@ -129,7 +129,7 @@ public class MessageBuilderTests {
 
 	@Test
 	public void testSettingToNullRemoves() {
-		Message<Integer> message1 = MessageBuilder.fromPayload(1)
+		Message<Integer> message1 = MessageBuilder.withPayload(1)
 			.setHeader("foo", "bar").build();
 		Message<Integer> message2 = MessageBuilder.fromMessage(message1)
 			.setHeader("foo", null)

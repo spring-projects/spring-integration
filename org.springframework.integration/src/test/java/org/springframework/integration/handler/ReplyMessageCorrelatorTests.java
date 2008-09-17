@@ -33,7 +33,7 @@ public class ReplyMessageCorrelatorTests {
 	public void testReceiversPrecedeReply() throws InterruptedException {
 		final ReplyMessageCorrelator correlator = new ReplyMessageCorrelator();
 		QueueChannel replyChannel = new QueueChannel();
-		Message<String> message = MessageBuilder.fromPayload("test")
+		Message<String> message = MessageBuilder.withPayload("test")
 				.setCorrelationId("123").setReturnAddress(replyChannel).build();
 		correlator.handle(message);
 		Message<?> reply = replyChannel.receive(0);

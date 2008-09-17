@@ -35,7 +35,7 @@ public class DefaultSplitterTests {
 	@Test
 	public void splitMessageWithArrayPayload() throws Exception {
 		String[] payload = new String[] { "x", "y", "z" };
-		Message<String[]> message = MessageBuilder.fromPayload(payload).build();
+		Message<String[]> message = MessageBuilder.withPayload(payload).build();
 		DefaultSplitter splitter = new DefaultSplitter();
 		List<Message<?>> replies = splitter.split(message);
 		assertEquals(3, replies.size());
@@ -53,7 +53,7 @@ public class DefaultSplitterTests {
 	@Test
 	public void splitMessageWithCollectionPayload() throws Exception {
 		List<String> payload = Arrays.asList(new String[] { "x", "y", "z" });
-		Message<List<String>> message = MessageBuilder.fromPayload(payload).build();
+		Message<List<String>> message = MessageBuilder.withPayload(payload).build();
 		DefaultSplitter splitter = new DefaultSplitter();
 		List<Message<?>> replies = splitter.split(message);
 		assertEquals(3, replies.size());
