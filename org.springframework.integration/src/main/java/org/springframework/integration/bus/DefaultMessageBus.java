@@ -61,7 +61,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class DefaultMessageBus implements MessageBus, ApplicationContextAware, ApplicationListener {
+public class DefaultMessageBus implements MessageBus, ApplicationContextAware, ApplicationListener, DisposableBean {
 
 	private static final int DEFAULT_DISPATCHER_POOL_SIZE = 10;
 

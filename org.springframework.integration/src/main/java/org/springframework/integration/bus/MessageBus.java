@@ -16,7 +16,6 @@
 
 package org.springframework.integration.bus;
 
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
@@ -27,7 +26,7 @@ import org.springframework.integration.endpoint.EndpointRegistry;
  * 
  * @author Mark Fisher
  */
-public interface MessageBus extends ChannelRegistry, EndpointRegistry, Lifecycle, DisposableBean {
+public interface MessageBus extends ChannelRegistry, EndpointRegistry, Lifecycle {
 
 	MessageChannel getErrorChannel();
 
