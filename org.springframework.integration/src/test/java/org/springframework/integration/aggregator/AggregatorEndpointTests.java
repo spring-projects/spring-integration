@@ -213,6 +213,30 @@ public class AggregatorEndpointTests {
 		assertNotNull(reply);
 		assertEquals("123456789".length(), ((String)reply.getPayload()).length());
 	}
+	
+	@Test
+	public void testNullReturningAggregator() throws InterruptedException {
+		NullReturningAggregator aggregator = new NullReturningAggregator();
+		AggregatorEndpoint aggregatorEndpoint = new AggregatorEndpoint(aggregator);
+		QueueChannel replyChannel = new QueueChannel();
+		Message<?> message1 = createMessage("123", "ABC", 3, 1, replyChannel);
+		Message<?> message2 = createMessage("456", "ABC", 3, 2, replyChannel);
+		Message<?> message3 = createMessage("789", "ABC", 3, 3, replyChannel);
+		CountDownLatch latch = new CountDownLatch(3);
+		AggregatorTestTask task = new AggregatorTestTask(aggregatorEndpoint, message1, latch);
+		executor.execute(task);	
+		AggregatorTestTask task2 = new AggregatorTestTask(aggregatorEndpoint, message2, latch);
+		executor.execute(task2);
+		AggregatorTestTask task3 = new AggregatorTestTask(aggregatorEndpoint, message3, latch);
+		executor.execute(task3);
+		latch.await(1000, TimeUnit.MILLISECONDS);
+		assertNull(task.getException());
+		assertNull(task2.getException());
+		assertNull(task3.getException());
+		Message<?> reply = replyChannel.receive(500);
+		assertNull(reply);
+		assertEquals(true, aggregator.isAggregationComplete());
+	}
 
 
 	private static Message<?> createMessage(String payload, Object correlationId,
@@ -228,7 +252,7 @@ public class AggregatorEndpointTests {
 
 
 	private static class TestAggregator implements Aggregator {
-
+		
 		public Message<?> aggregate(List<Message<?>> messages) {
 			List<Message<?>> sortableList = new ArrayList<Message<?>>(messages);
 			Collections.sort(sortableList, new MessageSequenceComparator());
@@ -238,6 +262,24 @@ public class AggregatorEndpointTests {
 			}
 			return new StringMessage(buffer.toString());
 		}
+		
+	}
+	
+	private static class NullReturningAggregator implements Aggregator {
+
+		private boolean aggregationComplete;
+	
+		
+		public boolean isAggregationComplete() {
+			return aggregationComplete;
+		}
+		
+
+		public Message<?> aggregate(List<Message<?>> messages) {
+			this.aggregationComplete = true;
+			return null;
+		}
+	
 	}
 
 
