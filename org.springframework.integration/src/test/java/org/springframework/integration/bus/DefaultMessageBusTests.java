@@ -197,7 +197,7 @@ public class DefaultMessageBusTests {
 		InboundChannelAdapter channelAdapter = new InboundChannelAdapter();
 		channelAdapter.setSource(new FailingSource(latch));
 		channelAdapter.setSchedule(new PollingSchedule(1000));
-		channelAdapter.setChannel(outputChannel);
+		channelAdapter.setOutputChannel(outputChannel);
 		channelAdapter.setBeanName("testChannel");
 		bus.registerEndpoint(channelAdapter);
 		bus.start();

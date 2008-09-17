@@ -30,11 +30,9 @@ import org.springframework.integration.scheduling.TaskScheduler;
  * 
  * @author Mark Fisher
  */
-public class InboundChannelAdapter extends AbstractEndpoint implements Lifecycle {
+public class InboundChannelAdapter extends AbstractMessageProducingEndpoint implements Lifecycle {
 
 	private volatile PollableSource<?> source;
-
-	private volatile MessageChannel channel;
 
 	private volatile Schedule schedule;
 
@@ -49,10 +47,6 @@ public class InboundChannelAdapter extends AbstractEndpoint implements Lifecycle
 
 	public void setSource(PollableSource<?> source) {
 		this.source = source;
-	}
-
-	public void setChannel(MessageChannel channel) {
-		this.channel = channel;
 	}
 
 	public void setSchedule(Schedule schedule) {
@@ -75,7 +69,7 @@ public class InboundChannelAdapter extends AbstractEndpoint implements Lifecycle
 			if (this.running) {
 				return;
 			}
-			this.poller = new SourcePoller(source, channel, schedule);
+			this.poller = new SourcePoller(source, this.getOutputChannel(), schedule);
 			if (maxMessagesPerPoll < 0 && source instanceof MethodInvokingSource) {
 				// the default is 1 since a MethodInvokingSource might return a non-null value
 				// every time it is invoked, thus producing an infinite number of messages per poll

@@ -90,7 +90,7 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 		Schedule schedule = this.createSchedule(pollerAnnotation);
 		InboundChannelAdapter adapter = new InboundChannelAdapter();
 		adapter.setSource(source);
-		adapter.setChannel(channel);
+		adapter.setOutputChannel(channel);
 		adapter.setSchedule(schedule);
 		adapter.setBeanName(this.generateUniqueName(channel.getName() + ".inboundAdapter"));
 		return adapter;

@@ -32,6 +32,10 @@ public class AbstractMessageProducingEndpoint extends AbstractEndpoint {
 		this.outputChannel = outputChannel;
 	}
 
+	protected MessageChannel getOutputChannel() {
+		return this.outputChannel;
+	}
+
 	@Override
 	protected void initialize() {
 		Assert.notNull(this.outputChannel, "outputChannel is required");

@@ -75,10 +75,10 @@ public class ChannelAdapterParser extends AbstractBeanDefinitionParser {
 			adapterBuilder =  BeanDefinitionBuilder.genericBeanDefinition(InboundChannelAdapter.class);
 			adapterBuilder.addPropertyReference("source", source);
 			if (StringUtils.hasText(channelName)) {
-				adapterBuilder.addPropertyReference("channel", channelName);
+				adapterBuilder.addPropertyReference("outputChannel", channelName);
 			}
 			else {
-				adapterBuilder.addPropertyReference("channel", this.createDirectChannel(element, parserContext));
+				adapterBuilder.addPropertyReference("outputChannel", this.createDirectChannel(element, parserContext));
 			}
 			if (pollerElement != null) {
 				IntegrationNamespaceUtils.configureSchedule(pollerElement, adapterBuilder);
