@@ -30,7 +30,7 @@ import org.springframework.integration.scheduling.TaskScheduler;
  * 
  * @author Mark Fisher
  */
-public class InboundChannelAdapter extends AbstractMessageProducingEndpoint implements Lifecycle {
+public class SourcePollingChannelAdapter extends AbstractMessageProducingEndpoint implements Lifecycle {
 
 	private volatile PollableSource<?> source;
 

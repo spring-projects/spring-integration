@@ -26,7 +26,7 @@ import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
-import org.springframework.integration.endpoint.InboundChannelAdapter;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.OutboundChannelAdapter;
 import org.springframework.integration.handler.MethodInvokingTarget;
@@ -82,13 +82,13 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 		return bean;
 	}
 
-	private InboundChannelAdapter createInboundChannelAdapter(MethodInvokingSource source, MessageChannel channel, Poller pollerAnnotation) {
+	private SourcePollingChannelAdapter createInboundChannelAdapter(MethodInvokingSource source, MessageChannel channel, Poller pollerAnnotation) {
 		if (pollerAnnotation == null) {
 			throw new ConfigurationException("The @Poller annotation is required (at method-level) "
 					+ "when using the @ChannelAdapter annotation with a no-arg method.");
 		}
 		Schedule schedule = this.createSchedule(pollerAnnotation);
-		InboundChannelAdapter adapter = new InboundChannelAdapter();
+		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 		adapter.setSource(source);
 		adapter.setOutputChannel(channel);
 		adapter.setSchedule(schedule);

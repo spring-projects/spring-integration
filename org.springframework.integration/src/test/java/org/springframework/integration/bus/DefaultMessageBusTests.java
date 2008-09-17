@@ -33,7 +33,7 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.AbstractInOutEndpoint;
-import org.springframework.integration.endpoint.InboundChannelAdapter;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
@@ -194,7 +194,7 @@ public class DefaultMessageBusTests {
 		errorChannel.setBeanName("errorChannel");
 		bus.registerChannel(errorChannel);
 		CountDownLatch latch = new CountDownLatch(1);
-		InboundChannelAdapter channelAdapter = new InboundChannelAdapter();
+		SourcePollingChannelAdapter channelAdapter = new SourcePollingChannelAdapter();
 		channelAdapter.setSource(new FailingSource(latch));
 		channelAdapter.setSchedule(new PollingSchedule(1000));
 		channelAdapter.setOutputChannel(outputChannel);

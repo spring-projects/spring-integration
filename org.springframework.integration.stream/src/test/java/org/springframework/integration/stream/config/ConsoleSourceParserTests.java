@@ -33,7 +33,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.endpoint.InboundChannelAdapter;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.PollableSource;
 
@@ -52,8 +52,8 @@ public class ConsoleSourceParserTests {
 	public void testConsoleSourceWithDefaultCharset() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"consoleSourceParserTests.xml", ConsoleSourceParserTests.class);
-		InboundChannelAdapter adapter =
-				(InboundChannelAdapter) context.getBean("sourceWithDefaultCharset.adapter");
+		SourcePollingChannelAdapter adapter =
+				(SourcePollingChannelAdapter) context.getBean("sourceWithDefaultCharset.adapter");
 		PollableSource<?> source = (PollableSource<?>) new DirectFieldAccessor(adapter).getPropertyValue("source");
 		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(source);
 		Reader bufferedReader = (Reader) sourceAccessor.getPropertyValue("reader");
@@ -72,8 +72,8 @@ public class ConsoleSourceParserTests {
 	public void testConsoleSourceWithProvidedCharset() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"consoleSourceParserTests.xml", ConsoleSourceParserTests.class);
-		InboundChannelAdapter adapter =
-				(InboundChannelAdapter) context.getBean("sourceWithProvidedCharset.adapter");
+		SourcePollingChannelAdapter adapter =
+				(SourcePollingChannelAdapter) context.getBean("sourceWithProvidedCharset.adapter");
 		PollableSource<?> source = (PollableSource<?>) new DirectFieldAccessor(adapter).getPropertyValue("source");
 		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(source);
 		Reader bufferedReader = (Reader) sourceAccessor.getPropertyValue("reader");

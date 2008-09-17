@@ -27,7 +27,7 @@ import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.endpoint.InboundChannelAdapter;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.endpoint.OutboundChannelAdapter;
 import org.springframework.integration.handler.MethodInvokingTarget;
 import org.springframework.integration.message.MethodInvokingSource;
@@ -72,7 +72,7 @@ public class ChannelAdapterParser extends AbstractBeanDefinitionParser {
 				invokerBuilder.addPropertyValue("methodName", methodName);
 				source = BeanDefinitionReaderUtils.registerWithGeneratedName(invokerBuilder.getBeanDefinition(), parserContext.getRegistry());
 			}
-			adapterBuilder =  BeanDefinitionBuilder.genericBeanDefinition(InboundChannelAdapter.class);
+			adapterBuilder =  BeanDefinitionBuilder.genericBeanDefinition(SourcePollingChannelAdapter.class);
 			adapterBuilder.addPropertyReference("source", source);
 			if (StringUtils.hasText(channelName)) {
 				adapterBuilder.addPropertyReference("outputChannel", channelName);

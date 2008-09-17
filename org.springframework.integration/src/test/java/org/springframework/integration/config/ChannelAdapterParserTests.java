@@ -27,7 +27,7 @@ import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
-import org.springframework.integration.endpoint.InboundChannelAdapter;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.endpoint.OutboundChannelAdapter;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
@@ -88,7 +88,7 @@ public class ChannelAdapterParserTests extends AbstractJUnit4SpringContextTests 
 		assertNull(bus.lookupChannel(beanName));
 		Object adapter = bus.lookupEndpoint(beanName);
 		assertNotNull(adapter);
-		assertTrue(adapter instanceof InboundChannelAdapter);
+		assertTrue(adapter instanceof SourcePollingChannelAdapter);
 		TestBean testBean = (TestBean) this.applicationContext.getBean("testBean");
 		testBean.store("source test");
 		bus.start();
