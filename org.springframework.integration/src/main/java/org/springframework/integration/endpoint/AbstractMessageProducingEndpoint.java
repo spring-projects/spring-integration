@@ -23,7 +23,7 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  */
-public class AbstractProducerEndpoint extends AbstractEndpoint {
+public class AbstractMessageProducingEndpoint extends AbstractEndpoint {
 
 	private volatile MessageChannel outputChannel;
 
