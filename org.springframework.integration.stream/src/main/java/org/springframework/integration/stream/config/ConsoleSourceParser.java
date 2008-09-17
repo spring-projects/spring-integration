@@ -21,7 +21,7 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.AbstractInboundChannelAdapterParser;
+import org.springframework.integration.config.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.stream.CharacterStreamSource;
 import org.springframework.util.StringUtils;
 
@@ -30,7 +30,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class ConsoleSourceParser extends AbstractInboundChannelAdapterParser {
+public class ConsoleSourceParser extends AbstractPollingInboundChannelAdapterParser {
 
 	@Override
 	protected String parseSource(Element element, ParserContext parserContext) {
