@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src/main/java"/>
+	<classpathentry kind="src" output="target/test-classes" path="src/test/java"/>
+	<classpathentry kind="src" path="src/main/resources"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.apache.commons/com.springsource.org.apache.commons.logging/1.1.1/com.springsource.org.apache.commons.logging-1.1.1.jar" sourcepath="/IVY_CACHE/org.apache.commons/com.springsource.org.apache.commons.logging/1.1.1/com.springsource.org.apache.commons.logging-sources-1.1.1.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.junit/com.springsource.org.junit/4.4.0/com.springsource.org.junit-4.4.0.jar" sourcepath="/IVY_CACHE/org.junit/com.springsource.org.junit/4.4.0/com.springsource.org.junit-sources-4.4.0.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.beans/2.5.5.A/org.springframework.beans-2.5.5.A.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.beans/2.5.5.A/org.springframework.beans-sources-2.5.5.A.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.context/2.5.5.A/org.springframework.context-2.5.5.A.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.context/2.5.5.A/org.springframework.context-sources-2.5.5.A.jar"/>
+	<classpathentry kind="var" path="IVY_CACHE/org.springframework/org.springframework.core/2.5.5.A/org.springframework.core-2.5.5.A.jar" sourcepath="/IVY_CACHE/org.springframework/org.springframework.core/2.5.5.A/org.springframework.core-sources-2.5.5.A.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/org.springframework.integration"/>
+	<classpathentry kind="output" path="target/classes"/>
+</classpath>

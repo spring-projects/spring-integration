@@ -1,0 +1,1 @@
+http\://www.springframework.org/schema/integration/stream=org.springframework.integration.stream.config.StreamNamespaceHandler

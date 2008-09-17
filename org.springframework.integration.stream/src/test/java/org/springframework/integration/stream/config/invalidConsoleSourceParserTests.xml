@@ -7,8 +7,6 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<console-source id="sourceWithDefaultCharset"/>
-
-	<console-source id="sourceWithProvidedCharset" charset="UTF-8"/>
+	<stdin-channel-adapter id="sourceWithInvalidCharset" charset="invalid-charset-name"/>
 
 </beans:beans>

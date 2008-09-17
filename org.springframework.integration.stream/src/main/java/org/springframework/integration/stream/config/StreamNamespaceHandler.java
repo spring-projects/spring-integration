@@ -14,30 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.stream;
+package org.springframework.integration.stream.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-
-import java.io.StringReader;
-
-import org.junit.Test;
-
-import org.springframework.integration.message.Message;
+import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
 /**
  * @author Mark Fisher
  */
-public class CharacterStreamSourceTests {
+public class StreamNamespaceHandler extends NamespaceHandlerSupport {
 
-	@Test
-	public void testEndOfStream() {
-		StringReader reader = new StringReader("test");
-		CharacterStreamSource source = new CharacterStreamSource(reader);
-		Message<?> message1 = source.receive();
-		assertEquals("test", message1.getPayload());
-		Message<?> message2 = source.receive();
-		assertNull(message2);
+	public void init() {
+		this.registerBeanDefinitionParser("stdin-channel-adapter", new ConsoleSourceParser());
+		this.registerBeanDefinitionParser("stdout-channel-adapter", new ConsoleTargetParser());
+		this.registerBeanDefinitionParser("stderr-channel-adapter", new ConsoleTargetParser());
 	}
 
 }

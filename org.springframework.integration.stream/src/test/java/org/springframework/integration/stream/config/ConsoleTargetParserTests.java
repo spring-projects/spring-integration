@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.stream.config;
+package org.springframework.integration.stream.config;
 
 import static org.junit.Assert.assertEquals;
 
@@ -33,8 +33,8 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.adapter.stream.CharacterStreamTarget;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.stream.CharacterStreamTarget;
 
 /**
  * @author Mark Fisher

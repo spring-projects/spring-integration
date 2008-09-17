@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.stream;
+package org.springframework.integration.stream;
 
 import java.io.BufferedReader;
 import java.io.IOException;

@@ -14,44 +14,33 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.stream.config;
+package org.springframework.integration.stream.config;
 
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
-import org.springframework.integration.adapter.stream.CharacterStreamSource;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
+import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.AbstractInboundChannelAdapterParser;
+import org.springframework.integration.stream.CharacterStreamSource;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for the &lt;console-source&gt; element.
+ * Parser for the &lt;stdin-channel-adapter&gt; element.
  * 
  * @author Mark Fisher
  */
-public class ConsoleSourceParser extends AbstractSingleBeanDefinitionParser {
+public class ConsoleSourceParser extends AbstractInboundChannelAdapterParser {
 
 	@Override
-	protected Class<?> getBeanClass(Element element) {
-		return CharacterStreamSource.class;
-	}
-
-	@Override
-	protected boolean shouldGenerateId() {
-		return false;
-	}
-
-	@Override
-	protected boolean shouldGenerateIdAsFallback() {
-		return true;
-	}
-
-	@Override
-	protected void doParse(Element element, BeanDefinitionBuilder builder) {
+	protected String parseSource(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(CharacterStreamSource.class);
 		builder.setFactoryMethod("stdin");
 		String charsetName = element.getAttribute("charset");
 		if (StringUtils.hasText(charsetName)) {
 			builder.addConstructorArgValue(charsetName);
 		}
+		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
 	}
 
 }

@@ -3,12 +3,15 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:stream="http://www.springframework.org/schema/integration/stream"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/context
+			http://www.springframework.org/schema/context/spring-context-2.5.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
-			http://www.springframework.org/schema/context
-			http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+			http://www.springframework.org/schema/integration/stream
+			http://www.springframework.org/schema/integration/stream/spring-integration-stream-1.0.xsd">
 
 	<message-bus/>
 	<annotation-driven/>
@@ -30,6 +33,6 @@
 
     <channel id="preparedDrinks"/>
 
-	<stdout-channel-adapter id="deliveries"/>
+	<stream:stdout-channel-adapter id="deliveries"/>
 	
 </beans:beans>

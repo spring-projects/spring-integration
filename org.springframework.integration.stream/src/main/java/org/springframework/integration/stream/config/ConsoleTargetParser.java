@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.stream.config;
+package org.springframework.integration.stream.config;
 
 import org.w3c.dom.Element;
 
@@ -26,8 +26,8 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.adapter.stream.CharacterStreamTarget;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.stream.CharacterStreamTarget;
 import org.springframework.util.StringUtils;
 
 /**
