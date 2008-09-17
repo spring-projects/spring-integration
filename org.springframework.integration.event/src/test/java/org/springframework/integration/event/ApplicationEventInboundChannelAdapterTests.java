@@ -20,8 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 
 import org.junit.Test;
 
@@ -38,12 +37,13 @@ import org.springframework.integration.message.Message;
 /**
  * @author Mark Fisher
  */
-public class ApplicationEventSourceTests {
+public class ApplicationEventInboundChannelAdapterTests {
 
 	@Test
 	public void testAnyApplicationEventSentByDefault() {
 		QueueChannel channel = new QueueChannel();
-		ApplicationEventSource adapter = new ApplicationEventSource(channel);
+		ApplicationEventInboundChannelAdapter adapter = new ApplicationEventInboundChannelAdapter();
+		adapter.setOutputChannel(channel);
 		Message<?> message1 = channel.receive(0);
 		assertNull(message1);
 		adapter.onApplicationEvent(new TestApplicationEvent1());
@@ -59,10 +59,9 @@ public class ApplicationEventSourceTests {
 	@Test
 	public void testOnlyConfiguredEventTypesAreSent() {
 		QueueChannel channel = new QueueChannel();
-		ApplicationEventSource adapter = new ApplicationEventSource(channel);
-		List<Class<? extends ApplicationEvent>> eventTypes = new ArrayList<Class<? extends ApplicationEvent>>();
-		eventTypes.add(TestApplicationEvent1.class);
-		adapter.setEventTypes(eventTypes);
+		ApplicationEventInboundChannelAdapter adapter = new ApplicationEventInboundChannelAdapter();
+		adapter.setOutputChannel(channel);
+		adapter.setEventTypes(Collections.<Class<? extends ApplicationEvent>>singletonList(TestApplicationEvent1.class));
 		Message<?> message1 = channel.receive(0);
 		assertNull(message1);
 		adapter.onApplicationEvent(new TestApplicationEvent1());
@@ -76,7 +75,8 @@ public class ApplicationEventSourceTests {
 
 	@Test
 	public void testApplicationContextEvents() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("applicationEventSourceTests.xml", this.getClass());
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"applicationEventInboundChannelAdapterTests.xml", this.getClass());
 		PollableChannel channel = (PollableChannel) context.getBean("channel");
 		Message<?> refreshedEventMessage = channel.receive(0);
 		assertNotNull(refreshedEventMessage);
@@ -96,6 +96,7 @@ public class ApplicationEventSourceTests {
 	}
 
 
+	@SuppressWarnings("serial")
 	private static class TestApplicationEvent1 extends ApplicationEvent {
 
 		public TestApplicationEvent1() {
@@ -104,6 +105,7 @@ public class ApplicationEventSourceTests {
 	}
 
 
+	@SuppressWarnings("serial")
 	private static class TestApplicationEvent2 extends ApplicationEvent {
 
 		public TestApplicationEvent2() {

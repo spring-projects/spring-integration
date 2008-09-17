@@ -19,17 +19,18 @@ package org.springframework.integration.event;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.integration.endpoint.AbstractMessageConsumingEndpoint;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageTarget;
+import org.springframework.util.Assert;
 
 /**
- * A message target for publishing {@link MessagingEvent MessagingEvents}. The
- * {@link MessagingEvent} is a subclass of Spring's {@link ApplicationEvent}
- * used by this adapter to wrap any {@link Message} sent to this target.
+ * An outbound Channel Adapter that publishes each {@link Message} it receives
+ * as a {@link MessagingEvent}. The {@link MessagingEvent} is a subclass of Spring's
+ * {@link ApplicationEvent} used by this adapter to simply wrap the {@link Message}.
  * 
  * @author Mark Fisher
  */
-public class ApplicationEventTarget<T> implements MessageTarget, ApplicationEventPublisherAware {
+public class ApplicationEventOutboundChannelAdapter<T> extends AbstractMessageConsumingEndpoint implements ApplicationEventPublisherAware {
 
 	private ApplicationEventPublisher applicationEventPublisher;
 
@@ -38,10 +39,10 @@ public class ApplicationEventTarget<T> implements MessageTarget, ApplicationEven
 		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
-	public boolean send(Message<?> message) {
-		this.applicationEventPublisher.publishEvent(
-				new MessagingEvent((Message<?>) message));
-		return true;
+	@Override
+	protected void processMessage(Message<?> message) {
+		Assert.notNull(this.applicationEventPublisher, "applicationEventPublisher is required");
+		this.applicationEventPublisher.publishEvent(new MessagingEvent((Message<?>) message));		
 	}
 
 }

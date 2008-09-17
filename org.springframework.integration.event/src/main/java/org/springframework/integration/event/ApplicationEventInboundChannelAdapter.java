@@ -16,36 +16,25 @@
 
 package org.springframework.integration.event;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
-import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.message.MessageChannelTemplate;
+import org.springframework.integration.endpoint.AbstractProducerEndpoint;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 /**
- * A message source for passing Spring
+ * An inbound Channel Adapter that passes Spring
  * {@link ApplicationEvent ApplicationEvents} within messages.
  * 
  * @author Mark Fisher
  */
-public class ApplicationEventSource implements ApplicationListener {
+public class ApplicationEventInboundChannelAdapter extends AbstractProducerEndpoint implements ApplicationListener {
 
-	private final MessageChannel channel;
-
-	private List<Class<? extends ApplicationEvent>> eventTypes = new ArrayList<Class<? extends ApplicationEvent>>();
-
-	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
-
-
-	public ApplicationEventSource(MessageChannel channel) {
-		Assert.notNull(channel, "channel must not be null");
-		this.channel = channel;
-	}
+	private final List<Class<? extends ApplicationEvent>> eventTypes = new CopyOnWriteArrayList<Class<? extends ApplicationEvent>>();
 
 
 	/**
@@ -55,25 +44,27 @@ public class ApplicationEventSource implements ApplicationListener {
 	 */
 	public void setEventTypes(List<Class<? extends ApplicationEvent>> eventTypes) {
 		Assert.notEmpty(eventTypes, "at least one event type is required");
-		this.eventTypes = eventTypes;
+		synchronized (this.eventTypes) {
+			this.eventTypes.clear();
+			this.eventTypes.addAll(eventTypes);
+		}
 	}
 
 	public void onApplicationEvent(ApplicationEvent event) {
 		if (CollectionUtils.isEmpty(this.eventTypes)) {
-			this.sendMessage(event);
+			this.sendEventAsMessage(event);
 			return;
 		}
 		for (Class<? extends ApplicationEvent> eventType : this.eventTypes) {
 			if (eventType.isAssignableFrom(event.getClass())) {
-				this.sendMessage(event);
+				this.sendEventAsMessage(event);
 				return;
 			}
 		}
 	}
 
-	private boolean sendMessage(ApplicationEvent event) {
-		return this.channelTemplate.send(
-				new GenericMessage<ApplicationEvent>(event), this.channel);
+	private boolean sendEventAsMessage(ApplicationEvent event) {
+		return this.sendMessage(MessageBuilder.fromPayload(event).build());
 	}
 
 }
