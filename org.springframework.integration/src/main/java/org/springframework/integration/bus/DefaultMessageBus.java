@@ -84,10 +84,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 
 	private volatile boolean initialized;
 
-	private volatile boolean initializing;
-
-	private volatile boolean starting;
-
 	private volatile boolean running;
 
 	private final Object lifecycleMonitor = new Object();
@@ -166,10 +162,9 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 
 	public void initialize() {
 		synchronized (this.lifecycleMonitor) {
-			if (this.initialized || this.initializing) {
+			if (this.initialized) {
 				return;
 			}
-			this.initializing = true;
 			Assert.notNull(this.applicationContext, "ApplicationContext must not be null");
 			if (this.taskScheduler == null) {
 				ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(DEFAULT_DISPATCHER_POOL_SIZE);
@@ -181,7 +176,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 				this.registerChannel(new DefaultErrorChannel());
 			}
 			this.initialized = true;
-			this.initializing = false;
 		}
 	}
 
@@ -230,10 +224,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 			}
 		}
 		return null;
-	}
-
-	public String[] getEndpointNames() {
-		return this.applicationContext.getBeanNamesForType(MessageEndpoint.class);
 	}
 
 	private Collection<MessageEndpoint> getEndpoints() {
@@ -306,11 +296,10 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 		if (!this.initialized) {
 			this.initialize();
 		}
-		if (this.isRunning() || this.starting) {
+		if (this.running) {
 			return;
 		}
 		this.interceptors.preStart();
-		this.starting = true;
 		synchronized (this.lifecycleMonitor) {
 			this.activateEndpoints();
 			for (Lifecycle gateway : this.lifecycleGateways) {
@@ -322,7 +311,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 			this.taskScheduler.start();
 		}
 		this.running = true;
-		this.starting = false;
 		this.interceptors.postStart();
 		if (logger.isInfoEnabled()) {
 			logger.info("message bus started");
