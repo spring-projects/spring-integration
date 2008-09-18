@@ -12,12 +12,12 @@
 
 	<integration:channel id="testChannel"/>
 
-	<stdout-channel-adapter id="targetWithDefaultCharset" channel="testChannel"/>
+	<stdout-channel-adapter id="stdoutAdapterWithDefaultCharset" channel="testChannel"/>
 
-	<stdout-channel-adapter id="targetWithProvidedCharset" charset="UTF-8" channel="testChannel"/>
+	<stdout-channel-adapter id="stdoutAdapterWithProvidedCharset" charset="UTF-8" channel="testChannel"/>
 
-	<stderr-channel-adapter id="stderrTarget" channel="testChannel"/>
+	<stderr-channel-adapter id="stderrAdapter" channel="testChannel"/>
 
-	<stdout-channel-adapter id="newlineTarget" append-newline="true" channel="testChannel"/>
+	<stdout-channel-adapter id="newlineAdapter" append-newline="true" channel="testChannel"/>
 
 </beans:beans>

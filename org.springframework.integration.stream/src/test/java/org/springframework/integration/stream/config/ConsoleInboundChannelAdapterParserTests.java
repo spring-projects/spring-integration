@@ -40,7 +40,7 @@ import org.springframework.integration.message.PollableSource;
 /**
  * @author Mark Fisher
  */
-public class ConsoleSourceParserTests {
+public class ConsoleInboundChannelAdapterParserTests {
 
 	@Before
 	public void writeTestInput() {
@@ -49,11 +49,11 @@ public class ConsoleSourceParserTests {
 	}
 
 	@Test
-	public void testConsoleSourceWithDefaultCharset() {
+	public void adapterWithDefaultCharset() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"consoleSourceParserTests.xml", ConsoleSourceParserTests.class);
+				"consoleInboundChannelAdapterParserTests.xml", ConsoleInboundChannelAdapterParserTests.class);
 		SourcePollingChannelAdapter adapter =
-				(SourcePollingChannelAdapter) context.getBean("sourceWithDefaultCharset.adapter");
+				(SourcePollingChannelAdapter) context.getBean("adapterWithDefaultCharset.adapter");
 		PollableSource<?> source = (PollableSource<?>) new DirectFieldAccessor(adapter).getPropertyValue("source");
 		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(source);
 		Reader bufferedReader = (Reader) sourceAccessor.getPropertyValue("reader");
@@ -69,11 +69,11 @@ public class ConsoleSourceParserTests {
 	}
 
 	@Test
-	public void testConsoleSourceWithProvidedCharset() {
+	public void adapterWithProvidedCharset() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"consoleSourceParserTests.xml", ConsoleSourceParserTests.class);
+				"consoleInboundChannelAdapterParserTests.xml", ConsoleInboundChannelAdapterParserTests.class);
 		SourcePollingChannelAdapter adapter =
-				(SourcePollingChannelAdapter) context.getBean("sourceWithProvidedCharset.adapter");
+				(SourcePollingChannelAdapter) context.getBean("adapterWithProvidedCharset.adapter");
 		PollableSource<?> source = (PollableSource<?>) new DirectFieldAccessor(adapter).getPropertyValue("source");
 		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(source);
 		Reader bufferedReader = (Reader) sourceAccessor.getPropertyValue("reader");
@@ -93,7 +93,7 @@ public class ConsoleSourceParserTests {
 		BeanCreationException beanCreationException = null;
 		try {
 			new ClassPathXmlApplicationContext(
-					"invalidConsoleSourceParserTests.xml", ConsoleSourceParserTests.class);
+					"invalidConsoleInboundChannelAdapterParserTests.xml", ConsoleInboundChannelAdapterParserTests.class);
 		}
 		catch (BeanCreationException e) {
 			beanCreationException = e;

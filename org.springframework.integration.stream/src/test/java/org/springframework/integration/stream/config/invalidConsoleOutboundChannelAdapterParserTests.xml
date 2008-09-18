@@ -10,6 +10,6 @@
 			http://www.springframework.org/schema/integration/stream
 			http://www.springframework.org/schema/integration/stream/spring-integration-stream-1.0.xsd">
 
-	<stdout-channel-adapter id="targetWithInvalidCharset" charset="invalid-charset-name"/>
+	<stdout-channel-adapter id="adapterWithInvalidCharset" charset="invalid-charset-name"/>
 
 </beans:beans>

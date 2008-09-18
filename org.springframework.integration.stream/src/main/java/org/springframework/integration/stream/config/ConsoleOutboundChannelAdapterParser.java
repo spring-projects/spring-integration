@@ -27,7 +27,7 @@ import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.stream.CharacterStreamTarget;
+import org.springframework.integration.stream.CharacterStreamOutboundChannelAdapter;
 import org.springframework.util.StringUtils;
 
 /**
@@ -35,11 +35,11 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class ConsoleTargetParser extends AbstractSingleBeanDefinitionParser {
+public class ConsoleOutboundChannelAdapterParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
-		return CharacterStreamTarget.class;
+		return CharacterStreamOutboundChannelAdapter.class;
 	}
 
 	@Override

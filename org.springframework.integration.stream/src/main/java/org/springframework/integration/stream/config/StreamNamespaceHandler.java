@@ -24,9 +24,9 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 public class StreamNamespaceHandler extends NamespaceHandlerSupport {
 
 	public void init() {
-		this.registerBeanDefinitionParser("stdin-channel-adapter", new ConsoleSourceParser());
-		this.registerBeanDefinitionParser("stdout-channel-adapter", new ConsoleTargetParser());
-		this.registerBeanDefinitionParser("stderr-channel-adapter", new ConsoleTargetParser());
+		this.registerBeanDefinitionParser("stdin-channel-adapter", new ConsoleInboundChannelAdapterParser());
+		this.registerBeanDefinitionParser("stdout-channel-adapter", new ConsoleOutboundChannelAdapterParser());
+		this.registerBeanDefinitionParser("stderr-channel-adapter", new ConsoleOutboundChannelAdapterParser());
 	}
 
 }

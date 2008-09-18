@@ -10,6 +10,6 @@
 			http://www.springframework.org/schema/integration/stream
 			http://www.springframework.org/schema/integration/stream/spring-integration-stream-1.0.xsd">
 
-	<stdin-channel-adapter id="sourceWithInvalidCharset" charset="invalid-charset-name"/>
+	<stdin-channel-adapter id="adapterWithInvalidCharset" charset="invalid-charset-name"/>
 
 </beans:beans>

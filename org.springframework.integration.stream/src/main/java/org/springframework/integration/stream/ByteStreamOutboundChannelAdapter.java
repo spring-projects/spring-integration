@@ -28,22 +28,22 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
 
 /**
- * A target that writes a byte array to an {@link OutputStream}.
+ * An outbound Channel Adapter that writes a byte array to an {@link OutputStream}.
  * 
  * @author Mark Fisher
  */
-public class ByteStreamTarget extends AbstractMessageConsumingEndpoint {
+public class ByteStreamOutboundChannelAdapter extends AbstractMessageConsumingEndpoint {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final BufferedOutputStream stream;
 
 
-	public ByteStreamTarget(OutputStream stream) {
+	public ByteStreamOutboundChannelAdapter(OutputStream stream) {
 		this(stream, -1);
 	}
 
-	public ByteStreamTarget(OutputStream stream, int bufferSize) {
+	public ByteStreamOutboundChannelAdapter(OutputStream stream, int bufferSize) {
 		if (bufferSize > 0) {
 			this.stream = new BufferedOutputStream(stream, bufferSize);
 		}

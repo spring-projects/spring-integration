@@ -33,7 +33,7 @@ import org.springframework.integration.scheduling.PollingSchedule;
 /**
  * @author Mark Fisher
  */
-public class ByteStreamTargetTests {
+public class ByteStreamOutboundChannelAdapterTests {
 
 	private QueueChannel channel;
 
@@ -50,8 +50,8 @@ public class ByteStreamTargetTests {
 	@Test
 	public void testSingleByteArray() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		ByteStreamTarget target = new ByteStreamTarget(stream);
-		target.onMessage(new GenericMessage<byte[]>(new byte[] {1,2,3}));
+		ByteStreamOutboundChannelAdapter adapter = new ByteStreamOutboundChannelAdapter(stream);
+		adapter.onMessage(new GenericMessage<byte[]>(new byte[] {1,2,3}));
 		byte[] result = stream.toByteArray();
 		assertEquals(3, result.length);
 		assertEquals(1, result[0]);
@@ -62,7 +62,7 @@ public class ByteStreamTargetTests {
 	@Test
 	public void testSingleString() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		ByteStreamTarget target = new ByteStreamTarget(stream);
+		ByteStreamOutboundChannelAdapter target = new ByteStreamOutboundChannelAdapter(stream);
 		target.onMessage(new StringMessage("foo"));
 		byte[] result = stream.toByteArray();
 		assertEquals(3, result.length);
@@ -72,7 +72,7 @@ public class ByteStreamTargetTests {
 	@Test
 	public void testMaxMessagesPerTaskSameAsMessageCount() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		ByteStreamTarget target = new ByteStreamTarget(stream);
+		ByteStreamOutboundChannelAdapter target = new ByteStreamOutboundChannelAdapter(stream);
 		poller.setMaxMessagesPerPoll(3);
 		poller.subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
@@ -88,7 +88,7 @@ public class ByteStreamTargetTests {
 	@Test
 	public void testMaxMessagesPerTaskLessThanMessageCount() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		ByteStreamTarget target = new ByteStreamTarget(stream);
+		ByteStreamOutboundChannelAdapter target = new ByteStreamOutboundChannelAdapter(stream);
 		poller.setMaxMessagesPerPoll(2);
 		poller.subscribe(target);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
@@ -103,7 +103,7 @@ public class ByteStreamTargetTests {
 	@Test
 	public void testMaxMessagesPerTaskExceedsMessageCount() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		ByteStreamTarget target = new ByteStreamTarget(stream);
+		ByteStreamOutboundChannelAdapter target = new ByteStreamOutboundChannelAdapter(stream);
 		poller.setMaxMessagesPerPoll(5);
 		poller.setReceiveTimeout(0);
 		poller.subscribe(target);
@@ -119,7 +119,7 @@ public class ByteStreamTargetTests {
 	@Test
 	public void testMaxMessagesLessThanMessageCountWithMultipleDispatches() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		ByteStreamTarget target = new ByteStreamTarget(stream);
+		ByteStreamOutboundChannelAdapter target = new ByteStreamOutboundChannelAdapter(stream);
 		poller.setMaxMessagesPerPoll(2);
 		poller.setReceiveTimeout(0);
 		poller.subscribe(target);
@@ -140,7 +140,7 @@ public class ByteStreamTargetTests {
 	@Test
 	public void testMaxMessagesExceedsMessageCountWithMultipleDispatches() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		ByteStreamTarget target = new ByteStreamTarget(stream);
+		ByteStreamOutboundChannelAdapter target = new ByteStreamOutboundChannelAdapter(stream);
 		poller.setMaxMessagesPerPoll(5);
 		poller.setReceiveTimeout(0);
 		poller.subscribe(target);
@@ -160,7 +160,7 @@ public class ByteStreamTargetTests {
 	@Test
 	public void testStreamResetBetweenDispatches() {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		ByteStreamTarget target = new ByteStreamTarget(stream);
+		ByteStreamOutboundChannelAdapter target = new ByteStreamOutboundChannelAdapter(stream);
 		poller.setMaxMessagesPerPoll(2);
 		poller.setReceiveTimeout(0);
 		poller.subscribe(target);
@@ -180,7 +180,7 @@ public class ByteStreamTargetTests {
 	@Test
 	public void testStreamWriteBetweenDispatches() throws IOException {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		ByteStreamTarget target = new ByteStreamTarget(stream);
+		ByteStreamOutboundChannelAdapter target = new ByteStreamOutboundChannelAdapter(stream);
 		poller.setMaxMessagesPerPoll(2);
 		poller.setReceiveTimeout(0);
 		poller.subscribe(target);

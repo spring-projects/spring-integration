@@ -33,15 +33,15 @@ import org.springframework.integration.message.MessagingException;
 import org.springframework.util.Assert;
 
 /**
- * A target that writes to a {@link Writer}. String-based objects will be
- * written directly, but if the object is not itself a {@link String}, the
- * target will write the result of the object's {@link #toString()} method.
- * To append a new-line after each write, set the {@link #shouldAppendNewLine}
- * flag to <em>true</em>. It is <em>false</em> by default.
+ * An outbound Channel Adapter that writes to a {@link Writer}. String-based objects
+ * will be written directly, but if the object is not itself a {@link String}, the
+ * target will write the result of the object's {@link #toString()} method. To
+ * append a new-line after each write, set the {@link #shouldAppendNewLine} flag to
+ * <em>true</em>. It is <em>false</em> by default.
  * 
  * @author Mark Fisher
  */
-public class CharacterStreamTarget extends AbstractMessageConsumingEndpoint {
+public class CharacterStreamOutboundChannelAdapter extends AbstractMessageConsumingEndpoint {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -50,11 +50,11 @@ public class CharacterStreamTarget extends AbstractMessageConsumingEndpoint {
 	private volatile boolean shouldAppendNewLine = false;
 
 
-	public CharacterStreamTarget(Writer writer) {
+	public CharacterStreamOutboundChannelAdapter(Writer writer) {
 		this(writer, -1);
 	}
 
-	public CharacterStreamTarget(Writer writer, int bufferSize) {
+	public CharacterStreamOutboundChannelAdapter(Writer writer, int bufferSize) {
 		Assert.notNull(writer, "writer must not be null");
 		if (writer instanceof BufferedWriter) {
 			this.writer = (BufferedWriter) writer;
@@ -72,7 +72,7 @@ public class CharacterStreamTarget extends AbstractMessageConsumingEndpoint {
 	 * Factory method that creates a target for stdout (System.out) with the
 	 * default charset encoding.
 	 */
-	public static CharacterStreamTarget stdout() {
+	public static CharacterStreamOutboundChannelAdapter stdout() {
 		return stdout(null);
 	}
 
@@ -80,7 +80,7 @@ public class CharacterStreamTarget extends AbstractMessageConsumingEndpoint {
 	 * Factory method that creates a target for stdout (System.out) with the
 	 * specified charset encoding.
 	 */
-	public static CharacterStreamTarget stdout(String charsetName) {
+	public static CharacterStreamOutboundChannelAdapter stdout(String charsetName) {
 		return createTargetForStream(System.out, charsetName);
 	}
 
@@ -88,7 +88,7 @@ public class CharacterStreamTarget extends AbstractMessageConsumingEndpoint {
 	 * Factory method that creates a target for stderr (System.err) with the
 	 * default charset encoding.
 	 */
-	public static CharacterStreamTarget stderr() {
+	public static CharacterStreamOutboundChannelAdapter stderr() {
 		return stderr(null);
 	}
 
@@ -96,16 +96,16 @@ public class CharacterStreamTarget extends AbstractMessageConsumingEndpoint {
 	 * Factory method that creates a target for stderr (System.err) with the
 	 * specified charset encoding.
 	 */	
-	public static CharacterStreamTarget stderr(String charsetName) {
+	public static CharacterStreamOutboundChannelAdapter stderr(String charsetName) {
 		return createTargetForStream(System.err, charsetName);
 	}
 
-	private static CharacterStreamTarget createTargetForStream(OutputStream stream, String charsetName) {
+	private static CharacterStreamOutboundChannelAdapter createTargetForStream(OutputStream stream, String charsetName) {
 		if (charsetName == null) {
-			return new CharacterStreamTarget(new OutputStreamWriter(stream));
+			return new CharacterStreamOutboundChannelAdapter(new OutputStreamWriter(stream));
 		}
 		try {
-			return new CharacterStreamTarget(new OutputStreamWriter(stream, charsetName));
+			return new CharacterStreamOutboundChannelAdapter(new OutputStreamWriter(stream, charsetName));
 		}
 		catch (UnsupportedEncodingException e) {
 			throw new ConfigurationException("unsupported encoding: " + charsetName, e);

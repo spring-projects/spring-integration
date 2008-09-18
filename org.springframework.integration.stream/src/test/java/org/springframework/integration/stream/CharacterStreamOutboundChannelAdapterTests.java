@@ -32,7 +32,7 @@ import org.springframework.integration.scheduling.PollingSchedule;
 /**
  * @author Mark Fisher
  */
-public class CharacterStreamTargetTests {
+public class CharacterStreamOutboundChannelAdapterTests {
 
 	private QueueChannel channel;
 
@@ -49,7 +49,7 @@ public class CharacterStreamTargetTests {
 	@Test
 	public void testSingleString() {
 		StringWriter writer = new StringWriter();
-		CharacterStreamTarget target = new CharacterStreamTarget(writer);
+		CharacterStreamOutboundChannelAdapter target = new CharacterStreamOutboundChannelAdapter(writer);
 		target.onMessage(new StringMessage("foo"));
 		assertEquals("foo", writer.toString());
 	}
@@ -57,7 +57,7 @@ public class CharacterStreamTargetTests {
 	@Test
 	public void testTwoStringsAndNoNewLinesByDefault() {
 		StringWriter writer = new StringWriter();
-		CharacterStreamTarget target = new CharacterStreamTarget(writer);
+		CharacterStreamOutboundChannelAdapter target = new CharacterStreamOutboundChannelAdapter(writer);
 		poller.subscribe(target);
 		poller.setMaxMessagesPerPoll(1);
 		channel.send(new StringMessage("foo"), 0);
@@ -71,7 +71,7 @@ public class CharacterStreamTargetTests {
 	@Test
 	public void testTwoStringsWithNewLines() {
 		StringWriter writer = new StringWriter();
-		CharacterStreamTarget target = new CharacterStreamTarget(writer);
+		CharacterStreamOutboundChannelAdapter target = new CharacterStreamOutboundChannelAdapter(writer);
 		target.setShouldAppendNewLine(true);
 		poller.subscribe(target);
 		poller.setMaxMessagesPerPoll(1);
@@ -87,7 +87,7 @@ public class CharacterStreamTargetTests {
 	@Test
 	public void testMaxMessagesPerTaskSameAsMessageCount() {
 		StringWriter writer = new StringWriter();
-		CharacterStreamTarget target = new CharacterStreamTarget(writer);
+		CharacterStreamOutboundChannelAdapter target = new CharacterStreamOutboundChannelAdapter(writer);
 		poller.setMaxMessagesPerPoll(2);
 		poller.subscribe(target);
 		channel.send(new StringMessage("foo"), 0);
@@ -99,7 +99,7 @@ public class CharacterStreamTargetTests {
 	@Test
 	public void testMaxMessagesPerTaskExceedsMessageCountWithAppendedNewLines() {
 		StringWriter writer = new StringWriter();
-		CharacterStreamTarget target = new CharacterStreamTarget(writer);
+		CharacterStreamOutboundChannelAdapter target = new CharacterStreamOutboundChannelAdapter(writer);
 		poller.setMaxMessagesPerPoll(10);
 		poller.setReceiveTimeout(0);
 		poller.subscribe(target);		
@@ -114,7 +114,7 @@ public class CharacterStreamTargetTests {
 	@Test
 	public void testSingleNonStringObject() {
 		StringWriter writer = new StringWriter();
-		CharacterStreamTarget target = new CharacterStreamTarget(writer);
+		CharacterStreamOutboundChannelAdapter target = new CharacterStreamOutboundChannelAdapter(writer);
 		poller.subscribe(target);
 		poller.setMaxMessagesPerPoll(1);
 		TestObject testObject = new TestObject("foo");
@@ -126,7 +126,7 @@ public class CharacterStreamTargetTests {
 	@Test
 	public void testTwoNonStringObjectWithOutNewLines() {
 		StringWriter writer = new StringWriter();
-		CharacterStreamTarget target = new CharacterStreamTarget(writer);
+		CharacterStreamOutboundChannelAdapter target = new CharacterStreamOutboundChannelAdapter(writer);
 		poller.setReceiveTimeout(0);
 		poller.setMaxMessagesPerPoll(2);
 		poller.subscribe(target);
@@ -141,7 +141,7 @@ public class CharacterStreamTargetTests {
 	@Test
 	public void testTwoNonStringObjectWithNewLines() {
 		StringWriter writer = new StringWriter();
-		CharacterStreamTarget target = new CharacterStreamTarget(writer);
+		CharacterStreamOutboundChannelAdapter target = new CharacterStreamOutboundChannelAdapter(writer);
 		target.setShouldAppendNewLine(true);
 		poller.setReceiveTimeout(0);
 		poller.setMaxMessagesPerPoll(2);

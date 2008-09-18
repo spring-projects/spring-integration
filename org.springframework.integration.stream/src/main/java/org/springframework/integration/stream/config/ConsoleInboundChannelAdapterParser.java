@@ -30,7 +30,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class ConsoleSourceParser extends AbstractPollingInboundChannelAdapterParser {
+public class ConsoleInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
 	@Override
 	protected String parseSource(Element element, ParserContext parserContext) {
