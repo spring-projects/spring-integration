@@ -16,10 +16,10 @@
 
 package org.springframework.integration.bus;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -30,6 +30,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.generic.GenericBeanFactoryAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEvent;
@@ -68,8 +69,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final ChannelRegistry channelRegistry = new DefaultChannelRegistry();
-
-	private final Map<String, MessageEndpoint> endpoints = new ConcurrentHashMap<String, MessageEndpoint>();
 
 	private final MessageBusInterceptorsList interceptors = new MessageBusInterceptorsList();
 
@@ -171,6 +170,7 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 				return;
 			}
 			this.initializing = true;
+			Assert.notNull(this.applicationContext, "ApplicationContext must not be null");
 			if (this.taskScheduler == null) {
 				ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(DEFAULT_DISPATCHER_POOL_SIZE);
 				executor.setThreadFactory(new CustomizableThreadFactory("message-bus-"));
@@ -214,8 +214,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 
 	public void registerEndpoint(MessageEndpoint endpoint) {
 		Assert.notNull(endpoint, "'endpoint' must not be null");
-		Assert.notNull(endpoint.getName(), "endpoint name must not be null");
-		this.endpoints.put(endpoint.getName(), endpoint);
 		if (this.isRunning()) {
 			this.activateEndpoint(endpoint);
 		}
@@ -224,26 +222,27 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 		}
 	}
 
-	public MessageEndpoint unregisterEndpoint(String name) {
-		Assert.notNull(name, "endpoint name must not be null");
-		MessageEndpoint endpoint = this.endpoints.remove(name);
-		if (endpoint == null) {
-			return null;
-		}
-		this.deactivateEndpoint(endpoint);
-		return endpoint;
-	}
-
 	public MessageEndpoint lookupEndpoint(String endpointName) {
-		return this.endpoints.get(endpointName);
+		if (this.applicationContext.containsBean(endpointName)) {
+			Object bean = this.applicationContext.getBean(endpointName);
+			if (bean instanceof MessageEndpoint) {
+				return (MessageEndpoint) bean;
+			}
+		}
+		return null;
 	}
 
-	public Set<String> getEndpointNames() {
-		return this.endpoints.keySet();
+	public String[] getEndpointNames() {
+		return this.applicationContext.getBeanNamesForType(MessageEndpoint.class);
+	}
+
+	private Collection<MessageEndpoint> getEndpoints() {
+		GenericBeanFactoryAccessor accessor = new GenericBeanFactoryAccessor(this.applicationContext);
+		return accessor.getBeansOfType(MessageEndpoint.class).values();
 	}
 
 	private void activateEndpoints() {
-		for (MessageEndpoint endpoint : this.endpoints.values()) {
+		for (MessageEndpoint endpoint : this.getEndpoints()) {
 			if (endpoint != null) {
 				this.activateEndpoint(endpoint);
 			}
@@ -251,7 +250,7 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 	}
 
 	private void deactivateEndpoints() {
-		for (MessageEndpoint endpoint : this.endpoints.values()) {
+		for (MessageEndpoint endpoint : this.getEndpoints()) {
 			if (endpoint != null) {
 				this.deactivateEndpoint(endpoint);
 			}

@@ -28,6 +28,7 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
@@ -49,16 +50,16 @@ public class DefaultMessageBusTests {
 
 	@Test
 	public void testRegistrationWithInputChannelReference() {
-		DefaultMessageBus bus = new DefaultMessageBus();
+		GenericApplicationContext context = new GenericApplicationContext();
 		QueueChannel sourceChannel = new QueueChannel();
 		QueueChannel targetChannel = new QueueChannel();
 		sourceChannel.setBeanName("sourceChannel");
 		targetChannel.setBeanName("targetChannel");
-		bus.registerChannel(sourceChannel);
+		context.getBeanFactory().registerSingleton("sourceChannel", sourceChannel);
+		context.getBeanFactory().registerSingleton("targetChannel", targetChannel);
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setReturnAddress("targetChannel").build();
 		sourceChannel.send(message);
-		bus.registerChannel(targetChannel);
 		AbstractInOutEndpoint endpoint = new AbstractInOutEndpoint() {
 			public Message<?> handle(Message<?> message) {
 				return message;
@@ -66,7 +67,10 @@ public class DefaultMessageBusTests {
 		};
 		endpoint.setBeanName("testEndpoint");
 		endpoint.setInputChannel(sourceChannel);
-		bus.registerEndpoint(endpoint);
+		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
+		context.refresh();
+		DefaultMessageBus bus = new DefaultMessageBus();
+		bus.setApplicationContext(context);
 		bus.start();
 		Message<?> result = targetChannel.receive(3000);
 		assertEquals("test", result.getPayload());
@@ -75,14 +79,16 @@ public class DefaultMessageBusTests {
 
 	@Test
 	public void testChannelsWithoutHandlers() {
-		MessageBus bus = new DefaultMessageBus();
+		GenericApplicationContext context = new GenericApplicationContext();
+		DefaultMessageBus bus = new DefaultMessageBus();
+		bus.setApplicationContext(context);
 		QueueChannel sourceChannel = new QueueChannel();
 		sourceChannel.setBeanName("sourceChannel");
+		context.getBeanFactory().registerSingleton("sourceChannel", sourceChannel);
 		sourceChannel.send(new StringMessage("test"));
 		QueueChannel targetChannel = new QueueChannel();
 		targetChannel.setBeanName("targetChannel");
-		bus.registerChannel(sourceChannel);
-		bus.registerChannel(targetChannel);
+		context.getBeanFactory().registerSingleton("targetChannel", targetChannel);
 		bus.start();
 		Message<?> result = targetChannel.receive(100);
 		assertNull(result);
@@ -104,6 +110,7 @@ public class DefaultMessageBusTests {
 
 	@Test
 	public void testExactlyOneHandlerReceivesPointToPointMessage() {
+		GenericApplicationContext context = new GenericApplicationContext();
 		QueueChannel inputChannel = new QueueChannel();
 		QueueChannel outputChannel1 = new QueueChannel();
 		QueueChannel outputChannel2 = new QueueChannel();
@@ -117,21 +124,22 @@ public class DefaultMessageBusTests {
 				return MessageBuilder.fromMessage(message).build();
 			}
 		};
-		MessageBus bus = new DefaultMessageBus();
 		inputChannel.setBeanName("input");
 		outputChannel1.setBeanName("output1");
 		outputChannel2.setBeanName("output2");
-		bus.registerChannel(inputChannel);
-		bus.registerChannel(outputChannel1);
-		bus.registerChannel(outputChannel2);
+		context.getBeanFactory().registerSingleton("input", inputChannel);
+		context.getBeanFactory().registerSingleton("output1", outputChannel1);
+		context.getBeanFactory().registerSingleton("output2", outputChannel2);
 		endpoint1.setBeanName("testEndpoint1");
 		endpoint1.setInputChannel(inputChannel);
 		endpoint1.setOutputChannel(outputChannel1);
 		endpoint2.setBeanName("testEndpoint2");
 		endpoint2.setInputChannel(inputChannel);
 		endpoint2.setOutputChannel(outputChannel2);
-		bus.registerEndpoint(endpoint1);
-		bus.registerEndpoint(endpoint2);
+		context.getBeanFactory().registerSingleton("testEndpoint1", endpoint1);
+		context.getBeanFactory().registerSingleton("testEndpoint2", endpoint2);
+		DefaultMessageBus bus = new DefaultMessageBus();
+		bus.setApplicationContext(context);
 		bus.start();
 		inputChannel.send(new StringMessage("testing"));
 		Message<?> message1 = outputChannel1.receive(500);
@@ -142,6 +150,7 @@ public class DefaultMessageBusTests {
 
 	@Test
 	public void testBothHandlersReceivePublishSubscribeMessage() throws InterruptedException {
+		GenericApplicationContext context = new GenericApplicationContext();
 		PublishSubscribeChannel inputChannel = new PublishSubscribeChannel();
 		QueueChannel outputChannel1 = new QueueChannel();
 		QueueChannel outputChannel2 = new QueueChannel();
@@ -160,21 +169,22 @@ public class DefaultMessageBusTests {
 				return reply;
 			}
 		};
-		MessageBus bus = new DefaultMessageBus();
 		inputChannel.setBeanName("input");
 		outputChannel1.setBeanName("output1");
 		outputChannel2.setBeanName("output2");
-		bus.registerChannel(inputChannel);
-		bus.registerChannel(outputChannel1);
-		bus.registerChannel(outputChannel2);
+		context.getBeanFactory().registerSingleton("input", inputChannel);
+		context.getBeanFactory().registerSingleton("output1", outputChannel1);
+		context.getBeanFactory().registerSingleton("output2", outputChannel2);
 		endpoint1.setBeanName("testEndpoint1");
 		endpoint1.setInputChannel(inputChannel);
 		endpoint1.setOutputChannel(outputChannel1);
 		endpoint2.setBeanName("testEndpoint2");
 		endpoint2.setInputChannel(inputChannel);
 		endpoint2.setOutputChannel(outputChannel2);
-		bus.registerEndpoint(endpoint1);
-		bus.registerEndpoint(endpoint2);
+		context.getBeanFactory().registerSingleton("testEndpoint1", endpoint1);
+		context.getBeanFactory().registerSingleton("testEndpoint2", endpoint2);
+		DefaultMessageBus bus = new DefaultMessageBus();
+		bus.setApplicationContext(context);
 		bus.start();
 		inputChannel.send(new StringMessage("testing"));
 		latch.await(500, TimeUnit.MILLISECONDS);
@@ -188,18 +198,20 @@ public class DefaultMessageBusTests {
 
 	@Test
 	public void testErrorChannelWithFailedDispatch() throws InterruptedException {
-		MessageBus bus = new DefaultMessageBus();
+		GenericApplicationContext context = new GenericApplicationContext();
 		QueueChannel errorChannel = new QueueChannel();
 		QueueChannel outputChannel = new QueueChannel();
 		errorChannel.setBeanName("errorChannel");
-		bus.registerChannel(errorChannel);
+		context.getBeanFactory().registerSingleton("errorChannel", errorChannel);
 		CountDownLatch latch = new CountDownLatch(1);
 		SourcePollingChannelAdapter channelAdapter = new SourcePollingChannelAdapter();
 		channelAdapter.setSource(new FailingSource(latch));
 		channelAdapter.setSchedule(new PollingSchedule(1000));
 		channelAdapter.setOutputChannel(outputChannel);
 		channelAdapter.setBeanName("testChannel");
-		bus.registerEndpoint(channelAdapter);
+		context.getBeanFactory().registerSingleton("testChannel", channelAdapter);
+		DefaultMessageBus bus = new DefaultMessageBus();
+		bus.setApplicationContext(context);
 		bus.start();
 		latch.await(2000, TimeUnit.MILLISECONDS);
 		Message<?> message = errorChannel.receive(5000);
@@ -227,10 +239,10 @@ public class DefaultMessageBusTests {
 
 	@Test
 	public void testHandlerSubscribedToErrorChannel() throws InterruptedException {
-		DefaultMessageBus bus = new DefaultMessageBus();
+		GenericApplicationContext context = new GenericApplicationContext();
 		QueueChannel errorChannel = new QueueChannel();
 		errorChannel.setBeanName(ChannelRegistry.ERROR_CHANNEL_NAME);
-		bus.registerChannel(errorChannel);
+		context.getBeanFactory().registerSingleton(ChannelRegistry.ERROR_CHANNEL_NAME, errorChannel);
 		final CountDownLatch latch = new CountDownLatch(1);
 		AbstractInOutEndpoint endpoint = new AbstractInOutEndpoint() {
 			public Message<?> handle(Message<?> message) {
@@ -240,7 +252,9 @@ public class DefaultMessageBusTests {
 		};
 		endpoint.setBeanName("testEndpoint");
 		endpoint.setInputChannel(errorChannel);
-		bus.registerEndpoint(endpoint);
+		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
+		DefaultMessageBus bus = new DefaultMessageBus();
+		bus.setApplicationContext(context);
 		bus.start();
 		errorChannel.send(new ErrorMessage(new RuntimeException("test-exception")));
 		latch.await(1000, TimeUnit.MILLISECONDS);

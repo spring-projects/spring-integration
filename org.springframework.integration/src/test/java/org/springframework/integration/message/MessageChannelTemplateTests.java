@@ -27,8 +27,8 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.bus.DefaultMessageBus;
-import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.AbstractInOutEndpoint;
@@ -50,11 +50,13 @@ public class MessageChannelTemplateTests {
 				return new StringMessage(message.getPayload().toString().toUpperCase());
 			}		
 		};
-		MessageBus bus = new DefaultMessageBus();
-		bus.registerChannel(requestChannel);
 		endpoint.setBeanName("testEndpoint");
-		endpoint.setInputChannel(requestChannel);
-		bus.registerEndpoint(endpoint);
+		endpoint.setInputChannel(requestChannel);		
+		GenericApplicationContext context = new GenericApplicationContext();
+		context.getBeanFactory().registerSingleton("requestChannel", requestChannel);
+		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
+		DefaultMessageBus bus = new DefaultMessageBus();
+		bus.setApplicationContext(context);
 		bus.start();
 	}
 

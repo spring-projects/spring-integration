@@ -21,6 +21,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.bus.MessageBus;
 
@@ -32,6 +33,7 @@ public class MessageBusInterceptorTests {
 	@Test
 	public void testStart() {
 		DefaultMessageBus messageBus = new DefaultMessageBus();
+		messageBus.setApplicationContext(new GenericApplicationContext());
 		TestMessageBusStartInterceptor startInterceptor = new TestMessageBusStartInterceptor();
 		TestMessageBusStopInterceptor stopInterceptor = new TestMessageBusStopInterceptor();
 		// add all interceptors

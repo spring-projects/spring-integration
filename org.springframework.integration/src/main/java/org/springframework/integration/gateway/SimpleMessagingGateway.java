@@ -21,7 +21,6 @@ import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.bus.MessageBusAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
-import org.springframework.integration.endpoint.EndpointRegistry;
 import org.springframework.integration.endpoint.MessagingGateway;
 import org.springframework.integration.handler.ReplyMessageCorrelator;
 import org.springframework.integration.message.DefaultMessageCreator;
@@ -53,7 +52,7 @@ public class SimpleMessagingGateway extends MessagingGatewaySupport implements M
 
 	private volatile ReplyMessageCorrelator replyMessageCorrelator;
 
-	private volatile EndpointRegistry endpointRegistry;
+	private volatile MessageBus messageBus;
 
 	private final Object replyMessageCorrelatorMonitor = new Object();
 
@@ -97,7 +96,7 @@ public class SimpleMessagingGateway extends MessagingGatewaySupport implements M
 	}
 
 	public void setMessageBus(MessageBus messageBus) {
-		this.endpointRegistry = messageBus;
+		this.messageBus = messageBus;
 	}
 
 	public void send(Object object) {
@@ -160,14 +159,14 @@ public class SimpleMessagingGateway extends MessagingGatewaySupport implements M
 			if (this.replyMessageCorrelator != null) {
 				return;
 			}
-			if (this.endpointRegistry == null) {
-				throw new ConfigurationException("No EndpointRegistry available. Cannot register ReplyMessageCorrelator.");
+			if (this.messageBus == null) {
+				throw new ConfigurationException("No MessageBus available. Cannot register ReplyMessageCorrelator.");
 			}
 			ReplyMessageCorrelator correlator = new ReplyMessageCorrelator();
 			correlator.setBeanName("internal.correlator." + this);
 			correlator.setInputChannel(this.replyChannel);
 			correlator.afterPropertiesSet();
-			this.endpointRegistry.registerEndpoint(correlator);
+			this.messageBus.registerEndpoint(correlator);
 			this.replyMessageCorrelator = correlator;
 		}
 	}

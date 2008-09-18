@@ -90,8 +90,7 @@ public class AggregatorAnnotationTests {
 
 	@SuppressWarnings("unchecked")
 	private DirectFieldAccessor getDirectFieldAccessorForAggregatingHandler(ApplicationContext context, final String endpointName) {
-		MessageBus messageBus = this.getMessageBus(context);
-		AggregatorEndpoint endpoint = (AggregatorEndpoint) messageBus.lookupEndpoint(endpointName + ".aggregator");
+		AggregatorEndpoint endpoint = (AggregatorEndpoint) context.getBean(endpointName + ".aggregatingMethod.aggregator");
 		return new DirectFieldAccessor(endpoint);
 	}
 

@@ -31,7 +31,6 @@ import org.springframework.integration.endpoint.AbstractInOutEndpoint;
 import org.springframework.integration.endpoint.AbstractMessageConsumingEndpoint;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -66,9 +65,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			if (endpoint != null) {
 				Poller pollerAnnotation = AnnotationUtils.findAnnotation(method, Poller.class);
 				this.configureEndpoint(endpoint, annotation, pollerAnnotation);
-				if (endpoint.getName() == null) {
-					endpoint.setBeanName(this.generateEndpointName(beanName, annotation));
-				}
 				endpoint.afterPropertiesSet();
 				return endpoint;
 			}
@@ -115,17 +111,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				}
 			}
 		}
-	}
-
-	private String generateEndpointName(String beanName, T annotation) {
-		String endpointName = beanName + "." + ClassUtils.getShortNameAsProperty(annotation.annotationType());
-		String id = endpointName;
-		int counter = 0;
-		while (this.messageBus.lookupEndpoint(id) != null) {
-			id = endpointName + "#" + counter;
-			counter++;
-		}
-		return id;
 	}
 
 	protected abstract Object createMethodInvokingAdapter(Object bean, Method method, T annotation);

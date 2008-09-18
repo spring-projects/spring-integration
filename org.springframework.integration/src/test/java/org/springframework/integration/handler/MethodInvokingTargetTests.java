@@ -27,9 +27,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.bus.DefaultMessageBus;
-import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
 import org.springframework.integration.message.GenericMessage;
@@ -78,21 +78,23 @@ public class MethodInvokingTargetTests {
 
 	@Test
 	public void testSubscription() throws Exception {
+		GenericApplicationContext context = new GenericApplicationContext();
 		SynchronousQueue<String> queue = new SynchronousQueue<String>();
 		TestBean testBean = new TestBean(queue);
 		MethodInvokingTarget target = new MethodInvokingTarget(testBean, "foo");
 		target.afterPropertiesSet();
 		QueueChannel channel = new QueueChannel();
 		channel.setBeanName("channel");
+		context.getBeanFactory().registerSingleton("channel", channel);
 		Message<String> message = new GenericMessage<String>("testing");
 		channel.send(message);
 		assertNull(queue.poll());
-		MessageBus bus = new DefaultMessageBus();
-		bus.registerChannel(channel);
 		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(target);
 		endpoint.setBeanName("testEndpoint");
 		endpoint.setInputChannel(channel);
-		bus.registerEndpoint(endpoint);
+		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
+		DefaultMessageBus bus = new DefaultMessageBus();
+		bus.setApplicationContext(context);
 		bus.start();
 		String result = queue.poll(1000, TimeUnit.MILLISECONDS);
 		assertNotNull(result);

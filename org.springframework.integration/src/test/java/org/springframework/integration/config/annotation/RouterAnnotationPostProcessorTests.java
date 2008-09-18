@@ -21,10 +21,10 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.bus.DefaultMessageBus;
-import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
@@ -35,32 +35,33 @@ import org.springframework.integration.message.StringMessage;
  */
 public class RouterAnnotationPostProcessorTests {
 
-	private MessageBus messageBus;
+	private GenericApplicationContext context = new GenericApplicationContext();
 
-	private DirectChannel inputChannel;
+	private DefaultMessageBus messageBus = new DefaultMessageBus();
 
-	private QueueChannel outputChannel;
+	private DirectChannel inputChannel = new DirectChannel();
+
+	private QueueChannel outputChannel = new QueueChannel();
 
 
 	@Before
 	public void init() {
-		inputChannel = new DirectChannel();
-		outputChannel = new QueueChannel();
+		messageBus.setApplicationContext(context);
 		inputChannel.setBeanName("input");
 		outputChannel.setBeanName("output");
-		messageBus = new DefaultMessageBus();
-		messageBus.registerChannel(inputChannel);
-		messageBus.registerChannel(outputChannel);
+		context.getBeanFactory().registerSingleton("input", inputChannel);
+		context.getBeanFactory().registerSingleton("output", outputChannel);
 	}
 
 
 	@Test
 	public void testRouter() {
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
+		postProcessor.setBeanFactory(context.getBeanFactory());
 		postProcessor.afterPropertiesSet();
-		messageBus.start();
 		TestRouter testRouter = new TestRouter();
 		postProcessor.postProcessAfterInitialization(testRouter, "test");
+		messageBus.start();
 		inputChannel.send(new StringMessage("foo"));
 		Message<?> replyMessage = outputChannel.receive(0);
 		assertEquals("foo", replyMessage.getPayload());

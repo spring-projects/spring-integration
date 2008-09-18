@@ -48,7 +48,7 @@ public class ChannelAdapterParserTests extends AbstractJUnit4SpringContextTests 
 		MessageBus bus = (MessageBus) this.applicationContext.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		bus.start();
 		assertNotNull(bus.lookupChannel(beanName));
-		Object adapter = bus.lookupEndpoint(beanName + ".adapter");
+		Object adapter = this.applicationContext.getBean(beanName + ".adapter");
 		assertNotNull(adapter);
 		assertTrue(adapter instanceof OutboundChannelAdapter);
 		TestTarget target = (TestTarget) this.applicationContext.getBean("target");
@@ -68,7 +68,7 @@ public class ChannelAdapterParserTests extends AbstractJUnit4SpringContextTests 
 		MessageBus bus = (MessageBus) this.applicationContext.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		bus.start();
 		assertNotNull(bus.lookupChannel(beanName));
-		Object adapter = bus.lookupEndpoint(beanName + ".adapter");
+		Object adapter = this.applicationContext.getBean(beanName + ".adapter");
 		assertNotNull(adapter);
 		assertTrue(adapter instanceof OutboundChannelAdapter);
 		TestBean testBean = (TestBean) this.applicationContext.getBean("testBean");
@@ -86,7 +86,7 @@ public class ChannelAdapterParserTests extends AbstractJUnit4SpringContextTests 
 		PollableChannel channel =  (PollableChannel) this.applicationContext.getBean("queueChannel");
 		MessageBus bus = (MessageBus) this.applicationContext.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		assertNull(bus.lookupChannel(beanName));
-		Object adapter = bus.lookupEndpoint(beanName);
+		Object adapter = this.applicationContext.getBean(beanName);
 		assertNotNull(adapter);
 		assertTrue(adapter instanceof SourcePollingChannelAdapter);
 		TestBean testBean = (TestBean) this.applicationContext.getBean("testBean");

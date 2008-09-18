@@ -30,8 +30,12 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.aop.support.DelegatingIntroductionInterceptor;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.annotation.Aggregator;
@@ -55,9 +59,11 @@ import org.springframework.util.ReflectionUtils;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class MessagingAnnotationPostProcessor implements BeanPostProcessor, InitializingBean, BeanClassLoaderAware {
+public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware, InitializingBean, BeanClassLoaderAware {
 
 	private final MessageBus messageBus;
+
+	private volatile ConfigurableBeanFactory beanFactory;
 
 	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
 
@@ -71,13 +77,20 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Init
 	}
 
 
+	public void setBeanFactory(BeanFactory beanFactory) {
+		Assert.isAssignable(ConfigurableBeanFactory.class, beanFactory.getClass(),
+				"a ConfigurableBeanFactory is required");
+		this.beanFactory = (ConfigurableBeanFactory) beanFactory;
+	}
+
 	public void setBeanClassLoader(ClassLoader beanClassLoader) {
 		this.beanClassLoader = beanClassLoader;
 	}
 
 	public void afterPropertiesSet() {
+		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
 		postProcessors.put(Aggregator.class, new AggregatorAnnotationPostProcessor(this.messageBus));
-		postProcessors.put(ChannelAdapter.class, new ChannelAdapterAnnotationPostProcessor(this.messageBus));
+		postProcessors.put(ChannelAdapter.class, new ChannelAdapterAnnotationPostProcessor(this.messageBus, this.beanFactory));
 		postProcessors.put(Router.class, new RouterAnnotationPostProcessor(this.messageBus));
 		postProcessors.put(ServiceActivator.class, new ServiceActivatorAnnotationPostProcessor(this.messageBus));
 		postProcessors.put(Splitter.class, new SplitterAnnotationPostProcessor(this.messageBus));
@@ -89,6 +102,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Init
 	}
 
 	public Object postProcessAfterInitialization(Object bean, final String beanName) throws BeansException {
+		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
 		final Object originalBean = bean;
 		final Class<?> beanClass = this.getBeanClass(bean);
 		if (!this.isStereotype(beanClass)) {
@@ -107,7 +121,11 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Init
 						Object result = postProcessor.postProcess(originalBean, beanName, method, annotation);
 						if (result != null) {
 							if (result instanceof MessageEndpoint) {
-								messageBus.registerEndpoint((MessageEndpoint) result);
+								String endpointBeanName = generateBeanName(beanName, method, annotation.annotationType());
+								if (result instanceof BeanNameAware) {
+									((BeanNameAware) result).setBeanName(endpointBeanName);
+								}
+								beanFactory.registerSingleton(endpointBeanName, result);
 							}
 							else {
 								boolean shouldProxy = false;
@@ -161,6 +179,16 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Init
 			}
 		}
 		return false;
+	}
+
+	private String generateBeanName(String originalBeanName, Method method, Class<? extends Annotation> annotationType) {
+		String baseName = originalBeanName + "." + method.getName() + "." + ClassUtils.getShortNameAsProperty(annotationType);
+		String name = baseName;
+		int count = 1;
+		while (this.beanFactory.containsBean(name)) {
+			name = baseName + "#" + (++count);
+		}
+		return name;
 	}
 
 }

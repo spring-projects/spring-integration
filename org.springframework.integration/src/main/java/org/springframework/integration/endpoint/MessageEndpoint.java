@@ -24,6 +24,4 @@ package org.springframework.integration.endpoint;
  */
 public interface MessageEndpoint {
 
-	String getName();
-
 }

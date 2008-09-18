@@ -18,6 +18,7 @@ package org.springframework.integration.config.annotation;
 
 import java.lang.reflect.Method;
 
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.annotation.ChannelAdapter;
@@ -26,14 +27,15 @@ import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
-import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.OutboundChannelAdapter;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.handler.MethodInvokingTarget;
 import org.springframework.integration.message.MethodInvokingSource;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 /**
  * Post-processor for methods annotated with {@link ChannelAdapter @ChannelAdapter}.
@@ -44,21 +46,26 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 
 	private final MessageBus messageBus;
 
+	private final ConfigurableBeanFactory beanFactory;
 
-	public ChannelAdapterAnnotationPostProcessor(MessageBus messageBus) {
+
+	public ChannelAdapterAnnotationPostProcessor(MessageBus messageBus, ConfigurableBeanFactory beanFactory) {
 		Assert.notNull(messageBus, "MessageBus must not be null");
+		Assert.notNull(beanFactory, "BeanFactory must not be null");
 		this.messageBus = messageBus;
+		this.beanFactory = beanFactory;
 	}
 
 
 	public Object postProcess(Object bean, String beanName, Method method, ChannelAdapter annotation) {
+		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
 		MessageEndpoint endpoint = null;
 		String channelName = annotation.value();
 		MessageChannel channel = this.messageBus.lookupChannel(channelName);
 		if (channel == null) {
 			DirectChannel directChannel = new DirectChannel();
 			directChannel.setBeanName(channelName);
-			this.messageBus.registerChannel(directChannel);
+			this.beanFactory.registerSingleton(channelName, directChannel);
 			channel = directChannel;
 		}
 		Poller pollerAnnotation = AnnotationUtils.findAnnotation(method, Poller.class);
@@ -77,7 +84,9 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 					+ " a return value (inbound) or methods that have no return value but do accept arguments (outbound)");
 		}
 		if (endpoint != null) {
-			this.messageBus.registerEndpoint(endpoint);
+			String annotationName = ClassUtils.getShortNameAsProperty(annotation.annotationType());
+			String endpointName = beanName + "." + method.getName() + "." + annotationName;
+			this.beanFactory.registerSingleton(endpointName, endpoint);
 		}
 		return bean;
 	}
@@ -92,7 +101,6 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 		adapter.setSource(source);
 		adapter.setOutputChannel(channel);
 		adapter.setSchedule(schedule);
-		adapter.setBeanName(this.generateUniqueName(channel.getName() + ".inboundAdapter"));
 		return adapter;
 	}
 
@@ -105,7 +113,6 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 					: new PollingSchedule(0);
 			adapter.setSchedule(schedule);
 		}
-		adapter.setBeanName(this.generateUniqueName(channel.getName() + ".outboundAdapter"));
 		return adapter;
 	}
 
@@ -119,16 +126,6 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 
 	private boolean hasReturnValue(Method method) {
 		return !method.getReturnType().equals(void.class);
-	}
-
-	private String generateUniqueName(String name) {
-		int counter = 0;
-		String id = name;
-		while (this.messageBus.lookupEndpoint(id) != null) {
-			id = name + "#" + counter;
-			counter++;
-		}
-		return id;
 	}
 
 }
