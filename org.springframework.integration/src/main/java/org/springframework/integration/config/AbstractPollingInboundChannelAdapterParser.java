@@ -18,15 +18,10 @@ package org.springframework.integration.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.BeanDefinitionStoreException;
-import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
-import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.util.StringUtils;
@@ -37,37 +32,18 @@ import org.springframework.util.xml.DomUtils;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractPollingInboundChannelAdapterParser extends AbstractBeanDefinitionParser {
+public abstract class AbstractPollingInboundChannelAdapterParser extends AbstractChannelAdapterParser {
 
 	@Override
-	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext) throws BeanDefinitionStoreException {
-		String id = element.getAttribute("id");
-		if (!element.hasAttribute("channel")) {
-			// the created channel will get the 'id', so the adapter's bean name includes a suffix
-			id = id + ".adapter";
-		}
-		else if (!StringUtils.hasText(id)) {
-			id = parserContext.getReaderContext().generateBeanName(definition);
-		}
-		return id;
-	}
-
-	@Override
-	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
+	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
 		String source = this.parseSource(element, parserContext);
 		if (!StringUtils.hasText(source)) {
 			throw new ConfigurationException("failed to parse source");
 		}
-		String channelName = element.getAttribute("channel");
 		Element pollerElement = DomUtils.getChildElementByTagName(element, "poller");
 		BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder.genericBeanDefinition(SourcePollingChannelAdapter.class);
 		adapterBuilder.addPropertyReference("source", source);
-		if (StringUtils.hasText(channelName)) {
-			adapterBuilder.addPropertyReference("outputChannel", channelName);
-		}
-		else {
-			adapterBuilder.addPropertyReference("outputChannel", this.createDirectChannel(element, parserContext));
-		}
+		adapterBuilder.addPropertyReference("outputChannel", channelName);
 		if (pollerElement != null) {
 			IntegrationNamespaceUtils.configureSchedule(pollerElement, adapterBuilder);
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, pollerElement, "max-messages-per-poll");
@@ -87,17 +63,5 @@ public abstract class AbstractPollingInboundChannelAdapterParser extends Abstrac
 	 * which the created Channel Adapter will poll.
 	 */
 	protected abstract String parseSource(Element element, ParserContext parserContext);
-
-	private String createDirectChannel(Element element, ParserContext parserContext) {
-		String channelId = element.getAttribute("id");
-		if (!StringUtils.hasText(channelId)) {
-			throw new ConfigurationException("The channel-adapter's 'id' attribute is required when no 'channel' "
-					+ "reference has been provided, because that 'id' would be used for the created channel.");
-		}
-		BeanDefinitionBuilder channelBuilder = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
-		BeanDefinitionHolder holder = new BeanDefinitionHolder(channelBuilder.getBeanDefinition(), channelId);
-		BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
-		return channelId;
-	}
 
 }
