@@ -51,18 +51,18 @@ public class ChannelAdapterParserTests extends AbstractJUnit4SpringContextTests 
 		Object adapter = this.applicationContext.getBean(beanName + ".adapter");
 		assertNotNull(adapter);
 		assertTrue(adapter instanceof OutboundChannelAdapter);
-		TestTarget target = (TestTarget) this.applicationContext.getBean("target");
-		assertNull(target.getLastMessage());
+		TestConsumer consumer = (TestConsumer) this.applicationContext.getBean("consumer");
+		assertNull(consumer.getLastMessage());
 		Message<?> message = new StringMessage("test");
 		assertTrue(((MessageChannel) channel).send(message));
-		assertNotNull(target.getLastMessage());
-		assertEquals(message, target.getLastMessage());
+		assertNotNull(consumer.getLastMessage());
+		assertEquals(message, consumer.getLastMessage());
 		bus.stop();
 	}
 
 	@Test
-	public void methodInvokingTarget() {
-		String beanName = "methodInvokingTarget";
+	public void methodInvokingConsumer() {
+		String beanName = "methodInvokingConsumer";
 		Object channel = this.applicationContext.getBean(beanName);
 		assertTrue(channel instanceof DirectChannel);
 		MessageBus bus = (MessageBus) this.applicationContext.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
@@ -73,10 +73,10 @@ public class ChannelAdapterParserTests extends AbstractJUnit4SpringContextTests 
 		assertTrue(adapter instanceof OutboundChannelAdapter);
 		TestBean testBean = (TestBean) this.applicationContext.getBean("testBean");
 		assertNull(testBean.getMessage());
-		Message<?> message = new StringMessage("target test");
+		Message<?> message = new StringMessage("consumer test");
 		assertTrue(((MessageChannel) channel).send(message));
 		assertNotNull(testBean.getMessage());
-		assertEquals("target test", testBean.getMessage());
+		assertEquals("consumer test", testBean.getMessage());
 		bus.stop();
 	}
 

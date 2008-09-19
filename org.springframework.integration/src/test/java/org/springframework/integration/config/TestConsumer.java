@@ -14,21 +14,25 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.security.endpoint;
-
-import java.util.ArrayList;
-import java.util.List;
+package org.springframework.integration.config;
 
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageTarget;
+import org.springframework.integration.message.MessageConsumer;
 
-public class TestTarget implements MessageTarget {
+/**
+ * @author Mark Fisher
+ */
+public class TestConsumer implements MessageConsumer {
 
-	public List<Message<?>> sentMessages = new ArrayList<Message<?>>();
+	private volatile Message<?> lastMessage;
 
-	public boolean send(Message<?> message) {
-		sentMessages.add(message);
-		return true;
+
+	public Message<?> getLastMessage() {
+		return this.lastMessage;
+	}
+
+	public void onMessage(Message<?> message) {
+		this.lastMessage = message;
 	}
 
 }

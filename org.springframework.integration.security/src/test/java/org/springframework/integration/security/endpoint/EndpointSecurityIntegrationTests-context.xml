@@ -24,13 +24,13 @@
 		</interceptors>
 	</service-activator>
 
-	<channel-adapter id="output" target="testTarget"/>
+	<channel-adapter id="output" target="testConsumer"/>
 
 	<beans:bean id="testHandler"
 		class="org.springframework.integration.security.endpoint.TestHandler"/>
 
-	<beans:bean id="testTarget"
-		class="org.springframework.integration.security.endpoint.TestTarget"/>
+	<beans:bean id="testConsumer"
+		class="org.springframework.integration.security.endpoint.TestConsumer"/>
 
 	<beans:bean id="accessDecisionManager"
 		class="org.springframework.security.vote.AffirmativeBased">

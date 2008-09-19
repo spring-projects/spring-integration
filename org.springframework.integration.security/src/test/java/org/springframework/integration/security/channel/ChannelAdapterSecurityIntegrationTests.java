@@ -26,7 +26,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.security.SecurityTestUtil;
-import org.springframework.integration.security.endpoint.TestTarget;
+import org.springframework.integration.security.endpoint.TestConsumer;
 import org.springframework.security.AccessDeniedException;
 import org.springframework.security.AuthenticationException;
 import org.springframework.security.context.SecurityContext;
@@ -50,7 +50,7 @@ public class ChannelAdapterSecurityIntegrationTests extends AbstractJUnit4Spring
 	MessageChannel unsecuredChannelAdapter;
 
 	@Autowired
-	TestTarget testTarget;
+	TestConsumer testConsumer;
 
 
 	@After
@@ -64,7 +64,7 @@ public class ChannelAdapterSecurityIntegrationTests extends AbstractJUnit4Spring
 	public void testSecuredWithPermission() {
 		login("bob", "bobspassword", "ROLE_ADMIN");
 		securedChannelAdapter.send(new StringMessage("test"));
-		assertEquals("Wrong size of message list in target", 1, testTarget.sentMessages.size());
+		assertEquals("Wrong size of message list in target", 1, testConsumer.sentMessages.size());
 	}
 
 	@Test(expected = AccessDeniedException.class)
@@ -85,7 +85,7 @@ public class ChannelAdapterSecurityIntegrationTests extends AbstractJUnit4Spring
 	public void testUnsecuredAsAdmin() {
 		login("bob", "bobspassword", "ROLE_ADMIN");
 		unsecuredChannelAdapter.send(new StringMessage("test"));
-		assertEquals("Wrong size of message list in target", 1, testTarget.sentMessages.size());
+		assertEquals("Wrong size of message list in target", 1, testConsumer.sentMessages.size());
 	}
 
 	@Test
@@ -93,14 +93,14 @@ public class ChannelAdapterSecurityIntegrationTests extends AbstractJUnit4Spring
 	public void testUnsecuredAsUser() {
 		login("bob", "bobspassword", "ROLE_USER");
 		unsecuredChannelAdapter.send(new StringMessage("test"));
-		assertEquals("Wrong size of message list in target", 1, testTarget.sentMessages.size());
+		assertEquals("Wrong size of message list in target", 1, testConsumer.sentMessages.size());
 	}
 
 	@Test
 	@DirtiesContext
 	public void testUnsecuredWithoutAuthenticating() {
 		unsecuredChannelAdapter.send(new StringMessage("test"));
-		assertEquals("Wrong size of message list in target", 1, testTarget.sentMessages.size());
+		assertEquals("Wrong size of message list in target", 1, testConsumer.sentMessages.size());
 	}
 
 

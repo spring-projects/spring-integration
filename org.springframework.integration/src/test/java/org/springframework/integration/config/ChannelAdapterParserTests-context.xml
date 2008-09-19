@@ -13,15 +13,15 @@
 		<queue capacity="10"/>
 	</channel>
 
-	<channel-adapter id="outboundWithImplicitChannel" target="target"/>
+	<channel-adapter id="outboundWithImplicitChannel" target="consumer"/>
 
-	<channel-adapter id="methodInvokingTarget" target="testBean" method="store"/>
+	<channel-adapter id="methodInvokingConsumer" target="testBean" method="store"/>
 
 	<channel-adapter id="methodInvokingSource" source="testBean" method="getMessage" channel="queueChannel">
 		<poller period="10000" max-messages-per-poll="1"/>
 	</channel-adapter>
 
-	<beans:bean id="target" class="org.springframework.integration.config.TestTarget"/>
+	<beans:bean id="consumer" class="org.springframework.integration.config.TestConsumer"/>
 
 	<beans:bean id="testBean" class="org.springframework.integration.config.TestBean"/>
 

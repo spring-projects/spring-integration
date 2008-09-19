@@ -18,32 +18,29 @@ package org.springframework.integration.endpoint;
 
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageDeliveryException;
-import org.springframework.integration.message.MessageTarget;
+import org.springframework.integration.message.MessageConsumer;
 import org.springframework.util.Assert;
 
 /**
  * A Channel Adapter implementation for connecting a {@link MessageChannel}
- * to a {@link org.springframework.integration.message.MessageTarget}.
+ * to a {@link org.springframework.integration.message.MessageConsumer}.
  * 
  * @author Mark Fisher
  */
 public class OutboundChannelAdapter extends AbstractMessageConsumingEndpoint {
 
-	private final MessageTarget target;
+	private final MessageConsumer consumer;
 
 
-	public OutboundChannelAdapter(MessageTarget target) {
-		Assert.notNull(target, "target must not be null");
-		this.target = target;
+	public OutboundChannelAdapter(MessageConsumer consumer) {
+		Assert.notNull(consumer, "consumer must not be null");
+		this.consumer = consumer;
 	}
 
 
 	@Override
 	protected void onMessageInternal(Message<?> message) {
-		if (!this.target.send(message)) {
-			throw new MessageDeliveryException(message, "failed to deliver Message to target");
-		}
+		this.consumer.onMessage(message);
 	}
 
 }

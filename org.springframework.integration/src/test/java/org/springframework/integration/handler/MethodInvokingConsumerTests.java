@@ -19,7 +19,6 @@ package org.springframework.integration.handler;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;
@@ -40,29 +39,28 @@ import org.springframework.integration.message.StringMessage;
 /**
  * @author Mark Fisher
  */
-public class MethodInvokingTargetTests {
+public class MethodInvokingConsumerTests {
 
 	@Test
 	public void testValidMethod() {
-		MethodInvokingTarget target = new MethodInvokingTarget(new TestSink(), "validMethod");
-		target.afterPropertiesSet();
-		boolean result = target.send(new GenericMessage<String>("test"));
-		assertTrue(result);
+		MethodInvokingConsumer consumer = new MethodInvokingConsumer(new TestSink(), "validMethod");
+		consumer.afterPropertiesSet();
+		consumer.onMessage(new GenericMessage<String>("test"));
 	}
 
 	@Test(expected = ConfigurationException.class)
 	public void testInvalidMethodWithNoArgs() {
-		MethodInvokingTarget target = new MethodInvokingTarget(new TestSink(), "invalidMethodWithNoArgs");
-		target.afterPropertiesSet();
+		MethodInvokingConsumer consumer = new MethodInvokingConsumer(new TestSink(), "invalidMethodWithNoArgs");
+		consumer.afterPropertiesSet();
 	}
 
 	@Test(expected = MessagingException.class)
 	public void testMethodWithReturnValue() {
 		Message<?> message = new StringMessage("test");
 		try {
-			MethodInvokingTarget target = new MethodInvokingTarget(new TestSink(), "methodWithReturnValue");
-			target.afterPropertiesSet();
-			target.send(message);
+			MethodInvokingConsumer consumer = new MethodInvokingConsumer(new TestSink(), "methodWithReturnValue");
+			consumer.afterPropertiesSet();
+			consumer.onMessage(message);
 		}
 		catch (MessagingException e) {
 			assertEquals(e.getFailedMessage(), message);
@@ -72,8 +70,8 @@ public class MethodInvokingTargetTests {
 
 	@Test(expected = ConfigurationException.class)
 	public void testNoMatchingMethodName() {
-		MethodInvokingTarget target = new MethodInvokingTarget(new TestSink(), "noSuchMethod");
-		target.afterPropertiesSet();
+		MethodInvokingConsumer consumer = new MethodInvokingConsumer(new TestSink(), "noSuchMethod");
+		consumer.afterPropertiesSet();
 	}
 
 	@Test
@@ -81,15 +79,15 @@ public class MethodInvokingTargetTests {
 		GenericApplicationContext context = new GenericApplicationContext();
 		SynchronousQueue<String> queue = new SynchronousQueue<String>();
 		TestBean testBean = new TestBean(queue);
-		MethodInvokingTarget target = new MethodInvokingTarget(testBean, "foo");
-		target.afterPropertiesSet();
+		MethodInvokingConsumer consumer = new MethodInvokingConsumer(testBean, "foo");
+		consumer.afterPropertiesSet();
 		QueueChannel channel = new QueueChannel();
 		channel.setBeanName("channel");
 		context.getBeanFactory().registerSingleton("channel", channel);
 		Message<String> message = new GenericMessage<String>("testing");
 		channel.send(message);
 		assertNull(queue.poll());
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(target);
+		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(consumer);
 		endpoint.setBeanName("testEndpoint");
 		endpoint.setInputChannel(channel);
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);

@@ -30,7 +30,7 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.OutboundChannelAdapter;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
-import org.springframework.integration.handler.MethodInvokingTarget;
+import org.springframework.integration.handler.MethodInvokingConsumer;
 import org.springframework.integration.message.MethodInvokingSource;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
@@ -76,8 +76,8 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 			endpoint = this.createInboundChannelAdapter(source, channel, pollerAnnotation);
 		}
 		else if (method.getParameterTypes().length > 0 && !hasReturnValue(method)) {
-			MethodInvokingTarget target = new MethodInvokingTarget(bean, method);
-			endpoint = this.createOutboundChannelAdapter(target, channel, pollerAnnotation);
+			MethodInvokingConsumer consumer = new MethodInvokingConsumer(bean, method);
+			endpoint = this.createOutboundChannelAdapter(consumer, channel, pollerAnnotation);
 		}
 		else {
 			throw new ConfigurationException("The @ChannelAdapter can only be applied to methods that accept no arguments but have"
@@ -104,8 +104,8 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 		return adapter;
 	}
 
-	private OutboundChannelAdapter createOutboundChannelAdapter(MethodInvokingTarget target, MessageChannel channel, Poller pollerAnnotation) {
-		OutboundChannelAdapter adapter = new OutboundChannelAdapter(target);
+	private OutboundChannelAdapter createOutboundChannelAdapter(MethodInvokingConsumer consumer, MessageChannel channel, Poller pollerAnnotation) {
+		OutboundChannelAdapter adapter = new OutboundChannelAdapter(consumer);
 		adapter.setInputChannel(channel);
 		if (channel instanceof PollableChannel) {
 			Schedule schedule = (pollerAnnotation != null)

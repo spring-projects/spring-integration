@@ -49,7 +49,7 @@ public class EndpointSecurityIntegrationTests extends AbstractJUnit4SpringContex
 	TestHandler testHandler;
 
 	@Autowired
-	TestTarget testTarget;
+	TestConsumer testConsumer;
 
 
 	@After
@@ -63,7 +63,7 @@ public class EndpointSecurityIntegrationTests extends AbstractJUnit4SpringContex
 		login("bob", "bobspassword", "ROLE_ADMIN");
 		input.send(new StringMessage("test"));
 		assertEquals("Wrong size of message list in handler", 1, testHandler.sentMessages.size());
-		assertEquals("Wrong size of message list in target", 1, testTarget.sentMessages.size());
+		assertEquals("Wrong size of message list in consumer", 1, testConsumer.sentMessages.size());
 	}
 
 	@Test(expected = AccessDeniedException.class)
