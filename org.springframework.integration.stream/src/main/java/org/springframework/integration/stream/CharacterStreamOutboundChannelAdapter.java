@@ -118,7 +118,7 @@ public class CharacterStreamOutboundChannelAdapter extends AbstractMessageConsum
 	}
 
 	@Override
-	public void processMessage(Message<?> message) {
+	public void onMessageInternal(Message<?> message) {
 		Object payload = message.getPayload();
 		if (payload == null) {
 			if (logger.isWarnEnabled()) {

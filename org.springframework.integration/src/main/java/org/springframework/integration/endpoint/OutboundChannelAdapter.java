@@ -40,7 +40,7 @@ public class OutboundChannelAdapter extends AbstractMessageConsumingEndpoint {
 
 
 	@Override
-	protected void processMessage(Message<?> message) {
+	protected void onMessageInternal(Message<?> message) {
 		if (!this.target.send(message)) {
 			throw new MessageDeliveryException(message, "failed to deliver Message to target");
 		}

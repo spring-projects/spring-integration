@@ -40,7 +40,7 @@ public class ApplicationEventOutboundChannelAdapter<T> extends AbstractMessageCo
 	}
 
 	@Override
-	protected void processMessage(Message<?> message) {
+	protected void onMessageInternal(Message<?> message) {
 		Assert.notNull(this.applicationEventPublisher, "applicationEventPublisher is required");
 		this.applicationEventPublisher.publishEvent(new MessagingEvent((Message<?>) message));		
 	}

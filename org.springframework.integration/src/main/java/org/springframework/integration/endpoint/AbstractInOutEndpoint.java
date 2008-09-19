@@ -73,7 +73,7 @@ public abstract class AbstractInOutEndpoint extends AbstractMessageConsumingEndp
 	}
 
 	@Override
-	protected void processMessage(Message<?> message) {
+	protected void onMessageInternal(Message<?> message) {
 		for (EndpointInterceptor interceptor : this.interceptors) {
 			message = interceptor.preHandle(message);
 			if (message == null) {

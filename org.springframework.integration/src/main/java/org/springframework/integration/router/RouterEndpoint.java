@@ -75,7 +75,7 @@ public class RouterEndpoint extends AbstractMessageConsumingEndpoint {
 	}
 
 	@Override
-	protected void processMessage(Message<?> message) {
+	protected void onMessageInternal(Message<?> message) {
 		boolean sent = false;
 		Collection<MessageChannel> results = this.channelResolver.resolveChannels(message);
 		if (results != null) {

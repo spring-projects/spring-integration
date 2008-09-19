@@ -139,7 +139,7 @@ public abstract class AbstractMessageConsumingEndpoint extends AbstractEndpoint 
 			this.logger.debug("endpoint '" + this + "' processing message: " + message);
 		}
 		try {
-			this.processMessage(message);
+			this.onMessageInternal(message);
 		}
 		catch (Exception e) {
 			if (e instanceof MessagingException) {
@@ -152,6 +152,6 @@ public abstract class AbstractMessageConsumingEndpoint extends AbstractEndpoint 
 		}
 	}
 
-	protected abstract void processMessage(Message<?> message);
+	protected abstract void onMessageInternal(Message<?> message);
 
 }

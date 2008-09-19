@@ -54,7 +54,7 @@ public class ByteStreamOutboundChannelAdapter extends AbstractMessageConsumingEn
 
 
 	@Override
-	public void processMessage(Message<?> message) {
+	public void onMessageInternal(Message<?> message) {
 		Object payload = message.getPayload();
 		if (payload == null) {
 			if (logger.isWarnEnabled()) {
