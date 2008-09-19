@@ -18,47 +18,32 @@ package org.springframework.integration.channel;
 
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
-import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageConsumer;
-import org.springframework.integration.message.Subscribable;
 
 /**
+ * A channel that sends Messages to each of its subscribers. 
+ * 
  * @author Mark Fisher
  */
-public class PublishSubscribeChannel extends AbstractMessageChannel implements Subscribable {
-
-	private final BroadcastingDispatcher dispatcher = new BroadcastingDispatcher();
-
+public class PublishSubscribeChannel extends AbstractSubscribableChannel<BroadcastingDispatcher> {
 
 	/**
 	 * Create a PublishSubscribeChannel that will use a {@link TaskExecutor}
 	 * to publish its Messages. 
 	 */
 	public PublishSubscribeChannel(TaskExecutor taskExecutor) {
+		super(new BroadcastingDispatcher());
 		if (taskExecutor != null) {
-			this.dispatcher.setTaskExecutor(taskExecutor);
+			this.getDispatcher().setTaskExecutor(taskExecutor);
 		}
 	}
 
 	public PublishSubscribeChannel() {
+		this(null);
 	}
 
 
 	public void setApplySequence(boolean applySequence) {
-		this.dispatcher.setApplySequence(applySequence);
-	}
-
-	public boolean subscribe(MessageConsumer consumer) {
-		return this.dispatcher.subscribe(consumer);
-	}
-
-	public boolean unsubscribe(MessageConsumer consumer) {
-		return this.dispatcher.unsubscribe(consumer);
-	}
-
-	@Override
-	protected boolean doSend(Message<?> message, long timeout) {
-		return this.dispatcher.dispatch(message);
+		this.getDispatcher().setApplySequence(applySequence);
 	}
 
 }
