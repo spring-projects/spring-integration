@@ -21,9 +21,12 @@ import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
 
 /**
+ * A support class for producer endpoints that provides a setter for the
+ * output channel and a convenience method for sending Messages.
+ * 
  * @author Mark Fisher
  */
-public class AbstractMessageProducingEndpoint extends AbstractEndpoint {
+public abstract class AbstractMessageProducingEndpoint extends AbstractEndpoint {
 
 	private volatile MessageChannel outputChannel;
 
