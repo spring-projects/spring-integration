@@ -19,27 +19,27 @@ package org.springframework.integration.adapter.file;
 import java.io.File;
 
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.MessageMapper;
-import org.springframework.integration.message.MessageTarget;
 
 /**
  * A message target for writing files. The actual file writing occurs in the
- * message creator ({@link TextFileMessageCreator} or
- * {@link ByteArrayFileMessageCreator}).
+ * message mapper.
  * 
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class FileTarget implements MessageTarget {
+public class FileTarget implements MessageConsumer {
+
 	private MessageMapper<?, File> messageMapper;
+
 
 	public FileTarget(MessageMapper<?, File> messageMapper) {
 		this.messageMapper = messageMapper;
 	}
 
-	public boolean send(Message message) {
-		File file = this.messageMapper.mapMessage(message);
-		return file.exists();
+	public void onMessage(Message message) {
+		this.messageMapper.mapMessage(message);
 	}
 
 }
