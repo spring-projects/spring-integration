@@ -27,7 +27,7 @@ import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.endpoint.AbstractInOutEndpoint;
+import org.springframework.integration.endpoint.AbstractMessageHandlingEndpoint;
 import org.springframework.integration.endpoint.AbstractMessageConsumingEndpoint;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.util.Assert;
@@ -100,14 +100,14 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				}
 				consumingEndpoint.setInputChannel(inputChannel);
 			}
-			if (endpoint instanceof AbstractInOutEndpoint) {
+			if (endpoint instanceof AbstractMessageHandlingEndpoint) {
 				String outputChannelName = (String) AnnotationUtils.getValue(annotation, OUTPUT_CHANNEL_ATTRIBUTE);
 				if (StringUtils.hasText(outputChannelName)) {
 					MessageChannel outputChannel = this.messageBus.lookupChannel(outputChannelName);
 					if (outputChannel == null) {
 						throw new ConfigurationException("unable to resolve outputChannel '" + outputChannelName + "'");
 					}
-					((AbstractInOutEndpoint) endpoint).setOutputChannel(outputChannel);
+					((AbstractMessageHandlingEndpoint) endpoint).setOutputChannel(outputChannel);
 				}
 			}
 		}

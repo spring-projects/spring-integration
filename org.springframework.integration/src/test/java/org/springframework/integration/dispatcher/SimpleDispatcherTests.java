@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
-import org.springframework.integration.endpoint.AbstractInOutEndpoint;
+import org.springframework.integration.endpoint.AbstractMessageHandlingEndpoint;
 import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
 import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.message.Message;
@@ -161,9 +161,9 @@ public class SimpleDispatcherTests {
 		final AtomicInteger counter2 = new AtomicInteger();
 		final AtomicInteger counter3 = new AtomicInteger();
 		final AtomicInteger selectorCounter = new AtomicInteger();
-		AbstractInOutEndpoint endpoint1 = createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch));
-		AbstractInOutEndpoint endpoint2 = createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch));
-		AbstractInOutEndpoint endpoint3 = createEndpoint(TestHandlers.countingCountDownHandler(counter3, latch));
+		AbstractMessageHandlingEndpoint endpoint1 = createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch));
+		AbstractMessageHandlingEndpoint endpoint2 = createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch));
+		AbstractMessageHandlingEndpoint endpoint3 = createEndpoint(TestHandlers.countingCountDownHandler(counter3, latch));
 		endpoint1.setSelector(new TestMessageSelector(selectorCounter, false));
 		endpoint2.setSelector(new TestMessageSelector(selectorCounter, false));
 		endpoint3.setSelector(new TestMessageSelector(selectorCounter, true));
@@ -186,9 +186,9 @@ public class SimpleDispatcherTests {
 		final AtomicInteger counter2 = new AtomicInteger();
 		final AtomicInteger counter3 = new AtomicInteger();
 		final AtomicInteger selectorCounter = new AtomicInteger();
-		AbstractInOutEndpoint endpoint1 = createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch));
-		AbstractInOutEndpoint endpoint2 = createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch));
-		AbstractInOutEndpoint endpoint3 = createEndpoint(TestHandlers.countingCountDownHandler(counter3, latch));
+		AbstractMessageHandlingEndpoint endpoint1 = createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch));
+		AbstractMessageHandlingEndpoint endpoint2 = createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch));
+		AbstractMessageHandlingEndpoint endpoint3 = createEndpoint(TestHandlers.countingCountDownHandler(counter3, latch));
 		endpoint1.setSelector(new TestMessageSelector(selectorCounter, false));
 		endpoint2.setSelector(new TestMessageSelector(selectorCounter, false));
 		endpoint3.setSelector(new TestMessageSelector(selectorCounter, false));

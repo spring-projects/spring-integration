@@ -31,7 +31,7 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.endpoint.AbstractInOutEndpoint;
+import org.springframework.integration.endpoint.AbstractMessageHandlingEndpoint;
 
 /**
  * @author Mark Fisher
@@ -45,7 +45,7 @@ public class MessageChannelTemplateTests {
 	public void setUp() {
 		this.requestChannel = new QueueChannel();
 		this.requestChannel.setBeanName("requestChannel");
-		AbstractInOutEndpoint endpoint = new AbstractInOutEndpoint() {
+		AbstractMessageHandlingEndpoint endpoint = new AbstractMessageHandlingEndpoint() {
 			public Message<?> handle(Message<?> message) {
 				return new StringMessage(message.getPayload().toString().toUpperCase());
 			}		

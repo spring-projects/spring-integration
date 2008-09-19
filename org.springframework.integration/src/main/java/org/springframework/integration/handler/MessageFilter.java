@@ -16,7 +16,7 @@
 
 package org.springframework.integration.handler;
 
-import org.springframework.integration.endpoint.AbstractInOutEndpoint;
+import org.springframework.integration.endpoint.AbstractMessageHandlingEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.util.Assert;
@@ -27,7 +27,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class MessageFilter extends AbstractInOutEndpoint {
+public class MessageFilter extends AbstractMessageHandlingEndpoint {
 
 	private MessageSelector selector;
 

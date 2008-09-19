@@ -23,7 +23,7 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  */
-public class MessagingBridge extends AbstractInOutEndpoint {
+public class MessagingBridge extends AbstractMessageHandlingEndpoint {
 
 	private final MessageTarget target;
 

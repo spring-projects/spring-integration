@@ -26,7 +26,7 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  */
-public class ServiceActivatorEndpoint extends AbstractInOutEndpoint {
+public class ServiceActivatorEndpoint extends AbstractMessageHandlingEndpoint {
 
 	public static final String DEFAULT_LISTENER_METHOD = "handle";
 

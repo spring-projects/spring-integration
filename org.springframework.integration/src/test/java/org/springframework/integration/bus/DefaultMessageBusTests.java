@@ -33,7 +33,7 @@ import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.endpoint.AbstractInOutEndpoint;
+import org.springframework.integration.endpoint.AbstractMessageHandlingEndpoint;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
@@ -60,7 +60,7 @@ public class DefaultMessageBusTests {
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setReturnAddress("targetChannel").build();
 		sourceChannel.send(message);
-		AbstractInOutEndpoint endpoint = new AbstractInOutEndpoint() {
+		AbstractMessageHandlingEndpoint endpoint = new AbstractMessageHandlingEndpoint() {
 			public Message<?> handle(Message<?> message) {
 				return message;
 			}
@@ -114,12 +114,12 @@ public class DefaultMessageBusTests {
 		QueueChannel inputChannel = new QueueChannel();
 		QueueChannel outputChannel1 = new QueueChannel();
 		QueueChannel outputChannel2 = new QueueChannel();
-		AbstractInOutEndpoint endpoint1 = new AbstractInOutEndpoint() {
+		AbstractMessageHandlingEndpoint endpoint1 = new AbstractMessageHandlingEndpoint() {
 			public Message<?> handle(Message<?> message) {
 				return MessageBuilder.fromMessage(message).build();
 			}
 		};
-		AbstractInOutEndpoint endpoint2 = new AbstractInOutEndpoint() {
+		AbstractMessageHandlingEndpoint endpoint2 = new AbstractMessageHandlingEndpoint() {
 			public Message<?> handle(Message<?> message) {
 				return MessageBuilder.fromMessage(message).build();
 			}
@@ -155,14 +155,14 @@ public class DefaultMessageBusTests {
 		QueueChannel outputChannel1 = new QueueChannel();
 		QueueChannel outputChannel2 = new QueueChannel();
 		final CountDownLatch latch = new CountDownLatch(2);
-		AbstractInOutEndpoint endpoint1 = new AbstractInOutEndpoint() {
+		AbstractMessageHandlingEndpoint endpoint1 = new AbstractMessageHandlingEndpoint() {
 			public Message<?> handle(Message<?> message) {
 				Message<?> reply = MessageBuilder.fromMessage(message).build();
 				latch.countDown();
 				return reply;
 			}
 		};
-		AbstractInOutEndpoint endpoint2 = new AbstractInOutEndpoint() {
+		AbstractMessageHandlingEndpoint endpoint2 = new AbstractMessageHandlingEndpoint() {
 			public Message<?> handle(Message<?> message) {
 				Message<?> reply = MessageBuilder.fromMessage(message).build();
 				latch.countDown();
@@ -244,7 +244,7 @@ public class DefaultMessageBusTests {
 		errorChannel.setBeanName(ChannelRegistry.ERROR_CHANNEL_NAME);
 		context.getBeanFactory().registerSingleton(ChannelRegistry.ERROR_CHANNEL_NAME, errorChannel);
 		final CountDownLatch latch = new CountDownLatch(1);
-		AbstractInOutEndpoint endpoint = new AbstractInOutEndpoint() {
+		AbstractMessageHandlingEndpoint endpoint = new AbstractMessageHandlingEndpoint() {
 			public Message<?> handle(Message<?> message) {
 				latch.countDown();
 				return null;

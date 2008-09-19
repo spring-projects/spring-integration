@@ -34,7 +34,7 @@ import org.springframework.integration.message.selector.MessageSelector;
 /**
  * @author Mark Fisher
  */
-public abstract class AbstractInOutEndpoint extends AbstractMessageConsumingEndpoint {
+public abstract class AbstractMessageHandlingEndpoint extends AbstractMessageConsumingEndpoint {
 
 	private MessageChannel outputChannel;
 

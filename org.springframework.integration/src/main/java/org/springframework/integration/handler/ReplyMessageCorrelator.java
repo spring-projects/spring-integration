@@ -17,7 +17,7 @@
 package org.springframework.integration.handler;
 
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.endpoint.AbstractInOutEndpoint;
+import org.springframework.integration.endpoint.AbstractMessageHandlingEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessagingException;
@@ -27,7 +27,7 @@ import org.springframework.integration.message.MessagingException;
  * 
  * @author Mark Fisher
  */
-public class ReplyMessageCorrelator extends AbstractInOutEndpoint {
+public class ReplyMessageCorrelator extends AbstractMessageHandlingEndpoint {
 
 	@Override
 	public Message<?> handle(Message<?> message) {
