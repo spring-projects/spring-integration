@@ -17,21 +17,20 @@
 package org.springframework.integration.adapter.jms;
 
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageTarget;
+import org.springframework.integration.message.MessageConsumer;
 
 /**
  * A target for sending JMS Messages.
  * 
  * @author Mark Fisher
  */
-public class JmsTarget extends AbstractJmsTemplateBasedAdapter implements MessageTarget {
+public class JmsTarget extends AbstractJmsTemplateBasedAdapter implements MessageConsumer {
 
-	public final boolean send(final Message<?> message) {
+	public final void onMessage(final Message<?> message) {
 		if (message == null) {
 			throw new IllegalArgumentException("message must not be null");
 		}
 		this.getJmsTemplate().convertAndSend(message);
-		return true;
 	}
 
 }
