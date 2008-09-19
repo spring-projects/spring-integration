@@ -16,34 +16,37 @@
 
 package org.springframework.integration.security.config;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.ConstructorArgumentValues.ValueHolder;
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.security.ChannelInterceptorRegisteringBeanPostProcessor;
-import org.springframework.integration.security.channel.SecurityEnforcingChannelInterceptor;
-import org.springframework.security.ConfigAttributeDefinition;
-import org.springframework.security.context.SecurityContext;
+import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.config.IntegrationNamespaceUtils;
+import org.springframework.integration.security.channel.ChannelAccessPolicy;
+import org.springframework.integration.security.channel.ChannelInvocationDefinitionSource;
+import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
+import org.springframework.util.xml.DomUtils;
 
 /**
- * Determines {@link SecurityContext} propagation behaviour for the parent
- * element channel, and creates a {@link SecurityEnforcingChannelInterceptor} to
- * control send and receive access if send-access and/or receive-access is
- * specified.
+ * Creates a {@link ChannelSecurityInterceptor} to control send and receive access,
+ * and creates a {@link ChannelSecurityInterceptorBeanPostProcessor} to apply the
+ * interceptor to {@link MessageChannel}s whose names match the specified patterns.
  * 
  * @author Jonas Partner
+ * @author Mark Fisher
  */
 public class SecuredChannelsParser extends AbstractSingleBeanDefinitionParser {
 
-	public SecuredChannelsParser() {
-		super();
+	@Override
+	protected Class<?> getBeanClass(Element element) {
+		return ChannelSecurityInterceptorBeanPostProcessor.class;
 	}
 
 	@Override
@@ -52,60 +55,32 @@ public class SecuredChannelsParser extends AbstractSingleBeanDefinitionParser {
 	}
 
 	@Override
-	protected boolean shouldGenerateIdAsFallback() {
-		return true;
-	}
-
-	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		String receiveAccess = element.getAttribute("receive-access");
-		String sendAccess = element.getAttribute("send-access");
-		String accessDecisionManager = element.getAttribute("access-decision-manager");
-
-		BeanDefinition interceptorBeanDefinition = createSecurityEnforcingChannelInterceptor(accessDecisionManager,
-				sendAccess, receiveAccess);
-
-		List<String> patternList = processPatterns(element.getElementsByTagNameNS(element.getNamespaceURI(),
-				"channel-name-pattern"));
-
-		builder.getBeanDefinition().setBeanClass(ChannelInterceptorRegisteringBeanPostProcessor.class);
-		builder.getBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(
-				new ValueHolder(interceptorBeanDefinition));
-		builder.getBeanDefinition().getConstructorArgumentValues()
-				.addGenericArgumentValue(new ValueHolder(patternList));
-
+		ChannelInvocationDefinitionSource objectDefinitionSource = this.parseObjectDefinitionSource(element);
+		BeanDefinitionBuilder interceptorBuilder = BeanDefinitionBuilder.genericBeanDefinition(ChannelSecurityInterceptor.class);
+		interceptorBuilder.addConstructorArgValue(objectDefinitionSource);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(interceptorBuilder, element, "authentication-manager");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(interceptorBuilder, element, "access-decision-manager");
+		String interceptorBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
+				interceptorBuilder.getBeanDefinition(), parserContext.getRegistry());
+		builder.addConstructorArgReference(interceptorBeanName);
 	}
 
-	protected List<String> processPatterns(NodeList patternList) {
-		List<String> patterns = new ArrayList<String>();
-		for (int i = 0; i < patternList.getLength(); i++) {
-			Element patternElement = (Element) patternList.item(i);
-			patterns.add(patternElement.getTextContent());
-		}
-		return patterns;
-	}
 
-	protected BeanDefinition createSecurityEnforcingChannelInterceptor(String accessDecisionManager, String sendAccess,
-			String receiveAccess) {
-		if (!StringUtils.hasText(accessDecisionManager)) {
-			accessDecisionManager = "accessDecisionManager";
+	@SuppressWarnings("unchecked")
+	private ChannelInvocationDefinitionSource parseObjectDefinitionSource(Element element) {
+		ChannelInvocationDefinitionSource objectDefinitionSource = new ChannelInvocationDefinitionSource();
+		List<Element> accessPolicyElements = (List<Element>) DomUtils.getChildElementsByTagName(element, "access-policy");
+		for (Element accessPolicyElement : accessPolicyElements) {
+			Pattern pattern = Pattern.compile(accessPolicyElement.getAttribute("pattern"));
+			String sendAccess = accessPolicyElement.getAttribute("send-access");
+			String receiveAccess = accessPolicyElement.getAttribute("receive-access");
+			if (!StringUtils.hasText(sendAccess) && !StringUtils.hasText(receiveAccess)) {
+				throw new ConfigurationException("At least one of 'send-access' or 'receive-access' must be provided.");
+			}
+			objectDefinitionSource.addPatternMapping(pattern, new ChannelAccessPolicy(sendAccess, receiveAccess));
 		}
-		BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder
-				.genericBeanDefinition(SecurityEnforcingChannelInterceptor.class);
-		beanDefinitionBuilder.addConstructorArgReference(accessDecisionManager);
-
-		if (StringUtils.hasText(sendAccess)) {
-			ConfigAttributeDefinition sendDefinition = new ConfigAttributeDefinition(StringUtils.tokenizeToStringArray(
-					sendAccess, ","));
-			beanDefinitionBuilder.addPropertyValue("sendSecurityAttributes", sendDefinition);
-		}
-		if (StringUtils.hasText(receiveAccess)) {
-			ConfigAttributeDefinition receiveDefinition = new ConfigAttributeDefinition(StringUtils
-					.tokenizeToStringArray(receiveAccess, ","));
-			beanDefinitionBuilder.addPropertyValue("receiveSecurityAttributes", receiveDefinition);
-		}
-		return beanDefinitionBuilder.getBeanDefinition();
-
+		return objectDefinitionSource;
 	}
 
 }

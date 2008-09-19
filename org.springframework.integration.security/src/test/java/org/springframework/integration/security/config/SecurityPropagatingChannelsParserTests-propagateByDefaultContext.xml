@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
- 	xmlns:si-security="http://www.springframework.org/schema/integration-security"
+ 	xmlns:si-security="http://www.springframework.org/schema/integration/security"
 	xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:security="http://www.springframework.org/schema/security"
@@ -8,7 +8,7 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
               http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-2.0.xsd
               http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
-              http://www.springframework.org/schema/integration-security http://www.springframework.org/schema/integration/spring-integration-security-1.0.xsd
+              http://www.springframework.org/schema/integration/security http://www.springframework.org/schema/integration/spring-integration-security-1.0.xsd
               http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd">
 
 	<si-security:security-propagating-channels propagate-by-default="true"/>

@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<xsd:schema xmlns="http://www.springframework.org/schema/integration-security"
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/security"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:tool="http://www.springframework.org/schema/tool"
-	targetNamespace="http://www.springframework.org/schema/integration-security"
+	targetNamespace="http://www.springframework.org/schema/integration/security"
 	elementFormDefault="qualified" attributeFormDefault="unqualified">
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans" />
@@ -18,13 +17,23 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:sequence>
-				<xsd:element name="channel-name-pattern" type="xsd:string" minOccurs="1" maxOccurs="unbounded"/>
+				<xsd:element name="access-policy" type="accessPolicyType" minOccurs="1" maxOccurs="unbounded"/>
 			</xsd:sequence>
-			<xsd:attribute name="send-access" type="xsd:string"/>
-			<xsd:attribute name="receive-access" type="xsd:string"/>
+			<xsd:attribute name="authentication-manager" type="xsd:string" default="authenticationManager"/>
 			<xsd:attribute name="access-decision-manager" type="xsd:string" default="accessDecisionManager"/>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:complexType name="accessPolicyType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines the security access policy for send and/or receive invocations based on a Message Channel name pattern.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="pattern" type="xsd:string" use="required"/>
+		<xsd:attribute name="send-access" type="xsd:string"/>
+		<xsd:attribute name="receive-access" type="xsd:string"/>
+	</xsd:complexType>
 
 	<xsd:element name="endpoint-security-policy">
 		<xsd:complexType>

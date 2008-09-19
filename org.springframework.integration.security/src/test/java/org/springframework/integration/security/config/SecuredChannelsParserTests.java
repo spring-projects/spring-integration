@@ -16,25 +16,42 @@
 
 package org.springframework.integration.security.config;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.aop.Advisor;
+import org.springframework.aop.framework.Advised;
+import org.springframework.aop.support.AopUtils;
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.channel.AbstractPollableChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.selector.MessageSelector;
-import org.springframework.integration.security.channel.SecurityEnforcingChannelInterceptor;
-import org.springframework.security.SecurityConfig;
+import org.springframework.integration.security.channel.ChannelAccessPolicy;
+import org.springframework.integration.security.channel.ChannelInvocationDefinitionSource;
+import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
+import org.springframework.security.ConfigAttribute;
+import org.springframework.security.ConfigAttributeDefinition;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
 /**
  * @author Jonas Partner
+ * @author Mark Fisher
  */
 @ContextConfiguration
 public class SecuredChannelsParserTests extends AbstractJUnit4SpringContextTests {
@@ -48,67 +65,125 @@ public class SecuredChannelsParserTests extends AbstractJUnit4SpringContextTests
 
 	@Test
 	public void testAdminRequiredForSend() {
-		applicationContext.getAutowireCapableBeanFactory().applyBeanPostProcessorsAfterInitialization(messageChannel,
-				"adminRequiredForSend");
-		assertEquals("Wrong count of interceptors ", 1, messageChannel.interceptors.size());
-		SecurityEnforcingChannelInterceptor interceptor = (SecurityEnforcingChannelInterceptor) messageChannel.interceptors
-				.get(0);
-		assertTrue("ROLE_ADMIN not found as send attribute", interceptor.getSendSecurityAttributes().contains(
-				new SecurityConfig("ROLE_ADMIN")));
-		assertNull("Receive security attribute were not null", interceptor.getReceiveSecurityAttributes());
+		String beanName = "adminRequiredForSend";
+		messageChannel.setBeanName(beanName);
+		MessageChannel proxy = (MessageChannel) applicationContext.getAutowireCapableBeanFactory()
+				.applyBeanPostProcessorsAfterInitialization(messageChannel, beanName);
+		assertTrue("Channel was not proxied", AopUtils.isAopProxy(proxy));
+		Advisor[] advisors = ((Advised) proxy).getAdvisors();
+		assertEquals("Wrong number of interceptors", 1, advisors.length);
+		ChannelSecurityInterceptor interceptor = (ChannelSecurityInterceptor) advisors[0].getAdvice();
+		ChannelAccessPolicy policy = this.retrievePolicyForPatternString(beanName, interceptor);
+		assertNotNull("Pattern '" + beanName + "' is not included in mappings", policy);
+		ConfigAttributeDefinition sendDefinition = policy.getConfigAttributeDefinitionForSend();
+		ConfigAttributeDefinition receiveDefinition = policy.getConfigAttributeDefinitionForReceive();
+		assertTrue("ROLE_ADMIN not found as send attribute", this.getRolesFromDefintion(sendDefinition).contains("ROLE_ADMIN"));
+		assertNull("Policy applies to receive", receiveDefinition);
 	}
 
 	@Test
 	public void testAdminOrUserRequiredForSend() {
-		applicationContext.getAutowireCapableBeanFactory().applyBeanPostProcessorsAfterInitialization(messageChannel,
-				"adminOrUserRequiredForSend");
-		assertEquals("Wrong count of interceptors ", 1, messageChannel.interceptors.size());
-		SecurityEnforcingChannelInterceptor interceptor = (SecurityEnforcingChannelInterceptor) messageChannel.interceptors
-				.get(0);
-		assertTrue("ROLE_ADMIN not found as send attribute", interceptor.getSendSecurityAttributes().contains(
-				new SecurityConfig("ROLE_ADMIN")));
-		assertTrue("ROLE_USER not found as send attribute", interceptor.getSendSecurityAttributes().contains(
-				new SecurityConfig("ROLE_USER")));
-		assertNull("Receive security attribute were not null", interceptor.getReceiveSecurityAttributes());
+		String beanName = "adminOrUserRequiredForSend";
+		messageChannel.setBeanName(beanName);
+		MessageChannel proxy = (MessageChannel) applicationContext.getAutowireCapableBeanFactory()
+				.applyBeanPostProcessorsAfterInitialization(messageChannel, beanName);
+		assertTrue("Channel was not proxied", AopUtils.isAopProxy(proxy));
+		Advisor[] advisors = ((Advised) proxy).getAdvisors();
+		assertEquals("Wrong number of interceptors", 1, advisors.length);
+		ChannelSecurityInterceptor interceptor = (ChannelSecurityInterceptor) advisors[0].getAdvice();
+		ChannelAccessPolicy policy = this.retrievePolicyForPatternString(beanName, interceptor);
+		assertNotNull("Pattern '" + beanName + "' is not included in mappings", policy);
+		ConfigAttributeDefinition sendDefinition = policy.getConfigAttributeDefinitionForSend();
+		ConfigAttributeDefinition receiveDefinition = policy.getConfigAttributeDefinitionForReceive();
+		Collection<String> sendRoles = this.getRolesFromDefintion(sendDefinition);
+		assertTrue("ROLE_ADMIN not found as send attribute", sendRoles.contains("ROLE_ADMIN"));
+		assertTrue("ROLE_USER not found as send attribute", sendRoles.contains("ROLE_USER"));
+		assertNull("Policy applies to receive", receiveDefinition);
 	}
 
 	@Test
 	public void testAdminRequiredForReceive() {
-		applicationContext.getAutowireCapableBeanFactory().applyBeanPostProcessorsAfterInitialization(messageChannel,
-				"adminRequiredForReceive");
-		assertEquals("Wrong count of interceptors ", 1, messageChannel.interceptors.size());
-		SecurityEnforcingChannelInterceptor interceptor = (SecurityEnforcingChannelInterceptor) messageChannel.interceptors
-				.get(0);
-		assertTrue("ROLE_ADMIN not found as receive attribute", interceptor.getReceiveSecurityAttributes().contains(
-				new SecurityConfig("ROLE_ADMIN")));
-		assertNull("Send security attribute were not null", interceptor.getSendSecurityAttributes());
+		String beanName = "adminRequiredForReceive";
+		messageChannel.setBeanName(beanName);
+		MessageChannel proxy = (MessageChannel) applicationContext.getAutowireCapableBeanFactory()
+				.applyBeanPostProcessorsAfterInitialization(messageChannel, beanName);
+		assertTrue("Channel was not proxied", AopUtils.isAopProxy(proxy));
+		Advisor[] advisors = ((Advised) proxy).getAdvisors();
+		assertEquals("Wrong number of interceptors", 1, advisors.length);
+		ChannelSecurityInterceptor interceptor = (ChannelSecurityInterceptor) advisors[0].getAdvice();
+		ChannelAccessPolicy policy = this.retrievePolicyForPatternString(beanName, interceptor);
+		assertNotNull("Pattern '" + beanName + "' is not included in mappings", policy);
+		ConfigAttributeDefinition sendDefinition = policy.getConfigAttributeDefinitionForSend();
+		ConfigAttributeDefinition receiveDefinition = policy.getConfigAttributeDefinitionForReceive();
+		Collection<String> receiveRoles = this.getRolesFromDefintion(receiveDefinition);
+		assertTrue("ROLE_ADMIN not found as receive attribute", receiveRoles.contains("ROLE_ADMIN"));
+		assertNull("Policy applies to send", sendDefinition);
 	}
 
 	@Test
 	public void testAdminOrUserRequiredForReceive() {
-		applicationContext.getAutowireCapableBeanFactory().applyBeanPostProcessorsAfterInitialization(messageChannel,
-				"adminOrUserRequiredForReceive");
-		assertEquals("Wrong count of interceptors ", 1, messageChannel.interceptors.size());
-		SecurityEnforcingChannelInterceptor interceptor = (SecurityEnforcingChannelInterceptor) messageChannel.interceptors
-				.get(0);
-		assertTrue("ROLE_ADMIN not found as receive attribute", interceptor.getReceiveSecurityAttributes().contains(
-				new SecurityConfig("ROLE_ADMIN")));
-		assertTrue("ROLE_USER not found as receive attribute", interceptor.getReceiveSecurityAttributes().contains(
-				new SecurityConfig("ROLE_USER")));
-		assertNull("Send security attribute were not null", interceptor.getSendSecurityAttributes());
+		String beanName = "adminOrUserRequiredForReceive";
+		messageChannel.setBeanName(beanName);
+		MessageChannel proxy = (MessageChannel) applicationContext.getAutowireCapableBeanFactory()
+				.applyBeanPostProcessorsAfterInitialization(messageChannel, beanName);
+		assertTrue("Channel was not proxied", AopUtils.isAopProxy(proxy));
+		Advisor[] advisors = ((Advised) proxy).getAdvisors();
+		assertEquals("Wrong number of interceptors", 1, advisors.length);
+		ChannelSecurityInterceptor interceptor = (ChannelSecurityInterceptor) advisors[0].getAdvice();
+		ChannelAccessPolicy policy = this.retrievePolicyForPatternString(beanName, interceptor);
+		assertNotNull("Pattern '" + beanName + "' is not included in mappings", policy);
+		ConfigAttributeDefinition sendDefinition = policy.getConfigAttributeDefinitionForSend();
+		ConfigAttributeDefinition receiveDefinition = policy.getConfigAttributeDefinitionForReceive();
+		Collection<String> receiveRoles = this.getRolesFromDefintion(receiveDefinition);
+		assertTrue("ROLE_ADMIN not found as receive attribute", receiveRoles.contains("ROLE_ADMIN"));
+		assertTrue("ROLE_USER not found as receive attribute", receiveRoles.contains("ROLE_USER"));
+		assertNull("Policy applies to send", sendDefinition);
 	}
 
 	@Test
 	public void testAdminRequiredForSendAndReceive() {
-		applicationContext.getAutowireCapableBeanFactory().applyBeanPostProcessorsAfterInitialization(messageChannel,
-				"adminForSendAndReceive");
-		assertEquals("Wrong count of interceptors ", 1, messageChannel.interceptors.size());
-		SecurityEnforcingChannelInterceptor interceptor = (SecurityEnforcingChannelInterceptor) messageChannel.interceptors
-				.get(0);
-		assertTrue("ROLE_ADMIN not found as receive attribute", interceptor.getReceiveSecurityAttributes().contains(
-				new SecurityConfig("ROLE_ADMIN")));
-		assertTrue("ROLE_USER not found as send attribute", interceptor.getSendSecurityAttributes().contains(
-				new SecurityConfig("ROLE_ADMIN")));
+		String beanName = "adminRequiredForSendAndReceive";
+		messageChannel.setBeanName(beanName);
+		MessageChannel proxy = (MessageChannel) applicationContext.getAutowireCapableBeanFactory()
+				.applyBeanPostProcessorsAfterInitialization(messageChannel, beanName);
+		assertTrue("Channel was not proxied", AopUtils.isAopProxy(proxy));
+		Advisor[] advisors = ((Advised) proxy).getAdvisors();
+		assertEquals("Wrong number of interceptors", 1, advisors.length);
+		ChannelSecurityInterceptor interceptor = (ChannelSecurityInterceptor) advisors[0].getAdvice();
+		ChannelAccessPolicy policy = this.retrievePolicyForPatternString(beanName, interceptor);
+		assertNotNull("Pattern '" + beanName + "' is not included in mappings", policy);
+		ConfigAttributeDefinition sendDefinition = policy.getConfigAttributeDefinitionForSend();
+		ConfigAttributeDefinition receiveDefinition = policy.getConfigAttributeDefinitionForReceive();
+		assertNotNull("Pattern does not apply to 'send'", sendDefinition);
+		assertNotNull("Pattern does not apply to 'receive'", receiveDefinition);
+		Collection<String> sendRoles = this.getRolesFromDefintion(sendDefinition);
+		Collection<String> receiveRoles = this.getRolesFromDefintion(receiveDefinition);
+		assertTrue("ROLE_ADMIN not found in send attributes", sendRoles.contains("ROLE_ADMIN"));
+		assertTrue("ROLE_ADMIN not found in receive attributes", receiveRoles.contains("ROLE_ADMIN"));
+	}
+
+
+	@SuppressWarnings("unchecked")
+	private ChannelAccessPolicy retrievePolicyForPatternString(String patternString, ChannelSecurityInterceptor interceptor) {
+		DirectFieldAccessor accessor = new DirectFieldAccessor((ChannelInvocationDefinitionSource) interceptor.obtainObjectDefinitionSource());
+		Map<Pattern, ChannelAccessPolicy> policies = (Map<Pattern, ChannelAccessPolicy>) accessor.getPropertyValue("patternMappings");
+		for (Map.Entry<Pattern, ChannelAccessPolicy> entry : policies.entrySet()) {
+			if (entry.getKey().pattern().equals(patternString)) {
+				return entry.getValue();
+			}
+		}
+		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	private Collection<String> getRolesFromDefintion(ConfigAttributeDefinition definition) {
+		Set<String> roles = new HashSet<String>();
+		Collection configAttributes = definition.getConfigAttributes();
+		for (Object next : configAttributes) {
+			ConfigAttribute attribute = (ConfigAttribute) next;
+			roles.add(attribute.getAttribute());
+		}
+		return roles;
 	}
 
 

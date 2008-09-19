@@ -1,36 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
- 	xmlns:si-security="http://www.springframework.org/schema/integration-security"
+ 	xmlns:si-security="http://www.springframework.org/schema/integration/security"
 	xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:security="http://www.springframework.org/schema/security"
 	xmlns:context="http://www.springframework.org/schema/context"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
-              http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-2.0.xsd
-              http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
-              http://www.springframework.org/schema/integration-security http://www.springframework.org/schema/integration/spring-integration-security-1.0.xsd
-              http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+			http://www.springframework.org/schema/security
+			http://www.springframework.org/schema/security/spring-security-2.0.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
+			http://www.springframework.org/schema/integration/security
+			http://www.springframework.org/schema/integration/spring-integration-security-1.0.xsd
+			http://www.springframework.org/schema/context
+			http://www.springframework.org/schema/context/spring-context-2.5.xsd">
 
 	<beans:import resource="classpath:org/springframework/integration/security/config/commonSecurityConfiguration.xml"/>
 
-	<si-security:secured-channels send-access="ROLE_ADMIN">
-		<si-security:channel-name-pattern>adminRequiredForSend</si-security:channel-name-pattern>
-	</si-security:secured-channels>
-
-	<si-security:secured-channels send-access="ROLE_ADMIN, ROLE_USER">
-		<si-security:channel-name-pattern>adminOrUserRequiredForSend</si-security:channel-name-pattern>
-	</si-security:secured-channels>
-
-	<si-security:secured-channels receive-access="ROLE_ADMIN">
-		<si-security:channel-name-pattern>adminRequiredForReceive</si-security:channel-name-pattern>
-	</si-security:secured-channels>
-
-	<si-security:secured-channels receive-access="ROLE_ADMIN, ROLE_USER">
-		<si-security:channel-name-pattern>adminOrUserRequiredForReceive</si-security:channel-name-pattern>
-	</si-security:secured-channels>
-
-	<si-security:secured-channels receive-access="ROLE_ADMIN" send-access="ROLE_ADMIN">
-		<si-security:channel-name-pattern>adminForSendAndReceive</si-security:channel-name-pattern>
+	<si-security:secured-channels>
+		<si-security:access-policy pattern="adminRequiredForSend" send-access="ROLE_ADMIN"/>
+		<si-security:access-policy pattern="adminOrUserRequiredForSend" send-access="ROLE_ADMIN, ROLE_USER"/>
+		<si-security:access-policy pattern="adminRequiredForReceive" receive-access="ROLE_ADMIN"/>
+		<si-security:access-policy pattern="adminOrUserRequiredForReceive" receive-access="ROLE_ADMIN, ROLE_USER"/>
+		<si-security:access-policy pattern="adminRequiredForSendAndReceive" send-access="ROLE_ADMIN" receive-access="ROLE_ADMIN"/>
 	</si-security:secured-channels>
 
 </beans:beans>
