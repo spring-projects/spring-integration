@@ -44,7 +44,7 @@ public class SimpleMessagingGateway extends MessagingGatewaySupport implements M
 
 	private volatile MessageChannel requestChannel;
 
-	private volatile PollableChannel replyChannel;
+	private volatile MessageChannel replyChannel;
 
 	private volatile MessageCreator messageCreator = new DefaultMessageCreator();
 
@@ -114,11 +114,11 @@ public class SimpleMessagingGateway extends MessagingGatewaySupport implements M
 	}
 
 	public Object receive() {
-		if (this.replyChannel == null) {
+		if (this.replyChannel == null || !(this.replyChannel instanceof PollableChannel)) {
 			throw new IllegalStateException(
-					"no-arg receive is not supported, because no reply channel has been configured");
+					"no-arg receive is not supported, because no pollable reply channel has been configured");
 		}
-		Message<?> message = this.getChannelTemplate().receive(this.replyChannel);
+		Message<?> message = this.getChannelTemplate().receive((PollableChannel) this.replyChannel);
 		return (message != null) ? this.messageMapper.mapMessage(message) : null;
 	}
 
