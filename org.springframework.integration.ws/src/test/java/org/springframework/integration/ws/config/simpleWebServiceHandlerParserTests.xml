@@ -2,39 +2,42 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:si="http://www.springframework.org/schema/integration"
+	xmlns:ws="http://www.springframework.org/schema/integration/ws"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
 			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration-ws-1.0.xsd">
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
+			http://www.springframework.org/schema/integration/ws
+			http://www.springframework.org/schema/integration/ws/spring-integration-ws-1.0.xsd">
 
 	<si:channel id="inputChannel"/>
 
-	<si:ws-service-activator id="handlerWithDefaultSourceExtractor"
+	<ws:ws-service-activator id="handlerWithDefaultSourceExtractor"
 		                     input-channel="inputChannel"
 	                         uri="http://example.org"/>
 
-	<si:ws-service-activator id="handlerWithCustomSourceExtractor"
+	<ws:ws-service-activator id="handlerWithCustomSourceExtractor"
 	                         input-channel="inputChannel"
 	                         uri="http://example.org"
 	                         source-extractor="sourceExtractor"/>
 
-	<si:ws-service-activator id="handlerWithCustomRequestCallback"
+	<ws:ws-service-activator id="handlerWithCustomRequestCallback"
 	                         input-channel="inputChannel"
 	                         uri="http://example.org"
 	                         request-callback="requestCallback"/>
 
-	<si:ws-service-activator id="handlerWithCustomMessageFactory"
+	<ws:ws-service-activator id="handlerWithCustomMessageFactory"
 	                         input-channel="inputChannel"
 	                         uri="http://example.org"
 	                         message-factory="messageFactory"/>
 
-	<si:ws-service-activator id="handlerWithCustomSourceExtractorAndMessageFactory"
+	<ws:ws-service-activator id="handlerWithCustomSourceExtractorAndMessageFactory"
 	                         input-channel="inputChannel"
 	                         uri="http://example.org"
 	                         source-extractor="sourceExtractor"
 	                         message-factory="messageFactory"/>
 
-	<si:ws-service-activator id="handlerWithCustomFaultMessageResolver"
+	<ws:ws-service-activator id="handlerWithCustomFaultMessageResolver"
 	                         input-channel="inputChannel"
 	                         uri="http://example.org"
 	                         fault-message-resolver="faultMessageResolver"/>

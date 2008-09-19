@@ -3,12 +3,15 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:stream="http://www.springframework.org/schema/integration/stream"
+	xmlns:ws="http://www.springframework.org/schema/integration/ws"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
 			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration-ws-1.0.xsd
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
 			http://www.springframework.org/schema/integration/stream
-			http://www.springframework.org/schema/integration/stream/spring-integration-stream-1.0.xsd">
+			http://www.springframework.org/schema/integration/stream/spring-integration-stream-1.0.xsd
+			http://www.springframework.org/schema/integration/ws
+			http://www.springframework.org/schema/integration/ws/spring-integration-ws-1.0.xsd">
 
 	<message-bus/>
 
@@ -16,7 +19,7 @@
 
 	<!-- The service activator receives from the 'fahrenheitChannel', invokes the
 	     Web Service for the given URI, and sends the reply Message to the 'celsiusChannel'. -->
-	<ws-service-activator id="temperatureConverter"
+	<ws:ws-service-activator id="temperatureConverter"
 				          input-channel="fahrenheitChannel" 
 				          output-channel="celsiusChannel"
 				          uri="http://www.w3schools.com/webservices/tempconvert.asmx"/>

@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsd:schema xmlns="http://www.springframework.org/schema/integration"
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/ws"
 		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 		xmlns:beans="http://www.springframework.org/schema/beans"
 		xmlns:tool="http://www.springframework.org/schema/tool"
-		targetNamespace="http://www.springframework.org/schema/integration"
+		targetNamespace="http://www.springframework.org/schema/integration/ws"
 		elementFormDefault="qualified"
 		attributeFormDefault="unqualified">
-
-	<xsd:include schemaLocation="http://www.springframework.org/schema/integration/spring-integration-core-1.0.xsd"/>
-	<xsd:include schemaLocation="http://www.springframework.org/schema/integration/spring-integration-adapters-1.0.xsd"/>
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
 	<xsd:import namespace="http://www.springframework.org/schema/tool"/>

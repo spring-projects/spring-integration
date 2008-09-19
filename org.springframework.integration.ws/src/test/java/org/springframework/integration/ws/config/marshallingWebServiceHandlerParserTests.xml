@@ -2,37 +2,40 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:si="http://www.springframework.org/schema/integration"
+	xmlns:ws="http://www.springframework.org/schema/integration/ws"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
 			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration-ws-1.0.xsd">
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
+			http://www.springframework.org/schema/integration/ws
+			http://www.springframework.org/schema/integration/ws/spring-integration-ws-1.0.xsd">
 
 	<si:channel id="inputChannel"/>
 
-	<si:ws-service-activator id="handlerWithAllInOneMarshaller"
+	<ws:ws-service-activator id="handlerWithAllInOneMarshaller"
 	                         input-channel="inputChannel"
 	                         uri="http://example.org"
 	                         marshaller="marshallerAndUnmarshaller"/>
 
-	<si:ws-service-activator id="handlerWithSeparateMarshallerAndUnmarshaller"
+	<ws:ws-service-activator id="handlerWithSeparateMarshallerAndUnmarshaller"
 	                         input-channel="inputChannel"
 	                         uri="http://example.org"
 	                         marshaller="marshaller"
 	                         unmarshaller="unmarshaller"/>
 
-	<si:ws-service-activator id="handlerWithCustomRequestCallback"
+	<ws:ws-service-activator id="handlerWithCustomRequestCallback"
 	                         input-channel="inputChannel"
 	                         uri="http://example.org"
 	                         marshaller="marshallerAndUnmarshaller"
 	                         request-callback="requestCallback"/>
 
-	<si:ws-service-activator id="handlerWithAllInOneMarshallerAndMessageFactory"
+	<ws:ws-service-activator id="handlerWithAllInOneMarshallerAndMessageFactory"
 	                         input-channel="inputChannel"
 	                         uri="http://example.org"
 	                         marshaller="marshallerAndUnmarshaller"
 	                         message-factory="messageFactory"/>
 
-	<si:ws-service-activator id="handlerWithSeparateMarshallerAndUnmarshallerAndMessageFactory"
+	<ws:ws-service-activator id="handlerWithSeparateMarshallerAndUnmarshallerAndMessageFactory"
 	                         input-channel="inputChannel"
 	                         uri="http://example.org"
 	                         marshaller="marshaller"
