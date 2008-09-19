@@ -24,7 +24,7 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 public class WsNamespaceHandler extends NamespaceHandlerSupport {
 
 	public void init() {
-		this.registerBeanDefinitionParser("ws-service-activator", new WebServiceHandlerParser());
+		this.registerBeanDefinitionParser("service-activator", new WebServiceHandlerParser());
 	}
 
 }

@@ -12,35 +12,35 @@
 
 	<si:channel id="inputChannel"/>
 
-	<ws:ws-service-activator id="handlerWithAllInOneMarshaller"
-	                         input-channel="inputChannel"
-	                         uri="http://example.org"
-	                         marshaller="marshallerAndUnmarshaller"/>
+	<ws:service-activator id="handlerWithAllInOneMarshaller"
+	                      input-channel="inputChannel"
+                          uri="http://example.org"
+	                      marshaller="marshallerAndUnmarshaller"/>
 
-	<ws:ws-service-activator id="handlerWithSeparateMarshallerAndUnmarshaller"
-	                         input-channel="inputChannel"
-	                         uri="http://example.org"
-	                         marshaller="marshaller"
-	                         unmarshaller="unmarshaller"/>
+	<ws:service-activator id="handlerWithSeparateMarshallerAndUnmarshaller"
+	                      input-channel="inputChannel"
+	                      uri="http://example.org"
+	                      marshaller="marshaller"
+	                      unmarshaller="unmarshaller"/>
 
-	<ws:ws-service-activator id="handlerWithCustomRequestCallback"
-	                         input-channel="inputChannel"
-	                         uri="http://example.org"
-	                         marshaller="marshallerAndUnmarshaller"
-	                         request-callback="requestCallback"/>
+	<ws:service-activator id="handlerWithCustomRequestCallback"
+	                      input-channel="inputChannel"
+	                      uri="http://example.org"
+	                      marshaller="marshallerAndUnmarshaller"
+	                      request-callback="requestCallback"/>
 
-	<ws:ws-service-activator id="handlerWithAllInOneMarshallerAndMessageFactory"
-	                         input-channel="inputChannel"
-	                         uri="http://example.org"
-	                         marshaller="marshallerAndUnmarshaller"
-	                         message-factory="messageFactory"/>
+	<ws:service-activator id="handlerWithAllInOneMarshallerAndMessageFactory"
+	                      input-channel="inputChannel"
+	                      uri="http://example.org"
+	                      marshaller="marshallerAndUnmarshaller"
+	                      message-factory="messageFactory"/>
 
-	<ws:ws-service-activator id="handlerWithSeparateMarshallerAndUnmarshallerAndMessageFactory"
-	                         input-channel="inputChannel"
-	                         uri="http://example.org"
-	                         marshaller="marshaller"
-	                         unmarshaller="unmarshaller"
-	                         message-factory="messageFactory"/>
+	<ws:service-activator id="handlerWithSeparateMarshallerAndUnmarshallerAndMessageFactory"
+	                      input-channel="inputChannel"
+	                      uri="http://example.org"
+	                      marshaller="marshaller"
+	                      unmarshaller="unmarshaller"
+	                      message-factory="messageFactory"/>
 
 	<bean id="marshallerAndUnmarshaller" class="org.springframework.integration.ws.config.StubMarshallerAndUnmarshaller"/>
 

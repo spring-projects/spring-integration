@@ -16,7 +16,7 @@
 		]]></xsd:documentation>
 	</xsd:annotation>
 
-	<xsd:element name="ws-service-activator">
+	<xsd:element name="service-activator">
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>

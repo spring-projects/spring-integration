@@ -19,7 +19,7 @@
 
 	<!-- The service activator receives from the 'fahrenheitChannel', invokes the
 	     Web Service for the given URI, and sends the reply Message to the 'celsiusChannel'. -->
-	<ws:ws-service-activator id="temperatureConverter"
+	<ws:service-activator id="temperatureConverter"
 				          input-channel="fahrenheitChannel" 
 				          output-channel="celsiusChannel"
 				          uri="http://www.w3schools.com/webservices/tempconvert.asmx"/>
