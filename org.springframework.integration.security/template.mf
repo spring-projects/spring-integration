@@ -5,7 +5,7 @@ Bundle-ManifestVersion: 2
 Import-Template: 
  org.springframework.beans.*;version="[2.5.5.A, 3.0.0)",
  org.springframework.core;version="[2.5.5.A, 3.0.0)",
- org.springframework.util;version="[2.5.5.A, 3.0.0)",
+ org.springframework.util.*;version="[2.5.5.A, 3.0.0)",
  org.springframework.aop.*;version="[2.5.5.A, 3.0.0)",
  org.springframework.integration.*;version="[1.0.0, 1.0.1)",
  org.springframework.security.*;version="[2.0.2.A, 3.0.0)",
