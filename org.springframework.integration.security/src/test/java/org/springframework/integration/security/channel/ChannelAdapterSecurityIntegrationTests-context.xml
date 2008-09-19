@@ -12,7 +12,7 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
 			http://www.springframework.org/schema/integration/security
-			http://www.springframework.org/schema/integration/spring-integration-security-1.0.xsd
+			http://www.springframework.org/schema/integration/security/spring-integration-security-1.0.xsd
 			http://www.springframework.org/schema/context
 			http://www.springframework.org/schema/context/spring-context-2.5.xsd">
 

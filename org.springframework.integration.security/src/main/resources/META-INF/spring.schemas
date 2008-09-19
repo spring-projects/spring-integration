@@ -1,1 +1,1 @@
-http\://www.springframework.org/schema/integration/spring-integration-security-1.0.xsd=org/springframework/integration/security/config/spring-integration-security-1.0.xsd
+http\://www.springframework.org/schema/integration/security/spring-integration-security-1.0.xsd=org/springframework/integration/security/config/spring-integration-security-1.0.xsd
