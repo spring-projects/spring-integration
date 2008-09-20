@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.rmi;
+package org.springframework.integration.rmi;
 
 import java.rmi.RemoteException;
 import java.rmi.registry.Registry;

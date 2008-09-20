@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.rmi.config;
+package org.springframework.integration.rmi.config;
 
-import org.springframework.remoting.support.DefaultRemoteInvocationExecutor;
+import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
 /**
+ * Namespace handler for Spring Integration's <em>rmi</em> namespace.
+ * 
  * @author Mark Fisher
  */
-public class StubRemoteInvocationExecutor extends DefaultRemoteInvocationExecutor {
+public class RmiNamespaceHandler extends NamespaceHandlerSupport {
+
+	public void init() {
+		this.registerBeanDefinitionParser("rmi-gateway", new RmiGatewayParser());
+		this.registerBeanDefinitionParser("rmi-handler", new RmiHandlerParser());
+	}
 
 }

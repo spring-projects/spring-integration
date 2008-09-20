@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/rmi"
+		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+		xmlns:beans="http://www.springframework.org/schema/beans"
+		xmlns:tool="http://www.springframework.org/schema/tool"
+		targetNamespace="http://www.springframework.org/schema/integration/rmi"
+		elementFormDefault="qualified"
+		attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
+	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
+
+	<xsd:annotation>
+		<xsd:documentation><![CDATA[
+	Defines the configuration elements for Spring Integration's RMI adapters.
+		]]></xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:element name="rmi-gateway">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines an RMI-based gateway adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="id" type="xsd:ID"/>
+			<xsd:attribute name="name" type="xsd:string"/>
+			<xsd:attribute name="expect-reply" type="xsd:boolean" default="true"/>
+			<xsd:attribute name="request-channel" type="xsd:string" use="required"/>
+			<xsd:attribute name="reply-channel" type="xsd:string"/>
+			<xsd:attribute name="request-timeout" type="xsd:long"/>
+			<xsd:attribute name="reply-timeout" type="xsd:long"/>
+			<xsd:attribute name="registry-host" type="xsd:string"/>
+			<xsd:attribute name="registry-port" type="xsd:integer"/>
+			<xsd:attribute name="remote-invocation-executor" type="xsd:string"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="rmi-handler">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines an RMI-based MessageHandler adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="host" type="xsd:string" use="required"/>
+			<xsd:attribute name="port" type="xsd:integer"/>
+			<xsd:attribute name="remote-channel" type="xsd:string" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+
+</xsd:schema>

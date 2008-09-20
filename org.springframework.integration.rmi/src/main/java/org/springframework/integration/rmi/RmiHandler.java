@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.rmi;
+package org.springframework.integration.rmi;
 
 import org.springframework.integration.adapter.AbstractRemotingHandler;
 import org.springframework.integration.handler.MessageHandler;

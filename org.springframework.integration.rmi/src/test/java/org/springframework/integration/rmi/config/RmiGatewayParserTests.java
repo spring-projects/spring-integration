@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.rmi.config;
+package org.springframework.integration.rmi.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -24,9 +24,9 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.adapter.rmi.RmiGateway;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.MessageChannelTemplate;
+import org.springframework.integration.rmi.RmiGateway;
 
 /**
  * @author Mark Fisher

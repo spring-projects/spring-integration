@@ -2,10 +2,13 @@
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:rmi="http://www.springframework.org/schema/integration/rmi"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
 			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
+			http://www.springframework.org/schema/integration/rmi
+			http://www.springframework.org/schema/integration/rmi/spring-integration-rmi-1.0.xsd">
 
 	<message-bus/>
 
@@ -13,6 +16,6 @@
 
 	<service-activator input-channel="localChannel" ref="handler"/>
 
-	<rmi-handler id="handler" remote-channel="testChannel" host="localhost"/>
+	<rmi:rmi-handler id="handler" remote-channel="testChannel" host="localhost"/>
 
 </beans:beans>

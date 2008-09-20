@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.rmi.config;
+package org.springframework.integration.rmi.config;
 
 import java.rmi.registry.Registry;
 
@@ -23,8 +23,8 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.adapter.rmi.RmiGateway;
-import org.springframework.integration.adapter.rmi.RmiHandler;
+import org.springframework.integration.rmi.RmiGateway;
+import org.springframework.integration.rmi.RmiHandler;
 import org.springframework.util.StringUtils;
 
 /**

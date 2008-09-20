@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.rmi.config;
+package org.springframework.integration.rmi.config;
 
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.integration.adapter.config.AbstractRemotingGatewayParser;
-import org.springframework.integration.adapter.rmi.RmiGateway;
+import org.springframework.integration.rmi.RmiGateway;
 import org.springframework.util.StringUtils;
 
 /**
