@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.httpinvoker;
+package org.springframework.integration.httpinvoker;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -31,6 +31,7 @@ import org.junit.Test;
 
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.httpinvoker.HttpInvokerInboundGateway;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -41,12 +42,13 @@ import org.springframework.remoting.support.RemoteInvocationResult;
 /**
  * @author Mark Fisher
  */
-public class HttpInvokerGatewayTests {
+public class HttpInvokerInboundGatewayTests {
 
 	@Test
 	public void testRequestOnly() throws Exception {
 		QueueChannel channel = new QueueChannel();
-		HttpInvokerGateway gateway = new HttpInvokerGateway(channel);
+		HttpInvokerInboundGateway gateway = new HttpInvokerInboundGateway();
+		gateway.setRequestChannel(channel);
 		gateway.setExpectReply(false);
 		gateway.afterPropertiesSet();
 		MockHttpServletRequest request = new MockHttpServletRequest();
@@ -68,7 +70,8 @@ public class HttpInvokerGatewayTests {
 				replyChannel.send(new StringMessage(message.getPayload().toString().toUpperCase()));
 			}
 		});
-		HttpInvokerGateway gateway = new HttpInvokerGateway(channel);
+		HttpInvokerInboundGateway gateway = new HttpInvokerInboundGateway();
+		gateway.setRequestChannel(channel);
 		gateway.setExpectReply(true);
 		gateway.afterPropertiesSet();
 		MockHttpServletRequest request = new MockHttpServletRequest();

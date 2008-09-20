@@ -19,8 +19,7 @@ package org.springframework.integration.rmi;
 import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.adapter.AbstractRemotingGateway;
+import org.springframework.integration.adapter.RemotingInboundGatewaySupport;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.remoting.rmi.RmiServiceExporter;
@@ -33,12 +32,12 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class RmiGateway extends AbstractRemotingGateway implements InitializingBean, MessageHandler {
+public class RmiGateway extends RemotingInboundGatewaySupport implements MessageHandler {
 
 	public static final String SERVICE_NAME_PREFIX = "org.springframewok.integration.rmiGateway.";
 
 
-	private final String requestChannelName;
+	private volatile String requestChannelName;
 
 	private volatile String registryHost;
 
@@ -48,15 +47,15 @@ public class RmiGateway extends AbstractRemotingGateway implements InitializingB
 
 
 	/**
-	 * Create an RmiGateway that sends to the provided request channel.
-	 * 
-	 * @param requestChannel the channel where messages will be sent, must not be
-	 * <code>null</code>.
+	 * Specify the request channel where messages will be sent.
+	 * It must not be <code>null</code>, and it must have a name.
 	 */
-	public RmiGateway(MessageChannel requestChannel) {
-		super(requestChannel);
+	@Override
+	public void setRequestChannel(MessageChannel requestChannel) {
+		Assert.notNull(requestChannel, "requestChannel must not be null");
+		Assert.isTrue(StringUtils.hasText(requestChannel.getName()), "RmiGateway's request channel must have a name.");
 		this.requestChannelName = requestChannel.getName();
-		Assert.isTrue(StringUtils.hasText(this.requestChannelName), "RmiGateway's request channel must have a name.");
+		super.setRequestChannel(requestChannel);
 	}
 
 
@@ -72,6 +71,7 @@ public class RmiGateway extends AbstractRemotingGateway implements InitializingB
 		this.remoteInvocationExecutor = remoteInvocationExecutor;
 	}
 
+	@Override
 	public void afterPropertiesSet() throws RemoteException {
 		RmiServiceExporter exporter = new RmiServiceExporter();
 		if (this.registryHost != null) {

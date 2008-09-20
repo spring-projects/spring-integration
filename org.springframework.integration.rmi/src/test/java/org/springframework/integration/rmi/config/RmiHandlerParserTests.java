@@ -42,7 +42,8 @@ public class RmiHandlerParserTests {
 	@Before
 	public void exportRemoteHandler() throws Exception {
 		testChannel.setBeanName("testChannel");
-		RmiGateway gateway = new RmiGateway(testChannel);
+		RmiGateway gateway = new RmiGateway();
+		gateway.setRequestChannel(testChannel);
 		gateway.setExpectReply(false);
 		gateway.afterPropertiesSet();
 	}
@@ -50,7 +51,7 @@ public class RmiHandlerParserTests {
 	@Test
 	public void testRmiHandlerDirectly() {
 		ApplicationContext context = new ClassPathXmlApplicationContext("rmiHandlerParserTests.xml", this.getClass());
-		RmiHandler handler = (RmiHandler) context.getBean("handler");
+		RmiHandler handler = (RmiHandler) context.getBean("gateway");
 		handler.handle(new StringMessage("test"));
 		Message<?> result = testChannel.receive(1000);
 		assertNotNull(result);

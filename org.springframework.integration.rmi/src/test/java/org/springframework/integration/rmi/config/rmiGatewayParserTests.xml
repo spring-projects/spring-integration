@@ -14,16 +14,16 @@
 
 	<channel id="testChannel"/>
 
-	<rmi:rmi-gateway id="gatewayWithDefaults" request-channel="testChannel"/>
+	<rmi:inbound-gateway id="gatewayWithDefaults" request-channel="testChannel"/>
 
-	<rmi:rmi-gateway id="gatewayWithCustomProperties" request-channel="testChannel"
+	<rmi:inbound-gateway id="gatewayWithCustomProperties" request-channel="testChannel"
 			expect-reply="false" request-timeout="123" reply-timeout="456"/>
 
-	<rmi:rmi-gateway id="gatewayWithHost" request-channel="testChannel" registry-host="localhost"/>
+	<rmi:inbound-gateway id="gatewayWithHost" request-channel="testChannel" registry-host="localhost"/>
 
-	<rmi:rmi-gateway id="gatewayWithPort" request-channel="testChannel" registry-port="1234"/>
+	<rmi:inbound-gateway id="gatewayWithPort" request-channel="testChannel" registry-port="1234"/>
 
-	<rmi:rmi-gateway id="gatewayWithExecutorRef" request-channel="testChannel" remote-invocation-executor="invocationExecutor"/>
+	<rmi:inbound-gateway id="gatewayWithExecutorRef" request-channel="testChannel" remote-invocation-executor="invocationExecutor"/>
 
 	<beans:bean id="invocationExecutor" class="org.springframework.integration.rmi.config.StubRemoteInvocationExecutor"/>
 

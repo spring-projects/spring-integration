@@ -14,8 +14,6 @@
 
 	<channel id="localChannel"/>
 
-	<service-activator input-channel="localChannel" ref="handler"/>
-
-	<rmi:rmi-handler id="handler" remote-channel="testChannel" host="localhost"/>
+	<rmi:outbound-gateway id="gateway" request-channel="localChannel" remote-channel="testChannel" host="localhost"/>
 
 </beans:beans>

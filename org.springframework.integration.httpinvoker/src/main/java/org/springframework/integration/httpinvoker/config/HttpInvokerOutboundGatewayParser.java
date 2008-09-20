@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.httpinvoker.config;
+package org.springframework.integration.httpinvoker.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.integration.adapter.config.AbstractRemotingGatewayParser;
-import org.springframework.integration.adapter.httpinvoker.HttpInvokerGateway;
+import org.springframework.integration.adapter.config.AbstractRemotingOutboundGatewayParser;
+import org.springframework.integration.httpinvoker.HttpInvokerOutboundGateway;
 
 /**
- * Parser for the &lt;httpinvoker-gateway/&gt; element. 
+ * Parser for the &lt;outbound-gateway/&gt; element of the 'httpinvoker' namespace.
  * 
  * @author Mark Fisher
  */
-public class HttpInvokerGatewayParser extends AbstractRemotingGatewayParser {
+public class HttpInvokerOutboundGatewayParser extends AbstractRemotingOutboundGatewayParser {
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
-		return HttpInvokerGateway.class;
+		return HttpInvokerOutboundGateway.class;
 	}
 
 }

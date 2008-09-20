@@ -1,8 +1,6 @@
 file-source=org.springframework.integration.adapter.file.config.FileSourceParser
 file-target=org.springframework.integration.adapter.file.config.FileTargetParser
 ftp-source=org.springframework.integration.adapter.ftp.config.FtpSourceParser
-httpinvoker-gateway=org.springframework.integration.adapter.httpinvoker.config.HttpInvokerGatewayParser
-httpinvoker-handler=org.springframework.integration.adapter.httpinvoker.config.HttpInvokerHandlerParser
 mail-target=org.springframework.integration.adapter.mail.config.MailTargetParser
 polling-mail-source=org.springframework.integration.adapter.mail.config.PollingMailSourceParser
 imap-idle-mail-source=org.springframework.integration.adapter.mail.config.SubscribableImapIdleMailSourceParser

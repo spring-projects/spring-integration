@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.httpinvoker;
+package org.springframework.integration.httpinvoker;
 
-import org.springframework.integration.adapter.AbstractRemotingHandler;
+import org.springframework.integration.adapter.AbstractRemotingOutboundGateway;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean;
 
@@ -25,9 +25,9 @@ import org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean;
  * 
  * @author Mark Fisher
  */
-public class HttpInvokerHandler extends AbstractRemotingHandler {
+public class HttpInvokerOutboundGateway extends AbstractRemotingOutboundGateway {
 
-	public HttpInvokerHandler(String url) {
+	public HttpInvokerOutboundGateway(String url) {
 		super(url);
 	}
 

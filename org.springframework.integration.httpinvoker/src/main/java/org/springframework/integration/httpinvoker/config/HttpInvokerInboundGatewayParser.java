@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.rmi.config;
+package org.springframework.integration.httpinvoker.config;
 
-import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
+import org.w3c.dom.Element;
+
+import org.springframework.integration.adapter.config.AbstractRemotingGatewayParser;
+import org.springframework.integration.httpinvoker.HttpInvokerInboundGateway;
 
 /**
- * Namespace handler for Spring Integration's <em>rmi</em> namespace.
+ * Parser for the &lt;httpinvoker-gateway/&gt; element. 
  * 
  * @author Mark Fisher
  */
-public class RmiNamespaceHandler extends NamespaceHandlerSupport {
+public class HttpInvokerInboundGatewayParser extends AbstractRemotingGatewayParser {
 
-	public void init() {
-		this.registerBeanDefinitionParser("inbound-gateway", new RmiGatewayParser());
-		this.registerBeanDefinitionParser("outbound-gateway", new RmiHandlerParser());
+	@Override
+	protected Class<?> getBeanClass(Element element) {
+		return HttpInvokerInboundGateway.class;
 	}
 
 }

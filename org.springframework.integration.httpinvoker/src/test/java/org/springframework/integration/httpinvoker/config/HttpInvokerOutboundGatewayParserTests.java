@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.httpinvoker.config;
+package org.springframework.integration.httpinvoker.config;
 
 import static org.junit.Assert.assertEquals;
 
@@ -22,19 +22,19 @@ import org.junit.Test;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.adapter.httpinvoker.HttpInvokerHandler;
-import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.httpinvoker.HttpInvokerOutboundGateway;
 
 /**
  * @author Mark Fisher
  */
-public class HttpInvokerHandlerParserTests {
+public class HttpInvokerOutboundGatewayParserTests {
 
 	@Test
-	public void testHttpInvokerHandlerParser() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("httpInvokerHandlerParserTests.xml", this.getClass());
-		MessageHandler handler = (MessageHandler) context.getBean("handler");
-		assertEquals(HttpInvokerHandler.class, handler.getClass());
+	public void testHttpInvokerOutboundGatewayParser() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"httpInvokerOutboundGatewayParserTests.xml", this.getClass());
+		Object gateway = context.getBean("gateway");
+		assertEquals(HttpInvokerOutboundGateway.class, gateway.getClass());
 	}
 
 }

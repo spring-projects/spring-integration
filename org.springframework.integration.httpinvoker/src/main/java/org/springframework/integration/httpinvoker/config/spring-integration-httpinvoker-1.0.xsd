@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsd:schema xmlns="http://www.springframework.org/schema/integration/rmi"
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/httpinvoker"
 		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 		xmlns:beans="http://www.springframework.org/schema/beans"
 		xmlns:tool="http://www.springframework.org/schema/tool"
-		targetNamespace="http://www.springframework.org/schema/integration/rmi"
+		targetNamespace="http://www.springframework.org/schema/integration/httpinvoker"
 		elementFormDefault="qualified"
 		attributeFormDefault="unqualified">
 
@@ -12,7 +12,7 @@
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
-	Defines the configuration elements for Spring Integration's RMI adapters.
+	Defines the configuration elements for Spring Integration's HttpInvoker adapters.
 		]]></xsd:documentation>
 	</xsd:annotation>
 
@@ -20,15 +20,12 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines an RMI-based inbound MessagingGateway.
+	Defines an HttpInvoker-based inbound Messaging Gateway.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="gatewayType">
 					<xsd:attribute name="expect-reply" type="xsd:boolean" default="true"/>
-					<xsd:attribute name="registry-host" type="xsd:string"/>
-					<xsd:attribute name="registry-port" type="xsd:integer"/>
-					<xsd:attribute name="remote-invocation-executor" type="xsd:string"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -38,14 +35,12 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines an RMI-based outbound Messaging Gateway.
+	Defines an HttpInvoker-based outbound Messaging Gateway.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="gatewayType">
-					<xsd:attribute name="host" type="xsd:string" use="required"/>
-					<xsd:attribute name="port" type="xsd:integer"/>
-					<xsd:attribute name="remote-channel" type="xsd:string" use="required"/>
+					<xsd:attribute name="url" type="xsd:string" use="required"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

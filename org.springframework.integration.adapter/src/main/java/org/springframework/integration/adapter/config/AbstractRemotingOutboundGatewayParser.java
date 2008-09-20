@@ -19,29 +19,15 @@ package org.springframework.integration.adapter.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.util.StringUtils;
 
 /**
- * Base class for remoting MessageHandler parsers. 
+ * Base class for url-based remoting outbound gateway parsers. 
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractRemotingHandlerParser extends AbstractSimpleBeanDefinitionParser {
-
-	protected abstract Class<?> getBeanClass(Element element);
-
-
-	@Override
-	protected boolean shouldGenerateId() {
-		return false;
-	}
-
-	@Override
-	protected boolean shouldGenerateIdAsFallback() {
-		return true;
-	}
+public abstract class AbstractRemotingOutboundGatewayParser extends AbstractRemotingGatewayParser {
 
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
@@ -49,7 +35,7 @@ public abstract class AbstractRemotingHandlerParser extends AbstractSimpleBeanDe
 	}
 
 	@Override
-	protected void postProcess(BeanDefinitionBuilder builder, Element element) {
+	protected void doPostProcess(BeanDefinitionBuilder builder, Element element) {
 		String url = element.getAttribute("url");
 		if (!StringUtils.hasText(url)) {
 			throw new ConfigurationException("The 'url' attribute is required.");

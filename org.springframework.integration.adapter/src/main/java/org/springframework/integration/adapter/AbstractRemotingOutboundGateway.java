@@ -18,25 +18,35 @@ package org.springframework.integration.adapter;
 
 import java.io.Serializable;
 
+import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.endpoint.AbstractMessageHandlingEndpoint;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.remoting.RemoteAccessException;
 
 /**
- * A base class for remoting {@link MessageHandler} adapters.
+ * A base class for outbound Messaging Gateways that use url-based remoting.
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractRemotingHandler implements MessageHandler {
+public abstract class AbstractRemotingOutboundGateway extends AbstractMessageHandlingEndpoint {
 
 	private final MessageHandler handlerProxy;
 
 
-	public AbstractRemotingHandler(String url) {
+	public AbstractRemotingOutboundGateway(String url) {
 		this.handlerProxy = this.createHandlerProxy(url);
 	}
 
+
+	public void setRequestChannel(MessageChannel requestChannel) {
+		this.setInputChannel(requestChannel);
+	}
+
+	public void setReplyChannel(MessageChannel replyChannel) {
+		this.setOutputChannel(replyChannel);
+	}
 
 	/**
 	 * Subclasses must implement this method. It will be invoked from the constructor.

@@ -14,23 +14,20 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.httpinvoker.config;
+package org.springframework.integration.httpinvoker.config;
 
-import org.w3c.dom.Element;
-
-import org.springframework.integration.adapter.config.AbstractRemotingHandlerParser;
-import org.springframework.integration.adapter.httpinvoker.HttpInvokerHandler;
+import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
 /**
- * Parser for the &lt;httpinvoker-handler/&gt; element. 
+ * Namespace handler for Spring Integration's <em>httpinvoker</em> namespace.
  * 
  * @author Mark Fisher
  */
-public class HttpInvokerHandlerParser extends AbstractRemotingHandlerParser {
+public class HttpInvokerNamespaceHandler extends NamespaceHandlerSupport {
 
-	@Override
-	protected Class<?> getBeanClass(Element element) {
-		return HttpInvokerHandler.class;
+	public void init() {
+		this.registerBeanDefinitionParser("inbound-gateway", new HttpInvokerInboundGatewayParser());
+		this.registerBeanDefinitionParser("outbound-gateway", new HttpInvokerOutboundGatewayParser());
 	}
 
 }

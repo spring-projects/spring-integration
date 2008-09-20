@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.httpinvoker;
+package org.springframework.integration.httpinvoker;
 
 import java.io.IOException;
 
@@ -23,15 +23,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.adapter.AbstractRemotingGateway;
-import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.adapter.RemotingInboundGatewaySupport;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter;
 import org.springframework.web.HttpRequestHandler;
 
 /**
- * A gateway adapter for HttpInvoker-based remoting. Since this class implements
+ * An inbound gateway adapter for HttpInvoker-based remoting. Since this class implements
  * {@link HttpRequestHandler}, it can be configured with a delegating Servlet where the
  * servlet-name matches this adapter's bean name. For example, the following servlet can
  * be defined in web.xml:
@@ -60,14 +59,9 @@ import org.springframework.web.HttpRequestHandler;
  * 
  * @author Mark Fisher
  */
-public class HttpInvokerGateway extends AbstractRemotingGateway implements HttpRequestHandler, InitializingBean {
+public class HttpInvokerInboundGateway extends RemotingInboundGatewaySupport implements HttpRequestHandler, InitializingBean {
 
 	private volatile HttpInvokerServiceExporter exporter;
-
-
-	public HttpInvokerGateway(MessageChannel requestChannel) {
-		super(requestChannel);
-	}
 
 
 	public void afterPropertiesSet() {

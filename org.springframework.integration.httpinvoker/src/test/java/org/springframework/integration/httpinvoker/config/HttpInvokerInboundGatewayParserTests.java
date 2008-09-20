@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.httpinvoker.config;
+package org.springframework.integration.httpinvoker.config;
 
 import static org.junit.Assert.assertEquals;
 
@@ -23,21 +23,21 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.adapter.httpinvoker.HttpInvokerGateway;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.httpinvoker.HttpInvokerInboundGateway;
 import org.springframework.integration.message.MessageChannelTemplate;
 
 /**
  * @author Mark Fisher
  */
-public class HttpInvokerGatewayParserTests {
+public class HttpInvokerInboundGatewayParserTests {
 
 	@Test
-	public void testAdapterWithDefaults() {
+	public void gatewayWithDefaults() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"httpInvokerGatewayParserTests.xml", this.getClass());
+				"httpInvokerInboundGatewayParserTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
-		HttpInvokerGateway gateway = (HttpInvokerGateway) context.getBean("gatewayWithDefaults");
+		HttpInvokerInboundGateway gateway = (HttpInvokerInboundGateway) context.getBean("gatewayWithDefaults");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(true, accessor.getPropertyValue("expectReply"));
 		assertEquals(channel, accessor.getPropertyValue("requestChannel"));
@@ -49,11 +49,11 @@ public class HttpInvokerGatewayParserTests {
 	}
 
 	@Test
-	public void testAdapterWithName() {
+	public void gatewayWithName() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"httpInvokerGatewayParserTests.xml", this.getClass());
+				"httpInvokerInboundGatewayParserTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
-		HttpInvokerGateway gateway = (HttpInvokerGateway) context.getBean("/gateway/with/name");
+		HttpInvokerInboundGateway gateway = (HttpInvokerInboundGateway) context.getBean("/gateway/with/name");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(true, accessor.getPropertyValue("expectReply"));
 		assertEquals(channel, accessor.getPropertyValue("requestChannel"));
@@ -65,11 +65,11 @@ public class HttpInvokerGatewayParserTests {
 	}
 
 	@Test
-	public void testAdapterWithCustomProperties() {
+	public void gatewayWithCustomProperties() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"httpInvokerGatewayParserTests.xml", this.getClass());
+				"httpInvokerInboundGatewayParserTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
-		HttpInvokerGateway gateway = (HttpInvokerGateway) context.getBean("gatewayWithCustomProperties");
+		HttpInvokerInboundGateway gateway = (HttpInvokerInboundGateway) context.getBean("gatewayWithCustomProperties");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(false, accessor.getPropertyValue("expectReply"));
 		assertEquals(channel, accessor.getPropertyValue("requestChannel"));

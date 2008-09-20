@@ -2,15 +2,18 @@
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:httpinvoker="http://www.springframework.org/schema/integration/httpinvoker"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
 			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
+			http://www.springframework.org/schema/integration/httpinvoker
+			http://www.springframework.org/schema/integration/httpinvoker/spring-integration-httpinvoker-1.0.xsd">
 
 	<message-bus/>
 
 	<channel id="testChannel"/>
 
-	<httpinvoker-handler id="handler" url="http://localhost:8080/test"/>
+	<httpinvoker:outbound-gateway id="gateway" url="http://localhost:8080/test" request-channel="testChannel"/>
 
 </beans:beans>

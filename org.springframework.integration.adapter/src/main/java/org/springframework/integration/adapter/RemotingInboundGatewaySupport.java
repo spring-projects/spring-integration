@@ -16,24 +16,18 @@
 
 package org.springframework.integration.adapter;
 
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.gateway.SimpleMessagingGateway;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 
 /**
- * Base class for gateway adapters.
+ * Support class for inbound Messaging Gateways.
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractRemotingGateway extends SimpleMessagingGateway implements MessageHandler {
+public abstract class RemotingInboundGatewaySupport extends SimpleMessagingGateway implements MessageHandler {
 
 	private volatile boolean expectReply = true;
-
-
-	public AbstractRemotingGateway(MessageChannel requestChannel) {
-		super(requestChannel);
-	}
 
 
 	/**

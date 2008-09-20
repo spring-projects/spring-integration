@@ -16,7 +16,7 @@
 
 package org.springframework.integration.rmi;
 
-import org.springframework.integration.adapter.AbstractRemotingHandler;
+import org.springframework.integration.adapter.AbstractRemotingOutboundGateway;
 import org.springframework.integration.handler.MessageHandler;
 import org.springframework.remoting.rmi.RmiProxyFactoryBean;
 
@@ -25,7 +25,7 @@ import org.springframework.remoting.rmi.RmiProxyFactoryBean;
  * 
  * @author Mark Fisher
  */
-public class RmiHandler extends AbstractRemotingHandler {
+public class RmiHandler extends AbstractRemotingOutboundGateway {
 
 	public RmiHandler(String url) {
 		super(url);

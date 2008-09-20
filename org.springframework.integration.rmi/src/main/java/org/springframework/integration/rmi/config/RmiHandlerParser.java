@@ -21,18 +21,18 @@ import java.rmi.registry.Registry;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.adapter.config.AbstractRemotingOutboundGatewayParser;
 import org.springframework.integration.rmi.RmiGateway;
 import org.springframework.integration.rmi.RmiHandler;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for the &lt;rmi-handler/&gt; element. 
+ * Parser for the &lt;outbound-gateway/&gt; element of the 'rmi' namespace. 
  * 
  * @author Mark Fisher
  */
-public class RmiHandlerParser extends AbstractSingleBeanDefinitionParser {
+public class RmiHandlerParser extends AbstractRemotingOutboundGatewayParser {
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
@@ -40,17 +40,15 @@ public class RmiHandlerParser extends AbstractSingleBeanDefinitionParser {
 	}
 
 	@Override
-	protected boolean shouldGenerateId() {
-		return false;
+	protected boolean isEligibleAttribute(String attributeName) {
+		return !"host".equals(attributeName)
+				&& !"port".equals(attributeName)
+				&& !"remote-channel".equals(attributeName)
+				&& super.isEligibleAttribute(attributeName);
 	}
 
 	@Override
-	protected boolean shouldGenerateIdAsFallback() {
-		return true;
-	}
-
-	@Override
-	protected void doParse(Element element, BeanDefinitionBuilder builder) {
+	protected void doPostProcess(BeanDefinitionBuilder builder, Element element) {
 		String host = element.getAttribute("host");
 		String remoteChannel = element.getAttribute("remote-channel");
 		if (!(StringUtils.hasText(host) && StringUtils.hasText(remoteChannel))) {

@@ -56,12 +56,12 @@ public abstract class AbstractRemotingGatewayParser extends AbstractSimpleBeanDe
 	}
 
 	@Override
-	protected void postProcess(BeanDefinitionBuilder builder, Element element) {
+	protected final void postProcess(BeanDefinitionBuilder builder, Element element) {
 		String requestChannelRef = element.getAttribute("request-channel");
 		if (!StringUtils.hasText(requestChannelRef)) {
 			throw new ConfigurationException("a 'request-channel' reference is required");
 		}
-		builder.addConstructorArgReference(requestChannelRef);
+		builder.addPropertyReference("requestChannel", requestChannelRef);
 		String replyChannel = element.getAttribute("reply-channel");
 		if (StringUtils.hasText(replyChannel)) {
 			builder.addPropertyReference("replyChannel", replyChannel);
