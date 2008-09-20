@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:jms="http://www.springframework.org/schema/integration/jms"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration/jms
+			http://www.springframework.org/schema/integration/jms/spring-integration-jms-1.0.xsd">
+
+	<jms:jms-source id="jmsSource" destination="testDestination"/>
+
+	<bean id="testDestination" class="org.springframework.integration.jms.StubDestination"/>
+
+	<bean id="connectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
+		<constructor-arg>
+			<bean class="org.springframework.integration.jms.StubConnection">
+				<constructor-arg value="polling-test"/>
+			</bean>
+		</constructor-arg>
+	</bean>
+
+</beans>
