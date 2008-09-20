@@ -16,6 +16,7 @@
 
 package org.springframework.integration.gateway;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.bus.MessageBusAware;
@@ -40,7 +41,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class SimpleMessagingGateway extends MessagingGatewaySupport implements MessagingGateway, MessageBusAware {
+public class SimpleMessagingGateway extends MessagingGatewaySupport implements MessagingGateway, MessageBusAware, InitializingBean {
 
 	private volatile MessageChannel requestChannel;
 
@@ -97,6 +98,10 @@ public class SimpleMessagingGateway extends MessagingGatewaySupport implements M
 
 	public void setMessageBus(MessageBus messageBus) {
 		this.messageBus = messageBus;
+	}
+
+	public void afterPropertiesSet() throws Exception {
+		Assert.notNull(this.requestChannel, "requestChannel must not be null");
 	}
 
 	public void send(Object object) {
