@@ -7,6 +7,7 @@
 		<pathelement location="${basedir}/../org.springframework.integration.adapter"/>
 		<pathelement location="${basedir}/../org.springframework.integration.xml"/>
 		<pathelement location="${basedir}/../org.springframework.integration.event"/>
+		<pathelement location="${basedir}/../org.springframework.integration.httpinvoker"/>
 		<pathelement location="${basedir}/../org.springframework.integration.jms"/>
 		<pathelement location="${basedir}/../org.springframework.integration.rmi"/>
 		<pathelement location="${basedir}/../org.springframework.integration.stream"/>
