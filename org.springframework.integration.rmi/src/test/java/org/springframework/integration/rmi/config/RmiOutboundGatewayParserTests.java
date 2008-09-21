@@ -28,39 +28,42 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.rmi.RmiGateway;
-import org.springframework.integration.rmi.RmiHandler;
+import org.springframework.integration.rmi.RmiInboundGateway;
+import org.springframework.integration.rmi.RmiOutboundGateway;
 
 /**
  * @author Mark Fisher
  */
-public class RmiHandlerParserTests {
+public class RmiOutboundGatewayParserTests {
 
 	private final QueueChannel testChannel = new QueueChannel();
 
 
 	@Before
-	public void exportRemoteHandler() throws Exception {
+	public void setupTestInboundGateway() throws Exception {
 		testChannel.setBeanName("testChannel");
-		RmiGateway gateway = new RmiGateway();
+		RmiInboundGateway gateway = new RmiInboundGateway();
 		gateway.setRequestChannel(testChannel);
 		gateway.setExpectReply(false);
 		gateway.afterPropertiesSet();
 	}
 
+
 	@Test
-	public void testRmiHandlerDirectly() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("rmiHandlerParserTests.xml", this.getClass());
-		RmiHandler handler = (RmiHandler) context.getBean("gateway");
-		handler.handle(new StringMessage("test"));
+	public void directInvocation() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"rmiOutboundGatewayParserTests.xml", this.getClass());
+		RmiOutboundGateway gateway = (RmiOutboundGateway) context.getBean("gateway");
+		gateway.handle(new StringMessage("test"));
 		Message<?> result = testChannel.receive(1000);
 		assertNotNull(result);
 		assertEquals("test", result.getPayload());
 	}
 
 	@Test
-	public void testRmiHandlerWithEndpoint() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("rmiHandlerParserTests.xml", this.getClass());
+	public void endpointInvocation() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"rmiOutboundGatewayParserTests.xml", this.getClass());
 		MessageChannel localChannel = (MessageChannel) context.getBean("localChannel");
 		localChannel.send(new StringMessage("test"));
 		Message<?> result = testChannel.receive(1000);

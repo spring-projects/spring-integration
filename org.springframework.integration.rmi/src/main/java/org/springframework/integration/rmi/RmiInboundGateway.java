@@ -28,11 +28,11 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * A gateway adapter for RMI-based remoting.
+ * An inbound Messaging Gateway for RMI-based remoting.
  * 
  * @author Mark Fisher
  */
-public class RmiGateway extends RemotingInboundGatewaySupport implements MessageHandler {
+public class RmiInboundGateway extends RemotingInboundGatewaySupport {
 
 	public static final String SERVICE_NAME_PREFIX = "org.springframewok.integration.rmiGateway.";
 

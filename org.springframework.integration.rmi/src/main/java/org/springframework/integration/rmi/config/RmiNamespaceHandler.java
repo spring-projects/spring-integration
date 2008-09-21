@@ -26,8 +26,8 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 public class RmiNamespaceHandler extends NamespaceHandlerSupport {
 
 	public void init() {
-		this.registerBeanDefinitionParser("inbound-gateway", new RmiGatewayParser());
-		this.registerBeanDefinitionParser("outbound-gateway", new RmiHandlerParser());
+		this.registerBeanDefinitionParser("inbound-gateway", new RmiInboundGatewayParser());
+		this.registerBeanDefinitionParser("outbound-gateway", new RmiOutboundGatewayParser());
 	}
 
 }

@@ -23,8 +23,8 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.adapter.config.AbstractRemotingOutboundGatewayParser;
-import org.springframework.integration.rmi.RmiGateway;
-import org.springframework.integration.rmi.RmiHandler;
+import org.springframework.integration.rmi.RmiInboundGateway;
+import org.springframework.integration.rmi.RmiOutboundGateway;
 import org.springframework.util.StringUtils;
 
 /**
@@ -32,11 +32,11 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class RmiHandlerParser extends AbstractRemotingOutboundGatewayParser {
+public class RmiOutboundGatewayParser extends AbstractRemotingOutboundGatewayParser {
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
-		return RmiHandler.class;
+		return RmiOutboundGateway.class;
 	}
 
 	@Override
@@ -56,7 +56,7 @@ public class RmiHandlerParser extends AbstractRemotingOutboundGatewayParser {
 		}
 		String portAttribute = element.getAttribute("port");
 		String port = StringUtils.hasText(portAttribute) ? portAttribute : "" + Registry.REGISTRY_PORT;
-		String url = "rmi://" + host + ":" + port + "/" + RmiGateway.SERVICE_NAME_PREFIX + remoteChannel;
+		String url = "rmi://" + host + ":" + port + "/" + RmiInboundGateway.SERVICE_NAME_PREFIX + remoteChannel;
 		builder.addConstructorArgValue(url);
 	}
 

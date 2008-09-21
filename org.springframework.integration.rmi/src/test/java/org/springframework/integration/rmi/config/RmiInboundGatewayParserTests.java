@@ -26,19 +26,19 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.MessageChannelTemplate;
-import org.springframework.integration.rmi.RmiGateway;
+import org.springframework.integration.rmi.RmiInboundGateway;
 
 /**
  * @author Mark Fisher
  */
-public class RmiGatewayParserTests {
+public class RmiInboundGatewayParserTests {
 
 	@Test
-	public void testAdapterWithDefaults() {
+	public void gatewayWithDefaults() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"rmiGatewayParserTests.xml", this.getClass());
+				"rmiInboundGatewayParserTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
-		RmiGateway gateway = (RmiGateway) context.getBean("gatewayWithDefaults");
+		RmiInboundGateway gateway = (RmiInboundGateway) context.getBean("gatewayWithDefaults");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(true, accessor.getPropertyValue("expectReply"));
 		assertEquals(channel, accessor.getPropertyValue("requestChannel"));
@@ -50,11 +50,11 @@ public class RmiGatewayParserTests {
 	}
 
 	@Test
-	public void testAdapterWithCustomProperties() {
+	public void gatewayWithCustomProperties() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"rmiGatewayParserTests.xml", this.getClass());
+				"rmiInboundGatewayParserTests.xml", this.getClass());
 		MessageChannel channel = (MessageChannel) context.getBean("testChannel");
-		RmiGateway gateway = (RmiGateway) context.getBean("gatewayWithCustomProperties");
+		RmiInboundGateway gateway = (RmiInboundGateway) context.getBean("gatewayWithCustomProperties");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(false, accessor.getPropertyValue("expectReply"));
 		assertEquals(channel, accessor.getPropertyValue("requestChannel"));
@@ -66,28 +66,28 @@ public class RmiGatewayParserTests {
 	}
 
 	@Test
-	public void testAdapterWithHost() {
+	public void gatewayWithHost() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"rmiGatewayParserTests.xml", this.getClass());
-		RmiGateway gateway = (RmiGateway) context.getBean("gatewayWithHost");
+				"rmiInboundGatewayParserTests.xml", this.getClass());
+		RmiInboundGateway gateway = (RmiInboundGateway) context.getBean("gatewayWithHost");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals("localhost", accessor.getPropertyValue("registryHost"));
 	}
 
 	@Test
-	public void testAdapterWithPort() {
+	public void gatewayWithPort() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"rmiGatewayParserTests.xml", this.getClass());
-		RmiGateway gateway = (RmiGateway) context.getBean("gatewayWithPort");
+				"rmiInboundGatewayParserTests.xml", this.getClass());
+		RmiInboundGateway gateway = (RmiInboundGateway) context.getBean("gatewayWithPort");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(1234, accessor.getPropertyValue("registryPort"));
 	}
 
 	@Test
-	public void testAdapterWithRemoteInvocationExecutorReference() {
+	public void gatewayWithRemoteInvocationExecutorReference() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"rmiGatewayParserTests.xml", this.getClass());
-		RmiGateway gateway = (RmiGateway) context.getBean("gatewayWithExecutorRef");
+				"rmiInboundGatewayParserTests.xml", this.getClass());
+		RmiInboundGateway gateway = (RmiInboundGateway) context.getBean("gatewayWithExecutorRef");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		Object remoteInvocationExecutor = accessor.getPropertyValue("remoteInvocationExecutor");
 		assertNotNull(remoteInvocationExecutor);

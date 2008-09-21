@@ -21,13 +21,13 @@ import org.springframework.integration.handler.MessageHandler;
 import org.springframework.remoting.rmi.RmiProxyFactoryBean;
 
 /**
- * A MessageHandler adapter for RMI-based remoting.
+ * An outbound Messaging Gateway for RMI-based remoting.
  * 
  * @author Mark Fisher
  */
-public class RmiHandler extends AbstractRemotingOutboundGateway {
+public class RmiOutboundGateway extends AbstractRemotingOutboundGateway {
 
-	public RmiHandler(String url) {
+	public RmiOutboundGateway(String url) {
 		super(url);
 	}
 

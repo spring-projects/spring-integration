@@ -20,22 +20,22 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.integration.adapter.config.AbstractRemotingGatewayParser;
-import org.springframework.integration.rmi.RmiGateway;
+import org.springframework.integration.rmi.RmiInboundGateway;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for the &lt;rmi-gateway/&gt; element. 
+ * Parser for the &lt;inbound-gateway/&gt; element of the 'rmi' namespace. 
  * 
  * @author Mark Fisher
  */
-public class RmiGatewayParser extends AbstractRemotingGatewayParser {
+public class RmiInboundGatewayParser extends AbstractRemotingGatewayParser {
 
 	private static final String REMOTE_INVOCATION_EXECUTOR_ATTRIBUTE = "remote-invocation-executor";
 
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
-		return RmiGateway.class;
+		return RmiInboundGateway.class;
 	}
 
 	@Override
