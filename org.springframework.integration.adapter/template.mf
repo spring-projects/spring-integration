@@ -11,6 +11,7 @@ Import-Template:
  org.springframework.context;version="[2.5.5.A, 3.0.0)",
  org.springframework.core.*;version="[2.5.5.A, 3.0.0)",
  org.springframework.mail.*;version="[2.5.5.A, 3.0.0)";resolution:=optional,
+ org.springframework.remoting;version="[2.5.5.A, 3.0.0)",
  org.springframework.util;version="[2.5.5.A, 3.0.0)",
  org.springframework.integration.*;version="[1.0.0, 1.0.1)"
 Unversioned-Imports: 
