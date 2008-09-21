@@ -17,8 +17,11 @@
 package org.springframework.integration.file.transformer;
 
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 
+import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
 /**
@@ -28,9 +31,21 @@ import org.springframework.util.FileCopyUtils;
  */
 public class FileToStringTransformer extends AbstractFilePayloadTransformer<String> {
 
+	private volatile Charset charset = Charset.defaultCharset();
+
+
+	/**
+	 * Set the charset name to use when copying the File to a String.
+	 */
+	public void setCharset(String charset) {
+		Assert.isTrue(Charset.isSupported(charset), "Charset '" + charset + "' is not supported.");
+		this.charset = Charset.forName(charset);
+	}
+
 	@Override
 	protected final String transformFile(File file) throws Exception {
-		return FileCopyUtils.copyToString(new FileReader(file));
+		InputStreamReader reader = new InputStreamReader(new FileInputStream(file), this.charset);
+		return FileCopyUtils.copyToString(reader);
 	}
 
 }
