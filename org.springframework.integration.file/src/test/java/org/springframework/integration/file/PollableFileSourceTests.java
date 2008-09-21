@@ -15,10 +15,7 @@
  */
 package org.springframework.integration.file;
 
-import static org.easymock.EasyMock.expect;
-import static org.easymock.classextension.EasyMock.createMock;
-import static org.easymock.classextension.EasyMock.replay;
-import static org.easymock.classextension.EasyMock.verify;
+import static org.easymock.classextension.EasyMock.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -27,6 +24,7 @@ import java.io.File;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.core.io.Resource;
 import org.springframework.integration.message.Message;
 
 /**
@@ -39,17 +37,25 @@ public class PollableFileSourceTests {
 
 	private File inputDirectoryMock = createMock(File.class);
 
-	private File inputDirectory;
+	private Resource inputDirectoryResourceMock = createNiceMock(Resource.class);
 
 	private File fileMock = createMock(File.class);
 
-	private Object[] allMocks = new Object[] { inputDirectoryMock, fileMock };
+	private Object[] allMocks = new Object[] { inputDirectoryMock, fileMock, inputDirectoryResourceMock };
 
+	public void prepResource() throws Exception {
+		expect(inputDirectoryResourceMock.exists()).andReturn(true).anyTimes();
+		expect(inputDirectoryResourceMock.getFile()).andReturn(inputDirectoryMock).anyTimes();
+		expect(inputDirectoryMock.canRead()).andReturn(true);
+		replay(inputDirectoryResourceMock, inputDirectoryMock);
+	}
+	
 	@Before
 	public void initialize() throws Exception {
+		prepResource();
 		this.pollableFileSource = new PollableFileSource();
-		pollableFileSource.setInputDirectory(inputDirectory);
-		pollableFileSource.setInputDirectory(inputDirectoryMock);
+		pollableFileSource.setInputDirectory(inputDirectoryResourceMock);
+		reset(allMocks);
 	}
 
 	@Test

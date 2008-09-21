@@ -17,6 +17,7 @@ package org.springframework.integration.file;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
@@ -25,7 +26,7 @@ import java.util.concurrent.PriorityBlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.io.Resource;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryAware;
@@ -48,7 +49,7 @@ import org.springframework.util.Assert;
  * 
  * @author Iwein Fuld
  */
-public class PollableFileSource implements PollableSource<File>, MessageDeliveryAware<File>, InitializingBean {
+public class PollableFileSource implements PollableSource<File>, MessageDeliveryAware<File> {
 
 	private static final Log logger = LogFactory.getLog(PollableFileSource.class);
 
@@ -58,8 +59,16 @@ public class PollableFileSource implements PollableSource<File>, MessageDelivery
 
 	private volatile FileListFilter filter = new AcceptOnceFileFilter();
 
-	public void setInputDirectory(File inputDirectory) {
-		this.inputDirectory = inputDirectory;
+	public void setInputDirectory(Resource inputDirectory) {
+		Assert.notNull(inputDirectory, "inputDirectory cannot be null");
+		Assert.isTrue(inputDirectory.exists(), inputDirectory + " doesn't exist.");
+		try {
+			this.inputDirectory = inputDirectory.getFile();
+		}
+		catch (IOException e) {
+			throw new IllegalArgumentException("Unexpected IOException when looking for " + inputDirectory, e);
+		}
+		Assert.isTrue(this.inputDirectory.canRead(), "No read permissions on " + this.inputDirectory);
 	}
 
 	/**
@@ -73,12 +82,6 @@ public class PollableFileSource implements PollableSource<File>, MessageDelivery
 	public void setFilter(FileListFilter filter) {
 		Assert.notNull(filter, "'filter' should not be null");
 		this.filter = filter;
-	}
-
-	public void afterPropertiesSet() throws Exception {
-		Assert.notNull(inputDirectory, "inputDirectory cannot be null");
-		Assert.isTrue(this.inputDirectory.exists(), inputDirectory + " doesn't exist.");
-		Assert.isTrue(this.inputDirectory.canRead(), "No read permissions on " + inputDirectory);
 	}
 
 	public Message<File> receive() throws MessagingException {

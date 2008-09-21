@@ -4,7 +4,7 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 <!-- under test -->
 	<bean id="pollableFileSource" class="org.springframework.integration.file.PollableFileSource"
-		p:inputDirectory="${java.io.tmpdir}/PollableFileSourceIntegrationTests"
+		p:inputDirectory="file:${java.io.tmpdir}/PollableFileSourceIntegrationTests"
 		p:filter-ref="compositeFilter" />
 <!-- customized filter -->
 	<bean id="compositeFilter"
