@@ -14,14 +14,14 @@
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
-	Defines the configuration elements for Spring Integration Stream-based Channel Adapters.
+	Defines the configuration elements for Spring Integration File Adapters.
 		]]></xsd:documentation>
 	</xsd:annotation>
 
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Configures a source that reads from stdin (System.in).
+	Configures an inbound Channel Adapter that polls a directory.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>

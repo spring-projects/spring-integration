@@ -33,7 +33,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * @author Mark Fisher
+ * @author Iwein Fuld
  */
 @ContextConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -58,7 +58,7 @@ public class FileInboundChannelAdapterParserTests {
 	
 	@Test
 	public void inputDirectory() {	
-		assertEquals("'inputDir' should be set",System.getProperty("java.io.tmpdir"), ((File) accessor.getPropertyValue("inputDirectory")).getPath());
+		assertEquals("'inputDirectory' should be set",System.getProperty("java.io.tmpdir"), ((File) accessor.getPropertyValue("inputDirectory")).getPath());
 	}
 	
 	@Test
