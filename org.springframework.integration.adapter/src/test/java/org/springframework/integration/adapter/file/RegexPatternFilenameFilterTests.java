@@ -30,7 +30,6 @@ import org.junit.Test;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.ConfigurationException;
 
 /**
  * @author Mark Fisher
@@ -38,7 +37,7 @@ import org.springframework.integration.ConfigurationException;
 public class RegexPatternFilenameFilterTests {
 
 	@Test
-	public void testMatch() {
+	public void match() {
 		File file = new File("/some/path/test.txt");
 		RegexPatternFilenameFilter filter = new RegexPatternFilenameFilter();
 		filter.setPattern(Pattern.compile("[a-z]+\\.txt"));
@@ -46,22 +45,22 @@ public class RegexPatternFilenameFilterTests {
 	}
 
 	@Test
-	public void testNoMatch() {
+	public void noMatch() {
 		File file = new File("/some/path/Test.txt");
 		RegexPatternFilenameFilter filter = new RegexPatternFilenameFilter();
 		filter.setPattern(Pattern.compile("[a-z]+\\.txt"));
 		assertFalse(filter.accept(file.getParentFile(), file.getName()));
 	}
 
-	@Test(expected=ConfigurationException.class)
-	public void testPatternNotSet() {
+	@Test(expected = IllegalArgumentException.class)
+	public void patternNotSet() {
 		File file = new File("/some/path/test.txt");
 		RegexPatternFilenameFilter filter = new RegexPatternFilenameFilter();
 		filter.accept(file.getParentFile(), file.getName());
 	}
 
 	@Test
-	public void testPatternEditorInContext() {
+	public void patternEditorInContext() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"regexPatternFilenameFilterTests.xml", this.getClass());
 		FilenameFilter filter = (FilenameFilter) context.getBean("filter");
@@ -70,7 +69,7 @@ public class RegexPatternFilenameFilterTests {
 	}
 
 	@Test
-	public void testInvalidPatternSyntax() {
+	public void invalidPatternSyntax() {
 		try {
 			new ClassPathXmlApplicationContext("invalidRegexPatternFilenameFilterTests.xml", this.getClass());
 			throw new IllegalStateException("context creation should have failed");
