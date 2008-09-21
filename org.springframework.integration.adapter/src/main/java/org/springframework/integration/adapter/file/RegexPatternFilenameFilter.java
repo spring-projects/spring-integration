@@ -20,7 +20,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.util.regex.Pattern;
 
-import org.springframework.integration.ConfigurationException;
+import org.springframework.util.Assert;
 
 /**
  * A {@link FilenameFilter} implementation for matching against
@@ -39,9 +39,7 @@ public class RegexPatternFilenameFilter implements FilenameFilter {
 
 
 	public boolean accept(File dir, String name) {
-		if (this.pattern == null) {
-			throw new ConfigurationException("no pattern available");
-		}
+		Assert.notNull(pattern, "pattern must not be null");
 		return (name != null) && this.pattern.matcher(name).matches();
 	}
 
