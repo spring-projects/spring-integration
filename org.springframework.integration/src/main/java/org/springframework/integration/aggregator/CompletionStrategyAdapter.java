@@ -20,7 +20,6 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.handler.MessageListMethodAdapter;
 import org.springframework.integration.message.Message;
 
 /**

@@ -52,30 +52,6 @@ public abstract class TestHandlers {
 	}
 
 	/**
-	 * Create a handler that throws a {@link MessageHandlerRejectedExecutionException}.
-	 */
-	public final static Object rejectingHandler() {
-		return new Object() {
-			public Message<?> handle(Message<?> message) {
-				throw new MessageHandlerRejectedExecutionException(message);
-			}
-		};
-	}
-
-	/**
-	 * Create a handler that counts down on the provided latch and 
-	 * then throws a {@link MessageHandlerRejectedExecutionException}.
-	 */
-	public final static Object rejectingCountDownHandler(final CountDownLatch latch) {
-		return new Object() {
-			public Message<?> handle(Message<?> message) {
-				latch.countDown();
-				throw new MessageHandlerRejectedExecutionException(message);
-			}
-		};
-	}
-
-	/**
 	 * Create a handler that increments the provided counter.
 	 */
 	public final static Object countingHandler(final AtomicInteger counter) {
