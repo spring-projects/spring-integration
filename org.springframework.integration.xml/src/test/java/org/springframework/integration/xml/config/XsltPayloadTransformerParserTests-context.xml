@@ -1,36 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:si-xml="http://www.springframework.org/schema/integration-xml"
+	xmlns:si-xml="http://www.springframework.org/schema/integration/xml"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/integration-xml http://www.springframework.org/schema/integration/spring-integration-xml-1.0.xsd">
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration/xml
+			http://www.springframework.org/schema/integration/xml/spring-integration-xml-1.0.xsd">
 
 	<si-xml:xslt-transformer id="xsltTransformerWithResource"
 		xsl-resource="org/springframework/integration/xml/config/test.xsl" />
-
 
 	<si-xml:xslt-transformer id="xsltTransformerWithTemplates"
 		xsl-templates="templates" />
 
 	<si-xml:xslt-transformer id="xsltTransformerWithTemplatesAndResultTransformer"
 		xsl-templates="templates" result-transformer="resultTransformer" />
-		
+
 	<si-xml:xslt-transformer id="xsltTransformerWithTemplatesAndResultFactory"
 		xsl-templates="templates" result-factory="stubResultFactory" />
-		
+
 	<si-xml:xslt-transformer id="xsltTransformerWithTemplatesAndStringResulType"
 		xsl-templates="templates" result-type="StringResult" />	
-	
 
-	<bean id="templates"
-		class="org.springframework.integration.xml.config.TestTemplatesFactory" />
-		
-		
-	<bean id="resultTransformer"
-		class="org.springframework.integration.xml.config.StubResultTransformer">
+
+	<bean id="templates" class="org.springframework.integration.xml.config.TestTemplatesFactory" />
+
+	<bean id="resultTransformer" class="org.springframework.integration.xml.config.StubResultTransformer">
 		<constructor-arg value="testReturn" />
 	</bean>
-		
+
 	<bean id="stubResultFactory" class="org.springframework.integration.xml.config.StubResultFactory"/>
 
 </beans>
