@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler;
+package org.springframework.integration.gateway;
 
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.AbstractMessageHandlingEndpoint;

@@ -23,7 +23,6 @@ import org.springframework.integration.bus.MessageBusAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.endpoint.MessagingGateway;
-import org.springframework.integration.handler.ReplyMessageCorrelator;
 import org.springframework.integration.message.DefaultMessageCreator;
 import org.springframework.integration.message.DefaultMessageMapper;
 import org.springframework.integration.message.Message;

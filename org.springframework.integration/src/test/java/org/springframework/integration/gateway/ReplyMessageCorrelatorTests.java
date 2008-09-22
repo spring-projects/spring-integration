@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler;
+package org.springframework.integration.gateway;
 
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.gateway.ReplyMessageCorrelator;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 
