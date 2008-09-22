@@ -28,11 +28,10 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.mail.monitor.AsyncMonitoringStrategy;
 import org.springframework.integration.message.MessageSource;
-import org.springframework.integration.message.MessageTarget;
 import org.springframework.util.Assert;
 
 /**
- * Broadcasts all mail messages recovered to subscribed {@link MessageTarget MessageTargets}.
+ * An event-driven mail source that sends Spring Integration Messages to its output channel.
  * The given {@link FolderConnection} should be using an {@link AsyncMonitoringStrategy} to
  * retrieve mail.
  * 

@@ -17,26 +17,25 @@
 package org.springframework.integration.endpoint;
 
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageTarget;
+import org.springframework.integration.message.MessageConsumer;
 import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
  */
-public class MessagingBridge extends AbstractMessageHandlingEndpoint {
+public class MessagingBridge extends AbstractMessageConsumingEndpoint {
 
-	private final MessageTarget target;
+	private final MessageConsumer consumer;
 
 
-	public MessagingBridge(MessageTarget target) {
-		Assert.notNull(target, "target must not be null");
-		this.target = target;
+	public MessagingBridge(MessageConsumer consumer) {
+		Assert.notNull(consumer, "consumer must not be null");
+		this.consumer = consumer;
 	}
 
 	@Override
-	protected Object handle(Message<?> message) {
-		this.target.send(message);
-		return null;
+	protected void onMessageInternal(Message<?> message) {
+		this.consumer.onMessage(message);
 	}
 
 }
