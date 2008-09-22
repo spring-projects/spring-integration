@@ -17,15 +17,16 @@
 package org.springframework.integration.file;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 
 /**
- * Strategy interface for filtering a group of files.
- * 
  * @author Iwein Fuld
  */
-public interface FileListFilter {
+public class TestFileListFilter implements FileListFilter {
 
-	List<File> filterFiles(File[] files);
+	public List<File> filterFiles(File[] files) {
+		return Arrays.asList(files);
+	}
 
 }

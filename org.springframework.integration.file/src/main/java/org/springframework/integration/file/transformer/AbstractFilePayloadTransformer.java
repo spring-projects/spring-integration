@@ -18,8 +18,13 @@ package org.springframework.integration.file.transformer;
 
 import java.io.File;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.transformer.AbstractPayloadTransformer;
+import org.springframework.integration.transformer.Transformer;
 import org.springframework.util.Assert;
 
 /**
@@ -27,32 +32,41 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractFilePayloadTransformer<T> extends AbstractPayloadTransformer<File, T> {
+public abstract class AbstractFilePayloadTransformer<T> implements Transformer {
 
-	private volatile boolean deleteFile;
+	private final Log logger = LogFactory.getLog(this.getClass());
+
+	private volatile boolean deleteFileAfterTransformation;
 
 
 	/**
 	 * Specify whether to delete the File after transformation.
 	 */
-	public void setDeleteFile(boolean deleteFile) {
-		this.deleteFile = deleteFile;
+	public void setDeleteFileAfterTransformation(boolean deleteFileAfterTransformation) {
+		this.deleteFileAfterTransformation = deleteFileAfterTransformation;
 	}
 
-	@Override
-	protected final T transformPayload(File file) throws Exception {
-		Assert.notNull(file, "File must not be null");
-		if (!file.exists()) {
-			throw new MessagingException("File '" + file + "' no longer exists.");
-		}
-		if (!file.canRead()) {
-			throw new MessagingException("Unable to read File '" + file + "'");
-		}
-		T result = transformFile(file);
-		if (this.deleteFile) {
-			file.delete();
-		}
-		return result;
+	public final Message<?> transform(Message<?> message) {
+		try {
+			Assert.notNull(message, "Message must not be null");
+			Object payload = message.getPayload();
+			Assert.notNull(payload, "Mesasge payload must not be null");
+			Assert.isInstanceOf(File.class, payload, "Message payload must be of type [java.io.File]");
+			File file = (File) payload;
+	        T result = this.transformFile(file);
+	        Message<?> transformedMessage = MessageBuilder.withPayload(result)
+	        		.copyHeaders(message.getHeaders())
+	        		.setHeaderIfAbsent("filename", file.getName())
+	        		.build();
+			if (this.deleteFileAfterTransformation) {
+				if (!file.delete() && this.logger.isWarnEnabled()) {
+					this.logger.warn("failed to delete File '" + file + "'");
+				}
+			}
+			return transformedMessage;
+        } catch (Exception e) {
+        	throw new MessagingException(message, "failed to transform File Message", e);
+        }
 	}
 
 	/**

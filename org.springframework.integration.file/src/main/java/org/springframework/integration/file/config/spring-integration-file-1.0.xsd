@@ -32,6 +32,7 @@
 			<xsd:attribute name="directory" type="xsd:string"/>
 			<xsd:attribute name="channel" type="xsd:string"/>
 			<xsd:attribute name="filter" type="xsd:string"/>
+			<xsd:attribute name="filename-pattern" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
 

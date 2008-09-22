@@ -26,22 +26,24 @@ import java.util.Set;
 
 /**
  * Composition that delegates to multiple {@link FileFilter}s. The composition
- * is AND based, meaning that all filters must {@link #filterFiles(File)} in
- * order for a file to be accepted by the composite.
+ * is AND based, meaning that a file must pass through each filter's
+ * {@link #filterFiles(File)} method in order to be accepted by the composite.
  * 
  * @author Iwein Fuld
  */
-public class CompositeFileFilter implements FileListFilter {
+public class CompositeFileListFilter implements FileListFilter {
 
 	private final Set<FileListFilter> fileFilters;
 
-	public CompositeFileFilter(FileListFilter... fileFilters) {
+
+	public CompositeFileListFilter(FileListFilter... fileFilters) {
 		this.fileFilters = new HashSet<FileListFilter>(Arrays.asList(fileFilters));
 	}
 
-	public CompositeFileFilter(Collection<FileListFilter> fileFilters) {
+	public CompositeFileListFilter(Collection<FileListFilter> fileFilters) {
 		this.fileFilters = new HashSet<FileListFilter>(fileFilters);
 	}
+
 
 	/**
 	 * {@inheritDoc}
@@ -59,7 +61,7 @@ public class CompositeFileFilter implements FileListFilter {
 	 * @param filters one or more new filters to be used
 	 * @return a new CompositeFileFilter with the additional filters
 	 */
-	public CompositeFileFilter addFilter(FileListFilter... filters) {
+	public CompositeFileListFilter addFilter(FileListFilter... filters) {
 		return addFilters(Arrays.asList(filters));
 	}
 
@@ -70,9 +72,10 @@ public class CompositeFileFilter implements FileListFilter {
 	 * @param filtersToAdd
 	 * @return a new CompositeFileFilter with the added filters
 	 */
-	public CompositeFileFilter addFilters(Collection<FileListFilter> filtersToAdd) {
+	public CompositeFileListFilter addFilters(Collection<FileListFilter> filtersToAdd) {
 		HashSet<FileListFilter> newFilterSet = new HashSet<FileListFilter>(filtersToAdd);
 		newFilterSet.addAll(fileFilters);
-		return new CompositeFileFilter(newFilterSet);
+		return new CompositeFileListFilter(newFilterSet);
 	}
+
 }

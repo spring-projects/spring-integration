@@ -1,21 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-<!-- under test -->
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<!-- under test -->
 	<bean id="pollableFileSource" class="org.springframework.integration.file.PollableFileSource"
 		p:inputDirectory="file:${java.io.tmpdir}/PollableFileSourceIntegrationTests"
-		p:filter-ref="compositeFilter" />
-<!-- customized filter -->
-	<bean id="compositeFilter"
-		class="org.springframework.integration.file.CompositeFileFilter">
+		p:filter-ref="compositeFilter"/>
+
+	<!-- customized filter -->
+	<bean id="compositeFilter" class="org.springframework.integration.file.CompositeFileListFilter">
 		<constructor-arg>
 			<list>
-				<bean class="org.springframework.integration.file.AcceptOnceFileFilter" />
-				<bean class="org.springframework.integration.file.TestFileFilter" />
+				<bean class="org.springframework.integration.file.AcceptOnceFileListFilter" />
+				<bean class="org.springframework.integration.file.TestFileListFilter" />
 			</list>
 		</constructor-arg>
 	</bean>
-	<bean
-		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" />
+
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" />
+
 </beans>

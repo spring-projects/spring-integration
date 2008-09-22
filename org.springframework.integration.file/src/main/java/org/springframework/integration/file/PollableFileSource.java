@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.file;
 
 import java.io.File;
@@ -26,6 +27,7 @@ import java.util.concurrent.PriorityBlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.core.io.Resource;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
@@ -36,16 +38,17 @@ import org.springframework.util.Assert;
 
 /**
  * PollableSource that creates messages from a file system directory. To prevent
- * messages from showing up on the source you can supply a FileFilter to it. By
- * default an {@link AcceptOnceFileFilter} is used that ensures files are picked
+ * messages for certain files, you may supply a {@link FileListFilter}. By
+ * default, an {@link AcceptOnceFileListFilter} is used. It ensures files are picked
  * up only once from the directory.
- * 
- * A common problem with reading files is that files are picked up that are not
- * ready. The default {@link AcceptOnceFileFilter} does not prevent this. In
- * most cases this can be prevented by renaming the files as soon as they are
- * ready. A FileFilter that accepts only files that are ready, composed with the
- * default {@link AcceptOnceFileFilter} would allow for this.
- * @see CompositeFileFilter for a way to do this.
+ * <p>
+ * A common problem with reading files is that a file may be detected before it
+ * is ready. The default {@link AcceptOnceFileListFilter} does not prevent this. In
+ * most cases, this can be prevented if the file-writing process renames each
+ * file as soon as it is ready for reading. A pattern-matching filter that
+ * accepts only files that are ready (e.g. based on a known suffix), composed
+ * with the default {@link AcceptOnceFileListFilter} would allow for this.
+ * See {@ link CompositeFileFilter} for a way to do this.
  * 
  * @author Iwein Fuld
  */
@@ -57,7 +60,8 @@ public class PollableFileSource implements PollableSource<File>, MessageDelivery
 
 	private final Queue<File> toBeReceived = new PriorityBlockingQueue<File>();
 
-	private volatile FileListFilter filter = new AcceptOnceFileFilter();
+	private volatile FileListFilter filter = new AcceptOnceFileListFilter();
+
 
 	public void setInputDirectory(Resource inputDirectory) {
 		Assert.notNull(inputDirectory, "inputDirectory cannot be null");
@@ -73,10 +77,10 @@ public class PollableFileSource implements PollableSource<File>, MessageDelivery
 
 	/**
 	 * Sets a {@link FileFilter} on the {@link PollableSource}. By default a
-	 * {@link AcceptOnceFileFilter} with no bounds is used. In most cases a
+	 * {@link AcceptOnceFileListFilter} with no bounds is used. In most cases a
 	 * customized {@link FileFilter} will be needed to deal with modification
 	 * and duplication concerns. If multiple filters are required a
-	 * {@link CompositeFileFilter} can be used to group them together <p/>
+	 * {@link CompositeFileListFilter} can be used to group them together <p/>
 	 * <b>Note that the supplied filter must be thread safe</b>.
 	 */
 	public void setFilter(FileListFilter filter) {

@@ -27,7 +27,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.file.CompositeFileFilter;
+import org.springframework.integration.file.CompositeFileListFilter;
 import org.springframework.integration.file.PollableFileSource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -63,7 +63,7 @@ public class FileInboundChannelAdapterParserTests {
 	
 	@Test
 	public void filter() throws Exception {
-		assertTrue("'filter' should be set", accessor.getPropertyValue("filter") instanceof CompositeFileFilter);
+		assertTrue("'filter' should be set", accessor.getPropertyValue("filter") instanceof CompositeFileListFilter);
 	}
 
 }

@@ -17,16 +17,32 @@
 package org.springframework.integration.file;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
+import java.util.regex.Pattern;
+
+import org.springframework.util.Assert;
 
 /**
- * @author Iwein Fuld
+ * A {@link FileListFilter} implementation that matches against a {@link Pattern}.
+ * 
+ * @author Mark Fisher
  */
-public class TestFileFilter implements FileListFilter {
+public class PatternMatchingFileListFilter extends AbstractFileListFilter {
 
-	public List<File> filterFiles(File[] files) {
-		return Arrays.asList(files);
+	private final Pattern pattern;
+
+
+	/**
+	 * Create a filter for the given pattern.
+	 */
+	public PatternMatchingFileListFilter(Pattern pattern) {
+		Assert.notNull(pattern, "pattern must not be null");
+		this.pattern = pattern;
+	}
+
+
+	protected boolean accept(File file) {
+		return (file != null)
+				&& this.pattern.matcher(file.getName()).matches();
 	}
 
 }

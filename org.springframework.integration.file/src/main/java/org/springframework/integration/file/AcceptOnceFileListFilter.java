@@ -17,8 +17,6 @@
 package org.springframework.integration.file;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -28,9 +26,8 @@ import java.util.concurrent.LinkedBlockingQueue;
  * {@link PollableFileSource}.
  * 
  * @author Iwein Fuld
- * 
  */
-public class AcceptOnceFileFilter implements FileListFilter {
+public class AcceptOnceFileListFilter extends AbstractFileListFilter {
 
 	private final Queue<File> seen;
 
@@ -45,34 +42,20 @@ public class AcceptOnceFileFilter implements FileListFilter {
 	 * @param maxCapacity the maximum number of Files to maintain in the 'seen'
 	 * queue.
 	 */
-	public AcceptOnceFileFilter(int maxCapacity) {
+	public AcceptOnceFileListFilter(int maxCapacity) {
 		this.seen = new LinkedBlockingQueue<File>(maxCapacity);
 	}
 
 	/**
 	 * Creates an AcceptOnceFileFilter based on an unbounded queue.
 	 */
-	public AcceptOnceFileFilter() {
+	public AcceptOnceFileListFilter() {
 		this.seen = new LinkedBlockingQueue<File>();
 	}
 
 
-	/**
-	 * Returns the list of files that have not already been filtered by this
-	 * instance.
-	 */
-	public List<File> filterFiles(File[] files) {
-		List<File> accepted = new ArrayList<File>();
-		for (File file : files) {
-			if (accept(file)) {
-				accepted.add(file);
-			}
-		}
-		return accepted;
-	}
-
-	private boolean accept(File pathname) {
-		synchronized (monitor) {
+	protected boolean accept(File pathname) {
+		synchronized (this.monitor) {
 			if (seen.contains(pathname)) {
 				return false;
 			}

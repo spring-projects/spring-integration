@@ -35,7 +35,7 @@ import org.junit.Test;
 /**
  * @author Iwein Fuld
  */
-public class CompositeFileFilterTest {
+public class CompositeFileListFilterTests {
 
 	private FileListFilter fileFilterMock1 = createMock(FileListFilter.class);
 
@@ -45,7 +45,7 @@ public class CompositeFileFilterTest {
 
 	@Test
 	public void forwardedToFilters() throws Exception {
-		CompositeFileFilter compositeFileFilter = new CompositeFileFilter(fileFilterMock1, fileFilterMock2);
+		CompositeFileListFilter compositeFileFilter = new CompositeFileListFilter(fileFilterMock1, fileFilterMock2);
 		List<File> returnedFiles = Arrays.asList(new File[] { fileMock });
 		expect(fileFilterMock1.filterFiles(isA(File[].class))).andReturn(returnedFiles).times(1);
 		expect(fileFilterMock2.filterFiles(isA(File[].class))).andReturn(returnedFiles).times(1);
@@ -56,7 +56,7 @@ public class CompositeFileFilterTest {
 
 	@Test
 	public void forwardedToAddedFilters() throws Exception {
-		CompositeFileFilter compositeFileFilter = new CompositeFileFilter().addFilter(fileFilterMock1, fileFilterMock2);
+		CompositeFileListFilter compositeFileFilter = new CompositeFileListFilter().addFilter(fileFilterMock1, fileFilterMock2);
 		List<File> returnedFiles = Arrays.asList(new File[] { fileMock });
 		expect(fileFilterMock1.filterFiles(isA(File[].class))).andReturn(returnedFiles).times(1);
 		expect(fileFilterMock2.filterFiles(isA(File[].class))).andReturn(returnedFiles).times(1);
@@ -67,7 +67,7 @@ public class CompositeFileFilterTest {
 
 	@Test
 	public void negative() throws Exception {
-		CompositeFileFilter compositeFileFilter = new CompositeFileFilter(fileFilterMock1, fileFilterMock2);
+		CompositeFileListFilter compositeFileFilter = new CompositeFileListFilter(fileFilterMock1, fileFilterMock2);
 		expect(fileFilterMock2.filterFiles(isA(File[].class))).andReturn(new ArrayList<File>()).times(1);
 		expect(fileFilterMock1.filterFiles(isA(File[].class))).andReturn(new ArrayList<File>()).times(1);
 		replay(fileFilterMock1, fileFilterMock2);

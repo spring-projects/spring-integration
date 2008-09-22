@@ -16,12 +16,18 @@
 
 package org.springframework.integration.file.config;
 
+import java.util.regex.Pattern;
+
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.config.AbstractPollingInboundChannelAdapterParser;
+import org.springframework.integration.file.AcceptOnceFileListFilter;
+import org.springframework.integration.file.CompositeFileListFilter;
+import org.springframework.integration.file.PatternMatchingFileListFilter;
 import org.springframework.integration.file.PollableFileSource;
 import org.springframework.util.StringUtils;
 
@@ -29,6 +35,7 @@ import org.springframework.util.StringUtils;
  * Parser for the &lt;inbound-channel-adapter&gt; element of the 'file' namespace.
  * 
  * @author Iwein Fuld
+ * @author Mark Fisher
  */
 public class FileInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
@@ -42,6 +49,17 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 		String filter = element.getAttribute("filter");
 		if (StringUtils.hasText(filter)){
 			builder.addPropertyReference("filter", filter);
+		}
+		String filenamePattern = element.getAttribute("filename-pattern");
+		if (StringUtils.hasText(filenamePattern)) {
+			if (StringUtils.hasText(filter)) {
+				throw new ConfigurationException("at most one of 'filter' and 'filename-pattern' may be provided");
+			}
+			AcceptOnceFileListFilter acceptOnceFilter = new AcceptOnceFileListFilter();
+			Pattern pattern = Pattern.compile(filenamePattern);
+			PatternMatchingFileListFilter patternFilter = new PatternMatchingFileListFilter(pattern);
+			CompositeFileListFilter compositeFilter = new CompositeFileListFilter(acceptOnceFilter, patternFilter);
+			builder.addPropertyValue("filter", compositeFilter);
 		}
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
 	}
