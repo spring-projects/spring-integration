@@ -1,0 +1,15 @@
+Bundle-SymbolicName: org.springframework.integration.ftp
+Bundle-Name: Spring Integration FTP Support
+Bundle-Vendor: SpringSource
+Bundle-ManifestVersion: 2
+Import-Template: 
+ org.springframework.integration.*;version="[1.0.0, 1.0.1)",
+ org.springframework.beans.*;version="[2.5.5.A, 3.0.0)",
+ org.springframework.context;version="[2.5.5.A, 3.0.0)",
+ org.springframework.core.*;version="[2.5.5.A, 3.0.0)",
+ org.springframework.util;version="[2.5.5.A, 3.0.0)",
+ org.apache.commons.logging;version="[1.1.1, 2.0.0)",
+ org.apache.commons.net.ftp;version="[1.4.1, 2.0.0)";resolution:=optional
+Unversioned-Imports: 
+ org.w3c.dom
+
