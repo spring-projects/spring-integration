@@ -14,6 +14,12 @@
 
 	<si-xml:xslt-transformer id="xsltTransformerWithTemplatesAndResultTransformer"
 		xsl-templates="templates" result-transformer="resultTransformer" />
+		
+	<si-xml:xslt-transformer id="xsltTransformerWithTemplatesAndResultFactory"
+		xsl-templates="templates" result-factory="stubResultFactory" />
+		
+	<si-xml:xslt-transformer id="xsltTransformerWithTemplatesAndStringResulType"
+		xsl-templates="templates" result-type="StringResult" />	
 	
 
 	<bean id="templates"
@@ -25,5 +31,6 @@
 		<constructor-arg value="testReturn" />
 	</bean>
 		
+	<bean id="stubResultFactory" class="org.springframework.integration.xml.config.StubResultFactory"/>
 
 </beans>

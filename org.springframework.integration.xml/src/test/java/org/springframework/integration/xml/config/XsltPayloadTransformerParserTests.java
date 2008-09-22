@@ -31,7 +31,9 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.transformer.Transformer;
+import org.springframework.integration.xml.config.StubResultFactory.StubStringResult;
 import org.springframework.integration.xml.util.XmlTestUtil;
+import org.springframework.xml.transform.StringResult;
 
 /**
  * @author Jonas Partner
@@ -81,5 +83,28 @@ public class XsltPayloadTransformerParserTests {
 		String strResult = (String)result.getPayload();
 		assertEquals("Wrong payload", "testReturn", strResult);
 	}
+	
+	@Test
+	public void testWithResourceProvidedndStubResultFactory() throws Exception {
+		Transformer transformer = (Transformer) applicationContext
+				.getBean("xsltTransformerWithTemplatesAndResultFactory");
+		GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
+		Message<?> result = transformer.transform(message);
+		assertTrue("Payload was not a StubStringResult", result.getPayload() instanceof StubStringResult);
+	}
+	
+	@Test
+	public void testWithResourceAndStringResultType() throws Exception {
+		Transformer transformer = (Transformer) applicationContext
+				.getBean("xsltTransformerWithTemplatesAndStringResulType");
+		GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
+		Message<?> result = transformer.transform(message);
+		assertTrue("Payload was not a StringResult", result.getPayload() instanceof StringResult);
+	}
+	
+	
+		
 
+
+	
 }

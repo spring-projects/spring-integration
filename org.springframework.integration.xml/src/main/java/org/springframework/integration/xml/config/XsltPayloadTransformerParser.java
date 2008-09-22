@@ -16,8 +16,6 @@
 
 package org.springframework.integration.xml.config;
 
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.transformer.AbstractPayloadTransformer;
@@ -25,6 +23,7 @@ import org.springframework.integration.transformer.config.AbstractPayloadTransfo
 import org.springframework.integration.xml.transformer.XsltPayloadTransformer;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * @author Jonas Partner
@@ -32,9 +31,11 @@ import org.springframework.util.StringUtils;
  */
 public class XsltPayloadTransformerParser extends AbstractPayloadTransformerParser {
 
+	private ResultFactoryResultTypeHelper resultFactoryHelper = new ResultFactoryResultTypeHelper();
+
 	@Override
 	protected Class<? extends AbstractPayloadTransformer<?, ?>> getTransformerClass() {
-		return XsltPayloadTransformer.class; 
+		return XsltPayloadTransformer.class;
 	}
 
 	@Override
@@ -42,11 +43,12 @@ public class XsltPayloadTransformerParser extends AbstractPayloadTransformerPars
 		String xslResource = element.getAttribute("xsl-resource");
 		String xslTemplates = element.getAttribute("xsl-templates");
 		String resultTransformer = element.getAttribute("result-transformer");
-		
+		String resultFactory = element.getAttribute("result-factory");
+		String resultType = element.getAttribute("result-type");
+
 		boolean bothHaveText = StringUtils.hasText(xslResource) && StringUtils.hasText(xslTemplates);
 		boolean oneHasText = StringUtils.hasText(xslResource) || StringUtils.hasText(xslTemplates);
-		Assert.state(!bothHaveText && oneHasText,
-				"Exactly one of 'xsl-resource' or 'xsl-templates' is required.");
+		Assert.state(!bothHaveText && oneHasText, "Exactly one of 'xsl-resource' or 'xsl-templates' is required.");
 		if (StringUtils.hasText(xslResource)) {
 			builder.addConstructorArgValue(xslResource);
 		}
@@ -57,11 +59,10 @@ public class XsltPayloadTransformerParser extends AbstractPayloadTransformerPars
 		if (StringUtils.hasText(sourceFactory)) {
 			builder.addPropertyReference("sourceFactory", sourceFactory);
 		}
-		String resultFactory = element.getAttribute("result-factory");
-		if (StringUtils.hasText(resultFactory)) {
-			builder.addPropertyReference("resultFactory", resultFactory);
-		}
-		if(StringUtils.hasText(resultTransformer)){
+		resultFactoryHelper.assertResultFactoryAndTypeValid(resultFactory, resultType);
+		resultFactoryHelper.addResultFactory(builder, resultType, resultFactory);
+
+		if (StringUtils.hasText(resultTransformer)) {
 			builder.addConstructorArgReference(resultTransformer);
 		}
 	}

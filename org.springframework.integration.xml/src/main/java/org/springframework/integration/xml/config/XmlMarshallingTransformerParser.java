@@ -16,19 +16,14 @@
 
 package org.springframework.integration.xml.config;
 
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.w3c.dom.Element;
-
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.transformer.AbstractPayloadTransformer;
 import org.springframework.integration.transformer.config.AbstractPayloadTransformerParser;
-import org.springframework.integration.xml.result.DomResultFactory;
-import org.springframework.integration.xml.result.StringResultFactory;
 import org.springframework.integration.xml.transformer.XmlPayloadMarshallingTransformer;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
 
 /**
  * @author Jonas Partner
@@ -36,59 +31,27 @@ import org.springframework.util.StringUtils;
  */
 public class XmlMarshallingTransformerParser extends AbstractPayloadTransformerParser {
 
-	public static final String DOM_RESULT = "DOMResult";
-	
-	public static final String STRING_RESULT = "StringResult";
-	
+	private ResultFactoryResultTypeHelper resultFactoryHelper = new ResultFactoryResultTypeHelper();
+
 	@Override
 	protected Class<? extends AbstractPayloadTransformer<?, ?>> getTransformerClass() {
 		return XmlPayloadMarshallingTransformer.class;
 	}
 
 	@Override
-	protected void parsePayloadTransformer(Element element,
-			ParserContext parserContext, BeanDefinitionBuilder builder) {
+	protected void parsePayloadTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String resultFactory = element.getAttribute("result-factory");
 		String resultType = element.getAttribute("result-type");
 		String marshaller = element.getAttribute("marshaller");
 		String resultTransformer = element.getAttribute("result-transformer");
 		Assert.hasText(marshaller, "the 'marshaller' attribute is required");
-		
-		assertResultFactoryAndTypeValid(resultFactory, resultType);
-		
+
 		builder.addConstructorArgReference(marshaller);
-		
-		if(StringUtils.hasText(resultTransformer)){
+		if (StringUtils.hasText(resultTransformer)) {
 			builder.addConstructorArgReference(resultTransformer);
 		}
-		
-		if(StringUtils.hasText(resultFactory)){
-			builder.addPropertyReference("resultFactory", resultFactory);
-		} else 	if (resultType.equals(DOM_RESULT) || !StringUtils.hasText(resultType)) {
-			try {
-				builder.addPropertyValue("resultFactory", new DomResultFactory());
-			}
-			catch (ParserConfigurationException e) {
-				throw new org.springframework.integration.ConfigurationException(
-						"Exception creating DomResultFactory");
-			}
-		}
-		else if (resultType.equals(STRING_RESULT)) {
-			builder.addPropertyValue("resultFactory", new StringResultFactory());
-		}
+		resultFactoryHelper.assertResultFactoryAndTypeValid(resultFactory, resultType);
+		resultFactoryHelper.addResultFactory(builder, resultType, resultFactory);
 	}
-	
-	protected void assertResultFactoryAndTypeValid(String resultFactory, String resultType){
-		boolean bothHaveText = StringUtils.hasText(resultFactory) && StringUtils.hasText(resultType); 
-		if(bothHaveText){
-			System.out.println("bob");
-		}
-		Assert.state(!bothHaveText , "Exactly one of result-factory or result-type should be specified");
-		if(StringUtils.hasText(resultType)){
-			Assert.state(resultType.equals(DOM_RESULT) || resultType.equals(STRING_RESULT), "Result type must be either DOMResult or StringResult");
-		}
-	}
-	
-	
 
 }
