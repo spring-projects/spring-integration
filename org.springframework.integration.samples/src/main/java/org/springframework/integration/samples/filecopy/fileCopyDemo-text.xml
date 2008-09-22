@@ -1,16 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans:beans xmlns="http://www.springframework.org/schema/integration"
+<beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:integration="http://www.springframework.org/schema/integration"
+	xmlns:file="http://www.springframework.org/schema/integration/file"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
 			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
+			http://www.springframework.org/schema/integration/file
+			http://www.springframework.org/schema/integration/file/spring-integration-file-1.0.xsd">
 
-	<beans:import resource="fileCopyDemo-common.xml"/>
-	
-	<file-source id="fileSource" type="text"
-		         filename-pattern="[a-z]+.txt"
-	             directory="${java.io.tmpdir}/spring-integration-samples/input"/>
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
 
-</beans:beans>
+	<integration:message-bus/>
+
+	<file:inbound-channel-adapter id="filesIn"
+	                              directory="file:${java.io.tmpdir}/spring-integration-samples/input"
+	                              filename-pattern="[a-z]+.txt"/>
+
+	<bean class="org.springframework.integration.transformer.TransformerEndpoint">
+		<constructor-arg>
+			<bean class="org.springframework.integration.file.transformer.FileToStringTransformer">
+				<property name="deleteFileAfterTransformation" value="true"/>
+			</bean>
+		</constructor-arg>
+		<property name="inputChannel" ref="filesIn"/>
+		<property name="outputChannel" ref="strings"/>
+	</bean>
+
+	<integration:channel id="strings"/>
+
+	<integration:service-activator input-channel="strings"
+	                               output-channel="filesOut"
+                                   ref="exclaimer" method="exclaim"/>
+
+	<file:outbound-channel-adapter id="filesOut" directory="${java.io.tmpdir}/spring-integration-samples/output"/>
+
+	<bean id="exclaimer" class="org.springframework.integration.samples.filecopy.Exclaimer"/>
+
+</beans>
