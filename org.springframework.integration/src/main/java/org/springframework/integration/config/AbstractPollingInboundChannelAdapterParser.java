@@ -53,9 +53,17 @@ public abstract class AbstractPollingInboundChannelAdapterParser extends Abstrac
 			}
 		}
 		else {
-			adapterBuilder.addPropertyValue("schedule", new PollingSchedule(0));
+			adapterBuilder.addPropertyValue("schedule", new PollingSchedule(this.getDefaultPollInterval()));
 		}
 		return adapterBuilder.getBeanDefinition();
+	}
+
+	/**
+	 * Subclasses may override this to provide the default poll interval (when
+	 * no 'schedule' is configured). Otherwise, the value will be 1 second.
+	 */
+	protected int getDefaultPollInterval() {
+		return 1000;
 	}
 
 	/**
