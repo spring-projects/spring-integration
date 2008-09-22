@@ -27,6 +27,7 @@ public class FileNamespaceHandler extends NamespaceHandlerSupport {
 
 	public void init() {
 		registerBeanDefinitionParser("inbound-channel-adapter", new FileInboundChannelAdapterParser());
+		registerBeanDefinitionParser("outbound-channel-adapter", new FileOutboundChannelAdapterParser());
 	}
 
 }
