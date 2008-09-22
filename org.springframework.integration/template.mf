@@ -8,7 +8,4 @@ Import-Template:
  org.aopalliance.*;version="[1.0.0,2.0.0)"
 Unversioned-Imports: 
  org.w3c.dom
-Excluded-Exports: 
- org.springframework.integration.channel.config,
- org.springframework.integration.gateway.config,
- org.springframework.integration.router.config
+
