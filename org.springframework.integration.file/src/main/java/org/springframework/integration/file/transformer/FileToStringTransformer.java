@@ -38,6 +38,7 @@ public class FileToStringTransformer extends AbstractFilePayloadTransformer<Stri
 	 * Set the charset name to use when copying the File to a String.
 	 */
 	public void setCharset(String charset) {
+		Assert.notNull(charset, "charset must not be null");
 		Assert.isTrue(Charset.isSupported(charset), "Charset '" + charset + "' is not supported.");
 		this.charset = Charset.forName(charset);
 	}

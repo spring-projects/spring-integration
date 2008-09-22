@@ -21,6 +21,7 @@ import java.io.File;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.integration.file.FileNameGenerator;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessagingException;
@@ -56,7 +57,7 @@ public abstract class AbstractFilePayloadTransformer<T> implements Transformer {
 	        T result = this.transformFile(file);
 	        Message<?> transformedMessage = MessageBuilder.withPayload(result)
 	        		.copyHeaders(message.getHeaders())
-	        		.setHeaderIfAbsent("filename", file.getName())
+	        		.setHeaderIfAbsent(FileNameGenerator.FILENAME_PROPERTY_KEY, file.getName())
 	        		.build();
 			if (this.deleteFileAfterTransformation) {
 				if (!file.delete() && this.logger.isWarnEnabled()) {
