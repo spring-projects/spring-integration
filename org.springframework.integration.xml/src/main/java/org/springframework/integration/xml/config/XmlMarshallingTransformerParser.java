@@ -36,6 +36,10 @@ import org.springframework.util.StringUtils;
  */
 public class XmlMarshallingTransformerParser extends AbstractPayloadTransformerParser {
 
+	public static final String DOM_RESULT = "DOMResult";
+	
+	public static final String STRING_RESULT = "StringResult";
+	
 	@Override
 	protected Class<? extends AbstractPayloadTransformer<?, ?>> getTransformerClass() {
 		return XmlPayloadMarshallingTransformer.class;
@@ -45,16 +49,22 @@ public class XmlMarshallingTransformerParser extends AbstractPayloadTransformerP
 	protected void parsePayloadTransformer(Element element,
 			ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String resultFactory = element.getAttribute("result-factory");
+		String resultType = element.getAttribute("result-type");
 		String marshaller = element.getAttribute("marshaller");
 		String resultTransformer = element.getAttribute("result-transformer");
 		Assert.hasText(marshaller, "the 'marshaller' attribute is required");
-		Assert.hasText(resultFactory,
-				"the 'result-factory' attribute is required");
+		
+		assertResultFactoryAndTypeValid(resultFactory, resultType);
+		
 		builder.addConstructorArgReference(marshaller);
+		
 		if(StringUtils.hasText(resultTransformer)){
 			builder.addConstructorArgReference(resultTransformer);
 		}
-		if (resultFactory.equals("DOMResult")) {
+		
+		if(StringUtils.hasText(resultFactory)){
+			builder.addPropertyReference("resultFactory", resultFactory);
+		} else 	if (resultType.equals(DOM_RESULT) || !StringUtils.hasText(resultType)) {
 			try {
 				builder.addPropertyValue("resultFactory", new DomResultFactory());
 			}
@@ -63,9 +73,22 @@ public class XmlMarshallingTransformerParser extends AbstractPayloadTransformerP
 						"Exception creating DomResultFactory");
 			}
 		}
-		else if (resultFactory.equals("StringResult")) {
+		else if (resultType.equals(STRING_RESULT)) {
 			builder.addPropertyValue("resultFactory", new StringResultFactory());
 		}
 	}
+	
+	protected void assertResultFactoryAndTypeValid(String resultFactory, String resultType){
+		boolean bothHaveText = StringUtils.hasText(resultFactory) && StringUtils.hasText(resultType); 
+		if(bothHaveText){
+			System.out.println("bob");
+		}
+		Assert.state(!bothHaveText , "Exactly one of result-factory or result-type should be specified");
+		if(StringUtils.hasText(resultType)){
+			Assert.state(resultType.equals(DOM_RESULT) || resultType.equals(STRING_RESULT), "Result type must be either DOMResult or StringResult");
+		}
+	}
+	
+	
 
 }

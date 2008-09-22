@@ -10,11 +10,15 @@
 
 	<si-xml:marshalling-transformer
 		id="marshallingTransformerStringResultFactory" marshaller="marshaller"
-		result-factory="StringResult" />
+		result-type="StringResult" />
 
 	<si-xml:marshalling-transformer
 		id="marshallingTransformerDOMResultFactory" marshaller="marshaller"
-		result-factory="DOMResult" />
+		result-type="DOMResult" />
+		
+	<si-xml:marshalling-transformer
+		id="marshallingTransformerCustomResultFactory" marshaller="marshaller"
+		result-factory="stubResultFactory" />	
 
 	<si-xml:marshalling-transformer
 		id="marshallingTransformerWithResultTransformer"
@@ -25,5 +29,7 @@
 	<bean id="resultTransformer" class="org.springframework.integration.xml.config.StubResultTransformer">
 		<constructor-arg value="testReturn" />
 	</bean>
+
+	<bean id="stubResultFactory" class="org.springframework.integration.xml.config.StubResultFactory" />
 
 </beans>

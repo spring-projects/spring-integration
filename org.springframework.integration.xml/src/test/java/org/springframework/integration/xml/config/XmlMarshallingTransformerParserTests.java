@@ -20,18 +20,18 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.sax.SAXResult;
 
 import org.junit.Before;
 import org.junit.Test;
-
-import org.w3c.dom.Document;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.transformer.Transformer;
+import org.springframework.integration.xml.config.StubResultFactory.StubStringResult;
 import org.springframework.xml.transform.StringResult;
+import org.w3c.dom.Document;
 
 /**
  * @author Jonas Partner
@@ -83,6 +83,14 @@ public class XmlMarshallingTransformerParserTests  {
 		GenericMessage<Object> message = new GenericMessage<Object>("hello");
 		Message<?> result = transformer.transform(message);
 		assertTrue("Wrong payload type", result.getPayload() instanceof StringResult);
+	}
+	
+	@Test
+	public void testCustomResultFactory() throws Exception {
+		Transformer transformer = (Transformer) appContext.getBean("marshallingTransformerCustomResultFactory");
+		GenericMessage<Object> message = new GenericMessage<Object>("hello");
+		Message<?> result = transformer.transform(message);
+		assertTrue("Wrong payload type", result.getPayload() instanceof StubStringResult);
 	}
 
 }
