@@ -25,7 +25,7 @@ import java.rmi.RemoteException;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.adapter.MessageHandler;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;

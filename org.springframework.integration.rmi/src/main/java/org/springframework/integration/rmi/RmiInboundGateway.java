@@ -19,9 +19,9 @@ package org.springframework.integration.rmi;
 import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 
+import org.springframework.integration.adapter.MessageHandler;
 import org.springframework.integration.adapter.RemotingInboundGatewaySupport;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.remoting.rmi.RmiServiceExporter;
 import org.springframework.remoting.support.RemoteInvocationExecutor;
 import org.springframework.util.Assert;

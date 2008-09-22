@@ -23,8 +23,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.adapter.MessageHandler;
 import org.springframework.integration.adapter.RemotingInboundGatewaySupport;
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter;
 import org.springframework.web.HttpRequestHandler;

@@ -17,7 +17,7 @@
 package org.springframework.integration.httpinvoker;
 
 import org.springframework.integration.adapter.AbstractRemotingOutboundGateway;
-import org.springframework.integration.handler.MessageHandler;
+import org.springframework.integration.adapter.MessageHandler;
 import org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean;
 
 /**

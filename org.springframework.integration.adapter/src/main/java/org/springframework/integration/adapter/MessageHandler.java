@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler;
+package org.springframework.integration.adapter;
 
 import org.springframework.integration.message.Message;
 
 /**
- * Base message handler interface. Typical implementations will translate
- * between the generic Messages of the integration framework and the domain
- * objects that are passed-to and returned-from business components.
+ * Interface used for proxy-based remoting adapters (e.g. RMI and HttpInvoker).
+ * Enables serializable Messages to be exchanged across a remote invocation.
  * 
  * @author Mark Fisher
  */

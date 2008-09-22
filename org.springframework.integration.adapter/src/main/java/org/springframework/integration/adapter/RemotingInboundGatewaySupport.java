@@ -17,7 +17,6 @@
 package org.springframework.integration.adapter;
 
 import org.springframework.integration.gateway.SimpleMessagingGateway;
-import org.springframework.integration.handler.MessageHandler;
 import org.springframework.integration.message.Message;
 
 /**
