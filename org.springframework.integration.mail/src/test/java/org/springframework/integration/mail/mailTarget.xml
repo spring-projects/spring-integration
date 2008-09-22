@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/util
+			http://www.springframework.org/schema/util/spring-util-2.5.xsd">
+
+	<bean id="javaMailSender" class="org.springframework.integration.mail.StubJavaMailSender">
+		<constructor-arg>
+			<bean class="javax.mail.internet.MimeMessage">
+				<constructor-arg type="javax.mail.Session"><null/></constructor-arg>
+			</bean>
+		</constructor-arg>
+	</bean>
+
+	<bean id="mailTarget" class="org.springframework.integration.mail.MailTarget">
+		<constructor-arg ref="javaMailSender"/>
+		<property name="headerGenerator">
+			<bean class="org.springframework.integration.mail.StaticMailHeaderGenerator">
+				<property name="subject">
+					<util:constant static-field="org.springframework.integration.mail.MailTestsHelper.SUBJECT"/>
+				</property>
+				<property name="to">
+					<util:constant static-field="org.springframework.integration.mail.MailTestsHelper.TO"/>
+				</property>
+				<property name="cc">
+					<util:constant static-field="org.springframework.integration.mail.MailTestsHelper.CC"/>
+				</property>
+				<property name="bcc">
+					<util:constant static-field="org.springframework.integration.mail.MailTestsHelper.BCC"/>
+				</property>
+				<property name="from">
+					<util:constant static-field="org.springframework.integration.mail.MailTestsHelper.FROM"/>
+				</property>
+				<property name="replyTo">
+					<util:constant static-field="org.springframework.integration.mail.MailTestsHelper.REPLY_TO"/>
+				</property>
+			</bean>
+		</property>
+	</bean>
+</beans>
