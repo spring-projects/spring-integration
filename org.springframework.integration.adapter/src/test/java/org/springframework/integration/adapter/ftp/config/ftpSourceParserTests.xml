@@ -52,6 +52,6 @@
 			       message-creator="customMessageCreator"/>
 	
 	<bean id="customMessageCreator" 
-		class="org.springframework.integration.adapter.file.config.CustomMessageCreator"/>			       
+		class="org.springframework.integration.adapter.ftp.config.CustomMessageCreator"/>			       
 
 </beans>

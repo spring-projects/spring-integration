@@ -24,9 +24,7 @@ import java.util.List;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
-import org.springframework.integration.adapter.file.AbstractDirectorySource;
-import org.springframework.integration.adapter.file.Backlog;
-import org.springframework.integration.adapter.file.FileSnapshot;
+
 import org.springframework.integration.message.DefaultMessageCreator;
 import org.springframework.integration.message.MessageCreator;
 import org.springframework.util.Assert;
@@ -46,6 +44,7 @@ public class FtpSource extends AbstractDirectorySource<List<File>> {
 
 	private final FTPClientPool clientPool;
 
+
 	public FtpSource(FTPClientPool clientPool) {
 		this(new DefaultMessageCreator<List<File>>(), clientPool);
 	}
@@ -54,6 +53,7 @@ public class FtpSource extends AbstractDirectorySource<List<File>> {
 		super(messageCreator);
 		this.clientPool = clientPool;
 	}
+
 
 	public void setMaxFilesPerMessage(int maxFilesPerMessage) {
 		Assert.isTrue(maxFilesPerMessage > 0, "'maxFilesPerMessage' must be greater than 0");

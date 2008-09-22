@@ -13,26 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.adapter.ftp;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertSame;
 import static junit.framework.Assert.assertTrue;
-import static org.easymock.classextension.EasyMock.*;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.classextension.EasyMock.createMock;
+import static org.easymock.classextension.EasyMock.createNiceMock;
+import static org.easymock.classextension.EasyMock.replay;
+import static org.easymock.classextension.EasyMock.verify;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.integration.adapter.file.FileTarget;
 
 /**
- * 
  * @author Iwein Fuld
- * 
  */
 public class QueuedFTPClientPoolTest {
 
@@ -42,11 +43,13 @@ public class QueuedFTPClientPoolTest {
 
 	private Object[] allMocks = new Object[] { factoryMock };
 
+
 	@Before
 	public void initializeSubject() throws Exception {
 		this.pool = new QueuedFTPClientPool(5);
 		pool.setFactory(factoryMock);
 	}
+
 
 	@Test
 	public void get() throws Exception {
@@ -95,6 +98,7 @@ public class QueuedFTPClientPoolTest {
 		verify(allMocks);
 	}
 
+
 	private FTPClient mockedFTPClient() throws Exception {
 		FTPClient mock = createNiceMock(FTPClient.class);
 		expect(mock.isConnected()).andReturn(true).anyTimes();
@@ -102,4 +106,5 @@ public class QueuedFTPClientPoolTest {
 		replay(mock);
 		return mock;
 	}
+
 }

@@ -18,20 +18,14 @@ package org.springframework.integration.adapter.ftp.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.io.File;
 
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.adapter.file.ByteArrayFileMessageCreator;
-import org.springframework.integration.adapter.file.FileMessageCreator;
-import org.springframework.integration.adapter.file.TextFileMessageCreator;
-import org.springframework.integration.adapter.file.config.CustomMessageCreator;
 import org.springframework.integration.adapter.ftp.FtpSource;
 import org.springframework.integration.message.DefaultMessageCreator;
 

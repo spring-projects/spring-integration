@@ -16,11 +16,11 @@
 
 package org.springframework.integration.adapter.ftp.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.integration.adapter.file.config.AbstractDirectorySourceParser;
 import org.springframework.integration.adapter.ftp.FtpSource;
 import org.springframework.integration.adapter.ftp.QueuedFTPClientPool;
-import org.w3c.dom.Element;
 
 /**
  * Parser for the &lt;ftp-source/&gt; element.
@@ -30,6 +30,7 @@ import org.w3c.dom.Element;
  * @author Iwein Fuld
  */
 public class FtpSourceParser extends AbstractDirectorySourceParser {
+
 	private static final String POOL_ATTRIBUTE_USER = "username";
 
 	private static final String POOL_ATTRIBUTE_PASS = "password";
@@ -39,6 +40,7 @@ public class FtpSourceParser extends AbstractDirectorySourceParser {
 	private static final String POOL_ATTRIBUTE_PORT = "port";
 
 	private static final String POOL_ATTRIBUTE_REMOTEDIR = "remote-working-directory";
+
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
@@ -71,4 +73,5 @@ public class FtpSourceParser extends AbstractDirectorySourceParser {
 		queuedFTPClientPool.setRemoteWorkingDirectory(remoteWorkingDirectory);
 		beanDefinition.addConstructorArgValue(queuedFTPClientPool);
 	}
+
 }

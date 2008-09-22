@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.file;
+package org.springframework.integration.adapter.ftp;
 
 import java.util.ArrayList;
 import java.util.Collection;

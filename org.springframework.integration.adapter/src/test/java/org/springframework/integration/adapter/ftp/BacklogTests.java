@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter.file;
+package org.springframework.integration.adapter.ftp;
 
 import java.util.ArrayList;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -22,9 +22,10 @@ import java.util.concurrent.PriorityBlockingQueue;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.integration.adapter.file.Backlog;
-import org.springframework.integration.adapter.file.FileSnapshot;
+import org.springframework.integration.adapter.ftp.Backlog;
+import org.springframework.integration.adapter.ftp.FileSnapshot;
 
 /**
  * @author Marius Bogoevici
