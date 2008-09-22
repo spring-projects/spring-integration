@@ -26,9 +26,7 @@
 		<dependency org="org.easymock" name="com.springsource.org.easymock" rev="2.3.0" conf="test->runtime"/>
 		<dependency org="org.easymock" name="com.springsource.org.easymock.classextension" rev="2.3.0" conf="test->runtime"/>
 		<dependency org="org.junit" name="com.springsource.org.junit" rev="4.4.0" conf="test->runtime"/>
-		<dependency org="org.springframework" name="org.springframework.context" rev="2.5.5.A" conf="compile->runtime"/>
 		<dependency org="org.springframework" name="org.springframework.context.support" rev="2.5.5.A" conf="compile->runtime"/>
-		<dependency org="org.springframework" name="org.springframework.test" rev="2.5.5.A" conf="test->runtime"/>
 		<dependency org="org.springframework.integration" name="org.springframework.integration" rev="latest.integration" conf="compile->compile"/>
 	</dependencies>
 

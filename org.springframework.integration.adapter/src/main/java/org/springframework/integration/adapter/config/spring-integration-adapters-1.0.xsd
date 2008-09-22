@@ -16,55 +16,6 @@
 		]]></xsd:documentation>
 	</xsd:annotation>
 
-	<xsd:element name="file-source">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-	Defines a file-based source channel adapter.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="directory" type="xsd:string" use="required"/>
-			<xsd:attribute name="type" type="fileSourceType" use="optional"/>
-			<xsd:attribute name="message-creator" type="xsd:string" use="optional"/>
-			<xsd:attribute name="file-filter" type="xsd:string"/>
-			<xsd:attribute name="filename-filter" type="xsd:string"/>
-			<xsd:attribute name="filename-pattern" type="xsd:string"/>
-		</xsd:complexType>
-	</xsd:element>
-
-	<xsd:element name="file-target">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-	Defines a file-based target.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="directory" type="xsd:string" use="required"/>
-			<xsd:attribute name="name-generator" type="xsd:string" use="optional"/>		
-		</xsd:complexType>
-	</xsd:element>
-
-	<xsd:element name="ftp-source">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-	Defines an ftp-receiving target channel adapter.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="username" type="xsd:string" use="optional"/>
-			<xsd:attribute name="password" type="xsd:string" use="optional"/>
-			<xsd:attribute name="host" type="xsd:string" use="required"/>
-			<xsd:attribute name="port" type="xsd:int" use="optional"/>
-			<xsd:attribute name="local-working-directory" type="xsd:string" use="required"/>
-			<xsd:attribute name="remote-working-directory" type="xsd:string" use="optional"/>
-			<xsd:attribute name="type" type="fileSourceType" use="optional"/>
-			<xsd:attribute name="message-creator" type="xsd:string" use="optional"/>
-		</xsd:complexType>
-	</xsd:element>
-
 	<xsd:element name="mail-target">
 		<xsd:complexType>
 			<xsd:annotation>
@@ -107,13 +58,5 @@
 			<xsd:attribute name="mail-convertor" type="xsd:string" use="optional"/>
 		</xsd:complexType>
 	</xsd:element>
-
-	<xsd:simpleType name="fileSourceType">
-		<xsd:restriction base="xsd:string">
-			<xsd:enumeration value="text"/>
-			<xsd:enumeration value="binary"/>
-			<xsd:enumeration value="file"/>
-		</xsd:restriction>
-	</xsd:simpleType>
 
 </xsd:schema>

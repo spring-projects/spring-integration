@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration/ftp"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration/ftp
+			http://www.springframework.org/schema/integration/ftp/spring-integration-ftp-1.0.xsd">
+
+	<inbound-channel-adapter id="default" 
+				             host="testHost"
+				             port="2121"
+				             local-working-directory="/local"
+				             remote-working-directory="/remote"
+			                 username="testUser"
+			                 password="testPassword"/>
+			       
+	<inbound-channel-adapter id="custom" 
+				             host="testHost"
+				             port="2121"
+				             local-working-directory="/local"
+				             remote-working-directory="/remote"
+			                 username="testUser"
+			                 password="testPassword"
+			                 message-creator="customMessageCreator"/>
+
+	<beans:bean id="customMessageCreator" 
+		class="org.springframework.integration.ftp.config.CustomMessageCreator"/>
+
+</beans:beans>

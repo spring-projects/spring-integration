@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.springframework.org/schema/integration/ftp"
+		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+		xmlns:beans="http://www.springframework.org/schema/beans"
+		xmlns:tool="http://www.springframework.org/schema/tool"
+		targetNamespace="http://www.springframework.org/schema/integration/ftp"
+		elementFormDefault="qualified"
+		attributeFormDefault="unqualified">
+
+	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
+	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
+
+	<xsd:annotation>
+		<xsd:documentation><![CDATA[
+	Defines the configuration elements for Spring Integration's FTP Channel Adapters.
+		]]></xsd:documentation>
+	</xsd:annotation>
+
+	<xsd:element name="inbound-channel-adapter">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines an inbound FTP-polling Channel Adapter.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="username" type="xsd:string" use="optional"/>
+			<xsd:attribute name="password" type="xsd:string" use="optional"/>
+			<xsd:attribute name="host" type="xsd:string" use="required"/>
+			<xsd:attribute name="port" type="xsd:int" use="optional"/>
+			<xsd:attribute name="local-working-directory" type="xsd:string" use="required"/>
+			<xsd:attribute name="remote-working-directory" type="xsd:string" use="optional"/>
+			<xsd:attribute name="message-creator" type="xsd:string" use="optional"/>
+		</xsd:complexType>
+	</xsd:element>
+
+</xsd:schema>
