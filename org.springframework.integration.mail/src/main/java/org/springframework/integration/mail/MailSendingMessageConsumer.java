@@ -18,8 +18,8 @@ package org.springframework.integration.mail;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.MessageMapper;
-import org.springframework.integration.message.MessageTarget;
 import org.springframework.mail.MailMessage;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -27,12 +27,12 @@ import org.springframework.mail.javamail.MimeMailMessage;
 import org.springframework.util.Assert;
 
 /**
- * A target adapter for sending mail.
+ * A {@link MessageConsumer} implementation for sending mail.
  * 
  * @author Marius Bogoevici
  * @author Mark Fisher
  */
-public class MailTarget implements MessageTarget, InitializingBean {
+public class MailSendingMessageConsumer implements MessageConsumer, InitializingBean {
 
 	private final JavaMailSender mailSender;
 
@@ -46,12 +46,12 @@ public class MailTarget implements MessageTarget, InitializingBean {
 
 
 	/**
-	 * Create a MailTargetAdapter.
+	 * Create a MailSendingMessageConsumer.
 	 * 
 	 * @param mailSender the {@link JavaMailSender} instance to which this
 	 * adapter will delegate.
 	 */
-	public MailTarget(JavaMailSender mailSender) {
+	public MailSendingMessageConsumer(JavaMailSender mailSender) {
 		Assert.notNull(mailSender, "'mailSender' must not be null");
 		this.mailSender = mailSender;
 	}
@@ -83,11 +83,10 @@ public class MailTarget implements MessageTarget, InitializingBean {
 		this.objectMessageMapper = objectMessageMapper;
 	}
 
-	public final boolean send(Message<?> message) {
+	public final void onMessage(Message<?> message) {
 		MailMessage mailMessage = this.convertMessageToMailMessage(message);
 		this.mailHeaderGenerator.populateMailMessageHeader(mailMessage, message);
 		this.sendMailMessage(mailMessage);
-		return true;
 	}
 
 	@SuppressWarnings("unchecked")

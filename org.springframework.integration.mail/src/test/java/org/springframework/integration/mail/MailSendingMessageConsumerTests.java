@@ -32,7 +32,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.integration.mail.MailHeaders;
-import org.springframework.integration.mail.MailTarget;
+import org.springframework.integration.mail.MailSendingMessageConsumer;
 import org.springframework.integration.mail.StaticMailHeaderGenerator;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageBuilder;
@@ -42,9 +42,9 @@ import org.springframework.mail.SimpleMailMessage;
 /**
  * @author Marius Bogoevici
  */
-public class MailTargetTests {
+public class MailSendingMessageConsumerTests {
 
-	private MailTarget mailTarget;
+	private MailSendingMessageConsumer consumer;
 
 	private StubJavaMailSender mailSender;
 
@@ -61,14 +61,20 @@ public class MailTargetTests {
 		this.staticMailHeaderGenerator.setReplyTo(MailTestsHelper.REPLY_TO);
 		this.staticMailHeaderGenerator.setSubject(MailTestsHelper.SUBJECT);
 		this.staticMailHeaderGenerator.setTo(MailTestsHelper.TO);
-		this.mailTarget = new MailTarget(this.mailSender);
-		this.mailTarget.afterPropertiesSet();
+		this.consumer = new MailSendingMessageConsumer(this.mailSender);
+		this.consumer.afterPropertiesSet();
 	}
+
+	@After
+	public void reset() {
+		this.mailSender.reset();
+	}
+
 
 	@Test
 	public void testTextMessage() {
-		this.mailTarget.setHeaderGenerator(this.staticMailHeaderGenerator);
-		this.mailTarget.send(new StringMessage(MailTestsHelper.MESSAGE_TEXT));
+		this.consumer.setHeaderGenerator(this.staticMailHeaderGenerator);
+		this.consumer.onMessage(new StringMessage(MailTestsHelper.MESSAGE_TEXT));
 		SimpleMailMessage message = MailTestsHelper.createSimpleMailMessage();
 		assertEquals("no mime message should have been sent",
 				0, mailSender.getSentMimeMessages().size());
@@ -80,9 +86,9 @@ public class MailTargetTests {
 
 	@Test
 	public void testByteArrayMessage() throws Exception {
-		this.mailTarget.setHeaderGenerator(this.staticMailHeaderGenerator);
+		this.consumer.setHeaderGenerator(this.staticMailHeaderGenerator);
 		byte[] payload = {1, 2, 3};
-		this.mailTarget.send(new GenericMessage<byte[]>(payload));
+		this.consumer.onMessage(new GenericMessage<byte[]>(payload));
 		byte[] buffer = new byte[1024];
 		MimeMessage mimeMessage = this.mailSender.getSentMimeMessages().get(0);
 		assertTrue("message must be multipart", mimeMessage.getContent() instanceof Multipart);
@@ -104,7 +110,7 @@ public class MailTargetTests {
 				.setHeader(MailHeaders.BCC, MailTestsHelper.BCC)
 				.setHeader(MailHeaders.FROM, MailTestsHelper.FROM)
 				.setHeader(MailHeaders.REPLY_TO, MailTestsHelper.REPLY_TO).build();
-		this.mailTarget.send(message);
+		this.consumer.onMessage(message);
 		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
 		assertEquals("no mime message should have been sent",
 				0, mailSender.getSentMimeMessages().size());
@@ -112,11 +118,6 @@ public class MailTargetTests {
 				1, mailSender.getSentSimpleMailMessages().size());
 		assertEquals("message content different from expected",
 				mailMessage, mailSender.getSentSimpleMailMessages().get(0));
-	}
-
-	@After
-	public void reset() {
-		this.mailSender.reset();
 	}
 
 }

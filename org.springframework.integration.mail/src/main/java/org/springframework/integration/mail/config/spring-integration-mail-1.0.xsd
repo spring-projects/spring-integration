@@ -16,11 +16,11 @@
 		]]></xsd:documentation>
 	</xsd:annotation>
 
-	<xsd:element name="mail-target">
+	<xsd:element name="outbound-channel-adapter">
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a mail-sending target.
+	Defines an outbound mail-sending Channel Adapter.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:attribute name="id" type="xsd:string"/>
@@ -31,7 +31,7 @@
 			<xsd:attribute name="password" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
-	
+
 	<xsd:element name="polling-mail-source">
 		<xsd:complexType>
 			<xsd:annotation>
@@ -44,12 +44,12 @@
 			<xsd:attribute name="mail-convertor" type="xsd:string" use="optional"/>
 		</xsd:complexType>
 	</xsd:element>
-	
+
 	<xsd:element name="imap-idle-mail-source">
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a polling mail source.
+	Defines an IMAP mail source.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:attribute name="id" type="xsd:string" use="required"/>

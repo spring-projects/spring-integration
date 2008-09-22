@@ -31,7 +31,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.integration.mail.MailTarget;
+import org.springframework.integration.mail.MailSendingMessageConsumer;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.mail.SimpleMailMessage;
@@ -42,11 +42,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Marius Bogoevici
  */
 @RunWith(value = SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:/org/springframework/integration/mail/mailTarget.xml"})
-public class MailTargetContextTests {
+@ContextConfiguration(locations = {"classpath:/org/springframework/integration/mail/mailSendingMessageConsumerContextTests.xml"})
+public class MailSendingMessageConsumerContextTests {
 
 	@Autowired
-	private MailTarget mailTarget;
+	private MailSendingMessageConsumer consumer;
 
 	@Autowired
 	private StubJavaMailSender mailSender;
@@ -59,7 +59,7 @@ public class MailTargetContextTests {
 
 	@Test
 	public void testStringMesssagesWithConfiguration() {
-		this.mailTarget.send(new StringMessage(MailTestsHelper.MESSAGE_TEXT));
+		this.consumer.onMessage(new StringMessage(MailTestsHelper.MESSAGE_TEXT));
 		SimpleMailMessage message = MailTestsHelper.createSimpleMailMessage();
 		assertEquals("no mime message should have been sent",
 				0, this.mailSender.getSentMimeMessages().size());
@@ -72,13 +72,13 @@ public class MailTargetContextTests {
 	@Test
 	public void testByteArrayMessage() throws Exception {
 		byte[] payload = {1, 2, 3};
-		mailTarget.send(new GenericMessage<byte[]>(payload));
+		this.consumer.onMessage(new GenericMessage<byte[]>(payload));
 		assertEquals("no mime message should have been sent",
-				1, mailSender.getSentMimeMessages().size());
+				1, this.mailSender.getSentMimeMessages().size());
 		assertEquals("only one simple message must be sent",
-				0, mailSender.getSentSimpleMailMessages().size());
+				0, this.mailSender.getSentSimpleMailMessages().size());
 		byte[] buffer = new byte[1024];
-		MimeMessage mimeMessage = mailSender.getSentMimeMessages().get(0);
+		MimeMessage mimeMessage = this.mailSender.getSentMimeMessages().get(0);
 		assertTrue("message must be multipart", mimeMessage.getContent() instanceof Multipart);
 		int size = new DataInputStream(((Multipart) mimeMessage.getContent()).getBodyPart(0).getInputStream()).read(buffer);
 		assertEquals("buffer size does not match", payload.length, size);

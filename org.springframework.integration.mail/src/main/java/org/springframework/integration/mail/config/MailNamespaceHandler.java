@@ -26,7 +26,7 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 public class MailNamespaceHandler extends NamespaceHandlerSupport {
 
 	public void init() {
-		this.registerBeanDefinitionParser("mail-target", new MailTargetParser());
+		this.registerBeanDefinitionParser("outbound-channel-adapter", new MailOutboundChannelAdapterParser());
 		this.registerBeanDefinitionParser("polling-mail-source", new PollingMailSourceParser());
 		this.registerBeanDefinitionParser("imap-idle-mail-source", new SubscribableImapIdleMailSourceParser());
 	}

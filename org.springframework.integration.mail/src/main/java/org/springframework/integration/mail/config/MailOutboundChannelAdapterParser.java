@@ -19,33 +19,28 @@ package org.springframework.integration.mail.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.mail.MailTarget;
+import org.springframework.integration.config.AbstractOutboundChannelAdapterParser;
+import org.springframework.integration.mail.MailSendingMessageConsumer;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for the &lt;mail-target/&gt; element. 
+ * Parser for the &lt;outbound-channel-adapter/&gt; element of the 'mail' namespace. 
  * 
  * @author Mark Fisher
  */
-public class MailTargetParser extends AbstractSingleBeanDefinitionParser {
+public class MailOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
 	protected Class<?> getBeanClass(Element element) {
-		return MailTarget.class;
+		return MailSendingMessageConsumer.class;
 	}
 
-	protected boolean shouldGenerateId() {
-		return false;
-	}
-
-	protected boolean shouldGenerateIdAsFallback() {
-		return true;
-	}
-
-	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+	@Override
+	protected String parseConsumer(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MailSendingMessageConsumer.class);
 		String mailSenderRef = element.getAttribute("mail-sender");
 		String host = element.getAttribute("host");
 		String username = element.getAttribute("username");
@@ -75,6 +70,8 @@ public class MailTargetParser extends AbstractSingleBeanDefinitionParser {
 		if (StringUtils.hasText(headerGeneratorRef)) {
 			builder.addPropertyReference("headerGenerator", headerGeneratorRef);
 		}
+		return BeanDefinitionReaderUtils.registerWithGeneratedName(
+				builder.getBeanDefinition(), parserContext.getRegistry());
 	}
 
 }
