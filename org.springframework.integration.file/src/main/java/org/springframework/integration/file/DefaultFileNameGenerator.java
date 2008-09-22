@@ -16,12 +16,16 @@
 
 package org.springframework.integration.file;
 
+import java.io.File;
+
 import org.springframework.integration.message.Message;
 import org.springframework.util.StringUtils;
 
 /**
  * Default implementation of the filename generator strategy. It first checks
- * for the "filename" Message header, then falls back to the Message ID.
+ * for the "filename" Message header. Next, it checks if the Message payload is
+ * a File instance, and if so, it uses the same name. Finally, it falls back to
+ * the Message ID and adds the suffix '.msg'.
  * 
  * @author Mark Fisher
  */
@@ -29,8 +33,13 @@ public class DefaultFileNameGenerator implements FileNameGenerator {
 
 	public String generateFileName(Message<?> message) {
 		String filenameProperty = message.getHeaders().get(FILENAME_PROPERTY_KEY, String.class);
-		return StringUtils.hasText(filenameProperty) ?
-				filenameProperty : message.getHeaders().getId() + ".msg";
+		if (StringUtils.hasText(filenameProperty)) {
+			return filenameProperty;
+		}
+		if (message.getPayload() instanceof File) {
+			return ((File) message.getPayload()).getName();
+		}
+		return message.getHeaders().getId() + ".msg";
 	}
 
 }
