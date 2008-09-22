@@ -43,6 +43,9 @@
 	Configures an outbound Channel Adapter that writes Message payloads to a File.
 				</xsd:documentation>
 			</xsd:annotation>
+			<xsd:sequence>
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string"/>
 			<xsd:attribute name="channel" type="xsd:string"/>
 			<xsd:attribute name="directory" type="xsd:string" use="required"/>
