@@ -25,7 +25,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.endpoint.OutboundChannelAdapter;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
-import org.springframework.integration.handler.MethodInvokingConsumer;
+import org.springframework.integration.message.MethodInvokingConsumer;
 import org.springframework.integration.message.MethodInvokingSource;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;

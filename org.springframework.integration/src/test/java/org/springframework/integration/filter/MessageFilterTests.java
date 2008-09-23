@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler;
+package org.springframework.integration.filter;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -25,6 +25,7 @@ import org.junit.Test;
 
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.filter.FilterEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.selector.MessageSelector;
@@ -36,7 +37,7 @@ public class MessageFilterTests {
 
 	@Test
 	public void filterAcceptsMessage() {
-		MessageFilter filter = new MessageFilter(new MessageSelector() {
+		FilterEndpoint filter = new FilterEndpoint(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return true;
 			}
@@ -47,7 +48,7 @@ public class MessageFilterTests {
 
 	@Test
 	public void filterRejectsMessage() {
-		MessageFilter filter = new MessageFilter(new MessageSelector() {
+		FilterEndpoint filter = new FilterEndpoint(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return false;
 			}
@@ -59,7 +60,7 @@ public class MessageFilterTests {
 	public void filterAcceptsWithChannels() {
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel();
-		MessageFilter filter = new MessageFilter(new MessageSelector() {
+		FilterEndpoint filter = new FilterEndpoint(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return true;
 			}
@@ -78,7 +79,7 @@ public class MessageFilterTests {
 	public void filterRejectsWithChannels() {
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel();
-		MessageFilter filter = new MessageFilter(new MessageSelector() {
+		FilterEndpoint filter = new FilterEndpoint(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return false;
 			}

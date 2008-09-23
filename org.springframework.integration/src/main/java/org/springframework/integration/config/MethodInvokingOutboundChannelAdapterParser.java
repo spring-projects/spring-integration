@@ -21,7 +21,7 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.handler.MethodInvokingConsumer;
+import org.springframework.integration.message.MethodInvokingConsumer;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 

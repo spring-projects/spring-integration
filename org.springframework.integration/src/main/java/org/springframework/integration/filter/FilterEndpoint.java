@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.handler;
+package org.springframework.integration.filter;
 
 import org.springframework.integration.endpoint.AbstractMessageHandlingEndpoint;
 import org.springframework.integration.message.Message;
@@ -27,12 +27,12 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class MessageFilter extends AbstractMessageHandlingEndpoint {
+public class FilterEndpoint extends AbstractMessageHandlingEndpoint {
 
 	private MessageSelector selector;
 
 
-	public MessageFilter(MessageSelector selector) {
+	public FilterEndpoint(MessageSelector selector) {
 		Assert.notNull(selector, "selector must not be null");
 		this.selector = selector;
 	}
