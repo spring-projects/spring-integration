@@ -305,6 +305,14 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="transformer" type="inputOutputEndpointType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a Transformer.
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+
 	<xsd:element name="router">
 		<xsd:annotation>
 			<xsd:documentation>
