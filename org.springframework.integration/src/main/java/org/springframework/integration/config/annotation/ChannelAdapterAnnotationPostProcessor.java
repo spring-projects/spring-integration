@@ -30,7 +30,7 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.OutboundChannelAdapter;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
-import org.springframework.integration.handler.MethodInvokingConsumer;
+import org.springframework.integration.message.MethodInvokingConsumer;
 import org.springframework.integration.message.MethodInvokingSource;
 import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.Schedule;
