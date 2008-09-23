@@ -28,12 +28,12 @@ import org.junit.Test;
 
 import org.springframework.integration.endpoint.AbstractMessageHandlingEndpoint;
 import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
-import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.message.TestHandlers;
 import org.springframework.integration.message.selector.MessageSelector;
 
 /**

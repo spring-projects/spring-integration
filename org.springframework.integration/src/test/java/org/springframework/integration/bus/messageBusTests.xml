@@ -16,7 +16,7 @@
 		<property name="outputChannel" ref="targetChannel"/>
 	</bean>
 
-	<bean id="handler" class="org.springframework.integration.handler.TestHandlers" factory-method="echoHandler"/>
+	<bean id="handler" class="org.springframework.integration.message.TestHandlers" factory-method="echoHandler"/>
 
 	<bean class="org.springframework.integration.bus.MessageBusAwareBeanPostProcessor">
 		<constructor-arg ref="bus"/>

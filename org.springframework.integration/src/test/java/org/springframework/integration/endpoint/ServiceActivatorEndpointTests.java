@@ -32,13 +32,13 @@ import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.handler.TestHandlers;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.message.TestHandlers;
 import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.integration.message.selector.MessageSelectorChain;
 

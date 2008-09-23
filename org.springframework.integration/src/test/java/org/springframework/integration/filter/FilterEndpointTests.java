@@ -33,7 +33,7 @@ import org.springframework.integration.message.selector.MessageSelector;
 /**
  * @author Mark Fisher
  */
-public class MessageFilterTests {
+public class FilterEndpointTests {
 
 	@Test
 	public void filterAcceptsMessage() {

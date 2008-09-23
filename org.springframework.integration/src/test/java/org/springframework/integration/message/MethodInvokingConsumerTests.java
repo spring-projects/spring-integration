@@ -31,12 +31,6 @@ import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
-import org.springframework.integration.handler.TestSink;
-import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.message.MethodInvokingConsumer;
-import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -103,7 +97,7 @@ public class MethodInvokingConsumerTests {
 	}
 
 
-	public static class TestBean {
+	private static class TestBean {
 
 		private BlockingQueue<String> queue;
 
@@ -119,6 +113,32 @@ public class MethodInvokingConsumerTests {
 				Thread.currentThread().interrupt();
 			}
 		}
+	}
+
+
+	private static class TestSink {
+
+		private String result;
+
+
+		public void validMethod(String s) {
+		}
+
+		public void invalidMethodWithNoArgs() {
+		}
+
+		public String methodWithReturnValue(String s) {
+			return "value";
+		}
+
+		public void store(String s) {
+			this.result = s;
+		}
+
+		public String get() {
+			return this.result;
+		}
+
 	}
 
 }
