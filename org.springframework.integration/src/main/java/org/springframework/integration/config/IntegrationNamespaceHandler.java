@@ -35,14 +35,15 @@ public class IntegrationNamespaceHandler extends NamespaceHandlerSupport {
 		registerBeanDefinitionParser("thread-local-channel", new ThreadLocalChannelParser());
 		registerBeanDefinitionParser("publish-subscribe-channel", new PublishSubscribeChannelParser());
 		registerBeanDefinitionParser("service-activator", new ServiceActivatorParser());
-		registerBeanDefinitionParser("channel-adapter", new ChannelAdapterParser());
-		registerBeanDefinitionParser("gateway", new GatewayParser());
-		registerBeanDefinitionParser("selector-chain", new SelectorChainParser());
 		registerBeanDefinitionParser("transformer", new TransformerParser());
 		registerBeanDefinitionParser("router", new RouterParser());
 		registerBeanDefinitionParser("splitter", new SplitterParser());
 		registerBeanDefinitionParser("aggregator", new AggregatorParser());
 		registerBeanDefinitionParser("resequencer", new ResequencerParser());
+		registerBeanDefinitionParser("inbound-channel-adapter", new MethodInvokingInboundChannelAdapterParser());
+		registerBeanDefinitionParser("outbound-channel-adapter", new MethodInvokingOutboundChannelAdapterParser());
+		registerBeanDefinitionParser("gateway", new GatewayParser());
+		registerBeanDefinitionParser("selector-chain", new SelectorChainParser());
 		registerBeanDefinitionParser("pool-executor", new PoolExecutorParser());
 	}
 

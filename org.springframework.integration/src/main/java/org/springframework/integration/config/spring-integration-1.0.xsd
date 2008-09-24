@@ -163,23 +163,37 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="channel-adapter">
+	<xsd:element name="inbound-channel-adapter">
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a Channel Adapter that is capable of either receiving from a MessageSource and sending
-	the result to a MessageChannel or receiving from a MessageChannel and sending the result to a
-	MessageTarget. Therefore, either "source" or "target" should be provided (but never both).
+	Defines a Channel Adapter that receives from a MessageSource and sends to a MessageChannel.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:sequence>
 				<xsd:element ref="poller" minOccurs="0" maxOccurs="1"/>
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:ID"/>
+			<xsd:attribute name="channel" type="xsd:string"/>
 			<xsd:attribute name="source" type="xsd:string"/>
+			<xsd:attribute name="method" type="xsd:string"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-channel-adapter">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a Channel Adapter that receives from a MessageChannel and sends to a MessageConsumer.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:sequence>
+				<xsd:element ref="poller" minOccurs="0" maxOccurs="1"/>
+			</xsd:sequence>
+			<xsd:attribute name="id" type="xsd:ID"/>
+			<xsd:attribute name="channel" type="xsd:string"/>
 			<xsd:attribute name="target" type="xsd:string"/>
 			<xsd:attribute name="method" type="xsd:string"/>
-			<xsd:attribute name="channel" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
 
