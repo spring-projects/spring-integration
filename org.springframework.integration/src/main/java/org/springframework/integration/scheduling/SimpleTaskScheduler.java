@@ -89,7 +89,13 @@ public class SimpleTaskScheduler implements TaskScheduler {
 	// Lifecycle implementation
 
 	public boolean isRunning() {
-		return this.running;
+		this.lifecycleLock.lock();
+		try {
+			return this.running;
+		}
+		finally {
+			this.lifecycleLock.unlock();
+		}
 	}
 
 	public void start() {
