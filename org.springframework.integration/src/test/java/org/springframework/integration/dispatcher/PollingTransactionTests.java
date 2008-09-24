@@ -49,7 +49,8 @@ public class PollingTransactionTests {
 		Message<?> message = output.receive(0);
 		assertNotNull(message);		
 		assertEquals(1, txManager.getCommitCount());
-		assertEquals(0, txManager.getRollbackCount());		
+		assertEquals(0, txManager.getRollbackCount());
+		context.stop();
 	}
 
 	@Test
@@ -66,7 +67,8 @@ public class PollingTransactionTests {
 		Message<?> message = output.receive(0);
 		assertNull(message);
 		assertEquals(0, txManager.getCommitCount());
-		assertEquals(1, txManager.getRollbackCount());		
+		assertEquals(1, txManager.getRollbackCount());
+		context.stop();
 	}
 
 	@Test
@@ -83,6 +85,7 @@ public class PollingTransactionTests {
 		txManager.waitForCompletion(3000);
 		assertEquals(1, txManager.getCommitCount());
 		assertEquals(Propagation.REQUIRED.value(), txManager.getLastDefinition().getPropagationBehavior());
+		context.stop();
 	}
 
 	@Test
@@ -99,6 +102,7 @@ public class PollingTransactionTests {
 		txManager.waitForCompletion(3000);
 		assertEquals(1, txManager.getCommitCount());
 		assertEquals(Propagation.REQUIRES_NEW.value(), txManager.getLastDefinition().getPropagationBehavior());
+		context.stop();
 	}
 
 	@Test
@@ -114,6 +118,7 @@ public class PollingTransactionTests {
 		assertNotNull(reply);
 		assertEquals(0, txManager.getCommitCount());
 		assertNull(txManager.getLastDefinition());
+		context.stop();
 	}
 
 	@Test
@@ -129,6 +134,7 @@ public class PollingTransactionTests {
 		assertNotNull(reply);
 		assertEquals(0, txManager.getCommitCount());
 		assertNull(txManager.getLastDefinition());
+		context.stop();
 	}
 
 	@Test
@@ -147,6 +153,7 @@ public class PollingTransactionTests {
 		assertEquals(IllegalTransactionStateException.class, payload.getClass());
 		assertNull(output.receive(0));
 		assertEquals(0, txManager.getCommitCount());
+		context.stop();
 	}
 
 }
