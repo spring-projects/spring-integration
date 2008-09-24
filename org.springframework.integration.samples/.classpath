@@ -19,7 +19,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/org.springframework.integration.adapter"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/org.springframework.integration.file"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/org.springframework.integration.ws"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/org.springframework.integration.quartz"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/org.springframework.integration.stream"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

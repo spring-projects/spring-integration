@@ -7,7 +7,7 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<message-bus task-scheduler="quartzTaskScheduler"/>
+	<message-bus/>
 	<annotation-driven/>
 
 	<channel id="even"/>
@@ -35,15 +35,5 @@
 	<beans:bean id="oddLogger" class="org.springframework.integration.samples.oddeven.OddLogger"/>
 
 	<beans:bean id="evenLogger" class="org.springframework.integration.samples.oddeven.EvenLogger"/>
-
-	<beans:bean id="quartzTaskScheduler" class="org.springframework.integration.scheduling.spi.ProviderTaskScheduler">
-		<beans:constructor-arg>
-			<beans:bean class="org.springframework.integration.quartz.QuartzScheduleServiceProvider">
-				<beans:constructor-arg>
-					<beans:bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean"/>					
-				</beans:constructor-arg>
-			</beans:bean>
-		</beans:constructor-arg>
-	</beans:bean>
 
 </beans:beans>
