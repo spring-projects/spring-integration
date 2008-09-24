@@ -24,8 +24,8 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.httpinvoker.HttpInvokerInboundGateway;
-import org.springframework.integration.message.MessageChannelTemplate;
 
 /**
  * @author Mark Fisher

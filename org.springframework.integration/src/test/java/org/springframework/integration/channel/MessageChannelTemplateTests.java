@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration.channel;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -29,9 +29,10 @@ import org.junit.Test;
 
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.bus.DefaultMessageBus;
-import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.AbstractMessageHandlingEndpoint;
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher

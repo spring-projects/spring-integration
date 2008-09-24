@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration.channel;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.PollableChannel;
+import org.springframework.integration.message.AsyncMessage;
+import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
 
 /**

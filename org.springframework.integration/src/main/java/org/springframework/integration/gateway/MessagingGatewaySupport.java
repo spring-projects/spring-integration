@@ -17,7 +17,7 @@
 package org.springframework.integration.gateway;
 
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.MessageChannelTemplate;
+import org.springframework.integration.channel.MessageChannelTemplate;
 
 /**
  * A convenient base class providing access to a {@link MessageChannelTemplate} and exposing setter methods for
