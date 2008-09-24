@@ -13,11 +13,11 @@
 		<queue capacity="10"/>
 	</channel>
 
-	<outbound-channel-adapter id="outboundWithImplicitChannel" target="consumer"/>
+	<outbound-channel-adapter id="outboundWithImplicitChannel" ref="consumer"/>
 
-	<outbound-channel-adapter id="methodInvokingConsumer" target="testBean" method="store"/>
+	<outbound-channel-adapter id="methodInvokingConsumer" ref="testBean" method="store"/>
 
-	<inbound-channel-adapter id="methodInvokingSource" source="testBean" method="getMessage" channel="queueChannel">
+	<inbound-channel-adapter id="methodInvokingSource" ref="testBean" method="getMessage" channel="queueChannel">
 		<poller period="10000" max-messages-per-poll="1"/>
 	</inbound-channel-adapter>
 

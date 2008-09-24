@@ -163,39 +163,31 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="inbound-channel-adapter">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
+	<xsd:element name="inbound-channel-adapter" type="channelAdapterType">
+		<xsd:annotation>
+			<xsd:documentation>
 	Defines a Channel Adapter that receives from a MessageSource and sends to a MessageChannel.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:sequence>
-				<xsd:element ref="poller" minOccurs="0" maxOccurs="1"/>
-			</xsd:sequence>
-			<xsd:attribute name="id" type="xsd:ID"/>
-			<xsd:attribute name="channel" type="xsd:string"/>
-			<xsd:attribute name="source" type="xsd:string"/>
-			<xsd:attribute name="method" type="xsd:string"/>
-		</xsd:complexType>
+			</xsd:documentation>
+		</xsd:annotation>
 	</xsd:element>
 
-	<xsd:element name="outbound-channel-adapter">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
+	<xsd:element name="outbound-channel-adapter" type="channelAdapterType">
+		<xsd:annotation>
+			<xsd:documentation>
 	Defines a Channel Adapter that receives from a MessageChannel and sends to a MessageConsumer.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:sequence>
-				<xsd:element ref="poller" minOccurs="0" maxOccurs="1"/>
-			</xsd:sequence>
-			<xsd:attribute name="id" type="xsd:ID"/>
-			<xsd:attribute name="channel" type="xsd:string"/>
-			<xsd:attribute name="target" type="xsd:string"/>
-			<xsd:attribute name="method" type="xsd:string"/>
-		</xsd:complexType>
+			</xsd:documentation>
+		</xsd:annotation>
 	</xsd:element>
+
+	<xsd:complexType name="channelAdapterType">
+		<xsd:sequence>
+			<xsd:element ref="poller" minOccurs="0" maxOccurs="1"/>
+		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:ID"/>
+		<xsd:attribute name="channel" type="xsd:string"/>
+		<xsd:attribute name="ref" type="xsd:string" use="required"/>
+		<xsd:attribute name="method" type="xsd:string"/>
+	</xsd:complexType>
 
 	<xsd:element name="service-activator" type="inputOutputEndpointType">
 		<xsd:annotation>

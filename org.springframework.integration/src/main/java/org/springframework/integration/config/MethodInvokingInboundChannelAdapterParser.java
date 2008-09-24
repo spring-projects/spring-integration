@@ -34,17 +34,17 @@ public class MethodInvokingInboundChannelAdapterParser extends AbstractPollingIn
 
 	@Override
 	protected String parseSource(Element element, ParserContext parserContext) {
-		String source = element.getAttribute("source");
-		Assert.hasText(source, "The 'source' attribute is required.");
+		String sourceRef = element.getAttribute("ref");
+		Assert.hasText(sourceRef, "The 'ref' attribute is required.");
 		String methodName = element.getAttribute("method");
 		if (StringUtils.hasText(methodName)) {
 			BeanDefinitionBuilder invokerBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingSource.class);
-			invokerBuilder.addPropertyReference("object", source);
+			invokerBuilder.addPropertyReference("object", sourceRef);
 			invokerBuilder.addPropertyValue("methodName", methodName);
-			source = BeanDefinitionReaderUtils.registerWithGeneratedName(
+			sourceRef = BeanDefinitionReaderUtils.registerWithGeneratedName(
 					invokerBuilder.getBeanDefinition(), parserContext.getRegistry());
 		}
-		return source;
+		return sourceRef;
 	}
 
 }

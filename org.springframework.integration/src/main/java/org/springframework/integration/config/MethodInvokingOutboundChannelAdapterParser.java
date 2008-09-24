@@ -35,19 +35,19 @@ public class MethodInvokingOutboundChannelAdapterParser extends AbstractOutbound
 
 	@Override
 	protected String parseAndRegisterConsumer(Element element, ParserContext parserContext) {
-		String target = element.getAttribute("target");
-		Assert.isTrue(StringUtils.hasText(target), "target is required");
+		String consumerRef = element.getAttribute("ref");
+		Assert.isTrue(StringUtils.hasText(consumerRef), "The 'ref' attribute is required.");
 		if (element.hasAttribute("method")) {
-			target = BeanDefinitionReaderUtils.registerWithGeneratedName(
+			consumerRef = BeanDefinitionReaderUtils.registerWithGeneratedName(
 					this.parseConsumer(element, parserContext), parserContext.getRegistry());
 		}
-		return target;
+		return consumerRef;
 	}
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder invokerBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingConsumer.class);
-		invokerBuilder.addConstructorArgReference(element.getAttribute("target"));
+		invokerBuilder.addConstructorArgReference(element.getAttribute("ref"));
 		invokerBuilder.addConstructorArgValue(element.getAttribute("method"));
 		return invokerBuilder.getBeanDefinition();
 	}
