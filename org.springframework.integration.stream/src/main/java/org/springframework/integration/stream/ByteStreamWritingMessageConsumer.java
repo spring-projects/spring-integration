@@ -23,27 +23,27 @@ import java.io.OutputStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.integration.endpoint.AbstractMessageConsumingEndpoint;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.MessagingException;
 
 /**
- * An outbound Channel Adapter that writes a byte array to an {@link OutputStream}.
+ * A {@link MessageConsumer} that writes a byte array to an {@link OutputStream}.
  * 
  * @author Mark Fisher
  */
-public class ByteStreamOutboundChannelAdapter extends AbstractMessageConsumingEndpoint {
+public class ByteStreamWritingMessageConsumer implements MessageConsumer {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final BufferedOutputStream stream;
 
 
-	public ByteStreamOutboundChannelAdapter(OutputStream stream) {
+	public ByteStreamWritingMessageConsumer(OutputStream stream) {
 		this(stream, -1);
 	}
 
-	public ByteStreamOutboundChannelAdapter(OutputStream stream, int bufferSize) {
+	public ByteStreamWritingMessageConsumer(OutputStream stream, int bufferSize) {
 		if (bufferSize > 0) {
 			this.stream = new BufferedOutputStream(stream, bufferSize);
 		}
@@ -53,8 +53,7 @@ public class ByteStreamOutboundChannelAdapter extends AbstractMessageConsumingEn
 	}
 
 
-	@Override
-	public void onMessageInternal(Message<?> message) {
+	public void onMessage(Message<?> message) {
 		Object payload = message.getPayload();
 		if (payload == null) {
 			if (logger.isWarnEnabled()) {
