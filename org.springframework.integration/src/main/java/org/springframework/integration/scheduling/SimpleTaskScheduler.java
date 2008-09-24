@@ -112,15 +112,17 @@ public class SimpleTaskScheduler implements TaskScheduler {
 			if (!this.running) {
 				return;
 			}
+			this.running = false;
 			Thread executingThread = this.schedulerTask.executingThread.getAndSet(null);
 			if (executingThread != null) {
 				executingThread.interrupt();
 			}
-			for (TriggeredTask<?> task : this.executingTasks) {
-				task.cancel(true);
+			synchronized (this.executingTasks) {
+				for (TriggeredTask<?> task : this.executingTasks) {
+					task.cancel(true);
+				}
+				this.executingTasks.clear();
 			}
-			this.executingTasks.clear();
-			this.running = false;
 		}
 		finally {
 			this.lifecycleLock.unlock();
@@ -148,7 +150,9 @@ public class SimpleTaskScheduler implements TaskScheduler {
 			while (SimpleTaskScheduler.this.isRunning()) {
 				try {
 					TriggeredTask<?> task = SimpleTaskScheduler.this.scheduledTasks.take();
-					SimpleTaskScheduler.this.executor.execute(task);
+					if (SimpleTaskScheduler.this.isRunning()) {
+						SimpleTaskScheduler.this.executor.execute(task);
+					}
 				}
 				catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
@@ -183,7 +187,7 @@ public class SimpleTaskScheduler implements TaskScheduler {
 			SimpleTaskScheduler.this.executingTasks.add(this);
 			super.runAndReset();
 			SimpleTaskScheduler.this.executingTasks.remove(this);
-			if (isRunning() && !isCancelled()) {
+			if (SimpleTaskScheduler.this.isRunning() && !this.isCancelled()) {
 				SimpleTaskScheduler.this.schedule(this, this.scheduledTime, new Date());
 			}
 		}
@@ -207,7 +211,7 @@ public class SimpleTaskScheduler implements TaskScheduler {
 		}
 
 		public synchronized boolean cancel(boolean mayInterruptIfRunning) {
-			if (!isCancelled()) {
+			if (!this.isCancelled()) {
 				SimpleTaskScheduler.this.scheduledTasks.remove(this);
 			}
 			return super.cancel(mayInterruptIfRunning);
