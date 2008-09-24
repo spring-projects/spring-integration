@@ -41,7 +41,7 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.PollableSource;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.scheduling.PollingSchedule;
+import org.springframework.integration.scheduling.IntervalTrigger;
 
 /**
  * @author Mark Fisher
@@ -206,7 +206,7 @@ public class DefaultMessageBusTests {
 		CountDownLatch latch = new CountDownLatch(1);
 		SourcePollingChannelAdapter channelAdapter = new SourcePollingChannelAdapter();
 		channelAdapter.setSource(new FailingSource(latch));
-		channelAdapter.setSchedule(new PollingSchedule(1000));
+		channelAdapter.setTrigger(new IntervalTrigger(1000));
 		channelAdapter.setOutputChannel(outputChannel);
 		channelAdapter.setBeanName("testChannel");
 		context.getBeanFactory().registerSingleton("testChannel", channelAdapter);

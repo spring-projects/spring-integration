@@ -27,9 +27,9 @@ import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.endpoint.AbstractMessageHandlingEndpoint;
 import org.springframework.integration.endpoint.AbstractMessageConsumingEndpoint;
-import org.springframework.integration.scheduling.PollingSchedule;
+import org.springframework.integration.endpoint.AbstractMessageHandlingEndpoint;
+import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -87,11 +87,11 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				AbstractMessageConsumingEndpoint consumingEndpoint = (AbstractMessageConsumingEndpoint) endpoint;
 				if (pollerAnnotation != null) {	
 					if (inputChannel instanceof PollableChannel) {
-						PollingSchedule schedule = new PollingSchedule(pollerAnnotation.period());
-						schedule.setInitialDelay(pollerAnnotation.initialDelay());
-						schedule.setFixedRate(pollerAnnotation.fixedRate());
-						schedule.setTimeUnit(pollerAnnotation.timeUnit());
-						consumingEndpoint.setSchedule(schedule);
+						IntervalTrigger trigger = new IntervalTrigger(
+								pollerAnnotation.interval(), pollerAnnotation.timeUnit());
+						trigger.setInitialDelay(pollerAnnotation.initialDelay(), pollerAnnotation.timeUnit());
+						trigger.setFixedRate(pollerAnnotation.fixedRate());
+						consumingEndpoint.setTrigger(trigger);
 						consumingEndpoint.setMaxMessagesPerPoll(pollerAnnotation.maxMessagesPerPoll());
 					}
 					else {

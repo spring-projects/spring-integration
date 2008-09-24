@@ -21,7 +21,7 @@ import org.springframework.integration.dispatcher.SimpleDispatcher;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.Subscribable;
-import org.springframework.integration.scheduling.Schedule;
+import org.springframework.integration.scheduling.Trigger;
 import org.springframework.util.Assert;
 
 /**
@@ -36,8 +36,8 @@ public class ChannelPoller extends AbstractPoller implements Subscribable {
 	private final SimpleDispatcher dispatcher = new SimpleDispatcher();
 
 
-	public ChannelPoller(PollableChannel channel, Schedule schedule) {
-		super(schedule);
+	public ChannelPoller(PollableChannel channel, Trigger trigger) {
+		super(trigger);
 		Assert.notNull(channel, "channel must not be null");
 		this.channel = channel;
 	}

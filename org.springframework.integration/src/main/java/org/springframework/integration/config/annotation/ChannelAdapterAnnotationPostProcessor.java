@@ -32,8 +32,8 @@ import org.springframework.integration.endpoint.OutboundChannelAdapter;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.message.MethodInvokingConsumer;
 import org.springframework.integration.message.MethodInvokingSource;
-import org.springframework.integration.scheduling.PollingSchedule;
-import org.springframework.integration.scheduling.Schedule;
+import org.springframework.integration.scheduling.IntervalTrigger;
+import org.springframework.integration.scheduling.Trigger;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -96,11 +96,11 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 			throw new ConfigurationException("The @Poller annotation is required (at method-level) "
 					+ "when using the @ChannelAdapter annotation with a no-arg method.");
 		}
-		Schedule schedule = this.createSchedule(pollerAnnotation);
+		Trigger trigger = this.createTrigger(pollerAnnotation);
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 		adapter.setSource(source);
 		adapter.setOutputChannel(channel);
-		adapter.setSchedule(schedule);
+		adapter.setTrigger(trigger);
 		return adapter;
 	}
 
@@ -108,20 +108,20 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 		OutboundChannelAdapter adapter = new OutboundChannelAdapter(consumer);
 		adapter.setInputChannel(channel);
 		if (channel instanceof PollableChannel) {
-			Schedule schedule = (pollerAnnotation != null)
-					? this.createSchedule(pollerAnnotation)
-					: new PollingSchedule(0);
-			adapter.setSchedule(schedule);
+			Trigger trigger = (pollerAnnotation != null)
+					? this.createTrigger(pollerAnnotation)
+					: new IntervalTrigger(0);
+			adapter.setTrigger(trigger);
 		}
 		return adapter;
 	}
 
-	private Schedule createSchedule(Poller pollerAnnotation) {
-		PollingSchedule schedule = new PollingSchedule(pollerAnnotation.period());
-		schedule.setInitialDelay(pollerAnnotation.initialDelay());
-		schedule.setFixedRate(pollerAnnotation.fixedRate());
-		schedule.setTimeUnit(pollerAnnotation.timeUnit());
-		return schedule;
+	private Trigger createTrigger(Poller pollerAnnotation) {
+		IntervalTrigger trigger = new IntervalTrigger(
+				pollerAnnotation.interval(), pollerAnnotation.timeUnit());
+		trigger.setInitialDelay(pollerAnnotation.initialDelay());
+		trigger.setFixedRate(pollerAnnotation.fixedRate());
+		return trigger;
 	}
 
 	private boolean hasReturnValue(Method method) {

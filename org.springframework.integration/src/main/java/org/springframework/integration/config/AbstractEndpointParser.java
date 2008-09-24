@@ -89,7 +89,7 @@ public abstract class AbstractEndpointParser extends AbstractSingleBeanDefinitio
 		}
 		Element pollerElement = DomUtils.getChildElementByTagName(element, POLLER_ELEMENT);
 		if (pollerElement != null) {
-			IntegrationNamespaceUtils.configureSchedule(pollerElement, builder);
+			IntegrationNamespaceUtils.configureTrigger(pollerElement, builder);
 			Element txElement = DomUtils.getChildElementByTagName(pollerElement, "transactional");
 			if (txElement != null) {
 				IntegrationNamespaceUtils.configureTransactionAttributes(txElement, builder);

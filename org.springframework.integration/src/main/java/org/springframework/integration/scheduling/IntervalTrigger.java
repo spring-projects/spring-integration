@@ -64,6 +64,13 @@ public class IntervalTrigger implements Trigger {
 	}
 
 	/**
+	 * Specify the delay for the initial execution using the given time unit.
+	 */
+	public void setInitialDelay(long initialDelay, TimeUnit unit) {
+		this.initialDelay = unit.toMillis(initialDelay);
+	}
+
+	/**
 	 * Specify whether the interval should be measured between the
 	 * scheduled start times rather than between actual completion times
 	 * (the latter, "fixed delay" behavior, is the default).

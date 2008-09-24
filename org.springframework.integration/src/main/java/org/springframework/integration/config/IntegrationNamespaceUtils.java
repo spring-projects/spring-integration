@@ -25,9 +25,9 @@ import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.scheduling.CronSchedule;
-import org.springframework.integration.scheduling.PollingSchedule;
-import org.springframework.integration.scheduling.Schedule;
+import org.springframework.integration.scheduling.CronTrigger;
+import org.springframework.integration.scheduling.IntervalTrigger;
+import org.springframework.integration.scheduling.Trigger;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.StringUtils;
 
@@ -134,35 +134,33 @@ public abstract class IntegrationNamespaceUtils {
 	}
 
 	/**
-	 * Parse a "poller" element to create a Schedule and add it to the property values of the target builder.
+	 * Parse a "poller" element to create a Trigger and add it to the property values of the target builder.
 	 * 
 	 * @param pollerElement the "poller" element to parse
-	 * @param targetBuilder the builder that expects the "schedule" property
+	 * @param targetBuilder the builder that expects the "trigger" property
 	 */
-	public static void configureSchedule(Element pollerElement, BeanDefinitionBuilder targetBuilder) {
-		Schedule schedule = null;
-		if (!(StringUtils.hasText(pollerElement.getAttribute("period")) ^ StringUtils.hasText(pollerElement.getAttribute("cron")))) {
-			throw new ConfigurationException("A <poller> element must define either a period "
-					+ "or a cron expression (but not both)");
+	public static void configureTrigger(Element pollerElement, BeanDefinitionBuilder targetBuilder) {
+		Trigger trigger = null;
+		String interval = pollerElement.getAttribute("period");
+		String cron = pollerElement.getAttribute("cron");
+		if (!(StringUtils.hasText(interval) ^ StringUtils.hasText(cron))) {
+			throw new ConfigurationException(
+					"A <poller> element must define either a period or a cron expression (but not both).");
 		}
-		if (StringUtils.hasText(pollerElement.getAttribute("period"))) {
-			Long period = Long.valueOf(pollerElement.getAttribute("period"));
-			schedule = new PollingSchedule(period);
+		if (StringUtils.hasText(interval)) {
+			Long period = Long.valueOf(interval);
+			IntervalTrigger intervalTrigger = new IntervalTrigger(period);
 			String initialDelay = pollerElement.getAttribute("initial-delay");
 			if (StringUtils.hasText(initialDelay)) {
-				((PollingSchedule)schedule).setInitialDelay(Long.valueOf(initialDelay));
+				intervalTrigger.setInitialDelay(Long.valueOf(initialDelay));
 			}
-			if ("true".equals(pollerElement.getAttribute("fixed-rate").toLowerCase())) {
-				((PollingSchedule)schedule).setFixedRate(true);
-			}
-			else {
-				((PollingSchedule)schedule).setFixedRate(false);
-			}
+			intervalTrigger.setFixedRate("true".equals(pollerElement.getAttribute("fixed-rate").toLowerCase()));
+			trigger = intervalTrigger;
 		}
 		if (StringUtils.hasText(pollerElement.getAttribute("cron"))) {
-		   schedule = new CronSchedule(pollerElement.getAttribute("cron"));
+		   trigger = new CronTrigger(pollerElement.getAttribute("cron"));
 		}
-		targetBuilder.addPropertyValue("schedule", schedule);
+		targetBuilder.addPropertyValue("trigger", trigger);
 	}
 
 	/**

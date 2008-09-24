@@ -49,8 +49,8 @@ import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.scheduling.PollingSchedule;
-import org.springframework.integration.scheduling.Schedule;
+import org.springframework.integration.scheduling.IntervalTrigger;
+import org.springframework.integration.scheduling.Trigger;
 import org.springframework.integration.util.MethodInvoker;
 
 /**
@@ -329,13 +329,12 @@ public class MessagingAnnotationPostProcessorTests {
 		processedEndpoint.afterPropertiesSet();
 		DirectFieldAccessor accessor = new DirectFieldAccessor(processedEndpoint);
 		ChannelPoller poller = (ChannelPoller) accessor.getPropertyValue("poller");
-		Schedule schedule = (Schedule) new DirectFieldAccessor(poller).getPropertyValue("schedule");
-		assertEquals(PollingSchedule.class, schedule.getClass());
-		PollingSchedule pollingSchedule = (PollingSchedule) schedule;
-		assertEquals(1234, pollingSchedule.getPeriod());
-		assertEquals(5678, pollingSchedule.getInitialDelay());
-		assertEquals(true, pollingSchedule.getFixedRate());
-		assertEquals(TimeUnit.SECONDS, pollingSchedule.getTimeUnit());
+		Trigger trigger = (Trigger) new DirectFieldAccessor(poller).getPropertyValue("trigger");
+		assertEquals(IntervalTrigger.class, trigger.getClass());
+		DirectFieldAccessor triggerAccessor = new DirectFieldAccessor(trigger);
+		assertEquals(new Long(123000), triggerAccessor.getPropertyValue("interval"));
+		assertEquals(new Long(456000), triggerAccessor.getPropertyValue("initialDelay"));
+		assertEquals(true, triggerAccessor.getPropertyValue("fixedRate"));
 	}
 
 	@Test
@@ -448,7 +447,7 @@ public class MessagingAnnotationPostProcessorTests {
 	private static class AnnotatedEndpointWithPolledAnnotation {
 
 		@ServiceActivator(inputChannel="testChannel")
-		@Poller(period=1234, initialDelay=5678, fixedRate=true, timeUnit=TimeUnit.SECONDS)
+		@Poller(interval=123, initialDelay=456, fixedRate=true, timeUnit=TimeUnit.SECONDS)
 		public String prependFoo(String s) {
 			return "foo" + s;
 		}
@@ -470,7 +469,7 @@ public class MessagingAnnotationPostProcessorTests {
 	private static class ChannelAdapterAnnotationTestBean {
 
 		@ChannelAdapter("testChannel")
-		@Poller(period = 1000, initialDelay = 0, maxMessagesPerPoll = 1)
+		@Poller(interval=1000, initialDelay=0, maxMessagesPerPoll=1)
 		public String test() {
 			return "test";
 		}

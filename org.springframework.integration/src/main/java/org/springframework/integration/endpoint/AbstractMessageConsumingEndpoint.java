@@ -28,8 +28,8 @@ import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.Subscribable;
-import org.springframework.integration.scheduling.PollingSchedule;
-import org.springframework.integration.scheduling.Schedule;
+import org.springframework.integration.scheduling.IntervalTrigger;
+import org.springframework.integration.scheduling.Trigger;
 
 /**
  * The base class for Message Endpoint implementations that consume Messages.
@@ -40,7 +40,7 @@ public abstract class AbstractMessageConsumingEndpoint extends AbstractEndpoint 
 
 	private volatile MessageChannel inputChannel;
 
-	private volatile Schedule schedule = new PollingSchedule(0);
+	private volatile Trigger trigger = new IntervalTrigger(0);
 
 	private volatile ChannelPoller poller;
 
@@ -61,8 +61,8 @@ public abstract class AbstractMessageConsumingEndpoint extends AbstractEndpoint 
 		this.inputChannel = inputChannel;
 	}
 
-	public void setSchedule(Schedule schedule) {
-		this.schedule = schedule;
+	public void setTrigger(Trigger trigger) {
+		this.trigger = trigger;
 	}
 
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
@@ -84,7 +84,7 @@ public abstract class AbstractMessageConsumingEndpoint extends AbstractEndpoint 
 	protected void initialize()  throws Exception {
 		synchronized (this.lifecycleMonitor) {
 			if (this.inputChannel instanceof PollableChannel && this.poller == null) {
-				this.poller = new ChannelPoller((PollableChannel) this.inputChannel, this.schedule);
+				this.poller = new ChannelPoller((PollableChannel) this.inputChannel, this.trigger);
 				this.poller.setMaxMessagesPerPoll(this.maxMessagesPerPoll);
 				this.configureTransactionSettingsForPoller(this.poller);
 				if (this.taskExecutor != null) {

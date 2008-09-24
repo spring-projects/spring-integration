@@ -30,7 +30,7 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.MessageRejectedException;
-import org.springframework.integration.scheduling.Schedule;
+import org.springframework.integration.scheduling.Trigger;
 
 /**
  * @author Iwein Fuld
@@ -39,16 +39,16 @@ import org.springframework.integration.scheduling.Schedule;
 public class ChannelPollerTests {
 
 	private ChannelPoller poller;
-	private Schedule scheduleMock = createMock(Schedule.class);
+	private Trigger triggerMock = createMock(Trigger.class);
 	private PollableChannel channelMock = createMock(PollableChannel.class);
 	private MessageConsumer endpointMock = createMock(MessageConsumer.class);
 	private Message messageMock = createMock(Message.class);
-	private Object[] globalMocks = new Object[] { scheduleMock, channelMock, endpointMock, messageMock };
+	private Object[] globalMocks = new Object[] { triggerMock, channelMock, endpointMock, messageMock };
 
 
 	@Before
 	public void init() {
-		poller = new ChannelPoller(channelMock, scheduleMock);
+		poller = new ChannelPoller(channelMock, triggerMock);
 		poller.subscribe(endpointMock);
 		poller.setReceiveTimeout(-1);
 		reset(globalMocks);
@@ -112,7 +112,7 @@ public class ChannelPollerTests {
 
 	@Test
 	public void blockingSourceTimedOut() {
-		poller = new ChannelPoller(channelMock, scheduleMock);
+		poller = new ChannelPoller(channelMock, triggerMock);
 		poller.subscribe(endpointMock);
 		// we don't need to await the timeout, returning null suffices
 		expect(channelMock.receive(1)).andReturn(null);
@@ -124,7 +124,7 @@ public class ChannelPollerTests {
 
 	@Test
 	public void blockingSourceNotTimedOut() {
-		poller = new ChannelPoller(channelMock, scheduleMock);
+		poller = new ChannelPoller(channelMock, triggerMock);
 		poller.subscribe(endpointMock);
 		expect(channelMock.receive(1)).andReturn(messageMock);
 		endpointMock.onMessage(messageMock);

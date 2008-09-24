@@ -46,7 +46,7 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 			if (!StringUtils.hasText(channelName)) {
 				throw new ConfigurationException("outbound channel adapter with a 'poller' requires a 'channel' to poll");
 			}
-			IntegrationNamespaceUtils.configureSchedule(pollerElement, adapterBuilder);
+			IntegrationNamespaceUtils.configureTrigger(pollerElement, adapterBuilder);
 			Element txElement = DomUtils.getChildElementByTagName(pollerElement, "transactional");
 			if (txElement != null) {
 				IntegrationNamespaceUtils.configureTransactionAttributes(txElement, adapterBuilder);

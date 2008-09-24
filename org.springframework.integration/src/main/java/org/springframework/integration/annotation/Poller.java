@@ -39,7 +39,7 @@ import org.springframework.integration.scheduling.PollingSchedule;
 @Documented
 public @interface Poller {
 
-	int period();
+	int interval();
 
 	long initialDelay() default PollingSchedule.DEFAULT_INITIAL_DELAY;
 

@@ -29,7 +29,7 @@ import org.springframework.integration.annotation.Poller;
 public class TickerStream {
 
 	@ChannelAdapter("tickers")
-	@Poller(period = 300)
+	@Poller(interval = 300)
 	public String nextTicker() {
 		char[] chars = new char[3];
 		for (int i = 0; i < 3; i++) {

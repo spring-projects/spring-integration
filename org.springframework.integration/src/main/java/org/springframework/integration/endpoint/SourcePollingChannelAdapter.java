@@ -22,8 +22,8 @@ import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.MethodInvokingSource;
 import org.springframework.integration.message.PollableSource;
-import org.springframework.integration.scheduling.Schedule;
 import org.springframework.integration.scheduling.TaskScheduler;
+import org.springframework.integration.scheduling.Trigger;
 
 /**
  * A Channel Adapter implementation for connecting a
@@ -36,7 +36,7 @@ public class SourcePollingChannelAdapter extends AbstractMessageProducingEndpoin
 
 	private volatile PollableSource<?> source;
 
-	private volatile Schedule schedule;
+	private volatile Trigger trigger;
 
 	private volatile SourcePoller poller;
 
@@ -53,8 +53,8 @@ public class SourcePollingChannelAdapter extends AbstractMessageProducingEndpoin
 		this.source = source;
 	}
 
-	public void setSchedule(Schedule schedule) {
-		this.schedule = schedule;
+	public void setTrigger(Trigger trigger) {
+		this.trigger = trigger;
 	}
 
 	public void setMaxMessagesPerPoll(int maxMessagesPerPoll) {
@@ -73,7 +73,7 @@ public class SourcePollingChannelAdapter extends AbstractMessageProducingEndpoin
 			if (this.running) {
 				return;
 			}
-			this.poller = new SourcePoller(source, this.getOutputChannel(), schedule);
+			this.poller = new SourcePoller(source, this.getOutputChannel(), trigger);
 			if (maxMessagesPerPoll < 0 && source instanceof MethodInvokingSource) {
 				// the default is 1 since a MethodInvokingSource might return a non-null value
 				// every time it is invoked, thus producing an infinite number of messages per poll

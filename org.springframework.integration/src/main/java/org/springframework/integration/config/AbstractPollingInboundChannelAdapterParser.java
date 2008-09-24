@@ -23,7 +23,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
-import org.springframework.integration.scheduling.PollingSchedule;
+import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -45,7 +45,7 @@ public abstract class AbstractPollingInboundChannelAdapterParser extends Abstrac
 		adapterBuilder.addPropertyReference("source", source);
 		adapterBuilder.addPropertyReference("outputChannel", channelName);
 		if (pollerElement != null) {
-			IntegrationNamespaceUtils.configureSchedule(pollerElement, adapterBuilder);
+			IntegrationNamespaceUtils.configureTrigger(pollerElement, adapterBuilder);
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, pollerElement, "max-messages-per-poll");
 			Element txElement = DomUtils.getChildElementByTagName(pollerElement, "transactional");
 			if (txElement != null) {
@@ -53,14 +53,14 @@ public abstract class AbstractPollingInboundChannelAdapterParser extends Abstrac
 			}
 		}
 		else {
-			adapterBuilder.addPropertyValue("schedule", new PollingSchedule(this.getDefaultPollInterval()));
+			adapterBuilder.addPropertyValue("trigger", new IntervalTrigger(this.getDefaultPollInterval()));
 		}
 		return adapterBuilder.getBeanDefinition();
 	}
 
 	/**
 	 * Subclasses may override this to provide the default poll interval (when
-	 * no 'schedule' is configured). Otherwise, the value will be 1 second.
+	 * no 'trigger' is configured). Otherwise, the value will be 1 second.
 	 */
 	protected int getDefaultPollInterval() {
 		return 1000;

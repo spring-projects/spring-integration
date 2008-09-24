@@ -27,7 +27,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.ChannelPoller;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.scheduling.PollingSchedule;
+import org.springframework.integration.scheduling.IntervalTrigger;
 
 /**
  * @author Mark Fisher
@@ -42,7 +42,7 @@ public class CharacterStreamWritingMessageConsumerTests {
 	@Before
 	public void initialize() {
 		this.channel = new QueueChannel(10);
-		this.poller = new ChannelPoller(channel, new PollingSchedule(0));
+		this.poller = new ChannelPoller(channel, new IntervalTrigger(0));
 	}
 
 

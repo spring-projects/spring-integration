@@ -18,12 +18,7 @@ package org.springframework.integration.endpoint;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.scheduling.CronSchedule;
-import org.springframework.integration.scheduling.CronTrigger;
-import org.springframework.integration.scheduling.IntervalTrigger;
-import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.SchedulableTask;
-import org.springframework.integration.scheduling.Schedule;
 import org.springframework.integration.scheduling.Trigger;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
@@ -33,6 +28,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
 
 /**
+ * Base class for pollers.
+ * 
  * @author Mark Fisher
  */
 public abstract class AbstractPoller implements SchedulableTask, InitializingBean {
@@ -40,7 +37,7 @@ public abstract class AbstractPoller implements SchedulableTask, InitializingBea
 	public static final int MAX_MESSAGES_UNBOUNDED = -1;
 
 
-	private final Schedule schedule;
+	private final Trigger trigger;
 
 	private volatile long maxMessagesPerPoll = MAX_MESSAGES_UNBOUNDED; 
 
@@ -63,24 +60,14 @@ public abstract class AbstractPoller implements SchedulableTask, InitializingBea
 	private final Object initializationMonitor = new Object();
 
 
-	public AbstractPoller(Schedule schedule) {
-		Assert.notNull(schedule, "schedule must not be null");
-		this.schedule = schedule;
+	public AbstractPoller(Trigger trigger) {
+		Assert.notNull(trigger, "trigger must not be null");
+		this.trigger = trigger;
 	}
 
 
 	public Trigger getTrigger() {
-		if (schedule instanceof PollingSchedule) {
-			PollingSchedule pollingSchedule = (PollingSchedule) schedule; 
-			IntervalTrigger trigger = new IntervalTrigger(pollingSchedule.getPeriod(), pollingSchedule.getTimeUnit());
-			trigger.setInitialDelay(pollingSchedule.getInitialDelay());
-			trigger.setFixedRate(pollingSchedule.getFixedRate());
-			return trigger;
-		}
-		if (schedule instanceof CronSchedule ) {
-			return new CronTrigger(((CronSchedule) schedule).getCronExpression());
-		}
-		return null;
+		return this.trigger;
 	}
 
 	/**
