@@ -27,21 +27,21 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.endpoint.AbstractMessageConsumingEndpoint;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.util.Assert;
 
 /**
- * An outbound Channel Adapter that writes to a {@link Writer}. String-based objects
- * will be written directly, but if the object is not itself a {@link String}, the
- * target will write the result of the object's {@link #toString()} method. To
- * append a new-line after each write, set the {@link #shouldAppendNewLine} flag to
- * <em>true</em>. It is <em>false</em> by default.
+ * A {@link MessageConsumer} that writes characters to a {@link Writer}.
+ * String, character array, and byte array payloads will be written directly,
+ * but for other payload types, the result of the object's {@link #toString()}
+ * method will be written. To append a new-line after each write, set the
+ * {@link #shouldAppendNewLine} flag to 'true'. It is 'false' by default.
  * 
  * @author Mark Fisher
  */
-public class CharacterStreamOutboundChannelAdapter extends AbstractMessageConsumingEndpoint {
+public class CharacterStreamWritingMessageConsumer implements MessageConsumer {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -50,11 +50,11 @@ public class CharacterStreamOutboundChannelAdapter extends AbstractMessageConsum
 	private volatile boolean shouldAppendNewLine = false;
 
 
-	public CharacterStreamOutboundChannelAdapter(Writer writer) {
+	public CharacterStreamWritingMessageConsumer(Writer writer) {
 		this(writer, -1);
 	}
 
-	public CharacterStreamOutboundChannelAdapter(Writer writer, int bufferSize) {
+	public CharacterStreamWritingMessageConsumer(Writer writer, int bufferSize) {
 		Assert.notNull(writer, "writer must not be null");
 		if (writer instanceof BufferedWriter) {
 			this.writer = (BufferedWriter) writer;
@@ -72,7 +72,7 @@ public class CharacterStreamOutboundChannelAdapter extends AbstractMessageConsum
 	 * Factory method that creates a target for stdout (System.out) with the
 	 * default charset encoding.
 	 */
-	public static CharacterStreamOutboundChannelAdapter stdout() {
+	public static CharacterStreamWritingMessageConsumer stdout() {
 		return stdout(null);
 	}
 
@@ -80,7 +80,7 @@ public class CharacterStreamOutboundChannelAdapter extends AbstractMessageConsum
 	 * Factory method that creates a target for stdout (System.out) with the
 	 * specified charset encoding.
 	 */
-	public static CharacterStreamOutboundChannelAdapter stdout(String charsetName) {
+	public static CharacterStreamWritingMessageConsumer stdout(String charsetName) {
 		return createTargetForStream(System.out, charsetName);
 	}
 
@@ -88,7 +88,7 @@ public class CharacterStreamOutboundChannelAdapter extends AbstractMessageConsum
 	 * Factory method that creates a target for stderr (System.err) with the
 	 * default charset encoding.
 	 */
-	public static CharacterStreamOutboundChannelAdapter stderr() {
+	public static CharacterStreamWritingMessageConsumer stderr() {
 		return stderr(null);
 	}
 
@@ -96,16 +96,16 @@ public class CharacterStreamOutboundChannelAdapter extends AbstractMessageConsum
 	 * Factory method that creates a target for stderr (System.err) with the
 	 * specified charset encoding.
 	 */	
-	public static CharacterStreamOutboundChannelAdapter stderr(String charsetName) {
+	public static CharacterStreamWritingMessageConsumer stderr(String charsetName) {
 		return createTargetForStream(System.err, charsetName);
 	}
 
-	private static CharacterStreamOutboundChannelAdapter createTargetForStream(OutputStream stream, String charsetName) {
+	private static CharacterStreamWritingMessageConsumer createTargetForStream(OutputStream stream, String charsetName) {
 		if (charsetName == null) {
-			return new CharacterStreamOutboundChannelAdapter(new OutputStreamWriter(stream));
+			return new CharacterStreamWritingMessageConsumer(new OutputStreamWriter(stream));
 		}
 		try {
-			return new CharacterStreamOutboundChannelAdapter(new OutputStreamWriter(stream, charsetName));
+			return new CharacterStreamWritingMessageConsumer(new OutputStreamWriter(stream, charsetName));
 		}
 		catch (UnsupportedEncodingException e) {
 			throw new ConfigurationException("unsupported encoding: " + charsetName, e);
@@ -117,8 +117,7 @@ public class CharacterStreamOutboundChannelAdapter extends AbstractMessageConsum
 		this.shouldAppendNewLine = shouldAppendNewLine;
 	}
 
-	@Override
-	public void onMessageInternal(Message<?> message) {
+	public void onMessage(Message<?> message) {
 		Object payload = message.getPayload();
 		if (payload == null) {
 			if (logger.isWarnEnabled()) {

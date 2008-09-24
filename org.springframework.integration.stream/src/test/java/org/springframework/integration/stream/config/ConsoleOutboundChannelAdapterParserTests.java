@@ -34,7 +34,7 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.stream.CharacterStreamOutboundChannelAdapter;
+import org.springframework.integration.stream.CharacterStreamWritingMessageConsumer;
 
 /**
  * @author Mark Fisher
@@ -61,9 +61,10 @@ public class ConsoleOutboundChannelAdapterParserTests {
 	public void stdoutAdapterWithDefaultCharset() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"consoleOutboundChannelAdapterParserTests.xml", ConsoleOutboundChannelAdapterParserTests.class);
-		CharacterStreamOutboundChannelAdapter adapter =
-				(CharacterStreamOutboundChannelAdapter) context.getBean("stdoutAdapterWithDefaultCharset");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(adapter);
+		Object adapter = context.getBean("stdoutAdapterWithDefaultCharset");
+		CharacterStreamWritingMessageConsumer consumer = (CharacterStreamWritingMessageConsumer)
+				new DirectFieldAccessor(adapter).getPropertyValue("consumer");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
 		Writer bufferedWriter = (Writer) accessor.getPropertyValue("writer");
 		assertEquals(BufferedWriter.class, bufferedWriter.getClass());
 		DirectFieldAccessor bufferedWriterAccessor = new DirectFieldAccessor(bufferedWriter);
@@ -72,7 +73,7 @@ public class ConsoleOutboundChannelAdapterParserTests {
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
 		assertEquals(Charset.defaultCharset(), writerCharset);
 		this.resetStreams();
-		adapter.onMessage(new StringMessage("foo"));
+		consumer.onMessage(new StringMessage("foo"));
 		assertEquals("foo", out.toString());
 		assertEquals("", err.toString());
 	}
@@ -81,9 +82,10 @@ public class ConsoleOutboundChannelAdapterParserTests {
 	public void stdoutAdapterWithProvidedCharset() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"consoleOutboundChannelAdapterParserTests.xml", ConsoleOutboundChannelAdapterParserTests.class);
-		CharacterStreamOutboundChannelAdapter adapter =
-				(CharacterStreamOutboundChannelAdapter) context.getBean("stdoutAdapterWithProvidedCharset");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(adapter);
+		Object adapter = context.getBean("stdoutAdapterWithProvidedCharset");
+		CharacterStreamWritingMessageConsumer consumer = (CharacterStreamWritingMessageConsumer)
+				new DirectFieldAccessor(adapter).getPropertyValue("consumer");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
 		Writer bufferedWriter = (Writer) accessor.getPropertyValue("writer");
 		assertEquals(BufferedWriter.class, bufferedWriter.getClass());
 		DirectFieldAccessor bufferedWriterAccessor = new DirectFieldAccessor(bufferedWriter);
@@ -92,7 +94,7 @@ public class ConsoleOutboundChannelAdapterParserTests {
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
 		assertEquals(Charset.forName("UTF-8"), writerCharset);
 		this.resetStreams();
-		adapter.onMessage(new StringMessage("bar"));
+		consumer.onMessage(new StringMessage("bar"));
 		assertEquals("bar", out.toString());
 		assertEquals("", err.toString());
 	}
@@ -117,9 +119,10 @@ public class ConsoleOutboundChannelAdapterParserTests {
 	public void stderrAdapter() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"consoleOutboundChannelAdapterParserTests.xml", ConsoleOutboundChannelAdapterParserTests.class);
-		CharacterStreamOutboundChannelAdapter adapter =
-				(CharacterStreamOutboundChannelAdapter) context.getBean("stderrAdapter");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(adapter);
+		Object adapter = context.getBean("stderrAdapter");
+		CharacterStreamWritingMessageConsumer consumer = (CharacterStreamWritingMessageConsumer)
+				new DirectFieldAccessor(adapter).getPropertyValue("consumer");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
 		Writer bufferedWriter = (Writer) accessor.getPropertyValue("writer");
 		assertEquals(BufferedWriter.class, bufferedWriter.getClass());
 		DirectFieldAccessor bufferedWriterAccessor = new DirectFieldAccessor(bufferedWriter);
@@ -128,7 +131,7 @@ public class ConsoleOutboundChannelAdapterParserTests {
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
 		assertEquals(Charset.defaultCharset(), writerCharset);
 		this.resetStreams();
-		adapter.onMessage(new StringMessage("bad"));
+		consumer.onMessage(new StringMessage("bad"));
 		assertEquals("", out.toString());
 		assertEquals("bad", err.toString());
 	}
@@ -137,9 +140,10 @@ public class ConsoleOutboundChannelAdapterParserTests {
 	public void stdoutAdatperWithAppendNewLine() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"consoleOutboundChannelAdapterParserTests.xml", ConsoleOutboundChannelAdapterParserTests.class);
-		CharacterStreamOutboundChannelAdapter adapter =
-				(CharacterStreamOutboundChannelAdapter) context.getBean("newlineAdapter");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(adapter);
+		Object adapter = context.getBean("newlineAdapter");
+		CharacterStreamWritingMessageConsumer consumer = (CharacterStreamWritingMessageConsumer)
+				new DirectFieldAccessor(adapter).getPropertyValue("consumer");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
 		Writer bufferedWriter = (Writer) accessor.getPropertyValue("writer");
 		assertEquals(BufferedWriter.class, bufferedWriter.getClass());
 		DirectFieldAccessor bufferedWriterAccessor = new DirectFieldAccessor(bufferedWriter);
@@ -148,7 +152,7 @@ public class ConsoleOutboundChannelAdapterParserTests {
 		Charset writerCharset = Charset.forName(((OutputStreamWriter) writer).getEncoding());
 		assertEquals(Charset.defaultCharset(), writerCharset);
 		this.resetStreams();
-		adapter.onMessage(new StringMessage("foo"));
+		consumer.onMessage(new StringMessage("foo"));
 		assertEquals("foo\n", out.toString());
 	}
 

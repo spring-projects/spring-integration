@@ -18,6 +18,7 @@ package org.springframework.integration.config;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -33,17 +34,22 @@ import org.springframework.util.StringUtils;
 public class MethodInvokingOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
 	@Override
-	protected String parseConsumer(Element element, ParserContext parserContext) {
+	protected String parseAndRegisterConsumer(Element element, ParserContext parserContext) {
 		String target = element.getAttribute("target");
 		Assert.isTrue(StringUtils.hasText(target), "target is required");
-		String methodName = element.getAttribute("method");
-		if (StringUtils.hasText(methodName)) {
-			BeanDefinitionBuilder invokerBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingConsumer.class);
-			invokerBuilder.addConstructorArgReference(target);
-			invokerBuilder.addConstructorArgValue(methodName);
-			target = BeanDefinitionReaderUtils.registerWithGeneratedName(invokerBuilder.getBeanDefinition(), parserContext.getRegistry());
+		if (element.hasAttribute("method")) {
+			target = BeanDefinitionReaderUtils.registerWithGeneratedName(
+					this.parseConsumer(element, parserContext), parserContext.getRegistry());
 		}
 		return target;
+	}
+
+	@Override
+	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder invokerBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingConsumer.class);
+		invokerBuilder.addConstructorArgReference(element.getAttribute("target"));
+		invokerBuilder.addConstructorArgValue(element.getAttribute("method"));
+		return invokerBuilder.getBeanDefinition();
 	}
 
 }

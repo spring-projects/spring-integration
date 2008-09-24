@@ -20,9 +20,11 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.endpoint.OutboundChannelAdapter;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -38,7 +40,10 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 		Element pollerElement = DomUtils.getChildElementByTagName(element, "poller");
 		BeanDefinitionBuilder adapterBuilder = null;
 		adapterBuilder =  BeanDefinitionBuilder.genericBeanDefinition(OutboundChannelAdapter.class);
-		adapterBuilder.addConstructorArgReference(this.parseConsumer(element, parserContext));
+		AbstractBeanDefinition consumerBeanDefinition = this.parseConsumer(element, parserContext);
+		String consumerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
+				consumerBeanDefinition, parserContext.getRegistry());
+		adapterBuilder.addConstructorArgReference(consumerBeanName);
 		if (pollerElement != null) {
 			if (!StringUtils.hasText(channelName)) {
 				throw new ConfigurationException("outbound channel adapter with a 'poller' requires a 'channel' to poll");
@@ -54,8 +59,21 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 	}
 
 	/**
-	 * Subclasses must implement this method and return the bean name of the MessageConsumer.
+	 * Override this method to control the registration process and return the bean name.
+	 * If parsing a bean definition whose name can be auto-generated, consider using
+	 * {@link #parseConsumer(Element, ParserContext)} instead.
 	 */
-	protected abstract String parseConsumer(Element element, ParserContext parserContext);
+	protected String parseAndRegisterConsumer(Element element, ParserContext parserContext) {
+		AbstractBeanDefinition definition = this.parseConsumer(element, parserContext);
+		Assert.notNull(definition, "Consumer parsing must return a BeanDefinition.");
+		return BeanDefinitionReaderUtils.registerWithGeneratedName(
+				definition, parserContext.getRegistry());
+	}
+
+	/**
+	 * Override this method to return the BeanDefinition for the MessageConsumer. It will
+	 * be registered with a generated name.
+	 */
+	protected abstract AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext);
 
 }

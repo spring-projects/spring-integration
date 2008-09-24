@@ -18,8 +18,8 @@ package org.springframework.integration.ftp.config;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.ftp.FtpSendingMessageConsumer;
@@ -34,7 +34,7 @@ import org.springframework.integration.ftp.QueuedFTPClientPool;
 public class FtpOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
 	@Override
-	protected String parseConsumer(Element element, ParserContext parserContext) {
+	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(FtpSendingMessageConsumer.class);
 		String username = element.getAttribute("username");
 		String password = element.getAttribute("password");
@@ -48,8 +48,7 @@ public class FtpOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 		queuedFTPClientPool.setPort(Integer.parseInt(port));
 		queuedFTPClientPool.setRemoteWorkingDirectory(remoteWorkingDirectory);
 		builder.addConstructorArgValue(queuedFTPClientPool);
-		return BeanDefinitionReaderUtils.registerWithGeneratedName(
-				builder.getBeanDefinition(), parserContext.getRegistry());
+		return builder.getBeanDefinition();
 	}
 
 }

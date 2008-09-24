@@ -18,8 +18,8 @@ package org.springframework.integration.file.config;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.file.FileWritingMessageConsumer;
@@ -34,7 +34,7 @@ import org.springframework.util.StringUtils;
 public class FileOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
 	@Override
-	protected String parseConsumer(Element element, ParserContext parserContext) {
+	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		String directory = element.getAttribute("directory");
 		Assert.hasText(directory, "directory is required");
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(FileWritingMessageConsumer.class);
@@ -43,8 +43,7 @@ public class FileOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		if (StringUtils.hasText(fileNameGenerator)) {
 			builder.addPropertyReference("fileNameGenerator", fileNameGenerator);
 		}
-		return BeanDefinitionReaderUtils.registerWithGeneratedName(
-				builder.getBeanDefinition(), parserContext.getRegistry());
+		return builder.getBeanDefinition();
 	}
 
 }
