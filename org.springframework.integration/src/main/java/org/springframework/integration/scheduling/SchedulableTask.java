@@ -23,6 +23,6 @@ package org.springframework.integration.scheduling;
  */
 public interface SchedulableTask extends Runnable {
 
-	Schedule getSchedule();
+	Trigger getTrigger();
 
 }

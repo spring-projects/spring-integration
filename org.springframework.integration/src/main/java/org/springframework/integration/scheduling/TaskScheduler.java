@@ -19,18 +19,16 @@ package org.springframework.integration.scheduling;
 import java.util.concurrent.ScheduledFuture;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.util.ErrorHandler;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 
 /**
  * Base interface for scheduling messaging tasks.
  * 
  * @author Mark Fisher
+ * @author Marius Bogoevici
  */
 public interface TaskScheduler extends SchedulingTaskExecutor, Lifecycle {
 
-	ScheduledFuture<?> schedule(SchedulableTask task);
-
-	boolean cancel(Runnable task, boolean mayInterruptIfRunning);
+	ScheduledFuture<?> schedule(Runnable task, Trigger trigger);
 
 }

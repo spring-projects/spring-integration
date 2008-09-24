@@ -37,8 +37,8 @@ import org.springframework.integration.bus.MessageBusInterceptorTests;
 import org.springframework.integration.bus.TestMessageBusAwareImpl;
 import org.springframework.integration.bus.TestMessageBusStartInterceptor;
 import org.springframework.integration.bus.TestMessageBusStopInterceptor;
+import org.springframework.integration.scheduling.SimpleTaskScheduler;
 import org.springframework.integration.scheduling.TaskScheduler;
-import org.springframework.integration.scheduling.spi.ProviderTaskScheduler;
 
 /**
  * @author Mark Fisher
@@ -144,7 +144,7 @@ public class MessageBusParserTests {
 				context.getBean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME);
 		DirectFieldAccessor accessor = new DirectFieldAccessor(multicaster);
 		Object taskExecutor = accessor.getPropertyValue("taskExecutor");
-		assertEquals(ProviderTaskScheduler.class, taskExecutor.getClass());
+		assertEquals(SimpleTaskScheduler.class, taskExecutor.getClass());
 	}
 
 	@Test

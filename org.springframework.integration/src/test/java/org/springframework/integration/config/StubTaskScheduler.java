@@ -18,31 +18,23 @@ package org.springframework.integration.config;
 
 import java.util.concurrent.ScheduledFuture;
 
-import org.springframework.integration.scheduling.SchedulableTask;
 import org.springframework.integration.scheduling.TaskScheduler;
-import org.springframework.integration.util.ErrorHandler;
+import org.springframework.integration.scheduling.Trigger;
 
 /**
  * @author Mark Fisher
  */
 public class StubTaskScheduler implements TaskScheduler {
 
-	public boolean cancel(Runnable task, boolean mayInterruptIfRunning) {
-		return false;
-	}
-
-	public ScheduledFuture<?> schedule(SchedulableTask task) {
+	public ScheduledFuture<?> schedule(Runnable task, Trigger trigger) {
 		return null;
 	}
 
-	public void setErrorHandler(ErrorHandler errorHandler) {
+	public void execute(Runnable task) {
 	}
 
 	public boolean prefersShortLivedTasks() {
-		return false;
-	}
-
-	public void execute(Runnable task) {
+		return true;
 	}
 
 	public boolean isRunning() {

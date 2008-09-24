@@ -18,8 +18,13 @@ package org.springframework.integration.endpoint;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.integration.scheduling.CronSchedule;
+import org.springframework.integration.scheduling.CronTrigger;
+import org.springframework.integration.scheduling.IntervalTrigger;
+import org.springframework.integration.scheduling.PollingSchedule;
 import org.springframework.integration.scheduling.SchedulableTask;
 import org.springframework.integration.scheduling.Schedule;
+import org.springframework.integration.scheduling.Trigger;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
@@ -64,8 +69,18 @@ public abstract class AbstractPoller implements SchedulableTask, InitializingBea
 	}
 
 
-	public Schedule getSchedule() {
-		return this.schedule;
+	public Trigger getTrigger() {
+		if (schedule instanceof PollingSchedule) {
+			PollingSchedule pollingSchedule = (PollingSchedule) schedule; 
+			IntervalTrigger trigger = new IntervalTrigger(pollingSchedule.getPeriod(), pollingSchedule.getTimeUnit());
+			trigger.setInitialDelay(pollingSchedule.getInitialDelay());
+			trigger.setFixedRate(pollingSchedule.getFixedRate());
+			return trigger;
+		}
+		if (schedule instanceof CronSchedule ) {
+			return new CronTrigger(((CronSchedule) schedule).getCronExpression());
+		}
+		return null;
 	}
 
 	/**

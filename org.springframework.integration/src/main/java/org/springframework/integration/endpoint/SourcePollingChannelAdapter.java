@@ -16,6 +16,8 @@
 
 package org.springframework.integration.endpoint;
 
+import java.util.concurrent.ScheduledFuture;
+
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.MethodInvokingSource;
@@ -37,6 +39,8 @@ public class SourcePollingChannelAdapter extends AbstractMessageProducingEndpoin
 	private volatile Schedule schedule;
 
 	private volatile SourcePoller poller;
+
+	private volatile ScheduledFuture<?> pollerFuture;
 
 	private volatile int maxMessagesPerPoll = -1;
 
@@ -79,8 +83,9 @@ public class SourcePollingChannelAdapter extends AbstractMessageProducingEndpoin
 			this.poller.setMaxMessagesPerPoll(maxMessagesPerPoll);
 			TaskScheduler taskScheduler = this.getTaskScheduler();
 			if (taskScheduler != null) {
-				taskScheduler.schedule(this.poller);
+				this.pollerFuture = taskScheduler.schedule(this.poller, this.poller.getTrigger());
 			}
+			this.running = true;
 		}
 	}
 
@@ -89,10 +94,10 @@ public class SourcePollingChannelAdapter extends AbstractMessageProducingEndpoin
 			if (!this.running) {
 				return;
 			}
-			TaskScheduler taskScheduler = this.getTaskScheduler();
-			if (taskScheduler != null) {
-				taskScheduler.cancel(this.poller, true);
+			if (this.pollerFuture != null) {
+				this.pollerFuture.cancel(true);
 			}
+			this.running = false;
 		}
 	}
 

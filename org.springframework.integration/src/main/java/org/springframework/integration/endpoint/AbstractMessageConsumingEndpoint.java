@@ -16,6 +16,8 @@
 
 package org.springframework.integration.endpoint;
 
+import java.util.concurrent.ScheduledFuture;
+
 import org.springframework.context.Lifecycle;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.ConfigurationException;
@@ -41,6 +43,8 @@ public abstract class AbstractMessageConsumingEndpoint extends AbstractEndpoint 
 	private volatile Schedule schedule = new PollingSchedule(0);
 
 	private volatile ChannelPoller poller;
+
+	private volatile ScheduledFuture<?> pollerFuture;
 
 	private volatile TaskExecutor taskExecutor;
 
@@ -110,7 +114,7 @@ public abstract class AbstractMessageConsumingEndpoint extends AbstractEndpoint 
 				if (this.getTaskScheduler() == null) {
 					throw new ConfigurationException("failed to start endpoint, no taskScheduler available");
 				}
-				this.getTaskScheduler().schedule(poller);
+				this.pollerFuture = this.getTaskScheduler().schedule(this.poller, this.poller.getTrigger());
 			}
 			this.running = true;
 		}
@@ -124,8 +128,8 @@ public abstract class AbstractMessageConsumingEndpoint extends AbstractEndpoint 
 			if (this.inputChannel instanceof Subscribable) {
 				((Subscribable) inputChannel).unsubscribe(this);
 			}
-			else if (this.poller != null) {
-				this.getTaskScheduler().cancel(poller, true);
+			else if (this.pollerFuture != null) {
+				this.pollerFuture.cancel(true);
 			}
 			this.running = false;
 		}
