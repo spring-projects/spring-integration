@@ -1,9 +1,0 @@
-Bundle-SymbolicName: org.springframework.integration.quartz
-Bundle-Name: Spring Integration Quartz Support
-Bundle-Vendor: SpringSource
-Bundle-ManifestVersion: 2
-Import-Template: 
- org.springframework.integration.*;version="[1.0.0, 1.0.1)",
- org.springframework.scheduling.quartz;version="[2.5.5.A, 3.0.0)",
- org.quartz.*;version="[1.6.0, 2.0.0)"
-
