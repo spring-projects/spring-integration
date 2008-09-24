@@ -104,9 +104,7 @@ public class MessageMappingMethodInvoker implements MethodInvoker, InitializingB
 			}
 			if (this.method != null) {
 				Class<?>[] parameterTypes = this.method.getParameterTypes();
-				if (parameterTypes.length == 0) {
-					throw new ConfigurationException("method must accept at least one parameter");
-				}
+				Assert.isTrue(parameterTypes.length > 0, "method must accept at least one parameter");
 				if (parameterTypes.length == 1 && Message.class.isAssignableFrom(parameterTypes[0])) {
 					this.methodExpectsMessage = true;
 				}

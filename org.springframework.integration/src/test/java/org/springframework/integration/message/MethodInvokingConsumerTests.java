@@ -44,7 +44,7 @@ public class MethodInvokingConsumerTests {
 		consumer.onMessage(new GenericMessage<String>("test"));
 	}
 
-	@Test(expected = ConfigurationException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testInvalidMethodWithNoArgs() {
 		MethodInvokingConsumer consumer = new MethodInvokingConsumer(new TestSink(), "invalidMethodWithNoArgs");
 		consumer.afterPropertiesSet();
