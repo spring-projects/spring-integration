@@ -13,9 +13,9 @@
 	<channel id="even"/>
 	<channel id="odd"/>
 
-	<channel-adapter id="numbers" source="counter">
+	<inbound-channel-adapter id="numbers" ref="counter" method="next">
 		<poller cron="1,2,3,5,8,13,21,34,55 * * * * ?" max-messages-per-poll="1"/>
-	</channel-adapter>
+	</inbound-channel-adapter>
 
 	<router ref="parityResolver" method="getParity" input-channel="numbers"/>
 
@@ -23,12 +23,7 @@
 
 	<service-activator ref="evenLogger" input-channel="even"/>
 
-	<beans:bean id="counter" class="org.springframework.integration.message.MethodInvokingSource">
-		<beans:property name="object">
-			<beans:bean class="org.springframework.integration.samples.oddeven.Counter"/>
-		</beans:property>
-		<beans:property name="methodName" value="next"/>
-	</beans:bean>
+	<beans:bean id="counter" class="org.springframework.integration.samples.oddeven.Counter"/>
 
 	<beans:bean id="parityResolver" class="org.springframework.integration.samples.oddeven.ParityResolver"/>
 
