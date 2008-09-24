@@ -24,8 +24,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.integration.scheduling.PollingSchedule;
-
 /**
  * Annotation that can be specified at method-level alongside a Message Endpoint
  * annotation (e.g. @Splitter, @ChannelAdapter, etc.) in order to provide the
@@ -41,9 +39,9 @@ public @interface Poller {
 
 	int interval();
 
-	long initialDelay() default PollingSchedule.DEFAULT_INITIAL_DELAY;
+	long initialDelay() default 0;
 
-	boolean fixedRate() default PollingSchedule.DEFAULT_FIXED_RATE;
+	boolean fixedRate() default false;
 
 	TimeUnit timeUnit() default TimeUnit.MILLISECONDS;
 
