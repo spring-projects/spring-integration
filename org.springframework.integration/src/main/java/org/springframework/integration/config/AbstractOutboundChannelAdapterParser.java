@@ -40,9 +40,7 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 		Element pollerElement = DomUtils.getChildElementByTagName(element, "poller");
 		BeanDefinitionBuilder adapterBuilder = null;
 		adapterBuilder =  BeanDefinitionBuilder.genericBeanDefinition(OutboundChannelAdapter.class);
-		AbstractBeanDefinition consumerBeanDefinition = this.parseConsumer(element, parserContext);
-		String consumerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
-				consumerBeanDefinition, parserContext.getRegistry());
+		String consumerBeanName = this.parseAndRegisterConsumer(element, parserContext);
 		adapterBuilder.addConstructorArgReference(consumerBeanName);
 		if (pollerElement != null) {
 			if (!StringUtils.hasText(channelName)) {
