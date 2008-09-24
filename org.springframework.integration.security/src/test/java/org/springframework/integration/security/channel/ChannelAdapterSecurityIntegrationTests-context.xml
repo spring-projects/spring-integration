@@ -26,8 +26,8 @@
 
 	<beans:bean id="testConsumer" class="org.springframework.integration.security.endpoint.TestConsumer"/>
 
-	<channel-adapter id="securedChannelAdapter" target="testConsumer"/>
+	<outbound-channel-adapter id="securedChannelAdapter" ref="testConsumer"/>
 
-	<channel-adapter id="unsecuredChannelAdapter" target="testConsumer"/>
+	<outbound-channel-adapter id="unsecuredChannelAdapter" ref="testConsumer"/>
 
 </beans:beans>

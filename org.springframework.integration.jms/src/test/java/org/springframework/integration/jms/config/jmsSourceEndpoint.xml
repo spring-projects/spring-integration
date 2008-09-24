@@ -16,9 +16,9 @@
 		<si:queue capacity="10"/>
 	</si:channel>
 
-	<si:channel-adapter source="jmsSource" channel="channel">
+	<si:inbound-channel-adapter ref="jmsSource" channel="channel">
 		<si:poller period="5000" initial-delay="0" max-messages-per-poll="1"/>
-	</si:channel-adapter>
+	</si:inbound-channel-adapter>
 
 	<jms:jms-source id="jmsSource" jms-template="jmsTemplate"/>
 

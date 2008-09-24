@@ -29,7 +29,7 @@
 		</interceptors>
 	</service-activator>
 
-	<channel-adapter id="output" target="testConsumer"/>
+	<outbound-channel-adapter id="output" ref="testConsumer"/>
 
 	<beans:bean id="testHandler"
 		class="org.springframework.integration.security.endpoint.TestHandler"/>
