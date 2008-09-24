@@ -26,7 +26,7 @@
 	                   ref="testBean"
 	                   method="good"
                        output-channel="output">
-        <poller period="10000" max-messages-per-poll="1">
+        <poller interval="10000" max-messages-per-poll="1">
         	<transactional transaction-manager="txManager" propagation="MANDATORY"/>
         </poller>
     </service-activator>

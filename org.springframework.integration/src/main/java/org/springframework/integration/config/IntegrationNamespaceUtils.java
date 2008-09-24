@@ -141,11 +141,11 @@ public abstract class IntegrationNamespaceUtils {
 	 */
 	public static void configureTrigger(Element pollerElement, BeanDefinitionBuilder targetBuilder) {
 		Trigger trigger = null;
-		String interval = pollerElement.getAttribute("period");
+		String interval = pollerElement.getAttribute("interval");
 		String cron = pollerElement.getAttribute("cron");
 		if (!(StringUtils.hasText(interval) ^ StringUtils.hasText(cron))) {
 			throw new ConfigurationException(
-					"A <poller> element must define either a period or a cron expression (but not both).");
+					"A <poller> element must include either an 'interval' or a 'cron' expression (but not both).");
 		}
 		if (StringUtils.hasText(interval)) {
 			Long period = Long.valueOf(interval);

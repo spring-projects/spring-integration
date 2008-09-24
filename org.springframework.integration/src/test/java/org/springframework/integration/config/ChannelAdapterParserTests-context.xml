@@ -18,7 +18,7 @@
 	<outbound-channel-adapter id="methodInvokingConsumer" ref="testBean" method="store"/>
 
 	<inbound-channel-adapter id="methodInvokingSource" ref="testBean" method="getMessage" channel="queueChannel">
-		<poller period="10000" max-messages-per-poll="1"/>
+		<poller interval="10000" max-messages-per-poll="1"/>
 	</inbound-channel-adapter>
 
 	<beans:bean id="consumer" class="org.springframework.integration.config.TestConsumer"/>

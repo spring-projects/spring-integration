@@ -14,7 +14,7 @@
 	</channel>
 
 	<service-activator input-channel="testChannel" ref="testHandler">
-		<poller period="100"/>
+		<poller interval="100"/>
 	</service-activator>
 
 	<beans:bean id="testHandler" class="org.springframework.integration.config.TestHandler">

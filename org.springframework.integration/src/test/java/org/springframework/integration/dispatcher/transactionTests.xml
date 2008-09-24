@@ -22,19 +22,19 @@
 	</channel>
 
 	<service-activator input-channel="badInput"
-	                  ref="testBean"
-	                  method="bad"
-                      output-channel="output">
-        <poller period="10000" max-messages-per-poll="1">
+	                   ref="testBean"
+	                   method="bad"
+                       output-channel="output">
+        <poller interval="10000" max-messages-per-poll="1">
         	<transactional transaction-manager="txManager"/>
         </poller>
     </service-activator>
 
 	<service-activator input-channel="goodInput"
-	                  ref="testBean"
-	                  method="good"
-                      output-channel="output">
-        <poller period="10000" max-messages-per-poll="1">
+	                   ref="testBean"
+	                   method="good"
+                       output-channel="output">
+        <poller interval="10000" max-messages-per-poll="1">
         	<transactional transaction-manager="txManager"/>
         </poller>
 	</service-activator>
