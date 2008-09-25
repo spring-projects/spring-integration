@@ -104,8 +104,8 @@ public class SimpleTaskScheduler implements TaskScheduler {
 			if (this.running) {
 				return;
 			}
-			this.executor.execute(this.schedulerTask);
 			this.running = true;
+			this.executor.execute(this.schedulerTask);
 		}
 		finally {
 			this.lifecycleLock.unlock();
@@ -119,7 +119,7 @@ public class SimpleTaskScheduler implements TaskScheduler {
 				return;
 			}
 			this.running = false;
-			Thread executingThread = this.schedulerTask.executingThread.getAndSet(null);
+			Thread executingThread = this.schedulerTask.executingThread.get();
 			if (executingThread != null) {
 				executingThread.interrupt();
 			}
@@ -165,6 +165,7 @@ public class SimpleTaskScheduler implements TaskScheduler {
 					break;
 				}
 			}
+			this.executingThread.set(null);
 		}
 	}
 
