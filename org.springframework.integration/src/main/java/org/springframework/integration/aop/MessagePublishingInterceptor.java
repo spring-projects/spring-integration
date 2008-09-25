@@ -18,14 +18,12 @@ package org.springframework.integration.aop;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageCreator;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.util.Assert;
 
 /**
@@ -40,8 +38,6 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	private volatile MessageCreator messageCreator;
-
 	private volatile MessageChannel defaultChannel;
 
 	private volatile PayloadType payloadType = PayloadType.RETURN_VALUE;
@@ -54,16 +50,6 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 	public void setPayloadType(PayloadType payloadType) {
 		Assert.notNull(payloadType, "'payloadType' must not be null");
 		this.payloadType = payloadType;
-	}
-
-	/**
-	 * Specify the {@link MessageCreator} to use when creating a message from the
-	 * return value Object.
-	 * 
-	 * @param messageCreator the MessageCreator to use
-	 */
-	public void setMessageCreator(MessageCreator messageCreator) {
-		this.messageCreator = messageCreator;
 	}
 
 	/**
@@ -104,8 +90,9 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 				}
 			}
 			else {
-				Message<?> message = (this.messageCreator != null) ?
-						this.messageCreator.createMessage(payload) : new GenericMessage<Object>(payload);
+				Message<?> message = (payload instanceof Message)
+						? (Message<?>) payload
+						: MessageBuilder.withPayload(payload).build();
 				channel.send(message);
 			}
 		}
