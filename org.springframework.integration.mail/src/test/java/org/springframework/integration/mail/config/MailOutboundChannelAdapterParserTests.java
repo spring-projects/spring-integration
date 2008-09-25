@@ -16,7 +16,6 @@
 
 package org.springframework.integration.mail.config;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
@@ -24,10 +23,7 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.mail.MailHeaderGenerator;
 import org.springframework.integration.mail.MailSendingMessageConsumer;
-import org.springframework.integration.message.Message;
-import org.springframework.mail.MailMessage;
 import org.springframework.mail.MailSender;
 
 /**
@@ -57,26 +53,6 @@ public class MailOutboundChannelAdapterParserTests {
 		DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(consumer);
 		MailSender mailSender = (MailSender) fieldAccessor.getPropertyValue("mailSender");
 		assertNotNull(mailSender);
-	}
-
-	@Test
-	public void adapterWithHeaderGeneratorReference() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"mailOutboundChannelAdapterParserTests.xml", this.getClass());
-		Object adapter = context.getBean("adapterWithHeaderGeneratorReference.adapter");
-		MailSendingMessageConsumer consumer = (MailSendingMessageConsumer)
-				new DirectFieldAccessor(adapter).getPropertyValue("consumer");
-		DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(consumer);
-		MailHeaderGenerator headerGenerator = (MailHeaderGenerator)
-				fieldAccessor.getPropertyValue("mailHeaderGenerator");
-		assertEquals(TestHeaderGenerator.class, headerGenerator.getClass());
-	}
-
-
-	public static class TestHeaderGenerator implements MailHeaderGenerator {
-
-		public void populateMailMessageHeader(MailMessage mailMessage, Message<?> message) {
-		}
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.springframework.integration.mail;
 
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.mail.SimpleMailMessage;
 
 /**
@@ -51,6 +53,17 @@ public class MailTestsHelper {
 		message.setFrom(FROM);
 		message.setText(MESSAGE_TEXT);
 		return message;
+	}
+
+	public static Message<String> createIntegrationMessage() {
+		return MessageBuilder.withPayload(MailTestsHelper.MESSAGE_TEXT)
+				.setHeader(MailHeaders.SUBJECT, MailTestsHelper.SUBJECT)
+				.setHeader(MailHeaders.TO, MailTestsHelper.TO)
+				.setHeader(MailHeaders.CC, MailTestsHelper.CC)
+				.setHeader(MailHeaders.BCC, MailTestsHelper.BCC)
+				.setHeader(MailHeaders.FROM, MailTestsHelper.FROM)
+				.setHeader(MailHeaders.REPLY_TO, MailTestsHelper.REPLY_TO)
+				.build();
 	}
 
 }

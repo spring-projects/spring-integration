@@ -17,27 +17,6 @@
 
 	<bean id="mailSendingMessageConsumer" class="org.springframework.integration.mail.MailSendingMessageConsumer">
 		<constructor-arg ref="javaMailSender"/>
-		<property name="headerGenerator">
-			<bean class="org.springframework.integration.mail.StaticMailHeaderGenerator">
-				<property name="subject">
-					<util:constant static-field="org.springframework.integration.mail.MailTestsHelper.SUBJECT"/>
-				</property>
-				<property name="to">
-					<util:constant static-field="org.springframework.integration.mail.MailTestsHelper.TO"/>
-				</property>
-				<property name="cc">
-					<util:constant static-field="org.springframework.integration.mail.MailTestsHelper.CC"/>
-				</property>
-				<property name="bcc">
-					<util:constant static-field="org.springframework.integration.mail.MailTestsHelper.BCC"/>
-				</property>
-				<property name="from">
-					<util:constant static-field="org.springframework.integration.mail.MailTestsHelper.FROM"/>
-				</property>
-				<property name="replyTo">
-					<util:constant static-field="org.springframework.integration.mail.MailTestsHelper.REPLY_TO"/>
-				</property>
-			</bean>
-		</property>
 	</bean>
+
 </beans>

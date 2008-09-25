@@ -7,14 +7,11 @@
 			http://www.springframework.org/schema/integration/mail
 			http://www.springframework.org/schema/integration/mail/spring-integration-mail-1.0.xsd">
 
-	<mail:outbound-channel-adapter id="adapterWithMailSenderReference" mail-sender="mailSender"/>
+	<mail:outbound-channel-adapter id="adapterWithMailSenderReference"
+			mail-sender="mailSender"/>
 
 	<mail:outbound-channel-adapter id="adapterWithHostProperty"
 			host="somehost" username="someuser" password="somepassword"/>
-
-	<mail:outbound-channel-adapter id="adapterWithHeaderGeneratorReference"
-			mail-sender="mailSender"
-			header-generator="testHeaderGenerator"/>
 
 	<bean id="mailSender" class="org.springframework.integration.mail.StubJavaMailSender">
 		<constructor-arg>
@@ -23,7 +20,5 @@
 			</bean>
 		</constructor-arg>
 	</bean>
-
-	<bean id="testHeaderGenerator" class="org.springframework.integration.mail.config.MailOutboundChannelAdapterParserTests$TestHeaderGenerator"/>
 
 </beans>

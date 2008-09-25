@@ -23,6 +23,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.integration.adapter.MessageMappingException;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHeaders;
 import org.springframework.mail.MailMessage;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -35,9 +36,10 @@ import org.springframework.util.Assert;
  * 
  * <p>If the Message is an instance of {@link MailMessage}, it will be passed
  * as-is. If the Message payload is a byte array, it will be passed as an
- * attachment, and the {@link MailHeaders#ATTACHMENT_FILENAME} header is
- * required. For any other payload type, a {@link SimpleMailMessage} will be
- * created with the payload's <code>toString()</code> value as the Mail text.
+ * attachment, and in that case, the {@link MailHeaders#ATTACHMENT_FILENAME}
+ * header is required. For any other payload type, a {@link SimpleMailMessage}
+ * will be created with the payload's <code>toString()</code> value as the Mail
+ * text.
  * 
  * @see MailHeaders
  * 
@@ -47,8 +49,6 @@ import org.springframework.util.Assert;
 public class MailSendingMessageConsumer implements MessageConsumer {
 
 	private final JavaMailSender mailSender;
-
-	private volatile MailHeaderGenerator mailHeaderGenerator = new DefaultMailHeaderGenerator();
 
 
 	/**
@@ -63,34 +63,8 @@ public class MailSendingMessageConsumer implements MessageConsumer {
 	}
 
 
-	public void setHeaderGenerator(MailHeaderGenerator mailHeaderGenerator) {
-		Assert.notNull(mailHeaderGenerator, "'mailHeaderGenerator' must not be null");
-		this.mailHeaderGenerator = mailHeaderGenerator;
-	}
-
 	public final void onMessage(Message<?> message) {
 		MailMessage mailMessage = this.convertMessageToMailMessage(message);
-		this.mailHeaderGenerator.populateMailMessageHeader(mailMessage, message);
-		this.sendMailMessage(mailMessage);
-	}
-
-	@SuppressWarnings("unchecked")
-	private MailMessage convertMessageToMailMessage(Message<?> message) {
-		MailMessage mailMessage = null;
-		if (message.getPayload() instanceof MailMessage) {
-			mailMessage = (MailMessage) message.getPayload();
-		}
-		else if (message.getPayload() instanceof byte[]) {
-			mailMessage = this.createMailMessageFromByteArrayMessage((Message<byte[]>) message);
-		}
-		else {
-			mailMessage = new SimpleMailMessage();
-			mailMessage.setText(message.getPayload().toString());
-		}
-		return mailMessage;
-	}
-
-	private void sendMailMessage(MailMessage mailMessage) {
 		if (mailMessage instanceof SimpleMailMessage) {
 			this.mailSender.send((SimpleMailMessage) mailMessage);
 		}
@@ -101,6 +75,23 @@ public class MailSendingMessageConsumer implements MessageConsumer {
 			throw new IllegalArgumentException(
 					"Unsupported MailMessage type [" + mailMessage.getClass().getName() + "].");
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private MailMessage convertMessageToMailMessage(Message<?> message) {
+		if (message.getPayload() instanceof MailMessage) {
+			return (MailMessage) message.getPayload();
+		}
+		MailMessage mailMessage = null;
+		if (message.getPayload() instanceof byte[]) {
+			mailMessage = this.createMailMessageFromByteArrayMessage((Message<byte[]>) message);
+		}
+		else {
+			mailMessage = new SimpleMailMessage();
+			mailMessage.setText(message.getPayload().toString());
+		}
+		this.configureHeaderValues(mailMessage, message.getHeaders());
+		return mailMessage;
 	}
 
 	private MailMessage createMailMessageFromByteArrayMessage(Message<byte[]> message) {
@@ -121,6 +112,46 @@ public class MailSendingMessageConsumer implements MessageConsumer {
 		} catch (MessagingException e) {
 			throw new MessageMappingException(message, "failed to create MimeMessage", e);
 		}		
+	}
+
+	private void configureHeaderValues(MailMessage mailMessage, MessageHeaders headers) {
+		String subject = headers.get(MailHeaders.SUBJECT, String.class);
+		if (subject != null) {
+			mailMessage.setSubject(subject);
+		}
+		String[] to = this.retrieveAsStringArray(headers, MailHeaders.TO);
+		if (to != null) {
+			mailMessage.setTo(to);
+		}
+		String[] cc = this.retrieveAsStringArray(headers, MailHeaders.CC);
+		if (cc != null) {
+			mailMessage.setCc(cc);
+		}
+		String[] bcc = this.retrieveAsStringArray(headers, MailHeaders.BCC);
+		if (bcc != null) {
+			mailMessage.setBcc(bcc);
+		}
+		String from = headers.get(MailHeaders.FROM, String.class);
+		if (from != null) {
+			mailMessage.setFrom(from);
+		}
+		String replyTo = headers.get(MailHeaders.REPLY_TO, String.class);
+		if (replyTo != null) {
+			mailMessage.setReplyTo(replyTo);
+		}
+	}
+
+	private String[] retrieveAsStringArray(MessageHeaders headers, String key) {
+		Object value = headers.get(key);
+		if (value != null) {
+			if (value instanceof String[]) {
+				return (String[]) value;
+			}
+			if (value instanceof String) {
+				return new String[] { (String) value };
+			}
+		}
+		return null;
 	}
 
 }

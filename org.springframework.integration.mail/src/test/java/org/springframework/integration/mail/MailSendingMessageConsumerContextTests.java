@@ -34,7 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.adapter.MessageMappingException;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.StringMessage;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -60,14 +59,14 @@ public class MailSendingMessageConsumerContextTests {
 
 	@Test
 	public void stringMesssagesWithConfiguration() {
-		this.consumer.onMessage(new StringMessage(MailTestsHelper.MESSAGE_TEXT));
-		SimpleMailMessage message = MailTestsHelper.createSimpleMailMessage();
+		this.consumer.onMessage(MailTestsHelper.createIntegrationMessage());
+		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
 		assertEquals("no mime message should have been sent",
 				0, this.mailSender.getSentMimeMessages().size());
 		assertEquals("only one simple message must be sent",
 				1, this.mailSender.getSentSimpleMailMessages().size());
 		assertEquals("message content different from expected",
-				message, this.mailSender.getSentSimpleMailMessages().get(0));
+				mailMessage, this.mailSender.getSentSimpleMailMessages().get(0));
 	}
 
 	@Test
@@ -76,6 +75,7 @@ public class MailSendingMessageConsumerContextTests {
 		org.springframework.integration.message.Message<?> message =
 				MessageBuilder.withPayload(payload)
 				.setHeader(MailHeaders.ATTACHMENT_FILENAME, "attachment.txt")
+				.setHeader(MailHeaders.TO, MailTestsHelper.TO)
 				.build();
 		this.consumer.onMessage(message);
 		assertEquals("no mime message should have been sent",

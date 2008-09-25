@@ -32,7 +32,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.StringMessage;
 import org.springframework.mail.SimpleMailMessage;
 
 /**
@@ -44,19 +43,10 @@ public class MailSendingMessageConsumerTests {
 
 	private StubJavaMailSender mailSender;
 
-	private StaticMailHeaderGenerator staticMailHeaderGenerator;
-
 
 	@Before
 	public void setUp() throws Exception {
 		this.mailSender = new StubJavaMailSender(new MimeMessage((Session) null));
-		this.staticMailHeaderGenerator = new StaticMailHeaderGenerator();
-		this.staticMailHeaderGenerator.setBcc(MailTestsHelper.BCC);
-		this.staticMailHeaderGenerator.setCc(MailTestsHelper.CC);
-		this.staticMailHeaderGenerator.setFrom(MailTestsHelper.FROM);
-		this.staticMailHeaderGenerator.setReplyTo(MailTestsHelper.REPLY_TO);
-		this.staticMailHeaderGenerator.setSubject(MailTestsHelper.SUBJECT);
-		this.staticMailHeaderGenerator.setTo(MailTestsHelper.TO);
 		this.consumer = new MailSendingMessageConsumer(this.mailSender);
 	}
 
@@ -68,24 +58,23 @@ public class MailSendingMessageConsumerTests {
 
 	@Test
 	public void textMessage() {
-		this.consumer.setHeaderGenerator(this.staticMailHeaderGenerator);
-		this.consumer.onMessage(new StringMessage(MailTestsHelper.MESSAGE_TEXT));
-		SimpleMailMessage message = MailTestsHelper.createSimpleMailMessage();
+		this.consumer.onMessage(MailTestsHelper.createIntegrationMessage());
+		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
 		assertEquals("no mime message should have been sent",
 				0, mailSender.getSentMimeMessages().size());
 		assertEquals("only one simple message must be sent",
 				1, mailSender.getSentSimpleMailMessages().size());
 		assertEquals("message content different from expected",
-				message, mailSender.getSentSimpleMailMessages().get(0));
+				mailMessage, mailSender.getSentSimpleMailMessages().get(0));
 	}
 
 	@Test
 	public void byteArrayMessage() throws Exception {
-		this.consumer.setHeaderGenerator(this.staticMailHeaderGenerator);
 		byte[] payload = {1, 2, 3};
 		org.springframework.integration.message.Message<byte[]> message =
 				MessageBuilder.withPayload(payload)
 				.setHeader(MailHeaders.ATTACHMENT_FILENAME, "attachment.txt")
+				.setHeader(MailHeaders.TO, MailTestsHelper.TO)
 				.build();
 		this.consumer.onMessage(message);
 		byte[] buffer = new byte[1024];
@@ -100,16 +89,8 @@ public class MailSendingMessageConsumerTests {
 	}
 
 	@Test
-	public void defaultMailHeaderGenerator() {
-		org.springframework.integration.message.Message<String> message =
-				MessageBuilder.withPayload(MailTestsHelper.MESSAGE_TEXT)
-				.setHeader(MailHeaders.SUBJECT, MailTestsHelper.SUBJECT)
-				.setHeader(MailHeaders.TO, MailTestsHelper.TO)
-				.setHeader(MailHeaders.CC, MailTestsHelper.CC)
-				.setHeader(MailHeaders.BCC, MailTestsHelper.BCC)
-				.setHeader(MailHeaders.FROM, MailTestsHelper.FROM)
-				.setHeader(MailHeaders.REPLY_TO, MailTestsHelper.REPLY_TO).build();
-		this.consumer.onMessage(message);
+	public void mailHeaders() {
+		this.consumer.onMessage(MailTestsHelper.createIntegrationMessage());
 		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
 		assertEquals("no mime message should have been sent",
 				0, mailSender.getSentMimeMessages().size());
