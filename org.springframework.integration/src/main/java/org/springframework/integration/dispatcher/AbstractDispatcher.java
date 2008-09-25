@@ -23,7 +23,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageRejectedException;
 
 /**
  * Base class for {@link MessageDispatcher} implementations.
@@ -62,6 +64,23 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	public String toString() {
 		return this.getClass().getSimpleName() + " with subscribers: " + this.subscribers;
+	}
+
+	/**
+	 * Convenience method available for subclasses. Returns 'true' unless a
+	 * "Selective Consumer" throws a {@link MessageRejectedException}.
+	 */
+	protected boolean sendMessageToConsumer(Message<?> message, MessageConsumer consumer) {
+		try {
+			consumer.onMessage(message);
+			return true;
+		}
+		catch (MessageRejectedException e) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Consumer '" + consumer + "' rejected Message, continuing with other subscribers if available.", e);
+			}
+			return false;
+		}
 	}
 
 }

@@ -42,16 +42,10 @@ public class SimpleDispatcher extends AbstractDispatcher {
 		int rejectedExceptionCount = 0;
 		for (MessageConsumer consumer : this.subscribers) {
 			count++;
-			try {
-				consumer.onMessage(message);
+			if (this.sendMessageToConsumer(message, consumer)) {
 				return true;
 			}
-			catch (MessageRejectedException e) {
-				rejectedExceptionCount++;
-				if (logger.isDebugEnabled()) {
-					logger.debug("Consumer '" + consumer + "' rejected Message, continuing with other subscribers if available.", e);
-				}
-			}
+			rejectedExceptionCount++;
 		}
 		if (rejectedExceptionCount == count) {
 			throw new MessageRejectedException(message, "All of dispatcher's subscribers rejected Message.");

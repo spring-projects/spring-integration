@@ -56,12 +56,12 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 			if (executor != null) {
 				executor.execute(new Runnable() {
 					public void run() {
-						consumer.onMessage(messageToSend);
+						BroadcastingDispatcher.this.sendMessageToConsumer(messageToSend, consumer);
 					}
 				});
 			}
 			else {
-				consumer.onMessage(messageToSend);
+				this.sendMessageToConsumer(messageToSend, consumer);
 			}
 		}
 		return true;
