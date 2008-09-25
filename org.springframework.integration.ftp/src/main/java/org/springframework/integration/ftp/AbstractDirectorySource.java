@@ -25,11 +25,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageCreator;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryAware;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.PollableSource;
-import org.springframework.util.Assert;
 
 /**
  * Base class for implementing a PollableSource that creates messages from files
@@ -46,26 +45,18 @@ public abstract class AbstractDirectorySource<T> implements PollableSource<T>, M
 
 	private final Backlog<FileSnapshot> backlog;
 
-	private final MessageCreator<T, T> messageCreator;
 
-
-	public AbstractDirectorySource(MessageCreator<T, T> messageCreator) {
-		this(messageCreator, null);
+	public AbstractDirectorySource() {
+		this(null);
 	}
 
-	public AbstractDirectorySource(MessageCreator<T, T> messageCreator, Comparator<FileSnapshot> comparator) {
+	public AbstractDirectorySource(Comparator<FileSnapshot> comparator) {
 		this.backlog = comparator == null ? new Backlog<FileSnapshot>() : new Backlog<FileSnapshot>(comparator);
-		Assert.notNull(messageCreator, "The MessageCreator must not be null");
-		this.messageCreator = messageCreator;
 	}
 
 
 	protected Backlog<FileSnapshot> getBacklog() {
 		return this.backlog;
-	}
-
-	public MessageCreator<T, T> getMessageCreator() {
-		return this.messageCreator;
 	}
 
 	public final Message<T> receive() {
@@ -89,17 +80,16 @@ public abstract class AbstractDirectorySource<T> implements PollableSource<T>, M
 
 	/**
 	 * Hook point for implementors to create the next message that should be
-	 * received. Implementations can use a File by File approach (like
-	 * FileSource). In cases where retrieval could be expensive because of
-	 * network latency, a batched approach could be implemented here. See
-	 * FtpSource for an example.
+	 * received. Implementations can use a File by File approach or in cases
+	 * where retrieval could be expensive because of network latency, a batched
+	 * approach could be implemented here. See FtpSource for an example.
 	 * 
 	 * @return the next message containing (part of) the unprocessed content of
 	 * the directory
 	 * @throws IOException
 	 */
 	protected Message<T> buildNextMessage() throws IOException {
-		return this.messageCreator.createMessage(retrieveNextPayload());
+		return MessageBuilder.withPayload(retrieveNextPayload()).build();
 	}
 
 	public void onSend(Message<T> message) {

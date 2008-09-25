@@ -18,7 +18,6 @@ package org.springframework.integration.ftp;
 
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.getCurrentArguments;
 import static org.easymock.EasyMock.isA;
 import static org.easymock.classextension.EasyMock.createMock;
 import static org.easymock.classextension.EasyMock.createNiceMock;
@@ -41,17 +40,12 @@ import java.util.concurrent.CountDownLatch;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.oro.io.Perl5FilenameFilter;
-import org.easymock.IAnswer;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import org.springframework.integration.ftp.FTPClientPool;
-import org.springframework.integration.ftp.FtpSource;
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageCreator;
 
 /**
  * @author Iwein Fuld
@@ -59,28 +53,27 @@ import org.springframework.integration.message.MessageCreator;
 @SuppressWarnings("unchecked")
 public class FtpSourceTests {
 
-	private MessageCreator<List<File>, List<File>> messageCreator = createMock(MessageCreator.class);
-
 	private FTPClient ftpClient = createMock(FTPClient.class);
 
 	private FTPFile ftpFile = createMock(FTPFile.class);
 
 	private FTPClientPool ftpClientPool = createNiceMock(FTPClientPool.class);
 
-	@Before
-	public void liberalPool() throws Exception {
-		expect(ftpClientPool.getClient()).andReturn(ftpClient).anyTimes();
-	}
-
-	private Object[] globalMocks = new Object[] { messageCreator, ftpClient, ftpFile, ftpClientPool };
+	private Object[] globalMocks = new Object[] { ftpClient, ftpFile, ftpClientPool };
 
 	private FtpSource ftpSource;
 
 	private Long size = 100l;
 
+
+	@Before
+	public void liberalPool() throws Exception {
+		expect(ftpClientPool.getClient()).andReturn(ftpClient).anyTimes();
+	}
+
 	@Before
 	public void initializeFtpSource() {
-		ftpSource = new FtpSource(messageCreator, ftpClientPool);
+		ftpSource = new FtpSource(ftpClientPool);
 	}
 
 	@Before
@@ -88,14 +81,11 @@ public class FtpSourceTests {
 		reset(globalMocks);
 	}
 
+
 	@Test
 	public void retrieveSingleFile() throws Exception {
-
 		expect(ftpClient.listFiles()).andReturn(mockedFTPFilesNamed("test1"));
 		expect(ftpClient.retrieveFile(eq("test1"), isA(OutputStream.class))).andReturn(true);
-		// create message
-		expect(messageCreator.createMessage(isA(List.class))).andReturn(
-				new GenericMessage(Arrays.asList(new File("test1"))));
 		replay(globalMocks);
 		Message<List<File>> received = ftpSource.receive();
 		ftpSource.onSend(received);
@@ -122,12 +112,9 @@ public class FtpSourceTests {
 	public void retrieveMultipleFiles() throws Exception {
 		// get files
 		expect(ftpClient.listFiles()).andReturn(mockedFTPFilesNamed("test1", "test2")).times(2);
-
 		expect(ftpClient.retrieveFile(eq("test1"), isA(OutputStream.class))).andReturn(true);
 		expect(ftpClient.retrieveFile(eq("test2"), isA(OutputStream.class))).andReturn(true);
-		// create message
 		List<File> files = Arrays.asList(new File("test1"), new File("test2"));
-		expect(messageCreator.createMessage(isA(List.class))).andReturn(new GenericMessage(files));
 
 		replay(globalMocks);
 		Message receivedFiles = ftpSource.receive();
@@ -147,14 +134,11 @@ public class FtpSourceTests {
 		expect(ftpClient.retrieveFile(eq("test2"), isA(OutputStream.class))).andReturn(true);
 
 		// second run, change the date so the messages should be retrieved again
-		// expect(ftpClient.isConnected()).andReturn(true);
 		FTPFile[] mockedFTPFiles2 = mockedFTPFilesNamed("test1", "test2");
 		expect(ftpClient.listFiles()).andReturn(mockedFTPFiles2);
 		expect(ftpClient.retrieveFile(eq("test1"), isA(OutputStream.class))).andReturn(true);
 		expect(ftpClient.retrieveFile(eq("test2"), isA(OutputStream.class))).andReturn(true);
-		// create message
 		List<File> files = Arrays.asList(new File("test1"), new File("test2"));
-		expect(messageCreator.createMessage(isA(List.class))).andReturn(new GenericMessage(files)).times(2);
 
 		replay(globalMocks);
 		Message receivedFiles = ftpSource.receive();
@@ -179,13 +163,6 @@ public class FtpSourceTests {
 		expect(ftpClient.retrieveFile(eq("test2"), isA(OutputStream.class))).andReturn(true);
 		// second run
 		expect(ftpClient.retrieveFile(eq("test3"), isA(OutputStream.class))).andReturn(true);
-
-		// create message
-		expect(messageCreator.createMessage(isA(List.class))).andAnswer(new IAnswer<Message<List<File>>>() {
-			public Message<List<File>> answer() throws Throwable {
-				return new GenericMessage(getCurrentArguments()[0]);
-			}
-		}).times(2);
 
 		replay(globalMocks);
 		Message<List<File>> receivedFiles1 = ftpSource.receive();
@@ -219,12 +196,6 @@ public class FtpSourceTests {
 
 		expect(ftpClient.listFiles()).andReturn(mockedFTPFiles);
 		expect(ftpClient.retrieveFile(eq("test5"), isA(OutputStream.class))).andReturn(true);
-		// create message
-		expect(messageCreator.createMessage(isA(List.class))).andAnswer(new IAnswer<Message<List<File>>>() {
-			public Message<List<File>> answer() throws Throwable {
-				return new GenericMessage(getCurrentArguments()[0]);
-			}
-		}).times(3);
 		replay(globalMocks);
 		recorded.countDown();
 
@@ -263,13 +234,10 @@ public class FtpSourceTests {
 	public void onFailure() throws Exception {
 		expect(ftpClient.listFiles()).andReturn(mockedFTPFilesNamed("test1")).times(2);
 		expect(ftpClient.retrieveFile(eq("test1"), isA(OutputStream.class))).andReturn(true).times(2);
-		// create message
-		expect(messageCreator.createMessage(isA(List.class))).andReturn(
-				new GenericMessage(Arrays.asList(new File("test1")))).times(2);
 		replay(globalMocks);
 		Message<List<File>> received = ftpSource.receive();
 		ftpSource.onFailure(received, new Exception("just a test"));
-		assertEquals(received, ftpSource.receive());
+		assertEquals(received.getPayload(), ftpSource.receive().getPayload());
 		verify(globalMocks);
 	}
 

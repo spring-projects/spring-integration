@@ -28,9 +28,7 @@ import org.junit.Test;
 
 import org.springframework.integration.ftp.FtpSource;
 import org.springframework.integration.ftp.QueuedFTPClientPool;
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageCreator;
 
 /**
  * @author Iwein Fuld
@@ -53,12 +51,6 @@ public class FtpSourceIntegrationTests {
 
 	private FtpSource ftpSource;
 
-	private MessageCreator<List<File>, List<File>> messageCreator = new MessageCreator<List<File>, List<File>>() {
-		public Message<List<File>> createMessage(List<File> object) {
-			return new GenericMessage<List<File>>(object);
-		}
-	};
-
 
 	@BeforeClass
 	public static void initializeEnvironment() {
@@ -69,7 +61,7 @@ public class FtpSourceIntegrationTests {
 	@Before
 	public void initializeFtpSource() throws Exception {
 		QueuedFTPClientPool queuedFTPClientPool = new QueuedFTPClientPool();
-		ftpSource = new FtpSource(messageCreator, queuedFTPClientPool);
+		ftpSource = new FtpSource(queuedFTPClientPool);
 		queuedFTPClientPool.setHost("localhost");
 		queuedFTPClientPool.setUsername("ftp-user");
 		queuedFTPClientPool.setPassword("kaas");

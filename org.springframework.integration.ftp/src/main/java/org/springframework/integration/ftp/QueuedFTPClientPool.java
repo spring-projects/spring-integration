@@ -47,6 +47,7 @@ public class QueuedFTPClientPool implements FTPClientPool {
 
 	private static final String DEFAULT_REMOTE_WORKING_DIRECTORY = "/";
 
+
 	private final Queue<FTPClient> pool;
 
 	private volatile FTPClientConfig config;
@@ -59,13 +60,25 @@ public class QueuedFTPClientPool implements FTPClientPool {
 
 	private volatile String password;
 
-	private volatile FTPClientFactory factory = new DefaultFactory();
+	private volatile FTPClientFactory factory = new DefaultFTPClientFactory();
 
 	private final Log log = LogFactory.getLog(this.getClass());
 
 	private volatile String remoteWorkingDirectory = DEFAULT_REMOTE_WORKING_DIRECTORY;
 
-	// setters
+
+	public QueuedFTPClientPool() {
+		this(DEFAULT_POOL_SIZE);
+	}
+
+	/**
+	 * @param maxPoolSize the maximum size of the pool
+	 */
+	public QueuedFTPClientPool(int maxPoolSize) {
+		pool = new ArrayBlockingQueue<FTPClient>(maxPoolSize);
+	}
+
+
 	public void setConfig(FTPClientConfig config) {
 		Assert.notNull(config);
 		this.config = config;
@@ -101,22 +114,11 @@ public class QueuedFTPClientPool implements FTPClientPool {
 		this.factory = factory;
 	}
 
-	public QueuedFTPClientPool() {
-		this(DEFAULT_POOL_SIZE);
-	}
-
-	/**
-	 * @param maxPoolSize the maximum size of the pool
-	 */
-	public QueuedFTPClientPool(int maxPoolSize) {
-		pool = new ArrayBlockingQueue<FTPClient>(maxPoolSize);
-	}
-
 	/**
 	 * Returns an active FTPClient connected to the configured server. When no
 	 * clients are available in the queue a new client is created with the
 	 * factory.
-	 * 
+	 * <p>
 	 * It is possible that released clients are disconnected by the remote
 	 * server (@see {@link FTPClient#sendNoOp()}. In this case getClient is
 	 * called recursively to obtain a client that is still alive. For this
@@ -157,7 +159,7 @@ public class QueuedFTPClientPool implements FTPClientPool {
 		}
 	}
 
-	private class DefaultFactory implements FTPClientFactory {
+	private class DefaultFTPClientFactory implements FTPClientFactory {
 
 		public FTPClient getClient() throws SocketException, IOException {
 			FTPClient client = new FTPClient();
@@ -192,4 +194,5 @@ public class QueuedFTPClientPool implements FTPClientPool {
 			return client;
 		}
 	}
+
 }

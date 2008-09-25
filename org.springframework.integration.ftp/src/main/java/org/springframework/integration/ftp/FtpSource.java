@@ -25,8 +25,6 @@ import java.util.List;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 
-import org.springframework.integration.message.DefaultMessageCreator;
-import org.springframework.integration.message.MessageCreator;
 import org.springframework.util.Assert;
 
 /**
@@ -46,11 +44,6 @@ public class FtpSource extends AbstractDirectorySource<List<File>> {
 
 
 	public FtpSource(FTPClientPool clientPool) {
-		this(new DefaultMessageCreator<List<File>>(), clientPool);
-	}
-
-	public FtpSource(MessageCreator<List<File>, List<File>> messageCreator, FTPClientPool clientPool) {
-		super(messageCreator);
 		this.clientPool = clientPool;
 	}
 
@@ -84,8 +77,8 @@ public class FtpSource extends AbstractDirectorySource<List<File>> {
 				 * if files couldn't be parsed
 				 */
 				if (ftpFile != null) {
-					FileSnapshot fileSnapshot = new FileSnapshot(ftpFile.getName(), ftpFile.getTimestamp()
-							.getTimeInMillis(), ftpFile.getSize());
+					FileSnapshot fileSnapshot = new FileSnapshot(ftpFile.getName(),
+							ftpFile.getTimestamp().getTimeInMillis(), ftpFile.getSize());
 					snapshot.add(fileSnapshot);
 				}
 			}
@@ -101,8 +94,7 @@ public class FtpSource extends AbstractDirectorySource<List<File>> {
 			List<File> files = new ArrayList<File>();
 			List<FileSnapshot> toDo = this.getBacklog().getProcessingBuffer();
 			for (FileSnapshot fileSnapshot : toDo) {
-				// some awkwardness here because the local path may be different
-				// from the remote path
+				// local path may be different from the remote path
 				File file = new File(this.localWorkingDirectory, fileSnapshot.getFileName());
 				if (file.exists()) {
 					file.delete();

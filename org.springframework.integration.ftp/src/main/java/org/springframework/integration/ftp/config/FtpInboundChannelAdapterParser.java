@@ -25,7 +25,6 @@ import org.springframework.integration.config.AbstractPollingInboundChannelAdapt
 import org.springframework.integration.config.IntegrationNamespaceUtils;
 import org.springframework.integration.ftp.FtpSource;
 import org.springframework.integration.ftp.QueuedFTPClientPool;
-import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;inbound-channel-adapter/&gt; element of the 'ftp' namespace.
@@ -39,11 +38,6 @@ public class FtpInboundChannelAdapterParser extends AbstractPollingInboundChanne
 	@Override
 	protected String parseSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(FtpSource.class);
-		String messageCreatorReference = element.getAttribute("message-creator");
-		if (StringUtils.hasText(messageCreatorReference)) {
-			builder.addConstructorArgReference(messageCreatorReference);
-		}
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "local-working-directory");
 		String username = element.getAttribute("username");
 		String password = element.getAttribute("password");
 		String host = element.getAttribute("host");
@@ -56,6 +50,7 @@ public class FtpInboundChannelAdapterParser extends AbstractPollingInboundChanne
 		queuedFTPClientPool.setPort(Integer.parseInt(port));
 		queuedFTPClientPool.setRemoteWorkingDirectory(remoteWorkingDirectory);
 		builder.addConstructorArgValue(queuedFTPClientPool);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "local-working-directory");
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(
 				builder.getBeanDefinition(), parserContext.getRegistry());
 	}

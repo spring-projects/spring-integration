@@ -17,7 +17,6 @@
 package org.springframework.integration.ftp.config;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 
@@ -26,7 +25,6 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.message.DefaultMessageCreator;
 
 /**
  * @author Mark Fisher
@@ -36,10 +34,10 @@ import org.springframework.integration.message.DefaultMessageCreator;
 public class FtpInboundChannelAdapterParserTests {
 
 	@Test
-	public void ftpSourceWithDefaultMessageCreator() {
+	public void ftpInboundChannelAdapter() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"ftpInboundChannelAdapterParserTests.xml", this.getClass());
-		Object adapter = context.getBean("default.adapter");
+		Object adapter = context.getBean("adapter");
 		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(
 				new DirectFieldAccessor(adapter).getPropertyValue("source"));
 		DirectFieldAccessor poolAccessor = new DirectFieldAccessor(
@@ -50,27 +48,6 @@ public class FtpInboundChannelAdapterParserTests {
 		assertEquals("/remote", poolAccessor.getPropertyValue("remoteWorkingDirectory"));
 		assertEquals("testUser", poolAccessor.getPropertyValue("username"));
 		assertEquals("testPassword", poolAccessor.getPropertyValue("password"));
-		Object messageCreator = sourceAccessor.getPropertyValue("messageCreator");
-		assertTrue(messageCreator instanceof DefaultMessageCreator);
-	}
-
-	@Test
-	public void ftpSourceWithCustomMessageCreator() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"ftpInboundChannelAdapterParserTests.xml", this.getClass());
-		Object adapter = context.getBean("custom.adapter");
-		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(
-				new DirectFieldAccessor(adapter).getPropertyValue("source"));
-		DirectFieldAccessor poolAccessor = new DirectFieldAccessor(
-				sourceAccessor.getPropertyValue("clientPool"));
-		assertEquals("testHost", poolAccessor.getPropertyValue("host"));
-		assertEquals(2121, poolAccessor.getPropertyValue("port"));
-		assertEquals(new File("/local"), sourceAccessor.getPropertyValue("localWorkingDirectory"));
-		assertEquals("/remote", poolAccessor.getPropertyValue("remoteWorkingDirectory"));
-		assertEquals("testUser", poolAccessor.getPropertyValue("username"));
-		assertEquals("testPassword", poolAccessor.getPropertyValue("password"));
-		Object messageCreator = sourceAccessor.getPropertyValue("messageCreator");
-		assertTrue(messageCreator instanceof CustomMessageCreator);
 	}
 
 }
