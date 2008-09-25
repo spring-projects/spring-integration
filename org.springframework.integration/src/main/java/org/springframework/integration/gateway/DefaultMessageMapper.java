@@ -24,7 +24,7 @@ import org.springframework.integration.message.MessageBuilder;
  * 
  * @author Mark Fisher
  */
-public class DefaultMessageMapper implements MessageMapper {
+public class DefaultMessageMapper implements MessageMapper<Object> {
 
 	/**
 	 * Returns the Message payload (or null if the Message is null).

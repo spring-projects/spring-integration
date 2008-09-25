@@ -32,7 +32,7 @@ public class SimpleMessagingGateway extends AbstractMessagingGateway {
 	private volatile MessageMapper messageMapper = new DefaultMessageMapper();
 
 
-	public void setMessageMapper(MessageMapper messageMapper) {
+	public void setMessageMapper(MessageMapper<?> messageMapper) {
 		Assert.notNull(messageMapper, "messageMapper must not be null");
 		this.messageMapper = (messageMapper != null)
 				? messageMapper : new DefaultMessageMapper();
