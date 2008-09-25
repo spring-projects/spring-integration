@@ -319,6 +319,14 @@
 		</xsd:annotation>
 	</xsd:element>
 
+	<xsd:element name="filter" type="inputOutputEndpointType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a Filter.
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+
 	<xsd:element name="router">
 		<xsd:annotation>
 			<xsd:documentation>

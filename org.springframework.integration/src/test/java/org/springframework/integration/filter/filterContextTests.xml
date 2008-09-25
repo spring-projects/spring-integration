@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
+
+	<message-bus/>
+
+	<channel id="input"/>
+
+	<channel id="output">
+		<queue capacity="50"/>
+	</channel>
+
+	<filter input-channel="input"
+			ref="testBean"
+			method="acceptStringWithMoreThanThreeChars"
+			output-channel="output"/>
+
+	<beans:bean id="testBean" class="org.springframework.integration.filter.TestBean"/>
+
+</beans:beans>
