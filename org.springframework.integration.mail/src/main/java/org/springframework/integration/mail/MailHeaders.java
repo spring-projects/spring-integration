@@ -24,18 +24,22 @@ package org.springframework.integration.mail;
  */
 public class MailHeaders {
 
-	public static final String TRANSFPORT_PREFIX = "spring.integration.transport.mail.";
+	public static final String TRANSPORT_PREFIX = "spring.integration.transport.mail.";
 
-	public static final String SUBJECT = TRANSFPORT_PREFIX + "SUBJECT";
+	public static final String SUBJECT = TRANSPORT_PREFIX + "SUBJECT";
 
-	public static final String TO = TRANSFPORT_PREFIX + "TO";
+	public static final String TO = TRANSPORT_PREFIX + "TO";
 
-	public static final String CC = TRANSFPORT_PREFIX + "CC";
+	public static final String CC = TRANSPORT_PREFIX + "CC";
 
-	public static final String BCC = TRANSFPORT_PREFIX + "BCC";
+	public static final String BCC = TRANSPORT_PREFIX + "BCC";
 
-	public static final String FROM = TRANSFPORT_PREFIX + "FROM";
+	public static final String FROM = TRANSPORT_PREFIX + "FROM";
 
-	public static final String REPLY_TO = TRANSFPORT_PREFIX+ "REPLY_TO";
+	public static final String REPLY_TO = TRANSPORT_PREFIX+ "REPLY_TO";
+
+	public static final String MULTIPART_MODE = TRANSPORT_PREFIX + "MULTIPART_MODE";
+
+	public static final String ATTACHMENT_FILENAME = TRANSPORT_PREFIX + "ATTACHMENT_FILENAME";
 
 }

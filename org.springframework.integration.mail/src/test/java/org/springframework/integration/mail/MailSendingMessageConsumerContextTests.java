@@ -31,8 +31,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.integration.mail.MailSendingMessageConsumer;
+import org.springframework.integration.adapter.MessageMappingException;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.test.context.ContextConfiguration;
@@ -58,7 +59,7 @@ public class MailSendingMessageConsumerContextTests {
 	}
 
 	@Test
-	public void testStringMesssagesWithConfiguration() {
+	public void stringMesssagesWithConfiguration() {
 		this.consumer.onMessage(new StringMessage(MailTestsHelper.MESSAGE_TEXT));
 		SimpleMailMessage message = MailTestsHelper.createSimpleMailMessage();
 		assertEquals("no mime message should have been sent",
@@ -70,9 +71,13 @@ public class MailSendingMessageConsumerContextTests {
 	}
 
 	@Test
-	public void testByteArrayMessage() throws Exception {
+	public void byteArrayMessage() throws Exception {
 		byte[] payload = {1, 2, 3};
-		this.consumer.onMessage(new GenericMessage<byte[]>(payload));
+		org.springframework.integration.message.Message<?> message =
+				MessageBuilder.withPayload(payload)
+				.setHeader(MailHeaders.ATTACHMENT_FILENAME, "attachment.txt")
+				.build();
+		this.consumer.onMessage(message);
 		assertEquals("no mime message should have been sent",
 				1, this.mailSender.getSentMimeMessages().size());
 		assertEquals("only one simple message must be sent",
@@ -86,6 +91,12 @@ public class MailSendingMessageConsumerContextTests {
 		System.arraycopy(buffer, 0, messageContent, 0, payload.length);
 		assertArrayEquals("buffer content does not match", payload, messageContent);
 		assertEquals(mimeMessage.getRecipients(Message.RecipientType.TO).length, MailTestsHelper.TO.length);
+	}
+
+	@Test(expected = MessageMappingException.class)
+	public void byteArrayMessageWithoutAttachmentFileName() throws Exception {
+		byte[] payload = {1, 2, 3};
+		this.consumer.onMessage(new GenericMessage<byte[]>(payload));
 	}
 
 }

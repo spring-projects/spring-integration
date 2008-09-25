@@ -16,33 +16,39 @@
 
 package org.springframework.integration.mail;
 
-import org.springframework.beans.factory.InitializingBean;
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.integration.adapter.MessageMappingException;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageConsumer;
-import org.springframework.integration.message.MessageMapper;
 import org.springframework.mail.MailMessage;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMailMessage;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.util.Assert;
 
 /**
  * A {@link MessageConsumer} implementation for sending mail.
  * 
+ * <p>If the Message is an instance of {@link MailMessage}, it will be passed
+ * as-is. If the Message payload is a byte array, it will be passed as an
+ * attachment, and the {@link MailHeaders#ATTACHMENT_FILENAME} header is
+ * required. For any other payload type, a {@link SimpleMailMessage} will be
+ * created with the payload's <code>toString()</code> value as the Mail text.
+ * 
+ * @see MailHeaders
+ * 
  * @author Marius Bogoevici
  * @author Mark Fisher
  */
-public class MailSendingMessageConsumer implements MessageConsumer, InitializingBean {
+public class MailSendingMessageConsumer implements MessageConsumer {
 
 	private final JavaMailSender mailSender;
 
 	private volatile MailHeaderGenerator mailHeaderGenerator = new DefaultMailHeaderGenerator();
-
-	private volatile MessageMapper<String, MailMessage> textMessageMapper;
-
-	private volatile MessageMapper<byte[], MailMessage> byteArrayMessageMapper;
-
-	private volatile MessageMapper<Object, MailMessage> objectMessageMapper;
 
 
 	/**
@@ -57,30 +63,9 @@ public class MailSendingMessageConsumer implements MessageConsumer, Initializing
 	}
 
 
-	public void afterPropertiesSet() throws Exception {
-		this.textMessageMapper = (this.textMessageMapper != null) ?
-				this.textMessageMapper : new TextMailMessageMapper();
-		this.byteArrayMessageMapper = (byteArrayMessageMapper != null) ?
-				this.byteArrayMessageMapper : new ByteArrayMailMessageMapper(this.mailSender);
-		this.objectMessageMapper = (objectMessageMapper != null) ?
-				this.objectMessageMapper : new DefaultObjectMailMessageMapper();
-	}
-
 	public void setHeaderGenerator(MailHeaderGenerator mailHeaderGenerator) {
 		Assert.notNull(mailHeaderGenerator, "'mailHeaderGenerator' must not be null");
 		this.mailHeaderGenerator = mailHeaderGenerator;
-	}
-
-	public void setTextMessageMapper(MessageMapper<String, MailMessage> textMessageMapper) {
-		this.textMessageMapper = textMessageMapper;
-	}
-
-	public void setByteArrayMessageMapper(MessageMapper<byte[], MailMessage> byteArrayMessageMapper) {
-		this.byteArrayMessageMapper = byteArrayMessageMapper;
-	}
-
-	public void setObjectMessageMapper(MessageMapper<Object, MailMessage> objectMessageMapper) {
-		this.objectMessageMapper = objectMessageMapper;
 	}
 
 	public final void onMessage(Message<?> message) {
@@ -91,13 +76,18 @@ public class MailSendingMessageConsumer implements MessageConsumer, Initializing
 
 	@SuppressWarnings("unchecked")
 	private MailMessage convertMessageToMailMessage(Message<?> message) {
-		if (message.getPayload() instanceof String) {
-			return this.textMessageMapper.mapMessage((Message<String>) message);
+		MailMessage mailMessage = null;
+		if (message.getPayload() instanceof MailMessage) {
+			mailMessage = (MailMessage) message.getPayload();
 		}
 		else if (message.getPayload() instanceof byte[]) {
-			return this.byteArrayMessageMapper.mapMessage((Message<byte[]>) message);
+			mailMessage = this.createMailMessageFromByteArrayMessage((Message<byte[]>) message);
 		}
-		return this.objectMessageMapper.mapMessage((Message<Object>) message);
+		else {
+			mailMessage = new SimpleMailMessage();
+			mailMessage.setText(message.getPayload().toString());
+		}
+		return mailMessage;
 	}
 
 	private void sendMailMessage(MailMessage mailMessage) {
@@ -109,23 +99,28 @@ public class MailSendingMessageConsumer implements MessageConsumer, Initializing
 		}
 		else {
 			throw new IllegalArgumentException(
-					"MailMessage subclass '" + mailMessage.getClass().getName() + "' not supported");
+					"Unsupported MailMessage type [" + mailMessage.getClass().getName() + "].");
 		}
 	}
 
-
-	private static class DefaultObjectMailMessageMapper implements MessageMapper<Object, MailMessage> {
-
-		public Message<Object> toMessage(MailMessage source) {
-			throw new UnsupportedOperationException("mapping from MailMessage to Object not supported");
+	private MailMessage createMailMessageFromByteArrayMessage(Message<byte[]> message) {
+		String attachmentFileName = message.getHeaders().get(MailHeaders.ATTACHMENT_FILENAME, String.class);
+		if (attachmentFileName == null) {
+			throw new MessageMappingException(message, "Header '" + MailHeaders.ATTACHMENT_FILENAME
+					+ "' is required when mapping a Message with a byte array payload to a MailMessage.");
 		}
-
-		public MailMessage mapMessage(Message<Object> objectMessage) {
-			SimpleMailMessage message = new SimpleMailMessage();
-			message.setText(objectMessage.getPayload().toString());
-			return message;
+		Integer multipartMode = message.getHeaders().get(MailHeaders.MULTIPART_MODE, Integer.class);
+		if (multipartMode == null) {
+			multipartMode = MimeMessageHelper.MULTIPART_MODE_MIXED;
 		}
-
+		MimeMessage mimeMessage = this.mailSender.createMimeMessage();
+		try {
+			MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, multipartMode);
+			helper.addAttachment(attachmentFileName, new ByteArrayResource(message.getPayload()));
+			return new MimeMailMessage(helper);
+		} catch (MessagingException e) {
+			throw new MessageMappingException(message, "failed to create MimeMessage", e);
+		}		
 	}
 
 }

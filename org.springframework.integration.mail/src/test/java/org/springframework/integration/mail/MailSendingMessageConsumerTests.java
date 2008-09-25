@@ -31,10 +31,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.integration.mail.MailHeaders;
-import org.springframework.integration.mail.MailSendingMessageConsumer;
-import org.springframework.integration.mail.StaticMailHeaderGenerator;
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.mail.SimpleMailMessage;
@@ -62,7 +58,6 @@ public class MailSendingMessageConsumerTests {
 		this.staticMailHeaderGenerator.setSubject(MailTestsHelper.SUBJECT);
 		this.staticMailHeaderGenerator.setTo(MailTestsHelper.TO);
 		this.consumer = new MailSendingMessageConsumer(this.mailSender);
-		this.consumer.afterPropertiesSet();
 	}
 
 	@After
@@ -72,7 +67,7 @@ public class MailSendingMessageConsumerTests {
 
 
 	@Test
-	public void testTextMessage() {
+	public void textMessage() {
 		this.consumer.setHeaderGenerator(this.staticMailHeaderGenerator);
 		this.consumer.onMessage(new StringMessage(MailTestsHelper.MESSAGE_TEXT));
 		SimpleMailMessage message = MailTestsHelper.createSimpleMailMessage();
@@ -85,10 +80,14 @@ public class MailSendingMessageConsumerTests {
 	}
 
 	@Test
-	public void testByteArrayMessage() throws Exception {
+	public void byteArrayMessage() throws Exception {
 		this.consumer.setHeaderGenerator(this.staticMailHeaderGenerator);
 		byte[] payload = {1, 2, 3};
-		this.consumer.onMessage(new GenericMessage<byte[]>(payload));
+		org.springframework.integration.message.Message<byte[]> message =
+				MessageBuilder.withPayload(payload)
+				.setHeader(MailHeaders.ATTACHMENT_FILENAME, "attachment.txt")
+				.build();
+		this.consumer.onMessage(message);
 		byte[] buffer = new byte[1024];
 		MimeMessage mimeMessage = this.mailSender.getSentMimeMessages().get(0);
 		assertTrue("message must be multipart", mimeMessage.getContent() instanceof Multipart);
@@ -101,7 +100,7 @@ public class MailSendingMessageConsumerTests {
 	}
 
 	@Test
-	public void testDefaultMailHeaderGenerator() {
+	public void defaultMailHeaderGenerator() {
 		org.springframework.integration.message.Message<String> message =
 				MessageBuilder.withPayload(MailTestsHelper.MESSAGE_TEXT)
 				.setHeader(MailHeaders.SUBJECT, MailTestsHelper.SUBJECT)
