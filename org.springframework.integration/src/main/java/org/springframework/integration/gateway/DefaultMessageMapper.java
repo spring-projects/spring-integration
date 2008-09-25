@@ -14,23 +14,35 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration.gateway;
+
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 
 /**
- * A simple implementation of {@link MessageCreator} that uses the provide value
- * as the {@link Message Message's} payload.
+ * A default implementation of both the {@link MessageMapper} and
+ * {@link OutboundMessageMapper} strategy interfaces. 
  * 
  * @author Mark Fisher
  */
-public class DefaultMessageCreator<T> implements MessageCreator<T,T> {
+public class DefaultMessageMapper<T> implements MessageMapper<T> {
 
 	@SuppressWarnings("unchecked")
-	public Message<T> createMessage(T object) {
-		//prevent nesting messages
-		if (object instanceof Message) {
-			return (Message<T>) object;
+	public T fromMessage(Message<?> message) {
+		if (message == null || message.getPayload() == null) {
+			return null;
 		}
-		return (object != null) ? new GenericMessage<T>(object) : null;
+		return (T) message.getPayload();
+	}
+
+	public Message<?> toMessage(T object) {
+		if (object == null) {
+			return null;
+		}
+		if (object instanceof Message) {
+			return (Message<?>) object;
+		}
+		return MessageBuilder.withPayload(object).build();
 	}
 
 }

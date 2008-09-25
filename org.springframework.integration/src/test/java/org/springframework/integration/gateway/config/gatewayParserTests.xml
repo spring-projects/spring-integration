@@ -37,14 +37,6 @@
 	         reply-channel="replyChannel"
 	         message-mapper="mapper"/>
 
-	<gateway id="requestReplyWithMessageCreator"
-	         service-interface="org.springframework.integration.gateway.TestService"
-	         request-channel="requestChannel"
-	         reply-channel="replyChannel"
-	         message-creator="creator"/>
-
 	<beans:bean id="mapper" class="org.springframework.integration.gateway.config.TestMessageMapper"/>
-
-	<beans:bean id="creator" class="org.springframework.integration.gateway.config.TestMessageCreator"/>
 
 </beans:beans>

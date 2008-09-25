@@ -20,10 +20,9 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
-import org.springframework.core.Conventions;
+import org.springframework.integration.config.IntegrationNamespaceUtils;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;gateway/&gt; element.
@@ -33,7 +32,7 @@ import org.springframework.util.StringUtils;
 public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 
 	private static String[] referenceAttributes = new String[] {
-		"request-channel", "reply-channel", "message-mapper", "message-creator"
+		"request-channel", "reply-channel", "message-mapper"
 	};
 
 
@@ -49,13 +48,9 @@ public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 	}
 
 	@Override
-	protected void postProcess(BeanDefinitionBuilder beanDefinition, Element element) {
+	protected void postProcess(BeanDefinitionBuilder builder, Element element) {
 		for (String attributeName : referenceAttributes) {
-			String beanName = element.getAttribute(attributeName);
-			if (StringUtils.hasText(beanName)) {
-				beanDefinition.addPropertyReference(
-						Conventions.attributeNameToPropertyName(attributeName), beanName);
-			}
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, attributeName);
 		}
 	}
 

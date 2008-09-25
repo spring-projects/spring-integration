@@ -21,34 +21,37 @@ import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.bus.MessageBusAware;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.endpoint.MessagingGateway;
-import org.springframework.integration.message.DefaultMessageCreator;
-import org.springframework.integration.message.DefaultMessageMapper;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageCreator;
 import org.springframework.integration.message.MessageDeliveryException;
-import org.springframework.integration.message.MessageMapper;
 import org.springframework.util.Assert;
 
 /**
- * A general purpose class that supports a variety of message exchanges. Useful for connecting application code to
- * {@link MessageChannel MessageChannels} for sending, receiving, or request-reply operations. The sending methods
- * accept any Object as the parameter value (i.e. it is not required to be a Message). A custom {@link MessageCreator}
- * may be provided for creating Messages from the Objects. Likewise return values may be any Object and a custom
- * implementation of the {@link MessageMapper} strategy may be provided for mapping a reply Message to an Object.
+ * A convenient base class for connecting application code to
+ * {@link MessageChannel}s for sending, receiving, or request-reply operations.
+ * Exposes setters for configuring request and reply {@link MessageChannel}s as
+ * well as the timeout values for sending and receiving Messages.
+ * 
+ * <p>By default, each request Message will be created with the method
+ * parameter as its payload, and each reply Message's payload will be the
+ * return value. To provide custom behavior for object-to-request and/or
+ * reply-to-object conversion, implement and set a 'messageMapper'.
+ * 
+ * @see MessageMapper
  * 
  * @author Mark Fisher
  */
-public class SimpleMessagingGateway extends MessagingGatewaySupport implements MessagingGateway, MessageBusAware, InitializingBean {
+public class SimpleMessagingGateway implements MessagingGateway, MessageBusAware, InitializingBean {
 
 	private volatile MessageChannel requestChannel;
 
 	private volatile MessageChannel replyChannel;
 
-	private volatile MessageCreator messageCreator = new DefaultMessageCreator();
+	private volatile MessageMapper messageMapper = new DefaultMessageMapper<Object>();
 
-	private volatile MessageMapper messageMapper = new DefaultMessageMapper();
+	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
 	private volatile ReplyMessageCorrelator replyMessageCorrelator;
 
@@ -85,12 +88,27 @@ public class SimpleMessagingGateway extends MessagingGatewaySupport implements M
 		this.replyChannel = replyChannel;
 	}
 
-	public void setMessageCreator(MessageCreator<?, ?> messageCreator) {
-		Assert.notNull(messageCreator, "messageCreator must not be null");
-		this.messageCreator = messageCreator;
+	/**
+	 * Set the timeout value for sending request messages. If not
+	 * explicitly configured, the default is an indefinite timeout.
+	 * 
+	 * @param requestTimeout the timeout value in milliseconds
+	 */
+	public void setRequestTimeout(long requestTimeout) {
+		this.channelTemplate.setSendTimeout(requestTimeout);
 	}
 
-	public void setMessageMapper(MessageMapper<?, ?> messageMapper) {
+	/**
+	 * Set the timeout value for receiving reply messages. If not
+	 * explicitly configured, the default is an indefinite timeout.
+	 * 
+	 * @param replyTimeout the timeout value in milliseconds
+	 */
+	public void setReplyTimeout(long replyTimeout) {
+		this.channelTemplate.setReceiveTimeout(replyTimeout);
+	}
+
+	public void setMessageMapper(MessageMapper<?> messageMapper) {
 		Assert.notNull(messageMapper, "messageMapper must not be null");
 		this.messageMapper = messageMapper;
 	}
@@ -108,12 +126,10 @@ public class SimpleMessagingGateway extends MessagingGatewaySupport implements M
 			throw new IllegalStateException(
 					"send is not supported, because no request channel has been configured");
 		}
-		Message<?> message = (object instanceof Message) ? (Message) object :
-				this.messageCreator.createMessage(object);
-		if (message != null) {
-			if (!this.getChannelTemplate().send(message, this.requestChannel)) {
-				throw new MessageDeliveryException(message, "failed to send Message to channel");
-			}
+		Message<?> message = this.messageMapper.toMessage(object);
+		Assert.notNull(message, "message must not be null");
+		if (!this.channelTemplate.send(message, this.requestChannel)) {
+			throw new MessageDeliveryException(message, "failed to send Message to channel");
 		}
 	}
 
@@ -122,8 +138,8 @@ public class SimpleMessagingGateway extends MessagingGatewaySupport implements M
 			throw new IllegalStateException(
 					"no-arg receive is not supported, because no pollable reply channel has been configured");
 		}
-		Message<?> message = this.getChannelTemplate().receive((PollableChannel) this.replyChannel);
-		return (message != null) ? this.messageMapper.mapMessage(message) : null;
+		Message<?> message = this.channelTemplate.receive((PollableChannel) this.replyChannel);
+		return this.messageMapper.fromMessage(message);
 	}
 
 	public Object sendAndReceive(Object object) {
@@ -135,19 +151,16 @@ public class SimpleMessagingGateway extends MessagingGatewaySupport implements M
 	}
 
 	private Object sendAndReceive(Object object, boolean shouldMapMessage) {
-		Message<?> request = (object instanceof Message) ? (Message) object :
-				this.messageCreator.createMessage(object);
-		if (request == null) {
-			return null;
-		}
+		Message<?> request = this.messageMapper.toMessage(object);
 		Message<?> reply = this.sendAndReceiveMessage(request);
 		if (!shouldMapMessage) {
 			return reply;
 		}
-		return (reply != null) ? this.messageMapper.mapMessage(reply) : null;
+		return this.messageMapper.fromMessage(reply);
 	}
 
 	private Message<?> sendAndReceiveMessage(Message<?> message) {
+		Assert.notNull(message, "request message must not be null");
 		if (this.requestChannel == null) {
 			throw new MessageDeliveryException(message,
 					"No request channel available. Cannot send request message.");
@@ -155,7 +168,7 @@ public class SimpleMessagingGateway extends MessagingGatewaySupport implements M
 		if (this.replyChannel != null && this.replyMessageCorrelator == null) {
 			this.registerReplyMessageCorrelator();
 		}
-		return this.getChannelTemplate().sendAndReceive(message, this.requestChannel);
+		return this.channelTemplate.sendAndReceive(message, this.requestChannel);
 	}
 
 	private void registerReplyMessageCorrelator() {

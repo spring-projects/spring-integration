@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration.gateway;
+
+import org.springframework.integration.message.Message;
 
 /**
- * Strategy interface for creating a {@link Message} from an Object.
+ * Strategy interface for mapping between an Object and a {@link Message}.
  * 
  * @author Mark Fisher
  */
-public interface MessageCreator<O, P> {
+public interface MessageMapper<T> {
 
-	Message<P> createMessage(O object);
+	Message<?> toMessage(T object);
+
+	T fromMessage(Message<?> message);
 
 }

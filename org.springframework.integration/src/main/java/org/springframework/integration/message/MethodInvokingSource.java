@@ -83,8 +83,12 @@ public class MethodInvokingSource implements PollableSource<Object>, Initializin
 			if (result == null) {
 				return null;
 			}
+			if (result instanceof Message) {
+				return (Message) result;
+			}
 			return new GenericMessage<Object>(result);
-		} catch (InvocationTargetException e) {
+		}
+		catch (InvocationTargetException e) {
 			throw new MessagingException(
 					"Source method '" + this.methodName + "' threw an Exception.", e.getTargetException());
 		}

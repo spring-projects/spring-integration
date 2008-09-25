@@ -16,16 +16,21 @@
 
 package org.springframework.integration.gateway.config;
 
+import org.springframework.integration.gateway.MessageMapper;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageMapper;
+import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
  */
-public class TestMessageMapper implements MessageMapper<String, String> {
+public class TestMessageMapper implements MessageMapper<String> {
 
-	public String mapMessage(Message<String> message) {
-		return message.getPayload() + ".mapped";
+	public Message<?> toMessage(String object) {
+		return new StringMessage("pre." + object);
+	}
+
+	public String fromMessage(Message<?> message) {
+		return message.getPayload().toString() + ".post";
 	}
 
 }

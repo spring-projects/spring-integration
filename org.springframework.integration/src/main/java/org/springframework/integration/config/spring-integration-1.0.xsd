@@ -159,7 +159,6 @@
 			<xsd:attribute name="request-timeout" type="xsd:long"/>
 			<xsd:attribute name="reply-timeout" type="xsd:long"/>
 			<xsd:attribute name="message-mapper" type="xsd:string"/>
-			<xsd:attribute name="message-creator" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
 

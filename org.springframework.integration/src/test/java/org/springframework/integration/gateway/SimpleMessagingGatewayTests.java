@@ -24,6 +24,7 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import org.easymock.IAnswer;
 import org.junit.Before;
@@ -36,7 +37,6 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageHeaders;
-import org.springframework.integration.message.MessageMapper;
 
 /**
  * @author Iwein Fuld
@@ -52,19 +52,15 @@ public class SimpleMessagingGatewayTests {
 
 	private Message messageMock = createMock(Message.class);
 
-	private MessageMapper messageMapperMock = createMock(MessageMapper.class);
-
 	private MessageBus messageBusMock = createMock(MessageBus.class);
 
-	private Object[] allmocks = new Object[] {
-			requestChannel, replyChannel, messageMock, messageMapperMock };
+	private Object[] allmocks = new Object[] { requestChannel, replyChannel, messageMock };
 
 
 	@Before
 	public void initializeSample() {
 		this.simpleMessagingGateway = new SimpleMessagingGateway(requestChannel);
 		this.simpleMessagingGateway.setReplyChannel(replyChannel);
-		this.simpleMessagingGateway.setMessageMapper(messageMapperMock);
 		this.simpleMessagingGateway.setMessageBus(messageBusMock);
 		reset(allmocks);
 	}
@@ -114,11 +110,15 @@ public class SimpleMessagingGatewayTests {
 		verify(allmocks);
 	}
 
-	@Test
+	@Test(expected = IllegalArgumentException.class)
 	public void sendMessage_null() {
 		replay(allmocks);
-		this.simpleMessagingGateway.send(null);
-		verify(allmocks);
+		try {
+			this.simpleMessagingGateway.send(null);
+		}
+		finally {
+			verify(allmocks);
+		}
 	}
 
 	/* receive tests */
@@ -126,9 +126,9 @@ public class SimpleMessagingGatewayTests {
 	@Test
 	public void receiveMessage() {
 		expect(replyChannel.receive()).andReturn(messageMock);
-		expect(messageMapperMock.mapMessage(messageMock)).andReturn(messageMock);
+		expect(messageMock.getPayload()).andReturn("test").anyTimes();
 		replay(allmocks);
-		assertEquals(this.simpleMessagingGateway.receive(), messageMock);
+		assertEquals("test", this.simpleMessagingGateway.receive());
 		verify(allmocks);
 	}
 
@@ -136,7 +136,7 @@ public class SimpleMessagingGatewayTests {
 	public void receiveMessage_null() {
 		expect(replyChannel.receive()).andReturn(null);
 		replay(allmocks);
-		assertEquals(this.simpleMessagingGateway.receive(), null);
+		assertNull(this.simpleMessagingGateway.receive());
 		verify(allmocks);
 	}
 
@@ -172,12 +172,16 @@ public class SimpleMessagingGatewayTests {
 		verify(messageHeadersMock);
 	}
 
-	@Test
+	@Test(expected = IllegalArgumentException.class)
 	public void sendNullAndReceiveObject() {
 		expect(replyChannel.getName()).andReturn("replyChannel").anyTimes();
 		replay(allmocks);
-		this.simpleMessagingGateway.sendAndReceive(null);
-		verify(allmocks);
+		try {
+			this.simpleMessagingGateway.sendAndReceive(null);
+		}
+		finally {
+			verify(allmocks);
+		}
 	}
 
 	@Test
@@ -207,12 +211,16 @@ public class SimpleMessagingGatewayTests {
 		verify(allmocks);
 	}
 
-	@Test
+	@Test(expected = IllegalArgumentException.class)
 	public void sendNullAndReceiveMessage() {
 		expect(replyChannel.getName()).andReturn("replyChannel").anyTimes();
 		replay(allmocks);
-		this.simpleMessagingGateway.sendAndReceiveMessage(null);
-		verify(allmocks);
+		try {
+			this.simpleMessagingGateway.sendAndReceiveMessage(null);
+		}
+		finally {
+			verify(allmocks);
+		}
 	}
 
 }
