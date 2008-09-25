@@ -23,10 +23,10 @@ import org.springframework.integration.message.Message;
  * 
  * @author Mark Fisher
  */
-public interface MessageMapper<T> {
+public interface MessageMapper {
 
-	Message<?> toMessage(T object);
+	Message<?> toMessage(Object object);
 
-	T fromMessage(Message<?> message);
+	Object fromMessage(Message<?> message);
 
 }

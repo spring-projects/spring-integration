@@ -23,13 +23,13 @@ import org.springframework.integration.message.StringMessage;
 /**
  * @author Mark Fisher
  */
-public class TestMessageMapper implements MessageMapper<String> {
+public class TestMessageMapper implements MessageMapper {
 
-	public Message<?> toMessage(String object) {
+	public Message<?> toMessage(Object object) {
 		return new StringMessage("pre." + object);
 	}
 
-	public String fromMessage(Message<?> message) {
+	public Object fromMessage(Message<?> message) {
 		return message.getPayload().toString() + ".post";
 	}
 

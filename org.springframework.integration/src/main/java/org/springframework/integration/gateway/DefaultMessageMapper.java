@@ -20,22 +20,28 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 
 /**
- * A default implementation of both the {@link MessageMapper} and
- * {@link OutboundMessageMapper} strategy interfaces. 
+ * A default implementation of the {@link MessageMapper} strategy interface.
  * 
  * @author Mark Fisher
  */
-public class DefaultMessageMapper<T> implements MessageMapper<T> {
+public class DefaultMessageMapper implements MessageMapper {
 
-	@SuppressWarnings("unchecked")
-	public T fromMessage(Message<?> message) {
+	/**
+	 * Returns the Message payload (or null if the Message is null).
+	 */
+	public Object fromMessage(Message<?> message) {
 		if (message == null || message.getPayload() == null) {
 			return null;
 		}
-		return (T) message.getPayload();
+		return message.getPayload();
 	}
 
-	public Message<?> toMessage(T object) {
+	/**
+	 * Returns a Message with the given object as its payload, unless the
+	 * object is already a Message in which case it will be returned as-is.
+	 * If the object is null, the returned Message will also be null.
+	 */
+	public Message<?> toMessage(Object object) {
 		if (object == null) {
 			return null;
 		}

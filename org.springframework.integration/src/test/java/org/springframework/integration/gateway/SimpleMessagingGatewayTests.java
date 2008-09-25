@@ -59,7 +59,8 @@ public class SimpleMessagingGatewayTests {
 
 	@Before
 	public void initializeSample() {
-		this.simpleMessagingGateway = new SimpleMessagingGateway(requestChannel);
+		this.simpleMessagingGateway = new SimpleMessagingGateway();
+		this.simpleMessagingGateway.setRequestChannel(requestChannel);
 		this.simpleMessagingGateway.setReplyChannel(replyChannel);
 		this.simpleMessagingGateway.setMessageBus(messageBusMock);
 		reset(allmocks);
