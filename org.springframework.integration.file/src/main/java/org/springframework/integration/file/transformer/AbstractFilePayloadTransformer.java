@@ -37,14 +37,15 @@ public abstract class AbstractFilePayloadTransformer<T> implements Transformer {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private volatile boolean deleteFileAfterTransformation;
+	private volatile boolean deleteFiles;
 
 
 	/**
 	 * Specify whether to delete the File after transformation.
+	 * Default is <em>false</em>.
 	 */
-	public void setDeleteFileAfterTransformation(boolean deleteFileAfterTransformation) {
-		this.deleteFileAfterTransformation = deleteFileAfterTransformation;
+	public void setDeleteFiles(boolean deleteFiles) {
+		this.deleteFiles = deleteFiles;
 	}
 
 	public final Message<?> transform(Message<?> message) {
@@ -59,7 +60,7 @@ public abstract class AbstractFilePayloadTransformer<T> implements Transformer {
 	        		.copyHeaders(message.getHeaders())
 	        		.setHeaderIfAbsent(FileNameGenerator.FILENAME_PROPERTY_KEY, file.getName())
 	        		.build();
-			if (this.deleteFileAfterTransformation) {
+			if (this.deleteFiles) {
 				if (!file.delete() && this.logger.isWarnEnabled()) {
 					this.logger.warn("failed to delete File '" + file + "'");
 				}

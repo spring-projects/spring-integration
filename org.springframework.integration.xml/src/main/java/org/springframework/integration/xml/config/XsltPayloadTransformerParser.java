@@ -41,7 +41,7 @@ public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 	}
 
 	@Override
-	protected void parsePayloadTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+	protected void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String xslResource = element.getAttribute("xsl-resource");
 		String xslTemplates = element.getAttribute("xsl-templates");
 		String resultTransformer = element.getAttribute("result-transformer");

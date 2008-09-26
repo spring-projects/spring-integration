@@ -41,7 +41,7 @@ public class XmlMarshallingTransformerParser extends AbstractTransformerParser {
 	}
 
 	@Override
-	protected void parsePayloadTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+	protected void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String resultFactory = element.getAttribute("result-factory");
 		String resultType = element.getAttribute("result-type");
 		String marshaller = element.getAttribute("marshaller");

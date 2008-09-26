@@ -45,7 +45,7 @@ public abstract class AbstractTransformerParser extends AbstractEndpointParser {
 	protected void postProcess(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		BeanDefinitionBuilder transformerBuilder =
 				BeanDefinitionBuilder.genericBeanDefinition(this.getTransformerClass());
-		this.parsePayloadTransformer(element, parserContext, transformerBuilder);
+		this.parseTransformer(element, parserContext, transformerBuilder);
 		String transformerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
 				transformerBuilder.getBeanDefinition(), parserContext.getRegistry());
 		builder.addConstructorArgReference(transformerBeanName);
@@ -53,6 +53,6 @@ public abstract class AbstractTransformerParser extends AbstractEndpointParser {
 
 	protected abstract Class<? extends Transformer> getTransformerClass();
 
-	protected abstract void parsePayloadTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder);
+	protected abstract void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder);
 
 }

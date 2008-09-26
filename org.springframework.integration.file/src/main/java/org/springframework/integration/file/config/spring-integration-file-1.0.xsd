@@ -53,4 +53,39 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="file-to-string-transformer">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Creates a Transformer that converts a File payload to a String.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="transformerType">
+					<xsd:attribute name="charset" type="xsd:string"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="file-to-bytes-transformer">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Creates a Transformer that converts a File payload to an array of bytes.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="transformerType"/>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="transformerType">
+		<xsd:attribute name="id" type="xsd:string"/>
+		<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
+		<xsd:attribute name="output-channel" type="xsd:string" use="required"/>
+		<xsd:attribute name="delete-files" type="xsd:string"/>
+	</xsd:complexType>
+
 </xsd:schema>

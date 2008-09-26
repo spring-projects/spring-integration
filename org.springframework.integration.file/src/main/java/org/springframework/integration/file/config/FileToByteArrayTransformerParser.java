@@ -16,21 +16,19 @@
 
 package org.springframework.integration.file.config;
 
-import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
+import org.springframework.integration.file.transformer.FileToByteArrayTransformer;
+import org.springframework.integration.transformer.Transformer;
 
 /**
- * Namespace handler for Spring Integration's 'file' namespace.
+ * Parser for the &lt;file-to-bytes-transformer&gt; element.
  * 
- * @author Iwein Fuld
  * @author Mark Fisher
  */
-public class FileNamespaceHandler extends NamespaceHandlerSupport {
+public class FileToByteArrayTransformerParser extends AbstractFilePayloadTransformerParser {
 
-	public void init() {
-		registerBeanDefinitionParser("inbound-channel-adapter", new FileInboundChannelAdapterParser());
-		registerBeanDefinitionParser("outbound-channel-adapter", new FileOutboundChannelAdapterParser());
-		registerBeanDefinitionParser("file-to-string-transformer", new FileToStringTransformerParser());
-		registerBeanDefinitionParser("file-to-bytes-transformer", new FileToByteArrayTransformerParser());
+	@Override
+	protected Class<? extends Transformer> getTransformerClass() {
+		return FileToByteArrayTransformer.class;
 	}
 
 }

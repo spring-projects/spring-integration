@@ -17,15 +17,7 @@
 	<file:inbound-channel-adapter id="filesIn"
 	                              directory="file:${java.io.tmpdir}/spring-integration-samples/input"/>
 
-	<bean class="org.springframework.integration.transformer.TransformerEndpoint">
-		<constructor-arg>
-			<bean class="org.springframework.integration.file.transformer.FileToByteArrayTransformer">
-				<property name="deleteFileAfterTransformation" value="true"/>
-			</bean>
-		</constructor-arg>
-		<property name="inputChannel" ref="filesIn"/>
-		<property name="outputChannel" ref="bytes"/>
-	</bean>
+	<file:file-to-bytes-transformer input-channel="filesIn" output-channel="bytes" delete-files="true"/> 
 
 	<integration:channel id="bytes"/>
 

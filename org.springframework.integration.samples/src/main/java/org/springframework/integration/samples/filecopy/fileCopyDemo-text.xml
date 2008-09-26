@@ -18,15 +18,7 @@
 	                              directory="file:${java.io.tmpdir}/spring-integration-samples/input"
 	                              filename-pattern="[a-z]+.txt"/>
 
-	<bean class="org.springframework.integration.transformer.TransformerEndpoint">
-		<constructor-arg>
-			<bean class="org.springframework.integration.file.transformer.FileToStringTransformer">
-				<property name="deleteFileAfterTransformation" value="true"/>
-			</bean>
-		</constructor-arg>
-		<property name="inputChannel" ref="filesIn"/>
-		<property name="outputChannel" ref="strings"/>
-	</bean>
+	<file:file-to-string-transformer input-channel="filesIn" output-channel="strings"/>
 
 	<integration:channel id="strings"/>
 

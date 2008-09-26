@@ -14,33 +14,32 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.xml.config;
+package org.springframework.integration.file.config;
 
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.transformer.Transformer;
 import org.springframework.integration.transformer.config.AbstractTransformerParser;
-import org.springframework.integration.xml.transformer.XmlPayloadUnmarshallingTransformer;
-import org.springframework.util.Assert;
 
 /**
- * @author Jonas Partner
+ * Base class for File payload transformer parsers.
+ * 
  * @author Mark Fisher
  */
-public class XmlUnmarshallingTransformerParser extends AbstractTransformerParser {
+public abstract class AbstractFilePayloadTransformerParser extends AbstractTransformerParser {
 
 	@Override
-	protected Class<? extends Transformer> getTransformerClass() {
-		return XmlPayloadUnmarshallingTransformer.class;
+	protected final void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+		boolean deleteFiles = "true".equals(element.getAttribute("delete-files").toLowerCase());
+		builder.addPropertyValue("deleteFiles", deleteFiles);
+		this.postProcessTransformer(element, parserContext, builder);
 	}
 
-	@Override
-	protected void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		String unmarshaller = element.getAttribute("unmarshaller");
-		Assert.hasText(unmarshaller, "the 'unmarshaller' attribute is required");
-		builder.addConstructorArgReference(unmarshaller);
+	/**
+	 * Subclasses may override this method to provide additional configuration.
+	 */
+	protected void postProcessTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 	}
 
 }
