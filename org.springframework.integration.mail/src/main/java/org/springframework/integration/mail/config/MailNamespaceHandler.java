@@ -32,6 +32,7 @@ public class MailNamespaceHandler extends NamespaceHandlerSupport {
 		this.registerBeanDefinitionParser("polling-mail-source", new PollingMailSourceParser());
 		this.registerBeanDefinitionParser("imap-idle-mail-source", new SubscribableImapIdleMailSourceParser());
 		this.registerBeanDefinitionParser("header-enricher", new SimpleHeaderEnricherParser(MailHeaders.TRANSPORT_PREFIX));
+		this.registerBeanDefinitionParser("mail-to-string-transformer", new MailToStringTransformerParser());
 	}
 
 }
