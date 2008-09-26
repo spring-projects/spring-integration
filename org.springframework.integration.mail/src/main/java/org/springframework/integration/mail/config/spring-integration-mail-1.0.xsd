@@ -59,6 +59,21 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="mail-to-string-transformer">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a Transformer that converts a javax.mail.Message payload to a String.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="transformerType">
+					<xsd:attribute name="charset" type="xsd:string"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:element name="header-enricher">
 		<xsd:complexType>
 			<xsd:annotation>
