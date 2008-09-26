@@ -90,7 +90,7 @@ public class MailSendingMessageConsumer implements MessageConsumer {
 			mailMessage = new SimpleMailMessage();
 			mailMessage.setText(message.getPayload().toString());
 		}
-		this.configureHeaderValues(mailMessage, message.getHeaders());
+		this.applyHeadersToMailMessage(mailMessage, message.getHeaders());
 		return mailMessage;
 	}
 
@@ -114,20 +114,20 @@ public class MailSendingMessageConsumer implements MessageConsumer {
 		}		
 	}
 
-	private void configureHeaderValues(MailMessage mailMessage, MessageHeaders headers) {
+	private void applyHeadersToMailMessage(MailMessage mailMessage, MessageHeaders headers) {
 		String subject = headers.get(MailHeaders.SUBJECT, String.class);
 		if (subject != null) {
 			mailMessage.setSubject(subject);
 		}
-		String[] to = this.retrieveAsStringArray(headers, MailHeaders.TO);
+		String[] to = this.retrieveHeaderValueAsStringArray(headers, MailHeaders.TO);
 		if (to != null) {
 			mailMessage.setTo(to);
 		}
-		String[] cc = this.retrieveAsStringArray(headers, MailHeaders.CC);
+		String[] cc = this.retrieveHeaderValueAsStringArray(headers, MailHeaders.CC);
 		if (cc != null) {
 			mailMessage.setCc(cc);
 		}
-		String[] bcc = this.retrieveAsStringArray(headers, MailHeaders.BCC);
+		String[] bcc = this.retrieveHeaderValueAsStringArray(headers, MailHeaders.BCC);
 		if (bcc != null) {
 			mailMessage.setBcc(bcc);
 		}
@@ -141,7 +141,7 @@ public class MailSendingMessageConsumer implements MessageConsumer {
 		}
 	}
 
-	private String[] retrieveAsStringArray(MessageHeaders headers, String key) {
+	private String[] retrieveHeaderValueAsStringArray(MessageHeaders headers, String key) {
 		Object value = headers.get(key);
 		if (value != null) {
 			if (value instanceof String[]) {

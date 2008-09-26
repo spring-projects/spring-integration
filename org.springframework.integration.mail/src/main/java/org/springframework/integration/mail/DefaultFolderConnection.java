@@ -29,7 +29,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.mail.monitor.AsyncMonitoringStrategy;
@@ -43,128 +42,119 @@ import org.springframework.util.Assert;
  * 
  * @author Jonas Partner
  */
-public class DefaultFolderConnection implements Lifecycle, InitializingBean,
-		DisposableBean, FolderConnection {
+public class DefaultFolderConnection implements Lifecycle, DisposableBean, FolderConnection {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final URLName storeUri;
 
-	private Session session;
-
 	private final MonitoringStrategy monitoringStrategy;
 
 	private final boolean polling;
 
-	private Store store;
+	private volatile Session session;
 
-	private Folder folder;
+	private volatile Store store;
 
-	private Properties javaMailProperties = new Properties();
+	private volatile Folder folder;
 
-	public DefaultFolderConnection(String storeUri,
-			MonitoringStrategy monitoringStrategy, boolean polling) {
+	private volatile Properties javaMailProperties = new Properties();
+
+	private volatile boolean running;
+
+	private final Object lifecycleMonitor = new Object();
+
+
+	public DefaultFolderConnection(String storeUri, MonitoringStrategy monitoringStrategy, boolean polling) {
 		this.storeUri = new URLName(storeUri);
 		this.monitoringStrategy = monitoringStrategy;
 		this.polling = polling;
-		if (!polling
-				&& monitoringStrategy.getClass().isAssignableFrom(
-						AsyncMonitoringStrategy.class)) {
+		Assert.notNull(storeUri, "storeUri is required");
+		Assert.notNull(monitoringStrategy, "monitoringStrategy is required");
+		if (!polling && monitoringStrategy.getClass().isAssignableFrom(AsyncMonitoringStrategy.class)) {
 			throw new ConfigurationException(
-					"Folder connection requires an AsyncMonitoringStragey if polling is disabled");
+					"Folder connection requires an AsyncMonitoringStrategy if polling is disabled.");
 		}
 	}
 
-	public void afterPropertiesSet() throws Exception {
-
-		Assert.notNull(storeUri, "Property 'storeUri' is required");
-		Assert.notNull(monitoringStrategy,
-				"An instantce of MonitoringStrategy' is required");
-		//	
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.integration.adapter.mail.FolderConnectionI#receive()
-	 */
-	public synchronized Message[] receive() {
-		if (!isRunning()) {
-			start();
-		}
-
-		try {
-			if (!polling) {
-				((AsyncMonitoringStrategy) monitoringStrategy)
-						.waitForNewMessages(folder);
-			}
-			return monitoringStrategy.receive(folder);
-		} catch (Exception e) {
-			throw new org.springframework.integration.message.MessagingException(
-					"Exception receiving from folder", e);
-		}
-
-	}
-
-	public void destroy() throws Exception {
-		stop();
-	}
-
-	public synchronized boolean isRunning() {
-		return (folder != null && folder.isOpen());
-	}
-
-	public synchronized void start() {
-		try {
-			openSession();
-			openFolder();
-		} catch (MessagingException messageE) {
-			throw new org.springframework.integration.message.MessagingException(
-					"Excpetion starting MailSource", messageE);
-		}
-
-	}
-
-	public synchronized void stop() {
-		MailTransportUtils.closeFolder(folder);
-		MailTransportUtils.closeService(store);
-		folder = null;
-		store = null;
-	}
-
-	private void openFolder() throws MessagingException {
-		if (folder != null && folder.isOpen()) {
-			return;
-		}
-		folder = store.getFolder(storeUri);
-		if (folder == null || !folder.exists()) {
-			throw new IllegalStateException("No default folder to receive from");
-		}
-		if (logger.isDebugEnabled()) {
-			logger.debug("Opening folder ["
-					+ MailTransportUtils.toPasswordProtectedString(storeUri)
-					+ "]");
-		}
-		folder.open(monitoringStrategy.getFolderOpenMode());
-	}
-
-	private void openSession() throws MessagingException {
-		session = Session.getInstance(javaMailProperties);
-		store = session.getStore(storeUri);
-		if (logger.isDebugEnabled()) {
-			logger.debug("Connecting to store ["
-					+ MailTransportUtils.toPasswordProtectedString(storeUri)
-					+ "]");
-		}
-		store.connect();
-	}
-
-	public Properties getJavaMailProperties() {
-		return javaMailProperties;
-	}
 
 	public void setJavaMailProperties(Properties javaMailProperties) {
 		this.javaMailProperties = javaMailProperties;
+	}
+
+	public synchronized Message[] receive() {
+		try {
+			this.openFolder();
+			if (!this.polling) {
+				((AsyncMonitoringStrategy) this.monitoringStrategy).waitForNewMessages(this.folder);
+			}
+			return this.monitoringStrategy.receive(this.folder);
+		}
+		catch (Exception e) {
+			throw new org.springframework.integration.message.MessagingException(
+					"failure occurred while receiving from folder", e);
+		}
+	}
+
+	public void destroy() throws Exception {
+		this.stop();
+	}
+
+	/*
+	 * Lifecycle implementation
+	 */
+
+	public boolean isRunning() {
+		synchronized (this.lifecycleMonitor) {
+			return this.running;
+		}
+	}
+
+	public synchronized void start() {
+		synchronized (this.lifecycleMonitor) {
+			try {
+				this.openSession();
+				this.openFolder();
+				this.running = true;
+			}
+			catch (MessagingException e) {
+				throw new org.springframework.integration.message.MessagingException(
+						"Failed to start FolderConnection", e);
+			}
+		}
+	}
+
+	public synchronized void stop() {
+		synchronized (this.lifecycleMonitor) {
+			MailTransportUtils.closeFolder(this.folder);
+			MailTransportUtils.closeService(this.store);
+			this.folder = null;
+			this.store = null;
+			this.running = false;
+		}
+	}
+
+	private void openFolder() throws MessagingException {
+		this.folder = this.store.getFolder(this.storeUri);
+		if (this.folder == null || !this.folder.exists()) {
+			throw new IllegalStateException("no default folder available");
+		}
+		if (this.folder.isOpen()) {
+			return;
+		}
+		if (logger.isDebugEnabled()) {
+			logger.debug("Opening folder [" + MailTransportUtils.toPasswordProtectedString(this.storeUri) + "]");
+		}
+		this.folder.open(this.monitoringStrategy.getFolderOpenMode());
+	}
+
+	private void openSession() throws MessagingException {
+		this.session = Session.getInstance(this.javaMailProperties);
+		this.store = this.session.getStore(this.storeUri);
+		if (logger.isDebugEnabled()) {
+			logger.debug("Connecting to store [" + MailTransportUtils.toPasswordProtectedString(this.storeUri) + "]");
+		}
+		this.store.connect();
 	}
 
 }

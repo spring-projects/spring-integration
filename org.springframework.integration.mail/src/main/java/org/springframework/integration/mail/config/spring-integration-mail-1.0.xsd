@@ -40,7 +40,6 @@
 			</xsd:annotation>
 			<xsd:attribute name="id" type="xsd:string" use="required"/>
 			<xsd:attribute name="store-uri" type="xsd:string" use="required"/>
-			<xsd:attribute name="mail-convertor" type="xsd:string" use="optional"/>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -52,9 +51,9 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:attribute name="id" type="xsd:string" use="required"/>
+			<xsd:attribute name="channel" type="xsd:string"/>
 			<xsd:attribute name="store-uri" type="xsd:string" use="required"/>
-			<xsd:attribute name="task-executor" type="xsd:string" use="required"/>
-			<xsd:attribute name="mail-convertor" type="xsd:string" use="optional"/>
+			<xsd:attribute name="task-executor" type="xsd:string" use="optional"/>
 		</xsd:complexType>
 	</xsd:element>
 

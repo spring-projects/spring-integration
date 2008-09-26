@@ -26,12 +26,9 @@ import javax.mail.internet.MimeMessage;
 import org.easymock.classextension.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.mail.FolderConnection;
-import org.springframework.integration.mail.MailMessageConverter;
-import org.springframework.integration.mail.SubscribableMailSource;
-import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
 
@@ -40,21 +37,23 @@ import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
  */
 public class SubscribableMailSourceTests {
 
-	TaskExecutor executor;
+	private TaskExecutor executor;
+
 
 	@Before
 	public void setUp() {
 		executor = new ConcurrentTaskExecutor();
 	}
 
+
 	@Test
 	public void testReceive() throws Exception {
 		javax.mail.Message message = EasyMock.createMock(MimeMessage.class);
 		StubFolderConnection folderConnection = new StubFolderConnection(message);
 		QueueChannel channel = new QueueChannel();
-		SubscribableMailSource mailSource = new SubscribableMailSource(folderConnection, executor);
+		ListeningMailSource mailSource = new ListeningMailSource(folderConnection);
+		mailSource.setTaskExecutor(executor);
 		mailSource.setOutputChannel(channel);
-		mailSource.setConverter(new StubMessageConvertor());
 		mailSource.start();
 		Message<?> result = channel.receive(1000);
 		mailSource.stop();
@@ -65,7 +64,7 @@ public class SubscribableMailSourceTests {
 
 	private static class StubFolderConnection implements FolderConnection {
 
-		ConcurrentLinkedQueue<javax.mail.Message> messages = new ConcurrentLinkedQueue<javax.mail.Message>();
+		private final ConcurrentLinkedQueue<javax.mail.Message> messages = new ConcurrentLinkedQueue<javax.mail.Message>();
 
 		public StubFolderConnection(javax.mail.Message message) {
 			messages.add(message);
@@ -87,15 +86,6 @@ public class SubscribableMailSourceTests {
 		}
 
 		public void stop() {
-		}
-	}
-
-
-	private static class StubMessageConvertor implements MailMessageConverter {
-
-		@SuppressWarnings("unchecked")
-		public Message create(MimeMessage mailMessage) {
-			return new GenericMessage<MimeMessage>(mailMessage);
 		}
 	}
 

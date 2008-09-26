@@ -17,8 +17,8 @@
 package org.springframework.integration.mail;
 
 /**
- * Pre-defined names and prefixes to be used for setting and/or retrieving Mail attributes
- * from/to integration Message Headers.
+ * Pre-defined header names to be used for setting and/or retrieving Mail
+ * Message attributes from/to integration Message Headers.
  * 
  * @author Mark Fisher
  */

@@ -16,82 +16,67 @@
 
 package org.springframework.integration.mail;
 
-import javax.mail.internet.MimeMessage;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.integration.mail.monitor.DefaultLocalMailMessageStore;
-import org.springframework.integration.mail.monitor.LocalMailMessageStore;
 import org.springframework.integration.mail.monitor.MonitoringStrategy;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageSource;
+import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.PollableSource;
+import org.springframework.util.Assert;
 
 /**
- * {@link MessageSource} implementation which delegates to a
+ * {@link MessageSource} implementation that delegates to a
  * {@link MonitoringStrategy} to poll a mailbox. Each poll of the mailbox may
- * return more than one message which will then be stored locally using the
- * provided {@link LocalMailMessageStore}
+ * return more than one message which will then be stored in a queue.
  * 
  * @author Jonas Partner
+ * @author Mark Fisher
  */
-@SuppressWarnings("unchecked")
-public class PollingMailSource implements PollableSource {
+public class PollingMailSource implements PollableSource<javax.mail.Message> {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final FolderConnection folderConnection;
 
-	private MailMessageConverter converter = new DefaultMailMessageConverter();
+	private final Queue<javax.mail.Message> mailQueue = new ConcurrentLinkedQueue<javax.mail.Message>();
 
-	private LocalMailMessageStore mailMessageStore = new DefaultLocalMailMessageStore();
 
-	public PollingMailSource(FolderConnection folderConnetion) {
-		this.folderConnection = folderConnetion;
+	public PollingMailSource(FolderConnection folderConnection) {
+		Assert.notNull(folderConnection, "folderConnection must not be null");
+		this.folderConnection = folderConnection;
 	}
+
 
 	@SuppressWarnings("unchecked")
-	public Message receive() {
-		Message received = null;
-		javax.mail.Message mailMessage = mailMessageStore.getNext();
-		if (mailMessage == null) {
-			try {
-				javax.mail.Message[] messages = folderConnection.receive();
-				mailMessageStore.addLast(messages);
-				mailMessage = mailMessageStore.getNext();
-			} catch (Exception e) {
-				throw new org.springframework.integration.message.MessagingException(
-						"Excpetion receiving mail", e);
+	public Message<javax.mail.Message> receive() {
+		try {
+			javax.mail.Message mailMessage = this.mailQueue.poll();
+			if (mailMessage == null) {
+				javax.mail.Message[] messages = this.folderConnection.receive();
+				if (messages != null) {
+					for (javax.mail.Message message : messages) {
+						this.mailQueue.add(message);
+					}
+				}
+				mailMessage = this.mailQueue.poll();
+			}
+			if (mailMessage != null) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Received mail message [" + mailMessage + "]");
+				}
+				return MessageBuilder.withPayload(mailMessage).build();
 			}
 		}
-		if (mailMessage != null) {
-			received = converter.create((MimeMessage) mailMessage);
-			if (logger.isDebugEnabled()) {
-				logger.debug("Received message " + received);
-			}
+		catch (Exception e) {
+			throw new MessagingException("failure occurred while polling for mail", e);
 		}
-		return received;
-	}
-
-	public void setConverter(MailMessageConverter converter) {
-		this.converter = converter;
-	}
-
-	public void setMailMessageStore(LocalMailMessageStore mailMessageStore) {
-		this.mailMessageStore = mailMessageStore;
-	}
-
-	public FolderConnection getFolderConnection() {
-		return folderConnection;
-	}
-
-	public MailMessageConverter getConverter() {
-		return converter;
-	}
-
-	public LocalMailMessageStore getMailMessageStore() {
-		return mailMessageStore;
+		return null;
 	}
 
 }

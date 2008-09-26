@@ -17,7 +17,6 @@
 package org.springframework.integration.mail;
 
 import javax.mail.Message;
-import javax.mail.internet.MimeMessage;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -25,81 +24,68 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.endpoint.AbstractMessageProducingEndpoint;
 import org.springframework.integration.mail.monitor.AsyncMonitoringStrategy;
-import org.springframework.integration.message.MessageSource;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.util.Assert;
 
 /**
- * An event-driven mail source that sends Spring Integration Messages to its output channel.
- * The given {@link FolderConnection} should be using an {@link AsyncMonitoringStrategy} to
- * retrieve mail.
+ * An event-driven mail source that sends Spring Integration Messages to its
+ * output channel. The Message payload will be the {@link javax.mail.Message}
+ * instance that was received. The given {@link FolderConnection} should be
+ * using an {@link AsyncMonitoringStrategy} to retrieve mail.
  * 
  * @author Jonas Partner
+ * @author Mark Fisher
  */
-public class SubscribableMailSource implements MessageSource, Lifecycle, DisposableBean {
+public class ListeningMailSource extends AbstractMessageProducingEndpoint implements Lifecycle, DisposableBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
-
-	private volatile MessageChannel outputChannel;
-
-	private final TaskExecutor taskExecutor;
 
 	private final MonitorRunnable monitorRunnable;
 
 	private volatile boolean monitorRunning = false;
 
-	private volatile MailMessageConverter converter = new DefaultMailMessageConverter();
+	private volatile TaskExecutor taskExecutor;
 
 
-	public SubscribableMailSource(FolderConnection folderConnection, TaskExecutor taskExecutor) {
+	public ListeningMailSource(FolderConnection folderConnection) {
 		Assert.notNull(folderConnection, "FolderConnection must not be null");
-		Assert.notNull(taskExecutor, "TaskExecutor must not be null");
 		this.monitorRunnable = new MonitorRunnable(folderConnection);
+	}
+
+
+	public void setTaskExecutor(TaskExecutor taskExecutor) {
 		this.taskExecutor = taskExecutor;
 	}
 
-
-	public void setOutputChannel(MessageChannel outputChannel) {
-		this.outputChannel = outputChannel;
-	}
-
-	public void setConverter(MailMessageConverter converter) {
-		this.converter = converter;
-	}
-
-	public void destroy() throws Exception {
-		this.stop();
-	}
-
-	public void start() {
-		if (logger.isInfoEnabled()) {
-			logger.info("Starting to monitor mailbox");
-		}
-		this.startMonitor();
-		if (logger.isInfoEnabled()) {
-			logger.info("Started to monitor mailbox");
-		}
-
-	}
-
-	public void stop() {
-		if (logger.isInfoEnabled()) {
-			logger.info("Stopping monitoring of mailbox");
-		}
-		this.stopMonitor();
-		if (logger.isInfoEnabled()) {
-			logger.info("Stopped monitoring mailbox");
-		}
-	}
+	// Lifecycle implementation
 
 	public boolean isRunning() {
 		return this.monitorRunning;
 	}
 
+	public void start() {
+		this.startMonitor();
+		if (logger.isInfoEnabled()) {
+			logger.info("started monitoring mailbox");
+		}
+	}
+
+	public void stop() {
+		this.stopMonitor();
+		if (logger.isInfoEnabled()) {
+			logger.info("stopped monitoring mailbox");
+		}
+	}
+
 	protected void startMonitor() {
 		synchronized (this.monitorRunnable) {
 			if (!this.monitorRunning) {
+				if (this.taskExecutor == null) {
+					this.taskExecutor = this.getTaskScheduler();
+				}
+				Assert.state(this.taskExecutor != null, "TaskExecutor is required");
 				this.taskExecutor.execute(this.monitorRunnable);
 			}
 			this.monitorRunning = true;
@@ -113,6 +99,10 @@ public class SubscribableMailSource implements MessageSource, Lifecycle, Disposa
 			}
 			this.monitorRunning = false;
 		}
+	}
+
+	public void destroy() throws Exception {
+		this.stop();
 	}
 
 
@@ -135,9 +125,12 @@ public class SubscribableMailSource implements MessageSource, Lifecycle, Disposa
 		public void run() {
 			this.thread = Thread.currentThread();
 			while (!Thread.currentThread().isInterrupted()) {
-				Message[] messages = this.folderConnection.receive();
-				for (Message message : messages) {
-					outputChannel.send(converter.create((MimeMessage) message));
+				if (!this.folderConnection.isRunning()) {
+					this.folderConnection.start();
+				}
+				Message[] mailMessages = this.folderConnection.receive();
+				for (Message mailMessage : mailMessages) {
+					ListeningMailSource.this.sendMessage(MessageBuilder.withPayload(mailMessage).build());
 				}
 			}
 		}

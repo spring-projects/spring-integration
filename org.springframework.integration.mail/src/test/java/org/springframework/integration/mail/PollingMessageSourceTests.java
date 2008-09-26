@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.mail;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -24,46 +26,36 @@ import javax.mail.internet.MimeMessage;
 import org.easymock.classextension.EasyMock;
 import org.junit.Test;
 
-import org.springframework.integration.mail.FolderConnection;
-import org.springframework.integration.mail.MailMessageConverter;
-import org.springframework.integration.mail.PollingMailSource;
-import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.message.Message;
-
+/**
+ * @author Jonas Partner
+ */
 public class PollingMessageSourceTests {
 
 	@Test
-	public void testPolling(){
+	public void testPolling() {
 		StubFolderConnection folderConnection = new StubFolderConnection();
-	
-		MimeMessage messageOne = EasyMock.createMock(MimeMessage.class);
-		MimeMessage messageTwo = EasyMock.createMock(MimeMessage.class);
-		MimeMessage messageThree = EasyMock.createMock(MimeMessage.class);
-		MimeMessage messageFour = EasyMock.createMock(MimeMessage.class);
-		
-		folderConnection.messages.add(new javax.mail.Message[]{messageOne});
-		folderConnection.messages.add(new javax.mail.Message[]{messageTwo,messageThree});
-		folderConnection.messages.add(new javax.mail.Message[]{messageFour});
-		
+		MimeMessage message1 = EasyMock.createMock(MimeMessage.class);
+		MimeMessage message2 = EasyMock.createMock(MimeMessage.class);
+		MimeMessage message3 = EasyMock.createMock(MimeMessage.class);
+		MimeMessage message4 = EasyMock.createMock(MimeMessage.class);
+
+		folderConnection.messages.add(new javax.mail.Message[] { message1 });
+		folderConnection.messages.add(new javax.mail.Message[] { message2, message3 });
+		folderConnection.messages.add(new javax.mail.Message[] { message4 });
+
 		PollingMailSource pollingMailSource = new PollingMailSource(folderConnection);
-		pollingMailSource.setConverter(new StubMessageConvertor());
-		
-		
-		assertEquals("Wrong message for number 1", messageOne, pollingMailSource.receive().getPayload());
-		assertEquals("Wrong message for number 2", messageTwo, pollingMailSource.receive().getPayload());
-		assertEquals("Wrong message for number 3", messageThree, pollingMailSource.receive().getPayload());
-		assertEquals("Wrong message for number 4", messageFour, pollingMailSource.receive().getPayload());
-		assertNull("Expected null after exhausting all messages",pollingMailSource.receive());
+		assertEquals("Wrong message for number 1", message1, pollingMailSource.receive().getPayload());
+		assertEquals("Wrong message for number 2", message2, pollingMailSource.receive().getPayload());
+		assertEquals("Wrong message for number 3", message3, pollingMailSource.receive().getPayload());
+		assertEquals("Wrong message for number 4", message4, pollingMailSource.receive().getPayload());
+		assertNull("Expected null after exhausting all messages", pollingMailSource.receive());
 	}
-	
-	
-	
+
+
 	private static class StubFolderConnection implements FolderConnection {
 
-		ConcurrentLinkedQueue<javax.mail.Message[]> messages = new ConcurrentLinkedQueue<javax.mail.Message[]>();
+		private final ConcurrentLinkedQueue<javax.mail.Message[]> messages = new ConcurrentLinkedQueue<javax.mail.Message[]>();
 
-		
-		
 		public javax.mail.Message[] receive() {
 			return messages.poll();
 		}
@@ -73,20 +65,9 @@ public class PollingMessageSourceTests {
 		}
 
 		public void start() {
-
 		}
 
 		public void stop() {
-
-		}
-
-	}
-
-	private static class StubMessageConvertor implements MailMessageConverter {
-
-		@SuppressWarnings("unchecked")
-		public Message create(MimeMessage mailMessage) {
-			return new GenericMessage<MimeMessage>(mailMessage);
 		}
 	}
 
