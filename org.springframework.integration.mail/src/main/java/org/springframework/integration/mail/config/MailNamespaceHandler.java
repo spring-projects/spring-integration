@@ -17,6 +17,8 @@
 package org.springframework.integration.mail.config;
 
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
+import org.springframework.integration.mail.MailHeaders;
+import org.springframework.integration.transformer.config.SimpleHeaderEnricherParser;
 
 /**
  * Namespace handler for the 'mail' namespace.
@@ -29,6 +31,7 @@ public class MailNamespaceHandler extends NamespaceHandlerSupport {
 		this.registerBeanDefinitionParser("outbound-channel-adapter", new MailOutboundChannelAdapterParser());
 		this.registerBeanDefinitionParser("polling-mail-source", new PollingMailSourceParser());
 		this.registerBeanDefinitionParser("imap-idle-mail-source", new SubscribableImapIdleMailSourceParser());
+		this.registerBeanDefinitionParser("header-enricher", new SimpleHeaderEnricherParser(MailHeaders.TRANSPORT_PREFIX));
 	}
 
 }
