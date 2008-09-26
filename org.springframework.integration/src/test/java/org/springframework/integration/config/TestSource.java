@@ -17,14 +17,14 @@
 package org.springframework.integration.config;
 
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.PollableSource;
+import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
  */
 @SuppressWarnings("unchecked")
-public class TestSource implements PollableSource {
+public class TestSource implements MessageSource {
 
 	public Message<?> receive() {
 		return new StringMessage("test");

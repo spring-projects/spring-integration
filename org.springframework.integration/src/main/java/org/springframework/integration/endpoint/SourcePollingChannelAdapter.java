@@ -20,8 +20,8 @@ import java.util.concurrent.ScheduledFuture;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MethodInvokingSource;
-import org.springframework.integration.message.PollableSource;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.integration.scheduling.Trigger;
 
@@ -34,7 +34,7 @@ import org.springframework.integration.scheduling.Trigger;
  */
 public class SourcePollingChannelAdapter extends AbstractMessageProducingEndpoint implements Lifecycle {
 
-	private volatile PollableSource<?> source;
+	private volatile MessageSource<?> source;
 
 	private volatile Trigger trigger;
 
@@ -49,7 +49,7 @@ public class SourcePollingChannelAdapter extends AbstractMessageProducingEndpoin
 	private final Object lifecycleMonitor = new Object();
 
 
-	public void setSource(PollableSource<?> source) {
+	public void setSource(MessageSource<?> source) {
 		this.source = source;
 	}
 

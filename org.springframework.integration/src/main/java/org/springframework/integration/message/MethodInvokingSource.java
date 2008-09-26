@@ -33,7 +33,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class MethodInvokingSource implements PollableSource<Object>, InitializingBean {
+public class MethodInvokingSource implements MessageSource<Object>, InitializingBean {
 
 	private volatile Object object;
 

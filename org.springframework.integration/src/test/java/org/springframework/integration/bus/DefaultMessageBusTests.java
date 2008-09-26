@@ -39,7 +39,7 @@ import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.PollableSource;
+import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.scheduling.IntervalTrigger;
 
@@ -269,7 +269,7 @@ public class DefaultMessageBusTests {
 	}
 
 
-	private static class FailingSource implements PollableSource<Object> {
+	private static class FailingSource implements MessageSource<Object> {
 
 		private CountDownLatch latch;
 

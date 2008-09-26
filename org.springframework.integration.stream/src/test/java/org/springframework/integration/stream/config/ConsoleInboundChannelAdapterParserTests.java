@@ -35,7 +35,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.PollableSource;
+import org.springframework.integration.message.MessageSource;
 
 /**
  * @author Mark Fisher
@@ -54,7 +54,7 @@ public class ConsoleInboundChannelAdapterParserTests {
 				"consoleInboundChannelAdapterParserTests.xml", ConsoleInboundChannelAdapterParserTests.class);
 		SourcePollingChannelAdapter adapter =
 				(SourcePollingChannelAdapter) context.getBean("adapterWithDefaultCharset.adapter");
-		PollableSource<?> source = (PollableSource<?>) new DirectFieldAccessor(adapter).getPropertyValue("source");
+		MessageSource<?> source = (MessageSource<?>) new DirectFieldAccessor(adapter).getPropertyValue("source");
 		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(source);
 		Reader bufferedReader = (Reader) sourceAccessor.getPropertyValue("reader");
 		assertEquals(BufferedReader.class, bufferedReader.getClass());
@@ -74,7 +74,7 @@ public class ConsoleInboundChannelAdapterParserTests {
 				"consoleInboundChannelAdapterParserTests.xml", ConsoleInboundChannelAdapterParserTests.class);
 		SourcePollingChannelAdapter adapter =
 				(SourcePollingChannelAdapter) context.getBean("adapterWithProvidedCharset.adapter");
-		PollableSource<?> source = (PollableSource<?>) new DirectFieldAccessor(adapter).getPropertyValue("source");
+		MessageSource<?> source = (MessageSource<?>) new DirectFieldAccessor(adapter).getPropertyValue("source");
 		DirectFieldAccessor sourceAccessor = new DirectFieldAccessor(source);
 		Reader bufferedReader = (Reader) sourceAccessor.getPropertyValue("reader");
 		assertEquals(BufferedReader.class, bufferedReader.getClass());

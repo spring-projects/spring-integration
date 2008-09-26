@@ -23,8 +23,8 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 
 import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.message.PollableSource;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.util.Assert;
 
@@ -33,7 +33,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class CharacterStreamSource implements PollableSource<String> {
+public class CharacterStreamSource implements MessageSource<String> {
 
 	private final BufferedReader reader;
 

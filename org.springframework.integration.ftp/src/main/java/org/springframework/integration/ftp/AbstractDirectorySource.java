@@ -27,8 +27,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryAware;
+import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.message.PollableSource;
 
 /**
  * Base class for implementing a PollableSource that creates messages from files
@@ -37,7 +37,7 @@ import org.springframework.integration.message.PollableSource;
  * @author Marius Bogoevici
  * @author Iwein Fuld
  */
-public abstract class AbstractDirectorySource<T> implements PollableSource<T>, MessageDeliveryAware<T> {
+public abstract class AbstractDirectorySource<T> implements MessageSource<T>, MessageDeliveryAware<T> {
 
 	public final static String FILE_INFO_PROPERTY = "file.info";
 

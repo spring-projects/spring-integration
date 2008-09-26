@@ -32,8 +32,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryAware;
+import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.message.PollableSource;
 import org.springframework.util.Assert;
 
 /**
@@ -52,7 +52,7 @@ import org.springframework.util.Assert;
  * 
  * @author Iwein Fuld
  */
-public class PollableFileSource implements PollableSource<File>, MessageDeliveryAware<File> {
+public class PollableFileSource implements MessageSource<File>, MessageDeliveryAware<File> {
 
 	private static final Log logger = LogFactory.getLog(PollableFileSource.class);
 

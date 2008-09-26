@@ -17,10 +17,16 @@
 package org.springframework.integration.message;
 
 /**
- * Base interface for any source of {@link Message Messages}. 
+ * Base interface for any source of {@link Message Messages} that can be polled. 
  * 
  * @author Mark Fisher
  */
 public interface MessageSource<T> {
+
+	/**
+	 * Retrieve the next available message from this source.
+	 * Returns <code>null</code> if no message is available.
+	 */
+	Message<T> receive();
 
 }

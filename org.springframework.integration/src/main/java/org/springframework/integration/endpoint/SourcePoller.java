@@ -21,8 +21,8 @@ import org.springframework.integration.message.BlockingSource;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryAware;
 import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.message.PollableSource;
 import org.springframework.integration.scheduling.Trigger;
 import org.springframework.util.Assert;
 
@@ -31,14 +31,14 @@ import org.springframework.util.Assert;
  */
 public class SourcePoller extends AbstractPoller {
 
-	private final PollableSource<?> source;
+	private final MessageSource<?> source;
 
 	private final MessageChannel channel;
 
 	private volatile long receiveTimeout = 1000;
 
 
-	public SourcePoller(PollableSource<?> source, MessageChannel channel, Trigger trigger) {
+	public SourcePoller(MessageSource<?> source, MessageChannel channel, Trigger trigger) {
 		super(trigger);
 		Assert.notNull(source, "source must not be null");
 		Assert.notNull(channel, "channel must not be null");

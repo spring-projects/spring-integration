@@ -27,7 +27,6 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.message.PollableSource;
 import org.springframework.util.Assert;
 
 /**
@@ -38,7 +37,7 @@ import org.springframework.util.Assert;
  * @author Jonas Partner
  * @author Mark Fisher
  */
-public class PollingMailSource implements PollableSource<javax.mail.Message> {
+public class PollingMailSource implements MessageSource<javax.mail.Message> {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
