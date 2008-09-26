@@ -26,20 +26,20 @@ public class MailHeaders {
 
 	public static final String TRANSPORT_PREFIX = "spring.integration.transport.mail.";
 
-	public static final String SUBJECT = TRANSPORT_PREFIX + "SUBJECT";
+	public static final String SUBJECT = TRANSPORT_PREFIX + "subject";
 
-	public static final String TO = TRANSPORT_PREFIX + "TO";
+	public static final String TO = TRANSPORT_PREFIX + "to";
 
-	public static final String CC = TRANSPORT_PREFIX + "CC";
+	public static final String CC = TRANSPORT_PREFIX + "cc";
 
-	public static final String BCC = TRANSPORT_PREFIX + "BCC";
+	public static final String BCC = TRANSPORT_PREFIX + "bcc";
 
-	public static final String FROM = TRANSPORT_PREFIX + "FROM";
+	public static final String FROM = TRANSPORT_PREFIX + "from";
 
-	public static final String REPLY_TO = TRANSPORT_PREFIX+ "REPLY_TO";
+	public static final String REPLY_TO = TRANSPORT_PREFIX+ "reply-to";
 
-	public static final String MULTIPART_MODE = TRANSPORT_PREFIX + "MULTIPART_MODE";
+	public static final String MULTIPART_MODE = TRANSPORT_PREFIX + "multipart-mode";
 
-	public static final String ATTACHMENT_FILENAME = TRANSPORT_PREFIX + "ATTACHMENT_FILENAME";
+	public static final String ATTACHMENT_FILENAME = TRANSPORT_PREFIX + "attachment-filename";
 
 }
