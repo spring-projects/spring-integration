@@ -30,6 +30,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMailMessage;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * A {@link MessageConsumer} implementation for sending mail.
@@ -120,9 +121,8 @@ public class MailSendingMessageConsumer implements MessageConsumer {
 			mailMessage.setSubject(subject);
 		}
 		String[] to = this.retrieveHeaderValueAsStringArray(headers, MailHeaders.TO);
-		if (to != null) {
-			mailMessage.setTo(to);
-		}
+		Assert.state(to != null, "no value available for the 'MailHeaders.TO' header");
+		mailMessage.setTo(to);
 		String[] cc = this.retrieveHeaderValueAsStringArray(headers, MailHeaders.CC);
 		if (cc != null) {
 			mailMessage.setCc(cc);
@@ -148,7 +148,7 @@ public class MailSendingMessageConsumer implements MessageConsumer {
 				return (String[]) value;
 			}
 			if (value instanceof String) {
-				return new String[] { (String) value };
+				return StringUtils.commaDelimitedListToStringArray((String) value);
 			}
 		}
 		return null;
