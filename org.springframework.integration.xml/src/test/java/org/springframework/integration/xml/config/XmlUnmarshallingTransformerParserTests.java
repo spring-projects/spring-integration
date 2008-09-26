@@ -26,15 +26,17 @@ import org.junit.Test;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.transformer.Transformer;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.xml.transform.StringSource;
 
 /**
  * @author Jonas Partner
+ * @author Mark Fisher
  */
 public class XmlUnmarshallingTransformerParserTests {
 
@@ -45,49 +47,54 @@ public class XmlUnmarshallingTransformerParserTests {
 
 	@Before
 	public void setUp() {
-		appContext = new ClassPathXmlApplicationContext("XmlUnmarshallingTransformerParserTests-context.xml",
-				getClass());
+		appContext = new ClassPathXmlApplicationContext(
+				"XmlUnmarshallingTransformerParserTests-context.xml", this.getClass());
 		unmarshaller = (StubUnmarshaller) appContext.getBean("unmarshaller");
 	}
 
 
 	@Test
 	public void testDefaultUnmarshall() throws Exception {
-		Transformer transformer = (Transformer) appContext.getBean("defaultUnmarshaller");
+		MessageChannel input = (MessageChannel) appContext.getBean("input");
+		PollableChannel output = (PollableChannel) appContext.getBean("output");
 		GenericMessage<Object> message = new GenericMessage<Object>(new StringSource(
 				"<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>"));
-		Message<?> result = transformer.transform(message);
+		input.send(message);
+		Message<?> result = output.receive(0);
 		assertEquals("Wrong payload after unmarshalling", "unmarshalled", result.getPayload());
 		assertTrue("Wrong source passed to unmarshaller", unmarshaller.sourcesPassed.poll() instanceof StringSource);
 	}
 
 	@Test
 	public void testUnmarshallString() throws Exception {
-		Transformer transformer = (Transformer) appContext.getBean("defaultUnmarshaller");
+		MessageChannel input = (MessageChannel) appContext.getBean("input");
+		PollableChannel output = (PollableChannel) appContext.getBean("output");
 		GenericMessage<Object> message = new GenericMessage<Object>(
 				"<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>");
-		Message<?> result = transformer.transform(message);
+		input.send(message);
+		Message<?> result = output.receive(0);
 		assertEquals("Wrong payload after unmarshalling", "unmarshalled", result.getPayload());
 		assertTrue("Wrong source passed to unmarshaller", unmarshaller.sourcesPassed.poll() instanceof StringSource);
 	}
 
 	@Test
 	public void testUnmarshallDocument() throws Exception {
-		Transformer transformer = (Transformer) appContext.getBean("defaultUnmarshaller");
+		MessageChannel input = (MessageChannel) appContext.getBean("input");
+		PollableChannel output = (PollableChannel) appContext.getBean("output");
 		GenericMessage<Object> message = new GenericMessage<Object>(
-				XmlTestUtil
-						.getDocumentForString("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>"));
-		Message<?> result = transformer.transform(message);
+				XmlTestUtil.getDocumentForString("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>"));
+		input.send(message);
+		Message<?> result = output.receive(0);
 		assertEquals("Wrong payload after unmarshalling", "unmarshalled", result.getPayload());
 		assertTrue("Wrong source passed to unmarshaller", unmarshaller.sourcesPassed.poll() instanceof DOMSource);
 	}
 
 	@Test(expected = MessagingException.class)
 	public void testUnmarshallUnsupported() throws Exception {
-		Transformer transformer = (Transformer) appContext.getBean("defaultUnmarshaller");
+		MessageChannel input = (MessageChannel) appContext.getBean("input");
 		GenericMessage<Object> message = new GenericMessage<Object>(new StringBuffer(
 				"<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>"));
-		transformer.transform(message);
+		input.send(message);
 	}
 
 }

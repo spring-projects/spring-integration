@@ -16,25 +16,27 @@
 
 package org.springframework.integration.xml.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.transformer.AbstractPayloadTransformer;
-import org.springframework.integration.transformer.config.AbstractPayloadTransformerParser;
+import org.springframework.integration.transformer.Transformer;
+import org.springframework.integration.transformer.config.AbstractTransformerParser;
 import org.springframework.integration.xml.transformer.XsltPayloadTransformer;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * @author Jonas Partner
  * @author Mark Fisher
  */
-public class XsltPayloadTransformerParser extends AbstractPayloadTransformerParser {
+public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 
 	private ResultFactoryResultTypeHelper resultFactoryHelper = new ResultFactoryResultTypeHelper();
 
+
 	@Override
-	protected Class<? extends AbstractPayloadTransformer<?, ?>> getTransformerClass() {
+	protected Class<? extends Transformer> getTransformerClass() {
 		return XsltPayloadTransformer.class;
 	}
 
@@ -45,7 +47,6 @@ public class XsltPayloadTransformerParser extends AbstractPayloadTransformerPars
 		String resultTransformer = element.getAttribute("result-transformer");
 		String resultFactory = element.getAttribute("result-factory");
 		String resultType = element.getAttribute("result-type");
-
 		boolean bothHaveText = StringUtils.hasText(xslResource) && StringUtils.hasText(xslTemplates);
 		boolean oneHasText = StringUtils.hasText(xslResource) || StringUtils.hasText(xslTemplates);
 		Assert.state(!bothHaveText && oneHasText, "Exactly one of 'xsl-resource' or 'xsl-templates' is required.");
@@ -61,7 +62,6 @@ public class XsltPayloadTransformerParser extends AbstractPayloadTransformerPars
 		}
 		resultFactoryHelper.assertResultFactoryAndTypeValid(resultFactory, resultType);
 		resultFactoryHelper.addResultFactory(builder, resultType, resultFactory);
-
 		if (StringUtils.hasText(resultTransformer)) {
 			builder.addConstructorArgReference(resultTransformer);
 		}

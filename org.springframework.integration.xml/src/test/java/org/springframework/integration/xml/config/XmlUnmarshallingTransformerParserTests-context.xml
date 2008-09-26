@@ -1,14 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:si-xml="http://www.springframework.org/schema/integration/xml"
+	xmlns:si="http://www.springframework.org/schema/integration"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration/xml
-			http://www.springframework.org/schema/integration/xml/spring-integration-xml-1.0.xsd">
+			http://www.springframework.org/schema/integration/xml/spring-integration-xml-1.0.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<si-xml:unmarshalling-transformer id="defaultUnmarshaller" unmarshaller="unmarshaller" />
+	<si:message-bus/>
 
-	<bean id="unmarshaller" class="org.springframework.integration.xml.config.StubUnmarshaller" />
+	<si:channel id="input"/>
+
+	<si:channel id="output">
+		<si:queue capacity="1"/>
+	</si:channel>
+
+	<si-xml:unmarshalling-transformer id="defaultUnmarshaller"
+			input-channel="input"
+			output-channel="output"
+			unmarshaller="unmarshaller"/>
+
+	<bean id="unmarshaller" class="org.springframework.integration.xml.config.StubUnmarshaller"/>
 
 </beans>

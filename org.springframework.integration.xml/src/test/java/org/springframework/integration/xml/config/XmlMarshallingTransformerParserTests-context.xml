@@ -1,30 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:si-xml="http://www.springframework.org/schema/integration/xml"
+	xmlns:si="http://www.springframework.org/schema/integration"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
 			http://www.springframework.org/schema/integration/xml
 			http://www.springframework.org/schema/integration/xml/spring-integration-xml-1.0.xsd">
 
-	<si-xml:marshalling-transformer
-		id="marshallingTransformerNoResultFactory" marshaller="marshaller" />
+	<si:message-bus/>
 
+	<si:channel id="output">
+		<si:queue capacity="1"/>
+	</si:channel>
+
+	<si:channel id="marshallingTransformerNoResultFactory"/>
 	<si-xml:marshalling-transformer
-		id="marshallingTransformerStringResultFactory" marshaller="marshaller"
+		input-channel="marshallingTransformerNoResultFactory"
+		output-channel="output"
+		marshaller="marshaller" />
+
+	<si:channel id="marshallingTransformerStringResultFactory"/>
+	<si-xml:marshalling-transformer
+		input-channel="marshallingTransformerStringResultFactory"
+		output-channel="output"
+		marshaller="marshaller"
 		result-type="StringResult" />
 
+	<si:channel id="marshallingTransformerDOMResultFactory"/>
 	<si-xml:marshalling-transformer
-		id="marshallingTransformerDOMResultFactory" marshaller="marshaller"
+		input-channel="marshallingTransformerDOMResultFactory"
+		output-channel="output"
+		marshaller="marshaller"
 		result-type="DOMResult" />
 		
+	<si:channel id="marshallingTransformerCustomResultFactory"/>
 	<si-xml:marshalling-transformer
-		id="marshallingTransformerCustomResultFactory" marshaller="marshaller"
+		input-channel="marshallingTransformerCustomResultFactory"
+		output-channel="output"
+		marshaller="marshaller"
 		result-factory="stubResultFactory" />	
 
+	<si:channel id="marshallingTransformerWithResultTransformer"/>
 	<si-xml:marshalling-transformer
-		id="marshallingTransformerWithResultTransformer"
-		marshaller="marshaller" result-transformer="resultTransformer" />
+		input-channel="marshallingTransformerWithResultTransformer"
+		output-channel="output"
+		marshaller="marshaller"
+		result-transformer="resultTransformer" />
 
 	<bean id="marshaller" class="org.springframework.integration.xml.config.StubMarshaller" />
 

@@ -27,6 +27,7 @@ import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.endpoint.MessageEndpoint;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -54,8 +55,18 @@ public abstract class AbstractEndpointParser extends AbstractSingleBeanDefinitio
 	private static final String INTERCEPTORS_ELEMENT = "interceptors";
 
 
+	/**
+	 * Subclasses may override this method to specify whether the endpoint type
+	 * expects a "ref" (and possibly a "method") in order to adapt an Object.
+	 * 
+	 * <p>The default is <em>true</em>.
+	 */
+	protected boolean requiresBeanReference() {
+		return true;
+	}
+
 	@Override
-	protected Class<?> getBeanClass(Element element) {
+	protected final Class<?> getBeanClass(Element element) {
 		return this.getEndpointClass();
 	}
 
@@ -71,17 +82,19 @@ public abstract class AbstractEndpointParser extends AbstractSingleBeanDefinitio
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		String ref = element.getAttribute(REF_ATTRIBUTE);
-		if (!StringUtils.hasText(ref)) {
-			throw new ConfigurationException("The '" + REF_ATTRIBUTE + "' attribute is required.");
-		}
-		if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
-			String method = element.getAttribute(METHOD_ATTRIBUTE);
-			String adapterBeanName = this.parseAdapter(ref, method, element, parserContext);
-			builder.addConstructorArgReference(adapterBeanName);
-		}
-		else {
-			builder.addConstructorArgReference(ref);
+		if (this.requiresBeanReference()) {
+			String ref = element.getAttribute(REF_ATTRIBUTE);
+			if (!StringUtils.hasText(ref)) {
+				throw new ConfigurationException("The '" + REF_ATTRIBUTE + "' attribute is required.");
+			}
+			if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
+				String method = element.getAttribute(METHOD_ATTRIBUTE);
+				String adapterBeanName = this.parseAdapter(ref, method, element, parserContext);
+				builder.addConstructorArgReference(adapterBeanName);
+			}
+			else {
+				builder.addConstructorArgReference(ref);
+			}
 		}
 		String inputChannel = element.getAttribute(INPUT_CHANNEL_ATTRIBUTE);
 		if (!StringUtils.hasText(inputChannel)) {
@@ -110,10 +123,14 @@ public abstract class AbstractEndpointParser extends AbstractSingleBeanDefinitio
 	}
 
 	private String parseAdapter(String ref, String method, Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(this.getMethodInvokingAdapterClass());
+		Class<?> adapterClass = this.getMethodInvokingAdapterClass();
+		Assert.state(adapterClass != null,
+				"Parser needs to create an adapter but 'getMethodInvokingAdapterClass()' returned null.");
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(adapterClass);
 		builder.addConstructorArgReference(ref);
 		builder.addConstructorArgValue(method);
-		String adapterBeanName = BeanDefinitionReaderUtils.generateBeanName(builder.getBeanDefinition(), parserContext.getRegistry());
+		String adapterBeanName = BeanDefinitionReaderUtils.generateBeanName(
+				builder.getBeanDefinition(), parserContext.getRegistry());
 		BeanDefinitionHolder holder = new BeanDefinitionHolder(builder.getBeanDefinition(), adapterBeanName);
 		parserContext.registerBeanComponent(new BeanComponentDefinition(holder));
 		return adapterBeanName;
@@ -125,8 +142,14 @@ public abstract class AbstractEndpointParser extends AbstractSingleBeanDefinitio
 	protected void postProcess(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 	}
 
-	protected abstract Class<? extends MessageEndpoint> getEndpointClass();
+	/**
+	 * Subclasses must override this if the adapted object is created from
+	 * the "ref" and "method" attribute values.
+	 */
+	protected Class<?> getMethodInvokingAdapterClass() {
+		return null;
+	}
 
-	protected abstract Class<?> getMethodInvokingAdapterClass();
+	protected abstract Class<? extends MessageEndpoint> getEndpointClass();
 
 }

@@ -23,20 +23,21 @@ import javax.xml.transform.dom.DOMResult;
 
 import org.junit.Before;
 import org.junit.Test;
-
 import org.w3c.dom.Document;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.transformer.Transformer;
 import org.springframework.integration.xml.config.StubResultFactory.StubStringResult;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.xml.transform.StringResult;
 
 /**
  * @author Jonas Partner
+ * @author Mark Fisher
  */
 public class XsltPayloadTransformerParserTests {
 
@@ -44,19 +45,22 @@ public class XsltPayloadTransformerParserTests {
 
 	private ApplicationContext applicationContext;
 
+	private PollableChannel output;
+
 
 	@Before
 	public void setUp() {
 		applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context.xml", getClass());
+		output = (PollableChannel) applicationContext.getBean("output");
 	}
 
 
 	@Test
 	public void testWithResourceProvided() throws Exception {
-		Transformer transformer = (Transformer) applicationContext
-				.getBean("xsltTransformerWithResource");
+		MessageChannel input = (MessageChannel) applicationContext.getBean("withResourceIn");
 		GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
-		Message<?> result = transformer.transform(message);
+		input.send(message);
+		Message<?> result = output.receive(0);
 		assertTrue("Payload was not a DOMResult", result.getPayload() instanceof DOMResult);
 		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
 		assertEquals("Wrong payload", "test", doc.getDocumentElement().getTextContent());
@@ -64,10 +68,10 @@ public class XsltPayloadTransformerParserTests {
 
 	@Test
 	public void testWithTemplatesProvided() throws Exception {
-		Transformer transformer = (Transformer) applicationContext
-				.getBean("xsltTransformerWithTemplates");
+		MessageChannel input = (MessageChannel) applicationContext.getBean("withTemplatesIn");
 		GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
-		Message<?> result = transformer.transform(message);
+		input.send(message);
+		Message<?> result = output.receive(0);
 		assertTrue("Payload was not a DOMResult", result.getPayload() instanceof DOMResult);
 		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
 		assertEquals("Wrong payload", "test", doc.getDocumentElement().getTextContent());
@@ -75,30 +79,30 @@ public class XsltPayloadTransformerParserTests {
 
 	@Test
 	public void testWithTemplatesAndResultTransformer() throws Exception {
-		Transformer transformer = (Transformer) applicationContext
-				.getBean("xsltTransformerWithTemplatesAndResultTransformer");
+		MessageChannel input = (MessageChannel) applicationContext.getBean("withTemplatesAndResultTransformerIn");
 		GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
-		Message<?> result = transformer.transform(message);
+		input.send(message);
+		Message<?> result = output.receive(0);
 		assertEquals("Wrong payload type", String.class, result.getPayload().getClass());
 		String strResult = (String)result.getPayload();
 		assertEquals("Wrong payload", "testReturn", strResult);
 	}
-	
+
 	@Test
 	public void testWithResourceProvidedndStubResultFactory() throws Exception {
-		Transformer transformer = (Transformer) applicationContext
-				.getBean("xsltTransformerWithTemplatesAndResultFactory");
+		MessageChannel input = (MessageChannel) applicationContext.getBean("withTemplatesAndResultFactoryIn");
 		GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
-		Message<?> result = transformer.transform(message);
+		input.send(message);
+		Message<?> result = output.receive(0);
 		assertTrue("Payload was not a StubStringResult", result.getPayload() instanceof StubStringResult);
 	}
-	
+
 	@Test
 	public void testWithResourceAndStringResultType() throws Exception {
-		Transformer transformer = (Transformer) applicationContext
-				.getBean("xsltTransformerWithTemplatesAndStringResulType");
+		MessageChannel input = (MessageChannel) applicationContext.getBean("withTemplatesAndStringResultTypeIn");
 		GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
-		Message<?> result = transformer.transform(message);
+		input.send(message);
+		Message<?> result = output.receive(0);
 		assertTrue("Payload was not a StringResult", result.getPayload() instanceof StringResult);
 	}
 	

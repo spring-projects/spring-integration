@@ -16,25 +16,27 @@
 
 package org.springframework.integration.xml.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.transformer.AbstractPayloadTransformer;
-import org.springframework.integration.transformer.config.AbstractPayloadTransformerParser;
+import org.springframework.integration.transformer.Transformer;
+import org.springframework.integration.transformer.config.AbstractTransformerParser;
 import org.springframework.integration.xml.transformer.XmlPayloadMarshallingTransformer;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
 
 /**
  * @author Jonas Partner
  * @author Mark Fisher
  */
-public class XmlMarshallingTransformerParser extends AbstractPayloadTransformerParser {
+public class XmlMarshallingTransformerParser extends AbstractTransformerParser {
 
 	private ResultFactoryResultTypeHelper resultFactoryHelper = new ResultFactoryResultTypeHelper();
 
+
 	@Override
-	protected Class<? extends AbstractPayloadTransformer<?, ?>> getTransformerClass() {
+	protected Class<? extends Transformer> getTransformerClass() {
 		return XmlPayloadMarshallingTransformer.class;
 	}
 
@@ -45,7 +47,6 @@ public class XmlMarshallingTransformerParser extends AbstractPayloadTransformerP
 		String marshaller = element.getAttribute("marshaller");
 		String resultTransformer = element.getAttribute("result-transformer");
 		Assert.hasText(marshaller, "the 'marshaller' attribute is required");
-
 		builder.addConstructorArgReference(marshaller);
 		if (StringUtils.hasText(resultTransformer)) {
 			builder.addConstructorArgReference(resultTransformer);

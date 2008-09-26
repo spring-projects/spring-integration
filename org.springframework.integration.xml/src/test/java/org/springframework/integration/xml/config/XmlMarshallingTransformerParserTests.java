@@ -20,38 +20,44 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.sax.SAXResult;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.w3c.dom.Document;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.transformer.Transformer;
 import org.springframework.integration.xml.config.StubResultFactory.StubStringResult;
 import org.springframework.xml.transform.StringResult;
-import org.w3c.dom.Document;
 
 /**
  * @author Jonas Partner
+ * @author Mark Fisher
  */
 public class XmlMarshallingTransformerParserTests  {
 
 	private ApplicationContext appContext;
 
+	private PollableChannel output;
+
 
 	@Before
 	public void setUp() {
 		this.appContext = new ClassPathXmlApplicationContext("XmlMarshallingTransformerParserTests-context.xml", getClass());
+		this.output = (PollableChannel) appContext.getBean("output");
 	}
 
 
 	@Test
 	public void testDefault() throws Exception {
-		Transformer transformer = (Transformer) appContext.getBean("marshallingTransformerNoResultFactory");
+		MessageChannel input = (MessageChannel) appContext.getBean("marshallingTransformerNoResultFactory");
 		GenericMessage<Object> message = new GenericMessage<Object>("hello");
-		Message<?> result = transformer.transform(message);
+		input.send(message);
+		Message<?> result = output.receive(0);
 		assertTrue("Wrong payload type", result.getPayload() instanceof DOMResult);
 		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
 		assertEquals("Wrong palyoad", "hello", doc.getDocumentElement().getTextContent());
@@ -59,9 +65,10 @@ public class XmlMarshallingTransformerParserTests  {
 	
 	@Test
 	public void testDefaultWithResultTransformer() throws Exception {
-		Transformer transformer = (Transformer) appContext.getBean("marshallingTransformerWithResultTransformer");
+		MessageChannel input = (MessageChannel) appContext.getBean("marshallingTransformerWithResultTransformer");
 		GenericMessage<Object> message = new GenericMessage<Object>("hello");
-		Message<?> result = transformer.transform(message);
+		input.send(message);
+		Message<?> result = output.receive(0);
 		assertTrue("Wrong payload type", result.getPayload() instanceof String);
 		String resultPayload = (String)result.getPayload();
 		assertEquals("Wrong palyoad", "testReturn", resultPayload);
@@ -69,9 +76,10 @@ public class XmlMarshallingTransformerParserTests  {
 
 	@Test
 	public void testDOMResult() throws Exception {
-		Transformer transformer = (Transformer) appContext.getBean("marshallingTransformerDOMResultFactory");
+		MessageChannel input = (MessageChannel) appContext.getBean("marshallingTransformerDOMResultFactory");
 		GenericMessage<Object> message = new GenericMessage<Object>("hello");
-		Message<?> result = transformer.transform(message);
+		input.send(message);
+		Message<?> result = output.receive(0);
 		assertTrue("Wrong payload type ", result.getPayload() instanceof DOMResult);
 		Document doc = (Document) ((DOMResult) result.getPayload()).getNode();
 		assertEquals("Wrong palyoad", "hello", doc.getDocumentElement().getTextContent());
@@ -79,17 +87,19 @@ public class XmlMarshallingTransformerParserTests  {
 
 	@Test
 	public void testStringResult() throws Exception {
-		Transformer transformer = (Transformer) appContext.getBean("marshallingTransformerStringResultFactory");
+		MessageChannel input = (MessageChannel) appContext.getBean("marshallingTransformerStringResultFactory");
 		GenericMessage<Object> message = new GenericMessage<Object>("hello");
-		Message<?> result = transformer.transform(message);
+		input.send(message);
+		Message<?> result = output.receive(0);
 		assertTrue("Wrong payload type", result.getPayload() instanceof StringResult);
 	}
 	
 	@Test
 	public void testCustomResultFactory() throws Exception {
-		Transformer transformer = (Transformer) appContext.getBean("marshallingTransformerCustomResultFactory");
+		MessageChannel input = (MessageChannel) appContext.getBean("marshallingTransformerCustomResultFactory");
 		GenericMessage<Object> message = new GenericMessage<Object>("hello");
-		Message<?> result = transformer.transform(message);
+		input.send(message);
+		Message<?> result = output.receive(0);
 		assertTrue("Wrong payload type", result.getPayload() instanceof StubStringResult);
 	}
 

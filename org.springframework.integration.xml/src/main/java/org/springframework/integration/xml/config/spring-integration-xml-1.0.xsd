@@ -22,18 +22,21 @@
 	Defines an XML marshalling transformer.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:attribute name="id" type="xsd:string" use="required"/>
-			<xsd:attribute name="marshaller" type="xsd:string" use="required"/>
-			<xsd:attribute name="result-type" use="optional">
-				<xsd:simpleType>
-					<xsd:restriction base="xsd:string">
-						<xsd:enumeration value="DOMResult"/>
-						<xsd:enumeration value="StringResult"/>
-					</xsd:restriction>
-				</xsd:simpleType>
-			</xsd:attribute>
-			<xsd:attribute name="result-factory" use="optional"/>
-			<xsd:attribute name="result-transformer" type="xsd:string" use="optional"/>
+			<xsd:complexContent>
+				<xsd:extension base="transformerType">
+					<xsd:attribute name="marshaller" type="xsd:string" use="required"/>
+					<xsd:attribute name="result-type" use="optional">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:enumeration value="DOMResult"/>
+								<xsd:enumeration value="StringResult"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:attribute>
+					<xsd:attribute name="result-factory" use="optional"/>
+					<xsd:attribute name="result-transformer" type="xsd:string" use="optional"/>
+				</xsd:extension>
+			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -44,8 +47,11 @@
 	Defines an XML unmarshalling transformer.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:attribute name="id" type="xsd:string" use="required"/>
-			<xsd:attribute name="unmarshaller" type="xsd:string" use="required"/>
+			<xsd:complexContent>
+				<xsd:extension base="transformerType">
+					<xsd:attribute name="unmarshaller" type="xsd:string" use="required"/>
+				</xsd:extension>
+			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -56,20 +62,23 @@
 	Defines an XSLT transformer.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:attribute name="id" type="xsd:string" use="required"/>
-			<xsd:attribute name="xsl-resource" type="xsd:string" use="optional"/>
-			<xsd:attribute name="xsl-templates" type="xsd:string" use="optional"/>
-			<xsd:attribute name="source-factory" type="xsd:string" use="optional"/>
-			<xsd:attribute name="result-factory" type="xsd:string" use="optional"/>
-			<xsd:attribute name="result-type" use="optional">
-				<xsd:simpleType>
-					<xsd:restriction base="xsd:string">
-						<xsd:enumeration value="DOMResult"/>
-						<xsd:enumeration value="StringResult"/>
-					</xsd:restriction>
-				</xsd:simpleType>
-			</xsd:attribute>
-			<xsd:attribute name="result-transformer" type="xsd:string" use="optional"/>
+			<xsd:complexContent>
+				<xsd:extension base="transformerType">
+					<xsd:attribute name="xsl-resource" type="xsd:string" use="optional"/>
+					<xsd:attribute name="xsl-templates" type="xsd:string" use="optional"/>
+					<xsd:attribute name="source-factory" type="xsd:string" use="optional"/>
+					<xsd:attribute name="result-factory" type="xsd:string" use="optional"/>
+					<xsd:attribute name="result-type" use="optional">
+						<xsd:simpleType>
+							<xsd:restriction base="xsd:string">
+								<xsd:enumeration value="DOMResult"/>
+								<xsd:enumeration value="StringResult"/>
+							</xsd:restriction>
+						</xsd:simpleType>
+					</xsd:attribute>
+					<xsd:attribute name="result-transformer" type="xsd:string" use="optional"/>
+				</xsd:extension>
+			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -86,5 +95,11 @@
 			<xsd:attribute name="multi-channel" type="xsd:boolean" default="false"/>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:complexType name="transformerType">
+		<xsd:attribute name="id" type="xsd:string" use="optional"/>
+		<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
+		<xsd:attribute name="output-channel" type="xsd:string" use="required"/>
+	</xsd:complexType>
 
 </xsd:schema>
