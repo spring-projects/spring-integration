@@ -26,8 +26,10 @@
 			<xsd:attribute name="id" type="xsd:string"/>
 			<xsd:attribute name="mail-sender" type="xsd:string"/>
 			<xsd:attribute name="host" type="xsd:string"/>
+			<xsd:attribute name="port" type="xsd:string"/>
 			<xsd:attribute name="username" type="xsd:string"/>
 			<xsd:attribute name="password" type="xsd:string"/>
+			<xsd:attribute name="javamail-properties" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -56,5 +58,32 @@
 			<xsd:attribute name="task-executor" type="xsd:string" use="optional"/>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:element name="header-enricher">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a Transformer for adding statically configured Mail Headers.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="transformerType">
+					<xsd:attribute name="subject" type="xsd:string"/>
+					<xsd:attribute name="to" type="xsd:string"/>
+					<xsd:attribute name="cc" type="xsd:string"/>
+					<xsd:attribute name="bcc" type="xsd:string"/>
+					<xsd:attribute name="from" type="xsd:string"/>
+					<xsd:attribute name="reply-to" type="xsd:string"/>
+					<xsd:attribute name="overwrite" type="xsd:boolean"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="transformerType">
+		<xsd:attribute name="id" type="xsd:string"/>
+		<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
+		<xsd:attribute name="output-channel" type="xsd:string" use="required"/>		
+	</xsd:complexType>
 
 </xsd:schema>
