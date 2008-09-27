@@ -36,7 +36,7 @@ import org.springframework.integration.message.StringMessage;
 /**
  * @author Mark Fisher
  */
-public class MethodParameterMessageMapperTests {
+public class MethodParameterMessageMapperFromMessageTests {
 
 	@Test
 	public void fromMessageWithOptionalHeader() throws Exception {
