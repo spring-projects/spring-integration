@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.gateway;
+package org.springframework.integration.message;
 
-import org.springframework.integration.message.Message;
 
 /**
  * Strategy interface for mapping between an Object and a {@link Message}.

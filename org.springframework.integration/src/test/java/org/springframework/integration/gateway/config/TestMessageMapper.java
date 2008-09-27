@@ -16,8 +16,8 @@
 
 package org.springframework.integration.gateway.config;
 
-import org.springframework.integration.gateway.MessageMapper;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageMapper;
 import org.springframework.integration.message.StringMessage;
 
 /**

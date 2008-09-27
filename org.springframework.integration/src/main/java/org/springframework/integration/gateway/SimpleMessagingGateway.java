@@ -17,6 +17,7 @@
 package org.springframework.integration.gateway;
 
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageMapper;
 import org.springframework.util.Assert;
 
 /**

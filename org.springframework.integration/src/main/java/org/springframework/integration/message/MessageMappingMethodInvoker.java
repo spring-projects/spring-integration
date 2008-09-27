@@ -26,7 +26,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.gateway.MessageMapper;
 import org.springframework.integration.util.DefaultMethodInvoker;
 import org.springframework.integration.util.MethodInvoker;
 import org.springframework.integration.util.NameResolvingMethodInvoker;
