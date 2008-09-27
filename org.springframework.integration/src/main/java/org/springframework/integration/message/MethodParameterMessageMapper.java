@@ -17,6 +17,7 @@
 package org.springframework.integration.message;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -61,9 +62,35 @@ public class MethodParameterMessageMapper implements MessageMapper<Object[]> {
 	}
 
 
-	public Message<?> toMessage(Object[] methodParameters) {
-		// TODO: add checks for @Header, Map, etc.
-		return MessageBuilder.withPayload(methodParameters).build();
+	public Message<?> toMessage(Object[] parameters) {
+		Assert.isTrue(!ObjectUtils.isEmpty(parameters), "parameters array is required");
+		if (ObjectUtils.isEmpty(this.parameterMetadata)) {
+			return MessageBuilder.withPayload(parameters).build();
+		}
+		Assert.isTrue(parameters.length == this.parameterMetadata.length,
+				"wrong number of parameters: expected " + this.parameterMetadata.length
+				+ ", received " + parameters.length);
+		Object payload = null;
+		Map<String, Object> headers = new HashMap<String, Object>();
+		for (int i = 0; i < parameters.length; i++) {
+			Object value = parameters[i];
+			MethodParameterMetadata metadata = this.parameterMetadata[i];
+			Class<?> expectedType = metadata.type;
+			if (expectedType.equals(Header.class)) {
+				if (metadata.required) {
+					Assert.notNull(value, "header '" + metadata.key + "' is required");
+				}
+				headers.put(metadata.key, value);
+			}
+			// TODO: add checks for Map and Properties to be used as headers
+			else {
+				Assert.isNull(payload, "unable to determine a single payload object, found: "
+						+ "[" + payload + "] and [" + value + "]s");
+				payload = value;
+			}
+		}
+		Assert.notNull(payload, "payload object must not be null");
+		return MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 	}
 
 	public Object[] fromMessage(Message<?> message) {
