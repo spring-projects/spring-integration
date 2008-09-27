@@ -32,21 +32,23 @@ import java.util.UUID;
  */
 public final class MessageHeaders implements Map<String, Object>, Serializable {
 
-	public static final String ID = "internal.header.id";
+	private static final String PREFIX = "spring.integration.";
 
-	public static final String TIMESTAMP = "internal.header.timestamp";
+	public static final String ID = PREFIX + "id";
 
-	public static final String CORRELATION_ID = "internal.header.correlationId";
+	public static final String TIMESTAMP = PREFIX + "timestamp";
 
-	public static final String RETURN_ADDRESS = "internal.header.returnAddress";
+	public static final String CORRELATION_ID = PREFIX + "correlationId";
 
-	public static final String EXPIRATION_DATE = "internal.header.exprirationDate";
+	public static final String RETURN_ADDRESS = PREFIX + "returnAddress";
 
-	public static final String PRIORITY = "internal.header.priority";
+	public static final String EXPIRATION_DATE = PREFIX + "expirationDate";
 
-	public static final String SEQUENCE_NUMBER = "internal.header.sequenceNumber";
+	public static final String PRIORITY = PREFIX + "priority";
 
-	public static final String SEQUENCE_SIZE = "internal.header.sequenceSize";
+	public static final String SEQUENCE_NUMBER = PREFIX + "sequenceNumber";
+
+	public static final String SEQUENCE_SIZE = PREFIX + "sequenceSize";
 
 
 	private final Map<String, Object> headers;

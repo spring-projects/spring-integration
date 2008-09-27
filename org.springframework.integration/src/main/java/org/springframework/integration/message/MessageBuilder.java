@@ -75,7 +75,7 @@ public final class MessageBuilder<T> {
 	 * <code>null</code>, the header will be removed.
 	 */
 	public MessageBuilder<T> setHeader(String headerName, Object headerValue) {
-		if (StringUtils.hasLength(headerName)) {
+		if (StringUtils.hasLength(headerName) && !(this.isReadOnly(headerName))) {
 			if (headerValue == null) {
 				this.headers.remove(headerName);
 			}
@@ -119,9 +119,7 @@ public final class MessageBuilder<T> {
 	public MessageBuilder<T> copyHeaders(Map<String, Object> headersToCopy) {
 		Set<String> keys = headersToCopy.keySet();
 		for (String key : keys) {
-			if (this.isEligibleForCopying(key)) {
-				this.setHeader(key, headersToCopy.get(key));
-			}
+			this.setHeader(key, headersToCopy.get(key));
 		}
 		return this;
 	}
@@ -133,9 +131,7 @@ public final class MessageBuilder<T> {
 	public MessageBuilder<T> copyHeadersIfAbsent(Map<String, Object> headersToCopy) {
 		Set<String> keys = headersToCopy.keySet();
 		for (String key : keys) {
-			if (this.isEligibleForCopying(key)) {
-				this.setHeaderIfAbsent(key, headersToCopy.get(key));
-			}
+			this.setHeaderIfAbsent(key, headersToCopy.get(key));
 		}
 		return this;
 	}
@@ -181,8 +177,8 @@ public final class MessageBuilder<T> {
 		return new GenericMessage<T>(this.payload, this.headers);
 	}
 
-	private boolean isEligibleForCopying(String key) {
-		return !(key.equals(MessageHeaders.ID) || key.equals(MessageHeaders.TIMESTAMP));
+	private boolean isReadOnly(String key) {
+		return (key.equals(MessageHeaders.ID) || key.equals(MessageHeaders.TIMESTAMP));
 	}
 
 }
