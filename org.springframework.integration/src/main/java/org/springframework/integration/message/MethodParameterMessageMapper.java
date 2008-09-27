@@ -18,6 +18,7 @@ package org.springframework.integration.message;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
@@ -26,6 +27,7 @@ import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.integration.annotation.Header;
+import org.springframework.integration.annotation.Headers;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -70,6 +72,7 @@ public class MethodParameterMessageMapper implements MessageMapper<Object[]> {
 		Assert.isTrue(parameters.length == this.parameterMetadata.length,
 				"wrong number of parameters: expected " + this.parameterMetadata.length
 				+ ", received " + parameters.length);
+		Message<?> message = null;
 		Object payload = null;
 		Map<String, Object> headers = new HashMap<String, Object>();
 		for (int i = 0; i < parameters.length; i++) {
@@ -77,17 +80,32 @@ public class MethodParameterMessageMapper implements MessageMapper<Object[]> {
 			MethodParameterMetadata metadata = this.parameterMetadata[i];
 			Class<?> expectedType = metadata.type;
 			if (expectedType.equals(Header.class)) {
-				if (metadata.required) {
-					Assert.notNull(value, "header '" + metadata.key + "' is required");
+				if (value != null) {
+					headers.put(metadata.key, value);
 				}
-				headers.put(metadata.key, value);
+				else {
+					Assert.isTrue(!metadata.required, "header '" + metadata.key + "' is required");
+				}
 			}
-			// TODO: add checks for Map and Properties to be used as headers
+			else if (expectedType.equals(Headers.class)) {
+				if (value != null) {
+					this.addHeadersAnnotatedParameterToMap(value, headers);
+				}
+			}
+			else if (expectedType.equals(Message.class)) {
+				Assert.isNull(message, "more than one Message argument received");
+				message = (Message<?>) value;
+			}
 			else {
 				Assert.isNull(payload, "unable to determine a single payload object, found: "
 						+ "[" + payload + "] and [" + value + "]s");
 				payload = value;
 			}
+		}
+		if (message != null) {
+			Assert.isNull(payload, "cannot handle payload object [" + payload
+					+ "] since a Message-typed parameter has also been provided");
+			return MessageBuilder.fromMessage(message).copyHeadersIfAbsent(headers).build();
 		}
 		Assert.notNull(payload, "payload object must not be null");
 		return MessageBuilder.withPayload(payload).copyHeaders(headers).build();
@@ -142,15 +160,19 @@ public class MethodParameterMessageMapper implements MessageMapper<Object[]> {
 			methodParam.initParameterNameDiscovery(this.parameterNameDiscoverer);
 			GenericTypeResolver.resolveParameterType(methodParam, this.method.getDeclaringClass());
 			Object[] paramAnnotations = methodParam.getParameterAnnotations();
-			String headerName = null;
 			for (int j = 0; j < paramAnnotations.length; j++) {
 				if (Header.class.isInstance(paramAnnotations[j])) {
 					Header headerAnnotation = (Header) paramAnnotations[j];
-					headerName = this.resolveParameterNameIfNecessary(headerAnnotation.value(), methodParam);
+					String headerName = this.resolveParameterNameIfNecessary(headerAnnotation.value(), methodParam);
 					parameterMetadata[i] = new MethodParameterMetadata(Header.class, headerName, headerAnnotation.required());
 				}
+				else if (Headers.class.isInstance(paramAnnotations[j])) {
+					Assert.isAssignable(Map.class, methodParam.getParameterType(),
+							"parameter with the @Headers annotation must be assignable to java.util.Map");
+					parameterMetadata[i] = new MethodParameterMetadata(Headers.class, null, false);
+				}
 			}
-			if (headerName == null) {
+			if (parameterMetadata[i] == null) {
 				parameterMetadata[i] = new MethodParameterMetadata(methodParam.getParameterType(), null, false);
 			}
 		}
@@ -176,6 +198,17 @@ public class MethodParameterMessageMapper implements MessageMapper<Object[]> {
 			}
 		}
 		return paramName;
+	}
+
+	@SuppressWarnings("unchecked")
+	private void addHeadersAnnotatedParameterToMap(Object value, Map<String, Object> headers) {
+		Map map = (Map) value;
+		for (Iterator iter = map.entrySet().iterator(); iter.hasNext();) {
+			Map.Entry entry = (Map.Entry) iter.next();
+			Assert.isTrue(entry.getKey() instanceof String,
+					"Map annotated with @Headers must have String-typed keys");
+			headers.put((String) entry.getKey(), entry.getValue());
+		}
 	}
 
 
