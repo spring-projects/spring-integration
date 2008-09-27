@@ -30,83 +30,83 @@ import org.springframework.integration.annotation.Header;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.message.MessageMappingParameterResolver;
+import org.springframework.integration.message.MethodParameterMessageMapper;
 import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
  */
-public class MessageMappingParameterResolverTests {
+public class MethodParameterMessageMapperTests {
 
 	@Test
-	public void optionalHeader() throws Exception {
+	public void fromMessageWithOptionalHeader() throws Exception {
 		Method method = TestService.class.getMethod("optionalHeader", Integer.class);
-		MessageMappingParameterResolver resolver = new MessageMappingParameterResolver(method);
-		Object[] args = resolver.resolveParameters(new StringMessage("foo"));
+		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
+		Object[] args = mapper.fromMessage(new StringMessage("foo"));
 		assertEquals(1, args.length);
 		assertNull(args[0]);
 	}
 
 	@Test(expected = MessageHandlingException.class)
-	public void tequiredHeaderNotProvided() throws Exception {
+	public void fromMessageWithRequiredHeaderNotProvided() throws Exception {
 		Method method = TestService.class.getMethod("requiredHeader", Integer.class);
-		MessageMappingParameterResolver resolver = new MessageMappingParameterResolver(method);
-		resolver.resolveParameters(new StringMessage("foo"));
+		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
+		mapper.fromMessage(new StringMessage("foo"));
 	}
 
 	@Test
-	public void requiredHeaderProvided() throws Exception {
+	public void fromMessageWithRequiredHeaderProvided() throws Exception {
 		Method method = TestService.class.getMethod("requiredHeader", Integer.class);
-		MessageMappingParameterResolver resolver = new MessageMappingParameterResolver(method);
+		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("num", new Integer(123)).build(); 
-		Object[] args = resolver.resolveParameters(message);
+		Object[] args = mapper.fromMessage(message);
 		assertEquals(1, args.length);
 		assertEquals(new Integer(123), args[0]);
 	}
 
 	@Test(expected = MessageHandlingException.class)
-	public void optionalAndRequiredHeaderWithOnlyOptionalHeaderProvided() throws Exception {
+	public void fromMessageWithOptionalAndRequiredHeaderAndOnlyOptionalHeaderProvided() throws Exception {
 		Method method = TestService.class.getMethod("optionalAndRequiredHeader", String.class, Integer.class);
-		MessageMappingParameterResolver resolver = new MessageMappingParameterResolver(method);
+		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("prop", "bar").build();
-		resolver.resolveParameters(message);
+		mapper.fromMessage(message);
 	}
 
 	@Test
-	public void optionalAndRequiredHeaderWithOnlyRequiredHeaderProvided() throws Exception {
+	public void fromMessageWithOptionalAndRequiredHeaderAndOnlyRequiredHeaderProvided() throws Exception {
 		Method method = TestService.class.getMethod("optionalAndRequiredHeader", String.class, Integer.class);
-		MessageMappingParameterResolver resolver = new MessageMappingParameterResolver(method);
+		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("num", new Integer(123)).build(); 
-		Object[] args = resolver.resolveParameters(message);
+		Object[] args = mapper.fromMessage(message);
 		assertEquals(2, args.length);
 		assertNull(args[0]);
 		assertEquals(123, args[1]);
 	}
 
 	@Test
-	public void optionalAndRequiredHeaderWithBothHeadersProvided() throws Exception {
+	public void fromMessageWithOptionalAndRequiredHeaderAndBothHeadersProvided() throws Exception {
 		Method method = TestService.class.getMethod("optionalAndRequiredHeader", String.class, Integer.class);
-		MessageMappingParameterResolver resolver = new MessageMappingParameterResolver(method);
+		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
 		Message<String> message = MessageBuilder.withPayload("foo")
 				.setHeader("num", new Integer(123))
 				.setHeader("prop", "bar")
 				.build(); 
-		Object[] args = resolver.resolveParameters(message);
+		Object[] args = mapper.fromMessage(message);
 		assertEquals(2, args.length);
 		assertEquals("bar", args[0]);
 		assertEquals(123, args[1]);
 	}
 
 	@Test
-	public void propertiesMethodWithNonPropertiesPayload() throws Exception {
+	public void fromMessageWithPropertiesMethodAndNonPropertiesPayload() throws Exception {
 		Method method = TestService.class.getMethod("propertiesMethod", Properties.class);
-		MessageMappingParameterResolver resolver = new MessageMappingParameterResolver(method);
+		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("prop1", "foo").setHeader("prop2", "bar").build();
-		Object[] args = resolver.resolveParameters(message);
+		Object[] args = mapper.fromMessage(message);
 		Properties result = (Properties) args[0];
 		assertEquals(2, result.size());
 		assertEquals("foo", result.getProperty("prop1"));
@@ -114,15 +114,15 @@ public class MessageMappingParameterResolverTests {
 	}
 
 	@Test
-	public void propertiesMethodWithPropertiesPayload() throws Exception {
+	public void fromMessageWithPropertiesMethodAndPropertiesPayload() throws Exception {
 		Method method = TestService.class.getMethod("propertiesMethod", Properties.class);
-		MessageMappingParameterResolver resolver = new MessageMappingParameterResolver(method);
+		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
 		Properties payload = new Properties();
 		payload.setProperty("prop1", "foo");
 		payload.setProperty("prop2", "bar");
 		Message<Properties> message = MessageBuilder.withPayload(payload)
 				.setHeader("prop1", "not").setHeader("prop2", "these").build();
-		Object[] args = resolver.resolveParameters(message);
+		Object[] args = mapper.fromMessage(message);
 		Properties result = (Properties) args[0];
 		assertEquals(2, result.size());
 		assertEquals("foo", result.getProperty("prop1"));
@@ -131,13 +131,13 @@ public class MessageMappingParameterResolverTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void testMapMethodWithNonMapPayload() throws Exception {
+	public void fromMessageWithMapMethodAndNonMapPayload() throws Exception {
 		Method method = TestService.class.getMethod("mapMethod", Map.class);
-		MessageMappingParameterResolver resolver = new MessageMappingParameterResolver(method);
+		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("attrib1", new Integer(123))
 				.setHeader("attrib2", new Integer(456)).build();
-		Object[] args = resolver.resolveParameters(message);
+		Object[] args = mapper.fromMessage(message);
 		Map<String, Object> result = (Map<String, Object>) args[0];
 		assertEquals(new Integer(123), result.get("attrib1"));
 		assertEquals(new Integer(456), result.get("attrib2"));
@@ -145,16 +145,16 @@ public class MessageMappingParameterResolverTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void testMapMethodWithMapPayload() throws Exception {
+	public void fromMessageWithMapMethodAndMapPayload() throws Exception {
 		Method method = TestService.class.getMethod("mapMethod", Map.class);
-		MessageMappingParameterResolver resolver = new MessageMappingParameterResolver(method);
+		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
 		Map<String, Integer> payload = new HashMap<String, Integer>();
 		payload.put("attrib1", new Integer(123));
 		payload.put("attrib2", new Integer(456));
 		Message<Map<String, Integer>> message = MessageBuilder.withPayload(payload)
 				.setHeader("attrib1", new Integer(123))
 				.setHeader("attrib2", new Integer(456)).build();
-		Object[] args = resolver.resolveParameters(message);
+		Object[] args = mapper.fromMessage(message);
 		Map<String, Integer> result = (Map<String, Integer>) args[0];
 		assertEquals(2, result.size());
 		assertEquals(new Integer(123), result.get("attrib1"));

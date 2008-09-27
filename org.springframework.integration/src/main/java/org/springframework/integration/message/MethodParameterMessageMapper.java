@@ -25,6 +25,7 @@ import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.integration.annotation.Header;
+import org.springframework.integration.gateway.MessageMapper;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -45,7 +46,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class MessageMappingParameterResolver {
+public class MethodParameterMessageMapper implements MessageMapper<Object[]> {
 
 	private final Method method;
 
@@ -54,14 +55,19 @@ public class MessageMappingParameterResolver {
 	private final ParameterNameDiscoverer parameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 
 
-	public MessageMappingParameterResolver(Method method) {
+	public MethodParameterMessageMapper(Method method) {
 		Assert.notNull(method, "method must not be null");
 		this.method = method;
 		this.initializeParameterMetadata();
 	}
 
 
-	public Object[] resolveParameters(Message<?> message) {
+	public Message<?> toMessage(Object[] methodParameters) {
+		// TODO: add checks for @Header, Map, etc.
+		return MessageBuilder.withPayload(methodParameters).build();
+	}
+
+	public Object[] fromMessage(Message<?> message) {
 		if (message == null) {
 			return null;
 		}

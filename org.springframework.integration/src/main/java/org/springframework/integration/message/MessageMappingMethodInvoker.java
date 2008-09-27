@@ -26,6 +26,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.gateway.MessageMapper;
 import org.springframework.integration.util.DefaultMethodInvoker;
 import org.springframework.integration.util.MethodInvoker;
 import org.springframework.integration.util.NameResolvingMethodInvoker;
@@ -55,7 +56,7 @@ public class MessageMappingMethodInvoker implements MethodInvoker, InitializingB
 
 	private volatile String methodName;
 
-	private volatile MessageMappingParameterResolver parameterResolver;
+	private volatile MessageMapper<Object[]> messageMapper;
 
 	private volatile MethodInvoker invoker;
 
@@ -109,7 +110,7 @@ public class MessageMappingMethodInvoker implements MethodInvoker, InitializingB
 					this.methodExpectsMessage = true;
 				}
 				this.invoker = new DefaultMethodInvoker(this.object, this.method);
-				this.parameterResolver = new MessageMappingParameterResolver(this.method);
+				this.messageMapper = new MethodParameterMessageMapper(this.method);
 			}
 			else {
 				// TODO: resolve the candidate method and/or create a dynamic resolver
@@ -190,8 +191,8 @@ public class MessageMappingMethodInvoker implements MethodInvoker, InitializingB
 	}
 
 	private Object[] resolveParameters(Message<?> message) {
-		if (this.parameterResolver != null) {
-			return this.parameterResolver.resolveParameters(message);
+		if (this.messageMapper != null) {
+			return this.messageMapper.fromMessage(message);
 		}
 		return new Object[] { message.getPayload() };
 	}
