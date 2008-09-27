@@ -173,6 +173,20 @@ public class MethodParameterMessageMapperToMessageTests {
 		assertNull(message.getHeaders().get("foo"));
 	}
 
+	@Test(expected = IllegalArgumentException.class)
+	public void noArgs() throws Exception {
+		Method method = TestService.class.getMethod("noArgs", new Class<?>[] {});
+		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
+		mapper.toMessage(new Object[] {});
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void onlyHeaders() throws Exception {
+		Method method = TestService.class.getMethod("onlyHeaders", String.class, String.class);
+		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
+		mapper.toMessage(new Object[] { "abc", "def" });
+	}
+
 
 	private static interface TestService {
 
@@ -189,6 +203,12 @@ public class MethodParameterMessageMapperToMessageTests {
 		void sendMessageAndHeader(Message<?> message, @Header("foo") String foo);
 
 		void sendMessageAndOptionalHeader(Message<?> message, @Header(value="foo", required=false) String foo);
+
+		// invalid methods
+
+		void noArgs();
+
+		void onlyHeaders(@Header("foo") String foo, @Header("bar") String bar);
 
 	}
 

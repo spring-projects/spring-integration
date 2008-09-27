@@ -65,10 +65,7 @@ public class MethodParameterMessageMapper implements MessageMapper<Object[]> {
 
 
 	public Message<?> toMessage(Object[] parameters) {
-		Assert.isTrue(!ObjectUtils.isEmpty(parameters), "parameters array is required");
-		if (ObjectUtils.isEmpty(this.parameterMetadata)) {
-			return MessageBuilder.withPayload(parameters).build();
-		}
+		Assert.isTrue(!ObjectUtils.isEmpty(parameters), "parameter array is required");
 		Assert.isTrue(parameters.length == this.parameterMetadata.length,
 				"wrong number of parameters: expected " + this.parameterMetadata.length
 				+ ", received " + parameters.length);
@@ -93,21 +90,20 @@ public class MethodParameterMessageMapper implements MessageMapper<Object[]> {
 				}
 			}
 			else if (expectedType.equals(Message.class)) {
-				Assert.isNull(message, "more than one Message argument received");
 				message = (Message<?>) value;
 			}
 			else {
-				Assert.isNull(payload, "unable to determine a single payload object, found: "
-						+ "[" + payload + "] and [" + value + "]s");
+				Assert.notNull(value, "payload object must not be null");
 				payload = value;
 			}
 		}
 		if (message != null) {
-			Assert.isNull(payload, "cannot handle payload object [" + payload
-					+ "] since a Message-typed parameter has also been provided");
+			if (headers.isEmpty()) {
+				return message;
+			}
 			return MessageBuilder.fromMessage(message).copyHeadersIfAbsent(headers).build();
 		}
-		Assert.notNull(payload, "payload object must not be null");
+		Assert.notNull(payload, "no parameter available for Message or payload");
 		return MessageBuilder.withPayload(payload).copyHeaders(headers).build();
 	}
 
@@ -115,12 +111,7 @@ public class MethodParameterMessageMapper implements MessageMapper<Object[]> {
 		if (message == null) {
 			return null;
 		}
-		if (message.getPayload() == null) {
-			throw new IllegalArgumentException("Message payload must not be null.");
-		}
-		if (ObjectUtils.isEmpty(this.parameterMetadata)) {
-			return new Object[] { message.getPayload() };
-		}
+		Assert.notNull(message.getPayload(), "Message payload must not be null.");
 		Object[] args = new Object[this.parameterMetadata.length];
 		for (int i = 0; i < this.parameterMetadata.length; i++) {
 			MethodParameterMetadata metadata = this.parameterMetadata[i];
@@ -153,6 +144,7 @@ public class MethodParameterMessageMapper implements MessageMapper<Object[]> {
 	}
 
 	private void initializeParameterMetadata() {
+		boolean foundMessageOrPayload = false;
 		Class<?>[] paramTypes = this.method.getParameterTypes();			
 		this.parameterMetadata = new MethodParameterMetadata[paramTypes.length];
 		for (int i = 0; i < parameterMetadata.length; i++) {
@@ -163,7 +155,7 @@ public class MethodParameterMessageMapper implements MessageMapper<Object[]> {
 			for (int j = 0; j < paramAnnotations.length; j++) {
 				if (Header.class.isInstance(paramAnnotations[j])) {
 					Header headerAnnotation = (Header) paramAnnotations[j];
-					String headerName = this.resolveParameterNameIfNecessary(headerAnnotation.value(), methodParam);
+					String headerName = this.resolveHeaderName(headerAnnotation, methodParam);
 					parameterMetadata[i] = new MethodParameterMetadata(Header.class, headerName, headerAnnotation.required());
 				}
 				else if (Headers.class.isInstance(paramAnnotations[j])) {
@@ -173,6 +165,9 @@ public class MethodParameterMessageMapper implements MessageMapper<Object[]> {
 				}
 			}
 			if (parameterMetadata[i] == null) {
+				// this is either a Message or the Object to be used as a Message payload
+				Assert.isTrue(!foundMessageOrPayload, "only one Message or payload parameter is allowed");
+				foundMessageOrPayload = true;
 				parameterMetadata[i] = new MethodParameterMetadata(methodParam.getParameterType(), null, false);
 			}
 		}
@@ -190,12 +185,11 @@ public class MethodParameterMessageMapper implements MessageMapper<Object[]> {
 		return properties;
 	}
 
-	private String resolveParameterNameIfNecessary(String paramName, MethodParameter methodParam) {
+	private String resolveHeaderName(Header headerAnnotation, MethodParameter methodParam) {
+		String paramName = headerAnnotation.value();
 		if (!StringUtils.hasText(paramName)) {
 			paramName = methodParam.getParameterName();
-			if (paramName == null) {
-				throw new IllegalStateException("No parameter name specified and not available in class file.");
-			}
+			Assert.state(paramName != null, "No parameter name specified and not available in class file.");
 		}
 		return paramName;
 	}
