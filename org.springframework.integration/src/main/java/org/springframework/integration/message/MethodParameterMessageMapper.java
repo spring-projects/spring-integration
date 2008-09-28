@@ -75,21 +75,23 @@ public class MethodParameterMessageMapper implements MessageMapper<Object[]> {
 		for (int i = 0; i < parameters.length; i++) {
 			Object value = parameters[i];
 			MethodParameterMetadata metadata = this.parameterMetadata[i];
-			Class<?> expectedType = metadata.type;
-			if (expectedType.equals(Header.class)) {
+			Header headerAnnotation = metadata.getHeaderAnnotation();
+			if (headerAnnotation != null) {
+				String headerName = this.resolveHeaderName(headerAnnotation, metadata);
+				boolean required = headerAnnotation.required();
 				if (value != null) {
-					headers.put(metadata.key, value);
+					headers.put(headerName, value);
 				}
 				else {
-					Assert.isTrue(!metadata.required, "header '" + metadata.key + "' is required");
+					Assert.isTrue(!required, "header '" + headerName + "' is required");
 				}
 			}
-			else if (expectedType.equals(Headers.class)) {
+			else if (metadata.hasHeadersAnnotation()) {
 				if (value != null) {
 					this.addHeadersAnnotatedParameterToMap(value, headers);
 				}
 			}
-			else if (expectedType.equals(Message.class)) {
+			else if (metadata.getParameterType().equals(Message.class)) {
 				message = (Message<?>) value;
 			}
 			else {
@@ -115,26 +117,27 @@ public class MethodParameterMessageMapper implements MessageMapper<Object[]> {
 		Object[] args = new Object[this.parameterMetadata.length];
 		for (int i = 0; i < this.parameterMetadata.length; i++) {
 			MethodParameterMetadata metadata = this.parameterMetadata[i];
-			Class<?> expectedType = metadata.type;
-			if (expectedType.equals(Header.class)) {
-				Object value = message.getHeaders().get(metadata.key);
-				if (value == null && metadata.required) {
+			Class<?> expectedType = metadata.getParameterType();
+			Header headerAnnotation = metadata.getHeaderAnnotation();
+			if (headerAnnotation != null) {
+				String headerName = this.resolveHeaderName(headerAnnotation, metadata);
+				Object value = message.getHeaders().get(headerName);
+				if (value == null && headerAnnotation.required()) {
 					throw new MessageHandlingException(message,
-							"required header '" + metadata.key + "' not available");
+							"required header '" + headerName + "' not available");
 				}
 				args[i] = value;
 			}
+			else if (metadata.hasHeadersAnnotation()) {
+				if (Properties.class.isAssignableFrom(expectedType)) {
+					args[i] = this.getStringTypedHeaders(message);					
+				}
+				else {
+					args[i] = message.getHeaders();					
+				}
+			}
 			else if (expectedType.isAssignableFrom(message.getClass())) {
 				args[i] = message;
-			}
-			else if (expectedType.isAssignableFrom(message.getPayload().getClass())) {
-				args[i] = message.getPayload();
-			}
-			else if (expectedType.equals(Map.class)) {
-				args[i] = message.getHeaders();
-			}
-			else if (expectedType.equals(Properties.class)) {
-				args[i] = this.getStringTypedHeaders(message);
 			}
 			else {
 				args[i] = message.getPayload();
@@ -148,28 +151,15 @@ public class MethodParameterMessageMapper implements MessageMapper<Object[]> {
 		Class<?>[] paramTypes = this.method.getParameterTypes();			
 		this.parameterMetadata = new MethodParameterMetadata[paramTypes.length];
 		for (int i = 0; i < parameterMetadata.length; i++) {
-			MethodParameter methodParam = new MethodParameter(this.method, i);
-			methodParam.initParameterNameDiscovery(this.parameterNameDiscoverer);
-			GenericTypeResolver.resolveParameterType(methodParam, this.method.getDeclaringClass());
-			Object[] paramAnnotations = methodParam.getParameterAnnotations();
-			for (int j = 0; j < paramAnnotations.length; j++) {
-				if (Header.class.isInstance(paramAnnotations[j])) {
-					Header headerAnnotation = (Header) paramAnnotations[j];
-					String headerName = this.resolveHeaderName(headerAnnotation, methodParam);
-					parameterMetadata[i] = new MethodParameterMetadata(Header.class, headerName, headerAnnotation.required());
-				}
-				else if (Headers.class.isInstance(paramAnnotations[j])) {
-					Assert.isAssignable(Map.class, methodParam.getParameterType(),
-							"parameter with the @Headers annotation must be assignable to java.util.Map");
-					parameterMetadata[i] = new MethodParameterMetadata(Headers.class, null, false);
-				}
-			}
-			if (parameterMetadata[i] == null) {
+			MethodParameterMetadata metadata = new MethodParameterMetadata(this.method, i);
+			metadata.initParameterNameDiscovery(this.parameterNameDiscoverer);
+			GenericTypeResolver.resolveParameterType(metadata, this.method.getDeclaringClass());
+			if (metadata.getHeaderAnnotation() == null && !metadata.hasHeadersAnnotation()) {
 				// this is either a Message or the Object to be used as a Message payload
 				Assert.isTrue(!foundMessageOrPayload, "only one Message or payload parameter is allowed");
 				foundMessageOrPayload = true;
-				parameterMetadata[i] = new MethodParameterMetadata(methodParam.getParameterType(), null, false);
 			}
+			parameterMetadata[i] = metadata;
 		}
 	}
 
@@ -206,21 +196,50 @@ public class MethodParameterMessageMapper implements MessageMapper<Object[]> {
 	}
 
 
-	private static class MethodParameterMetadata {
+	private static class MethodParameterMetadata extends MethodParameter {
 
-		private final Class<?> type;
+		private volatile Header _headerAnnotation;
 
-		private final String key;
-
-		private final boolean required;
+		private volatile boolean _hasHeadersAnnotation;
 
 
-		MethodParameterMetadata(Class<?> type, String key, boolean required) {
-			this.type = type;
-			this.key = key;
-			this.required = required;
+		private MethodParameterMetadata(Method method, int index) {
+			super(method, index);
 		}
 
+		public Header getHeaderAnnotation() {
+			if (this._headerAnnotation != null) {
+				return this._headerAnnotation;
+			}
+			if (this.getParameterAnnotations() == null) {
+				return null;
+			}
+			for (Object o : this.getParameterAnnotations()) {
+				if (o instanceof Header) {
+					this._headerAnnotation = (Header) o;
+					return this._headerAnnotation;
+				}
+			}
+			return null;
+		}
+
+		public boolean hasHeadersAnnotation() {
+			if (this._hasHeadersAnnotation) {
+				return true;
+			}
+			if (this.getParameterAnnotations() == null) {
+				return false;
+			}
+			for (Object o : this.getParameterAnnotations()) {
+				if (Headers.class.isInstance(o)) {
+					Assert.isAssignable(Map.class, this.getParameterType(),
+							"parameter with the @Headers annotation must be assignable to java.util.Map");
+				}
+				this._hasHeadersAnnotation = true;
+				return true;
+			}
+			return false;
+		}
 	}
 
 }

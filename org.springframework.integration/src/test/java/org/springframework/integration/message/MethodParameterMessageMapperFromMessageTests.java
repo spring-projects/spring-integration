@@ -27,11 +27,7 @@ import java.util.Properties;
 import org.junit.Test;
 
 import org.springframework.integration.annotation.Header;
-import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.message.MethodParameterMessageMapper;
-import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.annotation.Headers;
 
 /**
  * @author Mark Fisher
@@ -101,8 +97,8 @@ public class MethodParameterMessageMapperFromMessageTests {
 	}
 
 	@Test
-	public void fromMessageWithPropertiesMethodAndNonPropertiesPayload() throws Exception {
-		Method method = TestService.class.getMethod("propertiesMethod", Properties.class);
+	public void fromMessageWithPropertiesMethodAndHeadersAnnotation() throws Exception {
+		Method method = TestService.class.getMethod("propertiesHeaders", Properties.class);
 		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("prop1", "foo").setHeader("prop2", "bar").build();
@@ -115,7 +111,7 @@ public class MethodParameterMessageMapperFromMessageTests {
 
 	@Test
 	public void fromMessageWithPropertiesMethodAndPropertiesPayload() throws Exception {
-		Method method = TestService.class.getMethod("propertiesMethod", Properties.class);
+		Method method = TestService.class.getMethod("propertiesPayload", Properties.class);
 		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
 		Properties payload = new Properties();
 		payload.setProperty("prop1", "foo");
@@ -131,8 +127,8 @@ public class MethodParameterMessageMapperFromMessageTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void fromMessageWithMapMethodAndNonMapPayload() throws Exception {
-		Method method = TestService.class.getMethod("mapMethod", Map.class);
+	public void fromMessageWithMapMethodAndHeadersAnnotation() throws Exception {
+		Method method = TestService.class.getMethod("mapHeaders", Map.class);
 		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setHeader("attrib1", new Integer(123))
@@ -146,7 +142,7 @@ public class MethodParameterMessageMapperFromMessageTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void fromMessageWithMapMethodAndMapPayload() throws Exception {
-		Method method = TestService.class.getMethod("mapMethod", Map.class);
+		Method method = TestService.class.getMethod("mapPayload", Map.class);
 		MethodParameterMessageMapper mapper = new MethodParameterMessageMapper(method);
 		Map<String, Integer> payload = new HashMap<String, Integer>();
 		payload.put("attrib1", new Integer(123));
@@ -188,12 +184,21 @@ public class MethodParameterMessageMapperFromMessageTests {
 			return prop + num;
 		}
 
-		public Properties propertiesMethod(Properties properties) {
+		public Properties propertiesPayload(Properties properties) {
+			return properties;
+		}
+
+		public Properties propertiesHeaders(@Headers Properties properties) {
 			return properties;
 		}
 
 		@SuppressWarnings("unchecked")
-		public Map mapMethod(Map map) {
+		public Map mapPayload(Map map) {
+			return map;
+		}
+
+		@SuppressWarnings("unchecked")
+		public Map mapHeaders(@Headers Map map) {
 			return map;
 		}
 
