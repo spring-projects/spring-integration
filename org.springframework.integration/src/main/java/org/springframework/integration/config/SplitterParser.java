@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config;
 
+import org.w3c.dom.Element;
+
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.splitter.MethodInvokingSplitter;
 import org.springframework.integration.splitter.SplitterEndpoint;
@@ -26,6 +28,11 @@ import org.springframework.integration.splitter.SplitterEndpoint;
  * @author Mark Fisher
  */
 public class SplitterParser extends AbstractEndpointParser {
+
+	@Override
+	protected boolean shouldCreateAdapter(Element element) {
+		return element.hasAttribute("ref");
+	}
 
 	@Override
 	protected Class<? extends MessageEndpoint> getEndpointClass() {

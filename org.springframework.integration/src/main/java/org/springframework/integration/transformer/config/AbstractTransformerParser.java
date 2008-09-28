@@ -32,7 +32,7 @@ import org.springframework.integration.transformer.TransformerEndpoint;
 public abstract class AbstractTransformerParser extends AbstractEndpointParser {
 
 	@Override
-	protected boolean requiresBeanReference() {
+	protected boolean shouldCreateAdapter(Element element) {
 		return false;
 	}
 

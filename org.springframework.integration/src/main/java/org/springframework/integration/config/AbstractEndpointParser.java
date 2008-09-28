@@ -56,12 +56,13 @@ public abstract class AbstractEndpointParser extends AbstractSingleBeanDefinitio
 
 
 	/**
-	 * Subclasses may override this method to specify whether the endpoint type
-	 * expects a "ref" (and possibly a "method") in order to adapt an Object.
+	 * Subclasses may override this method to determine whether the endpoint
+	 * type should create an adapter. If so, the "ref" attribute will be
+	 * required, and the "method" attribute will typically be used as well.
 	 * 
 	 * <p>The default is <em>true</em>.
 	 */
-	protected boolean requiresBeanReference() {
+	protected boolean shouldCreateAdapter(Element element) {
 		return true;
 	}
 
@@ -82,7 +83,7 @@ public abstract class AbstractEndpointParser extends AbstractSingleBeanDefinitio
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		if (this.requiresBeanReference()) {
+		if (this.shouldCreateAdapter(element)) {
 			String ref = element.getAttribute(REF_ATTRIBUTE);
 			if (!StringUtils.hasText(ref)) {
 				throw new ConfigurationException("The '" + REF_ATTRIBUTE + "' attribute is required.");

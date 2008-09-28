@@ -31,6 +31,10 @@ public class SplitterEndpoint extends AbstractMessageHandlingEndpoint {
 	private final Splitter splitter;
 
 
+	public SplitterEndpoint() {
+		this(new DefaultSplitter());
+	}
+
 	public SplitterEndpoint(Splitter splitter) {
 		Assert.notNull(splitter, "splitter must not be null");
 		this.splitter = splitter;
