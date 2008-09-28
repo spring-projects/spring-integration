@@ -5,13 +5,24 @@
 		http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
 		http://www.springframework.org/schema/integration
 		http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
+
+	<message-bus />
+	<annotation-driven />
+
 	<channel id="inAnnotated" />
 	<channel id="inDefault" />
 	<channel id="inMethodInvoking" />
 	<channel id="out" />
-	<beans:bean id="splitterBean"
-		class="org.springframework.integration.splitter.SplitterIntegrationTests" />
+
 	<splitter ref="splitterBean" input-channel="inMethodInvoking"
 		method="split" output-channel="out" />
-	<!-- <splitter input-channel="inDefault" output-channel="outDefault" /> -->
+
+	<splitter input-channel="inDefault" output-channel="out" />
+
+	<beans:bean id="splitterBean"
+		class="org.springframework.integration.splitter.SplitterIntegrationTests$TestSplitter" />
+
+	<beans:bean
+		class="org.springframework.integration.splitter.SplitterIntegrationTests$Receiver" />
+
 </beans:beans>

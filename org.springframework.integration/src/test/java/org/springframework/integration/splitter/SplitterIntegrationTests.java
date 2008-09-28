@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +20,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-@MessageEndpoint
 public class SplitterIntegrationTests {
 
 	@Autowired
@@ -40,42 +38,51 @@ public class SplitterIntegrationTests {
 
 	private List<String> words = Arrays.asList(sentence.split("\\s"));
 
-	private List<String> receivedWords = new ArrayList<String>();
+	@Autowired
+	Receiver receiver;
+
+	@MessageEndpoint
+	public static class Receiver {
+		private List<String> receivedWords = new ArrayList<String>();
+
+		@ServiceActivator(inputChannel = "out")
+		public void deliveredWords(String string) {
+			this.receivedWords.add(string);
+		}
+	}
+
+	@MessageEndpoint
+	public static class TestSplitter {
+		@Splitter(inputChannel = "inAnnotated", outputChannel = "out")
+		public List<String> split(String sentence) {
+			return Arrays.asList(sentence.split("\\s"));
+		}
+	}
 
 	@Test
 	public void configOk() throws Exception {
 		// just checking the parsing
 	}
 
-	@Splitter(inputChannel = "inAnnotated", outputChannel = "out")
-	public List<String> split(String sentence) {
-		return Arrays.asList(sentence.split("\\s"));
-	}
-
-	@Test @Ignore
+	@Test
 	public void annotated() throws Exception {
-		inAnnotated.send(new GenericMessage<String>("The quick brown fox jumped over the lazy dog"));
-		assertTrue(this.receivedWords.containsAll(words));
-		assertTrue(words.containsAll(this.receivedWords));
+		inAnnotated.send(new GenericMessage<String>(sentence));
+		assertTrue(this.receiver.receivedWords.containsAll(words));
+		assertTrue(words.containsAll(this.receiver.receivedWords));
 	}
 
-	@ServiceActivator(inputChannel = "out")
-	public void deliveredWords(String string) {
-		this.receivedWords.add(string);
-	}
-
-	@Test @Ignore
+	@Test
 	public void methodInvoking() throws Exception {
-		inMethodInvoking.send(new GenericMessage<String>("The quick brown fox jumped over the lazy dog"));
-		assertTrue(this.receivedWords.containsAll(words));
-		assertTrue(words.containsAll(this.receivedWords));
+		inMethodInvoking.send(new GenericMessage<String>(sentence));
+		assertTrue(receiver.receivedWords.containsAll(words));
+		assertTrue(words.containsAll(this.receiver.receivedWords));
 	}
 
-	@Test @Ignore
+	@Test
 	public void defaultSplitter() throws Exception {
 		inDefault.send(new GenericMessage<List<String>>(words));
-		assertTrue(this.receivedWords.containsAll(words));
-		assertTrue(words.containsAll(this.receivedWords));
+		assertTrue(receiver.receivedWords.containsAll(words));
+		assertTrue(words.containsAll(receiver.receivedWords));
 	}
 
 }
