@@ -65,7 +65,7 @@ public abstract class AbstractMessagingGateway implements MessagingGateway, Mess
 	 * 
 	 * @param replyChannel the channel from which reply messages will be received
 	 */
-	public void setReplyChannel(PollableChannel replyChannel) {
+	public void setReplyChannel(MessageChannel replyChannel) {
 		this.replyChannel = replyChannel;
 	}
 

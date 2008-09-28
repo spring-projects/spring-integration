@@ -32,6 +32,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
@@ -41,6 +42,7 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MethodParameterMessageMapper;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Generates a proxy for the provided service interface to enable interaction
@@ -214,11 +216,30 @@ public class GatewayProxyFactoryBean implements FactoryBean, MethodInterceptor, 
 		SimpleMessagingGateway gateway = new SimpleMessagingGateway(
 				new MethodParameterMessageMapper(method), new SimpleMessageMapper());
 		gateway.setMessageBus(this.messageBus);
-		//TODO: get request and reply channels from annotation, else fall back to these defaults
-		gateway.setRequestChannel(this.defaultRequestChannel);
-		gateway.setReplyChannel(this.defaultReplyChannel);
-		gateway.setRequestTimeout(this.defaultRequestTimeout);
-		gateway.setReplyTimeout(this.defaultReplyTimeout);
+		Gateway gatewayAnnotation = method.getAnnotation(Gateway.class);
+		MessageChannel requestChannel = this.defaultRequestChannel;
+		MessageChannel replyChannel = this.defaultReplyChannel;
+		long requestTimeout = this.defaultRequestTimeout;
+		long replyTimeout = this.defaultReplyTimeout;
+		if (gatewayAnnotation != null) {
+			Assert.state(this.messageBus != null, "MessageBus is required for channel resolution");
+			String requestChannelName = gatewayAnnotation.requestChannel();
+			if (StringUtils.hasText(requestChannelName)) {
+				requestChannel = this.messageBus.lookupChannel(requestChannelName);
+				Assert.notNull(requestChannel, "failed to resolve request channel '" + requestChannelName + "'");
+			}
+			String replyChannelName = gatewayAnnotation.replyChannel();
+			if (StringUtils.hasText(replyChannelName)) {
+				replyChannel = this.messageBus.lookupChannel(replyChannelName);
+				Assert.notNull(replyChannel, "failed to resolve reply channel '" + replyChannelName + "'");
+			}
+			requestTimeout = gatewayAnnotation.requestTimeout();
+			replyTimeout = gatewayAnnotation.replyTimeout();
+		}
+		gateway.setRequestChannel(requestChannel);
+		gateway.setReplyChannel(replyChannel);
+		gateway.setRequestTimeout(requestTimeout);
+		gateway.setReplyTimeout(replyTimeout);
 		return gateway;
 	}
 
