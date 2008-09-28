@@ -67,17 +67,6 @@ public class GatewayParserTests {
 		assertEquals("foo", result);		
 	}
 
-	@Test
-	public void testRequestReplyWithMessageMapper() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("gatewayParserTests.xml", this.getClass());
-		PollableChannel requestChannel = (PollableChannel) context.getBean("requestChannel");
-		MessageChannel replyChannel = (MessageChannel) context.getBean("replyChannel");
-		this.startResponder(requestChannel, replyChannel);
-		TestService service = (TestService) context.getBean("requestReplyWithMessageMapper");
-		String result = service.requestReply("foo");
-		assertEquals("pre.foo.post", result);		
-	}
-
 
 	private void startResponder(final PollableChannel requestChannel, final MessageChannel replyChannel) {
 		Executors.newSingleThreadExecutor().execute(new Runnable() {

@@ -14,23 +14,15 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.gateway.config;
-
-import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageMapper;
-import org.springframework.integration.message.StringMessage;
+package org.springframework.integration.message;
 
 /**
+ * Strategy interface for mapping from a {@link Message} to an Object.
+ * 
  * @author Mark Fisher
  */
-public class TestMessageMapper implements MessageMapper<String> {
+public interface OutboundMessageMapper<T> {
 
-	public Message<?> toMessage(String object) {
-		return new StringMessage("pre." + object);
-	}
-
-	public String fromMessage(Message<?> message) {
-		return message.getPayload().toString() + ".post";
-	}
+	T fromMessage(Message<?> message);
 
 }

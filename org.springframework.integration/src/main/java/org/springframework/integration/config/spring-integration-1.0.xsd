@@ -154,11 +154,10 @@
 			</xsd:annotation>
 			<xsd:attribute name="id" type="xsd:ID" use="required"/>
 			<xsd:attribute name="service-interface" type="xsd:string" use="required"/>
-			<xsd:attribute name="request-channel" type="xsd:string"/>
-			<xsd:attribute name="reply-channel" type="xsd:string" use="optional"/>
-			<xsd:attribute name="request-timeout" type="xsd:long"/>
-			<xsd:attribute name="reply-timeout" type="xsd:long"/>
-			<xsd:attribute name="message-mapper" type="xsd:string"/>
+			<xsd:attribute name="default-request-channel" type="xsd:string"/>
+			<xsd:attribute name="default-reply-channel" type="xsd:string" use="optional"/>
+			<xsd:attribute name="default-request-timeout" type="xsd:long"/>
+			<xsd:attribute name="default-reply-timeout" type="xsd:long"/>
 		</xsd:complexType>
 	</xsd:element>
 

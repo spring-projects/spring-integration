@@ -55,7 +55,7 @@ public class MessageMappingMethodInvoker implements MethodInvoker, InitializingB
 
 	private volatile String methodName;
 
-	private volatile MessageMapper<Object[]> messageMapper;
+	private volatile OutboundMessageMapper<Object[]> messageMapper;
 
 	private volatile MethodInvoker invoker;
 

@@ -12,7 +12,9 @@
 
 	<message-bus/>
 
-	<gateway id="cafe" request-channel="orders" service-interface="org.springframework.integration.samples.cafe.Cafe"/>
+	<gateway id="cafe"
+			 service-interface="org.springframework.integration.samples.cafe.Cafe"
+			 default-request-channel="orders"/>
 
 	<channel id="orders"/>
 	<splitter input-channel="orders" ref="orderSplitter" method="split" output-channel="drinks"/>

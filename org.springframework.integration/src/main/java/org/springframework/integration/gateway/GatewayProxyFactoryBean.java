@@ -17,9 +17,12 @@
 package org.springframework.integration.gateway;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
+
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.SimpleTypeConverter;
@@ -30,8 +33,12 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.config.MessageBusParser;
+import org.springframework.integration.endpoint.MessagingGateway;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MethodParameterMessageMapper;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -41,16 +48,27 @@ import org.springframework.util.ClassUtils;
  * 
  * @author Mark Fisher
  */
-public class GatewayProxyFactoryBean extends SimpleMessagingGateway
-		implements FactoryBean, MethodInterceptor, InitializingBean, BeanClassLoaderAware, BeanFactoryAware {
+public class GatewayProxyFactoryBean implements FactoryBean, MethodInterceptor, InitializingBean, BeanClassLoaderAware, BeanFactoryAware {
 
 	private volatile Class<?> serviceInterface;
+
+	private volatile MessageChannel defaultRequestChannel;
+
+	private volatile PollableChannel defaultReplyChannel;
+
+	private volatile long defaultRequestTimeout = -1;
+
+	private volatile long defaultReplyTimeout = -1;
 
 	private volatile TypeConverter typeConverter = new SimpleTypeConverter();
 
 	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
 
 	private volatile Object serviceProxy;
+
+	private final Map<Method, MessagingGateway> gatewayMap = new HashMap<Method, MessagingGateway>();
+
+	private volatile MessageBus messageBus;
 
 	private volatile boolean initialized;
 
@@ -64,6 +82,48 @@ public class GatewayProxyFactoryBean extends SimpleMessagingGateway
 		this.serviceInterface = serviceInterface;
 	}
 
+	/**
+	 * Set the default request channel.
+	 * 
+	 * @param defaulRequestChannel the channel to which request messages will
+	 * be sent if no request channel has been configured with an annotation
+	 */
+	public void setDefaultRequestChannel(MessageChannel defaultRequestChannel) {
+		this.defaultRequestChannel = defaultRequestChannel;
+	}
+
+	/**
+	 * Set the default reply channel. If no default reply channel is provided,
+	 * and no reply channel is configured with annotations, an anonymous,
+	 * temporary channel will be used for handling replies.
+	 * 
+	 * @param replyChannel the channel from which reply messages will be
+	 * received if no reply channel has been configured with an annotation
+	 */
+	public void setDefaultReplyChannel(PollableChannel defaultReplyChannel) {
+		this.defaultReplyChannel = defaultReplyChannel;
+	}
+
+	/**
+	 * Set the default timeout value for sending request messages. If not
+	 * explicitly configured with an annotation, this value will be used.
+	 * 
+	 * @param defaultRequestTimeout the timeout value in milliseconds
+	 */
+	public void setDefaultRequestTimeout(long defaultRequestTimeout) {
+		this.defaultRequestTimeout = defaultRequestTimeout;
+	}
+
+	/**
+	 * Set the default timeout value for receiving reply messages. If not
+	 * explicitly configured with an annotation, this value will be used.
+	 * 
+	 * @param defaultReplyTimeout the timeout value in milliseconds
+	 */
+	public void setDefaultReplyTimeout(long defaultReplyTimeout) {
+		this.defaultReplyTimeout = defaultReplyTimeout;
+	}
+
 	public void setTypeConverter(TypeConverter typeConverter) {
 		Assert.notNull(typeConverter, "typeConverter must not be null");
 		this.typeConverter = typeConverter;
@@ -74,17 +134,21 @@ public class GatewayProxyFactoryBean extends SimpleMessagingGateway
 	}
 
 	public void setBeanFactory(BeanFactory beanFactory) {
-		this.setMessageBus(
-				(MessageBus) beanFactory.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME));
+		this.messageBus = (MessageBus) beanFactory.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 	}
 
-	public void afterPropertiesSet() {
+	public void afterPropertiesSet() throws Exception {
 		synchronized (this.initializationMonitor) {
 			if (this.initialized) {
 				return;
 			}
 			if (this.serviceInterface == null) {
 				throw new IllegalArgumentException("'serviceInterface' must not be null");
+			}
+			Method[] methods = this.serviceInterface.getDeclaredMethods();
+			for (Method method : methods) {
+				MessagingGateway gateway = this.createGatewayForMethod(method);
+				this.gatewayMap.put(method, gateway);
 			}
 			this.serviceProxy = new ProxyFactory(this.serviceInterface, this).getProxy(this.beanClassLoader);
 			this.initialized = true;
@@ -119,6 +183,7 @@ public class GatewayProxyFactoryBean extends SimpleMessagingGateway
 			this.afterPropertiesSet();
 		}
 		Method method = invocation.getMethod();
+		MessagingGateway gateway = this.gatewayMap.get(method);
 		Class<?> returnType = method.getReturnType();
 		boolean isReturnTypeMessage = Message.class.isAssignableFrom(returnType);
 		boolean shouldReply = returnType != void.class;
@@ -127,22 +192,34 @@ public class GatewayProxyFactoryBean extends SimpleMessagingGateway
 		if (paramCount == 0) {
 			if (shouldReply) {
 				if (isReturnTypeMessage) {
-					return this.receive();
+					return gateway.receive();
 				}
-				response = this.receive();
+				response = gateway.receive();
 			}
 		}
 		else {
-			Object payload = (paramCount == 1) ? invocation.getArguments()[0] : invocation.getArguments();
+			Object[] args = invocation.getArguments();
 			if (shouldReply) {
-				response = isReturnTypeMessage ? this.sendAndReceiveMessage(payload) : this.sendAndReceive(payload);
+				response = isReturnTypeMessage ? gateway.sendAndReceiveMessage(args) : gateway.sendAndReceive(args);
 			}
 			else {
-				this.send(payload);
+				gateway.send(args);
 				response = null;
 			}
 		}
 		return (response != null) ? this.typeConverter.convertIfNecessary(response, returnType) : null;
+	}
+
+	private MessagingGateway createGatewayForMethod(Method method) throws Exception {
+		SimpleMessagingGateway gateway = new SimpleMessagingGateway(
+				new MethodParameterMessageMapper(method), new SimpleMessageMapper());
+		gateway.setMessageBus(this.messageBus);
+		//TODO: get request and reply channels from annotation, else fall back to these defaults
+		gateway.setRequestChannel(this.defaultRequestChannel);
+		gateway.setReplyChannel(this.defaultReplyChannel);
+		gateway.setRequestTimeout(this.defaultRequestTimeout);
+		gateway.setReplyTimeout(this.defaultReplyTimeout);
+		return gateway;
 	}
 
 }

@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -44,7 +45,7 @@ public class GatewayProxyFactoryBeanTests {
 		QueueChannel requestChannel = new QueueChannel();
 		startResponder(requestChannel);
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
-		proxyFactory.setRequestChannel(requestChannel);
+		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.setServiceInterface(TestService.class);
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
@@ -57,7 +58,7 @@ public class GatewayProxyFactoryBeanTests {
 		final QueueChannel requestChannel = new QueueChannel();
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		proxyFactory.setServiceInterface(TestService.class);
-		proxyFactory.setRequestChannel(requestChannel);
+		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		service.oneWay("test");
@@ -72,7 +73,8 @@ public class GatewayProxyFactoryBeanTests {
 		replyChannel.send(new StringMessage("foo"));
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		proxyFactory.setServiceInterface(TestService.class);
-		proxyFactory.setReplyChannel(replyChannel);
+		proxyFactory.setDefaultRequestChannel(new DirectChannel());
+		proxyFactory.setDefaultReplyChannel(replyChannel);
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		String result = service.solicitResponse();
@@ -92,7 +94,7 @@ public class GatewayProxyFactoryBeanTests {
 		}).start();
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		proxyFactory.setServiceInterface(TestService.class);
-		proxyFactory.setRequestChannel(requestChannel);
+		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		Integer result = service.requestReplyWithIntegers(123);
@@ -160,7 +162,7 @@ public class GatewayProxyFactoryBeanTests {
 		startResponder(requestChannel);
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		proxyFactory.setServiceInterface(TestService.class);
-		proxyFactory.setRequestChannel(requestChannel);
+		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		String result = service.requestReplyWithMessageParameter(new StringMessage("foo"));
@@ -179,7 +181,7 @@ public class GatewayProxyFactoryBeanTests {
 		}).start();
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
 		proxyFactory.setServiceInterface(TestService.class);
-		proxyFactory.setRequestChannel(requestChannel);
+		proxyFactory.setDefaultRequestChannel(requestChannel);
 		proxyFactory.afterPropertiesSet();
 		TestService service = (TestService) proxyFactory.getObject();
 		Message<?> result = service.requestReplyWithMessageReturnValue("foo");
@@ -205,6 +207,7 @@ public class GatewayProxyFactoryBeanTests {
 	@Test
 	public void testProxiedToStringMethod() throws Exception {
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		proxyFactory.setDefaultRequestChannel(new DirectChannel());
 		proxyFactory.setServiceInterface(TestService.class);
 		proxyFactory.afterPropertiesSet();
 		Object proxy = proxyFactory.getObject();

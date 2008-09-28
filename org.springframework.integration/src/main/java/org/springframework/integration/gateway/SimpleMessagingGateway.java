@@ -17,36 +17,50 @@
 package org.springframework.integration.gateway;
 
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageMapper;
+import org.springframework.integration.message.InboundMessageMapper;
+import org.springframework.integration.message.OutboundMessageMapper;
 import org.springframework.util.Assert;
 
 /**
  * An implementation of {@link AbstractMessagingGateway} that delegates to
- * a {@link MessageMapper}. The default is {@link DefaultMessageMapper}.
+ * an {@link InboundMessageMapper} and {@link OutboundMessageMapper}. The
+ * default implementation for both is {@link SimpleMessageMapper}.
  * 
- * @see MessageMapper
+ * @see InboundMessageMapper
+ * @see OutboundMessageMapper
  * 
  * @author Mark Fisher
  */
+@SuppressWarnings("unchecked")
 public class SimpleMessagingGateway extends AbstractMessagingGateway {
 
-	private volatile MessageMapper messageMapper = new DefaultMessageMapper();
+	private final InboundMessageMapper inboundMapper;
+
+	private final OutboundMessageMapper outboundMapper;
 
 
-	public void setMessageMapper(MessageMapper<?> messageMapper) {
-		Assert.notNull(messageMapper, "messageMapper must not be null");
-		this.messageMapper = (messageMapper != null)
-				? messageMapper : new DefaultMessageMapper();
+	public SimpleMessagingGateway() {
+		SimpleMessageMapper mapper = new SimpleMessageMapper();
+		this.inboundMapper = mapper;
+		this.outboundMapper = mapper;
 	}
+
+	public SimpleMessagingGateway(InboundMessageMapper<?> inboundMapper, OutboundMessageMapper<?> outboundMapper) {
+		Assert.notNull(inboundMapper, "InboundMessageMapper must not be null");
+		Assert.notNull(outboundMapper, "OutboundMessageMapper must not be null");
+		this.inboundMapper = inboundMapper;
+		this.outboundMapper = outboundMapper;
+	}
+
 
 	@Override
 	protected Object fromMessage(Message<?> message) {
-		return this.messageMapper.fromMessage(message);
+		return this.outboundMapper.fromMessage(message);
 	}
 
 	@Override
 	protected Message<?> toMessage(Object object) {
-		return this.messageMapper.toMessage(object);
+		return this.inboundMapper.toMessage(object);
 	}
 
 }

@@ -19,6 +19,7 @@ package org.springframework.integration.rmi;
 import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.adapter.MessageHandler;
 import org.springframework.integration.adapter.RemotingInboundGatewaySupport;
 import org.springframework.integration.channel.MessageChannel;
@@ -32,7 +33,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class RmiInboundGateway extends RemotingInboundGatewaySupport {
+public class RmiInboundGateway extends RemotingInboundGatewaySupport implements InitializingBean {
 
 	public static final String SERVICE_NAME_PREFIX = "org.springframewok.integration.rmiGateway.";
 
@@ -71,7 +72,6 @@ public class RmiInboundGateway extends RemotingInboundGatewaySupport {
 		this.remoteInvocationExecutor = remoteInvocationExecutor;
 	}
 
-	@Override
 	public void afterPropertiesSet() throws RemoteException {
 		RmiServiceExporter exporter = new RmiServiceExporter();
 		if (this.registryHost != null) {

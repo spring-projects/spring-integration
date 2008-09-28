@@ -18,14 +18,17 @@ package org.springframework.integration.gateway;
 
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessageMapper;
+import org.springframework.integration.message.InboundMessageMapper;
+import org.springframework.integration.message.OutboundMessageMapper;
 
 /**
- * A default implementation of the {@link MessageMapper} strategy interface.
+ * An implementation of the {@link InboundMessageMapper} and
+ * {@link OutboundMessageMapper} strategy interfaces that maps directly to and
+ * from the Message payload instance.
  * 
  * @author Mark Fisher
  */
-public class DefaultMessageMapper implements MessageMapper<Object> {
+public class SimpleMessageMapper implements InboundMessageMapper<Object>, OutboundMessageMapper<Object> {
 
 	/**
 	 * Returns the Message payload (or null if the Message is null).

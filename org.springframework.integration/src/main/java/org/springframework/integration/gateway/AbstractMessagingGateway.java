@@ -16,8 +16,6 @@
 
 package org.springframework.integration.gateway;
 
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.bus.MessageBusAware;
 import org.springframework.integration.channel.MessageChannel;
@@ -36,7 +34,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractMessagingGateway implements MessagingGateway, MessageBusAware, InitializingBean {
+public abstract class AbstractMessagingGateway implements MessagingGateway, MessageBusAware {
 
 	private volatile MessageChannel requestChannel;
 
@@ -95,15 +93,9 @@ public abstract class AbstractMessagingGateway implements MessagingGateway, Mess
 		this.messageBus = messageBus;
 	}
 
-	public void afterPropertiesSet() throws Exception {
-		Assert.notNull(this.requestChannel, "requestChannel must not be null");
-	}
-
 	public void send(Object object) {
-		if (this.requestChannel == null) {
-			throw new IllegalStateException(
-					"send is not supported, because no request channel has been configured");
-		}
+		Assert.state(this.requestChannel != null,
+				"send is not supported, because no request channel has been configured");
 		Message<?> message = this.toMessage(object);
 		Assert.notNull(message, "message must not be null");
 		if (!this.channelTemplate.send(message, this.requestChannel)) {
@@ -112,10 +104,8 @@ public abstract class AbstractMessagingGateway implements MessagingGateway, Mess
 	}
 
 	public Object receive() {
-		if (this.replyChannel == null || !(this.replyChannel instanceof PollableChannel)) {
-			throw new IllegalStateException(
-					"no-arg receive is not supported, because no pollable reply channel has been configured");
-		}
+		Assert.state(this.replyChannel != null && (this.replyChannel instanceof PollableChannel),
+				"no-arg receive is not supported, because no pollable reply channel has been configured");
 		Message<?> message = this.channelTemplate.receive((PollableChannel) this.replyChannel);
 		return this.fromMessage(message);
 	}
@@ -154,9 +144,7 @@ public abstract class AbstractMessagingGateway implements MessagingGateway, Mess
 			if (this.replyMessageCorrelator != null) {
 				return;
 			}
-			if (this.messageBus == null) {
-				throw new ConfigurationException("No MessageBus available. Cannot register ReplyMessageCorrelator.");
-			}
+			Assert.state(this.messageBus != null, "No MessageBus available. Cannot register ReplyMessageCorrelator.");
 			ReplyMessageCorrelator correlator = new ReplyMessageCorrelator();
 			correlator.setBeanName("internal.correlator." + this);
 			correlator.setInputChannel(this.replyChannel);

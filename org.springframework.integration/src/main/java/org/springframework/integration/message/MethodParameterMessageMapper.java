@@ -48,7 +48,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class MethodParameterMessageMapper implements MessageMapper<Object[]> {
+public class MethodParameterMessageMapper implements InboundMessageMapper<Object[]>, OutboundMessageMapper<Object[]> {
 
 	private final Method method;
 

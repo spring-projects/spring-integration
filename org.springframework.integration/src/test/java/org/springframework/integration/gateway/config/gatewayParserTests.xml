@@ -19,24 +19,16 @@
 
 	<gateway id="oneWay"
 	         service-interface="org.springframework.integration.gateway.TestService"
-	         request-channel="requestChannel"/>
+	         default-request-channel="requestChannel"/>
 
 	<gateway id="solicitResponse"
 	         service-interface="org.springframework.integration.gateway.TestService"
-	         reply-channel="replyChannel"
-	         reply-timeout="3000"/>
+	         default-reply-channel="replyChannel"
+	         default-reply-timeout="3000"/>
 
 	<gateway id="requestReply"
 	         service-interface="org.springframework.integration.gateway.TestService"
-	         request-channel="requestChannel"
-	         reply-channel="replyChannel"/>
-
-	<gateway id="requestReplyWithMessageMapper"
-	         service-interface="org.springframework.integration.gateway.TestService"
-	         request-channel="requestChannel"
-	         reply-channel="replyChannel"
-	         message-mapper="mapper"/>
-
-	<beans:bean id="mapper" class="org.springframework.integration.gateway.config.TestMessageMapper"/>
+	         default-request-channel="requestChannel"
+	         default-reply-channel="replyChannel"/>
 
 </beans:beans>

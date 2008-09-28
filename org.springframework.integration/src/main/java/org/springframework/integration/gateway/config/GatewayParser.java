@@ -32,7 +32,7 @@ import org.springframework.util.ObjectUtils;
 public class GatewayParser extends AbstractSimpleBeanDefinitionParser {
 
 	private static String[] referenceAttributes = new String[] {
-		"request-channel", "reply-channel", "message-mapper"
+		"default-request-channel", "default-reply-channel", "message-mapper"
 	};
 
 
