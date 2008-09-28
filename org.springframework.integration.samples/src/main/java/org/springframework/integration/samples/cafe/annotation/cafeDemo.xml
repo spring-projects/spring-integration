@@ -18,9 +18,7 @@
 
 	<context:component-scan base-package="org.springframework.integration.samples.cafe.annotation"/>
 
-	<gateway id="cafe"
-			 service-interface="org.springframework.integration.samples.cafe.Cafe"
-	 		 default-request-channel="orders" />
+	<gateway id="cafe" service-interface="org.springframework.integration.samples.cafe.Cafe"/>
 
 	<channel id="orders"/>
 	<channel id="drinks"/>
