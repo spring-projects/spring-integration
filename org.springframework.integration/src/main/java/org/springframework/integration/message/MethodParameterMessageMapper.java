@@ -77,7 +77,7 @@ public class MethodParameterMessageMapper implements MessageMapper<Object[]> {
 			MethodParameterMetadata metadata = this.parameterMetadata[i];
 			Header headerAnnotation = metadata.getHeaderAnnotation();
 			if (headerAnnotation != null) {
-				String headerName = this.resolveHeaderName(headerAnnotation, metadata);
+				String headerName = metadata.getHeaderName();
 				boolean required = headerAnnotation.required();
 				if (value != null) {
 					headers.put(headerName, value);
@@ -120,7 +120,7 @@ public class MethodParameterMessageMapper implements MessageMapper<Object[]> {
 			Class<?> expectedType = metadata.getParameterType();
 			Header headerAnnotation = metadata.getHeaderAnnotation();
 			if (headerAnnotation != null) {
-				String headerName = this.resolveHeaderName(headerAnnotation, metadata);
+				String headerName = metadata.getHeaderName();
 				Object value = message.getHeaders().get(headerName);
 				if (value == null && headerAnnotation.required()) {
 					throw new MessageHandlingException(message,
@@ -175,15 +175,6 @@ public class MethodParameterMessageMapper implements MessageMapper<Object[]> {
 		return properties;
 	}
 
-	private String resolveHeaderName(Header headerAnnotation, MethodParameter methodParam) {
-		String paramName = headerAnnotation.value();
-		if (!StringUtils.hasText(paramName)) {
-			paramName = methodParam.getParameterName();
-			Assert.state(paramName != null, "No parameter name specified and not available in class file.");
-		}
-		return paramName;
-	}
-
 	@SuppressWarnings("unchecked")
 	private void addHeadersAnnotatedParameterToMap(Object value, Map<String, Object> headers) {
 		Map map = (Map) value;
@@ -207,7 +198,7 @@ public class MethodParameterMessageMapper implements MessageMapper<Object[]> {
 			super(method, index);
 		}
 
-		public Header getHeaderAnnotation() {
+		Header getHeaderAnnotation() {
 			if (this._headerAnnotation != null) {
 				return this._headerAnnotation;
 			}
@@ -223,7 +214,20 @@ public class MethodParameterMessageMapper implements MessageMapper<Object[]> {
 			return null;
 		}
 
-		public boolean hasHeadersAnnotation() {
+		String getHeaderName() {
+			if (this.getHeaderAnnotation() == null) {
+				return null;
+			}
+			String paramName = this.getHeaderAnnotation().value();
+			if (!StringUtils.hasText(paramName)) {
+				paramName = this.getParameterName();
+				Assert.state(paramName != null,
+						"No parameter name specified on @Header and unable to discover in class file.");
+			}
+			return paramName;
+		}
+
+		boolean hasHeadersAnnotation() {
 			if (this._hasHeadersAnnotation) {
 				return true;
 			}
