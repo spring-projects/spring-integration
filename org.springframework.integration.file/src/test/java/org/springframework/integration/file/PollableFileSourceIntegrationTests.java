@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.file;
 
 import static org.junit.Assert.assertEquals;
@@ -29,6 +30,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.integration.message.Message;
@@ -47,6 +49,7 @@ public class PollableFileSourceIntegrationTests {
 	PollableFileSource pollableFileSource;
 
 	private static File inputDir;
+
 
 	@BeforeClass
 	public static void setupInputDir() {
@@ -74,6 +77,7 @@ public class PollableFileSourceIntegrationTests {
 	public static void removeInputDir() throws Exception {
 		inputDir.delete();
 	}
+
 
 	@Test
 	public void configured() throws Exception {
@@ -107,7 +111,7 @@ public class PollableFileSourceIntegrationTests {
 		assertNotSame(received2 + " == " + received3, received2, received3);
 	}
 
-	@Test(timeout = 1000)
+	@Test(timeout = 3000)
 	@Repeat(15)
 	public void concurrentProcessing() throws Exception {
 		CountDownLatch go = new CountDownLatch(1);
