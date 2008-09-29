@@ -23,13 +23,11 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
 
-import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.channel.ChannelRegistry;
-import org.springframework.integration.channel.TestChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
@@ -79,68 +77,37 @@ public class RecipientListRouterTests {
 	}
 
 	@Test
-	public void routeWithChannelNames() {
-		QueueChannel channel1 = new QueueChannel();
-		QueueChannel channel2 = new QueueChannel();
-		channel1.setBeanName("channel1");
-		channel2.setBeanName("channel2");
-		ChannelRegistry channelRegistry = new TestChannelRegistry();
-		channelRegistry.registerChannel(channel1);
-		channelRegistry.registerChannel(channel2);
+	public void routeToSingleChannel() {
+		QueueChannel channel = new QueueChannel();
+		channel.setBeanName("channel");
 		RecipientListChannelResolver resolver = new RecipientListChannelResolver();
-		resolver.setChannelNames(new String[] {"channel1", "channel2"});
-		resolver.afterPropertiesSet();
+		resolver.setChannels(Collections.singletonList((MessageChannel) channel));
 		RouterEndpoint endpoint = new RouterEndpoint(resolver);
-		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> message = new StringMessage("test");
 		endpoint.onMessage(message);
-		Message<?> result1 = channel1.receive(25);
+		Message<?> result1 = channel.receive(25);
 		assertNotNull(result1);
 		assertEquals("test", result1.getPayload());
-		Message<?> result2 = channel2.receive(25);
-		assertNotNull(result2);
-		assertEquals("test", result2.getPayload());
-	}
-
-	@Test
-	public void routeToSingleChannelByName() {
-		QueueChannel channel1 = new QueueChannel();
-		QueueChannel channel2 = new QueueChannel();
-		channel1.setBeanName("channel1");
-		channel2.setBeanName("channel2");
-		ChannelRegistry channelRegistry = new TestChannelRegistry();
-		channelRegistry.registerChannel(channel1);
-		channelRegistry.registerChannel(channel2);
-		RecipientListChannelResolver resolver = new RecipientListChannelResolver();
-		resolver.setChannelNames(new String[] {"channel1"});
-		resolver.afterPropertiesSet();
-		RouterEndpoint endpoint = new RouterEndpoint(resolver);
-		endpoint.setChannelRegistry(channelRegistry);
-		Message<String> message = new StringMessage("test");
-		endpoint.onMessage(message);
-		Message<?> result1 = channel1.receive(25);
-		assertNotNull(result1);
-		assertEquals("test", result1.getPayload());
-		Message<?> result2 = channel2.receive(5);
+		Message<?> result2 = channel.receive(5);
 		assertNull(result2);
 	}
 
-	@Test(expected = ConfigurationException.class)
-	public void configurationExceptionWhenBothChannelsAndNamesAreProvided() {
-		QueueChannel channel1 = new QueueChannel();
-		QueueChannel channel2 = new QueueChannel();
-		channel1.setBeanName("channel1");
-		channel2.setBeanName("channel2");
-		List<MessageChannel> channels = new ArrayList<MessageChannel>();
-		channels.add(channel1);
-		channels.add(channel2);
-		ChannelRegistry channelRegistry = new TestChannelRegistry();
-		channelRegistry.registerChannel(channel1);
-		channelRegistry.registerChannel(channel2);
+	@Test(expected = IllegalArgumentException.class)
+	public void nullChannelListNotSettable() {
 		RecipientListChannelResolver resolver = new RecipientListChannelResolver();
+		resolver.setChannels(null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void emptyChannelListNotSettable() {
+		RecipientListChannelResolver resolver = new RecipientListChannelResolver();
+		List<MessageChannel> channels = new ArrayList<MessageChannel>();
 		resolver.setChannels(channels);
-		resolver.setChannelNames(new String[] {"channel1"});
-		resolver.setChannelRegistry(channelRegistry);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void nullChannelListFailsInitialization() {
+		RecipientListChannelResolver resolver = new RecipientListChannelResolver();
 		resolver.afterPropertiesSet();
 	}
 

@@ -16,21 +16,20 @@
 
 package org.springframework.integration.router;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
+import org.springframework.util.Assert;
 
 /**
  * A {@link ChannelResolver} implementation that routes to a statically
- * configured list of recipients. The recipients are provided either as a list
- * of {@link MessageChannel} instances or as a String array of channel names.
- * For dynamic recipient lists, either implement {@link ChannelResolver} or
- * extend the {@link AbstractMultiChannelNameResolver} base class.
+ * configured list of recipients. The recipients are provided as a list of
+ * {@link MessageChannel} instances. For dynamic recipient lists, consider
+ * either implementing the {@link ChannelResolver} interface directly or
+ * extending the {@link AbstractMultiChannelNameResolver} base class.
  * 
  * @author Mark Fisher
  */
@@ -38,33 +37,18 @@ public class RecipientListChannelResolver extends AbstractChannelResolver implem
 
 	private volatile List<MessageChannel> channels;
 
-	private volatile String[] channelNames;
-
 
 	public void setChannels(List<MessageChannel> channels) {
+		Assert.notEmpty(channels, "a non-empty channel list is required");
 		this.channels = channels;
 	}
 
-	public void setChannelNames(String[] channelNames) {
-		this.channelNames = channelNames;
-	}
-
 	public void afterPropertiesSet() {
-		if ((this.channels != null && this.channelNames != null)
-				|| (this.channels == null && this.channelNames == null)) {
-			throw new ConfigurationException("either 'channels' or 'channelNames' should be provided, but not both");
-		}
+		Assert.notEmpty(this.channels, "a non-empty channel list is required");
 	}
 
 	@Override
 	public Collection<MessageChannel> resolveChannels(Message<?> message) {
-		if (this.channels == null && this.channelNames != null) {
-			List<MessageChannel> resolved = new ArrayList<MessageChannel>();
-			for (String channelName : channelNames) {
-				resolved.add(this.lookupChannel(channelName, true));
-			}
-			return resolved;
-		}
 		return this.channels;
 	}
 
