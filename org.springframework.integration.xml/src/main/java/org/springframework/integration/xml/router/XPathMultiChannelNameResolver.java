@@ -18,15 +18,15 @@ package org.springframework.integration.xml.router;
 
 import java.util.List;
 
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Node;
-
 import org.springframework.integration.message.Message;
 import org.springframework.integration.router.AbstractMultiChannelNameResolver;
-import org.springframework.integration.xml.util.XPathUtils;
+import org.springframework.integration.xml.DefaultXmlPayloadConverter;
+import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.util.Assert;
 import org.springframework.xml.xpath.NodeMapper;
 import org.springframework.xml.xpath.XPathExpression;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Node;
 
 /**
  * @author Jonas Partner
@@ -35,14 +35,14 @@ public class XPathMultiChannelNameResolver extends AbstractMultiChannelNameResol
 
 	private final XPathExpression xPathExpression;
 
-	private volatile NodeMapper nodeMapper = new TextContentNodeMapper();
+	private volatile XmlPayloadConverter payloadConvertor = new DefaultXmlPayloadConverter();
 
+	private volatile NodeMapper nodeMapper = new TextContentNodeMapper();
 
 	public XPathMultiChannelNameResolver(XPathExpression xPathExpression) {
 		Assert.notNull("XPathExpression must not be null");
 		this.xPathExpression = xPathExpression;
 	}
-
 
 	public void setNodeMapper(NodeMapper nodeMapper) {
 		Assert.notNull(nodeMapper, "NodeMapper must not be null");
@@ -51,9 +51,13 @@ public class XPathMultiChannelNameResolver extends AbstractMultiChannelNameResol
 
 	@SuppressWarnings("unchecked")
 	public String[] resolveChannelNames(Message<?> message) {
-		Node node = XPathUtils.extractPayloadAsNode(message);
+		Node node = payloadConvertor.convertToDocument(message.getPayload());
 		List channelNamesList = this.xPathExpression.evaluate(node, this.nodeMapper);
 		return (String[]) channelNamesList.toArray(new String[channelNamesList.size()]);
+	}
+
+	public void setPayloadConvertor(XmlPayloadConverter payloadConvertor) {
+		this.payloadConvertor = payloadConvertor;
 	}
 
 	private static class TextContentNodeMapper implements NodeMapper {

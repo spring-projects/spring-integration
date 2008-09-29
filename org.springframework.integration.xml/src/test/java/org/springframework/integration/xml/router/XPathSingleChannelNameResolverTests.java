@@ -36,10 +36,20 @@ public class XPathSingleChannelNameResolverTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testSimpleDocType() throws Exception {
-		Document doc = XmlTestUtil.getDocumentForString("<doc type=\"one\" />");
+		Document doc = XmlTestUtil.getDocumentForString("<doc type='one' />");
 		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/doc/@type");
 		XPathSingleChannelNameResolver resolver = new XPathSingleChannelNameResolver(expression);
 		String channelName = resolver.resolveChannelName(new GenericMessage(doc));
+		assertEquals("Wrong channel name", "one", channelName);
+	}
+	
+	
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testSimpleStringDoc() throws Exception {
+		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/doc/@type");
+		XPathSingleChannelNameResolver resolver = new XPathSingleChannelNameResolver(expression);
+		String channelName = resolver.resolveChannelName(new GenericMessage("<doc type='one' />"));
 		assertEquals("Wrong channel name", "one", channelName);
 	}
 

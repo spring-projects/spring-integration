@@ -16,13 +16,13 @@
 
 package org.springframework.integration.xml.router;
 
-import org.w3c.dom.Node;
-
 import org.springframework.integration.message.Message;
 import org.springframework.integration.router.AbstractSingleChannelNameResolver;
-import org.springframework.integration.xml.util.XPathUtils;
+import org.springframework.integration.xml.DefaultXmlPayloadConverter;
+import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.util.Assert;
 import org.springframework.xml.xpath.XPathExpression;
+import org.w3c.dom.Node;
 
 /**
  * @author Jonas Partner
@@ -31,6 +31,7 @@ public class XPathSingleChannelNameResolver extends AbstractSingleChannelNameRes
 
 	private final XPathExpression xPathExpression;
 
+	private volatile XmlPayloadConverter payloadConvertor = new DefaultXmlPayloadConverter();
 
 	public XPathSingleChannelNameResolver(XPathExpression xPathExpression) {
 		Assert.notNull("XPathExpression must be provided");
@@ -38,8 +39,12 @@ public class XPathSingleChannelNameResolver extends AbstractSingleChannelNameRes
 	}
 
 	public String resolveChannelName(Message<?> message) {
-		Node node = XPathUtils.extractPayloadAsNode(message);
+		Node node = payloadConvertor.convertToDocument(message.getPayload());
 		return xPathExpression.evaluateAsString(node);
+	}
+
+	public void setPayloadConvertor(XmlPayloadConverter payloadConvertor) {
+		this.payloadConvertor = payloadConvertor;
 	}
 
 }

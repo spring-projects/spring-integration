@@ -19,15 +19,13 @@ package org.springframework.integration.xml.router;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-import org.w3c.dom.Document;
-
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.xml.router.XPathMultiChannelNameResolver;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.xml.xpath.XPathExpression;
 import org.springframework.xml.xpath.XPathExpressionFactory;
+import org.w3c.dom.Document;
 
 /** 
  * @author Jonas Partner
@@ -52,6 +50,17 @@ public class XPathMultiChannelNameResolverTests {
 		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/doc/book");
 		XPathMultiChannelNameResolver resolver = new XPathMultiChannelNameResolver(expression);
 		String[] channelNames = resolver.resolveChannelNames(new GenericMessage(doc));
+		assertEquals("Wrong number of channels returend", 2, channelNames.length);
+		assertEquals("Wrong channel name", "bOne", channelNames[0]);
+		assertEquals("Wrong channel name", "bTwo", channelNames[1]);
+	}
+	
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testMultipleNodeValuesAsString() throws Exception {
+		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/doc/book");
+		XPathMultiChannelNameResolver resolver = new XPathMultiChannelNameResolver(expression);
+		String[] channelNames = resolver.resolveChannelNames(new GenericMessage("<doc type=\"one\"><book>bOne</book><book>bTwo</book></doc>"));
 		assertEquals("Wrong number of channels returend", 2, channelNames.length);
 		assertEquals("Wrong channel name", "bOne", channelNames[0]);
 		assertEquals("Wrong channel name", "bTwo", channelNames[1]);
