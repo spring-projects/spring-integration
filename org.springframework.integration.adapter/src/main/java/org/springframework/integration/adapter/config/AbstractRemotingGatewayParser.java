@@ -23,7 +23,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.ConfigurationException;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -58,9 +58,7 @@ public abstract class AbstractRemotingGatewayParser extends AbstractSimpleBeanDe
 	@Override
 	protected final void postProcess(BeanDefinitionBuilder builder, Element element) {
 		String requestChannelRef = element.getAttribute("request-channel");
-		if (!StringUtils.hasText(requestChannelRef)) {
-			throw new ConfigurationException("a 'request-channel' reference is required");
-		}
+		Assert.hasText(requestChannelRef, "a 'request-channel' reference is required");
 		builder.addPropertyReference("requestChannel", requestChannelRef);
 		String replyChannel = element.getAttribute("reply-channel");
 		if (StringUtils.hasText(replyChannel)) {

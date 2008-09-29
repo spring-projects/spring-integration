@@ -19,8 +19,7 @@ package org.springframework.integration.adapter.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.integration.ConfigurationException;
-import org.springframework.util.StringUtils;
+import org.springframework.util.Assert;
 
 /**
  * Base class for url-based remoting outbound gateway parsers. 
@@ -37,9 +36,7 @@ public abstract class AbstractRemotingOutboundGatewayParser extends AbstractRemo
 	@Override
 	protected void doPostProcess(BeanDefinitionBuilder builder, Element element) {
 		String url = element.getAttribute("url");
-		if (!StringUtils.hasText(url)) {
-			throw new ConfigurationException("The 'url' attribute is required.");
-		}
+		Assert.hasText(url, "The 'url' attribute is required.");
 		builder.addConstructorArgValue(url);
 	}
 
