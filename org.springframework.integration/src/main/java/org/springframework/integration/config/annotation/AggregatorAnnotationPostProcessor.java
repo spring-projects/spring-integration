@@ -20,16 +20,16 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.aggregator.AggregatorEndpoint;
-import org.springframework.integration.aggregator.MethodInvokingAggregator;
 import org.springframework.integration.aggregator.CompletionStrategyAdapter;
+import org.springframework.integration.aggregator.MethodInvokingAggregator;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.CompletionStrategy;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -67,9 +67,7 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 		String discardChannelName = annotation.discardChannel();
 		if (StringUtils.hasText(discardChannelName)) {
 			MessageChannel discardChannel = this.getChannelRegistry().lookupChannel(discardChannelName);
-			if (discardChannel == null) {
-				throw new ConfigurationException("unable to resolve discardChannel '" + discardChannelName + "'");
-			}
+			Assert.notNull(discardChannel, "unable to resolve discardChannel '" + discardChannelName + "'");
 			aggregatorEndpoint.setDiscardChannel(discardChannel);
 		}
 		aggregatorEndpoint.setSendTimeout(annotation.sendTimeout());

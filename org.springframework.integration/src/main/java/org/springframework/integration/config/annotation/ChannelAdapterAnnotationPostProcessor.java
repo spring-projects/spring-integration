@@ -20,7 +20,6 @@ import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.annotation.ChannelAdapter;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.bus.MessageBus;
@@ -80,8 +79,9 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 			endpoint = this.createOutboundChannelAdapter(consumer, channel, pollerAnnotation);
 		}
 		else {
-			throw new ConfigurationException("The @ChannelAdapter can only be applied to methods that accept no arguments but have"
-					+ " a return value (inbound) or methods that have no return value but do accept arguments (outbound)");
+			throw new IllegalArgumentException("The @ChannelAdapter can only be applied to methods"
+					+ " that accept no arguments but have a return value (inbound) or methods that"
+					+ " have no return value but do accept arguments (outbound)");
 		}
 		if (endpoint != null) {
 			String annotationName = ClassUtils.getShortNameAsProperty(annotation.annotationType());
@@ -92,10 +92,8 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 	}
 
 	private SourcePollingChannelAdapter createInboundChannelAdapter(MethodInvokingSource source, MessageChannel channel, Poller pollerAnnotation) {
-		if (pollerAnnotation == null) {
-			throw new ConfigurationException("The @Poller annotation is required (at method-level) "
+		Assert.notNull(pollerAnnotation, "The @Poller annotation is required (at method-level) "
 					+ "when using the @ChannelAdapter annotation with a no-arg method.");
-		}
 		Trigger trigger = this.createTrigger(pollerAnnotation);
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 		adapter.setSource(source);

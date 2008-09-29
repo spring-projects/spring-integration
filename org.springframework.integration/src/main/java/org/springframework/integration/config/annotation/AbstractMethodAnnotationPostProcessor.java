@@ -20,7 +20,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelRegistry;
@@ -80,23 +79,18 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		String inputChannelName = (String) AnnotationUtils.getValue(annotation, INPUT_CHANNEL_ATTRIBUTE);
 		if (StringUtils.hasText(inputChannelName)) {
 			MessageChannel inputChannel = this.messageBus.lookupChannel(inputChannelName);
-			if (inputChannel == null) {
-				throw new ConfigurationException("unable to resolve inputChannel '" + inputChannelName + "'");
-			}
+			Assert.notNull(inputChannel, "unable to resolve inputChannel '" + inputChannelName + "'");
 			if (endpoint instanceof AbstractMessageConsumingEndpoint) {
 				AbstractMessageConsumingEndpoint consumingEndpoint = (AbstractMessageConsumingEndpoint) endpoint;
-				if (pollerAnnotation != null) {	
-					if (inputChannel instanceof PollableChannel) {
-						IntervalTrigger trigger = new IntervalTrigger(
-								pollerAnnotation.interval(), pollerAnnotation.timeUnit());
-						trigger.setInitialDelay(pollerAnnotation.initialDelay(), pollerAnnotation.timeUnit());
-						trigger.setFixedRate(pollerAnnotation.fixedRate());
-						consumingEndpoint.setTrigger(trigger);
-						consumingEndpoint.setMaxMessagesPerPoll(pollerAnnotation.maxMessagesPerPoll());
-					}
-					else {
-						throw new ConfigurationException("The @Poller annotation should only be provided for a PollableChannel");
-					}
+				if (pollerAnnotation != null) {
+					Assert.isInstanceOf(PollableChannel.class, inputChannel,
+							"The @Poller annotation should only be provided for a PollableChannel");							
+					IntervalTrigger trigger = new IntervalTrigger(
+							pollerAnnotation.interval(), pollerAnnotation.timeUnit());
+					trigger.setInitialDelay(pollerAnnotation.initialDelay(), pollerAnnotation.timeUnit());
+					trigger.setFixedRate(pollerAnnotation.fixedRate());
+					consumingEndpoint.setTrigger(trigger);
+					consumingEndpoint.setMaxMessagesPerPoll(pollerAnnotation.maxMessagesPerPoll());
 				}
 				consumingEndpoint.setInputChannel(inputChannel);
 			}
@@ -104,9 +98,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 				String outputChannelName = (String) AnnotationUtils.getValue(annotation, OUTPUT_CHANNEL_ATTRIBUTE);
 				if (StringUtils.hasText(outputChannelName)) {
 					MessageChannel outputChannel = this.messageBus.lookupChannel(outputChannelName);
-					if (outputChannel == null) {
-						throw new ConfigurationException("unable to resolve outputChannel '" + outputChannelName + "'");
-					}
+					Assert.notNull(outputChannel, "unable to resolve outputChannel '" + outputChannelName + "'");
 					((AbstractMessageHandlingEndpoint) endpoint).setOutputChannel(outputChannel);
 				}
 			}

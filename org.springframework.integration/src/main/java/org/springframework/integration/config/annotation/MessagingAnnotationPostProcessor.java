@@ -37,7 +37,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.ChannelAdapter;
 import org.springframework.integration.annotation.Router;
@@ -135,7 +134,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 										continue;
 									}
 									if (proxyFactory.isInterfaceProxied(iface)) {
-										throw new ConfigurationException("interface [" + iface + "] is already proxied");
+										throw new IllegalStateException("interface [" + iface + "] is already proxied");
 									}
 									shouldProxy = true;
 								}
