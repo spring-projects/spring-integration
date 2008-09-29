@@ -26,7 +26,7 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.security.SecurityTestUtil;
+import org.springframework.integration.security.SecurityTestUtils;
 import org.springframework.security.AccessDeniedException;
 import org.springframework.security.AuthenticationException;
 import org.springframework.security.MockAuthenticationManager;
@@ -54,7 +54,7 @@ public class ChannelSecurityInterceptorTests {
 	@Test(expected = AccessDeniedException.class)
 	public void securedSendWithoutRole() throws Exception {
 		MessageChannel channel = getSecuredChannel("ROLE_ADMIN");
-		SecurityContext context = SecurityTestUtil.createContext("test", "pwd", "ROLE_USER");
+		SecurityContext context = SecurityTestUtils.createContext("test", "pwd", "ROLE_USER");
 		SecurityContextHolder.setContext(context);
 		channel.send(new StringMessage("test"));
 	}
@@ -62,7 +62,7 @@ public class ChannelSecurityInterceptorTests {
 	@Test
 	public void securedSendWithRole() throws Exception {
 		MessageChannel channel = getSecuredChannel("ROLE_ADMIN");
-		SecurityContext context = SecurityTestUtil.createContext("test", "pwd", "ROLE_ADMIN");
+		SecurityContext context = SecurityTestUtils.createContext("test", "pwd", "ROLE_ADMIN");
 		SecurityContextHolder.setContext(context);
 		channel.send(new StringMessage("test"));
 	}

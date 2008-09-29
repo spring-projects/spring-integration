@@ -25,7 +25,7 @@ import org.springframework.security.providers.UsernamePasswordAuthenticationToke
 /**
  * @author Jonas Partner
  */
-public class SecurityTestUtil {
+public class SecurityTestUtils {
 
 	public static SecurityContext createContext(String username, String password, String... roles) {
 		SecurityContextImpl ctxImpl = new SecurityContextImpl();
