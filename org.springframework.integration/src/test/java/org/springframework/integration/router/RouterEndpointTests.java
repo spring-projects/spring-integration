@@ -86,7 +86,7 @@ public class RouterEndpointTests {
 
 	@Test
 	public void nullChannelNameArrayIgnoredByDefault() {
-		AbstractMultiChannelNameResolver channelNameResolver = new AbstractMultiChannelNameResolver() {
+		AbstractChannelNameResolver channelNameResolver = new AbstractChannelNameResolver() {
 			public String[] resolveChannelNames(Message<?> message) {
 				return null;
 			}
@@ -100,7 +100,7 @@ public class RouterEndpointTests {
 
 	@Test(expected = MessageDeliveryException.class)
 	public void nullChannelNameArrayThrowsExceptionWhenResolutionRequired() {
-		AbstractMultiChannelNameResolver channelNameResolver = new AbstractMultiChannelNameResolver() {
+		AbstractChannelNameResolver channelNameResolver = new AbstractChannelNameResolver() {
 			public String[] resolveChannelNames(Message<?> message) {
 				return null;
 			}
@@ -116,7 +116,7 @@ public class RouterEndpointTests {
 
 	@Test
 	public void emptyChannelNameArrayIgnoredByDefault() {
-		AbstractMultiChannelNameResolver channelNameResolver = new AbstractMultiChannelNameResolver() {
+		AbstractChannelNameResolver channelNameResolver = new AbstractChannelNameResolver() {
 			public String[] resolveChannelNames(Message<?> message) {
 				return new String[] {};
 			}
@@ -130,7 +130,7 @@ public class RouterEndpointTests {
 
 	@Test(expected = MessageDeliveryException.class)
 	public void emptyChannelNameArrayThrowsExceptionWhenResolutionRequired() {
-		AbstractMultiChannelNameResolver channelNameResolver = new AbstractMultiChannelNameResolver() {
+		AbstractChannelNameResolver channelNameResolver = new AbstractChannelNameResolver() {
 			public String[] resolveChannelNames(Message<?> message) {
 				return new String[] {};
 			}
@@ -156,7 +156,7 @@ public class RouterEndpointTests {
 
 	@Test(expected = MessagingException.class)
 	public void testChannelRegistryIsRequiredWhenUsingChannelNameResolverWithMultiChannelRouter() {
-		AbstractMultiChannelNameResolver channelNameResolver = new AbstractMultiChannelNameResolver() {
+		AbstractChannelNameResolver channelNameResolver = new AbstractChannelNameResolver() {
 			public String[] resolveChannelNames(Message<?> message) {
 				return new String[] { "notImportant" };
 			}

@@ -25,7 +25,7 @@ import org.springframework.integration.message.Message;
 /**
  * @author Mark Fisher
  */
-public abstract class AbstractSingleChannelResolver extends AbstractChannelResolver {
+public abstract class AbstractSingleChannelResolver implements ChannelResolver {
 
 	public Collection<MessageChannel> resolveChannels(Message<?> message) {
 		MessageChannel channel = this.resolveChannel(message);

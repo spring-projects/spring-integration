@@ -24,10 +24,13 @@ import java.util.List;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageMappingMethodInvoker;
 import org.springframework.integration.message.MessagingException;
+import org.springframework.util.Assert;
 
 /**
  * A {@link ChannelResolver} implementation that invokes the specified method
@@ -37,9 +40,11 @@ import org.springframework.integration.message.MessagingException;
  * 
  * @author Mark Fisher
  */
-public class MethodInvokingChannelResolver extends AbstractChannelResolver implements InitializingBean {
+public class MethodInvokingChannelResolver implements ChannelResolver, ChannelRegistryAware, InitializingBean {
 
 	private final MessageMappingMethodInvoker invoker;
+
+	private volatile ChannelRegistry channelRegistry;
 
 
 	public MethodInvokingChannelResolver(Object object, Method method) {
@@ -51,11 +56,14 @@ public class MethodInvokingChannelResolver extends AbstractChannelResolver imple
 	}
 
 
+	public void setChannelRegistry(ChannelRegistry channelRegistry) {
+		this.channelRegistry = channelRegistry;
+	}
+
 	public void afterPropertiesSet() throws Exception {
 		this.invoker.afterPropertiesSet();
 	}
 
-	@Override
 	public final Collection<MessageChannel> resolveChannels(Message<?> message) {
 		Object result = this.invoker.invokeMethod(message);
 		if (result == null) {
@@ -96,7 +104,13 @@ public class MethodInvokingChannelResolver extends AbstractChannelResolver imple
 			channels.add((MessageChannel) channelOrName);
 		}
 		else if (channelOrName instanceof String) {
-			MessageChannel channel = this.lookupChannel((String) channelOrName, true);
+			String channelName = (String) channelOrName;
+			Assert.state(this.channelRegistry != null,
+					"ChannelRegistry is required for resolving channel names");
+			MessageChannel channel = this.channelRegistry.lookupChannel(channelName);
+			if (channel == null) {
+				throw new MessagingException("unable to resolve channel '" + channelName + "'");
+			}
 			channels.add(channel);
 		}
 		else {

@@ -18,20 +18,21 @@ package org.springframework.integration.xml.router;
 
 import java.util.List;
 
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Node;
+
 import org.springframework.integration.message.Message;
-import org.springframework.integration.router.AbstractMultiChannelNameResolver;
+import org.springframework.integration.router.AbstractChannelNameResolver;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.util.Assert;
 import org.springframework.xml.xpath.NodeMapper;
 import org.springframework.xml.xpath.XPathExpression;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Node;
 
 /**
  * @author Jonas Partner
  */
-public class XPathMultiChannelNameResolver extends AbstractMultiChannelNameResolver {
+public class XPathMultiChannelNameResolver extends AbstractChannelNameResolver {
 
 	private final XPathExpression xPathExpression;
 
@@ -39,9 +40,16 @@ public class XPathMultiChannelNameResolver extends AbstractMultiChannelNameResol
 
 	private volatile NodeMapper nodeMapper = new TextContentNodeMapper();
 
+
 	public XPathMultiChannelNameResolver(XPathExpression xPathExpression) {
 		Assert.notNull("XPathExpression must not be null");
 		this.xPathExpression = xPathExpression;
+	}
+
+
+	public void setPayloadConvertor(XmlPayloadConverter payloadConvertor) {
+		Assert.notNull(payloadConvertor, "XmlPayloadConverter must not be null");
+		this.payloadConvertor = payloadConvertor;
 	}
 
 	public void setNodeMapper(NodeMapper nodeMapper) {
@@ -56,9 +64,6 @@ public class XPathMultiChannelNameResolver extends AbstractMultiChannelNameResol
 		return (String[]) channelNamesList.toArray(new String[channelNamesList.size()]);
 	}
 
-	public void setPayloadConvertor(XmlPayloadConverter payloadConvertor) {
-		this.payloadConvertor = payloadConvertor;
-	}
 
 	private static class TextContentNodeMapper implements NodeMapper {
 

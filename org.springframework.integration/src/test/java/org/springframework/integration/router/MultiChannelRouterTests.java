@@ -41,7 +41,7 @@ public class MultiChannelRouterTests {
 	public void routeWithChannelResolver() {
 		final QueueChannel channel1 = new QueueChannel();
 		final QueueChannel channel2 = new QueueChannel();
-		AbstractChannelResolver channelResolver = new AbstractChannelResolver() {
+		ChannelResolver channelResolver = new ChannelResolver() {
 			public List<MessageChannel> resolveChannels(Message<?> message) {
 				List<MessageChannel> channels = new ArrayList<MessageChannel>();
 				channels.add(channel1);
@@ -62,7 +62,7 @@ public class MultiChannelRouterTests {
 
 	@Test
 	public void routeWithChannelNameResolver() {
-		AbstractMultiChannelNameResolver channelNameResolver = new AbstractMultiChannelNameResolver() {
+		AbstractChannelNameResolver channelNameResolver = new AbstractChannelNameResolver() {
 			public String[] resolveChannelNames(Message<?> message) {
 				return new String[] {"channel1", "channel2"};
 			}
@@ -88,7 +88,7 @@ public class MultiChannelRouterTests {
 
 	@Test(expected = MessagingException.class)
 	public void channelNameLookupFailure() {
-		AbstractMultiChannelNameResolver channelNameResolver = new AbstractMultiChannelNameResolver() {
+		AbstractChannelNameResolver channelNameResolver = new AbstractChannelNameResolver() {
 			public String[] resolveChannelNames(Message<?> message) {
 				return new String[] {"noSuchChannel"};
 			}
@@ -102,7 +102,7 @@ public class MultiChannelRouterTests {
 
 	@Test(expected = MessagingException.class)
 	public void channelRegistryNotAvailable() {
-		AbstractMultiChannelNameResolver channelNameResolver = new AbstractMultiChannelNameResolver() {
+		AbstractChannelNameResolver channelNameResolver = new AbstractChannelNameResolver() {
 			public String[] resolveChannelNames(Message<?> message) {
 				return new String[] {"noSuchChannel"};
 			}

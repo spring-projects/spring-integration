@@ -29,11 +29,11 @@ import org.springframework.util.Assert;
  * configured list of recipients. The recipients are provided as a list of
  * {@link MessageChannel} instances. For dynamic recipient lists, consider
  * either implementing the {@link ChannelResolver} interface directly or
- * extending the {@link AbstractMultiChannelNameResolver} base class.
+ * extending the {@link AbstractChannelNameResolver} base class.
  * 
  * @author Mark Fisher
  */
-public class RecipientListChannelResolver extends AbstractChannelResolver implements InitializingBean {
+public class RecipientListChannelResolver implements ChannelResolver, InitializingBean {
 
 	private volatile List<MessageChannel> channels;
 
@@ -47,7 +47,6 @@ public class RecipientListChannelResolver extends AbstractChannelResolver implem
 		Assert.notEmpty(this.channels, "a non-empty channel list is required");
 	}
 
-	@Override
 	public Collection<MessageChannel> resolveChannels(Message<?> message) {
 		return this.channels;
 	}

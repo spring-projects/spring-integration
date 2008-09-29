@@ -16,18 +16,16 @@
 
 package org.springframework.integration.router;
 
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 
 /**
  * @author Mark Fisher
  */
-public abstract class AbstractSingleChannelNameResolver extends AbstractSingleChannelResolver {
+public abstract class AbstractSingleChannelNameResolver extends AbstractChannelNameResolver {
 
-	@Override
-	protected MessageChannel resolveChannel(Message<?> message) {
+	public final String[] resolveChannelNames(Message<?> message) {
 		String channelName = this.resolveChannelName(message);
-		return this.lookupChannel(channelName, true);
+		return (channelName != null) ? new String[] { channelName } : null;
 	}
 
 	protected abstract String resolveChannelName(Message<?> message);

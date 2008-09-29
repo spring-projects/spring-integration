@@ -19,28 +19,52 @@ package org.springframework.integration.router;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessagingException;
+import org.springframework.util.Assert;
 
 /**
+ * A base class for {@link ChannelResolver} implementations that return only
+ * the channel name(s) rather than {@link MessageChannel} instances.
+ * 
  * @author Mark Fisher
  */
-public abstract class AbstractMultiChannelNameResolver extends AbstractChannelResolver {
+public abstract class AbstractChannelNameResolver implements ChannelResolver, ChannelRegistryAware {
 
-	@Override
-	public Collection<MessageChannel> resolveChannels(Message<?> message) {
+	private ChannelRegistry channelRegistry;
+
+
+	public void setChannelRegistry(ChannelRegistry channelRegistry) {
+		this.channelRegistry = channelRegistry;
+	}
+
+	public final Collection<MessageChannel> resolveChannels(Message<?> message) {
 		Collection<MessageChannel> channels = new ArrayList<MessageChannel>();
 		String[] channelNames = this.resolveChannelNames(message);
 		if (channelNames == null) {
 			return null;
 		}
 		for (String channelName : channelNames) {
-			MessageChannel channel = this.lookupChannel(channelName, true);
-			channels.add(channel);
+			if (channelName != null) {
+				Assert.state(this.channelRegistry != null,
+						"unable to resolve channels, no ChannelRegistry available");
+				MessageChannel channel = this.channelRegistry.lookupChannel(channelName);
+				if (channel == null) {
+					throw new MessagingException(message,
+							"unable to resolve chnanel '" + channelName + "'");
+				}
+				channels.add(channel);
+			}
 		}
 		return channels;
 	}
 
+	/**
+	 * Subclasses must implement this method to return the channel name(s).
+	 */
 	protected abstract String[] resolveChannelNames(Message<?> message);
 
 }
