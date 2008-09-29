@@ -26,7 +26,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.security.SecurityTestUtil;
-import org.springframework.integration.security.endpoint.TestConsumer;
 import org.springframework.security.AccessDeniedException;
 import org.springframework.security.AuthenticationException;
 import org.springframework.security.context.SecurityContext;

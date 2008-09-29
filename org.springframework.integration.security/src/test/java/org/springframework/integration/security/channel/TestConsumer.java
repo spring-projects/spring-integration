@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.security.endpoint;
+package org.springframework.integration.security.channel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +22,9 @@ import java.util.List;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageConsumer;
 
+/**
+ * @author Mark Fisher
+ */
 public class TestConsumer implements MessageConsumer {
 
 	public List<Message<?>> sentMessages = new ArrayList<Message<?>>();

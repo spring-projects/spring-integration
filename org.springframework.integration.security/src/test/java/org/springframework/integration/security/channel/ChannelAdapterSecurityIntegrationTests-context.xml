@@ -24,7 +24,7 @@
 		<si-security:access-policy pattern="secured.*" send-access="ROLE_ADMIN"/>
 	</si-security:secured-channels>
 
-	<beans:bean id="testConsumer" class="org.springframework.integration.security.endpoint.TestConsumer"/>
+	<beans:bean id="testConsumer" class="org.springframework.integration.security.channel.TestConsumer"/>
 
 	<outbound-channel-adapter id="securedChannelAdapter" ref="testConsumer"/>
 
