@@ -40,25 +40,26 @@ public class ResultToDocumentTransformer implements ResultTransformer {
 	// Not guaranteed to be thread safe
 	private final DocumentBuilderFactory documentBuilderFactory;
 
-	public ResultToDocumentTransformer(
-			DocumentBuilderFactory documentBuilderFactory) {
+	public ResultToDocumentTransformer(DocumentBuilderFactory documentBuilderFactory) {
 		this.documentBuilderFactory = documentBuilderFactory;
 	}
 
 	public ResultToDocumentTransformer() {
-		this(DocumentBuilderFactory.newInstance());
+		this.documentBuilderFactory = DocumentBuilderFactory.newInstance();
+		this.documentBuilderFactory.setNamespaceAware(true);
 	}
 
 	public Object transformResult(Result res) {
 		Document doc = null;
 		if (DOMResult.class.isAssignableFrom(res.getClass())) {
 			doc = createDocumentFromDomResult((DOMResult) res);
-		} else if (StringResult.class.isAssignableFrom(res.getClass())) {
+		}
+		else if (StringResult.class.isAssignableFrom(res.getClass())) {
 			doc = createDocumentFromStringResult((StringResult) res);
-		} else {
-			throw new MessagingException(
-					"Failed to create document from payload type ["
-							+ res.getClass().getName() + "]");
+		}
+		else {
+			throw new MessagingException("Failed to create document from payload type [" + res.getClass().getName()
+					+ "]");
 		}
 		return doc;
 	}
@@ -69,20 +70,19 @@ public class ResultToDocumentTransformer implements ResultTransformer {
 
 	protected Document createDocumentFromStringResult(StringResult stringResult) {
 		try {
-			return getDocumentBuilder().parse(
-					new InputSource(new StringReader(stringResult.toString())));
-		} catch (Exception e) {
-			throw new MessagingException(
-					"Failed to create Document from StringResult payload", e);
+			return getDocumentBuilder().parse(new InputSource(new StringReader(stringResult.toString())));
+		}
+		catch (Exception e) {
+			throw new MessagingException("Failed to create Document from StringResult payload", e);
 		}
 	}
 
 	protected synchronized DocumentBuilder getDocumentBuilder() {
 		try {
 			return this.documentBuilderFactory.newDocumentBuilder();
-		} catch (ParserConfigurationException e) {
-			throw new MessagingException(
-					"Failed to create a new DocumentBuilder", e);
+		}
+		catch (ParserConfigurationException e) {
+			throw new MessagingException("Failed to create a new DocumentBuilder", e);
 		}
 	}
 

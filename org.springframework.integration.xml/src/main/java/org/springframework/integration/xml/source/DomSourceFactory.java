@@ -41,26 +41,26 @@ public class DomSourceFactory implements SourceFactory {
 
 	public DomSourceFactory() {
 		this.docBuilderFactory = DocumentBuilderFactory.newInstance();
+		this.docBuilderFactory.setNamespaceAware(true);
 	}
 
 	public DomSourceFactory(DocumentBuilderFactory docBuilderFactory) {
 		this.docBuilderFactory = docBuilderFactory;
 	}
 
-
 	public Source createSource(Object payload) {
 		Source source = null;
 		if (payload instanceof Document) {
-			source =  createDomSourceForDocument((Document) payload);
+			source = createDomSourceForDocument((Document) payload);
 		}
 		else if (payload instanceof String) {
 			source = createDomSourceForString((String) payload);
 		}
-		
-		if(source == null){
-		throw new MessagingException("Failed to create Source for payload type ["
-				+ payload.getClass().getName() + "]");
-		} 
+
+		if (source == null) {
+			throw new MessagingException("Failed to create Source for payload type [" + payload.getClass().getName()
+					+ "]");
+		}
 		return source;
 	}
 
@@ -74,15 +74,16 @@ public class DomSourceFactory implements SourceFactory {
 			Document doc = getNewDocumentBuilder().parse(new InputSource(new StringReader(s)));
 			DOMSource source = new DOMSource(doc.getDocumentElement());
 			return source;
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw new MessagingException("Exception creating DOMSource", e);
 		}
 	}
 
-	protected  DocumentBuilder getNewDocumentBuilder() throws ParserConfigurationException{
+	protected DocumentBuilder getNewDocumentBuilder() throws ParserConfigurationException {
 		synchronized (docBuilderFactory) {
 			return docBuilderFactory.newDocumentBuilder();
 		}
-		
+
 	}
 }

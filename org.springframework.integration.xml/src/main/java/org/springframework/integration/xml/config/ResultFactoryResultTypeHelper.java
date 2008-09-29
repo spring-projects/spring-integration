@@ -15,8 +15,6 @@
  */
 package org.springframework.integration.xml.config;
 
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.integration.xml.result.DomResultFactory;
 import org.springframework.integration.xml.result.ResultFactory;
@@ -52,12 +50,7 @@ public class ResultFactoryResultTypeHelper {
 			builder.addPropertyReference("resultFactory", resultFactory);
 		}
 		else if (resultType.equals(DOM_RESULT) || !StringUtils.hasText(resultType)) {
-			try {
-				builder.addPropertyValue("resultFactory", new DomResultFactory());
-			}
-			catch (ParserConfigurationException e) {
-				throw new org.springframework.integration.ConfigurationException("Exception creating DomResultFactory");
-			}
+			builder.addPropertyValue("resultFactory", new DomResultFactory());
 		}
 		else if (resultType.equals(STRING_RESULT)) {
 			builder.addPropertyValue("resultFactory", new StringResultFactory());

@@ -45,6 +45,7 @@ public class ResultToStringTransformer implements ResultTransformer {
 
 	public ResultToStringTransformer() {
 		this.docBuilderFactory = DocumentBuilderFactory.newInstance();
+		this.docBuilderFactory.setNamespaceAware(true);
 		this.transformerFactory = TransformerFactory.newInstance();
 	}
 

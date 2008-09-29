@@ -22,23 +22,39 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Result;
 import javax.xml.transform.dom.DOMResult;
 
+import org.springframework.integration.message.MessagingException;
+
 /**
  * @author Jonas Partner
  */
 public class DomResultFactory implements ResultFactory {
 
-	private final DocumentBuilder documentBuilder;
-	
-	public DomResultFactory(DocumentBuilder documentBuilder){
-		this.documentBuilder = documentBuilder;
+	private final DocumentBuilderFactory docBuilderFactory;
+
+	public DomResultFactory(DocumentBuilderFactory docBuilderFactory) {
+		this.docBuilderFactory = docBuilderFactory;
 	}
-	
-	public DomResultFactory() throws ParserConfigurationException{
-		this(DocumentBuilderFactory.newInstance().newDocumentBuilder());
-	} 
-	
+
+	public DomResultFactory() {
+		this.docBuilderFactory = DocumentBuilderFactory.newInstance();
+		docBuilderFactory.setNamespaceAware(true);
+	}
+
 	public synchronized Result createResult(Object payload) {
-		return new DOMResult(documentBuilder.newDocument());
+		try {
+			return new DOMResult(getNewDocumentBuilder().newDocument());
+		}
+		catch (ParserConfigurationException e) {
+			throw new MessagingException("Failed to create Result for payload type [" + payload.getClass().getName()
+					+ "]");
+		}
+	}
+
+	protected DocumentBuilder getNewDocumentBuilder() throws ParserConfigurationException {
+		synchronized (docBuilderFactory) {
+			return docBuilderFactory.newDocumentBuilder();
+		}
+
 	}
 
 }
