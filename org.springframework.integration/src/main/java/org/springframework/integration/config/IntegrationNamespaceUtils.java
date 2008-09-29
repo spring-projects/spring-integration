@@ -24,11 +24,11 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.scheduling.CronTrigger;
 import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.scheduling.Trigger;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -143,10 +143,8 @@ public abstract class IntegrationNamespaceUtils {
 		Trigger trigger = null;
 		String interval = pollerElement.getAttribute("interval");
 		String cron = pollerElement.getAttribute("cron");
-		if (!(StringUtils.hasText(interval) ^ StringUtils.hasText(cron))) {
-			throw new ConfigurationException(
-					"A <poller> element must include either an 'interval' or a 'cron' expression (but not both).");
-		}
+		Assert.isTrue(StringUtils.hasText(interval) ^ StringUtils.hasText(cron),
+				"A <poller> element must include either an 'interval' or a 'cron' expression (but not both).");
 		if (StringUtils.hasText(interval)) {
 			Long period = Long.valueOf(interval);
 			IntervalTrigger intervalTrigger = new IntervalTrigger(period);

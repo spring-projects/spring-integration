@@ -72,7 +72,7 @@ public class MessageBusParserTests {
 		}
 		catch (BeanDefinitionStoreException e) {
 			exceptionThrown = true;
-			assertEquals(ConfigurationException.class, e.getCause().getClass());
+			assertEquals(IllegalStateException.class, e.getCause().getClass());
 		}
 		assertTrue(exceptionThrown);
 	}

@@ -21,10 +21,9 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.scheduling.IntervalTrigger;
-import org.springframework.util.StringUtils;
+import org.springframework.util.Assert;
 import org.springframework.util.xml.DomUtils;
 
 /**
@@ -37,9 +36,7 @@ public abstract class AbstractPollingInboundChannelAdapterParser extends Abstrac
 	@Override
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
 		String source = this.parseSource(element, parserContext);
-		if (!StringUtils.hasText(source)) {
-			throw new ConfigurationException("failed to parse source");
-		}
+		Assert.hasText(source, "failed to parse source");
 		Element pollerElement = DomUtils.getChildElementByTagName(element, "poller");
 		BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder.genericBeanDefinition(SourcePollingChannelAdapter.class);
 		adapterBuilder.addPropertyReference("source", source);

@@ -25,8 +25,8 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -60,10 +60,8 @@ public abstract class AbstractChannelAdapterParser extends AbstractBeanDefinitio
 
 	private String createDirectChannel(Element element, ParserContext parserContext) {
 		String channelId = element.getAttribute("id");
-		if (!StringUtils.hasText(channelId)) {
-			throw new ConfigurationException("The channel-adapter's 'id' attribute is required when no 'channel' "
+		Assert.hasText(channelId, "The channel-adapter's 'id' attribute is required when no 'channel' "
 					+ "reference has been provided, because that 'id' would be used for the created channel.");
-		}
 		BeanDefinitionBuilder channelBuilder = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
 		BeanDefinitionHolder holder = new BeanDefinitionHolder(channelBuilder.getBeanDefinition(), channelId);
 		BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());

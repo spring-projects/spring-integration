@@ -22,10 +22,8 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.endpoint.OutboundChannelAdapter;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
@@ -43,9 +41,7 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 		String consumerBeanName = this.parseAndRegisterConsumer(element, parserContext);
 		adapterBuilder.addConstructorArgReference(consumerBeanName);
 		if (pollerElement != null) {
-			if (!StringUtils.hasText(channelName)) {
-				throw new ConfigurationException("outbound channel adapter with a 'poller' requires a 'channel' to poll");
-			}
+			Assert.hasText(channelName, "outbound channel adapter with a 'poller' requires a 'channel' to poll");
 			IntegrationNamespaceUtils.configureTrigger(pollerElement, adapterBuilder);
 			Element txElement = DomUtils.getChildElementByTagName(pollerElement, "transactional");
 			if (txElement != null) {

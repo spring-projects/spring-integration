@@ -25,7 +25,6 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -85,9 +84,7 @@ public abstract class AbstractEndpointParser extends AbstractSingleBeanDefinitio
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		if (this.shouldCreateAdapter(element)) {
 			String ref = element.getAttribute(REF_ATTRIBUTE);
-			if (!StringUtils.hasText(ref)) {
-				throw new ConfigurationException("The '" + REF_ATTRIBUTE + "' attribute is required.");
-			}
+			Assert.hasText(ref, "The '" + REF_ATTRIBUTE + "' attribute is required.");
 			if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
 				String method = element.getAttribute(METHOD_ATTRIBUTE);
 				String adapterBeanName = this.parseAdapter(ref, method, element, parserContext);
@@ -98,9 +95,7 @@ public abstract class AbstractEndpointParser extends AbstractSingleBeanDefinitio
 			}
 		}
 		String inputChannel = element.getAttribute(INPUT_CHANNEL_ATTRIBUTE);
-		if (!StringUtils.hasText(inputChannel)) {
-			throw new ConfigurationException("the '" + INPUT_CHANNEL_ATTRIBUTE + "' attribute is required");
-		}
+		Assert.hasText(inputChannel, "the '" + INPUT_CHANNEL_ATTRIBUTE + "' attribute is required");
 		Element pollerElement = DomUtils.getChildElementByTagName(element, POLLER_ELEMENT);
 		if (pollerElement != null) {
 			IntegrationNamespaceUtils.configureTrigger(pollerElement, builder);

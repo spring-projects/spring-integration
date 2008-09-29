@@ -28,10 +28,10 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.bus.MessageBusAwareBeanPostProcessor;
+import org.springframework.util.Assert;
 
 /**
  * Parser for the &lt;message-bus&gt; element of the integration namespace.
@@ -59,10 +59,8 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 	@Override
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
 			throws BeanDefinitionStoreException {
-		if (parserContext.getRegistry().containsBeanDefinition(MESSAGE_BUS_BEAN_NAME)) {
-			throw new ConfigurationException("Only one instance of '" + MessageBus.class.getSimpleName()
-					+ "' is allowed per ApplicationContext.");
-		}
+		Assert.state(!parserContext.getRegistry().containsBeanDefinition(MESSAGE_BUS_BEAN_NAME),
+				"Only one instance of '" + MessageBus.class.getSimpleName() + "' is allowed per ApplicationContext.");
 		return MESSAGE_BUS_BEAN_NAME;
 	}
 
