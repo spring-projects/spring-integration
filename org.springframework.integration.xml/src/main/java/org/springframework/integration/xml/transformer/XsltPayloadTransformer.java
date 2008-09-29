@@ -40,7 +40,7 @@ import org.springframework.xml.transform.StringResult;
 import org.springframework.xml.transform.StringSource;
 
 /**
- * XSLT transformer implementation which returns a transformed {@link Source},
+ * Thread safe XSLT transformer implementation which returns a transformed {@link Source},
  * {@link Document}, or {@link String}. If alwaysUseSourceResultFactories is
  * false (default) the following logic occurs
  * 
@@ -57,7 +57,7 @@ import org.springframework.xml.transform.StringSource;
  * {@link SourceFactory} will be used to create the {@link Source} from the
  * payload and the {@link Result} to pass into the transformer. An instance of
  * {@link ResultTransformer} can also be provided to convert the Result prior to
- * returnign
+ * returning
  * 
  * 
  * @author Jonas Partner
