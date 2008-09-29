@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.junit.Test;
 
-import org.springframework.integration.channel.DefaultChannelRegistry;
+import org.springframework.integration.channel.TestChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
@@ -62,7 +62,7 @@ public class PayloadTypeRouterTests {
 		Map<Class<?>, MessageChannel> channelMappings = new ConcurrentHashMap<Class<?>, MessageChannel>();
 		channelMappings.put(String.class, stringChannel);
 		channelMappings.put(Integer.class, integerChannel);
-		DefaultChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		TestChannelRegistry channelRegistry = new TestChannelRegistry();
 		channelRegistry.registerChannel(stringChannel);
 		channelRegistry.registerChannel(integerChannel);
 		PayloadTypeChannelResolver resolver = new PayloadTypeChannelResolver();
@@ -85,7 +85,7 @@ public class PayloadTypeRouterTests {
 		stringChannel.setBeanName("stringChannel");
 		QueueChannel defaultChannel = new QueueChannel();
 		defaultChannel.setBeanName("defaultChannel");
-		DefaultChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		TestChannelRegistry channelRegistry = new TestChannelRegistry();
 		channelRegistry.registerChannel(stringChannel);
 		channelRegistry.registerChannel(defaultChannel);
 		Map<Class<?>, MessageChannel> channelMappings = new ConcurrentHashMap<Class<?>, MessageChannel>();

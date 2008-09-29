@@ -22,7 +22,7 @@ import java.util.List;
 import org.junit.Test;
 
 import org.springframework.integration.channel.ChannelRegistry;
-import org.springframework.integration.channel.DefaultChannelRegistry;
+import org.springframework.integration.channel.TestChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
@@ -91,7 +91,7 @@ public class RouterEndpointTests {
 				return null;
 			}
 		};
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		RouterEndpoint endpoint = new RouterEndpoint(channelNameResolver);
 		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> message = new StringMessage("test");
@@ -105,7 +105,7 @@ public class RouterEndpointTests {
 				return null;
 			}
 		};
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		RouterEndpoint endpoint = new RouterEndpoint(channelNameResolver);
 		endpoint.setChannelRegistry(channelRegistry);
 		endpoint.setResolutionRequired(true);
@@ -121,7 +121,7 @@ public class RouterEndpointTests {
 				return new String[] {};
 			}
 		};
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		RouterEndpoint endpoint = new RouterEndpoint(channelNameResolver);
 		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> message = new StringMessage("test");
@@ -135,7 +135,7 @@ public class RouterEndpointTests {
 				return new String[] {};
 			}
 		};
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		RouterEndpoint endpoint = new RouterEndpoint(channelNameResolver);
 		endpoint.setChannelRegistry(channelRegistry);
 		endpoint.setResolutionRequired(true);

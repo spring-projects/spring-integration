@@ -25,7 +25,7 @@ import java.util.List;
 import org.junit.Test;
 
 import org.springframework.integration.channel.ChannelRegistry;
-import org.springframework.integration.channel.DefaultChannelRegistry;
+import org.springframework.integration.channel.TestChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
@@ -71,7 +71,7 @@ public class MultiChannelRouterTests {
 		QueueChannel channel2 = new QueueChannel();
 		channel1.setBeanName("channel1");
 		channel2.setBeanName("channel2");
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		channelRegistry.registerChannel(channel1);
 		channelRegistry.registerChannel(channel2);
 		RouterEndpoint endpoint = new RouterEndpoint(channelNameResolver);
@@ -93,7 +93,7 @@ public class MultiChannelRouterTests {
 				return new String[] {"noSuchChannel"};
 			}
 		};
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		RouterEndpoint endpoint = new RouterEndpoint(channelNameResolver);
 		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> message = new StringMessage("test");

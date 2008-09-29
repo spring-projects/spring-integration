@@ -22,7 +22,7 @@ import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
 
 import org.springframework.integration.channel.ChannelRegistry;
-import org.springframework.integration.channel.DefaultChannelRegistry;
+import org.springframework.integration.channel.TestChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
@@ -59,7 +59,7 @@ public class SingleChannelRouterTests {
 		};
 		QueueChannel channel = new QueueChannel();
 		channel.setBeanName("testChannel");
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		channelRegistry.registerChannel(channel);
 		RouterEndpoint endpoint = new RouterEndpoint(channelNameResolver);
 		endpoint.setChannelRegistry(channelRegistry);
@@ -89,7 +89,7 @@ public class SingleChannelRouterTests {
 				return "noSuchChannel";
 			}
 		};
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		RouterEndpoint endpoint = new RouterEndpoint(channelNameResolver);
 		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> message = new StringMessage("test");

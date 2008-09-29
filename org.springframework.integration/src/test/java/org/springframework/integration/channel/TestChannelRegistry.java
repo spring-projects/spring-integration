@@ -22,11 +22,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.util.Assert;
 
 /**
- * A simple map-backed implementation of {@link ChannelRegistry}.
- * 
  * @author Mark Fisher
  */
-public class DefaultChannelRegistry implements ChannelRegistry {
+public class TestChannelRegistry implements ChannelRegistry {
 
 	private final Map<String, MessageChannel> channels = new ConcurrentHashMap<String, MessageChannel>();
 

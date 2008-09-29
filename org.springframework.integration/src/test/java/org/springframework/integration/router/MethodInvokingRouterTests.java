@@ -29,7 +29,7 @@ import org.junit.Test;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
-import org.springframework.integration.channel.DefaultChannelRegistry;
+import org.springframework.integration.channel.TestChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
@@ -47,7 +47,7 @@ public class MethodInvokingRouterTests {
 	public void channelNameResolutionByPayloadConfiguredByMethodReference() throws Exception {
 		QueueChannel barChannel = new QueueChannel();
 		barChannel.setBeanName("bar-channel");
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		channelRegistry.registerChannel(barChannel);		
 		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
@@ -65,7 +65,7 @@ public class MethodInvokingRouterTests {
 	public void channelNameResolutionByPayloadConfiguredByMethodName() {
 		QueueChannel barChannel = new QueueChannel();
 		barChannel.setBeanName("bar-channel");
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		channelRegistry.registerChannel(barChannel);		
 		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
 		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, "routePayload");
@@ -84,7 +84,7 @@ public class MethodInvokingRouterTests {
 		QueueChannel barChannel = new QueueChannel();
 		fooChannel.setBeanName("foo-channel");
 		barChannel.setBeanName("bar-channel");
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		channelRegistry.registerChannel(fooChannel);
 		channelRegistry.registerChannel(barChannel);
 		SingleChannelNameRoutingTestBean testBean = new SingleChannelNameRoutingTestBean();
@@ -133,7 +133,7 @@ public class MethodInvokingRouterTests {
 		QueueChannel barChannel = new QueueChannel();
 		fooChannel.setBeanName("foo-channel");
 		barChannel.setBeanName("bar-channel");
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		channelRegistry.registerChannel(fooChannel);
 		channelRegistry.registerChannel(barChannel);
 		endpoint.setChannelRegistry(channelRegistry);
@@ -153,7 +153,7 @@ public class MethodInvokingRouterTests {
 
 	@Test
 	public void channelInstanceResolutionByPayloadConfiguredByMethodReference() throws Exception {
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		SingleChannelInstanceRoutingTestBean testBean = new SingleChannelInstanceRoutingTestBean(channelRegistry);
 		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
 		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, routingMethod);
@@ -163,7 +163,7 @@ public class MethodInvokingRouterTests {
 
 	@Test
 	public void channelInstanceResolutionByPayloadConfiguredByMethodName() {
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		SingleChannelInstanceRoutingTestBean testBean = new SingleChannelInstanceRoutingTestBean(channelRegistry);
 		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, "routePayload");
 		RouterEndpoint endpoint = new RouterEndpoint(resolver);
@@ -194,7 +194,7 @@ public class MethodInvokingRouterTests {
 
 	@Test
 	public void channelInstanceResolutionByMessageConfiguredByMethodReference() throws Exception {
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		SingleChannelInstanceRoutingTestBean testBean = new SingleChannelInstanceRoutingTestBean(channelRegistry);
 		Method routingMethod = testBean.getClass().getMethod("routeMessage", Message.class);
 		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, routingMethod);
@@ -204,7 +204,7 @@ public class MethodInvokingRouterTests {
 
 	@Test
 	public void channelInstanceResolutionByMessageConfiguredByMethodName() {
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		SingleChannelInstanceRoutingTestBean testBean = new SingleChannelInstanceRoutingTestBean(channelRegistry);
 		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, "routeMessage");
 		RouterEndpoint endpoint = new RouterEndpoint(resolver);
@@ -235,7 +235,7 @@ public class MethodInvokingRouterTests {
 
 	@Test
 	public void multiChannelNameResolutionByPayloadConfiguredByMethodReference() throws Exception {
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
 		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, routingMethod);
@@ -245,7 +245,7 @@ public class MethodInvokingRouterTests {
 
 	@Test
 	public void multiChannelNameResolutionByPayloadConfiguredByMethodName() {
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
 		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, "routePayload");
 		RouterEndpoint endpoint = new RouterEndpoint(resolver);
@@ -282,7 +282,7 @@ public class MethodInvokingRouterTests {
 
 	@Test
 	public void multiChannelNameResolutionByMessageConfiguredByMethodReference() throws Exception {
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routeMessage", Message.class);
 		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, routingMethod);
@@ -292,7 +292,7 @@ public class MethodInvokingRouterTests {
 
 	@Test
 	public void multiChannelNameResolutionByMessageConfiguredByMethodName() throws Exception {
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
 		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, "routeMessage");
 		RouterEndpoint endpoint = new RouterEndpoint(resolver);
@@ -329,7 +329,7 @@ public class MethodInvokingRouterTests {
 
 	@Test
 	public void multiChannelNameArrayResolutionByMessageConfiguredByMethodReference() throws Exception {
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
 		Method routingMethod = testBean.getClass().getMethod("routeMessageToArray", Message.class);
 		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, routingMethod);
@@ -339,7 +339,7 @@ public class MethodInvokingRouterTests {
 
 	@Test
 	public void multiChannelNameArrayResolutionByMessageConfiguredByMethodName() {
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		MultiChannelNameRoutingTestBean testBean = new MultiChannelNameRoutingTestBean();
 		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, "routeMessageToArray");
 		RouterEndpoint endpoint = new RouterEndpoint(resolver);
@@ -376,7 +376,7 @@ public class MethodInvokingRouterTests {
 
 	@Test
 	public void multiChannelListResolutionByPayloadConfiguredByMethodReference() throws Exception {
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelRegistry);
 		Method routingMethod = testBean.getClass().getMethod("routePayload", String.class);
 		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, routingMethod);
@@ -386,7 +386,7 @@ public class MethodInvokingRouterTests {
 
 	@Test
 	public void multiChannelListResolutionByPayloadConfiguredByMethodName() {
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelRegistry);
 		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, "routePayload");
 		RouterEndpoint endpoint = new RouterEndpoint(resolver);
@@ -423,7 +423,7 @@ public class MethodInvokingRouterTests {
 
 	@Test
 	public void multiChannelListResolutionByMessageConfiguredByMethodReference() throws Exception {
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelRegistry);
 		Method routingMethod = testBean.getClass().getMethod("routeMessage", Message.class);
 		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, routingMethod);
@@ -433,7 +433,7 @@ public class MethodInvokingRouterTests {
 
 	@Test
 	public void multiChannelListResolutionByMessageConfiguredByMethodName() {
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelRegistry);
 		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, "routeMessage");
 		RouterEndpoint endpoint = new RouterEndpoint(resolver);
@@ -470,7 +470,7 @@ public class MethodInvokingRouterTests {
 
 	@Test
 	public void multiChannelArrayResolutionByMessageConfiguredByMethodReference() throws Exception {
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelRegistry);
 		Method routingMethod = testBean.getClass().getMethod("routeMessageToArray", Message.class);
 		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, routingMethod);
@@ -480,7 +480,7 @@ public class MethodInvokingRouterTests {
 
 	@Test
 	public void multiChannelArrayResolutionByMessageConfiguredByMethodName() {
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		MultiChannelInstanceRoutingTestBean testBean = new MultiChannelInstanceRoutingTestBean(channelRegistry);
 		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(testBean, "routeMessageToArray");
 		RouterEndpoint endpoint = new RouterEndpoint(resolver);

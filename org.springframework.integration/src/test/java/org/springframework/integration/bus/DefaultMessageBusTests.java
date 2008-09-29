@@ -19,6 +19,7 @@ package org.springframework.integration.bus;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
@@ -30,6 +31,7 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -49,7 +51,7 @@ import org.springframework.integration.scheduling.IntervalTrigger;
 public class DefaultMessageBusTests {
 
 	@Test
-	public void testRegistrationWithInputChannelReference() {
+	public void endpointRegistrationWithInputChannelReference() {
 		GenericApplicationContext context = new GenericApplicationContext();
 		QueueChannel sourceChannel = new QueueChannel();
 		QueueChannel targetChannel = new QueueChannel();
@@ -78,7 +80,7 @@ public class DefaultMessageBusTests {
 	}
 
 	@Test
-	public void testChannelsWithoutHandlers() {
+	public void channelsWithoutHandlers() {
 		GenericApplicationContext context = new GenericApplicationContext();
 		DefaultMessageBus bus = new DefaultMessageBus();
 		bus.setApplicationContext(context);
@@ -96,7 +98,7 @@ public class DefaultMessageBusTests {
 	}
 
 	@Test
-	public void testAutodetectionWithApplicationContext() {
+	public void autodetectionWithApplicationContext() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("messageBusTests.xml", this.getClass());
 		context.start();
 		PollableChannel sourceChannel = (PollableChannel) context.getBean("sourceChannel");
@@ -109,7 +111,7 @@ public class DefaultMessageBusTests {
 	}
 
 	@Test
-	public void testExactlyOneHandlerReceivesPointToPointMessage() {
+	public void exactlyOneConsumerReceivesPointToPointMessage() {
 		GenericApplicationContext context = new GenericApplicationContext();
 		QueueChannel inputChannel = new QueueChannel();
 		QueueChannel outputChannel1 = new QueueChannel();
@@ -149,7 +151,7 @@ public class DefaultMessageBusTests {
 	}
 
 	@Test
-	public void testBothHandlersReceivePublishSubscribeMessage() throws InterruptedException {
+	public void bothConsumersReceivePublishSubscribeMessage() throws InterruptedException {
 		GenericApplicationContext context = new GenericApplicationContext();
 		PublishSubscribeChannel inputChannel = new PublishSubscribeChannel();
 		QueueChannel outputChannel1 = new QueueChannel();
@@ -197,7 +199,7 @@ public class DefaultMessageBusTests {
 	}
 
 	@Test
-	public void testErrorChannelWithFailedDispatch() throws InterruptedException {
+	public void errorChannelWithFailedDispatch() throws InterruptedException {
 		GenericApplicationContext context = new GenericApplicationContext();
 		QueueChannel errorChannel = new QueueChannel();
 		QueueChannel outputChannel = new QueueChannel();
@@ -224,12 +226,12 @@ public class DefaultMessageBusTests {
 	}
 
 	@Test(expected = BeanCreationException.class)
-	public void testMultipleMessageBusBeans() {
+	public void multipleMessageBusBeans() {
 		new ClassPathXmlApplicationContext("multipleMessageBusBeans.xml", this.getClass());
 	}
 
 	@Test
-	public void testErrorChannelRegistration() {
+	public void errorChannelRegistration() {
 		DefaultMessageBus bus = new DefaultMessageBus();
 		QueueChannel errorChannel = new QueueChannel();
 		errorChannel.setBeanName(ChannelRegistry.ERROR_CHANNEL_NAME);
@@ -238,7 +240,7 @@ public class DefaultMessageBusTests {
 	}
 
 	@Test
-	public void testHandlerSubscribedToErrorChannel() throws InterruptedException {
+	public void consumerSubscribedToErrorChannel() throws InterruptedException {
 		GenericApplicationContext context = new GenericApplicationContext();
 		QueueChannel errorChannel = new QueueChannel();
 		errorChannel.setBeanName(ChannelRegistry.ERROR_CHANNEL_NAME);
@@ -262,7 +264,25 @@ public class DefaultMessageBusTests {
 	}
 
 	@Test
-	public void testMessageBusAwareImpl() {
+	public void lookupRegisteredChannel() {
+		DefaultMessageBus messageBus = new DefaultMessageBus();
+		QueueChannel testChannel = new QueueChannel();
+		testChannel.setBeanName("testChannel");
+		messageBus.registerChannel(testChannel);
+		MessageChannel lookedUpChannel = messageBus.lookupChannel("testChannel");
+		assertNotNull(testChannel);
+		assertSame(testChannel, lookedUpChannel);
+	}
+
+	@Test
+	public void lookupNonRegisteredChannel() {
+		DefaultMessageBus messageBus = new DefaultMessageBus();
+		MessageChannel noSuchChannel = messageBus.lookupChannel("noSuchChannel");
+		assertNull(noSuchChannel);
+	}
+
+	@Test
+	public void messageBusAware() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("messageBusTests.xml", this.getClass());
 		TestMessageBusAwareImpl messageBusAwareBean = (TestMessageBusAwareImpl) context.getBean("messageBusAwareBean");
 		assertTrue(messageBusAwareBean.getMessageBus() == context.getBean("bus"));

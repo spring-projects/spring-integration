@@ -29,7 +29,7 @@ import org.junit.Test;
 
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.ChannelRegistry;
-import org.springframework.integration.channel.DefaultChannelRegistry;
+import org.springframework.integration.channel.TestChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
@@ -84,7 +84,7 @@ public class RecipientListRouterTests {
 		QueueChannel channel2 = new QueueChannel();
 		channel1.setBeanName("channel1");
 		channel2.setBeanName("channel2");
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		channelRegistry.registerChannel(channel1);
 		channelRegistry.registerChannel(channel2);
 		RecipientListChannelResolver resolver = new RecipientListChannelResolver();
@@ -108,7 +108,7 @@ public class RecipientListRouterTests {
 		QueueChannel channel2 = new QueueChannel();
 		channel1.setBeanName("channel1");
 		channel2.setBeanName("channel2");
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		channelRegistry.registerChannel(channel1);
 		channelRegistry.registerChannel(channel2);
 		RecipientListChannelResolver resolver = new RecipientListChannelResolver();
@@ -134,7 +134,7 @@ public class RecipientListRouterTests {
 		List<MessageChannel> channels = new ArrayList<MessageChannel>();
 		channels.add(channel1);
 		channels.add(channel2);
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		channelRegistry.registerChannel(channel1);
 		channelRegistry.registerChannel(channel2);
 		RecipientListChannelResolver resolver = new RecipientListChannelResolver();

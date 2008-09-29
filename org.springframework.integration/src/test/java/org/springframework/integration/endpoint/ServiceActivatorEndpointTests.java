@@ -30,8 +30,8 @@ import org.junit.Test;
 
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.channel.ChannelRegistry;
-import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.channel.TestChannelRegistry;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
@@ -106,7 +106,7 @@ public class ServiceActivatorEndpointTests {
 		final QueueChannel replyChannel1 = new QueueChannel();
 		final QueueChannel replyChannel2 = new QueueChannel();
 		replyChannel2.setBeanName("replyChannel2");
-		ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+		ChannelRegistry channelRegistry = new TestChannelRegistry();
 		channelRegistry.registerChannel(replyChannel2);
 		Object handler = new Object() {
 			@SuppressWarnings("unused")
