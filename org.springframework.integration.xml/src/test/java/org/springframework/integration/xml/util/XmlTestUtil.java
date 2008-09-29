@@ -18,6 +18,7 @@ package org.springframework.integration.xml.util;
 
 import java.io.StringReader;
 
+import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -25,10 +26,9 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 
+import org.springframework.xml.transform.StringResult;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
-
-import org.springframework.xml.transform.StringResult;
 
 /**
  * Utility class for XML related testing
@@ -38,7 +38,10 @@ import org.springframework.xml.transform.StringResult;
 public class XmlTestUtil {
 
 	public static Document getDocumentForString(String strDoc) throws Exception {
-		return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
+		DocumentBuilderFactory builder = DocumentBuilderFactory.newInstance();
+		builder.setNamespaceAware(true);
+		
+		return builder.newDocumentBuilder().parse(
 				new InputSource(new StringReader(strDoc)));
 	}
 
