@@ -24,10 +24,7 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.aggregator.MethodInvokingAggregator;
-import org.springframework.integration.aggregator.CompletionStrategy;
-import org.springframework.integration.aggregator.CompletionStrategyAdapter;
+
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 
@@ -38,10 +35,12 @@ public class CompletionStrategyAdapterTests {
 
 	private SimpleCompletionStrategy simpleCompletionStrategy;
 
+
 	@Before
 	public void setUp() {
 		simpleCompletionStrategy = new SimpleCompletionStrategy();
 	}
+
 
 	@Test
 	public void testTrueConvertedProperly() {
@@ -97,62 +96,62 @@ public class CompletionStrategyAdapterTests {
 		Assert.assertTrue(adapter.isComplete(messages));
 	}
 
-	@Test(expected = ConfigurationException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testAdapterWithWrongMethodName() {
 		new CompletionStrategyAdapter(simpleCompletionStrategy, "methodThatDoesNotExist");
 	}
 
-	@Test(expected = ConfigurationException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testInvalidParameterTypeUsingMethodName() {
 		new CompletionStrategyAdapter(simpleCompletionStrategy, "invalidParameterType");
 	}
 
-	@Test(expected = ConfigurationException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testTooManyParametersUsingMethodName() {
 		new CompletionStrategyAdapter(simpleCompletionStrategy, "tooManyParameters");
 	}
 
-	@Test(expected = ConfigurationException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testNotEnoughParametersUsingMethodName() {
 		new CompletionStrategyAdapter(simpleCompletionStrategy, "notEnoughParameters");
 	}
 
-	@Test(expected = ConfigurationException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testListSubclassParameterUsingMethodName() {
 		new CompletionStrategyAdapter(simpleCompletionStrategy, "ListSubclassParameter");
 	}
 	
 
-	@Test(expected = ConfigurationException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testWrongReturnType() throws SecurityException, NoSuchMethodError {
 		new CompletionStrategyAdapter(simpleCompletionStrategy, "wrongReturnType");
 	}
 
-	@Test(expected = ConfigurationException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testInvalidParameterTypeUsingMethodObject() throws SecurityException, NoSuchMethodException {
 		new MethodInvokingAggregator(simpleCompletionStrategy, simpleCompletionStrategy.getClass().getMethod(
 				"invalidParameterType", String.class));
 	}
 
-	@Test(expected = ConfigurationException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testTooManyParametersUsingMethodObject() throws SecurityException, NoSuchMethodException {
 		new CompletionStrategyAdapter(simpleCompletionStrategy, simpleCompletionStrategy.getClass().getMethod(
 				"tooManyParameters", List.class, List.class));
 	}
 
-	@Test(expected = ConfigurationException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testNotEnoughParametersUsingMethodObject() throws SecurityException, NoSuchMethodException {
 		new CompletionStrategyAdapter(simpleCompletionStrategy, simpleCompletionStrategy.getClass().getMethod(
 				"notEnoughParameters", new Class[] {}));
 	}
 
-	@Test(expected = ConfigurationException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testListSubclassParameterUsingMethodObject() throws SecurityException, NoSuchMethodException {
 		new CompletionStrategyAdapter(simpleCompletionStrategy, simpleCompletionStrategy.getClass().getMethod(
 				"ListSubclassParameter", new Class[] { LinkedList.class }));
 	}
 	
-	@Test(expected = ConfigurationException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testWrongReturnTypeUsingMethodObject() throws SecurityException, NoSuchMethodException {
 		new CompletionStrategyAdapter(simpleCompletionStrategy, simpleCompletionStrategy.getClass().getMethod(
 				"wrongReturnType", new Class[] { List.class }));
@@ -174,6 +173,7 @@ public class CompletionStrategyAdapterTests {
 		Method method = null;
 		new MethodInvokingAggregator(simpleCompletionStrategy, method);
 	}
+
 
 	private static List<Message<?>> createListOfMessages() {
 		List<Message<?>> messages = new ArrayList<Message<?>>();
@@ -213,8 +213,7 @@ public class CompletionStrategyAdapterTests {
 			return messages.size() > messages.iterator().next().getHeaders().getSequenceSize();
 		}
 
-		// Example for the case when completeness is checked on the structure of
-		// the data
+		// Example for the case when completeness is checked on the structure of the data
 		public boolean checkCompletenessOnListOfStrings(List<String> messages) {
 			StringBuffer buffer = new StringBuffer();
 			for (String content : messages) {
