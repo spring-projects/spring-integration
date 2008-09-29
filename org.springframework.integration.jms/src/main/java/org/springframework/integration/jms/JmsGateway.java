@@ -23,7 +23,6 @@ import javax.jms.Session;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.gateway.SimpleMessagingGateway;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
@@ -147,10 +146,10 @@ public class JmsGateway extends SimpleMessagingGateway implements Lifecycle, Dis
 	}
 
 	private AbstractMessageListenerContainer createDefaultContainer() {
-		if (this.connectionFactory == null || (this.destination == null && this.destinationName == null)) {
-			throw new ConfigurationException("If a 'container' reference is not provided, then "
-					+ "'connectionFactory' and 'destination' (or 'destinationName') are required.");
-		}
+		Assert.isTrue(this.connectionFactory != null
+				&& (this.destination != null || this.destinationName != null),
+				"If a 'container' reference is not provided, then 'connectionFactory'"
+				+ " and 'destination' (or 'destinationName') are required.");
 		DefaultMessageListenerContainer dmlc = new DefaultMessageListenerContainer();
 		dmlc.setConcurrentConsumers(this.concurrentConsumers);
 		dmlc.setMaxConcurrentConsumers(this.maxConcurrentConsumers);

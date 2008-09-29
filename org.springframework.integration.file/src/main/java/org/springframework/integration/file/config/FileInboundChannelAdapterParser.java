@@ -23,12 +23,12 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.config.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.file.AcceptOnceFileListFilter;
 import org.springframework.integration.file.CompositeFileListFilter;
 import org.springframework.integration.file.PatternMatchingFileListFilter;
 import org.springframework.integration.file.PollableFileSource;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -52,9 +52,8 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 		}
 		String filenamePattern = element.getAttribute("filename-pattern");
 		if (StringUtils.hasText(filenamePattern)) {
-			if (StringUtils.hasText(filter)) {
-				throw new ConfigurationException("at most one of 'filter' and 'filename-pattern' may be provided");
-			}
+			Assert.isTrue(!StringUtils.hasText(filter),
+					"at most one of 'filter' and 'filename-pattern' may be provided");
 			AcceptOnceFileListFilter acceptOnceFilter = new AcceptOnceFileListFilter();
 			Pattern pattern = Pattern.compile(filenamePattern);
 			PatternMatchingFileListFilter patternFilter = new PatternMatchingFileListFilter(pattern);

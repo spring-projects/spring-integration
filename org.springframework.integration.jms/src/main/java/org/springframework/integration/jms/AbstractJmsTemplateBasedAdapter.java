@@ -20,10 +20,10 @@ import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.adapter.MessageHeaderMapper;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MessageConverter;
+import org.springframework.util.Assert;
 
 /**
  * Base class for adapters that delegate to a {@link JmsTemplate}.
@@ -104,10 +104,10 @@ public abstract class AbstractJmsTemplateBasedAdapter implements InitializingBea
 				return;
 			}
 			if (this.jmsTemplate == null) {
-				if (this.connectionFactory == null || (this.destination == null && this.destinationName == null)) {
-					throw new ConfigurationException("Either a 'jmsTemplate' or " +
-							"*both* 'connectionFactory' and 'destination' (or 'destination-name') are required.");
-				}
+				Assert.isTrue(this.connectionFactory != null
+						&& (this.destination != null || this.destinationName != null),
+						"Either a 'jmsTemplate' or *both* 'connectionFactory' and"
+						+ " 'destination' (or 'destination-name') are required.");
 				this.jmsTemplate = this.createDefaultJmsTemplate();
 			}
 			MessageConverter converter = this.jmsTemplate.getMessageConverter();

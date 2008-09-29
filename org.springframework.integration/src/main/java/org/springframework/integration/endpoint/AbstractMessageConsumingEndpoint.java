@@ -20,7 +20,6 @@ import java.util.concurrent.ScheduledFuture;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.message.Message;
@@ -30,6 +29,7 @@ import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.Subscribable;
 import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.scheduling.Trigger;
+import org.springframework.util.Assert;
 
 /**
  * The base class for Message Endpoint implementations that consume Messages.
@@ -104,16 +104,13 @@ public abstract class AbstractMessageConsumingEndpoint extends AbstractEndpoint 
 			if (!this.initialized) {
 				this.afterPropertiesSet();
 			}
-			if (this.inputChannel == null) {
-				throw new ConfigurationException("failed to start endpoint, inputChannel is required");
-			}
+			Assert.notNull(this.inputChannel, "failed to start endpoint, inputChannel is required");
 			if (this.inputChannel instanceof Subscribable) {
 				((Subscribable) inputChannel).subscribe(this);
 			}
 			else if (this.inputChannel instanceof PollableChannel) {
-				if (this.getTaskScheduler() == null) {
-					throw new ConfigurationException("failed to start endpoint, no taskScheduler available");
-				}
+				Assert.notNull(this.getTaskScheduler(),
+						"failed to start endpoint, no taskScheduler available");
 				this.pollerFuture = this.getTaskScheduler().schedule(this.poller, this.poller.getTrigger());
 			}
 			this.running = true;
