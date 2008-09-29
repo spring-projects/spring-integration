@@ -39,40 +39,10 @@ public class DefaultChannelRegistryTests {
 	}
 
 	@Test
-	public void testLookupNeverRegisteredChannel() {
+	public void testLookupNonRegisteredChannel() {
 		DefaultChannelRegistry registry = new DefaultChannelRegistry();
 		MessageChannel noSuchChannel = registry.lookupChannel("noSuchChannel");
 		assertNull(noSuchChannel);
-	}
-
-	@Test
-	public void testLookupUnregisteredChannel() {
-		QueueChannel testChannel = new QueueChannel();
-		testChannel.setBeanName("testChannel");
-		DefaultChannelRegistry registry = new DefaultChannelRegistry();
-		registry.registerChannel(testChannel);
-		MessageChannel lookedUpChannel1 = registry.lookupChannel("testChannel");
-		assertNotNull(lookedUpChannel1);
-		assertSame(testChannel, lookedUpChannel1);
-		MessageChannel unregisteredChannel = registry.unregisterChannel("testChannel");
-		assertNotNull(unregisteredChannel);
-		assertSame(testChannel, unregisteredChannel);
-		MessageChannel lookedUpChannel2 = registry.lookupChannel("testChannel");
-		assertNull(lookedUpChannel2);
-	}
-
-	@Test
-	public void testUnregisteringChannelThatIsNotInRegistry() {
-		DefaultChannelRegistry registry = new DefaultChannelRegistry();
-		MessageChannel unregisteredChannel = registry.unregisterChannel("noSuchChannel");
-		assertNull(unregisteredChannel);
-	}
-
-	@Test
-	public void testUnregisteringNullDoesNotThrowException() {
-		DefaultChannelRegistry registry = new DefaultChannelRegistry();
-		MessageChannel unregisteredChannel = registry.unregisterChannel(null);
-		assertNull(unregisteredChannel);
 	}
 
 }

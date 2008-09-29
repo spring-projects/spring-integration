@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
@@ -40,9 +41,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
-import org.springframework.integration.channel.DefaultChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.endpoint.MessageEndpoint;
@@ -67,7 +66,7 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private final ChannelRegistry channelRegistry = new DefaultChannelRegistry();
+	private final Map<String, MessageChannel> channels = new ConcurrentHashMap<String, MessageChannel>();
 
 	private final MessageBusInterceptorsList interceptors = new MessageBusInterceptorsList();
 
@@ -185,7 +184,7 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 	}
 
 	public MessageChannel lookupChannel(String channelName) {
-		MessageChannel channel = this.channelRegistry.lookupChannel(channelName);
+		MessageChannel channel = this.channels.get(channelName);
 		if (channel == null && this.applicationContext != null && this.applicationContext.containsBean(channelName)) {
 			Object bean = this.applicationContext.getBean(channelName);
 			if (bean instanceof MessageChannel) {
@@ -197,14 +196,12 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 	}
 
 	public void registerChannel(MessageChannel channel) {
-		this.channelRegistry.registerChannel(channel);
+		Assert.notNull(channel, "'channel' must not be null");
+		Assert.notNull(channel.getName(), "channel name must not be null");
+		this.channels.put(channel.getName(), channel);
 		if (logger.isInfoEnabled()) {
 			logger.info("registered channel '" + channel.getName() + "'");
 		}
-	}
-
-	public MessageChannel unregisterChannel(String name) {
-		return this.channelRegistry.unregisterChannel(name);
 	}
 
 	public void registerEndpoint(MessageEndpoint endpoint) {

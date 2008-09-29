@@ -41,8 +41,4 @@ public class DefaultChannelRegistry implements ChannelRegistry {
 		this.channels.put(channel.getName(), channel);
 	}
 
-	public MessageChannel unregisterChannel(String name) {
-		return (name != null) ? this.channels.remove(name) : null;
-	}
-
 }

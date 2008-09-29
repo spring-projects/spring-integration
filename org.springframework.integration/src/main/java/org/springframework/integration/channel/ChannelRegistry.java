@@ -28,8 +28,6 @@ public interface ChannelRegistry {
 
 	void registerChannel(MessageChannel channel);
 
-	MessageChannel unregisterChannel(String name);
-
 	MessageChannel lookupChannel(String channelName);
 
 }
