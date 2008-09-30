@@ -23,6 +23,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.springframework.integration.message.MessagingException;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
 /**
@@ -62,6 +63,17 @@ public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
 		return doc;
 	}
 
+	public Node convertToNode(Object object) {
+		Node node;
+		if(object instanceof Node){
+			node = (Node)object;
+		} else {
+			node = convertToDocument(object);
+		}
+		return node;
+	}
+
+	
 	protected synchronized DocumentBuilder getDocumentBuilder() {
 		try {
 			return this.documentBuilderFactory.newDocumentBuilder();
@@ -70,5 +82,6 @@ public class DefaultXmlPayloadConverter implements XmlPayloadConverter {
 			throw new MessagingException("Failed to create a new DocumentBuilder", e);
 		}
 	}
+
 
 }

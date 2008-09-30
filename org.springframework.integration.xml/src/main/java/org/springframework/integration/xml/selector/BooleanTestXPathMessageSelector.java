@@ -21,6 +21,7 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.xml.xpath.XPathExpression;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 
 /**
  * Boolean XPath testing {@link MessageSelector}. Requires an XPathExpression
@@ -74,7 +75,7 @@ public class BooleanTestXPathMessageSelector extends AbstractXPathMessageSelecto
 	 * return true if the {@link XPathExpression} evaluates to <code>true</code>
 	 */
 	public boolean accept(Message<?> message) {
-		Document doc = getConverter().convertToDocument(message.getPayload());
-		return getXPathExpresion().evaluateAsBoolean(doc);
+		Node node = getConverter().convertToNode(message.getPayload());
+		return getXPathExpresion().evaluateAsBoolean(node);
 	}
 }

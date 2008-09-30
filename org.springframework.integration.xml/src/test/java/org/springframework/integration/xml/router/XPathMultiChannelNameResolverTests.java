@@ -26,6 +26,7 @@ import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.xml.xpath.XPathExpression;
 import org.springframework.xml.xpath.XPathExpressionFactory;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 
 /** 
  * @author Jonas Partner
@@ -73,4 +74,13 @@ public class XPathMultiChannelNameResolverTests {
 		resolver.resolveChannelNames(new StringMessage("test"));
 	}
 
+	@Test
+	public void testNodePayload() throws Exception {
+		XPathMultiChannelNameResolver resolver = new XPathMultiChannelNameResolver("./three/text()");
+		Document testDocument = XmlTestUtil.getDocumentForString("<one><two><three>bob</three><three>dave</three></two></one>");
+		String[] channelNames =  resolver.resolveChannelNames(new GenericMessage<Node>(testDocument.getElementsByTagName("two").item(0)));
+		assertEquals("bob",channelNames[0]);
+		assertEquals("dave",channelNames[1]);
+	}
+	
 }

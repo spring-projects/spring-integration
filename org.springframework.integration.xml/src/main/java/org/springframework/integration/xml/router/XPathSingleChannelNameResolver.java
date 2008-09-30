@@ -16,35 +16,56 @@
 
 package org.springframework.integration.xml.router;
 
+import java.util.Map;
+
 import org.springframework.integration.message.Message;
-import org.springframework.integration.router.AbstractSingleChannelNameResolver;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
-import org.springframework.util.Assert;
 import org.springframework.xml.xpath.XPathExpression;
 import org.w3c.dom.Node;
 
 /**
+ * Evaluates the payload using {@link XPathExpression#evaluateAsString(Node)} to
+ * extract a channel name. The payload is extracted as a node using the provided
+ * {@link XmlPayloadConverter} with {@link DefaultXmlPayloadConverter} being the
+ * default
  * @author Jonas Partner
  */
-public class XPathSingleChannelNameResolver extends AbstractSingleChannelNameResolver {
+public class XPathSingleChannelNameResolver extends AbstractXPathChannelNameResolver {
 
-	private final XPathExpression xPathExpression;
-
-	private volatile XmlPayloadConverter payloadConvertor = new DefaultXmlPayloadConverter();
-
-	public XPathSingleChannelNameResolver(XPathExpression xPathExpression) {
-		Assert.notNull("XPathExpression must be provided");
-		this.xPathExpression = xPathExpression;
+	/**
+	 * @see AbstractXPathChannelNameResolver#AbstractXPathChannelNameResolver(String,
+	 * Map)
+	 */
+	public XPathSingleChannelNameResolver(String pathExpression, Map<String, String> namespaces) {
+		super(pathExpression, namespaces);
 	}
 
-	public String resolveChannelName(Message<?> message) {
-		Node node = payloadConvertor.convertToDocument(message.getPayload());
-		return xPathExpression.evaluateAsString(node);
+	/**
+	 * @see AbstractXPathChannelNameResolver#AbstractXPathChannelNameResolver(String,
+	 * String, String)
+	 */
+	public XPathSingleChannelNameResolver(String pathExpression, String prefix, String namespace) {
+		super(pathExpression, prefix, namespace);
 	}
 
-	public void setPayloadConvertor(XmlPayloadConverter payloadConvertor) {
-		this.payloadConvertor = payloadConvertor;
+	/**
+	 * @see AbstractXPathChannelNameResolver#AbstractXPathChannelNameResolver(String)
+	 */
+	public XPathSingleChannelNameResolver(String pathExpression) {
+		super(pathExpression);
+	}
+
+	/**
+	 * @see AbstractXPathChannelNameResolver#AbstractXPathChannelNameResolver(XPathExpression)
+	 */
+	public XPathSingleChannelNameResolver(XPathExpression pathExpression) {
+		super(pathExpression);
+	}
+
+	public String[] resolveChannelNames(Message<?> message) {
+		Node node = getConverter().convertToNode(message.getPayload());
+		return new String[] { getXPathExpresion().evaluateAsString(node) };
 	}
 
 }

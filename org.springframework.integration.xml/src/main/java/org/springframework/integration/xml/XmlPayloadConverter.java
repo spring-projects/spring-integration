@@ -16,6 +16,7 @@
 package org.springframework.integration.xml;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 
 
 /**
@@ -26,5 +27,7 @@ import org.w3c.dom.Document;
 public interface XmlPayloadConverter {
 	
 	public Document convertToDocument(Object object);
+	
+	public Node convertToNode(Object object);
 
 }

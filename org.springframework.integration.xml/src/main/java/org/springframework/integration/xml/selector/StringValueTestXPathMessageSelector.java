@@ -21,6 +21,7 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.xml.xpath.XPathExpression;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 
 /**
  * XPath {@link MessageSelector} which tests for a provided value Supports
@@ -86,13 +87,13 @@ public class StringValueTestXPathMessageSelector extends AbstractXPathMessageSel
 	 * {@link XPathExpression} is equal to the valueToTestFor
 	 */
 	public boolean accept(Message<?> message) {
+		Node nodeToTest = getConverter().convertToNode(message.getPayload());
+		String xPathResult = getXPathExpresion().evaluateAsString(nodeToTest);
 		if (caseSensitive) {
-			return valueToTestFor.equals(getXPathExpresion().evaluateAsString(
-					getConverter().convertToDocument(message.getPayload())));
+			return valueToTestFor.equals(xPathResult);
 		}
 		else {
-			return valueToTestFor.equalsIgnoreCase(getXPathExpresion().evaluateAsString(
-					getConverter().convertToDocument(message.getPayload())));
+			return valueToTestFor.equalsIgnoreCase(xPathResult);
 		}
 	}
 

@@ -25,6 +25,7 @@ import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.xml.xpath.XPathExpression;
 import org.springframework.xml.xpath.XPathExpressionFactory;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 
 /**
  * 
@@ -55,11 +56,21 @@ public class BooleanTestXpathMessageSelectorTests {
 	}
 	
 	@Test
-	public void testWithXPathExpressionProvided(){
+	public void testStringWithXPathExpressionProvided(){
 		XPathExpression xpathExpression = XPathExpressionFactory.createXPathExpression("boolean(/one/two)");
 		BooleanTestXPathMessageSelector selector = new BooleanTestXPathMessageSelector(xpathExpression);
 		assertTrue(selector.accept(new StringMessage("<one><two/></one>")) ) ;
 		assertFalse(selector.accept(new StringMessage("<one><three/></one>")) ) ;
+	}
+	
+	@Test
+	public void testNodeWithXPathExpressionAsString() throws Exception{
+		XPathExpression xpathExpression = XPathExpressionFactory.createXPathExpression("boolean(./three)");
+		BooleanTestXPathMessageSelector selector = new BooleanTestXPathMessageSelector(xpathExpression);
+		Document testDocument = XmlTestUtil.getDocumentForString("<one><two><three/></two></one>");
+		
+		assertTrue(selector.accept(new GenericMessage<Node>(testDocument.getElementsByTagName("two").item(0))));
+		assertFalse(selector.accept(new GenericMessage<Node>(testDocument.getElementsByTagName("three").item(0))));
 	}
 	
 

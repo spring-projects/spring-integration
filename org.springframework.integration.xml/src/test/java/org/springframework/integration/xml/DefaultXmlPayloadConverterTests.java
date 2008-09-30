@@ -15,6 +15,8 @@
  */
 package org.springframework.integration.xml;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.StringReader;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -25,8 +27,14 @@ import org.custommonkey.xmlunit.XMLAssert;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
+/**
+ * 
+ * @author Jonas Partner
+ *
+ */
 public class DefaultXmlPayloadConverterTests {
 
 	DefaultXmlPayloadConverter converter;
@@ -36,22 +44,41 @@ public class DefaultXmlPayloadConverterTests {
 	String testDocumentAsString = "<test>hello</test>";
 
 	@Before
-	public void setUp() throws Exception{
+	public void setUp() throws Exception {
 		converter = new DefaultXmlPayloadConverter();
 		testDocument = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
 				new InputSource(new StringReader(testDocumentAsString)));
 	}
 
 	@Test
-	public void testWithString() {
+	public void testGetDocumentWithString() {
 		Document doc = converter.convertToDocument("<test>hello</test>");
 		XMLAssert.assertXMLEqual(testDocument, doc);
 	}
-	
+
 	@Test
-	public void testWithDocument() {
+	public void testGetDocumentWithDocument() {
 		Document doc = converter.convertToDocument(testDocument);
 		Assert.assertTrue(doc == testDocument);
+	}
+
+	@Test
+	public void testGetNodePassingNode() {
+		Node element = (Node) testDocument.getElementsByTagName("test").item(0);
+		Node n = converter.convertToNode(element);
+		assertTrue("Wrong node returned", element == n);
+	}
+
+	@Test
+	public void testGetNodePassingString() {
+		Node n = converter.convertToNode("<test>hello</test>");
+		XMLAssert.assertXMLEqual(testDocument, (Document) n);
+	}
+
+	@Test
+	public void testGetNodePassingDocument() {
+		Node n = converter.convertToNode(testDocument);
+		XMLAssert.assertXMLEqual(testDocument, (Document) n);
 	}
 
 }
