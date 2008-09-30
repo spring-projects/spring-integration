@@ -19,6 +19,7 @@ package org.springframework.integration.xml.router;
 import java.util.Map;
 
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.xml.xpath.XPathExpression;
@@ -28,10 +29,10 @@ import org.w3c.dom.Node;
  * Evaluates the payload using {@link XPathExpression#evaluateAsString(Node)} to
  * extract a channel name. The payload is extracted as a node using the provided
  * {@link XmlPayloadConverter} with {@link DefaultXmlPayloadConverter} being the
- * default
+ * default.
  * @author Jonas Partner
  */
-public class XPathSingleChannelNameResolver extends AbstractXPathChannelNameResolver {
+public class XPathSingleChannelNameResolver extends AbstractXPathChannelNameResolver  {
 
 	/**
 	 * @see AbstractXPathChannelNameResolver#AbstractXPathChannelNameResolver(String,
@@ -63,9 +64,17 @@ public class XPathSingleChannelNameResolver extends AbstractXPathChannelNameReso
 		super(pathExpression);
 	}
 
+	/**
+	 * Evaluates the payload using {@link XPathExpression#evaluateAsString(Node)}
+	 * @throws MessagingException if the {@link XPathExpression} evaluates to empty string
+	 */
 	public String[] resolveChannelNames(Message<?> message) {
 		Node node = getConverter().convertToNode(message.getPayload());
-		return new String[] { getXPathExpresion().evaluateAsString(node) };
+		String result = getXPathExpresion().evaluateAsString(node);
+		if(result.equals("")){
+			throw new MessagingException(message,"XPath expression evaluated to empty string");
+		}
+		return new String[] { result };
 	}
 
 }

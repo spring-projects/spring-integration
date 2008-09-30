@@ -65,4 +65,12 @@ public class XPathSingleChannelNameResolverTests {
 				.getElementsByTagName("two").item(0)));
 		assertEquals("bob", channelNames[0]);
 	}
+	
+	@Test(expected=MessagingException.class)
+	public void testEvaluationReturnsEmptyString() throws Exception {
+		XPathSingleChannelNameResolver resolver = new XPathSingleChannelNameResolver("/yellow");
+		Document testDocument = XmlTestUtil.getDocumentForString("<one><two><three>bob</three></two></one>");
+		resolver.resolveChannelNames(new GenericMessage<Node>(testDocument));
+	
+	}
 }
