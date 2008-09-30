@@ -21,8 +21,6 @@ import java.util.Date;
 
 import org.quartz.CronExpression;
 
-import org.springframework.integration.ConfigurationException;
-
 /**
  * A trigger that uses a cron expression.
  * 
@@ -39,8 +37,9 @@ public class CronTrigger implements Trigger {
 	public CronTrigger(String expression) {
 		try {
 			this.expression = new CronExpression(expression);
-		} catch (ParseException e) {
-			throw new ConfigurationException(
+		}
+		catch (ParseException e) {
+			throw new IllegalArgumentException(
 					"failed to parse cron expression: " + expression);
 		}
 	}

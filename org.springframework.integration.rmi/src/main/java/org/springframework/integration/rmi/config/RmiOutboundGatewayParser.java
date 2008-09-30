@@ -21,10 +21,10 @@ import java.rmi.registry.Registry;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.adapter.config.AbstractRemotingOutboundGatewayParser;
 import org.springframework.integration.rmi.RmiInboundGateway;
 import org.springframework.integration.rmi.RmiOutboundGateway;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -51,9 +51,8 @@ public class RmiOutboundGatewayParser extends AbstractRemotingOutboundGatewayPar
 	protected void doPostProcess(BeanDefinitionBuilder builder, Element element) {
 		String host = element.getAttribute("host");
 		String remoteChannel = element.getAttribute("remote-channel");
-		if (!(StringUtils.hasText(host) && StringUtils.hasText(remoteChannel))) {
-			throw new ConfigurationException("The 'host' and 'remote-channel' attributes are both required");
-		}
+		Assert.isTrue(StringUtils.hasText(host) && StringUtils.hasText(remoteChannel),
+				"The 'host' and 'remote-channel' attributes are both required");
 		String portAttribute = element.getAttribute("port");
 		String port = StringUtils.hasText(portAttribute) ? portAttribute : "" + Registry.REGISTRY_PORT;
 		String url = "rmi://" + host + ":" + port + "/" + RmiInboundGateway.SERVICE_NAME_PREFIX + remoteChannel;

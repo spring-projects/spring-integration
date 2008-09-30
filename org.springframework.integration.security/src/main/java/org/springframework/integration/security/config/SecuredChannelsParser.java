@@ -25,12 +25,12 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.config.IntegrationNamespaceUtils;
 import org.springframework.integration.security.channel.ChannelAccessPolicy;
 import org.springframework.integration.security.channel.ChannelInvocationDefinitionSource;
 import org.springframework.integration.security.channel.ChannelSecurityInterceptor;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
@@ -75,9 +75,8 @@ public class SecuredChannelsParser extends AbstractSingleBeanDefinitionParser {
 			Pattern pattern = Pattern.compile(accessPolicyElement.getAttribute("pattern"));
 			String sendAccess = accessPolicyElement.getAttribute("send-access");
 			String receiveAccess = accessPolicyElement.getAttribute("receive-access");
-			if (!StringUtils.hasText(sendAccess) && !StringUtils.hasText(receiveAccess)) {
-				throw new ConfigurationException("At least one of 'send-access' or 'receive-access' must be provided.");
-			}
+			Assert.isTrue(StringUtils.hasText(sendAccess) || StringUtils.hasText(receiveAccess),
+					"At least one of 'send-access' or 'receive-access' must be provided.");
 			objectDefinitionSource.addPatternMapping(pattern, new ChannelAccessPolicy(sendAccess, receiveAccess));
 		}
 		return objectDefinitionSource;
