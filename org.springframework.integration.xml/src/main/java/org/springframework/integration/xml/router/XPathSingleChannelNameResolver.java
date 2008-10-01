@@ -30,6 +30,7 @@ import org.w3c.dom.Node;
  * extract a channel name. The payload is extracted as a node using the provided
  * {@link XmlPayloadConverter} with {@link DefaultXmlPayloadConverter} being the
  * default.
+ * The provided {@link XPathExpression} should evaluate to a non empty string
  * @author Jonas Partner
  */
 public class XPathSingleChannelNameResolver extends AbstractXPathChannelNameResolver  {

@@ -16,100 +16,96 @@
 
 package org.springframework.integration.xml.config;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-import org.w3c.dom.Document;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.xml.router.XPathSingleChannelNameResolver;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
+import org.w3c.dom.Document;
 
 /**
  * @author Jonas Partner
  */
 @ContextConfiguration
-public class XPathRouterParserTests extends AbstractJUnit4SpringContextTests{
+public class XPathRouterParserTests {
 
-	@Autowired @Qualifier("inputOne")
-	MessageChannel inputOne;
-
-	@Autowired @Qualifier("inputTwo")
-	MessageChannel inputTwo;
-
-	@Autowired @Qualifier("outputOne")
-	PollableChannel outputOne;
-
-	@Autowired @Qualifier("outputTwo")
-	PollableChannel outputTwo;
-
-	@Autowired @Qualifier("errorChannel")
-	PollableChannel errorChannel;
-
-
-	@SuppressWarnings("unchecked")
 	@Test
-	public void testOutputOne() throws Exception{
+	public void testSimpleStringExpression() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<name>outputOne</name>");
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
-		inputOne.send(docMessage);
-		GenericMessage<Document> received = (GenericMessage<Document>) outputOne.receive(1000);
-		assertNotNull("Did not receive message from outputOne", received);
-	}
-	
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testOutputTwo() throws Exception{
-		Document doc = XmlTestUtil.getDocumentForString("<name>outputTwo</name>");
-		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
-		inputOne.send(docMessage);
-		GenericMessage<Document> received = (GenericMessage<Document>) outputTwo.receive(1000);
-		assertNotNull("Did not receive message from two", received);
+
+		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper.getTestAppContext("<si-xml:xpath-router id='router' xpath-expression='/name' />");
+		XPathSingleChannelNameResolver router = (XPathSingleChannelNameResolver) ctx.getBean("router");
+
+		String[] channelNames = router.resolveChannelNames(docMessage);
+		assertEquals("Wrong number of channel names returned", 1, channelNames.length);
+		assertEquals("Wrong channel name", "outputOne", channelNames[0]);
+
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
-	public void testOutputThree() throws Exception{
-		Document doc = XmlTestUtil.getDocumentForString("<name>outputThree</name>");
+	public void testNamespacedStringExpression() throws Exception {
+		Document doc = XmlTestUtil.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>");
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
-		inputOne.send(docMessage);
-		GenericMessage<Document> received = (GenericMessage<Document>) errorChannel.receive(1000);
-		assertNotNull("Did not receive message on errors", received);
-	}
-	
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testOutputOneMulti() throws Exception{
-		Document doc = XmlTestUtil.getDocumentForString("<name>outputOne</name>");
-		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
-		inputTwo.send(docMessage);
-		GenericMessage<Document> received = (GenericMessage<Document>) outputOne.receive(1000);
-		assertNotNull("Did not receive message from outputOne", received);
-	}
-	
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testOutputOneAndTwoMulti() throws Exception{
-		Document doc = XmlTestUtil.getDocumentForString("<doc><name>outputOne</name><name>outputTwo</name></doc>");
-		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
-		inputTwo.send(docMessage);
-		GenericMessage<Document> received = (GenericMessage<Document>) outputTwo.receive(1000);
-		assertNotNull("Did not receive message from two", received);
+
+		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper.getTestAppContext("<si-xml:xpath-router id='router' xpath-expression='/ns2:name' ns-prefix='ns2' ns-uri='www.example.org' />");
+		XPathSingleChannelNameResolver router = (XPathSingleChannelNameResolver) ctx.getBean("router");
+
+		String[] channelNames = router.resolveChannelNames(docMessage);
+		assertEquals("Wrong number of channel names returned", 1, channelNames.length);
+		assertEquals("Wrong channel name", "outputOne", channelNames[0]);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
-	public void testOutputThreeMulti() throws Exception{
-		Document doc = XmlTestUtil.getDocumentForString("<name>outputThree</name>");
+	public void testStringExpressionWithNestedNamespaceMap() throws Exception {
+		Document doc = XmlTestUtil
+				.getDocumentForString("<ns1:name xmlns:ns1='www.example.org' xmlns:ns2='www.example.org2'><ns2:type>outputOne</ns2:type></ns1:name>");
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
-		inputTwo.send(docMessage);
-		GenericMessage<Document> received = (GenericMessage<Document>) errorChannel.receive(1000);
-		assertNotNull("Did not receive message on errors", received);
+
+		StringBuffer buffer = new StringBuffer(
+				"<si-xml:xpath-router id='router' xpath-expression='/ns1:name/ns2:type' >");
+		buffer
+				.append("<map><entry key='ns1' value='www.example.org' /> <entry key='ns2' value='www.example.org2'/></map>");
+		buffer.append("</si-xml:xpath-router>");
+
+		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper.getTestAppContext(buffer.toString());
+		XPathSingleChannelNameResolver router = (XPathSingleChannelNameResolver) ctx.getBean("router");
+
+		String[] channelNames = router.resolveChannelNames(docMessage);
+		assertEquals("Wrong number of channel names returned", 1, channelNames.length);
+		assertEquals("Wrong channel name", "outputOne", channelNames[0]);
+	}
+
+	@Test
+	public void testStringExpressionWithReferenceToNamespaceMap() throws Exception {
+		Document doc = XmlTestUtil
+				.getDocumentForString("<ns1:name xmlns:ns1='www.example.org' xmlns:ns2='www.example.org2'><ns2:type>outputOne</ns2:type></ns1:name>");
+		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
+		StringBuffer buffer = new StringBuffer(
+				"<si-xml:xpath-router id='router' xpath-expression='/ns1:name/ns2:type' namespace-map='nsMap'>");
+		buffer
+				.append("</si-xml:xpath-router>")
+				.append("<util:map id='nsMap'><entry key='ns1' value='www.example.org' /><entry key='ns2' value='www.example.org2' /></util:map>");
+
+		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper.getTestAppContext(buffer.toString());
+		XPathSingleChannelNameResolver router = (XPathSingleChannelNameResolver) ctx.getBean("router");
+
+		String[] channelNames = router.resolveChannelNames(docMessage);
+		assertEquals("Wrong number of channel names returned", 1, channelNames.length);
+		assertEquals("Wrong channel name", "outputOne", channelNames[0]);
+	}
+
+
+	@Test(expected = Exception.class)
+	public void testNamespacedWithNoPrefixStringExpression() throws Exception {
+		TestXmlApplicationContextHelper.getTestAppContext("<si-xml:xpath-router id='router' xpath-expression='/ns2:name' xpath-namespace='www.example.org' />");
+	}
+
+	@Test(expected = Exception.class)
+	public void testPrefixWithNoNamespaceStringExpression() throws Exception {
+		TestXmlApplicationContextHelper.getTestAppContext("<si-xml:xpath-router id='router' xpath-expression='/ns2:name' xpath-prefix='ns2' />");
 	}
 
 }
