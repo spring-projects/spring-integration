@@ -36,7 +36,7 @@ public class XPathRouterParserTests {
 		Document doc = XmlTestUtil.getDocumentForString("<name>outputOne</name>");
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 
-		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper.getTestAppContext("<si-xml:xpath-router id='router' xpath-expression='/name' />");
+		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper.getTestAppContext("<si-xml:xpath-router id='router'><si-xml:xpath-expression expression='/name'/></si-xml:xpath-router>");
 		XPathSingleChannelNameResolver router = (XPathSingleChannelNameResolver) ctx.getBean("router");
 
 		String[] channelNames = router.resolveChannelNames(docMessage);
@@ -50,7 +50,8 @@ public class XPathRouterParserTests {
 		Document doc = XmlTestUtil.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>");
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 
-		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper.getTestAppContext("<si-xml:xpath-router id='router' xpath-expression='/ns2:name' ns-prefix='ns2' ns-uri='www.example.org' />");
+		TestXmlApplicationContext ctx = 
+			TestXmlApplicationContextHelper.getTestAppContext("<si-xml:xpath-router id='router'><si-xml:xpath-expression expression='/ns2:name' ns-prefix='ns2' ns-uri='www.example.org' /></si-xml:xpath-router>");
 		XPathSingleChannelNameResolver router = (XPathSingleChannelNameResolver) ctx.getBean("router");
 
 		String[] channelNames = router.resolveChannelNames(docMessage);
@@ -65,10 +66,10 @@ public class XPathRouterParserTests {
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 
 		StringBuffer buffer = new StringBuffer(
-				"<si-xml:xpath-router id='router' xpath-expression='/ns1:name/ns2:type' >");
+				"<si-xml:xpath-router id='router'><si-xml:xpath-expression expression='/ns1:name/ns2:type'> ");
 		buffer
 				.append("<map><entry key='ns1' value='www.example.org' /> <entry key='ns2' value='www.example.org2'/></map>");
-		buffer.append("</si-xml:xpath-router>");
+		buffer.append("</si-xml:xpath-expression></si-xml:xpath-router>");
 
 		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper.getTestAppContext(buffer.toString());
 		XPathSingleChannelNameResolver router = (XPathSingleChannelNameResolver) ctx.getBean("router");
@@ -84,7 +85,7 @@ public class XPathRouterParserTests {
 				.getDocumentForString("<ns1:name xmlns:ns1='www.example.org' xmlns:ns2='www.example.org2'><ns2:type>outputOne</ns2:type></ns1:name>");
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		StringBuffer buffer = new StringBuffer(
-				"<si-xml:xpath-router id='router' xpath-expression='/ns1:name/ns2:type' namespace-map='nsMap'>");
+				"<si-xml:xpath-router id='router' ><si-xml:xpath-expression expression='/ns1:name/ns2:type' namespace-map='nsMap'/>");
 		buffer
 				.append("</si-xml:xpath-router>")
 				.append("<util:map id='nsMap'><entry key='ns1' value='www.example.org' /><entry key='ns2' value='www.example.org2' /></util:map>");
@@ -98,14 +99,6 @@ public class XPathRouterParserTests {
 	}
 
 
-	@Test(expected = Exception.class)
-	public void testNamespacedWithNoPrefixStringExpression() throws Exception {
-		TestXmlApplicationContextHelper.getTestAppContext("<si-xml:xpath-router id='router' xpath-expression='/ns2:name' xpath-namespace='www.example.org' />");
-	}
 
-	@Test(expected = Exception.class)
-	public void testPrefixWithNoNamespaceStringExpression() throws Exception {
-		TestXmlApplicationContextHelper.getTestAppContext("<si-xml:xpath-router id='router' xpath-expression='/ns2:name' xpath-prefix='ns2' />");
-	}
 
 }

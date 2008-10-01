@@ -36,7 +36,7 @@ import org.w3c.dom.NodeList;
  *
  */
 public class XPathExpressionParser extends AbstractSingleBeanDefinitionParser {
-
+	
 	@Override
 	protected boolean shouldGenerateId() {
 		return false;
@@ -47,15 +47,17 @@ public class XPathExpressionParser extends AbstractSingleBeanDefinitionParser {
 		return true;
 	}
 	
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	protected Class getBeanClass(Element element) {
 		return XPathExpressionFactory.class;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		String strXpathExpression = element.getAttribute("xpath-expression");
+		String strXpathExpression = element.getAttribute("expression");
 		String strXpathExpressionPrefix = element.getAttribute("ns-prefix");
 		String strXpathExpressionNamespace = element.getAttribute("ns-uri");
 		String nameSpaceMapRef = element.getAttribute("namespace-map");
@@ -105,6 +107,7 @@ public class XPathExpressionParser extends AbstractSingleBeanDefinitionParser {
 
 
 
+	@SuppressWarnings("unchecked")
 	protected Map parseNamespaceMapElement(Element element, ParserContext parserContext, BeanDefinition parentDefinition) {
 		BeanDefinitionParserDelegate beanParser = new BeanDefinitionParserDelegate(parserContext.getReaderContext());
 		beanParser.initDefaults(element.getOwnerDocument().getDocumentElement());

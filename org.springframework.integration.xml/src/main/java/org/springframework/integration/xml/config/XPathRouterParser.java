@@ -16,24 +16,25 @@
 
 package org.springframework.integration.xml.config;
 
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.xml.router.XPathMultiChannelNameResolver;
 import org.springframework.integration.xml.router.XPathSingleChannelNameResolver;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * @author Jonas Partner
  */
 public class XPathRouterParser extends AbstractSingleBeanDefinitionParser {
 
-	private XPathExpressionBeanDefintionBuilder xpathBuilder = new XPathExpressionBeanDefintionBuilder();
-
+	private XPathExpressionParser xpathParser = new XPathExpressionParser();
+	
 	@Override
 	protected boolean shouldGenerateId() {
 		return false;
@@ -48,18 +49,15 @@ public class XPathRouterParser extends AbstractSingleBeanDefinitionParser {
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 
 		boolean multiChannel = Boolean.parseBoolean(element.getAttribute("multi-channel"));
-		String xPathExpression = element.getAttribute("xpath-expression");
-		String strXpathExpressionPrefix = element.getAttribute("xpath-prefix");
-		String strXpathExpressionNamespace = element.getAttribute("xpath-namespace");
-		String nameSpaceMapRef = element.getAttribute("namespace-map");
-
 		String xPathExpressionRef = element.getAttribute("xpath-expression-ref");
 
-		boolean strXpathAttSpecified = StringUtils.hasText(xPathExpression)
-				|| StringUtils.hasText(strXpathExpressionPrefix) || StringUtils.hasText(nameSpaceMapRef)
-				|| StringUtils.hasText(strXpathExpressionNamespace);
-		if ((strXpathAttSpecified && StringUtils.hasText(xPathExpressionRef))
-				|| (!StringUtils.hasText(xPathExpression) && !StringUtils.hasText(xPathExpressionRef))) {
+		NodeList xPathExpressionNodes = element.getElementsByTagNameNS(element.getNamespaceURI(), "xpath-expression");
+		Assert.isTrue(xPathExpressionNodes.getLength() < 2, "Only one xpath-expression child can be specified");
+		boolean xPathExpressionChildPresent = xPathExpressionNodes.getLength() == 1;
+		boolean xPathReferencePresent = StringUtils.hasText(xPathExpressionRef);
+
+		if ((xPathExpressionChildPresent && xPathReferencePresent)
+				|| (!xPathExpressionChildPresent && !xPathReferencePresent)) {
 			throw new ConfigurationException("Exactly one of 'xpath-expression' or 'xpath-expression-ref' is required.");
 		}
 
@@ -69,16 +67,15 @@ public class XPathRouterParser extends AbstractSingleBeanDefinitionParser {
 		else {
 			builder.getBeanDefinition().setBeanClass(XPathSingleChannelNameResolver.class);
 		}
-		
-		if (StringUtils.hasText(xPathExpression)) {
-			AbstractBeanDefinition xPathExpressionBeanDefinition = xpathBuilder.handleXpathExpression(element, parserContext);
-			String xpathExpressionBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
-					xPathExpressionBeanDefinition, parserContext.getRegistry());
-			builder.addConstructorArgReference(xpathExpressionBeanName);
-		}
-		else {
+
+		if (xPathExpressionChildPresent) {
+			BeanDefinition beanDefinition = xpathParser.parse((Element) xPathExpressionNodes.item(0), parserContext);
+			builder.addConstructorArgValue(beanDefinition);
+		} else { 
 			builder.addConstructorArgReference(xPathExpressionRef);
 		}
 	}
+
+	
 
 }

@@ -15,9 +15,8 @@
  */
 package org.springframework.integration.xml.config;
 
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.ConfigurationException;
@@ -26,15 +25,16 @@ import org.springframework.integration.xml.selector.StringValueTestXPathMessageS
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * 
  * @author Jonas Partner
- *
+ * 
  */
 public class XPathSelectorParser extends AbstractSingleBeanDefinitionParser {
-	
-	private XPathExpressionBeanDefintionBuilder xpathBuilder = new XPathExpressionBeanDefintionBuilder();
+
+	private XPathExpressionParser xpathParser = new XPathExpressionParser();
 
 	@Override
 	protected boolean shouldGenerateId() {
@@ -50,40 +50,40 @@ public class XPathSelectorParser extends AbstractSingleBeanDefinitionParser {
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 
 		String evaluationType = element.getAttribute("evaluation-result-type");
-		String xPathExpression = element.getAttribute("xpath-expression");
-		String strXpathExpressionPrefix = element.getAttribute("xpath-prefix");
-		String strXpathExpressionNamespace = element.getAttribute("xpath-namespace");
-		String nameSpaceMapRef = element.getAttribute("namespace-map");
 		String xPathExpressionRef = element.getAttribute("xpath-expression-ref");
 		String stringTestValue = element.getAttribute("string-test-value");
-		
-		boolean strXpathAttSpecified = StringUtils.hasText(xPathExpression)
-				|| StringUtils.hasText(strXpathExpressionPrefix) || StringUtils.hasText(nameSpaceMapRef)
-				|| StringUtils.hasText(strXpathExpressionNamespace);
-		
-		if ((strXpathAttSpecified && StringUtils.hasText(xPathExpressionRef))
-				|| (!StringUtils.hasText(xPathExpression) && !StringUtils.hasText(xPathExpressionRef))) {
+
+		NodeList xPathExpressionNodes = element.getElementsByTagNameNS(element.getNamespaceURI(), "xpath-expression");
+		Assert.isTrue(xPathExpressionNodes.getLength() < 2, "Only one xpath-expression child can be specified");
+		boolean xPathExpressionChildPresent = xPathExpressionNodes.getLength() == 1;
+		boolean xPathReferencePresent = StringUtils.hasText(xPathExpressionRef);
+
+		if ((xPathExpressionChildPresent && xPathReferencePresent)
+				|| (!xPathExpressionChildPresent && !xPathReferencePresent)) {
 			throw new ConfigurationException("Exactly one of 'xpath-expression' or 'xpath-expression-ref' is required.");
 		}
 
 		if (evaluationType.equals("boolean")) {
 			builder.getBeanDefinition().setBeanClass(BooleanTestXPathMessageSelector.class);
-			Assert.state(!StringUtils.hasText(stringTestValue), "string-test-value should not be specified when evaluation-result-type is boolean");
+			Assert.state(!StringUtils.hasText(stringTestValue),
+					"string-test-value should not be specified when evaluation-result-type is boolean");
 		}
-		else if (evaluationType.equals("string")){
-			Assert.hasText(stringTestValue, "string-test-value must be specified when evaluation-result-type is string");
+		else if (evaluationType.equals("string")) {
+			Assert
+					.hasText(stringTestValue,
+							"string-test-value must be specified when evaluation-result-type is string");
 			builder.addConstructorArgValue(stringTestValue);
 			builder.getBeanDefinition().setBeanClass(StringValueTestXPathMessageSelector.class);
-			
-		} else {
-			throw new ConfigurationException("Unrecognised value: " + evaluationType + " for evaluation-result-type only boolean or string supported");
+
 		}
-		
-		if (StringUtils.hasText(xPathExpression)) {
-			AbstractBeanDefinition xPathExpressionBeanDefinition = xpathBuilder.handleXpathExpression(element, null);
-			String xpathExpressionBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
-					xPathExpressionBeanDefinition, parserContext.getRegistry());
-			builder.addConstructorArgReference(xpathExpressionBeanName);
+		else {
+			throw new ConfigurationException("Unrecognised value: " + evaluationType
+					+ " for evaluation-result-type only boolean or string supported");
+		}
+
+		if (xPathExpressionChildPresent) {
+			BeanDefinition beanDefinition = xpathParser.parse((Element) xPathExpressionNodes.item(0), parserContext);
+			builder.addConstructorArgValue(beanDefinition);
 		}
 		else {
 			builder.addConstructorArgReference(xPathExpressionRef);

@@ -83,6 +83,7 @@
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+	
 	<xsd:element name="xpath-router">
 		<xsd:complexType>
 			<xsd:annotation>
@@ -91,23 +92,16 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:sequence>
-					<xsd:element ref="beans:map" minOccurs="0" maxOccurs="1"/>
+				<xsd:element ref="xpath-expression" maxOccurs="1" minOccurs="0" />
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string" use="required" />
 			<xsd:attribute name="xpath-expression-ref" type="xsd:string"
 				use="optional" />
-			<xsd:attribute name="xpath-expression" type="xsd:string"
-				use="optional" />
-			<xsd:attribute name="ns-prefix" type="xsd:string"
-				use="optional" />
-			<xsd:attribute name="ns-uri" type="xsd:string"
-				use="optional" />
 			<xsd:attribute name="multi-channel" type="xsd:boolean"
 				default="false" />
-			<xsd:attribute name="namespace-map" type="xsd:string"
-				use="optional" />
 		</xsd:complexType>
 	</xsd:element>
+	
 	<xsd:element name="xpath-selector">
 		<xsd:complexType>
 			<xsd:annotation>
@@ -116,16 +110,10 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:sequence>
-				<xsd:element ref="beans:map" minOccurs="0" maxOccurs="1"/>
+				<xsd:element ref="xpath-expression" maxOccurs="1" minOccurs="0" />
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string" use="required" />
-			<xsd:attribute name="xpath-expression-ref" type="xsd:string"
-				use="optional" />
-			<xsd:attribute name="xpath-expression" type="xsd:string"
-				use="optional" />
-			<xsd:attribute name="ns-prefix" type="xsd:string"
-				use="optional" />
-			<xsd:attribute name="ns-uri" type="xsd:string"
+				<xsd:attribute name="xpath-expression-ref" type="xsd:string"
 				use="optional" />
 			<xsd:attribute name="evaluation-result-type" use="required">
 				<xsd:simpleType>
@@ -135,8 +123,6 @@
 					</xsd:restriction>
 				</xsd:simpleType>
 			</xsd:attribute>
-				<xsd:attribute name="namespace-map" type="xsd:string"
-				use="optional" />
 			<xsd:attribute name="string-test-value" type="xsd:string"
 				use="optional" />
 				
@@ -154,7 +140,7 @@
 				<xsd:element ref="beans:map" minOccurs="0" maxOccurs="1"/>
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string" use="optional" />
-			<xsd:attribute name="xpath-expression" type="xsd:string"
+			<xsd:attribute name="expression" type="xsd:string"
 				use="optional" />
 			<xsd:attribute name="ns-prefix" type="xsd:string"
 				use="optional" />

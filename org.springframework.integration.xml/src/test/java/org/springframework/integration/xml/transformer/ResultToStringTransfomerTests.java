@@ -16,7 +16,8 @@
 package org.springframework.integration.xml.transformer;
 
 
-import static org.custommonkey.xmlunit.XMLAssert.*;
+import static junit.framework.Assert.assertTrue;
+import static org.custommonkey.xmlunit.XMLAssert.assertXMLEqual;
 
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.sax.SAXResult;
@@ -26,7 +27,6 @@ import org.junit.Test;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.xml.transform.StringResult;
-import org.w3c.dom.Document;
 
 public class ResultToStringTransfomerTests {
 

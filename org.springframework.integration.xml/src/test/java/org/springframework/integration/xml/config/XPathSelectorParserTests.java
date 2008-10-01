@@ -28,7 +28,7 @@ public class XPathSelectorParserTests {
 
 	@Test
 	public void testSimpleStringExpressionBoolean() throws Exception {
-		String contextXml = "<si-xml:xpath-selector id='selector' xpath-expression='/name' evaluation-result-type='boolean' />";
+		String contextXml = "<si-xml:xpath-selector id='selector' evaluation-result-type='boolean' ><si-xml:xpath-expression expression='/name'/></si-xml:xpath-selector>";
 		MessageSelector selector =getSelector( contextXml);
 		
 		assertTrue(selector.accept(new GenericMessage<Document>(XmlTestUtil.getDocumentForString("<name>outputOne</name>"))));
@@ -37,7 +37,7 @@ public class XPathSelectorParserTests {
 	
 	@Test
 	public void testStringExpressionWithNamespaceBoolean() throws Exception {
-		String contextXml = "<si-xml:xpath-selector id='selector' xpath-expression='/ns:name' ns-prefix='ns' ns-uri='www.example.org' evaluation-result-type='boolean' />";
+		String contextXml = "<si-xml:xpath-selector id='selector'  evaluation-result-type='boolean'><si-xml:xpath-expression expression='/ns:name' ns-prefix='ns' ns-uri='www.example.org'/> </si-xml:xpath-selector>";
 		MessageSelector selector = getSelector(contextXml);
 		
 		assertTrue(selector.accept(new GenericMessage<Document>(XmlTestUtil.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>"))));
@@ -47,7 +47,7 @@ public class XPathSelectorParserTests {
 	
 	@Test
 	public void testStringExpressionWithNestedMap() throws Exception {
-		String contextXml =  "<si-xml:xpath-selector id='selector' xpath-expression='/ns:name' ns-prefix='ns' ns-uri='www.example.org' evaluation-result-type='boolean' />";
+		String contextXml =  "<si-xml:xpath-selector id='selector' evaluation-result-type='boolean'><si-xml:xpath-expression expression='/ns:name' ns-prefix='ns' ns-uri='www.example.org' /></si-xml:xpath-selector>";
 		MessageSelector selector = getSelector(contextXml);
 		
 		assertTrue(selector.accept(new GenericMessage<Document>(XmlTestUtil.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>"))));

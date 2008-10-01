@@ -18,7 +18,6 @@ package org.springframework.integration.xml.util;
 
 import java.io.StringReader;
 
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
