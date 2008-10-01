@@ -21,6 +21,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.scheduling.SchedulableTask;
 import org.springframework.integration.scheduling.Trigger;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.transaction.support.TransactionCallback;
@@ -45,15 +46,9 @@ public abstract class AbstractPoller implements SchedulableTask, InitializingBea
 
 	private volatile PlatformTransactionManager transactionManager;
 
+	private volatile TransactionDefinition transactionDefinition;
+
 	private volatile TransactionTemplate transactionTemplate;
-
-	private volatile int propagationBehavior = DefaultTransactionDefinition.PROPAGATION_REQUIRED;
-
-	private volatile int isolationLevel = DefaultTransactionDefinition.ISOLATION_DEFAULT;
-
-	private volatile int transactionTimeout = DefaultTransactionDefinition.TIMEOUT_DEFAULT;
-
-	private volatile boolean readOnly = false;
 
 	private volatile boolean initialized;
 
@@ -96,20 +91,8 @@ public abstract class AbstractPoller implements SchedulableTask, InitializingBea
 		this.transactionManager = transactionManager;
 	}
 
-	public void setPropagationBehavior(int propagationBehavior) {
-		this.propagationBehavior = propagationBehavior;
-	}
-
-	public void setIsolationLevel(int isolationLevel) {
-		this.isolationLevel = isolationLevel;
-	}
-
-	public void setTransactionTimeout(int transactionTimeout) {
-		this.transactionTimeout = transactionTimeout;
-	}
-
-	public void setTransactionReadOnly(boolean readOnly) {
-		this.readOnly = readOnly;
+	public void setTransactionDefinition(TransactionDefinition transactionDefinition) {
+		this.transactionDefinition = transactionDefinition;
 	}
 
 	private TransactionTemplate getTransactionTemplate() {
@@ -125,12 +108,11 @@ public abstract class AbstractPoller implements SchedulableTask, InitializingBea
 				return;
 			}
 			if (this.transactionManager != null) {
-				TransactionTemplate template = new TransactionTemplate(this.transactionManager);
-				template.setPropagationBehavior(this.propagationBehavior);
-				template.setIsolationLevel(this.isolationLevel);
-				template.setTimeout(this.transactionTimeout);
-				template.setReadOnly(this.readOnly);
-				this.transactionTemplate = template;
+				if (this.transactionDefinition == null) {
+					this.transactionDefinition = new DefaultTransactionDefinition();
+				}
+				this.transactionTemplate = new TransactionTemplate(
+						this.transactionManager, this.transactionDefinition);
 			}
 			this.initialized = true;
 		}

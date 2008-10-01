@@ -138,10 +138,7 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 			poller.setTransactionManager(this.transactionManager);
 		}
 		if (this.transactionDefinition != null) {
-			poller.setPropagationBehavior(this.transactionDefinition.getPropagationBehavior());
-			poller.setIsolationLevel(this.transactionDefinition.getIsolationLevel());
-			poller.setTransactionReadOnly(this.transactionDefinition.isReadOnly());
-			poller.setTransactionTimeout(this.transactionDefinition.getTimeout());
+			poller.setTransactionDefinition(this.transactionDefinition);
 		}
 	}
 
