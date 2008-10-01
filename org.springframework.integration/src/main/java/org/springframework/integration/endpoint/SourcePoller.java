@@ -17,7 +17,6 @@
 package org.springframework.integration.endpoint;
 
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.BlockingSource;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryAware;
 import org.springframework.integration.message.MessageDeliveryException;
@@ -35,8 +34,6 @@ public class SourcePoller extends AbstractPoller {
 
 	private final MessageChannel channel;
 
-	private volatile long receiveTimeout = 1000;
-
 
 	public SourcePoller(MessageSource<?> source, MessageChannel channel, Trigger trigger) {
 		super(trigger);
@@ -47,22 +44,9 @@ public class SourcePoller extends AbstractPoller {
 	}
 
 
-	/**
-	 * Specify the timeout to use when receiving from the source (in milliseconds).
-	 * This value will only apply if the source is a {@link BlockingSource}.
-	 * <p>
-	 * A negative value indicates that receive calls should block indefinitely.
-	 * The default value is 1000 (1 second).
-	 */
-	public void setReceiveTimeout(long receiveTimeout) {
-		this.receiveTimeout = receiveTimeout;
-	}
-
 	@Override
 	protected boolean doPoll() {
-		Message<?> message = (this.receiveTimeout >= 0 && this.source instanceof BlockingSource)
-				? ((BlockingSource<?>) this.source).receive(this.receiveTimeout)
-				: this.source.receive();
+		Message<?> message = this.source.receive();
 		if (message == null) {
 			return false;
 		}
