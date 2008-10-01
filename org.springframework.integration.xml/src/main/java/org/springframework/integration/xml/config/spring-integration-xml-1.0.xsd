@@ -143,6 +143,29 @@
 		</xsd:complexType>
 	</xsd:element>
 	
+	<xsd:element name="xpath-expression">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+					Defines an XPath expression.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:sequence>
+				<xsd:element ref="beans:map" minOccurs="0" maxOccurs="1"/>
+			</xsd:sequence>
+			<xsd:attribute name="id" type="xsd:string" use="optional" />
+			<xsd:attribute name="xpath-expression" type="xsd:string"
+				use="optional" />
+			<xsd:attribute name="ns-prefix" type="xsd:string"
+				use="optional" />
+			<xsd:attribute name="ns-uri" type="xsd:string"
+				use="optional" />
+			<xsd:attribute name="namespace-map" type="xsd:string"
+				use="optional" />
+		</xsd:complexType>
+	</xsd:element>
+	
+	
 	<xsd:complexType name="transformerType">
 		<xsd:attribute name="id" type="xsd:string" use="optional" />
 		<xsd:attribute name="input-channel" type="xsd:string"
