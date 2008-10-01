@@ -47,8 +47,11 @@ public class XPathSelectorParserTests {
 	
 	@Test
 	public void testStringExpressionWithNestedMap() throws Exception {
-		String contextXml =  "<si-xml:xpath-selector id='selector' evaluation-result-type='boolean'><si-xml:xpath-expression expression='/ns:name' ns-prefix='ns' ns-uri='www.example.org' /></si-xml:xpath-selector>";
-		MessageSelector selector = getSelector(contextXml);
+		StringBuffer contextXml =  new StringBuffer("<si-xml:xpath-selector id='selector' evaluation-result-type='boolean'>");
+		contextXml.append("<si-xml:xpath-expression expression='/ns:name' >")
+		.append("<map><entry key='ns' value='www.example.org' /></map>")
+		.append("</si-xml:xpath-expression></si-xml:xpath-selector>");
+		MessageSelector selector = getSelector(contextXml.toString());
 		
 		assertTrue(selector.accept(new GenericMessage<Document>(XmlTestUtil.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>"))));
 		assertFalse(selector.accept(new GenericMessage<Document>(XmlTestUtil.getDocumentForString("<name>outputOne</name>"))));
