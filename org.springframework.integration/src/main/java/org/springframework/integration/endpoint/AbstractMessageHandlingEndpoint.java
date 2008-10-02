@@ -18,7 +18,6 @@ package org.springframework.integration.endpoint;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
@@ -45,8 +44,6 @@ public abstract class AbstractMessageHandlingEndpoint extends AbstractMessageCon
 
 	private volatile boolean requiresReply = false;
 
-	private final List<EndpointInterceptor> interceptors = new CopyOnWriteArrayList<EndpointInterceptor>();
-
 
 	public void setOutputChannel(MessageChannel outputChannel) {
 		this.outputChannel = outputChannel;
@@ -68,25 +65,9 @@ public abstract class AbstractMessageHandlingEndpoint extends AbstractMessageCon
 		this.requiresReply = requiresReply;
 	}
 
-	public void addInterceptor(EndpointInterceptor interceptor) {
-		this.interceptors.add(interceptor);
-	}
-
-	public void setInterceptors(List<EndpointInterceptor> interceptors) {
-		this.interceptors.clear();
-		for (EndpointInterceptor interceptor : interceptors) {
-			this.addInterceptor(interceptor);
-		}
-	}
 
 	@Override
 	protected void onMessageInternal(Message<?> message) {
-		for (EndpointInterceptor interceptor : this.interceptors) {
-			message = interceptor.preHandle(message);
-			if (message == null) {
-				return;
-			}
-		}
 		if (!this.supports(message)) {
 			throw new MessageRejectedException(message, "unsupported message");
 		}
@@ -136,15 +117,6 @@ public abstract class AbstractMessageHandlingEndpoint extends AbstractMessageCon
 	}
 
 	private boolean sendReplyMessage(Message<?> replyMessage, MessageChannel replyChannel) {
-		for (int i = this.interceptors.size() - 1; i >= 0; i--) {
-			EndpointInterceptor interceptor = this.interceptors.get(i);
-			if (interceptor != null) {
-				replyMessage = interceptor.postHandle(replyMessage);
-				if (replyMessage == null) {
-					return false;
-				}
-			}
-		}
 		return this.getChannelTemplate().send(replyMessage, replyChannel);
 	}
 
