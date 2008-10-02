@@ -23,11 +23,11 @@ import org.springframework.integration.message.MessageRejectedException;
 
 /**
  * Basic implementation of {@link MessageDispatcher} that will attempt
- * to send a {@link Message} to one of its subscribers. As soon as <em>one</em>
- * of the subscribers accepts the Message, the dispatcher will return 'true'.
+ * to send a {@link Message} to one of its consumers. As soon as <em>one</em>
+ * of the consumers accepts the Message, the dispatcher will return 'true'.
  * <p>
- * If the dispatcher has no subscribers, a {@link MessageDeliveryException}
- * will be thrown. If all subscribers reject the Message, the dispatcher will
+ * If the dispatcher has no consumers, a {@link MessageDeliveryException}
+ * will be thrown. If all consumers reject the Message, the dispatcher will
  * throw a MessageRejectedException.
  * 
  * @author Mark Fisher
@@ -35,12 +35,12 @@ import org.springframework.integration.message.MessageRejectedException;
 public class SimpleDispatcher extends AbstractDispatcher {
 
 	public boolean dispatch(Message<?> message) {
-		if (this.subscribers.size() == 0) {
+		if (this.consumers.size() == 0) {
 			throw new MessageDeliveryException(message, "Dispatcher has no subscribers.");
 		}
 		int count = 0;
 		int rejectedExceptionCount = 0;
-		for (MessageConsumer consumer : this.subscribers) {
+		for (MessageConsumer consumer : this.consumers) {
 			count++;
 			if (this.sendMessageToConsumer(message, consumer)) {
 				return true;

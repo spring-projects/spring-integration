@@ -72,7 +72,7 @@ public class BroadcastingDispatcherTests {
 	@Test
 	public void singleTargetWithoutTaskExecutor() throws Exception {
 		dispatcher.setTaskExecutor(null);
-		dispatcher.subscribe(targetMock1);
+		dispatcher.addConsumer(targetMock1);
 		targetMock1.onMessage(messageMock);
 		expectLastCall();
 		replay(globalMocks);
@@ -82,7 +82,7 @@ public class BroadcastingDispatcherTests {
 
 	@Test
 	public void singleTargetWithTaskExecutor() throws Exception {
-		dispatcher.subscribe(targetMock1);
+		dispatcher.addConsumer(targetMock1);
 		targetMock1.onMessage(messageMock);
 		expectLastCall();
 		replay(globalMocks);
@@ -93,9 +93,9 @@ public class BroadcastingDispatcherTests {
 	@Test
 	public void multipleTargetsWithoutTaskExecutor() {
 		dispatcher.setTaskExecutor(null);
-		dispatcher.subscribe(targetMock1);
-		dispatcher.subscribe(targetMock2);
-		dispatcher.subscribe(targetMock3);
+		dispatcher.addConsumer(targetMock1);
+		dispatcher.addConsumer(targetMock2);
+		dispatcher.addConsumer(targetMock3);
 		targetMock1.onMessage(messageMock);
 		expectLastCall();
 		targetMock2.onMessage(messageMock);
@@ -109,9 +109,9 @@ public class BroadcastingDispatcherTests {
 
 	@Test
 	public void multipleTargetsWithTaskExecutor() {
-		dispatcher.subscribe(targetMock1);
-		dispatcher.subscribe(targetMock2);
-		dispatcher.subscribe(targetMock3);
+		dispatcher.addConsumer(targetMock1);
+		dispatcher.addConsumer(targetMock2);
+		dispatcher.addConsumer(targetMock3);
 		targetMock1.onMessage(messageMock);
 		expectLastCall();
 		targetMock2.onMessage(messageMock);
@@ -126,9 +126,9 @@ public class BroadcastingDispatcherTests {
 	@Test
 	public void multipleTargetsPartialFailureFirst() {
 		reset(taskExecutorMock);
-		dispatcher.subscribe(targetMock1);
-		dispatcher.subscribe(targetMock2);
-		dispatcher.subscribe(targetMock3);
+		dispatcher.addConsumer(targetMock1);
+		dispatcher.addConsumer(targetMock2);
+		dispatcher.addConsumer(targetMock3);
 		partialFailingExecutorMock(false, true, true);
 		targetMock2.onMessage(messageMock);
 		expectLastCall();
@@ -142,9 +142,9 @@ public class BroadcastingDispatcherTests {
 	@Test
 	public void multipleTargetsPartialFailureMiddle() {
 		reset(taskExecutorMock);
-		dispatcher.subscribe(targetMock1);
-		dispatcher.subscribe(targetMock2);
-		dispatcher.subscribe(targetMock3);
+		dispatcher.addConsumer(targetMock1);
+		dispatcher.addConsumer(targetMock2);
+		dispatcher.addConsumer(targetMock3);
 		partialFailingExecutorMock(true, false, true);
 		targetMock1.onMessage(messageMock);
 		expectLastCall();
@@ -158,9 +158,9 @@ public class BroadcastingDispatcherTests {
 	@Test
 	public void multipleTargetsPartialFailureLast() {
 		reset(taskExecutorMock);
-		dispatcher.subscribe(targetMock1);
-		dispatcher.subscribe(targetMock2);
-		dispatcher.subscribe(targetMock3);
+		dispatcher.addConsumer(targetMock1);
+		dispatcher.addConsumer(targetMock2);
+		dispatcher.addConsumer(targetMock3);
 		partialFailingExecutorMock(true, true, false);
 		targetMock1.onMessage(messageMock);
 		expectLastCall();
@@ -174,9 +174,9 @@ public class BroadcastingDispatcherTests {
 	@Test
 	public void multipleTargetsAllFail() {
 		reset(taskExecutorMock);
-		dispatcher.subscribe(targetMock1);
-		dispatcher.subscribe(targetMock2);
-		dispatcher.subscribe(targetMock3);
+		dispatcher.addConsumer(targetMock1);
+		dispatcher.addConsumer(targetMock2);
+		dispatcher.addConsumer(targetMock3);
 		partialFailingExecutorMock(false, false, false);
 		replay(globalMocks);
 		dispatcher.dispatch(messageMock);
@@ -185,9 +185,9 @@ public class BroadcastingDispatcherTests {
 
 	@Test
 	public void noDuplicateSubscription() {
-		dispatcher.subscribe(targetMock1);
-		dispatcher.subscribe(targetMock1);
-		dispatcher.subscribe(targetMock1);
+		dispatcher.addConsumer(targetMock1);
+		dispatcher.addConsumer(targetMock1);
+		dispatcher.addConsumer(targetMock1);
 		targetMock1.onMessage(messageMock);
 		expectLastCall();
 		replay(globalMocks);
@@ -196,11 +196,11 @@ public class BroadcastingDispatcherTests {
 	}
 
 	@Test
-	public void unsubscribeBeforeSend() {
-		dispatcher.subscribe(targetMock1);
-		dispatcher.subscribe(targetMock2);
-		dispatcher.subscribe(targetMock3);
-		dispatcher.unsubscribe(targetMock2);
+	public void removeConsumerBeforeSend() {
+		dispatcher.addConsumer(targetMock1);
+		dispatcher.addConsumer(targetMock2);
+		dispatcher.addConsumer(targetMock3);
+		dispatcher.removeConsumer(targetMock2);
 		targetMock1.onMessage(messageMock);
 		expectLastCall();
 		targetMock3.onMessage(messageMock);
@@ -211,10 +211,10 @@ public class BroadcastingDispatcherTests {
 	}
 
 	@Test
-	public void unsubscribeBetweenSends() {
-		dispatcher.subscribe(targetMock1);
-		dispatcher.subscribe(targetMock2);
-		dispatcher.subscribe(targetMock3);
+	public void removeConsumerBetweenSends() {
+		dispatcher.addConsumer(targetMock1);
+		dispatcher.addConsumer(targetMock2);
+		dispatcher.addConsumer(targetMock3);
 		targetMock1.onMessage(messageMock);
 		expectLastCall().times(2);
 		targetMock2.onMessage(messageMock);
@@ -223,7 +223,7 @@ public class BroadcastingDispatcherTests {
 		expectLastCall().times(2);
 		replay(globalMocks);
 		dispatcher.dispatch(messageMock);
-		dispatcher.unsubscribe(targetMock2);
+		dispatcher.removeConsumer(targetMock2);
 		dispatcher.dispatch(messageMock);
 		verify(globalMocks);
 	}
@@ -234,8 +234,8 @@ public class BroadcastingDispatcherTests {
 		final List<Message<?>> messages = Collections.synchronizedList(new ArrayList<Message<?>>());
 		MessageConsumer target1 = new MessageStoringTestEndpoint(messages);
 		MessageConsumer target2 = new MessageStoringTestEndpoint(messages);
-		dispatcher.subscribe(target1);
-		dispatcher.subscribe(target2);
+		dispatcher.addConsumer(target1);
+		dispatcher.addConsumer(target2);
 		dispatcher.dispatch(new StringMessage("test"));
 		assertEquals(2, messages.size());
 		assertEquals(0, (int) messages.get(0).getHeaders().getSequenceNumber());
@@ -252,9 +252,9 @@ public class BroadcastingDispatcherTests {
 		MessageConsumer target1 = new MessageStoringTestEndpoint(messages);
 		MessageConsumer target2 = new MessageStoringTestEndpoint(messages);
 		MessageConsumer target3 = new MessageStoringTestEndpoint(messages);
-		dispatcher.subscribe(target1);
-		dispatcher.subscribe(target2);
-		dispatcher.subscribe(target3);
+		dispatcher.addConsumer(target1);
+		dispatcher.addConsumer(target2);
+		dispatcher.addConsumer(target3);
 		dispatcher.dispatch(new StringMessage("test"));
 		assertEquals(3, messages.size());
 		assertEquals(1, (int) messages.get(0).getHeaders().getSequenceNumber());

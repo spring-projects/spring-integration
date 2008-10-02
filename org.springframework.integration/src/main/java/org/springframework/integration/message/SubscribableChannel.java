@@ -16,20 +16,22 @@
 
 package org.springframework.integration.message;
 
+import org.springframework.integration.channel.MessageChannel;
+
 /**
- * Interface for any source of messages that accepts subscribers.
+ * Interface for any MessageChannel implementation that accepts subscribers.
  * 
  * @author Mark Fisher
  */
-public interface Subscribable {
+public interface SubscribableChannel extends MessageChannel {
 
 	/**
-	 * Register a {@link MessageConsumer} as a subscriber to this source.
+	 * Register a {@link MessageConsumer} as a subscriber to this channel.
 	 */
 	boolean subscribe(MessageConsumer consumer);
 
 	/**
-	 * Remove a {@link MessageConsumer} from the subscribers of this source.
+	 * Remove a {@link MessageConsumer} from the subscribers of this channel.
 	 */
 	boolean unsubscribe(MessageConsumer consumer);
 

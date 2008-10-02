@@ -36,17 +36,17 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	protected final Set<MessageConsumer> subscribers = new CopyOnWriteArraySet<MessageConsumer>();
+	protected final Set<MessageConsumer> consumers = new CopyOnWriteArraySet<MessageConsumer>();
 
 	private volatile TaskExecutor taskExecutor;
 
 
-	public boolean subscribe(MessageConsumer consumer) {
-		return this.subscribers.add(consumer);
+	public boolean addConsumer(MessageConsumer consumer) {
+		return this.consumers.add(consumer);
 	}
 
-	public boolean unsubscribe(MessageConsumer consumer) {
-		return this.subscribers.remove(consumer);
+	public boolean removeConsumer(MessageConsumer consumer) {
+		return this.consumers.remove(consumer);
 	}
 
 	/**
@@ -63,7 +63,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	}
 
 	public String toString() {
-		return this.getClass().getSimpleName() + " with subscribers: " + this.subscribers;
+		return this.getClass().getSimpleName() + " with consumers: " + this.consumers;
 	}
 
 	/**
@@ -77,7 +77,7 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 		}
 		catch (MessageRejectedException e) {
 			if (logger.isDebugEnabled()) {
-				logger.debug("Consumer '" + consumer + "' rejected Message, continuing with other subscribers if available.", e);
+				logger.debug("Consumer '" + consumer + "' rejected Message, continuing with other consumers if available.", e);
 			}
 			return false;
 		}

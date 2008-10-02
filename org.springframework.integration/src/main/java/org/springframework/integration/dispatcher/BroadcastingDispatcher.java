@@ -23,9 +23,9 @@ import org.springframework.integration.message.MessageConsumer;
 
 /**
  * A broadcasting dispatcher implementation. It makes a best effort to
- * send the message to each of its endpoints. If it fails to send to any
- * one endpoints, it will log a warn-level message but continue to send
- * to the other endpoints.
+ * send the message to each of its consumers. If it fails to send to any
+ * one consumer, it will log a warn-level message but continue to send
+ * to the other consumers.
  * 
  * @author Mark Fisher
  */
@@ -45,8 +45,8 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 
 	public boolean dispatch(Message<?> message) {
 		int sequenceNumber = 1;
-		int sequenceSize = this.subscribers.size();
-		for (final MessageConsumer consumer : this.subscribers) {
+		int sequenceSize = this.consumers.size();
+		for (final MessageConsumer consumer : this.consumers) {
 			final Message<?> messageToSend = (!this.applySequence) ? message
 				: MessageBuilder.fromMessage(message)
 						.setSequenceNumber(sequenceNumber++)

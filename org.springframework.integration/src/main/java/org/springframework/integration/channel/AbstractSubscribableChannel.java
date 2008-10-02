@@ -19,7 +19,7 @@ package org.springframework.integration.channel;
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageConsumer;
-import org.springframework.integration.message.Subscribable;
+import org.springframework.integration.message.SubscribableChannel;
 import org.springframework.util.Assert;
 
 /**
@@ -28,7 +28,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class AbstractSubscribableChannel<T extends MessageDispatcher> extends AbstractMessageChannel implements Subscribable {
+public class AbstractSubscribableChannel<T extends MessageDispatcher> extends AbstractMessageChannel implements SubscribableChannel {
 
 	private final T dispatcher;
 
@@ -44,11 +44,11 @@ public class AbstractSubscribableChannel<T extends MessageDispatcher> extends Ab
 	}
 
 	public boolean subscribe(MessageConsumer consumer) {
-		return this.dispatcher.subscribe(consumer);
+		return this.dispatcher.addConsumer(consumer);
 	}
 
 	public boolean unsubscribe(MessageConsumer consumer) {
-		return this.dispatcher.unsubscribe(consumer);
+		return this.dispatcher.removeConsumer(consumer);
 	}
 
 	@Override

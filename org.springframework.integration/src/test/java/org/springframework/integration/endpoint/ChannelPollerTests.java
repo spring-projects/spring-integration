@@ -49,7 +49,7 @@ public class ChannelPollerTests {
 	@Before
 	public void init() {
 		poller = new ChannelPoller(channelMock, triggerMock);
-		poller.subscribe(endpointMock);
+		poller.setConsumer(endpointMock);
 		poller.setReceiveTimeout(-1);
 		reset(globalMocks);
 	}
@@ -113,7 +113,7 @@ public class ChannelPollerTests {
 	@Test
 	public void blockingSourceTimedOut() {
 		poller = new ChannelPoller(channelMock, triggerMock);
-		poller.subscribe(endpointMock);
+		poller.setConsumer(endpointMock);
 		// we don't need to await the timeout, returning null suffices
 		expect(channelMock.receive(1)).andReturn(null);
 		replay(globalMocks);
@@ -125,7 +125,7 @@ public class ChannelPollerTests {
 	@Test
 	public void blockingSourceNotTimedOut() {
 		poller = new ChannelPoller(channelMock, triggerMock);
-		poller.subscribe(endpointMock);
+		poller.setConsumer(endpointMock);
 		expect(channelMock.receive(1)).andReturn(messageMock);
 		endpointMock.onMessage(messageMock);
 		expectLastCall();

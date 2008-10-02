@@ -17,23 +17,21 @@
 package org.springframework.integration.endpoint;
 
 import org.springframework.integration.channel.PollableChannel;
-import org.springframework.integration.dispatcher.SimpleDispatcher;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageConsumer;
-import org.springframework.integration.message.Subscribable;
 import org.springframework.integration.scheduling.Trigger;
 import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
  */
-public class ChannelPoller extends AbstractPoller implements Subscribable {
+public class ChannelPoller extends AbstractPoller {
 
 	private final PollableChannel channel;
 
-	private volatile long receiveTimeout = 1000;
+	private volatile MessageConsumer consumer;
 
-	private final SimpleDispatcher dispatcher = new SimpleDispatcher();
+	private volatile long receiveTimeout = 1000;
 
 
 	public ChannelPoller(PollableChannel channel, Trigger trigger) {
@@ -51,23 +49,21 @@ public class ChannelPoller extends AbstractPoller implements Subscribable {
 		this.receiveTimeout = receiveTimeout;
 	}
 
-	public boolean subscribe(MessageConsumer consumer) {
-		return this.dispatcher.subscribe(consumer);
-	}
-
-	public boolean unsubscribe(MessageConsumer consumer) {
-		return this.dispatcher.unsubscribe(consumer);
+	public void setConsumer(MessageConsumer consumer) {
+		this.consumer = consumer;
 	}
 
 	@Override
 	protected boolean doPoll() {
+		Assert.notNull(this.consumer, "consumer must not be null");
 		Message<?> message = (this.receiveTimeout >= 0)
 				? this.channel.receive(this.receiveTimeout)
 				: this.channel.receive();
 		if (message == null) {
 			return false;
 		}
-		return this.dispatcher.dispatch(message);
+		this.consumer.onMessage(message);
+		return true;
 	}
 
 }

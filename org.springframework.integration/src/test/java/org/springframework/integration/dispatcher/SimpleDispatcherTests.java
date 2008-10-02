@@ -45,7 +45,7 @@ public class SimpleDispatcherTests {
 	public void singleMessage() throws InterruptedException {
 		SimpleDispatcher dispatcher = new SimpleDispatcher();
 		final CountDownLatch latch = new CountDownLatch(1);
-		dispatcher.subscribe(createEndpoint(TestHandlers.countDownHandler(latch)));
+		dispatcher.addConsumer(createEndpoint(TestHandlers.countDownHandler(latch)));
 		dispatcher.dispatch(new StringMessage("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
@@ -57,8 +57,8 @@ public class SimpleDispatcherTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicInteger counter1 = new AtomicInteger();
 		final AtomicInteger counter2 = new AtomicInteger();
-		dispatcher.subscribe(createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch)));
-		dispatcher.subscribe(createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch)));
+		dispatcher.addConsumer(createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch)));
+		dispatcher.addConsumer(createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch)));
 		dispatcher.dispatch(new StringMessage("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
@@ -70,8 +70,8 @@ public class SimpleDispatcherTests {
 		SimpleDispatcher dispatcher = new SimpleDispatcher();
 		final AtomicInteger counter = new AtomicInteger();
 		MessageConsumer target = new CountingTestEndpoint(counter, false);
-		dispatcher.subscribe(target);
-		dispatcher.subscribe(target);
+		dispatcher.addConsumer(target);
+		dispatcher.addConsumer(target);
 		try {
 			dispatcher.dispatch(new StringMessage("test"));
 		}
@@ -82,16 +82,16 @@ public class SimpleDispatcherTests {
 	}
 
 	@Test
-	public void unsubscribeBeforeSend() {
+	public void removeConsumerBeforeSend() {
 		SimpleDispatcher dispatcher = new SimpleDispatcher();
 		final AtomicInteger counter = new AtomicInteger();
 		MessageConsumer target1 = new CountingTestEndpoint(counter, false);
 		MessageConsumer target2 = new CountingTestEndpoint(counter, false);
 		MessageConsumer target3 = new CountingTestEndpoint(counter, false);
-		dispatcher.subscribe(target1);
-		dispatcher.subscribe(target2);
-		dispatcher.subscribe(target3);
-		dispatcher.unsubscribe(target2);
+		dispatcher.addConsumer(target1);
+		dispatcher.addConsumer(target2);
+		dispatcher.addConsumer(target3);
+		dispatcher.removeConsumer(target2);
 		try {
 			dispatcher.dispatch(new StringMessage("test"));
 		}
@@ -102,15 +102,15 @@ public class SimpleDispatcherTests {
 	}
 
 	@Test
-	public void unsubscribeBetweenSends() {
+	public void removeConsumerBetweenSends() {
 		SimpleDispatcher dispatcher = new SimpleDispatcher();
 		final AtomicInteger counter = new AtomicInteger();
 		MessageConsumer target1 = new CountingTestEndpoint(counter, false);
 		MessageConsumer target2 = new CountingTestEndpoint(counter, false);
 		MessageConsumer target3 = new CountingTestEndpoint(counter, false);
-		dispatcher.subscribe(target1);
-		dispatcher.subscribe(target2);
-		dispatcher.subscribe(target3);
+		dispatcher.addConsumer(target1);
+		dispatcher.addConsumer(target2);
+		dispatcher.addConsumer(target3);
 		try {
 			dispatcher.dispatch(new StringMessage("test1"));
 		}
@@ -118,7 +118,7 @@ public class SimpleDispatcherTests {
 			// ignore
 		}
 		assertEquals(3, counter.get());
-		dispatcher.unsubscribe(target2);
+		dispatcher.removeConsumer(target2);
 		try {
 			dispatcher.dispatch(new StringMessage("test2"));
 		}
@@ -126,7 +126,7 @@ public class SimpleDispatcherTests {
 			// ignore
 		}
 		assertEquals(5, counter.get());
-		dispatcher.unsubscribe(target1);
+		dispatcher.removeConsumer(target1);
 		try {
 			dispatcher.dispatch(new StringMessage("test3"));
 		}
@@ -137,11 +137,11 @@ public class SimpleDispatcherTests {
 	}
 
 	@Test(expected = MessageDeliveryException.class)
-	public void unsubscribeLastTargetCausesDeliveryException() {
+	public void removeConsumerLastTargetCausesDeliveryException() {
 		SimpleDispatcher dispatcher = new SimpleDispatcher();
 		final AtomicInteger counter = new AtomicInteger();
 		MessageConsumer target = new CountingTestEndpoint(counter, false);
-		dispatcher.subscribe(target);
+		dispatcher.addConsumer(target);
 		try {
 			dispatcher.dispatch(new StringMessage("test1"));
 		}
@@ -149,7 +149,7 @@ public class SimpleDispatcherTests {
 			// ignore
 		}
 		assertEquals(1, counter.get());
-		dispatcher.unsubscribe(target);
+		dispatcher.removeConsumer(target);
 		dispatcher.dispatch(new StringMessage("test2"));
 	}
 
@@ -167,9 +167,9 @@ public class SimpleDispatcherTests {
 		endpoint1.setSelector(new TestMessageSelector(selectorCounter, false));
 		endpoint2.setSelector(new TestMessageSelector(selectorCounter, false));
 		endpoint3.setSelector(new TestMessageSelector(selectorCounter, true));
-		dispatcher.subscribe(endpoint1);
-		dispatcher.subscribe(endpoint2);
-		dispatcher.subscribe(endpoint3);
+		dispatcher.addConsumer(endpoint1);
+		dispatcher.addConsumer(endpoint2);
+		dispatcher.addConsumer(endpoint3);
 		dispatcher.dispatch(new StringMessage("test"));
 		assertEquals(0, latch.getCount());
 		assertEquals("selectors should have been invoked one time each", 3, selectorCounter.get());
@@ -192,9 +192,9 @@ public class SimpleDispatcherTests {
 		endpoint1.setSelector(new TestMessageSelector(selectorCounter, false));
 		endpoint2.setSelector(new TestMessageSelector(selectorCounter, false));
 		endpoint3.setSelector(new TestMessageSelector(selectorCounter, false));
-		dispatcher.subscribe(endpoint1);
-		dispatcher.subscribe(endpoint2);
-		dispatcher.subscribe(endpoint3);
+		dispatcher.addConsumer(endpoint1);
+		dispatcher.addConsumer(endpoint2);
+		dispatcher.addConsumer(endpoint3);
 		boolean exceptionThrown = false;
 		try {
 			dispatcher.dispatch(new StringMessage("test"));
@@ -216,9 +216,9 @@ public class SimpleDispatcherTests {
 		MessageConsumer target1 = new CountingTestEndpoint(counter, true);
 		MessageConsumer target2 = new CountingTestEndpoint(counter, false);
 		MessageConsumer target3 = new CountingTestEndpoint(counter, false);
-		dispatcher.subscribe(target1);
-		dispatcher.subscribe(target2);
-		dispatcher.subscribe(target3);
+		dispatcher.addConsumer(target1);
+		dispatcher.addConsumer(target2);
+		dispatcher.addConsumer(target3);
 		assertTrue(dispatcher.dispatch(new StringMessage("test")));
 		assertEquals("only the first target should have been invoked", 1, counter.get());
 	}
@@ -230,9 +230,9 @@ public class SimpleDispatcherTests {
 		MessageConsumer target1 = new CountingTestEndpoint(counter, false);
 		MessageConsumer target2 = new CountingTestEndpoint(counter, true);
 		MessageConsumer target3 = new CountingTestEndpoint(counter, false);
-		dispatcher.subscribe(target1);
-		dispatcher.subscribe(target2);
-		dispatcher.subscribe(target3);
+		dispatcher.addConsumer(target1);
+		dispatcher.addConsumer(target2);
+		dispatcher.addConsumer(target3);
 		assertTrue(dispatcher.dispatch(new StringMessage("test")));
 		assertEquals("first two targets should have been invoked", 2, counter.get());
 	}
@@ -244,9 +244,9 @@ public class SimpleDispatcherTests {
 		MessageConsumer target1 = new CountingTestEndpoint(counter, false);
 		MessageConsumer target2 = new CountingTestEndpoint(counter, false);
 		MessageConsumer target3 = new CountingTestEndpoint(counter, false);
-		dispatcher.subscribe(target1);
-		dispatcher.subscribe(target2);
-		dispatcher.subscribe(target3);
+		dispatcher.addConsumer(target1);
+		dispatcher.addConsumer(target2);
+		dispatcher.addConsumer(target3);
 		try {
 			assertFalse(dispatcher.dispatch(new StringMessage("test")));
 		}
