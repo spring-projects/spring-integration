@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.CompositeMessage;
 import org.springframework.integration.message.Message;
@@ -34,9 +35,11 @@ import org.springframework.integration.message.selector.MessageSelector;
 /**
  * @author Mark Fisher
  */
-public abstract class AbstractMessageHandlingEndpoint extends AbstractMessageConsumingEndpoint {
+public abstract class AbstractMessageHandlingEndpoint extends AbstractMessageConsumingEndpoint implements ChannelRegistryAware {
 
 	private MessageChannel outputChannel;
+
+	private volatile ChannelRegistry channelRegistry;
 
 	private volatile MessageSelector selector;
 
@@ -51,6 +54,10 @@ public abstract class AbstractMessageHandlingEndpoint extends AbstractMessageCon
 
 	public MessageChannel getOutputChannel() {
 		return this.outputChannel;
+	}
+
+	public void setChannelRegistry(ChannelRegistry channelRegistry) {
+		this.channelRegistry = channelRegistry;
 	}
 
 	public void setSelector(MessageSelector selector) {
@@ -174,9 +181,8 @@ public abstract class AbstractMessageHandlingEndpoint extends AbstractMessageCon
 					replyChannel = (MessageChannel) returnAddress;
 				}
 				else if (returnAddress instanceof String) {
-					ChannelRegistry channelRegistry = this.getChannelRegistry();
-					if (channelRegistry != null) {
-						replyChannel = channelRegistry.lookupChannel((String) returnAddress);
+					if (this.channelRegistry != null) {
+						replyChannel = this.channelRegistry.lookupChannel((String) returnAddress);
 					}
 				}
 				else {

@@ -22,8 +22,6 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.channel.ChannelRegistry;
-import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.scheduling.TaskScheduler;
@@ -37,13 +35,11 @@ import org.springframework.transaction.TransactionDefinition;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegistryAware, TaskSchedulerAware, BeanNameAware, InitializingBean {
+public abstract class AbstractEndpoint implements MessageEndpoint, TaskSchedulerAware, BeanNameAware, InitializingBean {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile String name;
-
-	private volatile ChannelRegistry channelRegistry;
 
 	private volatile TaskScheduler taskScheduler;
 
@@ -65,14 +61,6 @@ public abstract class AbstractEndpoint implements MessageEndpoint, ChannelRegist
 
 	public void setBeanName(String name) {
 		this.name = name;
-	}
-
-	protected ChannelRegistry getChannelRegistry() {
-		return this.channelRegistry;
-	}
-
-	public void setChannelRegistry(ChannelRegistry channelRegistry) {
-		this.channelRegistry = channelRegistry;
 	}
 
 	protected TaskScheduler getTaskScheduler() {

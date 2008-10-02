@@ -29,7 +29,7 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  */
-public class RouterEndpoint extends AbstractMessageConsumingEndpoint {
+public class RouterEndpoint extends AbstractMessageConsumingEndpoint implements ChannelRegistryAware {
 
 	private final ChannelResolver channelResolver;
 
@@ -44,9 +44,7 @@ public class RouterEndpoint extends AbstractMessageConsumingEndpoint {
 	}
 
 
-	@Override
 	public void setChannelRegistry(ChannelRegistry channelRegistry) {
-		super.setChannelRegistry(channelRegistry);
 		if (this.channelResolver instanceof ChannelRegistryAware) {
 			((ChannelRegistryAware) this.channelResolver).setChannelRegistry(channelRegistry);
 		}
