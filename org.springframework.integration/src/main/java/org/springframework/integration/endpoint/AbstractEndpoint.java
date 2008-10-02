@@ -23,10 +23,8 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannelTemplate;
-import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.integration.scheduling.TaskSchedulerAware;
-import org.springframework.integration.util.ErrorHandler;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 
@@ -46,8 +44,6 @@ public abstract class AbstractEndpoint implements MessageEndpoint, TaskScheduler
 	private volatile PlatformTransactionManager transactionManager;
 
 	private volatile TransactionDefinition transactionDefinition;
-
-	private volatile ErrorHandler errorHandler;
 
 	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
@@ -76,16 +72,6 @@ public abstract class AbstractEndpoint implements MessageEndpoint, TaskScheduler
 		return this.channelTemplate;
 	}
 
-	/**
-	 * Provide an error handler for any Exceptions that occur
-	 * upon invocation of this endpoint. If none is provided,
-	 * the Exception messages will be logged (at warn level),
-	 * and the Exception rethrown.
-	 */
-	public void setErrorHandler(ErrorHandler errorHandler) {
-		this.errorHandler = errorHandler;
-	}
-
 	public final void afterPropertiesSet() {
 		try {
 			this.initialize();
@@ -102,16 +88,6 @@ public abstract class AbstractEndpoint implements MessageEndpoint, TaskScheduler
 	 * Subclasses may override this method for custom initialization requirements.
 	 */
 	protected void initialize()  throws Exception {
-	}
-
-	protected void handleException(MessagingException exception) {
-		if (this.errorHandler == null) {
-			if (this.logger.isWarnEnabled()) {
-				this.logger.warn("exception occurred in endpoint '" + this.name + "'", exception);
-			}
-			throw exception;
-		}
-		this.errorHandler.handle(exception);
 	}
 
 	protected final void configureTransactionSettingsForPoller(AbstractPoller poller) {

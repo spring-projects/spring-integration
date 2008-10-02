@@ -29,6 +29,7 @@ import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.scheduling.Trigger;
+import org.springframework.integration.util.ErrorHandler;
 import org.springframework.util.Assert;
 
 /**
@@ -50,6 +51,8 @@ public abstract class AbstractMessageConsumingEndpoint extends AbstractEndpoint 
 
 	private volatile int maxMessagesPerPoll = -1;
 
+	private volatile ErrorHandler errorHandler;
+
 	private volatile boolean initialized;
 
 	private volatile boolean running;
@@ -67,6 +70,16 @@ public abstract class AbstractMessageConsumingEndpoint extends AbstractEndpoint 
 
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
 		this.taskExecutor = taskExecutor;
+	}
+
+	/**
+	 * Provide an error handler for any Exceptions that occur
+	 * upon invocation of this endpoint. If none is provided,
+	 * the Exception messages will be logged (at warn level),
+	 * and the Exception rethrown.
+	 */
+	public void setErrorHandler(ErrorHandler errorHandler) {
+		this.errorHandler = errorHandler;
 	}
 
 	public void setMaxMessagesPerPoll(int maxMessagesPerPoll) {
@@ -151,6 +164,16 @@ public abstract class AbstractMessageConsumingEndpoint extends AbstractEndpoint 
 						"failure occurred in endpoint '" + this.toString() + "'", e));
 			}
 		}
+	}
+
+	protected void handleException(MessagingException exception) {
+		if (this.errorHandler == null) {
+			if (this.logger.isWarnEnabled()) {
+				this.logger.warn("exception occurred in endpoint '" + this + "'", exception);
+			}
+			throw exception;
+		}
+		this.errorHandler.handle(exception);
 	}
 
 	protected abstract void onMessageInternal(Message<?> message);
