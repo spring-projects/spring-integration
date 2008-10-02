@@ -65,7 +65,7 @@ public class ServiceActivatorEndpoint extends AbstractMessageHandlingEndpoint {
 			if (e instanceof RuntimeException) {
 				throw (RuntimeException) e;
 			}
-			throw new MessageHandlingException(message, "failure occurred in endpoint '" + this.getName() + "'", e);
+			throw new MessageHandlingException(message, "failure occurred in endpoint '" + this + "'", e);
 		}
 	}
 

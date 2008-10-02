@@ -52,13 +52,6 @@ public abstract class AbstractEndpoint implements MessageEndpoint, TaskScheduler
 	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
 
-	/**
-	 * Return the name of this endpoint.
-	 */
-	public String getName() {
-		return this.name;
-	}
-
 	public void setBeanName(String name) {
 		this.name = name;
 	}
@@ -101,7 +94,7 @@ public abstract class AbstractEndpoint implements MessageEndpoint, TaskScheduler
 			if (e instanceof RuntimeException) {
 				throw (RuntimeException) e;
 			}
-			throw new ConfigurationException("failed to initialize endpoint '" + this.getName() + "'", e);
+			throw new ConfigurationException("failed to initialize endpoint '" + this + "'", e);
 		}
 	}
 

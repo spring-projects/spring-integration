@@ -74,7 +74,7 @@ public abstract class AbstractMessageHandlingEndpoint extends AbstractMessageCon
 		Object result = this.handle(message);
 		if (result == null) {
 			if (this.requiresReply) {
-				throw new MessageHandlingException(message, "endpoint '" + this.getName()
+				throw new MessageHandlingException(message, "endpoint '" + this
 						+ "' requires a reply, but no reply was received");
 			}
 			return;
