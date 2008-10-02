@@ -19,7 +19,6 @@ package org.springframework.integration.channel;
 import org.springframework.integration.dispatcher.MessageDispatcher;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageConsumer;
-import org.springframework.integration.message.SubscribableChannel;
 import org.springframework.util.Assert;
 
 /**

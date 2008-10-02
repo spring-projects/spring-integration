@@ -27,10 +27,9 @@ import org.springframework.integration.message.Message;
 
 /**
  * Base class for {@link MessageChannel} implementations providing common
- * properties such as the channel name and {@link DispatcherPolicy}. Also
- * provides the common functionality for sending and receiving
- * {@link Message Messages} including the invocation of any
- * {@link ChannelInterceptor ChannelInterceptors}.
+ * properties such as the channel name. Also provides the common functionality
+ * for sending and receiving {@link Message Messages} including the invocation
+ * of any {@link ChannelInterceptor ChannelInterceptors}.
  * 
  * @author Mark Fisher
  */

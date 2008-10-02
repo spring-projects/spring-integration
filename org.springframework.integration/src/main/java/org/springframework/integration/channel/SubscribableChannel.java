@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration.channel;
 
-import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.message.MessageConsumer;
 
 /**
  * Interface for any MessageChannel implementation that accepts subscribers.
