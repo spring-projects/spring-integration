@@ -58,7 +58,7 @@ public class CharacterStreamWritingMessageConsumerTests {
 	public void twoStringsAndNoNewLinesByDefault() {
 		StringWriter writer = new StringWriter();
 		CharacterStreamWritingMessageConsumer consumer = new CharacterStreamWritingMessageConsumer(writer);
-		poller.subscribe(consumer);
+		poller.setConsumer(consumer);
 		poller.setMaxMessagesPerPoll(1);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
@@ -73,7 +73,7 @@ public class CharacterStreamWritingMessageConsumerTests {
 		StringWriter writer = new StringWriter();
 		CharacterStreamWritingMessageConsumer consumer = new CharacterStreamWritingMessageConsumer(writer);
 		consumer.setShouldAppendNewLine(true);
-		poller.subscribe(consumer);
+		poller.setConsumer(consumer);
 		poller.setMaxMessagesPerPoll(1);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
@@ -89,7 +89,7 @@ public class CharacterStreamWritingMessageConsumerTests {
 		StringWriter writer = new StringWriter();
 		CharacterStreamWritingMessageConsumer consumer = new CharacterStreamWritingMessageConsumer(writer);
 		poller.setMaxMessagesPerPoll(2);
-		poller.subscribe(consumer);
+		poller.setConsumer(consumer);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
 		poller.run();
@@ -102,7 +102,7 @@ public class CharacterStreamWritingMessageConsumerTests {
 		CharacterStreamWritingMessageConsumer consumer = new CharacterStreamWritingMessageConsumer(writer);
 		poller.setMaxMessagesPerPoll(10);
 		poller.setReceiveTimeout(0);
-		poller.subscribe(consumer);		
+		poller.setConsumer(consumer);		
 		consumer.setShouldAppendNewLine(true);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
@@ -115,7 +115,7 @@ public class CharacterStreamWritingMessageConsumerTests {
 	public void singleNonStringObject() {
 		StringWriter writer = new StringWriter();
 		CharacterStreamWritingMessageConsumer consumer = new CharacterStreamWritingMessageConsumer(writer);
-		poller.subscribe(consumer);
+		poller.setConsumer(consumer);
 		poller.setMaxMessagesPerPoll(1);
 		TestObject testObject = new TestObject("foo");
 		channel.send(new GenericMessage<TestObject>(testObject));
@@ -129,7 +129,7 @@ public class CharacterStreamWritingMessageConsumerTests {
 		CharacterStreamWritingMessageConsumer consumer = new CharacterStreamWritingMessageConsumer(writer);
 		poller.setReceiveTimeout(0);
 		poller.setMaxMessagesPerPoll(2);
-		poller.subscribe(consumer);
+		poller.setConsumer(consumer);
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
 		channel.send(new GenericMessage<TestObject>(testObject1), 0);
@@ -145,7 +145,7 @@ public class CharacterStreamWritingMessageConsumerTests {
 		consumer.setShouldAppendNewLine(true);
 		poller.setReceiveTimeout(0);
 		poller.setMaxMessagesPerPoll(2);
-		poller.subscribe(consumer);
+		poller.setConsumer(consumer);
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
 		channel.send(new GenericMessage<TestObject>(testObject1), 0);

@@ -74,7 +74,7 @@ public class ByteStreamWritingMessageConsumerTests {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		ByteStreamWritingMessageConsumer consumer = new ByteStreamWritingMessageConsumer(stream);
 		poller.setMaxMessagesPerPoll(3);
-		poller.subscribe(consumer);
+		poller.setConsumer(consumer);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -90,7 +90,7 @@ public class ByteStreamWritingMessageConsumerTests {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		ByteStreamWritingMessageConsumer consumer = new ByteStreamWritingMessageConsumer(stream);
 		poller.setMaxMessagesPerPoll(2);
-		poller.subscribe(consumer);
+		poller.setConsumer(consumer);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -106,7 +106,7 @@ public class ByteStreamWritingMessageConsumerTests {
 		ByteStreamWritingMessageConsumer consumer = new ByteStreamWritingMessageConsumer(stream);
 		poller.setMaxMessagesPerPoll(5);
 		poller.setReceiveTimeout(0);
-		poller.subscribe(consumer);
+		poller.setConsumer(consumer);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -122,7 +122,7 @@ public class ByteStreamWritingMessageConsumerTests {
 		ByteStreamWritingMessageConsumer consumer = new ByteStreamWritingMessageConsumer(stream);
 		poller.setMaxMessagesPerPoll(2);
 		poller.setReceiveTimeout(0);
-		poller.subscribe(consumer);
+		poller.setConsumer(consumer);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -143,7 +143,7 @@ public class ByteStreamWritingMessageConsumerTests {
 		ByteStreamWritingMessageConsumer consumer = new ByteStreamWritingMessageConsumer(stream);
 		poller.setMaxMessagesPerPoll(5);
 		poller.setReceiveTimeout(0);
-		poller.subscribe(consumer);
+		poller.setConsumer(consumer);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -163,7 +163,7 @@ public class ByteStreamWritingMessageConsumerTests {
 		ByteStreamWritingMessageConsumer consumer = new ByteStreamWritingMessageConsumer(stream);
 		poller.setMaxMessagesPerPoll(2);
 		poller.setReceiveTimeout(0);
-		poller.subscribe(consumer);
+		poller.setConsumer(consumer);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
@@ -183,7 +183,7 @@ public class ByteStreamWritingMessageConsumerTests {
 		ByteStreamWritingMessageConsumer consumer = new ByteStreamWritingMessageConsumer(stream);
 		poller.setMaxMessagesPerPoll(2);
 		poller.setReceiveTimeout(0);
-		poller.subscribe(consumer);
+		poller.setConsumer(consumer);
 		channel.send(new GenericMessage<byte[]>(new byte[] {1,2,3}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {4,5,6}), 0);
 		channel.send(new GenericMessage<byte[]>(new byte[] {7,8,9}), 0);
