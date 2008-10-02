@@ -85,13 +85,13 @@ public class ChannelAdapterParserTests extends AbstractJUnit4SpringContextTests 
 		String beanName = "methodInvokingSource";
 		PollableChannel channel =  (PollableChannel) this.applicationContext.getBean("queueChannel");
 		MessageBus bus = (MessageBus) this.applicationContext.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
+		bus.start();
 		assertNull(bus.lookupChannel(beanName));
 		Object adapter = this.applicationContext.getBean(beanName);
 		assertNotNull(adapter);
 		assertTrue(adapter instanceof SourcePollingChannelAdapter);
 		TestBean testBean = (TestBean) this.applicationContext.getBean("testBean");
 		testBean.store("source test");
-		bus.start();
 		Message<?> message = channel.receive(1000);
 		assertNotNull(message);
 		assertEquals("source test", testBean.getMessage());
