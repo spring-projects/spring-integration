@@ -18,7 +18,6 @@ package org.springframework.integration.endpoint;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.scheduling.SchedulableTask;
 import org.springframework.integration.scheduling.Trigger;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -33,7 +32,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractPoller implements SchedulableTask, InitializingBean {
+public abstract class AbstractPoller implements Runnable, InitializingBean {
 
 	public static final int MAX_MESSAGES_UNBOUNDED = -1;
 
@@ -134,14 +133,14 @@ public abstract class AbstractPoller implements SchedulableTask, InitializingBea
 	private void poll() {
 		int count = 0;
 		while (this.maxMessagesPerPoll < 0 || count < this.maxMessagesPerPoll) {
-			if (!this.pollWithinTransaction()) {
+			if (!this.innerPoll()) {
 				break;
 			}
 			count++;
 		}
 	}
 
-	private boolean pollWithinTransaction() {
+	private boolean innerPoll() {
 		TransactionTemplate txTemplate = this.getTransactionTemplate();
 		if (txTemplate != null) {
 			return (Boolean) txTemplate.execute(new TransactionCallback() {
