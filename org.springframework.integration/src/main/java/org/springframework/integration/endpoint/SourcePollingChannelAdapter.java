@@ -16,14 +16,13 @@
 
 package org.springframework.integration.endpoint;
 
-import java.util.concurrent.ScheduledFuture;
-
-import org.springframework.context.Lifecycle;
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.MessageChannelTemplate;
+import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MethodInvokingSource;
-import org.springframework.integration.scheduling.TaskScheduler;
-import org.springframework.integration.scheduling.Trigger;
+import org.springframework.util.Assert;
 
 /**
  * A Channel Adapter implementation for connecting a
@@ -32,73 +31,55 @@ import org.springframework.integration.scheduling.Trigger;
  * 
  * @author Mark Fisher
  */
-public class SourcePollingChannelAdapter extends AbstractMessageProducingEndpoint implements Lifecycle {
+public class SourcePollingChannelAdapter extends AbstractPollingEndpoint implements BeanNameAware {
+
+	private volatile String name;
 
 	private volatile MessageSource<?> source;
 
-	private volatile Trigger trigger;
+	private volatile MessageChannel outputChannel;
 
-	private volatile SourcePoller poller;
+	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
-	private volatile ScheduledFuture<?> pollerFuture;
 
-	private volatile int maxMessagesPerPoll = -1;
-
-	private volatile boolean running;
-
-	private final Object lifecycleMonitor = new Object();
-
+	public void setBeanName(String beanName) {
+		this.name = beanName;
+	}
 
 	public void setSource(MessageSource<?> source) {
 		this.source = source;
 	}
 
-	public void setTrigger(Trigger trigger) {
-		this.trigger = trigger;
+	public void setOutputChannel(MessageChannel outputChannel) {
+		this.outputChannel = outputChannel;
 	}
 
-	public void setMaxMessagesPerPoll(int maxMessagesPerPoll) {
-		this.maxMessagesPerPoll = maxMessagesPerPoll;
-		if (this.poller != null) {
-			this.poller.setMaxMessagesPerPoll(maxMessagesPerPoll);
+	public void setSendTimeout(long sendTimeout) {
+		this.channelTemplate.setSendTimeout(sendTimeout);
+	}
+
+	public void afterPropertiesSet() {
+		Assert.notNull(this.source, "source must not be null");
+		Assert.notNull(this.outputChannel, "outputChannel must not be null");
+		super.afterPropertiesSet();
+		if (this.maxMessagesPerPoll < 0 && source instanceof MethodInvokingSource) {
+			// the default is 1 since a MethodInvokingSource might return
+			// a non-null value every time it is invoked
+			this.setMaxMessagesPerPoll(1);
 		}
 	}
 
-	public final boolean isRunning() {
-		return this.running;
+	@Override
+	protected boolean doPoll() {
+		Message<?> message = this.source.receive();
+		if (message != null) {
+			return this.channelTemplate.send(message, this.outputChannel);
+		}
+		return false;
 	}
 
-	public final void start() {
-		synchronized (this.lifecycleMonitor) {
-			if (this.running) {
-				return;
-			}
-			this.poller = new SourcePoller(source, this.getOutputChannel(), trigger);
-			if (maxMessagesPerPoll < 0 && source instanceof MethodInvokingSource) {
-				// the default is 1 since a MethodInvokingSource might return a non-null value
-				// every time it is invoked, thus producing an infinite number of messages per poll
-				maxMessagesPerPoll = 1;
-			}
-			this.configureTransactionSettingsForPoller(this.poller);
-			this.poller.setMaxMessagesPerPoll(maxMessagesPerPoll);
-			TaskScheduler taskScheduler = this.getTaskScheduler();
-			if (taskScheduler != null) {
-				this.pollerFuture = taskScheduler.schedule(this.poller, this.poller.getTrigger());
-			}
-			this.running = true;
-		}
-	}
-
-	public final void stop() {
-		synchronized (this.lifecycleMonitor) {
-			if (!this.running) {
-				return;
-			}
-			if (this.pollerFuture != null) {
-				this.pollerFuture.cancel(true);
-			}
-			this.running = false;
-		}
+	public String toString() {
+		return this.name;
 	}
 
 }
