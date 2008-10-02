@@ -36,7 +36,7 @@ public class ReplyMessageCorrelatorTests {
 		QueueChannel replyChannel = new QueueChannel();
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setCorrelationId("123").setReturnAddress(replyChannel).build();
-		correlator.handle(message);
+		correlator.onMessage(message);
 		Message<?> reply = replyChannel.receive(0);
 		assertEquals("test", reply.getPayload());
 	}

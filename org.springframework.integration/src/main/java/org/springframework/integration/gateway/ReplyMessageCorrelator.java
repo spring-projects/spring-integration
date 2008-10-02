@@ -16,11 +16,8 @@
 
 package org.springframework.integration.gateway;
 
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.AbstractMessageHandlingEndpoint;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.message.MessagingException;
 
 /**
  * A handler for receiving messages from a "reply channel".
@@ -31,30 +28,7 @@ public class ReplyMessageCorrelator extends AbstractMessageHandlingEndpoint {
 
 	@Override
 	public Message<?> handle(Message<?> message) {
-		Object returnAddress = message.getHeaders().getReturnAddress();
-		if (returnAddress == null) {
-			throw new MessageHandlingException(message,
-					"unable to correlate response, message has no returnAddress");
-		}
-		MessageChannel replyChannel = null;
-		if (returnAddress instanceof MessageChannel) {
-			replyChannel = (MessageChannel) returnAddress;
-		}
-		else if (returnAddress instanceof String) {
-			replyChannel = this.getChannelRegistry().lookupChannel((String) returnAddress);
-			if (replyChannel == null) {
-				throw new MessagingException(message,
-						"unable to resolve returnAddress '" + returnAddress + "'");
-			}
-		}
-		else {
-			throw new MessagingException(message,
-					"invalid returnAddress type [" + returnAddress.getClass() + "]");
-		}
-		if (replyChannel != null) {
-			replyChannel.send(message);
-		}
-		return null;
+		return message;
 	}
 
 }
