@@ -30,6 +30,7 @@ import org.springframework.ws.client.core.WebServiceMessageCallback;
 import org.springframework.ws.client.core.WebServiceTemplate;
 import org.springframework.ws.soap.SoapMessage;
 import org.springframework.ws.soap.client.core.SoapActionCallback;
+import org.springframework.ws.transport.WebServiceMessageSender;
 
 /**
  * Base class for outbound Web Service-invoking adapters.
@@ -65,7 +66,15 @@ public abstract class AbstractWebServiceHandler extends AbstractMessageHandlingE
 	public void setFaultMessageResolver(FaultMessageResolver faultMessageResolver) {
 		this.webServiceTemplate.setFaultMessageResolver(faultMessageResolver);
 	}
+	
+	public void setMessageSender(WebServiceMessageSender messageSender) {
+		this.webServiceTemplate.setMessageSender(messageSender);
+	}
 
+	public void setMessageSenders(WebServiceMessageSender[] messageSenders) {
+		this.webServiceTemplate.setMessageSenders(messageSenders);
+	}
+	
 	protected WebServiceTemplate getWebServiceTemplate() {
 		return this.webServiceTemplate;
 	}

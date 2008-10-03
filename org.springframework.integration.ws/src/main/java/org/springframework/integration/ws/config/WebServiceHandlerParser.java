@@ -91,6 +91,19 @@ public class WebServiceHandlerParser extends AbstractSingleBeanDefinitionParser 
 		if (StringUtils.hasText(faultMessageResolverRef)) {
 			builder.addPropertyReference("faultMessageResolver", faultMessageResolverRef);
 		}
+		
+		String messageSenderRef = element.getAttribute("message-sender");
+		String messageSenderListRef = element.getAttribute("message-senders");
+		if(StringUtils.hasText(messageSenderRef) && StringUtils.hasText(messageSenderListRef)){
+			throw new ConfigurationException("Only one of message-sender or mesage-senders should be specified");
+		}
+		
+		if (StringUtils.hasText(messageSenderRef)) {
+			builder.addPropertyReference("messageSender", messageSenderRef);
+		}
+		if (StringUtils.hasText(messageSenderListRef)) {
+			builder.addPropertyReference("messageSenders", messageSenderListRef);
+		}
 	}
 
 }

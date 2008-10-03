@@ -33,6 +33,8 @@
 			<xsd:attribute name="request-callback" type="xsd:string"/>
 			<xsd:attribute name="message-factory" type="xsd:string"/>
 			<xsd:attribute name="fault-message-resolver" type="xsd:string"/>
+			<xsd:attribute name="message-sender" type="xsd:string"/>
+			<xsd:attribute name="message-senders" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
 

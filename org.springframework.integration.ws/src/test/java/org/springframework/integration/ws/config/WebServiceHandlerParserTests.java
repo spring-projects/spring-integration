@@ -32,6 +32,7 @@ import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.FaultMessageResolver;
 import org.springframework.ws.client.core.SourceExtractor;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
+import org.springframework.ws.transport.WebServiceMessageSender;
 
 /**
  * @author Mark Fisher
@@ -106,6 +107,31 @@ public class WebServiceHandlerParserTests {
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("webServiceTemplate"));
 		FaultMessageResolver resolver = (FaultMessageResolver) context.getBean("faultMessageResolver");
 		assertEquals(resolver, accessor.getPropertyValue("faultMessageResolver"));
+	}
+
+	
+	@Test
+	public void testSimpleWebServiceHandlerWithCustomMessageSender() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"simpleWebServiceHandlerParserTests.xml", this.getClass());
+		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("handlerWithCustomMessageSender");
+		assertEquals(SimpleWebServiceHandler.class, endpoint.getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
+		accessor = new DirectFieldAccessor(accessor.getPropertyValue("webServiceTemplate"));
+		WebServiceMessageSender messageSender = (WebServiceMessageSender) context.getBean("messageSender");
+		assertEquals(messageSender, ((WebServiceMessageSender[])accessor.getPropertyValue("messageSenders"))[0]);
+	}
+	@Test
+	public void testSimpleWebServiceHandlerWithCustomMessageSenderList() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"simpleWebServiceHandlerParserTests.xml", this.getClass());
+		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("handlerWithCustomMessageSenderList");
+		assertEquals(SimpleWebServiceHandler.class, endpoint.getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
+		accessor = new DirectFieldAccessor(accessor.getPropertyValue("webServiceTemplate"));
+		WebServiceMessageSender messageSender = (WebServiceMessageSender) context.getBean("messageSender");
+		assertEquals(messageSender, ((WebServiceMessageSender[])accessor.getPropertyValue("messageSenders"))[0]);
+		assertEquals("Wrong number of message senders " ,2 , ((WebServiceMessageSender[])accessor.getPropertyValue("messageSenders")).length);
 	}
 
 	@Test
