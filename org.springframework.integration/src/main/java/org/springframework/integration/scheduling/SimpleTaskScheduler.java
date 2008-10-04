@@ -50,7 +50,7 @@ public class SimpleTaskScheduler implements TaskScheduler {
 
 	private volatile ErrorHandler errorHandler;
 
-	private volatile SchedulerTask schedulerTask = new SchedulerTask();
+	private volatile SchedulerTask schedulerTask = null;
 
 	private final DelayQueue<TriggeredTask<?>> scheduledTasks = new DelayQueue<TriggeredTask<?>>();
 
@@ -105,7 +105,7 @@ public class SimpleTaskScheduler implements TaskScheduler {
 				return;
 			}
 			this.running = true;
-			this.executor.execute(this.schedulerTask);
+			this.executor.execute(this.schedulerTask = new SchedulerTask());
 		}
 		finally {
 			this.lifecycleLock.unlock();
@@ -119,16 +119,19 @@ public class SimpleTaskScheduler implements TaskScheduler {
 				return;
 			}
 			this.running = false;
+			this.schedulerTask.deactivate();
 			Thread executingThread = this.schedulerTask.executingThread.get();
 			if (executingThread != null) {
 				executingThread.interrupt();
 			}
+			this.scheduledTasks.clear();			
 			synchronized (this.executingTasks) {
 				for (TriggeredTask<?> task : this.executingTasks) {
 					task.cancel(true);
 				}
 				this.executingTasks.clear();
 			}
+			this.schedulerTask = null;
 		}
 		finally {
 			this.lifecycleLock.unlock();
@@ -148,16 +151,21 @@ public class SimpleTaskScheduler implements TaskScheduler {
 
 		private final AtomicReference<Thread> executingThread = new AtomicReference<Thread>();
 
+		private volatile boolean active = true;
 
 		public void run() {
 			if (!this.executingThread.compareAndSet(null, Thread.currentThread())) {
 				throw new SchedulingException("The SchedulerTask is already running.");
 			}
-			while (SimpleTaskScheduler.this.isRunning()) {
+			while (this.active) {
 				try {
 					TriggeredTask<?> task = SimpleTaskScheduler.this.scheduledTasks.take();
-					if (SimpleTaskScheduler.this.isRunning()) {
+					//if this thread is not active anymore, clear
+					if (this.active) {
 						SimpleTaskScheduler.this.executor.execute(task);
+					}
+					else {
+						scheduledTasks.offer(task);
 					}
 				}
 				catch (InterruptedException e) {
@@ -166,6 +174,10 @@ public class SimpleTaskScheduler implements TaskScheduler {
 				}
 			}
 			this.executingThread.set(null);
+		}
+		
+		public void deactivate() {
+			this.active = false;
 		}
 	}
 
@@ -246,6 +258,7 @@ public class SimpleTaskScheduler implements TaskScheduler {
 				this.target.run();
 			}
 			catch (Throwable t) {
+				logger.error(t);
 				if (SimpleTaskScheduler.this.errorHandler != null) {
 					SimpleTaskScheduler.this.errorHandler.handle(t);
 				}
