@@ -137,6 +137,9 @@ public abstract class AbstractPollingEndpoint implements MessageEndpoint, TaskSc
 
 	public void start() {
 		synchronized (this.lifecycleMonitor) {
+			if (!this.initialized) {
+				this.afterPropertiesSet();
+			}
 			Assert.state(this.taskScheduler != null,
 					"unable to start polling, no taskScheduler available");
 			this.runningTask = this.taskScheduler.schedule(new Poller(), this.trigger);
