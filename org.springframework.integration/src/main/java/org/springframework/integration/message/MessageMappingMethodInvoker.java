@@ -16,6 +16,7 @@
 
 package org.springframework.integration.message;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -25,7 +26,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.ConfigurationException;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.util.DefaultMethodInvoker;
 import org.springframework.integration.util.MethodInvoker;
 import org.springframework.integration.util.NameResolvingMethodInvoker;
@@ -36,10 +37,9 @@ import org.springframework.util.StringUtils;
 
 /**
  * A base or helper class for any Messaging component that acts as an adapter
- * by invoking a "plain" (not Message-aware) method for a given target object.
- * The target Object is mandatory, and either a {@link Method} reference or a
- * 'methodName' must be provided. If no Object and Method are provided, the
- * handler will simply process the request Message's payload.
+ * by invoking a "plain" (not Message-aware) method on a given target object.
+ * The target Object is mandatory, and either a {@link Method} reference, a
+ * 'methodName', or an Annotation type must be provided.
  * 
  * @author Mark Fisher
  */
@@ -54,6 +54,8 @@ public class MessageMappingMethodInvoker implements MethodInvoker, InitializingB
 	private volatile Method method;
 
 	private volatile String methodName;
+
+	private volatile Class<? extends Annotation> annotationType;
 
 	private volatile OutboundMessageMapper<Object[]> messageMapper;
 
@@ -79,6 +81,12 @@ public class MessageMappingMethodInvoker implements MethodInvoker, InitializingB
 		this.methodName = methodName;
 	}
 
+	public MessageMappingMethodInvoker(Object object, Class<? extends Annotation> annotationType) {
+		Assert.notNull(object, "object must not be null");
+		this.object = object;
+		this.annotationType = annotationType;
+	}
+
 
 	public void afterPropertiesSet() {
 		synchronized (this.initializationMonitor) {
@@ -89,17 +97,37 @@ public class MessageMappingMethodInvoker implements MethodInvoker, InitializingB
 				final List<Method> candidates = new ArrayList<Method>();
 				ReflectionUtils.doWithMethods(this.object.getClass(), new ReflectionUtils.MethodCallback() {
 					public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
-						if (method.getName().equals(MessageMappingMethodInvoker.this.methodName)) {
-							candidates.add(method);
+						if (MessageMappingMethodInvoker.this.methodName != null) {
+							if (method.getName().equals(MessageMappingMethodInvoker.this.methodName)) {
+								candidates.add(method);
+							}
+						}
+						else if (MessageMappingMethodInvoker.this.annotationType != null) {
+							if (AnnotationUtils.findAnnotation(method, annotationType) != null) {
+								candidates.add(method);
+							}
 						}
 					}
 				});
 				if (candidates.size() == 0) {
-					throw new ConfigurationException("no such method '" + this.methodName
-							+ "' on target class [" + this.object.getClass() + "]"); 
+					String clause = "";
+					if (this.methodName != null) {
+						clause = " matching method name '" + this.methodName + "'";
+					}
+					else if (this.annotationType != null) {
+						clause = " matching annotation type '" + this.annotationType + "'";
+					}
+					throw new IllegalArgumentException("unable to find a candidate method"
+							+ clause + " on target class [" + this.object.getClass() + "]"); 
 				}
-				if (candidates.size() == 1) {
+				else if (candidates.size() == 1) {
 					this.method = candidates.get(0);
+				}
+				else if (this.annotationType != null) {
+					throw new IllegalArgumentException("unable to resolve method for annotation ["
+							+ this.annotationType + "], found " + candidates.size()
+							+ " candidates on target class [" + this.object.getClass() + "]: "
+							+ candidates);
 				}
 			}
 			if (this.method != null) {

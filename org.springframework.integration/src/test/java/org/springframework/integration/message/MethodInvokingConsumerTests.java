@@ -27,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
@@ -38,20 +37,20 @@ import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
 public class MethodInvokingConsumerTests {
 
 	@Test
-	public void testValidMethod() {
+	public void validMethod() {
 		MethodInvokingConsumer consumer = new MethodInvokingConsumer(new TestSink(), "validMethod");
 		consumer.afterPropertiesSet();
 		consumer.onMessage(new GenericMessage<String>("test"));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testInvalidMethodWithNoArgs() {
+	public void invalidMethodWithNoArgs() {
 		MethodInvokingConsumer consumer = new MethodInvokingConsumer(new TestSink(), "invalidMethodWithNoArgs");
 		consumer.afterPropertiesSet();
 	}
 
 	@Test(expected = MessagingException.class)
-	public void testMethodWithReturnValue() {
+	public void methodWithReturnValue() {
 		Message<?> message = new StringMessage("test");
 		try {
 			MethodInvokingConsumer consumer = new MethodInvokingConsumer(new TestSink(), "methodWithReturnValue");
@@ -64,14 +63,14 @@ public class MethodInvokingConsumerTests {
 		}
 	}
 
-	@Test(expected = ConfigurationException.class)
-	public void testNoMatchingMethodName() {
+	@Test(expected = IllegalArgumentException.class)
+	public void noMatchingMethodName() {
 		MethodInvokingConsumer consumer = new MethodInvokingConsumer(new TestSink(), "noSuchMethod");
 		consumer.afterPropertiesSet();
 	}
 
 	@Test
-	public void testSubscription() throws Exception {
+	public void subscription() throws Exception {
 		GenericApplicationContext context = new GenericApplicationContext();
 		SynchronousQueue<String> queue = new SynchronousQueue<String>();
 		TestBean testBean = new TestBean(queue);
@@ -138,7 +137,6 @@ public class MethodInvokingConsumerTests {
 		public String get() {
 			return this.result;
 		}
-
 	}
 
 }
