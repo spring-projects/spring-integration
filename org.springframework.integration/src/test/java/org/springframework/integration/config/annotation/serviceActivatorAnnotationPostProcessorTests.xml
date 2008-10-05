@@ -13,7 +13,7 @@
 	<channel id="inputChannel"/>
 
 	<channel id="outputChannel">
-		<queue capacity="5"/>
+		<queue capacity="1"/>
 	</channel>
 
 	<service-activator input-channel="inputChannel" ref="testBean" output-channel="outputChannel"/>

@@ -18,6 +18,7 @@ package org.springframework.integration.config;
 
 import java.util.concurrent.CountDownLatch;
 
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 
@@ -46,6 +47,7 @@ public class TestHandler {
 		this.replyMessageText = replyMessageText;
 	}
 
+	@ServiceActivator
 	public Message<?> handle(Message<?> message) {
 		this.messageString = message.getPayload().toString();
 		this.latch.countDown();

@@ -23,13 +23,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
-import org.springframework.aop.support.DelegatingIntroductionInterceptor;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanNameAware;
@@ -58,13 +54,12 @@ import org.springframework.util.ReflectionUtils;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware, InitializingBean, BeanClassLoaderAware {
+public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware, InitializingBean {
 
 	private final MessageBus messageBus;
 
 	private volatile ConfigurableBeanFactory beanFactory;
 
-	private volatile ClassLoader beanClassLoader = ClassUtils.getDefaultClassLoader();
 
 	private final Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> postProcessors =
 			new HashMap<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>>();
@@ -82,10 +77,6 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 		this.beanFactory = (ConfigurableBeanFactory) beanFactory;
 	}
 
-	public void setBeanClassLoader(ClassLoader beanClassLoader) {
-		this.beanClassLoader = beanClassLoader;
-	}
-
 	public void afterPropertiesSet() {
 		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
 		postProcessors.put(Aggregator.class, new AggregatorAnnotationPostProcessor(this.messageBus));
@@ -100,16 +91,13 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 		return bean;
 	}
 
-	public Object postProcessAfterInitialization(Object bean, final String beanName) throws BeansException {
+	public Object postProcessAfterInitialization(final Object bean, final String beanName) throws BeansException {
 		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
-		final Object originalBean = bean;
 		final Class<?> beanClass = this.getBeanClass(bean);
 		if (!this.isStereotype(beanClass)) {
 			// we only post-process stereotype components
 			return bean;
 		}
-		final ProxyFactory proxyFactory = new ProxyFactory(bean);
-		final AtomicBoolean isProxy = new AtomicBoolean(false);
 		ReflectionUtils.doWithMethods(beanClass, new ReflectionUtils.MethodCallback() {
 			@SuppressWarnings("unchecked")
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
@@ -117,35 +105,13 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 				for (Annotation annotation : annotations) {
 					MethodAnnotationPostProcessor postProcessor = postProcessors.get(annotation.annotationType());
 					if (postProcessor != null) {
-						Object result = postProcessor.postProcess(originalBean, beanName, method, annotation);
-						if (result != null) {
-							if (result instanceof MessageEndpoint) {
-								String endpointBeanName = generateBeanName(beanName, method, annotation.annotationType());
-								if (result instanceof BeanNameAware) {
-									((BeanNameAware) result).setBeanName(endpointBeanName);
-								}
-								beanFactory.registerSingleton(endpointBeanName, result);
+						Object result = postProcessor.postProcess(bean, beanName, method, annotation);
+						if (result != null && result instanceof MessageEndpoint) {
+							String endpointBeanName = generateBeanName(beanName, method, annotation.annotationType());
+							if (result instanceof BeanNameAware) {
+								((BeanNameAware) result).setBeanName(endpointBeanName);
 							}
-							else {
-								boolean shouldProxy = false;
-								Class<?>[] interfaces = ClassUtils.getAllInterfaces(result);
-								for (Class<?> iface : interfaces) {
-									if (!iface.getPackage().getName().startsWith("org.springframework.integration")) {
-										continue;
-									}
-									if (proxyFactory.isInterfaceProxied(iface)) {
-										throw new IllegalStateException("interface [" + iface + "] is already proxied");
-									}
-									shouldProxy = true;
-								}
-								if (result instanceof ChannelRegistryAware) {
-									((ChannelRegistryAware) result).setChannelRegistry(messageBus);
-								}
-								if (shouldProxy) {
-									proxyFactory.addAdvice(new DelegatingIntroductionInterceptor(result));
-									isProxy.set(true);
-								}
-							}
+							beanFactory.registerSingleton(endpointBeanName, result);
 						}
 					}
 				}
@@ -153,9 +119,6 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 		});
 		if (bean instanceof ChannelRegistryAware) {
 			((ChannelRegistryAware) bean).setChannelRegistry(messageBus);
-		}
-		if (isProxy.get()) {
-			return proxyFactory.getProxy(this.beanClassLoader);
 		}
 		return bean;
 	}

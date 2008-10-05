@@ -284,6 +284,8 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 		}
 	}
 
+	// Lifecycle implementation
+
 	public boolean isRunning() {
 		synchronized (this.lifecycleMonitor) {
 			return this.running;

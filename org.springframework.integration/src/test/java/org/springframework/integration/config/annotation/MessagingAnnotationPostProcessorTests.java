@@ -44,6 +44,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.config.MessageBusParser;
 import org.springframework.integration.endpoint.ChannelPoller;
 import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
 import org.springframework.integration.message.Message;
@@ -51,7 +52,6 @@ import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.scheduling.Trigger;
-import org.springframework.integration.util.MethodInvoker;
 
 /**
  * @author Mark Fisher
@@ -59,25 +59,32 @@ import org.springframework.integration.util.MethodInvoker;
 public class MessagingAnnotationPostProcessorTests {
 
 	@Test
-	public void testHandlerAnnotation() {
+	public void testServiceActivatorAnnotation() {
 		GenericApplicationContext context = new GenericApplicationContext();
 		DefaultMessageBus messageBus = new DefaultMessageBus();
 		messageBus.setApplicationContext(context);
+		QueueChannel inputChannel = new QueueChannel();
+		inputChannel.setBeanName("inputChannel");
+		messageBus.registerChannel(inputChannel);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
 		postProcessor.setBeanFactory(context.getBeanFactory());
 		postProcessor.afterPropertiesSet();
-		HandlerAnnotatedBean bean = new HandlerAnnotatedBean();
-		Object result = postProcessor.postProcessAfterInitialization(bean, "testBean");
-		assertTrue(result instanceof MethodInvoker);
+		ServiceActivatorAnnotatedBean bean = new ServiceActivatorAnnotatedBean();
+		postProcessor.postProcessAfterInitialization(bean, "testBean");
+		assertTrue(context.containsBean("testBean.test.serviceActivator"));
+		Object endpoint = context.getBean("testBean.test.serviceActivator");
+		assertTrue(endpoint instanceof org.springframework.integration.endpoint.MessageEndpoint);
 	}
 
 	@Test
-	public void testSimpleHandlerWithContext() throws Exception {
+	public void testServiceActivatorWithContext() throws Exception {
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext(
 				"serviceActivatorAnnotationPostProcessorTests.xml", this.getClass());
-		MethodInvoker invoker = (MethodInvoker) context.getBean("testBean");
-		String reply = (String) invoker.invokeMethod(new StringMessage("world"));
-		assertEquals("hello world", reply);
+		MessageChannel inputChannel = (MessageChannel) context.getBean("inputChannel");
+		PollableChannel outputChannel = (PollableChannel) context.getBean("outputChannel");
+		inputChannel.send(new StringMessage("world"));
+		Message<?> reply = outputChannel.receive(0);
+		assertEquals("hello world", reply.getPayload());
 		context.stop();
 	}
 
@@ -367,15 +374,23 @@ public class MessagingAnnotationPostProcessorTests {
 	@Test
 	public void testTransformer() {
 		GenericApplicationContext context = new GenericApplicationContext();
+		DirectChannel inputChannel = new DirectChannel();
+		inputChannel.setBeanName("inputChannel");
+		context.getBeanFactory().registerSingleton("inputChannel", inputChannel);
+		QueueChannel outputChannel = new QueueChannel();
+		outputChannel.setBeanName("outputChannel");
+		context.getBeanFactory().registerSingleton("outputChannel", outputChannel);
 		DefaultMessageBus messageBus = new DefaultMessageBus();
+		context.getBeanFactory().registerSingleton(MessageBusParser.MESSAGE_BUS_BEAN_NAME, messageBus);
 		messageBus.setApplicationContext(context);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
 		postProcessor.setBeanFactory(context.getBeanFactory());
 		postProcessor.afterPropertiesSet();
 		TransformerAnnotationTestBean testBean = new TransformerAnnotationTestBean();
-		org.springframework.integration.transformer.Transformer transformer =
-				(org.springframework.integration.transformer.Transformer) postProcessor.postProcessAfterInitialization(testBean, "testBean");
-		Message<?> reply = transformer.transform(new StringMessage("foo"));
+		postProcessor.postProcessAfterInitialization(testBean, "testBean");
+		context.refresh();
+		inputChannel.send(new StringMessage("foo"));
+		Message<?> reply = outputChannel.receive(0);
 		assertEquals("FOO", reply.getPayload());
 	}
 
@@ -455,9 +470,9 @@ public class MessagingAnnotationPostProcessorTests {
 
 
 	@MessageEndpoint
-	private static class HandlerAnnotatedBean {
+	private static class ServiceActivatorAnnotatedBean {
 
-		@ServiceActivator
+		@ServiceActivator(inputChannel="inputChannel")
 		public String test(String s) {
 			return s + s;
 		}
@@ -479,7 +494,7 @@ public class MessagingAnnotationPostProcessorTests {
 	@MessageEndpoint
 	private static class TransformerAnnotationTestBean {
 
-		@Transformer
+		@Transformer(inputChannel="inputChannel", outputChannel="outputChannel")
 		public String transformBefore(String input) {
 			return input.toUpperCase();
 		}

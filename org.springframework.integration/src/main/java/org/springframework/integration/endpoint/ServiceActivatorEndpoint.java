@@ -16,10 +16,14 @@
 
 package org.springframework.integration.endpoint;
 
+import java.lang.reflect.Method;
+
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageMappingMethodInvoker;
+import org.springframework.integration.util.MethodUtils;
 import org.springframework.integration.util.MethodInvoker;
 import org.springframework.util.Assert;
 
@@ -39,8 +43,18 @@ public class ServiceActivatorEndpoint extends AbstractMessageHandlingEndpoint {
 		this.invoker = invoker;
 	}
 
-	public ServiceActivatorEndpoint(Object object) {
-		this(object, DEFAULT_LISTENER_METHOD);
+	public ServiceActivatorEndpoint(final Object object) {
+		Assert.notNull(object, "object must not be null");
+		Method method = MethodUtils.findMethodWithAnnotation(object.getClass(), ServiceActivator.class);
+		if (method == null) {
+			Method[] methods = MethodUtils.findPublicMethods(object.getClass(), false);
+			if (methods.length == 1) {
+				method = methods[0];
+			}
+		}
+		Assert.notNull(method, "unable to resolve ServiceActivator method on target class ["
+				+ object.getClass() + "]");
+		this.invoker = new MessageMappingMethodInvoker(object, method);
 	}
 
 	public ServiceActivatorEndpoint(Object object, String methodName) {
