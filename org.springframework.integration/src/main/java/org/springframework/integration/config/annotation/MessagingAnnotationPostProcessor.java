@@ -46,6 +46,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * A {@link BeanPostProcessor} implementation that processes method-level
@@ -105,6 +106,9 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 				for (Annotation annotation : annotations) {
 					MethodAnnotationPostProcessor postProcessor = postProcessors.get(annotation.annotationType());
 					if (postProcessor != null) {
+						if (!shouldCreateEndpoint(annotation)) {
+							continue;
+						}
 						Object result = postProcessor.postProcess(bean, beanName, method, annotation);
 						if (result != null && result instanceof MessageEndpoint) {
 							String endpointBeanName = generateBeanName(beanName, method, annotation.annotationType());
@@ -121,6 +125,15 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 			((ChannelRegistryAware) bean).setChannelRegistry(messageBus);
 		}
 		return bean;
+	}
+
+	private boolean shouldCreateEndpoint(Annotation annotation) {
+		if (annotation instanceof ChannelAdapter) {
+			return true;
+		}
+		Object inputChannel = AnnotationUtils.getValue(annotation, "inputChannel");
+		return (inputChannel != null && inputChannel instanceof String
+				&& StringUtils.hasText((String) inputChannel));
 	}
 
 	private Class<?> getBeanClass(Object bean) {
