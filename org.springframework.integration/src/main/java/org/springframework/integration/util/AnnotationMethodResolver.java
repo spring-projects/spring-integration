@@ -17,25 +17,42 @@
 package org.springframework.integration.util;
 
 import java.lang.annotation.Annotation;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Target;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.Assert;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 
 /**
- * Helper methods for detecting Methods.
+ * MethodResolver implementation that finds a <em>single</em> Method on the
+ * given Class that contains the specified annotation type.
  * 
  * @author Mark Fisher
  */
-public abstract class MethodUtils {
+public class AnnotationMethodResolver implements MethodResolver {
+
+	private Class<? extends Annotation> annotationType;
+
+
+	/**
+	 * Create a MethodResolver for the specified Method-level annotation type
+	 */
+	public AnnotationMethodResolver(Class<? extends Annotation> annotationType) {
+		Assert.notNull(annotationType, "annotationType must not be null");
+		Assert.isTrue(ObjectUtils.containsElement(
+				annotationType.getAnnotation(Target.class).value(), ElementType.METHOD),
+				"Annotation [" + annotationType + "] is not a Method-level annotation.");
+		this.annotationType = annotationType;
+	}
+
 
 	/**
 	 * Find a <em>single</em> Method on the given Class that contains the
-	 * specified annotation type.
+	 * annotation type for which this resolver is searching.
 	 * 
 	 * @param clazz the Class instance to check for the annotation
 	 * @param annotationType the Method-level annotation type
@@ -46,12 +63,11 @@ public abstract class MethodUtils {
 	 * @throws IllegalArgumentException if more than one Method has the
 	 * specified annotation
 	 */
-	public static <T extends Annotation> Method findMethodWithAnnotation(
-			final Class<?> clazz, final Class<T> annotationType) {
+	public Method findMethod(final Class<?> clazz) {
 		final AtomicReference<Method> annotatedMethod = new AtomicReference<Method>();
 		ReflectionUtils.doWithMethods(clazz, new ReflectionUtils.MethodCallback() {
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
-				T annotation = AnnotationUtils.findAnnotation(method, annotationType);
+				Annotation annotation = AnnotationUtils.findAnnotation(method, annotationType);
 				if (annotation != null) {
 					Assert.isNull(annotatedMethod.get(), "found more than one method on target class ["
 							+ clazz + "] with the annotation type [" + annotationType + "]");
@@ -60,27 +76,6 @@ public abstract class MethodUtils {
 			}
 		});
 		return annotatedMethod.get();
-	}
-
-	/**
-	 * Find all public Methods of a given Class.
-	 * 
-	 * @param clazz the class to search
-	 * @param includeMethodsDeclaredOnObject whether to include Methods
-	 * that are declared on the Object class
-	 * 
-	 * @return array of public Methods
-	 */
-	public static Method[] findPublicMethods(
-			final Class<?> clazz, final boolean includeMethodsDeclaredOnObject) {
-		final List<Method> methods = new ArrayList<Method>();
-		for (Method method : clazz.getMethods()) {
-			if (includeMethodsDeclaredOnObject
-					|| !method.getDeclaringClass().equals(Object.class)) {
-				methods.add(method);
-			}
-		}
-		return methods.toArray(new Method[methods.size()]);
 	}
 
 }

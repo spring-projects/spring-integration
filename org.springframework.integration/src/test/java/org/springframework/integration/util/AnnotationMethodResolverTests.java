@@ -14,38 +14,42 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration.util;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.lang.reflect.Method;
 
 import org.junit.Test;
 
 /**
  * @author Mark Fisher
  */
-public class MessageMappingMethodInvokerAnnotationTests {
+public class AnnotationMethodResolverTests {
 
 	@Test
-	public void singleAnnotationMatches() {
-		SingleAnnotationTestBean testBean = new SingleAnnotationTestBean();
-		MessageMappingMethodInvoker invoker =
-				new MessageMappingMethodInvoker(testBean, TestAnnotation.class);
-		invoker.afterPropertiesSet();
-		String result = (String) invoker.invokeMethod("foo");
-		assertEquals("FOO", result);
+	public void singleAnnotation() {
+		AnnotationMethodResolver resolver = new AnnotationMethodResolver(TestAnnotation.class);
+		Method method = resolver.findMethod(SingleAnnotationTestBean.class);
+		assertNotNull(method);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void multipleAnnotationMatches() {
-		MultipleAnnotationTestBean testBean = new MultipleAnnotationTestBean();
-		MessageMappingMethodInvoker invoker =
-				new MessageMappingMethodInvoker(testBean, TestAnnotation.class);
-		invoker.afterPropertiesSet();
+	public void multipleAnnotations() {
+		AnnotationMethodResolver resolver = new AnnotationMethodResolver(TestAnnotation.class);
+		resolver.findMethod(MultipleAnnotationTestBean.class);
+	}
+
+	@Test
+	public void noAnnotations() {
+		AnnotationMethodResolver resolver = new AnnotationMethodResolver(TestAnnotation.class);
+		Method method = resolver.findMethod(NoAnnotationTestBean.class);
+		assertNull(method);
 	}
 
 
@@ -61,6 +65,10 @@ public class MessageMappingMethodInvokerAnnotationTests {
 		public String upperCase(String s) {
 			return s.toUpperCase();
 		}
+
+		public String lowerCase(String s) {
+			return s.toLowerCase();
+		}
 	}
 
 
@@ -73,6 +81,18 @@ public class MessageMappingMethodInvokerAnnotationTests {
 
 		@TestAnnotation
 		public String lowerCase(String s) {
+			return s.toLowerCase();
+		}
+	}
+
+
+	private static class NoAnnotationTestBean {
+
+		public String upperCase(String s) {
+			return s.toUpperCase();
+		}
+
+		String lowerCase(String s) {
 			return s.toLowerCase();
 		}
 	}
