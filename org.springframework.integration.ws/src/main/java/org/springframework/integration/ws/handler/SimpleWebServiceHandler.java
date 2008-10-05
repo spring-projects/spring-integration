@@ -31,6 +31,7 @@ import org.springframework.ws.client.core.WebServiceMessageCallback;
 import org.springframework.xml.transform.StringResult;
 import org.springframework.xml.transform.StringSource;
 import org.springframework.xml.transform.TransformerObjectSupport;
+import org.w3c.dom.Document;
 
 /**
  * A MessageHandler adapter for invoking a Web Service.
@@ -67,6 +68,13 @@ public class SimpleWebServiceHandler extends AbstractWebServiceHandler {
 			this.getWebServiceTemplate().sendSourceAndReceiveToResult(
 					new StringSource((String) requestPayload), requestCallback, result);
 			return result.toString();
+		}
+		if(requestPayload instanceof Document){
+			DOMResult result = new DOMResult();
+			this.getWebServiceTemplate().sendSourceAndReceiveToResult(
+					new DOMSource((Document) requestPayload), requestCallback, result);
+			return (Document)result.getNode();
+		
 		}
 		throw new MessagingException("Unsupported payload type '" + requestPayload.getClass() +
 				"'. " + this.getClass().getName() + " only supports 'java.lang.String' and '" + Source.class.getName() +
