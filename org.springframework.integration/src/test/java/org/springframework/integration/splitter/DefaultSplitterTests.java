@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.junit.Test;
 
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 
@@ -36,8 +37,11 @@ public class DefaultSplitterTests {
 	public void splitMessageWithArrayPayload() throws Exception {
 		String[] payload = new String[] { "x", "y", "z" };
 		Message<String[]> message = MessageBuilder.withPayload(payload).build();
-		DefaultSplitter splitter = new DefaultSplitter();
-		List<Message<?>> replies = splitter.split(message);
+		QueueChannel replyChannel = new QueueChannel();
+		DefaultMessageSplitter splitter = new DefaultMessageSplitter();
+		splitter.setOutputChannel(replyChannel);
+		splitter.onMessage(message);
+		List<Message<?>> replies = replyChannel.clear();
 		assertEquals(3, replies.size());
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
@@ -54,8 +58,11 @@ public class DefaultSplitterTests {
 	public void splitMessageWithCollectionPayload() throws Exception {
 		List<String> payload = Arrays.asList(new String[] { "x", "y", "z" });
 		Message<List<String>> message = MessageBuilder.withPayload(payload).build();
-		DefaultSplitter splitter = new DefaultSplitter();
-		List<Message<?>> replies = splitter.split(message);
+		QueueChannel replyChannel = new QueueChannel();
+		DefaultMessageSplitter splitter = new DefaultMessageSplitter();
+		splitter.setOutputChannel(replyChannel);
+		splitter.onMessage(message);
+		List<Message<?>> replies = replyChannel.clear();
 		assertEquals(3, replies.size());
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);

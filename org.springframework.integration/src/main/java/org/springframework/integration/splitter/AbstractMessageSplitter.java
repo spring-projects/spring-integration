@@ -20,17 +20,30 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
+import org.springframework.integration.message.CompositeMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHeaders;
 
 /**
+ * Base class for Message-splitting consumers.
+ * 
  * @author Mark Fisher
  */
-public abstract class AbstractSplitter implements Splitter {
+public abstract class AbstractMessageSplitter extends AbstractReplyProducingMessageConsumer {
 
-	public List<Message<?>> split(Message<?> message) {
+	@Override
+	protected final boolean shouldSplitComposite() {
+		return true;
+	}
+
+	@Override
+	protected final Message<?> handle(Message<?> message) {
 		Object result = this.splitMessage(message);
+		if (result == null) {
+			return null;
+		}
 		MessageHeaders requestHeaders = message.getHeaders();
 		List<Message<?>> results = new ArrayList<Message<?>>();
 		if (result instanceof Collection) {
@@ -55,10 +68,19 @@ public abstract class AbstractSplitter implements Splitter {
 		if (results.isEmpty()) {
 			return null;
 		}
-		return results;
+		return new CompositeMessage(results);
 	}
 
+	/**
+	 * Subclasses must override this method to split the received Message. The
+	 * return value may be a Collection or Array. The individual elements may
+	 * be Messages, but it is not necessary. If the elements are not Messages,
+	 * each will be provided as the payload of a Message. It is also acceptable
+	 * to return a single Object or Message. In that case, a single reply
+	 * Message will be produced.
+	 */
 	protected abstract Object splitMessage(Message<?> message);
+
 
 	private Message<?> createSplitMessage(Object item, MessageHeaders requestHeaders, int sequenceNumber, int sequenceSize) {
 		if (item instanceof Message<?>) {

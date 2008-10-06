@@ -19,11 +19,15 @@ package org.springframework.integration.splitter;
 import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageMappingMethodInvoker;
+import org.springframework.integration.util.DefaultMethodResolver;
+import org.springframework.integration.util.MethodResolver;
+import org.springframework.util.Assert;
 
 /**
- * A {@link Splitter} implementation that invokes the specified method
+ * A Message Splitter implementation that invokes the specified method
  * on the given object. The method's return value will be split if it
  * is a Collection or Array. If the return value is not a Collection or
  * Array, then the single Object will be returned as the payload of a
@@ -31,7 +35,9 @@ import org.springframework.integration.message.MessageMappingMethodInvoker;
  * 
  * @author Mark Fisher
  */
-public class MethodInvokingSplitter extends AbstractSplitter implements Splitter, InitializingBean {
+public class MethodInvokingSplitter extends AbstractMessageSplitter implements InitializingBean {
+
+	private final MethodResolver methodResolver = new DefaultMethodResolver(Splitter.class);
 
 	private final MessageMappingMethodInvoker invoker;
 
@@ -42,6 +48,14 @@ public class MethodInvokingSplitter extends AbstractSplitter implements Splitter
 
 	public MethodInvokingSplitter(Object object, String methodName) {
 		this.invoker = new MessageMappingMethodInvoker(object, methodName);
+	}
+
+	public MethodInvokingSplitter(Object object) {
+		Assert.notNull(object, "object must not be null");
+		Method method = this.methodResolver.findMethod(object.getClass()); 
+		Assert.notNull(method, "unable to resolve Splitter method on target class ["
+				+ object.getClass() + "]");
+		this.invoker = new MessageMappingMethodInvoker(object, method);
 	}
 
 

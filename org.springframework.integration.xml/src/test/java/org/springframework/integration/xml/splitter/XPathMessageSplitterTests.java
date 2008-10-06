@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,67 +13,82 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xml.splitter;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.xml.util.XmlTestUtil;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
 
+/**
+ * @author Jonas Partner
+ */
 public class XPathMessageSplitterTests {
 	
-	String splittingXPath = "/orders/order";
+	private String splittingXPath = "/orders/order";
 	
-	XPathMessageSplitter splitter;
-	
+	private XPathMessageSplitter splitter;
+
+	private QueueChannel replyChannel = new QueueChannel();
+
+
 	@Before
 	public void setUp(){
 		splitter = new XPathMessageSplitter(splittingXPath);
+		splitter.setOutputChannel(replyChannel);
 	}
-	
+
+
 	@Test
-	public void splitDocument() throws Exception{
+	public void splitDocument() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<orders><order>one</order><order>two</order><order>three</order></orders>");
-		List<Message<?>> docMessages = splitter.split(new GenericMessage<Document>(doc));
+		splitter.onMessage(new GenericMessage<Document>(doc));
+		List<Message<?>> docMessages = this.replyChannel.clear();
 		assertEquals("Wrong number of messages", 3, docMessages.size());
 		for (Message<?> message : docMessages) {
 			assertTrue("unexpected payload type" + message.getPayload().getClass().getName(), message.getPayload() instanceof Node);
 			assertFalse("unexpected payload type" + message.getPayload().getClass().getName(), message.getPayload() instanceof Document);
 		}
 	}
-	
-	@Test(expected=MessagingException.class)
-	public void splitDocumentThatDoesNotMatch() throws Exception{
+
+	@Test(expected = MessagingException.class)
+	public void splitDocumentThatDoesNotMatch() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<wrongDocument/>");
-		splitter.split(new GenericMessage<Document>(doc));
+		splitter.onMessage(new GenericMessage<Document>(doc));
 	}
-	
+
 	@Test
-	public void splitDocumentWithCreateDocumentsTrue() throws Exception{
+	public void splitDocumentWithCreateDocumentsTrue() throws Exception {
 		splitter.setCreateDocuments(true);
 		Document doc = XmlTestUtil.getDocumentForString("<orders><order>one</order><order>two</order><order>three</order></orders>");
-		List<Message<?>> docMessages = splitter.split(new GenericMessage<Document>(doc));
+		splitter.onMessage(new GenericMessage<Document>(doc));
+		List<Message<?>> docMessages = this.replyChannel.clear();
 		assertEquals("Wrong number of messages", 3, docMessages.size());
 		for (Message<?> message : docMessages) {
 			assertTrue("unexpected payload type" + message.getPayload().getClass().getName(), message.getPayload() instanceof Document);
 		}
 	}
-	
-	
+
 	@Test
-	public void splitStringXml() throws Exception{
-		List<Message<?>> docMessages = splitter.split(new GenericMessage<String>("<orders><order>one</order><order>two</order><order>three</order></orders>"));
+	public void splitStringXml() throws Exception {
+		String payload = "<orders><order>one</order><order>two</order><order>three</order></orders>";
+		splitter.onMessage(new GenericMessage<String>(payload));
+		List<Message<?>> docMessages = this.replyChannel.clear();
 		assertEquals("Wrong number of messages", 3, docMessages.size());
 		for (Message<?> message : docMessages) {
-			System.out.println(message);
 			assertTrue("unexpected payload type " + message.getPayload().getClass().getName(), message.getPayload() instanceof String);
 		}
 	}

@@ -23,12 +23,10 @@ import org.junit.Test;
 
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.splitter.MethodInvokingSplitter;
-import org.springframework.integration.splitter.SplitterEndpoint;
 
 /**
  * @author Mark Fisher
@@ -118,10 +116,9 @@ public class CorrelationIdTests {
 		QueueChannel testChannel = new QueueChannel();
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(
 				new TestBean(), TestBean.class.getMethod("split", String.class));
-		SplitterEndpoint endpoint = new SplitterEndpoint(splitter);
-		endpoint.setOutputChannel(testChannel);
+		splitter.setOutputChannel(testChannel);
 		splitter.afterPropertiesSet();
-		endpoint.onMessage(message);
+		splitter.onMessage(message);
 		Message<?> reply1 = testChannel.receive(100);
 		Message<?> reply2 = testChannel.receive(100);
 		assertEquals(message.getHeaders().getId(), reply1.getHeaders().getCorrelationId());

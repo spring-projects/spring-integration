@@ -23,9 +23,14 @@ import java.util.StringTokenizer;
 import org.springframework.integration.message.Message;
 
 /**
+ * The default Message Splitter implementation. Returns individual Messages
+ * after receiving an array or Collection. If a value is provided for the
+ * 'delimiters' property, then String payloads will be tokenized based on
+ * those delimiters.
+ * 
  * @author Mark Fisher
  */
-public class DefaultSplitter extends AbstractSplitter {
+public class DefaultMessageSplitter extends AbstractMessageSplitter {
 
 	private volatile String delimiters;
 
@@ -39,7 +44,7 @@ public class DefaultSplitter extends AbstractSplitter {
 		this.delimiters = delimiters;
 	}
 
-	public Object splitMessage(Message<?> message) {
+	protected final Object splitMessage(Message<?> message) {
 		Object payload = message.getPayload();
 		if (payload instanceof String && this.delimiters != null) {
 			List<String> tokens = new ArrayList<String>();

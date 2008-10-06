@@ -20,8 +20,9 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.splitter.DefaultMessageSplitter;
 import org.springframework.integration.splitter.MethodInvokingSplitter;
-import org.springframework.integration.splitter.SplitterEndpoint;
+import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;splitter/&gt; element.
@@ -32,12 +33,17 @@ public class SplitterParser extends AbstractEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SplitterEndpoint.class);
-		if (element.hasAttribute("ref")) {
-			String adapterBeanName = this.parseAdapter(element, parserContext, MethodInvokingSplitter.class);
-			builder.addConstructorArgReference(adapterBeanName);
+		if (element.hasAttribute(REF_ATTRIBUTE)) {
+			String ref = element.getAttribute(REF_ATTRIBUTE);
+			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingSplitter.class);
+			builder.addConstructorArgReference(ref);
+			if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
+				String method = element.getAttribute(METHOD_ATTRIBUTE);
+				builder.addConstructorArgValue(method);
+			}
+			return builder;
 		}
-		return builder;
+		return BeanDefinitionBuilder.genericBeanDefinition(DefaultMessageSplitter.class);
 	}
 
 }

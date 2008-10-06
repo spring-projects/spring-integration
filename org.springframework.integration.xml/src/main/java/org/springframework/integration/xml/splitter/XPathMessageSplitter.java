@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xml.splitter;
 
 import java.util.ArrayList;
@@ -29,26 +30,30 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.splitter.AbstractSplitter;
+import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.util.Assert;
 import org.springframework.xml.transform.StringResult;
 import org.springframework.xml.xpath.XPathExpression;
 import org.springframework.xml.xpath.XPathExpressionFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
- * Use {@link XPathExpression} to split a {@link Document} or {@link String}
- * payload into a {@link NodeList} each {@link Node} is then
- * @author Jonas Partner
+ * Message Splitter that uses an {@link XPathExpression} to split a
+ * {@link Document} or {@link String} payload into a {@link NodeList}. The
+ * return value will be either Strings or {@link Node}s depending on the
+ * received payload type. Additionally, node types will be converted to
+ * Documents if the 'createDocuments' property is set to <code>true</code>.
  * 
+ * @author Jonas Partner
  */
-public class XPathMessageSplitter extends AbstractSplitter {
+public class XPathMessageSplitter extends AbstractMessageSplitter {
 
 	private final XPathExpression xpathExpression;
 
@@ -57,6 +62,7 @@ public class XPathMessageSplitter extends AbstractSplitter {
 	private volatile DocumentBuilderFactory documentBuilderFactory;
 
 	private volatile XmlPayloadConverter xmlPayloadConverter = new DefaultXmlPayloadConverter();
+
 
 	public XPathMessageSplitter(String expression) {
 		this(expression, new HashMap<String, String>());
@@ -72,28 +78,41 @@ public class XPathMessageSplitter extends AbstractSplitter {
 		this.documentBuilderFactory.setNamespaceAware(true);
 	}
 
+
+	public void setCreateDocuments(boolean createDocuments) {
+		this.createDocuments = createDocuments;
+	}
+
+	public void setDocumentBuilder(DocumentBuilderFactory documentBuilderFactory) {
+		Assert.notNull(documentBuilderFactory, "DocumentBuilderFactory must not be null");
+		this.documentBuilderFactory = documentBuilderFactory;
+	}
+
+	public void setXmlPayloadConverter(XmlPayloadConverter xmlPayloadConverter) {
+		Assert.notNull(xmlPayloadConverter, "XmlPayloadConverter must not be null");
+		this.xmlPayloadConverter = xmlPayloadConverter;
+	}
+
 	@Override
 	protected Object splitMessage(Message<?> message) {
 		try {
 			Object payload = message.getPayload();
-			Object toReturn = null;
-
+			Object result = null;
 			if (payload instanceof Node) {
-				toReturn = splitNodePayload((Node) payload, message);
+				result = splitNodePayload((Node) payload, message);
 			}
 			else if (payload instanceof String) {
 				payload = xmlPayloadConverter.convertToDocument(payload);
-				toReturn = splitStringPayload(message);
+				result = splitStringPayload(message);
 			}
-			return toReturn;
+			return result;
 		}
 		catch (ParserConfigurationException e) {
-			throw new MessagingException(message, "Error creating DocumentBuilder", e);
+			throw new MessagingException(message, "failed to create DocumentBuilder", e);
 		}
 		catch (Exception e) {
-			throw new MessagingException(message, "Error transforming payload", e);
+			throw new MessagingException(message, "failed to split Message payload", e);
 		}
-
 	}
 
 	private Object splitStringPayload(Message<?> message) throws ParserConfigurationException,
@@ -116,7 +135,7 @@ public class XPathMessageSplitter extends AbstractSplitter {
 		if (nodeList.size() == 0) {
 			throw new MessagingException(message, "Could not split message with XPath " + xpathExpression);
 		}
-		if (createDocuments) {
+		if (this.createDocuments) {
 			return convertNodesToDocuments(nodeList);
 		}
 		return nodeList;
@@ -124,9 +143,7 @@ public class XPathMessageSplitter extends AbstractSplitter {
 	}
 
 	private List<Node> convertNodesToDocuments(List<Node> nodeList) throws ParserConfigurationException {
-		DocumentBuilder documentBuilder;
-		documentBuilder = getNewDocumentBuilder();
-
+		DocumentBuilder documentBuilder = this.getNewDocumentBuilder();
 		List<Node> docList = new ArrayList<Node>(nodeList.size());
 		for (Node node : nodeList) {
 			Document doc = documentBuilder.newDocument();
@@ -136,24 +153,9 @@ public class XPathMessageSplitter extends AbstractSplitter {
 		return docList;
 	}
 
-	public void setCreateDocuments(boolean createDocuments) {
-		this.createDocuments = createDocuments;
-	}
-
-	public void setDocumentBuilder(DocumentBuilderFactory documentBuilderFactory) {
-		Assert.notNull(documentBuilderFactory, "Document builder can not be null");
-		this.documentBuilderFactory = documentBuilderFactory;
-	}
-
-	public void setXmlPayloadConverter(XmlPayloadConverter xmlPayloadConverter) {
-		Assert.notNull(xmlPayloadConverter, "Xml Payload converter can not be null");
-		this.xmlPayloadConverter = xmlPayloadConverter;
-
-	}
-
 	protected DocumentBuilder getNewDocumentBuilder() throws ParserConfigurationException {
-		synchronized (documentBuilderFactory) {
-			return documentBuilderFactory.newDocumentBuilder();
+		synchronized (this.documentBuilderFactory) {
+			return this.documentBuilderFactory.newDocumentBuilder();
 		}
 	}
 
