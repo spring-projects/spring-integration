@@ -24,6 +24,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.util.Assert;
+
 /**
  * Composition that delegates to multiple {@link FileFilter}s. The composition
  * is AND based, meaning that a file must pass through each filter's
@@ -35,7 +37,6 @@ public class CompositeFileListFilter implements FileListFilter {
 
 	private final Set<FileListFilter> fileFilters;
 
-
 	public CompositeFileListFilter(FileListFilter... fileFilters) {
 		this.fileFilters = new HashSet<FileListFilter>(Arrays.asList(fileFilters));
 	}
@@ -44,11 +45,14 @@ public class CompositeFileListFilter implements FileListFilter {
 		this.fileFilters = new HashSet<FileListFilter>(fileFilters);
 	}
 
-
 	/**
 	 * {@inheritDoc}
+	 * 
+	 * This implementation delegates to a collection of filters and returns only files that pass all
+	 * the filters.
 	 */
 	public List<File> filterFiles(File[] files) {
+		Assert.notNull(files, "'files' should not be null");
 		List<File> leftOver = Arrays.asList(files);
 		for (FileListFilter fileFilter : fileFilters) {
 			leftOver = fileFilter.filterFiles(leftOver.toArray(new File[] {}));

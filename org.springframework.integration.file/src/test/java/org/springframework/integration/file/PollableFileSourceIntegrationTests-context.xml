@@ -16,6 +16,9 @@
 			<list>
 				<bean class="org.springframework.integration.file.AcceptOnceFileListFilter" />
 				<bean class="org.springframework.integration.file.TestFileListFilter" />
+				<bean class="org.springframework.integration.file.PatternMatchingFileListFilter">
+					<constructor-arg value="^test.*$"/>
+				</bean>
 			</list>
 		</constructor-arg>
 	</bean>

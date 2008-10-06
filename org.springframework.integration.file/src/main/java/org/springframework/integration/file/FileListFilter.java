@@ -26,6 +26,9 @@ import java.util.List;
  */
 public interface FileListFilter {
 
+	/**
+	 * Filters out files and returns the files that are left in a list.
+	 */
 	List<File> filterFiles(File[] files);
 
 }
