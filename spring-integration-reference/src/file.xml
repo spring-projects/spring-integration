@@ -97,29 +97,101 @@
 </beans>]]></programlisting>
 			Within this namespace you can reduce the PollableFileSource and wrap
 			it in a InboundChannelAdapter like this:
-			<programlisting language="xml">
-				<![CDATA[	<file:inbound-channel-adapter id="filesIn"
+			<programlisting language="xml"><![CDATA[	<file:inbound-channel-adapter id="filesIn"
 	       directory="file:${input.directory.property}"/> 					(1)
 	<file:inbound-channel-adapter id="filesIn"
-	       directory="file:${java.io.tmpdir}/spring-integration-samples/input" 
+	       directory="file:${input.directory.property}" 
 	       filter="customFilterBean" />										(2)
 	<file:inbound-channel-adapter id="filesIn"
-	       directory="file:${java.io.tmpdir}/spring-integration-samples/input" 
+	       directory="file:${input.directory.property}" 
 	       filename-pattern="^test.*$" /> 									(3)
 	]]>
 			</programlisting>
+			Where (1) is relying on the default filter that just prevents
+			duplication, (2) is using a custom filter and (3) is using the
+			<emphasis>filename-pattern</emphasis>
+			attribute to add a
+			<classname>Pattern</classname>
+			based filter to the
+			<classname>PollableFileSource</classname>
 		</para>
 	</section>
 	<section id="file-writing">
 		<title>Writing files</title>
 		<para>
-		<!-- paragraph with the basics -->
+			To write messages to the file system you can use a
+			<classname>FileWritingMessageConsumer
+			</classname>
+			. This class can deal with File or byte[] payloads and otherwise
+			invokes the toString() method on the payload to estabish the contents
+			of the File. In its simplest form the
+			<classname>FileWritingMessageConsumer
+			</classname>
+			just needs a parent directory for the files.
 		</para>
 		<para>
-		<!-- extra configuration options -->
+			Additionally, you can
+			configure the encoding and the charset that
+			will
+			be used in case of a
+			fallback on the toString() method.
 		</para>
 		<para>
-		<!-- namespace support -->
+			To make things easier you can configure the
+			FileWritingMessageConsumer as part of an outbound channel adapter
+			using the namespace.
+			<programlisting language="xml"><![CDATA[	<file:outbound-channel-adapter id="filesOut" directory="file:${input.directory.property}"/>
+			]]></programlisting>
+		</para>
+		<para>
+			If you have more elaborate requirements to the payload to file
+			conversion you could extend the FileWritingMessageConsumer, but a
+			much better option is to rely on a
+			<classname>Transformer</classname>
+		</para>
+	</section>
+	<section id="file-transforming">
+		<para>
+			<!-- Introduction -->
+			To transform data read from the file system to objects and the other
+			way around you need to do some work. Contrary to
+			<classname>PollableFileSource</classname>
+			and to a lesser extent
+			<classname>FileWritingMessageConsumer
+			</classname>
+			it is very likely that you will need your own mechanism to get the
+			job done. For this you can implement the
+			<interfacename>Transformer</interfacename>
+			interface. Or extend the
+			<classname>AbstractFilePayloadTransformer
+			</classname>
+			for inbound messages. Some obvious implementations have been
+			provided.
+		</para>
+		<para>
+			<classname>FileToByteArrayTransformer
+			</classname>
+			transforms Files into byte[]s using
+			<classname>FileCopyUtils</classname>
+			. It is often better to use a sequence of transformers than to put
+			all transformations in a single class, in that case the File to
+			byte[] conversion might be a logical first step.
+		</para>
+		<para>
+			<classname>FileToStringTransformer</classname>
+			will convert files to Strings as the name suggests.
+		</para>
+		<para>
+			To configure File specific transformers you can use the appropriate
+			elements from the file namespace.
+			<programlisting language="xml"><![CDATA[<file-to-bytes-transformer input-channel="intput" output-channel="output" delete-files="true"/>]]></programlisting>
+			The
+			<emphasis>delete-files</emphasis>
+			option signals the transformer to delete the File after the
+			transformation is done. This is in no way a replacement for using the
+			<classname>AcceptOnceFileListFilter
+			</classname>
+			with the PollableFileSource in a multi-threaded environment (e.g. Spring Integration in general).
 		</para>
 	</section>
 </chapter>
