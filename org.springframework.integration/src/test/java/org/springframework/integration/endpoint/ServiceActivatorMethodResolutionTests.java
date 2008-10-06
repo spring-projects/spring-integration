@@ -33,11 +33,10 @@ public class ServiceActivatorMethodResolutionTests {
 	@Test
 	public void singleAnnotationMatches() {
 		SingleAnnotationTestBean testBean = new SingleAnnotationTestBean();
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(testBean);
+		ServiceActivatorEndpoint serviceActivator = new ServiceActivatorEndpoint(testBean);
 		QueueChannel outputChannel = new QueueChannel();
-		endpoint.setOutputChannel(outputChannel);
-		endpoint.afterPropertiesSet();
-		endpoint.onMessage(new StringMessage("foo"));
+		serviceActivator.setOutputChannel(outputChannel);
+		serviceActivator.onMessage(new StringMessage("foo"));
 		Message<?> result = outputChannel.receive(0);
 		assertEquals("FOO", result.getPayload());
 	}
@@ -51,11 +50,10 @@ public class ServiceActivatorMethodResolutionTests {
 	@Test
 	public void singlePublicMethodMatches() {
 		SinglePublicMethodTestBean testBean = new SinglePublicMethodTestBean();
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(testBean);
+		ServiceActivatorEndpoint serviceActivator = new ServiceActivatorEndpoint(testBean);
 		QueueChannel outputChannel = new QueueChannel();
-		endpoint.setOutputChannel(outputChannel);
-		endpoint.afterPropertiesSet();
-		endpoint.onMessage(new StringMessage("foo"));
+		serviceActivator.setOutputChannel(outputChannel);
+		serviceActivator.onMessage(new StringMessage("foo"));
 		Message<?> result = outputChannel.receive(0);
 		assertEquals("FOO", result.getPayload());
 	}

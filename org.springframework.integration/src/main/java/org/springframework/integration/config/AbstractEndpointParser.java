@@ -18,13 +18,11 @@ package org.springframework.integration.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.beans.factory.config.BeanDefinitionHolder;
-import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.endpoint.MessageEndpoint;
+import org.springframework.integration.endpoint.config.ConsumerEndpointFactoryBean;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
@@ -40,8 +38,6 @@ public abstract class AbstractEndpointParser extends AbstractSingleBeanDefinitio
 
 	protected static final String METHOD_ATTRIBUTE = "method";
 
-	protected static final String INPUT_CHANNEL_ATTRIBUTE = "input-channel";
-
 	protected static final String OUTPUT_CHANNEL_ATTRIBUTE = "output-channel";
 
 	private static final String POLLER_ELEMENT = "poller";
@@ -51,20 +47,9 @@ public abstract class AbstractEndpointParser extends AbstractSingleBeanDefinitio
 	private static final String ERROR_HANDLER_ATTRIBUTE = "error-handler";
 
 
-	/**
-	 * Subclasses may override this method to determine whether the endpoint
-	 * type should create an adapter. If so, the "ref" attribute will be
-	 * required, and the "method" attribute will typically be used as well.
-	 * 
-	 * <p>The default is <em>true</em>.
-	 */
-	protected boolean shouldCreateAdapter(Element element) {
-		return true;
-	}
-
 	@Override
 	protected final Class<?> getBeanClass(Element element) {
-		return this.getEndpointClass();
+		return ConsumerEndpointFactoryBean.class;
 	}
 
 	@Override
@@ -77,22 +62,42 @@ public abstract class AbstractEndpointParser extends AbstractSingleBeanDefinitio
 		return true;
 	}
 
-	@Override
-	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		if (this.shouldCreateAdapter(element)) {
-			String ref = element.getAttribute(REF_ATTRIBUTE);
-			Assert.hasText(ref, "The '" + REF_ATTRIBUTE + "' attribute is required.");
-			if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
-				String method = element.getAttribute(METHOD_ATTRIBUTE);
-				String adapterBeanName = this.parseAdapter(ref, method, element, parserContext);
-				builder.addConstructorArgReference(adapterBeanName);
-			}
-			else {
-				builder.addConstructorArgReference(ref);
-			}
+	/**
+	 * Parse the MessageConsumer.
+	 */
+	protected abstract BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext);
+
+	protected String getInputChannelAttributeName() {
+		return "input-channel";
+	}
+
+	protected String parseAdapter(Element element, ParserContext parserContext, Class<?> adapterClass) {
+		String ref = element.getAttribute(REF_ATTRIBUTE);
+		Assert.hasText(ref, "The '" + REF_ATTRIBUTE + "' attribute is required.");
+		if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
+			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(adapterClass);
+			String method = element.getAttribute(METHOD_ATTRIBUTE);
+			builder.addConstructorArgReference(ref);
+			builder.addConstructorArgValue(method);
+			return BeanDefinitionReaderUtils.registerWithGeneratedName(
+					builder.getBeanDefinition(), parserContext.getRegistry());
 		}
-		String inputChannel = element.getAttribute(INPUT_CHANNEL_ATTRIBUTE);
-		Assert.hasText(inputChannel, "the '" + INPUT_CHANNEL_ATTRIBUTE + "' attribute is required");
+		return ref;
+	}
+
+	@Override
+	protected final void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+		BeanDefinitionBuilder consumerBuilder = this.parseConsumer(element, parserContext);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(consumerBuilder, element, OUTPUT_CHANNEL_ATTRIBUTE);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(consumerBuilder, element, SELECTOR_ATTRIBUTE);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(consumerBuilder, element, ERROR_HANDLER_ATTRIBUTE);
+		String consumerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
+				consumerBuilder.getBeanDefinition(), parserContext.getRegistry());
+		builder.addConstructorArgReference(consumerBeanName);
+		String inputChannelAttributeName = this.getInputChannelAttributeName();
+		String inputChannelName = element.getAttribute(inputChannelAttributeName);
+		Assert.hasText(inputChannelName, "the '" + inputChannelAttributeName + "' attribute is required");
+		builder.addPropertyValue("inputChannelName", inputChannelName);
 		Element pollerElement = DomUtils.getChildElementByTagName(element, POLLER_ELEMENT);
 		if (pollerElement != null) {
 			IntegrationNamespaceUtils.configureTrigger(pollerElement, builder);
@@ -102,25 +107,7 @@ public abstract class AbstractEndpointParser extends AbstractSingleBeanDefinitio
 			}
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, pollerElement, "task-executor");
 		}
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, INPUT_CHANNEL_ATTRIBUTE);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, OUTPUT_CHANNEL_ATTRIBUTE);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, SELECTOR_ATTRIBUTE);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, ERROR_HANDLER_ATTRIBUTE);
 		this.postProcess(element, parserContext, builder);
-	}
-
-	private String parseAdapter(String ref, String method, Element element, ParserContext parserContext) {
-		Class<?> adapterClass = this.getMethodInvokingAdapterClass();
-		Assert.state(adapterClass != null,
-				"Parser needs to create an adapter but 'getMethodInvokingAdapterClass()' returned null.");
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(adapterClass);
-		builder.addConstructorArgReference(ref);
-		builder.addConstructorArgValue(method);
-		String adapterBeanName = BeanDefinitionReaderUtils.generateBeanName(
-				builder.getBeanDefinition(), parserContext.getRegistry());
-		BeanDefinitionHolder holder = new BeanDefinitionHolder(builder.getBeanDefinition(), adapterBeanName);
-		parserContext.registerBeanComponent(new BeanComponentDefinition(holder));
-		return adapterBeanName;
 	}
 
 	/**
@@ -128,15 +115,5 @@ public abstract class AbstractEndpointParser extends AbstractSingleBeanDefinitio
 	 */
 	protected void postProcess(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 	}
-
-	/**
-	 * Subclasses must override this if the adapted object is created from
-	 * the "ref" and "method" attribute values.
-	 */
-	protected Class<?> getMethodInvokingAdapterClass() {
-		return null;
-	}
-
-	protected abstract Class<? extends MessageEndpoint> getEndpointClass();
 
 }

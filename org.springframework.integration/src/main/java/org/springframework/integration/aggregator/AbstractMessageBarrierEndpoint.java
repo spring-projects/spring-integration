@@ -27,26 +27,29 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.channel.BlockingChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.AbstractMessageHandlingEndpoint;
-import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.scheduling.IntervalTrigger;
+import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.integration.scheduling.TaskSchedulerAware;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
- * Base class for {@link MessageBarrier}-based MessageHandlers.
- * A {@link MessageEndpoint} implementation that waits for a group of
+ * Base class for {@link MessageBarrier}-based Message Consumers.
+ * A {@link MessageConsumer} implementation that waits for a group of
  * {@link Message Messages} to arrive and processes them together.
- * Uses a {@link MessageBarr  ier} to store messages and to decide how
+ * Uses a {@link MessageBarrier} to store messages and to decide how
  * the messages should be released.
  * <p>
- * Each {@link Message} that is received by this endpoint will be associated with
+ * Each {@link Message} that is received by this consumer will be associated with
  * a group based upon the '<code>correlationId</code>' property of its
  * header. If no such property is available, a {@link MessageHandlingException}
  * will be thrown.
@@ -60,7 +63,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public abstract class AbstractMessageBarrierEndpoint extends AbstractMessageHandlingEndpoint implements TaskSchedulerAware {
+public abstract class AbstractMessageBarrierEndpoint extends AbstractMessageHandlingEndpoint implements TaskSchedulerAware, InitializingBean {
 
 	public final static long DEFAULT_SEND_TIMEOUT = 1000;
 
@@ -91,7 +94,10 @@ public abstract class AbstractMessageBarrierEndpoint extends AbstractMessageHand
 
 	private volatile boolean initialized;
 
+	private TaskScheduler taskScheduler;
+
 	private ScheduledFuture<?> reaperFutureTask;
+
 
 	/**
 	 * Specify a channel for sending Messages that arrive after their aggregation
@@ -141,26 +147,32 @@ public abstract class AbstractMessageBarrierEndpoint extends AbstractMessageHand
 		this.timeout = timeout;
 	}
 
-	/**
-	 * Initialize this endpoint.
-	 */
-	@Override
-	protected void initialize()  throws Exception {
-		super.initialize();
+	public void setTaskScheduler(TaskScheduler taskScheduler) {
+		this.taskScheduler = taskScheduler;
+	}
+
+	public void afterPropertiesSet() {
 		this.trackedCorrelationIds = new ArrayBlockingQueue<Object>(this.trackedCorrelationIdCapacity);
 		this.initialized = true;
 	}
-	
-	@Override
-	protected void onStart() {
-		super.onStart();
-		this.reaperFutureTask = this.getTaskScheduler().schedule(new ReaperTask(), new IntervalTrigger(reaperInterval, TimeUnit.MILLISECONDS));
+
+	public boolean isRunning() {
+		return this.reaperFutureTask != null;
 	}
 
-	@Override
-	protected void onStop() {
-		super.onStop();
-		this.reaperFutureTask.cancel(true);
+	public void start() {
+		if (this.isRunning()) {
+			return;
+		}
+		Assert.state(this.taskScheduler != null, "TaskScheduler must not be null");
+		this.reaperFutureTask = this.taskScheduler.schedule(
+				new ReaperTask(), new IntervalTrigger(this.reaperInterval, TimeUnit.MILLISECONDS));
+	}
+
+	public void stop() {
+		if (this.isRunning()) {
+			this.reaperFutureTask.cancel(true);
+		}
 	}
 
 	@Override

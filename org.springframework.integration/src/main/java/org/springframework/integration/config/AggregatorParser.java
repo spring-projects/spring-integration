@@ -22,9 +22,8 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.aggregator.AggregatorEndpoint;
-import org.springframework.integration.aggregator.MethodInvokingAggregator;
 import org.springframework.integration.aggregator.CompletionStrategyAdapter;
-import org.springframework.integration.endpoint.MessageEndpoint;
+import org.springframework.integration.aggregator.MethodInvokingAggregator;
 import org.springframework.util.StringUtils;
 
 /**
@@ -36,40 +35,35 @@ import org.springframework.util.StringUtils;
  */
 public class AggregatorParser extends AbstractEndpointParser {
 
-	public static final String COMPLETION_STRATEGY_REF_ATTRIBUTE = "completion-strategy";
+	private static final String COMPLETION_STRATEGY_REF_ATTRIBUTE = "completion-strategy";
 
-	public static final String COMPLETION_STRATEGY_METHOD_ATTRIBUTE = "completion-strategy-method";
+	private static final String COMPLETION_STRATEGY_METHOD_ATTRIBUTE = "completion-strategy-method";
 
-	public static final String DISCARD_CHANNEL_ATTRIBUTE = "discard-channel";
+	private static final String DISCARD_CHANNEL_ATTRIBUTE = "discard-channel";
 
-	public static final String SEND_TIMEOUT_ATTRIBUTE = "send-timeout";
+	private static final String SEND_TIMEOUT_ATTRIBUTE = "send-timeout";
 
-	public static final String SEND_PARTIAL_RESULT_ON_TIMEOUT_ATTRIBUTE = "send-partial-result-on-timeout";
+	private static final String SEND_PARTIAL_RESULT_ON_TIMEOUT_ATTRIBUTE = "send-partial-result-on-timeout";
 
-	public static final String REAPER_INTERVAL_ATTRIBUTE = "reaper-interval";
+	private static final String REAPER_INTERVAL_ATTRIBUTE = "reaper-interval";
 
-	public static final String TRACKED_CORRELATION_ID_CAPACITY_ATTRIBUTE = "tracked-correlation-id-capacity";
+	private static final String TRACKED_CORRELATION_ID_CAPACITY_ATTRIBUTE = "tracked-correlation-id-capacity";
 
-	public static final String TIMEOUT_ATTRIBUTE = "timeout";
+	private static final String TIMEOUT_ATTRIBUTE = "timeout";
 
 	private static final String COMPLETION_STRATEGY_PROPERTY = "completionStrategy";
 
-	public static final String AGGREGATOR_ELEMENT = "aggregator";
-
 
 	@Override
-	protected Class<? extends MessageEndpoint> getEndpointClass() {
-		return AggregatorEndpoint.class;
-	}
-
-	@Override
-	protected Class<?> getMethodInvokingAdapterClass() {
-		return MethodInvokingAggregator.class;
-	}
-
-	@Override
-	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		super.doParse(element, parserContext, builder);
+	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(AggregatorEndpoint.class);
+		builder.addConstructorArgReference(this.parseAdapter(element, parserContext, MethodInvokingAggregator.class));
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, DISCARD_CHANNEL_ATTRIBUTE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_TIMEOUT_ATTRIBUTE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_PARTIAL_RESULT_ON_TIMEOUT_ATTRIBUTE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, REAPER_INTERVAL_ATTRIBUTE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, TRACKED_CORRELATION_ID_CAPACITY_ATTRIBUTE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, TIMEOUT_ATTRIBUTE);
 		final String completionStrategyRef = element.getAttribute(COMPLETION_STRATEGY_REF_ATTRIBUTE);
 		final String completionStrategyMethod = element.getAttribute(COMPLETION_STRATEGY_METHOD_ATTRIBUTE);
 		if (StringUtils.hasText(completionStrategyRef)) {
@@ -82,12 +76,7 @@ public class AggregatorParser extends AbstractEndpointParser {
 				builder.addPropertyReference(COMPLETION_STRATEGY_PROPERTY, completionStrategyRef);
 			}
 		}
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, DISCARD_CHANNEL_ATTRIBUTE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_TIMEOUT_ATTRIBUTE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_PARTIAL_RESULT_ON_TIMEOUT_ATTRIBUTE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, REAPER_INTERVAL_ATTRIBUTE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, TRACKED_CORRELATION_ID_CAPACITY_ATTRIBUTE);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, TIMEOUT_ATTRIBUTE);
+		return builder;
 	}
 
 	private String createCompletionStrategyAdapter(String ref, String method, ParserContext parserContext) {

@@ -140,6 +140,9 @@ public abstract class AbstractPollingEndpoint implements MessageEndpoint, TaskSc
 			if (!this.initialized) {
 				this.afterPropertiesSet();
 			}
+			if (this.isRunning()) {
+				return;
+			}
 			Assert.state(this.taskScheduler != null,
 					"unable to start polling, no taskScheduler available");
 			this.runningTask = this.taskScheduler.schedule(new Poller(), this.trigger);
@@ -176,7 +179,7 @@ public abstract class AbstractPollingEndpoint implements MessageEndpoint, TaskSc
 
 		private void poll() {
 			int count = 0;
-			while (maxMessagesPerPoll < 0 || count < maxMessagesPerPoll) {
+			while (maxMessagesPerPoll <= 0 || count < maxMessagesPerPoll) {
 				if (!innerPoll()) {
 					break;
 				}

@@ -21,8 +21,14 @@ import org.springframework.integration.bus.MessageBusAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.channel.PollableChannel;
+import org.springframework.integration.channel.SubscribableChannel;
+import org.springframework.integration.endpoint.AbstractMessageHandlingEndpoint;
+import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.MessagingGateway;
+import org.springframework.integration.endpoint.PollingConsumerEndpoint;
+import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.util.Assert;
 
@@ -42,7 +48,7 @@ public abstract class AbstractMessagingGateway implements MessagingGateway, Mess
 
 	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
-	private volatile ReplyMessageCorrelator replyMessageCorrelator;
+	private volatile MessageEndpoint replyMessageCorrelator;
 
 	private volatile MessageBus messageBus;
 
@@ -145,10 +151,23 @@ public abstract class AbstractMessagingGateway implements MessagingGateway, Mess
 				return;
 			}
 			Assert.state(this.messageBus != null, "No MessageBus available. Cannot register ReplyMessageCorrelator.");
-			ReplyMessageCorrelator correlator = new ReplyMessageCorrelator();
-			correlator.setBeanName("internal.correlator." + this);
-			correlator.setInputChannel(this.replyChannel);
-			correlator.afterPropertiesSet();
+			MessageEndpoint correlator = null;
+			MessageConsumer consumer = new AbstractMessageHandlingEndpoint() {
+				@Override
+				protected Object handle(Message<?> message) {
+					return message;
+				}
+			};
+			if (this.replyChannel instanceof SubscribableChannel) {
+				correlator = new SubscribingConsumerEndpoint(
+						consumer, (SubscribableChannel) this.replyChannel);
+			}
+			else if (this.replyChannel instanceof PollableChannel) {
+				PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(
+						consumer, (PollableChannel) this.replyChannel);
+				endpoint.afterPropertiesSet();
+				correlator = endpoint;
+			}
 			this.messageBus.registerEndpoint(correlator);
 			this.replyMessageCorrelator = correlator;
 		}

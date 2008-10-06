@@ -18,11 +18,10 @@ package org.springframework.integration.config.annotation;
 
 import java.lang.reflect.Method;
 
-import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.router.MethodInvokingChannelResolver;
 import org.springframework.integration.router.RouterEndpoint;
 import org.springframework.util.Assert;
@@ -41,27 +40,16 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 
 
 	@Override
-	protected Object createMethodInvokingAdapter(Object bean, Method method, Router annotation) {
-		return new MethodInvokingChannelResolver(bean, method);
-	}
-
-	@Override
-	protected AbstractEndpoint createEndpoint(Object originalBean, Object adapter) {
-		if (adapter instanceof MethodInvokingChannelResolver) {
-			return new RouterEndpoint((MethodInvokingChannelResolver) adapter);
-		}
-		return null;
-	}
-
-	@Override
-	protected void configureEndpoint(AbstractEndpoint endpoint, Router annotation, Poller pollerAnnotation) {
-		super.configureEndpoint(endpoint, annotation, pollerAnnotation);
+	protected MessageConsumer createConsumer(Object bean, Method method, Router annotation) {
+		MethodInvokingChannelResolver resolver = new MethodInvokingChannelResolver(bean, method);
+		RouterEndpoint router = new RouterEndpoint(resolver);
 		String defaultOutputChannelName = annotation.defaultOutputChannel();
 		if (StringUtils.hasText(defaultOutputChannelName)) {
 			MessageChannel defaultOutputChannel = this.getChannelRegistry().lookupChannel(defaultOutputChannelName);
 			Assert.notNull(defaultOutputChannel, "unable to resolve defaultOutputChannel '" + defaultOutputChannelName + "'");
-			((RouterEndpoint) endpoint).setDefaultOutputChannel(defaultOutputChannel);
+			router.setDefaultOutputChannel(defaultOutputChannel);
 		}
+		return router;
 	}
 
 }

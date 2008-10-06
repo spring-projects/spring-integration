@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.endpoint.PollingConsumerEndpoint;
 import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
 
 /**
@@ -82,9 +83,8 @@ public class MethodInvokingConsumerTests {
 		Message<String> message = new GenericMessage<String>("testing");
 		channel.send(message);
 		assertNull(queue.poll());
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(consumer);
-		endpoint.setBeanName("testEndpoint");
-		endpoint.setInputChannel(channel);
+		ServiceActivatorEndpoint serivceActivator = new ServiceActivatorEndpoint(consumer);
+		PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(serivceActivator, channel);
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
 		DefaultMessageBus bus = new DefaultMessageBus();
 		bus.setApplicationContext(context);

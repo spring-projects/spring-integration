@@ -45,8 +45,7 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.MessageBusParser;
-import org.springframework.integration.endpoint.ChannelPoller;
-import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
+import org.springframework.integration.endpoint.PollingConsumerEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.StringMessage;
@@ -329,14 +328,11 @@ public class MessagingAnnotationPostProcessorTests {
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
 		postProcessor.setBeanFactory(context.getBeanFactory());
 		postProcessor.afterPropertiesSet();
-		AnnotatedEndpointWithPolledAnnotation endpoint = new AnnotatedEndpointWithPolledAnnotation();
-		postProcessor.postProcessAfterInitialization(endpoint, "testBean");
-		ServiceActivatorEndpoint processedEndpoint =
-				(ServiceActivatorEndpoint) context.getBean("testBean.prependFoo.serviceActivator");
-		processedEndpoint.afterPropertiesSet();
-		DirectFieldAccessor accessor = new DirectFieldAccessor(processedEndpoint);
-		ChannelPoller poller = (ChannelPoller) accessor.getPropertyValue("poller");
-		Trigger trigger = (Trigger) new DirectFieldAccessor(poller).getPropertyValue("trigger");
+		AnnotatedEndpointWithPolledAnnotation bean = new AnnotatedEndpointWithPolledAnnotation();
+		postProcessor.postProcessAfterInitialization(bean, "testBean");
+		PollingConsumerEndpoint endpoint =
+				(PollingConsumerEndpoint) context.getBean("testBean.prependFoo.serviceActivator");
+		Trigger trigger = (Trigger) new DirectFieldAccessor(endpoint).getPropertyValue("trigger");
 		assertEquals(IntervalTrigger.class, trigger.getClass());
 		DirectFieldAccessor triggerAccessor = new DirectFieldAccessor(trigger);
 		assertEquals(new Long(123000), triggerAccessor.getPropertyValue("interval"));

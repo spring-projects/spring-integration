@@ -16,7 +16,10 @@
 
 package org.springframework.integration.config;
 
-import org.springframework.integration.endpoint.MessageEndpoint;
+import org.w3c.dom.Element;
+
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.transformer.MethodInvokingTransformer;
 import org.springframework.integration.transformer.TransformerEndpoint;
 
@@ -28,13 +31,10 @@ import org.springframework.integration.transformer.TransformerEndpoint;
 public class TransformerParser extends AbstractEndpointParser {
 
 	@Override
-	protected Class<? extends MessageEndpoint> getEndpointClass() {
-		return TransformerEndpoint.class;
-	}
-
-	@Override
-	protected Class<?> getMethodInvokingAdapterClass() {
-		return MethodInvokingTransformer.class;
+	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(TransformerEndpoint.class);
+		builder.addConstructorArgReference(this.parseAdapter(element, parserContext, MethodInvokingTransformer.class));
+		return builder;
 	}
 
 }

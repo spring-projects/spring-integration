@@ -26,9 +26,11 @@ import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
+import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.endpoint.MessageEndpoint;
-import org.springframework.integration.endpoint.OutboundChannelAdapter;
+import org.springframework.integration.endpoint.PollingConsumerEndpoint;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.message.MethodInvokingConsumer;
 import org.springframework.integration.message.MethodInvokingSource;
 import org.springframework.integration.scheduling.IntervalTrigger;
@@ -102,16 +104,19 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 		return adapter;
 	}
 
-	private OutboundChannelAdapter createOutboundChannelAdapter(MethodInvokingConsumer consumer, MessageChannel channel, Poller pollerAnnotation) {
-		OutboundChannelAdapter adapter = new OutboundChannelAdapter(consumer);
-		adapter.setInputChannel(channel);
+	private MessageEndpoint createOutboundChannelAdapter(MethodInvokingConsumer consumer, MessageChannel channel, Poller pollerAnnotation) {
 		if (channel instanceof PollableChannel) {
 			Trigger trigger = (pollerAnnotation != null)
 					? this.createTrigger(pollerAnnotation)
 					: new IntervalTrigger(0);
-			adapter.setTrigger(trigger);
+			PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(consumer, (PollableChannel) channel);
+			endpoint.setTrigger(trigger);
+			return endpoint;
 		}
-		return adapter;
+		if (channel instanceof SubscribableChannel) {
+			return new SubscribingConsumerEndpoint(consumer, (SubscribableChannel) channel);
+		}
+		return null;
 	}
 
 	private Trigger createTrigger(Poller pollerAnnotation) {

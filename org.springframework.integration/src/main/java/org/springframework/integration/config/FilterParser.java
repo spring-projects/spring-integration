@@ -16,7 +16,10 @@
 
 package org.springframework.integration.config;
 
-import org.springframework.integration.endpoint.MessageEndpoint;
+import org.w3c.dom.Element;
+
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.filter.FilterEndpoint;
 import org.springframework.integration.filter.MethodInvokingSelector;
 
@@ -28,13 +31,10 @@ import org.springframework.integration.filter.MethodInvokingSelector;
 public class FilterParser extends AbstractEndpointParser {
 
 	@Override
-	protected Class<? extends MessageEndpoint> getEndpointClass() {
-		return FilterEndpoint.class;
-	}
-
-	@Override
-	protected Class<?> getMethodInvokingAdapterClass() {
-		return MethodInvokingSelector.class;
+	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(FilterEndpoint.class);
+		builder.addConstructorArgReference(this.parseAdapter(element, parserContext, MethodInvokingSelector.class));
+		return builder;
 	}
 
 }

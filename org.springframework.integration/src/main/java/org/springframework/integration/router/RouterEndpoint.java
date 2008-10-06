@@ -21,6 +21,7 @@ import java.util.Collection;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.endpoint.AbstractMessageConsumingEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
@@ -36,6 +37,8 @@ public class RouterEndpoint extends AbstractMessageConsumingEndpoint implements 
 	private volatile MessageChannel defaultOutputChannel;
 
 	private volatile boolean resolutionRequired;
+
+	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
 
 	public RouterEndpoint(ChannelResolver channelResolver) {
@@ -59,7 +62,7 @@ public class RouterEndpoint extends AbstractMessageConsumingEndpoint implements 
 	 * default, there is no timeout, meaning the send will block indefinitely.
 	 */
 	public void setTimeout(long timeout) {
-		this.getChannelTemplate().setSendTimeout(timeout);
+		this.channelTemplate.setSendTimeout(timeout);
 	}
 
 	/**
@@ -79,7 +82,7 @@ public class RouterEndpoint extends AbstractMessageConsumingEndpoint implements 
 		if (results != null) {
 			for (MessageChannel channel : results) {
 				if (channel != null) {
-					if (this.getChannelTemplate().send(message, channel)) {
+					if (this.channelTemplate.send(message, channel)) {
 						sent = true;
 					}
 				}
@@ -87,7 +90,7 @@ public class RouterEndpoint extends AbstractMessageConsumingEndpoint implements 
 		}
 		if (!sent) {
 			if (this.defaultOutputChannel != null) {
-				sent = this.getChannelTemplate().send(message, this.defaultOutputChannel);
+				sent = this.channelTemplate.send(message, this.defaultOutputChannel);
 			}
 			else if (this.resolutionRequired) {
 				throw new MessageDeliveryException(message,

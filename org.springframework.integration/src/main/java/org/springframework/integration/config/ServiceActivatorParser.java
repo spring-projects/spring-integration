@@ -16,7 +16,10 @@
 
 package org.springframework.integration.config;
 
-import org.springframework.integration.endpoint.MessageEndpoint;
+import org.w3c.dom.Element;
+
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
 import org.springframework.integration.message.MessageMappingMethodInvoker;
 
@@ -28,13 +31,11 @@ import org.springframework.integration.message.MessageMappingMethodInvoker;
 public class ServiceActivatorParser extends AbstractEndpointParser {
 
 	@Override
-	protected Class<? extends MessageEndpoint> getEndpointClass() {
-		return ServiceActivatorEndpoint.class;
-	}
-
-	@Override
-	protected Class<?> getMethodInvokingAdapterClass() {
-		return MessageMappingMethodInvoker.class;
+	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ServiceActivatorEndpoint.class);
+		String constructorArg = this.parseAdapter(element, parserContext, MessageMappingMethodInvoker.class);
+		builder.addConstructorArgReference(constructorArg);
+		return builder;
 	}
 
 }

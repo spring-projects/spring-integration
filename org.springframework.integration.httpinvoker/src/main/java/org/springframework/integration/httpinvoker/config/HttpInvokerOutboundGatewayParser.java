@@ -29,7 +29,7 @@ import org.springframework.integration.httpinvoker.HttpInvokerOutboundGateway;
 public class HttpInvokerOutboundGatewayParser extends AbstractRemotingOutboundGatewayParser {
 
 	@Override
-	protected Class<?> getBeanClass(Element element) {
+	protected Class<?> getGatewayClass(Element element) {
 		return HttpInvokerOutboundGateway.class;
 	}
 

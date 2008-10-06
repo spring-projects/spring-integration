@@ -36,7 +36,9 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.AbstractMessageHandlingEndpoint;
+import org.springframework.integration.endpoint.PollingConsumerEndpoint;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
+import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
@@ -62,17 +64,18 @@ public class DefaultMessageBusTests {
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setReturnAddress("targetChannel").build();
 		sourceChannel.send(message);
-		AbstractMessageHandlingEndpoint endpoint = new AbstractMessageHandlingEndpoint() {
+		AbstractMessageHandlingEndpoint consumer = new AbstractMessageHandlingEndpoint() {
 			public Message<?> handle(Message<?> message) {
 				return message;
 			}
 		};
-		endpoint.setBeanName("testEndpoint");
-		endpoint.setInputChannel(sourceChannel);
+		PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(consumer, sourceChannel);
+		endpoint.afterPropertiesSet();
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
 		context.refresh();
 		DefaultMessageBus bus = new DefaultMessageBus();
 		bus.setApplicationContext(context);
+		consumer.setChannelRegistry(bus);
 		bus.start();
 		Message<?> result = targetChannel.receive(3000);
 		assertEquals("test", result.getPayload());
@@ -116,12 +119,12 @@ public class DefaultMessageBusTests {
 		QueueChannel inputChannel = new QueueChannel();
 		QueueChannel outputChannel1 = new QueueChannel();
 		QueueChannel outputChannel2 = new QueueChannel();
-		AbstractMessageHandlingEndpoint endpoint1 = new AbstractMessageHandlingEndpoint() {
+		AbstractMessageHandlingEndpoint consumer1 = new AbstractMessageHandlingEndpoint() {
 			public Message<?> handle(Message<?> message) {
 				return MessageBuilder.fromMessage(message).build();
 			}
 		};
-		AbstractMessageHandlingEndpoint endpoint2 = new AbstractMessageHandlingEndpoint() {
+		AbstractMessageHandlingEndpoint consumer2 = new AbstractMessageHandlingEndpoint() {
 			public Message<?> handle(Message<?> message) {
 				return MessageBuilder.fromMessage(message).build();
 			}
@@ -132,12 +135,12 @@ public class DefaultMessageBusTests {
 		context.getBeanFactory().registerSingleton("input", inputChannel);
 		context.getBeanFactory().registerSingleton("output1", outputChannel1);
 		context.getBeanFactory().registerSingleton("output2", outputChannel2);
-		endpoint1.setBeanName("testEndpoint1");
-		endpoint1.setInputChannel(inputChannel);
-		endpoint1.setOutputChannel(outputChannel1);
-		endpoint2.setBeanName("testEndpoint2");
-		endpoint2.setInputChannel(inputChannel);
-		endpoint2.setOutputChannel(outputChannel2);
+		consumer1.setOutputChannel(outputChannel1);
+		consumer2.setOutputChannel(outputChannel2);
+		PollingConsumerEndpoint endpoint1 = new PollingConsumerEndpoint(consumer1, inputChannel);
+		endpoint1.afterPropertiesSet();
+		PollingConsumerEndpoint endpoint2 = new PollingConsumerEndpoint(consumer2, inputChannel);
+		endpoint2.afterPropertiesSet();
 		context.getBeanFactory().registerSingleton("testEndpoint1", endpoint1);
 		context.getBeanFactory().registerSingleton("testEndpoint2", endpoint2);
 		DefaultMessageBus bus = new DefaultMessageBus();
@@ -157,14 +160,14 @@ public class DefaultMessageBusTests {
 		QueueChannel outputChannel1 = new QueueChannel();
 		QueueChannel outputChannel2 = new QueueChannel();
 		final CountDownLatch latch = new CountDownLatch(2);
-		AbstractMessageHandlingEndpoint endpoint1 = new AbstractMessageHandlingEndpoint() {
+		AbstractMessageHandlingEndpoint consumer1 = new AbstractMessageHandlingEndpoint() {
 			public Message<?> handle(Message<?> message) {
 				Message<?> reply = MessageBuilder.fromMessage(message).build();
 				latch.countDown();
 				return reply;
 			}
 		};
-		AbstractMessageHandlingEndpoint endpoint2 = new AbstractMessageHandlingEndpoint() {
+		AbstractMessageHandlingEndpoint consumer2 = new AbstractMessageHandlingEndpoint() {
 			public Message<?> handle(Message<?> message) {
 				Message<?> reply = MessageBuilder.fromMessage(message).build();
 				latch.countDown();
@@ -177,12 +180,10 @@ public class DefaultMessageBusTests {
 		context.getBeanFactory().registerSingleton("input", inputChannel);
 		context.getBeanFactory().registerSingleton("output1", outputChannel1);
 		context.getBeanFactory().registerSingleton("output2", outputChannel2);
-		endpoint1.setBeanName("testEndpoint1");
-		endpoint1.setInputChannel(inputChannel);
-		endpoint1.setOutputChannel(outputChannel1);
-		endpoint2.setBeanName("testEndpoint2");
-		endpoint2.setInputChannel(inputChannel);
-		endpoint2.setOutputChannel(outputChannel2);
+		consumer1.setOutputChannel(outputChannel1);
+		consumer2.setOutputChannel(outputChannel2);
+		SubscribingConsumerEndpoint endpoint1 = new SubscribingConsumerEndpoint(consumer1, inputChannel);
+		SubscribingConsumerEndpoint endpoint2 = new SubscribingConsumerEndpoint(consumer2, inputChannel);
 		context.getBeanFactory().registerSingleton("testEndpoint1", endpoint1);
 		context.getBeanFactory().registerSingleton("testEndpoint2", endpoint2);
 		DefaultMessageBus bus = new DefaultMessageBus();
@@ -246,14 +247,14 @@ public class DefaultMessageBusTests {
 		errorChannel.setBeanName(ChannelRegistry.ERROR_CHANNEL_NAME);
 		context.getBeanFactory().registerSingleton(ChannelRegistry.ERROR_CHANNEL_NAME, errorChannel);
 		final CountDownLatch latch = new CountDownLatch(1);
-		AbstractMessageHandlingEndpoint endpoint = new AbstractMessageHandlingEndpoint() {
+		AbstractMessageHandlingEndpoint consumer = new AbstractMessageHandlingEndpoint() {
 			public Message<?> handle(Message<?> message) {
 				latch.countDown();
 				return null;
 			}
 		};
-		endpoint.setBeanName("testEndpoint");
-		endpoint.setInputChannel(errorChannel);
+		PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(consumer, errorChannel);
+		endpoint.afterPropertiesSet();
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
 		DefaultMessageBus bus = new DefaultMessageBus();
 		bus.setApplicationContext(context);

@@ -22,6 +22,7 @@ import java.util.List;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.message.CompositeMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
@@ -30,6 +31,7 @@ import org.springframework.integration.message.MessageHeaders;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.selector.MessageSelector;
+import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
@@ -43,6 +45,8 @@ public abstract class AbstractMessageHandlingEndpoint extends AbstractMessageCon
 	private volatile MessageSelector selector;
 
 	private volatile boolean requiresReply = false;
+
+	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
 
 	public void setOutputChannel(MessageChannel outputChannel) {
@@ -74,7 +78,7 @@ public abstract class AbstractMessageHandlingEndpoint extends AbstractMessageCon
 		Object result = this.handle(message);
 		if (result == null) {
 			if (this.requiresReply) {
-				throw new MessageHandlingException(message, "endpoint '" + this
+				throw new MessageHandlingException(message, "consumer '" + this
 						+ "' requires a reply, but no reply was received");
 			}
 			return;
@@ -105,7 +109,7 @@ public abstract class AbstractMessageHandlingEndpoint extends AbstractMessageCon
 	protected boolean supports(Message<?> message) {
 		if (this.selector != null && !this.selector.accept(message)) {
 			if (logger.isDebugEnabled()) {
-				logger.debug("selector for endpoint '" + this + "' rejected message: " + message);
+				logger.debug("selector for consumer '" + this + "' rejected message: " + message);
 			}
 			return false;
 		}
@@ -117,7 +121,7 @@ public abstract class AbstractMessageHandlingEndpoint extends AbstractMessageCon
 	}
 
 	private boolean sendReplyMessage(Message<?> replyMessage, MessageChannel replyChannel) {
-		return this.getChannelTemplate().send(replyMessage, replyChannel);
+		return this.channelTemplate.send(replyMessage, replyChannel);
 	}
 
 	private Message<?> buildReplyMessage(Object result, MessageHeaders requestHeaders) {
@@ -153,9 +157,9 @@ public abstract class AbstractMessageHandlingEndpoint extends AbstractMessageCon
 					replyChannel = (MessageChannel) returnAddress;
 				}
 				else if (returnAddress instanceof String) {
-					if (this.channelRegistry != null) {
-						replyChannel = this.channelRegistry.lookupChannel((String) returnAddress);
-					}
+					Assert.state(this.channelRegistry != null,
+							"ChannelRegistry is required for resolving a reply channel by name");
+					replyChannel = this.channelRegistry.lookupChannel((String) returnAddress);
 				}
 				else {
 					throw new MessagingException("expected a MessageChannel or String for 'returnAddress', but type is ["

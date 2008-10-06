@@ -39,10 +39,6 @@ public abstract class AbstractRemotingOutboundGateway extends AbstractMessageHan
 	}
 
 
-	public void setRequestChannel(MessageChannel requestChannel) {
-		this.setInputChannel(requestChannel);
-	}
-
 	public void setReplyChannel(MessageChannel replyChannel) {
 		this.setOutputChannel(replyChannel);
 	}

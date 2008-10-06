@@ -46,7 +46,7 @@ public class ResequencerEndpointTests {
 		this.taskScheduler = Schedulers.createDefaultTaskScheduler(10);
 		this.resequencer.setTaskScheduler(taskScheduler);
 		taskScheduler.start();
-		this.resequencer.onStart();
+		this.resequencer.start();
 	}
 	
 	@Test
@@ -149,7 +149,7 @@ public class ResequencerEndpointTests {
 
 	@After
 	public void stopTaskScheduler() {
-		this.resequencer.onStop();
+		this.resequencer.stop();
 		this.taskScheduler.stop();
 	}
 }

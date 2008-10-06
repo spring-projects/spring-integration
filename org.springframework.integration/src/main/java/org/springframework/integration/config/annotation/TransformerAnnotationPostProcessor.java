@@ -20,7 +20,7 @@ import java.lang.reflect.Method;
 
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.bus.MessageBus;
-import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.transformer.MethodInvokingTransformer;
 import org.springframework.integration.transformer.TransformerEndpoint;
 
@@ -37,16 +37,9 @@ public class TransformerAnnotationPostProcessor extends AbstractMethodAnnotation
 
 
 	@Override
-	protected Object createMethodInvokingAdapter(Object bean, Method method, Transformer annotation) {
-		return new MethodInvokingTransformer(bean, method);
-	}
-
-	@Override
-	protected AbstractEndpoint createEndpoint(Object originalBean, Object adapter) {
-		if (adapter instanceof MethodInvokingTransformer) {
-			return new TransformerEndpoint((MethodInvokingTransformer) adapter);
-		}
-		return null;
+	protected MessageConsumer createConsumer(Object bean, Method method, Transformer annotation) {
+		MethodInvokingTransformer transformer = new MethodInvokingTransformer(bean, method);
+		return new TransformerEndpoint(transformer);
 	}
 
 }

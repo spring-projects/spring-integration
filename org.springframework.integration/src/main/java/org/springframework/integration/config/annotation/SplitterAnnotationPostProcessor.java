@@ -20,7 +20,7 @@ import java.lang.reflect.Method;
 
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.bus.MessageBus;
-import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.splitter.MethodInvokingSplitter;
 import org.springframework.integration.splitter.SplitterEndpoint;
 
@@ -37,16 +37,9 @@ public class SplitterAnnotationPostProcessor extends AbstractMethodAnnotationPos
 
 
 	@Override
-	protected Object createMethodInvokingAdapter(Object bean, Method method, Splitter annotation) {
-		return new MethodInvokingSplitter(bean, method);
-	}
-
-	@Override
-	protected AbstractEndpoint createEndpoint(Object originalBean, Object adapter) {
-		if (adapter instanceof MethodInvokingSplitter) {
-			return new SplitterEndpoint((MethodInvokingSplitter) adapter);
-		}
-		return null;
+	protected MessageConsumer createConsumer(Object bean, Method method, Splitter annotation) {
+		MethodInvokingSplitter splitter = new MethodInvokingSplitter(bean, method);
+		return new SplitterEndpoint(splitter);
 	}
 
 }

@@ -26,9 +26,9 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.aggregator.ResequencerEndpoint;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
+import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 
@@ -70,8 +70,8 @@ public class ResequencerParserTests {
 
 	@Test
 	public void testDefaultResequencerProperties() {
-		ResequencerEndpoint endpoint = (ResequencerEndpoint) context.getBean("defaultResequencer");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
+		SubscribingConsumerEndpoint endpoint = (SubscribingConsumerEndpoint) context.getBean("defaultResequencer");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(new DirectFieldAccessor(endpoint).getPropertyValue("consumer"));
 		Assert.assertNull(accessor.getPropertyValue("outputChannel"));
 		Assert.assertNull(accessor.getPropertyValue("discardChannel"));
 		Assert.assertEquals("The ResequencerEndpoint is not set with the appropriate timeout value",
@@ -92,10 +92,10 @@ public class ResequencerParserTests {
 
 	@Test
 	public void testPropertyAssignment() throws Exception {
-		ResequencerEndpoint endpoint = (ResequencerEndpoint) context.getBean("completelyDefinedResequencer");
+		SubscribingConsumerEndpoint endpoint = (SubscribingConsumerEndpoint) context.getBean("completelyDefinedResequencer");
 		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
 		MessageChannel discardChannel = (MessageChannel) context.getBean("discardChannel");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
+		DirectFieldAccessor accessor = new DirectFieldAccessor(new DirectFieldAccessor(endpoint).getPropertyValue("consumer"));
 		Assert.assertEquals("The ResequencerEndpoint is not injected with the appropriate output channel",
 				outputChannel, accessor.getPropertyValue("outputChannel"));
 		Assert.assertEquals("The ResequencerEndpoint is not injected with the appropriate discard channel",

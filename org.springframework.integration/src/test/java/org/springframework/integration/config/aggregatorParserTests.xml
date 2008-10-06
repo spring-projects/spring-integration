@@ -9,7 +9,6 @@
 
 	<message-bus/>
 
-	<channel id="inputChannel"/>
 	<channel id="outputChannel">
 		<queue capacity="5"/>
 	</channel>
@@ -17,10 +16,12 @@
 		<queue capacity="5"/>
 	</channel>
 
-	<aggregator id="aggregatorWithReference" ref="aggregatorBean" input-channel="inputChannel"/>
+	<channel id="aggregatorWithReferenceInput"/>
+	<aggregator id="aggregatorWithReference" ref="aggregatorBean" input-channel="aggregatorWithReferenceInput"/>
 
+	<channel id="completelyDefinedAggregatorInput"/>
 	<aggregator id="completelyDefinedAggregator"
-		input-channel="inputChannel"
+		input-channel="completelyDefinedAggregatorInput"
 		output-channel="outputChannel"
 		discard-channel="discardChannel"
 		ref="aggregatorBean" 
@@ -31,14 +32,16 @@
 		tracked-correlation-id-capacity="99"
 		timeout="42"/>
 
+	<channel id="aggregatorWithReferenceAndMethodInput"/>
 	<aggregator id="aggregatorWithReferenceAndMethod"
 		ref="adderBean"
 		method="add"
-		input-channel="inputChannel"
+		input-channel="aggregatorWithReferenceAndMethodInput"
 		output-channel="outputChannel"/>
 
+	<channel id="aggregatorWithPojoCompletionStrategyInput"/>
 	<aggregator id="aggregatorWithPojoCompletionStrategy"
-		input-channel="inputChannel"
+		input-channel="aggregatorWithPojoCompletionStrategyInput"
 		output-channel="outputChannel"
 		ref="adderBean"
 		method="add"

@@ -29,7 +29,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.rmi.RmiInboundGateway;
-import org.springframework.integration.rmi.RmiOutboundGateway;
 
 /**
  * @author Mark Fisher
@@ -53,8 +52,8 @@ public class RmiOutboundGatewayParserTests {
 	public void directInvocation() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"rmiOutboundGatewayParserTests.xml", this.getClass());
-		RmiOutboundGateway gateway = (RmiOutboundGateway) context.getBean("gateway");
-		gateway.handle(new StringMessage("test"));
+		MessageChannel localChannel = (MessageChannel) context.getBean("localChannel");
+		localChannel.send(new StringMessage("test"));
 		Message<?> result = testChannel.receive(1000);
 		assertNotNull(result);
 		assertEquals("test", result.getPayload());

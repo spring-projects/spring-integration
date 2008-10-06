@@ -20,7 +20,6 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.router.MethodInvokingChannelResolver;
 import org.springframework.integration.router.RouterEndpoint;
 
@@ -32,18 +31,13 @@ import org.springframework.integration.router.RouterEndpoint;
 public class RouterParser extends AbstractEndpointParser {
 
 	@Override
-	protected Class<? extends MessageEndpoint> getEndpointClass() {
-		return RouterEndpoint.class;
-	}
-
-	@Override
-	protected Class<?> getMethodInvokingAdapterClass() {
-		return MethodInvokingChannelResolver.class;
-	}
-
-	@Override
-	protected void postProcess(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
+		String adapterBeanName = this.parseAdapter(element, parserContext, MethodInvokingChannelResolver.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RouterEndpoint.class);
+		builder.addConstructorArgReference(adapterBeanName);
+		builder.addPropertyReference("channelRegistry", MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "default-output-channel");
+		return builder;
 	}
 
 }

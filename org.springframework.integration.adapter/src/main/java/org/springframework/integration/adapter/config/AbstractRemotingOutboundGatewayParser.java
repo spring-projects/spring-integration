@@ -18,26 +18,64 @@ package org.springframework.integration.adapter.config;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.BeanDefinitionStoreException;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.AbstractEndpointParser;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Base class for url-based remoting outbound gateway parsers. 
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractRemotingOutboundGatewayParser extends AbstractRemotingGatewayParser {
+public abstract class AbstractRemotingOutboundGatewayParser extends AbstractEndpointParser {
+
+	protected abstract Class<?> getGatewayClass(Element element);
 
 	@Override
-	protected boolean isEligibleAttribute(String attributeName) {
-		return !attributeName.equals("url") && super.isEligibleAttribute(attributeName);
+	protected String getInputChannelAttributeName() {
+		return "request-channel";
 	}
 
 	@Override
-	protected void doPostProcess(BeanDefinitionBuilder builder, Element element) {
+	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
+			throws BeanDefinitionStoreException {
+		String id = super.resolveId(element, definition, parserContext);
+		if (!StringUtils.hasText(id)) {
+			id = element.getAttribute("name");
+		}
+		if (!StringUtils.hasText(id)) {
+			id = parserContext.getReaderContext().generateBeanName(definition);
+		}
+		return id;
+	}
+
+	@Override
+	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(this.getGatewayClass(element));
+		String url = this.parseUrl(element);
+		builder.addConstructorArgValue(url);
+		String replyChannel = element.getAttribute("reply-channel");
+		if (StringUtils.hasText(replyChannel)) {
+			builder.addPropertyReference("replyChannel", replyChannel);
+		}
+		this.postProcessGateway(builder, element);
+		return builder;
+	}
+
+	protected String parseUrl(Element element) {
 		String url = element.getAttribute("url");
 		Assert.hasText(url, "The 'url' attribute is required.");
-		builder.addConstructorArgValue(url);
+		return url;
+	}
+
+	/**
+	 * Subclasses may override this method for additional configuration.
+	 */
+	protected void postProcessGateway(BeanDefinitionBuilder builder, Element element) {
 	}
 
 }

@@ -19,11 +19,10 @@ package org.springframework.integration.ws.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
-import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.ConfigurationException;
+import org.springframework.integration.adapter.config.AbstractRemotingOutboundGatewayParser;
 import org.springframework.integration.ws.handler.MarshallingWebServiceHandler;
 import org.springframework.integration.ws.handler.SimpleWebServiceHandler;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -31,37 +30,28 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class WebServiceHandlerParser extends AbstractSingleBeanDefinitionParser {
+public class WebServiceHandlerParser extends AbstractRemotingOutboundGatewayParser {
 
 	@Override
-	protected Class<?> getBeanClass(Element element) {
+	protected Class<?> getGatewayClass(Element element) {
 		return (StringUtils.hasText(element.getAttribute("marshaller"))) ?
 				MarshallingWebServiceHandler.class : SimpleWebServiceHandler.class;
 	}
 
 	@Override
-	protected boolean shouldGenerateId() {
-		return false;
+	protected String getInputChannelAttributeName() {
+		return "input-channel";
 	}
 
 	@Override
-	protected boolean shouldGenerateIdAsFallback() {
-		return true;
-	}
-
-	@Override
-	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+	protected String parseUrl(Element element) {
 		String uri = element.getAttribute("uri");
-		if (!StringUtils.hasText(uri)) {
-			throw new ConfigurationException("The 'uri' attribute is required.");
-		}
-		builder.addConstructorArgValue(uri);
-		String inputChannel = element.getAttribute("input-channel");
-		builder.addPropertyReference("inputChannel", inputChannel);
-		String outputChannel = element.getAttribute("output-channel");
-		if (StringUtils.hasText(outputChannel)) {
-			builder.addPropertyReference("outputChannel", outputChannel);
-		}
+		Assert.hasText(uri, "The 'uri' attribute is required.");
+		return uri;
+	}
+
+	@Override
+	protected void postProcessGateway(BeanDefinitionBuilder builder, Element element) {
 		String marshallerRef = element.getAttribute("marshaller");
 		if (StringUtils.hasText(marshallerRef)) {
 			builder.addConstructorArgReference(marshallerRef);
@@ -91,13 +81,10 @@ public class WebServiceHandlerParser extends AbstractSingleBeanDefinitionParser 
 		if (StringUtils.hasText(faultMessageResolverRef)) {
 			builder.addPropertyReference("faultMessageResolver", faultMessageResolverRef);
 		}
-		
 		String messageSenderRef = element.getAttribute("message-sender");
 		String messageSenderListRef = element.getAttribute("message-senders");
-		if(StringUtils.hasText(messageSenderRef) && StringUtils.hasText(messageSenderListRef)){
-			throw new ConfigurationException("Only one of message-sender or mesage-senders should be specified");
-		}
-		
+		Assert.isTrue(!(StringUtils.hasText(messageSenderRef) && StringUtils.hasText(messageSenderListRef)),
+				"Only one of message-sender or message-senders should be specified");
 		if (StringUtils.hasText(messageSenderRef)) {
 			builder.addPropertyReference("messageSender", messageSenderRef);
 		}

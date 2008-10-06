@@ -22,7 +22,6 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.AbstractEndpointParser;
-import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.transformer.Transformer;
 import org.springframework.integration.transformer.TransformerEndpoint;
 
@@ -32,23 +31,15 @@ import org.springframework.integration.transformer.TransformerEndpoint;
 public abstract class AbstractTransformerParser extends AbstractEndpointParser {
 
 	@Override
-	protected boolean shouldCreateAdapter(Element element) {
-		return false;
-	}
-
-	@Override
-	protected Class<? extends MessageEndpoint> getEndpointClass() {
-		return TransformerEndpoint.class;
-	}
-
-	@Override
-	protected void postProcess(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(TransformerEndpoint.class);
 		BeanDefinitionBuilder transformerBuilder =
 				BeanDefinitionBuilder.genericBeanDefinition(this.getTransformerClass());
 		this.parseTransformer(element, parserContext, transformerBuilder);
 		String transformerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
 				transformerBuilder.getBeanDefinition(), parserContext.getRegistry());
 		builder.addConstructorArgReference(transformerBeanName);
+		return builder;
 	}
 
 	protected abstract Class<? extends Transformer> getTransformerClass();

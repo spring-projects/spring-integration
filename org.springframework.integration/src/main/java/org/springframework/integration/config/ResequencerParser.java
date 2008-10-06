@@ -19,7 +19,7 @@ package org.springframework.integration.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
+import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.aggregator.ResequencerEndpoint;
 
 /**
@@ -27,33 +27,34 @@ import org.springframework.integration.aggregator.ResequencerEndpoint;
  * 
  * @author Marius Bogoevici
  */
-public class ResequencerParser extends AbstractSimpleBeanDefinitionParser {
+public class ResequencerParser extends AbstractEndpointParser {
 
-	public static final String INPUT_CHANNEL_ATTRIBUTE = "input-channel";
+	private static final String DISCARD_CHANNEL_ATTRIBUTE = "discard-channel";
 
-	public static final String OUTPUT_CHANNEL_ATTRIBUTE = "output-channel";
+	private static final String SEND_TIMEOUT_ATTRIBUTE = "send-timeout";
 
-	public static final String DISCARD_CHANNEL_ATTRIBUTE = "discard-channel";
+	private static final String RELEASE_PARTIAL_SEQUENCES = "release-partial-sequences";
 
+	private static final String SEND_PARTIAL_RESULT_ON_TIMEOUT_ATTRIBUTE = "send-partial-result-on-timeout";
 
-	@Override
-	protected Class<?> getBeanClass(Element element) {
-		return ResequencerEndpoint.class;
-	}
+	private static final String REAPER_INTERVAL_ATTRIBUTE = "reaper-interval";
 
-	@Override
-	protected boolean isEligibleAttribute(String attributeName) {
-		return !INPUT_CHANNEL_ATTRIBUTE.equals(attributeName)
-				&&!OUTPUT_CHANNEL_ATTRIBUTE.equals(attributeName)
-				&& !DISCARD_CHANNEL_ATTRIBUTE.equals(attributeName)
-				&& super.isEligibleAttribute(attributeName);
-	}
+	private static final String TRACKED_CORRELATION_ID_CAPACITY_ATTRIBUTE = "tracked-correlation-id-capacity";
+
+	private static final String TIMEOUT_ATTRIBUTE = "timeout";
+
 
 	@Override
-	protected void postProcess(BeanDefinitionBuilder builder, Element element) {
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, INPUT_CHANNEL_ATTRIBUTE);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, OUTPUT_CHANNEL_ATTRIBUTE);
+	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ResequencerEndpoint.class);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, DISCARD_CHANNEL_ATTRIBUTE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_TIMEOUT_ATTRIBUTE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, RELEASE_PARTIAL_SEQUENCES);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_PARTIAL_RESULT_ON_TIMEOUT_ATTRIBUTE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, REAPER_INTERVAL_ATTRIBUTE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, TRACKED_CORRELATION_ID_CAPACITY_ATTRIBUTE);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, TIMEOUT_ATTRIBUTE);
+		return builder;
 	}
 
 }

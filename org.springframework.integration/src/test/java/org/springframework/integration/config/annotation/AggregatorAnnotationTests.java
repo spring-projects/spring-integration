@@ -29,6 +29,7 @@ import org.springframework.integration.aggregator.CompletionStrategyAdapter;
 import org.springframework.integration.aggregator.SequenceSizeCompletionStrategy;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.config.MessageBusParser;
+import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 
 /**
  * @author Marius Bogoevici
@@ -90,8 +91,9 @@ public class AggregatorAnnotationTests {
 
 	@SuppressWarnings("unchecked")
 	private DirectFieldAccessor getDirectFieldAccessorForAggregatingHandler(ApplicationContext context, final String endpointName) {
-		AggregatorEndpoint endpoint = (AggregatorEndpoint) context.getBean(endpointName + ".aggregatingMethod.aggregator");
-		return new DirectFieldAccessor(endpoint);
+		SubscribingConsumerEndpoint endpoint = (SubscribingConsumerEndpoint) context.getBean(
+				endpointName + ".aggregatingMethod.aggregator");
+		return new DirectFieldAccessor(new DirectFieldAccessor(endpoint).getPropertyValue("consumer"));
 	}
 
 	private MessageBus getMessageBus(ApplicationContext context) {

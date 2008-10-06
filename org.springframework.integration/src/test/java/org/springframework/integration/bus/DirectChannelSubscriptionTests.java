@@ -31,11 +31,10 @@ import org.springframework.integration.channel.ThreadLocalChannel;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
 import org.springframework.integration.endpoint.AbstractMessageHandlingEndpoint;
 import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
+import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageMappingMethodInvoker;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.util.MethodInvoker;
 
 /**
  * @author Mark Fisher
@@ -61,11 +60,9 @@ public class DirectChannelSubscriptionTests {
 	@Test
 	public void testSendAndReceiveForRegisteredEndpoint() {
 		GenericApplicationContext context = new GenericApplicationContext();
-		MethodInvoker invoker = new MessageMappingMethodInvoker(new TestBean(), "handle");
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(invoker);
-		endpoint.setInputChannel(sourceChannel);
-		endpoint.setOutputChannel(targetChannel);
-		endpoint.setBeanName("testEndpoint");
+		ServiceActivatorEndpoint serviceActivator = new ServiceActivatorEndpoint(new TestBean(), "handle");
+		serviceActivator.setOutputChannel(targetChannel);
+		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(serviceActivator, sourceChannel);
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
 		bus.setApplicationContext(context);
 		bus.start();
@@ -96,14 +93,13 @@ public class DirectChannelSubscriptionTests {
 		QueueChannel errorChannel = new QueueChannel();
 		errorChannel.setBeanName(ChannelRegistry.ERROR_CHANNEL_NAME);
 		bus.registerChannel(errorChannel);
-		AbstractMessageHandlingEndpoint endpoint = new AbstractMessageHandlingEndpoint() {
+		AbstractMessageHandlingEndpoint consumer = new AbstractMessageHandlingEndpoint() {
 			public Message<?> handle(Message<?> message) {
 				throw new RuntimeException("intentional test failure");
 			}
 		};
-		endpoint.setInputChannel(sourceChannel);
-		endpoint.setOutputChannel(targetChannel);
-		endpoint.setBeanName("testEndpoint");
+		consumer.setOutputChannel(targetChannel);
+		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(consumer, sourceChannel);
 		bus.registerEndpoint(endpoint);
 		bus.start();
 		this.sourceChannel.send(new StringMessage("foo"));

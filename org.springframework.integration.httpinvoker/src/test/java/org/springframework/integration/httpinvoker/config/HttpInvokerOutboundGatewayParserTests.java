@@ -20,8 +20,10 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.httpinvoker.HttpInvokerOutboundGateway;
 
 /**
@@ -33,7 +35,9 @@ public class HttpInvokerOutboundGatewayParserTests {
 	public void testHttpInvokerOutboundGatewayParser() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"httpInvokerOutboundGatewayParserTests.xml", this.getClass());
-		Object gateway = context.getBean("gateway");
+		Object endpoint = context.getBean("gateway");
+		assertEquals(SubscribingConsumerEndpoint.class, endpoint.getClass());
+		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("consumer");
 		assertEquals(HttpInvokerOutboundGateway.class, gateway.getClass());
 	}
 

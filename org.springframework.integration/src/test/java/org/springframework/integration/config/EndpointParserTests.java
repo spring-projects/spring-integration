@@ -30,7 +30,6 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.StringMessage;
 
@@ -56,11 +55,11 @@ public class EndpointParserTests {
 	public void testEndpointWithSelectorAccepts() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"endpointWithSelector.xml", this.getClass());		
-		MessageConsumer endpoint = (MessageConsumer) context.getBean("endpoint");
+		MessageChannel inputChannel = (MessageChannel) context.getBean("testChannel");
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("test")
 				.setReturnAddress(replyChannel).build();
-		endpoint.onMessage(message);
+		inputChannel.send(message);
 		Message<?> reply = replyChannel.receive(500);
 		assertNotNull(reply);
 		assertEquals("foo", reply.getPayload());
@@ -70,11 +69,11 @@ public class EndpointParserTests {
 	public void testEndpointWithSelectorRejects() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"endpointWithSelector.xml", this.getClass());		
-		MessageConsumer endpoint = (MessageConsumer) context.getBean("endpoint");
+		MessageChannel inputChannel = (MessageChannel) context.getBean("testChannel");
 		MessageChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload(123)
 				.setReturnAddress(replyChannel).build();
-		endpoint.onMessage(message);
+		inputChannel.send(message);
 	}
 
 	@Test

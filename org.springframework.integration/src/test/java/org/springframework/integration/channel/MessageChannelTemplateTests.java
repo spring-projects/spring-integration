@@ -30,6 +30,7 @@ import org.junit.Test;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.endpoint.AbstractMessageHandlingEndpoint;
+import org.springframework.integration.endpoint.PollingConsumerEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
@@ -46,13 +47,13 @@ public class MessageChannelTemplateTests {
 	public void setUp() {
 		this.requestChannel = new QueueChannel();
 		this.requestChannel.setBeanName("requestChannel");
-		AbstractMessageHandlingEndpoint endpoint = new AbstractMessageHandlingEndpoint() {
+		AbstractMessageHandlingEndpoint consumer = new AbstractMessageHandlingEndpoint() {
 			public Message<?> handle(Message<?> message) {
 				return new StringMessage(message.getPayload().toString().toUpperCase());
 			}		
 		};
-		endpoint.setBeanName("testEndpoint");
-		endpoint.setInputChannel(requestChannel);		
+		PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(consumer, requestChannel);
+		endpoint.afterPropertiesSet();
 		GenericApplicationContext context = new GenericApplicationContext();
 		context.getBeanFactory().registerSingleton("requestChannel", requestChannel);
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);

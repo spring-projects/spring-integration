@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  */
-public class ServiceActivatorEndpoint extends AbstractMessageHandlingEndpoint {
+public class ServiceActivatorEndpoint extends AbstractMessageHandlingEndpoint implements InitializingBean {
 
 	private final MethodResolver methodResolver = new DefaultMethodResolver(ServiceActivator.class);
 
@@ -56,9 +56,7 @@ public class ServiceActivatorEndpoint extends AbstractMessageHandlingEndpoint {
 	}
 
 
-	@Override
-	protected void initialize() throws Exception {
-		super.initialize();
+	public void afterPropertiesSet() throws Exception {
 		if (this.invoker instanceof InitializingBean) {
 			((InitializingBean) this.invoker).afterPropertiesSet();
 		}

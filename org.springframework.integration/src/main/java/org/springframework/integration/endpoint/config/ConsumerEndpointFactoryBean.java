@@ -22,6 +22,8 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
@@ -39,7 +41,7 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  */
-public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAware, InitializingBean {
+public class ConsumerEndpointFactoryBean implements FactoryBean, ChannelRegistryAware, BeanFactoryAware, InitializingBean {
 
 	private final MessageConsumer consumer;
 
@@ -74,6 +76,16 @@ public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAwar
 
 	public void setInputChannelName(String inputChannelName) {
 		this.inputChannelName = inputChannelName;
+	}
+
+	public void setChannelRegistry(ChannelRegistry channelRegistry) {
+		if (this.consumer instanceof ChannelRegistryAware) {
+			((ChannelRegistryAware) this.consumer).setChannelRegistry(channelRegistry);
+		}
+	}
+
+	public void setTrigger(Trigger trigger) {
+		this.trigger = trigger;
 	}
 
 	public void setMaxMessagesPerPoll(int maxMessagesPerPoll) {

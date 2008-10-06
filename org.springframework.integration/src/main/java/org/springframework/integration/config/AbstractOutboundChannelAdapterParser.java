@@ -22,7 +22,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.endpoint.OutboundChannelAdapter;
+import org.springframework.integration.endpoint.config.ConsumerEndpointFactoryBean;
 import org.springframework.util.Assert;
 import org.springframework.util.xml.DomUtils;
 
@@ -36,20 +36,18 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 	@Override
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
 		Element pollerElement = DomUtils.getChildElementByTagName(element, "poller");
-		BeanDefinitionBuilder adapterBuilder = null;
-		adapterBuilder =  BeanDefinitionBuilder.genericBeanDefinition(OutboundChannelAdapter.class);
-		String consumerBeanName = this.parseAndRegisterConsumer(element, parserContext);
-		adapterBuilder.addConstructorArgReference(consumerBeanName);
+		BeanDefinitionBuilder builder =  BeanDefinitionBuilder.genericBeanDefinition(ConsumerEndpointFactoryBean.class);
+		builder.addConstructorArgReference(this.parseAndRegisterConsumer(element, parserContext));
 		if (pollerElement != null) {
 			Assert.hasText(channelName, "outbound channel adapter with a 'poller' requires a 'channel' to poll");
-			IntegrationNamespaceUtils.configureTrigger(pollerElement, adapterBuilder);
+			IntegrationNamespaceUtils.configureTrigger(pollerElement, builder);
 			Element txElement = DomUtils.getChildElementByTagName(pollerElement, "transactional");
 			if (txElement != null) {
-				IntegrationNamespaceUtils.configureTransactionAttributes(txElement, adapterBuilder);
+				IntegrationNamespaceUtils.configureTransactionAttributes(txElement, builder);
 			}
 		}
-		adapterBuilder.addPropertyReference("inputChannel", channelName);
-		return adapterBuilder.getBeanDefinition();
+		builder.addPropertyValue("inputChannelName", channelName);
+		return builder.getBeanDefinition();
 	}
 
 	/**

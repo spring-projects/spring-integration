@@ -14,12 +14,15 @@
 	<channel id="inMethodInvoking" />
 	<channel id="out" />
 
-	<splitter ref="splitterBean" input-channel="inMethodInvoking"
+	<splitter ref="splitterBeanXmlConfig" input-channel="inMethodInvoking"
 		method="split" output-channel="out" />
 
 	<splitter input-channel="inDefault" output-channel="out" />
 
-	<beans:bean id="splitterBean"
+	<beans:bean id="splitterBeanXmlConfig"
+		class="org.springframework.integration.splitter.SplitterIntegrationTests$TestSplitter" />
+
+	<beans:bean id="splitterBeanAnnotationConfig"
 		class="org.springframework.integration.splitter.SplitterIntegrationTests$TestSplitter" />
 
 	<beans:bean

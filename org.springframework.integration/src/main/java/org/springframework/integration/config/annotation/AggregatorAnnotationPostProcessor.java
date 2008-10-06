@@ -25,10 +25,9 @@ import org.springframework.integration.aggregator.CompletionStrategyAdapter;
 import org.springframework.integration.aggregator.MethodInvokingAggregator;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.CompletionStrategy;
-import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.message.MessageConsumer;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
@@ -46,44 +45,31 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 
 
 	@Override
-	protected Object createMethodInvokingAdapter(Object bean, Method method, Aggregator annotation) {
-		return new MethodInvokingAggregator(bean, method);
-	}
-
-	@Override
-	protected AbstractEndpoint createEndpoint(Object originalBean, Object adapter) {
-		if (adapter instanceof org.springframework.integration.aggregator.Aggregator) {
-			AggregatorEndpoint endpoint = new AggregatorEndpoint((org.springframework.integration.aggregator.Aggregator) adapter);
-			this.configureCompletionStrategy(originalBean, endpoint);
-			return endpoint;
-		}
-		return null;
-	}
-
-	@Override
-	protected void configureEndpoint(AbstractEndpoint endpoint, Aggregator annotation, Poller pollerAnnotation) {
-		super.configureEndpoint(endpoint, annotation, pollerAnnotation);
-		AggregatorEndpoint aggregatorEndpoint = (AggregatorEndpoint) endpoint;
+	protected MessageConsumer createConsumer(Object bean, Method method, Aggregator annotation) {
+		MethodInvokingAggregator adapter = new MethodInvokingAggregator(bean, method);
+		AggregatorEndpoint aggregator = new AggregatorEndpoint(adapter);
+		this.configureCompletionStrategy(bean, aggregator);
 		String discardChannelName = annotation.discardChannel();
 		if (StringUtils.hasText(discardChannelName)) {
 			MessageChannel discardChannel = this.getChannelRegistry().lookupChannel(discardChannelName);
 			Assert.notNull(discardChannel, "unable to resolve discardChannel '" + discardChannelName + "'");
-			aggregatorEndpoint.setDiscardChannel(discardChannel);
+			aggregator.setDiscardChannel(discardChannel);
 		}
-		aggregatorEndpoint.setSendTimeout(annotation.sendTimeout());
-		aggregatorEndpoint.setSendPartialResultOnTimeout(annotation.sendPartialResultsOnTimeout());
-		aggregatorEndpoint.setReaperInterval(annotation.reaperInterval());
-		aggregatorEndpoint.setTimeout(annotation.timeout());
-		aggregatorEndpoint.setTrackedCorrelationIdCapacity(annotation.trackedCorrelationIdCapacity());
-		aggregatorEndpoint.afterPropertiesSet();
+		aggregator.setSendTimeout(annotation.sendTimeout());
+		aggregator.setSendPartialResultOnTimeout(annotation.sendPartialResultsOnTimeout());
+		aggregator.setReaperInterval(annotation.reaperInterval());
+		aggregator.setTimeout(annotation.timeout());
+		aggregator.setTrackedCorrelationIdCapacity(annotation.trackedCorrelationIdCapacity());
+		aggregator.afterPropertiesSet();
+		return aggregator;
 	}
 
-	private void configureCompletionStrategy(final Object object, final AggregatorEndpoint handler) {
-		ReflectionUtils.doWithMethods(object.getClass(), new ReflectionUtils.MethodCallback() {
+	private void configureCompletionStrategy(final Object bean, final AggregatorEndpoint aggregator) {
+		ReflectionUtils.doWithMethods(bean.getClass(), new ReflectionUtils.MethodCallback() {
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
 				Annotation annotation = AnnotationUtils.getAnnotation(method, CompletionStrategy.class);
 				if (annotation != null) {
-					handler.setCompletionStrategy(new CompletionStrategyAdapter(object, method));
+					aggregator.setCompletionStrategy(new CompletionStrategyAdapter(bean, method));
 				}
 			}
 		});

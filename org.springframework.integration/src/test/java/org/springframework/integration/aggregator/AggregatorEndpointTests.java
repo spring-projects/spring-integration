@@ -52,7 +52,7 @@ public class AggregatorEndpointTests {
 		this.aggregator = new AggregatorEndpoint(new TestAggregator());
 		this.aggregator.setTaskScheduler(this.taskScheduler);
 		this.taskScheduler.start();
-		this.aggregator.onStart();
+		this.aggregator.start();
 	}
 
 	@Test
@@ -325,7 +325,7 @@ public class AggregatorEndpointTests {
 	@After
 	public void stopTaskScheduler() {
 		this.taskScheduler.stop();
-		this.aggregator.onStop();
+		this.aggregator.stop();
 	}
 
 }

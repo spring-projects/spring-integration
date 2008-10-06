@@ -18,7 +18,8 @@ package org.springframework.integration.config;
 
 import org.w3c.dom.Element;
 
-import org.springframework.integration.endpoint.MessageEndpoint;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.splitter.MethodInvokingSplitter;
 import org.springframework.integration.splitter.SplitterEndpoint;
 
@@ -30,18 +31,13 @@ import org.springframework.integration.splitter.SplitterEndpoint;
 public class SplitterParser extends AbstractEndpointParser {
 
 	@Override
-	protected boolean shouldCreateAdapter(Element element) {
-		return element.hasAttribute("ref");
-	}
-
-	@Override
-	protected Class<? extends MessageEndpoint> getEndpointClass() {
-		return SplitterEndpoint.class;
-	}
-
-	@Override
-	protected Class<?> getMethodInvokingAdapterClass() {
-		return MethodInvokingSplitter.class;
+	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SplitterEndpoint.class);
+		if (element.hasAttribute("ref")) {
+			String adapterBeanName = this.parseAdapter(element, parserContext, MethodInvokingSplitter.class);
+			builder.addConstructorArgReference(adapterBeanName);
+		}
+		return builder;
 	}
 
 }

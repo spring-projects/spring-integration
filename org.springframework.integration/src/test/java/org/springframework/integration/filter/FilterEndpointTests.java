@@ -25,6 +25,7 @@ import org.junit.Test;
 
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.filter.FilterEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
@@ -65,9 +66,9 @@ public class FilterEndpointTests {
 				return true;
 			}
 		});
-		filter.setInputChannel(inputChannel);
 		filter.setOutputChannel(outputChannel);
-		filter.start();
+		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(filter, inputChannel);
+		endpoint.start();
 		Message<?> message = new StringMessage("test");
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);
@@ -84,9 +85,9 @@ public class FilterEndpointTests {
 				return false;
 			}
 		});
-		filter.setInputChannel(inputChannel);
 		filter.setOutputChannel(outputChannel);
-		filter.start();
+		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(filter, inputChannel);
+		endpoint.start();
 		Message<?> message = new StringMessage("test");
 		assertTrue(inputChannel.send(message));
 		assertNull(outputChannel.receive(0));
