@@ -24,7 +24,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
-import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
@@ -141,37 +140,31 @@ public class ConsumerEndpointFactoryBean implements FactoryBean, ChannelRegistry
 			if (this.initialized) {
 				return;
 			}
-			if (!this.beanFactory.containsBean(this.inputChannelName)) {
-				DirectChannel channel = new DirectChannel();
-				channel.setBeanName(this.inputChannelName);
-				this.beanFactory.registerSingleton(this.inputChannelName, channel);
-				this.endpoint = new SubscribingConsumerEndpoint(this.consumer, channel);
+			Assert.isTrue(this.beanFactory.containsBean(this.inputChannelName),
+					"no such input channel '" + this.inputChannelName + "'");
+			MessageChannel channel = (MessageChannel)
+					this.beanFactory.getBean(this.inputChannelName, MessageChannel.class);
+			if (channel instanceof SubscribableChannel) {
+				this.endpoint = new SubscribingConsumerEndpoint(
+						this.consumer, (SubscribableChannel) channel);
+			}
+			else if (channel instanceof PollableChannel) {
+				if (this.trigger == null) {
+					this.trigger = new IntervalTrigger(0);
+				}
+				PollingConsumerEndpoint pollingEndpoint = new PollingConsumerEndpoint(
+						this.consumer, (PollableChannel) channel);
+				pollingEndpoint.setTrigger(this.trigger);
+				pollingEndpoint.setMaxMessagesPerPoll(this.maxMessagesPerPoll);
+				pollingEndpoint.setReceiveTimeout(this.receiveTimeout);
+				pollingEndpoint.setTaskExecutor(this.taskExecutor);
+				pollingEndpoint.setTransactionManager(this.transactionManager);
+				pollingEndpoint.setTransactionDefinition(this.transactionDefinition);
+				this.endpoint = pollingEndpoint;
 			}
 			else {
-				MessageChannel channel = (MessageChannel)
-						this.beanFactory.getBean(this.inputChannelName, MessageChannel.class);
-				if (channel instanceof SubscribableChannel) {
-					this.endpoint = new SubscribingConsumerEndpoint(
-							this.consumer, (SubscribableChannel) channel);
-				}
-				else if (channel instanceof PollableChannel) {
-					if (this.trigger == null) {
-						this.trigger = new IntervalTrigger(0);
-					}
-					PollingConsumerEndpoint pollingEndpoint = new PollingConsumerEndpoint(
-							this.consumer, (PollableChannel) channel);
-					pollingEndpoint.setTrigger(this.trigger);
-					pollingEndpoint.setMaxMessagesPerPoll(this.maxMessagesPerPoll);
-					pollingEndpoint.setReceiveTimeout(this.receiveTimeout);
-					pollingEndpoint.setTaskExecutor(this.taskExecutor);
-					pollingEndpoint.setTransactionManager(this.transactionManager);
-					pollingEndpoint.setTransactionDefinition(this.transactionDefinition);
-					this.endpoint = pollingEndpoint;
-				}
-				else {
-					throw new IllegalArgumentException(
-							"unsupported channel type: [" + channel.getClass() + "]");
-				}
+				throw new IllegalArgumentException(
+						"unsupported channel type: [" + channel.getClass() + "]");
 			}
 			this.initialized = true;
 		}

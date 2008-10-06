@@ -18,10 +18,12 @@ package org.springframework.integration.config;
 
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.endpoint.config.ConsumerEndpointFactoryBean;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -97,6 +99,11 @@ public abstract class AbstractEndpointParser extends AbstractSingleBeanDefinitio
 		String inputChannelAttributeName = this.getInputChannelAttributeName();
 		String inputChannelName = element.getAttribute(inputChannelAttributeName);
 		Assert.hasText(inputChannelName, "the '" + inputChannelAttributeName + "' attribute is required");
+		if (!parserContext.getRegistry().containsBeanDefinition(inputChannelName)) {
+			BeanDefinitionBuilder channelDef = BeanDefinitionBuilder.genericBeanDefinition(DirectChannel.class);
+			BeanDefinitionHolder holder = new BeanDefinitionHolder(channelDef.getBeanDefinition(), inputChannelName);
+			BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
+		}
 		builder.addPropertyValue("inputChannelName", inputChannelName);
 		Element pollerElement = DomUtils.getChildElementByTagName(element, POLLER_ELEMENT);
 		if (pollerElement != null) {

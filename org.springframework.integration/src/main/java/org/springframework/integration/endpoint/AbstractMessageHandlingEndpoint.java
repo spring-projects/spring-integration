@@ -53,7 +53,7 @@ public abstract class AbstractMessageHandlingEndpoint extends AbstractMessageCon
 		this.outputChannel = outputChannel;
 	}
 
-	public MessageChannel getOutputChannel() {
+	protected MessageChannel getOutputChannel() {
 		return this.outputChannel;
 	}
 
