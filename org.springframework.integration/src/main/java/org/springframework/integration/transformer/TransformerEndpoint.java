@@ -16,14 +16,14 @@
 
 package org.springframework.integration.transformer;
 
-import org.springframework.integration.endpoint.AbstractMessageHandlingEndpoint;
+import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
 import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
  */
-public class TransformerEndpoint extends AbstractMessageHandlingEndpoint {
+public class TransformerEndpoint extends AbstractReplyProducingMessageConsumer {
 
 	private final Transformer transformer;
 

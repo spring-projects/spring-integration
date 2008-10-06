@@ -22,7 +22,7 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
-import org.springframework.integration.endpoint.AbstractMessageHandlingEndpoint;
+import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.MessagingGateway;
 import org.springframework.integration.endpoint.PollingConsumerEndpoint;
@@ -150,9 +150,9 @@ public abstract class AbstractMessagingGateway implements MessagingGateway, Mess
 			if (this.replyMessageCorrelator != null) {
 				return;
 			}
-			Assert.state(this.messageBus != null, "No MessageBus available. Cannot register ReplyMessageCorrelator.");
+			Assert.state(this.messageBus != null, "No MessageBus available. Cannot register reply correlator.");
 			MessageEndpoint correlator = null;
-			MessageConsumer consumer = new AbstractMessageHandlingEndpoint() {
+			MessageConsumer consumer = new AbstractReplyProducingMessageConsumer() {
 				@Override
 				protected Object handle(Message<?> message) {
 					return message;

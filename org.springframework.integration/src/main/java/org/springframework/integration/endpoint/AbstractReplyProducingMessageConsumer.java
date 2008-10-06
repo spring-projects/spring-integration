@@ -34,9 +34,11 @@ import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.util.Assert;
 
 /**
+ * Base class for MessageConsumers that are capable of producing replies.
+ * 
  * @author Mark Fisher
  */
-public abstract class AbstractMessageHandlingEndpoint extends AbstractMessageConsumer implements ChannelRegistryAware {
+public abstract class AbstractReplyProducingMessageConsumer extends AbstractMessageConsumer implements ChannelRegistryAware {
 
 	private MessageChannel outputChannel;
 
@@ -71,7 +73,7 @@ public abstract class AbstractMessageHandlingEndpoint extends AbstractMessageCon
 
 
 	@Override
-	protected void onMessageInternal(Message<?> message) {
+	protected final void onMessageInternal(Message<?> message) {
 		if (!this.supports(message)) {
 			throw new MessageRejectedException(message, "unsupported message");
 		}

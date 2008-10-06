@@ -29,7 +29,7 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.endpoint.AbstractMessageConsumer;
-import org.springframework.integration.endpoint.AbstractMessageHandlingEndpoint;
+import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.PollingConsumerEndpoint;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
@@ -119,12 +119,12 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 							+ inputChannel.getClass() + "]");
 				}
 			}
-			if (consumer instanceof AbstractMessageHandlingEndpoint) {
+			if (consumer instanceof AbstractReplyProducingMessageConsumer) {
 				String outputChannelName = (String) AnnotationUtils.getValue(annotation, OUTPUT_CHANNEL_ATTRIBUTE);
 				if (StringUtils.hasText(outputChannelName)) {
 					MessageChannel outputChannel = this.messageBus.lookupChannel(outputChannelName);
 					Assert.notNull(outputChannel, "unable to resolve outputChannel '" + outputChannelName + "'");
-					((AbstractMessageHandlingEndpoint) consumer).setOutputChannel(outputChannel);
+					((AbstractReplyProducingMessageConsumer) consumer).setOutputChannel(outputChannel);
 				}
 			}
 		}

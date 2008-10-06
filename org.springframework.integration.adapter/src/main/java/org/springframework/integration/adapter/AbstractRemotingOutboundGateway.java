@@ -19,7 +19,7 @@ package org.springframework.integration.adapter;
 import java.io.Serializable;
 
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.endpoint.AbstractMessageHandlingEndpoint;
+import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.remoting.RemoteAccessException;
@@ -29,7 +29,7 @@ import org.springframework.remoting.RemoteAccessException;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractRemotingOutboundGateway extends AbstractMessageHandlingEndpoint {
+public abstract class AbstractRemotingOutboundGateway extends AbstractReplyProducingMessageConsumer {
 
 	private final MessageHandler handlerProxy;
 

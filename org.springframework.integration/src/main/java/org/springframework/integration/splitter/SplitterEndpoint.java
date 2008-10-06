@@ -18,7 +18,7 @@ package org.springframework.integration.splitter;
 
 import java.util.List;
 
-import org.springframework.integration.endpoint.AbstractMessageHandlingEndpoint;
+import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
 import org.springframework.integration.message.CompositeMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
@@ -26,7 +26,7 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  */
-public class SplitterEndpoint extends AbstractMessageHandlingEndpoint {
+public class SplitterEndpoint extends AbstractReplyProducingMessageConsumer {
 
 	private final Splitter splitter;
 

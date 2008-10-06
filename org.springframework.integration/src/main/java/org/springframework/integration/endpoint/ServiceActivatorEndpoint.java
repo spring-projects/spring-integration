@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  */
-public class ServiceActivatorEndpoint extends AbstractMessageHandlingEndpoint implements InitializingBean {
+public class ServiceActivatorEndpoint extends AbstractReplyProducingMessageConsumer implements InitializingBean {
 
 	private final MethodResolver methodResolver = new DefaultMethodResolver(ServiceActivator.class);
 

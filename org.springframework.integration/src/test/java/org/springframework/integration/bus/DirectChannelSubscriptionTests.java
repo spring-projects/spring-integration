@@ -29,7 +29,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.ThreadLocalChannel;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
-import org.springframework.integration.endpoint.AbstractMessageHandlingEndpoint;
+import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
 import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.message.Message;
@@ -93,7 +93,7 @@ public class DirectChannelSubscriptionTests {
 		QueueChannel errorChannel = new QueueChannel();
 		errorChannel.setBeanName(ChannelRegistry.ERROR_CHANNEL_NAME);
 		bus.registerChannel(errorChannel);
-		AbstractMessageHandlingEndpoint consumer = new AbstractMessageHandlingEndpoint() {
+		AbstractReplyProducingMessageConsumer consumer = new AbstractReplyProducingMessageConsumer() {
 			public Message<?> handle(Message<?> message) {
 				throw new RuntimeException("intentional test failure");
 			}
