@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<chapter id="files">
+	<title>Dealing with Files</title>
+
+	<section id="file-intro">
+		<title>Introduction</title>
+		<para>
+			Spring Integration File extends the Spring Integration Core with
+			dedicated
+			vocabulary to deal with reading, writing and transforming
+			files.
+			There is a namespace that enables elements that define channel
+			adapters dedicated to files and support for transformers that
+			transform files into strings or byte arrays. 
+    </para>
+		<para>
+			This section will explain the workings of
+			<classname>PollableFileSource</classname>
+			,
+			<classname>FileWritingMessageConsumer
+			</classname>
+			and how to configure them as
+			<emphasis>beans</emphasis>
+			. Also the support for dealing with files through file specific
+			implementations of
+			<interfacename>Transformer</interfacename>
+			will be discussed. Finally the file specific namespace will be
+			discussed.
+		</para>
+	</section>
+
+	<section id="file-reading">
+		<title>Reading Files</title>
+		<para>
+			A
+			<classname>PollableFileSource</classname>
+			can be used to consume files from the filesystem. This is an
+			implementation of
+			<interfacename>PollableSource</interfacename>
+			that creates messages from a file system directory.
+			<programlisting language="xml"><![CDATA[<bean id="pollableFileSource" class="org.springframework.integration.file.PollableFileSource"
+		p:inputDirectory="file:${input.directory.property}"/>]]></programlisting>
+		</para>
+		<para>
+			To prevent creating messages for certain files, you may supply a
+			{@link FileListFilter}. By default, an
+			<classname>AcceptOnceFileListFilter
+			</classname>
+			is used. This filter ensures files are picked up only once from the
+			directory.
+			<programlisting language="xml"><![CDATA[<bean id="pollableFileSource" class="org.springframework.integration.file.PollableFileSource"
+		p:inputDirectory="file:${input.directory.property}"
+		p:filter-ref="customFilterBean"/>]]></programlisting>
+		</para>
+		<para>
+			A common problem with reading files is that a file may be detected
+			before it is ready. The default
+			<classname>AcceptOnceFileListFilter
+			</classname>
+			does
+			not prevent this. In most cases, this can be prevented if the
+			file-writing process renames each file as soon as it is ready for
+			reading. A pattern-matching filter that accepts only files that are
+			ready (e.g. based on a known suffix), composed with the default
+			<classname>AcceptOnceFileListFilter
+			</classname>
+			allows for this.
+			<programlisting language="xml"><![CDATA[	<bean id="pollableFileSource" class="org.springframework.integration.file.PollableFileSource"
+		p:inputDirectory="file:${input.directory.property}"
+		p:filter-ref="compositeFilter"/>
+	<bean id="compositeFilter" class="org.springframework.integration.file.CompositeFileListFilter">
+		<constructor-arg>
+			<list>
+				<bean class="org.springframework.integration.file.AcceptOnceFileListFilter" />
+				<bean class="org.springframework.integration.file.PatternMatchingFileListFilter">
+					<constructor-arg value="^test.*$"/>
+				</bean>
+			</list>
+		</constructor-arg>
+	</bean>]]></programlisting>
+		</para>
+		<para>
+			The configuration can be simplified using the file specific
+			namespace. To do this use the following template.
+			<programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:integration="http://www.springframework.org/schema/integration"
+	xmlns:file="http://www.springframework.org/schema/integration/file"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
+			http://www.springframework.org/schema/integration/file
+			http://www.springframework.org/schema/integration/file/spring-integration-file-1.0.xsd">
+</beans>]]></programlisting>
+			Within this namespace you can reduce the PollableFileSource and wrap
+			it in a InboundChannelAdapter like this:
+			<programlisting language="xml">
+				<![CDATA[	<file:inbound-channel-adapter id="filesIn"
+	       directory="file:${input.directory.property}"/> 					(1)
+	<file:inbound-channel-adapter id="filesIn"
+	       directory="file:${java.io.tmpdir}/spring-integration-samples/input" 
+	       filter="customFilterBean" />										(2)
+	<file:inbound-channel-adapter id="filesIn"
+	       directory="file:${java.io.tmpdir}/spring-integration-samples/input" 
+	       filename-pattern="^test.*$" /> 									(3)
+	]]>
+			</programlisting>
+		</para>
+	</section>
+	<section id="file-writing">
+		<title>Writing files</title>
+		<para>
+		<!-- paragraph with the basics -->
+		</para>
+		<para>
+		<!-- extra configuration options -->
+		</para>
+		<para>
+		<!-- namespace support -->
+		</para>
+	</section>
+</chapter>
