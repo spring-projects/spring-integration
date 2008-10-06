@@ -19,7 +19,7 @@ package org.springframework.integration.event;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
-import org.springframework.integration.endpoint.AbstractMessageConsumingEndpoint;
+import org.springframework.integration.endpoint.AbstractMessageConsumer;
 import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
 
@@ -30,7 +30,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class ApplicationEventOutboundChannelAdapter<T> extends AbstractMessageConsumingEndpoint implements ApplicationEventPublisherAware {
+public class ApplicationEventOutboundChannelAdapter<T> extends AbstractMessageConsumer implements ApplicationEventPublisherAware {
 
 	private ApplicationEventPublisher applicationEventPublisher;
 

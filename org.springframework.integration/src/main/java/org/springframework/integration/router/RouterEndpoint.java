@@ -22,7 +22,7 @@ import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.MessageChannelTemplate;
-import org.springframework.integration.endpoint.AbstractMessageConsumingEndpoint;
+import org.springframework.integration.endpoint.AbstractMessageConsumer;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.util.Assert;
@@ -30,7 +30,7 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  */
-public class RouterEndpoint extends AbstractMessageConsumingEndpoint implements ChannelRegistryAware {
+public class RouterEndpoint extends AbstractMessageConsumer implements ChannelRegistryAware {
 
 	private final ChannelResolver channelResolver;
 

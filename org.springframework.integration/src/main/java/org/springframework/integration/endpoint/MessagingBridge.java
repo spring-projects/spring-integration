@@ -23,7 +23,7 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  */
-public class MessagingBridge extends AbstractMessageConsumingEndpoint {
+public class MessagingBridge extends AbstractMessageConsumer {
 
 	private final MessageConsumer consumer;
 

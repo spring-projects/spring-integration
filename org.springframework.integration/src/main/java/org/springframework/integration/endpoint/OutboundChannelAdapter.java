@@ -27,7 +27,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class OutboundChannelAdapter extends AbstractMessageConsumingEndpoint {
+public class OutboundChannelAdapter extends AbstractMessageConsumer {
 
 	private final MessageConsumer consumer;
 

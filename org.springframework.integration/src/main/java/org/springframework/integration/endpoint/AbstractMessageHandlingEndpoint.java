@@ -36,7 +36,7 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  */
-public abstract class AbstractMessageHandlingEndpoint extends AbstractMessageConsumingEndpoint implements ChannelRegistryAware {
+public abstract class AbstractMessageHandlingEndpoint extends AbstractMessageConsumer implements ChannelRegistryAware {
 
 	private MessageChannel outputChannel;
 

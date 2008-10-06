@@ -27,11 +27,14 @@ import org.springframework.integration.util.ErrorHandler;
 import org.springframework.util.Assert;
 
 /**
- * Base class for MessageConsumer implementations.
+ * Base class for MessageConsumer implementations that provides basic
+ * validation and error handling capabilities. Asserts that the incoming
+ * Message is not null and that it does not contain a null payload. For custom
+ * error handling, provide a reference to an {@link ErrorHandler}.  
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractMessageConsumingEndpoint implements MessageConsumer {
+public abstract class AbstractMessageConsumer implements MessageConsumer {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
