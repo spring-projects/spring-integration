@@ -22,19 +22,19 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.integration.channel.BlockingChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.AbstractMessageHandlingEndpoint;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.scheduling.IntervalTrigger;
+import org.springframework.integration.scheduling.TaskSchedulerAware;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -43,7 +43,7 @@ import org.springframework.util.ObjectUtils;
  * Base class for {@link MessageBarrier}-based MessageHandlers.
  * A {@link MessageEndpoint} implementation that waits for a group of
  * {@link Message Messages} to arrive and processes them together.
- * Uses a {@link MessageBarrier} to store messages and to decide how
+ * Uses a {@link MessageBarr  ier} to store messages and to decide how
  * the messages should be released.
  * <p>
  * Each {@link Message} that is received by this endpoint will be associated with
@@ -60,7 +60,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public abstract class AbstractMessageBarrierEndpoint extends AbstractMessageHandlingEndpoint {
+public abstract class AbstractMessageBarrierEndpoint extends AbstractMessageHandlingEndpoint implements TaskSchedulerAware {
 
 	public final static long DEFAULT_SEND_TIMEOUT = 1000;
 
@@ -89,15 +89,9 @@ public abstract class AbstractMessageBarrierEndpoint extends AbstractMessageHand
 
 	protected volatile BlockingQueue<Object> trackedCorrelationIds;
 
-	protected final ScheduledExecutorService executor;
-
 	private volatile boolean initialized;
 
-
-	public AbstractMessageBarrierEndpoint(ScheduledExecutorService executor) {
-		this.executor = (executor != null) ? executor : Executors.newSingleThreadScheduledExecutor();		
-	}
-
+	private ScheduledFuture<?> reaperFutureTask;
 
 	/**
 	 * Specify a channel for sending Messages that arrive after their aggregation
@@ -154,9 +148,19 @@ public abstract class AbstractMessageBarrierEndpoint extends AbstractMessageHand
 	protected void initialize()  throws Exception {
 		super.initialize();
 		this.trackedCorrelationIds = new ArrayBlockingQueue<Object>(this.trackedCorrelationIdCapacity);
-		this.executor.scheduleWithFixedDelay(new ReaperTask(),
-				this.reaperInterval, this.reaperInterval, TimeUnit.MILLISECONDS);
 		this.initialized = true;
+	}
+	
+	@Override
+	protected void onStart() {
+		super.onStart();
+		this.reaperFutureTask = this.getTaskScheduler().schedule(new ReaperTask(), new IntervalTrigger(reaperInterval, TimeUnit.MILLISECONDS));
+	}
+
+	@Override
+	protected void onStop() {
+		super.onStop();
+		this.reaperFutureTask.cancel(true);
 	}
 
 	@Override

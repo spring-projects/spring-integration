@@ -23,11 +23,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.generic.GenericBeanFactoryAccessor;
@@ -46,11 +44,11 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.MessagingGateway;
+import org.springframework.integration.scheduling.Schedulers;
 import org.springframework.integration.scheduling.SimpleTaskScheduler;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.integration.scheduling.TaskSchedulerAware;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.Assert;
 
 /**
@@ -165,12 +163,8 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 			}
 			Assert.notNull(this.applicationContext, "ApplicationContext must not be null");
 			if (this.taskScheduler == null) {
-				ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-				executor.setCorePoolSize(DEFAULT_DISPATCHER_POOL_SIZE);
-				executor.setThreadFactory(new CustomizableThreadFactory("message-bus-"));
-				executor.setRejectedExecutionHandler(new CallerRunsPolicy());
-				executor.afterPropertiesSet();
-				this.taskScheduler = new SimpleTaskScheduler(executor);
+				this.taskScheduler = Schedulers.createDefaultTaskExecutor(DEFAULT_DISPATCHER_POOL_SIZE,
+						new CustomizableThreadFactory("message-bus-"));
 			}
 			if (this.getErrorChannel() == null) {
 				this.registerChannel(new DefaultErrorChannel());

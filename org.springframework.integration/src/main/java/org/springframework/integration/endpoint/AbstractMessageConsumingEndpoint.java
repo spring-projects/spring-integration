@@ -126,6 +126,7 @@ public abstract class AbstractMessageConsumingEndpoint extends AbstractEndpoint 
 						"failed to start endpoint, no taskScheduler available");
 				this.pollerFuture = this.getTaskScheduler().schedule(this.poller, this.poller.getTrigger());
 			}
+			onStart();
 			this.running = true;
 		}
 	}
@@ -141,8 +142,26 @@ public abstract class AbstractMessageConsumingEndpoint extends AbstractEndpoint 
 			else if (this.pollerFuture != null) {
 				this.pollerFuture.cancel(true);
 			}
+			onStop();
 			this.running = false;
 		}
+	}
+	
+	/**
+	 * Subclasses might override this to supply their own start code (e.g. if they start threads
+	 * on their own). This method will be called within the lifecycleMonitor.
+	 */
+	protected void onStart() {
+		
+	}
+	
+	/**
+	 * Subclasses might override this to supply their own stop code (e.g. if they stop threads
+	 * on their own).This method will be called within the lifecycleMonitor.
+	 * 
+	 */
+	protected void onStop() {
+		
 	}
 
 	public final void onMessage(Message<?> message) {

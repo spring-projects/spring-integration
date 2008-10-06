@@ -17,10 +17,10 @@
 package org.springframework.integration.aggregator;
 
 import java.util.List;
-import java.util.concurrent.ScheduledExecutorService;
 
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**
@@ -51,8 +51,8 @@ public class AggregatorEndpoint extends AbstractMessageBarrierEndpoint {
 	 * scheduling a background maintenance thread. If <code>null</code>, a new
 	 * single-threaded executor will be created.
 	 */
-	public AggregatorEndpoint(Aggregator aggregator, ScheduledExecutorService executor) {
-		super(executor);
+	public AggregatorEndpoint(Aggregator aggregator, TaskScheduler executor) {
+		super();
 		Assert.notNull(aggregator, "'aggregator' must not be null");
 		this.aggregator = aggregator;
 	}

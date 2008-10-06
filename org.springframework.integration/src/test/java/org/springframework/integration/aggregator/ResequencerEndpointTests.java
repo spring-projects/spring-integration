@@ -20,30 +20,45 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
-
-import org.springframework.integration.aggregator.ResequencerEndpoint;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.scheduling.Schedulers;
+import org.springframework.integration.scheduling.TaskScheduler;
 
 /**
  * @author Marius Bogoevici
  */
 public class ResequencerEndpointTests {
 
+	private ResequencerEndpoint resequencer;
+	
+	private TaskScheduler taskScheduler;
+
+	
+	@Before
+	public void configureResequencer() {
+		this.resequencer = new ResequencerEndpoint();
+		this.taskScheduler = Schedulers.createDefaultTaskScheduler(10);
+		this.resequencer.setTaskScheduler(taskScheduler);
+		taskScheduler.start();
+		this.resequencer.onStart();
+	}
+	
 	@Test
 	public void testBasicResequencing() throws InterruptedException {
-		ResequencerEndpoint resequencer = new ResequencerEndpoint();
-		resequencer.setReleasePartialSequences(false);
+		this.resequencer.setReleasePartialSequences(false);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 3, 3, replyChannel);
 		Message<?> message2 = createMessage("456", "ABC", 3, 1, replyChannel);
 		Message<?> message3 = createMessage("789", "ABC", 3, 2, replyChannel);
-		resequencer.handle(message1);
-		resequencer.handle(message3);
-		resequencer.handle(message2);
+		this.resequencer.handle(message1);
+		this.resequencer.handle(message3);
+		this.resequencer.handle(message2);
 		Message<?> reply1 = replyChannel.receive(0);
 		Message<?> reply2 = replyChannel.receive(0);
 		Message<?> reply3 = replyChannel.receive(0);
@@ -57,16 +72,15 @@ public class ResequencerEndpointTests {
 
 	@Test
 	public void testResequencingWithIncompleteSequenceRelease() throws InterruptedException {
-		ResequencerEndpoint resequencer = new ResequencerEndpoint();
-		resequencer.setReleasePartialSequences(true);
+		this.resequencer.setReleasePartialSequences(true);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 4, 2, replyChannel);
 		Message<?> message2 = createMessage("456", "ABC", 4, 1, replyChannel);
 		Message<?> message3 = createMessage("789", "ABC", 4, 4, replyChannel);
 		Message<?> message4 = createMessage("XYZ", "ABC", 4, 3, replyChannel);
-		resequencer.handle(message1);
-		resequencer.handle(message2);
-		resequencer.handle(message3);
+		this.resequencer.handle(message1);
+		this.resequencer.handle(message2);
+		this.resequencer.handle(message3);
 		Message<?> reply1 = replyChannel.receive(0);
 		Message<?> reply2 = replyChannel.receive(0);
 		Message<?> reply3 = replyChannel.receive(0);
@@ -77,7 +91,7 @@ public class ResequencerEndpointTests {
 		assertEquals(new Integer(2), reply2.getHeaders().getSequenceNumber());
 		assertNull(reply3);
 		// when sending the last message, the whole sequence must have been sent
-		resequencer.handle(message4);
+		this.resequencer.handle(message4);
 		reply3 = replyChannel.receive(0);
 		Message<?> reply4 = replyChannel.receive(0);
 		assertNotNull(reply3);
@@ -89,16 +103,15 @@ public class ResequencerEndpointTests {
 
 	@Test
 	public void testResequencingWithCompleteSequenceRelease() throws InterruptedException {
-		ResequencerEndpoint resequencer = new ResequencerEndpoint();
-		resequencer.setReleasePartialSequences(false);
+		this.resequencer.setReleasePartialSequences(false);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 4, 2, replyChannel);
 		Message<?> message2 = createMessage("456", "ABC", 4, 1, replyChannel);
 		Message<?> message3 = createMessage("789", "ABC", 4, 4, replyChannel);
 		Message<?> message4 = createMessage("XYZ", "ABC", 4, 3, replyChannel);
-		resequencer.handle(message1);
-		resequencer.handle(message2);
-		resequencer.handle(message3);
+		this.resequencer.handle(message1);
+		this.resequencer.handle(message2);
+		this.resequencer.handle(message3);
 		Message<?> reply1 = replyChannel.receive(0);
 		Message<?> reply2 = replyChannel.receive(0);
 		Message<?> reply3 = replyChannel.receive(0);
@@ -107,7 +120,7 @@ public class ResequencerEndpointTests {
 		assertNull(reply2);
 		assertNull(reply3);
 		// after sending the last message, the whole sequence should have been sent
-		resequencer.handle(message4);
+		this.resequencer.handle(message4);
 		reply1 = replyChannel.receive(0);
 		reply2 = replyChannel.receive(0);
 		reply3 = replyChannel.receive(0);
@@ -134,4 +147,9 @@ public class ResequencerEndpointTests {
 		return message;
 	}
 
+	@After
+	public void stopTaskScheduler() {
+		this.resequencer.onStop();
+		this.taskScheduler.stop();
+	}
 }

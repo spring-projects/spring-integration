@@ -17,7 +17,6 @@
 package org.springframework.integration.aggregator;
 
 import java.util.List;
-import java.util.concurrent.ScheduledExecutorService;
 
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHeaders;
@@ -39,15 +38,6 @@ import org.springframework.integration.message.MessageHeaders;
 public class ResequencerEndpoint extends AbstractMessageBarrierEndpoint {
 
 	private volatile boolean releasePartialSequences = true;
-
-
-	public ResequencerEndpoint() {
-		this(null);
-	}
-
-	public ResequencerEndpoint(ScheduledExecutorService executor) {
-		super(executor);
-	}
 
 
 	public void setReleasePartialSequences(boolean releasePartialSequences) {

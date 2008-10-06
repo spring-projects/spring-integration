@@ -26,42 +26,45 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.integration.scheduling.Schedulers;
+import org.springframework.integration.scheduling.TaskScheduler;
 
 /**
  * @author Mark Fisher
  */
 public class AggregatorEndpointTests {
 
-	private final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+	private final TaskScheduler taskScheduler = Schedulers.createDefaultTaskScheduler(10);
+	
+	private AggregatorEndpoint aggregator;
 
-
-	public AggregatorEndpointTests() {
-		this.executor.setMaxPoolSize(10);
-		this.executor.setQueueCapacity(0);
-		this.executor.afterPropertiesSet();
+	@Before
+	public void configureAggregator() {
+		this.aggregator = new AggregatorEndpoint(new TestAggregator());
+		this.aggregator.setTaskScheduler(this.taskScheduler);
+		this.taskScheduler.start();
+		this.aggregator.onStart();
 	}
-
 
 	@Test
 	public void testCompleteGroupWithinTimeout() throws InterruptedException {
-		AggregatorEndpoint aggregator = new AggregatorEndpoint(new TestAggregator());
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 3, 1, replyChannel);
 		Message<?> message2 = createMessage("456", "ABC", 3, 2, replyChannel);
 		Message<?> message3 = createMessage("789", "ABC", 3, 3, replyChannel);
 		CountDownLatch latch = new CountDownLatch(3);
-		executor.execute(new AggregatorTestTask(aggregator, message1, latch));
-		executor.execute(new AggregatorTestTask(aggregator, message2, latch));
-		executor.execute(new AggregatorTestTask(aggregator, message3, latch));
+		this.taskScheduler.execute(new AggregatorTestTask(this.aggregator, message1, latch));
+		this.taskScheduler.execute(new AggregatorTestTask(this.aggregator, message2, latch));
+		this.taskScheduler.execute(new AggregatorTestTask(this.aggregator, message3, latch));
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		Message<?> reply = replyChannel.receive(500);
 		assertNotNull(reply);
@@ -71,38 +74,36 @@ public class AggregatorEndpointTests {
 	@Test
 	public void testShouldNotSendPartialResultOnTimeoutByDefault() throws InterruptedException {
 		QueueChannel discardChannel = new QueueChannel();
-		AggregatorEndpoint aggregator = new AggregatorEndpoint(new TestAggregator());
-		aggregator.setTimeout(50);
-		aggregator.setReaperInterval(10);
-		aggregator.setDiscardChannel(discardChannel);
+		this.aggregator.setTimeout(50);
+		this.aggregator.setReaperInterval(10);
+		this.aggregator.setDiscardChannel(discardChannel);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = createMessage("123", "ABC", 2, 1, replyChannel);
 		CountDownLatch latch = new CountDownLatch(1);
-		AggregatorTestTask task = new AggregatorTestTask(aggregator, message, latch);
-		executor.execute(task);
+		AggregatorTestTask task = new AggregatorTestTask(this.aggregator, message, latch);
+		this.taskScheduler.execute(task);
 		latch.await(2000, TimeUnit.MILLISECONDS);
 		assertEquals("task should have completed within timeout", 0, latch.getCount());
 		Message<?> reply = replyChannel.receive(0);
 		assertNull(reply);
-		Message<?> discardedMessage = discardChannel.receive(1000);
+		Message<?> discardedMessage = discardChannel.receive(2000);
 		assertNotNull(discardedMessage);
 		assertEquals(message, discardedMessage);
 	}
 
 	@Test
 	public void testShouldSendPartialResultOnTimeoutTrue() throws InterruptedException {
-		AggregatorEndpoint aggregator = new AggregatorEndpoint(new TestAggregator());
-		aggregator.setTimeout(500);
-		aggregator.setReaperInterval(10);
-		aggregator.setSendPartialResultOnTimeout(true);
+		this.aggregator.setTimeout(500);
+		this.aggregator.setReaperInterval(10);
+		this.aggregator.setSendPartialResultOnTimeout(true);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 3, 1, replyChannel);
 		Message<?> message2 = createMessage("456", "ABC", 3, 2, replyChannel);
 		CountDownLatch latch = new CountDownLatch(2);
-		AggregatorTestTask task1 = new AggregatorTestTask(aggregator, message1, latch);
-		AggregatorTestTask task2 = new AggregatorTestTask(aggregator, message2, latch);
-		executor.execute(task1);
-		executor.execute(task2);
+		AggregatorTestTask task1 = new AggregatorTestTask(this.aggregator, message1, latch);
+		AggregatorTestTask task2 = new AggregatorTestTask(this.aggregator, message2, latch);
+		this.taskScheduler.execute(task1);
+		this.taskScheduler.execute(task2);
 		latch.await(3000, TimeUnit.MILLISECONDS);
 		assertEquals("handlers should have been invoked within time limit", 0, latch.getCount());
 		Message<?> reply = replyChannel.receive(3000);
@@ -114,7 +115,6 @@ public class AggregatorEndpointTests {
 
 	@Test
 	public void testMultipleGroupsSimultaneously() throws InterruptedException {
-		AggregatorEndpoint aggregator = new AggregatorEndpoint(new TestAggregator());
 		QueueChannel replyChannel1 = new QueueChannel();
 		QueueChannel replyChannel2 = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 3, 1, replyChannel1);
@@ -124,12 +124,12 @@ public class AggregatorEndpointTests {
 		Message<?> message5 = createMessage("def", "XYZ", 3, 2, replyChannel2);
 		Message<?> message6 = createMessage("ghi", "XYZ", 3, 3, replyChannel2);
 		CountDownLatch latch = new CountDownLatch(6);
-		executor.execute(new AggregatorTestTask(aggregator, message1, latch));
-		executor.execute(new AggregatorTestTask(aggregator, message6, latch));
-		executor.execute(new AggregatorTestTask(aggregator, message2, latch));
-		executor.execute(new AggregatorTestTask(aggregator, message5, latch));
-		executor.execute(new AggregatorTestTask(aggregator, message3, latch));
-		executor.execute(new AggregatorTestTask(aggregator, message4, latch));
+		this.taskScheduler.execute(new AggregatorTestTask(this.aggregator, message1, latch));
+		this.taskScheduler.execute(new AggregatorTestTask(this.aggregator, message6, latch));
+		this.taskScheduler.execute(new AggregatorTestTask(this.aggregator, message2, latch));
+		this.taskScheduler.execute(new AggregatorTestTask(this.aggregator, message5, latch));
+		this.taskScheduler.execute(new AggregatorTestTask(this.aggregator, message3, latch));
+		this.taskScheduler.execute(new AggregatorTestTask(this.aggregator, message4, latch));
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		Message<?> reply1 = replyChannel1.receive(500);
 		assertNotNull(reply1);
@@ -143,11 +143,10 @@ public class AggregatorEndpointTests {
 	public void testDiscardChannelForTrackedCorrelationId() {
 		QueueChannel replyChannel = new QueueChannel();
 		QueueChannel discardChannel = new QueueChannel();
-		AggregatorEndpoint aggregator = new AggregatorEndpoint(new TestAggregator());
-		aggregator.setDiscardChannel(discardChannel);
-		aggregator.handle(createMessage("test-1a", 1, 1, 1, replyChannel));
+		this.aggregator.setDiscardChannel(discardChannel);
+		this.aggregator.handle(createMessage("test-1a", 1, 1, 1, replyChannel));
 		assertEquals("test-1a", replyChannel.receive(100).getPayload());
-		aggregator.handle(createMessage("test-1b", 1, 1, 1, replyChannel));
+		this.aggregator.handle(createMessage("test-1b", 1, 1, 1, replyChannel));
 		assertEquals("test-1b", discardChannel.receive(100).getPayload());
 	}
 
@@ -155,16 +154,15 @@ public class AggregatorEndpointTests {
 	public void testTrackedCorrelationIdsCapacityAtLimit() {
 		QueueChannel replyChannel = new QueueChannel();
 		QueueChannel discardChannel = new QueueChannel();
-		AggregatorEndpoint aggregator = new AggregatorEndpoint(new TestAggregator());
-		aggregator.setTrackedCorrelationIdCapacity(3);
-		aggregator.setDiscardChannel(discardChannel);
-		aggregator.handle(createMessage("test-1a", 1, 1, 1, replyChannel));
+		this.aggregator.setTrackedCorrelationIdCapacity(3);
+		this.aggregator.setDiscardChannel(discardChannel);
+		this.aggregator.handle(createMessage("test-1a", 1, 1, 1, replyChannel));
 		assertEquals("test-1a", replyChannel.receive(100).getPayload());
-		aggregator.handle(createMessage("test-2", 2, 1, 1, replyChannel));
+		this.aggregator.handle(createMessage("test-2", 2, 1, 1, replyChannel));
 		assertEquals("test-2", replyChannel.receive(100).getPayload());
-		aggregator.handle(createMessage("test-3", 3, 1, 1, replyChannel));
+		this.aggregator.handle(createMessage("test-3", 3, 1, 1, replyChannel));
 		assertEquals("test-3", replyChannel.receive(100).getPayload());
-		aggregator.handle(createMessage("test-1b", 1, 1, 1, replyChannel));
+		this.aggregator.handle(createMessage("test-1b", 1, 1, 1, replyChannel));
 		assertEquals("test-1b", discardChannel.receive(100).getPayload());
 	}
 
@@ -172,42 +170,39 @@ public class AggregatorEndpointTests {
 	public void testTrackedCorrelationIdsCapacityPassesLimit() {
 		QueueChannel replyChannel = new QueueChannel();
 		QueueChannel discardChannel = new QueueChannel();
-		AggregatorEndpoint aggregator = new AggregatorEndpoint(new TestAggregator());
-		aggregator.setTrackedCorrelationIdCapacity(3);
-		aggregator.setDiscardChannel(discardChannel);
-		aggregator.handle(createMessage("test-1a", 1, 1, 1, replyChannel));
+		this.aggregator.setTrackedCorrelationIdCapacity(3);
+		this.aggregator.setDiscardChannel(discardChannel);
+		this.aggregator.handle(createMessage("test-1a", 1, 1, 1, replyChannel));
 		assertEquals("test-1a", replyChannel.receive(100).getPayload());
-		aggregator.handle(createMessage("test-2", 2, 1, 1, replyChannel));
+		this.aggregator.handle(createMessage("test-2", 2, 1, 1, replyChannel));
 		assertEquals("test-2", replyChannel.receive(100).getPayload());
-		aggregator.handle(createMessage("test-3", 3, 1, 1, replyChannel));
+		this.aggregator.handle(createMessage("test-3", 3, 1, 1, replyChannel));
 		assertEquals("test-3", replyChannel.receive(100).getPayload());
-		aggregator.handle(createMessage("test-4", 4, 1, 1, replyChannel));
+		this.aggregator.handle(createMessage("test-4", 4, 1, 1, replyChannel));
 		assertEquals("test-4", replyChannel.receive(100).getPayload());
-		aggregator.handle(createMessage("test-1b", 1, 1, 1, replyChannel));
+		this.aggregator.handle(createMessage("test-1b", 1, 1, 1, replyChannel));
 		assertEquals("test-1b", replyChannel.receive(100).getPayload());
 		assertNull(discardChannel.receive(0));
 	}
 
 	@Test(expected=MessageHandlingException.class)
 	public void testExceptionThrownIfNoCorrelationId() throws InterruptedException {
-		AggregatorEndpoint aggregator = new AggregatorEndpoint(new TestAggregator());
 		Message<?> message = createMessage("123", null, 2, 1, new QueueChannel());
-		aggregator.handle(message);
+		this.aggregator.handle(message);
 	}
 	
 	@Test
 	public void testAdditionalMessageAfterCompletion() throws InterruptedException {
-		AggregatorEndpoint aggregator = new AggregatorEndpoint(new TestAggregator());
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 3, 1, replyChannel);
 		Message<?> message2 = createMessage("456", "ABC", 3, 2, replyChannel);
 		Message<?> message3 = createMessage("789", "ABC", 3, 3, replyChannel);
 		Message<?> message4 = createMessage("abc", "ABC", 3, 3, replyChannel);
 		CountDownLatch latch = new CountDownLatch(4);
-		executor.execute(new AggregatorTestTask(aggregator, message1, latch));
-		executor.execute(new AggregatorTestTask(aggregator, message2, latch));
-		executor.execute(new AggregatorTestTask(aggregator, message3, latch));
-		executor.execute(new AggregatorTestTask(aggregator, message4, latch));
+		this.taskScheduler.execute(new AggregatorTestTask(this.aggregator, message1, latch));
+		this.taskScheduler.execute(new AggregatorTestTask(this.aggregator, message2, latch));
+		this.taskScheduler.execute(new AggregatorTestTask(this.aggregator, message3, latch));
+		this.taskScheduler.execute(new AggregatorTestTask(this.aggregator, message4, latch));
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		Message<?> reply = replyChannel.receive(500);
 		assertNotNull(reply);
@@ -216,26 +211,27 @@ public class AggregatorEndpointTests {
 	
 	@Test
 	public void testNullReturningAggregator() throws InterruptedException {
-		NullReturningAggregator aggregator = new NullReturningAggregator();
-		AggregatorEndpoint aggregatorEndpoint = new AggregatorEndpoint(aggregator);
+		NullReturningAggregator nullReturningAggregator = new NullReturningAggregator();
+		AggregatorEndpoint aggregator = new AggregatorEndpoint(nullReturningAggregator);
+//		aggregator.setTaskScheduler(this.taskScheduler);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 3, 1, replyChannel);
 		Message<?> message2 = createMessage("456", "ABC", 3, 2, replyChannel);
 		Message<?> message3 = createMessage("789", "ABC", 3, 3, replyChannel);
 		CountDownLatch latch = new CountDownLatch(3);
-		AggregatorTestTask task = new AggregatorTestTask(aggregatorEndpoint, message1, latch);
-		executor.execute(task);	
-		AggregatorTestTask task2 = new AggregatorTestTask(aggregatorEndpoint, message2, latch);
-		executor.execute(task2);
-		AggregatorTestTask task3 = new AggregatorTestTask(aggregatorEndpoint, message3, latch);
-		executor.execute(task3);
+		AggregatorTestTask task = new AggregatorTestTask(aggregator, message1, latch);
+		this.taskScheduler.execute(task);	
+		AggregatorTestTask task2 = new AggregatorTestTask(aggregator, message2, latch);
+		this.taskScheduler.execute(task2);
+		AggregatorTestTask task3 = new AggregatorTestTask(aggregator, message3, latch);
+		this.taskScheduler.execute(task3);
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		assertNull(task.getException());
 		assertNull(task2.getException());
 		assertNull(task3.getException());
 		Message<?> reply = replyChannel.receive(500);
 		assertNull(reply);
-		assertEquals(true, aggregator.isAggregationComplete());
+		assertEquals(true, nullReturningAggregator.isAggregationComplete());
 	}
 
 
@@ -324,6 +320,12 @@ public class AggregatorEndpointTests {
 				this.latch.countDown();
 			}
 		}
+	}
+	
+	@After
+	public void stopTaskScheduler() {
+		this.taskScheduler.stop();
+		this.aggregator.onStop();
 	}
 
 }
