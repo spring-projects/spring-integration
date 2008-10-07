@@ -16,41 +16,49 @@
 
 package org.springframework.integration.scheduling;
 
-import java.text.ParseException;
 import java.util.Date;
 
-import org.quartz.CronExpression;
-
 /**
- * A trigger that uses a cron expression.
+ * A trigger that uses a cron expression. See {@link CronSequenceGenerator}
+ * for a detailed description of the expression pattern syntax.
  * 
  * @author Mark Fisher
  */
 public class CronTrigger implements Trigger {
 
-	private final CronExpression expression;
+	private final CronSequenceGenerator cronSequenceGenerator;
 
 
 	/**
 	 * Create a trigger for the given cron expression.
 	 */
-	public CronTrigger(String expression) {
-		try {
-			this.expression = new CronExpression(expression);
-		}
-		catch (ParseException e) {
-			throw new IllegalArgumentException(
-					"failed to parse cron expression: " + expression);
-		}
+	public CronTrigger(String expression) throws IllegalArgumentException {
+		this.cronSequenceGenerator = new CronSequenceGenerator(expression);
 	}
 
 
 	/**
-	 * Return the next time a task should run. Determined by this trigger's
-	 * cron expression.
+	 * Return the next time a task should run. Determined by consulting this
+	 * trigger's cron expression compared with the lastCompleteTime. If the
+	 * lastCompleteTime is <code>null</code>, the current time is used.
 	 */
 	public Date getNextRunTime(Date lastScheduledRunTime, Date lastCompleteTime) {
-		return this.expression.getNextValidTimeAfter(new Date());
+		Date date = (lastCompleteTime != null) ? lastCompleteTime : new Date();
+		return this.cronSequenceGenerator.next(date);
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		if (other == null || !(other instanceof CronTrigger)) {
+			return false;
+		}
+		return this.cronSequenceGenerator.equals(
+				((CronTrigger) other).cronSequenceGenerator);
+	}
+
+	@Override
+	public int hashCode() {
+		return this.cronSequenceGenerator.hashCode();
 	}
 
 }
