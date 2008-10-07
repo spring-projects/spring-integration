@@ -22,17 +22,18 @@ import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.util.Assert;
 
 /**
- * Message Endpoint that decides whether to pass a message along to its
- * output channel. Delegates to a {@link MessageSelector}.
+ * Message Consumer that delegates to a {@link MessageSelector}. If and only if
+ * the selector {@link MessageSelector#accept(Message) accepts} the Message, it
+ * will be passed to this filter's output channel.
  * 
  * @author Mark Fisher
  */
-public class FilterEndpoint extends AbstractReplyProducingMessageConsumer {
+public class MessageFilter extends AbstractReplyProducingMessageConsumer {
 
 	private MessageSelector selector;
 
 
-	public FilterEndpoint(MessageSelector selector) {
+	public MessageFilter(MessageSelector selector) {
 		Assert.notNull(selector, "selector must not be null");
 		this.selector = selector;
 	}

@@ -20,7 +20,7 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.filter.FilterEndpoint;
+import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.filter.MethodInvokingSelector;
 
 /**
@@ -32,7 +32,7 @@ public class FilterParser extends AbstractEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(FilterEndpoint.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MessageFilter.class);
 		builder.addConstructorArgReference(this.parseAdapter(element, parserContext, MethodInvokingSelector.class));
 		return builder;
 	}

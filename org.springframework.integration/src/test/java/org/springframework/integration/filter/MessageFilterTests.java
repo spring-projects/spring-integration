@@ -26,7 +26,7 @@ import org.junit.Test;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
-import org.springframework.integration.filter.FilterEndpoint;
+import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.selector.MessageSelector;
@@ -34,11 +34,11 @@ import org.springframework.integration.message.selector.MessageSelector;
 /**
  * @author Mark Fisher
  */
-public class FilterEndpointTests {
+public class MessageFilterTests {
 
 	@Test
 	public void filterAcceptsMessage() {
-		FilterEndpoint filter = new FilterEndpoint(new MessageSelector() {
+		MessageFilter filter = new MessageFilter(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return true;
 			}
@@ -49,7 +49,7 @@ public class FilterEndpointTests {
 
 	@Test
 	public void filterRejectsMessage() {
-		FilterEndpoint filter = new FilterEndpoint(new MessageSelector() {
+		MessageFilter filter = new MessageFilter(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return false;
 			}
@@ -61,7 +61,7 @@ public class FilterEndpointTests {
 	public void filterAcceptsWithChannels() {
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel();
-		FilterEndpoint filter = new FilterEndpoint(new MessageSelector() {
+		MessageFilter filter = new MessageFilter(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return true;
 			}
@@ -80,7 +80,7 @@ public class FilterEndpointTests {
 	public void filterRejectsWithChannels() {
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel();
-		FilterEndpoint filter = new FilterEndpoint(new MessageSelector() {
+		MessageFilter filter = new MessageFilter(new MessageSelector() {
 			public boolean accept(Message<?> message) {
 				return false;
 			}
