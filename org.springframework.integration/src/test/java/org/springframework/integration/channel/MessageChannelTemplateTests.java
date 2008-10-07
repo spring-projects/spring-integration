@@ -17,6 +17,8 @@
 package org.springframework.integration.channel;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -64,14 +66,140 @@ public class MessageChannelTemplateTests {
 
 
 	@Test
-	public void testSendAndReceive() {
+	public void send() {
+		MessageChannelTemplate template = new MessageChannelTemplate();
+		QueueChannel channel = new QueueChannel();
+		template.send(new StringMessage("test"), channel);
+		Message<?> reply = channel.receive(0);
+		assertNotNull(reply);
+		assertEquals("test", reply.getPayload());
+	}
+
+	@Test
+	public void sendWithDefaultChannelProvidedBySetter() {
+		QueueChannel channel = new QueueChannel();
+		MessageChannelTemplate template = new MessageChannelTemplate();
+		template.setDefaultChannel(channel);
+		template.send(new StringMessage("test"));
+		Message<?> reply = channel.receive(0);
+		assertNotNull(reply);
+		assertEquals("test", reply.getPayload());
+	}
+
+	@Test
+	public void sendWithDefaultChannelProvidedByConstructor() {
+		QueueChannel channel = new QueueChannel();
+		MessageChannelTemplate template = new MessageChannelTemplate(channel);
+		template.send(new StringMessage("test"));
+		Message<?> reply = channel.receive(0);
+		assertNotNull(reply);
+		assertEquals("test", reply.getPayload());
+	}
+
+	@Test
+	public void sendWithExplicitChannelTakesPrecedenceOverDefault() {
+		QueueChannel explicitChannel = new QueueChannel();
+		QueueChannel defaultChannel = new QueueChannel();
+		MessageChannelTemplate template = new MessageChannelTemplate(defaultChannel);
+		template.send(new StringMessage("test"), explicitChannel);
+		Message<?> reply = explicitChannel.receive(0);
+		assertNotNull(reply);
+		assertEquals("test", reply.getPayload());
+		assertNull(defaultChannel.receive(0));
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void sendWithoutChannelArgFailsIfNoDefaultAvailable() {
+		MessageChannelTemplate template = new MessageChannelTemplate();
+		template.send(new StringMessage("test"));
+	}
+
+	@Test
+	public void receive() {
+		QueueChannel channel = new QueueChannel();
+		channel.send(new StringMessage("test"));
+		MessageChannelTemplate template = new MessageChannelTemplate();
+		Message<?> reply = template.receive(channel);
+		assertEquals("test", reply.getPayload());
+	}
+
+	@Test
+	public void receiveWithDefaultChannelProvidedBySetter() {
+		QueueChannel channel = new QueueChannel();
+		channel.send(new StringMessage("test"));
+		MessageChannelTemplate template = new MessageChannelTemplate();
+		template.setDefaultChannel(channel);
+		Message<?> reply = template.receive();
+		assertEquals("test", reply.getPayload());
+	}
+
+	@Test
+	public void receiveWithDefaultChannelProvidedByConstructor() {
+		QueueChannel channel = new QueueChannel();
+		channel.send(new StringMessage("test"));
+		MessageChannelTemplate template = new MessageChannelTemplate(channel);
+		Message<?> reply = template.receive();
+		assertEquals("test", reply.getPayload());
+	}
+
+	@Test
+	public void receiveWithExplicitChannelTakesPrecedenceOverDefault() {
+		QueueChannel explicitChannel = new QueueChannel();
+		QueueChannel defaultChannel = new QueueChannel();
+		explicitChannel.send(new StringMessage("test"));
+		MessageChannelTemplate template = new MessageChannelTemplate(defaultChannel);
+		template.setReceiveTimeout(0);
+		Message<?> reply = template.receive(explicitChannel);
+		assertEquals("test", reply.getPayload());
+		assertNull(template.receive());
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void receiveWithoutChannelArgFailsIfNoDefaultAvailable() {
+		MessageChannelTemplate template = new MessageChannelTemplate();
+		template.receive();
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void receiveWithNonPollableDefaultFails() {
+		DirectChannel channel = new DirectChannel();
+		MessageChannelTemplate template = new MessageChannelTemplate(channel);
+		template.receive();
+	}
+
+	@Test
+	public void sendAndReceive() {
 		MessageChannelTemplate template = new MessageChannelTemplate();
 		Message<?> reply = template.sendAndReceive(new StringMessage("test"), this.requestChannel);
 		assertEquals("TEST", reply.getPayload());
 	}
 
 	@Test
-	public void testSendWithReturnAddress() throws InterruptedException {
+	public void sendAndReceiveWithDefaultChannel() {
+		MessageChannelTemplate template = new MessageChannelTemplate();
+		template.setDefaultChannel(this.requestChannel);
+		Message<?> reply = template.sendAndReceive(new StringMessage("test"));
+		assertEquals("TEST", reply.getPayload());
+	}
+
+	@Test
+	public void sendAndReceiveWithExplicitChannelTakesPrecedenceOverDefault() {
+		QueueChannel defaultChannel = new QueueChannel();
+		MessageChannelTemplate template = new MessageChannelTemplate(defaultChannel);
+		Message<?> message = new StringMessage("test");
+		Message<?> reply = template.sendAndReceive(message, this.requestChannel);
+		assertEquals("TEST", reply.getPayload());
+		assertNull(defaultChannel.receive(0));
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void sendAndReceiveWithoutChannelArgFailsIfNoDefaultAvailable() {
+		MessageChannelTemplate template = new MessageChannelTemplate();
+		template.sendAndReceive(new StringMessage("test"));
+	}
+
+	@Test
+	public void sendWithReturnAddress() throws InterruptedException {
 		final List<String> replies = new ArrayList<String>(3);
 		final CountDownLatch latch = new CountDownLatch(3);
 		MessageChannel replyChannel = new MessageChannel() {

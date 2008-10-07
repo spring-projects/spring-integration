@@ -49,6 +49,8 @@ public class MessageChannelTemplate implements InitializingBean {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
+	private volatile MessageChannel defaultChannel;
+
 	private volatile long sendTimeout = -1;
 
 	private volatile long receiveTimeout = -1;
@@ -69,6 +71,29 @@ public class MessageChannelTemplate implements InitializingBean {
 
 	private final Object initializationMonitor = new Object();
 
+
+	/**
+	 * Create a MessageChannelTemplate with no default channel. Note, that one
+	 * may be provided by invoking {@link #setDefaultChannel(MessageChannel)}.
+	 */
+	public MessageChannelTemplate() {
+	}
+
+	/**
+	 * Create a MessageChannelTemplate with the given default channel.
+	 */
+	public MessageChannelTemplate(MessageChannel defaultChannel) {
+		this.defaultChannel = defaultChannel;
+	}
+
+
+	/**
+	 * Specify the default MessageChannel to use when invoking the send and/or
+	 * receive methods that do not expect a channel parameter.
+	 */
+	public void setDefaultChannel(MessageChannel defaultChannel) {
+		this.defaultChannel = defaultChannel;
+	}
 
 	/**
 	 * Specify the timeout value to use for send operations.
@@ -137,6 +162,10 @@ public class MessageChannelTemplate implements InitializingBean {
 		}
 	}
 
+	public boolean send(final Message<?> message) {
+		return this.send(message, this.getRequiredDefaultChannel());
+	}
+
 	public boolean send(final Message<?> message, final MessageChannel channel) {
 		TransactionTemplate txTemplate = this.getTransactionTemplate();
 		if (txTemplate != null) {
@@ -149,6 +178,13 @@ public class MessageChannelTemplate implements InitializingBean {
 		return this.doSend(message, channel);
 	}
 
+	public Message<?> receive() {
+		MessageChannel channel = this.getRequiredDefaultChannel();
+		Assert.state(channel instanceof PollableChannel,
+				"The 'defaultChannel' must be a PollableChannel for receive operations.");
+		return this.receive((PollableChannel) channel);
+	}
+
 	public Message<?> receive(final PollableChannel channel) {
 		TransactionTemplate txTemplate = this.getTransactionTemplate();
 		if (txTemplate != null) {
@@ -159,6 +195,10 @@ public class MessageChannelTemplate implements InitializingBean {
 			});
 		}
 		return this.doReceive(channel);
+	}
+
+	public Message<?> sendAndReceive(final Message<?> request) {
+		return this.sendAndReceive(request, this.getRequiredDefaultChannel());
 	}
 
 	public Message<?> sendAndReceive(final Message<?> request, final MessageChannel channel) {
@@ -204,6 +244,13 @@ public class MessageChannelTemplate implements InitializingBean {
 			return null;
 		}
 		return this.doReceive(returnAddress);
+	}
+
+	private MessageChannel getRequiredDefaultChannel() {
+		Assert.state(this.defaultChannel != null,
+				"No 'defaultChannel' specified for MessageChannelTemplate. "
+				+ "Unable to invoke methods without a channel argument.");
+		return this.defaultChannel;
 	}
 
 
