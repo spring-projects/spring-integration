@@ -29,6 +29,7 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.StringUtils;
@@ -40,33 +41,65 @@ import org.springframework.util.StringUtils;
 @ContextConfiguration
 public class FilterParserTests {
 
-	@Autowired @Qualifier("input")
-	MessageChannel input;
+	@Autowired @Qualifier("adapterInput")
+	MessageChannel adapterInput;
 
-	@Autowired @Qualifier("output")
-	PollableChannel output;
+	@Autowired @Qualifier("adapterOutput")
+	PollableChannel adapterOutput;
+
+	@Autowired @Qualifier("implementationInput")
+	MessageChannel implementationInput;
+
+	@Autowired @Qualifier("implementationOutput")
+	PollableChannel implementationOutput;
 
 
 	@Test
-	public void filterAccepts() {
-		input.send(new StringMessage("test"));
-		Message<?> reply = output.receive(0);
+	public void filterWithSelectorAdapterAccepts() {
+		adapterInput.send(new StringMessage("test"));
+		Message<?> reply = adapterOutput.receive(0);
 		assertNotNull(reply);
 		assertEquals("test", reply.getPayload());
 	}
 
 	@Test
-	public void filterRejects() {
-		input.send(new StringMessage(""));
-		Message<?> reply = output.receive(0);
+	public void filterWithSelectorAdapterRejects() {
+		adapterInput.send(new StringMessage(""));
+		Message<?> reply = adapterOutput.receive(0);
+		assertNull(reply);
+	}
+
+	@Test
+	public void filterWithSelectorImplementationAccepts() {
+		implementationInput.send(new StringMessage("test"));
+		Message<?> reply = implementationOutput.receive(0);
+		assertNotNull(reply);
+		assertEquals("test", reply.getPayload());
+	}
+
+	@Test
+	public void filterWithSelectorImplementationRejects() {
+		implementationInput.send(new StringMessage(""));
+		Message<?> reply = implementationOutput.receive(0);
 		assertNull(reply);
 	}
 
 
-	public static class TestSelector {
+	public static class TestSelectorBean {
 
 		public boolean hasText(String s) {
 			return StringUtils.hasText(s);
+		}
+	}
+
+
+	public static class TestSelectorImpl implements MessageSelector {
+
+		public boolean accept(Message<?> message) {
+			if (message != null && message.getPayload() instanceof String) {
+				return StringUtils.hasText((String) message.getPayload());
+			}
+			return false;
 		}
 	}
 

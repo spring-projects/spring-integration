@@ -9,13 +9,22 @@
 
 	<message-bus/>
 
-	<channel id="output">
+	<channel id="adapterOutput">
 		<queue capacity="1"/>
 	</channel>
 
-	<filter ref="selector" method="hasText" input-channel="input" output-channel="output"/>
+	<channel id="implementationOutput">
+		<queue capacity="1"/>
+	</channel>
 
-	<beans:bean id="selector"
-		class="org.springframework.integration.config.FilterParserTests$TestSelector"/>
+	<filter ref="selectorBean" method="hasText" input-channel="adapterInput" output-channel="adapterOutput"/>
+
+	<beans:bean id="selectorBean"
+		class="org.springframework.integration.config.FilterParserTests$TestSelectorBean"/>
+
+	<filter ref="selectorImpl" input-channel="implementationInput" output-channel="implementationOutput"/>
+
+	<beans:bean id="selectorImpl"
+		class="org.springframework.integration.config.FilterParserTests$TestSelectorImpl"/>
 
 </beans:beans>
