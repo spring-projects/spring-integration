@@ -20,7 +20,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.integration.aggregator.AggregatorEndpoint;
+import org.springframework.integration.aggregator.AbstractMessageAggregator;
 import org.springframework.integration.aggregator.CompletionStrategyAdapter;
 import org.springframework.integration.aggregator.MethodInvokingAggregator;
 import org.springframework.integration.annotation.Aggregator;
@@ -46,8 +46,7 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 
 	@Override
 	protected MessageConsumer createConsumer(Object bean, Method method, Aggregator annotation) {
-		MethodInvokingAggregator adapter = new MethodInvokingAggregator(bean, method);
-		AggregatorEndpoint aggregator = new AggregatorEndpoint(adapter);
+		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(bean, method);
 		this.configureCompletionStrategy(bean, aggregator);
 		String discardChannelName = annotation.discardChannel();
 		if (StringUtils.hasText(discardChannelName)) {
@@ -64,7 +63,7 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 		return aggregator;
 	}
 
-	private void configureCompletionStrategy(final Object bean, final AggregatorEndpoint aggregator) {
+	private void configureCompletionStrategy(final Object bean, final AbstractMessageAggregator aggregator) {
 		ReflectionUtils.doWithMethods(bean.getClass(), new ReflectionUtils.MethodCallback() {
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {
 				Annotation annotation = AnnotationUtils.getAnnotation(method, CompletionStrategy.class);

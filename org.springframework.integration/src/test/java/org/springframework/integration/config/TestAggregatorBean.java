@@ -22,19 +22,21 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.springframework.integration.aggregator.Aggregator;
 import org.springframework.integration.aggregator.MessageSequenceComparator;
+import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Marius Bogoevici
  */
-public class TestAggregator implements Aggregator {
+public class TestAggregatorBean {
 
 	private final ConcurrentMap<Object, Message<?>> aggregatedMessages = new ConcurrentHashMap<Object, Message<?>>();
 
-	public Message<?> aggregate(List<Message<?>> messages) {
+
+	@Aggregator
+	public Message<?> createSingleMessageFromGroup(List<Message<?>> messages) {
 		List<Message<?>> sortableList = new ArrayList<Message<?>>(messages);
 		Collections.sort(sortableList, new MessageSequenceComparator());
 		StringBuffer buffer = new StringBuffer();

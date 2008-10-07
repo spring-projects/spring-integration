@@ -20,46 +20,30 @@ import java.util.List;
 
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**
- * An {@link AbstractMessageBarrierConsumer} that waits for a <em>complete</em>
- * group of {@link Message Messages} to arrive and then delegates to an
- * {@link Aggregator} to combine them into a single {@link Message}.
- * <p>
- * The default strategy for determining whether a group is complete is based on
- * the '<code>sequenceSize</code>' property of the header. Alternatively, a
+ * A base class for aggregating a group of Messages into a single Message. 
+ * Extends {@link AbstractMessageBarrierConsumer} and waits for a
+ * <em>complete</em> group of {@link Message Messages} to arrive. Subclasses
+ * must provide the implementation of the {@link #aggregateMessages(List)}
+ * method to combine the group of Messages into a single {@link Message}.
+ * 
+ * <p>The default strategy for determining whether a group is complete is based
+ * on the '<code>sequenceSize</code>' property of the header. Alternatively, a
  * custom implementation of the {@link CompletionStrategy} may be provided.
- * <p>
- * All considerations regarding <code>timeout</code> and grouping by '
- * <code>correlationId</code>' from {@link AbstractMessageBarrierConsumer}
+ * 
+ * <p>All considerations regarding <code>timeout</code> and grouping by
+ * <code>correlationId</code> from {@link AbstractMessageBarrierConsumer}
  * apply here as well.
  * 
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class AggregatorEndpoint extends AbstractMessageBarrierConsumer {
-
-	private final Aggregator aggregator;
+public abstract class AbstractMessageAggregator extends AbstractMessageBarrierConsumer {
 
 	private volatile CompletionStrategy completionStrategy = new SequenceSizeCompletionStrategy();
 
-	/**
-	 * Create an endpoint that delegates to the provided Aggregator to combine a
-	 * group of messages into a single message. The executor will be used for
-	 * scheduling a background maintenance thread. If <code>null</code>, a new
-	 * single-threaded executor will be created.
-	 */
-	public AggregatorEndpoint(Aggregator aggregator, TaskScheduler executor) {
-		super();
-		Assert.notNull(aggregator, "'aggregator' must not be null");
-		this.aggregator = aggregator;
-	}
-
-	public AggregatorEndpoint(Aggregator aggregator) {
-		this(aggregator, null);
-	}
 
 	/**
 	 * Strategy to determine whether the group of messages is complete.
@@ -78,7 +62,7 @@ public class AggregatorEndpoint extends AbstractMessageBarrierConsumer {
 	}
 
 	protected Message<?>[] processReleasedMessages(Object correlationId, List<Message<?>> messages) {
-		Message<?> result = aggregator.aggregate(messages);
+		Message<?> result = this.aggregateMessages(messages);
 		if (result == null) {
 			return new Message<?>[0];
 		}
@@ -87,5 +71,7 @@ public class AggregatorEndpoint extends AbstractMessageBarrierConsumer {
 		}
 		return new Message<?>[] { result };
 	}
+
+	protected abstract Message<?> aggregateMessages(List<Message<?>> messages);
 
 }

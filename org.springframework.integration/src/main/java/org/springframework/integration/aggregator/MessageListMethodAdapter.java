@@ -35,7 +35,7 @@ import org.springframework.util.ReflectionUtils;
  * 
  * @author Marius Bogoevici
  */
-public abstract class MessageListMethodAdapter {
+public class MessageListMethodAdapter {
 
 	private final DefaultMethodInvoker invoker;
 

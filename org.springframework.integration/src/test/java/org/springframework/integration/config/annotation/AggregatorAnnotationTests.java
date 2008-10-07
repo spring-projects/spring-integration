@@ -24,7 +24,7 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.aggregator.AggregatorEndpoint;
+import org.springframework.integration.aggregator.AbstractMessageAggregator;
 import org.springframework.integration.aggregator.CompletionStrategyAdapter;
 import org.springframework.integration.aggregator.SequenceSizeCompletionStrategy;
 import org.springframework.integration.bus.MessageBus;
@@ -47,11 +47,11 @@ public class AggregatorAnnotationTests {
 		Assert.assertTrue(accessor.getPropertyValue("completionStrategy") instanceof SequenceSizeCompletionStrategy);
 		Assert.assertNull(accessor.getPropertyValue("outputChannel"));
 		Assert.assertNull(accessor.getPropertyValue("discardChannel"));
-		Assert.assertEquals(AggregatorEndpoint.DEFAULT_SEND_TIMEOUT, accessor.getPropertyValue("sendTimeout"));
-		Assert.assertEquals(AggregatorEndpoint.DEFAULT_TIMEOUT, accessor.getPropertyValue("timeout"));
+		Assert.assertEquals(AbstractMessageAggregator.DEFAULT_SEND_TIMEOUT, accessor.getPropertyValue("sendTimeout"));
+		Assert.assertEquals(AbstractMessageAggregator.DEFAULT_TIMEOUT, accessor.getPropertyValue("timeout"));
 		Assert.assertEquals(false, accessor.getPropertyValue("sendPartialResultOnTimeout"));
-		Assert.assertEquals(AggregatorEndpoint.DEFAULT_REAPER_INTERVAL, accessor.getPropertyValue("reaperInterval"));
-		Assert.assertEquals(AggregatorEndpoint.DEFAULT_TRACKED_CORRRELATION_ID_CAPACITY,
+		Assert.assertEquals(AbstractMessageAggregator.DEFAULT_REAPER_INTERVAL, accessor.getPropertyValue("reaperInterval"));
+		Assert.assertEquals(AbstractMessageAggregator.DEFAULT_TRACKED_CORRRELATION_ID_CAPACITY,
 				accessor.getPropertyValue("trackedCorrelationIdCapacity"));
 	}
 

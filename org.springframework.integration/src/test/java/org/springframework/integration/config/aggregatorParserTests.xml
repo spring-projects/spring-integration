@@ -49,7 +49,7 @@
 		completion-strategy-method="checkCompleteness"/>
 
 	<beans:bean id="aggregatorBean"
-		class="org.springframework.integration.config.TestAggregator" />
+		class="org.springframework.integration.config.TestAggregatorBean" />
 
 	<beans:bean id="adderBean"
 		class="org.springframework.integration.config.Adder" />

@@ -30,6 +30,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.aggregator.CompletionStrategy;
 import org.springframework.integration.aggregator.CompletionStrategyAdapter;
+import org.springframework.integration.aggregator.MethodInvokingAggregator;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
@@ -54,7 +55,7 @@ public class AggregatorParserTests {
 	@Test
 	public void testAggregation() {
 		MessageChannel input = (MessageChannel) context.getBean("aggregatorWithReferenceInput");
-		TestAggregator aggregatorBean = (TestAggregator) context.getBean("aggregatorBean");
+		TestAggregatorBean aggregatorBean = (TestAggregatorBean) context.getBean("aggregatorBean");
 		List<Message<?>> outboundMessages = new ArrayList<Message<?>>();
 		outboundMessages.add(createMessage("123", "id1", 3, 1, null));
 		outboundMessages.add(createMessage("789", "id1", 3, 3, null));
@@ -73,14 +74,15 @@ public class AggregatorParserTests {
 	public void testPropertyAssignment() throws Exception {
 		SubscribingConsumerEndpoint endpoint =
 				(SubscribingConsumerEndpoint) context.getBean("completelyDefinedAggregator");
-		TestAggregator testAggregator = (TestAggregator) context.getBean("aggregatorBean");
 		CompletionStrategy completionStrategy = (CompletionStrategy) context.getBean("completionStrategy");
 		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
 		MessageChannel discardChannel = (MessageChannel) context.getBean("discardChannel");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(
-				new DirectFieldAccessor(endpoint).getPropertyValue("consumer"));
-		Assert.assertEquals("The AggregatorEndpoint is not injected with the appropriate Aggregator instance",
-				testAggregator, accessor.getPropertyValue("aggregator"));
+		Object consumer = new DirectFieldAccessor(endpoint).getPropertyValue("consumer");
+		Assert.assertEquals(MethodInvokingAggregator.class, consumer.getClass());
+		DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
+		Method expectedMethod = TestAggregatorBean.class.getMethod("createSingleMessageFromGroup", List.class);
+		Assert.assertEquals("The MethodInvokingAggregator is not injected with the appropriate aggregation method",
+				expectedMethod, new DirectFieldAccessor(accessor.getPropertyValue("methodInvoker")).getPropertyValue("method"));
 		Assert.assertEquals(
 				"The AggregatorEndpoint is not injected with the appropriate CompletionStrategy instance",
 				completionStrategy, accessor.getPropertyValue("completionStrategy"));

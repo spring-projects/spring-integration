@@ -45,63 +45,70 @@ public class MethodInvokingAggregatorTests {
 
 	@Test
 	public void adapterWithNonParameterizedMessageListBasedMethod() {
-		Aggregator aggregator = new MethodInvokingAggregator(simpleAggregator, "doAggregationOnNonParameterizedListOfMessages");
+		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(
+				simpleAggregator, "doAggregationOnNonParameterizedListOfMessages");
 		List<Message<?>> messages = createListOfMessages();	
-		Message<?> returnedMessge = aggregator.aggregate(messages);
+		Message<?> returnedMessge = aggregator.aggregateMessages(messages);
 		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
 		Assert.assertEquals("123456789", returnedMessge.getPayload());
 	}
 
 	@Test
 	public void adapterWithWildcardParameterizedMessageBasedMethod() {
-		Aggregator aggregator = new MethodInvokingAggregator(simpleAggregator, "doAggregationOnListOfMessagesParametrizedWithWildcard");
+		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(
+				simpleAggregator, "doAggregationOnListOfMessagesParametrizedWithWildcard");
 		List<Message<?>> messages = createListOfMessages();	
-		Message<?> returnedMessge = aggregator.aggregate(messages);
+		Message<?> returnedMessge = aggregator.aggregateMessages(messages);
 		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
 		Assert.assertEquals("123456789", returnedMessge.getPayload());
 	}
 
 	@Test
 	public void adapterWithTypeParameterizedMessageBasedMethod() {
-		Aggregator aggregator = new MethodInvokingAggregator(simpleAggregator, "doAggregationOnListOfMessagesParametrizedWithString");
+		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(
+				simpleAggregator, "doAggregationOnListOfMessagesParametrizedWithString");
 		List<Message<?>> messages = createListOfMessages();	
-		Message<?> returnedMessge = aggregator.aggregate(messages);
+		Message<?> returnedMessge = aggregator.aggregateMessages(messages);
 		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
 		Assert.assertEquals("123456789", returnedMessge.getPayload());
 	}
 
 	@Test
 	public void adapterWithPojoBasedMethod() {
-		Aggregator aggregator = new MethodInvokingAggregator(simpleAggregator, "doAggregationOnListOfStrings");
+		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(
+				simpleAggregator, "doAggregationOnListOfStrings");
 		List<Message<?>> messages = createListOfMessages();	
-		Message<?> returnedMessge = aggregator.aggregate(messages);
+		Message<?> returnedMessge = aggregator.aggregateMessages(messages);
 		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
 		Assert.assertEquals("123456789", returnedMessge.getPayload());
 	}
 
 	@Test
 	public void adapterWithPojoBasedMethodReturningObject() {
-		Aggregator aggregator = new MethodInvokingAggregator(simpleAggregator, "doAggregationOnListOfStringsReturningLong");
+		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(
+				simpleAggregator, "doAggregationOnListOfStringsReturningLong");
 		List<Message<?>> messages = createListOfMessages();	
-		Message<?> returnedMessge = aggregator.aggregate(messages);
+		Message<?> returnedMessge = aggregator.aggregateMessages(messages);
 		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
 		Assert.assertEquals(123456789l, returnedMessge.getPayload());
 	}
 
 	@Test
 	public void adapterWithVoidReturnType() {
-		Aggregator aggregator = new MethodInvokingAggregator(simpleAggregator, "doAggregationWithNoReturn");
+		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(
+				simpleAggregator, "doAggregationWithNoReturn");
 		List<Message<?>> messages = createListOfMessages();	
-		Message<?> returnedMessage = aggregator.aggregate(messages);
+		Message<?> returnedMessage = aggregator.aggregateMessages(messages);
 		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
 		Assert.assertNull(returnedMessage);
 	}
 	
 	@Test
 	public void adapterWithNullReturn() {
-		Aggregator aggregator = new MethodInvokingAggregator(simpleAggregator, "doAggregationWithNullReturn");
+		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(
+				simpleAggregator, "doAggregationWithNullReturn");
 		List<Message<?>> messages = createListOfMessages();	
-		Message<?> returnedMessage = aggregator.aggregate(messages);
+		Message<?> returnedMessage = aggregator.aggregateMessages(messages);
 		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
 		Assert.assertNull(returnedMessage);
 	}

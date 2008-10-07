@@ -21,9 +21,9 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.aggregator.AggregatorEndpoint;
 import org.springframework.integration.aggregator.CompletionStrategyAdapter;
 import org.springframework.integration.aggregator.MethodInvokingAggregator;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -56,8 +56,14 @@ public class AggregatorParser extends AbstractEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(AggregatorEndpoint.class);
-		builder.addConstructorArgReference(this.parseAdapter(element, parserContext, MethodInvokingAggregator.class));
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingAggregator.class);
+		String ref = element.getAttribute(REF_ATTRIBUTE);
+		Assert.hasText(ref, "The '" + REF_ATTRIBUTE + "' attribute is required.");
+		builder.addConstructorArgReference(ref);
+		if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
+			String method = element.getAttribute(METHOD_ATTRIBUTE);
+			builder.addConstructorArgValue(method);
+		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, DISCARD_CHANNEL_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_TIMEOUT_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_PARTIAL_RESULT_ON_TIMEOUT_ATTRIBUTE);

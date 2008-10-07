@@ -19,6 +19,7 @@ package org.springframework.integration.aggregator;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
@@ -45,11 +47,12 @@ public class AggregatorEndpointTests {
 
 	private final TaskScheduler taskScheduler = Schedulers.createDefaultTaskScheduler(10);
 	
-	private AggregatorEndpoint aggregator;
+	private AbstractMessageAggregator aggregator;
+
 
 	@Before
 	public void configureAggregator() {
-		this.aggregator = new AggregatorEndpoint(new TestAggregator());
+		this.aggregator = new TestAggregator();
 		this.aggregator.setTaskScheduler(this.taskScheduler);
 		this.taskScheduler.start();
 		this.aggregator.start();
@@ -211,27 +214,26 @@ public class AggregatorEndpointTests {
 	
 	@Test
 	public void testNullReturningAggregator() throws InterruptedException {
-		NullReturningAggregator nullReturningAggregator = new NullReturningAggregator();
-		AggregatorEndpoint aggregator = new AggregatorEndpoint(nullReturningAggregator);
-//		aggregator.setTaskScheduler(this.taskScheduler);
+		this.aggregator = new NullReturningAggregator();
+		this.aggregator.setTaskScheduler(this.taskScheduler);
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message1 = createMessage("123", "ABC", 3, 1, replyChannel);
 		Message<?> message2 = createMessage("456", "ABC", 3, 2, replyChannel);
 		Message<?> message3 = createMessage("789", "ABC", 3, 3, replyChannel);
 		CountDownLatch latch = new CountDownLatch(3);
-		AggregatorTestTask task = new AggregatorTestTask(aggregator, message1, latch);
-		this.taskScheduler.execute(task);	
+		AggregatorTestTask task1 = new AggregatorTestTask(aggregator, message1, latch);
+		this.taskScheduler.execute(task1);	
 		AggregatorTestTask task2 = new AggregatorTestTask(aggregator, message2, latch);
 		this.taskScheduler.execute(task2);
 		AggregatorTestTask task3 = new AggregatorTestTask(aggregator, message3, latch);
 		this.taskScheduler.execute(task3);
 		latch.await(1000, TimeUnit.MILLISECONDS);
-		assertNull(task.getException());
+		assertNull(task1.getException());
 		assertNull(task2.getException());
 		assertNull(task3.getException());
 		Message<?> reply = replyChannel.receive(500);
 		assertNull(reply);
-		assertEquals(true, nullReturningAggregator.isAggregationComplete());
+		assertTrue(((NullReturningAggregator) this.aggregator).isAggregationComplete());
 	}
 
 
@@ -247,9 +249,9 @@ public class AggregatorEndpointTests {
 	}
 
 
-	private static class TestAggregator implements Aggregator {
+	private static class TestAggregator extends AbstractMessageAggregator {
 		
-		public Message<?> aggregate(List<Message<?>> messages) {
+		public Message<?> aggregateMessages(List<Message<?>> messages) {
 			List<Message<?>> sortableList = new ArrayList<Message<?>>(messages);
 			Collections.sort(sortableList, new MessageSequenceComparator());
 			StringBuffer buffer = new StringBuffer();
@@ -260,8 +262,9 @@ public class AggregatorEndpointTests {
 		}
 		
 	}
-	
-	private static class NullReturningAggregator implements Aggregator {
+
+
+	private static class NullReturningAggregator extends AbstractMessageAggregator {
 
 		private boolean aggregationComplete;
 	
@@ -271,7 +274,7 @@ public class AggregatorEndpointTests {
 		}
 		
 
-		public Message<?> aggregate(List<Message<?>> messages) {
+		public Message<?> aggregateMessages(List<Message<?>> messages) {
 			this.aggregationComplete = true;
 			return null;
 		}
@@ -281,7 +284,7 @@ public class AggregatorEndpointTests {
 
 	private static class AggregatorTestTask implements Runnable {
 
-		private AggregatorEndpoint aggregator;
+		private AbstractMessageAggregator aggregator;
 
 		private Message<?> message;
 
@@ -290,7 +293,7 @@ public class AggregatorEndpointTests {
 		private CountDownLatch latch;
 
 
-		AggregatorTestTask(AggregatorEndpoint aggregator, Message<?> message, CountDownLatch latch) {
+		AggregatorTestTask(AbstractMessageAggregator aggregator, Message<?> message, CountDownLatch latch) {
 			this.aggregator = aggregator;
 			this.message = message;
 			this.latch = latch;

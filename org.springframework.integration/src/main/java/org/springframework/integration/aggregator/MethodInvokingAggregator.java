@@ -19,34 +19,51 @@ package org.springframework.integration.aggregator;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.util.DefaultMethodResolver;
+import org.springframework.integration.util.MethodResolver;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 /**
- * Aggregator adapter for methods annotated with {@link org.springframework.integration.annotation.Aggregator @Aggregator}
- * and for '<code>aggregator</code>' elements that include a '<code>method</code>' attribute
- * (e.g. &lt;aggregator ref="beanReference" method="methodName"/&gt;).
+ * {@link AbstractMessageAggregator} adapter for methods annotated with
+ * {@link Aggregator @Aggregator} annotation and for <code>aggregator</code>
+ * elements (e.g. &lt;aggregator ref="beanReference" method="methodName"/&gt;).
  * 
  * @author Marius Bogoevici
  * @author Mark Fisher
  */
-public class MethodInvokingAggregator extends MessageListMethodAdapter implements Aggregator {
+public class MethodInvokingAggregator extends AbstractMessageAggregator {
+
+	private final MethodResolver methodResolver = new DefaultMethodResolver(Aggregator.class);
+
+	private final MessageListMethodAdapter methodInvoker;
+
 
 	public MethodInvokingAggregator(Object object, Method method) {
-		super(object, method);
+		this.methodInvoker = new MessageListMethodAdapter(object, method);
 	}
 
 	public MethodInvokingAggregator(Object object, String methodName) {
-		super(object, methodName);
+		this.methodInvoker = new MessageListMethodAdapter(object, methodName);
+	}
+
+	public MethodInvokingAggregator(Object object) {
+		Assert.notNull(object, "object must not be null");
+		Method method = this.methodResolver.findMethod(object.getClass()); 
+		Assert.notNull(method, "unable to resolve Aggregator method on target class ["
+				+ object.getClass() + "]");
+		this.methodInvoker = new MessageListMethodAdapter(object, method);
 	}
 
 
-	public Message<?> aggregate(List<Message<?>> messages) {
+	public Message<?> aggregateMessages(List<Message<?>> messages) {
 		if (CollectionUtils.isEmpty(messages)) {
 			return null;
 		}
-		Object returnedValue = this.executeMethod(messages);
+		Object returnedValue = this.methodInvoker.executeMethod(messages);
 		if (returnedValue == null) {
 			return null;
 		}
