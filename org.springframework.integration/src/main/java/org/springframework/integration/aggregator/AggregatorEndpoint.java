@@ -24,7 +24,7 @@ import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 
 /**
- * An {@link AbstractMessageBarrierEndpoint} that waits for a <em>complete</em>
+ * An {@link AbstractMessageBarrierConsumer} that waits for a <em>complete</em>
  * group of {@link Message Messages} to arrive and then delegates to an
  * {@link Aggregator} to combine them into a single {@link Message}.
  * <p>
@@ -33,13 +33,13 @@ import org.springframework.util.Assert;
  * custom implementation of the {@link CompletionStrategy} may be provided.
  * <p>
  * All considerations regarding <code>timeout</code> and grouping by '
- * <code>correlationId</code>' from {@link AbstractMessageBarrierEndpoint} apply
- * here as well.
+ * <code>correlationId</code>' from {@link AbstractMessageBarrierConsumer}
+ * apply here as well.
  * 
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class AggregatorEndpoint extends AbstractMessageBarrierEndpoint {
+public class AggregatorEndpoint extends AbstractMessageBarrierConsumer {
 
 	private final Aggregator aggregator;
 

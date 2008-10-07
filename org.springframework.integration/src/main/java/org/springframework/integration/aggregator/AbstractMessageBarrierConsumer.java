@@ -58,12 +58,14 @@ import org.springframework.util.ObjectUtils;
  * complete group after the arrival of the first {@link Message} of the group.
  * The default value is 1 minute. If the timeout elapses prior to completion,
  * then Messages with that timed-out 'correlationId' will be sent to the
- * 'discardChannel' if provided.
+ * 'discardChannel' if provided unless 'sendPartialResultsOnTimeout' is set to
+ * true in which case the incomplete group will be sent to the output channel.
  * 
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public abstract class AbstractMessageBarrierEndpoint extends AbstractReplyProducingMessageConsumer implements TaskSchedulerAware, InitializingBean {
+public abstract class AbstractMessageBarrierConsumer extends AbstractReplyProducingMessageConsumer
+		implements TaskSchedulerAware, InitializingBean {
 
 	public final static long DEFAULT_SEND_TIMEOUT = 1000;
 
@@ -116,7 +118,7 @@ public abstract class AbstractMessageBarrierEndpoint extends AbstractReplyProduc
 
 	/**
 	 * Specify whether to aggregate and send the resulting Message when the
-	 * timeout elapses prior to the CompletionStrategy.
+	 * timeout elapses prior to the CompletionStrategy returning true.
 	 */
 	public void setSendPartialResultOnTimeout(boolean sendPartialResultOnTimeout) {
 		this.sendPartialResultOnTimeout = sendPartialResultOnTimeout;
@@ -187,8 +189,8 @@ public abstract class AbstractMessageBarrierEndpoint extends AbstractReplyProduc
 		}
 		if (this.trackedCorrelationIds.contains(correlationId)) {
 			if (logger.isDebugEnabled()) {
-				logger.debug("Handling for correlationId '" + correlationId +
-						"' has already completed or timed out.");
+				logger.debug("Handling of Message group with correlationId '"
+						+ correlationId + "' has already completed or timed out.");
 			}
 			this.sendToDiscardChannelIfAvailable(message);
 			return null;
@@ -208,7 +210,7 @@ public abstract class AbstractMessageBarrierEndpoint extends AbstractReplyProduc
 		if (ObjectUtils.isEmpty(processedMessages)) {
 			return null;
 		}
-		afterRelease(correlationId, releasedMessages);
+		this.afterRelease(correlationId, releasedMessages);
 		return null;
 	}
 
