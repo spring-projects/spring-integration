@@ -33,16 +33,16 @@ import org.springframework.integration.scheduling.TaskScheduler;
 /**
  * @author Marius Bogoevici
  */
-public class ResequencerEndpointTests {
+public class ResequencerTests {
 
-	private ResequencerEndpoint resequencer;
+	private Resequencer resequencer;
 	
 	private TaskScheduler taskScheduler;
 
 	
 	@Before
 	public void configureResequencer() {
-		this.resequencer = new ResequencerEndpoint();
+		this.resequencer = new Resequencer();
 		this.taskScheduler = Schedulers.createDefaultTaskScheduler(10);
 		this.resequencer.setTaskScheduler(taskScheduler);
 		taskScheduler.start();

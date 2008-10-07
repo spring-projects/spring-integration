@@ -20,7 +20,7 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.aggregator.ResequencerEndpoint;
+import org.springframework.integration.aggregator.Resequencer;
 
 /**
  * Parser for the &lt;resequencer&gt; element.
@@ -46,7 +46,7 @@ public class ResequencerParser extends AbstractEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ResequencerEndpoint.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(Resequencer.class);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, DISCARD_CHANNEL_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, SEND_TIMEOUT_ATTRIBUTE);
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, RELEASE_PARTIAL_SEQUENCES);

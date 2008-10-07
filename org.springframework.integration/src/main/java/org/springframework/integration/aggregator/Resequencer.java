@@ -35,7 +35,7 @@ import org.springframework.integration.message.MessageHeaders;
  *
  * @author Marius Bogoevici
  */
-public class ResequencerEndpoint extends AbstractMessageBarrierEndpoint {
+public class Resequencer extends AbstractMessageBarrierEndpoint {
 
 	private volatile boolean releasePartialSequences = true;
 
