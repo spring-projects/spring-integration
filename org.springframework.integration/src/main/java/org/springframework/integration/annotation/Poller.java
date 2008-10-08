@@ -24,6 +24,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.transaction.annotation.Transactional;
+
 /**
  * Annotation that can be specified at method-level alongside a Message Endpoint
  * annotation (e.g. @Splitter, @ChannelAdapter, etc.) in order to provide the
@@ -46,5 +48,9 @@ public @interface Poller {
 	TimeUnit timeUnit() default TimeUnit.MILLISECONDS;
 
 	int maxMessagesPerPoll() default -1;
+
+	Transactional transactionAttributes() default @Transactional;
+
+	String transactionManager() default "";
 
 }
