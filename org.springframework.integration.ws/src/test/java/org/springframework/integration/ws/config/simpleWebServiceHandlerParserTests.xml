@@ -14,6 +14,10 @@
 			http://www.springframework.org/schema/util/spring-util.xsd">
 
 	<si:channel id="inputChannel"/>
+	
+	<si:channel id="pollableInputChannel">
+		<si:queue capacity="10"/>
+	</si:channel>
 
 	<ws:service-activator id="handlerWithDefaultSourceExtractor"
 		                  input-channel="inputChannel"
@@ -53,7 +57,14 @@
 	<ws:service-activator id="handlerWithCustomMessageSenderList"
 	                      input-channel="inputChannel"
 	                      uri="http://example.org"
-	                      message-senders="messageSenders"/>
+	                      message-senders="messageSenders">
+	</ws:service-activator>
+	                      
+	<ws:service-activator id="handlerWithPoller"
+		                  input-channel="pollableInputChannel"
+	                      uri="http://example.org">
+			<si:poller interval="5000"/>
+	</ws:service-activator>
 
 	<bean id="sourceExtractor" class="org.springframework.integration.ws.config.StubSourceExtractor"/>
 

@@ -24,7 +24,9 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.MessageEndpoint;
+import org.springframework.integration.endpoint.PollingConsumerEndpoint;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
+import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.ws.handler.MarshallingWebServiceHandler;
 import org.springframework.integration.ws.handler.SimpleWebServiceHandler;
 import org.springframework.oxm.Marshaller;
@@ -149,6 +151,23 @@ public class WebServiceHandlerParserTests {
 		WebServiceMessageSender messageSender = (WebServiceMessageSender) context.getBean("messageSender");
 		assertEquals(messageSender, ((WebServiceMessageSender[])accessor.getPropertyValue("messageSenders"))[0]);
 		assertEquals("Wrong number of message senders " ,2 , ((WebServiceMessageSender[])accessor.getPropertyValue("messageSenders")).length);
+	}
+	
+	
+	@Test
+	public void testSimpleWebServiceHandlerWithPoller() {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"simpleWebServiceHandlerParserTests.xml", this.getClass());
+		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("handlerWithPoller");
+		assertEquals(PollingConsumerEndpoint.class, endpoint.getClass());
+		Object obj = new DirectFieldAccessor(endpoint).getPropertyValue("trigger");
+		assertEquals(IntervalTrigger.class, obj.getClass());
+		
+		IntervalTrigger trigger = (IntervalTrigger)obj;
+		DirectFieldAccessor accessor = new DirectFieldAccessor(trigger);
+		accessor = new DirectFieldAccessor(trigger);
+		
+		assertEquals("IntervalTrigger had wrong itnerval" , 5000, ((Long)accessor.getPropertyValue("interval")).longValue());
 	}
 
 	@Test

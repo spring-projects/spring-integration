@@ -3,12 +3,14 @@
 		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 		xmlns:beans="http://www.springframework.org/schema/beans"
 		xmlns:tool="http://www.springframework.org/schema/tool"
+		xmlns:integration="http://www.springframework.org/schema/integration"
 		targetNamespace="http://www.springframework.org/schema/integration/ws"
 		elementFormDefault="qualified"
 		attributeFormDefault="unqualified">
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
 	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
+	<xsd:import namespace="http://www.springframework.org/schema/integration"/>
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
@@ -23,6 +25,9 @@
 	Defines a Web Service based Service Activator endpoint.
 				</xsd:documentation>
 			</xsd:annotation>
+			<xsd:all>
+					<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
+			</xsd:all>
 			<xsd:attribute name="id" type="xsd:string"/>
 			<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
 			<xsd:attribute name="output-channel" type="xsd:string"/>
