@@ -17,7 +17,6 @@
 package org.springframework.integration.config;
 
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
-import org.springframework.integration.config.annotation.AnnotationDrivenParser;
 import org.springframework.integration.gateway.config.GatewayParser;
 
 /**
@@ -30,7 +29,6 @@ public class IntegrationNamespaceHandler extends NamespaceHandlerSupport {
 
 	public void init() {
 		registerBeanDefinitionParser("message-bus", new MessageBusParser());
-		registerBeanDefinitionParser("annotation-driven", new AnnotationDrivenParser());
 		registerBeanDefinitionParser("channel", new PointToPointChannelParser());
 		registerBeanDefinitionParser("thread-local-channel", new ThreadLocalChannelParser());
 		registerBeanDefinitionParser("publish-subscribe-channel", new PublishSubscribeChannelParser());

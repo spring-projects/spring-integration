@@ -6,8 +6,7 @@
 		http://www.springframework.org/schema/integration
 		http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<message-bus />
-	<annotation-driven />
+	<message-bus enable-annotations="true"/>
 
 	<channel id="inAnnotated" />
 	<channel id="inDefault" />

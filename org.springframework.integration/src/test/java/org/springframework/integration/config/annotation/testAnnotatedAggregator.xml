@@ -9,9 +9,7 @@
 			http://www.springframework.org/schema/context
 			http://www.springframework.org/schema/context/spring-context-2.5.xsd">
 
-	<message-bus/>
-
-	<annotation-driven/>
+	<message-bus enable-annotations="true"/>
 
 	<channel id="inputChannel"/>
 

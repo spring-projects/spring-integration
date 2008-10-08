@@ -23,14 +23,18 @@ import org.w3c.dom.NodeList;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.bus.MessageBusAwareBeanPostProcessor;
+import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
+import org.springframework.integration.config.annotation.PublisherAnnotationPostProcessor;
 import org.springframework.util.Assert;
 
 /**
@@ -43,17 +47,14 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 
 	public static final String MESSAGE_BUS_BEAN_NAME = "internal.MessageBus";
 
-	public static final String MESSAGE_BUS_AWARE_POST_PROCESSOR_BEAN_NAME = "internal.MessageBusAwareBeanPostProcessor";
+	public static final String MESSAGE_BUS_AWARE_POST_PROCESSOR_BEAN_NAME =
+			"internal.MessageBusAwareBeanPostProcessor";
 
-	private static final String TASK_SCHEDULER_ATTRIBUTE = "task-scheduler";
+	private static final String PUBLISHER_ANNOTATION_POST_PROCESSOR_BEAN_NAME =
+			"internal.PublisherAnnotationPostProcessor";
 
-	private static final String CHANNEL_FACTORY_ATTRIBUTE = "channel-factory";
-
-	private static final String INTERCEPTOR_ELEMENT = "interceptor";
-	
-	private static final String REFERENCE_ATTRIBUTE = "ref";
-	
-	private static final String INTERCEPTORS_PROPERTY = "interceptors";
+	private static final String MESSAGING_ANNOTATION_POST_PROCESSOR_BEAN_NAME =
+			"internal.MessagingAnnotationPostProcessor";
 
 
 	@Override
@@ -71,15 +72,14 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
-		return !TASK_SCHEDULER_ATTRIBUTE.equals(attributeName) &&
-				!CHANNEL_FACTORY_ATTRIBUTE.equals(attributeName) &&
+		return !"task-scheduler".equals(attributeName) &&
+				!"enable-annotations".equals(attributeName) &&
 				super.isEligibleAttribute(attributeName);
 	}
 
 	@Override
 	protected void postProcess(BeanDefinitionBuilder builder, Element element) {
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, TASK_SCHEDULER_ATTRIBUTE);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, CHANNEL_FACTORY_ATTRIBUTE);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-scheduler");
 		this.processChildElements(builder, element);
 	}
 
@@ -90,28 +90,31 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 		for (int i = 0; i < childNodes.getLength(); i++) {
 			Node child = childNodes.item(i);
 			if (child.getNodeType() == Node.ELEMENT_NODE) {
-				String localName = child.getLocalName();
-				if (INTERCEPTOR_ELEMENT.equals(localName)) {
-					interceptors.add(new RuntimeBeanReference(((Element)child).getAttribute(REFERENCE_ATTRIBUTE)));
+				if ("interceptor".equals(child.getLocalName())) {
+					interceptors.add(new RuntimeBeanReference(((Element)child).getAttribute("ref")));
 				}
 			}
 		}
 		if (interceptors.size() > 0) {
-			builder.addPropertyValue(INTERCEPTORS_PROPERTY, interceptors);
+			builder.addPropertyValue("interceptors", interceptors);
 		}
 	}
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		super.doParse(element, parserContext, builder);
-		this.addPostProcessors(parserContext);
+		this.addPostProcessors(element, parserContext);
 	}
 
 	/**
 	 * Adds extra post-processors to the context, to inject the objects configured by the MessageBus
 	 */
-	private void addPostProcessors(ParserContext parserContext) {
+	private void addPostProcessors(Element element, ParserContext parserContext) {
 		this.registerMessageBusAwarePostProcessor(parserContext);
+		if ("true".equals(element.getAttribute("enable-annotations").toLowerCase())) {
+			this.registerPublisherPostProcessor(parserContext);
+			this.registerMessagingAnnotationPostProcessor(parserContext);
+		}
 	}
 
 	private void registerMessageBusAwarePostProcessor(ParserContext parserContext) {
@@ -119,6 +122,22 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 		builder.addConstructorArgReference(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		builder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 		parserContext.getRegistry().registerBeanDefinition(MESSAGE_BUS_AWARE_POST_PROCESSOR_BEAN_NAME, builder.getBeanDefinition());
+	}
+
+	private void registerPublisherPostProcessor(ParserContext parserContext) {
+		BeanDefinition bd = new RootBeanDefinition(PublisherAnnotationPostProcessor.class);
+		bd.getPropertyValues().addPropertyValue("channelRegistry",
+				new RuntimeBeanReference(MessageBusParser.MESSAGE_BUS_BEAN_NAME));
+		BeanComponentDefinition bcd = new BeanComponentDefinition(
+				bd, PUBLISHER_ANNOTATION_POST_PROCESSOR_BEAN_NAME);
+		parserContext.registerBeanComponent(bcd);
+	}
+
+	private void registerMessagingAnnotationPostProcessor(ParserContext parserContext) {
+		BeanDefinition bd = new RootBeanDefinition(MessagingAnnotationPostProcessor.class);
+		BeanComponentDefinition bcd = new BeanComponentDefinition(
+				bd, MESSAGING_ANNOTATION_POST_PROCESSOR_BEAN_NAME);
+		parserContext.registerBeanComponent(bcd);
 	}
 
 }
