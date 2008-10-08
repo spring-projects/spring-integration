@@ -16,6 +16,13 @@
 
 package org.springframework.integration.config.annotation;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
+import static org.springframework.integration.util.TestUtils.getPropertyValue;
+
 import java.lang.reflect.Method;
 
 import org.junit.Assert;
@@ -42,17 +49,18 @@ public class AggregatorAnnotationTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				new String[] { "classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml" });
 		final String endpointName = "endpointWithDefaultAnnotation";
-		DirectFieldAccessor accessor = getDirectFieldAccessorForAggregatingHandler(context,
-				endpointName);
-		Assert.assertTrue(accessor.getPropertyValue("completionStrategy") instanceof SequenceSizeCompletionStrategy);
-		Assert.assertNull(accessor.getPropertyValue("outputChannel"));
-		Assert.assertNull(accessor.getPropertyValue("discardChannel"));
-		Assert.assertEquals(AbstractMessageAggregator.DEFAULT_SEND_TIMEOUT, accessor.getPropertyValue("sendTimeout"));
-		Assert.assertEquals(AbstractMessageAggregator.DEFAULT_TIMEOUT, accessor.getPropertyValue("timeout"));
-		Assert.assertEquals(false, accessor.getPropertyValue("sendPartialResultOnTimeout"));
-		Assert.assertEquals(AbstractMessageAggregator.DEFAULT_REAPER_INTERVAL, accessor.getPropertyValue("reaperInterval"));
-		Assert.assertEquals(AbstractMessageAggregator.DEFAULT_TRACKED_CORRRELATION_ID_CAPACITY,
-				accessor.getPropertyValue("trackedCorrelationIdCapacity"));
+		AbstractMessageAggregator aggregator = this.getAggregator(context, endpointName);
+		assertTrue(getPropertyValue(aggregator, "completionStrategy") instanceof SequenceSizeCompletionStrategy);
+		assertNull(getPropertyValue(aggregator, "outputChannel"));
+		assertNull(getPropertyValue(aggregator, "discardChannel"));
+		assertEquals(AbstractMessageAggregator.DEFAULT_SEND_TIMEOUT,
+				getPropertyValue(aggregator, "channelTemplate.sendTimeout"));
+		assertEquals(AbstractMessageAggregator.DEFAULT_TIMEOUT, getPropertyValue(aggregator, "timeout"));
+		assertEquals(false, getPropertyValue(aggregator, "sendPartialResultOnTimeout"));
+		assertEquals(AbstractMessageAggregator.DEFAULT_REAPER_INTERVAL,
+				getPropertyValue(aggregator, "reaperInterval"));
+		assertEquals(AbstractMessageAggregator.DEFAULT_TRACKED_CORRRELATION_ID_CAPACITY,
+				getPropertyValue(aggregator, "trackedCorrelationIdCapacity"));
 	}
 
 	@Test
@@ -60,15 +68,18 @@ public class AggregatorAnnotationTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				new String[] { "classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml" });
 		final String endpointName = "endpointWithCustomizedAnnotation";
-		DirectFieldAccessor accessor = getDirectFieldAccessorForAggregatingHandler(context, endpointName);
-		Assert.assertTrue(accessor.getPropertyValue("completionStrategy") instanceof SequenceSizeCompletionStrategy);
-		Assert.assertEquals(getMessageBus(context).lookupChannel("outputChannel"), accessor.getPropertyValue("outputChannel"));
-		Assert.assertEquals(getMessageBus(context).lookupChannel("discardChannel"), accessor.getPropertyValue("discardChannel"));
-		Assert.assertEquals(98765432l, accessor.getPropertyValue("sendTimeout"));
-		Assert.assertEquals(4567890l, accessor.getPropertyValue("timeout"));
-		Assert.assertEquals(true, accessor.getPropertyValue("sendPartialResultOnTimeout"));
-		Assert.assertEquals(1234l, accessor.getPropertyValue("reaperInterval"));
-		Assert.assertEquals(42, accessor.getPropertyValue("trackedCorrelationIdCapacity"));
+		AbstractMessageAggregator aggregator = this.getAggregator(context, endpointName);
+		assertTrue(getPropertyValue(aggregator, "completionStrategy")
+				instanceof SequenceSizeCompletionStrategy);
+		assertEquals(getMessageBus(context).lookupChannel("outputChannel"),
+				getPropertyValue(aggregator, "outputChannel"));
+		assertEquals(getMessageBus(context).lookupChannel("discardChannel"),
+				getPropertyValue(aggregator, "discardChannel"));
+		assertEquals(98765432l, getPropertyValue(aggregator, "channelTemplate.sendTimeout"));
+		assertEquals(4567890l, getPropertyValue(aggregator, "timeout"));
+		assertEquals(true, getPropertyValue(aggregator, "sendPartialResultOnTimeout"));
+		assertEquals(1234l, getPropertyValue(aggregator, "reaperInterval"));
+		assertEquals(42, getPropertyValue(aggregator, "trackedCorrelationIdCapacity"));
 	}
 
 	@Test
@@ -76,24 +87,24 @@ public class AggregatorAnnotationTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				new String[] { "classpath:/org/springframework/integration/config/annotation/testAnnotatedAggregator.xml" });
 		final String endpointName = "endpointWithDefaultAnnotationAndCustomCompletionStrategy";
-		DirectFieldAccessor aggregatingMessageHandlerAccessor = getDirectFieldAccessorForAggregatingHandler(context, endpointName);
-		Object completionStrategy = aggregatingMessageHandlerAccessor.getPropertyValue("completionStrategy");
+		AbstractMessageAggregator aggregator = this.getAggregator(context, endpointName);
+		Object completionStrategy = getPropertyValue(aggregator, "completionStrategy");
 		Assert.assertTrue(completionStrategy instanceof CompletionStrategyAdapter);
 		CompletionStrategyAdapter completionStrategyAdapter = (CompletionStrategyAdapter) completionStrategy;
 		DirectFieldAccessor invokerAccessor = new DirectFieldAccessor(
 				new DirectFieldAccessor(completionStrategyAdapter).getPropertyValue("invoker"));
 		Object targetObject = invokerAccessor.getPropertyValue("object");
-		Assert.assertSame(context.getBean(endpointName), targetObject);
+		assertSame(context.getBean(endpointName), targetObject);
 		Method completionCheckerMethod = (Method) invokerAccessor.getPropertyValue("method");
-		Assert.assertEquals("completionChecker", completionCheckerMethod.getName());
+		assertEquals("completionChecker", completionCheckerMethod.getName());
 	}
 
 
 	@SuppressWarnings("unchecked")
-	private DirectFieldAccessor getDirectFieldAccessorForAggregatingHandler(ApplicationContext context, final String endpointName) {
+	private AbstractMessageAggregator getAggregator(ApplicationContext context, final String endpointName) {
 		SubscribingConsumerEndpoint endpoint = (SubscribingConsumerEndpoint) context.getBean(
 				endpointName + ".aggregatingMethod.aggregator");
-		return new DirectFieldAccessor(new DirectFieldAccessor(endpoint).getPropertyValue("consumer"));
+		return (AbstractMessageAggregator) new DirectFieldAccessor(endpoint).getPropertyValue("consumer");
 	}
 
 	private MessageBus getMessageBus(ApplicationContext context) {

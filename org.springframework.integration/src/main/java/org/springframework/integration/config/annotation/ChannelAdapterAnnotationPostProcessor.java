@@ -22,11 +22,12 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.ChannelAdapter;
 import org.springframework.integration.annotation.Poller;
-import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
+import org.springframework.integration.config.MessageBusParser;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.PollingConsumerEndpoint;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
@@ -45,16 +46,16 @@ import org.springframework.util.ClassUtils;
  */
 public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPostProcessor<ChannelAdapter> {
 
-	private final MessageBus messageBus;
-
 	private final ConfigurableBeanFactory beanFactory;
 
+	private final ChannelRegistry channelRegistry;
 
-	public ChannelAdapterAnnotationPostProcessor(MessageBus messageBus, ConfigurableBeanFactory beanFactory) {
-		Assert.notNull(messageBus, "MessageBus must not be null");
+
+	public ChannelAdapterAnnotationPostProcessor(ConfigurableBeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "BeanFactory must not be null");
-		this.messageBus = messageBus;
 		this.beanFactory = beanFactory;
+		this.channelRegistry = (ChannelRegistry)
+				this.beanFactory.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 	}
 
 
@@ -62,7 +63,7 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
 		MessageEndpoint endpoint = null;
 		String channelName = annotation.value();
-		MessageChannel channel = this.messageBus.lookupChannel(channelName);
+		MessageChannel channel = this.channelRegistry.lookupChannel(channelName);
 		if (channel == null) {
 			DirectChannel directChannel = new DirectChannel();
 			directChannel.setBeanName(channelName);

@@ -40,6 +40,9 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractReplyProducingMessageConsumer extends AbstractMessageConsumer implements ChannelRegistryAware {
 
+	public static final long DEFAULT_SEND_TIMEOUT = 1000;
+
+
 	private MessageChannel outputChannel;
 
 	private volatile ChannelRegistry channelRegistry;
@@ -48,7 +51,13 @@ public abstract class AbstractReplyProducingMessageConsumer extends AbstractMess
 
 	private volatile boolean requiresReply = false;
 
-	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
+	private final MessageChannelTemplate channelTemplate;
+
+
+	public AbstractReplyProducingMessageConsumer() {
+		this.channelTemplate = new MessageChannelTemplate();
+		this.channelTemplate.setSendTimeout(DEFAULT_SEND_TIMEOUT);
+	}
 
 
 	public void setOutputChannel(MessageChannel outputChannel) {
@@ -57,6 +66,13 @@ public abstract class AbstractReplyProducingMessageConsumer extends AbstractMess
 
 	protected MessageChannel getOutputChannel() {
 		return this.outputChannel;
+	}
+
+	/**
+	 * Set the timeout for sending reply Messages.
+	 */
+	public void setSendTimeout(long sendTimeout) {
+		this.channelTemplate.setSendTimeout(sendTimeout);
 	}
 
 	public void setChannelRegistry(ChannelRegistry channelRegistry) {
@@ -122,7 +138,7 @@ public abstract class AbstractReplyProducingMessageConsumer extends AbstractMess
 		return false;
 	}
 
-	private boolean sendReplyMessage(Message<?> replyMessage, MessageChannel replyChannel) {
+	protected boolean sendReplyMessage(Message<?> replyMessage, MessageChannel replyChannel) {
 		return this.channelTemplate.send(replyMessage, replyChannel);
 	}
 

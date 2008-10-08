@@ -37,6 +37,7 @@ import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.util.MethodInvoker;
+import org.springframework.integration.util.TestUtils;
 
 /**
  * @author Marius Bogoevici
@@ -91,7 +92,7 @@ public class AggregatorParserTests {
 		Assert.assertEquals("The AggregatorEndpoint is not injected with the appropriate discard channel",
 				discardChannel, accessor.getPropertyValue("discardChannel"));
 		Assert.assertEquals("The AggregatorEndpoint is not set with the appropriate timeout value",
-				86420000l, accessor.getPropertyValue("sendTimeout"));
+				86420000l, TestUtils.getPropertyValue(consumer, "channelTemplate.sendTimeout"));
 		Assert.assertEquals(
 				"The AggregatorEndpoint is not configured with the appropriate 'send partial results on timeout' flag",
 				true, accessor.getPropertyValue("sendPartialResultOnTimeout"));

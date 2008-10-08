@@ -18,8 +18,8 @@ package org.springframework.integration.config.annotation;
 
 import java.lang.reflect.Method;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.annotation.Transformer;
-import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.transformer.MethodInvokingTransformer;
 import org.springframework.integration.transformer.TransformerEndpoint;
@@ -31,8 +31,8 @@ import org.springframework.integration.transformer.TransformerEndpoint;
  */
 public class TransformerAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Transformer> {
 
-	public TransformerAnnotationPostProcessor(MessageBus messageBus) {
-		super(messageBus);
+	public TransformerAnnotationPostProcessor(BeanFactory beanFactory) {
+		super(beanFactory);
 	}
 
 

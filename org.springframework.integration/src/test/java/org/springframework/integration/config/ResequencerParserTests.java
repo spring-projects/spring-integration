@@ -16,16 +16,21 @@
 
 package org.springframework.integration.config;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.springframework.integration.util.TestUtils.getPropertyValue;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.aggregator.Resequencer;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
@@ -60,34 +65,32 @@ public class ResequencerParserTests {
 		Message<?> message1 = outputChannel.receive(500);
 		Message<?> message2 = outputChannel.receive(500);
 		Message<?> message3 = outputChannel.receive(500);
-		Assert.assertNotNull(message1);
-		Assert.assertEquals(new Integer(1), message1.getHeaders().getSequenceNumber());
-		Assert.assertNotNull(message2);
-		Assert.assertEquals(new Integer(2), message2.getHeaders().getSequenceNumber());
-		Assert.assertNotNull(message3);
-		Assert.assertEquals(new Integer(3), message3.getHeaders().getSequenceNumber());
+		assertNotNull(message1);
+		assertEquals(new Integer(1), message1.getHeaders().getSequenceNumber());
+		assertNotNull(message2);
+		assertEquals(new Integer(2), message2.getHeaders().getSequenceNumber());
+		assertNotNull(message3);
+		assertEquals(new Integer(3), message3.getHeaders().getSequenceNumber());
 	}
 
 	@Test
 	public void testDefaultResequencerProperties() {
 		SubscribingConsumerEndpoint endpoint = (SubscribingConsumerEndpoint) context.getBean("defaultResequencer");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(new DirectFieldAccessor(endpoint).getPropertyValue("consumer"));
-		Assert.assertNull(accessor.getPropertyValue("outputChannel"));
-		Assert.assertNull(accessor.getPropertyValue("discardChannel"));
-		Assert.assertEquals("The ResequencerEndpoint is not set with the appropriate timeout value",
-				1000l, accessor.getPropertyValue("sendTimeout"));
-		Assert.assertEquals(
-				"The ResequencerEndpoint is not configured with the appropriate 'send partial results on timeout' flag",
-				false, accessor.getPropertyValue("sendPartialResultOnTimeout"));
-		Assert.assertEquals("The ResequencerEndpoint is not configured with the appropriate reaper interval",
-				1000l, accessor.getPropertyValue("reaperInterval"));
-		Assert.assertEquals(
-				"The ResequencerEndpoint is not configured with the appropriate tracked correlationId capacity",
-				1000, accessor.getPropertyValue("trackedCorrelationIdCapacity"));
-		Assert.assertEquals("The ResequencerEndpoint is not configured with the appropriate timeout",
-				60000l, accessor.getPropertyValue("timeout"));
-		Assert.assertEquals("The ResequencerEndpoint is not configured with the appropriate 'release partial sequences' flag",
-				true, accessor.getPropertyValue("releasePartialSequences"));		
+		Resequencer resequencer = (Resequencer) new DirectFieldAccessor(endpoint).getPropertyValue("consumer");
+		assertNull(getPropertyValue(resequencer, "outputChannel"));
+		assertNull(getPropertyValue(resequencer, "discardChannel"));
+		assertEquals("The ResequencerEndpoint is not set with the appropriate timeout value",
+				1000l, getPropertyValue(resequencer, "channelTemplate.sendTimeout"));
+		assertEquals("The ResequencerEndpoint is not configured with the appropriate 'send partial results on timeout' flag",
+				false, getPropertyValue(resequencer, "sendPartialResultOnTimeout"));
+		assertEquals("The ResequencerEndpoint is not configured with the appropriate reaper interval",
+				1000l, getPropertyValue(resequencer, "reaperInterval"));
+		assertEquals("The ResequencerEndpoint is not configured with the appropriate tracked correlationId capacity",
+				1000, getPropertyValue(resequencer, "trackedCorrelationIdCapacity"));
+		assertEquals("The ResequencerEndpoint is not configured with the appropriate timeout",
+				60000l, getPropertyValue(resequencer, "timeout"));
+		assertEquals("The ResequencerEndpoint is not configured with the appropriate 'release partial sequences' flag",
+				true, getPropertyValue(resequencer, "releasePartialSequences"));		
 	}
 
 	@Test
@@ -95,26 +98,25 @@ public class ResequencerParserTests {
 		SubscribingConsumerEndpoint endpoint = (SubscribingConsumerEndpoint) context.getBean("completelyDefinedResequencer");
 		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
 		MessageChannel discardChannel = (MessageChannel) context.getBean("discardChannel");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(new DirectFieldAccessor(endpoint).getPropertyValue("consumer"));
-		Assert.assertEquals("The ResequencerEndpoint is not injected with the appropriate output channel",
-				outputChannel, accessor.getPropertyValue("outputChannel"));
-		Assert.assertEquals("The ResequencerEndpoint is not injected with the appropriate discard channel",
-				discardChannel, accessor.getPropertyValue("discardChannel"));
-		Assert.assertEquals("The ResequencerEndpoint is not set with the appropriate timeout value",
-				86420000l, accessor.getPropertyValue("sendTimeout"));
-		Assert.assertEquals(
-				"The ResequencerEndpoint is not configured with the appropriate 'send partial results on timeout' flag",
-				true, accessor.getPropertyValue("sendPartialResultOnTimeout"));
-		Assert.assertEquals("The ResequencerEndpoint is not configured with the appropriate reaper interval",
-				135l, accessor.getPropertyValue("reaperInterval"));
-		Assert.assertEquals(
-				"The ResequencerEndpoint is not configured with the appropriate tracked correlationId capacity",
-				99, accessor.getPropertyValue("trackedCorrelationIdCapacity"));
-		Assert.assertEquals("The ResequencerEndpoint is not configured with the appropriate timeout",
-				42l, accessor.getPropertyValue("timeout"));
-		Assert.assertEquals("The ResequencerEndpoint is not configured with the appropriate 'release partial sequences' flag",
-				false, accessor.getPropertyValue("releasePartialSequences"));
+		Resequencer resequencer = (Resequencer) new DirectFieldAccessor(endpoint).getPropertyValue("consumer");
+		assertEquals("The ResequencerEndpoint is not injected with the appropriate output channel",
+				outputChannel, getPropertyValue(resequencer, "outputChannel"));
+		assertEquals("The ResequencerEndpoint is not injected with the appropriate discard channel",
+				discardChannel, getPropertyValue(resequencer, "discardChannel"));
+		assertEquals("The ResequencerEndpoint is not set with the appropriate timeout value",
+				86420000l, getPropertyValue(resequencer, "channelTemplate.sendTimeout"));
+		assertEquals("The ResequencerEndpoint is not configured with the appropriate 'send partial results on timeout' flag",
+				true, getPropertyValue(resequencer, "sendPartialResultOnTimeout"));
+		assertEquals("The ResequencerEndpoint is not configured with the appropriate reaper interval",
+				135l, getPropertyValue(resequencer, "reaperInterval"));
+		assertEquals("The ResequencerEndpoint is not configured with the appropriate tracked correlationId capacity",
+				99, getPropertyValue(resequencer, "trackedCorrelationIdCapacity"));
+		assertEquals("The ResequencerEndpoint is not configured with the appropriate timeout",
+				42l, getPropertyValue(resequencer, "timeout"));
+		assertEquals("The ResequencerEndpoint is not configured with the appropriate 'release partial sequences' flag",
+				false, getPropertyValue(resequencer, "releasePartialSequences"));
 	}
+
 
 	private static <T> Message<T> createMessage(T payload, Object correlationId,
 			int sequenceSize, int sequenceNumber, MessageChannel outputChannel) {

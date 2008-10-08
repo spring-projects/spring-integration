@@ -41,6 +41,7 @@ import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelRegistryAware;
+import org.springframework.integration.config.MessageBusParser;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -57,19 +58,13 @@ import org.springframework.util.StringUtils;
  */
 public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware, InitializingBean {
 
-	private final MessageBus messageBus;
+	private volatile MessageBus messageBus;
 
 	private volatile ConfigurableBeanFactory beanFactory;
 
 
 	private final Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> postProcessors =
 			new HashMap<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>>();
-
-
-	public MessagingAnnotationPostProcessor(MessageBus messageBus) {
-		Assert.notNull(messageBus, "MessageBus must not be null.");
-		this.messageBus = messageBus;
-	}
 
 
 	public void setBeanFactory(BeanFactory beanFactory) {
@@ -80,12 +75,13 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 	public void afterPropertiesSet() {
 		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
-		postProcessors.put(Aggregator.class, new AggregatorAnnotationPostProcessor(this.messageBus));
-		postProcessors.put(ChannelAdapter.class, new ChannelAdapterAnnotationPostProcessor(this.messageBus, this.beanFactory));
-		postProcessors.put(Router.class, new RouterAnnotationPostProcessor(this.messageBus));
-		postProcessors.put(ServiceActivator.class, new ServiceActivatorAnnotationPostProcessor(this.messageBus));
-		postProcessors.put(Splitter.class, new SplitterAnnotationPostProcessor(this.messageBus));
-		postProcessors.put(Transformer.class, new TransformerAnnotationPostProcessor(this.messageBus));
+		this.messageBus = (MessageBus) this.beanFactory.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
+		postProcessors.put(Aggregator.class, new AggregatorAnnotationPostProcessor(this.beanFactory));
+		postProcessors.put(ChannelAdapter.class, new ChannelAdapterAnnotationPostProcessor(this.beanFactory));
+		postProcessors.put(Router.class, new RouterAnnotationPostProcessor(this.beanFactory));
+		postProcessors.put(ServiceActivator.class, new ServiceActivatorAnnotationPostProcessor(this.beanFactory));
+		postProcessors.put(Splitter.class, new SplitterAnnotationPostProcessor(this.beanFactory));
+		postProcessors.put(Transformer.class, new TransformerAnnotationPostProcessor(this.beanFactory));
 	}
 
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {

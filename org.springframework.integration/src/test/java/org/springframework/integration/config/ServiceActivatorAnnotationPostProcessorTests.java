@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.annotation.MessageEndpoint;
@@ -51,7 +50,6 @@ public class ServiceActivatorAnnotationPostProcessorTests {
 		String busBeanName = MessageBusParser.MESSAGE_BUS_BEAN_NAME;
 		context.registerBeanDefinition(busBeanName, new RootBeanDefinition(DefaultMessageBus.class));
 		RootBeanDefinition postProcessorDef = new RootBeanDefinition(MessagingAnnotationPostProcessor.class);
-		postProcessorDef.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(busBeanName));
 		context.registerBeanDefinition("postProcessor", postProcessorDef);
 		context.refresh();
 		context.start();

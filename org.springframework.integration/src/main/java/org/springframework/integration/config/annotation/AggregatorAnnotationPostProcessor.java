@@ -19,13 +19,13 @@ package org.springframework.integration.config.annotation;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.aggregator.AbstractMessageAggregator;
 import org.springframework.integration.aggregator.CompletionStrategyAdapter;
 import org.springframework.integration.aggregator.MethodInvokingAggregator;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.CompletionStrategy;
-import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.MessageConsumer;
 import org.springframework.util.Assert;
@@ -39,8 +39,8 @@ import org.springframework.util.StringUtils;
  */
 public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Aggregator> {
 
-	public AggregatorAnnotationPostProcessor(MessageBus messageBus) {
-		super(messageBus);
+	public AggregatorAnnotationPostProcessor(BeanFactory beanFactory) {
+		super(beanFactory);
 	}
 
 
@@ -50,7 +50,7 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 		this.configureCompletionStrategy(bean, aggregator);
 		String discardChannelName = annotation.discardChannel();
 		if (StringUtils.hasText(discardChannelName)) {
-			MessageChannel discardChannel = this.getChannelRegistry().lookupChannel(discardChannelName);
+			MessageChannel discardChannel = this.channelRegistry.lookupChannel(discardChannelName);
 			Assert.notNull(discardChannel, "unable to resolve discardChannel '" + discardChannelName + "'");
 			aggregator.setDiscardChannel(discardChannel);
 		}

@@ -18,8 +18,8 @@ package org.springframework.integration.config.annotation;
 
 import java.lang.reflect.Method;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.annotation.Router;
-import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.router.MethodInvokingChannelResolver;
@@ -34,8 +34,8 @@ import org.springframework.util.StringUtils;
  */
 public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Router> {
 
-	public RouterAnnotationPostProcessor(MessageBus messageBus) {
-		super(messageBus);
+	public RouterAnnotationPostProcessor(BeanFactory beanFactory) {
+		super(beanFactory);
 	}
 
 
@@ -45,7 +45,7 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 		RouterEndpoint router = new RouterEndpoint(resolver);
 		String defaultOutputChannelName = annotation.defaultOutputChannel();
 		if (StringUtils.hasText(defaultOutputChannelName)) {
-			MessageChannel defaultOutputChannel = this.getChannelRegistry().lookupChannel(defaultOutputChannelName);
+			MessageChannel defaultOutputChannel = this.channelRegistry.lookupChannel(defaultOutputChannelName);
 			Assert.notNull(defaultOutputChannel, "unable to resolve defaultOutputChannel '" + defaultOutputChannelName + "'");
 			router.setDefaultOutputChannel(defaultOutputChannel);
 		}

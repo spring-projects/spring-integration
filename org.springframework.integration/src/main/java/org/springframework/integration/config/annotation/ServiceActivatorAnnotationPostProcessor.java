@@ -18,8 +18,8 @@ package org.springframework.integration.config.annotation;
 
 import java.lang.reflect.Method;
 
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
 import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.MessageMappingMethodInvoker;
@@ -31,8 +31,8 @@ import org.springframework.integration.message.MessageMappingMethodInvoker;
  */
 public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<ServiceActivator> {
 
-	public ServiceActivatorAnnotationPostProcessor(MessageBus messageBus) {
-		super(messageBus);
+	public ServiceActivatorAnnotationPostProcessor(BeanFactory beanFactory) {
+		super(beanFactory);
 	}
 
 

@@ -28,6 +28,7 @@ import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.ThreadLocalChannel;
+import org.springframework.integration.config.MessageBusParser;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
 import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
 import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
@@ -76,7 +77,8 @@ public class DirectChannelSubscriptionTests {
 	public void testSendAndReceiveForAnnotatedEndpoint() {
 		GenericApplicationContext context = new GenericApplicationContext();
 		bus.setApplicationContext(context);
-		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(bus);
+		context.getBeanFactory().registerSingleton(MessageBusParser.MESSAGE_BUS_BEAN_NAME, bus);
+		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(context.getBeanFactory());
 		postProcessor.afterPropertiesSet();
 		TestEndpoint endpoint = new TestEndpoint();
@@ -109,10 +111,11 @@ public class DirectChannelSubscriptionTests {
 	public void testExceptionThrownFromAnnotatedEndpoint() {
 		GenericApplicationContext context = new GenericApplicationContext();
 		bus.setApplicationContext(context);
+		context.getBeanFactory().registerSingleton(MessageBusParser.MESSAGE_BUS_BEAN_NAME, bus);
 		QueueChannel errorChannel = new QueueChannel();
 		errorChannel.setBeanName(ChannelRegistry.ERROR_CHANNEL_NAME);
 		context.getBeanFactory().registerSingleton(ChannelRegistry.ERROR_CHANNEL_NAME, errorChannel);
-		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(bus);
+		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(context.getBeanFactory());
 		postProcessor.afterPropertiesSet();
 		FailingTestEndpoint endpoint = new FailingTestEndpoint();

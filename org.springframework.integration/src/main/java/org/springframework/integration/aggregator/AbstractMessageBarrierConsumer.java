@@ -29,7 +29,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.channel.BlockingChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
 import org.springframework.integration.message.Message;
@@ -67,8 +66,6 @@ import org.springframework.util.ObjectUtils;
 public abstract class AbstractMessageBarrierConsumer extends AbstractReplyProducingMessageConsumer
 		implements TaskSchedulerAware, InitializingBean {
 
-	public final static long DEFAULT_SEND_TIMEOUT = 1000;
-
 	public final static long DEFAULT_TIMEOUT = 60000;
 
 	public final static long DEFAULT_REAPER_INTERVAL = 1000;
@@ -78,8 +75,6 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractReplyProduc
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile MessageChannel discardChannel;
-
-	protected volatile long sendTimeout = DEFAULT_SEND_TIMEOUT;
 
 	protected final ConcurrentMap<Object, MessageBarrier> barriers =
 			new ConcurrentHashMap<Object, MessageBarrier>();
@@ -107,13 +102,6 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractReplyProduc
 	 */
 	public void setDiscardChannel(MessageChannel discardChannel) {
 		this.discardChannel = discardChannel;
-	}
-
-	/**
-	 * Set the timeout for sending aggregation results and discarded Messages.
-	 */
-	public void setSendTimeout(long sendTimeout) {
-		this.sendTimeout = sendTimeout;
 	}
 
 	/**
@@ -225,12 +213,7 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractReplyProduc
 				}
 			}
 			if (replyChannel != null) {
-				if (replyChannel instanceof BlockingChannel && this.sendTimeout >= 0) {
-					((BlockingChannel) replyChannel).send(result, this.sendTimeout);
-				}
-				else {
-					replyChannel.send(result);
-				}
+				this.sendReplyMessage(result, replyChannel);
 			}
 			else if (logger.isWarnEnabled()) {
 				logger.warn("unable to determine reply target for aggregation result: " + result);
@@ -240,9 +223,7 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractReplyProduc
 
 	private void sendToDiscardChannelIfAvailable(Message<?> message) {
 		if (this.discardChannel != null) {
-			boolean sent = (this.discardChannel instanceof BlockingChannel && this.sendTimeout >= 0)
-					? ((BlockingChannel) this.discardChannel).send(message, this.sendTimeout)
-					: this.discardChannel.send(message);
+			boolean sent = this.sendReplyMessage(message, this.discardChannel);
 			if (!sent) {
 				if (logger.isWarnEnabled()) {
 					logger.warn("unable to send to 'discardChannel', message: " + message);

@@ -27,6 +27,7 @@ import org.springframework.integration.annotation.Router;
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.config.MessageBusParser;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
 
@@ -51,12 +52,14 @@ public class RouterAnnotationPostProcessorTests {
 		outputChannel.setBeanName("output");
 		context.getBeanFactory().registerSingleton("input", inputChannel);
 		context.getBeanFactory().registerSingleton("output", outputChannel);
+		context.getBeanFactory().registerSingleton(
+				MessageBusParser.MESSAGE_BUS_BEAN_NAME, messageBus);
 	}
 
 
 	@Test
 	public void testRouter() {
-		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor(messageBus);
+		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(context.getBeanFactory());
 		postProcessor.afterPropertiesSet();
 		TestRouter testRouter = new TestRouter();

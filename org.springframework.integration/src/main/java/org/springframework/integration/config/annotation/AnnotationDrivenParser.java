@@ -58,8 +58,6 @@ public class AnnotationDrivenParser implements BeanDefinitionParser {
 
 	private void registerMessagingAnnotationPostProcessor(ParserContext parserContext) {
 		BeanDefinition bd = new RootBeanDefinition(MessagingAnnotationPostProcessor.class);
-		bd.getConstructorArgumentValues().addGenericArgumentValue(
-				new RuntimeBeanReference(MessageBusParser.MESSAGE_BUS_BEAN_NAME));
 		BeanComponentDefinition bcd = new BeanComponentDefinition(
 				bd, MESSAGING_ANNOTATION_POST_PROCESSOR_BEAN_NAME);
 		parserContext.registerBeanComponent(bcd);
