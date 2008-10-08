@@ -13,8 +13,7 @@
 			http://www.springframework.org/schema/integration/stream
 			http://www.springframework.org/schema/integration/stream/spring-integration-stream-1.0.xsd">
 
-	<message-bus/>
-	<annotation-driven/>
+	<message-bus enable-annotations="true"/>
 
 	<context:component-scan base-package="org.springframework.integration.samples.cafe.annotation"/>
 
