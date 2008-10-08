@@ -66,6 +66,8 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 
 	private final Map<String, MessageChannel> channels = new ConcurrentHashMap<String, MessageChannel>();
 
+	private final Set<MessageEndpoint> endpoints = new CopyOnWriteArraySet<MessageEndpoint>();
+
 	private final MessageBusInterceptorsList interceptors = new MessageBusInterceptorsList();
 
 	private final Set<Lifecycle> lifecycleGateways = new CopyOnWriteArraySet<Lifecycle>();
@@ -139,15 +141,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 	}
 
 	@SuppressWarnings("unchecked")
-	private void registerEndpoints(ApplicationContext context) {
-		Map<String, MessageEndpoint> endpointBeans = (Map<String, MessageEndpoint>) context
-				.getBeansOfType(MessageEndpoint.class);
-		for (Map.Entry<String, MessageEndpoint> entry : endpointBeans.entrySet()) {
-			this.registerEndpoint(entry.getValue());
-		}
-	}
-
-	@SuppressWarnings("unchecked")
 	private void registerGateways(ApplicationContext context) {
 		Map<String, MessagingGateway> gatewayBeans = (Map<String, MessagingGateway>) context
 				.getBeansOfType(MessagingGateway.class);
@@ -200,6 +193,9 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 
 	public void registerEndpoint(MessageEndpoint endpoint) {
 		Assert.notNull(endpoint, "'endpoint' must not be null");
+		if (!this.endpoints.contains(endpoint)) {
+			this.endpoints.add(endpoint);
+		}
 		if (this.isRunning()) {
 			this.activateEndpoint(endpoint);
 		}
@@ -220,7 +216,8 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 
 	private Collection<MessageEndpoint> getEndpoints() {
 		GenericBeanFactoryAccessor accessor = new GenericBeanFactoryAccessor(this.applicationContext);
-		return accessor.getBeansOfType(MessageEndpoint.class).values();
+		this.endpoints.addAll(accessor.getBeansOfType(MessageEndpoint.class).values());
+		return this.endpoints;
 	}
 
 	private void activateEndpoints() {
@@ -341,7 +338,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 		if (event instanceof ContextRefreshedEvent) {
 			ApplicationContext context = ((ContextRefreshedEvent) event).getApplicationContext();
 			this.registerChannels(context);
-			this.registerEndpoints(context);
 			this.registerGateways(context);
 			if (this.configureAsyncEventMulticaster) {
 				this.initialize();

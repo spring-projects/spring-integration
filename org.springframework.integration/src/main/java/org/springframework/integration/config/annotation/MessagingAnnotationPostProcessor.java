@@ -112,6 +112,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 								((BeanNameAware) result).setBeanName(endpointBeanName);
 							}
 							beanFactory.registerSingleton(endpointBeanName, result);
+							messageBus.registerEndpoint((MessageEndpoint) result);
 						}
 					}
 				}
