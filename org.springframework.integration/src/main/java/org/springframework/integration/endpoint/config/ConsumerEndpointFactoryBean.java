@@ -145,6 +145,7 @@ public class ConsumerEndpointFactoryBean implements FactoryBean, ChannelRegistry
 			MessageChannel channel = (MessageChannel)
 					this.beanFactory.getBean(this.inputChannelName, MessageChannel.class);
 			if (channel instanceof SubscribableChannel) {
+				Assert.isNull(trigger, "A trigger should not be specified when using a SubscribableChannel");
 				this.endpoint = new SubscribingConsumerEndpoint(
 						this.consumer, (SubscribableChannel) channel);
 			}
