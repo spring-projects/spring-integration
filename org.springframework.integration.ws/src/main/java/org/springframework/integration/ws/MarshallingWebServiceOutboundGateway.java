@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ws.handler;
+package org.springframework.integration.ws;
 
 import java.net.URI;
 
@@ -25,15 +25,16 @@ import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.WebServiceMessageCallback;
 
 /**
- * A marshalling Web Service MessageHandler adapter.
+ * An outbound Messaging Gateway for invoking Web Services that also supports
+ * marshalling and unmarshalling of the request and response messages.
  * 
  * @author Mark Fisher
  * @see Marshaller
  * @see Unmarshaller
  */
-public class MarshallingWebServiceHandler extends AbstractWebServiceHandler {
+public class MarshallingWebServiceOutboundGateway extends AbstractWebServiceOutboundGateway {
 
-	public MarshallingWebServiceHandler(URI uri, Marshaller marshaller, Unmarshaller unmarshaller, WebServiceMessageFactory messageFactory) {
+	public MarshallingWebServiceOutboundGateway(URI uri, Marshaller marshaller, Unmarshaller unmarshaller, WebServiceMessageFactory messageFactory) {
 		super(uri, messageFactory);
 		Assert.notNull(marshaller, "marshaller must not be null");
 		Assert.notNull(unmarshaller, "unmarshaller must not be null");
@@ -41,11 +42,11 @@ public class MarshallingWebServiceHandler extends AbstractWebServiceHandler {
 		this.getWebServiceTemplate().setUnmarshaller(unmarshaller);
 	}
 
-	public MarshallingWebServiceHandler(URI uri, Marshaller marshaller, Unmarshaller unmarshaller) {
+	public MarshallingWebServiceOutboundGateway(URI uri, Marshaller marshaller, Unmarshaller unmarshaller) {
 		this(uri, marshaller, unmarshaller, null);
 	}
 
-	public MarshallingWebServiceHandler(URI uri, Marshaller marshaller, WebServiceMessageFactory messageFactory) {
+	public MarshallingWebServiceOutboundGateway(URI uri, Marshaller marshaller, WebServiceMessageFactory messageFactory) {
 		super(uri, messageFactory);
 		Assert.notNull(marshaller, "marshaller must not be null");
 		Assert.isInstanceOf(Unmarshaller.class, marshaller,
@@ -56,7 +57,7 @@ public class MarshallingWebServiceHandler extends AbstractWebServiceHandler {
 		this.getWebServiceTemplate().setUnmarshaller((Unmarshaller) marshaller);		
 	}
 
-	public MarshallingWebServiceHandler(URI uri, Marshaller marshaller) {
+	public MarshallingWebServiceOutboundGateway(URI uri, Marshaller marshaller) {
 		this(uri, marshaller, (WebServiceMessageFactory) null);
 	}
 

@@ -18,19 +18,19 @@
 		]]></xsd:documentation>
 	</xsd:annotation>
 
-	<xsd:element name="service-activator">
+	<xsd:element name="outbound-gateway">
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a Web Service based Service Activator endpoint.
+	Defines a Web Service based outbound Messaging Gateway.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:all>
-					<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1" />
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 			</xsd:all>
 			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
-			<xsd:attribute name="output-channel" type="xsd:string"/>
+			<xsd:attribute name="request-channel" type="xsd:string" use="required"/>
+			<xsd:attribute name="reply-channel" type="xsd:string"/>
 			<xsd:attribute name="uri" type="xsd:string" use="required"/>
 			<xsd:attribute name="marshaller" type="xsd:string"/>
 			<xsd:attribute name="unmarshaller" type="xsd:string"/>			

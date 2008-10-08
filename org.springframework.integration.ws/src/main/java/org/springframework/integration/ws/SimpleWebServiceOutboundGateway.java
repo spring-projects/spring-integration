@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ws.handler;
+package org.springframework.integration.ws;
 
 import java.io.IOException;
 import java.net.URI;
@@ -24,6 +24,8 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 
+import org.w3c.dom.Document;
+
 import org.springframework.integration.message.MessagingException;
 import org.springframework.ws.WebServiceMessageFactory;
 import org.springframework.ws.client.core.SourceExtractor;
@@ -31,27 +33,26 @@ import org.springframework.ws.client.core.WebServiceMessageCallback;
 import org.springframework.xml.transform.StringResult;
 import org.springframework.xml.transform.StringSource;
 import org.springframework.xml.transform.TransformerObjectSupport;
-import org.w3c.dom.Document;
 
 /**
- * A MessageHandler adapter for invoking a Web Service.
+ * An outbound Messaging Gateway for invoking a Web Service.
  * 
  * @author Mark Fisher
  */
-public class SimpleWebServiceHandler extends AbstractWebServiceHandler {
+public class SimpleWebServiceOutboundGateway extends AbstractWebServiceOutboundGateway {
 
 	private final SourceExtractor sourceExtractor;
 
 
-	public SimpleWebServiceHandler(URI uri) {
+	public SimpleWebServiceOutboundGateway(URI uri) {
 		this(uri, null, null);
 	}
 
-	public SimpleWebServiceHandler(URI uri, SourceExtractor sourceExtractor) {
+	public SimpleWebServiceOutboundGateway(URI uri, SourceExtractor sourceExtractor) {
 		this(uri, sourceExtractor, (WebServiceMessageFactory) null);
 	}
 
-	public SimpleWebServiceHandler(URI uri, SourceExtractor sourceExtractor, WebServiceMessageFactory messageFactory) {
+	public SimpleWebServiceOutboundGateway(URI uri, SourceExtractor sourceExtractor, WebServiceMessageFactory messageFactory) {
 		super(uri, messageFactory);
 		this.sourceExtractor = (sourceExtractor != null) ? sourceExtractor : new DefaultSourceExtractor();
 	}
@@ -69,16 +70,16 @@ public class SimpleWebServiceHandler extends AbstractWebServiceHandler {
 					new StringSource((String) requestPayload), requestCallback, result);
 			return result.toString();
 		}
-		if(requestPayload instanceof Document){
+		if (requestPayload instanceof Document) {
 			DOMResult result = new DOMResult();
 			this.getWebServiceTemplate().sendSourceAndReceiveToResult(
 					new DOMSource((Document) requestPayload), requestCallback, result);
 			return (Document)result.getNode();
-		
 		}
 		throw new MessagingException("Unsupported payload type '" + requestPayload.getClass() +
-				"'. " + this.getClass().getName() + " only supports 'java.lang.String' and '" + Source.class.getName() +
-				"'. Consider using the '" + MarshallingWebServiceHandler.class.getName() + "' instead.");
+				"'. " + this.getClass().getName() + " only supports 'java.lang.String', '" + Source.class.getName() +
+				"', and '" + Document.class.getName() + "'. Consider either using the '"
+				+ MarshallingWebServiceOutboundGateway.class.getName() + "' or a Message Transformer.");
 	}
 
 

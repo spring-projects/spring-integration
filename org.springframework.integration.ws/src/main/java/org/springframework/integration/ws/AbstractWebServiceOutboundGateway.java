@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ws.handler;
+package org.springframework.integration.ws;
 
 import java.io.IOException;
 import java.net.URI;
 
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
@@ -33,13 +34,13 @@ import org.springframework.ws.soap.client.core.SoapActionCallback;
 import org.springframework.ws.transport.WebServiceMessageSender;
 
 /**
- * Base class for outbound Web Service-invoking adapters.
+ * Base class for outbound Web Service-invoking Messaging Gateways.
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractWebServiceHandler extends AbstractReplyProducingMessageConsumer {
+public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyProducingMessageConsumer {
 
-	public static final String SOAP_ACTION_PROPERTY_KEY = "_ws.soapAction";
+	public static final String SOAP_ACTION_PROPERTY_KEY = "spring.integration.ws.soapAction";
 
 
 	private final WebServiceTemplate webServiceTemplate;
@@ -47,13 +48,17 @@ public abstract class AbstractWebServiceHandler extends AbstractReplyProducingMe
 	private volatile WebServiceMessageCallback requestCallback;
 
 
-	public AbstractWebServiceHandler(URI uri, WebServiceMessageFactory messageFactory) {
+	public AbstractWebServiceOutboundGateway(URI uri, WebServiceMessageFactory messageFactory) {
 		Assert.notNull(uri, "URI must not be null");
 		this.webServiceTemplate = (messageFactory != null) ?
 				new WebServiceTemplate(messageFactory) : new WebServiceTemplate();
 		this.webServiceTemplate.setDefaultUri(uri.toString());
 	}
 
+
+	public void setReplyChannel(MessageChannel replyChannel) {
+		this.setOutputChannel(replyChannel);
+	}
 
 	public void setMessageFactory(WebServiceMessageFactory messageFactory) {
 		this.webServiceTemplate.setMessageFactory(messageFactory);
@@ -66,7 +71,7 @@ public abstract class AbstractWebServiceHandler extends AbstractReplyProducingMe
 	public void setFaultMessageResolver(FaultMessageResolver faultMessageResolver) {
 		this.webServiceTemplate.setFaultMessageResolver(faultMessageResolver);
 	}
-	
+
 	public void setMessageSender(WebServiceMessageSender messageSender) {
 		this.webServiceTemplate.setMessageSender(messageSender);
 	}
@@ -74,7 +79,7 @@ public abstract class AbstractWebServiceHandler extends AbstractReplyProducingMe
 	public void setMessageSenders(WebServiceMessageSender[] messageSenders) {
 		this.webServiceTemplate.setMessageSenders(messageSenders);
 	}
-	
+
 	protected WebServiceTemplate getWebServiceTemplate() {
 		return this.webServiceTemplate;
 	}

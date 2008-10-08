@@ -20,7 +20,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.ws.handler.AbstractWebServiceHandler;
+import org.springframework.integration.ws.AbstractWebServiceOutboundGateway;
 
 /**
  * Demonstrating a web service invocation through a Web Service MessageHandler.
@@ -41,7 +41,7 @@ public class WebServiceDemo {
 		// Create the Message object
 		// In this case the service expects a SoapAction header
 		Message<String> message = MessageBuilder.withPayload(requestXml)
-				.setHeader(AbstractWebServiceHandler.SOAP_ACTION_PROPERTY_KEY, "http://tempuri.org/FahrenheitToCelsius")
+				.setHeader(AbstractWebServiceOutboundGateway.SOAP_ACTION_PROPERTY_KEY, "http://tempuri.org/FahrenheitToCelsius")
 				.build();
 
 		// Send the Message to the handler's input channel

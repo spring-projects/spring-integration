@@ -20,27 +20,22 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.integration.adapter.config.AbstractRemotingOutboundGatewayParser;
-import org.springframework.integration.ws.handler.MarshallingWebServiceHandler;
-import org.springframework.integration.ws.handler.SimpleWebServiceHandler;
+import org.springframework.integration.ws.MarshallingWebServiceOutboundGateway;
+import org.springframework.integration.ws.SimpleWebServiceOutboundGateway;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for the &lt;ws-handler/&gt; element. 
+ * Parser for the &lt;outbound-gateway/&gt; element in the 'ws' namespace. 
  * 
  * @author Mark Fisher
  */
-public class WebServiceHandlerParser extends AbstractRemotingOutboundGatewayParser {
+public class WebServiceOutboundGatewayParser extends AbstractRemotingOutboundGatewayParser {
 
 	@Override
 	protected Class<?> getGatewayClass(Element element) {
 		return (StringUtils.hasText(element.getAttribute("marshaller"))) ?
-				MarshallingWebServiceHandler.class : SimpleWebServiceHandler.class;
-	}
-
-	@Override
-	protected String getInputChannelAttributeName() {
-		return "input-channel";
+				MarshallingWebServiceOutboundGateway.class : SimpleWebServiceOutboundGateway.class;
 	}
 
 	@Override
