@@ -28,7 +28,7 @@ import org.springframework.integration.message.MessageMappingMethodInvoker;
  * 
  * @author Mark Fisher
  */
-public class ServiceActivatorParser extends AbstractEndpointParser {
+public class ServiceActivatorParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {

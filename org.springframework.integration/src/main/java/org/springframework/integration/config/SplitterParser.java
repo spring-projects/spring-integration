@@ -29,7 +29,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class SplitterParser extends AbstractEndpointParser {
+public class SplitterParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {

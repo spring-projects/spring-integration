@@ -28,7 +28,7 @@ import org.springframework.integration.transformer.TransformerEndpoint;
  * 
  * @author Mark Fisher
  */
-public class TransformerParser extends AbstractEndpointParser {
+public class TransformerParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {

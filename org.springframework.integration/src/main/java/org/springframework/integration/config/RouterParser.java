@@ -28,7 +28,7 @@ import org.springframework.integration.router.RouterEndpoint;
  * 
  * @author Mark Fisher
  */
-public class RouterParser extends AbstractEndpointParser {
+public class RouterParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {

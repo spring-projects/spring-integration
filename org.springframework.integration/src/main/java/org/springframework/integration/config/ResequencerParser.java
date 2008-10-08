@@ -27,7 +27,7 @@ import org.springframework.integration.aggregator.Resequencer;
  * 
  * @author Marius Bogoevici
  */
-public class ResequencerParser extends AbstractEndpointParser {
+public class ResequencerParser extends AbstractConsumerEndpointParser {
 
 	private static final String DISCARD_CHANNEL_ATTRIBUTE = "discard-channel";
 

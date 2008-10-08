@@ -28,7 +28,7 @@ import org.springframework.integration.filter.MethodInvokingSelector;
  * 
  * @author Mark Fisher
  */
-public class FilterParser extends AbstractEndpointParser {
+public class FilterParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {

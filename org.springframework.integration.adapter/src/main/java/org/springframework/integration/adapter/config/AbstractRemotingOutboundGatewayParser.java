@@ -22,7 +22,7 @@ import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.AbstractEndpointParser;
+import org.springframework.integration.config.AbstractConsumerEndpointParser;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -31,7 +31,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractRemotingOutboundGatewayParser extends AbstractEndpointParser {
+public abstract class AbstractRemotingOutboundGatewayParser extends AbstractConsumerEndpointParser {
 
 	protected abstract Class<?> getGatewayClass(Element element);
 

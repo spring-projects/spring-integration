@@ -34,7 +34,7 @@ import org.springframework.util.xml.DomUtils;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractEndpointParser extends AbstractSingleBeanDefinitionParser {
+public abstract class AbstractConsumerEndpointParser extends AbstractSingleBeanDefinitionParser {
 
 	protected static final String REF_ATTRIBUTE = "ref";
 
