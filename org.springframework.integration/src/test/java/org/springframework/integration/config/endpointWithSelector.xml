@@ -13,7 +13,6 @@
 
 	<service-activator id="endpoint" input-channel="testChannel"
 	                  ref="testHandler" selector="typeSelector">
-		<poller interval="100"/>
 	</service-activator>
 
 	<beans:bean id="typeSelector" class="org.springframework.integration.message.selector.PayloadTypeSelector">
