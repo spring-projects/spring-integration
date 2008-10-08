@@ -331,6 +331,7 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 	}
 
 	public void destroy() throws Exception {
+		this.stop();
 		if (this.taskScheduler instanceof DisposableBean) {
 			((DisposableBean) this.taskScheduler).destroy();
 		}
