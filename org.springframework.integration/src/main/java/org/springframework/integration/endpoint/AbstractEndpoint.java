@@ -25,8 +25,6 @@ import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.integration.scheduling.TaskSchedulerAware;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
 
 /**
  * The base class for Message Endpoint implementations.
@@ -41,10 +39,6 @@ public abstract class AbstractEndpoint implements MessageEndpoint, TaskScheduler
 
 	private volatile TaskScheduler taskScheduler;
 
-	private volatile PlatformTransactionManager transactionManager;
-
-	private volatile TransactionDefinition transactionDefinition;
-
 	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
 
@@ -58,14 +52,6 @@ public abstract class AbstractEndpoint implements MessageEndpoint, TaskScheduler
 
 	public void setTaskScheduler(TaskScheduler taskScheduler) {
 		this.taskScheduler = taskScheduler;
-	}
-
-	public void setTransactionManager(PlatformTransactionManager transactionManager) {
-		this.transactionManager = transactionManager;
-	}
-
-	public void setTransactionDefinition(TransactionDefinition transactionDefinition) {
-		this.transactionDefinition= transactionDefinition;
 	}
 
 	protected MessageChannelTemplate getChannelTemplate() {
@@ -88,15 +74,6 @@ public abstract class AbstractEndpoint implements MessageEndpoint, TaskScheduler
 	 * Subclasses may override this method for custom initialization requirements.
 	 */
 	protected void initialize()  throws Exception {
-	}
-
-	protected final void configureTransactionSettingsForPoller(AbstractPoller poller) {
-		if (this.transactionManager != null) {
-			poller.setTransactionManager(this.transactionManager);
-		}
-		if (this.transactionDefinition != null) {
-			poller.setTransactionDefinition(this.transactionDefinition);
-		}
 	}
 
 	public String toString() {
