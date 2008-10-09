@@ -16,22 +16,26 @@
 
 package org.springframework.integration.config;
 
-import java.util.concurrent.TimeUnit;
-
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Mark Fisher
  */
 @MessageEndpoint
-public class PollerAnnotationAdviceChainTestBean {
+public class PollerAnnotationConsumerTransactionalTestBean {
 
 	@ServiceActivator(inputChannel="input", outputChannel="output")
-	@Poller(interval=5, timeUnit=TimeUnit.SECONDS, maxMessagesPerPoll=1,
-			adviceChain="beforeAdvice  ,aroundAdvice, afterAdvice ") // spacing intentional
+	@Poller(interval=100, maxMessagesPerPoll=1,
+			transactionManager="testTransactionManager",
+			transactionAttributes=@Transactional(propagation=Propagation.REQUIRES_NEW))
 	public String testMethod(String input) {
+		if ("bad".equals(input)) {
+			throw new IllegalArgumentException("bad input");
+		}
 		return input.toUpperCase();
 	}
 

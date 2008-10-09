@@ -20,7 +20,7 @@
 		<queue capacity="1"/>
 	</channel>
 
-	<beans:bean id="service" class="org.springframework.integration.config.PollerAnnotationAdviceChainTestBean"/>
+	<beans:bean id="service" class="org.springframework.integration.config.PollerAnnotationConsumerAdviceChainTestBean"/>
 
 	<beans:bean id="latch" class="java.util.concurrent.CountDownLatch">
 		<beans:constructor-arg value="4"/>

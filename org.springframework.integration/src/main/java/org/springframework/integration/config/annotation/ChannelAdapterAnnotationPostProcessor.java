@@ -17,6 +17,10 @@
 package org.springframework.integration.config.annotation;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.aopalliance.aop.Advice;
 
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -36,8 +40,15 @@ import org.springframework.integration.message.MethodInvokingConsumer;
 import org.springframework.integration.message.MethodInvokingSource;
 import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.scheduling.Trigger;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.NoRollbackRuleAttribute;
+import org.springframework.transaction.interceptor.RollbackRuleAttribute;
+import org.springframework.transaction.interceptor.RuleBasedTransactionAttribute;
+import org.springframework.transaction.interceptor.TransactionAttribute;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Post-processor for methods annotated with {@link ChannelAdapter @ChannelAdapter}.
@@ -102,6 +113,27 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 		adapter.setSource(source);
 		adapter.setOutputChannel(channel);
 		adapter.setTrigger(trigger);
+		if (StringUtils.hasText(pollerAnnotation.transactionManager())) {
+			String txManagerRef = pollerAnnotation.transactionManager();
+			Assert.isTrue(this.beanFactory.containsBean(txManagerRef),
+					"failed to resolve transactionManager reference, no such bean '" + txManagerRef + "'");
+			PlatformTransactionManager txManager = (PlatformTransactionManager)
+					this.beanFactory.getBean(txManagerRef, PlatformTransactionManager.class);
+			adapter.setTransactionManager(txManager);
+			Transactional txAnnotation = pollerAnnotation.transactionAttributes();
+			adapter.setTransactionDefinition(this.parseTransactionAnnotation(txAnnotation));
+		}
+		String[] adviceChainArray = pollerAnnotation.adviceChain();
+		if (adviceChainArray.length > 0) {
+			List<Advice> adviceChain = new ArrayList<Advice>();
+			for (String adviceChainString : adviceChainArray) {
+				String[] adviceRefs = StringUtils.tokenizeToStringArray(adviceChainString, ",");
+				for (String adviceRef : adviceRefs) {
+					adviceChain.add((Advice) this.beanFactory.getBean(adviceRef, Advice.class));
+				}
+			}
+			adapter.setAdviceChain(adviceChain);
+		}
 		return adapter;
 	}
 
@@ -130,6 +162,41 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 
 	private boolean hasReturnValue(Method method) {
 		return !method.getReturnType().equals(void.class);
+	}
+
+	@SuppressWarnings("unchecked")
+	private TransactionAttribute parseTransactionAnnotation(Transactional annotation) {
+		if (annotation == null) {
+			return null;
+		}
+		RuleBasedTransactionAttribute rbta = new RuleBasedTransactionAttribute();
+		rbta.setPropagationBehavior(annotation.propagation().value());
+		rbta.setIsolationLevel(annotation.isolation().value());
+		rbta.setTimeout(annotation.timeout());
+		rbta.setReadOnly(annotation.readOnly());
+		ArrayList<RollbackRuleAttribute> rollBackRules = new ArrayList<RollbackRuleAttribute>();
+		Class<?>[] rbf = annotation.rollbackFor();
+		for (int i = 0; i < rbf.length; ++i) {
+			RollbackRuleAttribute rule = new RollbackRuleAttribute(rbf[i]);
+			rollBackRules.add(rule);
+		}
+		String[] rbfc = annotation.rollbackForClassName();
+		for (int i = 0; i < rbfc.length; ++i) {
+			RollbackRuleAttribute rule = new RollbackRuleAttribute(rbfc[i]);
+			rollBackRules.add(rule);
+		}
+		Class<?>[] nrbf = annotation.noRollbackFor();
+		for (int i = 0; i < nrbf.length; ++i) {
+			NoRollbackRuleAttribute rule = new NoRollbackRuleAttribute(nrbf[i]);
+			rollBackRules.add(rule);
+		}
+		String[] nrbfc = annotation.noRollbackForClassName();
+		for (int i = 0; i < nrbfc.length; ++i) {
+			NoRollbackRuleAttribute rule = new NoRollbackRuleAttribute(nrbfc[i]);
+			rollBackRules.add(rule);
+		}
+		rbta.getRollbackRules().addAll(rollBackRules);
+		return rbta;
 	}
 
 }

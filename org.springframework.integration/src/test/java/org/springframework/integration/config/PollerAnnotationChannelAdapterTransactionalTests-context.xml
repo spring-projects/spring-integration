@@ -12,15 +12,11 @@
 
 	<message-bus enable-annotations="true"/>
 
-	<channel id="input">
-		<queue capacity="1"/>
-	</channel>
-
 	<channel id="output">
 		<queue capacity="1"/>
 	</channel>
 
-	<beans:bean id="service" class="org.springframework.integration.config.PollerAnnotationConsumerTransactionalTestBean"/>
+	<beans:bean id="channelAdapter" class="org.springframework.integration.config.PollerAnnotationChannelAdapterTransactionalTestBean"/>
 
 	<beans:bean id="testTransactionManager" class="org.springframework.integration.util.TestTransactionManager"/>
 

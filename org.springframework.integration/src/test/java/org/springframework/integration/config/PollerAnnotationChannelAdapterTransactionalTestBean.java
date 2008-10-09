@@ -16,9 +16,12 @@
 
 package org.springframework.integration.config;
 
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+
+import org.springframework.integration.annotation.ChannelAdapter;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Poller;
-import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,17 +29,40 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Mark Fisher
  */
 @MessageEndpoint
-public class PollerAnnotationTransactionalTestBean {
+public class PollerAnnotationChannelAdapterTransactionalTestBean {
 
-	@ServiceActivator(inputChannel="input", outputChannel="output")
+	private volatile boolean shouldFail;
+
+	private BlockingQueue<String> queue = new ArrayBlockingQueue<String>(1);
+
+
+	public void setShouldFail(boolean shouldFail) {
+		this.shouldFail = shouldFail;
+	}
+
+	public void setNextValue(String nextValue) {
+		try {
+			this.queue.put(nextValue);
+		}
+		catch (InterruptedException e) {
+		}
+	}
+
+	@ChannelAdapter("output")
 	@Poller(interval=100, maxMessagesPerPoll=1,
 			transactionManager="testTransactionManager",
 			transactionAttributes=@Transactional(propagation=Propagation.REQUIRES_NEW))
-	public String testMethod(String input) {
-		if ("bad".equals(input)) {
-			throw new IllegalArgumentException("bad input");
+	public String testMethod() {
+		String result = null;
+		try {
+			result = this.queue.take();
 		}
-		return input.toUpperCase();
+		catch (InterruptedException e) {
+		}
+		if (this.shouldFail) {
+			throw new IllegalArgumentException("intentional test failure");
+		}
+		return result;
 	}
 
 }
