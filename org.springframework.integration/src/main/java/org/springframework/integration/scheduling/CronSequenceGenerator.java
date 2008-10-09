@@ -93,14 +93,17 @@ public class CronSequenceGenerator {
 		int second = calendar.get(Calendar.SECOND);
 		int minute = calendar.get(Calendar.MINUTE);
 		int hour = calendar.get(Calendar.HOUR_OF_DAY);
-		int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+
+		// the DAY_OF_WEEK values in java.util.Calendar start with 1 (Sunday),
+		// but in the cron pattern, they start with 0, so we subtract 1 here
+		int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) - 1;
 		int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
 		int month = calendar.get(Calendar.MONTH);
 
 		month = findNext(months, month, 12, calendar, Calendar.MONTH, Calendar.DAY_OF_MONTH, Calendar.HOUR_OF_DAY,
 				Calendar.MINUTE, Calendar.SECOND);
 		dayOfMonth = findNextDay(calendar, daysOfMonth, dayOfMonth, daysOfWeek, dayOfWeek, 366);
-		hour = findNext(hours, hour, 24, calendar, Calendar.HOUR, Calendar.MINUTE, Calendar.SECOND);
+		hour = findNext(hours, hour, 24, calendar, Calendar.HOUR_OF_DAY, Calendar.MINUTE, Calendar.SECOND);
 		minute = findNext(minutes, minute, 60, calendar, Calendar.MINUTE, Calendar.SECOND);
 		second = findNext(seconds, second, 60, calendar, Calendar.SECOND);
 
@@ -175,7 +178,7 @@ public class CronSequenceGenerator {
 		String[] fields = StringUtils.delimitedListToStringArray(expression, " ");
 		if (fields.length != 6) {
 			throw new IllegalArgumentException(String.format("Expression must consist of 6 fields (found %d in %s)",
-					fields.length, fields));
+					fields.length, expression));
 		}
 		setNumberHits(seconds, fields[0], 60);
 		setNumberHits(minutes, fields[1], 60);

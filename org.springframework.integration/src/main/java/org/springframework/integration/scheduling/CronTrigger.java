@@ -31,6 +31,7 @@ public class CronTrigger implements Trigger {
 
 	/**
 	 * Create a trigger for the given cron expression.
+	 * See {@link CronSequenceGenerator}.
 	 */
 	public CronTrigger(String expression) throws IllegalArgumentException {
 		this.cronSequenceGenerator = new CronSequenceGenerator(expression);
