@@ -16,13 +16,18 @@
 
 package org.springframework.integration.router.config;
 
+import org.springframework.integration.message.Message;
+import org.springframework.integration.splitter.AbstractMessageSplitter;
+
 /**
  * @author Mark Fisher
  */
-public class TestSplitter {
+public class TestSplitterImpl extends AbstractMessageSplitter {
 
-	public String[] split(String input) {
-		return input.split("\\.");
+
+	@Override
+	protected Object splitMessage(Message<?> message) {
+		return message.getPayload().toString().split("\\.");
 	}
 
 }

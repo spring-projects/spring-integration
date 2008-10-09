@@ -9,15 +9,28 @@
 
 	<message-bus/>
 
-	<channel id="channel1"/>
-
-	<channel id="channel2">
-		<queue capacity="5"/>
+	<channel id="output">
+		<queue capacity="10"/>
 	</channel>
 
-	<splitter id="splitter" ref="pojo" method="split"
-	          input-channel="channel1" output-channel="channel2"/>
+	<splitter id="splitterAdapterWithRefAndMethod"
+			  ref="splitterBean"
+			  method="split"
+	          input-channel="splitterAdapterWithRefAndMethodInput"
+	          output-channel="output"/>
 
-	<beans:bean id="pojo" class="org.springframework.integration.router.config.TestSplitter"/>
+	<splitter id="splitterAdapterWithRefOnly"
+			  ref="splitterBean"
+	          input-channel="splitterAdapterWithRefOnlyInput"
+	          output-channel="output"/>
+
+	<splitter id="splitterImplementation"
+			  ref="splitterImpl"
+	          input-channel="splitterImplementationInput"
+	          output-channel="output"/>
+
+	<beans:bean id="splitterBean" class="org.springframework.integration.router.config.TestSplitterBean"/>
+
+	<beans:bean id="splitterImpl" class="org.springframework.integration.router.config.TestSplitterImpl"/>
 
 </beans:beans>

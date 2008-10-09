@@ -33,22 +33,60 @@ import org.springframework.integration.message.StringMessage;
 public class SplitterParserTests {
 
 	@Test
-	public void testSplitter() {
+	public void splitterAdapterWithRefAndMethod() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"splitterParserTests.xml", this.getClass());
 		context.start();
-		MessageChannel channel1 = (MessageChannel) context.getBean("channel1");
-		PollableChannel channel2 = (PollableChannel) context.getBean("channel2");
-		channel1.send(new StringMessage("this.is.a.test"));
-		Message<?> result1 = channel2.receive(1000);
+		MessageChannel input = (MessageChannel) context.getBean("splitterAdapterWithRefAndMethodInput");
+		PollableChannel output = (PollableChannel) context.getBean("output");
+		input.send(new StringMessage("this.is.a.test"));
+		Message<?> result1 = output.receive(1000);
 		assertEquals("this", result1.getPayload());
-		Message<?> result2 = channel2.receive(1000);
+		Message<?> result2 = output.receive(1000);
 		assertEquals("is", result2.getPayload());
-		Message<?> result3 = channel2.receive(1000);
+		Message<?> result3 = output.receive(1000);
 		assertEquals("a", result3.getPayload());
-		Message<?> result4 = channel2.receive(1000);
+		Message<?> result4 = output.receive(1000);
 		assertEquals("test", result4.getPayload());
-		assertNull(channel2.receive(0));
+		assertNull(output.receive(0));
+	}
+
+	@Test
+	public void splitterAdapterWithRefOnly() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"splitterParserTests.xml", this.getClass());
+		context.start();
+		MessageChannel input = (MessageChannel) context.getBean("splitterAdapterWithRefOnlyInput");
+		PollableChannel output = (PollableChannel) context.getBean("output");
+		input.send(new StringMessage("this.is.a.test"));
+		Message<?> result1 = output.receive(1000);
+		assertEquals("this", result1.getPayload());
+		Message<?> result2 = output.receive(1000);
+		assertEquals("is", result2.getPayload());
+		Message<?> result3 = output.receive(1000);
+		assertEquals("a", result3.getPayload());
+		Message<?> result4 = output.receive(1000);
+		assertEquals("test", result4.getPayload());
+		assertNull(output.receive(0));
+	}
+
+	@Test
+	public void splitterImplementation() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"splitterParserTests.xml", this.getClass());
+		context.start();
+		MessageChannel input = (MessageChannel) context.getBean("splitterImplementationInput");
+		PollableChannel output = (PollableChannel) context.getBean("output");
+		input.send(new StringMessage("this.is.a.test"));
+		Message<?> result1 = output.receive(1000);
+		assertEquals("this", result1.getPayload());
+		Message<?> result2 = output.receive(1000);
+		assertEquals("is", result2.getPayload());
+		Message<?> result3 = output.receive(1000);
+		assertEquals("a", result3.getPayload());
+		Message<?> result4 = output.receive(1000);
+		assertEquals("test", result4.getPayload());
+		assertNull(output.receive(0));
 	}
 
 }
