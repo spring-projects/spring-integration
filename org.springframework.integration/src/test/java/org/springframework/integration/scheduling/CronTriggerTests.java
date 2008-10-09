@@ -148,7 +148,7 @@ public class CronTriggerTests {
 	@Test
 	public void testIncrementDayOfWeekByOne() throws Exception {
 		CronTrigger trigger = new CronTrigger("* * * * * 2");
-		calendar.set(Calendar.DAY_OF_WEEK, 1);
+		calendar.set(Calendar.DAY_OF_WEEK, 2);
 		Date date = calendar.getTime();
 		calendar.add(Calendar.DAY_OF_WEEK, 1);
 		calendar.set(Calendar.HOUR_OF_DAY, 0);
@@ -160,7 +160,7 @@ public class CronTriggerTests {
 	@Test
 	public void testIncrementDayOfWeekAndRollover() throws Exception {
 		CronTrigger trigger = new CronTrigger("* * * * * 2");
-		calendar.set(Calendar.DAY_OF_WEEK, 3);
+		calendar.set(Calendar.DAY_OF_WEEK, 4);
 		Date date = calendar.getTime();
 		calendar.add(Calendar.DAY_OF_MONTH, 6);
 		calendar.set(Calendar.HOUR_OF_DAY, 0);

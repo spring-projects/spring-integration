@@ -94,9 +94,7 @@ public class CronSequenceGenerator {
 		int minute = calendar.get(Calendar.MINUTE);
 		int hour = calendar.get(Calendar.HOUR_OF_DAY);
 
-		// the DAY_OF_WEEK values in java.util.Calendar start with 1 (Sunday),
-		// but in the cron pattern, they start with 0, so we subtract 1 here
-		int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) - 1;
+		int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
 		int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
 		int month = calendar.get(Calendar.MONTH);
 
@@ -118,7 +116,9 @@ public class CronSequenceGenerator {
 	private int findNextDay(Calendar calendar, BitSet daysOfMonth, int dayOfMonth, BitSet daysOfWeek, int dayOfWeek,
 			int max) {
 		int count = 0;
-		while ((!daysOfMonth.get(dayOfMonth) || !daysOfWeek.get(dayOfWeek)) && count++ < max) {
+		// the DAY_OF_WEEK values in java.util.Calendar start with 1 (Sunday),
+		// but in the cron pattern, they start with 0, so we subtract 1 here
+		while ((!daysOfMonth.get(dayOfMonth) || !daysOfWeek.get(dayOfWeek - 1)) && count++ < max) {
 			calendar.add(Calendar.DAY_OF_MONTH, 1);
 			dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
 			dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
