@@ -46,6 +46,7 @@ import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.scheduling.IntervalTrigger;
+import org.springframework.integration.util.TestUtils;
 
 /**
  * @author Mark Fisher
@@ -74,6 +75,7 @@ public class DefaultMessageBusTests {
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
 		context.refresh();
 		DefaultMessageBus bus = new DefaultMessageBus();
+		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		bus.setApplicationContext(context);
 		consumer.setChannelRegistry(bus);
 		bus.start();
@@ -86,6 +88,7 @@ public class DefaultMessageBusTests {
 	public void channelsWithoutHandlers() {
 		GenericApplicationContext context = new GenericApplicationContext();
 		DefaultMessageBus bus = new DefaultMessageBus();
+		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		bus.setApplicationContext(context);
 		QueueChannel sourceChannel = new QueueChannel();
 		sourceChannel.setBeanName("sourceChannel");
@@ -144,6 +147,7 @@ public class DefaultMessageBusTests {
 		context.getBeanFactory().registerSingleton("testEndpoint1", endpoint1);
 		context.getBeanFactory().registerSingleton("testEndpoint2", endpoint2);
 		DefaultMessageBus bus = new DefaultMessageBus();
+		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		bus.setApplicationContext(context);
 		bus.start();
 		inputChannel.send(new StringMessage("testing"));
@@ -187,6 +191,7 @@ public class DefaultMessageBusTests {
 		context.getBeanFactory().registerSingleton("testEndpoint1", endpoint1);
 		context.getBeanFactory().registerSingleton("testEndpoint2", endpoint2);
 		DefaultMessageBus bus = new DefaultMessageBus();
+		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		bus.setApplicationContext(context);
 		bus.start();
 		inputChannel.send(new StringMessage("testing"));
@@ -214,6 +219,7 @@ public class DefaultMessageBusTests {
 		channelAdapter.setBeanName("testChannel");
 		context.getBeanFactory().registerSingleton("testChannel", channelAdapter);
 		DefaultMessageBus bus = new DefaultMessageBus();
+		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		bus.setApplicationContext(context);
 		bus.start();
 		latch.await(2000, TimeUnit.MILLISECONDS);
@@ -257,6 +263,7 @@ public class DefaultMessageBusTests {
 		endpoint.afterPropertiesSet();
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
 		DefaultMessageBus bus = new DefaultMessageBus();
+		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		bus.setApplicationContext(context);
 		bus.start();
 		errorChannel.send(new ErrorMessage(new RuntimeException("test-exception")));

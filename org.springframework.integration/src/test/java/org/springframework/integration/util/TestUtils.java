@@ -16,7 +16,12 @@
 
 package org.springframework.integration.util;
 
+import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
+
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.integration.scheduling.SimpleTaskScheduler;
+import org.springframework.integration.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.Assert;
 
 /**
@@ -49,6 +54,14 @@ public abstract class TestUtils {
 		Object value = getPropertyValue(root, propertyPath);
 		Assert.isAssignable(type, value.getClass());
 		return (T) value; 
+	}
+
+	public static TaskScheduler createTaskScheduler(int poolSize) {
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		executor.setCorePoolSize(poolSize);
+		executor.setRejectedExecutionHandler(new CallerRunsPolicy());
+		executor.afterPropertiesSet();
+		return new SimpleTaskScheduler(executor);
 	}
 
 }

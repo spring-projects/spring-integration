@@ -52,6 +52,7 @@ import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.scheduling.Trigger;
+import org.springframework.integration.util.TestUtils;
 
 /**
  * @author Mark Fisher
@@ -144,6 +145,7 @@ public class MessagingAnnotationPostProcessorTests {
 		DefaultMessageBus messageBus = new DefaultMessageBus();
 		context.getBeanFactory().registerSingleton(
 				MessageBusParser.MESSAGE_BUS_BEAN_NAME, messageBus);
+		messageBus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		messageBus.setApplicationContext(context);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(context.getBeanFactory());
@@ -209,6 +211,7 @@ public class MessagingAnnotationPostProcessorTests {
 		outputChannel.setBeanName("outputChannel");
 		context.getBeanFactory().registerSingleton("inputChannel", inputChannel);
 		context.getBeanFactory().registerSingleton("outputChannel", outputChannel);
+		messageBus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		messageBus.setApplicationContext(context);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(context.getBeanFactory());
@@ -235,6 +238,7 @@ public class MessagingAnnotationPostProcessorTests {
 		outputChannel.setBeanName("outputChannel");
 		context.getBeanFactory().registerSingleton("inputChannel", inputChannel);
 		context.getBeanFactory().registerSingleton("outputChannel", outputChannel);
+		messageBus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		messageBus.setApplicationContext(context);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(context.getBeanFactory());
@@ -259,6 +263,7 @@ public class MessagingAnnotationPostProcessorTests {
 		outputChannel.setBeanName("outputChannel");
 		context.getBeanFactory().registerSingleton("inputChannel", inputChannel);
 		context.getBeanFactory().registerSingleton("outputChannel", outputChannel);
+		messageBus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		messageBus.setApplicationContext(context);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(context.getBeanFactory());
@@ -285,6 +290,7 @@ public class MessagingAnnotationPostProcessorTests {
 		outputChannel.setBeanName("outputChannel");
 		context.getBeanFactory().registerSingleton("inputChannel", inputChannel);
 		context.getBeanFactory().registerSingleton("outputChannel", outputChannel);
+		messageBus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		messageBus.setApplicationContext(context);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(context.getBeanFactory());
@@ -309,6 +315,7 @@ public class MessagingAnnotationPostProcessorTests {
 		outputChannel.setBeanName("outputChannel");
 		context.getBeanFactory().registerSingleton("inputChannel", inputChannel);
 		context.getBeanFactory().registerSingleton("outputChannel", outputChannel);
+		messageBus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		messageBus.setApplicationContext(context);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(context.getBeanFactory());
@@ -333,6 +340,7 @@ public class MessagingAnnotationPostProcessorTests {
 		outputChannel.setBeanName("outputChannel");
 		context.getBeanFactory().registerSingleton("inputChannel", inputChannel);
 		context.getBeanFactory().registerSingleton("outputChannel", outputChannel);
+		messageBus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		messageBus.setApplicationContext(context);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(context.getBeanFactory());
@@ -378,6 +386,7 @@ public class MessagingAnnotationPostProcessorTests {
 		DefaultMessageBus messageBus = new DefaultMessageBus();
 		context.getBeanFactory().registerSingleton(
 				MessageBusParser.MESSAGE_BUS_BEAN_NAME, messageBus);
+		messageBus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		messageBus.setApplicationContext(context);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(context.getBeanFactory());
@@ -412,6 +421,7 @@ public class MessagingAnnotationPostProcessorTests {
 		context.getBeanFactory().registerSingleton("outputChannel", outputChannel);
 		DefaultMessageBus messageBus = new DefaultMessageBus();
 		context.getBeanFactory().registerSingleton(MessageBusParser.MESSAGE_BUS_BEAN_NAME, messageBus);
+		messageBus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		messageBus.setApplicationContext(context);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(context.getBeanFactory());

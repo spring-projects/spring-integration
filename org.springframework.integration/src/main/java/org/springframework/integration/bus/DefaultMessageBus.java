@@ -34,21 +34,17 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.Lifecycle;
-import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.SimpleApplicationEventMulticaster;
-import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.MessagingGateway;
-import org.springframework.integration.scheduling.Schedulers;
 import org.springframework.integration.scheduling.SimpleTaskScheduler;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.integration.scheduling.TaskSchedulerAware;
-import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.util.Assert;
 
 /**
@@ -59,8 +55,6 @@ import org.springframework.util.Assert;
  * @author Marius Bogoevici
  */
 public class DefaultMessageBus implements MessageBus, ApplicationContextAware, ApplicationListener, DisposableBean {
-
-	private static final int DEFAULT_DISPATCHER_POOL_SIZE = 10;
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -75,8 +69,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 	private volatile TaskScheduler taskScheduler;
 
 	private volatile ApplicationContext applicationContext;
-
-	private volatile boolean configureAsyncEventMulticaster = false;
 
 	private volatile boolean autoStartup = true;
 
@@ -112,17 +104,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 		this.autoStartup = autoStartup;
 	}
 
-	/**
-	 * Set whether the bus should configure its asynchronous task executor
-	 * to also be used by the ApplicationContext's 'applicationEventMulticaster'.
-	 * This will only apply if the multicaster defined within the context
-	 * is an instance of SimpleApplicationEventMulticaster (the default).
-	 * This property is 'false' by default. 
-	 */
-	public void setConfigureAsyncEventMulticaster(boolean configureAsyncEventMulticaster) {
-		this.configureAsyncEventMulticaster = configureAsyncEventMulticaster;
-	}
-
 	@SuppressWarnings("unchecked")
 	private void registerChannels(ApplicationContext context) {
 		Map<String, MessageChannel> channelBeans = (Map<String, MessageChannel>) context
@@ -155,9 +136,9 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 				return;
 			}
 			Assert.notNull(this.applicationContext, "ApplicationContext must not be null");
+			//TODO: Assert.notNull(this.taskScheduler, "TaskScheduler must not be null");
 			if (this.taskScheduler == null) {
-				this.taskScheduler = Schedulers.createDefaultTaskExecutor(DEFAULT_DISPATCHER_POOL_SIZE,
-						new CustomizableThreadFactory("message-bus-"));
+				this.taskScheduler = new SimpleTaskScheduler(new SimpleAsyncTaskExecutor());
 			}
 			if (this.getErrorChannel() == null) {
 				this.registerChannel(new DefaultErrorChannel());
@@ -339,23 +320,8 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 			ApplicationContext context = ((ContextRefreshedEvent) event).getApplicationContext();
 			this.registerChannels(context);
 			this.registerGateways(context);
-			if (this.configureAsyncEventMulticaster) {
-				this.initialize();
-				this.doConfigureAsyncEventMulticaster(context);
-			}
 			if (this.autoStartup) {
 				this.start();
-			}
-		}
-	}
-
-	private void doConfigureAsyncEventMulticaster(ApplicationContext context) {
-		String multicasterBeanName = AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME;
-		if (context.containsBean(multicasterBeanName)) {
-			ApplicationEventMulticaster multicaster = (ApplicationEventMulticaster) context
-					.getBean(multicasterBeanName);
-			if (multicaster instanceof SimpleApplicationEventMulticaster) {
-				((SimpleApplicationEventMulticaster) multicaster).setTaskExecutor(this.taskScheduler);
 			}
 		}
 	}

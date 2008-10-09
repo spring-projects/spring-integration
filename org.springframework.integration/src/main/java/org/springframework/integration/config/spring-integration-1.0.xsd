@@ -20,7 +20,7 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a message bus.
+	Defines the Message Bus for this Application Context.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:sequence>

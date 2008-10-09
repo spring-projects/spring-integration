@@ -23,12 +23,13 @@ import static org.junit.Assert.assertNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.scheduling.Schedulers;
 import org.springframework.integration.scheduling.TaskScheduler;
+import org.springframework.integration.util.TestUtils;
 
 /**
  * @author Marius Bogoevici
@@ -43,7 +44,7 @@ public class ResequencerTests {
 	@Before
 	public void configureResequencer() {
 		this.resequencer = new Resequencer();
-		this.taskScheduler = Schedulers.createDefaultTaskScheduler(10);
+		this.taskScheduler = TestUtils.createTaskScheduler(10);
 		this.resequencer.setTaskScheduler(taskScheduler);
 		taskScheduler.start();
 		this.resequencer.start();

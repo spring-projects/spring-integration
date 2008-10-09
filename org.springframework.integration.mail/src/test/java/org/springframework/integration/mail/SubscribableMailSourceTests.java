@@ -24,41 +24,35 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import javax.mail.internet.MimeMessage;
 
 import org.easymock.classextension.EasyMock;
-import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
-import org.springframework.scheduling.concurrent.ConcurrentTaskExecutor;
+import org.springframework.integration.scheduling.TaskScheduler;
+import org.springframework.integration.util.TestUtils;
 
 /**
  * @author Jonas Partner
  */
 public class SubscribableMailSourceTests {
 
-	private TaskExecutor executor;
-
-
-	@Before
-	public void setUp() {
-		executor = new ConcurrentTaskExecutor();
-	}
-
-
 	@Test
 	public void testReceive() throws Exception {
 		javax.mail.Message message = EasyMock.createMock(MimeMessage.class);
 		StubFolderConnection folderConnection = new StubFolderConnection(message);
 		QueueChannel channel = new QueueChannel();
+		TaskScheduler scheduler = TestUtils.createTaskScheduler(5);
+		scheduler.start();
 		ListeningMailSource mailSource = new ListeningMailSource(folderConnection);
-		mailSource.setTaskExecutor(executor);
+		mailSource.setTaskScheduler(scheduler);
 		mailSource.setOutputChannel(channel);
 		mailSource.start();
 		Message<?> result = channel.receive(1000);
 		mailSource.stop();
 		assertNotNull(result);
 		assertEquals("Wrong payload", message, result.getPayload());
+		mailSource.stop();
+		scheduler.stop();
 	}
 
 

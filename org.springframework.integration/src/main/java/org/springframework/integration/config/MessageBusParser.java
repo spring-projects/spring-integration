@@ -16,26 +16,38 @@
 
 package org.springframework.integration.config;
 
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.context.event.SimpleApplicationEventMulticaster;
+import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.bus.MessageBusAwareBeanPostProcessor;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
 import org.springframework.integration.config.annotation.PublisherAnnotationPostProcessor;
+import org.springframework.integration.scheduling.SimpleTaskScheduler;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;message-bus&gt; element of the integration namespace.
@@ -56,6 +68,10 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 	private static final String MESSAGING_ANNOTATION_POST_PROCESSOR_BEAN_NAME =
 			"internal.MessagingAnnotationPostProcessor";
 
+	private static final String TASK_SCHEDULER_ATTRIBUTE = "task-scheduler";
+
+	private static final String ASYNC_EVENT_MULTICASTER_ATTRIBUTE = "configure-async-event-multicaster";
+
 
 	@Override
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
@@ -72,15 +88,49 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 
 	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
-		return !"task-scheduler".equals(attributeName) &&
+		return !TASK_SCHEDULER_ATTRIBUTE.equals(attributeName) &&
+				!ASYNC_EVENT_MULTICASTER_ATTRIBUTE.equals(attributeName) &&
 				!"enable-annotations".equals(attributeName) &&
 				super.isEligibleAttribute(attributeName);
 	}
 
 	@Override
-	protected void postProcess(BeanDefinitionBuilder builder, Element element) {
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "task-scheduler");
+	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+		super.doParse(element, parserContext, builder);
+		String taskSchedulerRef = element.getAttribute(TASK_SCHEDULER_ATTRIBUTE);
+		TaskExecutor taskExecutor= null;
+		if (StringUtils.hasText(taskSchedulerRef)) {
+			builder.addPropertyReference("taskScheduler", taskSchedulerRef);
+		}
+		else {
+			taskExecutor = this.createTaskExecutor(100, "message-bus-");
+			builder.addPropertyValue("taskScheduler", new SimpleTaskScheduler(taskExecutor));
+		}
+		if ("true".equals(element.getAttribute(ASYNC_EVENT_MULTICASTER_ATTRIBUTE).toLowerCase())) {
+			if (taskExecutor == null) {
+				taskExecutor = this.createTaskExecutor(10, "event-multicaster-");
+			}
+			BeanDefinitionBuilder eventMulticasterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
+					SimpleApplicationEventMulticaster.class);
+			eventMulticasterBuilder.addPropertyValue("taskExecutor", taskExecutor);
+			eventMulticasterBuilder.addPropertyValue("collectionClass", CopyOnWriteArraySet.class);
+			BeanDefinitionHolder holder = new BeanDefinitionHolder(eventMulticasterBuilder.getBeanDefinition(),
+					AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME);
+			BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
+		}
 		this.processChildElements(builder, element);
+		this.addPostProcessors(element, parserContext);
+	}
+
+	private TaskExecutor createTaskExecutor(int corePoolSize, String threadPrefix) {
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		executor.setCorePoolSize(corePoolSize);
+		if (StringUtils.hasText(threadPrefix)) {
+			executor.setThreadFactory(new CustomizableThreadFactory(threadPrefix));
+		}
+		executor.setRejectedExecutionHandler(new CallerRunsPolicy());
+		executor.afterPropertiesSet();
+		return executor;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -98,12 +148,6 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 		if (interceptors.size() > 0) {
 			builder.addPropertyValue("interceptors", interceptors);
 		}
-	}
-
-	@Override
-	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		super.doParse(element, parserContext, builder);
-		this.addPostProcessors(element, parserContext);
 	}
 
 	/**

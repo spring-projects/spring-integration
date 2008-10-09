@@ -31,13 +31,15 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.scheduling.Schedulers;
+import org.springframework.integration.scheduling.SimpleTaskScheduler;
 import org.springframework.integration.scheduling.TaskScheduler;
 
 /**
@@ -45,13 +47,17 @@ import org.springframework.integration.scheduling.TaskScheduler;
  */
 public class AggregatorEndpointTests {
 
-	private final TaskScheduler taskScheduler = Schedulers.createDefaultTaskScheduler(10);
-	
+	private TaskExecutor taskExecutor;
+
+	private TaskScheduler taskScheduler;
+
 	private AbstractMessageAggregator aggregator;
 
 
 	@Before
 	public void configureAggregator() {
+		this.taskExecutor = new SimpleAsyncTaskExecutor();
+		this.taskScheduler = new SimpleTaskScheduler(taskExecutor);
 		this.aggregator = new TestAggregator();
 		this.aggregator.setTaskScheduler(this.taskScheduler);
 		this.taskScheduler.start();
@@ -65,9 +71,9 @@ public class AggregatorEndpointTests {
 		Message<?> message2 = createMessage("456", "ABC", 3, 2, replyChannel);
 		Message<?> message3 = createMessage("789", "ABC", 3, 3, replyChannel);
 		CountDownLatch latch = new CountDownLatch(3);
-		this.taskScheduler.execute(new AggregatorTestTask(this.aggregator, message1, latch));
-		this.taskScheduler.execute(new AggregatorTestTask(this.aggregator, message2, latch));
-		this.taskScheduler.execute(new AggregatorTestTask(this.aggregator, message3, latch));
+		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message1, latch));
+		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message2, latch));
+		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message3, latch));
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		Message<?> reply = replyChannel.receive(500);
 		assertNotNull(reply);
@@ -84,7 +90,7 @@ public class AggregatorEndpointTests {
 		Message<?> message = createMessage("123", "ABC", 2, 1, replyChannel);
 		CountDownLatch latch = new CountDownLatch(1);
 		AggregatorTestTask task = new AggregatorTestTask(this.aggregator, message, latch);
-		this.taskScheduler.execute(task);
+		this.taskExecutor.execute(task);
 		latch.await(2000, TimeUnit.MILLISECONDS);
 		assertEquals("task should have completed within timeout", 0, latch.getCount());
 		Message<?> reply = replyChannel.receive(0);
@@ -105,8 +111,8 @@ public class AggregatorEndpointTests {
 		CountDownLatch latch = new CountDownLatch(2);
 		AggregatorTestTask task1 = new AggregatorTestTask(this.aggregator, message1, latch);
 		AggregatorTestTask task2 = new AggregatorTestTask(this.aggregator, message2, latch);
-		this.taskScheduler.execute(task1);
-		this.taskScheduler.execute(task2);
+		this.taskExecutor.execute(task1);
+		this.taskExecutor.execute(task2);
 		latch.await(3000, TimeUnit.MILLISECONDS);
 		assertEquals("handlers should have been invoked within time limit", 0, latch.getCount());
 		Message<?> reply = replyChannel.receive(3000);
@@ -127,12 +133,12 @@ public class AggregatorEndpointTests {
 		Message<?> message5 = createMessage("def", "XYZ", 3, 2, replyChannel2);
 		Message<?> message6 = createMessage("ghi", "XYZ", 3, 3, replyChannel2);
 		CountDownLatch latch = new CountDownLatch(6);
-		this.taskScheduler.execute(new AggregatorTestTask(this.aggregator, message1, latch));
-		this.taskScheduler.execute(new AggregatorTestTask(this.aggregator, message6, latch));
-		this.taskScheduler.execute(new AggregatorTestTask(this.aggregator, message2, latch));
-		this.taskScheduler.execute(new AggregatorTestTask(this.aggregator, message5, latch));
-		this.taskScheduler.execute(new AggregatorTestTask(this.aggregator, message3, latch));
-		this.taskScheduler.execute(new AggregatorTestTask(this.aggregator, message4, latch));
+		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message1, latch));
+		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message6, latch));
+		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message2, latch));
+		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message5, latch));
+		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message3, latch));
+		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message4, latch));
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		Message<?> reply1 = replyChannel1.receive(500);
 		assertNotNull(reply1);
@@ -202,10 +208,10 @@ public class AggregatorEndpointTests {
 		Message<?> message3 = createMessage("789", "ABC", 3, 3, replyChannel);
 		Message<?> message4 = createMessage("abc", "ABC", 3, 3, replyChannel);
 		CountDownLatch latch = new CountDownLatch(4);
-		this.taskScheduler.execute(new AggregatorTestTask(this.aggregator, message1, latch));
-		this.taskScheduler.execute(new AggregatorTestTask(this.aggregator, message2, latch));
-		this.taskScheduler.execute(new AggregatorTestTask(this.aggregator, message3, latch));
-		this.taskScheduler.execute(new AggregatorTestTask(this.aggregator, message4, latch));
+		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message1, latch));
+		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message2, latch));
+		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message3, latch));
+		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message4, latch));
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		Message<?> reply = replyChannel.receive(500);
 		assertNotNull(reply);
@@ -222,11 +228,11 @@ public class AggregatorEndpointTests {
 		Message<?> message3 = createMessage("789", "ABC", 3, 3, replyChannel);
 		CountDownLatch latch = new CountDownLatch(3);
 		AggregatorTestTask task1 = new AggregatorTestTask(aggregator, message1, latch);
-		this.taskScheduler.execute(task1);	
+		this.taskExecutor.execute(task1);	
 		AggregatorTestTask task2 = new AggregatorTestTask(aggregator, message2, latch);
-		this.taskScheduler.execute(task2);
+		this.taskExecutor.execute(task2);
 		AggregatorTestTask task3 = new AggregatorTestTask(aggregator, message3, latch);
-		this.taskScheduler.execute(task3);
+		this.taskExecutor.execute(task3);
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		assertNull(task1.getException());
 		assertNull(task2.getException());

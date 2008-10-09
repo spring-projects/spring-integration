@@ -16,6 +16,8 @@
 
 package org.springframework.integration.mail;
 
+import java.util.Date;
+
 import javax.mail.Message;
 
 import org.apache.commons.logging.Log;
@@ -23,10 +25,10 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.endpoint.AbstractMessageProducingEndpoint;
 import org.springframework.integration.mail.monitor.AsyncMonitoringStrategy;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.scheduling.Trigger;
 import org.springframework.util.Assert;
 
 /**
@@ -46,18 +48,12 @@ public class ListeningMailSource extends AbstractMessageProducingEndpoint implem
 
 	private volatile boolean monitorRunning = false;
 
-	private volatile TaskExecutor taskExecutor;
-
 
 	public ListeningMailSource(FolderConnection folderConnection) {
 		Assert.notNull(folderConnection, "FolderConnection must not be null");
 		this.monitorRunnable = new MonitorRunnable(folderConnection);
 	}
 
-
-	public void setTaskExecutor(TaskExecutor taskExecutor) {
-		this.taskExecutor = taskExecutor;
-	}
 
 	// Lifecycle implementation
 
@@ -82,11 +78,14 @@ public class ListeningMailSource extends AbstractMessageProducingEndpoint implem
 	protected void startMonitor() {
 		synchronized (this.monitorRunnable) {
 			if (!this.monitorRunning) {
-				if (this.taskExecutor == null) {
-					this.taskExecutor = this.getTaskScheduler();
-				}
-				Assert.state(this.taskExecutor != null, "TaskExecutor is required");
-				this.taskExecutor.execute(this.monitorRunnable);
+				Assert.state(this.getTaskScheduler() != null, "TaskScheduler is required");
+				this.getTaskScheduler().schedule(this.monitorRunnable,
+						new Trigger() {
+							public Date getNextRunTime(Date lastScheduledRunTime, Date lastCompleteTime) {
+								return new Date();
+							}
+						}
+				);
 			}
 			this.monitorRunning = true;
 		}
@@ -119,7 +118,12 @@ public class ListeningMailSource extends AbstractMessageProducingEndpoint implem
 
 
 		public synchronized void interrupt() {
-			this.thread.interrupt();
+			if (this.thread != null) {
+				this.thread.interrupt();
+			}
+			else if (logger.isInfoEnabled()) {
+				logger.info("monitor is not running, cannot interrupt");
+			}
 		}
 
 		public void run() {
