@@ -20,22 +20,8 @@
 		<queue capacity="1"/>
 	</channel>
 
-	<beans:bean id="service" class="org.springframework.integration.config.PollerAnnotationAdviceChainTestBean"/>
+	<beans:bean id="service" class="org.springframework.integration.config.PollerAnnotationTransactionalTestBean"/>
 
-	<beans:bean id="latch" class="java.util.concurrent.CountDownLatch">
-		<beans:constructor-arg value="4"/>
-	</beans:bean>
-
-	<beans:bean id="beforeAdvice" class="org.springframework.integration.config.TestBeforeAdvice">
-		<beans:constructor-arg ref="latch"/>
-	</beans:bean>
-
-	<beans:bean id="afterAdvice" class="org.springframework.integration.config.TestAfterAdvice">
-		<beans:constructor-arg ref="latch"/>
-	</beans:bean>
-
-	<beans:bean id="aroundAdvice" class="org.springframework.integration.config.TestAroundAdvice">
-		<beans:constructor-arg ref="latch"/>
-	</beans:bean>
+	<beans:bean id="testTransactionManager" class="org.springframework.integration.util.TestTransactionManager"/>
 
 </beans:beans>

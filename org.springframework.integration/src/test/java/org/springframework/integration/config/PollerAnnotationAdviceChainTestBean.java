@@ -26,10 +26,10 @@ import org.springframework.integration.annotation.ServiceActivator;
  * @author Mark Fisher
  */
 @MessageEndpoint
-public class PollerAnnotationServiceActivator {
+public class PollerAnnotationAdviceChainTestBean {
 
 	@ServiceActivator(inputChannel="input", outputChannel="output")
-	@Poller(interval=5000, timeUnit=TimeUnit.SECONDS, maxMessagesPerPoll=1,
+	@Poller(interval=5, timeUnit=TimeUnit.SECONDS, maxMessagesPerPoll=1,
 			adviceChain="beforeAdvice  ,aroundAdvice, afterAdvice ") // spacing intentional
 	public String testMethod(String input) {
 		return input.toUpperCase();

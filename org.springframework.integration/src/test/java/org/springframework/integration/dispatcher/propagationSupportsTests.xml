@@ -29,6 +29,6 @@
 
 	<beans:bean id="testBean" class="org.springframework.integration.dispatcher.TestBean"/>
 
-	<beans:bean id="txManager" class="org.springframework.integration.dispatcher.TestTransactionManager"/>
+	<beans:bean id="txManager" class="org.springframework.integration.util.TestTransactionManager"/>
 
 </beans:beans>

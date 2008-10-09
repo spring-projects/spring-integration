@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.dispatcher;
+package org.springframework.integration.util;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -36,10 +36,16 @@ public class TestTransactionManager extends AbstractPlatformTransactionManager {
 
 	private final AtomicInteger rollbackCounter = new AtomicInteger();
 
-	private final CountDownLatch latch = new CountDownLatch(1);
+	private volatile CountDownLatch latch = new CountDownLatch(1);
 
 	private volatile TransactionDefinition lastDefinition;
 
+
+	public void reset() {
+		this.latch = new CountDownLatch(1);
+		this.commitCounter.set(0);
+		this.rollbackCounter.set(0);
+	}
 
 	public int getCommitCount() {
 		return this.commitCounter.get();
