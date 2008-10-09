@@ -105,23 +105,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 	}
 
 	@SuppressWarnings("unchecked")
-	private void registerChannels(ApplicationContext context) {
-		Map<String, MessageChannel> channelBeans = (Map<String, MessageChannel>) context
-				.getBeansOfType(MessageChannel.class);
-		for (Map.Entry<String, MessageChannel> entry : channelBeans.entrySet()) {
-			String channelName = entry.getKey();
-			MessageChannel previousChannel = this.lookupChannel(channelName);
-			if (previousChannel == null) {
-				this.registerChannel(entry.getValue());
-			}
-			else if (!previousChannel.equals(entry.getValue())) {
-				throw new ConfigurationException("A different channel instance has already "
-						+ "been registered with the name '" + channelName + "'.");
-			}
-		}
-	}
-
-	@SuppressWarnings("unchecked")
 	private void registerGateways(ApplicationContext context) {
 		Map<String, MessagingGateway> gatewayBeans = (Map<String, MessagingGateway>) context
 				.getBeansOfType(MessagingGateway.class);
@@ -318,7 +301,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 	public void onApplicationEvent(ApplicationEvent event) {
 		if (event instanceof ContextRefreshedEvent) {
 			ApplicationContext context = ((ContextRefreshedEvent) event).getApplicationContext();
-			this.registerChannels(context);
 			this.registerGateways(context);
 			if (this.autoStartup) {
 				this.start();
