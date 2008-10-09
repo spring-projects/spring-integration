@@ -78,8 +78,11 @@ public class PollerAnnotationChannelAdapterTransactionalTests {
 
 	@Test
 	public void verifyPropagationSetting() throws InterruptedException {
+		adapter.setShouldFail(false);
 		adapter.setNextValue("propagation-test");
 		transactionManager.waitForCompletion(1000);
+		Message<?> reply = output.receive(1000);
+		assertEquals("propagation-test", reply.getPayload());
 		assertEquals(TransactionDefinition.PROPAGATION_REQUIRES_NEW,
 				transactionManager.getLastDefinition().getPropagationBehavior());
 	}
