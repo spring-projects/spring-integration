@@ -26,10 +26,11 @@ import javax.mail.internet.MimeMessage;
 import org.easymock.classextension.EasyMock;
 import org.junit.Test;
 
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.scheduling.SimpleTaskScheduler;
 import org.springframework.integration.scheduling.TaskScheduler;
-import org.springframework.integration.util.TestUtils;
 
 /**
  * @author Jonas Partner
@@ -41,7 +42,7 @@ public class SubscribableMailSourceTests {
 		javax.mail.Message message = EasyMock.createMock(MimeMessage.class);
 		StubFolderConnection folderConnection = new StubFolderConnection(message);
 		QueueChannel channel = new QueueChannel();
-		TaskScheduler scheduler = TestUtils.createTaskScheduler(5);
+		TaskScheduler scheduler = new SimpleTaskScheduler(new SimpleAsyncTaskExecutor());
 		scheduler.start();
 		ListeningMailSource mailSource = new ListeningMailSource(folderConnection);
 		mailSource.setTaskScheduler(scheduler);

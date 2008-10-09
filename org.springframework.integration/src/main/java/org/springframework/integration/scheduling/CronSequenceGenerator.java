@@ -63,7 +63,7 @@ public class CronSequenceGenerator {
 	/**
 	 * Construct a {@link CronSequenceGenerator} from the pattern provided.
 	 * 
-	 * @param pattern a single space separated list of time fields
+	 * @param pattern a space separated list of time fields
 	 * 
 	 * @throws IllegalArgumentException if the pattern cannot be parsed
 	 */
@@ -175,7 +175,7 @@ public class CronSequenceGenerator {
 	 * @param expression
 	 */
 	private void parse(String expression) throws IllegalArgumentException {
-		String[] fields = StringUtils.delimitedListToStringArray(expression, " ");
+		String[] fields = StringUtils.tokenizeToStringArray(expression, " ");
 		if (fields.length != 6) {
 			throw new IllegalArgumentException(String.format("Expression must consist of 6 fields (found %d in %s)",
 					fields.length, expression));
