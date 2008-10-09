@@ -32,6 +32,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.MessageBusParser;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.util.TestUtils;
 
 /**
  * @author Mark Fisher
@@ -55,6 +56,7 @@ public class SplitterAnnotationPostProcessorTests {
 		context.getBeanFactory().registerSingleton("output", outputChannel);
 		context.getBeanFactory().registerSingleton(
 				MessageBusParser.MESSAGE_BUS_BEAN_NAME, messageBus);
+		messageBus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		messageBus.setApplicationContext(context);
 	}
 

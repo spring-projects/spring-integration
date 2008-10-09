@@ -36,6 +36,7 @@ import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.util.TestUtils;
 
 /**
  * @author Mark Fisher
@@ -55,6 +56,7 @@ public class DirectChannelSubscriptionTests {
 		targetChannel.setBeanName("targetChannel");
 		bus.registerChannel(sourceChannel);
 		bus.registerChannel(targetChannel);
+		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 	}
 
 

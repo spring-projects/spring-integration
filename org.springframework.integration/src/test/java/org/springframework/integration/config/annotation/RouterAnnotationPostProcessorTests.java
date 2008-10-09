@@ -30,6 +30,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.MessageBusParser;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.util.TestUtils;
 
 /**
  * @author Mark Fisher
@@ -48,6 +49,7 @@ public class RouterAnnotationPostProcessorTests {
 	@Before
 	public void init() {
 		messageBus.setApplicationContext(context);
+		messageBus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		inputChannel.setBeanName("input");
 		outputChannel.setBeanName("output");
 		context.getBeanFactory().registerSingleton("input", inputChannel);

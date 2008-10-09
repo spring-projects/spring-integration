@@ -26,6 +26,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.generic.GenericBeanFactoryAccessor;
@@ -35,7 +36,6 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
@@ -119,10 +119,7 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 				return;
 			}
 			Assert.notNull(this.applicationContext, "ApplicationContext must not be null");
-			//TODO: Assert.notNull(this.taskScheduler, "TaskScheduler must not be null");
-			if (this.taskScheduler == null) {
-				this.taskScheduler = new SimpleTaskScheduler(new SimpleAsyncTaskExecutor());
-			}
+			Assert.notNull(this.taskScheduler, "TaskScheduler must not be null");
 			if (this.getErrorChannel() == null) {
 				this.registerChannel(new DefaultErrorChannel());
 			}

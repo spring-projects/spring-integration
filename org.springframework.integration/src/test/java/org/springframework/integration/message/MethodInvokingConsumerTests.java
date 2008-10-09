@@ -31,6 +31,7 @@ import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.PollingConsumerEndpoint;
 import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
+import org.springframework.integration.util.TestUtils;
 
 /**
  * @author Mark Fisher
@@ -87,6 +88,7 @@ public class MethodInvokingConsumerTests {
 		PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(serivceActivator, channel);
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
 		DefaultMessageBus bus = new DefaultMessageBus();
+		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		bus.setApplicationContext(context);
 		bus.start();
 		String result = queue.poll(1000, TimeUnit.MILLISECONDS);

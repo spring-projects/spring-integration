@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.util.TestUtils;
 
 /**
  * @author Marius Bogoevici
@@ -33,6 +34,7 @@ public class MessageBusInterceptorTests {
 	@Test
 	public void testStart() {
 		DefaultMessageBus messageBus = new DefaultMessageBus();
+		messageBus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		messageBus.setApplicationContext(new GenericApplicationContext());
 		TestMessageBusStartInterceptor startInterceptor = new TestMessageBusStartInterceptor();
 		TestMessageBusStopInterceptor stopInterceptor = new TestMessageBusStopInterceptor();

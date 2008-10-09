@@ -7,7 +7,7 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<beans:bean id="messageBus" class="org.springframework.integration.bus.DefaultMessageBus"/>
+	<message-bus/>
 
 	<channel id="testChannel">
 		<queue capacity="50"/>

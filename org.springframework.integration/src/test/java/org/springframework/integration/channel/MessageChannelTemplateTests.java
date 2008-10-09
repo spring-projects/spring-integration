@@ -36,6 +36,7 @@ import org.springframework.integration.endpoint.PollingConsumerEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.util.TestUtils;
 
 /**
  * @author Mark Fisher
@@ -60,6 +61,7 @@ public class MessageChannelTemplateTests {
 		context.getBeanFactory().registerSingleton("requestChannel", requestChannel);
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
 		DefaultMessageBus bus = new DefaultMessageBus();
+		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		bus.setApplicationContext(context);
 		bus.start();
 	}
