@@ -21,7 +21,6 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageSource;
-import org.springframework.integration.message.MethodInvokingSource;
 import org.springframework.util.Assert;
 
 /**
@@ -62,8 +61,8 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 		Assert.notNull(this.source, "source must not be null");
 		Assert.notNull(this.outputChannel, "outputChannel must not be null");
 		super.afterPropertiesSet();
-		if (this.maxMessagesPerPoll < 0 && source instanceof MethodInvokingSource) {
-			// the default is 1 since a MethodInvokingSource might return
+		if (this.maxMessagesPerPoll < 0) {
+			// the default is 1 since a source might return
 			// a non-null value every time it is invoked
 			this.setMaxMessagesPerPoll(1);
 		}

@@ -53,4 +53,6 @@ public @interface Poller {
 
 	String transactionManager() default "";
 
+	String[] adviceChain() default {};
+
 }

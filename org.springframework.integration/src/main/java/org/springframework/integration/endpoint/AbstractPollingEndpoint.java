@@ -16,8 +16,14 @@
 
 package org.springframework.integration.endpoint;
 
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledFuture;
 
+import org.aopalliance.aop.Advice;
+
+import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.task.TaskExecutor;
@@ -32,11 +38,13 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 
 /**
  * @author Mark Fisher
  */
-public abstract class AbstractPollingEndpoint implements MessageEndpoint, TaskSchedulerAware, Lifecycle, InitializingBean {
+public abstract class AbstractPollingEndpoint implements MessageEndpoint,
+		TaskSchedulerAware, Lifecycle, InitializingBean, BeanClassLoaderAware {
 
 	public static final int MAX_MESSAGES_UNBOUNDED = -1;
 
@@ -53,9 +61,15 @@ public abstract class AbstractPollingEndpoint implements MessageEndpoint, TaskSc
 
 	private volatile TransactionTemplate transactionTemplate;
 
+	private final List<Advice> adviceChain = new CopyOnWriteArrayList<Advice>();
+
+	private volatile ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
+
 	private volatile TaskScheduler taskScheduler;
 
 	private volatile ScheduledFuture<?> runningTask;
+
+	private volatile Runnable poller;
 
 	private volatile boolean initialized;
 
@@ -100,6 +114,16 @@ public abstract class AbstractPollingEndpoint implements MessageEndpoint, TaskSc
 		this.transactionDefinition = transactionDefinition;
 	}
 
+	public void setBeanClassLoader(ClassLoader classLoader) {
+		Assert.notNull(classLoader, "ClassLoader must not be null");
+		this.classLoader = classLoader;
+	}
+
+	public void setAdviceChain(List<Advice> adviceChain) {
+		this.adviceChain.clear();
+		this.adviceChain.addAll(adviceChain);
+	}
+
 	private TransactionTemplate getTransactionTemplate() {
 		if (!this.initialized) {
 			this.afterPropertiesSet();
@@ -122,8 +146,20 @@ public abstract class AbstractPollingEndpoint implements MessageEndpoint, TaskSc
 				this.transactionTemplate = new TransactionTemplate(
 						this.transactionManager, this.transactionDefinition);
 			}
+			this.poller = this.createPoller();
 			this.initialized = true;
 		}
+	}
+
+	private Runnable createPoller() {
+		if (this.adviceChain.isEmpty()) {
+			return new Poller();
+		}
+		ProxyFactory proxyFactory = new ProxyFactory(new Poller());
+		for (Advice advice : this.adviceChain) {
+			proxyFactory.addAdvice(advice);
+		}
+		return (Runnable) proxyFactory.getProxy(this.classLoader);
 	}
 
 
@@ -145,7 +181,7 @@ public abstract class AbstractPollingEndpoint implements MessageEndpoint, TaskSc
 			}
 			Assert.state(this.taskScheduler != null,
 					"unable to start polling, no taskScheduler available");
-			this.runningTask = this.taskScheduler.schedule(new Poller(), this.trigger);
+			this.runningTask = this.taskScheduler.schedule(this.poller, this.trigger);
 		}
 	}
 

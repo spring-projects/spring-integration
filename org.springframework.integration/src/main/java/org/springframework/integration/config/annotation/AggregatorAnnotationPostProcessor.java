@@ -19,7 +19,7 @@ package org.springframework.integration.config.annotation;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
-import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.aggregator.AbstractMessageAggregator;
 import org.springframework.integration.aggregator.CompletionStrategyAdapter;
@@ -39,7 +39,7 @@ import org.springframework.util.StringUtils;
  */
 public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Aggregator> {
 
-	public AggregatorAnnotationPostProcessor(BeanFactory beanFactory) {
+	public AggregatorAnnotationPostProcessor(ListableBeanFactory beanFactory) {
 		super(beanFactory);
 	}
 

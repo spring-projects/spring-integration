@@ -19,9 +19,13 @@ package org.springframework.integration.config.annotation;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.List;
 
-import org.springframework.beans.factory.BeanFactory;
+import org.aopalliance.aop.Advice;
+
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.ListableBeanFactory;
+import org.springframework.beans.factory.generic.GenericBeanFactoryAccessor;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.channel.ChannelRegistry;
@@ -58,16 +62,16 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	private static final String OUTPUT_CHANNEL_ATTRIBUTE = "outputChannel";
 
 
-	private final BeanFactory beanFactory;
+	private final GenericBeanFactoryAccessor beanFactoryAccessor;
 
 	protected final ChannelRegistry channelRegistry;
 
 
-	public AbstractMethodAnnotationPostProcessor(BeanFactory beanFactory) {
+	public AbstractMethodAnnotationPostProcessor(ListableBeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "BeanFactory must not be null");
-		this.beanFactory = beanFactory;
-		this.channelRegistry = (ChannelRegistry) this.beanFactory.getBean(
-				MessageBusParser.MESSAGE_BUS_BEAN_NAME);
+		this.beanFactoryAccessor = new GenericBeanFactoryAccessor(beanFactory);
+		this.channelRegistry = this.beanFactoryAccessor.getBean(
+				MessageBusParser.MESSAGE_BUS_BEAN_NAME, ChannelRegistry.class);
 	}
 
 
@@ -116,12 +120,24 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 						pollingEndpoint.setMaxMessagesPerPoll(pollerAnnotation.maxMessagesPerPoll());
 						if (StringUtils.hasText(pollerAnnotation.transactionManager())) {
 							String txManagerRef = pollerAnnotation.transactionManager();
-							Assert.isTrue(this.beanFactory.containsBean(txManagerRef), "no such bean '" + txManagerRef + "'");
-							PlatformTransactionManager txManager = (PlatformTransactionManager)
-									this.beanFactory.getBean(txManagerRef, PlatformTransactionManager.class);
+							Assert.isTrue(this.beanFactoryAccessor.getBeanFactory().containsBean(txManagerRef),
+									"failed to resolve transactionManager reference, no such bean '" + txManagerRef + "'");
+							PlatformTransactionManager txManager =
+									this.beanFactoryAccessor.getBean(txManagerRef, PlatformTransactionManager.class);
 							pollingEndpoint.setTransactionManager(txManager);
 							Transactional txAnnotation = pollerAnnotation.transactionAttributes();
 							pollingEndpoint.setTransactionDefinition(this.parseTransactionAnnotation(txAnnotation));
+						}
+						String[] adviceChainArray = pollerAnnotation.adviceChain();
+						if (adviceChainArray.length > 0) {
+							List<Advice> adviceChain = new ArrayList<Advice>();
+							for (String adviceChainString : adviceChainArray) {
+								String[] adviceRefs = StringUtils.tokenizeToStringArray(adviceChainString, ",");
+								for (String adviceRef : adviceRefs) {
+									adviceChain.add(this.beanFactoryAccessor.getBean(adviceRef, Advice.class));
+								}
+							}
+							pollingEndpoint.setAdviceChain(adviceChain);
 						}
 					}
 					endpoint = pollingEndpoint;

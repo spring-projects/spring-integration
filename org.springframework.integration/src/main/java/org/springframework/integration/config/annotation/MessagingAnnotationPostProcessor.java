@@ -31,7 +31,7 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.ChannelAdapter;
@@ -60,7 +60,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 	private volatile MessageBus messageBus;
 
-	private volatile ConfigurableBeanFactory beanFactory;
+	private volatile ConfigurableListableBeanFactory beanFactory;
 
 
 	private final Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> postProcessors =
@@ -68,9 +68,9 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 
 	public void setBeanFactory(BeanFactory beanFactory) {
-		Assert.isAssignable(ConfigurableBeanFactory.class, beanFactory.getClass(),
-				"a ConfigurableBeanFactory is required");
-		this.beanFactory = (ConfigurableBeanFactory) beanFactory;
+		Assert.isAssignable(ConfigurableListableBeanFactory.class, beanFactory.getClass(),
+				"a ConfigurableListableBeanFactory is required");
+		this.beanFactory = (ConfigurableListableBeanFactory) beanFactory;
 	}
 
 	public void afterPropertiesSet() {

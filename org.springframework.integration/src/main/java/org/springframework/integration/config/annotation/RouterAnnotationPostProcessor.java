@@ -18,7 +18,7 @@ package org.springframework.integration.config.annotation;
 
 import java.lang.reflect.Method;
 
-import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.MessageConsumer;
@@ -34,7 +34,7 @@ import org.springframework.util.StringUtils;
  */
 public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostProcessor<Router> {
 
-	public RouterAnnotationPostProcessor(BeanFactory beanFactory) {
+	public RouterAnnotationPostProcessor(ListableBeanFactory beanFactory) {
 		super(beanFactory);
 	}
 
