@@ -17,10 +17,6 @@
 package org.springframework.integration.config.annotation;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.aopalliance.aop.Advice;
 
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -40,15 +36,8 @@ import org.springframework.integration.message.MethodInvokingConsumer;
 import org.springframework.integration.message.MethodInvokingSource;
 import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.scheduling.Trigger;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.NoRollbackRuleAttribute;
-import org.springframework.transaction.interceptor.RollbackRuleAttribute;
-import org.springframework.transaction.interceptor.RuleBasedTransactionAttribute;
-import org.springframework.transaction.interceptor.TransactionAttribute;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * Post-processor for methods annotated with {@link ChannelAdapter @ChannelAdapter}.
@@ -95,7 +84,7 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 		else {
 			throw new IllegalArgumentException("The @ChannelAdapter can only be applied to methods"
 					+ " that accept no arguments but have a return value (inbound) or methods that"
-					+ " have no return value but do accept arguments (outbound)");
+					+ " have no return value but do accept arguments (outbound).");
 		}
 		if (endpoint != null) {
 			String annotationName = ClassUtils.getShortNameAsProperty(annotation.annotationType());
@@ -108,39 +97,18 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 	private SourcePollingChannelAdapter createInboundChannelAdapter(MethodInvokingSource source, MessageChannel channel, Poller pollerAnnotation) {
 		Assert.notNull(pollerAnnotation, "The @Poller annotation is required (at method-level) "
 					+ "when using the @ChannelAdapter annotation with a no-arg method.");
-		Trigger trigger = this.createTrigger(pollerAnnotation);
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 		adapter.setSource(source);
 		adapter.setOutputChannel(channel);
-		adapter.setTrigger(trigger);
-		if (StringUtils.hasText(pollerAnnotation.transactionManager())) {
-			String txManagerRef = pollerAnnotation.transactionManager();
-			Assert.isTrue(this.beanFactory.containsBean(txManagerRef),
-					"failed to resolve transactionManager reference, no such bean '" + txManagerRef + "'");
-			PlatformTransactionManager txManager = (PlatformTransactionManager)
-					this.beanFactory.getBean(txManagerRef, PlatformTransactionManager.class);
-			adapter.setTransactionManager(txManager);
-			Transactional txAnnotation = pollerAnnotation.transactionAttributes();
-			adapter.setTransactionDefinition(this.parseTransactionAnnotation(txAnnotation));
-		}
-		String[] adviceChainArray = pollerAnnotation.adviceChain();
-		if (adviceChainArray.length > 0) {
-			List<Advice> adviceChain = new ArrayList<Advice>();
-			for (String adviceChainString : adviceChainArray) {
-				String[] adviceRefs = StringUtils.tokenizeToStringArray(adviceChainString, ",");
-				for (String adviceRef : adviceRefs) {
-					adviceChain.add((Advice) this.beanFactory.getBean(adviceRef, Advice.class));
-				}
-			}
-			adapter.setAdviceChain(adviceChain);
-		}
+		AnnotationConfigUtils.configurePollingEndpointWithPollerAnnotation(
+				adapter, pollerAnnotation, this.beanFactory);
 		return adapter;
 	}
 
 	private MessageEndpoint createOutboundChannelAdapter(MethodInvokingConsumer consumer, MessageChannel channel, Poller pollerAnnotation) {
 		if (channel instanceof PollableChannel) {
 			Trigger trigger = (pollerAnnotation != null)
-					? this.createTrigger(pollerAnnotation)
+					? AnnotationConfigUtils.parseTriggerFromPollerAnnotation(pollerAnnotation)
 					: new IntervalTrigger(0);
 			PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(consumer, (PollableChannel) channel);
 			endpoint.setTrigger(trigger);
@@ -152,51 +120,8 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 		return null;
 	}
 
-	private Trigger createTrigger(Poller pollerAnnotation) {
-		IntervalTrigger trigger = new IntervalTrigger(
-				pollerAnnotation.interval(), pollerAnnotation.timeUnit());
-		trigger.setInitialDelay(pollerAnnotation.initialDelay());
-		trigger.setFixedRate(pollerAnnotation.fixedRate());
-		return trigger;
-	}
-
 	private boolean hasReturnValue(Method method) {
 		return !method.getReturnType().equals(void.class);
-	}
-
-	@SuppressWarnings("unchecked")
-	private TransactionAttribute parseTransactionAnnotation(Transactional annotation) {
-		if (annotation == null) {
-			return null;
-		}
-		RuleBasedTransactionAttribute rbta = new RuleBasedTransactionAttribute();
-		rbta.setPropagationBehavior(annotation.propagation().value());
-		rbta.setIsolationLevel(annotation.isolation().value());
-		rbta.setTimeout(annotation.timeout());
-		rbta.setReadOnly(annotation.readOnly());
-		ArrayList<RollbackRuleAttribute> rollBackRules = new ArrayList<RollbackRuleAttribute>();
-		Class<?>[] rbf = annotation.rollbackFor();
-		for (int i = 0; i < rbf.length; ++i) {
-			RollbackRuleAttribute rule = new RollbackRuleAttribute(rbf[i]);
-			rollBackRules.add(rule);
-		}
-		String[] rbfc = annotation.rollbackForClassName();
-		for (int i = 0; i < rbfc.length; ++i) {
-			RollbackRuleAttribute rule = new RollbackRuleAttribute(rbfc[i]);
-			rollBackRules.add(rule);
-		}
-		Class<?>[] nrbf = annotation.noRollbackFor();
-		for (int i = 0; i < nrbf.length; ++i) {
-			NoRollbackRuleAttribute rule = new NoRollbackRuleAttribute(nrbf[i]);
-			rollBackRules.add(rule);
-		}
-		String[] nrbfc = annotation.noRollbackForClassName();
-		for (int i = 0; i < nrbfc.length; ++i) {
-			NoRollbackRuleAttribute rule = new NoRollbackRuleAttribute(nrbfc[i]);
-			rollBackRules.add(rule);
-		}
-		rbta.getRollbackRules().addAll(rollBackRules);
-		return rbta;
 	}
 
 }
