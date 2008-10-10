@@ -66,11 +66,11 @@ public class DefaultFolderConnection implements Lifecycle, DisposableBean, Folde
 
 
 	public DefaultFolderConnection(String storeUri, MonitoringStrategy monitoringStrategy, boolean polling) {
+		Assert.notNull(storeUri, "storeUri must not be null");
+		Assert.notNull(monitoringStrategy, "monitoringStrategy must not ne null");
 		this.storeUri = new URLName(storeUri);
 		this.monitoringStrategy = monitoringStrategy;
 		this.polling = polling;
-		Assert.notNull(storeUri, "storeUri is required");
-		Assert.notNull(monitoringStrategy, "monitoringStrategy is required");
 		if (!polling && monitoringStrategy.getClass().isAssignableFrom(AsyncMonitoringStrategy.class)) {
 			throw new ConfigurationException(
 					"Folder connection requires an AsyncMonitoringStrategy if polling is disabled.");
@@ -94,6 +94,11 @@ public class DefaultFolderConnection implements Lifecycle, DisposableBean, Folde
 			throw new org.springframework.integration.message.MessagingException(
 					"failure occurred while receiving from folder", e);
 		}
+	}
+
+	@Override
+	public String toString() {
+		return this.storeUri.toString();
 	}
 
 	public void destroy() throws Exception {

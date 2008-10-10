@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mail;
 
-import java.util.Date;
-
 import javax.mail.Message;
 
 import org.apache.commons.logging.Log;
@@ -25,10 +23,11 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.endpoint.AbstractMessageProducingEndpoint;
 import org.springframework.integration.mail.monitor.AsyncMonitoringStrategy;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.scheduling.Trigger;
 import org.springframework.util.Assert;
 
 /**
@@ -43,6 +42,8 @@ import org.springframework.util.Assert;
 public class ListeningMailSource extends AbstractMessageProducingEndpoint implements Lifecycle, DisposableBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
+
+	private volatile TaskExecutor taskExecutor;
 
 	private final MonitorRunnable monitorRunnable;
 
@@ -64,28 +65,30 @@ public class ListeningMailSource extends AbstractMessageProducingEndpoint implem
 	public void start() {
 		this.startMonitor();
 		if (logger.isInfoEnabled()) {
-			logger.info("started monitoring mailbox");
+			logger.info("started monitoring mailbox ["
+					+ this.monitorRunnable.folderConnection + "]");
 		}
 	}
 
 	public void stop() {
 		this.stopMonitor();
 		if (logger.isInfoEnabled()) {
-			logger.info("stopped monitoring mailbox");
+			logger.info("stopped monitoring mailbox ["
+					+  this.monitorRunnable.folderConnection + "]");
 		}
 	}
 
 	protected void startMonitor() {
 		synchronized (this.monitorRunnable) {
 			if (!this.monitorRunning) {
-				Assert.state(this.getTaskScheduler() != null, "TaskScheduler is required");
-				this.getTaskScheduler().schedule(this.monitorRunnable,
-						new Trigger() {
-							public Date getNextRunTime(Date lastScheduledRunTime, Date lastCompleteTime) {
-								return new Date();
-							}
-						}
-				);
+				if (this.taskExecutor == null) {
+					if (logger.isInfoEnabled()) {
+						logger.info("No TaskExecutor has been provided, will use a ["
+								+ SimpleAsyncTaskExecutor.class + "] as the default.");
+					}
+					this.taskExecutor = new SimpleAsyncTaskExecutor();
+				}
+				this.taskExecutor.execute(this.monitorRunnable);
 			}
 			this.monitorRunning = true;
 		}
@@ -113,6 +116,7 @@ public class ListeningMailSource extends AbstractMessageProducingEndpoint implem
 
 
 		private MonitorRunnable(FolderConnection folderConnection) {
+			Assert.notNull(folderConnection, "folderConnection must not be null");
 			this.folderConnection = folderConnection;
 		}
 

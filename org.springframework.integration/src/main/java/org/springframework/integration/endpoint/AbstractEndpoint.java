@@ -20,33 +20,21 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.integration.scheduling.TaskScheduler;
-import org.springframework.integration.scheduling.TaskSchedulerAware;
 
 /**
  * The base class for Message Endpoint implementations.
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractEndpoint implements MessageEndpoint, TaskSchedulerAware, BeanNameAware {
+public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile String name;
 
-	private volatile TaskScheduler taskScheduler;
-
 
 	public void setBeanName(String name) {
 		this.name = name;
-	}
-
-	protected TaskScheduler getTaskScheduler() {
-		return this.taskScheduler;
-	}
-
-	public void setTaskScheduler(TaskScheduler taskScheduler) {
-		this.taskScheduler = taskScheduler;
 	}
 
 	public String toString() {
