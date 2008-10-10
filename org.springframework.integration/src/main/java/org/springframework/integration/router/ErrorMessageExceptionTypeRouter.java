@@ -30,7 +30,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class RootCauseErrorMessageRouter extends AbstractSingleChannelRouter {
+public class ErrorMessageExceptionTypeRouter extends AbstractSingleChannelRouter {
 
 	private volatile Map<Class<? extends Throwable>, MessageChannel> exceptionTypeChannelMap =
 			new ConcurrentHashMap<Class<? extends Throwable>, MessageChannel>();

@@ -36,7 +36,7 @@ import org.springframework.integration.message.StringMessage;
 /**
  * @author Mark Fisher
  */
-public class RootCauseErrorMessageRouterTests {
+public class ErrorMessageExceptionTypeRouterTests {
 
 	private QueueChannel illegalArgumentChannel = new QueueChannel();
 
@@ -56,7 +56,7 @@ public class RootCauseErrorMessageRouterTests {
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		ErrorMessage message = new ErrorMessage(error);
-		RootCauseErrorMessageRouter router = new RootCauseErrorMessageRouter();
+		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
 		Map<Class<? extends Throwable>, MessageChannel> exceptionTypeChannelMap =
 				new HashMap<Class<? extends Throwable>, MessageChannel>();
 		exceptionTypeChannelMap.put(IllegalArgumentException.class, illegalArgumentChannel);
@@ -78,7 +78,7 @@ public class RootCauseErrorMessageRouterTests {
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		ErrorMessage message = new ErrorMessage(error);
-		RootCauseErrorMessageRouter router = new RootCauseErrorMessageRouter();
+		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
 		Map<Class<? extends Throwable>, MessageChannel> exceptionTypeChannelMap =
 				new HashMap<Class<? extends Throwable>, MessageChannel>();
 		exceptionTypeChannelMap.put(RuntimeException.class, runtimeExceptionChannel);
@@ -99,7 +99,7 @@ public class RootCauseErrorMessageRouterTests {
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		ErrorMessage message = new ErrorMessage(error);
-		RootCauseErrorMessageRouter router = new RootCauseErrorMessageRouter();
+		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
 		Map<Class<? extends Throwable>, MessageChannel> exceptionTypeChannelMap =
 				new HashMap<Class<? extends Throwable>, MessageChannel>();
 		exceptionTypeChannelMap.put(MessageHandlingException.class, messageHandlingExceptionChannel);
@@ -119,7 +119,7 @@ public class RootCauseErrorMessageRouterTests {
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		ErrorMessage message = new ErrorMessage(error);
-		RootCauseErrorMessageRouter router = new RootCauseErrorMessageRouter();
+		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
 		router.setDefaultOutputChannel(defaultChannel);
 		router.onMessage(message);
 		assertNotNull(defaultChannel.receive(1000));
@@ -135,7 +135,7 @@ public class RootCauseErrorMessageRouterTests {
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		ErrorMessage message = new ErrorMessage(error);
-		RootCauseErrorMessageRouter router = new RootCauseErrorMessageRouter();
+		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
 		Map<Class<? extends Throwable>, MessageChannel> exceptionTypeChannelMap =
 				new HashMap<Class<? extends Throwable>, MessageChannel>();
 		exceptionTypeChannelMap.put(MessageDeliveryException.class, messageDeliveryExceptionChannel);
@@ -151,7 +151,7 @@ public class RootCauseErrorMessageRouterTests {
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		Message<?> message = new GenericMessage<Exception>(error);
-		RootCauseErrorMessageRouter router = new RootCauseErrorMessageRouter();
+		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
 		Map<Class<? extends Throwable>, MessageChannel> exceptionTypeChannelMap =
 				new HashMap<Class<? extends Throwable>, MessageChannel>();
 		exceptionTypeChannelMap.put(IllegalArgumentException.class, illegalArgumentChannel);
@@ -173,7 +173,7 @@ public class RootCauseErrorMessageRouterTests {
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		ErrorMessage message = new ErrorMessage(error);
-		RootCauseErrorMessageRouter router = new RootCauseErrorMessageRouter();
+		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
 		Map<Class<? extends Throwable>, MessageChannel> exceptionTypeChannelMap =
 				new HashMap<Class<? extends Throwable>, MessageChannel>();
 		exceptionTypeChannelMap.put(IllegalArgumentException.class, illegalArgumentChannel);
