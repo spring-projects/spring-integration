@@ -22,11 +22,11 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.config.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.IntegrationNamespaceUtils;
 import org.springframework.integration.mail.MailSendingMessageConsumer;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -49,13 +49,13 @@ public class MailOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 		String username = element.getAttribute("username");
 		String password = element.getAttribute("password");
 		if (StringUtils.hasText(mailSenderRef)) {
-			if (StringUtils.hasText(host) || StringUtils.hasText(username) || StringUtils.hasText(password)) {
-				throw new ConfigurationException("The 'host', 'username', and 'password' properties " +
-						"should not be provided when using a 'mail-sender' reference.");
-			}
+			Assert.isTrue(!StringUtils.hasText(host) && !StringUtils.hasText(username) && !StringUtils.hasText(password),
+					"The 'host', 'username', and 'password' properties " +
+					"should not be provided when using a 'mail-sender' reference.");
 			builder.addConstructorArgReference(mailSenderRef);
 		}
-		else if (StringUtils.hasText(host)) {
+		else {
+			Assert.hasText(host, "Either a 'mail-sender' reference or 'host' property is required.");
 			BeanDefinitionBuilder mailSenderBuilder =
 					BeanDefinitionBuilder.genericBeanDefinition(JavaMailSenderImpl.class);
 			mailSenderBuilder.addPropertyValue("host", host);
@@ -73,9 +73,6 @@ public class MailOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 			String mailSenderBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
 					mailSenderBuilder.getBeanDefinition(), parserContext.getRegistry());
 			builder.addConstructorArgReference(mailSenderBeanName);
-		}
-		else {
-			throw new ConfigurationException("Either a 'mail-sender' reference or 'host' property is required.");
 		}
 		return builder.getBeanDefinition();
 	}

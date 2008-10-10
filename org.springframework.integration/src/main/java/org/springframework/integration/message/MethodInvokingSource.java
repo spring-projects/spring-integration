@@ -20,7 +20,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.util.DefaultMethodInvoker;
 import org.springframework.integration.util.MethodInvoker;
 import org.springframework.integration.util.MethodValidator;
@@ -70,7 +69,7 @@ public class MethodInvokingSource implements MessageSource<Object>, Initializing
 			this.invoker = nrmi;
 		}
 		else {
-			throw new ConfigurationException("either 'method' or 'methodName' is required");
+			throw new IllegalArgumentException("either 'method' or 'methodName' is required");
 		}
 	}
 
@@ -101,9 +100,8 @@ public class MethodInvokingSource implements MessageSource<Object>, Initializing
 	private static class MessageReceivingMethodValidator implements MethodValidator {
 
 		public void validate(Method method) {
-			if (method.getReturnType().equals(void.class)) {
-				throw new ConfigurationException("MethodInvokingSource requires a non-void returning method.");
-			}
+			Assert.isTrue(!method.getReturnType().equals(void.class),
+					"MethodInvokingSource requires a non-void returning method.");
 		}
 	}
 

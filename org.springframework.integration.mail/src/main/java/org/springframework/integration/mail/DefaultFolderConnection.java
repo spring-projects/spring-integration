@@ -30,7 +30,6 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.mail.monitor.AsyncMonitoringStrategy;
 import org.springframework.integration.mail.monitor.MailTransportUtils;
 import org.springframework.integration.mail.monitor.MonitoringStrategy;
@@ -71,10 +70,8 @@ public class DefaultFolderConnection implements Lifecycle, DisposableBean, Folde
 		this.storeUri = new URLName(storeUri);
 		this.monitoringStrategy = monitoringStrategy;
 		this.polling = polling;
-		if (!polling && monitoringStrategy.getClass().isAssignableFrom(AsyncMonitoringStrategy.class)) {
-			throw new ConfigurationException(
-					"Folder connection requires an AsyncMonitoringStrategy if polling is disabled.");
-		}
+		Assert.isTrue(polling || AsyncMonitoringStrategy.class.isAssignableFrom(monitoringStrategy.getClass()),
+				"Folder connection requires an AsyncMonitoringStrategy if polling is disabled.");
 	}
 
 

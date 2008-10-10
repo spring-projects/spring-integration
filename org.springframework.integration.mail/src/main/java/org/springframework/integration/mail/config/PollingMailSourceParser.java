@@ -21,12 +21,12 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.mail.DefaultFolderConnection;
 import org.springframework.integration.mail.PollingMailSource;
 import org.springframework.integration.mail.monitor.MonitoringStrategy;
 import org.springframework.integration.mail.monitor.PollingMonitoringStrategy;
 import org.springframework.integration.mail.monitor.Pop3PollingMonitoringStrategy;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
@@ -46,28 +46,24 @@ public class PollingMailSourceParser extends AbstractSingleBeanDefinitionParser 
 		return true;
 	}
 
-	protected void doParse(Element element, ParserContext parserContext,
-			BeanDefinitionBuilder builder) {
+	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String mailConvertorRef = element.getAttribute("convertor");
 		String uri = element.getAttribute("store-uri");
 		String propertiesRef = element.getAttribute("javaMailProperties");
-		if (!StringUtils.hasLength(uri)) {
-			throw new ConfigurationException("A store-uri is required");
-		}
+		Assert.hasText(uri, "the 'store-uri' attribute is required");
 		BeanDefinitionBuilder folderConnectionBuilder = BeanDefinitionBuilder
 				.genericBeanDefinition(DefaultFolderConnection.class);
-		String storeType = uri.substring(0, 4).toLowerCase();
 		MonitoringStrategy monitoringStrategy = null;
-
-		if (storeType.equals("pop3")) {
+		if (uri.toLowerCase().startsWith("pop3")) {
 			monitoringStrategy = new Pop3PollingMonitoringStrategy();
-		} else if (storeType.equals("imap")) {
-			monitoringStrategy = new PollingMonitoringStrategy();
-		} else {
-			throw new ConfigurationException(
-					"No monitoring strategy for store-uri " + uri);
 		}
-
+		else if (uri.toLowerCase().startsWith("imap")) {
+			monitoringStrategy = new PollingMonitoringStrategy();
+		}
+		else {
+			throw new IllegalArgumentException(
+					"unable to determine monitoring strategy for store-uri [" + uri + "]");
+		}
 		folderConnectionBuilder.addConstructorArgValue(uri);
 		folderConnectionBuilder.addConstructorArgValue(monitoringStrategy);
 		// set polling true
@@ -78,16 +74,12 @@ public class PollingMailSourceParser extends AbstractSingleBeanDefinitionParser 
 					propertiesRef);
 		}
 		String folderConnectionName = parserContext.getReaderContext()
-				.registerWithGeneratedName(
-						folderConnectionBuilder.getBeanDefinition());
-
+				.registerWithGeneratedName(folderConnectionBuilder.getBeanDefinition());
 		builder.addDependsOn(folderConnectionName);
-		builder.addConstructorArgValue(folderConnectionBuilder
-				.getBeanDefinition());
-
+		builder.addConstructorArgValue(folderConnectionBuilder.getBeanDefinition());
 		if (StringUtils.hasText(mailConvertorRef)) {
 			builder.addPropertyReference("convertor", mailConvertorRef);
 		}
-
 	}
+
 }

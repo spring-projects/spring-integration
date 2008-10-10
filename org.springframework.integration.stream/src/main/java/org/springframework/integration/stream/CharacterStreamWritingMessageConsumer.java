@@ -26,7 +26,6 @@ import java.io.Writer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.MessagingException;
@@ -108,7 +107,7 @@ public class CharacterStreamWritingMessageConsumer implements MessageConsumer {
 			return new CharacterStreamWritingMessageConsumer(new OutputStreamWriter(stream, charsetName));
 		}
 		catch (UnsupportedEncodingException e) {
-			throw new ConfigurationException("unsupported encoding: " + charsetName, e);
+			throw new IllegalArgumentException("unsupported encoding: " + charsetName, e);
 		}
 	}
 

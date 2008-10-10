@@ -22,7 +22,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.StringMessage;
@@ -84,7 +83,7 @@ public class CharacterStreamSource implements MessageSource<String> {
 			return new CharacterStreamSource(new InputStreamReader(System.in, charsetName));
 		}
 		catch (UnsupportedEncodingException e) {
-			throw new ConfigurationException("unsupported encoding: " + charsetName, e);
+			throw new IllegalArgumentException("unsupported encoding: " + charsetName, e);
 		}
 	}
 

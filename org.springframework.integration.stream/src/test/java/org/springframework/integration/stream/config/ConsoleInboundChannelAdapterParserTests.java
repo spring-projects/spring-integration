@@ -32,7 +32,6 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageSource;
@@ -99,9 +98,9 @@ public class ConsoleInboundChannelAdapterParserTests {
 			beanCreationException = e;
 		}
 		Throwable parentCause = beanCreationException.getCause().getCause();
-		assertEquals(ConfigurationException.class, parentCause.getClass());
-		Throwable configurationExceptionCause = ((ConfigurationException) parentCause).getCause();
-		assertEquals(UnsupportedEncodingException.class, configurationExceptionCause.getClass());
+		assertEquals(IllegalArgumentException.class, parentCause.getClass());
+		Throwable rootCause = ((IllegalArgumentException) parentCause).getCause();
+		assertEquals(UnsupportedEncodingException.class, rootCause.getClass());
 	}
 
 }

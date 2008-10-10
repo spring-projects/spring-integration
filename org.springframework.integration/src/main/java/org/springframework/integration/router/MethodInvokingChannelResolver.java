@@ -23,7 +23,6 @@ import java.util.Collection;
 import java.util.List;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
@@ -90,7 +89,7 @@ public class MethodInvokingChannelResolver implements ChannelResolver, ChannelRe
 			this.addChannel((String) result, channels);
 		}
 		else {
-			throw new ConfigurationException(
+			throw new IllegalStateException(
 					"router method must return type 'MessageChannel' or 'String'");
 		}
 		return channels;
