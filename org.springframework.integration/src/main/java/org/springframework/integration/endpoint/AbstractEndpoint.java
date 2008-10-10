@@ -20,9 +20,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.ConfigurationException;
-import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.integration.scheduling.TaskSchedulerAware;
 
@@ -31,15 +28,13 @@ import org.springframework.integration.scheduling.TaskSchedulerAware;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractEndpoint implements MessageEndpoint, TaskSchedulerAware, BeanNameAware, InitializingBean {
+public abstract class AbstractEndpoint implements MessageEndpoint, TaskSchedulerAware, BeanNameAware {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private volatile String name;
 
 	private volatile TaskScheduler taskScheduler;
-
-	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
 
 	public void setBeanName(String name) {
@@ -52,28 +47,6 @@ public abstract class AbstractEndpoint implements MessageEndpoint, TaskScheduler
 
 	public void setTaskScheduler(TaskScheduler taskScheduler) {
 		this.taskScheduler = taskScheduler;
-	}
-
-	protected MessageChannelTemplate getChannelTemplate() {
-		return this.channelTemplate;
-	}
-
-	public final void afterPropertiesSet() {
-		try {
-			this.initialize();
-		}
-		catch (Exception e) {
-			if (e instanceof RuntimeException) {
-				throw (RuntimeException) e;
-			}
-			throw new ConfigurationException("failed to initialize endpoint '" + this + "'", e);
-		}
-	}
-
-	/**
-	 * Subclasses may override this method for custom initialization requirements.
-	 */
-	protected void initialize()  throws Exception {
 	}
 
 	public String toString() {

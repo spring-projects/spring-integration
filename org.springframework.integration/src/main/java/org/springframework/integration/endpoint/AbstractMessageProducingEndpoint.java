@@ -16,7 +16,9 @@
 
 package org.springframework.integration.endpoint;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
 
@@ -26,26 +28,23 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractMessageProducingEndpoint extends AbstractEndpoint {
+public abstract class AbstractMessageProducingEndpoint extends AbstractEndpoint implements InitializingBean {
 
 	private volatile MessageChannel outputChannel;
+
+	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
 
 	public void setOutputChannel(MessageChannel outputChannel) {
 		this.outputChannel = outputChannel;
 	}
 
-	protected MessageChannel getOutputChannel() {
-		return this.outputChannel;
-	}
-
-	@Override
-	protected void initialize() {
+	public void afterPropertiesSet() {
 		Assert.notNull(this.outputChannel, "outputChannel is required");
 	}
 
 	protected boolean sendMessage(Message<?> message) {
-		return this.getChannelTemplate().send(message, this.outputChannel);
+		return this.channelTemplate.send(message, this.outputChannel);
 	}
 
 }
