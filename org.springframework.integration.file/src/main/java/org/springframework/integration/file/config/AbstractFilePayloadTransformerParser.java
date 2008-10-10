@@ -20,7 +20,7 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.transformer.config.AbstractTransformerParser;
+import org.springframework.integration.config.AbstractTransformerParser;
 
 /**
  * Base class for File payload transformer parsers.

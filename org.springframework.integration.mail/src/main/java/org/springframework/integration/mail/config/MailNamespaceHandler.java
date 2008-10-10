@@ -17,8 +17,8 @@
 package org.springframework.integration.mail.config;
 
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
+import org.springframework.integration.config.SimpleHeaderEnricherParser;
 import org.springframework.integration.mail.MailHeaders;
-import org.springframework.integration.transformer.config.SimpleHeaderEnricherParser;
 
 /**
  * Namespace handler for the 'mail' namespace.

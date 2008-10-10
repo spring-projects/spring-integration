@@ -20,10 +20,10 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.AbstractTransformerParser;
 import org.springframework.integration.config.IntegrationNamespaceUtils;
 import org.springframework.integration.mail.transformer.MailToStringTransformer;
 import org.springframework.integration.transformer.Transformer;
-import org.springframework.integration.transformer.config.AbstractTransformerParser;
 
 /**
  * Parser for the &lt;mail-to-string-transformer&gt; element.

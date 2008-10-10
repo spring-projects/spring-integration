@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.gateway.config;
+package org.springframework.integration.config;
 
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
-import org.springframework.integration.config.IntegrationNamespaceUtils;
 import org.springframework.integration.gateway.GatewayProxyFactoryBean;
 import org.springframework.util.ObjectUtils;
 

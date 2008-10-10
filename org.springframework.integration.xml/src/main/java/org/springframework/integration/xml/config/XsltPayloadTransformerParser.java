@@ -20,8 +20,9 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.AbstractTransformerParser;
+import org.springframework.integration.config.IntegrationNamespaceUtils;
 import org.springframework.integration.transformer.Transformer;
-import org.springframework.integration.transformer.config.AbstractTransformerParser;
 import org.springframework.integration.xml.transformer.XsltPayloadTransformer;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -47,24 +48,20 @@ public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 		String resultTransformer = element.getAttribute("result-transformer");
 		String resultFactory = element.getAttribute("result-factory");
 		String resultType = element.getAttribute("result-type");
-		boolean bothHaveText = StringUtils.hasText(xslResource) && StringUtils.hasText(xslTemplates);
-		boolean oneHasText = StringUtils.hasText(xslResource) || StringUtils.hasText(xslTemplates);
-		Assert.state(!bothHaveText && oneHasText, "Exactly one of 'xsl-resource' or 'xsl-templates' is required.");
+		Assert.isTrue(StringUtils.hasText(xslResource) ^ StringUtils.hasText(xslTemplates),
+				"Exactly one of 'xsl-resource' or 'xsl-templates' is required.");
 		if (StringUtils.hasText(xslResource)) {
 			builder.addConstructorArgValue(xslResource);
 		}
 		else if (StringUtils.hasText(xslTemplates)) {
 			builder.addConstructorArgReference(xslTemplates);
 		}
-		String sourceFactory = element.getAttribute("source-factory");
-		if (StringUtils.hasText(sourceFactory)) {
-			builder.addPropertyReference("sourceFactory", sourceFactory);
-		}
 		resultFactoryHelper.assertResultFactoryAndTypeValid(resultFactory, resultType);
 		resultFactoryHelper.addResultFactory(builder, resultType, resultFactory);
 		if (StringUtils.hasText(resultTransformer)) {
 			builder.addConstructorArgReference(resultTransformer);
 		}
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "source-factory");
 	}
 
 }

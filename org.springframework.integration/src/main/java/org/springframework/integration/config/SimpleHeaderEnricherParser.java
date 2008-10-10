@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.transformer.config;
+package org.springframework.integration.config;
 
 import java.util.HashMap;
 import java.util.Map;

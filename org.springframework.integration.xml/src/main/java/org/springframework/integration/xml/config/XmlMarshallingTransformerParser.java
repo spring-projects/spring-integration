@@ -20,8 +20,8 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.AbstractTransformerParser;
 import org.springframework.integration.transformer.Transformer;
-import org.springframework.integration.transformer.config.AbstractTransformerParser;
 import org.springframework.integration.xml.transformer.XmlPayloadMarshallingTransformer;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -42,10 +42,10 @@ public class XmlMarshallingTransformerParser extends AbstractTransformerParser {
 
 	@Override
 	protected void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+		String resultTransformer = element.getAttribute("result-transformer");
 		String resultFactory = element.getAttribute("result-factory");
 		String resultType = element.getAttribute("result-type");
 		String marshaller = element.getAttribute("marshaller");
-		String resultTransformer = element.getAttribute("result-transformer");
 		Assert.hasText(marshaller, "the 'marshaller' attribute is required");
 		builder.addConstructorArgReference(marshaller);
 		if (StringUtils.hasText(resultTransformer)) {

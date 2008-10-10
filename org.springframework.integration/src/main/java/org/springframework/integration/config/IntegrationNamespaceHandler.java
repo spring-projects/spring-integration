@@ -17,7 +17,6 @@
 package org.springframework.integration.config;
 
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
-import org.springframework.integration.gateway.config.GatewayParser;
 
 /**
  * Namespace handler for the integration namespace.

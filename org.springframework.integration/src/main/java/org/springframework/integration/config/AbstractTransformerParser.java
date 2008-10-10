@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.transformer.config;
+package org.springframework.integration.config;
 
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.config.AbstractConsumerEndpointParser;
 import org.springframework.integration.transformer.Transformer;
 import org.springframework.integration.transformer.TransformerEndpoint;
 
