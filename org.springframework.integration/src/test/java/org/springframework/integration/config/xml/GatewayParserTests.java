@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.gateway.config;
+package org.springframework.integration.config.xml;
 
 import static org.junit.Assert.assertEquals;
 
