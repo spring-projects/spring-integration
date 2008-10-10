@@ -14,29 +14,25 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.channel;
+package org.springframework.integration.router;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Collection;
+import java.util.Collections;
 
-import org.springframework.util.Assert;
+import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.message.Message;
 
 /**
  * @author Mark Fisher
  */
-public class TestChannelRegistry implements ChannelRegistry {
+public abstract class AbstractSingleChannelRouter extends AbstractMessageRouter {
 
-	private final Map<String, MessageChannel> channels = new ConcurrentHashMap<String, MessageChannel>();
-
-
-	public MessageChannel lookupChannel(String channelName) {
-		return this.channels.get(channelName);
+	@Override
+	protected final Collection<MessageChannel> resolveChannels(Message<?> message) {
+		MessageChannel channel = this.resolveChannel(message);
+		return (channel != null) ? Collections.singletonList(channel) : null;
 	}
 
-	public void registerChannel(MessageChannel channel) {
-		Assert.notNull(channel, "'channel' must not be null");
-		Assert.notNull(channel.getName(), "channel name must not be null");
-		this.channels.put(channel.getName(), channel);
-	}
+	protected abstract MessageChannel resolveChannel(Message<?> message);
 
 }

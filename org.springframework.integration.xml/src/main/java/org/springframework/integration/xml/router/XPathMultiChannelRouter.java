@@ -19,55 +19,57 @@ package org.springframework.integration.xml.router;
 import java.util.List;
 import java.util.Map;
 
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Node;
+
 import org.springframework.integration.message.Message;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.util.Assert;
 import org.springframework.xml.xpath.NodeMapper;
 import org.springframework.xml.xpath.XPathExpression;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Node;
 
 /**
- * Evaluates the XPath expression using
+ * A router that evaluates the XPath expression using
  * {@link XPathExpression#evaluateAsNodeList(Node)} which returns zero or more
  * nodes in conjunction with an instance of {@link NodeMapper} to produce zero
  * or more channel names. An instance of {@link XmlPayloadConverter} is used to
  * extract the payload as a {@link Node}.
+ * 
  * @author Jonas Partner
  */
-public class XPathMultiChannelNameResolver extends AbstractXPathChannelNameResolver {
+public class XPathMultiChannelRouter extends AbstractXPathRouter {
 
 	private volatile NodeMapper nodeMapper = new TextContentNodeMapper();
 
+
 	/**
-	 * @see AbstractXPathChannelNameResolver#AbstractXPathChannelNameResolver(String,
-	 * Map)
+	 * @see AbstractXPathRouter#AbstractXPathChannelNameResolver(String, Map)
 	 */
-	public XPathMultiChannelNameResolver(String pathExpression, Map<String, String> namespaces) {
-		super(pathExpression, namespaces);
+	public XPathMultiChannelRouter(String expression, Map<String, String> namespaces) {
+		super(expression, namespaces);
 	}
 
 	/**
-	 * @see AbstractXPathChannelNameResolver#AbstractXPathChannelNameResolver(String,
-	 * String, String)
+	 * @see AbstractXPathRouter#AbstractXPathChannelNameResolver(String, String, String)
 	 */
-	public XPathMultiChannelNameResolver(String pathExpression, String prefix, String namespace) {
-		super(pathExpression, prefix, namespace);
+	public XPathMultiChannelRouter(String expression, String prefix, String namespace) {
+		super(expression, prefix, namespace);
 	}
 
 	/**
-	 * @see AbstractXPathChannelNameResolver#AbstractXPathChannelNameResolver(String)
+	 * @see AbstractXPathRouter#AbstractXPathChannelNameResolver(String)
 	 */
-	public XPathMultiChannelNameResolver(String pathExpression) {
-		super(pathExpression);
+	public XPathMultiChannelRouter(String expression) {
+		super(expression);
 	}
 
 	/**
-	 * @see AbstractXPathChannelNameResolver#AbstractXPathChannelNameResolver(XPathExpression)
+	 * @see AbstractXPathRouter#AbstractXPathChannelNameResolver(XPathExpression)
 	 */
-	public XPathMultiChannelNameResolver(XPathExpression pathExpression) {
-		super(pathExpression);
+	public XPathMultiChannelRouter(XPathExpression expression) {
+		super(expression);
 	}
+
 
 	public void setNodeMapper(NodeMapper nodeMapper) {
 		Assert.notNull(nodeMapper, "NodeMapper must not be null");
@@ -77,9 +79,10 @@ public class XPathMultiChannelNameResolver extends AbstractXPathChannelNameResol
 	@SuppressWarnings("unchecked")
 	public String[] resolveChannelNames(Message<?> message) {
 		Node node = getConverter().convertToNode(message.getPayload());
-		List channelNamesList = getXPathExpresion().evaluate(node, this.nodeMapper);
+		List channelNamesList = getXPathExpression().evaluate(node, this.nodeMapper);
 		return (String[]) channelNamesList.toArray(new String[channelNamesList.size()]);
 	}
+
 
 	private static class TextContentNodeMapper implements NodeMapper {
 

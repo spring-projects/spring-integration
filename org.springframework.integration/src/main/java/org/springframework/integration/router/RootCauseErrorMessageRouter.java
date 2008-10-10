@@ -24,21 +24,21 @@ import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
 
 /**
- * A ChannelResolver implementation that resolves the {@link MessageChannel} for
- * messages whose payload is an Exception. The channel resolution is based upon the
- * most specific cause of the error for which a channel-mapping exists.
+ * A Message Router that resolves the target {@link MessageChannel} for
+ * messages whose payload is an Exception. The channel resolution is based upon
+ * the most specific cause of the error for which a channel-mapping exists.
  * 
  * @author Mark Fisher
  */
-public class RootCauseErrorMessageChannelResolver extends AbstractSingleChannelResolver {
+public class RootCauseErrorMessageRouter extends AbstractSingleChannelRouter {
 
-	private Map<Class<? extends Throwable>, MessageChannel> channelMappings =
+	private volatile Map<Class<? extends Throwable>, MessageChannel> exceptionTypeChannelMap =
 			new ConcurrentHashMap<Class<? extends Throwable>, MessageChannel>();
 
 
-	public void setChannelMappings(Map<Class<? extends Throwable>, MessageChannel> channelMappings) {
-		Assert.notNull(channelMappings, "'channelMappings' must not be null");
-		this.channelMappings = channelMappings;
+	public void setExceptionTypeChannelMap(Map<Class<? extends Throwable>, MessageChannel> exceptionTypeChannelMap) {
+		Assert.notNull(exceptionTypeChannelMap, "exceptionTypeChannelMap must not be null");
+		this.exceptionTypeChannelMap = exceptionTypeChannelMap;
 	}
 
 
@@ -49,7 +49,7 @@ public class RootCauseErrorMessageChannelResolver extends AbstractSingleChannelR
 		if (payload != null && (payload instanceof Throwable)) {
 			Throwable mostSpecificCause = (Throwable) payload;
 			while (mostSpecificCause != null) {
-				MessageChannel mappedChannel = this.channelMappings.get(mostSpecificCause.getClass());
+				MessageChannel mappedChannel = this.exceptionTypeChannelMap.get(mostSpecificCause.getClass());
 				if (mappedChannel != null) {
 					channel = mappedChannel;
 				}

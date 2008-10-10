@@ -23,8 +23,6 @@ import java.util.Collection;
 import java.util.List;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.channel.ChannelRegistry;
-import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageMappingMethodInvoker;
@@ -32,38 +30,44 @@ import org.springframework.integration.message.MessagingException;
 import org.springframework.util.Assert;
 
 /**
- * A {@link ChannelResolver} implementation that invokes the specified method
- * on the given object. The method's return value may be a single MessageChannel
- * instance, a single String to be interpreted as a channel name, or a Collection
- * (or Array) of either type.
+ * A Message Router that invokes the specified method on the given object. The
+ * method's return value may be a single MessageChannel instance, a single
+ * String to be interpreted as a channel name, or a Collection (or Array) of
+ * either type. If the method returns channel names, then a
+ * {@link ChannelMapping} is required.
  * 
  * @author Mark Fisher
  */
-public class MethodInvokingChannelResolver implements ChannelResolver, ChannelRegistryAware, InitializingBean {
+public class MethodInvokingRouter extends AbstractMessageRouter implements InitializingBean {
 
 	private final MessageMappingMethodInvoker invoker;
 
-	private volatile ChannelRegistry channelRegistry;
+	private volatile ChannelMapping channelMapping;
 
 
-	public MethodInvokingChannelResolver(Object object, Method method) {
+	public MethodInvokingRouter(Object object, Method method) {
 		this.invoker = new MessageMappingMethodInvoker(object, method);
 	}
 
-	public MethodInvokingChannelResolver(Object object, String methodName) {
+	public MethodInvokingRouter(Object object, String methodName) {
 		this.invoker = new MessageMappingMethodInvoker(object, methodName);
 	}
 
 
-	public void setChannelRegistry(ChannelRegistry channelRegistry) {
-		this.channelRegistry = channelRegistry;
+	/**
+	 * Provide the ChannelMapping strategy to use for methods that return a
+	 * channel name rather than a {@link MessageChannel} instance.
+	 */
+	public void setChannelMapping(ChannelMapping channelMapping) {
+		this.channelMapping = channelMapping;
 	}
 
 	public void afterPropertiesSet() throws Exception {
 		this.invoker.afterPropertiesSet();
 	}
 
-	public final Collection<MessageChannel> resolveChannels(Message<?> message) {
+	@Override
+	protected final Collection<MessageChannel> resolveChannels(Message<?> message) {
 		Object result = this.invoker.invokeMethod(message);
 		if (result == null) {
 			return null;
@@ -104,9 +108,9 @@ public class MethodInvokingChannelResolver implements ChannelResolver, ChannelRe
 		}
 		else if (channelOrName instanceof String) {
 			String channelName = (String) channelOrName;
-			Assert.state(this.channelRegistry != null,
-					"ChannelRegistry is required for resolving channel names");
-			MessageChannel channel = this.channelRegistry.lookupChannel(channelName);
+			Assert.state(this.channelMapping != null,
+					"ChannelMapping is required for resolving channel names");
+			MessageChannel channel = this.channelMapping.getChannel(channelName);
 			if (channel == null) {
 				throw new MessagingException("unable to resolve channel '" + channelName + "'");
 			}

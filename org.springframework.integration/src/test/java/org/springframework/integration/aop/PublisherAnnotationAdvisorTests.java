@@ -21,12 +21,15 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.channel.TestChannelRegistry;
 import org.springframework.integration.message.Message;
 
 /**
@@ -169,7 +172,20 @@ public class PublisherAnnotationAdvisorTests {
 		public Integer publishReturnValue() {
 			return 123;
 		}
+	}
 
+
+	private static class TestChannelRegistry implements ChannelRegistry {
+
+		private final Map<String, MessageChannel> channels = new HashMap<String, MessageChannel>();
+
+		public MessageChannel lookupChannel(String channelName) {
+			return this.channels.get(channelName);
+		}
+
+		public void registerChannel(MessageChannel channel) {
+			this.channels.put(channel.getName(), channel);
+		}
 	}
 
 }

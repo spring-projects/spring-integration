@@ -18,21 +18,18 @@ package org.springframework.integration.router;
 
 import java.util.Collection;
 
-import org.springframework.integration.channel.ChannelRegistry;
-import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.endpoint.AbstractMessageConsumer;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
-import org.springframework.util.Assert;
 
 /**
+ * Base class for Message Routers.
+ * 
  * @author Mark Fisher
  */
-public class RouterEndpoint extends AbstractMessageConsumer implements ChannelRegistryAware {
-
-	private final ChannelResolver channelResolver;
+public abstract class AbstractMessageRouter extends AbstractMessageConsumer {
 
 	private volatile MessageChannel defaultOutputChannel;
 
@@ -41,18 +38,12 @@ public class RouterEndpoint extends AbstractMessageConsumer implements ChannelRe
 	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
 
-	public RouterEndpoint(ChannelResolver channelResolver) {
-		Assert.notNull(channelResolver, "ChannelResolver must not be null");
-		this.channelResolver = channelResolver;
-	}
-
-
-	public void setChannelRegistry(ChannelRegistry channelRegistry) {
-		if (this.channelResolver instanceof ChannelRegistryAware) {
-			((ChannelRegistryAware) this.channelResolver).setChannelRegistry(channelRegistry);
-		}
-	}
-
+	/**
+	 * Set the default channel where Messages should be sent if channel
+	 * resolution fails to return any channels. If no default channel is
+	 * provided, the router will either drop the Message or throw an Exception
+	 * depending on the value of {@link #resolutionRequired}. 
+	 */
 	public void setDefaultOutputChannel(MessageChannel defaultOutputChannel) {
 		this.defaultOutputChannel = defaultOutputChannel;
 	}
@@ -78,7 +69,7 @@ public class RouterEndpoint extends AbstractMessageConsumer implements ChannelRe
 	@Override
 	protected void onMessageInternal(Message<?> message) {
 		boolean sent = false;
-		Collection<MessageChannel> results = this.channelResolver.resolveChannels(message);
+		Collection<MessageChannel> results = this.resolveChannels(message);
 		if (results != null) {
 			for (MessageChannel channel : results) {
 				if (channel != null) {
@@ -98,5 +89,11 @@ public class RouterEndpoint extends AbstractMessageConsumer implements ChannelRe
 			}
 		}
 	}
+
+	/**
+	 * Subclasses must implement this method to return the target channels for
+	 * a given Message.
+	 */
+	protected abstract Collection<MessageChannel> resolveChannels(Message<?> message);
 
 }

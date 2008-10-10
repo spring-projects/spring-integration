@@ -24,24 +24,25 @@ import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
 
 /**
- * A ChannelResolver implementation that resolves the {@link MessageChannel} based
- * on the {@link Message Message's} payload type.
+ * A Message Router that resolves the {@link MessageChannel} based on the
+ * {@link Message Message's} payload type.
  * 
  * @author Mark Fisher
  */
-public class PayloadTypeChannelResolver extends AbstractSingleChannelResolver {
+public class PayloadTypeRouter extends AbstractSingleChannelRouter {
 
-	private Map<Class<?>, MessageChannel> channelMappings = new ConcurrentHashMap<Class<?>, MessageChannel>();
+	private volatile Map<Class<?>, MessageChannel> payloadTypeChannelMap =
+			new ConcurrentHashMap<Class<?>, MessageChannel>();
 
 
-	public void setChannelMappings(Map<Class<?>, MessageChannel> channelMappings) {
-		Assert.notNull(channelMappings, "'channelMappings' must not be null");
-		this.channelMappings = channelMappings;
+	public void setPayloadTypeChannelMap(Map<Class<?>, MessageChannel> payloadTypeChannelMap) {
+		Assert.notNull(payloadTypeChannelMap, "payloadTypeChannelMap must not be null");
+		this.payloadTypeChannelMap = payloadTypeChannelMap;
 	}
 
 	@Override
 	protected MessageChannel resolveChannel(Message<?> message) {
-		return this.channelMappings.get(message.getPayload().getClass());
+		return this.payloadTypeChannelMap.get(message.getPayload().getClass());
 	}
 
 }

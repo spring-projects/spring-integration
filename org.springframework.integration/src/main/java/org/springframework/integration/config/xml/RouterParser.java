@@ -19,9 +19,12 @@ package org.springframework.integration.config.xml;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.router.MethodInvokingChannelResolver;
-import org.springframework.integration.router.RouterEndpoint;
+import org.springframework.integration.router.BeanNameChannelMapping;
+import org.springframework.integration.router.MethodInvokingRouter;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;router/&gt; element.
@@ -32,10 +35,19 @@ public class RouterParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
-		String adapterBeanName = this.parseAdapter(element, parserContext, MethodInvokingChannelResolver.class);
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RouterEndpoint.class);
-		builder.addConstructorArgReference(adapterBeanName);
-		builder.addPropertyReference("channelRegistry", MessageBusParser.MESSAGE_BUS_BEAN_NAME);
+		String ref = element.getAttribute(REF_ATTRIBUTE);
+		Assert.hasText(ref, "The '" + REF_ATTRIBUTE + "' attribute is required.");
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingRouter.class);
+		builder.addConstructorArgReference(ref);
+		if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
+			String method = element.getAttribute(METHOD_ATTRIBUTE);
+			builder.addConstructorArgValue(method);
+		}
+		BeanDefinitionBuilder channelMappingBuilder =
+				BeanDefinitionBuilder.genericBeanDefinition(BeanNameChannelMapping.class);
+		String channelMappingBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
+				channelMappingBuilder.getBeanDefinition(), parserContext.getRegistry());
+		builder.addPropertyReference("channelMapping", channelMappingBeanName);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "default-output-channel");
 		return builder;
 	}

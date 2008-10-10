@@ -50,22 +50,21 @@ public class RootCauseErrorMessageRouterTests {
 
 
 	@Test
-	public void testMostSpecificCause() {
+	public void mostSpecificCause() {
 		Message<?> failedMessage = new StringMessage("foo");
 		IllegalArgumentException rootCause = new IllegalArgumentException("bad argument");
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		ErrorMessage message = new ErrorMessage(error);
-		RootCauseErrorMessageChannelResolver resolver = new RootCauseErrorMessageChannelResolver();
-		Map<Class<? extends Throwable>, MessageChannel> channelMappings =
+		RootCauseErrorMessageRouter router = new RootCauseErrorMessageRouter();
+		Map<Class<? extends Throwable>, MessageChannel> exceptionTypeChannelMap =
 				new HashMap<Class<? extends Throwable>, MessageChannel>();
-		channelMappings.put(IllegalArgumentException.class, illegalArgumentChannel);
-		channelMappings.put(RuntimeException.class, runtimeExceptionChannel);
-		channelMappings.put(MessageHandlingException.class, messageHandlingExceptionChannel);
-		resolver.setChannelMappings(channelMappings);
-		RouterEndpoint endpoint = new RouterEndpoint(resolver);
-		endpoint.setDefaultOutputChannel(defaultChannel);
-		endpoint.onMessage(message);
+		exceptionTypeChannelMap.put(IllegalArgumentException.class, illegalArgumentChannel);
+		exceptionTypeChannelMap.put(RuntimeException.class, runtimeExceptionChannel);
+		exceptionTypeChannelMap.put(MessageHandlingException.class, messageHandlingExceptionChannel);
+		router.setExceptionTypeChannelMap(exceptionTypeChannelMap);
+		router.setDefaultOutputChannel(defaultChannel);
+		router.onMessage(message);
 		assertNotNull(illegalArgumentChannel.receive(1000));
 		assertNull(defaultChannel.receive(0));
 		assertNull(runtimeExceptionChannel.receive(0));
@@ -73,21 +72,20 @@ public class RootCauseErrorMessageRouterTests {
 	}
 
 	@Test
-	public void testFallbackToNextMostSpecificCause() {
+	public void fallbackToNextMostSpecificCause() {
 		Message<?> failedMessage = new StringMessage("foo");
 		IllegalArgumentException rootCause = new IllegalArgumentException("bad argument");
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		ErrorMessage message = new ErrorMessage(error);
-		RootCauseErrorMessageChannelResolver resolver = new RootCauseErrorMessageChannelResolver();
-		Map<Class<? extends Throwable>, MessageChannel> channelMappings =
+		RootCauseErrorMessageRouter router = new RootCauseErrorMessageRouter();
+		Map<Class<? extends Throwable>, MessageChannel> exceptionTypeChannelMap =
 				new HashMap<Class<? extends Throwable>, MessageChannel>();
-		channelMappings.put(RuntimeException.class, runtimeExceptionChannel);
-		channelMappings.put(MessageHandlingException.class, messageHandlingExceptionChannel);
-		resolver.setChannelMappings(channelMappings);
-		RouterEndpoint endpoint = new RouterEndpoint(resolver);
-		endpoint.setDefaultOutputChannel(defaultChannel);
-		endpoint.onMessage(message);
+		exceptionTypeChannelMap.put(RuntimeException.class, runtimeExceptionChannel);
+		exceptionTypeChannelMap.put(MessageHandlingException.class, messageHandlingExceptionChannel);
+		router.setExceptionTypeChannelMap(exceptionTypeChannelMap);
+		router.setDefaultOutputChannel(defaultChannel);
+		router.onMessage(message);
 		assertNotNull(runtimeExceptionChannel.receive(1000));
 		assertNull(illegalArgumentChannel.receive(0));
 		assertNull(defaultChannel.receive(0));
@@ -95,20 +93,19 @@ public class RootCauseErrorMessageRouterTests {
 	}
 
 	@Test
-	public void testFallbackToErrorMessageType() {
+	public void fallbackToErrorMessageType() {
 		Message<?> failedMessage = new StringMessage("foo");
 		IllegalArgumentException rootCause = new IllegalArgumentException("bad argument");
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		ErrorMessage message = new ErrorMessage(error);
-		RootCauseErrorMessageChannelResolver resolver = new RootCauseErrorMessageChannelResolver();
-		Map<Class<? extends Throwable>, MessageChannel> channelMappings =
+		RootCauseErrorMessageRouter router = new RootCauseErrorMessageRouter();
+		Map<Class<? extends Throwable>, MessageChannel> exceptionTypeChannelMap =
 				new HashMap<Class<? extends Throwable>, MessageChannel>();
-		channelMappings.put(MessageHandlingException.class, messageHandlingExceptionChannel);
-		resolver.setChannelMappings(channelMappings);
-		RouterEndpoint endpoint = new RouterEndpoint(resolver);
-		endpoint.setDefaultOutputChannel(defaultChannel);
-		endpoint.onMessage(message);
+		exceptionTypeChannelMap.put(MessageHandlingException.class, messageHandlingExceptionChannel);
+		router.setExceptionTypeChannelMap(exceptionTypeChannelMap);
+		router.setDefaultOutputChannel(defaultChannel);
+		router.onMessage(message);
 		assertNotNull(messageHandlingExceptionChannel.receive(1000));
 		assertNull(runtimeExceptionChannel.receive(0));
 		assertNull(illegalArgumentChannel.receive(0));
@@ -116,16 +113,15 @@ public class RootCauseErrorMessageRouterTests {
 	}
 
 	@Test
-	public void testFallbackToDefaultChannel() {
+	public void fallbackToDefaultChannel() {
 		Message<?> failedMessage = new StringMessage("foo");
 		IllegalArgumentException rootCause = new IllegalArgumentException("bad argument");
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		ErrorMessage message = new ErrorMessage(error);
-		RootCauseErrorMessageChannelResolver resolver = new RootCauseErrorMessageChannelResolver();
-		RouterEndpoint endpoint = new RouterEndpoint(resolver);
-		endpoint.setDefaultOutputChannel(defaultChannel);
-		endpoint.onMessage(message);
+		RootCauseErrorMessageRouter router = new RootCauseErrorMessageRouter();
+		router.setDefaultOutputChannel(defaultChannel);
+		router.onMessage(message);
 		assertNotNull(defaultChannel.receive(1000));
 		assertNull(runtimeExceptionChannel.receive(0));
 		assertNull(illegalArgumentChannel.receive(0));
@@ -133,39 +129,37 @@ public class RootCauseErrorMessageRouterTests {
 	}
 
 	@Test(expected = MessageDeliveryException.class)
-	public void testNoMatchAndNoDefaultChannel() {
+	public void noMatchAndNoDefaultChannel() {
 		Message<?> failedMessage = new StringMessage("foo");
 		IllegalArgumentException rootCause = new IllegalArgumentException("bad argument");
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		ErrorMessage message = new ErrorMessage(error);
-		RootCauseErrorMessageChannelResolver resolver = new RootCauseErrorMessageChannelResolver();
-		Map<Class<? extends Throwable>, MessageChannel> channelMappings =
+		RootCauseErrorMessageRouter router = new RootCauseErrorMessageRouter();
+		Map<Class<? extends Throwable>, MessageChannel> exceptionTypeChannelMap =
 				new HashMap<Class<? extends Throwable>, MessageChannel>();
-		channelMappings.put(MessageDeliveryException.class, messageDeliveryExceptionChannel);
-		resolver.setChannelMappings(channelMappings);
-		RouterEndpoint endpoint = new RouterEndpoint(resolver);
-		endpoint.setResolutionRequired(true);
-		endpoint.onMessage(message);
+		exceptionTypeChannelMap.put(MessageDeliveryException.class, messageDeliveryExceptionChannel);
+		router.setExceptionTypeChannelMap(exceptionTypeChannelMap);
+		router.setResolutionRequired(true);
+		router.onMessage(message);
 	}
 
 	@Test
-	public void testExceptionPayloadButNotErrorMessage() {
+	public void exceptionPayloadButNotErrorMessage() {
 		Message<?> failedMessage = new StringMessage("foo");
 		IllegalArgumentException rootCause = new IllegalArgumentException("bad argument");
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		Message<?> message = new GenericMessage<Exception>(error);
-		RootCauseErrorMessageChannelResolver resolver = new RootCauseErrorMessageChannelResolver();
-		Map<Class<? extends Throwable>, MessageChannel> channelMappings =
+		RootCauseErrorMessageRouter router = new RootCauseErrorMessageRouter();
+		Map<Class<? extends Throwable>, MessageChannel> exceptionTypeChannelMap =
 				new HashMap<Class<? extends Throwable>, MessageChannel>();
-		channelMappings.put(IllegalArgumentException.class, illegalArgumentChannel);
-		channelMappings.put(RuntimeException.class, runtimeExceptionChannel);
-		channelMappings.put(MessageHandlingException.class, messageHandlingExceptionChannel);
-		resolver.setChannelMappings(channelMappings);
-		RouterEndpoint endpoint = new RouterEndpoint(resolver);
-		endpoint.setDefaultOutputChannel(defaultChannel);
-		endpoint.onMessage(message);
+		exceptionTypeChannelMap.put(IllegalArgumentException.class, illegalArgumentChannel);
+		exceptionTypeChannelMap.put(RuntimeException.class, runtimeExceptionChannel);
+		exceptionTypeChannelMap.put(MessageHandlingException.class, messageHandlingExceptionChannel);
+		router.setExceptionTypeChannelMap(exceptionTypeChannelMap);
+		router.setDefaultOutputChannel(defaultChannel);
+		router.onMessage(message);
 		assertNotNull(illegalArgumentChannel.receive(1000));
 		assertNull(defaultChannel.receive(0));
 		assertNull(runtimeExceptionChannel.receive(0));
@@ -173,21 +167,20 @@ public class RootCauseErrorMessageRouterTests {
 	}
 
 	@Test
-	public void testIntermediateCauseHasNoMappingButMostSpecificCauseDoes() {
+	public void intermediateCauseHasNoMappingButMostSpecificCauseDoes() {
 		Message<?> failedMessage = new StringMessage("foo");
 		IllegalArgumentException rootCause = new IllegalArgumentException("bad argument");
 		RuntimeException middleCause = new RuntimeException(rootCause);
 		MessageHandlingException error = new MessageHandlingException(failedMessage, "failed", middleCause);
 		ErrorMessage message = new ErrorMessage(error);
-		RootCauseErrorMessageChannelResolver resolver = new RootCauseErrorMessageChannelResolver();
-		Map<Class<? extends Throwable>, MessageChannel> channelMappings =
+		RootCauseErrorMessageRouter router = new RootCauseErrorMessageRouter();
+		Map<Class<? extends Throwable>, MessageChannel> exceptionTypeChannelMap =
 				new HashMap<Class<? extends Throwable>, MessageChannel>();
-		channelMappings.put(IllegalArgumentException.class, illegalArgumentChannel);
-		channelMappings.put(MessageHandlingException.class, messageHandlingExceptionChannel);
-		resolver.setChannelMappings(channelMappings);
-		RouterEndpoint endpoint = new RouterEndpoint(resolver);
-		endpoint.setDefaultOutputChannel(defaultChannel);
-		endpoint.onMessage(message);
+		exceptionTypeChannelMap.put(IllegalArgumentException.class, illegalArgumentChannel);
+		exceptionTypeChannelMap.put(MessageHandlingException.class, messageHandlingExceptionChannel);
+		router.setExceptionTypeChannelMap(exceptionTypeChannelMap);
+		router.setDefaultOutputChannel(defaultChannel);
+		router.onMessage(message);
 		assertNotNull(illegalArgumentChannel.receive(1000));
 		assertNull(defaultChannel.receive(0));
 		assertNull(runtimeExceptionChannel.receive(0));

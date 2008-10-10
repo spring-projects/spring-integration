@@ -4,8 +4,10 @@
 	xmlns:tool="http://www.springframework.org/schema/tool"
 	targetNamespace="http://www.springframework.org/schema/integration/xml"
 	elementFormDefault="qualified" attributeFormDefault="unqualified">
+
 	<xsd:import namespace="http://www.springframework.org/schema/beans" />
 	<xsd:import namespace="http://www.springframework.org/schema/tool" />
+
 	<xsd:annotation>
 		<xsd:documentation>
 	Defines the configuration elements for Spring Integration's XML support.
@@ -20,8 +22,7 @@
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="transformerType">
-					<xsd:attribute name="marshaller" type="xsd:string"
-						use="required" />
+					<xsd:attribute name="marshaller" type="xsd:string" use="required" />
 					<xsd:attribute name="result-type" use="optional">
 						<xsd:simpleType>
 							<xsd:restriction base="xsd:string">
@@ -31,8 +32,7 @@
 						</xsd:simpleType>
 					</xsd:attribute>
 					<xsd:attribute name="result-factory" use="optional" />
-					<xsd:attribute name="result-transformer" type="xsd:string"
-						use="optional" />
+					<xsd:attribute name="result-transformer" type="xsd:string" use="optional" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -46,8 +46,7 @@
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="transformerType">
-					<xsd:attribute name="unmarshaller" type="xsd:string"
-						use="required" />
+					<xsd:attribute name="unmarshaller" type="xsd:string" use="required" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -61,14 +60,10 @@
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="transformerType">
-					<xsd:attribute name="xsl-resource" type="xsd:string"
-						use="optional" />
-					<xsd:attribute name="xsl-templates" type="xsd:string"
-						use="optional" />
-					<xsd:attribute name="source-factory" type="xsd:string"
-						use="optional" />
-					<xsd:attribute name="result-factory" type="xsd:string"
-						use="optional" />
+					<xsd:attribute name="xsl-resource" type="xsd:string" use="optional" />
+					<xsd:attribute name="xsl-templates" type="xsd:string" use="optional" />
+					<xsd:attribute name="source-factory" type="xsd:string" use="optional" />
+					<xsd:attribute name="result-factory" type="xsd:string" use="optional" />
 					<xsd:attribute name="result-type" use="optional">
 						<xsd:simpleType>
 							<xsd:restriction base="xsd:string">
@@ -77,13 +72,12 @@
 							</xsd:restriction>
 						</xsd:simpleType>
 					</xsd:attribute>
-					<xsd:attribute name="result-transformer" type="xsd:string"
-						use="optional" />
+					<xsd:attribute name="result-transformer" type="xsd:string" use="optional" />
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
-	
+
 	<xsd:element name="xpath-router">
 		<xsd:complexType>
 			<xsd:annotation>
@@ -95,26 +89,23 @@
 				<xsd:element ref="xpath-expression" maxOccurs="1" minOccurs="0" />
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string" use="required" />
-			<xsd:attribute name="xpath-expression-ref" type="xsd:string"
-				use="optional" />
-			<xsd:attribute name="multi-channel" type="xsd:boolean"
-				default="false" />
+			<xsd:attribute name="xpath-expression-ref" type="xsd:string" use="optional" />
+			<xsd:attribute name="multi-channel" type="xsd:boolean" default="false" />
 		</xsd:complexType>
 	</xsd:element>
-	
+
 	<xsd:element name="xpath-selector">
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-					Defines an XPath selector.
+	Defines an XPath selector.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:sequence>
 				<xsd:element ref="xpath-expression" maxOccurs="1" minOccurs="0" />
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string" use="required" />
-				<xsd:attribute name="xpath-expression-ref" type="xsd:string"
-				use="optional" />
+				<xsd:attribute name="xpath-expression-ref" type="xsd:string" use="optional" />
 			<xsd:attribute name="evaluation-result-type" use="required">
 				<xsd:simpleType>
 					<xsd:restriction base="xsd:string">
@@ -123,12 +114,10 @@
 					</xsd:restriction>
 				</xsd:simpleType>
 			</xsd:attribute>
-			<xsd:attribute name="string-test-value" type="xsd:string"
-				use="optional" />
-				
+			<xsd:attribute name="string-test-value" type="xsd:string" use="optional" />
 		</xsd:complexType>
 	</xsd:element>
-	
+
 	<xsd:element name="xpath-expression">
 		<xsd:complexType>
 			<xsd:annotation>
@@ -140,23 +129,17 @@
 				<xsd:element ref="beans:map" minOccurs="0" maxOccurs="1"/>
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string" use="optional" />
-			<xsd:attribute name="expression" type="xsd:string"
-				use="optional" />
-			<xsd:attribute name="ns-prefix" type="xsd:string"
-				use="optional" />
-			<xsd:attribute name="ns-uri" type="xsd:string"
-				use="optional" />
-			<xsd:attribute name="namespace-map" type="xsd:string"
-				use="optional" />
+			<xsd:attribute name="expression" type="xsd:string" use="optional" />
+			<xsd:attribute name="ns-prefix" type="xsd:string" use="optional" />
+			<xsd:attribute name="ns-uri" type="xsd:string" use="optional" />
+			<xsd:attribute name="namespace-map" type="xsd:string" use="optional" />
 		</xsd:complexType>
 	</xsd:element>
-	
-	
+
 	<xsd:complexType name="transformerType">
 		<xsd:attribute name="id" type="xsd:string" use="optional" />
-		<xsd:attribute name="input-channel" type="xsd:string"
-			use="required" />
-		<xsd:attribute name="output-channel" type="xsd:string"
-			use="required" />
+		<xsd:attribute name="input-channel" type="xsd:string" use="required" />
+		<xsd:attribute name="output-channel" type="xsd:string" use="required" />
 	</xsd:complexType>
+
 </xsd:schema>

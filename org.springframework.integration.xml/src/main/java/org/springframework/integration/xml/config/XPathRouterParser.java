@@ -23,8 +23,8 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.xml.router.XPathMultiChannelNameResolver;
-import org.springframework.integration.xml.router.XPathSingleChannelNameResolver;
+import org.springframework.integration.xml.router.XPathMultiChannelRouter;
+import org.springframework.integration.xml.router.XPathSingleChannelRouter;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -47,32 +47,30 @@ public class XPathRouterParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-
 		boolean multiChannel = Boolean.parseBoolean(element.getAttribute("multi-channel"));
 		String xPathExpressionRef = element.getAttribute("xpath-expression-ref");
-
-		NodeList xPathExpressionNodes = element.getElementsByTagNameNS(element.getNamespaceURI(), "xpath-expression");
-		Assert.isTrue(xPathExpressionNodes.getLength() < 2, "Only one xpath-expression child can be specified");
-		boolean xPathExpressionChildPresent = xPathExpressionNodes.getLength() == 1;
+		NodeList xPathExpressionNodes = element.getElementsByTagNameNS(
+				element.getNamespaceURI(), "xpath-expression");
+		Assert.isTrue(xPathExpressionNodes.getLength() < 2,
+				"Only one xpath-expression child can be specified.");
+		boolean xPathExpressionChildPresent = (xPathExpressionNodes.getLength() == 1);
 		boolean xPathReferencePresent = StringUtils.hasText(xPathExpressionRef);
-
 		Assert.isTrue(xPathExpressionChildPresent ^ xPathReferencePresent,
 				"Exactly one of 'xpath-expression' or 'xpath-expression-ref' is required.");
 		if (multiChannel) {
-			builder.getBeanDefinition().setBeanClass(XPathMultiChannelNameResolver.class);
+			builder.getBeanDefinition().setBeanClass(XPathMultiChannelRouter.class);
 		}
 		else {
-			builder.getBeanDefinition().setBeanClass(XPathSingleChannelNameResolver.class);
+			builder.getBeanDefinition().setBeanClass(XPathSingleChannelRouter.class);
 		}
-
 		if (xPathExpressionChildPresent) {
-			BeanDefinition beanDefinition = xpathParser.parse((Element) xPathExpressionNodes.item(0), parserContext);
+			BeanDefinition beanDefinition = this.xpathParser.parse(
+					(Element) xPathExpressionNodes.item(0), parserContext);
 			builder.addConstructorArgValue(beanDefinition);
-		} else { 
+		}
+		else { 
 			builder.addConstructorArgReference(xPathExpressionRef);
 		}
 	}
-
-	
 
 }

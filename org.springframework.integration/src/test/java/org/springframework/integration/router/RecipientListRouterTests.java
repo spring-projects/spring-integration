@@ -45,11 +45,11 @@ public class RecipientListRouterTests {
 		List<MessageChannel> channels = new ArrayList<MessageChannel>();
 		channels.add(channel1);
 		channels.add(channel2);
-		RecipientListChannelResolver resolver = new RecipientListChannelResolver();
-		resolver.setChannels(channels);
-		resolver.afterPropertiesSet();
+		RecipientListRouter router = new RecipientListRouter();
+		router.setChannels(channels);
+		router.afterPropertiesSet();
 		Message<String> message = new StringMessage("test");
-		Collection<MessageChannel> resolved = resolver.resolveChannels(message);
+		Collection<MessageChannel> resolved = router.resolveChannels(message);
 		assertEquals(2, resolved.size());
 		assertTrue(resolved.contains(channel1));
 		assertTrue(resolved.contains(channel2));
@@ -62,12 +62,11 @@ public class RecipientListRouterTests {
 		List<MessageChannel> channels = new ArrayList<MessageChannel>();
 		channels.add(channel1);
 		channels.add(channel2);
-		RecipientListChannelResolver resolver = new RecipientListChannelResolver();
-		resolver.setChannels(channels);
-		resolver.afterPropertiesSet();
-		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		RecipientListRouter router = new RecipientListRouter();
+		router.setChannels(channels);
+		router.afterPropertiesSet();
 		Message<String> message = new StringMessage("test");
-		endpoint.onMessage(message);
+		router.onMessage(message);
 		Message<?> result1 = channel1.receive(25);
 		assertNotNull(result1);
 		assertEquals("test", result1.getPayload());
@@ -80,11 +79,10 @@ public class RecipientListRouterTests {
 	public void routeToSingleChannel() {
 		QueueChannel channel = new QueueChannel();
 		channel.setBeanName("channel");
-		RecipientListChannelResolver resolver = new RecipientListChannelResolver();
-		resolver.setChannels(Collections.singletonList((MessageChannel) channel));
-		RouterEndpoint endpoint = new RouterEndpoint(resolver);
+		RecipientListRouter router = new RecipientListRouter();
+		router.setChannels(Collections.singletonList((MessageChannel) channel));
 		Message<String> message = new StringMessage("test");
-		endpoint.onMessage(message);
+		router.onMessage(message);
 		Message<?> result1 = channel.receive(25);
 		assertNotNull(result1);
 		assertEquals("test", result1.getPayload());
@@ -93,22 +91,24 @@ public class RecipientListRouterTests {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void nullChannelListNotSettable() {
-		RecipientListChannelResolver resolver = new RecipientListChannelResolver();
-		resolver.setChannels(null);
+	public void nullChannelListRejected() {
+		RecipientListRouter router = new RecipientListRouter();
+		router.setChannels(null);
+		router.afterPropertiesSet();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void emptyChannelListNotSettable() {
-		RecipientListChannelResolver resolver = new RecipientListChannelResolver();
+	public void emptyChannelListRejected() {
+		RecipientListRouter router = new RecipientListRouter();
 		List<MessageChannel> channels = new ArrayList<MessageChannel>();
-		resolver.setChannels(channels);
+		router.setChannels(channels);
+		router.afterPropertiesSet();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void nullChannelListFailsInitialization() {
-		RecipientListChannelResolver resolver = new RecipientListChannelResolver();
-		resolver.afterPropertiesSet();
+	public void noChannelListFailsInitialization() {
+		RecipientListRouter router = new RecipientListRouter();
+		router.afterPropertiesSet();
 	}
 
 }

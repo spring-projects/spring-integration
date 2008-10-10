@@ -16,18 +16,15 @@
 
 package org.springframework.integration.router;
 
-import org.springframework.integration.message.Message;
+import org.springframework.integration.channel.MessageChannel;
 
 /**
+ * Strategy for mapping from a name to a {@link MessageChannel}.
+ * 
  * @author Mark Fisher
  */
-public abstract class AbstractSingleChannelNameResolver extends AbstractChannelNameResolver {
+public interface ChannelMapping {
 
-	public final String[] resolveChannelNames(Message<?> message) {
-		String channelName = this.resolveChannelName(message);
-		return (channelName != null) ? new String[] { channelName } : null;
-	}
-
-	protected abstract String resolveChannelName(Message<?> message);
+	MessageChannel getChannel(String name);
 
 }

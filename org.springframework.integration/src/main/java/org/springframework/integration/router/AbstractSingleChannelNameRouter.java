@@ -16,23 +16,19 @@
 
 package org.springframework.integration.router;
 
-import java.util.Collection;
-import java.util.Collections;
-
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 
 /**
  * @author Mark Fisher
  */
-public abstract class AbstractSingleChannelResolver implements ChannelResolver {
+public abstract class AbstractSingleChannelNameRouter extends AbstractChannelMappingMessageRouter {
 
-	public Collection<MessageChannel> resolveChannels(Message<?> message) {
-		MessageChannel channel = this.resolveChannel(message);
-		return (channel != null) ?
-				Collections.singletonList(channel) : null;
+	@Override
+	protected final String[] resolveChannelNames(Message<?> message) {
+		String channelName = this.resolveChannelName(message);
+		return (channelName != null) ? new String[] { channelName } : null;
 	}
 
-	protected abstract MessageChannel resolveChannel(Message<?> message);
+	protected abstract String resolveChannelName(Message<?> message);
 
 }

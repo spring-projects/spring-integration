@@ -25,21 +25,19 @@ import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
 
 /**
- * A {@link ChannelResolver} implementation that routes to a statically
- * configured list of recipients. The recipients are provided as a list of
- * {@link MessageChannel} instances. For dynamic recipient lists, consider
- * either implementing the {@link ChannelResolver} interface directly or
- * extending the {@link AbstractChannelNameResolver} base class.
+ * A Message Router that sends Messages to a statically configured list of
+ * recipients. The recipients are provided as a list of {@link MessageChannel}
+ * instances. For dynamic recipient lists, consider instead using the @Router
+ * annotation or extending {@link AbstractChannelMappingMessageRouter}. 
  * 
  * @author Mark Fisher
  */
-public class RecipientListChannelResolver implements ChannelResolver, InitializingBean {
+public class RecipientListRouter extends AbstractMessageRouter implements InitializingBean {
 
 	private volatile List<MessageChannel> channels;
 
 
 	public void setChannels(List<MessageChannel> channels) {
-		Assert.notEmpty(channels, "a non-empty channel list is required");
 		this.channels = channels;
 	}
 
@@ -47,7 +45,8 @@ public class RecipientListChannelResolver implements ChannelResolver, Initializi
 		Assert.notEmpty(this.channels, "a non-empty channel list is required");
 	}
 
-	public Collection<MessageChannel> resolveChannels(Message<?> message) {
+	@Override
+	protected Collection<MessageChannel> resolveChannels(Message<?> message) {
 		return this.channels;
 	}
 

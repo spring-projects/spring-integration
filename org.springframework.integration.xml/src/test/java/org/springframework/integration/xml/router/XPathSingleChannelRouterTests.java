@@ -19,58 +19,59 @@ package org.springframework.integration.xml.router;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.xml.xpath.XPathExpression;
 import org.springframework.xml.xpath.XPathExpressionFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
 
 /**
  * @author Jonas Partner
  */
-public class XPathSingleChannelNameResolverTests {
+public class XPathSingleChannelRouterTests {
 
 	@Test
 	public void testSimpleDocType() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<doc type='one' />");
 		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/doc/@type");
-		XPathSingleChannelNameResolver resolver = new XPathSingleChannelNameResolver(expression);
-		String channelName = resolver.resolveChannelNames(new GenericMessage<Document>(doc))[0];
+		XPathSingleChannelRouter router = new XPathSingleChannelRouter(expression);
+		String channelName = router.resolveChannelNames(new GenericMessage<Document>(doc))[0];
 		assertEquals("Wrong channel name", "one", channelName);
 	}
 
 	@Test
 	public void testSimpleStringDoc() throws Exception {
 		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/doc/@type");
-		XPathSingleChannelNameResolver resolver = new XPathSingleChannelNameResolver(expression);
-		String channelName = resolver.resolveChannelNames(new GenericMessage<String>("<doc type='one' />"))[0];
+		XPathSingleChannelRouter router = new XPathSingleChannelRouter(expression);
+		String channelName = router.resolveChannelNames(new GenericMessage<String>("<doc type='one' />"))[0];
 		assertEquals("Wrong channel name", "one", channelName);
 	}
 
 	@Test(expected = MessagingException.class)
 	public void testNonNodePayload() throws Exception {
 		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/doc/@type");
-		XPathSingleChannelNameResolver resolver = new XPathSingleChannelNameResolver(expression);
-		resolver.resolveChannelNames(new StringMessage("test"));
+		XPathSingleChannelRouter router = new XPathSingleChannelRouter(expression);
+		router.resolveChannelNames(new StringMessage("test"));
 	}
 
 	@Test
 	public void testNodePayload() throws Exception {
-		XPathSingleChannelNameResolver resolver = new XPathSingleChannelNameResolver("./three/text()");
+		XPathSingleChannelRouter router = new XPathSingleChannelRouter("./three/text()");
 		Document testDocument = XmlTestUtil.getDocumentForString("<one><two><three>bob</three></two></one>");
-		String[] channelNames = resolver.resolveChannelNames(new GenericMessage<Node>(testDocument
-				.getElementsByTagName("two").item(0)));
+		String[] channelNames = router.resolveChannelNames(new GenericMessage<Node>(
+				testDocument.getElementsByTagName("two").item(0)));
 		assertEquals("bob", channelNames[0]);
 	}
-	
+
 	@Test(expected=MessagingException.class)
 	public void testEvaluationReturnsEmptyString() throws Exception {
-		XPathSingleChannelNameResolver resolver = new XPathSingleChannelNameResolver("/yellow");
+		XPathSingleChannelRouter router = new XPathSingleChannelRouter("/yellow");
 		Document testDocument = XmlTestUtil.getDocumentForString("<one><two><three>bob</three></two></one>");
-		resolver.resolveChannelNames(new GenericMessage<Node>(testDocument));
-	
+		router.resolveChannelNames(new GenericMessage<Node>(testDocument));
 	}
+
 }

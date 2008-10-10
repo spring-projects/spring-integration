@@ -30,8 +30,8 @@ import org.junit.Test;
 
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.channel.TestChannelRegistry;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
@@ -106,8 +106,6 @@ public class ServiceActivatorEndpointTests {
 		final QueueChannel replyChannel1 = new QueueChannel();
 		final QueueChannel replyChannel2 = new QueueChannel();
 		replyChannel2.setBeanName("replyChannel2");
-		ChannelRegistry channelRegistry = new TestChannelRegistry();
-		channelRegistry.registerChannel(replyChannel2);
 		Object handler = new Object() {
 			@SuppressWarnings("unused")
 			public Message<?> handle(Message<?> message) {
@@ -115,7 +113,16 @@ public class ServiceActivatorEndpointTests {
 			}
 		};
 		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(handler, "handle");
-		endpoint.setChannelRegistry(channelRegistry);
+		endpoint.setChannelRegistry(new ChannelRegistry() {
+			public MessageChannel lookupChannel(String channelName) {
+				if (channelName.equals("replyChannel2")) {
+					return replyChannel2;
+				}
+				return null;
+			}
+			public void registerChannel(MessageChannel channel) {
+			}
+		});
 		Message<String> testMessage1 = MessageBuilder.withPayload("bar")
 				.setReturnAddress(replyChannel1).build();
 		endpoint.onMessage(testMessage1);
