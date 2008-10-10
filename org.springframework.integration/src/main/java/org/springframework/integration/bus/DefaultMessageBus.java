@@ -36,7 +36,6 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
@@ -81,10 +80,8 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		Assert.notNull(applicationContext, "'applicationContext' must not be null");
-		if (applicationContext.getBeanNamesForType(this.getClass()).length > 1) {
-			throw new ConfigurationException("Only one instance of '" + this.getClass().getSimpleName()
-					+ "' is allowed per ApplicationContext.");
-		}
+		Assert.state(!(applicationContext.getBeanNamesForType(this.getClass()).length > 1),
+				"Only one instance of '" + this.getClass().getSimpleName() + "' is allowed per ApplicationContext.");
 		this.applicationContext = applicationContext;
 	}
 

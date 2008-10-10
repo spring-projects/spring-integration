@@ -30,7 +30,6 @@ import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.task.SyncTaskExecutor;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.bus.MessageBusInterceptorTests;
@@ -89,7 +88,7 @@ public class MessageBusParserTests {
 			// tries to get a reference to the message bus
 			assertEquals(BeanCreationException.class, e.getCause().getClass());
 			assertEquals(e.getBeanName(), MessageBusParser.MESSAGE_BUS_AWARE_POST_PROCESSOR_BEAN_NAME);
-			assertEquals(ConfigurationException.class, (e.getCause()).getCause().getClass());
+			assertEquals(IllegalStateException.class, (e.getCause()).getCause().getClass());
 			assertEquals(((BeanCreationException) e.getCause()).getBeanName(), MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		}
 		assertTrue(exceptionThrown);

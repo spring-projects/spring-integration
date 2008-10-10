@@ -16,17 +16,17 @@
 
 package org.springframework.integration.xml.config;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.ConfigurationException;
 import org.springframework.integration.xml.router.XPathMultiChannelNameResolver;
 import org.springframework.integration.xml.router.XPathSingleChannelNameResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 /**
  * @author Jonas Partner
@@ -56,11 +56,8 @@ public class XPathRouterParser extends AbstractSingleBeanDefinitionParser {
 		boolean xPathExpressionChildPresent = xPathExpressionNodes.getLength() == 1;
 		boolean xPathReferencePresent = StringUtils.hasText(xPathExpressionRef);
 
-		if ((xPathExpressionChildPresent && xPathReferencePresent)
-				|| (!xPathExpressionChildPresent && !xPathReferencePresent)) {
-			throw new ConfigurationException("Exactly one of 'xpath-expression' or 'xpath-expression-ref' is required.");
-		}
-
+		Assert.isTrue(xPathExpressionChildPresent ^ xPathReferencePresent,
+				"Exactly one of 'xpath-expression' or 'xpath-expression-ref' is required.");
 		if (multiChannel) {
 			builder.getBeanDefinition().setBeanClass(XPathMultiChannelNameResolver.class);
 		}

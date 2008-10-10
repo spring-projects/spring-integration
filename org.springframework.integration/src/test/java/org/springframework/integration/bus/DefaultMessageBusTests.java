@@ -35,6 +35,7 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.config.MessageBusParser;
 import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
 import org.springframework.integration.endpoint.PollingConsumerEndpoint;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
@@ -76,6 +77,7 @@ public class DefaultMessageBusTests {
 		context.refresh();
 		DefaultMessageBus bus = new DefaultMessageBus();
 		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
+		context.getBeanFactory().registerSingleton(MessageBusParser.MESSAGE_BUS_BEAN_NAME, bus);
 		bus.setApplicationContext(context);
 		consumer.setChannelRegistry(bus);
 		bus.start();
