@@ -22,6 +22,7 @@ import java.util.List;
 import org.aopalliance.aop.Advice;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.integration.scheduling.IntervalTrigger;
@@ -56,6 +57,13 @@ public abstract class AnnotationConfigUtils {
 			endpoint.setTransactionManager(txManager);
 			Transactional txAnnotation = pollerAnnotation.transactionAttributes();
 			endpoint.setTransactionDefinition(parseTransactionAnnotation(txAnnotation));
+		}
+		if (StringUtils.hasText(pollerAnnotation.taskExecutor())) {
+			String taskExecutorRef = pollerAnnotation.taskExecutor();
+			Assert.isTrue(beanFactory.containsBean(taskExecutorRef),
+					"failed to resolve taskExecutor reference, no such bean '" + taskExecutorRef + "'");
+			TaskExecutor taskExecutor = (TaskExecutor) beanFactory.getBean(taskExecutorRef, TaskExecutor.class);
+			endpoint.setTaskExecutor(taskExecutor);
 		}
 		String[] adviceChainArray = pollerAnnotation.adviceChain();
 		if (adviceChainArray.length > 0) {

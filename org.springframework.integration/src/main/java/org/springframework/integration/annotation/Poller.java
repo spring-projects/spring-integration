@@ -49,6 +49,8 @@ public @interface Poller {
 
 	int maxMessagesPerPoll() default -1;
 
+	String taskExecutor() default "";
+
 	Transactional transactionAttributes() default @Transactional;
 
 	String transactionManager() default "";
