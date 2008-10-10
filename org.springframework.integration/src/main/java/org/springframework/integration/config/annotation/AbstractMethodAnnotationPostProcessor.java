@@ -51,7 +51,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	private static final String OUTPUT_CHANNEL_ATTRIBUTE = "outputChannel";
 
 
-	private final GenericBeanFactoryAccessor beanFactoryAccessor;
+	protected final GenericBeanFactoryAccessor beanFactoryAccessor;
 
 	protected final ChannelRegistry channelRegistry;
 
