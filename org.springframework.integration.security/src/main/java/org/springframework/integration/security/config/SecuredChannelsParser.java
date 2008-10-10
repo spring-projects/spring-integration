@@ -26,7 +26,7 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.config.IntegrationNamespaceUtils;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.security.channel.ChannelAccessPolicy;
 import org.springframework.integration.security.channel.ChannelInvocationDefinitionSource;
 import org.springframework.integration.security.channel.ChannelSecurityInterceptor;

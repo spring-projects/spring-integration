@@ -14,29 +14,27 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config;
+package org.springframework.integration.config.xml;
 
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.router.MethodInvokingChannelResolver;
-import org.springframework.integration.router.RouterEndpoint;
+import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
+import org.springframework.integration.message.MessageMappingMethodInvoker;
 
 /**
- * Parser for the &lt;router/&gt; element.
+ * Parser for the &lt;service-activator&gt; element.
  * 
  * @author Mark Fisher
  */
-public class RouterParser extends AbstractConsumerEndpointParser {
+public class ServiceActivatorParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
-		String adapterBeanName = this.parseAdapter(element, parserContext, MethodInvokingChannelResolver.class);
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RouterEndpoint.class);
-		builder.addConstructorArgReference(adapterBeanName);
-		builder.addPropertyReference("channelRegistry", MessageBusParser.MESSAGE_BUS_BEAN_NAME);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "default-output-channel");
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ServiceActivatorEndpoint.class);
+		String constructorArg = this.parseAdapter(element, parserContext, MessageMappingMethodInvoker.class);
+		builder.addConstructorArgReference(constructorArg);
 		return builder;
 	}
 

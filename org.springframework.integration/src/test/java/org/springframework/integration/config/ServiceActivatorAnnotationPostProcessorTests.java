@@ -32,6 +32,7 @@ import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
+import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.util.TestUtils;
 

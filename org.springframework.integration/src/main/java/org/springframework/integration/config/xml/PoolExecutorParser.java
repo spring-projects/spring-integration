@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config;
+package org.springframework.integration.config.xml;
 
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;

@@ -35,7 +35,7 @@ import org.springframework.integration.aggregator.AbstractMessageAggregator;
 import org.springframework.integration.aggregator.CompletionStrategyAdapter;
 import org.springframework.integration.aggregator.SequenceSizeCompletionStrategy;
 import org.springframework.integration.bus.MessageBus;
-import org.springframework.integration.config.MessageBusParser;
+import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 
 /**

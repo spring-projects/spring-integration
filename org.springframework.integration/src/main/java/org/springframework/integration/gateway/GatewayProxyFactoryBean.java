@@ -36,7 +36,7 @@ import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
-import org.springframework.integration.config.MessageBusParser;
+import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.endpoint.MessagingGateway;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MethodParameterMessageMapper;

@@ -29,7 +29,7 @@ import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
-import org.springframework.integration.config.MessageBusParser;
+import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.endpoint.AbstractMessageConsumer;
 import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
 import org.springframework.integration.endpoint.MessageEndpoint;

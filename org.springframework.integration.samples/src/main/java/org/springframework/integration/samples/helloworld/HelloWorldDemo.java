@@ -21,7 +21,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
-import org.springframework.integration.config.MessageBusParser;
+import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.message.StringMessage;
 
 /**

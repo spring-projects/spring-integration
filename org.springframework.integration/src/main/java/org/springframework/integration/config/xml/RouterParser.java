@@ -14,26 +14,29 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config;
+package org.springframework.integration.config.xml;
 
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.filter.MessageFilter;
-import org.springframework.integration.filter.MethodInvokingSelector;
+import org.springframework.integration.router.MethodInvokingChannelResolver;
+import org.springframework.integration.router.RouterEndpoint;
 
 /**
- * Parser for the &lt;filter/&gt; element.
+ * Parser for the &lt;router/&gt; element.
  * 
  * @author Mark Fisher
  */
-public class FilterParser extends AbstractConsumerEndpointParser {
+public class RouterParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MessageFilter.class);
-		builder.addConstructorArgReference(this.parseAdapter(element, parserContext, MethodInvokingSelector.class));
+		String adapterBeanName = this.parseAdapter(element, parserContext, MethodInvokingChannelResolver.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RouterEndpoint.class);
+		builder.addConstructorArgReference(adapterBeanName);
+		builder.addPropertyReference("channelRegistry", MessageBusParser.MESSAGE_BUS_BEAN_NAME);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "default-output-channel");
 		return builder;
 	}
 

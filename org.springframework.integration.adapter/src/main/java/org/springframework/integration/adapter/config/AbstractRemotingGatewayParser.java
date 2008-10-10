@@ -23,7 +23,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.endpoint.config.ConsumerEndpointFactoryBean;
+import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 

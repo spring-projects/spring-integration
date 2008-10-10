@@ -36,6 +36,7 @@ import org.springframework.integration.bus.MessageBusInterceptorTests;
 import org.springframework.integration.bus.TestMessageBusAwareImpl;
 import org.springframework.integration.bus.TestMessageBusStartInterceptor;
 import org.springframework.integration.bus.TestMessageBusStopInterceptor;
+import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 

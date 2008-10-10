@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config;
+package org.springframework.integration.config.xml;
 
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.SplitterFactoryBean;
 import org.springframework.util.StringUtils;
 
 /**

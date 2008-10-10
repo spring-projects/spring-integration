@@ -41,7 +41,7 @@ import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.ChannelRegistryAware;
-import org.springframework.integration.config.MessageBusParser;
+import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;

@@ -14,28 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config;
+package org.springframework.integration.config.xml;
 
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
-import org.springframework.integration.message.MessageMappingMethodInvoker;
+import org.springframework.integration.channel.ThreadLocalChannel;
 
 /**
- * Parser for the &lt;service-activator&gt; element.
+ * Parser for the &lt;thread-local-channel&gt; element.
  * 
  * @author Mark Fisher
  */
-public class ServiceActivatorParser extends AbstractConsumerEndpointParser {
+public class ThreadLocalChannelParser extends AbstractChannelParser {
 
 	@Override
-	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ServiceActivatorEndpoint.class);
-		String constructorArg = this.parseAdapter(element, parserContext, MessageMappingMethodInvoker.class);
-		builder.addConstructorArgReference(constructorArg);
-		return builder;
+	protected BeanDefinitionBuilder buildBeanDefinition(Element element, ParserContext parserContext) {
+		return BeanDefinitionBuilder.genericBeanDefinition(ThreadLocalChannel.class);
 	}
 
 }

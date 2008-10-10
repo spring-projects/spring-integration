@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config;
+package org.springframework.integration.config.xml;
 
 import org.w3c.dom.Element;
 
@@ -24,7 +24,7 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.endpoint.config.ConsumerEndpointFactoryBean;
+import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;

@@ -14,35 +14,27 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config;
+package org.springframework.integration.config.xml;
 
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.transformer.Transformer;
+import org.springframework.integration.transformer.MethodInvokingTransformer;
 import org.springframework.integration.transformer.TransformerEndpoint;
 
 /**
+ * Parser for the &lt;transformer/&gt; element.
+ * 
  * @author Mark Fisher
  */
-public abstract class AbstractTransformerParser extends AbstractConsumerEndpointParser {
+public class TransformerParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(TransformerEndpoint.class);
-		BeanDefinitionBuilder transformerBuilder =
-				BeanDefinitionBuilder.genericBeanDefinition(this.getTransformerClass());
-		this.parseTransformer(element, parserContext, transformerBuilder);
-		String transformerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
-				transformerBuilder.getBeanDefinition(), parserContext.getRegistry());
-		builder.addConstructorArgReference(transformerBeanName);
+		builder.addConstructorArgReference(this.parseAdapter(element, parserContext, MethodInvokingTransformer.class));
 		return builder;
 	}
-
-	protected abstract Class<? extends Transformer> getTransformerClass();
-
-	protected abstract void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder);
 
 }

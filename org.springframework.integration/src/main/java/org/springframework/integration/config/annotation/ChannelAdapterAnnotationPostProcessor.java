@@ -27,7 +27,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
-import org.springframework.integration.config.MessageBusParser;
+import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.PollingConsumerEndpoint;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;

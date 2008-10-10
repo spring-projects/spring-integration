@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config;
+package org.springframework.integration.config.xml;
 
-import org.w3c.dom.Element;
-
-import org.springframework.beans.factory.xml.ParserContext;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Simple strategy interface for parsers that are responsible
- * for parsing an element, creating a bean definition, and then
- * registering the bean. The {@link #parse(Element, ParserContext)}
- * method should return the name of the registered bean.
- * 
  * @author Mark Fisher
  */
-public interface BeanDefinitionRegisteringParser {
+public class ChannelInterceptorParser extends AbstractInterceptorParser {
 
-	String parse(Element element, ParserContext parserContext);
+	@Override
+	protected Map<String, BeanDefinitionRegisteringParser> getParserMap() {
+		Map<String, BeanDefinitionRegisteringParser> parsers = new HashMap<String, BeanDefinitionRegisteringParser>();
+		parsers.put("wire-tap", new WireTapParser());
+		return parsers;
+	}
 
 }

@@ -1,1 +1,1 @@
-http\://www.springframework.org/schema/integration=org.springframework.integration.config.IntegrationNamespaceHandler
+http\://www.springframework.org/schema/integration=org.springframework.integration.config.xml.IntegrationNamespaceHandler

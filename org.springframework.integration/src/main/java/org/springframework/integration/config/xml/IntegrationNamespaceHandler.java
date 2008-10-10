@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config;
+package org.springframework.integration.config.xml;
 
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 

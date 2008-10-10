@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint.config;
+package org.springframework.integration.config;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
