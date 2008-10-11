@@ -35,6 +35,7 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
@@ -116,10 +117,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 			Assert.notNull(this.taskScheduler, "TaskScheduler must not be null");
 			this.initialized = true;
 		}
-	}
-
-	public MessageChannel getErrorChannel() {
-		return this.lookupChannel(ERROR_CHANNEL_NAME);
 	}
 
 	public MessageChannel lookupChannel(String channelName) {
@@ -239,7 +236,8 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 				gateway.start();
 			}
 			if (this.taskScheduler instanceof SimpleTaskScheduler) {
-				((SimpleTaskScheduler) this.taskScheduler).setErrorHandler(new MessagePublishingErrorHandler(this.getErrorChannel()));
+				((SimpleTaskScheduler) this.taskScheduler).setErrorHandler(
+						new MessagePublishingErrorHandler(this.lookupChannel(ChannelRegistry.ERROR_CHANNEL_NAME)));
 			}
 			this.taskScheduler.start();
 		}
