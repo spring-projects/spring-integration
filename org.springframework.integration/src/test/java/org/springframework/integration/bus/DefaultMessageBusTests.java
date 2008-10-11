@@ -240,15 +240,6 @@ public class DefaultMessageBusTests {
 	}
 
 	@Test
-	public void errorChannelRegistration() {
-		DefaultMessageBus bus = new DefaultMessageBus();
-		QueueChannel errorChannel = new QueueChannel();
-		errorChannel.setBeanName(ChannelRegistry.ERROR_CHANNEL_NAME);
-		bus.registerChannel(errorChannel);
-		assertEquals(errorChannel, bus.getErrorChannel());
-	}
-
-	@Test
 	public void consumerSubscribedToErrorChannel() throws InterruptedException {
 		GenericApplicationContext context = new GenericApplicationContext();
 		QueueChannel errorChannel = new QueueChannel();
@@ -275,10 +266,12 @@ public class DefaultMessageBusTests {
 
 	@Test
 	public void lookupRegisteredChannel() {
-		DefaultMessageBus messageBus = new DefaultMessageBus();
+		GenericApplicationContext context = new GenericApplicationContext();
 		QueueChannel testChannel = new QueueChannel();
 		testChannel.setBeanName("testChannel");
-		messageBus.registerChannel(testChannel);
+		context.getBeanFactory().registerSingleton("testChannel", testChannel);
+		DefaultMessageBus messageBus = new DefaultMessageBus();
+		messageBus.setApplicationContext(context);
 		MessageChannel lookedUpChannel = messageBus.lookupChannel("testChannel");
 		assertNotNull(testChannel);
 		assertSame(testChannel, lookedUpChannel);
@@ -286,7 +279,9 @@ public class DefaultMessageBusTests {
 
 	@Test
 	public void lookupNonRegisteredChannel() {
+		GenericApplicationContext context = new GenericApplicationContext();
 		DefaultMessageBus messageBus = new DefaultMessageBus();
+		messageBus.setApplicationContext(context);
 		MessageChannel noSuchChannel = messageBus.lookupChannel("noSuchChannel");
 		assertNull(noSuchChannel);
 	}

@@ -43,6 +43,8 @@ import org.springframework.integration.util.TestUtils;
  */
 public class DirectChannelSubscriptionTests {
 
+	private GenericApplicationContext context = new GenericApplicationContext();
+
 	private DefaultMessageBus bus = new DefaultMessageBus();
 
 	private DirectChannel sourceChannel = new DirectChannel();
@@ -54,14 +56,16 @@ public class DirectChannelSubscriptionTests {
 	public void setupChannels() {
 		sourceChannel.setBeanName("sourceChannel");
 		targetChannel.setBeanName("targetChannel");
-		bus.registerChannel(sourceChannel);
-		bus.registerChannel(targetChannel);
+		context.getBeanFactory().registerSingleton("sourceChannel", sourceChannel);
+		context.getBeanFactory().registerSingleton("targetChannel", targetChannel);
+		context.getBeanFactory().registerSingleton(MessageBusParser.MESSAGE_BUS_BEAN_NAME, bus);
+		bus.setApplicationContext(context);
 		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 	}
 
 
 	@Test
-	public void testSendAndReceiveForRegisteredEndpoint() {
+	public void sendAndReceiveForRegisteredEndpoint() {
 		GenericApplicationContext context = new GenericApplicationContext();
 		ServiceActivatorEndpoint serviceActivator = new ServiceActivatorEndpoint(new TestBean(), "handle");
 		serviceActivator.setOutputChannel(targetChannel);
@@ -76,10 +80,7 @@ public class DirectChannelSubscriptionTests {
 	}
 
 	@Test
-	public void testSendAndReceiveForAnnotatedEndpoint() {
-		GenericApplicationContext context = new GenericApplicationContext();
-		bus.setApplicationContext(context);
-		context.getBeanFactory().registerSingleton(MessageBusParser.MESSAGE_BUS_BEAN_NAME, bus);
+	public void sendAndReceiveForAnnotatedEndpoint() {
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(context.getBeanFactory());
 		postProcessor.afterPropertiesSet();
@@ -92,11 +93,8 @@ public class DirectChannelSubscriptionTests {
 		bus.stop();
 	}
 
-	@Test(expected=RuntimeException.class)
-	public void testExceptionThrownFromRegisteredEndpoint() {
-		QueueChannel errorChannel = new QueueChannel();
-		errorChannel.setBeanName(ChannelRegistry.ERROR_CHANNEL_NAME);
-		bus.registerChannel(errorChannel);
+	@Test(expected = MessagingException.class)
+	public void exceptionThrownFromRegisteredEndpoint() {
 		AbstractReplyProducingMessageConsumer consumer = new AbstractReplyProducingMessageConsumer() {
 			public Message<?> handle(Message<?> message) {
 				throw new RuntimeException("intentional test failure");
@@ -109,11 +107,8 @@ public class DirectChannelSubscriptionTests {
 		this.sourceChannel.send(new StringMessage("foo"));
 	}
 
-	@Test(expected=MessagingException.class)
-	public void testExceptionThrownFromAnnotatedEndpoint() {
-		GenericApplicationContext context = new GenericApplicationContext();
-		bus.setApplicationContext(context);
-		context.getBeanFactory().registerSingleton(MessageBusParser.MESSAGE_BUS_BEAN_NAME, bus);
+	@Test(expected = MessagingException.class)
+	public void exceptionThrownFromAnnotatedEndpoint() {
 		QueueChannel errorChannel = new QueueChannel();
 		errorChannel.setBeanName(ChannelRegistry.ERROR_CHANNEL_NAME);
 		context.getBeanFactory().registerSingleton(ChannelRegistry.ERROR_CHANNEL_NAME, errorChannel);

@@ -41,6 +41,8 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.bus.MessageBusAwareBeanPostProcessor;
+import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
 import org.springframework.integration.config.annotation.PublisherAnnotationPostProcessor;
 import org.springframework.integration.scheduling.SimpleTaskScheduler;
@@ -99,6 +101,12 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 		super.doParse(element, parserContext, builder);
 		String taskSchedulerRef = element.getAttribute(TASK_SCHEDULER_ATTRIBUTE);
 		TaskExecutor taskExecutor= null;
+		if (!parserContext.getRegistry().containsBeanDefinition(ChannelRegistry.ERROR_CHANNEL_NAME)) {
+			RootBeanDefinition errorChannelDef = new RootBeanDefinition(QueueChannel.class);
+			BeanDefinitionHolder errorChannelHolder = new BeanDefinitionHolder(
+					errorChannelDef, ChannelRegistry.ERROR_CHANNEL_NAME);
+			BeanDefinitionReaderUtils.registerBeanDefinition(errorChannelHolder, parserContext.getRegistry());
+		}
 		if (StringUtils.hasText(taskSchedulerRef)) {
 			builder.addPropertyReference("taskScheduler", taskSchedulerRef);
 		}

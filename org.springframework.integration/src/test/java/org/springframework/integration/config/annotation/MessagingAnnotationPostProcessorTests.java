@@ -62,13 +62,13 @@ public class MessagingAnnotationPostProcessorTests {
 	@Test
 	public void testServiceActivatorAnnotation() {
 		GenericApplicationContext context = new GenericApplicationContext();
+		QueueChannel inputChannel = new QueueChannel();
+		inputChannel.setBeanName("inputChannel");
+		context.getBeanFactory().registerSingleton("inputChannel", inputChannel);
 		DefaultMessageBus messageBus = new DefaultMessageBus();
 		context.getBeanFactory().registerSingleton(
 				MessageBusParser.MESSAGE_BUS_BEAN_NAME, messageBus);
 		messageBus.setApplicationContext(context);
-		QueueChannel inputChannel = new QueueChannel();
-		inputChannel.setBeanName("inputChannel");
-		messageBus.registerChannel(inputChannel);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(context.getBeanFactory());
 		postProcessor.afterPropertiesSet();
@@ -181,13 +181,13 @@ public class MessagingAnnotationPostProcessorTests {
 	@Test
 	public void testChannelRegistryAwareBean() {
 		GenericApplicationContext context = new GenericApplicationContext();
+		QueueChannel inputChannel = new QueueChannel();
+		inputChannel.setBeanName("inputChannel");
+		context.getBeanFactory().registerSingleton("inputChannel", inputChannel);
 		DefaultMessageBus messageBus = new DefaultMessageBus();
 		context.getBeanFactory().registerSingleton(
 				MessageBusParser.MESSAGE_BUS_BEAN_NAME, messageBus);
 		messageBus.setApplicationContext(context);
-		QueueChannel inputChannel = new QueueChannel();
-		inputChannel.setBeanName("inputChannel");
-		messageBus.registerChannel(inputChannel);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(context.getBeanFactory());
 		postProcessor.afterPropertiesSet();

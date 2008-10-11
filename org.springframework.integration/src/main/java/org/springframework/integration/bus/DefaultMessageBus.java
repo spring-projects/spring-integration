@@ -20,7 +20,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -56,8 +55,6 @@ import org.springframework.util.Assert;
 public class DefaultMessageBus implements MessageBus, ApplicationContextAware, ApplicationListener, DisposableBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
-
-	private final Map<String, MessageChannel> channels = new ConcurrentHashMap<String, MessageChannel>();
 
 	private final Set<MessageEndpoint> endpoints = new CopyOnWriteArraySet<MessageEndpoint>();
 
@@ -117,9 +114,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 			}
 			Assert.notNull(this.applicationContext, "ApplicationContext must not be null");
 			Assert.notNull(this.taskScheduler, "TaskScheduler must not be null");
-			if (this.getErrorChannel() == null) {
-				this.registerChannel(new DefaultErrorChannel());
-			}
 			this.initialized = true;
 		}
 	}
@@ -129,24 +123,14 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 	}
 
 	public MessageChannel lookupChannel(String channelName) {
-		MessageChannel channel = this.channels.get(channelName);
-		if (channel == null && this.applicationContext != null && this.applicationContext.containsBean(channelName)) {
+		Assert.notNull(this.applicationContext, "ApplicationContext must not be null");
+		if (this.applicationContext.containsBean(channelName)) {
 			Object bean = this.applicationContext.getBean(channelName);
 			if (bean instanceof MessageChannel) {
-				channel = (MessageChannel) bean;
-				this.registerChannel(channel);
+				return (MessageChannel) bean;
 			}
 		}
-		return channel;
-	}
-
-	public void registerChannel(MessageChannel channel) {
-		Assert.notNull(channel, "'channel' must not be null");
-		Assert.notNull(channel.getName(), "channel name must not be null");
-		this.channels.put(channel.getName(), channel);
-		if (logger.isInfoEnabled()) {
-			logger.info("registered channel '" + channel.getName() + "'");
-		}
+		return null;
 	}
 
 	public void registerEndpoint(MessageEndpoint endpoint) {

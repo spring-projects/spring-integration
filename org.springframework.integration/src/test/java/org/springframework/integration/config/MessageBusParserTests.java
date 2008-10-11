@@ -61,7 +61,7 @@ public class MessageBusParserTests {
 				"messageBusWithDefaults.xml", this.getClass());
 		DefaultMessageBus bus = (DefaultMessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		bus.initialize();
-		assertNotNull("bus should have created a default error channel", bus.getErrorChannel());
+		assertNotNull("parser should have created a default error channel", bus.getErrorChannel());
 	}
 
 	@Test
