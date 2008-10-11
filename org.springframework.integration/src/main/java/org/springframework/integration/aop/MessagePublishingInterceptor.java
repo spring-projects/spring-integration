@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.util.Assert;
@@ -38,13 +39,15 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	private volatile MessageChannel defaultChannel;
+	private volatile MessageChannel outputChannel;
+
+	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
 	private volatile PayloadType payloadType = PayloadType.RETURN_VALUE;
 
 
-	public void setDefaultChannel(MessageChannel defaultChannel) {
-		this.defaultChannel = defaultChannel;
+	public void setOutputChannel(MessageChannel outputChannel) {
+		this.outputChannel = outputChannel;
 	}
 
 	public void setPayloadType(PayloadType payloadType) {
@@ -82,19 +85,10 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 
 	private void sendMessage(Object payload, MethodInvocation invocation) {
 		if (payload != null) {
-			MessageChannel channel = this.resolveChannel(invocation);
-			if (channel == null) {
-				if (logger.isWarnEnabled()) {
-					logger.warn("unable to resolve channel for intercepted method '" +
-							invocation.getMethod().getName() + "'");
-				}
-			}
-			else {
-				Message<?> message = (payload instanceof Message)
-						? (Message<?>) payload
-						: MessageBuilder.withPayload(payload).build();
-				channel.send(message);
-			}
+			Message<?> message = (payload instanceof Message)
+					? (Message<?>) payload
+					: MessageBuilder.withPayload(payload).build();
+			this.channelTemplate.send(message, this.resolveChannel(invocation));
 		}
 	}
 
@@ -102,7 +96,7 @@ public class MessagePublishingInterceptor implements MethodInterceptor {
 	 * Subclasses may override this method to provide custom behavior.
 	 */
 	protected MessageChannel resolveChannel(MethodInvocation invocation) {
-		return this.defaultChannel;
+		return this.outputChannel;
 	}
 
 	protected PayloadType determinePayloadType(MethodInvocation invocation) {

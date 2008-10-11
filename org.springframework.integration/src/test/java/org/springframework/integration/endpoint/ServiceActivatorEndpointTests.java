@@ -22,13 +22,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
-import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -90,7 +91,7 @@ public class ServiceActivatorEndpointTests {
 	public void returnAddressHeaderWithChannelName() {
 		QueueChannel channel = new QueueChannel(1);
 		channel.setBeanName("testChannel");
-		ChannelRegistry channelRegistry = new DefaultMessageBus();
+		TestChannelRegistry channelRegistry = new TestChannelRegistry();
 		channelRegistry.registerChannel(channel);
 		ServiceActivatorEndpoint endpoint = this.createEndpoint();
 		endpoint.setChannelRegistry(channelRegistry);
@@ -113,16 +114,9 @@ public class ServiceActivatorEndpointTests {
 			}
 		};
 		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(handler, "handle");
-		endpoint.setChannelRegistry(new ChannelRegistry() {
-			public MessageChannel lookupChannel(String channelName) {
-				if (channelName.equals("replyChannel2")) {
-					return replyChannel2;
-				}
-				return null;
-			}
-			public void registerChannel(MessageChannel channel) {
-			}
-		});
+		TestChannelRegistry channelRegistry = new TestChannelRegistry();
+		channelRegistry.registerChannel(replyChannel2);
+		endpoint.setChannelRegistry(channelRegistry);
 		Message<String> testMessage1 = MessageBuilder.withPayload("bar")
 				.setReturnAddress(replyChannel1).build();
 		endpoint.onMessage(testMessage1);
@@ -362,6 +356,20 @@ public class ServiceActivatorEndpointTests {
 
 		public Message<?> handle(Message<?> message) {
 			return null;
+		}
+	}
+
+
+	private static class TestChannelRegistry implements ChannelRegistry {
+
+		private final Map<String, MessageChannel> channels = new HashMap<String, MessageChannel>();
+
+		public MessageChannel lookupChannel(String channelName) {
+			return this.channels.get(channelName);
+		}
+
+		public void registerChannel(MessageChannel channel) {
+			this.channels.put(channel.getName(), channel);
 		}
 	}
 

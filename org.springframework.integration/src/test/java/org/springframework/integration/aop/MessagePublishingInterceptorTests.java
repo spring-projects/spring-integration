@@ -35,7 +35,7 @@ public class MessagePublishingInterceptorTests {
 	public void testNonNullReturnValuePublishedWithDefaultChannel() {
 		QueueChannel channel = new QueueChannel();
 		MessagePublishingInterceptor interceptor = new MessagePublishingInterceptor();
-		interceptor.setDefaultChannel(channel);
+		interceptor.setOutputChannel(channel);
 		TestService proxy = (TestService) this.createProxy(new TestServiceImpl("hello world"), interceptor);
 		proxy.messageTest();
 		Message<?> message = channel.receive(0);
@@ -47,7 +47,7 @@ public class MessagePublishingInterceptorTests {
 	public void testNullReturnValueNotPublished() {
 		QueueChannel channel = new QueueChannel();
 		MessagePublishingInterceptor interceptor = new MessagePublishingInterceptor();
-		interceptor.setDefaultChannel(channel);
+		interceptor.setOutputChannel(channel);
 		TestService proxy = (TestService) this.createProxy(new TestServiceImpl(null), interceptor);
 		proxy.messageTest();
 		assertNull(channel.receive(0));
@@ -57,7 +57,7 @@ public class MessagePublishingInterceptorTests {
 	public void testVoidReturnValueNotPublished() {
 		QueueChannel channel = new QueueChannel();
 		MessagePublishingInterceptor interceptor = new MessagePublishingInterceptor();
-		interceptor.setDefaultChannel(channel);
+		interceptor.setOutputChannel(channel);
 		TestService proxy = (TestService) this.createProxy(new TestServiceImpl(null), interceptor);
 		proxy.voidTest();
 		assertNull(channel.receive(0));

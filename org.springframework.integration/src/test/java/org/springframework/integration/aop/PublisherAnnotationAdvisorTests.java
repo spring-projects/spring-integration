@@ -41,7 +41,7 @@ public class PublisherAnnotationAdvisorTests {
 	public void testPublisherAnnotation() {
 		final QueueChannel channel = new QueueChannel();
 		channel.setBeanName("testChannel");
-		ChannelRegistry channelRegistry = new TestChannelRegistry();
+		TestChannelRegistry channelRegistry = new TestChannelRegistry();
 		channelRegistry.registerChannel(channel);
 		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor(channelRegistry);
 		TestService proxy = (TestService) this.createProxy(new TestServiceImpl("hello world"), advisor);
@@ -55,7 +55,7 @@ public class PublisherAnnotationAdvisorTests {
 	public void testNoPublisherAnnotation() {
 		final QueueChannel channel = new QueueChannel();
 		channel.setBeanName("testChannel");
-		ChannelRegistry channelRegistry = new TestChannelRegistry();
+		TestChannelRegistry channelRegistry = new TestChannelRegistry();
 		channelRegistry.registerChannel(channel);
 		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor(channelRegistry);
 		TestService proxy = (TestService) this.createProxy(new TestServiceImpl("hello world"), advisor);
@@ -68,7 +68,7 @@ public class PublisherAnnotationAdvisorTests {
 	public void testPublishArguments() {
 		final QueueChannel channel = new QueueChannel();
 		channel.setBeanName("testChannel");
-		ChannelRegistry channelRegistry = new TestChannelRegistry();
+		TestChannelRegistry channelRegistry = new TestChannelRegistry();
 		channelRegistry.registerChannel(channel);
 		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor(channelRegistry);
 		TestService proxy = (TestService) this.createProxy(new TestServiceImpl("hello world"), advisor);
@@ -86,7 +86,7 @@ public class PublisherAnnotationAdvisorTests {
 	public void testPublishException() {
 		final QueueChannel channel = new QueueChannel();
 		channel.setBeanName("testChannel");
-		ChannelRegistry channelRegistry = new TestChannelRegistry();
+		TestChannelRegistry channelRegistry = new TestChannelRegistry();
 		channelRegistry.registerChannel(channel);
 		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor(channelRegistry);
 		TestService proxy = (TestService) this.createProxy(new TestServiceImpl("hello world"), advisor);
@@ -109,7 +109,7 @@ public class PublisherAnnotationAdvisorTests {
 	public void testPublishReturnValue() {
 		final QueueChannel channel = new QueueChannel();
 		channel.setBeanName("testChannel");
-		ChannelRegistry channelRegistry = new TestChannelRegistry();
+		TestChannelRegistry channelRegistry = new TestChannelRegistry();
 		channelRegistry.registerChannel(channel);
 		PublisherAnnotationAdvisor advisor = new PublisherAnnotationAdvisor(channelRegistry);
 		TestService proxy = (TestService) this.createProxy(new TestServiceImpl("hello world"), advisor);

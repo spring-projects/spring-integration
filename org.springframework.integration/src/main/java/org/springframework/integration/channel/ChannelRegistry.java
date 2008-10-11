@@ -25,9 +25,6 @@ public interface ChannelRegistry {
 
 	static final String ERROR_CHANNEL_NAME = "errorChannel";
 
-
-	void registerChannel(MessageChannel channel);
-
 	MessageChannel lookupChannel(String channelName);
 
 }
