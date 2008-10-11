@@ -60,7 +60,7 @@ public class PollerAnnotationConsumerTransactionalTests {
 	@Test
 	public void commit() throws InterruptedException {
 		input.send(new StringMessage("test"));
-		transactionManager.waitForCompletion(1000);
+		transactionManager.waitForCompletion(3000);
 		Message<?> reply = output.receive(1000);
 		assertEquals("TEST", reply.getPayload());
 		assertEquals(1, transactionManager.getCommitCount());
@@ -70,7 +70,7 @@ public class PollerAnnotationConsumerTransactionalTests {
 	@Test
 	public void rollback() throws InterruptedException {
 		input.send(new StringMessage("bad"));
-		transactionManager.waitForCompletion(1000);
+		transactionManager.waitForCompletion(3000);
 		assertNull(output.receive(0));
 		assertEquals(0, transactionManager.getCommitCount());
 		assertEquals(1, transactionManager.getRollbackCount());
@@ -79,7 +79,7 @@ public class PollerAnnotationConsumerTransactionalTests {
 	@Test
 	public void verifyPropagationSetting() throws InterruptedException {
 		input.send(new StringMessage("test"));
-		transactionManager.waitForCompletion(1000);
+		transactionManager.waitForCompletion(3000);
 		assertEquals(TransactionDefinition.PROPAGATION_REQUIRES_NEW,
 				transactionManager.getLastDefinition().getPropagationBehavior());
 	}
