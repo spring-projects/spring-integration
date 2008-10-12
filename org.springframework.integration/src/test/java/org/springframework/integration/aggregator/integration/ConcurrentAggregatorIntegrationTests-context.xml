@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
+	<message-bus enable-annotations="true"/>
+	
+	<channel id="input" />
+	<aggregator ref="summer" method="sum" input-channel="input"
+		output-channel="output">
+		<!-- This doesn't work (see INT-413) -->
+	<!-- 
+	<poller task-executor="executor" interval="20" max-messages-per-poll="5"/>
+	 -->
+	</aggregator>
+	<beans:bean id="executor"
+		class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+		<beans:property name="maxPoolSize" value="10" />
+	</beans:bean>
+	<channel id="output">
+		<queue capacity="5" />
+	</channel>
+	<beans:bean id="summer"
+		class="org.springframework.integration.aggregator.integration.ConcurrentAggregatorIntegrationTests$SummingAggregator" />
+</beans:beans>
