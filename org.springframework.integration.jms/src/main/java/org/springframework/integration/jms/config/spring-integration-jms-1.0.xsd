@@ -27,9 +27,9 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="jmsInboundAdapterType">
-					<xsd:all>
+					<xsd:sequence>
 						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
-					</xsd:all>
+					</xsd:sequence>
 					<xsd:attribute name="channel" type="xsd:string"/>
 					<xsd:attribute name="header-mapper" type="xsd:string"/>
 				</xsd:extension>
@@ -71,6 +71,9 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="jmsAdapterType">
+					<xsd:sequence>
+						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+					</xsd:sequence>
 					<xsd:attribute name="channel" type="xsd:string"/>
 					<xsd:attribute name="header-mapper" type="xsd:string"/>
 				</xsd:extension>

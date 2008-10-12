@@ -36,10 +36,6 @@ import org.springframework.util.StringUtils;
  */
 public class MailOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
-	protected Class<?> getBeanClass(Element element) {
-		return MailSendingMessageConsumer.class;
-	}
-
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MailSendingMessageConsumer.class);

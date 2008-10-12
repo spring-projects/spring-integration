@@ -29,6 +29,7 @@
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="channel" type="xsd:string"/>
 			<xsd:attribute name="charset" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
