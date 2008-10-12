@@ -73,7 +73,7 @@ public class XPathSingleChannelRouter extends AbstractXPathRouter  {
 	 * @throws MessagingException if the {@link XPathExpression} evaluates to
 	 * an empty string
 	 */
-	public String[] resolveChannelNames(Message<?> message) {
+	public String[] determineTargetChannelNames(Message<?> message) {
 		Node node = getConverter().convertToNode(message.getPayload());
 		String result = getXPathExpression().evaluateAsString(node);
 		if ("".equals(result)) {

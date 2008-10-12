@@ -46,8 +46,8 @@ public class PayloadTypeRouterTests {
 		router.setPayloadTypeChannelMap(payloadTypeChannelMap);
 		Message<String> message1 = new StringMessage("test");
 		Message<Integer> message2 = new GenericMessage<Integer>(123);
-		MessageChannel result1 = router.resolveChannel(message1);
-		MessageChannel result2 = router.resolveChannel(message2);
+		MessageChannel result1 = router.determineTargetChannel(message1);
+		MessageChannel result2 = router.determineTargetChannel(message2);
 		assertEquals(stringChannel, result1);
 		assertEquals(integerChannel, result2);
 	}

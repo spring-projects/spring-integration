@@ -23,16 +23,22 @@ import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 
 /**
+ * Extends {@link AbstractMessageRouter} to support router implementations that
+ * always return a single {@link MessageChannel} instance (or null).
+ * 
  * @author Mark Fisher
  */
 public abstract class AbstractSingleChannelRouter extends AbstractMessageRouter {
 
 	@Override
-	protected final Collection<MessageChannel> resolveChannels(Message<?> message) {
-		MessageChannel channel = this.resolveChannel(message);
+	protected final Collection<MessageChannel> determineTargetChannels(Message<?> message) {
+		MessageChannel channel = this.determineTargetChannel(message);
 		return (channel != null) ? Collections.singletonList(channel) : null;
 	}
 
-	protected abstract MessageChannel resolveChannel(Message<?> message);
+	/**
+	 * Subclasses must implement this method to return the target channel.
+	 */
+	protected abstract MessageChannel determineTargetChannel(Message<?> message);
 
 }

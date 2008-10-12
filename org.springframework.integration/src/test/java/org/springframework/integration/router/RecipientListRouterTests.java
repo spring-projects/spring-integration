@@ -49,7 +49,7 @@ public class RecipientListRouterTests {
 		router.setChannels(channels);
 		router.afterPropertiesSet();
 		Message<String> message = new StringMessage("test");
-		Collection<MessageChannel> resolved = router.resolveChannels(message);
+		Collection<MessageChannel> resolved = router.determineTargetChannels(message);
 		assertEquals(2, resolved.size());
 		assertTrue(resolved.contains(channel1));
 		assertTrue(resolved.contains(channel2));

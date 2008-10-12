@@ -37,7 +37,7 @@ public class SingleChannelRouterTests {
 	public void routeWithChannelResolver() {
 		final QueueChannel channel = new QueueChannel();
 		AbstractSingleChannelRouter router = new AbstractSingleChannelRouter() {
-			public MessageChannel resolveChannel(Message<?> message) {
+			public MessageChannel determineTargetChannel(Message<?> message) {
 				return channel;
 			}
 		};
@@ -51,7 +51,7 @@ public class SingleChannelRouterTests {
 	@Test
 	public void routeWithChannelNameResolver() {
 		AbstractSingleChannelNameRouter router = new AbstractSingleChannelNameRouter() {
-			public String resolveChannelName(Message<?> message) {
+			public String determineTargetChannelName(Message<?> message) {
 				return "testChannel";
 			}
 		};
@@ -70,7 +70,7 @@ public class SingleChannelRouterTests {
 	@Test
 	public void nullChannelResultIgnored() {
 		AbstractSingleChannelRouter router = new AbstractSingleChannelRouter() {
-			public MessageChannel resolveChannel(Message<?> message) {
+			public MessageChannel determineTargetChannel(Message<?> message) {
 				return null;
 			}
 		};
@@ -81,7 +81,7 @@ public class SingleChannelRouterTests {
 	@Test(expected = MessagingException.class)
 	public void channelNameResolutionFailure() {
 		AbstractSingleChannelNameRouter router = new AbstractSingleChannelNameRouter() {
-			public String resolveChannelName(Message<?> message) {
+			public String determineTargetChannelName(Message<?> message) {
 				return "noSuchChannel";
 			}
 		};

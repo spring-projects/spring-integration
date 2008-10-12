@@ -39,7 +39,7 @@ public class XPathRouterParserTests {
 		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper.getTestAppContext(
 				"<si-xml:xpath-router id='router'><si-xml:xpath-expression expression='/name'/></si-xml:xpath-router>");
 		XPathSingleChannelRouter router = (XPathSingleChannelRouter) ctx.getBean("router");
-		String[] channelNames = router.resolveChannelNames(docMessage);
+		String[] channelNames = router.determineTargetChannelNames(docMessage);
 		assertEquals("Wrong number of channel names returned", 1, channelNames.length);
 		assertEquals("Wrong channel name", "outputOne", channelNames[0]);
 	}
@@ -51,7 +51,7 @@ public class XPathRouterParserTests {
 		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper.getTestAppContext(
 				"<si-xml:xpath-router id='router'><si-xml:xpath-expression expression='/ns2:name' ns-prefix='ns2' ns-uri='www.example.org' /></si-xml:xpath-router>");
 		XPathSingleChannelRouter router = (XPathSingleChannelRouter) ctx.getBean("router");
-		String[] channelNames = router.resolveChannelNames(docMessage);
+		String[] channelNames = router.determineTargetChannelNames(docMessage);
 		assertEquals("Wrong number of channel names returned", 1, channelNames.length);
 		assertEquals("Wrong channel name", "outputOne", channelNames[0]);
 	}
@@ -67,7 +67,7 @@ public class XPathRouterParserTests {
 		buffer.append("</si-xml:xpath-expression></si-xml:xpath-router>");
 		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper.getTestAppContext(buffer.toString());
 		XPathSingleChannelRouter router = (XPathSingleChannelRouter) ctx.getBean("router");
-		String[] channelNames = router.resolveChannelNames(docMessage);
+		String[] channelNames = router.determineTargetChannelNames(docMessage);
 		assertEquals("Wrong number of channel names returned", 1, channelNames.length);
 		assertEquals("Wrong channel name", "outputOne", channelNames[0]);
 	}
@@ -83,7 +83,7 @@ public class XPathRouterParserTests {
 		buffer.append("<util:map id='nsMap'><entry key='ns1' value='www.example.org' /><entry key='ns2' value='www.example.org2' /></util:map>");
 		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper.getTestAppContext(buffer.toString());
 		XPathSingleChannelRouter router = (XPathSingleChannelRouter) ctx.getBean("router");
-		String[] channelNames = router.resolveChannelNames(docMessage);
+		String[] channelNames = router.determineTargetChannelNames(docMessage);
 		assertEquals("Wrong number of channel names returned", 1, channelNames.length);
 		assertEquals("Wrong channel name", "outputOne", channelNames[0]);
 	}

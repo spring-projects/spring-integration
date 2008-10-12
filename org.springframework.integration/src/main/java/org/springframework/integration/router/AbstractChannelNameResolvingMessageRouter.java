@@ -68,10 +68,10 @@ public abstract class AbstractChannelNameResolvingMessageRouter extends Abstract
 	}
 
 	@Override
-	protected final Collection<MessageChannel> resolveChannels(Message<?> message) {
+	protected final Collection<MessageChannel> determineTargetChannels(Message<?> message) {
 		this.afterPropertiesSet();
 		Collection<MessageChannel> channels = new ArrayList<MessageChannel>();
-		String[] channelNames = this.resolveChannelNames(message);
+		String[] channelNames = this.determineTargetChannelNames(message);
 		if (channelNames == null) {
 			return null;
 		}
@@ -99,6 +99,6 @@ public abstract class AbstractChannelNameResolvingMessageRouter extends Abstract
 	/**
 	 * Subclasses must implement this method to return the channel name(s).
 	 */
-	protected abstract String[] resolveChannelNames(Message<?> message);
+	protected abstract String[] determineTargetChannelNames(Message<?> message);
 
 }

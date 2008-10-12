@@ -89,7 +89,7 @@ public class XsltPayloadTransformerParserTests {
 	}
 
 	@Test
-	public void testWithResourceProvidedndStubResultFactory() throws Exception {
+	public void testWithResourceProvidedAndStubResultFactory() throws Exception {
 		MessageChannel input = (MessageChannel) applicationContext.getBean("withTemplatesAndResultFactoryIn");
 		GenericMessage<Object> message = new GenericMessage<Object>(XmlTestUtil.getDomSourceForString(doc));
 		input.send(message);

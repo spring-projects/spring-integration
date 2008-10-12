@@ -46,7 +46,7 @@ public class RecipientListRouter extends AbstractMessageRouter implements Initia
 	}
 
 	@Override
-	protected Collection<MessageChannel> resolveChannels(Message<?> message) {
+	protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
 		return this.channels;
 	}
 

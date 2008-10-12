@@ -41,7 +41,7 @@ public class PayloadTypeRouter extends AbstractSingleChannelRouter {
 	}
 
 	@Override
-	protected MessageChannel resolveChannel(Message<?> message) {
+	protected MessageChannel determineTargetChannel(Message<?> message) {
 		return this.payloadTypeChannelMap.get(message.getPayload().getClass());
 	}
 

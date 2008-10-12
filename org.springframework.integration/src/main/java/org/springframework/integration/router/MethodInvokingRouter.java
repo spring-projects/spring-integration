@@ -67,7 +67,7 @@ public class MethodInvokingRouter extends AbstractMessageRouter implements Initi
 	}
 
 	@Override
-	protected final Collection<MessageChannel> resolveChannels(Message<?> message) {
+	protected final Collection<MessageChannel> determineTargetChannels(Message<?> message) {
 		Object result = this.invoker.invokeMethod(message);
 		if (result == null) {
 			return null;

@@ -77,7 +77,7 @@ public class XPathMultiChannelRouter extends AbstractXPathRouter {
 	}
 
 	@SuppressWarnings("unchecked")
-	public String[] resolveChannelNames(Message<?> message) {
+	public String[] determineTargetChannelNames(Message<?> message) {
 		Node node = getConverter().convertToNode(message.getPayload());
 		List channelNamesList = getXPathExpression().evaluate(node, this.nodeMapper);
 		return (String[]) channelNamesList.toArray(new String[channelNamesList.size()]);

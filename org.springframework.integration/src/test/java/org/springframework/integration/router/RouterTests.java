@@ -40,7 +40,7 @@ public class RouterTests {
 	@Test
 	public void nullChannelIgnoredByDefault() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
-			public List<MessageChannel> resolveChannels(Message<?> message) {
+			public List<MessageChannel> determineTargetChannels(Message<?> message) {
 				return null;
 			}
 		};
@@ -51,7 +51,7 @@ public class RouterTests {
 	@Test(expected = MessageDeliveryException.class)
 	public void nullChannelThrowsExceptionWhenResolutionRequired() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
-			public List<MessageChannel> resolveChannels(Message<?> message) {
+			public List<MessageChannel> determineTargetChannels(Message<?> message) {
 				return null;
 			}
 		};
@@ -63,7 +63,7 @@ public class RouterTests {
 	@Test
 	public void emptyChannelListIgnoredByDefault() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
-			public List<MessageChannel> resolveChannels(Message<?> message) {
+			public List<MessageChannel> determineTargetChannels(Message<?> message) {
 				return Collections.emptyList();
 			}
 		};
@@ -74,7 +74,7 @@ public class RouterTests {
 	@Test(expected = MessageDeliveryException.class)
 	public void emptyChannelListThrowsExceptionWhenResolutionRequired() {
 		AbstractMessageRouter router = new AbstractMessageRouter() {
-			public List<MessageChannel> resolveChannels(Message<?> message) {
+			public List<MessageChannel> determineTargetChannels(Message<?> message) {
 				return Collections.emptyList();
 			}
 		};
@@ -86,7 +86,7 @@ public class RouterTests {
 	@Test
 	public void nullChannelNameArrayIgnoredByDefault() {
 		AbstractChannelNameResolvingMessageRouter router = new AbstractChannelNameResolvingMessageRouter() {
-			public String[] resolveChannelNames(Message<?> message) {
+			public String[] determineTargetChannelNames(Message<?> message) {
 				return null;
 			}
 		};
@@ -99,7 +99,7 @@ public class RouterTests {
 	@Test(expected = MessageDeliveryException.class)
 	public void nullChannelNameArrayThrowsExceptionWhenResolutionRequired() {
 		AbstractChannelNameResolvingMessageRouter router = new AbstractChannelNameResolvingMessageRouter() {
-			public String[] resolveChannelNames(Message<?> message) {
+			public String[] determineTargetChannelNames(Message<?> message) {
 				return null;
 			}
 		};
@@ -114,7 +114,7 @@ public class RouterTests {
 	@Test
 	public void emptyChannelNameArrayIgnoredByDefault() {
 		AbstractChannelNameResolvingMessageRouter router = new AbstractChannelNameResolvingMessageRouter() {
-			public String[] resolveChannelNames(Message<?> message) {
+			public String[] determineTargetChannelNames(Message<?> message) {
 				return new String[] {};
 			}
 		};
@@ -127,7 +127,7 @@ public class RouterTests {
 	@Test(expected = MessageDeliveryException.class)
 	public void emptyChannelNameArrayThrowsExceptionWhenResolutionRequired() {
 		AbstractChannelNameResolvingMessageRouter router = new AbstractChannelNameResolvingMessageRouter() {
-			public String[] resolveChannelNames(Message<?> message) {
+			public String[] determineTargetChannelNames(Message<?> message) {
 				return new String[] {};
 			}
 		};
@@ -141,7 +141,7 @@ public class RouterTests {
 	@Test(expected = MessagingException.class)
 	public void channelMappingIsRequiredWhenResolvingChannelNamesWithSingleChannelRouter() {
 		AbstractSingleChannelNameRouter router = new AbstractSingleChannelNameRouter() {
-			public String resolveChannelName(Message<?> message) {
+			public String determineTargetChannelName(Message<?> message) {
 				return "notImportant";
 			}
 		};
@@ -151,7 +151,7 @@ public class RouterTests {
 	@Test(expected = MessagingException.class)
 	public void channelMappingIsRequiredWhenResolvingChannelNamesWithMultiChannelRouter() {
 		AbstractChannelNameResolvingMessageRouter router = new AbstractChannelNameResolvingMessageRouter() {
-			public String[] resolveChannelNames(Message<?> message) {
+			public String[] determineTargetChannelNames(Message<?> message) {
 				return new String[] { "notImportant" };
 			}
 		};
@@ -161,7 +161,7 @@ public class RouterTests {
 	@Test
 	public void beanFactoryWithSingleChannelRouter() {
 		AbstractSingleChannelNameRouter router = new AbstractSingleChannelNameRouter() {
-			public String resolveChannelName(Message<?> message) {
+			public String determineTargetChannelName(Message<?> message) {
 				return "testChannel";
 			}
 		};
@@ -177,7 +177,7 @@ public class RouterTests {
 	@Test
 	public void beanFactoryWithMultiChannelRouter() {
 		AbstractChannelNameResolvingMessageRouter router = new AbstractChannelNameResolvingMessageRouter() {
-			public String[] resolveChannelNames(Message<?> message) {
+			public String[] determineTargetChannelNames(Message<?> message) {
 				return new String[] { "testChannel" };
 			}
 		};

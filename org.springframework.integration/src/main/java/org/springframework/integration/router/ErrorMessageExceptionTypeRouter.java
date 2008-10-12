@@ -43,7 +43,7 @@ public class ErrorMessageExceptionTypeRouter extends AbstractSingleChannelRouter
 
 
 	@Override
-	protected MessageChannel resolveChannel(Message<?> message) {
+	protected MessageChannel determineTargetChannel(Message<?> message) {
 		MessageChannel channel = null;
 		Object payload = message.getPayload();
 		if (payload != null && (payload instanceof Throwable)) {

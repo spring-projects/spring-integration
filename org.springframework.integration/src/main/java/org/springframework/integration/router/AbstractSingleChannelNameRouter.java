@@ -19,16 +19,22 @@ package org.springframework.integration.router;
 import org.springframework.integration.message.Message;
 
 /**
+ * Extends {@link AbstractChannelNameResolvingMessageRouter} to support router
+ * implementations that always return a single channel name (or null).
+ * 
  * @author Mark Fisher
  */
 public abstract class AbstractSingleChannelNameRouter extends AbstractChannelNameResolvingMessageRouter {
 
 	@Override
-	protected final String[] resolveChannelNames(Message<?> message) {
-		String channelName = this.resolveChannelName(message);
+	protected final String[] determineTargetChannelNames(Message<?> message) {
+		String channelName = this.determineTargetChannelName(message);
 		return (channelName != null) ? new String[] { channelName } : null;
 	}
 
-	protected abstract String resolveChannelName(Message<?> message);
+	/**
+	 * Subclasses must implement this method to return the channel name.
+	 */
+	protected abstract String determineTargetChannelName(Message<?> message);
 
 }

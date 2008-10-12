@@ -69,7 +69,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageConsumer {
 	@Override
 	protected void onMessageInternal(Message<?> message) {
 		boolean sent = false;
-		Collection<MessageChannel> results = this.resolveChannels(message);
+		Collection<MessageChannel> results = this.determineTargetChannels(message);
 		if (results != null) {
 			for (MessageChannel channel : results) {
 				if (channel != null) {
@@ -94,6 +94,6 @@ public abstract class AbstractMessageRouter extends AbstractMessageConsumer {
 	 * Subclasses must implement this method to return the target channels for
 	 * a given Message.
 	 */
-	protected abstract Collection<MessageChannel> resolveChannels(Message<?> message);
+	protected abstract Collection<MessageChannel> determineTargetChannels(Message<?> message);
 
 }

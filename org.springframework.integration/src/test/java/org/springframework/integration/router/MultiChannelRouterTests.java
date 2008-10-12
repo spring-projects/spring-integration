@@ -35,7 +35,7 @@ public class MultiChannelRouterTests {
 	@Test
 	public void routeWithChannelMapping() {
 		AbstractChannelNameResolvingMessageRouter router = new AbstractChannelNameResolvingMessageRouter() {
-			public String[] resolveChannelNames(Message<?> message) {
+			public String[] determineTargetChannelNames(Message<?> message) {
 				return new String[] {"channel1", "channel2"};
 			}
 		};
@@ -60,7 +60,7 @@ public class MultiChannelRouterTests {
 	@Test(expected = MessagingException.class)
 	public void channelNameLookupFailure() {
 		AbstractChannelNameResolvingMessageRouter router = new AbstractChannelNameResolvingMessageRouter() {
-			public String[] resolveChannelNames(Message<?> message) {
+			public String[] determineTargetChannelNames(Message<?> message) {
 				return new String[] {"noSuchChannel"};
 			}
 		};
@@ -73,7 +73,7 @@ public class MultiChannelRouterTests {
 	@Test(expected = MessagingException.class)
 	public void channelMappingNotAvailable() {
 		AbstractChannelNameResolvingMessageRouter router = new AbstractChannelNameResolvingMessageRouter() {
-			public String[] resolveChannelNames(Message<?> message) {
+			public String[] determineTargetChannelNames(Message<?> message) {
 				return new String[] {"noSuchChannel"};
 			}
 		};
