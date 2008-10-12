@@ -19,7 +19,6 @@ package org.springframework.integration.channel;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.integration.router.ChannelResolver;
 import org.springframework.util.Assert;
 
 /**

@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.ChannelRegistryAware;
+import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.TestChannelResolver;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;

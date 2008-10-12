@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageMappingMethodInvoker;

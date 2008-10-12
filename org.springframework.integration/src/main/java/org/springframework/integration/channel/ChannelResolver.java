@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.router;
+package org.springframework.integration.channel;
 
-import org.springframework.integration.channel.MessageChannel;
 
 /**
  * Strategy for resolving a name to a {@link MessageChannel}.
@@ -28,6 +27,6 @@ public interface ChannelResolver {
 	/**
 	 * Return the MessageChannel for the given name.
 	 */
-	MessageChannel resolveChannelName(String name);
+	MessageChannel resolveChannelName(String channelName);
 
 }

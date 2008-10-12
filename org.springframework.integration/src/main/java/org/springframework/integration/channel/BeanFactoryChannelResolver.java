@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.router;
+package org.springframework.integration.channel;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.integration.channel.ChannelResolutionException;
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.util.Assert;
 
 /**
@@ -41,7 +39,7 @@ public class BeanFactoryChannelResolver implements ChannelResolver, BeanFactoryA
 	 * Create a new instance of the {@link BeanFactoryChannelResolver} class.
 	 * <p>The BeanFactory to access must be set via <code>setBeanFactory</code>.
 	 * This will happen automatically if this resolver is defined within an
-	 * ApplicationContext thereby receiving the callback.
+	 * ApplicationContext thereby receiving the callback upon initialization.
 	 * @see #setBeanFactory
 	 */
 	public BeanFactoryChannelResolver() {
