@@ -19,18 +19,18 @@ package org.springframework.integration.channel;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.integration.router.ChannelMapping;
+import org.springframework.integration.router.ChannelResolver;
 import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
  */
-public class TestChannelMapping implements ChannelMapping {
+public class TestChannelResolver implements ChannelResolver {
 
 	private final Map<String, MessageChannel> channels = new ConcurrentHashMap<String, MessageChannel>();
 
 
-	public MessageChannel getChannel(String channelName) {
+	public MessageChannel resolveChannelName(String channelName) {
 		return this.channels.get(channelName);
 	}
 

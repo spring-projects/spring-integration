@@ -21,7 +21,7 @@ import org.springframework.integration.message.Message;
 /**
  * @author Mark Fisher
  */
-public abstract class AbstractSingleChannelNameRouter extends AbstractChannelMappingMessageRouter {
+public abstract class AbstractSingleChannelNameRouter extends AbstractChannelNameResolvingMessageRouter {
 
 	@Override
 	protected final String[] resolveChannelNames(Message<?> message) {

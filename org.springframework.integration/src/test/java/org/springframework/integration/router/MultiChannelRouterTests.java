@@ -22,7 +22,7 @@ import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
 
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.channel.TestChannelMapping;
+import org.springframework.integration.channel.TestChannelResolver;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.StringMessage;
@@ -34,7 +34,7 @@ public class MultiChannelRouterTests {
 
 	@Test
 	public void routeWithChannelMapping() {
-		AbstractChannelMappingMessageRouter router = new AbstractChannelMappingMessageRouter() {
+		AbstractChannelNameResolvingMessageRouter router = new AbstractChannelNameResolvingMessageRouter() {
 			public String[] resolveChannelNames(Message<?> message) {
 				return new String[] {"channel1", "channel2"};
 			}
@@ -43,10 +43,10 @@ public class MultiChannelRouterTests {
 		QueueChannel channel2 = new QueueChannel();
 		channel1.setBeanName("channel1");
 		channel2.setBeanName("channel2");
-		TestChannelMapping channelMapping = new TestChannelMapping();
-		channelMapping.addChannel(channel1);
-		channelMapping.addChannel(channel2);
-		router.setChannelMapping(channelMapping);
+		TestChannelResolver channelResolver = new TestChannelResolver();
+		channelResolver.addChannel(channel1);
+		channelResolver.addChannel(channel2);
+		router.setChannelResolver(channelResolver);
 		Message<String> message = new StringMessage("test");
 		router.onMessage(message);
 		Message<?> result1 = channel1.receive(25);
@@ -59,20 +59,20 @@ public class MultiChannelRouterTests {
 
 	@Test(expected = MessagingException.class)
 	public void channelNameLookupFailure() {
-		AbstractChannelMappingMessageRouter router = new AbstractChannelMappingMessageRouter() {
+		AbstractChannelNameResolvingMessageRouter router = new AbstractChannelNameResolvingMessageRouter() {
 			public String[] resolveChannelNames(Message<?> message) {
 				return new String[] {"noSuchChannel"};
 			}
 		};
-		TestChannelMapping channelMapping = new TestChannelMapping();
-		router.setChannelMapping(channelMapping);
+		TestChannelResolver channelResolver = new TestChannelResolver();
+		router.setChannelResolver(channelResolver);
 		Message<String> message = new StringMessage("test");
 		router.onMessage(message);
 	}
 
 	@Test(expected = MessagingException.class)
 	public void channelMappingNotAvailable() {
-		AbstractChannelMappingMessageRouter router = new AbstractChannelMappingMessageRouter() {
+		AbstractChannelNameResolvingMessageRouter router = new AbstractChannelNameResolvingMessageRouter() {
 			public String[] resolveChannelNames(Message<?> message) {
 				return new String[] {"noSuchChannel"};
 			}

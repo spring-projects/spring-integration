@@ -28,7 +28,7 @@ import org.springframework.util.Assert;
  * A Message Router that sends Messages to a statically configured list of
  * recipients. The recipients are provided as a list of {@link MessageChannel}
  * instances. For dynamic recipient lists, consider instead using the @Router
- * annotation or extending {@link AbstractChannelMappingMessageRouter}. 
+ * annotation or extending {@link AbstractChannelNameResolvingMessageRouter}. 
  * 
  * @author Mark Fisher
  */

@@ -33,9 +33,9 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractChannelMappingMessageRouter extends AbstractMessageRouter implements BeanFactoryAware, InitializingBean {
+public abstract class AbstractChannelNameResolvingMessageRouter extends AbstractMessageRouter implements BeanFactoryAware, InitializingBean {
 
-	private volatile ChannelMapping channelMapping;
+	private volatile ChannelResolver channelResolver;
 
 	private volatile String prefix;
 
@@ -44,8 +44,8 @@ public abstract class AbstractChannelMappingMessageRouter extends AbstractMessag
 	private volatile BeanFactory beanFactory;
 
 
-	public void setChannelMapping(ChannelMapping channelMapping) {
-		this.channelMapping = channelMapping;
+	public void setChannelResolver(ChannelResolver channelResolver) {
+		this.channelResolver = channelResolver;
 	}
 
 	public void setPrefix(String prefix) {
@@ -61,9 +61,9 @@ public abstract class AbstractChannelMappingMessageRouter extends AbstractMessag
 	}
 
 	public void afterPropertiesSet() {
-		if (this.channelMapping == null) {
-			Assert.notNull(beanFactory, "either a ChannelMapping or BeanFactory is required");
-			this.channelMapping = new BeanNameChannelMapping(this.beanFactory);
+		if (this.channelResolver == null) {
+			Assert.notNull(beanFactory, "either a ChannelResolver or BeanFactory is required");
+			this.channelResolver = new BeanFactoryChannelResolver(this.beanFactory);
 		}
 	}
 
@@ -77,18 +77,18 @@ public abstract class AbstractChannelMappingMessageRouter extends AbstractMessag
 		}
 		for (String channelName : channelNames) {
 			if (channelName != null) {
-				Assert.state(this.channelMapping != null,
-						"unable to resolve channels, no ChannelMapping available");
+				Assert.state(this.channelResolver != null,
+						"unable to resolve channel names, no ChannelResolver available");
 				if (this.prefix != null) {
 					channelName = this.prefix + channelName;
 				}
 				if (this.suffix != null) {
 					channelName = channelName + suffix;
 				}
-				MessageChannel channel = this.channelMapping.getChannel(channelName);
+				MessageChannel channel = this.channelResolver.resolveChannelName(channelName);
 				if (channel == null) {
 					throw new MessagingException(message,
-							"unable to resolve channel '" + channelName + "'");
+							"failed to resolve channel name '" + channelName + "'");
 				}
 				channels.add(channel);
 			}

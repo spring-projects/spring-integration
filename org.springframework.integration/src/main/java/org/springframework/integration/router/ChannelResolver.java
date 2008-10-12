@@ -19,12 +19,15 @@ package org.springframework.integration.router;
 import org.springframework.integration.channel.MessageChannel;
 
 /**
- * Strategy for mapping from a name to a {@link MessageChannel}.
+ * Strategy for resolving a name to a {@link MessageChannel}.
  * 
  * @author Mark Fisher
  */
-public interface ChannelMapping {
+public interface ChannelResolver {
 
-	MessageChannel getChannel(String name);
+	/**
+	 * Return the MessageChannel for the given name.
+	 */
+	MessageChannel resolveChannelName(String name);
 
 }

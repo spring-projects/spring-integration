@@ -21,7 +21,7 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.router.BeanNameChannelMapping;
+import org.springframework.integration.router.BeanFactoryChannelResolver;
 import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -43,11 +43,10 @@ public class RouterParser extends AbstractConsumerEndpointParser {
 			String method = element.getAttribute(METHOD_ATTRIBUTE);
 			builder.addConstructorArgValue(method);
 		}
-		BeanDefinitionBuilder channelMappingBuilder =
-				BeanDefinitionBuilder.genericBeanDefinition(BeanNameChannelMapping.class);
-		String channelMappingBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
-				channelMappingBuilder.getBeanDefinition(), parserContext.getRegistry());
-		builder.addPropertyReference("channelMapping", channelMappingBeanName);
+		BeanDefinitionBuilder resolverBuilder = BeanDefinitionBuilder.genericBeanDefinition(BeanFactoryChannelResolver.class);
+		String resolverBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
+				resolverBuilder.getBeanDefinition(), parserContext.getRegistry());
+		builder.addPropertyReference("channelResolver", resolverBeanName);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "default-output-channel");
 		return builder;
 	}

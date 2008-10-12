@@ -34,7 +34,7 @@ import org.springframework.util.Assert;
  * method's return value may be a single MessageChannel instance, a single
  * String to be interpreted as a channel name, or a Collection (or Array) of
  * either type. If the method returns channel names, then a
- * {@link ChannelMapping} is required.
+ * {@link ChannelResolver} is required.
  * 
  * @author Mark Fisher
  */
@@ -42,7 +42,7 @@ public class MethodInvokingRouter extends AbstractMessageRouter implements Initi
 
 	private final MessageMappingMethodInvoker invoker;
 
-	private volatile ChannelMapping channelMapping;
+	private volatile ChannelResolver channelResolver;
 
 
 	public MethodInvokingRouter(Object object, Method method) {
@@ -55,11 +55,11 @@ public class MethodInvokingRouter extends AbstractMessageRouter implements Initi
 
 
 	/**
-	 * Provide the ChannelMapping strategy to use for methods that return a
-	 * channel name rather than a {@link MessageChannel} instance.
+	 * Provide the {@link ChannelResolver} strategy to use for methods that
+	 * return a channel name rather than a {@link MessageChannel} instance.
 	 */
-	public void setChannelMapping(ChannelMapping channelMapping) {
-		this.channelMapping = channelMapping;
+	public void setChannelResolver(ChannelResolver channelResolver) {
+		this.channelResolver = channelResolver;
 	}
 
 	public void afterPropertiesSet() throws Exception {
@@ -108,11 +108,11 @@ public class MethodInvokingRouter extends AbstractMessageRouter implements Initi
 		}
 		else if (channelOrName instanceof String) {
 			String channelName = (String) channelOrName;
-			Assert.state(this.channelMapping != null,
-					"ChannelMapping is required for resolving channel names");
-			MessageChannel channel = this.channelMapping.getChannel(channelName);
+			Assert.state(this.channelResolver != null,
+					"unable to resolve channel names, no ChannelResolver available");
+			MessageChannel channel = this.channelResolver.resolveChannelName(channelName);
 			if (channel == null) {
-				throw new MessagingException("unable to resolve channel '" + channelName + "'");
+				throw new MessagingException("failed to resolve channel name '" + channelName + "'");
 			}
 			channels.add(channel);
 		}

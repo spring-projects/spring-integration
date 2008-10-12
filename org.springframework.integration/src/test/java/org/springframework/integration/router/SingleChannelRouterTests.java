@@ -23,7 +23,7 @@ import org.junit.Test;
 
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.channel.TestChannelMapping;
+import org.springframework.integration.channel.TestChannelResolver;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.StringMessage;
@@ -57,9 +57,9 @@ public class SingleChannelRouterTests {
 		};
 		QueueChannel channel = new QueueChannel();
 		channel.setBeanName("testChannel");
-		TestChannelMapping channelMapping = new TestChannelMapping();
-		channelMapping.addChannel(channel);
-		router.setChannelMapping(channelMapping);
+		TestChannelResolver channelResolver = new TestChannelResolver();
+		channelResolver.addChannel(channel);
+		router.setChannelResolver(channelResolver);
 		Message<String> message = new StringMessage("test");
 		router.onMessage(message);
 		Message<?> result = channel.receive(25);
@@ -85,8 +85,8 @@ public class SingleChannelRouterTests {
 				return "noSuchChannel";
 			}
 		};
-		TestChannelMapping channelMapping = new TestChannelMapping();
-		router.setChannelMapping(channelMapping);
+		TestChannelResolver channelResolver = new TestChannelResolver();
+		router.setChannelResolver(channelResolver);
 		Message<String> message = new StringMessage("test");
 		router.onMessage(message);
 	}
