@@ -15,15 +15,17 @@
 	Defines the configuration elements for Spring Integration's JMS adapters.
 		]]></xsd:documentation>
 	</xsd:annotation>
-	<xsd:element name="jms-source">
+
+	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a JMS-based source channel adapter.
+	Defines a JMS-based inbound Channel Adapter.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="jmsInboundAdapterType">
+					<xsd:attribute name="channel" type="xsd:string"/>
 					<xsd:attribute name="header-mapper" type="xsd:string"/>
 				</xsd:extension>
 			</xsd:complexContent>

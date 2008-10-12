@@ -26,50 +26,49 @@ import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.PollableChannel;
-import org.springframework.integration.jms.JmsSource;
 import org.springframework.integration.message.Message;
 
 /**
  * @author Mark Fisher
  */
-public class JmsSourceParserTests {
+public class JmsInboundChannelAdapterParserTests {
 
 	@Test
-	public void testSourceWithJmsTemplate() {
+	public void adapterWithJmsTemplate() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"jmsSourceWithJmsTemplate.xml", this.getClass());
-		JmsSource source = (JmsSource) context.getBean("jmsSource");
-		Message<?> message = source.receive();
+				"jmsInboundWithJmsTemplate.xml", this.getClass());
+		PollableChannel output = (PollableChannel) context.getBean("output");
+		Message<?> message = output.receive(1000);
 		assertNotNull("message should not be null", message);
 		assertEquals("polling-test", message.getPayload());
 	}
 
 	@Test
-	public void testSourceWithConnectionFactoryAndDestination() {
+	public void adapterWithConnectionFactoryAndDestination() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"jmsSourceWithConnectionFactoryAndDestination.xml", this.getClass());
-		JmsSource source = (JmsSource) context.getBean("jmsSource");
-		Message<?> message = source.receive();
-		assertNotNull("message should not be null", message);
-		assertEquals("polling-test", message.getPayload());
-		context.stop();
-	}
-
-	@Test
-	public void testSourceWithConnectionFactoryAndDestinationName() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"jmsSourceWithConnectionFactoryAndDestinationName.xml", this.getClass());
-		JmsSource source = (JmsSource) context.getBean("jmsSource");
-		Message<?> message = source.receive();
+				"jmsInboundWithConnectionFactoryAndDestination.xml", this.getClass());
+		PollableChannel output = (PollableChannel) context.getBean("output");
+		Message<?> message = output.receive(1000);
 		assertNotNull("message should not be null", message);
 		assertEquals("polling-test", message.getPayload());
 		context.stop();
 	}
 
-	@Test(expected=BeanDefinitionStoreException.class)
-	public void testSourceWithConnectionFactoryOnly() {
+	@Test
+	public void adapterWithConnectionFactoryAndDestinationName() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsInboundWithConnectionFactoryAndDestinationName.xml", this.getClass());
+		PollableChannel output = (PollableChannel) context.getBean("output");
+		Message<?> message = output.receive(1000);
+		assertNotNull("message should not be null", message);
+		assertEquals("polling-test", message.getPayload());
+		context.stop();
+	}
+
+	@Test(expected = BeanDefinitionStoreException.class)
+	public void adapterWithConnectionFactoryOnly() {
 		try {
-			new ClassPathXmlApplicationContext("jmsSourceWithConnectionFactoryOnly.xml", this.getClass());
+			new ClassPathXmlApplicationContext("jmsInboundWithConnectionFactoryOnly.xml", this.getClass());
 		}
 		catch (RuntimeException e) {
 			assertEquals(BeanCreationException.class, e.getCause().getClass());
@@ -77,10 +76,10 @@ public class JmsSourceParserTests {
 		}
 	}
 
-	@Test(expected=BeanCreationException.class)
-	public void testSourceWithDestinationOnly() {
+	@Test(expected = BeanCreationException.class)
+	public void adapterWithDestinationOnly() {
 		try {
-			new ClassPathXmlApplicationContext("jmsSourceWithDestinationOnly.xml", this.getClass());
+			new ClassPathXmlApplicationContext("jmsInboundWithDestinationOnly.xml", this.getClass());
 		}
 		catch (RuntimeException e) {
 			assertEquals(NoSuchBeanDefinitionException.class, e.getCause().getClass());
@@ -89,53 +88,41 @@ public class JmsSourceParserTests {
 	}
 
 	@Test
-	public void testSourceWithDestinationAndDefaultConnectionFactory() {
+	public void adpaterWithDestinationAndDefaultConnectionFactory() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"jmsSourceWithDestinationAndDefaultConnectionFactory.xml", this.getClass());
-		JmsSource source = (JmsSource) context.getBean("jmsSource");
-		Message<?> message = source.receive();
+				"jmsInboundWithDestinationAndDefaultConnectionFactory.xml", this.getClass());
+		PollableChannel output = (PollableChannel) context.getBean("output");
+		Message<?> message = output.receive(1000);
 		assertNotNull("message should not be null", message);
 		assertEquals("polling-test", message.getPayload());
 		context.stop();
 	}
 
 	@Test(expected=BeanCreationException.class)
-	public void testSourceWithDestinationNameOnly() {
-		new ClassPathXmlApplicationContext("jmsSourceWithDestinationNameOnly.xml", this.getClass());
+	public void adapterWithDestinationNameOnly() {
+		new ClassPathXmlApplicationContext("jmsInboundWithDestinationNameOnly.xml", this.getClass());
 	}
 
 	@Test
-	public void testSourceWithDestinationNameAndDefaultConnectionFactory() {
+	public void adapterWithDestinationNameAndDefaultConnectionFactory() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-					"jmsSourceWithDestinationNameAndDefaultConnectionFactory.xml", this.getClass());
-		JmsSource source = (JmsSource) context.getBean("jmsSource");
-		Message<?> message = source.receive();
+					"jmsInboundWithDestinationNameAndDefaultConnectionFactory.xml", this.getClass());
+		PollableChannel output = (PollableChannel) context.getBean("output");
+		Message<?> message = output.receive(1000);
 		assertNotNull("message should not be null", message);
 		assertEquals("polling-test", message.getPayload());
 	}
 
 	@Test
-	public void testSourceWithHeaderMapper() {
+	public void adapterWithHeaderMapper() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"jmsSourceWithHeaderMapper.xml", this.getClass());
-		JmsSource source = (JmsSource) context.getBean("jmsSource");
-		Message<?> message = source.receive();
+				"jmsInboundWithHeaderMapper.xml", this.getClass());
+		PollableChannel output = (PollableChannel) context.getBean("output");
+		Message<?> message = output.receive(1000);
 		assertNotNull("message should not be null", message);
 		assertEquals("polling-test", message.getPayload());
 		assertEquals("foo", message.getHeaders().get("testProperty"));
 		assertEquals(new Integer(123), message.getHeaders().get("testAttribute"));
-	}
-
-	@Test
-	public void testSourceEndpoint() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"jmsSourceEndpoint.xml", this.getClass());
-		context.start();
-		PollableChannel channel = (PollableChannel) context.getBean("channel");
-		Message<?> message = channel.receive(3000);
-		assertNotNull("message should not be null", message);
-		assertEquals("polling-test", message.getPayload());
-		context.stop();
 	}
 
 }

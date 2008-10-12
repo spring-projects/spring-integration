@@ -1,13 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:integration="http://www.springframework.org/schema/integration"
 	xmlns:jms="http://www.springframework.org/schema/integration/jms"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
 			http://www.springframework.org/schema/integration/jms
 			http://www.springframework.org/schema/integration/jms/spring-integration-jms-1.0.xsd">
 
-	<jms:jms-source id="jmsSource" jms-template="jmsTemplate"/>
+	<integration:message-bus/>
+
+	<jms:inbound-channel-adapter channel="output" jms-template="jmsTemplate" header-mapper="mapper"/>
+
+	<integration:channel id="output">
+		<integration:queue capacity="1"/>
+	</integration:channel>
+
+	<bean id="mapper" class="org.springframework.integration.jms.config.TestMessageHeaderMapper"/>
 
 	<bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
 		<property name="connectionFactory" ref="connectionFactory"/>

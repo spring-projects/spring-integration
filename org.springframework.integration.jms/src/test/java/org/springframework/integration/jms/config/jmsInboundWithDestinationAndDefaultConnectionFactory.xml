@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:si="http://www.springframework.org/schema/integration"
+	xmlns:integration="http://www.springframework.org/schema/integration"
 	xmlns:jms="http://www.springframework.org/schema/integration/jms"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
@@ -10,22 +10,15 @@
 			http://www.springframework.org/schema/integration/jms
 			http://www.springframework.org/schema/integration/jms/spring-integration-jms-1.0.xsd">
 
-	<si:message-bus/>
+	<integration:message-bus/>
 
-	<si:channel id="channel">
-		<si:queue capacity="10"/>
-	</si:channel>
+	<jms:inbound-channel-adapter channel="output" destination="testDestination"/>
 
-	<si:inbound-channel-adapter ref="jmsSource" channel="channel">
-		<si:poller interval="5000" initial-delay="0" max-messages-per-poll="1"/>
-	</si:inbound-channel-adapter>
+	<integration:channel id="output">
+		<integration:queue capacity="1"/>
+	</integration:channel>
 
-	<jms:jms-source id="jmsSource" jms-template="jmsTemplate"/>
-
-	<bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
-		<property name="connectionFactory" ref="connectionFactory"/>
-		<property name="defaultDestinationName" value="test"/>
-	</bean>
+	<bean id="testDestination" class="org.springframework.integration.jms.StubDestination"/>
 
 	<bean id="connectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
 		<constructor-arg>

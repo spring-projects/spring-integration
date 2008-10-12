@@ -19,19 +19,19 @@ package org.springframework.integration.jms.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
 import org.springframework.integration.jms.JmsSource;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for the &lt;jms-source/&gt; element. 
+ * Parser for the &lt;inbound-channel-adapter/&gt; element of the 'jms' namespace. 
  * 
  * @author Mark Fisher
  */
-public class JmsSourceParser extends AbstractBeanDefinitionParser {
+public class JmsInboundChannelAdapterParser extends AbstractPollingInboundChannelAdapterParser {
 
 	protected boolean shouldGenerateId() {
 		return false;
@@ -42,7 +42,7 @@ public class JmsSourceParser extends AbstractBeanDefinitionParser {
 	}
 
 	@Override
-	protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
+	protected String parseSource(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(JmsSource.class);
 		String jmsTemplate = element.getAttribute(JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE);
 		String destination = element.getAttribute(JmsAdapterParserUtils.DESTINATION_ATTRIBUTE);
@@ -77,7 +77,7 @@ public class JmsSourceParser extends AbstractBeanDefinitionParser {
 		if (StringUtils.hasText(headerMapper)) {
 			builder.addPropertyReference(JmsAdapterParserUtils.HEADER_MAPPER_PROPERTY, headerMapper);
 		}
-		return builder.getBeanDefinition();
+		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
 	}
 
 }

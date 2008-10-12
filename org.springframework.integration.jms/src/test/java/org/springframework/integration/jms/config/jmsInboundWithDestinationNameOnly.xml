@@ -7,6 +7,6 @@
 			http://www.springframework.org/schema/integration/jms
 			http://www.springframework.org/schema/integration/jms/spring-integration-jms-1.0.xsd">
 
-	<jms:jms-source id="jmsSource" destination-name="testDestinationName"/>
+	<jms:inbound-channel-adapter id="jmsSource" destination-name="testDestinationName"/>
 
 </beans>
