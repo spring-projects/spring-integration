@@ -19,10 +19,11 @@ package org.springframework.integration.jms.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.jms.JmsTarget;
+import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
+import org.springframework.integration.jms.JmsSendingMessageConsumer;
 import org.springframework.util.StringUtils;
 
 /**
@@ -30,21 +31,11 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class JmsTargetParser extends AbstractSingleBeanDefinitionParser {
+public class JmsOutboundChannelAdapterParser extends AbstractOutboundChannelAdapterParser {
 
-	protected Class<?> getBeanClass(Element element) {
-		return JmsTarget.class;
-	}
-
-	protected boolean shouldGenerateId() {
-		return false;
-	}
-
-	protected boolean shouldGenerateIdAsFallback() {
-		return true;
-	}
-
-	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+	@Override
+	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(JmsSendingMessageConsumer.class);
 		String jmsTemplate = element.getAttribute(JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE);
 		String destination = element.getAttribute(JmsAdapterParserUtils.DESTINATION_ATTRIBUTE);
 		String destinationName = element.getAttribute(JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE);
@@ -53,7 +44,7 @@ public class JmsTargetParser extends AbstractSingleBeanDefinitionParser {
 			if (element.hasAttribute(JmsAdapterParserUtils.CONNECTION_FACTORY_ATTRIBUTE) ||
 					element.hasAttribute(JmsAdapterParserUtils.DESTINATION_ATTRIBUTE) ||
 					element.hasAttribute(JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE)) {
-				throw new BeanCreationException("when providing a 'jms-template' reference, none of " +
+				throw new BeanCreationException("When providing a 'jms-template' reference, none of " +
 						"'connection-factory', 'destination', or 'destination-name' should be provided.");
 			}
 			builder.addPropertyReference(JmsAdapterParserUtils.JMS_TEMPLATE_PROPERTY, jmsTemplate);
@@ -69,12 +60,13 @@ public class JmsTargetParser extends AbstractSingleBeanDefinitionParser {
 			}
 		}
 		else {
-			throw new BeanCreationException("Either a 'jms-template' reference or " +
-			"one of 'destination' or 'destination-name' attributes must be provided.");
+			throw new BeanCreationException("Either a 'jms-template' reference " +
+			"or one of 'destination' or 'destination-name' must be provided.");
 		}
 		if (StringUtils.hasText(headerMapper)) {
 			builder.addPropertyReference(JmsAdapterParserUtils.HEADER_MAPPER_PROPERTY, headerMapper);
 		}
+		return builder.getBeanDefinition();
 	}
 
 }

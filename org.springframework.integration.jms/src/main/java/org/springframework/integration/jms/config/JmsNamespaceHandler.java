@@ -28,7 +28,7 @@ public class JmsNamespaceHandler extends NamespaceHandlerSupport {
 	public void init() {
 		this.registerBeanDefinitionParser("jms-gateway", new JmsGatewayParser());
 		this.registerBeanDefinitionParser("inbound-channel-adapter", new JmsInboundChannelAdapterParser());
-		this.registerBeanDefinitionParser("jms-target", new JmsTargetParser());
+		this.registerBeanDefinitionParser("outbound-channel-adapter", new JmsOutboundChannelAdapterParser());
 	}
 
 }

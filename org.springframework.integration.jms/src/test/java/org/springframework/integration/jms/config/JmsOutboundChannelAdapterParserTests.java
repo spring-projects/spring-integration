@@ -26,57 +26,61 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.adapter.MessageHeaderMapper;
-import org.springframework.integration.jms.JmsTarget;
+import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 
 /**
  * @author Mark Fisher
  */
-public class JmsTargetParserTests {
+public class JmsOutboundChannelAdapterParserTests {
 
 	@Test
-	public void testTargetWithConnectionFactoryAndDestination() {
+	public void adapterWithConnectionFactoryAndDestination() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"targetWithConnectionFactoryAndDestination.xml", this.getClass());
-		JmsTarget target = (JmsTarget) context.getBean("target");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(target);
+				"jmsOutboundWithConnectionFactoryAndDestination.xml", this.getClass());
+		SubscribingConsumerEndpoint endpoint = (SubscribingConsumerEndpoint) context.getBean("adapter");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(
+				new DirectFieldAccessor(endpoint).getPropertyValue("consumer"));
 		assertNotNull(accessor.getPropertyValue("jmsTemplate"));
 	}
 
 	@Test
-	public void testTargetWithConnectionFactoryAndDestinationName() {
+	public void adapterWithConnectionFactoryAndDestinationName() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"targetWithConnectionFactoryAndDestinationName.xml", this.getClass());
-		JmsTarget target = (JmsTarget) context.getBean("target");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(target);
+				"jmsOutboundWithConnectionFactoryAndDestinationName.xml", this.getClass());
+		SubscribingConsumerEndpoint endpoint = (SubscribingConsumerEndpoint) context.getBean("adapter");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(
+				new DirectFieldAccessor(endpoint).getPropertyValue("consumer"));
 		assertNotNull(accessor.getPropertyValue("jmsTemplate"));
 	}
 
 	@Test
-	public void testTargetWithDefaultConnectionFactory() {
+	public void adapterWithDefaultConnectionFactory() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"targetWithDefaultConnectionFactory.xml", this.getClass());
-		JmsTarget target = (JmsTarget) context.getBean("target");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(target);
+				"jmsOutboundWithDefaultConnectionFactory.xml", this.getClass());
+		SubscribingConsumerEndpoint endpoint = (SubscribingConsumerEndpoint) context.getBean("adapter");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(
+				new DirectFieldAccessor(endpoint).getPropertyValue("consumer"));
 		assertNotNull(accessor.getPropertyValue("jmsTemplate"));
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void testTargetWithHeaderMapper() {
+	public void adapterWithHeaderMapper() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"targetWithHeaderMapper.xml", this.getClass());
-		JmsTarget target = (JmsTarget) context.getBean("target");
-		DirectFieldAccessor accessor = new DirectFieldAccessor(target);
+				"jmsOutboundWithHeaderMapper.xml", this.getClass());
+		SubscribingConsumerEndpoint endpoint = (SubscribingConsumerEndpoint) context.getBean("adapter");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(
+				new DirectFieldAccessor(endpoint).getPropertyValue("consumer"));
 		MessageHeaderMapper headerMapper = (MessageHeaderMapper)
 				accessor.getPropertyValue("headerMapper");
 		assertNotNull(headerMapper);
 		assertEquals(TestMessageHeaderMapper.class, headerMapper.getClass());
 	}
 
-	@Test(expected=BeanDefinitionStoreException.class)
-	public void testTargetWithEmptyConnectionFactory() {
+	@Test(expected = BeanDefinitionStoreException.class)
+	public void adapterWithEmptyConnectionFactory() {
 		try {
-			new ClassPathXmlApplicationContext("targetWithEmptyConnectionFactory.xml", this.getClass());
+			new ClassPathXmlApplicationContext("jmsOutboundWithEmptyConnectionFactory.xml", this.getClass());
 		}
 		catch (RuntimeException e) {
 			assertEquals(BeanCreationException.class, e.getCause().getClass());

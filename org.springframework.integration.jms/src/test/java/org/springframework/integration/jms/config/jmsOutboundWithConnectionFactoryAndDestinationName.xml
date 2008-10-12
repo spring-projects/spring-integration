@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:integration="http://www.springframework.org/schema/integration"
 	xmlns:jms="http://www.springframework.org/schema/integration/jms"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
@@ -9,9 +10,12 @@
 			http://www.springframework.org/schema/integration/jms
 			http://www.springframework.org/schema/integration/jms/spring-integration-jms-1.0.xsd">
 
-	<jms:jms-target id="target"
-	                connection-factory="testConnectionFactory"
-	                destination="testDestination"/>
+	<integration:channel id="input"/>
+
+	<jms:outbound-channel-adapter id="adapter"
+			channel="input"
+			connection-factory="testConnectionFactory"
+			destination-name="queue.test"/>
 
 	<bean id="testConnectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
 		<constructor-arg>
@@ -20,7 +24,5 @@
 			</bean>
 		</constructor-arg>
 	</bean>
-
-	<bean id="testDestination" class="org.springframework.integration.jms.StubDestination"/>
 
 </beans>

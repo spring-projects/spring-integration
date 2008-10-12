@@ -20,11 +20,12 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageConsumer;
 
 /**
- * A target for sending JMS Messages.
+ * A MessageConsumer that sends the converted Message payload within
+ * a JMS Message.
  * 
  * @author Mark Fisher
  */
-public class JmsTarget extends AbstractJmsTemplateBasedAdapter implements MessageConsumer {
+public class JmsSendingMessageConsumer extends AbstractJmsTemplateBasedAdapter implements MessageConsumer {
 
 	public final void onMessage(final Message<?> message) {
 		if (message == null) {
