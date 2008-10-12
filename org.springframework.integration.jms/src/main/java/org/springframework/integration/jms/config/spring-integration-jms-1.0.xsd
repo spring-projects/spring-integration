@@ -3,12 +3,14 @@
 		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 		xmlns:beans="http://www.springframework.org/schema/beans"
 		xmlns:tool="http://www.springframework.org/schema/tool"
+		xmlns:integration="http://www.springframework.org/schema/integration"
 		targetNamespace="http://www.springframework.org/schema/integration/jms"
 		elementFormDefault="qualified"
 		attributeFormDefault="unqualified">
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
 	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
+	<xsd:import namespace="http://www.springframework.org/schema/integration"/>
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
@@ -25,6 +27,9 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="jmsInboundAdapterType">
+					<xsd:sequence>
+						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+					</xsd:sequence>
 					<xsd:attribute name="channel" type="xsd:string"/>
 					<xsd:attribute name="header-mapper" type="xsd:string"/>
 				</xsd:extension>
