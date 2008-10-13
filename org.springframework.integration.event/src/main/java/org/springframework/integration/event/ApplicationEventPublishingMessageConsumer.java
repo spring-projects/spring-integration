@@ -24,13 +24,14 @@ import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
 
 /**
- * An outbound Channel Adapter that publishes each {@link Message} it receives
- * as a {@link MessagingEvent}. The {@link MessagingEvent} is a subclass of Spring's
- * {@link ApplicationEvent} used by this adapter to simply wrap the {@link Message}.
+ * A {@link org.springframework.integration.message.MessageConsumer} that
+ * publishes each {@link Message} it receives as a {@link MessagingEvent}. The
+ * {@link MessagingEvent} is a subclass of Spring's {@link ApplicationEvent}
+ * used by this adapter to simply wrap the {@link Message}.
  * 
  * @author Mark Fisher
  */
-public class ApplicationEventOutboundChannelAdapter<T> extends AbstractMessageConsumer implements ApplicationEventPublisherAware {
+public class ApplicationEventPublishingMessageConsumer<T> extends AbstractMessageConsumer implements ApplicationEventPublisherAware {
 
 	private ApplicationEventPublisher applicationEventPublisher;
 
