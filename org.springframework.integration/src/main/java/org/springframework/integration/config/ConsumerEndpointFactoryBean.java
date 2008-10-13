@@ -18,12 +18,11 @@ package org.springframework.integration.config;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.channel.ChannelRegistry;
-import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
@@ -40,9 +39,11 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  */
-public class ConsumerEndpointFactoryBean implements FactoryBean, ChannelRegistryAware, BeanFactoryAware, InitializingBean {
+public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAware, BeanNameAware, InitializingBean {
 
 	private final MessageConsumer consumer;
+
+	private volatile String beanName;
 
 	private volatile String inputChannelName;
 
@@ -73,14 +74,12 @@ public class ConsumerEndpointFactoryBean implements FactoryBean, ChannelRegistry
 	}
 
 
-	public void setInputChannelName(String inputChannelName) {
-		this.inputChannelName = inputChannelName;
+	public void setBeanName(String beanName) {
+		this.beanName = beanName;
 	}
 
-	public void setChannelRegistry(ChannelRegistry channelRegistry) {
-		if (this.consumer instanceof ChannelRegistryAware) {
-			((ChannelRegistryAware) this.consumer).setChannelRegistry(channelRegistry);
-		}
+	public void setInputChannelName(String inputChannelName) {
+		this.inputChannelName = inputChannelName;
 	}
 
 	public void setTrigger(Trigger trigger) {
@@ -141,11 +140,12 @@ public class ConsumerEndpointFactoryBean implements FactoryBean, ChannelRegistry
 				return;
 			}
 			Assert.isTrue(this.beanFactory.containsBean(this.inputChannelName),
-					"no such input channel '" + this.inputChannelName + "'");
+					"no such input channel '" + this.inputChannelName + "' for endpoint '" + this.beanName + "'");
 			MessageChannel channel = (MessageChannel)
 					this.beanFactory.getBean(this.inputChannelName, MessageChannel.class);
 			if (channel instanceof SubscribableChannel) {
-				Assert.isNull(trigger, "A trigger should not be specified when using a SubscribableChannel");
+				Assert.isNull(trigger, "A trigger should not be specified for endpoint '" + this.beanName
+						+ "', since '" + this.inputChannelName + "' is a SubscribableChannel (not pollable).");
 				this.endpoint = new SubscribingConsumerEndpoint(
 						this.consumer, (SubscribableChannel) channel);
 			}

@@ -18,7 +18,6 @@ package org.springframework.integration.config.annotation;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
@@ -39,8 +38,6 @@ import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.bus.DefaultMessageBus;
-import org.springframework.integration.channel.ChannelRegistry;
-import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
@@ -48,6 +45,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.endpoint.PollingConsumerEndpoint;
 import org.springframework.integration.message.Message;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.scheduling.IntervalTrigger;
@@ -179,24 +177,29 @@ public class MessagingAnnotationPostProcessorTests {
 	}
 
 	@Test
-	public void testChannelRegistryAwareBean() {
+	public void testChannelResolution() {
 		GenericApplicationContext context = new GenericApplicationContext();
-		QueueChannel inputChannel = new QueueChannel();
+		DirectChannel inputChannel = new DirectChannel();
+		QueueChannel outputChannel = new QueueChannel();
 		inputChannel.setBeanName("inputChannel");
+		outputChannel.setBeanName("outputChannel");
 		context.getBeanFactory().registerSingleton("inputChannel", inputChannel);
+		context.getBeanFactory().registerSingleton("outputChannel", outputChannel);
 		DefaultMessageBus messageBus = new DefaultMessageBus();
+		messageBus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		context.getBeanFactory().registerSingleton(
 				MessageBusParser.MESSAGE_BUS_BEAN_NAME, messageBus);
 		messageBus.setApplicationContext(context);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(context.getBeanFactory());
 		postProcessor.afterPropertiesSet();
-		ChannelRegistryAwareTestBean testBean = new ChannelRegistryAwareTestBean();
-		assertNull(testBean.getChannelRegistry());
-		postProcessor.postProcessAfterInitialization(testBean, "testBean");
-		ChannelRegistry channelRegistry = testBean.getChannelRegistry();
-		assertNotNull(channelRegistry);
-		assertEquals(messageBus, channelRegistry);
+		messageBus.start();
+		ServiceActivatorAnnotatedBean bean = new ServiceActivatorAnnotatedBean();
+		postProcessor.postProcessAfterInitialization(bean, "testBean");
+		Message<?> message = MessageBuilder.withPayload("test").setReturnAddress("outputChannel").build();
+		inputChannel.send(message);
+		Message<?> reply = outputChannel.receive(0);
+		assertNotNull(reply);
 	}
 
 	@Test
@@ -455,26 +458,6 @@ public class MessagingAnnotationPostProcessorTests {
 		public void countdown(String input) {
 			this.messageText = input;
 			latch.countDown();
-		}
-	}
-
-
-	@MessageEndpoint
-	private static class ChannelRegistryAwareTestBean implements ChannelRegistryAware {
-
-		private ChannelRegistry channelRegistry;
-
-		public void setChannelRegistry(ChannelRegistry channelRegistry) {
-			this.channelRegistry = channelRegistry;
-		}
-
-		public ChannelRegistry getChannelRegistry() {
-			return this.channelRegistry;
-		}
-
-		@ServiceActivator(inputChannel="inputChannel")
-		public Message<?> handle(Message<?> message) {
-			return null;
 		}
 	}
 

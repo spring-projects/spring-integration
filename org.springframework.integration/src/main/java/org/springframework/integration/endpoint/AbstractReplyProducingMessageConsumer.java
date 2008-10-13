@@ -19,8 +19,10 @@ package org.springframework.integration.endpoint;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.integration.channel.ChannelRegistry;
-import org.springframework.integration.channel.ChannelRegistryAware;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.integration.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.message.CompositeMessage;
@@ -38,14 +40,14 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractReplyProducingMessageConsumer extends AbstractMessageConsumer implements ChannelRegistryAware {
+public abstract class AbstractReplyProducingMessageConsumer extends AbstractMessageConsumer implements BeanFactoryAware {
 
 	public static final long DEFAULT_SEND_TIMEOUT = 1000;
 
 
 	private MessageChannel outputChannel;
 
-	private volatile ChannelRegistry channelRegistry;
+	private volatile ChannelResolver channelResolver;
 
 	private volatile MessageSelector selector;
 
@@ -75,8 +77,9 @@ public abstract class AbstractReplyProducingMessageConsumer extends AbstractMess
 		this.channelTemplate.setSendTimeout(sendTimeout);
 	}
 
-	public void setChannelRegistry(ChannelRegistry channelRegistry) {
-		this.channelRegistry = channelRegistry;
+	public void setChannelResolver(ChannelResolver channelResolver) {
+		Assert.notNull(channelResolver, "channelResolver must not be null");
+		this.channelResolver = channelResolver;
 	}
 
 	public void setSelector(MessageSelector selector) {
@@ -87,6 +90,11 @@ public abstract class AbstractReplyProducingMessageConsumer extends AbstractMess
 		this.requiresReply = requiresReply;
 	}
 
+	public void setBeanFactory(BeanFactory beanFactory) {
+		if (this.channelResolver == null) {
+			this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
+		}
+	}
 
 	@Override
 	protected final void onMessageInternal(Message<?> message) {
@@ -175,9 +183,9 @@ public abstract class AbstractReplyProducingMessageConsumer extends AbstractMess
 					replyChannel = (MessageChannel) returnAddress;
 				}
 				else if (returnAddress instanceof String) {
-					Assert.state(this.channelRegistry != null,
-							"ChannelRegistry is required for resolving a reply channel by name");
-					replyChannel = this.channelRegistry.lookupChannel((String) returnAddress);
+					Assert.state(this.channelResolver != null,
+							"ChannelResolver is required for resolving a reply channel by name");
+					replyChannel = this.channelResolver.resolveChannelName((String) returnAddress);
 				}
 				else {
 					throw new MessagingException("expected a MessageChannel or String for 'returnAddress', but type is ["

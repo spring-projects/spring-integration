@@ -18,7 +18,6 @@ package org.springframework.integration.bus;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.util.Assert;
 
 /**
@@ -50,9 +49,6 @@ public class MessageBusAwareBeanPostProcessor implements BeanPostProcessor {
 	private Object postProcessIfNecessary(Object bean) {
 		if (bean instanceof MessageBusAware) {
 			((MessageBusAware) bean).setMessageBus(this.messageBus);
-		}
-		if (bean instanceof ChannelRegistryAware) {
-			((ChannelRegistryAware) bean).setChannelRegistry(this.messageBus);
 		}
 		return bean;
 	}

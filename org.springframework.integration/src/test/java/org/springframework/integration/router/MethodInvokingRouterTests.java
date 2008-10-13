@@ -27,8 +27,6 @@ import java.util.List;
 import org.junit.Test;
 
 import org.springframework.integration.annotation.Header;
-import org.springframework.integration.channel.ChannelRegistry;
-import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.TestChannelResolver;
 import org.springframework.integration.channel.MessageChannel;
@@ -607,24 +605,6 @@ public class MethodInvokingRouterTests {
 				results[1] = channelResolver.resolveChannelName("bar-channel");
 			}
 			return results;
-		}
-	}
-
-
-	public static class ChannelRegistryAwareTestBean implements ChannelRegistryAware {
-
-		private ChannelRegistry channelRegistry;
-
-		public void setChannelRegistry(ChannelRegistry channelRegistry) {
-			this.channelRegistry = channelRegistry;
-		}
-
-		public ChannelRegistry getChannelRegistry() {
-			return this.channelRegistry;
-		}
-
-		public MessageChannel route(String channelName) {
-			return this.channelRegistry.lookupChannel(channelName);
 		}
 	}
 

@@ -22,17 +22,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
-import org.springframework.integration.channel.ChannelRegistry;
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.channel.TestChannelResolver;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
@@ -91,10 +88,10 @@ public class ServiceActivatorEndpointTests {
 	public void returnAddressHeaderWithChannelName() {
 		QueueChannel channel = new QueueChannel(1);
 		channel.setBeanName("testChannel");
-		TestChannelRegistry channelRegistry = new TestChannelRegistry();
-		channelRegistry.registerChannel(channel);
+		TestChannelResolver channelResolver = new TestChannelResolver();
+		channelResolver.addChannel(channel);
 		ServiceActivatorEndpoint endpoint = this.createEndpoint();
-		endpoint.setChannelRegistry(channelRegistry);
+		endpoint.setChannelResolver(channelResolver);
 		Message<?> message = MessageBuilder.withPayload("foo").setReturnAddress("testChannel").build();
 		endpoint.onMessage(message);
 		Message<?> reply = channel.receive(0);
@@ -114,9 +111,9 @@ public class ServiceActivatorEndpointTests {
 			}
 		};
 		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(handler, "handle");
-		TestChannelRegistry channelRegistry = new TestChannelRegistry();
-		channelRegistry.registerChannel(replyChannel2);
-		endpoint.setChannelRegistry(channelRegistry);
+		TestChannelResolver channelResolver = new TestChannelResolver();
+		channelResolver.addChannel(replyChannel2);
+		endpoint.setChannelResolver(channelResolver);
 		Message<String> testMessage1 = MessageBuilder.withPayload("bar")
 				.setReturnAddress(replyChannel1).build();
 		endpoint.onMessage(testMessage1);
@@ -356,20 +353,6 @@ public class ServiceActivatorEndpointTests {
 
 		public Message<?> handle(Message<?> message) {
 			return null;
-		}
-	}
-
-
-	private static class TestChannelRegistry implements ChannelRegistry {
-
-		private final Map<String, MessageChannel> channels = new HashMap<String, MessageChannel>();
-
-		public MessageChannel lookupChannel(String channelName) {
-			return this.channels.get(channelName);
-		}
-
-		public void registerChannel(MessageChannel channel) {
-			this.channels.put(channel.getName(), channel);
 		}
 	}
 

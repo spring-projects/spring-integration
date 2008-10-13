@@ -50,8 +50,8 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 		this.configureCompletionStrategy(bean, aggregator);
 		String discardChannelName = annotation.discardChannel();
 		if (StringUtils.hasText(discardChannelName)) {
-			MessageChannel discardChannel = this.channelRegistry.lookupChannel(discardChannelName);
-			Assert.notNull(discardChannel, "unable to resolve discardChannel '" + discardChannelName + "'");
+			MessageChannel discardChannel = this.channelResolver.resolveChannelName(discardChannelName);
+			Assert.notNull(discardChannel, "failed to resolve discardChannel '" + discardChannelName + "'");
 			aggregator.setDiscardChannel(discardChannel);
 		}
 		aggregator.setSendTimeout(annotation.sendTimeout());

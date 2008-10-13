@@ -24,12 +24,11 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.generic.GenericBeanFactoryAccessor;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.Poller;
-import org.springframework.integration.channel.ChannelRegistry;
-import org.springframework.integration.channel.ChannelRegistryAware;
+import org.springframework.integration.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
-import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.endpoint.AbstractMessageConsumer;
 import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
 import org.springframework.integration.endpoint.MessageEndpoint;
@@ -53,22 +52,18 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	protected final GenericBeanFactoryAccessor beanFactoryAccessor;
 
-	protected final ChannelRegistry channelRegistry;
+	protected final ChannelResolver channelResolver;
 
 
 	public AbstractMethodAnnotationPostProcessor(ListableBeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "BeanFactory must not be null");
 		this.beanFactoryAccessor = new GenericBeanFactoryAccessor(beanFactory);
-		this.channelRegistry = this.beanFactoryAccessor.getBean(
-				MessageBusParser.MESSAGE_BUS_BEAN_NAME, ChannelRegistry.class);
+		this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 	}
 
 
 	public Object postProcess(Object bean, String beanName, Method method, T annotation) {
 		MessageConsumer consumer = this.createConsumer(bean, method, annotation);
-		if (consumer instanceof ChannelRegistryAware) {
-			((ChannelRegistryAware) consumer).setChannelRegistry(this.channelRegistry);
-		}
 		Poller pollerAnnotation = AnnotationUtils.findAnnotation(method, Poller.class);
 		MessageEndpoint endpoint = this.createEndpoint(consumer, annotation, pollerAnnotation);
 		if (endpoint != null) {
@@ -94,8 +89,8 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		MessageEndpoint endpoint = null;
 		String inputChannelName = (String) AnnotationUtils.getValue(annotation, INPUT_CHANNEL_ATTRIBUTE);
 		if (StringUtils.hasText(inputChannelName)) {
-			MessageChannel inputChannel = this.channelRegistry.lookupChannel(inputChannelName);
-			Assert.notNull(inputChannel, "unable to resolve inputChannel '" + inputChannelName + "'");
+			MessageChannel inputChannel = this.channelResolver.resolveChannelName(inputChannelName);
+			Assert.notNull(inputChannel, "failed to resolve inputChannel '" + inputChannelName + "'");
 			if (consumer instanceof AbstractMessageConsumer) {
 				if (inputChannel instanceof PollableChannel) {
 					PollingConsumerEndpoint pollingEndpoint = new PollingConsumerEndpoint(
@@ -119,10 +114,11 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			if (consumer instanceof AbstractReplyProducingMessageConsumer) {
 				String outputChannelName = (String) AnnotationUtils.getValue(annotation, OUTPUT_CHANNEL_ATTRIBUTE);
 				if (StringUtils.hasText(outputChannelName)) {
-					MessageChannel outputChannel = this.channelRegistry.lookupChannel(outputChannelName);
+					MessageChannel outputChannel = this.channelResolver.resolveChannelName(outputChannelName);
 					Assert.notNull(outputChannel, "unable to resolve outputChannel '" + outputChannelName + "'");
 					((AbstractReplyProducingMessageConsumer) consumer).setOutputChannel(outputChannel);
 				}
+				((AbstractReplyProducingMessageConsumer) consumer).setChannelResolver(this.channelResolver);
 			}
 		}
 		return endpoint;

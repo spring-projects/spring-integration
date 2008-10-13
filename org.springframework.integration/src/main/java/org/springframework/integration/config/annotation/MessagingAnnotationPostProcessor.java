@@ -40,7 +40,6 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.bus.MessageBus;
-import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.stereotype.Component;
@@ -118,9 +117,6 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 				}
 			}
 		});
-		if (bean instanceof ChannelRegistryAware) {
-			((ChannelRegistryAware) bean).setChannelRegistry(messageBus);
-		}
 		return bean;
 	}
 

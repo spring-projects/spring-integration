@@ -71,6 +71,7 @@ public class DefaultMessageBusTests {
 				return message;
 			}
 		};
+		consumer.setBeanFactory(context);
 		PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(consumer, sourceChannel);
 		endpoint.afterPropertiesSet();
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
@@ -79,7 +80,6 @@ public class DefaultMessageBusTests {
 		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		context.getBeanFactory().registerSingleton(MessageBusParser.MESSAGE_BUS_BEAN_NAME, bus);
 		bus.setApplicationContext(context);
-		consumer.setChannelRegistry(bus);
 		bus.start();
 		Message<?> result = targetChannel.receive(3000);
 		assertEquals("test", result.getPayload());

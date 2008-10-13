@@ -36,7 +36,6 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.integration.channel.ChannelRegistry;
-import org.springframework.integration.channel.ChannelRegistryAware;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.endpoint.MessageEndpoint;
@@ -177,9 +176,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 
 	private void activateEndpoint(MessageEndpoint endpoint) {
 		Assert.notNull(endpoint, "'endpoint' must not be null");
-		if (endpoint instanceof ChannelRegistryAware) {
-			((ChannelRegistryAware) endpoint).setChannelRegistry(this);
-		}
 		if (endpoint instanceof TaskSchedulerAware) {
 			((TaskSchedulerAware) endpoint).setTaskScheduler(this.taskScheduler);
 		}
