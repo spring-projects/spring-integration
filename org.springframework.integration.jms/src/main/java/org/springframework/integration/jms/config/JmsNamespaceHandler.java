@@ -17,6 +17,8 @@
 package org.springframework.integration.jms.config;
 
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
+import org.springframework.integration.config.xml.SimpleHeaderEnricherParser;
+import org.springframework.integration.jms.JmsHeaders;
 
 /**
  * Namespace handler for Spring Integration's <em>jms</em> namespace.
@@ -29,6 +31,8 @@ public class JmsNamespaceHandler extends NamespaceHandlerSupport {
 		this.registerBeanDefinitionParser("jms-gateway", new JmsGatewayParser());
 		this.registerBeanDefinitionParser("inbound-channel-adapter", new JmsInboundChannelAdapterParser());
 		this.registerBeanDefinitionParser("outbound-channel-adapter", new JmsOutboundChannelAdapterParser());
+		this.registerBeanDefinitionParser("header-enricher", new SimpleHeaderEnricherParser(
+				JmsHeaders.TRANSPORT_PREFIX, new String[] { "reply-to" }));
 	}
 
 }

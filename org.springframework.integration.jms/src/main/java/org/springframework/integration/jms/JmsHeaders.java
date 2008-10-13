@@ -35,12 +35,12 @@ public abstract class JmsHeaders {
 	public static final String USER_PREFIX = "spring.integration.user.jms.";
 
 
-	public static final String CORRELATION_ID = TRANSPORT_PREFIX + "JMSCorrelationID";
+	public static final String CORRELATION_ID = TRANSPORT_PREFIX + "correlation-id";
 
-	public static final String REPLY_TO = TRANSPORT_PREFIX + "JMSReplyTo";
+	public static final String REPLY_TO = TRANSPORT_PREFIX + "reply-to";
 
-	public static final String REDELIVERED = TRANSPORT_PREFIX + "JMSRedelivered";
+	public static final String REDELIVERED = TRANSPORT_PREFIX + "redelivered";
 
-	public static final String TYPE = TRANSPORT_PREFIX + "JMSType";
+	public static final String TYPE = TRANSPORT_PREFIX + "type";
 
 }

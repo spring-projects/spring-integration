@@ -109,6 +109,23 @@
 		</xsd:complexContent>
 	</xsd:complexType>
 
+	<xsd:element name="header-enricher">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines a Transformer for adding statically configured JMS Headers.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:complexContent>
+				<xsd:extension base="transformerType">
+					<xsd:attribute name="correlation-id" type="xsd:string"/>
+					<xsd:attribute name="reply-to" type="xsd:string"/>
+					<xsd:attribute name="overwrite" type="xsd:boolean"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:complexType name="jmsAdapterType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -120,6 +137,12 @@
 		<xsd:attribute name="connection-factory" type="xsd:string"/>
 		<xsd:attribute name="destination" type="xsd:string"/>
 		<xsd:attribute name="destination-name" type="xsd:string"/>
+	</xsd:complexType>
+
+	<xsd:complexType name="transformerType">
+		<xsd:attribute name="id" type="xsd:string"/>
+		<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
+		<xsd:attribute name="output-channel" type="xsd:string" use="required"/>		
 	</xsd:complexType>
 
 </xsd:schema>

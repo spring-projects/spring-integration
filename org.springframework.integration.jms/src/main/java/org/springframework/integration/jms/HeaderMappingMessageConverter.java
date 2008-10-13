@@ -21,6 +21,9 @@ import java.util.Map;
 import javax.jms.JMSException;
 import javax.jms.Session;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.springframework.integration.adapter.MessageHeaderMapper;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
@@ -36,6 +39,8 @@ import org.springframework.jms.support.converter.SimpleMessageConverter;
  * @author Mark Fisher
  */
 public class HeaderMappingMessageConverter implements MessageConverter {
+
+	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final MessageConverter converter;
 
@@ -56,6 +61,9 @@ public class HeaderMappingMessageConverter implements MessageConverter {
 		Object payload = this.converter.fromMessage(jmsMessage);
 		Map<String, Object> headerMap = this.headerMapper.mapToMessageHeaders(jmsMessage); 
 		Message<?> message = MessageBuilder.withPayload(payload).copyHeaders(headerMap).build();
+		if (logger.isDebugEnabled()) {
+			logger.debug("converted JMS Message [" + jmsMessage + "] to integration Message [" + message + "]");
+		}
 		return message;
 	}
 
@@ -67,6 +75,9 @@ public class HeaderMappingMessageConverter implements MessageConverter {
 		Message<?> message = (Message<?>) object;
 		javax.jms.Message jmsMessage = this.converter.toMessage(message.getPayload(), session);
 		this.headerMapper.mapFromMessageHeaders(message.getHeaders(), jmsMessage);
+		if (logger.isDebugEnabled()) {
+			logger.debug("converted integration Message [" + message + "] to JMS Message [" + jmsMessage + "]");
+		}
 		return jmsMessage;
 	}
 
