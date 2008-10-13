@@ -19,6 +19,7 @@ package org.springframework.integration.channel;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
 /**
@@ -26,11 +27,16 @@ import org.springframework.util.Assert;
  */
 public class TestChannelResolver implements ChannelResolver {
 
-	private final Map<String, MessageChannel> channels = new ConcurrentHashMap<String, MessageChannel>();
+	private volatile Map<String, MessageChannel> channels = new ConcurrentHashMap<String, MessageChannel>();
 
 
 	public MessageChannel resolveChannelName(String channelName) {
 		return this.channels.get(channelName);
+	}
+
+	@Autowired
+	public void setChannels(Map<String, MessageChannel> channels) {
+		this.channels = channels;
 	}
 
 	public void addChannel(MessageChannel channel) {

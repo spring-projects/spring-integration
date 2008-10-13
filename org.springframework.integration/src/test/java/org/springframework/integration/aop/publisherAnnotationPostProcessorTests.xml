@@ -4,21 +4,10 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
 
-	<bean id="messageBus" class="org.springframework.integration.bus.DefaultMessageBus">
-		<property name="taskScheduler">
-			<bean class="org.springframework.integration.util.TestUtils"
-				  factory-method="createTaskScheduler">
-				<constructor-arg value="10"/>
-			</bean>
-		</property>
-	</bean>
-
 	<bean id="testChannel" class="org.springframework.integration.channel.QueueChannel"/>
 
 	<bean id="testBean" class="org.springframework.integration.aop.PublisherAnnotationTestBean"/>
 
-	<bean class="org.springframework.integration.config.annotation.PublisherAnnotationPostProcessor">
-		<property name="channelRegistry" ref="messageBus"/>
-	</bean>
+	<bean class="org.springframework.integration.config.annotation.PublisherAnnotationPostProcessor"/>
 
 </beans>

@@ -26,11 +26,13 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.aop.Publisher;
 import org.springframework.integration.aop.PublisherAnnotationAdvisor;
-import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 
@@ -40,18 +42,22 @@ import org.springframework.util.ReflectionUtils;
  * 
  * @author Mark Fisher
  */
-public class PublisherAnnotationPostProcessor implements BeanPostProcessor, BeanClassLoaderAware {
+public class PublisherAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware, BeanClassLoaderAware {
 
 	private volatile Class<? extends Annotation> publisherAnnotationType = Publisher.class;
 
 	private volatile String channelNameAttribute = "channel";
 
-	private ChannelRegistry channelRegistry;
+	private volatile Advisor advisor;
 
-	private Advisor advisor;
+	private volatile BeanFactory beanFactory;
 
-	private ClassLoader beanClassLoader;
+	private volatile ClassLoader beanClassLoader;
 
+
+	public void setBeanFactory(BeanFactory beanFactory) {
+		this.beanFactory = beanFactory;
+	}
 
 	public void setBeanClassLoader(ClassLoader beanClassLoader) {
 		Assert.notNull(beanClassLoader, "'beanClassLoader' must not be null");
@@ -68,17 +74,10 @@ public class PublisherAnnotationPostProcessor implements BeanPostProcessor, Bean
 		this.channelNameAttribute = channelNameAttribute;
 	}
 
-	public void setChannelRegistry(ChannelRegistry channelRegistry) {
-		Assert.notNull(channelRegistry, "'channelRegistry' must not be null");
-		this.channelRegistry = channelRegistry;
-	}
-
 	private void createAdvisor() {
-		if (this.channelRegistry == null) {
-			throw new IllegalStateException("'channelRegistry' is required");
-		}
+		Assert.state(this.beanFactory != null, "BeanFactory is required");
 		this.advisor = new PublisherAnnotationAdvisor(this.publisherAnnotationType, this.channelNameAttribute,
-				this.channelRegistry);
+				new BeanFactoryChannelResolver(this.beanFactory));
 	}
 
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
