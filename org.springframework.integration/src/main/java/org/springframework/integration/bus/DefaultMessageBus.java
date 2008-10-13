@@ -18,7 +18,6 @@ package org.springframework.integration.bus;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -38,7 +37,6 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.endpoint.MessageEndpoint;
-import org.springframework.integration.endpoint.MessagingGateway;
 import org.springframework.integration.scheduling.SimpleTaskScheduler;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.integration.scheduling.TaskSchedulerAware;
@@ -61,8 +59,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 	private final Set<MessageEndpoint> endpoints = new CopyOnWriteArraySet<MessageEndpoint>();
 
 	private final MessageBusInterceptorsList interceptors = new MessageBusInterceptorsList();
-
-	private final Set<Lifecycle> lifecycleGateways = new CopyOnWriteArraySet<Lifecycle>();
 
 	private volatile TaskScheduler taskScheduler;
 
@@ -98,15 +94,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 	 */
 	public void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;
-	}
-
-	@SuppressWarnings("unchecked")
-	private void registerGateways(ApplicationContext context) {
-		Map<String, MessagingGateway> gatewayBeans = (Map<String, MessagingGateway>) context
-				.getBeansOfType(MessagingGateway.class);
-		for (Map.Entry<String, MessagingGateway> entry : gatewayBeans.entrySet()) {
-			this.registerGateway(entry.getKey(), entry.getValue());
-		}
 	}
 
 	public void initialize() {
@@ -199,19 +186,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 		}
 	}
 
-	// TODO: once gateways are endpoints, remove this 
-	private void registerGateway(String name, MessagingGateway gateway) {
-		if (gateway instanceof Lifecycle) {
-			this.lifecycleGateways.add((Lifecycle) gateway);
-			if (this.isRunning()) {
-				((Lifecycle) gateway).start();
-			}
-		}
-		if (logger.isInfoEnabled()) {
-			logger.info("registered gateway '" + name + "'");
-		}
-	}
-
 	// Lifecycle implementation
 
 	public boolean isRunning() {
@@ -230,9 +204,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 		this.interceptors.preStart();
 		synchronized (this.lifecycleMonitor) {
 			this.activateEndpoints();
-			for (Lifecycle gateway : this.lifecycleGateways) {
-				gateway.start();
-			}
 			if (this.taskScheduler instanceof SimpleTaskScheduler) {
 				((SimpleTaskScheduler) this.taskScheduler).setErrorHandler(
 						new MessagePublishingErrorHandler(this.lookupChannel(ERROR_CHANNEL_BEAN_NAME)));
@@ -253,9 +224,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 		this.interceptors.preStop();
 		synchronized (this.lifecycleMonitor) {
 			this.deactivateEndpoints();
-			for (Lifecycle gateway : this.lifecycleGateways) {
-				gateway.stop();
-			}
 			this.running = false;
 			this.taskScheduler.stop();
 		}
@@ -273,12 +241,8 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 	}
 
 	public void onApplicationEvent(ApplicationEvent event) {
-		if (event instanceof ContextRefreshedEvent) {
-			ApplicationContext context = ((ContextRefreshedEvent) event).getApplicationContext();
-			this.registerGateways(context);
-			if (this.autoStartup) {
-				this.start();
-			}
+		if (event instanceof ContextRefreshedEvent && this.autoStartup) {
+			this.start();
 		}
 	}
 

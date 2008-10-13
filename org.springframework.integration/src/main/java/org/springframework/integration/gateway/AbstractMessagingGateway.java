@@ -41,7 +41,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractMessagingGateway implements MessagingGateway, MessageBusAware {
+public abstract class AbstractMessagingGateway implements MessagingGateway, MessageEndpoint, MessageBusAware {
 
 	private volatile MessageChannel requestChannel;
 
@@ -54,7 +54,6 @@ public abstract class AbstractMessagingGateway implements MessagingGateway, Mess
 	private volatile MessageBus messageBus;
 
 	private final Object replyMessageCorrelatorMonitor = new Object();
-
 
 
 	/**
