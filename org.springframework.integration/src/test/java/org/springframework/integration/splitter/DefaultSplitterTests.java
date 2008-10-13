@@ -18,13 +18,16 @@ package org.springframework.integration.splitter;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
 
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 
@@ -73,6 +76,20 @@ public class DefaultSplitterTests {
 		Message<?> reply3 = replies.get(2);
 		assertNotNull(reply3);
 		assertEquals("z", reply3.getPayload());
+	}
+
+	@Test
+	public void correlationIdCopiedFromMessageId() {
+		Message<String> message = MessageBuilder.withPayload("test").build();
+		DirectChannel inputChannel = new DirectChannel();
+		QueueChannel outputChannel = new QueueChannel(1);
+		DefaultMessageSplitter splitter = new DefaultMessageSplitter();
+		splitter.setOutputChannel(outputChannel);
+		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(splitter, inputChannel);
+		endpoint.start();
+		assertTrue(inputChannel.send(message));
+		Message<?> reply = outputChannel.receive(0);
+		assertEquals(message.getHeaders().getId(), reply.getHeaders().getCorrelationId());
 	}
 
 }

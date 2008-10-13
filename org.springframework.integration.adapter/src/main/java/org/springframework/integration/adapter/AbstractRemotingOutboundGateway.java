@@ -20,6 +20,7 @@ import java.io.Serializable;
 
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
+import org.springframework.integration.endpoint.ReplyHolder;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.remoting.RemoteAccessException;
@@ -49,10 +50,13 @@ public abstract class AbstractRemotingOutboundGateway extends AbstractReplyProdu
 	protected abstract MessageHandler createHandlerProxy(String url);
 
 
-	public final Message<?> handle(Message<?> message) {
+	public final void handle(Message<?> message, ReplyHolder replyHolder) {
 		this.verifySerializability(message);
 		try {
-			return this.handlerProxy.handle(message);
+			Message<?> reply = this.handlerProxy.handle(message);
+			if (reply != null) {
+				replyHolder.set(reply);
+			}
 		}
 		catch (RemoteAccessException e) {
 			throw new MessageHandlingException(message, "unable to handle message remotely", e);

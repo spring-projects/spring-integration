@@ -153,9 +153,9 @@ public class AggregatorEndpointTests {
 		QueueChannel replyChannel = new QueueChannel();
 		QueueChannel discardChannel = new QueueChannel();
 		this.aggregator.setDiscardChannel(discardChannel);
-		this.aggregator.handle(createMessage("test-1a", 1, 1, 1, replyChannel));
+		this.aggregator.onMessage(createMessage("test-1a", 1, 1, 1, replyChannel));
 		assertEquals("test-1a", replyChannel.receive(100).getPayload());
-		this.aggregator.handle(createMessage("test-1b", 1, 1, 1, replyChannel));
+		this.aggregator.onMessage(createMessage("test-1b", 1, 1, 1, replyChannel));
 		assertEquals("test-1b", discardChannel.receive(100).getPayload());
 	}
 
@@ -165,13 +165,13 @@ public class AggregatorEndpointTests {
 		QueueChannel discardChannel = new QueueChannel();
 		this.aggregator.setTrackedCorrelationIdCapacity(3);
 		this.aggregator.setDiscardChannel(discardChannel);
-		this.aggregator.handle(createMessage("test-1a", 1, 1, 1, replyChannel));
+		this.aggregator.onMessage(createMessage("test-1a", 1, 1, 1, replyChannel));
 		assertEquals("test-1a", replyChannel.receive(100).getPayload());
-		this.aggregator.handle(createMessage("test-2", 2, 1, 1, replyChannel));
+		this.aggregator.onMessage(createMessage("test-2", 2, 1, 1, replyChannel));
 		assertEquals("test-2", replyChannel.receive(100).getPayload());
-		this.aggregator.handle(createMessage("test-3", 3, 1, 1, replyChannel));
+		this.aggregator.onMessage(createMessage("test-3", 3, 1, 1, replyChannel));
 		assertEquals("test-3", replyChannel.receive(100).getPayload());
-		this.aggregator.handle(createMessage("test-1b", 1, 1, 1, replyChannel));
+		this.aggregator.onMessage(createMessage("test-1b", 1, 1, 1, replyChannel));
 		assertEquals("test-1b", discardChannel.receive(100).getPayload());
 	}
 
@@ -181,23 +181,23 @@ public class AggregatorEndpointTests {
 		QueueChannel discardChannel = new QueueChannel();
 		this.aggregator.setTrackedCorrelationIdCapacity(3);
 		this.aggregator.setDiscardChannel(discardChannel);
-		this.aggregator.handle(createMessage("test-1a", 1, 1, 1, replyChannel));
+		this.aggregator.onMessage(createMessage("test-1a", 1, 1, 1, replyChannel));
 		assertEquals("test-1a", replyChannel.receive(100).getPayload());
-		this.aggregator.handle(createMessage("test-2", 2, 1, 1, replyChannel));
+		this.aggregator.onMessage(createMessage("test-2", 2, 1, 1, replyChannel));
 		assertEquals("test-2", replyChannel.receive(100).getPayload());
-		this.aggregator.handle(createMessage("test-3", 3, 1, 1, replyChannel));
+		this.aggregator.onMessage(createMessage("test-3", 3, 1, 1, replyChannel));
 		assertEquals("test-3", replyChannel.receive(100).getPayload());
-		this.aggregator.handle(createMessage("test-4", 4, 1, 1, replyChannel));
+		this.aggregator.onMessage(createMessage("test-4", 4, 1, 1, replyChannel));
 		assertEquals("test-4", replyChannel.receive(100).getPayload());
-		this.aggregator.handle(createMessage("test-1b", 1, 1, 1, replyChannel));
+		this.aggregator.onMessage(createMessage("test-1b", 1, 1, 1, replyChannel));
 		assertEquals("test-1b", replyChannel.receive(100).getPayload());
 		assertNull(discardChannel.receive(0));
 	}
 
-	@Test(expected=MessageHandlingException.class)
+	@Test(expected = MessageHandlingException.class)
 	public void testExceptionThrownIfNoCorrelationId() throws InterruptedException {
 		Message<?> message = createMessage("123", null, 2, 1, new QueueChannel());
-		this.aggregator.handle(message);
+		this.aggregator.onMessage(message);
 	}
 	
 	@Test
@@ -311,16 +311,7 @@ public class AggregatorEndpointTests {
 
 		public void run() {
 			try {
-				Message<?> result = this.aggregator.handle(message);
-				if (result != null) {
-					Object returnAddress = message.getHeaders().getReturnAddress();
-					if (returnAddress instanceof MessageChannel) {
-						((MessageChannel) returnAddress).send(result);
-					}
-					else {
-						throw new IllegalStateException("'returnAddress' was not a MessageChannel instance");
-					}
-				}
+				this.aggregator.onMessage(message);
 			}
 			catch (Exception e) {
 				this.exception = e;

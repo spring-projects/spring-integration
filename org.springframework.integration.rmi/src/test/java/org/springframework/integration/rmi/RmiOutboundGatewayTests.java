@@ -26,6 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.integration.adapter.MessageHandler;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
@@ -42,6 +43,13 @@ public class RmiOutboundGatewayTests {
 
 	private final RmiOutboundGateway gateway = new RmiOutboundGateway("rmi://localhost:1099/testRemoteHandler");
 
+	private final QueueChannel output = new QueueChannel(1);
+
+
+	@Before
+	public void initializeGateway() {
+		this.gateway.setOutputChannel(this.output);
+	}
 
 	@Before
 	public void createExporter() throws RemoteException {
@@ -55,7 +63,8 @@ public class RmiOutboundGatewayTests {
 
 	@Test
 	public void serializablePayload() throws RemoteException {
-		Message<?> replyMessage = gateway.handle(new StringMessage("test"));
+		gateway.onMessage(new StringMessage("test"));
+		Message<?> replyMessage = output.receive(0);
 		assertNotNull(replyMessage);
 		assertEquals("TEST", replyMessage.getPayload());
 	}
@@ -64,7 +73,8 @@ public class RmiOutboundGatewayTests {
 	public void serializableAttribute() throws RemoteException {
 		Message<String> requestMessage = MessageBuilder.withPayload("test")
 				.setHeader("testAttribute", "foo").build();
-		Message<?> replyMessage = gateway.handle(requestMessage);
+		gateway.onMessage(requestMessage);
+		Message<?> replyMessage = output.receive(0);
 		assertNotNull(replyMessage);
 		assertEquals("foo", replyMessage.getHeaders().get("testAttribute"));
 	}
@@ -73,14 +83,14 @@ public class RmiOutboundGatewayTests {
 	public void nonSerializablePayload() throws RemoteException {
 		NonSerializableTestObject payload = new NonSerializableTestObject();
 		Message<?> requestMessage = new GenericMessage<NonSerializableTestObject>(payload);
-		gateway.handle(requestMessage);
+		gateway.onMessage(requestMessage);
 	}
 
 	@Test(expected = MessageHandlingException.class)
 	public void nonSerializableAttribute() throws RemoteException {
 		Message<String> requestMessage = MessageBuilder.withPayload("test")
 				.setHeader("testAttribute", new NonSerializableTestObject()).build();
-		gateway.handle(requestMessage);
+		gateway.onMessage(requestMessage);
 	}
 
 	@Test
@@ -88,7 +98,7 @@ public class RmiOutboundGatewayTests {
 		RmiOutboundGateway gateway = new RmiOutboundGateway("rmi://localhost:1099/noSuchService");
 		boolean exceptionThrown = false;
 		try {
-			gateway.handle(new StringMessage("test"));
+			gateway.onMessage(new StringMessage("test"));
 		}
 		catch (MessageHandlingException e) {
 			assertEquals(RemoteLookupFailureException.class, e.getCause().getClass());
@@ -102,7 +112,7 @@ public class RmiOutboundGatewayTests {
 		RmiOutboundGateway gateway = new RmiOutboundGateway("rmi://noSuchHost:1099/testRemoteHandler");
 		boolean exceptionThrown = false;
 		try {
-			gateway.handle(new StringMessage("test"));
+			gateway.onMessage(new StringMessage("test"));
 		}
 		catch (MessageHandlingException e) {
 			assertEquals(RemoteLookupFailureException.class, e.getCause().getClass());
@@ -116,7 +126,7 @@ public class RmiOutboundGatewayTests {
 		RmiOutboundGateway gateway = new RmiOutboundGateway("invalid");
 		boolean exceptionThrown = false;
 		try {
-			gateway.handle(new StringMessage("test"));
+			gateway.onMessage(new StringMessage("test"));
 		}
 		catch (MessageHandlingException e) {
 			assertEquals(RemoteLookupFailureException.class, e.getCause().getClass());

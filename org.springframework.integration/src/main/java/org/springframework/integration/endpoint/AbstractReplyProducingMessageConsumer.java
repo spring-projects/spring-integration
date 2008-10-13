@@ -16,16 +16,12 @@
 
 package org.springframework.integration.endpoint;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.MessageChannelTemplate;
-import org.springframework.integration.message.CompositeMessage;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
@@ -101,36 +97,31 @@ public abstract class AbstractReplyProducingMessageConsumer extends AbstractMess
 		if (!this.supports(message)) {
 			throw new MessageRejectedException(message, "unsupported message");
 		}
-		Object result = this.handle(message);
-		if (result == null) {
+		ReplyHolder replyHolder = new ReplyHolder();
+		this.handle(message, replyHolder);
+		if (replyHolder.isEmpty()) {
 			if (this.requiresReply) {
 				throw new MessageHandlingException(message, "consumer '" + this
 						+ "' requires a reply, but no reply was received");
 			}
 			return;
 		}
-		Message<?> reply = null;
-		if (result instanceof Message && result.equals(message)) {
-			// we simply pass along an unaltered request Message
-			reply = (Message<?>) result;
+		Object targetChannelValue = replyHolder.getTargetChannel();
+		MessageChannel replyChannel = null;
+		if (targetChannelValue == null) {
+			replyChannel = this.resolveReplyChannel(message);
 		}
-		else {
-			reply = buildReplyMessage(result, message.getHeaders());
+		else if (targetChannelValue instanceof String) {
+			replyChannel = this.channelResolver.resolveChannelName((String) targetChannelValue);
 		}
-		MessageChannel replyChannel = this.resolveReplyChannel(message);
-		if (reply instanceof CompositeMessage && this.shouldSplitComposite()) {
-			boolean sentAtLeastOne = false;
-			for (Message<?> nextReply : (CompositeMessage) reply) {
-				boolean sent = this.sendReplyMessage(nextReply, replyChannel);
-				sentAtLeastOne = (sentAtLeastOne || sent);
-			}
-		}
-		else {
-			this.sendReplyMessage(reply, replyChannel);
+		MessageHeaders requestHeaders = message.getHeaders();
+		for (MessageBuilder<?> builder : replyHolder.builders()) {
+			builder.copyHeadersIfAbsent(requestHeaders);
+			this.sendReplyMessage(builder.build(), replyChannel);
 		}
 	}
 
-	protected abstract Object handle(Message<?> message);
+	protected abstract void handle(Message<?> message, ReplyHolder replyHolder);
 
 	protected boolean supports(Message<?> message) {
 		if (this.selector != null && !this.selector.accept(message)) {
@@ -142,36 +133,8 @@ public abstract class AbstractReplyProducingMessageConsumer extends AbstractMess
 		return true;
 	}
 
-	protected boolean shouldSplitComposite() {
-		return false;
-	}
-
 	protected boolean sendReplyMessage(Message<?> replyMessage, MessageChannel replyChannel) {
 		return this.channelTemplate.send(replyMessage, replyChannel);
-	}
-
-	private Message<?> buildReplyMessage(Object result, MessageHeaders requestHeaders) {
-		MessageBuilder<?> builder = null;
-		if (result instanceof MessageBuilder) {
-			builder = (MessageBuilder<?>) result;
-		}
-		else if (result instanceof CompositeMessage) {
-			List<Message<?>> messages = ((CompositeMessage) result).getPayload();
-			List<Message<?>> replies = new ArrayList<Message<?>>();
-			for (Message<?> message : messages) {
-				replies.add(this.buildReplyMessage(message, requestHeaders));
-			}
-			return new CompositeMessage(replies);
-		}
-		else if (result instanceof Message<?>) {
-			builder = MessageBuilder.fromMessage((Message<?>) result);
-		}
-		else {
-			builder = MessageBuilder.withPayload(result);
-		}
-		return builder.copyHeadersIfAbsent(requestHeaders)
-			.setHeaderIfAbsent(MessageHeaders.CORRELATION_ID, requestHeaders.getId())
-			.build();
 	}
 
 	private MessageChannel resolveReplyChannel(Message<?> requestMessage) {

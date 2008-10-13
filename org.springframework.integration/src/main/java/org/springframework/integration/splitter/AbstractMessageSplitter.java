@@ -16,15 +16,11 @@
 
 package org.springframework.integration.splitter;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
-import org.springframework.integration.message.CompositeMessage;
+import org.springframework.integration.endpoint.ReplyHolder;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessageHeaders;
 
 /**
  * Base class for Message-splitting consumers.
@@ -34,24 +30,18 @@ import org.springframework.integration.message.MessageHeaders;
 public abstract class AbstractMessageSplitter extends AbstractReplyProducingMessageConsumer {
 
 	@Override
-	protected final boolean shouldSplitComposite() {
-		return true;
-	}
-
-	@Override
-	protected final Message<?> handle(Message<?> message) {
+	protected final void handle(Message<?> message, ReplyHolder replyHolder) {
 		Object result = this.splitMessage(message);
 		if (result == null) {
-			return null;
+			return;
 		}
-		MessageHeaders requestHeaders = message.getHeaders();
-		List<Message<?>> results = new ArrayList<Message<?>>();
+		Object correlationId = message.getHeaders().getId();
 		if (result instanceof Collection) {
 			Collection<?> items = (Collection<?>) result;
 			int sequenceNumber = 0;
 			int sequenceSize = items.size();
 			for (Object item : items) {
-				results.add(this.createSplitMessage(item, requestHeaders, ++sequenceNumber, sequenceSize));
+				this.addReply(replyHolder, item, correlationId, ++sequenceNumber, sequenceSize);
 			}
 		}
 		else if (result.getClass().isArray()) {
@@ -59,16 +49,18 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 			int sequenceNumber = 0;
 			int sequenceSize = items.length;
 			for (Object item : items) {
-				results.add(this.createSplitMessage(item, requestHeaders, ++sequenceNumber, sequenceSize));
+				this.addReply(replyHolder, item, correlationId, ++sequenceNumber, sequenceSize);
 			}
 		}
 		else {
-			results.add(this.createSplitMessage(result, requestHeaders, 1, 1));
+			this.addReply(replyHolder, result, correlationId, 1, 1);
 		}
-		if (results.isEmpty()) {
-			return null;
-		}
-		return new CompositeMessage(results);
+	}
+
+	private void addReply(ReplyHolder replyHolder, Object item, Object correlationId, int sequenceNumber, int sequenceSize) {
+		replyHolder.add(item).setCorrelationId(correlationId)
+				.setSequenceNumber(sequenceNumber)
+				.setSequenceSize(sequenceSize);
 	}
 
 	/**
@@ -80,21 +72,5 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 	 * Message will be produced.
 	 */
 	protected abstract Object splitMessage(Message<?> message);
-
-
-	private Message<?> createSplitMessage(Object item, MessageHeaders requestHeaders, int sequenceNumber, int sequenceSize) {
-		if (item instanceof Message<?>) {
-			return setSplitMessageHeaders(MessageBuilder.fromMessage((Message<?>) item),
-					requestHeaders.getId(), sequenceNumber, sequenceSize);
-		}
-		return setSplitMessageHeaders(MessageBuilder.withPayload(item),
-				requestHeaders.getId(), sequenceNumber, sequenceSize);
-	}
-
-	private Message<?> setSplitMessageHeaders(MessageBuilder<?> builder, Object requestMessageId, int sequenceNumber, int sequenceSize) {
-		return builder.setCorrelationId(requestMessageId)
-				.setSequenceNumber(sequenceNumber)
-				.setSequenceSize(sequenceSize).build();
-	}
 
 }

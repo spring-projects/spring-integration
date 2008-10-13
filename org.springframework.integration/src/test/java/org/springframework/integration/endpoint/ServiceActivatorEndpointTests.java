@@ -301,22 +301,6 @@ public class ServiceActivatorEndpointTests {
 	}
 
 	@Test
-	public void correlationIdSetForReplyMessage() {
-		QueueChannel replyChannel = new QueueChannel(1);
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(new Object() {
-			@SuppressWarnings("unused")
-			public Message<?> handle(Message<?> message) {
-				return MessageBuilder.fromMessage(message).build();
-			}
-		}, "handle");
-		Message<String> message = MessageBuilder.withPayload("test")
-				.setReturnAddress(replyChannel).build();
-		endpoint.onMessage(message);
-		Message<?> reply = replyChannel.receive(500);
-		assertEquals(message.getHeaders().getId(), reply.getHeaders().getCorrelationId());
-	}
-
-	@Test
 	public void correlationIdSetByHandlerTakesPrecedence() {
 		QueueChannel replyChannel = new QueueChannel(1);
 		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(new Object() {

@@ -24,8 +24,8 @@ import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageMappingMethodInvoker;
 import org.springframework.integration.util.DefaultMethodResolver;
-import org.springframework.integration.util.MethodResolver;
 import org.springframework.integration.util.MethodInvoker;
+import org.springframework.integration.util.MethodResolver;
 import org.springframework.util.Assert;
 
 /**
@@ -63,9 +63,12 @@ public class ServiceActivatorEndpoint extends AbstractReplyProducingMessageConsu
 	}
 
 	@Override
-	protected Object handle(Message<?> message) {
+	protected void handle(Message<?> message, ReplyHolder replyHolder) {
 		try {
-			return this.invoker.invokeMethod(message);
+			Object result = this.invoker.invokeMethod(message);
+			if (result != null) {
+				replyHolder.set(result);
+			}
 		}
 		catch (Exception e) {
 			if (e instanceof RuntimeException) {

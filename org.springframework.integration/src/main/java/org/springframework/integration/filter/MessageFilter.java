@@ -17,6 +17,7 @@
 package org.springframework.integration.filter;
 
 import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
+import org.springframework.integration.endpoint.ReplyHolder;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.selector.MessageSelector;
 import org.springframework.util.Assert;
@@ -40,11 +41,10 @@ public class MessageFilter extends AbstractReplyProducingMessageConsumer {
 
 
 	@Override
-	protected Message<?> handle(Message<?> message) {
+	protected void handle(Message<?> message, ReplyHolder replyHolder) {
 		if (this.selector.accept(message)) {
-			return message;
+			replyHolder.set(message);
 		}
-		return null;
 	}
 
 }

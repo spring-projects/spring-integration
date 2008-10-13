@@ -51,20 +51,6 @@ public class CorrelationIdTests {
 	}
 
 	@Test
-	public void testCorrelationIdCopiedFromMessageIdByDefault() {
-		Message<String> message = MessageBuilder.withPayload("test").build();
-		DirectChannel inputChannel = new DirectChannel();
-		QueueChannel outputChannel = new QueueChannel(1);
-		ServiceActivatorEndpoint serviceActivator = new ServiceActivatorEndpoint(new TestBean(), "upperCase");
-		serviceActivator.setOutputChannel(outputChannel);
-		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(serviceActivator, inputChannel);
-		endpoint.start();
-		assertTrue(inputChannel.send(message));
-		Message<?> reply = outputChannel.receive(0);
-		assertEquals(message.getHeaders().getId(), reply.getHeaders().getCorrelationId());
-	}
-
-	@Test
 	public void testCorrelationIdCopiedFromMessageCorrelationIdIfAvailable() {
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setCorrelationId("correlationId").build();

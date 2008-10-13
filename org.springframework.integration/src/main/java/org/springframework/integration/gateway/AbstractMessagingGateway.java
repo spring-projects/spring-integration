@@ -26,6 +26,7 @@ import org.springframework.integration.endpoint.AbstractReplyProducingMessageCon
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.MessagingGateway;
 import org.springframework.integration.endpoint.PollingConsumerEndpoint;
+import org.springframework.integration.endpoint.ReplyHolder;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageConsumer;
@@ -154,8 +155,8 @@ public abstract class AbstractMessagingGateway implements MessagingGateway, Mess
 			MessageEndpoint correlator = null;
 			MessageConsumer consumer = new AbstractReplyProducingMessageConsumer() {
 				@Override
-				protected Object handle(Message<?> message) {
-					return message;
+				protected void handle(Message<?> message, ReplyHolder replyHolder) {
+					replyHolder.set(message);
 				}
 			};
 			if (this.replyChannel instanceof SubscribableChannel) {

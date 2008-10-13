@@ -31,6 +31,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
+import org.springframework.integration.endpoint.ReplyHolder;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.MessageHandlingException;
@@ -166,7 +167,7 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractReplyProduc
 	}
 
 	@Override
-	protected final Message<?> handle(Message<?> message) {
+	protected final void handle(Message<?> message, ReplyHolder replyHolder) {
 		if (!this.initialized) {
 			this.afterPropertiesSet();
 		}
@@ -181,7 +182,7 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractReplyProduc
 						+ correlationId + "' has already completed or timed out.");
 			}
 			this.sendToDiscardChannelIfAvailable(message);
-			return null;
+			return;
 		}
 		MessageBarrier barrier = barriers.putIfAbsent(correlationId, createMessageBarrier());
 		if (barrier == null) {
@@ -189,17 +190,17 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractReplyProduc
 		}
 		List<Message<?>> releasedMessages = barrier.addAndRelease(message);
 		if (CollectionUtils.isEmpty(releasedMessages)) {
-			return null;
+			return;
 		}
 		if (isBarrierRemovable(correlationId, releasedMessages)) {
 			this.removeBarrier(correlationId);
 		}
 		Message<?>[] processedMessages = this.processReleasedMessages(correlationId, releasedMessages);
 		if (ObjectUtils.isEmpty(processedMessages)) {
-			return null;
+			return;
 		}
 		this.afterRelease(correlationId, releasedMessages);
-		return null;
+		return;
 	}
 
 	private void afterRelease(Object correlationId, List<Message<?>> releasedMessages) {

@@ -37,6 +37,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
 import org.springframework.integration.endpoint.PollingConsumerEndpoint;
+import org.springframework.integration.endpoint.ReplyHolder;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.message.ErrorMessage;
@@ -66,8 +67,8 @@ public class DefaultMessageBusTests {
 				.setReturnAddress("targetChannel").build();
 		sourceChannel.send(message);
 		AbstractReplyProducingMessageConsumer consumer = new AbstractReplyProducingMessageConsumer() {
-			public Message<?> handle(Message<?> message) {
-				return message;
+			public void handle(Message<?> message, ReplyHolder replyHolder) {
+				replyHolder.set(message);
 			}
 		};
 		consumer.setBeanFactory(context);
@@ -124,13 +125,13 @@ public class DefaultMessageBusTests {
 		QueueChannel outputChannel1 = new QueueChannel();
 		QueueChannel outputChannel2 = new QueueChannel();
 		AbstractReplyProducingMessageConsumer consumer1 = new AbstractReplyProducingMessageConsumer() {
-			public Message<?> handle(Message<?> message) {
-				return MessageBuilder.fromMessage(message).build();
+			public void handle(Message<?> message, ReplyHolder replyHolder) {
+				replyHolder.set(message);
 			}
 		};
 		AbstractReplyProducingMessageConsumer consumer2 = new AbstractReplyProducingMessageConsumer() {
-			public Message<?> handle(Message<?> message) {
-				return MessageBuilder.fromMessage(message).build();
+			public void handle(Message<?> message, ReplyHolder replyHolder) {
+				replyHolder.set(message);
 			}
 		};
 		inputChannel.setBeanName("input");
@@ -166,17 +167,15 @@ public class DefaultMessageBusTests {
 		QueueChannel outputChannel2 = new QueueChannel();
 		final CountDownLatch latch = new CountDownLatch(2);
 		AbstractReplyProducingMessageConsumer consumer1 = new AbstractReplyProducingMessageConsumer() {
-			public Message<?> handle(Message<?> message) {
-				Message<?> reply = MessageBuilder.fromMessage(message).build();
+			public void handle(Message<?> message, ReplyHolder replyHolder) {
+				replyHolder.set(message);
 				latch.countDown();
-				return reply;
 			}
 		};
 		AbstractReplyProducingMessageConsumer consumer2 = new AbstractReplyProducingMessageConsumer() {
-			public Message<?> handle(Message<?> message) {
-				Message<?> reply = MessageBuilder.fromMessage(message).build();
+			public void handle(Message<?> message, ReplyHolder replyHolder) {
+				replyHolder.set(message);
 				latch.countDown();
-				return reply;
 			}
 		};
 		inputChannel.setBeanName("input");
@@ -246,9 +245,8 @@ public class DefaultMessageBusTests {
 		context.getBeanFactory().registerSingleton(DefaultMessageBus.ERROR_CHANNEL_BEAN_NAME, errorChannel);
 		final CountDownLatch latch = new CountDownLatch(1);
 		AbstractReplyProducingMessageConsumer consumer = new AbstractReplyProducingMessageConsumer() {
-			public Message<?> handle(Message<?> message) {
+			public void handle(Message<?> message, ReplyHolder replyHolder) {
 				latch.countDown();
-				return null;
 			}
 		};
 		PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(consumer, errorChannel);

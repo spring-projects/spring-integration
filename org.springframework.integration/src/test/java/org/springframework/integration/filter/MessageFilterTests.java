@@ -44,7 +44,10 @@ public class MessageFilterTests {
 			}
 		});
 		Message<?> message = new StringMessage("test");
-		assertEquals(message, filter.handle(message));
+		QueueChannel output = new QueueChannel();
+		filter.setOutputChannel(output);
+		filter.onMessage(message);
+		assertEquals(message, output.receive(0));
 	}
 
 	@Test
@@ -54,7 +57,10 @@ public class MessageFilterTests {
 				return false;
 			}
 		});
-		assertNull(filter.handle(new StringMessage("test")));
+		QueueChannel output = new QueueChannel();
+		filter.setOutputChannel(output);
+		filter.onMessage(new StringMessage("test"));
+		assertNull(output.receive(0));
 	}
 
 	@Test

@@ -35,13 +35,21 @@ public final class MessageBuilder<T> {
 
 	private final Map<String, Object> headers = new HashMap<String, Object>();
 
+	private final Message<T> originalMessage;
+
+	private volatile boolean modified;
+
 
 	/**
 	 * Private constructor to be invoked from the static factory methods only.
 	 */
-	private MessageBuilder(T payload) {
+	private MessageBuilder(T payload, Message<T> originalMessage) {
 		Assert.notNull(payload, "payload must not be null");
 		this.payload = payload;
+		this.originalMessage = originalMessage;
+		if (originalMessage != null) {
+			this.headers.putAll(originalMessage.getHeaders());
+		}
 	}
 
 
@@ -54,8 +62,8 @@ public final class MessageBuilder<T> {
 	 * will be copied
 	 */
 	public static <T> MessageBuilder<T> fromMessage(Message<T> message) {
-		MessageBuilder<T> builder = new MessageBuilder<T>(message.getPayload());
-		builder.headers.putAll(message.getHeaders());
+		Assert.notNull(message, "message must not be null");
+		MessageBuilder<T> builder = new MessageBuilder<T>(message.getPayload(), message);
 		return builder;
 	}
 
@@ -65,7 +73,7 @@ public final class MessageBuilder<T> {
 	 * @param payload the payload for the new message
 	 */
 	public static <T> MessageBuilder<T> withPayload(T payload) {
-		MessageBuilder<T> builder = new MessageBuilder<T>(payload);
+		MessageBuilder<T> builder = new MessageBuilder<T>(payload, null);
 		return builder;
 	}
 
@@ -76,6 +84,7 @@ public final class MessageBuilder<T> {
 	 */
 	public MessageBuilder<T> setHeader(String headerName, Object headerValue) {
 		if (StringUtils.hasLength(headerName) && !(this.isReadOnly(headerName))) {
+			this.modified = true;
 			if (headerValue == null) {
 				this.headers.remove(headerName);
 			}
@@ -102,6 +111,7 @@ public final class MessageBuilder<T> {
 	 */
 	public MessageBuilder<T> removeHeader(String headerName) {
 		if (StringUtils.hasLength(headerName)) {
+			this.modified = true;
 			this.headers.remove(headerName);
 		}
 		return this;
@@ -174,6 +184,9 @@ public final class MessageBuilder<T> {
 	}
 
 	public Message<T> build() {
+		if (!this.modified && this.originalMessage != null) {
+			return this.originalMessage;
+		}
 		return new GenericMessage<T>(this.payload, this.headers);
 	}
 
