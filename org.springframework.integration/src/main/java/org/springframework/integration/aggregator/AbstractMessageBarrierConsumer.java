@@ -31,7 +31,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
-import org.springframework.integration.endpoint.ReplyHolder;
+import org.springframework.integration.endpoint.ReplyMessageHolder;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.MessageHandlingException;
@@ -167,7 +167,7 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractReplyProduc
 	}
 
 	@Override
-	protected final void handle(Message<?> message, ReplyHolder replyHolder) {
+	protected final void onMessage(Message<?> message, ReplyMessageHolder replyHolder) {
 		if (!this.initialized) {
 			this.afterPropertiesSet();
 		}

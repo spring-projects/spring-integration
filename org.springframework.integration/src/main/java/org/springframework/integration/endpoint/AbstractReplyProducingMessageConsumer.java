@@ -97,16 +97,16 @@ public abstract class AbstractReplyProducingMessageConsumer extends AbstractMess
 		if (!this.supports(message)) {
 			throw new MessageRejectedException(message, "unsupported message");
 		}
-		ReplyHolder replyHolder = new ReplyHolder();
-		this.handle(message, replyHolder);
-		if (replyHolder.isEmpty()) {
+		ReplyMessageHolder replyMessageHolder = new ReplyMessageHolder();
+		this.onMessage(message, replyMessageHolder);
+		if (replyMessageHolder.isEmpty()) {
 			if (this.requiresReply) {
 				throw new MessageHandlingException(message, "consumer '" + this
 						+ "' requires a reply, but no reply was received");
 			}
 			return;
 		}
-		Object targetChannelValue = replyHolder.getTargetChannel();
+		Object targetChannelValue = replyMessageHolder.getTargetChannel();
 		MessageChannel replyChannel = null;
 		if (targetChannelValue == null) {
 			replyChannel = this.resolveReplyChannel(message);
@@ -115,13 +115,13 @@ public abstract class AbstractReplyProducingMessageConsumer extends AbstractMess
 			replyChannel = this.channelResolver.resolveChannelName((String) targetChannelValue);
 		}
 		MessageHeaders requestHeaders = message.getHeaders();
-		for (MessageBuilder<?> builder : replyHolder.builders()) {
+		for (MessageBuilder<?> builder : replyMessageHolder.builders()) {
 			builder.copyHeadersIfAbsent(requestHeaders);
 			this.sendReplyMessage(builder.build(), replyChannel);
 		}
 	}
 
-	protected abstract void handle(Message<?> message, ReplyHolder replyHolder);
+	protected abstract void onMessage(Message<?> requestMessage, ReplyMessageHolder replyMessageHolder);
 
 	protected boolean supports(Message<?> message) {
 		if (this.selector != null && !this.selector.accept(message)) {

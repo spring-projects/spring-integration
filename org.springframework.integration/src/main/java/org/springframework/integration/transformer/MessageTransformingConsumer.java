@@ -17,7 +17,7 @@
 package org.springframework.integration.transformer;
 
 import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
-import org.springframework.integration.endpoint.ReplyHolder;
+import org.springframework.integration.endpoint.ReplyMessageHolder;
 import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
 
@@ -44,7 +44,7 @@ public class MessageTransformingConsumer extends AbstractReplyProducingMessageCo
 
 
 	@Override
-	protected void handle(Message<?> message, ReplyHolder replyHolder) {
+	protected void onMessage(Message<?> message, ReplyMessageHolder replyHolder) {
 		Message<?> result = transformer.transform(message);
 		if (result != null) {
 			replyHolder.set(result);

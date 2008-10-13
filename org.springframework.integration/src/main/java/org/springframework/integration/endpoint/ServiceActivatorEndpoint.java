@@ -63,7 +63,7 @@ public class ServiceActivatorEndpoint extends AbstractReplyProducingMessageConsu
 	}
 
 	@Override
-	protected void handle(Message<?> message, ReplyHolder replyHolder) {
+	protected void onMessage(Message<?> message, ReplyMessageHolder replyHolder) {
 		try {
 			Object result = this.invoker.invokeMethod(message);
 			if (result != null) {

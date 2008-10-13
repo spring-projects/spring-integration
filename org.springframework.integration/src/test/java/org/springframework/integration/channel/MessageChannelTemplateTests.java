@@ -33,7 +33,7 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
 import org.springframework.integration.endpoint.PollingConsumerEndpoint;
-import org.springframework.integration.endpoint.ReplyHolder;
+import org.springframework.integration.endpoint.ReplyMessageHolder;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
@@ -52,7 +52,7 @@ public class MessageChannelTemplateTests {
 		this.requestChannel = new QueueChannel();
 		this.requestChannel.setBeanName("requestChannel");
 		AbstractReplyProducingMessageConsumer consumer = new AbstractReplyProducingMessageConsumer() {
-			public void handle(Message<?> message, ReplyHolder replyHolder) {
+			public void onMessage(Message<?> message, ReplyMessageHolder replyHolder) {
 				replyHolder.set(message.getPayload().toString().toUpperCase());
 			}
 		};

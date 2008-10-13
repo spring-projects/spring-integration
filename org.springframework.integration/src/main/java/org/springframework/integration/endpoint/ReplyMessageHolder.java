@@ -27,19 +27,19 @@ import org.springframework.integration.message.MessageBuilder;
 /**
  * @author Mark Fisher
  */
-public class ReplyHolder {
+public class ReplyMessageHolder {
 
 	private final List<MessageBuilder<?>> builders = new ArrayList<MessageBuilder<?>>();
 
 	private volatile Object targetChannel;
 
 
-	public MessageBuilder<?> set(Object replyObject) {
-		return this.createAndAddBuilder(replyObject, true);
+	public MessageBuilder<?> set(Object messageOrPayload) {
+		return this.createAndAddBuilder(messageOrPayload, true);
 	}
 
-	public MessageBuilder<?> add(Object replyObject) {
-		return this.createAndAddBuilder(replyObject, false);
+	public MessageBuilder<?> add(Object messageOrPayload) {
+		return this.createAndAddBuilder(messageOrPayload, false);
 	}
 
 	public void setTargetChannel(MessageChannel targetChannel) {
@@ -62,16 +62,16 @@ public class ReplyHolder {
 		return Collections.unmodifiableList(this.builders);
 	}
 
-	private MessageBuilder<?> createAndAddBuilder(Object replyObject, boolean clearExistingValues) {
+	private MessageBuilder<?> createAndAddBuilder(Object messageOrPayload, boolean clearExistingValues) {
 		MessageBuilder<?> builder = null;
-		if (replyObject instanceof MessageBuilder) {
-			builder = (MessageBuilder<?>) replyObject;
+		if (messageOrPayload instanceof MessageBuilder) {
+			builder = (MessageBuilder<?>) messageOrPayload;
 		}
-		else if (replyObject instanceof Message) {
-			builder = MessageBuilder.fromMessage((Message<?>) replyObject);
+		else if (messageOrPayload instanceof Message) {
+			builder = MessageBuilder.fromMessage((Message<?>) messageOrPayload);
 		}
 		else {
-			builder = MessageBuilder.withPayload(replyObject);
+			builder = MessageBuilder.withPayload(messageOrPayload);
 		}
 		synchronized (this.builders) {
 			if (clearExistingValues) {

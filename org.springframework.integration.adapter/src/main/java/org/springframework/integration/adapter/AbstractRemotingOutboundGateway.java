@@ -20,7 +20,7 @@ import java.io.Serializable;
 
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
-import org.springframework.integration.endpoint.ReplyHolder;
+import org.springframework.integration.endpoint.ReplyMessageHolder;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.remoting.RemoteAccessException;
@@ -50,7 +50,8 @@ public abstract class AbstractRemotingOutboundGateway extends AbstractReplyProdu
 	protected abstract MessageHandler createHandlerProxy(String url);
 
 
-	public final void handle(Message<?> message, ReplyHolder replyHolder) {
+	@Override
+	public final void onMessage(Message<?> message, ReplyMessageHolder replyHolder) {
 		this.verifySerializability(message);
 		try {
 			Message<?> reply = this.handlerProxy.handle(message);

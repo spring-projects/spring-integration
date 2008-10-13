@@ -19,7 +19,7 @@ package org.springframework.integration.splitter;
 import java.util.Collection;
 
 import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
-import org.springframework.integration.endpoint.ReplyHolder;
+import org.springframework.integration.endpoint.ReplyMessageHolder;
 import org.springframework.integration.message.Message;
 
 /**
@@ -30,7 +30,7 @@ import org.springframework.integration.message.Message;
 public abstract class AbstractMessageSplitter extends AbstractReplyProducingMessageConsumer {
 
 	@Override
-	protected final void handle(Message<?> message, ReplyHolder replyHolder) {
+	protected final void onMessage(Message<?> message, ReplyMessageHolder replyHolder) {
 		Object result = this.splitMessage(message);
 		if (result == null) {
 			return;
@@ -57,7 +57,7 @@ public abstract class AbstractMessageSplitter extends AbstractReplyProducingMess
 		}
 	}
 
-	private void addReply(ReplyHolder replyHolder, Object item, Object correlationId, int sequenceNumber, int sequenceSize) {
+	private void addReply(ReplyMessageHolder replyHolder, Object item, Object correlationId, int sequenceNumber, int sequenceSize) {
 		replyHolder.add(item).setCorrelationId(correlationId)
 				.setSequenceNumber(sequenceNumber)
 				.setSequenceSize(sequenceSize);
