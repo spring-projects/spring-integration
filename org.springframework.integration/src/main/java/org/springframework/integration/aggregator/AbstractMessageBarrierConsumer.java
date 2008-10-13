@@ -30,11 +30,12 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
-import org.springframework.integration.endpoint.ReplyMessageHolder;
+import org.springframework.integration.channel.MessageChannelTemplate;
+import org.springframework.integration.endpoint.AbstractMessageConsumer;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.message.MessageProducer;
 import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.integration.scheduling.TaskSchedulerAware;
@@ -64,8 +65,10 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public abstract class AbstractMessageBarrierConsumer extends AbstractReplyProducingMessageConsumer
-		implements TaskSchedulerAware, InitializingBean {
+public abstract class AbstractMessageBarrierConsumer extends AbstractMessageConsumer
+		implements MessageProducer, TaskSchedulerAware, InitializingBean {
+
+	public final static long DEFAULT_SEND_TIMEOUT = 1000;
 
 	public final static long DEFAULT_TIMEOUT = 60000;
 
@@ -73,7 +76,12 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractReplyProduc
 
 	public final static int DEFAULT_TRACKED_CORRRELATION_ID_CAPACITY = 1000;
 
+
 	protected final Log logger = LogFactory.getLog(this.getClass());
+
+	private MessageChannel outputChannel;
+
+	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
 	private volatile MessageChannel discardChannel;
 
@@ -96,6 +104,15 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractReplyProduc
 
 	private ScheduledFuture<?> reaperFutureTask;
 
+
+	public AbstractMessageBarrierConsumer() {
+		this.channelTemplate.setSendTimeout(DEFAULT_SEND_TIMEOUT);
+	}
+
+
+	public void setOutputChannel(MessageChannel outputChannel) {
+		this.outputChannel = outputChannel;
+	}
 
 	/**
 	 * Specify a channel for sending Messages that arrive after their aggregation
@@ -138,6 +155,10 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractReplyProduc
 		this.timeout = timeout;
 	}
 
+	public void setSendTimeout(long sendTimeout) {
+		this.channelTemplate.setSendTimeout(sendTimeout);
+	}
+
 	public void setTaskScheduler(TaskScheduler taskScheduler) {
 		this.taskScheduler = taskScheduler;
 	}
@@ -167,7 +188,7 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractReplyProduc
 	}
 
 	@Override
-	protected final void onMessage(Message<?> message, ReplyMessageHolder replyHolder) {
+	protected final void onMessageInternal(Message<?> message) {
 		if (!this.initialized) {
 			this.afterPropertiesSet();
 		}
@@ -177,36 +198,47 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractReplyProduc
 					this.getClass().getSimpleName() + " requires the 'correlationId' property");
 		}
 		if (this.trackedCorrelationIds.contains(correlationId)) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("Handling of Message group with correlationId '"
-						+ correlationId + "' has already completed or timed out.");
-			}
-			this.sendToDiscardChannelIfAvailable(message);
-			return;
+			this.discardMessage(message, correlationId);
 		}
+		else {
+			this.processMessage(message, correlationId);
+		}
+	}
+
+	private void discardMessage(Message<?> message, Object correlationId) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Handling of Message group with correlationId '"
+					+ correlationId + "' has already completed or timed out.");
+		}
+		if (this.discardChannel != null) {
+			boolean sent = this.channelTemplate.send(message, this.discardChannel);
+			if (!sent && logger.isWarnEnabled()) {
+				logger.warn("unable to send to 'discardChannel', message: " + message);
+			}
+		}
+	}
+
+	private void processMessage(Message<?> message, Object correlationId) {
 		MessageBarrier barrier = barriers.putIfAbsent(correlationId, createMessageBarrier());
 		if (barrier == null) {
 			barrier = barriers.get(correlationId);
 		}
 		List<Message<?>> releasedMessages = barrier.addAndRelease(message);
-		if (CollectionUtils.isEmpty(releasedMessages)) {
-			return;
+		if (!CollectionUtils.isEmpty(releasedMessages)) {
+			if (isBarrierRemovable(correlationId, releasedMessages)) {
+				this.removeBarrier(correlationId);
+			}
+			Message<?>[] processedMessages = this.processReleasedMessages(correlationId, releasedMessages);
+			if (!ObjectUtils.isEmpty(processedMessages)) {
+				this.afterRelease(correlationId, releasedMessages);
+			}
 		}
-		if (isBarrierRemovable(correlationId, releasedMessages)) {
-			this.removeBarrier(correlationId);
-		}
-		Message<?>[] processedMessages = this.processReleasedMessages(correlationId, releasedMessages);
-		if (ObjectUtils.isEmpty(processedMessages)) {
-			return;
-		}
-		this.afterRelease(correlationId, releasedMessages);
-		return;
 	}
 
 	private void afterRelease(Object correlationId, List<Message<?>> releasedMessages) {
 		Message<?>[] processedMessages = this.processReleasedMessages(correlationId, releasedMessages);
 		for (Message<?> result : processedMessages) {
-			MessageChannel replyChannel = this.getOutputChannel();
+			MessageChannel replyChannel = this.outputChannel;
 			if (replyChannel == null) {
 				replyChannel = this.resolveReplyChannelFromMessage(result);
 				if (replyChannel == null) {
@@ -214,21 +246,10 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractReplyProduc
 				}
 			}
 			if (replyChannel != null) {
-				this.sendReplyMessage(result, replyChannel);
+				this.channelTemplate.send(result, replyChannel);
 			}
 			else if (logger.isWarnEnabled()) {
 				logger.warn("unable to determine reply target for aggregation result: " + result);
-			}
-		}
-	}
-
-	private void sendToDiscardChannelIfAvailable(Message<?> message) {
-		if (this.discardChannel != null) {
-			boolean sent = this.sendReplyMessage(message, this.discardChannel);
-			if (!sent) {
-				if (logger.isWarnEnabled()) {
-					logger.warn("unable to send to 'discardChannel', message: " + message);
-				}
 			}
 		}
 	}
@@ -273,7 +294,7 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractReplyProduc
 					}
 					else {
 						for (Message<?> message : messages) {
-							sendToDiscardChannelIfAvailable(message);
+							discardMessage(message, correlationId);
 						}
 					}
 				}

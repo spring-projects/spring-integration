@@ -19,6 +19,7 @@ package org.springframework.integration.config.annotation;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.generic.GenericBeanFactoryAccessor;
@@ -29,12 +30,11 @@ import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
-import org.springframework.integration.endpoint.AbstractMessageConsumer;
-import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.PollingConsumerEndpoint;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageProducer;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -91,34 +91,33 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		if (StringUtils.hasText(inputChannelName)) {
 			MessageChannel inputChannel = this.channelResolver.resolveChannelName(inputChannelName);
 			Assert.notNull(inputChannel, "failed to resolve inputChannel '" + inputChannelName + "'");
-			if (consumer instanceof AbstractMessageConsumer) {
-				if (inputChannel instanceof PollableChannel) {
-					PollingConsumerEndpoint pollingEndpoint = new PollingConsumerEndpoint(
-							consumer, (PollableChannel) inputChannel);
-					if (pollerAnnotation != null) {
-						AnnotationConfigUtils.configurePollingEndpointWithPollerAnnotation(
-								pollingEndpoint, pollerAnnotation, this.beanFactoryAccessor.getBeanFactory());
-					}
-					endpoint = pollingEndpoint;
+			if (inputChannel instanceof PollableChannel) {
+				PollingConsumerEndpoint pollingEndpoint = new PollingConsumerEndpoint(
+						consumer, (PollableChannel) inputChannel);
+				if (pollerAnnotation != null) {
+					AnnotationConfigUtils.configurePollingEndpointWithPollerAnnotation(
+							pollingEndpoint, pollerAnnotation, this.beanFactoryAccessor.getBeanFactory());
 				}
-				else if (inputChannel instanceof SubscribableChannel) {
-					Assert.isTrue(pollerAnnotation == null,
-							"The @Poller annotation should only be provided for a PollableChannel");
-					endpoint = new SubscribingConsumerEndpoint(consumer, (SubscribableChannel) inputChannel);
-				}
-				else {
-					throw new IllegalArgumentException("unsupported channel type: ["
-							+ inputChannel.getClass() + "]");
-				}
+				endpoint = pollingEndpoint;
 			}
-			if (consumer instanceof AbstractReplyProducingMessageConsumer) {
+			else if (inputChannel instanceof SubscribableChannel) {
+				Assert.isTrue(pollerAnnotation == null,
+						"The @Poller annotation should only be provided for a PollableChannel");
+				endpoint = new SubscribingConsumerEndpoint(consumer, (SubscribableChannel) inputChannel);
+			}
+			else {
+				throw new IllegalArgumentException("unsupported channel type: [" + inputChannel.getClass() + "]");
+			}
+			if (consumer instanceof MessageProducer) {
 				String outputChannelName = (String) AnnotationUtils.getValue(annotation, OUTPUT_CHANNEL_ATTRIBUTE);
 				if (StringUtils.hasText(outputChannelName)) {
 					MessageChannel outputChannel = this.channelResolver.resolveChannelName(outputChannelName);
 					Assert.notNull(outputChannel, "unable to resolve outputChannel '" + outputChannelName + "'");
-					((AbstractReplyProducingMessageConsumer) consumer).setOutputChannel(outputChannel);
+					((MessageProducer) consumer).setOutputChannel(outputChannel);
 				}
-				((AbstractReplyProducingMessageConsumer) consumer).setChannelResolver(this.channelResolver);
+			}
+			if (consumer instanceof BeanFactoryAware) {
+				((BeanFactoryAware) consumer).setBeanFactory(this.beanFactoryAccessor.getBeanFactory());
 			}
 		}
 		return endpoint;
