@@ -18,11 +18,11 @@ package org.springframework.integration.bus;
 
 /**
  * Interface to be implemented by classes which need access to the {@link MessageBus}.
+ * 
  * @author Marius Bogoevici
- *
  */
 public interface MessageBusAware {
 
 	public void setMessageBus(MessageBus messageBus);
-	
+
 }

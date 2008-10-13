@@ -131,19 +131,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 		return null;
 	}
 
-	public void registerEndpoint(MessageEndpoint endpoint) {
-		Assert.notNull(endpoint, "'endpoint' must not be null");
-		if (!this.endpoints.contains(endpoint)) {
-			this.endpoints.add(endpoint);
-		}
-		if (this.isRunning()) {
-			this.activateEndpoint(endpoint);
-		}
-		if (logger.isInfoEnabled()) {
-			logger.info("registered endpoint '" + endpoint + "'");
-		}
-	}
-
 	public MessageEndpoint lookupEndpoint(String endpointName) {
 		if (this.applicationContext.containsBean(endpointName)) {
 			Object bean = this.applicationContext.getBean(endpointName);
@@ -158,6 +145,19 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 		GenericBeanFactoryAccessor accessor = new GenericBeanFactoryAccessor(this.applicationContext);
 		this.endpoints.addAll(accessor.getBeansOfType(MessageEndpoint.class).values());
 		return this.endpoints;
+	}
+
+	public void registerEndpoint(MessageEndpoint endpoint) {
+		Assert.notNull(endpoint, "'endpoint' must not be null");
+		if (!this.endpoints.contains(endpoint)) {
+			this.endpoints.add(endpoint);
+		}
+		if (this.isRunning()) {
+			this.activateEndpoint(endpoint);
+		}
+		if (logger.isInfoEnabled()) {
+			logger.info("registered endpoint '" + endpoint + "'");
+		}
 	}
 
 	private void activateEndpoints() {
