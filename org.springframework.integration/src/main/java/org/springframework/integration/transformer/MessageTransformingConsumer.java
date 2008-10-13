@@ -21,14 +21,22 @@ import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
 
 /**
+ * A reply-producing {@link org.springframework.integration.message.MessageConsumer}
+ * that delegates to a {@link Transformer} instance to modify the received
+ * {@link Message} and send the result to its output channel.
+ * 
  * @author Mark Fisher
  */
-public class TransformerEndpoint extends AbstractReplyProducingMessageConsumer {
+public class MessageTransformingConsumer extends AbstractReplyProducingMessageConsumer {
 
 	private final Transformer transformer;
 
 
-	public TransformerEndpoint(Transformer transformer) {
+	/**
+	 * Create a {@link MessageTransformingConsumer} instance that delegates to
+	 * the provided {@link Transformer}.
+	 */
+	public MessageTransformingConsumer(Transformer transformer) {
 		Assert.notNull(transformer, "transformer must not be null");
 		this.transformer = transformer;
 	}
