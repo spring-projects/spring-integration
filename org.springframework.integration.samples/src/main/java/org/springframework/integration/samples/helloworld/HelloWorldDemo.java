@@ -18,10 +18,10 @@ package org.springframework.integration.samples.helloworld;
 
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
-import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -33,11 +33,11 @@ public class HelloWorldDemo {
 
 	public static void main(String[] args) {
 		AbstractApplicationContext context = new ClassPathXmlApplicationContext("helloWorldDemo.xml", HelloWorldDemo.class);
-		ChannelRegistry channelRegistry = (ChannelRegistry) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
-		MessageChannel inputChannel = channelRegistry.lookupChannel("inputChannel");
-		PollableChannel outputChannel = (PollableChannel) channelRegistry.lookupChannel("outputChannel");
+		ChannelResolver channelResolver = new BeanFactoryChannelResolver(context);
+		MessageChannel inputChannel = channelResolver.resolveChannelName("inputChannel");
+		PollableChannel outputChannel = (PollableChannel) channelResolver.resolveChannelName("outputChannel");
 		inputChannel.send(new StringMessage("World"));
-		System.out.println(outputChannel.receive().getPayload());
+		System.out.println(outputChannel.receive(0).getPayload());
 		context.stop();
 	}
 

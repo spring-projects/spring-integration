@@ -10,6 +10,7 @@
 	<message-bus/>
 
 	<channel id="inputChannel"/>
+
 	<channel id="outputChannel">
 		<queue capacity="10"/>
 	</channel>
