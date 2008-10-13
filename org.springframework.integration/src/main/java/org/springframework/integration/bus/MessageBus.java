@@ -17,7 +17,6 @@
 package org.springframework.integration.bus;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.endpoint.MessageEndpoint;
 
 /**
@@ -25,7 +24,7 @@ import org.springframework.integration.endpoint.MessageEndpoint;
  * 
  * @author Mark Fisher
  */
-public interface MessageBus extends ChannelRegistry, Lifecycle {
+public interface MessageBus extends Lifecycle {
 
 	void registerEndpoint(MessageEndpoint endpoint);
 

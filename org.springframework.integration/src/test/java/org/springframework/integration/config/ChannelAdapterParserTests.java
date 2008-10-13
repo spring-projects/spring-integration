@@ -24,6 +24,8 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.channel.ChannelResolutionException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
@@ -48,7 +50,8 @@ public class ChannelAdapterParserTests extends AbstractJUnit4SpringContextTests 
 		assertTrue(channel instanceof DirectChannel);
 		MessageBus bus = (MessageBus) this.applicationContext.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		bus.start();
-		assertNotNull(bus.lookupChannel(beanName));
+		BeanFactoryChannelResolver channelResolver = new BeanFactoryChannelResolver(this.applicationContext);
+		assertNotNull(channelResolver.resolveChannelName(beanName));
 		Object adapter = this.applicationContext.getBean(beanName + ".adapter");
 		assertNotNull(adapter);
 		assertTrue(adapter instanceof SubscribingConsumerEndpoint);
@@ -68,7 +71,8 @@ public class ChannelAdapterParserTests extends AbstractJUnit4SpringContextTests 
 		assertTrue(channel instanceof DirectChannel);
 		MessageBus bus = (MessageBus) this.applicationContext.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		bus.start();
-		assertNotNull(bus.lookupChannel(beanName));
+		BeanFactoryChannelResolver channelResolver = new BeanFactoryChannelResolver(this.applicationContext);
+		assertNotNull(channelResolver.resolveChannelName(beanName));
 		Object adapter = this.applicationContext.getBean(beanName + ".adapter");
 		assertNotNull(adapter);
 		assertTrue(adapter instanceof SubscribingConsumerEndpoint);
@@ -87,7 +91,6 @@ public class ChannelAdapterParserTests extends AbstractJUnit4SpringContextTests 
 		PollableChannel channel =  (PollableChannel) this.applicationContext.getBean("queueChannel");
 		MessageBus bus = (MessageBus) this.applicationContext.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		bus.start();
-		assertNull(bus.lookupChannel(beanName));
 		Object adapter = this.applicationContext.getBean(beanName);
 		assertNotNull(adapter);
 		assertTrue(adapter instanceof SourcePollingChannelAdapter);
@@ -97,6 +100,12 @@ public class ChannelAdapterParserTests extends AbstractJUnit4SpringContextTests 
 		assertNotNull(message);
 		assertEquals("source test", testBean.getMessage());
 		bus.stop();
+	}
+
+	@Test(expected = ChannelResolutionException.class)
+	public void methodInvokingSourceAdapterIsNotChannel() {
+		BeanFactoryChannelResolver channelResolver = new BeanFactoryChannelResolver(this.applicationContext);
+		channelResolver.resolveChannelName("methodInvokingSource");
 	}
 
 }

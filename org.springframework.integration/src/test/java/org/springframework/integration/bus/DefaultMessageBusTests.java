@@ -30,7 +30,6 @@ import org.junit.Test;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
@@ -243,8 +242,8 @@ public class DefaultMessageBusTests {
 	public void consumerSubscribedToErrorChannel() throws InterruptedException {
 		GenericApplicationContext context = new GenericApplicationContext();
 		QueueChannel errorChannel = new QueueChannel();
-		errorChannel.setBeanName(ChannelRegistry.ERROR_CHANNEL_NAME);
-		context.getBeanFactory().registerSingleton(ChannelRegistry.ERROR_CHANNEL_NAME, errorChannel);
+		errorChannel.setBeanName(DefaultMessageBus.ERROR_CHANNEL_BEAN_NAME);
+		context.getBeanFactory().registerSingleton(DefaultMessageBus.ERROR_CHANNEL_BEAN_NAME, errorChannel);
 		final CountDownLatch latch = new CountDownLatch(1);
 		AbstractReplyProducingMessageConsumer consumer = new AbstractReplyProducingMessageConsumer() {
 			public Message<?> handle(Message<?> message) {

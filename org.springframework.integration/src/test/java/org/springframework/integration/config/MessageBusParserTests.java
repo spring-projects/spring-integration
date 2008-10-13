@@ -36,7 +36,6 @@ import org.springframework.integration.bus.MessageBusInterceptorTests;
 import org.springframework.integration.bus.TestMessageBusAwareImpl;
 import org.springframework.integration.bus.TestMessageBusStartInterceptor;
 import org.springframework.integration.bus.TestMessageBusStopInterceptor;
-import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.scheduling.TaskScheduler;
@@ -54,7 +53,7 @@ public class MessageBusParserTests {
 				"messageBusWithErrorChannel.xml", this.getClass());
 		DefaultMessageBus bus = (DefaultMessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		bus.initialize();
-		MessageChannel channel = bus.lookupChannel(ChannelRegistry.ERROR_CHANNEL_NAME);
+		MessageChannel channel = bus.lookupChannel(DefaultMessageBus.ERROR_CHANNEL_BEAN_NAME);
 		assertEquals(context.getBean("errorChannel"), channel);
 	}
 
@@ -65,7 +64,7 @@ public class MessageBusParserTests {
 		DefaultMessageBus bus = (DefaultMessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		bus.initialize();
 		assertNotNull("parser should have created a default error channel",
-				bus.lookupChannel(ChannelRegistry.ERROR_CHANNEL_NAME));
+				bus.lookupChannel(DefaultMessageBus.ERROR_CHANNEL_BEAN_NAME));
 	}
 
 	@Test

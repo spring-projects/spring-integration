@@ -34,6 +34,8 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.config.xml.MessageBusParser;
@@ -71,6 +73,8 @@ public class GatewayProxyFactoryBean implements FactoryBean, MethodInterceptor, 
 	private final Map<Method, MessagingGateway> gatewayMap = new HashMap<Method, MessagingGateway>();
 
 	private volatile MessageBus messageBus;
+
+	private ChannelResolver channelResolver;
 
 	private volatile boolean initialized;
 
@@ -137,6 +141,7 @@ public class GatewayProxyFactoryBean implements FactoryBean, MethodInterceptor, 
 
 	public void setBeanFactory(BeanFactory beanFactory) {
 		this.messageBus = (MessageBus) beanFactory.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
+		this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 	}
 
 	public void afterPropertiesSet() throws Exception {
@@ -225,12 +230,12 @@ public class GatewayProxyFactoryBean implements FactoryBean, MethodInterceptor, 
 			Assert.state(this.messageBus != null, "MessageBus is required for channel resolution");
 			String requestChannelName = gatewayAnnotation.requestChannel();
 			if (StringUtils.hasText(requestChannelName)) {
-				requestChannel = this.messageBus.lookupChannel(requestChannelName);
+				requestChannel = this.channelResolver.resolveChannelName(requestChannelName);
 				Assert.notNull(requestChannel, "failed to resolve request channel '" + requestChannelName + "'");
 			}
 			String replyChannelName = gatewayAnnotation.replyChannel();
 			if (StringUtils.hasText(replyChannelName)) {
-				replyChannel = this.messageBus.lookupChannel(replyChannelName);
+				replyChannel = this.channelResolver.resolveChannelName(replyChannelName);
 				Assert.notNull(replyChannel, "failed to resolve reply channel '" + replyChannelName + "'");
 			}
 			requestTimeout = gatewayAnnotation.requestTimeout();

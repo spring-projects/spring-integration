@@ -35,7 +35,6 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.endpoint.MessageEndpoint;
@@ -53,6 +52,9 @@ import org.springframework.util.Assert;
  * @author Marius Bogoevici
  */
 public class DefaultMessageBus implements MessageBus, ApplicationContextAware, ApplicationListener, DisposableBean {
+
+	public static final String ERROR_CHANNEL_BEAN_NAME = "errorChannel";
+
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -233,7 +235,7 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 			}
 			if (this.taskScheduler instanceof SimpleTaskScheduler) {
 				((SimpleTaskScheduler) this.taskScheduler).setErrorHandler(
-						new MessagePublishingErrorHandler(this.lookupChannel(ChannelRegistry.ERROR_CHANNEL_NAME)));
+						new MessagePublishingErrorHandler(this.lookupChannel(ERROR_CHANNEL_BEAN_NAME)));
 			}
 			this.taskScheduler.start();
 		}

@@ -22,12 +22,13 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.ChannelAdapter;
 import org.springframework.integration.annotation.Poller;
-import org.springframework.integration.channel.ChannelRegistry;
+import org.springframework.integration.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.channel.ChannelResolutionException;
+import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
-import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.PollingConsumerEndpoint;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
@@ -48,28 +49,20 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 
 	private final ConfigurableBeanFactory beanFactory;
 
-	private final ChannelRegistry channelRegistry;
+	private final ChannelResolver channelResolver;
 
 
 	public ChannelAdapterAnnotationPostProcessor(ConfigurableBeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "BeanFactory must not be null");
 		this.beanFactory = beanFactory;
-		this.channelRegistry = (ChannelRegistry)
-				this.beanFactory.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
+		this.channelResolver = new BeanFactoryChannelResolver(this.beanFactory);
 	}
 
 
 	public Object postProcess(Object bean, String beanName, Method method, ChannelAdapter annotation) {
 		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
 		MessageEndpoint endpoint = null;
-		String channelName = annotation.value();
-		MessageChannel channel = this.channelRegistry.lookupChannel(channelName);
-		if (channel == null) {
-			DirectChannel directChannel = new DirectChannel();
-			directChannel.setBeanName(channelName);
-			this.beanFactory.registerSingleton(channelName, directChannel);
-			channel = directChannel;
-		}
+		MessageChannel channel = this.resolveOrCreateChannel(annotation.value());
 		Poller pollerAnnotation = AnnotationUtils.findAnnotation(method, Poller.class);
 		if (method.getParameterTypes().length == 0 && hasReturnValue(method)) {
 			MethodInvokingSource source = new MethodInvokingSource();
@@ -92,6 +85,18 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 			this.beanFactory.registerSingleton(endpointName, endpoint);
 		}
 		return bean;
+	}
+
+	private MessageChannel resolveOrCreateChannel(String channelName) {
+		try {
+			return this.channelResolver.resolveChannelName(channelName);
+		}
+		catch (ChannelResolutionException e) {
+			DirectChannel directChannel = new DirectChannel();
+			directChannel.setBeanName(channelName);
+			this.beanFactory.registerSingleton(channelName, directChannel);
+			return directChannel;
+		}
 	}
 
 	private SourcePollingChannelAdapter createInboundChannelAdapter(MethodInvokingSource source, MessageChannel channel, Poller pollerAnnotation) {

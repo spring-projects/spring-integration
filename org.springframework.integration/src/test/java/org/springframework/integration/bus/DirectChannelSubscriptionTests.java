@@ -24,7 +24,6 @@ import org.junit.Test;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.integration.channel.ChannelRegistry;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.ThreadLocalChannel;
@@ -110,8 +109,9 @@ public class DirectChannelSubscriptionTests {
 	@Test(expected = MessagingException.class)
 	public void exceptionThrownFromAnnotatedEndpoint() {
 		QueueChannel errorChannel = new QueueChannel();
-		errorChannel.setBeanName(ChannelRegistry.ERROR_CHANNEL_NAME);
-		context.getBeanFactory().registerSingleton(ChannelRegistry.ERROR_CHANNEL_NAME, errorChannel);
+		errorChannel.setBeanName(DefaultMessageBus.ERROR_CHANNEL_BEAN_NAME);
+		context.getBeanFactory().registerSingleton(
+				DefaultMessageBus.ERROR_CHANNEL_BEAN_NAME, errorChannel);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(context.getBeanFactory());
 		postProcessor.afterPropertiesSet();

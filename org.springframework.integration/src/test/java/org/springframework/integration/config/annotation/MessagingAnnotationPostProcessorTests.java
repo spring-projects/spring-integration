@@ -38,6 +38,8 @@ import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.bus.DefaultMessageBus;
+import org.springframework.integration.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
@@ -152,7 +154,8 @@ public class MessagingAnnotationPostProcessorTests {
 		TargetAnnotationTestBean testBean = new TargetAnnotationTestBean(latch);
 		postProcessor.postProcessAfterInitialization(testBean, "testBean");
 		messageBus.start();
-		MessageChannel testChannel = messageBus.lookupChannel("testChannel");
+		ChannelResolver channelResolver = new BeanFactoryChannelResolver(context);
+		MessageChannel testChannel = channelResolver.resolveChannelName("testChannel");
 		testChannel.send(new StringMessage("foo"));
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
@@ -397,7 +400,8 @@ public class MessagingAnnotationPostProcessorTests {
 		ChannelAdapterAnnotationTestBean testBean = new ChannelAdapterAnnotationTestBean();
 		postProcessor.postProcessAfterInitialization(testBean, "testBean");
 		messageBus.start();
-		DirectChannel testChannel = (DirectChannel) messageBus.lookupChannel("testChannel");
+		ChannelResolver channelResolver = new BeanFactoryChannelResolver(context);
+		DirectChannel testChannel = (DirectChannel) channelResolver.resolveChannelName("testChannel");
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicReference<Message<?>> receivedMessage = new AtomicReference<Message<?>>();
 		testChannel.subscribe(new MessageConsumer() {

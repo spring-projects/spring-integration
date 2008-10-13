@@ -34,8 +34,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.aggregator.AbstractMessageAggregator;
 import org.springframework.integration.aggregator.CompletionStrategyAdapter;
 import org.springframework.integration.aggregator.SequenceSizeCompletionStrategy;
-import org.springframework.integration.bus.MessageBus;
-import org.springframework.integration.config.xml.MessageBusParser;
+import org.springframework.integration.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 
 /**
@@ -71,9 +71,10 @@ public class AggregatorAnnotationTests {
 		AbstractMessageAggregator aggregator = this.getAggregator(context, endpointName);
 		assertTrue(getPropertyValue(aggregator, "completionStrategy")
 				instanceof SequenceSizeCompletionStrategy);
-		assertEquals(getMessageBus(context).lookupChannel("outputChannel"),
+		ChannelResolver channelResolver = new BeanFactoryChannelResolver(context);
+		assertEquals(channelResolver.resolveChannelName("outputChannel"),
 				getPropertyValue(aggregator, "outputChannel"));
-		assertEquals(getMessageBus(context).lookupChannel("discardChannel"),
+		assertEquals(channelResolver.resolveChannelName("discardChannel"),
 				getPropertyValue(aggregator, "discardChannel"));
 		assertEquals(98765432l, getPropertyValue(aggregator, "channelTemplate.sendTimeout"));
 		assertEquals(4567890l, getPropertyValue(aggregator, "timeout"));
@@ -105,10 +106,6 @@ public class AggregatorAnnotationTests {
 		SubscribingConsumerEndpoint endpoint = (SubscribingConsumerEndpoint) context.getBean(
 				endpointName + ".aggregatingMethod.aggregator");
 		return (AbstractMessageAggregator) new DirectFieldAccessor(endpoint).getPropertyValue("consumer");
-	}
-
-	private MessageBus getMessageBus(ApplicationContext context) {
-		return (MessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 	}
 
 }
