@@ -140,6 +140,26 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<xsd:element name="xpath-splitter">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+					Defines an XPath splitter.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:sequence>
+				<xsd:element ref="xpath-expression" maxOccurs="1" minOccurs="0" />
+			</xsd:sequence>
+			<xsd:attribute name="id" type="xsd:string" use="required" />
+				<xsd:attribute name="xpath-expression-ref" type="xsd:string"
+					use="optional" />
+				<xsd:attribute name="doc-builder-factory" type="xsd:string"
+					use="optional" />
+				<xsd:attribute name="create-documents" type="xsd:boolean"
+					use="optional" />
+		</xsd:complexType>
+	</xsd:element>
+	
 	<xsd:complexType name="transformerType">
 		<xsd:attribute name="id" type="xsd:string" use="optional" />
 		<xsd:attribute name="input-channel" type="xsd:string" use="required" />
