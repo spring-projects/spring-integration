@@ -15,18 +15,11 @@
 			transform files into strings or byte arrays. 
     </para>
 		<para>
-			This section will explain the workings of
-			<classname>PollableFileSource</classname>
-			,
-			<classname>FileWritingMessageConsumer
-			</classname>
-			and how to configure them as
-			<emphasis>beans</emphasis>
-			. Also the support for dealing with files through file specific
-			implementations of
-			<interfacename>Transformer</interfacename>
-			will be discussed. Finally the file specific namespace will be
-			discussed.
+			This section will explain the workings of<classname>PollableFileSource</classname>,
+			<classname>FileWritingMessageConsumer</classname> and how to configure them as
+			<emphasis>beans</emphasis>. Also the support for dealing with files through file specific
+			implementations of <interfacename>Transformer</interfacename> will be discussed. Finally 
+			the file specific namespace will be explained.
 		</para>
 	</section>
 
@@ -101,10 +94,10 @@
 	       directory="file:${input.directory.property}"/> 					(1)
 	<file:inbound-channel-adapter id="filesIn"
 	       directory="file:${input.directory.property}" 
-	       filter="customFilterBean" />										(2)
+	       filter="customFilterBean" />							(2)
 	<file:inbound-channel-adapter id="filesIn"
 	       directory="file:${input.directory.property}" 
-	       filename-pattern="^test.*$" /> 									(3)
+	       filename-pattern="^test.*$" /> 							(3)
 	]]>
 			</programlisting>
 			Where (1) is relying on the default filter that just prevents
@@ -179,12 +172,12 @@
 		</para>
 		<para>
 			<classname>FileToStringTransformer</classname>
-			will convert files to Strings as the name suggests.
+			will convert Files to Strings as the name suggests. This is mainly useful for debugging.
 		</para>
 		<para>
 			To configure File specific transformers you can use the appropriate
 			elements from the file namespace.
-			<programlisting language="xml"><![CDATA[<file-to-bytes-transformer input-channel="intput" output-channel="output" delete-files="true"/>]]></programlisting>
+			<programlisting language="xml"><![CDATA[	<file-to-bytes-transformer input-channel="intput" output-channel="output" delete-files="true"/>]]></programlisting>
 			The
 			<emphasis>delete-files</emphasis>
 			option signals the transformer to delete the File after the
