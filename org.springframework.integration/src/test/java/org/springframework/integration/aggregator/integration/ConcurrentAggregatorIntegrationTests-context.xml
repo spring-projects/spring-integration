@@ -7,17 +7,16 @@
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 	<message-bus enable-annotations="true"/>
 	
-	<channel id="input" />
+	<channel id="input">
+		<queue capacity="5"/>
+	</channel>
 	<aggregator ref="summer" method="sum" input-channel="input"
 		output-channel="output">
-		<!-- This doesn't work (see INT-413) -->
-	<!-- 
 	<poller task-executor="executor" interval="20" max-messages-per-poll="5"/>
-	 -->
 	</aggregator>
 	<beans:bean id="executor"
 		class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
-		<beans:property name="maxPoolSize" value="10" />
+		<beans:property name="corePoolSize" value="5" />
 	</beans:bean>
 	<channel id="output">
 		<queue capacity="5" />
