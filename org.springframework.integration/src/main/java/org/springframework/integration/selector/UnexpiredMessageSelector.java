@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message.selector;
+package org.springframework.integration.selector;
 
 import org.springframework.integration.message.Message;
 

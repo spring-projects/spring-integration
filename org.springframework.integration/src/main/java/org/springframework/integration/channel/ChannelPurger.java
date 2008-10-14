@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.selector.MessageSelector;
+import org.springframework.integration.selector.MessageSelector;
 import org.springframework.util.Assert;
 
 /**

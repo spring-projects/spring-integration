@@ -26,7 +26,7 @@ import org.junit.Test;
 
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.message.selector.MessageSelector;
+import org.springframework.integration.selector.MessageSelector;
 
 /**
  * @author Mark Fisher

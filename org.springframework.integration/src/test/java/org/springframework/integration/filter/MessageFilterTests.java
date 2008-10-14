@@ -29,7 +29,7 @@ import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.message.selector.MessageSelector;
+import org.springframework.integration.selector.MessageSelector;
 
 /**
  * @author Mark Fisher

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,82 +13,77 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xml.selector;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.integration.message.selector.MessageSelector;
+import org.springframework.integration.selector.MessageSelector;
 import org.springframework.integration.xml.DefaultXmlPayloadConverter;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.xml.xpath.XPathExpression;
 import org.springframework.xml.xpath.XPathExpressionFactory;
 
 /**
- * Base class for XPath {@link MessageSelector} implementations
+ * Base class for XPath {@link MessageSelector} implementations.
+ * 
  * @author Jonas Partner
- *
  */
 public abstract class AbstractXPathMessageSelector implements MessageSelector {
 
 	private final XPathExpression xPathExpresion;
-	
+
 	private XmlPayloadConverter converter = new DefaultXmlPayloadConverter();
-	
+
+
 	/**
-	 * 
 	 * @param xPathExpression simple String expression
 	 */
-	public AbstractXPathMessageSelector(String xPathExpression){
+	public AbstractXPathMessageSelector(String xPathExpression) {
 		this.xPathExpresion = XPathExpressionFactory.createXPathExpression(xPathExpression);
 	}
-	
+
 	/**
-	 * 
 	 * @param xPathExpression
 	 * @param prefix
 	 * @param namespace
 	 */
-	public AbstractXPathMessageSelector(String xPathExpression, String prefix, String namespace){
+	public AbstractXPathMessageSelector(String xPathExpression, String prefix, String namespace) {
 		Map<String,String> namespaces = new HashMap<String, String>();
 		namespaces.put(prefix, namespace);
-		this.xPathExpresion = XPathExpressionFactory.createXPathExpression(xPathExpression,namespaces);
+		this.xPathExpresion = XPathExpressionFactory.createXPathExpression(xPathExpression, namespaces);
 	}
-	
+
 	/**
-	 * 
 	 * @param xPathExpression
 	 * @param namespaces
 	 */
-	public AbstractXPathMessageSelector(String xPathExpression, Map<String,String> namespaces){
-		this.xPathExpresion = XPathExpressionFactory.createXPathExpression(xPathExpression,namespaces);
+	public AbstractXPathMessageSelector(String xPathExpression, Map<String,String> namespaces) {
+		this.xPathExpresion = XPathExpressionFactory.createXPathExpression(xPathExpression, namespaces);
 	}
-	
+
 	/**
-	 * 
 	 * @param xPathExpression
 	 */
-	public AbstractXPathMessageSelector(XPathExpression xPathExpression){
+	public AbstractXPathMessageSelector(XPathExpression xPathExpression) {
 		this.xPathExpresion = xPathExpression;
 	}
-	
-	
-	protected XmlPayloadConverter getConverter() {
-		return converter;
-	}
-	
+
+
 	/**
-	 * Converter used to convert payloads prior to XPAth testing
-	 * @param converter
+	 * Specify the converter used to convert payloads prior to XPath testing.
 	 */
 	public void setConverter(XmlPayloadConverter converter) {
 		this.converter = converter;
 	}
 
+	protected XmlPayloadConverter getConverter() {
+		return this.converter;
+	}
+
 	protected XPathExpression getXPathExpresion() {
 		return xPathExpresion;
 	}
-
-	
 
 }

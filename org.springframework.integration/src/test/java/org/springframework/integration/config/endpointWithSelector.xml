@@ -15,7 +15,7 @@
 	                  ref="testHandler" selector="typeSelector">
 	</service-activator>
 
-	<beans:bean id="typeSelector" class="org.springframework.integration.message.selector.PayloadTypeSelector">
+	<beans:bean id="typeSelector" class="org.springframework.integration.selector.PayloadTypeSelector">
 		<beans:constructor-arg value="java.lang.String"/>
 	</beans:bean>
 

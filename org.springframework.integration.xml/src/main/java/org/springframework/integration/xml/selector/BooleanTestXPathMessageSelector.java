@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,69 +13,77 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xml.selector;
 
 import java.util.Map;
 
-import org.springframework.integration.message.Message;
-import org.springframework.integration.message.selector.MessageSelector;
-import org.springframework.xml.xpath.XPathExpression;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
+import org.springframework.integration.message.Message;
+import org.springframework.integration.selector.MessageSelector;
+import org.springframework.xml.xpath.XPathExpression;
+
 /**
  * Boolean XPath testing {@link MessageSelector}. Requires an XPathExpression
- * which can be evaluated using {@link XPathExpression} evaluateAsBoolean.
- * Supports payloads of type {@link Document} or {@link String}
- * @author Jonas Partner
+ * which can be evaluated using {@link XPathExpression#evaluateAsBoolean(Node)}.
+ * Supports payloads of type {@link Document} or {@link String}.
  * 
+ * @author Jonas Partner
  */
 public class BooleanTestXPathMessageSelector extends AbstractXPathMessageSelector {
 
 	/**
 	 * Create a boolean testing XPath {@link MessageSelector} supporting
-	 * mutliple namespaces
-	 * @param pathExpression
+	 * mutliple namespaces.
+	 * 
+	 * @param expression
 	 * @param namespaces
 	 */
-	public BooleanTestXPathMessageSelector(String pathExpression, Map<String, String> namespaces) {
-		super(pathExpression, namespaces);
+	public BooleanTestXPathMessageSelector(String expression, Map<String, String> namespaces) {
+		super(expression, namespaces);
 	}
 
 	/**
 	 * Create a boolean testing XPath {@link MessageSelector} supporting a
-	 * single namespace
-	 * @param pathExpression
+	 * single namespace.
+	 * 
+	 * @param expression
 	 * @param prefix
 	 * @param namespace
 	 */
-	public BooleanTestXPathMessageSelector(String pathExpression, String prefix, String namespace) {
-		super(pathExpression, prefix, namespace);
+	public BooleanTestXPathMessageSelector(String expression, String prefix, String namespace) {
+		super(expression, prefix, namespace);
 	}
 
 	/**
-	 * Creates a boolean testing XPath {@link MessageSelector} with no namespace
-	 * support
-	 * @param pathExpression
+	 * Create a boolean testing XPath {@link MessageSelector} with no namespace
+	 * support.
+	 * 
+	 * @param expression
 	 */
-	public BooleanTestXPathMessageSelector(String pathExpression) {
-		super(pathExpression);
+	public BooleanTestXPathMessageSelector(String expression) {
+		super(expression);
 	}
 
 	/**
-	 * Creates a boolean testing XPath {@link MessageSelector} using the
-	 * provided {@link XPathExpression}
-	 * @param pathExpression
+	 * Create a boolean testing XPath {@link MessageSelector} using the
+	 * provided {@link XPathExpression}.
+	 * 
+	 * @param expression
 	 */
-	public BooleanTestXPathMessageSelector(XPathExpression pathExpression) {
-		super(pathExpression);
+	public BooleanTestXPathMessageSelector(XPathExpression expression) {
+		super(expression);
 	}
 
+
 	/**
-	 * return true if the {@link XPathExpression} evaluates to <code>true</code>
+	 * Return true if the {@link XPathExpression} evaluates to <code>true</code>
 	 */
 	public boolean accept(Message<?> message) {
 		Node node = getConverter().convertToNode(message.getPayload());
 		return getXPathExpresion().evaluateAsBoolean(node);
 	}
+
 }

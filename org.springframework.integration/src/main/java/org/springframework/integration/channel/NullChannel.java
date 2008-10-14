@@ -22,7 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.selector.MessageSelector;
+import org.springframework.integration.selector.MessageSelector;
 
 /**
  * A channel implementation that essentially behaves like "/dev/null".

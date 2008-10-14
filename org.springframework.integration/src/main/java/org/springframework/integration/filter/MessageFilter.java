@@ -19,7 +19,7 @@ package org.springframework.integration.filter;
 import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
 import org.springframework.integration.endpoint.ReplyMessageHolder;
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.selector.MessageSelector;
+import org.springframework.integration.selector.MessageSelector;
 import org.springframework.util.Assert;
 
 /**

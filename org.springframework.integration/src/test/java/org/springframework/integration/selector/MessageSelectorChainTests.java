@@ -1,0 +1,175 @@
+/*
+ * Copyright 2002-2008 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.springframework.integration.selector;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
+
+import org.springframework.integration.message.Message;
+import org.springframework.integration.message.StringMessage;
+
+/**
+ * @author Mark Fisher
+ */
+public class MessageSelectorChainTests {
+
+	private final Message<?> message = new StringMessage("test");
+
+
+	@Test
+	public void anyStrategyAccepts() {
+		MessageSelectorChain chain = new MessageSelectorChain();
+		chain.setStrategy(MessageSelectorChain.Strategy.ANY);
+		chain.add(new TestSelector(false));
+		chain.add(new TestSelector(false));
+		chain.add(new TestSelector(true));
+		chain.add(new TestSelector(false));
+		assertTrue(chain.accept(message));
+	}
+
+	@Test
+	public void anyStrategyRejects() {
+		MessageSelectorChain chain = new MessageSelectorChain();
+		chain.setStrategy(MessageSelectorChain.Strategy.ANY);
+		chain.add(new TestSelector(false));
+		chain.add(new TestSelector(false));
+		chain.add(new TestSelector(false));
+		chain.add(new TestSelector(false));
+		assertFalse(chain.accept(message));
+	}
+
+	@Test
+	public void allStrategyAccepts() {
+		MessageSelectorChain chain = new MessageSelectorChain();
+		chain.setStrategy(MessageSelectorChain.Strategy.ALL);
+		chain.add(new TestSelector(true));
+		chain.add(new TestSelector(true));
+		chain.add(new TestSelector(true));
+		assertTrue(chain.accept(message));
+	}
+
+	@Test
+	public void allStrategyRejects() {
+		MessageSelectorChain chain = new MessageSelectorChain();
+		chain.setStrategy(MessageSelectorChain.Strategy.ALL);
+		chain.add(new TestSelector(true));
+		chain.add(new TestSelector(false));
+		chain.add(new TestSelector(true));
+		assertFalse(chain.accept(message));
+	}
+
+	@Test
+	public void atLeastHalfStrategyWithOddNumberAccepts() {
+		MessageSelectorChain chain = new MessageSelectorChain();
+		chain.setStrategy(MessageSelectorChain.Strategy.AT_LEAST_HALF);
+		chain.add(new TestSelector(true));
+		chain.add(new TestSelector(true));
+		chain.add(new TestSelector(false));
+		assertTrue(chain.accept(message));
+	}
+
+	@Test
+	public void atLeastHalfStrategyWithEvenNumberAccepts() {
+		MessageSelectorChain chain = new MessageSelectorChain();
+		chain.setStrategy(MessageSelectorChain.Strategy.AT_LEAST_HALF);
+		chain.add(new TestSelector(true));
+		chain.add(new TestSelector(true));
+		chain.add(new TestSelector(false));
+		chain.add(new TestSelector(false));
+		assertTrue(chain.accept(message));
+	}
+
+	@Test
+	public void atLeastHalfStrategyWithOddNumberRejects() {
+		MessageSelectorChain chain = new MessageSelectorChain();
+		chain.setStrategy(MessageSelectorChain.Strategy.AT_LEAST_HALF);
+		chain.add(new TestSelector(false));
+		chain.add(new TestSelector(true));
+		chain.add(new TestSelector(false));
+		assertFalse(chain.accept(message));
+	}
+
+	@Test
+	public void atLeastHalfStrategyWithEvenNumberRejects() {
+		MessageSelectorChain chain = new MessageSelectorChain();
+		chain.setStrategy(MessageSelectorChain.Strategy.AT_LEAST_HALF);
+		chain.add(new TestSelector(false));
+		chain.add(new TestSelector(true));
+		chain.add(new TestSelector(false));
+		chain.add(new TestSelector(false));
+		assertFalse(chain.accept(message));
+	}
+
+	@Test
+	public void moreThanHalfStrategyWithOddNumberAccepts() {
+		MessageSelectorChain chain = new MessageSelectorChain();
+		chain.setStrategy(MessageSelectorChain.Strategy.MORE_THAN_HALF);
+		chain.add(new TestSelector(true));
+		chain.add(new TestSelector(true));
+		chain.add(new TestSelector(false));
+		assertTrue(chain.accept(message));
+	}
+
+	@Test
+	public void moreThanHalfStrategyWithEvenNumberAccepts() {
+		MessageSelectorChain chain = new MessageSelectorChain();
+		chain.setStrategy(MessageSelectorChain.Strategy.MORE_THAN_HALF);
+		chain.add(new TestSelector(true));
+		chain.add(new TestSelector(true));
+		chain.add(new TestSelector(false));
+		chain.add(new TestSelector(true));
+		assertTrue(chain.accept(message));
+	}
+
+	@Test
+	public void moreThanHalfStrategyWithOddNumberRejects() {
+		MessageSelectorChain chain = new MessageSelectorChain();
+		chain.setStrategy(MessageSelectorChain.Strategy.MORE_THAN_HALF);
+		chain.add(new TestSelector(false));
+		chain.add(new TestSelector(true));
+		chain.add(new TestSelector(false));
+		assertFalse(chain.accept(message));
+	}
+
+	@Test
+	public void moreThanHalfStrategyWithEvenNumberRejects() {
+		MessageSelectorChain chain = new MessageSelectorChain();
+		chain.setStrategy(MessageSelectorChain.Strategy.MORE_THAN_HALF);
+		chain.add(new TestSelector(false));
+		chain.add(new TestSelector(true));
+		chain.add(new TestSelector(true));
+		chain.add(new TestSelector(false));
+		assertFalse(chain.accept(message));
+	}
+
+
+	private static class TestSelector implements MessageSelector {
+
+		private final boolean accept;
+
+		private TestSelector(boolean accept) {
+			this.accept = accept;
+		}
+
+		public boolean accept(Message<?> message) {
+			return this.accept;
+		}
+	}
+
+}

@@ -24,7 +24,7 @@ import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
-import org.springframework.integration.message.selector.MessageSelectorChain;
+import org.springframework.integration.selector.MessageSelectorChain;
 
 /**
  * Parser for the &lt;selector-chain/&gt; element.

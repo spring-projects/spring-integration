@@ -27,7 +27,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.channel.interceptor.MessageSelectingInterceptor;
-import org.springframework.integration.message.selector.PayloadTypeSelector;
+import org.springframework.integration.selector.PayloadTypeSelector;
 import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 

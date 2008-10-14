@@ -22,7 +22,7 @@ import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.springframework.integration.message.Message;
-import org.springframework.integration.message.selector.MessageSelector;
+import org.springframework.integration.selector.MessageSelector;
 
 /**
  * A channel implementation that stores messages in a thread-bound queue. In

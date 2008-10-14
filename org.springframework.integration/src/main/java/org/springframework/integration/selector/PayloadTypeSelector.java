@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message.selector;
+package org.springframework.integration.selector;
 
 import java.util.ArrayList;
 import java.util.List;

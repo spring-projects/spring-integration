@@ -23,6 +23,7 @@ import org.junit.Test;
 
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
+import org.springframework.integration.selector.UnexpiredMessageSelector;
 
 /**
  * @author Mark Fisher

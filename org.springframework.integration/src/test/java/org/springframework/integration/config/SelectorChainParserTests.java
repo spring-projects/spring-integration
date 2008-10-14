@@ -24,8 +24,8 @@ import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.message.selector.MessageSelector;
-import org.springframework.integration.message.selector.MessageSelectorChain;
+import org.springframework.integration.selector.MessageSelector;
+import org.springframework.integration.selector.MessageSelectorChain;
 
 /**
  * @author Mark Fisher

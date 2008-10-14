@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message.selector;
+package org.springframework.integration.selector;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.springframework.integration.message.Message;
+import org.springframework.util.Assert;
 
 /**
  * A message selector implementation that passes incoming messages through a
@@ -30,8 +31,18 @@ import org.springframework.integration.message.Message;
  */
 public class MessageSelectorChain implements MessageSelector {
 
+	public static enum Strategy { ALL, MORE_THAN_HALF, AT_LEAST_HALF, ANY };
+
+
+	private volatile Strategy strategy = Strategy.ALL;
+
 	private final List<MessageSelector> selectors = new CopyOnWriteArrayList<MessageSelector>();
 
+
+	public void setStrategy(Strategy strategy) {
+		Assert.notNull(strategy, "strategy must not be null");
+		this.strategy = strategy;
+	}
 
 	/**
 	 * Add a selector to the end of the chain.
@@ -51,8 +62,11 @@ public class MessageSelectorChain implements MessageSelector {
 	 * Initialize the selector chain. Removes any existing selectors.
 	 */
 	public void setSelectors(List<MessageSelector> selectors) {
-		this.selectors.clear();
-		this.selectors.addAll(selectors);
+		Assert.notEmpty(selectors, "selectors must not be empty");
+		synchronized (this.selectors) {
+			this.selectors.clear();
+			this.selectors.addAll(selectors);
+		}
 	}
 
 	/**
@@ -61,12 +75,39 @@ public class MessageSelectorChain implements MessageSelector {
 	 * If all selectors accept, this method will return 'true'. 
 	 */
 	public final boolean accept(Message<?> message) {
+		int count = 0;
+		int accepted = 0;
 		for (MessageSelector next : this.selectors) {
-			if (!next.accept(message)) {
+			count++;
+			if (next.accept(message)) {
+				if (this.strategy.equals(Strategy.ANY)) {
+					return true;
+				}
+				accepted++;
+			}
+			else if (this.strategy.equals(Strategy.ALL)) {
 				return false;
 			}
 		}
-		return true;
+		return this.decide(accepted, count);
+	}
+
+	private boolean decide(int accepted, int total) {
+		if (accepted == 0) {
+			return false;
+		}
+		switch (this.strategy) {
+		case ANY:
+			return true;
+		case ALL:
+			return (accepted == total);
+		case MORE_THAN_HALF:
+			return (2 * accepted) > total;
+		case AT_LEAST_HALF:
+			return (2 * accepted) >= total;
+		default:
+			throw new IllegalArgumentException("unsupported strategy " + this.strategy);
+		}
 	}
 
 }

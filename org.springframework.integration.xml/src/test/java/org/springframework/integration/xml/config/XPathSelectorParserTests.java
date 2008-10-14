@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xml.config;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
-import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.message.selector.MessageSelector;
-import org.springframework.integration.xml.util.XmlTestUtil;
 import org.w3c.dom.Document;
 
+import org.springframework.integration.message.GenericMessage;
+import org.springframework.integration.selector.MessageSelector;
+import org.springframework.integration.xml.util.XmlTestUtil;
+
+/**
+ * @author Jonas Partner
+ */
 public class XPathSelectorParserTests {
 
 	@Test
@@ -43,8 +48,7 @@ public class XPathSelectorParserTests {
 		assertTrue(selector.accept(new GenericMessage<Document>(XmlTestUtil.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>"))));
 		assertFalse(selector.accept(new GenericMessage<Document>(XmlTestUtil.getDocumentForString("<name>outputOne</name>"))));
 	}
-	
-	
+
 	@Test
 	public void testStringExpressionWithNestedMap() throws Exception {
 		StringBuffer contextXml =  new StringBuffer("<si-xml:xpath-selector id='selector' evaluation-result-type='boolean'>");
@@ -57,7 +61,8 @@ public class XPathSelectorParserTests {
 		assertFalse(selector.accept(new GenericMessage<Document>(XmlTestUtil.getDocumentForString("<name>outputOne</name>"))));
 
 	}
-	
+
+
 	public MessageSelector getSelector( String testcontextXml) throws Exception{
 		TestXmlApplicationContext ctx = 
 			TestXmlApplicationContextHelper.getTestAppContext(testcontextXml);
@@ -65,6 +70,4 @@ public class XPathSelectorParserTests {
 
 	}
 
-	
-	
 }

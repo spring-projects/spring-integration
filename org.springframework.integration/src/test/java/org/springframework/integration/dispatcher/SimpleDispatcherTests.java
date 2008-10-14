@@ -34,7 +34,7 @@ import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.TestHandlers;
-import org.springframework.integration.message.selector.MessageSelector;
+import org.springframework.integration.selector.MessageSelector;
 
 /**
  * @author Mark Fisher

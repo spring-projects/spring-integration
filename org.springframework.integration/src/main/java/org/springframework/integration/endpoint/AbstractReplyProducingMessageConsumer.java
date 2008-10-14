@@ -29,7 +29,7 @@ import org.springframework.integration.message.MessageHeaders;
 import org.springframework.integration.message.MessageProducer;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.MessagingException;
-import org.springframework.integration.message.selector.MessageSelector;
+import org.springframework.integration.selector.MessageSelector;
 import org.springframework.util.Assert;
 
 /**

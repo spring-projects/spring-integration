@@ -25,6 +25,7 @@ import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.selector.PayloadTypeSelector;
 
 /**
  * @author Mark Fisher
