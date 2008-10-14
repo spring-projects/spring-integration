@@ -3,11 +3,13 @@
 		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 		xmlns:beans="http://www.springframework.org/schema/beans"
 		xmlns:tool="http://www.springframework.org/schema/tool"
+		xmlns:si-core="http://www.springframework.org/schema/integration"
 		targetNamespace="http://www.springframework.org/schema/integration/xml"
 		elementFormDefault="qualified" attributeFormDefault="unqualified">
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans" />
 	<xsd:import namespace="http://www.springframework.org/schema/tool" />
+	<xsd:import namespace="http://www.springframework.org/schema/integration" />
 
 	<xsd:annotation>
 		<xsd:documentation>
@@ -16,14 +18,14 @@
 	</xsd:annotation>
 
 	<xsd:element name="marshalling-transformer">
-		<xsd:complexType>
+		<xsd:complexType >
 			<xsd:annotation>
 				<xsd:documentation>
 	Defines an XML marshalling transformer.
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
-				<xsd:extension base="transformerType">
+				<xsd:extension base="inputOutputEndpoint">
 					<xsd:attribute name="marshaller" type="xsd:string" use="required" />
 					<xsd:attribute name="result-type" use="optional">
 						<xsd:simpleType>
@@ -48,7 +50,7 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
-				<xsd:extension base="transformerType">
+				<xsd:extension base="inputOutputEndpoint">
 					<xsd:attribute name="unmarshaller" type="xsd:string" use="required" />
 				</xsd:extension>
 			</xsd:complexContent>
@@ -63,7 +65,7 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
-				<xsd:extension base="transformerType">
+				<xsd:extension base="inputOutputEndpoint">
 					<xsd:attribute name="xsl-resource" type="xsd:string" use="optional" />
 					<xsd:attribute name="xsl-templates" type="xsd:string" use="optional" />
 					<xsd:attribute name="source-factory" type="xsd:string" use="optional" />
@@ -142,28 +144,36 @@
 
 	<xsd:element name="xpath-splitter">
 		<xsd:complexType>
+		
 			<xsd:annotation>
 				<xsd:documentation>
 					Defines an XPath splitter.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:sequence>
-				<xsd:element ref="xpath-expression" maxOccurs="1" minOccurs="0" />
-			</xsd:sequence>
-			<xsd:attribute name="id" type="xsd:string" use="required" />
-				<xsd:attribute name="xpath-expression-ref" type="xsd:string"
-					use="optional" />
-				<xsd:attribute name="doc-builder-factory" type="xsd:string"
-					use="optional" />
-				<xsd:attribute name="create-documents" type="xsd:boolean"
-					use="optional" />
+			<xsd:complexContent>
+				<xsd:extension base="inputOutputEndpoint">
+					<xsd:sequence>
+						<xsd:element ref="xpath-expression" maxOccurs="1" minOccurs="0" />
+					</xsd:sequence>
+					<xsd:attribute name="xpath-expression-ref" type="xsd:string"
+						use="optional" />
+					<xsd:attribute name="doc-builder-factory" type="xsd:string"
+						use="optional" />
+					<xsd:attribute name="create-documents" type="xsd:boolean"
+						use="optional" />
+				</xsd:extension>
+			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
 	
-	<xsd:complexType name="transformerType">
+	
+	
+	<xsd:complexType name="inputOutputEndpoint">
 		<xsd:attribute name="id" type="xsd:string" use="optional" />
 		<xsd:attribute name="input-channel" type="xsd:string" use="required" />
 		<xsd:attribute name="output-channel" type="xsd:string" use="required" />
 	</xsd:complexType>
+	
+	
 
 </xsd:schema>

@@ -28,14 +28,18 @@ public class TestXmlApplicationContextHelper {
 			+ "xmlns:si-xml='http://www.springframework.org/schema/integration/xml' "
 			+ "xmlns:si='http://www.springframework.org/schema/integration' "
 			+ "xmlns:util='http://www.springframework.org/schema/util' "
-			+ "xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' " + "xsi:schemaLocation="
+			+ "xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' "
+			+ "xmlns:context='http://www.springframework.org/schema/context' " 
+			+ "xsi:schemaLocation="
 			+ "'http://www.springframework.org/schema/beans "
 			+ "http://www.springframework.org/schema/beans/spring-beans.xsd "
 			+ "http://www.springframework.org/schema/integration "
 			+ "http://www.springframework.org/schema/integration/spring-integration-1.0.xsd "
 			+ "http://www.springframework.org/schema/integration/xml "
 			+ "http://www.springframework.org/schema/integration/xml/spring-integration-xml-1.0.xsd "
-			+ "http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd' >";
+			+ "http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd " +
+			  "http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd' >" +
+			  "<context:annotation-config/>";
 
 	private final static String footer = "</beans>";
 
