@@ -18,13 +18,19 @@ package org.springframework.integration.xml.config;
 
 import static org.junit.Assert.assertEquals;
 
+import org.junit.After;
 import org.junit.Test;
-import org.w3c.dom.Document;
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.xml.router.XPathSingleChannelRouter;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.test.context.ContextConfiguration;
+import org.w3c.dom.Document;
 
 /**
  * @author Jonas Partner
@@ -32,28 +38,50 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration
 public class XPathRouterParserTests {
 
+	String channelConfig = "<si:channel id='test-input'/> <si:channel id='outputOne'><si:queue capacity='10'/></si:channel>";
+	
+	@Autowired @Qualifier("test-input")
+	MessageChannel inputChannel;
+	
+	@Autowired @Qualifier("outputOne")
+	QueueChannel outputChannel;
+	
+	ConfigurableApplicationContext appContext;
+	
+	public SubscribingConsumerEndpoint buildContext(String routerDef){
+		appContext = TestXmlApplicationContextHelper.getTestAppContext( channelConfig + routerDef);
+		appContext.getAutowireCapableBeanFactory().autowireBeanProperties(this, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE, false);
+		SubscribingConsumerEndpoint sce = (SubscribingConsumerEndpoint)appContext.getBean("router");
+		sce.start();
+		return sce;
+	}
+	
+	
+	@After
+	public void tearDown(){
+		if(appContext != null){
+			appContext.close();
+		}
+	}
+	
 	@Test
 	public void testSimpleStringExpression() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<name>outputOne</name>");
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
-		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper.getTestAppContext(
-				"<si-xml:xpath-router id='router'><si-xml:xpath-expression expression='/name'/></si-xml:xpath-router>");
-		XPathSingleChannelRouter router = (XPathSingleChannelRouter) ctx.getBean("router");
-		String[] channelNames = router.determineTargetChannelNames(docMessage);
-		assertEquals("Wrong number of channel names returned", 1, channelNames.length);
-		assertEquals("Wrong channel name", "outputOne", channelNames[0]);
+		SubscribingConsumerEndpoint sce = buildContext("<si-xml:xpath-router id='router' input-channel='test-input'><si-xml:xpath-expression expression='/name'/></si-xml:xpath-router>");
+		inputChannel.send(docMessage);
+		assertEquals("Wrong number of messages", 1, outputChannel.getMesssageCount());
+	
 	}
 
 	@Test
 	public void testNamespacedStringExpression() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>");
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
-		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper.getTestAppContext(
-				"<si-xml:xpath-router id='router'><si-xml:xpath-expression expression='/ns2:name' ns-prefix='ns2' ns-uri='www.example.org' /></si-xml:xpath-router>");
-		XPathSingleChannelRouter router = (XPathSingleChannelRouter) ctx.getBean("router");
-		String[] channelNames = router.determineTargetChannelNames(docMessage);
-		assertEquals("Wrong number of channel names returned", 1, channelNames.length);
-		assertEquals("Wrong channel name", "outputOne", channelNames[0]);
+		SubscribingConsumerEndpoint sce = buildContext("<si-xml:xpath-router id='router' input-channel='test-input'><si-xml:xpath-expression expression='/ns2:name' ns-prefix='ns2' ns-uri='www.example.org' /></si-xml:xpath-router>");
+		inputChannel.send(docMessage);
+		assertEquals("Wrong number of messages", 1, outputChannel.getMesssageCount());
+	
 	}
 
 	@Test
@@ -62,14 +90,13 @@ public class XPathRouterParserTests {
 				"<ns1:name xmlns:ns1='www.example.org' xmlns:ns2='www.example.org2'><ns2:type>outputOne</ns2:type></ns1:name>");
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		StringBuffer buffer = new StringBuffer(
-				"<si-xml:xpath-router id='router'><si-xml:xpath-expression expression='/ns1:name/ns2:type'> ");
+				"<si-xml:xpath-router id='router' input-channel='test-input'><si-xml:xpath-expression expression='/ns1:name/ns2:type'> ");
 		buffer.append("<map><entry key='ns1' value='www.example.org' /> <entry key='ns2' value='www.example.org2'/></map>");
 		buffer.append("</si-xml:xpath-expression></si-xml:xpath-router>");
-		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper.getTestAppContext(buffer.toString());
-		XPathSingleChannelRouter router = (XPathSingleChannelRouter) ctx.getBean("router");
-		String[] channelNames = router.determineTargetChannelNames(docMessage);
-		assertEquals("Wrong number of channel names returned", 1, channelNames.length);
-		assertEquals("Wrong channel name", "outputOne", channelNames[0]);
+		SubscribingConsumerEndpoint sce = buildContext(buffer.toString());
+		inputChannel.send(docMessage);
+		assertEquals("Wrong number of messages", 1, outputChannel.getMesssageCount());
+	
 	}
 
 	@Test
@@ -78,14 +105,13 @@ public class XPathRouterParserTests {
 				"<ns1:name xmlns:ns1='www.example.org' xmlns:ns2='www.example.org2'><ns2:type>outputOne</ns2:type></ns1:name>");
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		StringBuffer buffer = new StringBuffer(
-				"<si-xml:xpath-router id='router' ><si-xml:xpath-expression expression='/ns1:name/ns2:type' namespace-map='nsMap'/>");
+				"<si-xml:xpath-router id='router' input-channel='test-input'><si-xml:xpath-expression expression='/ns1:name/ns2:type' namespace-map='nsMap'/>");
 		buffer.append("</si-xml:xpath-router>");
 		buffer.append("<util:map id='nsMap'><entry key='ns1' value='www.example.org' /><entry key='ns2' value='www.example.org2' /></util:map>");
-		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper.getTestAppContext(buffer.toString());
-		XPathSingleChannelRouter router = (XPathSingleChannelRouter) ctx.getBean("router");
-		String[] channelNames = router.determineTargetChannelNames(docMessage);
-		assertEquals("Wrong number of channel names returned", 1, channelNames.length);
-		assertEquals("Wrong channel name", "outputOne", channelNames[0]);
+		
+		SubscribingConsumerEndpoint sce = buildContext(buffer.toString());
+		inputChannel.send(docMessage);
+		assertEquals("Wrong number of messages", 1, outputChannel.getMesssageCount());
 	}
 
 }

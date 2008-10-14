@@ -16,22 +16,21 @@
 
 package org.springframework.integration.xml.config;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.xml.router.XPathMultiChannelRouter;
 import org.springframework.integration.xml.router.XPathSingleChannelRouter;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * @author Jonas Partner
  */
-public class XPathRouterParser extends AbstractSingleBeanDefinitionParser {
+public class XPathRouterParser extends AbstractConsumerEndpointParser {
 
 	private XPathExpressionParser xpathParser = new XPathExpressionParser();
 	
@@ -46,7 +45,9 @@ public class XPathRouterParser extends AbstractSingleBeanDefinitionParser {
 	}
 
 	@Override
-	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition();
+		
 		boolean multiChannel = Boolean.parseBoolean(element.getAttribute("multi-channel"));
 		String xPathExpressionRef = element.getAttribute("xpath-expression-ref");
 		NodeList xPathExpressionNodes = element.getElementsByTagNameNS(
@@ -71,6 +72,7 @@ public class XPathRouterParser extends AbstractSingleBeanDefinitionParser {
 		else { 
 			builder.addConstructorArgReference(xPathExpressionRef);
 		}
+		return builder;
 	}
 
 }
