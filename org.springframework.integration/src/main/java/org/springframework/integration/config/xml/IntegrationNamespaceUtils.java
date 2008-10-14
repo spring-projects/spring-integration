@@ -16,6 +16,8 @@
 
 package org.springframework.integration.config.xml;
 
+import java.util.concurrent.TimeUnit;
+
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -158,11 +160,11 @@ public abstract class IntegrationNamespaceUtils {
 	private static Trigger createIntervalTrigger(Element element) {
 		String interval = element.getAttribute("interval");
 		Assert.hasText(interval, "the 'interval' attribute is required for an <interval-trigger/>");
-		Long period = Long.valueOf(interval);
-		IntervalTrigger trigger = new IntervalTrigger(period);
+		TimeUnit timeUnit = TimeUnit.valueOf(element.getAttribute("time-unit"));
+		IntervalTrigger trigger = new IntervalTrigger(Long.valueOf(interval), timeUnit);
 		String initialDelay = element.getAttribute("initial-delay");
 		if (StringUtils.hasText(initialDelay)) {
-			trigger.setInitialDelay(Long.valueOf(initialDelay));
+			trigger.setInitialDelay(Long.valueOf(initialDelay), timeUnit);
 		}
 		trigger.setFixedRate("true".equals(element.getAttribute("fixed-rate").toLowerCase()));
 		return trigger;

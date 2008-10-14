@@ -14,7 +14,7 @@
 
 	<inbound-channel-adapter id="numbers" ref="counter" method="next">
 		<poller max-messages-per-poll="1">
-			<interval-trigger interval="3000"/>
+			<interval-trigger interval="3" time-unit="SECONDS"/>
 		</poller>
 	</inbound-channel-adapter>
 
