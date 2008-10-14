@@ -22,9 +22,14 @@ import org.w3c.dom.NodeList;
 
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
+import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.selector.MessageSelectorChain;
+import org.springframework.integration.selector.MessageSelectorChain.Strategy;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;selector-chain/&gt; element.
@@ -38,14 +43,35 @@ public class SelectorChainParser extends AbstractSingleBeanDefinitionParser {
 		return MessageSelectorChain.class;
 	}
 
+	public void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+		Assert.hasText(element.getAttribute("id"), "id is required");
+		this.parseSelectorChain(builder, element, parserContext);
+	}
+
 	@SuppressWarnings("unchecked")
-	public void doParse(Element element, BeanDefinitionBuilder builder) {
+	private void parseSelectorChain(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
+		String strategy = element.getAttribute("strategy");
+		if (StringUtils.hasText(strategy)) {
+			builder.addPropertyValue("strategy", Strategy.valueOf(strategy));
+		}
 		ManagedList selectors = new ManagedList();
 		NodeList childNodes = element.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); i++) {
 			Node child = childNodes.item(i);
-			if (child.getNodeType() == Node.ELEMENT_NODE && "selector".equals(child.getLocalName())) {
-				selectors.add(new RuntimeBeanReference(((Element) child).getAttribute("ref")));
+			if (child.getNodeType() == Node.ELEMENT_NODE) {
+				String nodeName = child.getLocalName();
+				if ("selector".equals(nodeName)) {
+					String ref = ((Element) child).getAttribute("ref");
+					selectors.add(new RuntimeBeanReference(ref));
+				}
+				else if ("selector-chain".equals(nodeName)) {
+					BeanDefinitionBuilder nestedBuilder =
+							BeanDefinitionBuilder.genericBeanDefinition(MessageSelectorChain.class);
+					this.parseSelectorChain(nestedBuilder, (Element) child, parserContext);
+					String nestedBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
+							nestedBuilder.getBeanDefinition(), parserContext.getRegistry());
+					selectors.add(new RuntimeBeanReference(nestedBeanName));
+				}
 			}
 		}
 		builder.addPropertyValue("selectors", selectors);

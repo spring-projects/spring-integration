@@ -12,8 +12,31 @@
 		<selector ref="selector2"/>
 	</selector-chain>
 
+	<selector-chain id="nestedSelectorChain" strategy="MORE_THAN_HALF">
+		<selector ref="selector1"/>
+		<selector-chain strategy="ALL">
+			<selector ref="selector2"/>
+			<selector-chain strategy="ANY">
+				<selector ref="selector3"/>
+				<selector ref="selector4"/>
+			</selector-chain>
+			<selector ref="selector5"/>
+		</selector-chain>
+		<selector-chain strategy="AT_LEAST_HALF">
+			<selector ref="selector6"/>
+		</selector-chain>
+	</selector-chain>
+
 	<beans:bean id="selector1" class="org.springframework.integration.config.StubMessageSelector"/>
 
 	<beans:bean id="selector2" class="org.springframework.integration.config.StubMessageSelector"/>
+
+	<beans:bean id="selector3" class="org.springframework.integration.config.StubMessageSelector"/>
+
+	<beans:bean id="selector4" class="org.springframework.integration.config.StubMessageSelector"/>
+
+	<beans:bean id="selector5" class="org.springframework.integration.config.StubMessageSelector"/>
+
+	<beans:bean id="selector6" class="org.springframework.integration.config.StubMessageSelector"/>
 
 </beans:beans>

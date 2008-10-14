@@ -146,7 +146,7 @@
 			<xsd:attribute name="id" type="xsd:ID" use="required"/>
 			<xsd:attribute name="service-interface" type="xsd:string" use="required"/>
 			<xsd:attribute name="default-request-channel" type="xsd:string"/>
-			<xsd:attribute name="default-reply-channel" type="xsd:string" use="optional"/>
+			<xsd:attribute name="default-reply-channel" type="xsd:string"/>
 			<xsd:attribute name="default-request-timeout" type="xsd:long"/>
 			<xsd:attribute name="default-reply-timeout" type="xsd:long"/>
 		</xsd:complexType>
@@ -192,8 +192,8 @@
 	<xsd:complexType name="inputOutputEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Base type for handler endpoint elements that accept Messages from an input-channel
-	and also produce Messages to be sent to an output-channel.
+	Base type for Message Endpoint elements that accept Messages from an input-channel
+	and also may produce reply Messages to be sent to an output-channel.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
@@ -206,7 +206,7 @@
 	<xsd:complexType name="inputEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
-	Base type for handler endpoint elements that accept Messages from an input-channel.
+	Base type for Message Endpoint elements that accept Messages from an input-channel.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
@@ -214,7 +214,7 @@
 				<xsd:all>
 					<xsd:element ref="poller" minOccurs="0" maxOccurs="1"/>
 				</xsd:all>
-				<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
+				<xsd:attribute name="input-channel" type="xsd:string"/>
 				<xsd:attribute name="ref" type="xsd:string"/>
 				<xsd:attribute name="method" type="xsd:string"/>
 				<xsd:attribute name="selector" type="xsd:string"/>
@@ -290,10 +290,26 @@
 	Defines a MessageSelector chain.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:sequence>
-				<xsd:element ref="selector" minOccurs="1" maxOccurs="unbounded"/>
-			</xsd:sequence>
-			<xsd:attribute name="id" type="xsd:ID" use="required"/>
+			<xsd:choice minOccurs="0" maxOccurs="unbounded">
+				<xsd:element ref="selector"/>
+				<xsd:element ref="selector-chain"/>
+			</xsd:choice>
+			<xsd:attribute name="id" type="xsd:ID"/>
+			<xsd:attribute name="strategy" default="ALL">
+				<xsd:annotation>
+					<xsd:documentation><![CDATA[
+	Enumeration with values that match the MessageSelectorChain.Strategy enum.
+					]]></xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:enumeration value="ALL"/>
+					<xsd:enumeration value="ANY"/>
+					<xsd:enumeration value="AT_LEAST_HALF"/>
+					<xsd:enumeration value="MORE_THAN_HALF"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+			</xsd:attribute>
 		</xsd:complexType>
 	</xsd:element>
 
