@@ -35,7 +35,7 @@ public class MessageSelectorChainTests {
 	@Test
 	public void anyStrategyAccepts() {
 		MessageSelectorChain chain = new MessageSelectorChain();
-		chain.setStrategy(MessageSelectorChain.Strategy.ANY);
+		chain.setVotingStrategy(MessageSelectorChain.VotingStrategy.ANY);
 		chain.add(new TestSelector(false));
 		chain.add(new TestSelector(false));
 		chain.add(new TestSelector(true));
@@ -46,7 +46,7 @@ public class MessageSelectorChainTests {
 	@Test
 	public void anyStrategyRejects() {
 		MessageSelectorChain chain = new MessageSelectorChain();
-		chain.setStrategy(MessageSelectorChain.Strategy.ANY);
+		chain.setVotingStrategy(MessageSelectorChain.VotingStrategy.ANY);
 		chain.add(new TestSelector(false));
 		chain.add(new TestSelector(false));
 		chain.add(new TestSelector(false));
@@ -57,7 +57,7 @@ public class MessageSelectorChainTests {
 	@Test
 	public void allStrategyAccepts() {
 		MessageSelectorChain chain = new MessageSelectorChain();
-		chain.setStrategy(MessageSelectorChain.Strategy.ALL);
+		chain.setVotingStrategy(MessageSelectorChain.VotingStrategy.ALL);
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(true));
@@ -67,7 +67,7 @@ public class MessageSelectorChainTests {
 	@Test
 	public void allStrategyRejects() {
 		MessageSelectorChain chain = new MessageSelectorChain();
-		chain.setStrategy(MessageSelectorChain.Strategy.ALL);
+		chain.setVotingStrategy(MessageSelectorChain.VotingStrategy.ALL);
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(false));
 		chain.add(new TestSelector(true));
@@ -75,9 +75,9 @@ public class MessageSelectorChainTests {
 	}
 
 	@Test
-	public void atLeastHalfStrategyWithOddNumberAccepts() {
+	public void majorityOrTieStrategyWithOddNumberAccepts() {
 		MessageSelectorChain chain = new MessageSelectorChain();
-		chain.setStrategy(MessageSelectorChain.Strategy.AT_LEAST_HALF);
+		chain.setVotingStrategy(MessageSelectorChain.VotingStrategy.MAJORITY_OR_TIE);
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(false));
@@ -85,9 +85,9 @@ public class MessageSelectorChainTests {
 	}
 
 	@Test
-	public void atLeastHalfStrategyWithEvenNumberAccepts() {
+	public void majorityOrTieStrategyWithEvenNumberAccepts() {
 		MessageSelectorChain chain = new MessageSelectorChain();
-		chain.setStrategy(MessageSelectorChain.Strategy.AT_LEAST_HALF);
+		chain.setVotingStrategy(MessageSelectorChain.VotingStrategy.MAJORITY_OR_TIE);
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(false));
@@ -96,9 +96,9 @@ public class MessageSelectorChainTests {
 	}
 
 	@Test
-	public void atLeastHalfStrategyWithOddNumberRejects() {
+	public void majorityOrTieStrategyWithOddNumberRejects() {
 		MessageSelectorChain chain = new MessageSelectorChain();
-		chain.setStrategy(MessageSelectorChain.Strategy.AT_LEAST_HALF);
+		chain.setVotingStrategy(MessageSelectorChain.VotingStrategy.MAJORITY_OR_TIE);
 		chain.add(new TestSelector(false));
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(false));
@@ -106,9 +106,9 @@ public class MessageSelectorChainTests {
 	}
 
 	@Test
-	public void atLeastHalfStrategyWithEvenNumberRejects() {
+	public void majorityOrTieStrategyWithEvenNumberRejects() {
 		MessageSelectorChain chain = new MessageSelectorChain();
-		chain.setStrategy(MessageSelectorChain.Strategy.AT_LEAST_HALF);
+		chain.setVotingStrategy(MessageSelectorChain.VotingStrategy.MAJORITY_OR_TIE);
 		chain.add(new TestSelector(false));
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(false));
@@ -117,9 +117,9 @@ public class MessageSelectorChainTests {
 	}
 
 	@Test
-	public void moreThanHalfStrategyWithOddNumberAccepts() {
+	public void majorityStrategyWithOddNumberAccepts() {
 		MessageSelectorChain chain = new MessageSelectorChain();
-		chain.setStrategy(MessageSelectorChain.Strategy.MORE_THAN_HALF);
+		chain.setVotingStrategy(MessageSelectorChain.VotingStrategy.MAJORITY);
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(false));
@@ -127,9 +127,9 @@ public class MessageSelectorChainTests {
 	}
 
 	@Test
-	public void moreThanHalfStrategyWithEvenNumberAccepts() {
+	public void majorityStrategyWithEvenNumberAccepts() {
 		MessageSelectorChain chain = new MessageSelectorChain();
-		chain.setStrategy(MessageSelectorChain.Strategy.MORE_THAN_HALF);
+		chain.setVotingStrategy(MessageSelectorChain.VotingStrategy.MAJORITY);
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(false));
@@ -138,9 +138,9 @@ public class MessageSelectorChainTests {
 	}
 
 	@Test
-	public void moreThanHalfStrategyWithOddNumberRejects() {
+	public void majorityStrategyWithOddNumberRejects() {
 		MessageSelectorChain chain = new MessageSelectorChain();
-		chain.setStrategy(MessageSelectorChain.Strategy.MORE_THAN_HALF);
+		chain.setVotingStrategy(MessageSelectorChain.VotingStrategy.MAJORITY);
 		chain.add(new TestSelector(false));
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(false));
@@ -148,9 +148,9 @@ public class MessageSelectorChainTests {
 	}
 
 	@Test
-	public void moreThanHalfStrategyWithEvenNumberRejects() {
+	public void majorityStrategyWithEvenNumberRejects() {
 		MessageSelectorChain chain = new MessageSelectorChain();
-		chain.setStrategy(MessageSelectorChain.Strategy.MORE_THAN_HALF);
+		chain.setVotingStrategy(MessageSelectorChain.VotingStrategy.MAJORITY);
 		chain.add(new TestSelector(false));
 		chain.add(new TestSelector(true));
 		chain.add(new TestSelector(true));

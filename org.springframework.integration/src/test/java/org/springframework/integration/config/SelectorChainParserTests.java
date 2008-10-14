@@ -28,7 +28,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.selector.MessageSelector;
 import org.springframework.integration.selector.MessageSelectorChain;
-import org.springframework.integration.selector.MessageSelectorChain.Strategy;
+import org.springframework.integration.selector.MessageSelectorChain.VotingStrategy;
 
 /**
  * @author Mark Fisher
@@ -43,7 +43,7 @@ public class SelectorChainParserTests {
 		MessageSelector selector2 = (MessageSelector) context.getBean("selector2");
 		MessageSelectorChain chain = (MessageSelectorChain) context.getBean("selectorChain");
 		List<MessageSelector> selectors = this.getSelectors(chain);
-		assertEquals(Strategy.ALL, this.getStrategy(chain));
+		assertEquals(VotingStrategy.ALL, this.getStrategy(chain));
 		assertEquals(selector1, selectors.get(0));
 		assertEquals(selector2, selectors.get(1));
 		assertTrue(chain.accept(new StringMessage("test")));
@@ -60,24 +60,24 @@ public class SelectorChainParserTests {
 		MessageSelector selector5 = (MessageSelector) context.getBean("selector5");
 		MessageSelector selector6 = (MessageSelector) context.getBean("selector6");
 		MessageSelectorChain chain1 = (MessageSelectorChain) context.getBean("nestedSelectorChain");
-		assertEquals(Strategy.MORE_THAN_HALF, this.getStrategy(chain1));
+		assertEquals(VotingStrategy.MAJORITY, this.getStrategy(chain1));
 		List<MessageSelector> selectorList1 = this.getSelectors(chain1);
 		assertEquals(selector1, selectorList1.get(0));
 		assertTrue(selectorList1.get(1) instanceof MessageSelectorChain);
 		MessageSelectorChain chain2 = (MessageSelectorChain) selectorList1.get(1);
-		assertEquals(Strategy.ALL, this.getStrategy(chain2));
+		assertEquals(VotingStrategy.ALL, this.getStrategy(chain2));
 		List<MessageSelector> selectorList2 = this.getSelectors(chain2);
 		assertEquals(selector2, selectorList2.get(0));
 		assertTrue(selectorList2.get(1) instanceof MessageSelectorChain);
 		MessageSelectorChain chain3 = (MessageSelectorChain) selectorList2.get(1);
-		assertEquals(Strategy.ANY, this.getStrategy(chain3));
+		assertEquals(VotingStrategy.ANY, this.getStrategy(chain3));
 		List<MessageSelector> selectorList3 = this.getSelectors(chain3);
 		assertEquals(selector3, selectorList3.get(0));
 		assertEquals(selector4, selectorList3.get(1));
 		assertEquals(selector5, selectorList2.get(2));
 		assertTrue(selectorList1.get(2) instanceof MessageSelectorChain);
 		MessageSelectorChain chain4 = (MessageSelectorChain) selectorList1.get(2);
-		assertEquals(Strategy.AT_LEAST_HALF, this.getStrategy(chain4));
+		assertEquals(VotingStrategy.MAJORITY_OR_TIE, this.getStrategy(chain4));
 		List<MessageSelector> selectorList4 = this.getSelectors(chain4);
 		assertEquals(selector6, selectorList4.get(0));
 		assertTrue(chain1.accept(new StringMessage("test1")));
@@ -93,8 +93,8 @@ public class SelectorChainParserTests {
 		return (List<MessageSelector>) accessor.getPropertyValue("selectors");
 	}
 
-	private Strategy getStrategy(MessageSelectorChain chain) {
-		return (Strategy) new DirectFieldAccessor(chain).getPropertyValue("strategy");
+	private VotingStrategy getStrategy(MessageSelectorChain chain) {
+		return (VotingStrategy) new DirectFieldAccessor(chain).getPropertyValue("votingStrategy");
 	}
 
 }

@@ -12,17 +12,17 @@
 		<selector ref="selector2"/>
 	</selector-chain>
 
-	<selector-chain id="nestedSelectorChain" strategy="MORE_THAN_HALF">
+	<selector-chain id="nestedSelectorChain" voting-strategy="MAJORITY">
 		<selector ref="selector1"/>
-		<selector-chain strategy="ALL">
+		<selector-chain voting-strategy="ALL">
 			<selector ref="selector2"/>
-			<selector-chain strategy="ANY">
+			<selector-chain voting-strategy="ANY">
 				<selector ref="selector3"/>
 				<selector ref="selector4"/>
 			</selector-chain>
 			<selector ref="selector5"/>
 		</selector-chain>
-		<selector-chain strategy="AT_LEAST_HALF">
+		<selector-chain voting-strategy="MAJORITY_OR_TIE">
 			<selector ref="selector6"/>
 		</selector-chain>
 	</selector-chain>

@@ -27,9 +27,7 @@ import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.selector.MessageSelectorChain;
-import org.springframework.integration.selector.MessageSelectorChain.Strategy;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;selector-chain/&gt; element.
@@ -50,10 +48,7 @@ public class SelectorChainParser extends AbstractSingleBeanDefinitionParser {
 
 	@SuppressWarnings("unchecked")
 	private void parseSelectorChain(BeanDefinitionBuilder builder, Element element, ParserContext parserContext) {
-		String strategy = element.getAttribute("strategy");
-		if (StringUtils.hasText(strategy)) {
-			builder.addPropertyValue("strategy", Strategy.valueOf(strategy));
-		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "voting-strategy");
 		ManagedList selectors = new ManagedList();
 		NodeList childNodes = element.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); i++) {

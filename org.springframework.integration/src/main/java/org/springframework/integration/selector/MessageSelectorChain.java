@@ -24,24 +24,29 @@ import org.springframework.util.Assert;
 
 /**
  * A message selector implementation that passes incoming messages through a
- * chain of selectors. The chain will be broken by any selector that returns
- * <em>false</em>.
+ * chain of selectors. Whether the Message is {@link #accept(Message) accepted}
+ * is based upon the tallied results of the individual selectors' responses in
+ * accordance with this chain's {@link VotingStrategy}.
  * 
  * @author Mark Fisher
  */
 public class MessageSelectorChain implements MessageSelector {
 
-	public static enum Strategy { ALL, MORE_THAN_HALF, AT_LEAST_HALF, ANY };
+	public static enum VotingStrategy { ALL, ANY, MAJORITY, MAJORITY_OR_TIE };
 
 
-	private volatile Strategy strategy = Strategy.ALL;
+	private volatile VotingStrategy votingStrategy = VotingStrategy.ALL;
 
 	private final List<MessageSelector> selectors = new CopyOnWriteArrayList<MessageSelector>();
 
 
-	public void setStrategy(Strategy strategy) {
-		Assert.notNull(strategy, "strategy must not be null");
-		this.strategy = strategy;
+	/**
+	 * Specify the voting strategy for this selector chain.
+	 * <p>The default is {@link VotingStrategy#ALL}.
+	 */
+	public void setVotingStrategy(VotingStrategy votingStrategy) {
+		Assert.notNull(votingStrategy, "votingStrategy must not be null");
+		this.votingStrategy = votingStrategy;
 	}
 
 	/**
@@ -70,9 +75,10 @@ public class MessageSelectorChain implements MessageSelector {
 	}
 
 	/**
-	 * Pass the message through the selector chain. As soon as a
-	 * selector returns 'false', this method will return 'false'.
-	 * If all selectors accept, this method will return 'true'. 
+	 * Pass the message through the selector chain. Whether the Message is
+	 * {@link #accept(Message) accepted} is based upon the tallied results of
+	 * the individual selectors' responses in accordance with this chain's
+	 * {@link VotingStrategy}.
 	 */
 	public final boolean accept(Message<?> message) {
 		int count = 0;
@@ -80,12 +86,12 @@ public class MessageSelectorChain implements MessageSelector {
 		for (MessageSelector next : this.selectors) {
 			count++;
 			if (next.accept(message)) {
-				if (this.strategy.equals(Strategy.ANY)) {
+				if (this.votingStrategy.equals(VotingStrategy.ANY)) {
 					return true;
 				}
 				accepted++;
 			}
-			else if (this.strategy.equals(Strategy.ALL)) {
+			else if (this.votingStrategy.equals(VotingStrategy.ALL)) {
 				return false;
 			}
 		}
@@ -96,17 +102,17 @@ public class MessageSelectorChain implements MessageSelector {
 		if (accepted == 0) {
 			return false;
 		}
-		switch (this.strategy) {
-		case ANY:
-			return true;
-		case ALL:
-			return (accepted == total);
-		case MORE_THAN_HALF:
-			return (2 * accepted) > total;
-		case AT_LEAST_HALF:
-			return (2 * accepted) >= total;
-		default:
-			throw new IllegalArgumentException("unsupported strategy " + this.strategy);
+		switch (this.votingStrategy) {
+			case ANY:
+				return true;
+			case ALL:
+				return (accepted == total);
+			case MAJORITY:
+				return (2 * accepted) > total;
+			case MAJORITY_OR_TIE:
+				return (2 * accepted) >= total;
+			default:
+				throw new IllegalArgumentException("unsupported voting strategy " + this.votingStrategy);
 		}
 	}
 

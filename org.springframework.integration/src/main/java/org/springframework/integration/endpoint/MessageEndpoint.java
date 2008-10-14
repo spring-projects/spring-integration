@@ -16,9 +16,8 @@
 
 package org.springframework.integration.endpoint;
 
-
 /**
- * Base interface for message endpoints.
+ * Base interface for Message Endpoints.
  * 
  * @author Mark Fisher
  */

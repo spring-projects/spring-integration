@@ -295,18 +295,18 @@
 				<xsd:element ref="selector-chain"/>
 			</xsd:choice>
 			<xsd:attribute name="id" type="xsd:ID"/>
-			<xsd:attribute name="strategy" default="ALL">
+			<xsd:attribute name="voting-strategy" default="ALL">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
-	Enumeration with values that match the MessageSelectorChain.Strategy enum.
+	Enumeration with values that match the MessageSelectorChain.VotingStrategy enum.
 					]]></xsd:documentation>
 				</xsd:annotation>
 				<xsd:simpleType>
 				<xsd:restriction base="xsd:string">
 					<xsd:enumeration value="ALL"/>
 					<xsd:enumeration value="ANY"/>
-					<xsd:enumeration value="AT_LEAST_HALF"/>
-					<xsd:enumeration value="MORE_THAN_HALF"/>
+					<xsd:enumeration value="MAJORITY"/>
+					<xsd:enumeration value="MAJORITY_OR_TIE"/>
 				</xsd:restriction>
 			</xsd:simpleType>
 			</xsd:attribute>
