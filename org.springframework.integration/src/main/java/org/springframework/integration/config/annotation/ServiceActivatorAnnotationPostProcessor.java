@@ -20,9 +20,8 @@ import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
+import org.springframework.integration.endpoint.ServiceActivatingConsumer;
 import org.springframework.integration.message.MessageConsumer;
-import org.springframework.integration.message.MessageMappingMethodInvoker;
 
 /**
  * Post-processor for Methods annotated with {@link ServiceActivator @ServiceActivator}.
@@ -38,8 +37,7 @@ public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnot
 
 	@Override
 	protected MessageConsumer createConsumer(Object bean, Method method, ServiceActivator annotation) {
-		MessageMappingMethodInvoker invoker = new MessageMappingMethodInvoker(bean, method);
-		return new ServiceActivatorEndpoint(invoker);
+		return new ServiceActivatingConsumer(bean, method);
 	}
 
 }

@@ -41,7 +41,7 @@ public class CorrelationIdTests {
 				.setCorrelationId(correlationId).build();
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel(1);
-		ServiceActivatorEndpoint serviceActivator = new ServiceActivatorEndpoint(new TestBean(), "upperCase");
+		ServiceActivatingConsumer serviceActivator = new ServiceActivatingConsumer(new TestBean(), "upperCase");
 		serviceActivator.setOutputChannel(outputChannel);
 		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(serviceActivator, inputChannel);
 		endpoint.start();
@@ -56,7 +56,7 @@ public class CorrelationIdTests {
 				.setCorrelationId("correlationId").build();
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel(1);
-		ServiceActivatorEndpoint serviceActivator = new ServiceActivatorEndpoint(new TestBean(), "upperCase");
+		ServiceActivatingConsumer serviceActivator = new ServiceActivatingConsumer(new TestBean(), "upperCase");
 		serviceActivator.setOutputChannel(outputChannel);
 		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(serviceActivator, inputChannel);
 		endpoint.start();
@@ -73,7 +73,7 @@ public class CorrelationIdTests {
 				.setCorrelationId(correlationId).build();
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel(1);
-		ServiceActivatorEndpoint serviceActivator = new ServiceActivatorEndpoint(new TestBean(), "createMessage");
+		ServiceActivatingConsumer serviceActivator = new ServiceActivatingConsumer(new TestBean(), "createMessage");
 		serviceActivator.setOutputChannel(outputChannel);
 		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(serviceActivator, inputChannel);
 		endpoint.start();
@@ -87,7 +87,7 @@ public class CorrelationIdTests {
 		Message<?> message = new StringMessage("test");
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel(1);
-		ServiceActivatorEndpoint serviceActivator = new ServiceActivatorEndpoint(new TestBean(), "createMessage");
+		ServiceActivatingConsumer serviceActivator = new ServiceActivatingConsumer(new TestBean(), "createMessage");
 		serviceActivator.setOutputChannel(outputChannel);
 		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(serviceActivator, inputChannel);
 		endpoint.start();

@@ -31,19 +31,14 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  */
-public class ServiceActivatorEndpoint extends AbstractReplyProducingMessageConsumer implements InitializingBean {
+public class ServiceActivatingConsumer extends AbstractReplyProducingMessageConsumer implements InitializingBean {
 
 	private final MethodResolver methodResolver = new DefaultMethodResolver(ServiceActivator.class);
 
 	private final MethodInvoker invoker;
 
 
-	public ServiceActivatorEndpoint(MethodInvoker invoker) {
-		Assert.notNull(invoker, "invoker must not be null");
-		this.invoker = invoker;
-	}
-
-	public ServiceActivatorEndpoint(final Object object) {
+	public ServiceActivatingConsumer(final Object object) {
 		Assert.notNull(object, "object must not be null");
 		Method method = this.methodResolver.findMethod(object); 
 		Assert.notNull(method, "unable to resolve ServiceActivator method on target class ["
@@ -51,8 +46,12 @@ public class ServiceActivatorEndpoint extends AbstractReplyProducingMessageConsu
 		this.invoker = new MessageMappingMethodInvoker(object, method);
 	}
 
-	public ServiceActivatorEndpoint(Object object, String methodName) {
-		this(new MessageMappingMethodInvoker(object, methodName));
+	public ServiceActivatingConsumer(Object object, Method method) {
+		this.invoker = new MessageMappingMethodInvoker(object, method);
+	}
+
+	public ServiceActivatingConsumer(Object object, String methodName) {
+		this.invoker = new MessageMappingMethodInvoker(object, methodName);
 	}
 
 
@@ -74,7 +73,7 @@ public class ServiceActivatorEndpoint extends AbstractReplyProducingMessageConsu
 			if (e instanceof RuntimeException) {
 				throw (RuntimeException) e;
 			}
-			throw new MessageHandlingException(message, "failure occurred in endpoint '" + this + "'", e);
+			throw new MessageHandlingException(message, "failure occurred in Service Activator '" + this + "'", e);
 		}
 	}
 

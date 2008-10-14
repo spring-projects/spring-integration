@@ -31,7 +31,7 @@ import org.springframework.integration.config.annotation.MessagingAnnotationPost
 import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
 import org.springframework.integration.endpoint.ReplyMessageHolder;
-import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
+import org.springframework.integration.endpoint.ServiceActivatingConsumer;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessagingException;
@@ -67,7 +67,7 @@ public class DirectChannelSubscriptionTests {
 	@Test
 	public void sendAndReceiveForRegisteredEndpoint() {
 		GenericApplicationContext context = new GenericApplicationContext();
-		ServiceActivatorEndpoint serviceActivator = new ServiceActivatorEndpoint(new TestBean(), "handle");
+		ServiceActivatingConsumer serviceActivator = new ServiceActivatingConsumer(new TestBean(), "handle");
 		serviceActivator.setOutputChannel(targetChannel);
 		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(serviceActivator, sourceChannel);
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);

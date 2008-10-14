@@ -32,7 +32,7 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
+import org.springframework.integration.endpoint.ServiceActivatingConsumer;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.message.StringMessage;
 
@@ -82,7 +82,7 @@ public class DefaultMethodResolverTests {
 		ProxyFactory proxyFactory = new ProxyFactory(testBean);
 		proxyFactory.setProxyTargetClass(false);
 		testBean = (GreetingService) proxyFactory.getProxy();
-		ServiceActivatorEndpoint consumer = new ServiceActivatorEndpoint(testBean);
+		ServiceActivatingConsumer consumer = new ServiceActivatingConsumer(testBean);
 		consumer.setOutputChannel(output);
 		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(consumer, input);
 		endpoint.start();
@@ -98,7 +98,7 @@ public class DefaultMethodResolverTests {
 		ProxyFactory proxyFactory = new ProxyFactory(testBean);
 		proxyFactory.setProxyTargetClass(true);
 		testBean = (GreetingService) proxyFactory.getProxy();
-		ServiceActivatorEndpoint consumer = new ServiceActivatorEndpoint(testBean);
+		ServiceActivatingConsumer consumer = new ServiceActivatingConsumer(testBean);
 		consumer.setOutputChannel(output);
 		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(consumer, input);
 		endpoint.start();

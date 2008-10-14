@@ -49,7 +49,7 @@ public class ServiceActivatorEndpointTests {
 	@Test
 	public void outputChannel() {
 		QueueChannel channel = new QueueChannel(1);
-		ServiceActivatorEndpoint endpoint = this.createEndpoint();
+		ServiceActivatingConsumer endpoint = this.createEndpoint();
 		endpoint.setOutputChannel(channel);
 		Message<?> message = MessageBuilder.withPayload("foo").build();
 		endpoint.onMessage(message);
@@ -62,7 +62,7 @@ public class ServiceActivatorEndpointTests {
 	public void outputChannelTakesPrecedence() {
 		QueueChannel channel1 = new QueueChannel(1);
 		QueueChannel channel2 = new QueueChannel(1);
-		ServiceActivatorEndpoint endpoint = this.createEndpoint();
+		ServiceActivatingConsumer endpoint = this.createEndpoint();
 		endpoint.setOutputChannel(channel1);
 		Message<?> message = MessageBuilder.withPayload("foo").setReturnAddress(channel2).build();
 		endpoint.onMessage(message);
@@ -76,7 +76,7 @@ public class ServiceActivatorEndpointTests {
 	@Test
 	public void returnAddressHeader() {
 		QueueChannel channel = new QueueChannel(1);
-		ServiceActivatorEndpoint endpoint = this.createEndpoint();
+		ServiceActivatingConsumer endpoint = this.createEndpoint();
 		Message<?> message = MessageBuilder.withPayload("foo").setReturnAddress(channel).build();
 		endpoint.onMessage(message);
 		Message<?> reply = channel.receive(0);
@@ -90,7 +90,7 @@ public class ServiceActivatorEndpointTests {
 		channel.setBeanName("testChannel");
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		channelResolver.addChannel(channel);
-		ServiceActivatorEndpoint endpoint = this.createEndpoint();
+		ServiceActivatingConsumer endpoint = this.createEndpoint();
 		endpoint.setChannelResolver(channelResolver);
 		Message<?> message = MessageBuilder.withPayload("foo").setReturnAddress("testChannel").build();
 		endpoint.onMessage(message);
@@ -110,7 +110,7 @@ public class ServiceActivatorEndpointTests {
 				return new StringMessage("foo" + message.getPayload());
 			}
 		};
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(handler, "handle");
+		ServiceActivatingConsumer endpoint = new ServiceActivatingConsumer(handler, "handle");
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		channelResolver.addChannel(replyChannel2);
 		endpoint.setChannelResolver(channelResolver);
@@ -135,7 +135,7 @@ public class ServiceActivatorEndpointTests {
 	@Test
 	public void noOutputChannelFallsBackToReturnAddress() {
 		QueueChannel channel = new QueueChannel(1);
-		ServiceActivatorEndpoint endpoint = this.createEndpoint();
+		ServiceActivatingConsumer endpoint = this.createEndpoint();
 		Message<?> message = MessageBuilder.withPayload("foo").setReturnAddress(channel).build();
 		endpoint.onMessage(message);
 		Message<?> reply = channel.receive(0);
@@ -145,7 +145,7 @@ public class ServiceActivatorEndpointTests {
 
 	@Test(expected = MessagingException.class)
 	public void noReplyTarget() {
-		ServiceActivatorEndpoint endpoint = this.createEndpoint();
+		ServiceActivatingConsumer endpoint = this.createEndpoint();
 		Message<?> message = MessageBuilder.withPayload("foo").build();
 		endpoint.onMessage(message);
 	}
@@ -153,7 +153,7 @@ public class ServiceActivatorEndpointTests {
 	@Test
 	public void noReplyMessage() {
 		QueueChannel channel = new QueueChannel(1);
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(
+		ServiceActivatingConsumer endpoint = new ServiceActivatingConsumer(
 				new TestNullReplyBean(), "handle");
 		endpoint.setOutputChannel(channel);
 		Message<?> message = MessageBuilder.withPayload("foo").build();
@@ -164,7 +164,7 @@ public class ServiceActivatorEndpointTests {
 	@Test(expected = MessageHandlingException.class)
 	public void noReplyMessageWithRequiresReply() {
 		QueueChannel channel = new QueueChannel(1);
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(
+		ServiceActivatingConsumer endpoint = new ServiceActivatingConsumer(
 				new TestNullReplyBean(), "handle");
 		endpoint.setRequiresReply(true);
 		endpoint.setOutputChannel(channel);
@@ -174,7 +174,7 @@ public class ServiceActivatorEndpointTests {
 
 	@Test(expected=MessageRejectedException.class)
 	public void endpointWithSelectorRejecting() {
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(
+		ServiceActivatingConsumer endpoint = new ServiceActivatingConsumer(
 				TestHandlers.nullHandler(), "handle");
 		endpoint.setSelector(new MessageSelector() {
 			public boolean accept(Message<?> message) {
@@ -187,7 +187,7 @@ public class ServiceActivatorEndpointTests {
 	@Test
 	public void endpointWithSelectorAccepting() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(
+		ServiceActivatingConsumer endpoint = new ServiceActivatingConsumer(
 				TestHandlers.countDownHandler(latch), "handle");
 		endpoint.setSelector(new MessageSelector() {
 			public boolean accept(Message<?> message) {
@@ -202,7 +202,7 @@ public class ServiceActivatorEndpointTests {
 	@Test
 	public void endpointWithMultipleSelectorsAndFirstRejects() {
 		final AtomicInteger counter = new AtomicInteger();
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(
+		ServiceActivatingConsumer endpoint = new ServiceActivatingConsumer(
 				TestHandlers.countingHandler(counter), "handle");
 		MessageSelectorChain selectorChain = new MessageSelectorChain();
 		selectorChain.add(new MessageSelector() {
@@ -233,7 +233,7 @@ public class ServiceActivatorEndpointTests {
 	public void endpointWithMultipleSelectorsAndFirstAccepts() {
 		final AtomicInteger selectorCounter = new AtomicInteger();
 		AtomicInteger handlerCounter = new AtomicInteger();
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(
+		ServiceActivatingConsumer endpoint = new ServiceActivatingConsumer(
 				TestHandlers.countingHandler(handlerCounter), "handle");
 		MessageSelectorChain selectorChain = new MessageSelectorChain();
 		selectorChain.add(new MessageSelector() {
@@ -264,7 +264,7 @@ public class ServiceActivatorEndpointTests {
 	@Test
 	public void endpointWithMultipleSelectorsAndBothAccept() {
 		final AtomicInteger counter = new AtomicInteger();
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(
+		ServiceActivatingConsumer endpoint = new ServiceActivatingConsumer(
 				TestHandlers.countingHandler(counter), "handle");
 		MessageSelectorChain selectorChain = new MessageSelectorChain();
 		selectorChain.add(new MessageSelector() {
@@ -287,7 +287,7 @@ public class ServiceActivatorEndpointTests {
 	@Test
 	public void correlationIdNotSetIfMessageIsReturnedUnaltered() {
 		QueueChannel replyChannel = new QueueChannel(1);
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(new Object() {
+		ServiceActivatingConsumer endpoint = new ServiceActivatingConsumer(new Object() {
 			@SuppressWarnings("unused")
 			public Message<?> handle(Message<?> message) {
 				return message;
@@ -303,7 +303,7 @@ public class ServiceActivatorEndpointTests {
 	@Test
 	public void correlationIdSetByHandlerTakesPrecedence() {
 		QueueChannel replyChannel = new QueueChannel(1);
-		ServiceActivatorEndpoint endpoint = new ServiceActivatorEndpoint(new Object() {
+		ServiceActivatingConsumer endpoint = new ServiceActivatingConsumer(new Object() {
 			@SuppressWarnings("unused")
 			public Message<?> handle(Message<?> message) {
 				return MessageBuilder.fromMessage(message)
@@ -320,8 +320,8 @@ public class ServiceActivatorEndpointTests {
 	}
 
 
-	private ServiceActivatorEndpoint createEndpoint() {
-		 return new ServiceActivatorEndpoint(new TestBean(), "handle");
+	private ServiceActivatingConsumer createEndpoint() {
+		 return new ServiceActivatingConsumer(new TestBean(), "handle");
 	}
 
 

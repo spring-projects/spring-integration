@@ -33,7 +33,7 @@ public class ServiceActivatorMethodResolutionTests {
 	@Test
 	public void singleAnnotationMatches() {
 		SingleAnnotationTestBean testBean = new SingleAnnotationTestBean();
-		ServiceActivatorEndpoint serviceActivator = new ServiceActivatorEndpoint(testBean);
+		ServiceActivatingConsumer serviceActivator = new ServiceActivatingConsumer(testBean);
 		QueueChannel outputChannel = new QueueChannel();
 		serviceActivator.setOutputChannel(outputChannel);
 		serviceActivator.onMessage(new StringMessage("foo"));
@@ -44,13 +44,13 @@ public class ServiceActivatorMethodResolutionTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void multipleAnnotationFails() {
 		MultipleAnnotationTestBean testBean = new MultipleAnnotationTestBean();
-		new ServiceActivatorEndpoint(testBean);
+		new ServiceActivatingConsumer(testBean);
 	}
 
 	@Test
 	public void singlePublicMethodMatches() {
 		SinglePublicMethodTestBean testBean = new SinglePublicMethodTestBean();
-		ServiceActivatorEndpoint serviceActivator = new ServiceActivatorEndpoint(testBean);
+		ServiceActivatingConsumer serviceActivator = new ServiceActivatingConsumer(testBean);
 		QueueChannel outputChannel = new QueueChannel();
 		serviceActivator.setOutputChannel(outputChannel);
 		serviceActivator.onMessage(new StringMessage("foo"));
@@ -61,7 +61,7 @@ public class ServiceActivatorMethodResolutionTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void multiplePublicMethodFails() {
 		MultiplePublicMethodTestBean testBean = new MultiplePublicMethodTestBean();
-		new ServiceActivatorEndpoint(testBean);
+		new ServiceActivatingConsumer(testBean);
 	}
 
 

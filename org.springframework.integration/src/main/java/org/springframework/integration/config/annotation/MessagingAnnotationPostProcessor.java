@@ -100,10 +100,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 				Annotation[] annotations = AnnotationUtils.getAnnotations(method);
 				for (Annotation annotation : annotations) {
 					MethodAnnotationPostProcessor postProcessor = postProcessors.get(annotation.annotationType());
-					if (postProcessor != null) {
-						if (!shouldCreateEndpoint(annotation)) {
-							continue;
-						}
+					if (postProcessor != null && shouldCreateEndpoint(annotation)) {
 						Object result = postProcessor.postProcess(bean, beanName, method, annotation);
 						if (result != null && result instanceof MessageEndpoint) {
 							String endpointBeanName = generateBeanName(beanName, method, annotation.annotationType());

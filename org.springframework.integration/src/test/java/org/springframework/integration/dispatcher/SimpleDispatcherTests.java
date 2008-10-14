@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
 import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
-import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
+import org.springframework.integration.endpoint.ServiceActivatingConsumer;
 import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.MessageDeliveryException;
@@ -45,7 +45,7 @@ public class SimpleDispatcherTests {
 	public void singleMessage() throws InterruptedException {
 		SimpleDispatcher dispatcher = new SimpleDispatcher();
 		final CountDownLatch latch = new CountDownLatch(1);
-		dispatcher.addConsumer(createEndpoint(TestHandlers.countDownHandler(latch)));
+		dispatcher.addConsumer(createConsumer(TestHandlers.countDownHandler(latch)));
 		dispatcher.dispatch(new StringMessage("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
@@ -57,8 +57,8 @@ public class SimpleDispatcherTests {
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicInteger counter1 = new AtomicInteger();
 		final AtomicInteger counter2 = new AtomicInteger();
-		dispatcher.addConsumer(createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch)));
-		dispatcher.addConsumer(createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch)));
+		dispatcher.addConsumer(createConsumer(TestHandlers.countingCountDownHandler(counter1, latch)));
+		dispatcher.addConsumer(createConsumer(TestHandlers.countingCountDownHandler(counter2, latch)));
 		dispatcher.dispatch(new StringMessage("test"));
 		latch.await(500, TimeUnit.MILLISECONDS);
 		assertEquals(0, latch.getCount());
@@ -161,21 +161,21 @@ public class SimpleDispatcherTests {
 		final AtomicInteger counter2 = new AtomicInteger();
 		final AtomicInteger counter3 = new AtomicInteger();
 		final AtomicInteger selectorCounter = new AtomicInteger();
-		AbstractReplyProducingMessageConsumer endpoint1 = createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch));
-		AbstractReplyProducingMessageConsumer endpoint2 = createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch));
-		AbstractReplyProducingMessageConsumer endpoint3 = createEndpoint(TestHandlers.countingCountDownHandler(counter3, latch));
-		endpoint1.setSelector(new TestMessageSelector(selectorCounter, false));
-		endpoint2.setSelector(new TestMessageSelector(selectorCounter, false));
-		endpoint3.setSelector(new TestMessageSelector(selectorCounter, true));
-		dispatcher.addConsumer(endpoint1);
-		dispatcher.addConsumer(endpoint2);
-		dispatcher.addConsumer(endpoint3);
+		AbstractReplyProducingMessageConsumer consumer1 = createConsumer(TestHandlers.countingCountDownHandler(counter1, latch));
+		AbstractReplyProducingMessageConsumer consumer2 = createConsumer(TestHandlers.countingCountDownHandler(counter2, latch));
+		AbstractReplyProducingMessageConsumer consumer3 = createConsumer(TestHandlers.countingCountDownHandler(counter3, latch));
+		consumer1.setSelector(new TestMessageSelector(selectorCounter, false));
+		consumer2.setSelector(new TestMessageSelector(selectorCounter, false));
+		consumer3.setSelector(new TestMessageSelector(selectorCounter, true));
+		dispatcher.addConsumer(consumer1);
+		dispatcher.addConsumer(consumer2);
+		dispatcher.addConsumer(consumer3);
 		dispatcher.dispatch(new StringMessage("test"));
 		assertEquals(0, latch.getCount());
 		assertEquals("selectors should have been invoked one time each", 3, selectorCounter.get());
-		assertEquals("handler with rejecting selector should not have received the message", 0, counter1.get());
-		assertEquals("handler with rejecting selector should not have received the message", 0, counter2.get());
-		assertEquals("handler with accepting selector should have received the message", 1, counter3.get());	
+		assertEquals("consumer with rejecting selector should not have received the message", 0, counter1.get());
+		assertEquals("consumer with rejecting selector should not have received the message", 0, counter2.get());
+		assertEquals("consumer with accepting selector should have received the message", 1, counter3.get());	
 	}
 
 	@Test
@@ -186,15 +186,15 @@ public class SimpleDispatcherTests {
 		final AtomicInteger counter2 = new AtomicInteger();
 		final AtomicInteger counter3 = new AtomicInteger();
 		final AtomicInteger selectorCounter = new AtomicInteger();
-		AbstractReplyProducingMessageConsumer endpoint1 = createEndpoint(TestHandlers.countingCountDownHandler(counter1, latch));
-		AbstractReplyProducingMessageConsumer endpoint2 = createEndpoint(TestHandlers.countingCountDownHandler(counter2, latch));
-		AbstractReplyProducingMessageConsumer endpoint3 = createEndpoint(TestHandlers.countingCountDownHandler(counter3, latch));
-		endpoint1.setSelector(new TestMessageSelector(selectorCounter, false));
-		endpoint2.setSelector(new TestMessageSelector(selectorCounter, false));
-		endpoint3.setSelector(new TestMessageSelector(selectorCounter, false));
-		dispatcher.addConsumer(endpoint1);
-		dispatcher.addConsumer(endpoint2);
-		dispatcher.addConsumer(endpoint3);
+		AbstractReplyProducingMessageConsumer consumer1 = createConsumer(TestHandlers.countingCountDownHandler(counter1, latch));
+		AbstractReplyProducingMessageConsumer consumer2 = createConsumer(TestHandlers.countingCountDownHandler(counter2, latch));
+		AbstractReplyProducingMessageConsumer consumer3 = createConsumer(TestHandlers.countingCountDownHandler(counter3, latch));
+		consumer1.setSelector(new TestMessageSelector(selectorCounter, false));
+		consumer2.setSelector(new TestMessageSelector(selectorCounter, false));
+		consumer3.setSelector(new TestMessageSelector(selectorCounter, false));
+		dispatcher.addConsumer(consumer1);
+		dispatcher.addConsumer(consumer2);
+		dispatcher.addConsumer(consumer3);
 		boolean exceptionThrown = false;
 		try {
 			dispatcher.dispatch(new StringMessage("test"));
@@ -204,9 +204,9 @@ public class SimpleDispatcherTests {
 		}
 		assertTrue(exceptionThrown);
 		assertEquals("selectors should have been invoked one time each", 3, selectorCounter.get());
-		assertEquals("handler with rejecting selector should not have received the message", 0, counter1.get());
-		assertEquals("handler with rejecting selector should not have received the message", 0, counter2.get());
-		assertEquals("handler with rejecting selector should not have received the message", 0, counter3.get());
+		assertEquals("consumer with rejecting selector should not have received the message", 0, counter1.get());
+		assertEquals("consumer with rejecting selector should not have received the message", 0, counter2.get());
+		assertEquals("consumer with rejecting selector should not have received the message", 0, counter3.get());
 	}
 
 	@Test
@@ -257,8 +257,8 @@ public class SimpleDispatcherTests {
 	}
 
 
-	private static ServiceActivatorEndpoint createEndpoint(Object handler) {
-		return new ServiceActivatorEndpoint(handler);
+	private static ServiceActivatingConsumer createConsumer(Object object) {
+		return new ServiceActivatingConsumer(object);
 	}
 
 
