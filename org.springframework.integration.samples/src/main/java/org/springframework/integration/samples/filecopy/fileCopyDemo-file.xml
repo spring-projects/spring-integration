@@ -16,7 +16,9 @@
 
 	<file:inbound-channel-adapter id="filesIn"
 	                              directory="file:${java.io.tmpdir}/spring-integration-samples/input">
-		<integration:poller interval="5000"/>
+		<integration:poller>
+			<integration:interval-trigger interval="5000"/>
+		</integration:poller>
 	</file:inbound-channel-adapter>
 
 	<integration:service-activator input-channel="filesIn"

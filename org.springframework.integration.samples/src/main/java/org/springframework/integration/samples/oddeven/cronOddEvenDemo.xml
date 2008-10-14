@@ -13,7 +13,9 @@
 	<channel id="odd"/>
 
 	<inbound-channel-adapter id="numbers" ref="counter" method="next">
-		<poller cron="1,2,3,5,8,13,21,34,55 * * * * ?" max-messages-per-poll="1"/>
+		<poller max-messages-per-poll="1">
+			<cron-trigger expression="1,2,3,5,8,13,21,34,55 * * * * ?"/>
+		</poller>
 	</inbound-channel-adapter>
 
 	<router ref="parityResolver" method="getParity" input-channel="numbers"/>

@@ -30,6 +30,7 @@ import org.springframework.integration.scheduling.Trigger;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.util.xml.DomUtils;
 
 /**
  * Shared utility methods for integration namespace parsers.
@@ -141,24 +142,36 @@ public abstract class IntegrationNamespaceUtils {
 	 */
 	public static void configureTrigger(Element pollerElement, BeanDefinitionBuilder targetBuilder) {
 		Trigger trigger = null;
-		String interval = pollerElement.getAttribute("interval");
-		String cron = pollerElement.getAttribute("cron");
-		Assert.isTrue(StringUtils.hasText(interval) ^ StringUtils.hasText(cron),
-				"A <poller> element must include either an 'interval' or a 'cron' expression (but not both).");
-		if (StringUtils.hasText(interval)) {
-			Long period = Long.valueOf(interval);
-			IntervalTrigger intervalTrigger = new IntervalTrigger(period);
-			String initialDelay = pollerElement.getAttribute("initial-delay");
-			if (StringUtils.hasText(initialDelay)) {
-				intervalTrigger.setInitialDelay(Long.valueOf(initialDelay));
-			}
-			intervalTrigger.setFixedRate("true".equals(pollerElement.getAttribute("fixed-rate").toLowerCase()));
-			trigger = intervalTrigger;
+		Element intervalElement = DomUtils.getChildElementByTagName(pollerElement, "interval-trigger");
+		if (intervalElement != null) {
+			trigger = createIntervalTrigger(intervalElement);
 		}
-		if (StringUtils.hasText(pollerElement.getAttribute("cron"))) {
-		   trigger = new CronTrigger(pollerElement.getAttribute("cron"));
+		else {
+			Element cronElement = DomUtils.getChildElementByTagName(pollerElement, "cron-trigger");
+			Assert.notNull(cronElement,
+					"A <poller> element must include either an <interval-trigger/> or <cron-trigger/> child element.");
+			trigger = createCronTrigger(cronElement);
 		}
 		targetBuilder.addPropertyValue("trigger", trigger);
+	}
+
+	private static Trigger createIntervalTrigger(Element element) {
+		String interval = element.getAttribute("interval");
+		Assert.hasText(interval, "the 'interval' attribute is required for an <interval-trigger/>");
+		Long period = Long.valueOf(interval);
+		IntervalTrigger trigger = new IntervalTrigger(period);
+		String initialDelay = element.getAttribute("initial-delay");
+		if (StringUtils.hasText(initialDelay)) {
+			trigger.setInitialDelay(Long.valueOf(initialDelay));
+		}
+		trigger.setFixedRate("true".equals(element.getAttribute("fixed-rate").toLowerCase()));
+		return trigger;
+	}
+
+	private static Trigger createCronTrigger(Element element) {
+		String cronExpression = element.getAttribute("expression");
+		Assert.hasText(cronExpression, "the 'expression' attribute is required for a <cron-trigger/>");
+		return new CronTrigger(cronExpression);
 	}
 
 	/**

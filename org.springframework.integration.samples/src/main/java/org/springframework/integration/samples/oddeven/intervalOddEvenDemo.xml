@@ -13,7 +13,9 @@
 	<channel id="odd"/>
 
 	<inbound-channel-adapter id="numbers" ref="counter" method="next">
-		<poller interval="3000" max-messages-per-poll="1"/>
+		<poller max-messages-per-poll="1">
+			<interval-trigger interval="3000"/>
+		</poller>
 	</inbound-channel-adapter>
 
 	<router ref="parityResolver" method="getParity" input-channel="numbers"/>

@@ -25,7 +25,8 @@
 	                   ref="testBean"
 	                   method="bad"
                        output-channel="output">
-        <poller interval="10000" max-messages-per-poll="1">
+        <poller max-messages-per-poll="1">
+        	<interval-trigger interval="10000"/>
         	<transactional transaction-manager="txManager"/>
         </poller>
     </service-activator>
@@ -34,7 +35,8 @@
 	                   ref="testBean"
 	                   method="good"
                        output-channel="output">
-        <poller interval="10000" max-messages-per-poll="1">
+        <poller max-messages-per-poll="1">
+        	<interval-trigger interval="10000"/>
         	<transactional transaction-manager="txManager"/>
         </poller>
 	</service-activator>

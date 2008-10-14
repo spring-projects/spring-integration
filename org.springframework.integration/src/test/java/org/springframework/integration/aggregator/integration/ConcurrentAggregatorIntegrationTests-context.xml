@@ -5,22 +5,29 @@
 			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
+
 	<message-bus enable-annotations="true"/>
 	
 	<channel id="input">
 		<queue capacity="5"/>
 	</channel>
-	<aggregator ref="summer" method="sum" input-channel="input"
-		output-channel="output">
-	<poller task-executor="executor" interval="20" max-messages-per-poll="5"/>
+
+	<aggregator ref="summer" method="sum" input-channel="input" output-channel="output">
+		<poller task-executor="executor" max-messages-per-poll="5">
+			<interval-trigger interval="20"/>
+		</poller>
 	</aggregator>
+
 	<beans:bean id="executor"
 		class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
 		<beans:property name="corePoolSize" value="5" />
 	</beans:bean>
+
 	<channel id="output">
 		<queue capacity="5" />
 	</channel>
+
 	<beans:bean id="summer"
 		class="org.springframework.integration.aggregator.integration.ConcurrentAggregatorIntegrationTests$SummingAggregator" />
+
 </beans:beans>

@@ -231,16 +231,41 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:sequence>
+				<xsd:choice minOccurs="1" maxOccurs="1">
+					<xsd:element ref="interval-trigger"/>
+					<xsd:element ref="cron-trigger"/>
+				</xsd:choice>
 				<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1"/>
 			</xsd:sequence>
-			<xsd:attribute name="interval" type="xsd:long"/>
-			<xsd:attribute name="cron" type="xsd:string"/>
-			<xsd:attribute name="initial-delay" type="xsd:long"/>
-			<xsd:attribute name="fixed-rate" type="xsd:boolean"/>
 			<xsd:attribute name="receive-timeout" type="xsd:long"/>
 			<xsd:attribute name="send-timeout" type="xsd:long"/>
 			<xsd:attribute name="max-messages-per-poll" type="xsd:long"/>
 			<xsd:attribute name="task-executor" type="xsd:string"/>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="interval-trigger">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines an interval-based trigger.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="interval" type="xsd:string"/>
+			<xsd:attribute name="initial-delay" type="xsd:string"/>
+			<xsd:attribute name="fixed-rate" type="xsd:boolean"/>
+			<!-- TODO: add time-unit -->
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="cron-trigger">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+	Defines an cron-based trigger.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:attribute name="expression" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
 
