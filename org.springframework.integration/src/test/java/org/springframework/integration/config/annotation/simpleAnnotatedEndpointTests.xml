@@ -15,6 +15,6 @@
 		<integration:queue capacity="5"/>
 	</integration:channel>
 
-	<bean id="endpoint" class="org.springframework.integration.config.annotation.SimpleAnnotatedEndpoint"/>
+	<bean id="endpoint" class="org.springframework.integration.config.annotation.AnnotatedTestService"/>
 
 </beans>

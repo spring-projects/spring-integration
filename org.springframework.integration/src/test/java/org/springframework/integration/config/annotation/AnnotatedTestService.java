@@ -18,16 +18,17 @@ package org.springframework.integration.config.annotation;
 
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.endpoint.annotation.TestService;
 
 /**
  * @author Mark Fisher
  */
 @MessageEndpoint
-public class SimpleServiceActivatorTestBean {
+public class AnnotatedTestService implements TestService {
 
-	@ServiceActivator
-	public String sayHello(String input) {
-		return "hello " + input;
+	@ServiceActivator(inputChannel="inputChannel", outputChannel="outputChannel")
+	public String sayHello(String name) {
+		return "hello " + name;
 	}
 
 }

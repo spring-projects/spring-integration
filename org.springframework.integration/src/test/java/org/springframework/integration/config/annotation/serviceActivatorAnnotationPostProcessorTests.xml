@@ -17,6 +17,6 @@
 
 	<service-activator input-channel="inputChannel" ref="testBean" output-channel="outputChannel"/>
 
-	<beans:bean id="testBean" class="org.springframework.integration.config.annotation.SimpleServiceActivatorTestBean"/>
+	<beans:bean id="testBean" class="org.springframework.integration.config.annotation.ServiceActivatorTestBean"/>
 
 </beans:beans>

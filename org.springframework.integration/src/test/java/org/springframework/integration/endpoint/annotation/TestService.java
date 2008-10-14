@@ -19,7 +19,7 @@ package org.springframework.integration.endpoint.annotation;
 /**
  * @author Mark Fisher
  */
-public interface ITestEndpoint {
+public interface TestService {
 
 	String sayHello(String name);
 
