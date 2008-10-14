@@ -22,6 +22,7 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.springframework.aop.support.AopUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -51,6 +52,29 @@ public class AnnotationMethodResolver implements MethodResolver {
 
 
 	/**
+	 * Find a <em>single</em> Method on the Class of the given candidate object
+	 * that contains the annotation type for which this resolver is searching.
+	 * 
+	 * @param candidate the instance whose Class will be checked for the
+	 * annotation
+	 * @param annotationType the Method-level annotation type
+	 * 
+	 * @return a single matching Method instance or <code>null</code> if the
+	 * candidate's Class contains no Methods with the specified annotation
+	 * 
+	 * @throws IllegalArgumentException if more than one Method has the
+	 * specified annotation
+	 */
+	public Method findMethod(Object candidate) {
+		Assert.notNull(candidate, "candidate object must not be null");
+		Class<?> targetClass = AopUtils.getTargetClass(candidate);
+		if (targetClass == null) {
+			targetClass = candidate.getClass();
+		}
+		return this.findMethod(targetClass);
+	}
+
+	/**
 	 * Find a <em>single</em> Method on the given Class that contains the
 	 * annotation type for which this resolver is searching.
 	 * 
@@ -64,6 +88,7 @@ public class AnnotationMethodResolver implements MethodResolver {
 	 * specified annotation
 	 */
 	public Method findMethod(final Class<?> clazz) {
+		Assert.notNull(clazz, "class must not be null");
 		final AtomicReference<Method> annotatedMethod = new AtomicReference<Method>();
 		ReflectionUtils.doWithMethods(clazz, new ReflectionUtils.MethodCallback() {
 			public void doWith(Method method) throws IllegalArgumentException, IllegalAccessException {

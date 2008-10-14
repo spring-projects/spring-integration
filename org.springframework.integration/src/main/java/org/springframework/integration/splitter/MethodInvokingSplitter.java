@@ -52,7 +52,7 @@ public class MethodInvokingSplitter extends AbstractMessageSplitter implements I
 
 	public MethodInvokingSplitter(Object object) {
 		Assert.notNull(object, "object must not be null");
-		Method method = this.methodResolver.findMethod(object.getClass()); 
+		Method method = this.methodResolver.findMethod(object); 
 		Assert.notNull(method, "unable to resolve Splitter method on target class ["
 				+ object.getClass() + "]");
 		this.invoker = new MessageMappingMethodInvoker(object, method);

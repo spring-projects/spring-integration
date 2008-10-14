@@ -52,7 +52,7 @@ public class MethodInvokingAggregator extends AbstractMessageAggregator {
 
 	public MethodInvokingAggregator(Object object) {
 		Assert.notNull(object, "object must not be null");
-		Method method = this.methodResolver.findMethod(object.getClass()); 
+		Method method = this.methodResolver.findMethod(object); 
 		Assert.notNull(method, "unable to resolve Aggregator method on target class ["
 				+ object.getClass() + "]");
 		this.methodInvoker = new MessageListMethodAdapter(object, method);

@@ -19,6 +19,7 @@ package org.springframework.integration.util;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
+import org.springframework.aop.support.AopUtils;
 import org.springframework.util.Assert;
 
 /**
@@ -43,8 +44,16 @@ public class DefaultMethodResolver implements MethodResolver {
 	}
 
 
+	public Method findMethod(Object candidate) {
+		Assert.notNull(candidate, "candidate object must not be null");
+		Class<?> targetClass = AopUtils.getTargetClass(candidate);
+		if (targetClass == null) {
+			targetClass = candidate.getClass();
+		}
+		return this.findMethod(targetClass);
+	}
+
 	public Method findMethod(Class<?> clazz) {
-		Assert.notNull(clazz, "Class must not be null");
 		if (this.annotationMethodResolver != null) {
 			Method method = this.annotationMethodResolver.findMethod(clazz);
 			if (method != null) {

@@ -26,10 +26,25 @@ import java.lang.reflect.Method;
 public interface MethodResolver {
 
 	/**
-	 * Find a single Method on the provided Class that matches this resolver's
+	 * Find a single Method on the provided Object that matches this resolver's
 	 * criteria.
 	 * 
-	 * @param clazz the Class on which to search for a Method
+	 * @param candidate the candidate Object whose Class should be searched for
+	 * a Method
+	 * 
+	 * @return a single Method or <code>null</code> if no Method matching this
+	 * resolver's criteria can be found.
+	 * 
+	 * @throws IllegalArgumentException if more than one Method defined on the
+	 * given candidate's Class matches this resolver's criteria
+	 */
+	Method findMethod(Object candidate) throws IllegalArgumentException;
+
+	/**
+	 * Find a <em>single</em> Method on the given Class that matches this
+	 * resolver's criteria.
+	 * 
+	 * @param clazz the Class instance on which to search for a Method
 	 * 
 	 * @return a single Method or <code>null</code> if no Method matching this
 	 * resolver's criteria can be found.
@@ -37,6 +52,6 @@ public interface MethodResolver {
 	 * @throws IllegalArgumentException if more than one Method defined on the
 	 * given Class matches this resolver's criteria
 	 */
-	Method findMethod(Class<?> clazz) throws IllegalArgumentException;
+	Method findMethod(Class<?> clazz);
 
 }

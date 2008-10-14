@@ -16,6 +16,7 @@
 
 package org.springframework.integration.util;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
@@ -26,6 +27,14 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 
 import org.junit.Test;
+
+import org.springframework.aop.framework.ProxyFactory;
+import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
+import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
+import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -63,6 +72,38 @@ public class DefaultMethodResolverTests {
 		DefaultMethodResolver resolver = new DefaultMethodResolver(TestAnnotation.class);
 		Method method = resolver.findMethod(NoPublicMethodTestBean.class);
 		assertNull(method);
+	}
+
+	@Test
+	public void jdkProxy() {
+		DirectChannel input = new DirectChannel();
+		QueueChannel output = new QueueChannel();
+		GreetingService testBean = new GreetingBean();
+		ProxyFactory proxyFactory = new ProxyFactory(testBean);
+		proxyFactory.setProxyTargetClass(false);
+		testBean = (GreetingService) proxyFactory.getProxy();
+		ServiceActivatorEndpoint consumer = new ServiceActivatorEndpoint(testBean);
+		consumer.setOutputChannel(output);
+		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(consumer, input);
+		endpoint.start();
+		input.send(new StringMessage("proxy"));
+		assertEquals("hello proxy", output.receive(0).getPayload());;
+	}
+
+	@Test
+	public void cglibProxy() {
+		DirectChannel input = new DirectChannel();
+		QueueChannel output = new QueueChannel();
+		GreetingService testBean = new GreetingBean();
+		ProxyFactory proxyFactory = new ProxyFactory(testBean);
+		proxyFactory.setProxyTargetClass(true);
+		testBean = (GreetingService) proxyFactory.getProxy();
+		ServiceActivatorEndpoint consumer = new ServiceActivatorEndpoint(testBean);
+		consumer.setOutputChannel(output);
+		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(consumer, input);
+		endpoint.start();
+		input.send(new StringMessage("proxy"));
+		assertEquals("hello proxy", output.receive(0).getPayload());;
 	}
 
 
@@ -128,6 +169,29 @@ public class DefaultMethodResolverTests {
 		String lowerCase(String s) {
 			return s.toLowerCase();
 		}
+	}
+
+
+	public interface GreetingService {
+
+		String sayHello(String s);
+
+	}
+
+
+	public static class GreetingBean implements GreetingService {
+
+		private String greeting = "hello";
+
+		public void setGreeting(String greeting) {
+			this.greeting = greeting;
+		}
+
+		@ServiceActivator
+		public String sayHello(String name) {
+			return greeting + " " + name;
+		}
+
 	}
 
 }
