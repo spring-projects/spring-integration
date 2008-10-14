@@ -30,7 +30,6 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.bus.DefaultMessageBus;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.PollingConsumerEndpoint;
-import org.springframework.integration.endpoint.ServiceActivatorEndpoint;
 import org.springframework.integration.util.TestUtils;
 
 /**
@@ -76,16 +75,14 @@ public class MethodInvokingConsumerTests {
 		GenericApplicationContext context = new GenericApplicationContext();
 		SynchronousQueue<String> queue = new SynchronousQueue<String>();
 		TestBean testBean = new TestBean(queue);
-		MethodInvokingConsumer consumer = new MethodInvokingConsumer(testBean, "foo");
-		consumer.afterPropertiesSet();
 		QueueChannel channel = new QueueChannel();
 		channel.setBeanName("channel");
 		context.getBeanFactory().registerSingleton("channel", channel);
 		Message<String> message = new GenericMessage<String>("testing");
 		channel.send(message);
 		assertNull(queue.poll());
-		ServiceActivatorEndpoint serivceActivator = new ServiceActivatorEndpoint(consumer);
-		PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(serivceActivator, channel);
+		MethodInvokingConsumer consumer = new MethodInvokingConsumer(testBean, "foo");
+		PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(consumer, channel);
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
 		DefaultMessageBus bus = new DefaultMessageBus();
 		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
