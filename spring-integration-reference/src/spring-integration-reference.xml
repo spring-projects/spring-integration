@@ -5,7 +5,7 @@
     <title>Spring Integration Reference Manual</title>
 
     <productname>Spring Integration</productname>
-    <releaseinfo>1.0.0.M6 (Milestone 6)</releaseinfo>
+    <releaseinfo>1.0.0.RC1 (Release Candidate 1)</releaseinfo>
 
     <mediaobject>
       <imageobject role="fo">
@@ -24,6 +24,10 @@
       <author>
         <firstname>Marius</firstname>
         <surname>Bogoevici</surname>
+      </author>
+      <author>
+        <firstname>Iwein</firstname>
+        <surname>Fuld</surname>
       </author>
     </authorgroup>
 
