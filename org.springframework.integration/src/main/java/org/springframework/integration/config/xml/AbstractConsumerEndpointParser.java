@@ -46,8 +46,6 @@ public abstract class AbstractConsumerEndpointParser extends AbstractSingleBeanD
 
 	private static final String SELECTOR_ATTRIBUTE = "selector";
 
-	private static final String ERROR_HANDLER_ATTRIBUTE = "error-handler";
-
 
 	@Override
 	protected final Class<?> getBeanClass(Element element) {
@@ -92,7 +90,6 @@ public abstract class AbstractConsumerEndpointParser extends AbstractSingleBeanD
 		BeanDefinitionBuilder consumerBuilder = this.parseConsumer(element, parserContext);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(consumerBuilder, element, OUTPUT_CHANNEL_ATTRIBUTE);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(consumerBuilder, element, SELECTOR_ATTRIBUTE);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(consumerBuilder, element, ERROR_HANDLER_ATTRIBUTE);
 		String consumerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
 				consumerBuilder.getBeanDefinition(), parserContext.getRegistry());
 		builder.addConstructorArgReference(consumerBeanName);

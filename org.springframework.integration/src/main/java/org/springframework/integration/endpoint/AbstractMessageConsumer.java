@@ -23,14 +23,13 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.util.ErrorHandler;
 import org.springframework.util.Assert;
 
 /**
  * Base class for MessageConsumer implementations that provides basic
  * validation and error handling capabilities. Asserts that the incoming
- * Message is not null and that it does not contain a null payload. For custom
- * error handling, provide a reference to an {@link ErrorHandler}.  
+ * Message is not null and that it does not contain a null payload. Converts
+ * checked exceptions into runtime {@link MessagingException}s. 
  * 
  * @author Mark Fisher
  */
@@ -38,49 +37,25 @@ public abstract class AbstractMessageConsumer implements MessageConsumer {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	private volatile ErrorHandler errorHandler;
-
-
-	/**
-	 * Provide an error handler for any Exceptions that occur
-	 * upon invocation of this consumer. If none is provided,
-	 * the Exception messages will be logged (at warn level),
-	 * and the Exception rethrown.
-	 */
-	public void setErrorHandler(ErrorHandler errorHandler) {
-		this.errorHandler = errorHandler;
-	}
 
 	public final void onMessage(Message<?> message) {
 		Assert.notNull(message == null, "Message must not be null");
 		Assert.notNull(message.getPayload(), "Message payload must not be null");
 		if (this.logger.isDebugEnabled()) {
-			this.logger.debug("consumer '" + this + "' processing message: " + message);
+			this.logger.debug("consumer '" + this + "' received message: " + message);
 		}
 		try {
 			this.onMessageInternal(message);
 		}
 		catch (Exception e) {
 			if (e instanceof MessagingException) {
-				this.handleException((MessagingException) e);
+				throw (MessagingException) e;
 			}
-			else {
-				this.handleException(new MessageHandlingException(message,
-						"failure occurred in consumer '" + this.toString() + "'", e));
-			}
+			throw new MessageHandlingException(message,
+					"error occurred in consumer [" + this + "]", e);
 		}
 	}
 
-	protected void handleException(MessagingException exception) {
-		if (this.errorHandler == null) {
-			if (this.logger.isWarnEnabled()) {
-				this.logger.warn("exception occurred in consumer '" + this + "'", exception);
-			}
-			throw exception;
-		}
-		this.errorHandler.handle(exception);
-	}
-
-	protected abstract void onMessageInternal(Message<?> message);
+	protected abstract void onMessageInternal(Message<?> message) throws Exception;
 
 }

@@ -19,12 +19,12 @@ package org.springframework.integration.endpoint;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.channel.ChannelResolutionException;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
-import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageProducer;
@@ -153,13 +153,14 @@ public abstract class AbstractReplyProducingMessageConsumer extends AbstractMess
 					replyChannel = this.channelResolver.resolveChannelName((String) replyChannelHeader);
 				}
 				else {
-					throw new MessagingException("expected a MessageChannel or String for 'replyChannel', but type is ["
+					throw new ChannelResolutionException("expected a MessageChannel or String for 'replyChannel', but type is ["
 							+ replyChannelHeader.getClass() + "]");
 				}
 			}
 		}
 		if (replyChannel == null) {
-			throw new MessagingException("unable to resolve reply channel");
+			throw new ChannelResolutionException(
+					"unable to resolve reply channel for message: " + requestMessage);
 		}
 		return replyChannel;
 	}

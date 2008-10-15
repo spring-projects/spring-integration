@@ -21,18 +21,11 @@
 	<si:channel id="replyChannel">
 		<si:queue capacity="5"/>
 	</si:channel>
-	<si:channel id="errorChannel">
-		<si:queue capacity="5"/>
-	</si:channel>
 
 	<si:service-activator input-channel="channel1" ref="testBean" method="duplicate" output-channel="channel2"/>
 	<si:service-activator input-channel="channel2" ref="testBean" method="duplicate" output-channel="channel3"/>
-	<si:service-activator input-channel="channel3" ref="testBean" method="duplicate" error-handler="errorHandler"/>
+	<si:service-activator input-channel="channel3" ref="testBean" method="duplicate"/>
 	<si:service-activator input-channel="channel4" ref="testBean" method="duplicate" output-channel="replyChannel"/>
-
-	<bean id="errorHandler" class="org.springframework.integration.channel.MessagePublishingErrorHandler">
-		<property name="errorChannel" ref="errorChannel"/>
-	</bean>
 
 	<bean id="testBean" class="org.springframework.integration.endpoint.TestBean"/>
 

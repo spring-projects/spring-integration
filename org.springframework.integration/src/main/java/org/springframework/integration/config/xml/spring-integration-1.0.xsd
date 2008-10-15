@@ -218,7 +218,6 @@
 				<xsd:attribute name="ref" type="xsd:string"/>
 				<xsd:attribute name="method" type="xsd:string"/>
 				<xsd:attribute name="selector" type="xsd:string"/>
-				<xsd:attribute name="error-handler" type="xsd:string"/>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>

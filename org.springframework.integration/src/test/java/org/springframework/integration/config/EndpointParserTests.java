@@ -31,7 +31,6 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageRejectedException;
-import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
@@ -74,18 +73,6 @@ public class EndpointParserTests {
 		Message<?> message = MessageBuilder.withPayload(123)
 				.setReplyChannel(replyChannel).build();
 		inputChannel.send(message);
-	}
-
-	@Test
-	public void testEndpointWithErrorHandler() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"endpointWithErrorHandler.xml", this.getClass());		
-		MessageChannel channel = (MessageChannel) context.getBean("channel");
-		TestErrorHandler errorHandler = (TestErrorHandler) context.getBean("errorHandler");
-		assertNull(errorHandler.getLastError());
-		channel.send(new StringMessage("test"));
-		assertNotNull(errorHandler.getLastError());
-		assertEquals("intentional test failure", errorHandler.getLastError().getMessage());
 	}
 
 }

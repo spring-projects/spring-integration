@@ -23,6 +23,7 @@ import static org.junit.Assert.assertNull;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.channel.ChannelResolutionException;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -98,17 +99,14 @@ public class ReturnAddressTests {
 		assertNull(channel2.receive(0));
 	}
 
-	@Test
+	@Test(expected = ChannelResolutionException.class)
 	public void returnAddressFallbackButNotAvailable() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"returnAddressTests.xml", this.getClass());
 		MessageChannel channel3 = (MessageChannel) context.getBean("channel3");
-		PollableChannel errorChannel = (PollableChannel) context.getBean("errorChannel");
 		context.start();
 		StringMessage message = new StringMessage("*");
 		channel3.send(message);
-		Message<?> errorMessage = errorChannel.receive(3000);
-		assertNotNull(errorMessage.getPayload());
 	}
 
 	@Test
