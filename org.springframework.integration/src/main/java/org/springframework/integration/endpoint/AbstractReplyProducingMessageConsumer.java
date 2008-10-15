@@ -142,19 +142,19 @@ public abstract class AbstractReplyProducingMessageConsumer extends AbstractMess
 	private MessageChannel resolveReplyChannel(Message<?> requestMessage) {
 		MessageChannel replyChannel = this.getOutputChannel();
 		if (replyChannel == null) {
-			Object returnAddress = requestMessage.getHeaders().getReturnAddress();
-			if (returnAddress != null) {
-				if (returnAddress instanceof MessageChannel) {
-					replyChannel = (MessageChannel) returnAddress;
+			Object replyChannelHeader= requestMessage.getHeaders().getReplyChannel();
+			if (replyChannelHeader != null) {
+				if (replyChannelHeader instanceof MessageChannel) {
+					replyChannel = (MessageChannel) replyChannelHeader;
 				}
-				else if (returnAddress instanceof String) {
+				else if (replyChannelHeader instanceof String) {
 					Assert.state(this.channelResolver != null,
 							"ChannelResolver is required for resolving a reply channel by name");
-					replyChannel = this.channelResolver.resolveChannelName((String) returnAddress);
+					replyChannel = this.channelResolver.resolveChannelName((String) replyChannelHeader);
 				}
 				else {
-					throw new MessagingException("expected a MessageChannel or String for 'returnAddress', but type is ["
-							+ returnAddress.getClass() + "]");
+					throw new MessagingException("expected a MessageChannel or String for 'replyChannel', but type is ["
+							+ replyChannelHeader.getClass() + "]");
 				}
 			}
 		}

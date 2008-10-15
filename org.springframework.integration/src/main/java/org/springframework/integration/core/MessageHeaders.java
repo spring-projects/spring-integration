@@ -40,7 +40,7 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	public static final String CORRELATION_ID = PREFIX + "correlationId";
 
-	public static final String RETURN_ADDRESS = PREFIX + "returnAddress";
+	public static final String REPLY_CHANNEL = PREFIX + "replyChannel";
 
 	public static final String EXPIRATION_DATE = PREFIX + "expirationDate";
 
@@ -78,8 +78,8 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 		return this.get(CORRELATION_ID);
 	}
 
-	public Object getReturnAddress() {
-		return this.get(RETURN_ADDRESS);
+	public Object getReplyChannel() {
+		return this.get(REPLY_CHANNEL);
 	}
 
 	public Integer getSequenceNumber() {

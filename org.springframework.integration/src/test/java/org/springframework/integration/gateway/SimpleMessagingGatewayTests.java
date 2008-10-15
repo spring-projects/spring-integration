@@ -203,7 +203,7 @@ public class SimpleMessagingGatewayTests {
 		//set expectations
 		expect(replyChannel.getName()).andReturn("replyChannel").anyTimes();
 		expect(messageMock.getHeaders()).andReturn(messageHeadersMock);
-		expect(messageHeadersMock.getReturnAddress()).andReturn(replyChannel);
+		expect(messageHeadersMock.getReplyChannel()).andReturn(replyChannel);
 		expect(requestChannel.send(messageMock)).andReturn(true);
 		expect(messageHeadersMock.getId()).andReturn(1);
 

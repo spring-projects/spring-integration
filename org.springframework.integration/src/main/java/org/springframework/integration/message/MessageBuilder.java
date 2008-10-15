@@ -166,12 +166,12 @@ public final class MessageBuilder<T> {
 		return this.setHeader(MessageHeaders.CORRELATION_ID, correlationId);
 	}
 
-	public MessageBuilder<T> setReturnAddress(MessageChannel returnAddress) {
-		return this.setHeader(MessageHeaders.RETURN_ADDRESS, returnAddress);
+	public MessageBuilder<T> setReturnAddress(MessageChannel replyChannel) {
+		return this.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannel);
 	}
 
-	public MessageBuilder<T> setReturnAddress(String returnAddress) {
-		return this.setHeader(MessageHeaders.RETURN_ADDRESS, returnAddress);
+	public MessageBuilder<T> setReturnAddress(String replyChannelName) {
+		return this.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannelName);
 	}
 
 	public MessageBuilder<T> setSequenceNumber(Integer sequenceNumber) {

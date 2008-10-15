@@ -255,13 +255,13 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractMessageCons
 	}
 
 	protected MessageChannel resolveReplyChannelFromMessage(Message<?> message) {
-		Object returnAddress = message.getHeaders().getReturnAddress();
-		if (returnAddress != null) {
-			if (returnAddress instanceof MessageChannel) {
-				return (MessageChannel) returnAddress;
+		Object replyChannel = message.getHeaders().getReplyChannel();
+		if (replyChannel != null) {
+			if (replyChannel instanceof MessageChannel) {
+				return (MessageChannel) replyChannel;
 			}
 			if (logger.isWarnEnabled()) {
-				logger.warn("Aggregator can only reply to a 'returnAddress' of type MessageChannel.");
+				logger.warn("Aggregator can only reply to a 'replyChannel' of type MessageChannel.");
 			}
 		}
 		return null;

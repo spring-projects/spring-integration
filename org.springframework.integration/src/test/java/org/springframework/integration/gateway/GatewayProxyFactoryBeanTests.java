@@ -88,8 +88,8 @@ public class GatewayProxyFactoryBeanTests {
 		new Thread(new Runnable() {
 			public void run() {
 				Message<?> input = requestChannel.receive();
-				StringMessage response = new StringMessage(input.getPayload() + "456");
-				((MessageChannel) input.getHeaders().getReturnAddress()).send(response);
+				StringMessage reply = new StringMessage(input.getPayload() + "456");
+				((MessageChannel) input.getHeaders().getReplyChannel()).send(reply);
 			}
 		}).start();
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
@@ -175,8 +175,8 @@ public class GatewayProxyFactoryBeanTests {
 		new Thread(new Runnable() {
 			public void run() {
 				Message<?> input = requestChannel.receive();
-				StringMessage response = new StringMessage(input.getPayload() + "bar");
-				((MessageChannel) input.getHeaders().getReturnAddress()).send(response);
+				StringMessage reply = new StringMessage(input.getPayload() + "bar");
+				((MessageChannel) input.getHeaders().getReplyChannel()).send(reply);
 			}
 		}).start();
 		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
@@ -220,8 +220,8 @@ public class GatewayProxyFactoryBeanTests {
 		new Thread(new Runnable() {
 			public void run() {
 				Message<?> input = requestChannel.receive();
-				StringMessage response = new StringMessage(input.getPayload() + "bar");
-				((MessageChannel) input.getHeaders().getReturnAddress()).send(response);
+				StringMessage reply = new StringMessage(input.getPayload() + "bar");
+				((MessageChannel) input.getHeaders().getReplyChannel()).send(reply);
 			}
 		}).start();
 	}
