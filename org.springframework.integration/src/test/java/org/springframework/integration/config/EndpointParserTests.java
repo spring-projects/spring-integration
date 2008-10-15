@@ -58,7 +58,7 @@ public class EndpointParserTests {
 		MessageChannel inputChannel = (MessageChannel) context.getBean("testChannel");
 		QueueChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload("test")
-				.setReturnAddress(replyChannel).build();
+				.setReplyChannel(replyChannel).build();
 		inputChannel.send(message);
 		Message<?> reply = replyChannel.receive(500);
 		assertNotNull(reply);
@@ -72,7 +72,7 @@ public class EndpointParserTests {
 		MessageChannel inputChannel = (MessageChannel) context.getBean("testChannel");
 		MessageChannel replyChannel = new QueueChannel();
 		Message<?> message = MessageBuilder.withPayload(123)
-				.setReturnAddress(replyChannel).build();
+				.setReplyChannel(replyChannel).build();
 		inputChannel.send(message);
 	}
 

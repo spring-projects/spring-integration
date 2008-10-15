@@ -249,7 +249,7 @@ public class AggregatorEndpointTests {
 				.setCorrelationId(correlationId)
 				.setSequenceSize(sequenceSize)
 				.setSequenceNumber(sequenceNumber)
-				.setReturnAddress(replyChannel)
+				.setReplyChannel(replyChannel)
 				.build();
 		return message;
 	}

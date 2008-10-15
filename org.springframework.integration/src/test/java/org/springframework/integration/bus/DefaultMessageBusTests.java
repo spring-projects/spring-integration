@@ -64,7 +64,7 @@ public class DefaultMessageBusTests {
 		context.getBeanFactory().registerSingleton("sourceChannel", sourceChannel);
 		context.getBeanFactory().registerSingleton("targetChannel", targetChannel);
 		Message<String> message = MessageBuilder.withPayload("test")
-				.setReturnAddress("targetChannel").build();
+				.setReplyChannelName("targetChannel").build();
 		sourceChannel.send(message);
 		AbstractReplyProducingMessageConsumer consumer = new AbstractReplyProducingMessageConsumer() {
 			public void onMessage(Message<?> message, ReplyMessageHolder replyHolder) {

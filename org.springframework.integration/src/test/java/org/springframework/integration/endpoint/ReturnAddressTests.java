@@ -42,7 +42,7 @@ public class ReturnAddressTests {
 		PollableChannel channel5 = (PollableChannel) context.getBean("channel5");
 		context.start();
 		Message<String> message = MessageBuilder.withPayload("*")
-				.setReturnAddress(channel5).build();
+				.setReplyChannel(channel5).build();
 		channel3.send(message);
 		Message<?> response = channel5.receive(3000);
 		assertNotNull(response);
@@ -57,7 +57,7 @@ public class ReturnAddressTests {
 		PollableChannel channel5 = (PollableChannel) context.getBean("channel5");
 		context.start();
 		Message<String> message = MessageBuilder.withPayload("*")
-				.setReturnAddress("channel5").build();
+				.setReplyChannelName("channel5").build();
 		channel3.send(message);
 		Message<?> response = channel5.receive(3000);
 		assertNotNull(response);
@@ -72,7 +72,7 @@ public class ReturnAddressTests {
 		PollableChannel replyChannel = (PollableChannel) context.getBean("replyChannel");
 		context.start();
 		Message<String> message = MessageBuilder.withPayload("*")
-				.setReturnAddress(replyChannel).build();
+				.setReplyChannel(replyChannel).build();
 		channel1.send(message);
 		Message<?> response = replyChannel.receive(3000);
 		assertNotNull(response);
@@ -89,7 +89,7 @@ public class ReturnAddressTests {
 		PollableChannel replyChannel = (PollableChannel) context.getBean("replyChannel");
 		context.start();
 		Message<String> message = MessageBuilder.withPayload("*")
-				.setReturnAddress("replyChannel").build();
+				.setReplyChannelName("replyChannel").build();
 		channel1.send(message);
 		Message<?> response = replyChannel.receive(3000);
 		assertNotNull(response);
@@ -133,7 +133,7 @@ public class ReturnAddressTests {
 		PollableChannel replyChannel = (PollableChannel) context.getBean("replyChannel");
 		context.start();
 		Message<String> message = MessageBuilder.withPayload("*")
-				.setReturnAddress("channel5").build();
+				.setReplyChannelName("channel5").build();
 		channel4.send(message);
 		Message<?> response = replyChannel.receive(3000);
 		assertNotNull(response);

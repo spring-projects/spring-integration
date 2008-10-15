@@ -143,7 +143,7 @@ public class ResequencerTests {
 				.setCorrelationId(correlationId)
 				.setSequenceSize(sequenceSize)
 				.setSequenceNumber(sequenceNumber)
-				.setReturnAddress(replyChannel)
+				.setReplyChannel(replyChannel)
 				.build();
 		return message;
 	}

@@ -166,11 +166,11 @@ public final class MessageBuilder<T> {
 		return this.setHeader(MessageHeaders.CORRELATION_ID, correlationId);
 	}
 
-	public MessageBuilder<T> setReturnAddress(MessageChannel replyChannel) {
+	public MessageBuilder<T> setReplyChannel(MessageChannel replyChannel) {
 		return this.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannel);
 	}
 
-	public MessageBuilder<T> setReturnAddress(String replyChannelName) {
+	public MessageBuilder<T> setReplyChannelName(String replyChannelName) {
 		return this.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannelName);
 	}
 

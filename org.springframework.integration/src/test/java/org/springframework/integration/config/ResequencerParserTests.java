@@ -124,7 +124,7 @@ public class ResequencerParserTests {
 				.setCorrelationId(correlationId)
 				.setSequenceSize(sequenceSize)
 				.setSequenceNumber(sequenceNumber)
-				.setReturnAddress(outputChannel)
+				.setReplyChannel(outputChannel)
 				.build();
 	}
 

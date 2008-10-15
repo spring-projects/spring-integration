@@ -189,7 +189,8 @@ public class MessagingAnnotationPostProcessorTests {
 		messageBus.start();
 		ServiceActivatorAnnotatedBean bean = new ServiceActivatorAnnotatedBean();
 		postProcessor.postProcessAfterInitialization(bean, "testBean");
-		Message<?> message = MessageBuilder.withPayload("test").setReturnAddress("outputChannel").build();
+		Message<?> message = MessageBuilder.withPayload("test")
+				.setReplyChannelName("outputChannel").build();
 		inputChannel.send(message);
 		Message<?> reply = outputChannel.receive(0);
 		assertNotNull(reply);

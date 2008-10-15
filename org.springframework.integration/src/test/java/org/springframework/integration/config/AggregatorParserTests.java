@@ -168,7 +168,7 @@ public class AggregatorParserTests {
 				.setCorrelationId(correlationId)
 				.setSequenceSize(sequenceSize)
 				.setSequenceNumber(sequenceNumber)
-				.setReturnAddress(outputChannel).build();
+				.setReplyChannel(outputChannel).build();
 	}
 
 }

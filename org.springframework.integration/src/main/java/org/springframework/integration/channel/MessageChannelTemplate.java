@@ -240,7 +240,7 @@ public class MessageChannelTemplate implements InitializingBean {
 
 	private Message<?> doSendAndReceive(Message<?> request, MessageChannel channel) {
 		TemporaryReturnAddress returnAddress = new TemporaryReturnAddress(this.receiveTimeout);
-		request = MessageBuilder.fromMessage(request).setReturnAddress(returnAddress).build();
+		request = MessageBuilder.fromMessage(request).setReplyChannel(returnAddress).build();
 		if (!this.doSend(request, channel)) {
 			return null;
 		}

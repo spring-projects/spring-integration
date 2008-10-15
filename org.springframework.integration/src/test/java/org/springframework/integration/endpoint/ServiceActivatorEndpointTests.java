@@ -64,7 +64,7 @@ public class ServiceActivatorEndpointTests {
 		QueueChannel channel2 = new QueueChannel(1);
 		ServiceActivatingConsumer endpoint = this.createEndpoint();
 		endpoint.setOutputChannel(channel1);
-		Message<?> message = MessageBuilder.withPayload("foo").setReturnAddress(channel2).build();
+		Message<?> message = MessageBuilder.withPayload("foo").setReplyChannel(channel2).build();
 		endpoint.onMessage(message);
 		Message<?> reply1 = channel1.receive(0);
 		assertNotNull(reply1);
@@ -77,7 +77,7 @@ public class ServiceActivatorEndpointTests {
 	public void returnAddressHeader() {
 		QueueChannel channel = new QueueChannel(1);
 		ServiceActivatingConsumer endpoint = this.createEndpoint();
-		Message<?> message = MessageBuilder.withPayload("foo").setReturnAddress(channel).build();
+		Message<?> message = MessageBuilder.withPayload("foo").setReplyChannel(channel).build();
 		endpoint.onMessage(message);
 		Message<?> reply = channel.receive(0);
 		assertNotNull(reply);
@@ -92,7 +92,8 @@ public class ServiceActivatorEndpointTests {
 		channelResolver.addChannel(channel);
 		ServiceActivatingConsumer endpoint = this.createEndpoint();
 		endpoint.setChannelResolver(channelResolver);
-		Message<?> message = MessageBuilder.withPayload("foo").setReturnAddress("testChannel").build();
+		Message<?> message = MessageBuilder.withPayload("foo")
+				.setReplyChannelName("testChannel").build();
 		endpoint.onMessage(message);
 		Message<?> reply = channel.receive(0);
 		assertNotNull(reply);
@@ -115,7 +116,7 @@ public class ServiceActivatorEndpointTests {
 		channelResolver.addChannel(replyChannel2);
 		endpoint.setChannelResolver(channelResolver);
 		Message<String> testMessage1 = MessageBuilder.withPayload("bar")
-				.setReturnAddress(replyChannel1).build();
+				.setReplyChannel(replyChannel1).build();
 		endpoint.onMessage(testMessage1);
 		Message<?> reply1 = replyChannel1.receive(50);
 		assertNotNull(reply1);
@@ -123,7 +124,7 @@ public class ServiceActivatorEndpointTests {
 		Message<?> reply2 = replyChannel2.receive(0);
 		assertNull(reply2);
 		Message<String> testMessage2 = MessageBuilder.fromMessage(testMessage1)
-				.setReturnAddress("replyChannel2").build();
+				.setReplyChannelName("replyChannel2").build();
 		endpoint.onMessage(testMessage2);
 		reply1 = replyChannel1.receive(0);
 		assertNull(reply1);
@@ -136,7 +137,7 @@ public class ServiceActivatorEndpointTests {
 	public void noOutputChannelFallsBackToReturnAddress() {
 		QueueChannel channel = new QueueChannel(1);
 		ServiceActivatingConsumer endpoint = this.createEndpoint();
-		Message<?> message = MessageBuilder.withPayload("foo").setReturnAddress(channel).build();
+		Message<?> message = MessageBuilder.withPayload("foo").setReplyChannel(channel).build();
 		endpoint.onMessage(message);
 		Message<?> reply = channel.receive(0);
 		assertNotNull(reply);
@@ -294,7 +295,7 @@ public class ServiceActivatorEndpointTests {
 			}
 		}, "handle");
 		Message<String> message = MessageBuilder.withPayload("test")
-				.setReturnAddress(replyChannel).build();
+				.setReplyChannel(replyChannel).build();
 		endpoint.onMessage(message);
 		Message<?> reply = replyChannel.receive(500);
 		assertNull(reply.getHeaders().getCorrelationId());
@@ -311,7 +312,7 @@ public class ServiceActivatorEndpointTests {
 			}
 		}, "handle");
 		Message<String> message = MessageBuilder.withPayload("test")
-				.setReturnAddress(replyChannel).build();
+				.setReplyChannel(replyChannel).build();
 		endpoint.onMessage(message);
 		Message<?> reply = replyChannel.receive(500);
 		Object correlationId = reply.getHeaders().getCorrelationId();
