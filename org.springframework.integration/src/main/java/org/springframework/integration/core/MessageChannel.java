@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.channel;
+package org.springframework.integration.core;
 
-import org.springframework.integration.core.Message;
 
 /**
  * Base channel interface defining common behavior for message sending and receiving.

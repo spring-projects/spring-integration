@@ -24,9 +24,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.integration.util.TestUtils;

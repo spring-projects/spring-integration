@@ -16,7 +16,7 @@
 
 package org.springframework.integration.message;
 
-import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.core.MessageChannel;
 
 /**
  * Base interface for any component that produces Messages.

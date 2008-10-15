@@ -16,6 +16,8 @@
 
 package org.springframework.integration.channel;
 
+import org.springframework.integration.core.MessageChannel;
+
 
 /**
  * Strategy for resolving a name to a {@link MessageChannel}.

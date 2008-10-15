@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageChannel;
 
 /**
  * Base class for {@link MessageChannel} implementations providing common

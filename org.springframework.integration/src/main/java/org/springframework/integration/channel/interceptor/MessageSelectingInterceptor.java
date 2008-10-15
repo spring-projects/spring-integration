@@ -19,8 +19,8 @@ package org.springframework.integration.channel.interceptor;
 import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.selector.MessageSelector;
 

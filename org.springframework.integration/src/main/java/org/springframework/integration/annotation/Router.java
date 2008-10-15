@@ -36,7 +36,7 @@ import java.lang.annotation.Target;
  * <p>
  * Return values from the annotated method may be either a Collection or Array
  * whose elements are either
- * {@link org.springframework.integration.channel.MessageChannel channels} or
+ * {@link org.springframework.integration.core.MessageChannel channels} or
  * Strings. In the latter case, the endpoint hosting this router will attempt
  * to resolve each channel name with the Channel Registry.
  *

@@ -23,7 +23,7 @@ import org.junit.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.security.SecurityTestUtils;
 import org.springframework.security.AccessDeniedException;

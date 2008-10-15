@@ -19,6 +19,7 @@ package org.springframework.integration.channel;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.integration.core.MessageChannel;
 import org.springframework.util.Assert;
 
 /**

@@ -26,7 +26,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.file.CompositeFileListFilter;
 import org.springframework.integration.file.PollableFileSource;
 import org.springframework.test.context.ContextConfiguration;

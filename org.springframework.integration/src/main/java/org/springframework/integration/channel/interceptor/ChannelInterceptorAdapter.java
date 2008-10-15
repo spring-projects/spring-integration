@@ -17,8 +17,8 @@
 package org.springframework.integration.channel.interceptor;
 
 import org.springframework.integration.channel.ChannelInterceptor;
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageChannel;
 
 /**
  * A {@link ChannelInterceptor} with no-op method implementations so that

@@ -26,7 +26,7 @@ import org.springframework.integration.aggregator.CompletionStrategyAdapter;
 import org.springframework.integration.aggregator.MethodInvokingAggregator;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.CompletionStrategy;
-import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageConsumer;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;

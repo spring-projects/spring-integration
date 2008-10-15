@@ -24,9 +24,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.junit.Test;
 
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.StringMessage;
 

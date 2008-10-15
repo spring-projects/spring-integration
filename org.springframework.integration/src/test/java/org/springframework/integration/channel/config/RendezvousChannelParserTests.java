@@ -21,8 +21,8 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.RendezvousChannel;
+import org.springframework.integration.core.MessageChannel;
 
 /**
  * @author Mark Fisher

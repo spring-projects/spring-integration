@@ -19,6 +19,7 @@ package org.springframework.integration.channel;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.integration.core.MessageChannel;
 import org.springframework.util.Assert;
 
 /**

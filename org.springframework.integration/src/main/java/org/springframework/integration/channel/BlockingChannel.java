@@ -17,6 +17,7 @@
 package org.springframework.integration.channel;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageChannel;
 
 /**
  * Extends the base MessageChannel interface for channels that may block when a

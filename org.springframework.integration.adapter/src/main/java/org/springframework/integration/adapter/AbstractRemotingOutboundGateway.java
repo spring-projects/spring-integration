@@ -18,8 +18,8 @@ package org.springframework.integration.adapter;
 
 import java.io.Serializable;
 
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
 import org.springframework.integration.endpoint.ReplyMessageHolder;
 import org.springframework.integration.message.MessageHandlingException;

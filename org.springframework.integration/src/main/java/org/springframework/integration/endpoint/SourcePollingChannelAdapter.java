@@ -17,9 +17,9 @@
 package org.springframework.integration.endpoint;
 
 import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.util.Assert;
 

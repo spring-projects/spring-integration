@@ -19,8 +19,8 @@ package org.springframework.integration.router;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageChannel;
 
 /**
  * Extends {@link AbstractMessageRouter} to support router implementations that

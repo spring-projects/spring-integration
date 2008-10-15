@@ -19,6 +19,7 @@ package org.springframework.integration.channel;
 import java.util.List;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.selector.MessageSelector;
 
 /**

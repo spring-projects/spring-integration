@@ -29,9 +29,9 @@ import java.util.concurrent.Executors;
 
 import org.junit.Test;
 
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.httpinvoker.HttpInvokerInboundGateway;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.mock.web.MockHttpServletRequest;

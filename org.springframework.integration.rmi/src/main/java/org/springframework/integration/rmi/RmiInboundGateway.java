@@ -22,7 +22,7 @@ import java.rmi.registry.Registry;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.adapter.MessageHandler;
 import org.springframework.integration.adapter.RemotingInboundGatewaySupport;
-import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.core.MessageChannel;
 import org.springframework.remoting.rmi.RmiServiceExporter;
 import org.springframework.remoting.support.RemoteInvocationExecutor;
 import org.springframework.util.Assert;

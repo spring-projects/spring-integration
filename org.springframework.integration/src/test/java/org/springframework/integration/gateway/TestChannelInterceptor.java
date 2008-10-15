@@ -18,9 +18,9 @@ package org.springframework.integration.gateway;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageChannel;
 
 /**
  * @author Mark Fisher

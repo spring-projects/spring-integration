@@ -25,6 +25,8 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import org.springframework.integration.core.MessageChannel;
+
 /**
  * @author Mark Fisher
  */
