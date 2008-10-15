@@ -46,7 +46,7 @@
               <entry>java.lang.Object</entry>
             </row>
             <row>
-              <entry>RETURN_ADDRESS</entry>
+              <entry>REPLY_CHANNEL</entry>
               <entry>java.lang.Object (can be a String or MessageChannel)</entry>
             </row>
             <row>
@@ -73,6 +73,7 @@
       The base implementation of the <interfacename>Message</interfacename> interface is
       <classname>GenericMessage&lt;T&gt;</classname>, and it provides two constructors:
       <programlisting language="java">new GenericMessage&lt;T&gt;(T payload);
+
 new GenericMessage&lt;T&gt;(T payload, Map&lt;String, Object&gt; headers)</programlisting>
       When a Message is created, a random unique id will be generated. The constructor that accepts a Map of headers
       will copy the provided headers to the newly created Message. There are also two convenient subclasses available:
@@ -89,16 +90,16 @@ new GenericMessage&lt;T&gt;(T payload, Map&lt;String, Object&gt; headers)</progr
       developer. In other words, the contract for Messages is similar to that of an
       <emphasis>unmodifiable Collection</emphasis>, and the MessageHeaders' map further exemplifies that; even though
       the MessageHeaders class implements <interfacename>java.util.Map</interfacename>, any attempt to invoke a
-      <emphasis>put</emphasis> operation on the MessageHeaders will result in an
+      <emphasis>put</emphasis> operation (or 'remove' or 'clear') on the MessageHeaders will result in an
       <classname>UnsupportedOperationException</classname>.
     </para>
     <para>
       Rather than requiring the creation and population of a Map to pass into the GenericMessage constructor, Spring
       Integration does provide a far more convenient way to construct Messages: <classname>MessageBuilder</classname>.
-      The MessageBuilder provides two factory methods for creating Messages from either an existing Message or a
+      The MessageBuilder provides two factory methods for creating Messages from either an existing Message or with a
       payload Object. When building from an existing Message, the headers <emphasis>and payload</emphasis> of that
       Message will be copied to the new Message:
-      <programlisting language="java">Message&lt;String&gt; message1 = MessageBuilder.fromPayload("test")
+      <programlisting language="java">Message&lt;String&gt; message1 = MessageBuilder.withPayload("test")
         .setHeader("foo", "bar")
         .build();
 
@@ -159,58 +160,6 @@ assertEquals(MessagePriority.HIGHEST, anotherMessage.getHeaders().getPriority())
     </para>
   </section>
 
-  <section id="api-source">
-    <title>MessageSource</title>
-    <para>
-      As alluded to in the overview, the <interfacename>MessageSource</interfacename> interface is itself a marker
-      interface for any "source" of Messages. The two sub-interfaces - <interfacename>PollableSource</interfacename>
-      and <interfacename>SubscribableSource</interfacename> - accommodate two types of source: those that must be
-      polled and those that send Messages on their own. An example of the first type would be a source that represents
-      a directory in the File-system, and an example of the second type would be an inbound RMI invocation.
-    </para>
-    <para>
-      The PollableSource interface defines a single method for receiving <interfacename>Message</interfacename> objects.
-      <programlisting language="java">public interface PollableSource&lt;T&gt; extends MessageSource&lt;T&gt; {
-    Message&lt;T&gt; receive();
-}</programlisting>
-      The <interfacename>BlockingSource</interfacename> interface extends <interfacename>PollableSource</interfacename>
-      and adds a single method with a timeout: <programlisting language="java">Message&lt;T&gt; receive(long timeout);</programlisting>
-    </para>
-    <para>
-      Spring Integration also provides a <classname>MethodInvokingSource</classname> implementation that serves as an
-      adapter for invoking any arbitrary method on a plain Object (i.e. there is no need to implement an interface).
-      To use the <classname>MethodInvokingSource</classname>, provide the Object reference and the method name.
-      <programlisting language="java">MethodInvokingSource source = new MethodInvokingSource();
-source.setObject(new SourceObject());
-source.setMethodName("sourceMethod");
-Message&lt;?&gt; result = source.receive();</programlisting>
-      It is also possible to configure a <classname>MethodInvokingSource</classname> in XML by providing a
-      bean reference in the "source" attribute of a &lt;channel-adapter&gt; element along with a "method" attribute.
-      <programlisting language="xml"><![CDATA[<channel-adapter source="sourceObject" method="sourceMethod" channel="someChannel"/>]]></programlisting>
-	</para>
-  </section>
-
-  <section id="api-target">
-    <title>MessageTarget</title>
-    <para>
-      The <interfacename>MessageTarget</interfacename> interface defines a single method for sending
-      <interfacename>Message</interfacename> objects.
-      <programlisting language="java">public interface MessageTarget {
-    boolean send(Message&lt;?&gt; message);
-}</programlisting>
-      As with the <interfacename>MessageSource</interfacename>, Spring Integration also provides a
-      <classname>MethodInvokingTarget</classname> adapter class.
-      <programlisting language="java">MethodInvokingTarget target = new MethodInvokingTarget();
-target.setObject(new TargetObject());
-target.setMethodName("targetMethod");
-target.afterPropertiesSet();
-target.send(new StringMessage("test"));</programlisting>
-      When creating a Channel Adapter for this target, the corresponding XML configuration
-      is very similar to that of <classname>MethodInvokingSource</classname>.
-      <programlisting language="xml"><![CDATA[<channel-adapter channel="someChannel" target="targetObject" method="targetMethod"/>]]></programlisting>
-	</para>
-  </section>
-
   <section id="api-messagechannel">
     <title>MessageChannel</title>
     <para>
@@ -218,41 +167,45 @@ target.send(new StringMessage("test"));</programlisting>
       <interfacename>MessageChannel</interfacename> that decouples message producers from message consumers.
       Spring Integration's top-level <interfacename>MessageChannel</interfacename> interface is defined as follows.
       <programlisting language="java"><![CDATA[public interface MessageChannel {
+
     String getName();
 
     boolean send(Message message);
-}]]></programlisting>
-      Because it extends <interfacename>BlockingTarget</interfacename>, it inherits the following methods:
-      <programlisting language="java">boolean send(Message message);
 
-boolean send(Message message, long timeout);</programlisting>
+    boolean send(Message message, long timeout);
+}]]></programlisting>
       When sending a message, the return value will be <emphasis>true</emphasis> if the message is sent successfully.
       If the send call times out or is interrupted, then it will return <emphasis>false</emphasis>.
     </para>
     <para>
-      Since Message Channels are also Message Sources, there are two sub-interfaces corresponding to the two source
-      types. Here is the definition of <interfacename>PollableChannel</interfacename>.
-      <programlisting language="java">public interface PollableChannel extends MessageChannel, BlockingSource {
+      Since Message Channels may or may not buffer Messages (as discussed in the overview), there are two
+      sub-interfaces defining the buffering (pollable) and non-buffering (subscribable) channel behavior. Here is the
+      definition of <interfacename>PollableChannel</interfacename>.
+      <programlisting language="java">public interface PollableChannel extends MessageChannel {
+
+    Message&lt;?&gt; receive();
+
+    Message&lt;?&gt; receive(long timeout);
 
     List&lt;Message&lt;?&gt;&gt; clear();
 
     List&lt;Message&lt;?&gt;&gt; purge(MessageSelector selector);
 
 }</programlisting>
-      Since the PollableChannel interface extends BlockingSource, it also inherits the following methods:
-      <programlisting language="java">Message&lt;T&gt; receive();
-
-Message&lt;T&gt; receive(long timeout);</programlisting>
       Similar to the send methods, when receiving a message, the return value will be <emphasis>null</emphasis> in the
       case of a timeout or interrupt.
     </para>
     <para>
-      The subscribable channels implement the <interfacename>SubscribableSource</interfacename> interface. Instead
-      of providing receive methods for polling, these channels will send messages directly to their subscribers.
-      The <interfacename>SubscribableSource</interfacename> interface defines the following two methods:
-      <programlisting language="java">boolean subscribe(MessageTarget target);
+      The <interfacename>SubscribableChannel</interfacename> base interface is implemented by channels that send
+      Messages directly to their subscribed consumers. Therefore, they do not provide receive methods for polling, but
+      instead define methods for handling those subscribers:
+      <programlisting language="java">public interface SubscribableChannel extends MessageChannel {
 
-boolean unsubscribe(MessageTarget target);</programlisting>
+    boolean subscribe(MessageConsumer consumer);
+
+    boolean unsubscribe(MessageConsumer consumer);
+
+}</programlisting>
     </para>
     <para>
       Spring Integration provides several different Message Channel implementations. Each is briefly described in the
@@ -270,7 +223,7 @@ boolean unsubscribe(MessageTarget target);</programlisting>
         <methodname>send(Message)</methodname> method is invoked, consumers cannot poll for
         Messages (it does not implement <interfacename>PollableChannel</interfacename> and
         therefore has no <methodname>receive()</methodname> method). Instead, any subscriber
-        must be a <interfacename>MessageTarget</interfacename> itself, and the subscriber's
+        must be a <interfacename>MessageConsumer</interfacename> itself, and the subscriber's
         <methodname>send(Message)</methodname> method will be invoked in turn.
       </para>
     </section>
@@ -278,10 +231,10 @@ boolean unsubscribe(MessageTarget target);</programlisting>
       <title>QueueChannel</title>
       <para>
         The <classname>QueueChannel</classname> implementation wraps a queue. Unlike, the
-        <classname>PublishSubscribeChannel</classname>, the <classname>QueueChannel</classname> has
-        point-to-point semantics. In other words, even if the channel has multiple consumers, only
-        one of them should receive any Message sent to that channel. It provides a no-argument constructor
-        (that uses a default capacity of 100) as well as a constructor that accepts the queue capacity:
+        <classname>PublishSubscribeChannel</classname>, the <classname>QueueChannel</classname> has point-to-point
+        semantics. In other words, even if the channel has multiple consumers, only one of them should receive any
+        Message sent to that channel. It provides a default no-argument constructor (providing an essentially unbounded
+        capacity of <code>Integer.MAX_VALUE</code>) as well as a constructor that accepts the queue capacity:
         <programlisting language="java">public QueueChannel(int capacity)</programlisting>
         A channel that has not reached its capacity limit will store messages in its internal queue, and the
         <methodname>send()</methodname> method will return immediately even if no receiver is ready to handle the
@@ -320,26 +273,38 @@ boolean unsubscribe(MessageTarget target);</programlisting>
       <para>
         The <classname>RendezvousChannel</classname> is also useful for implementing request-reply
         operations. The sender can create a temporary, anonymous instance of <classname>RendezvousChannel</classname>
-        which it then sets as the 'returnAddress' on a Message. After sending that Message, the sender can immediately
-        call receive (optionally providing a timeout value) in order to block while waiting for a reply Message.  
+        which it then sets as the 'replyChannel' header when building a Message. After sending that Message, the sender
+        can immediately call receive (optionally providing a timeout value) in order to block while waiting for a reply
+        Message.  
       </para>
     </section>
     <section id="api-messagechannel-directchannel">
       <title>DirectChannel</title>
       <para>
-        The <classname>DirectChannel</classname> has point-to-point semantics, but otherwise is more similar
-        to the <classname>PublishSubscribeChannel</classname> than any of the queue-based channel implementations
-        described above. In other words, it does not implement the <interfacename>PollableChannel</interfacename>
-        interface, but rather dispatches Messages directly to a subscriber. As a point-to-point channel, however,
-        it will only send each Message to a <emphasis>single</emphasis> subscribed <classname>MessageTarget</classname>.
-        Its primary purpose is to enable a single thread to perform the operations on "both sides" of the channel. For
-        example, if a receiving target is subscribed to a <classname>DirectChannel</classname>, then sending a
-        Message to that channel will trigger invocation of that target's <methodname>send(Message)</methodname>
-        method <emphasis>directly in the sender's thread</emphasis>. The key motivation for providing a channel
-        implementation with this behavior is to support transactions that must span across the channel while still
-        benefiting from the abstraction and loose coupling that the channel provides. If the send call is invoked
-        within the scope of a transaction, then the outcome of the target's invocation can play a role in determining
-        the ultimate result of that transaction (commit or rollback).
+        The <classname>DirectChannel</classname> has point-to-point semantics, but otherwise is more similar to the
+        <classname>PublishSubscribeChannel</classname> than any of the queue-based channel implementations described
+        above. It implements the <interfacename>SubscribableChannel</interfacename> interface instead of the
+        <interfacename>PollableChannel</interfacename> interface, so it dispatches Messages directly to a subscriber.
+        As a point-to-point channel, however, it differs from the <classname>PublishSubscribeChannel</classname> in
+        that it will only send each Message to a <emphasis>single</emphasis> subscribed
+        <classname>MessageConsumer</classname>. Its primary purpose is to enable a single thread to perform the
+        operations on "both sides" of the channel. For example, if a consumer is subscribed to a
+        <classname>DirectChannel</classname>, then sending a Message to that channel will trigger invocation of that
+        consumer's <methodname>onMessage(Message)</methodname> method <emphasis>directly in the sender's
+        thread</emphasis>. The key motivation for providing a channel implementation with this behavior is to support
+        transactions that must span across the channel while still benefiting from the abstraction and loose coupling
+        that the channel provides. If the send call is invoked within the scope of a transaction, then the outcome of
+        the consumer's invocation (e.g. updating a database record) can play a role in determining the ultimate result
+        of that transaction (commit or rollback).
+        <note>
+          Since the <classname>DirectChannel</classname> is the simplest option and does not add any additional
+          overhead that would be required for scheduling and managing the threads of a poller, it is the default
+          channel type within Spring Integration. The general idea is to define the channels for an application and
+          then to consider which of those needs to provide buffering to throttle input, and to modify those to be
+          queue-based <interfacename>PollableChannels</interfacename>. Likewise, if a channel needs to broadcast
+          messages, it should not be a <classname>DirectChannel</classname> but rather a
+          <classname>PublishSubscribeChannel</classname>. Below you will see how these can be configured.
+        </note>
       </para>
     </section>
     <section id="api-messagechannel-threadlocalchannel">
