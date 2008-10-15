@@ -42,6 +42,8 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	public static final String REPLY_CHANNEL = PREFIX + "replyChannel";
 
+	public static final String ERROR_CHANNEL = PREFIX + "errorChannel";
+
 	public static final String EXPIRATION_DATE = PREFIX + "expirationDate";
 
 	public static final String PRIORITY = PREFIX + "priority";
@@ -81,6 +83,10 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	public Object getReplyChannel() {
 		return this.get(REPLY_CHANNEL);
+	}
+
+	public Object getErrorChannel() {
+		return this.get(ERROR_CHANNEL);
 	}
 
 	public Integer getSequenceNumber() {

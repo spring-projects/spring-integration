@@ -174,6 +174,14 @@ public final class MessageBuilder<T> {
 		return this.setHeader(MessageHeaders.REPLY_CHANNEL, replyChannelName);
 	}
 
+	public MessageBuilder<T> setErrorChannel(MessageChannel errorChannel) {
+		return this.setHeader(MessageHeaders.ERROR_CHANNEL, errorChannel);
+	}
+
+	public MessageBuilder<T> setErrorChannelName(String errorChannelName) {
+		return this.setHeader(MessageHeaders.ERROR_CHANNEL, errorChannelName);
+	}
+
 	public MessageBuilder<T> setSequenceNumber(Integer sequenceNumber) {
 		return this.setHeader(MessageHeaders.SEQUENCE_NUMBER, sequenceNumber);
 	}
