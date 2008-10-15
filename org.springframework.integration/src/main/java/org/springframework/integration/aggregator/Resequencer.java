@@ -19,7 +19,7 @@ package org.springframework.integration.aggregator;
 import java.util.List;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageHeaders;
+import org.springframework.integration.core.MessageHeaders;
 
 /**
  * An {@link AbstractMessageBarrierConsumer} that waits for a group of

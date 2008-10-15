@@ -29,7 +29,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.adapter.MessageHeaderMapper;
-import org.springframework.integration.message.MessageHeaders;
+import org.springframework.integration.core.MessageHeaders;
 import org.springframework.util.StringUtils;
 
 /**

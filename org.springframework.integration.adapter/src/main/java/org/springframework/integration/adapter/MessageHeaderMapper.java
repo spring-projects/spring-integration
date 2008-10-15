@@ -18,7 +18,7 @@ package org.springframework.integration.adapter;
 
 import java.util.Map;
 
-import org.springframework.integration.message.MessageHeaders;
+import org.springframework.integration.core.MessageHeaders;
 
 /**
  * Strategy interface for mapping between a source or target object and an

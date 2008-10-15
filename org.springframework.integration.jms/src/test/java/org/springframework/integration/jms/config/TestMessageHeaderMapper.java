@@ -22,7 +22,7 @@ import java.util.Map;
 import javax.jms.Message;
 
 import org.springframework.integration.adapter.MessageHeaderMapper;
-import org.springframework.integration.message.MessageHeaders;
+import org.springframework.integration.core.MessageHeaders;
 
 /**
  * @author Mark Fisher

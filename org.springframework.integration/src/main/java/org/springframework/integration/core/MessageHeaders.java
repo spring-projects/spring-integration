@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration.core;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.springframework.integration.core.Message;
+import org.springframework.integration.message.MessagePriority;
 
 /**
  * The headers for a {@link Message}.

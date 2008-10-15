@@ -16,8 +16,6 @@
 
 package org.springframework.integration.core;
 
-import org.springframework.integration.message.MessageHeaders;
-
 /**
  * The central interface that any Message type must implement.
  * 
