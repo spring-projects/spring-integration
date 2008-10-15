@@ -43,8 +43,11 @@ import org.springframework.integration.scheduling.TaskSchedulerAware;
 import org.springframework.util.Assert;
 
 /**
- * The messaging bus. Serves as a registry for channels and endpoints, manages their lifecycle,
- * and activates subscriptions.
+ * Spring Integration's standard Message Bus implementation. Serves as a
+ * registry for Messages Endpoints. Manages their lifecycle, activates
+ * subscriptions, and schedules pollers by delegating to a
+ * {@link TaskScheduler}. Retrieves MessageChannels from the
+ * ApplicationContext based on bean name.
  * 
  * @author Mark Fisher
  * @author Marius Bogoevici
@@ -96,17 +99,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 		this.autoStartup = autoStartup;
 	}
 
-	public void initialize() {
-		synchronized (this.lifecycleMonitor) {
-			if (this.initialized) {
-				return;
-			}
-			Assert.notNull(this.applicationContext, "ApplicationContext must not be null");
-			Assert.notNull(this.taskScheduler, "TaskScheduler must not be null");
-			this.initialized = true;
-		}
-	}
-
 	public MessageChannel lookupChannel(String channelName) {
 		Assert.notNull(this.applicationContext, "ApplicationContext must not be null");
 		if (this.applicationContext.containsBean(channelName)) {
@@ -128,12 +120,6 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 		return null;
 	}
 
-	private Collection<MessageEndpoint> getEndpoints() {
-		GenericBeanFactoryAccessor accessor = new GenericBeanFactoryAccessor(this.applicationContext);
-		this.endpoints.addAll(accessor.getBeansOfType(MessageEndpoint.class).values());
-		return this.endpoints;
-	}
-
 	public void registerEndpoint(MessageEndpoint endpoint) {
 		Assert.notNull(endpoint, "'endpoint' must not be null");
 		if (!this.endpoints.contains(endpoint)) {
@@ -145,6 +131,12 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 		if (logger.isInfoEnabled()) {
 			logger.info("registered endpoint '" + endpoint + "'");
 		}
+	}
+
+	private Collection<MessageEndpoint> getEndpoints() {
+		GenericBeanFactoryAccessor accessor = new GenericBeanFactoryAccessor(this.applicationContext);
+		this.endpoints.addAll(accessor.getBeansOfType(MessageEndpoint.class).values());
+		return this.endpoints;
 	}
 
 	private void activateEndpoints() {
@@ -233,16 +225,27 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 		}
 	}
 
+	public void onApplicationEvent(ApplicationEvent event) {
+		if (event instanceof ContextRefreshedEvent && this.autoStartup) {
+			this.start();
+		}
+	}
+
+	private void initialize() {
+		synchronized (this.lifecycleMonitor) {
+			if (this.initialized) {
+				return;
+			}
+			Assert.notNull(this.applicationContext, "ApplicationContext must not be null");
+			Assert.notNull(this.taskScheduler, "TaskScheduler must not be null");
+			this.initialized = true;
+		}
+	}
+
 	public void destroy() throws Exception {
 		this.stop();
 		if (this.taskScheduler instanceof DisposableBean) {
 			((DisposableBean) this.taskScheduler).destroy();
-		}
-	}
-
-	public void onApplicationEvent(ApplicationEvent event) {
-		if (event instanceof ContextRefreshedEvent && this.autoStartup) {
-			this.start();
 		}
 	}
 

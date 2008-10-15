@@ -52,7 +52,6 @@ public class MessageBusParserTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageBusWithErrorChannel.xml", this.getClass());
 		DefaultMessageBus bus = (DefaultMessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
-		bus.initialize();
 		MessageChannel channel = bus.lookupChannel(DefaultMessageBus.ERROR_CHANNEL_BEAN_NAME);
 		assertEquals(context.getBean("errorChannel"), channel);
 	}
@@ -62,7 +61,6 @@ public class MessageBusParserTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageBusWithDefaults.xml", this.getClass());
 		DefaultMessageBus bus = (DefaultMessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
-		bus.initialize();
 		assertNotNull("parser should have created a default error channel",
 				bus.lookupChannel(DefaultMessageBus.ERROR_CHANNEL_BEAN_NAME));
 	}
