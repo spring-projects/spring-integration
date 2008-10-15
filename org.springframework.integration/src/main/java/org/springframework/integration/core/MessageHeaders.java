@@ -55,8 +55,9 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 
 	public MessageHeaders(Map<String, Object> headers) {
-		this.headers = (headers != null ? headers
-				: new HashMap<String, Object>());
+		this.headers = (headers != null)
+				? new HashMap<String, Object>(headers)
+				: new HashMap<String, Object>();
 		this.headers.put(ID, UUID.randomUUID());
 		this.headers.put(TIMESTAMP, new Long(System.currentTimeMillis()));
 	}
@@ -112,7 +113,7 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 	}
 
 	public int hashCode() {
-		return headers.hashCode();
+		return this.headers.hashCode();
 	}
 
 	public boolean equals(Object obj) {
@@ -133,10 +134,6 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 	/*
 	 * Map implementation
 	 */
-
-	public void clear() {
-		this.headers.clear();
-	}
 
 	public boolean containsKey(Object key) {
 		return this.headers.containsKey(key);
@@ -183,6 +180,10 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 	}
 
 	public Object remove(Object key) {
+		throw new UnsupportedOperationException("MessageHeaders is immutable.");
+	}
+
+	public void clear() {
 		throw new UnsupportedOperationException("MessageHeaders is immutable.");
 	}
 
