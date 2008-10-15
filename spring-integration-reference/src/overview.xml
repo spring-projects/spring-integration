@@ -97,9 +97,13 @@
       <title>Message</title>
       <para>
         In Spring Integration, a Message is a generic wrapper for any Java object combined with metadata used by the
-	    framework while handling that object. It consists of a payload and headers. The payload can be of any type and
-	    the headers hold commonly required information such as id, timestamp, expiration, and return address.
-	    Developers can also store any arbitrary key-value pair in the headers.
+        framework while handling that object. It consists of a payload and headers. The payload can be of any type and
+        the headers hold commonly required information such as id, timestamp, expiration, and return address. Headers
+        are also used for passing values to and from connected transports. For example, when creating a Message from a
+        received File, the file name may be stored in a header to be accessed by downstream components. Likewise, if a
+        Message's content is ultimately going to be sent by an outbound Mail adapter, the various properties (to, from,
+        cc, subject, etc.) may be configured as Message header values by an upstream component. Developers can also
+        store any arbitrary key-value pairs in the headers.
         <mediaobject>
           <imageobject>
             <imagedata align="center" fileref="images/message.png" format="PNG"/>
@@ -107,91 +111,44 @@
         </mediaobject>
       </para>
     </section>
-    <section id="overview-components-source">
-      <title>Message Source</title>
-      <para>
-        Since a Spring Integration Message is a generic wrapper for any Object, there is no limit to the number of
-        potential sources for such messages. In fact, a source implementation can act as an adapter that converts
-        Objects from any other system into Spring Integration Messages.
-        <mediaobject>
-          <imageobject>
-            <imagedata align="center" fileref="images/source.png" format="PNG"/>
-          </imageobject>
-        </mediaobject>
-        There are two types of source: those which require polling and those which send Messages directly. Therefore,
-        Spring Integration provides two main interfaces that extend the <interfacename>MessageSource</interfacename>
-        interface: <interfacename>PollableSource</interfacename> and <interfacename>SubscribableSource</interfacename>.
-        While it is relatively easy to implement these interfaces directly, an adapter is also available for invoking
-        arbitrary methods on plain Objects. Also, several <interfacename>MessageSource</interfacename> implementations
-        are already available within the Spring Integration Adapters module. For a detailed discussion of the various
-        adapters, see <xref linkend="adapters"/>.
-      </para>
-    </section>
-    <section>
-      <title>Message Target</title>
-      <para>
-        Just as the <interfacename>MessageSource</interfacename> implementations enable Message reception, a
-        <interfacename>MessageTarget</interfacename> handles the responsibility of sending Messages. As with the
-        <interfacename>MessageSource</interfacename>, a <interfacename>MessageTarget</interfacename> can act as an
-        adapter that converts Messages into the Objects expected by some other system.
-        <mediaobject>
-          <imageobject>
-            <imagedata align="center" fileref="images/target.png" format="PNG"/>
-          </imageobject>
-        </mediaobject>
-        The MessageTarget interface may be implemented directly, but an adapter is also available for invoking arbitrary
-        methods on plain Objects (delegating to a <interfacename>MessageMapper</interfacename> strategy in the process).
-        As with MessageSources, several MessageTarget implementations are already available within the Spring Integration
-        Adapters module as discussed in <xref linkend="adapters"/>.
-      </para>
-    </section>
-    <section id="overview-components-handler">
-      <title>Message Handler</title>
-      <para>
-        As described above, the MessageSource and MessageTarget components support conversion between Objects and
-        Messages so that application code and/or external systems can be connected to a Spring Integration application
-        rather easily. However, both MessageSource and MessageTarget are unidirectional while the application code or
-        external system to be invoked may provide a return value. The <interfacename>MessageHandler</interfacename>
-        interface supports these request-reply scenarios.
-        <mediaobject>
-          <imageobject>
-            <imagedata align="center" fileref="images/handler.png" format="PNG"/>
-          </imageobject>
-        </mediaobject>
-        As with the MessageSource and MessageTarget, Spring Integration also provides an adapter that itself implements
-        the <interfacename>MessageHandler</interfacename> interface while supporting the invocation of arbitrary methods
-        on plain Objects. For more information about the Message Handler, see <xref linkend="api-messagehandler"/>.
-      </para>
-    </section>
     <section id="overview-components-channel">
       <title>Message Channel</title>
       <para>
         A Message Channel represents the "pipe" of a pipes-and-filters architecture. Producers send Messages to
-        a channel, and consumers receive Messages from a channel. By providing both send and receive operations, a
-        Message Channel basically combines the roles of MessageSource and MessageTarget.
+        a channel, and consumers receive Messages from a channel. The Message Channel therefore decouples the
+        messaging components, and also provides a convenient point for interception and monitoring of Messages.
         <mediaobject>
           <imageobject>
             <imagedata align="center" fileref="images/channel.png" format="PNG"/>
           </imageobject>
         </mediaobject>
-        Every channel is also a <interfacename>MessageTarget</interfacename>, so Messages can be sent to a channel.
-        Likewise, every channel is a <interfacename>MessageSource</interfacename>, but as discussed above, Spring
-        Integration defines two types of source: pollable and subscribable. Subscribable channels include
-        PublishSubscribeChannel and DirectChannel. Pollable channels include QueueChannel, PriorityChannel,
-        RendezvousChannel, and ThreadLocalChannel. These are described in detail in
+        A Message Channel may follow either Point-to-Point or Publish/Subscribe semantics. With a Point-to-Point
+        channel, at most one consumer can receive each Message sent to the channel. Publish/Subscribe channels, on the
+        other hand, will attempt to broadcast each Message to all of its subscribers. Spring Integration supports
+        both of these.
+      </para>
+      <para>
+        Whereas "Point-to-Point" and "Publish/Subscribe" define the two options for <emphasis>how many</emphasis>
+        consumers will ultimately receive each Message, there is another important consideration: should the channel
+        buffer messages? In Spring Integration, <emphasis>Pollable Channels</emphasis> are capable of buffering
+        Messages within a queue. The advantage of buffering is that it allows for throttling the inbound Messages and
+        thereby prevents overloading a consumer. However, as the name suggests, this also adds some complexity, since a
+        consumer can only receive the Messages from such a channel if a <emphasis>poller</emphasis> is configured. On
+        the other hand, a consumer connected to a <emphasis>Subscribable Channel</emphasis> is simply Message-driven.
+        The variety of channel implementations available in Spring Integration will be discussed in detail in
         <xref linkend="api-messagechannel"/>.
       </para>
     </section>
     <section id="overview-components-endpoint">
       <title>Message Endpoint</title>
       <para>
-        Thus far, the component diagrams show consumers, producers, and requesters invoking the MessageSource,
-        MessageTarget, and MessageHandlers respectively. However, one of the primary goals of Spring Integration is to
-        simplify the development of enterprise integration solutions through <emphasis>inversion of control</emphasis>.
-        This means that you should not have to implement such consumers, producers, and requesters directly. Instead,
-        you should be able to focus on your domain logic with an implementation based on plain Objects. Then, by
-        providing declarative configuration, you can "connect" your application code to the messaging infrastructure
-        provided by Spring Integration. The components responsible for these connections are Message Endpoints. 
+        One of the primary goals of Spring Integration is to simplify the development of enterprise integration
+        solutions through <emphasis>inversion of control</emphasis>. This means that you should not have to implement
+        consumers and producers directly, and you should not even have to build Messages and invoke send or receive
+        operations on a Message Channel. Instead, you should be able to focus on your domain logic with an
+        implementation based on plain Objects. Then, by providing declarative configuration, you can "connect"
+        your application code to the messaging infrastructure provided by Spring Integration. The components
+        responsible for these connections are Message Endpoints. 
       </para>
       <para>
         A Message Endpoint represents the "filter" of a pipes-and-filters architecture. As mentioned above, the
@@ -200,83 +157,66 @@
         the Message Channels. This is similar to the role of a Controller in the MVC paradigm. Just as a Controller
         handles HTTP requests, the Message Endpoint handles Messages. Just as Controllers are mapped to URL patterns,
         Message Endpoints are mapped to Message Channels. The goal is the same in both cases: isolate application code
-        from the infrastructure. Spring Integration provides Message Endpoints for connecting each of the component
-        types described above. The description of each of the main types of endpoint follows.
+        from the infrastructure. This is also described in great detail along with all of the patterns that follow in
+        the <ulink url="http://www.eaipatterns.com">Enterprise Integration Patterns</ulink> book. Here, we provide only
+        a high-level description of the main types of endpoints supported by Spring Integration and their roles. The
+        chapters that follow will elaborate and provide sample code and configuration examples.
       </para>
-      <section>
-        <title>Channel Adapter</title>
-        <para>
-          A Channel Adapter is an endpoint that connects either a MessageSource or a MessageTarget to a
-          MessageChannel. If a MessageSource is being adapted, then the adapter is responsible for receiving
-          Messages from the MessageSource and sending them to the MessageChannel. If a Message Target is being
-          adapted, then the adapter is responsible for receiving Messages from the MessageChannel and sending
-          them to the MessageTarget. 
-        </para>
-        <para>
-          When a Channel Adapter is used to connect a PollableSource implementation to a Message Channel,
-          the invocation of the MessageSource's receive operation may be controlled by scheduling information
-          provided within the Channel Adapter's configuration. Any time the receive operation returns a non-null
-          Message, it is sent to the MessageChannel.
-          <mediaobject>
-            <imageobject>
-              <imagedata align="center" fileref="images/source-endpoint.png" format="PNG"/>
-            </imageobject>
-            <caption>An inbound "Channel Adapter" endpoint connects a MessageSource to a MessageChannel</caption>
-          </mediaobject>
-        </para>
-        <para>
-          If the source being connected by the Channel Adapter is a SubscribableSource, then no scheduling
-          information should be provided. Instead the source will send the Message directly, and the Channel Adapter
-          will pass it along to its Message Channel.
-        </para>
-        <para>
-          When a Channel Adapter is used to connect a MessageTarget implementation to a Pollable Message Channel,
-          the invocation of the MessageChannel's receive operation may be controlled by scheduling information
-          provided within the Channel Adapter's configuration. Any time a non-null Message is received from the
-          MessageChannel, it is sent to the MessageTarget.
-          <mediaobject>
-            <imageobject>
-              <imagedata align="center" fileref="images/target-endpoint.png" format="PNG"/>
-            </imageobject>
-            <caption>An outbound "Channel Adapter" endpoint connects a MessageChannel to a MessageTarget</caption>
-          </mediaobject>
-        </para>
-        <para>
-          If the MessageChannel being connected is not Pollable but Subscribable (e.g. Direct Channel or Publish
-          Subscribe Channel), then no scheduling information should be provided. Instead the channel will send
-          Messages directly, and the Channel Adapter will pass them along to the MessageTarget. 
-        </para>
-      </section>
-      <section>
-        <title>Service Activator</title>
-        <para>
-          When the Object to be invoked is capable of returning a value, another type of endpoint is
-          needed to accommodate the additional responsibilities of the <emphasis>request/reply</emphasis>
-          interaction. The general behavior is similar to a Channel Adapter, but this type of endpoint -
-          the Service Activator - must make a distinction between the "input-channel" and the "output-channel".
-          Also, the Service Activator invokes an operation on some Message Handler to process the request
-          Message. Whenever the Message-handling Object returns a reply Message, that Message is sent to the
-          output channel. If no output channel has been configured, then the reply will be sent to the channel
-          specified in the MessageHeader's "return address" if available.
-          <mediaobject>
-            <imageobject>
-              <imagedata align="center" fileref="images/handler-endpoint.png" format="PNG"/>
-            </imageobject>
-            <caption>
-              A request-reply "Service Activator" endpoint connects a MessageHandler to input and output MessageChannels.
-            </caption>
-          </mediaobject>
-        </para>
-      </section>
     </section>
-    <section id="overview-component-router">
+    <section id="overview-components-service-activator">
+      <title>Service Activator</title>
+      <para>
+        A Service Activator is a generic endpoint for connecting a service instance to the messaging system. The
+        input Message Channel must be configured, and if the service method to be invoked is capable of returning a
+        value, an output Message Channel may also be provided.
+        <note>
+	      The output channel is optional, since each Message may also provide its own 'Return Address' header. This
+	      same rule applies for all consumer endpoints.
+	    </note>
+        Essentially, the Service Activator invokes an operation on some service object to process the request
+        Message, and whenever the Message-handling method returns a value, that return value will be converted to a
+        reply Message if necessary. That reply Message is sent to the output channel. If no output channel has been
+        configured, then the reply will be sent to the channel specified in the Message's "return address" if
+        available.
+        <mediaobject>
+          <imageobject>
+            <imagedata align="center" fileref="images/handler-endpoint.png" format="PNG"/>
+          </imageobject>
+          <caption>
+            A request-reply "Service Activator" endpoint connects a target object's method to input and output
+            Message Channels.
+          </caption>
+        </mediaobject>
+      </para>
+    </section>
+    <section id="overview-components-transformer">
+      <title>Message Transformer</title>
+      <para>
+        A Message Transformer is responsible for converting a Message's content or structure and returning the modified
+        Message. Probably the most common type of transformer is one that converts the payload of the Message from one
+        format to another (e.g. from XML Document to java.lang.String). Similarly, a transformer may be used to add,
+        remove, or modify the Message's header values.
+      </para>
+    </section>
+    <section id="overview-components-filter">
+      <title>Message Filter</title>
+      <para>
+        A Message Filter determines whether a Message should be passed to an output channel at all. This simply
+        requires a boolean test method that may check for a particular payload content type, a property value, the
+        presence of a header, etc. If the Message is accepted, it is sent to the output channel, but if not it will be
+        dropped (or for a more severe implementation, an Exception could be thrown). Message Filters are often used in
+        conjunction with a Publish Subscribe channel, where multiple consumers may receive the same Message and use the
+        filter to narrow down the set of Messages to be processed based on some criteria.
+      </para>
+    </section>
+    <section id="overview-components-router">
       <title>Message Router</title>
       <para>
-        A Message Router is a particular type of Message Endpoint that is capable of receiving a Message from
-        a MessageChannel and then deciding what channel or channels should receive the Message next (if any).
-        Typically the decision is based upon the Message's content and/or metadata available in the MessageHeader.
+        A Message Router is responsible for deciding what channel or channels should receive the Message next (if any).
+        Typically the decision is based upon the Message's content and/or metadata available in the Message Headers.
         A Message Router is often used as a dynamic alternative to a statically configured output channel on
-        a Service Activator or other Message-handling endpoint.
+        a Service Activator or other endpoint capable of sending reply Messages. Likewise, a Message Router provides a
+        proactive alternative to the reactive Message Filters used by multiple subscribers as described above.
         <mediaobject>
           <imageobject>
             <imagedata align="center" fileref="images/router.png" format="PNG"/>
@@ -284,8 +224,8 @@
         </mediaobject>
       </para>
     </section>
-    <section id="overview-component-splitter">
-      <title>Splitter</title>
+    <section id="overview-components-splitter">
+      <title>Message Splitter</title>
       <para>
         A Splitter is another type of Message Endpoint whose responsibility is to accept a Message from its input
         channel, split that Message into multiple Messages, and then send each of those to its output channel. This
@@ -293,8 +233,8 @@
         sub-divided payloads.
       </para>
     </section>
-    <section id="overview-component-aggregator">
-      <title>Aggregator</title>
+    <section id="overview-components-aggregator">
+      <title>Message Aggregator</title>
       <para>
         Basically a mirror-image of the Splitter, the Aggregator is a type of Message Endpoint that receives multiple
         Messages and combines them into a single Message. In fact, Aggregators are often downstream consumers in a
@@ -303,18 +243,40 @@
         is available, and to timeout if necessary. Furthermore, in case of a timeout, the Aggregator needs to know
         whether to send the partial results or to discard them to a separate channel. Spring Integration provides
         a <interfacename>CompletionStrategy</interfacename> as well as configurable settings for timeout, whether
-        to send partial results, and the discard channel.
+        to send partial results upon timeout, and the discard channel.
       </para>
     </section>
-    <section id="overview-component-bus">
+    <section id="overview-components-channel-adapter">
+      <title>Channel Adapter</title>
+      <para>
+        A Channel Adapter is an endpoint that connects a Message Channel to some other system or transport. Channel
+        Adapters may be either inbound or outbound. Typically, the Channel Adapter will do some mapping between the
+        Message and whatever object or resource is received-from or sent-to the other system (File, HTTP Request, JMS
+        Message, etc). Depending on the transport, the Channel Adapter may also populate or extract Message header
+        values. Spring Integration provides a number of Channel Adapters, and they will be described in upcoming
+        chapters.
+        <mediaobject>
+          <imageobject>
+            <imagedata align="center" fileref="images/source-endpoint.png" format="PNG"/>
+          </imageobject>
+          <caption>An inbound "Channel Adapter" endpoint connects a source system to a MessageChannel.</caption>
+        </mediaobject>
+        <mediaobject>
+          <imageobject>
+            <imagedata align="center" fileref="images/target-endpoint.png" format="PNG"/>
+          </imageobject>
+          <caption>An outbound "Channel Adapter" endpoint connects a MessageChannel to a target system.</caption>
+        </mediaobject>
+      </para>
+    </section>
+    <section id="overview-components-bus">
       <title>Message Bus</title>
       <para>
-        The Message Bus acts as a registry for Message Channels and Message Endpoints. It also encapsulates the
-        complexity of message retrieval and dispatching. Essentially, the Message Bus forms a logical extension of the
-        Spring application context into the messaging domain. For example, it will automatically detect Message Channel
-        and Message Endpoint components from within the application context. It handles the scheduling of pollers, the
-        creation of thread pools, and the lifecycle management of all messaging components that can be initialized,
-        started, and stopped. The Message Bus is the primary example of inversion of control within Spring Integration.
+        The Message Bus is the primary example of inversion of control within Spring Integration. Essentially, it    
+        forms a logical extension of the Spring application context into the messaging domain. For example, it will
+        automatically detect Message Channels and Message Endpoints from within the application context. It handles the
+        scheduling of pollers, and the lifecycle management of all messaging components that can be initialized,
+        started, and stopped.
         <mediaobject>
           <imageobject>
             <imagedata align="center" fileref="images/message-bus.png" format="PNG"/>
