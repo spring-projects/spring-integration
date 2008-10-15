@@ -30,7 +30,7 @@ import org.w3c.dom.Document;
 
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.integration.message.MessagingException;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.xml.transform.StringSource;
 

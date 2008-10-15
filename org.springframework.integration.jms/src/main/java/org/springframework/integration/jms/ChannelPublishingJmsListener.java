@@ -21,8 +21,8 @@ import javax.jms.MessageListener;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageDeliveryException;
-import org.springframework.integration.message.MessagingException;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.util.Assert;
 

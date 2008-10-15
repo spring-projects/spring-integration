@@ -29,8 +29,8 @@ import org.w3c.dom.Node;
 
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.xml.util.XmlTestUtil;
 
 /**

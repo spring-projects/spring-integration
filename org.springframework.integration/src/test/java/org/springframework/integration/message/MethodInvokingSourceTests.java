@@ -22,7 +22,7 @@ import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessagingException;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MethodInvokingSource;
 
 /**

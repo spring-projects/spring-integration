@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
-
-import org.springframework.integration.core.Message;
+package org.springframework.integration.core;
 
 /**
  * The base exception for any failures within the messaging system.

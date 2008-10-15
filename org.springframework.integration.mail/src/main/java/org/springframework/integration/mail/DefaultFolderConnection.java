@@ -88,7 +88,7 @@ public class DefaultFolderConnection implements Lifecycle, DisposableBean, Folde
 			return this.monitoringStrategy.receive(this.folder);
 		}
 		catch (Exception e) {
-			throw new org.springframework.integration.message.MessagingException(
+			throw new org.springframework.integration.core.MessagingException(
 					"failure occurred while receiving from folder", e);
 		}
 	}
@@ -120,7 +120,7 @@ public class DefaultFolderConnection implements Lifecycle, DisposableBean, Folde
 				this.running = true;
 			}
 			catch (MessagingException e) {
-				throw new org.springframework.integration.message.MessagingException(
+				throw new org.springframework.integration.core.MessagingException(
 						"Failed to start FolderConnection", e);
 			}
 		}

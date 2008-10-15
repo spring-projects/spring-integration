@@ -23,7 +23,7 @@ import javax.xml.transform.dom.DOMSource;
 
 import org.w3c.dom.Document;
 
-import org.springframework.integration.message.MessagingException;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.transformer.AbstractPayloadTransformer;
 import org.springframework.integration.xml.source.DomSourceFactory;
 import org.springframework.integration.xml.source.SourceFactory;

@@ -30,10 +30,10 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.io.Resource;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageDeliveryAware;
 import org.springframework.integration.message.MessageSource;
-import org.springframework.integration.message.MessagingException;
 import org.springframework.util.Assert;
 
 /**

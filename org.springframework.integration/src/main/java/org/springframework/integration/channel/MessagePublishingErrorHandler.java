@@ -20,8 +20,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.ErrorMessage;
-import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.util.ErrorHandler;
 
 /**

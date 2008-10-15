@@ -26,7 +26,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 
-import org.springframework.integration.message.MessagingException;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.xml.transform.StringResult;
 
 /**

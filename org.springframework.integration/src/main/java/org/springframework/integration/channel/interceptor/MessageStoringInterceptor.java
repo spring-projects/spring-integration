@@ -25,8 +25,8 @@ import org.springframework.integration.channel.BlockingChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageStore;
-import org.springframework.integration.message.MessagingException;
 import org.springframework.util.Assert;
 
 /**

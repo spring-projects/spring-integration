@@ -16,7 +16,6 @@
 
 package org.springframework.integration.core;
 
-
 /**
  * Base channel interface defining common behavior for message sending and receiving.
  * 

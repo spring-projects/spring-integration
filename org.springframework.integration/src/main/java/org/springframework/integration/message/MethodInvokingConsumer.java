@@ -19,6 +19,7 @@ package org.springframework.integration.message;
 import java.lang.reflect.Method;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.util.Assert;
 
 /**

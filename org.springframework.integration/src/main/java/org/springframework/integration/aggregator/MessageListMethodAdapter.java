@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessagingException;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.util.DefaultMethodInvoker;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;

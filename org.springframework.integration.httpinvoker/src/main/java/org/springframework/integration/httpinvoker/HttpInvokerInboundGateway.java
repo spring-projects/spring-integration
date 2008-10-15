@@ -25,7 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.adapter.MessageHandler;
 import org.springframework.integration.adapter.RemotingInboundGatewaySupport;
-import org.springframework.integration.message.MessagingException;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter;
 import org.springframework.web.HttpRequestHandler;
 

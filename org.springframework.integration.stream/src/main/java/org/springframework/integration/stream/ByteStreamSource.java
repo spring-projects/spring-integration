@@ -21,9 +21,9 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageSource;
-import org.springframework.integration.message.MessagingException;
 
 /**
  * A pollable source for receiving bytes from an {@link InputStream}.

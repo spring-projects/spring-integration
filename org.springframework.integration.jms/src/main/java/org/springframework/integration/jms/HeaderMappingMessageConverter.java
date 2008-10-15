@@ -26,8 +26,8 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.adapter.MessageHeaderMapper;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessagingException;
 import org.springframework.jms.support.converter.MessageConversionException;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.SimpleMessageConverter;

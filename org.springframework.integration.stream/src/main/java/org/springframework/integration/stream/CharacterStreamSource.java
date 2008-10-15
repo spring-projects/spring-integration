@@ -22,8 +22,8 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 
+import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageSource;
-import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.util.Assert;
 

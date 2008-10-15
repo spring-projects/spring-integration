@@ -24,11 +24,11 @@ import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageProducer;
 import org.springframework.integration.message.MessageRejectedException;
-import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.selector.MessageSelector;
 import org.springframework.util.Assert;
 

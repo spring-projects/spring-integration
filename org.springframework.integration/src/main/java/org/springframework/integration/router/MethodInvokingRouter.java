@@ -26,8 +26,8 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageMappingMethodInvoker;
-import org.springframework.integration.message.MessagingException;
 import org.springframework.util.Assert;
 
 /**

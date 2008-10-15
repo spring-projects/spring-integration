@@ -20,8 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessagingException;
 
 /**
  * A base class for {@link Transformer} implementations that modify
