@@ -31,6 +31,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.util.ErrorHandler;
 import org.springframework.scheduling.SchedulingException;
@@ -42,7 +43,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class SimpleTaskScheduler implements TaskScheduler {
+public class SimpleTaskScheduler implements TaskScheduler, DisposableBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -135,6 +136,16 @@ public class SimpleTaskScheduler implements TaskScheduler {
 		}
 		finally {
 			this.lifecycleLock.unlock();
+		}
+	}
+
+	public void destroy() throws Exception {
+		this.stop();
+		if (this.executor instanceof DisposableBean) {
+			if (logger.isInfoEnabled()) {
+				logger.info("shutting down TaskExecutor");
+			}
+			((DisposableBean) this.executor).destroy();
 		}
 	}
 
