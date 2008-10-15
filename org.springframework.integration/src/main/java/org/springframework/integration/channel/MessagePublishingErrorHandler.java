@@ -63,8 +63,8 @@ public class MessagePublishingErrorHandler implements ErrorHandler {
 		}
 		if (this.errorChannel != null) {
 			try {
-				if (this.errorChannel instanceof BlockingChannel && this.sendTimeout >= 0) {
-					((BlockingChannel) this.errorChannel).send(new ErrorMessage(t), this.sendTimeout);
+				if (this.sendTimeout >= 0) {
+					this.errorChannel.send(new ErrorMessage(t), this.sendTimeout);
 				}
 				else {
 					this.errorChannel.send(new ErrorMessage(t));

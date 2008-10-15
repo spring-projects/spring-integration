@@ -21,7 +21,6 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.integration.channel.BlockingChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -71,8 +70,7 @@ public class MessageStoringInterceptor extends ChannelInterceptorAdapter {
 				}
 				List<Message<?>> storedMessages = this.messageStore.list();
 				for (Message<?> message : storedMessages) {
-					boolean sent = (channel instanceof BlockingChannel)
-							? ((BlockingChannel) channel).send(message, 0) : channel.send(message);
+					boolean sent = channel.send(message, 0);
 					if (!sent) {
 						throw new MessagingException("failed to initialize channel from MessageStore");
 					}

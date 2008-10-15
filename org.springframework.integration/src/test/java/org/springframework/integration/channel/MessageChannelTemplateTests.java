@@ -206,12 +206,10 @@ public class MessageChannelTemplateTests {
 	public void sendWithReturnAddress() throws InterruptedException {
 		final List<String> replies = new ArrayList<String>(3);
 		final CountDownLatch latch = new CountDownLatch(3);
-		MessageChannel replyChannel = new MessageChannel() {
-			public String getName() {
-				return "testReplyChannel";
-			}
-			public boolean send(Message<?> replyMessage) {
-				replies.add((String) replyMessage.getPayload());
+		MessageChannel replyChannel = new AbstractMessageChannel() {
+			@Override
+			protected boolean doSend(Message<?> message, long timeout) {
+				replies.add((String) message.getPayload());
 				latch.countDown();
 				return true;
 			}

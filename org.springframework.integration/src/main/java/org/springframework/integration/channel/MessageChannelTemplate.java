@@ -217,8 +217,8 @@ public class MessageChannelTemplate implements InitializingBean {
 	private boolean doSend(Message<?> message, MessageChannel channel) {
 		Assert.notNull(channel, "channel must not be null");
 		long timeout = this.sendTimeout;
-		boolean sent = (timeout >= 0 && channel instanceof BlockingChannel)
-				? ((BlockingChannel) channel).send(message, timeout)
+		boolean sent = (timeout >= 0)
+				? channel.send(message, timeout)
 				: channel.send(message);
 		if (!sent && this.logger.isTraceEnabled()) {
 			this.logger.trace("failed to send message to channel '" + channel + "' within timeout: " + timeout);
@@ -294,6 +294,10 @@ public class MessageChannelTemplate implements InitializingBean {
 		}
 
 		public boolean send(Message<?> message) {
+			return this.send(message, -1);
+		}
+
+		public boolean send(Message<?> message, long timeout) {
 			this.message = message;
 			this.latch.countDown();
 			return true;

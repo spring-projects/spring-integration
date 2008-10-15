@@ -20,7 +20,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.context.Lifecycle;
-import org.springframework.integration.channel.BlockingChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -109,8 +108,8 @@ public class WireTap extends ChannelInterceptorAdapter implements Lifecycle {
 	@Override
 	public Message<?> preSend(Message<?> message, MessageChannel channel) {
 		if (this.running && (this.selector == null || this.selector.accept(message))) {
-			boolean sent = (this.channel instanceof BlockingChannel && this.timeout >= 0)
-					? ((BlockingChannel) this.channel).send(message, this.timeout)
+			boolean sent = (this.timeout >= 0)
+					? this.channel.send(message, this.timeout)
 					: this.channel.send(message);
 			if (!sent && logger.isWarnEnabled()) {
 				logger.warn("failed to send message to WireTap channel '" + this.channel + "'");
