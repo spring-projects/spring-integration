@@ -42,7 +42,7 @@ public class IntegrationNamespaceHandler extends NamespaceHandlerSupport {
 		registerBeanDefinitionParser("outbound-channel-adapter", new MethodInvokingOutboundChannelAdapterParser());
 		registerBeanDefinitionParser("gateway", new GatewayParser());
 		registerBeanDefinitionParser("selector-chain", new SelectorChainParser());
-		registerBeanDefinitionParser("pool-executor", new PoolExecutorParser());
+		registerBeanDefinitionParser("thread-pool-task-executor", new PoolExecutorParser());
 	}
 
 }

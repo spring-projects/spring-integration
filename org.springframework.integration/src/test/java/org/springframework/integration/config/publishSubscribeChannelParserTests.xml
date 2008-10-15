@@ -13,6 +13,6 @@
 
 	<publish-subscribe-channel id="channelWithTaskExecutor" task-executor="pool"/>
 
-	<pool-executor id="pool"/>
+	<thread-pool-task-executor id="pool"/>
 
 </beans:beans>

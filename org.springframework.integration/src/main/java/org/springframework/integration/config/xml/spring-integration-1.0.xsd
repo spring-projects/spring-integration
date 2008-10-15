@@ -324,7 +324,7 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="pool-executor">
+	<xsd:element name="thread-pool-task-executor">
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
