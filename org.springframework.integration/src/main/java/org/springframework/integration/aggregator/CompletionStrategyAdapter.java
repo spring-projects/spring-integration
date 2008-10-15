@@ -19,7 +19,7 @@ package org.springframework.integration.aggregator;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 import org.springframework.util.Assert;
 
 /**

@@ -18,7 +18,7 @@ package org.springframework.integration.filter;
 
 import java.lang.reflect.Method;
 
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageMappingMethodInvoker;
 import org.springframework.integration.selector.MessageSelector;
 import org.springframework.util.Assert;

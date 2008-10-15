@@ -16,7 +16,7 @@
 
 package org.springframework.integration.router.config;
 
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 
 /**

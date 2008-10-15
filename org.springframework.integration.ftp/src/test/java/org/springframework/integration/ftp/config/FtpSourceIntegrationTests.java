@@ -26,9 +26,9 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import org.springframework.integration.core.Message;
 import org.springframework.integration.ftp.FtpSource;
 import org.springframework.integration.ftp.QueuedFTPClientPool;
-import org.springframework.integration.message.Message;
 
 /**
  * @author Iwein Fuld

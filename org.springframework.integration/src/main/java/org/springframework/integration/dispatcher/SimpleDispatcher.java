@@ -16,7 +16,7 @@
 
 package org.springframework.integration.dispatcher;
 
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageRejectedException;

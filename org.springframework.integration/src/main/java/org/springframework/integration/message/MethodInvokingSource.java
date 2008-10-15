@@ -20,6 +20,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.util.DefaultMethodInvoker;
 import org.springframework.integration.util.MethodInvoker;
 import org.springframework.integration.util.MethodValidator;

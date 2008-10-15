@@ -18,7 +18,7 @@ package org.springframework.integration.aggregator;
 
 import java.util.Comparator;
 
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 
 /**
  * A {@link Comparator} implementation based on the 'sequence number'

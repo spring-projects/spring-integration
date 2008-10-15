@@ -18,7 +18,7 @@ package org.springframework.integration.file;
 
 import java.io.File;
 
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 import org.springframework.util.StringUtils;
 
 /**

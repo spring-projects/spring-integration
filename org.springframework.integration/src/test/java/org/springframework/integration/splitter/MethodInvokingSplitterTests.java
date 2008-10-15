@@ -29,7 +29,7 @@ import org.junit.Test;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
 

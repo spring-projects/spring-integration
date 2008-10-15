@@ -16,7 +16,7 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 
 /**
  * Base interface for gateway adapters. In Spring Integration, a "gateway" is a

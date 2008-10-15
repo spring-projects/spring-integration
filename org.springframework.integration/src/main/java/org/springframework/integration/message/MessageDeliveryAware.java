@@ -16,6 +16,8 @@
 
 package org.springframework.integration.message;
 
+import org.springframework.integration.core.Message;
+
 /**
  * Interface that provides callback definitions for components that require
  * message delivery status notifications.

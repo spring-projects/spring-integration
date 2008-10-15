@@ -16,7 +16,7 @@
 
 package org.springframework.integration.router;
 
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 
 /**
  * Extends {@link AbstractChannelNameResolvingMessageRouter} to support router

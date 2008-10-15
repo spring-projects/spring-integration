@@ -19,7 +19,7 @@ package org.springframework.integration.config;
 import java.util.List;
 
 import org.springframework.integration.aggregator.CompletionStrategy;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 
 /**
  * @author Marius Bogoevici

@@ -17,7 +17,7 @@
 package org.springframework.integration.dispatcher;
 
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageConsumer;
 

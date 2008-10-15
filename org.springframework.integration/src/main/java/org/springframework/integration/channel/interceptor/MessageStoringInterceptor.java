@@ -24,7 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.channel.BlockingChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageStore;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.util.Assert;

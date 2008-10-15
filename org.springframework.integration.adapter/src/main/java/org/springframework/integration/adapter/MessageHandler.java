@@ -16,7 +16,7 @@
 
 package org.springframework.integration.adapter;
 
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 
 /**
  * Interface used for proxy-based remoting adapters (e.g. RMI and HttpInvoker).

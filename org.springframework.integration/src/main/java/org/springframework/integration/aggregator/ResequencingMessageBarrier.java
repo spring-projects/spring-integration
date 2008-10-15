@@ -22,7 +22,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 
 /**
  * MessageBarrier implementation for resequencing. It can either

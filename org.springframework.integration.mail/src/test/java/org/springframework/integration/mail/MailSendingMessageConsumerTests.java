@@ -71,7 +71,7 @@ public class MailSendingMessageConsumerTests {
 	@Test
 	public void byteArrayMessage() throws Exception {
 		byte[] payload = {1, 2, 3};
-		org.springframework.integration.message.Message<byte[]> message =
+		org.springframework.integration.core.Message<byte[]> message =
 				MessageBuilder.withPayload(payload)
 				.setHeader(MailHeaders.ATTACHMENT_FILENAME, "attachment.txt")
 				.setHeader(MailHeaders.TO, MailTestsHelper.TO)

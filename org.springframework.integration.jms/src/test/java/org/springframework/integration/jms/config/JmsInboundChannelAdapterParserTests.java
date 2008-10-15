@@ -26,7 +26,7 @@ import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.PollableChannel;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 
 /**
  * @author Mark Fisher

@@ -23,7 +23,7 @@ import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.BlockingChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.selector.MessageSelector;
 import org.springframework.util.Assert;
 

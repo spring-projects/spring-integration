@@ -20,6 +20,8 @@ import java.lang.reflect.Method;
 
 import org.junit.Test;
 
+import org.springframework.integration.core.Message;
+
 /**
  * @author Mark Fisher
  */

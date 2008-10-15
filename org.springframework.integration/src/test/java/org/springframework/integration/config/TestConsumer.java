@@ -16,7 +16,7 @@
 
 package org.springframework.integration.config;
 
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageConsumer;
 
 /**

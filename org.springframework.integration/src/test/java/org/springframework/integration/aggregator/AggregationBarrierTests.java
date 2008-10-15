@@ -27,7 +27,7 @@ import org.junit.Test;
 
 import org.springframework.integration.aggregator.AggregationBarrier;
 import org.springframework.integration.aggregator.CompletionStrategy;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.message.StringMessage;
 
 /**

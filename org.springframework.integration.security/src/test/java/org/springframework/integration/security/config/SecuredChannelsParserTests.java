@@ -39,7 +39,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.channel.AbstractPollableChannel;
 import org.springframework.integration.channel.ChannelInterceptor;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.security.channel.ChannelAccessPolicy;
 import org.springframework.integration.security.channel.ChannelInvocationDefinitionSource;
 import org.springframework.integration.security.channel.ChannelSecurityInterceptor;

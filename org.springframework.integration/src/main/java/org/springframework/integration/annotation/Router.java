@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
  * based on a message, message header(s), or both.
  * <p>
  * A method annotated with @Router may accept a parameter of type
- * {@link org.springframework.integration.message.Message} or of the expected
+ * {@link org.springframework.integration.core.Message} or of the expected
  * Message payload's type. Any type conversion supported by
  * {@link org.springframework.beans.SimpleTypeConverter} will be applied to
  * the Message payload if necessary. Header values can also be passed as

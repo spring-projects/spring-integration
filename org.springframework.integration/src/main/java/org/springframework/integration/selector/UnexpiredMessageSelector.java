@@ -16,7 +16,7 @@
 
 package org.springframework.integration.selector;
 
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 
 /**
  * A {@link MessageSelector} that accepts {@link Message Messages} that are

@@ -32,7 +32,7 @@ import org.springframework.context.event.ContextStoppedEvent;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 
 /**
  * @author Mark Fisher

@@ -20,7 +20,7 @@ import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageMappingMethodInvoker;
 import org.springframework.integration.util.DefaultMethodResolver;

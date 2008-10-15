@@ -22,7 +22,7 @@ import java.util.Map;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Node;
 
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.xml.XmlPayloadConverter;
 import org.springframework.util.Assert;
 import org.springframework.xml.xpath.NodeMapper;

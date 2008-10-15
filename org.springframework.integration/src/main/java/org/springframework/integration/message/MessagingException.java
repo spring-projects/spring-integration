@@ -16,6 +16,8 @@
 
 package org.springframework.integration.message;
 
+import org.springframework.integration.core.Message;
+
 /**
  * The base exception for any failures within the messaging system.
  * 

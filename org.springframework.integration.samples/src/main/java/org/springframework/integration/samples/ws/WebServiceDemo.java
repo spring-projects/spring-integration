@@ -18,7 +18,7 @@ package org.springframework.integration.samples.ws;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.MessageChannel;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.ws.AbstractWebServiceOutboundGateway;
 

@@ -27,8 +27,8 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.jms.JmsGateway;
-import org.springframework.integration.message.Message;
 import org.springframework.jms.connection.JmsTransactionManager;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 

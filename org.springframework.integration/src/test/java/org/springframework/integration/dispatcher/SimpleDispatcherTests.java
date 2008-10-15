@@ -26,9 +26,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
+import org.springframework.integration.core.Message;
 import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
 import org.springframework.integration.endpoint.ServiceActivatingConsumer;
-import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageRejectedException;

@@ -27,8 +27,8 @@ import org.junit.Test;
 
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
-import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 
 /**

@@ -16,6 +16,8 @@
 
 package org.springframework.integration.message;
 
+import org.springframework.integration.core.Message;
+
 /**
  * Strategy interface for mapping from a {@link Message} to an Object.
  * 

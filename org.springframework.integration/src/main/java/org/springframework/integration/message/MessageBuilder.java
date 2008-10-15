@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.springframework.integration.channel.MessageChannel;
+import org.springframework.integration.core.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 

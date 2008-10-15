@@ -20,7 +20,7 @@ import javax.jms.MessageListener;
 
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.MessageChannelTemplate;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.jms.support.converter.MessageConverter;

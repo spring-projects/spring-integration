@@ -19,8 +19,8 @@ package org.springframework.integration.event;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.endpoint.AbstractMessageConsumer;
-import org.springframework.integration.message.Message;
 import org.springframework.util.Assert;
 
 /**

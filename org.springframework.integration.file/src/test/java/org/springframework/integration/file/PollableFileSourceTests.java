@@ -25,7 +25,7 @@ import java.io.File;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.core.io.Resource;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 
 /**
  * @author Iwein Fuld

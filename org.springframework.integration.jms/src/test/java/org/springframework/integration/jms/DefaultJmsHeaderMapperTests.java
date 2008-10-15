@@ -28,9 +28,9 @@ import javax.jms.JMSException;
 
 import org.junit.Test;
 
+import org.springframework.integration.core.Message;
 import org.springframework.integration.jms.DefaultJmsHeaderMapper;
 import org.springframework.integration.jms.JmsHeaders;
-import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageBuilder;
 
 /**

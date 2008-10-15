@@ -32,7 +32,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.message.StringMessage;
 
 /**

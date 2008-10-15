@@ -23,6 +23,8 @@ import java.util.Date;
 
 import org.junit.Test;
 
+import org.springframework.integration.core.Message;
+
 /**
  * @author Mark Fisher
  */

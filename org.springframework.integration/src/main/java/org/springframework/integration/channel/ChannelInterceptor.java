@@ -16,7 +16,7 @@
 
 package org.springframework.integration.channel;
 
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 
 /**
  * Interface for interceptors that are able to view and/or modify the

@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentMap;
 import org.springframework.integration.aggregator.MessageSequenceComparator;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.MessageEndpoint;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.message.StringMessage;
 
 /**

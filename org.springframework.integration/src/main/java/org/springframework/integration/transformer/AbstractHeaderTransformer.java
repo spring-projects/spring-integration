@@ -19,7 +19,7 @@ package org.springframework.integration.transformer;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessagingException;
 

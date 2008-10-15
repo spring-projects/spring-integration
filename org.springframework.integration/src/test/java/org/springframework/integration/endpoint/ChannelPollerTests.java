@@ -27,7 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.integration.channel.PollableChannel;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.scheduling.Trigger;

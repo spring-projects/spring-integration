@@ -19,7 +19,7 @@ package org.springframework.integration.selector;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 import org.springframework.util.Assert;
 
 /**

@@ -28,6 +28,7 @@ import org.springframework.core.MethodParameter;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.integration.annotation.Header;
 import org.springframework.integration.annotation.Headers;
+import org.springframework.integration.core.Message;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;

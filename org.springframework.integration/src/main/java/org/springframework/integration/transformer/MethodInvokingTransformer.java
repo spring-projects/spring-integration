@@ -20,7 +20,7 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Properties;
 
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageMappingMethodInvoker;

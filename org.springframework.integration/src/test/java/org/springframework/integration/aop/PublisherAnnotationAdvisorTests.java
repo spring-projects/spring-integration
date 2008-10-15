@@ -26,7 +26,7 @@ import org.junit.Test;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.TestChannelResolver;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 
 /**
  * @author Mark Fisher

@@ -20,8 +20,8 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 import org.springframework.integration.annotation.Aggregator;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.message.Message;
 import org.springframework.integration.util.DefaultMethodResolver;
 import org.springframework.integration.util.MethodResolver;
 import org.springframework.util.Assert;

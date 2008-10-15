@@ -18,6 +18,8 @@ package org.springframework.integration.message;
 
 import java.util.List;
 
+import org.springframework.integration.core.Message;
+
 /**
  * Strategy interface for storing and retrieving messages.
  * 

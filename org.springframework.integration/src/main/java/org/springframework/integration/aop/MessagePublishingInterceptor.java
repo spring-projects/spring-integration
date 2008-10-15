@@ -23,7 +23,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.MessageChannelTemplate;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.util.Assert;
 

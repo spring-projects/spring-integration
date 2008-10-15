@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.integration.core.Message;
+
 /**
  * The headers for a {@link Message}.
  * 

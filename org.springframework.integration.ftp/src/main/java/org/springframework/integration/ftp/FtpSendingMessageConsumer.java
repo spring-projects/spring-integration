@@ -23,7 +23,7 @@ import java.io.IOException;
 
 import org.apache.commons.net.ftp.FTPClient;
 
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.util.Assert;

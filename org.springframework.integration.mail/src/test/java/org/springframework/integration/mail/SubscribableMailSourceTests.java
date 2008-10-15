@@ -27,7 +27,7 @@ import org.easymock.classextension.EasyMock;
 import org.junit.Test;
 
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 
 /**
  * @author Jonas Partner

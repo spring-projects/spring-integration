@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.integration.core.Message;
 import org.springframework.integration.util.BoundedHashMap;
 import org.springframework.util.Assert;
 

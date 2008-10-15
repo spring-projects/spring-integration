@@ -18,8 +18,8 @@ package org.springframework.integration.file.config;
 
 import java.util.Date;
 
+import org.springframework.integration.core.Message;
 import org.springframework.integration.file.FileNameGenerator;
-import org.springframework.integration.message.Message;
 
 /**
  * @author Marius Bogoevici

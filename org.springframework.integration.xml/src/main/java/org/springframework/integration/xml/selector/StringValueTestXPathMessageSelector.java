@@ -21,7 +21,7 @@ import java.util.Map;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.selector.MessageSelector;
 import org.springframework.xml.xpath.XPathExpression;
 

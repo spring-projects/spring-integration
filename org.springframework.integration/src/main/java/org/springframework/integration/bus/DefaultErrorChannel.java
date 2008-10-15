@@ -22,7 +22,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.RendezvousChannel;
 import org.springframework.integration.channel.interceptor.ChannelInterceptorAdapter;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 
 /**
  * The default error channel implementation used by the {@link MessageBus}.

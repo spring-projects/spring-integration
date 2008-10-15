@@ -18,7 +18,7 @@ package org.springframework.integration.aggregator;
 
 import java.util.List;
 
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 
 /**
  * Strategy for determining when a group of messages reaches a state of

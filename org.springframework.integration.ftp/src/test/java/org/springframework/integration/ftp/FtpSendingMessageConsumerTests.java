@@ -30,8 +30,8 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.integration.core.Message;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.message.Message;
 import org.springframework.integration.message.MessageDeliveryException;
 
 /**

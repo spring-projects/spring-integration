@@ -23,7 +23,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessagingException;
 import org.springframework.integration.util.DefaultMethodInvoker;
 import org.springframework.util.Assert;

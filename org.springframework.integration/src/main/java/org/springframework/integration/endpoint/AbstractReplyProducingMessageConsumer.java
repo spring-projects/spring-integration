@@ -22,7 +22,7 @@ import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessageChannel;
 import org.springframework.integration.channel.MessageChannelTemplate;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageHeaders;

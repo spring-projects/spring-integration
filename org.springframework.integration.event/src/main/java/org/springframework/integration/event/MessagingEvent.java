@@ -17,7 +17,7 @@
 package org.springframework.integration.event;
 
 import org.springframework.context.ApplicationEvent;
-import org.springframework.integration.message.Message;
+import org.springframework.integration.core.Message;
 
 /**
  * A subclass of {@link ApplicationEvent} that wraps a {@link Message}.

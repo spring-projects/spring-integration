@@ -16,8 +16,8 @@
 
 package org.springframework.integration.adapter;
 
+import org.springframework.integration.core.Message;
 import org.springframework.integration.gateway.SimpleMessagingGateway;
-import org.springframework.integration.message.Message;
 
 /**
  * Support class for inbound Messaging Gateways.
