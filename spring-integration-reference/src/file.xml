@@ -131,6 +131,7 @@
 		</para>
 	</section>
 	<section id="file-transforming">
+		<title>File Transformers</title>
 		<para>
 			<!-- Introduction -->
 			To transform data read from the file system to objects and the other
