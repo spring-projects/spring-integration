@@ -25,6 +25,7 @@ import org.junit.Test;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.core.MessagePriority;
 
 /**
  * @author Mark Fisher

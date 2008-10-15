@@ -22,7 +22,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessagePriority;
+import org.springframework.integration.core.MessagePriority;
 
 /**
  * A message channel that prioritizes messages based on a {@link Comparator}.

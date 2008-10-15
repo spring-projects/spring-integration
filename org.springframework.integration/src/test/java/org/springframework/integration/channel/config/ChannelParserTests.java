@@ -33,10 +33,10 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.config.TestChannelInterceptor;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessagePriority;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryException;
-import org.springframework.integration.message.MessagePriority;
 import org.springframework.integration.message.StringMessage;
 
 /**

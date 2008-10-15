@@ -25,8 +25,8 @@ import java.util.Comparator;
 import org.junit.Test;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessagePriority;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessagePriority;
 import org.springframework.integration.message.StringMessage;
 
 /**
