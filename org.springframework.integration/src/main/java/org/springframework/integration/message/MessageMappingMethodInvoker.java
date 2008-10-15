@@ -122,9 +122,7 @@ public class MessageMappingMethodInvoker implements MethodInvoker, InitializingB
 		if (!this.initialized) {
 			this.afterPropertiesSet();
 		}
-		if (ObjectUtils.isEmpty(args)) {
-			return null;
-		}
+		Assert.notEmpty(args, "argument array must not be empty");
 		Message<?> message = null;
 		if (args.length == 1 && args[0] != null && (args[0] instanceof Message)) {
 			message = (Message<?>) args[0];
@@ -137,41 +135,42 @@ public class MessageMappingMethodInvoker implements MethodInvoker, InitializingB
 			args = this.createArgumentArrayFromMessage(message);
 		}
 		try {
-			Object result = null;
-			try {
-				result = this.invoker.invokeMethod(args);
-			}
-			catch (NoSuchMethodException e) {
-				try {
-					if (message != null) {
-						result = this.invoker.invokeMethod(message);
-						this.methodExpectsMessage = true;
-					}
-				}
-				catch (NoSuchMethodException e2) {
-					throw new MessageHandlingException(message, "unable to resolve method for args: "
-							+ StringUtils.arrayToCommaDelimitedString(args));
-				}
-			}
-			if (result == null) {
-				return null;
-			}
-			return result;
+			return this.doInvokeMethod(args, message);
 		}
 		catch (InvocationTargetException e) {
 			if (e.getCause() != null && e.getCause() instanceof RuntimeException) {
 				throw (RuntimeException) e.getCause();
 			}
-			throw new MessageHandlingException(message, "Handler method '"
-					+ this.methodName + "' threw an Exception.", e.getCause());
+			throw new MessageHandlingException(message,
+					"method '" + this.methodName + "' threw an Exception.", e.getCause());
 		}
 		catch (Exception e) {
 			if (e instanceof RuntimeException) {
 				throw (RuntimeException) e;
 			}
-			throw new MessageHandlingException(message, "Failed to invoke handler method '"
+			throw new MessageHandlingException(message, "Failed to invoke method '"
 					+ this.methodName + "' with arguments: " + ObjectUtils.nullSafeToString(args), e);
 		}
+	}
+
+	private Object doInvokeMethod(Object[] args, Message<?> message) throws Exception {
+		Object result = null;
+		try {
+			result = this.invoker.invokeMethod(args);
+		}
+		catch (NoSuchMethodException e) {
+			try {
+				if (message != null) {
+					result = this.invoker.invokeMethod(message);
+					this.methodExpectsMessage = true;
+				}
+			}
+			catch (NoSuchMethodException e2) {
+				throw new MessageHandlingException(message, "unable to resolve method for args: "
+						+ StringUtils.arrayToCommaDelimitedString(args));
+			}
+		}
+		return result;
 	}
 
 	private Object[] createArgumentArrayFromMessage(Message<?> message) {
