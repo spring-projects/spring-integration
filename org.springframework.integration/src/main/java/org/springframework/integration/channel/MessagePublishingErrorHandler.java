@@ -58,43 +58,44 @@ public class MessagePublishingErrorHandler implements ErrorHandler {
 	}
 
 	public final void handle(Throwable t) {
-		Message<?> failedMessage = null;
-		if (logger.isWarnEnabled()) {
-			if (t instanceof MessagingException) {
-				failedMessage = ((MessagingException) t).getFailedMessage();
-				logger.warn("failure occurred in messaging task with message: " + failedMessage, t);
-			}
-			else {
-				logger.warn("failure occurred in messaging task", t);
-			}
-		}
-		MessageChannel errorChannel = null;
-		if (failedMessage != null) {
-			Object errorChannelHeader = failedMessage.getHeaders().getErrorChannel();
-			if (errorChannelHeader != null) {
-				if (errorChannelHeader instanceof MessageChannel) {
-					errorChannel = (MessageChannel) errorChannelHeader;
-				}
-				else if (errorChannelHeader instanceof String) {
-					errorChannel = this.channelResolver.resolveChannelName((String) errorChannelHeader); 
-				}
-			}
-		}
-		if (errorChannel == null) {
-			errorChannel = this.defaultErrorChannel;
-		}
+		Message<?> failedMessage = (t instanceof MessagingException) ?
+				((MessagingException) t).getFailedMessage() : null;
+		MessageChannel errorChannel = this.resolveErrorChannel(failedMessage);
+		boolean sent = false;
 		if (errorChannel != null) {
 			try {
 				if (this.sendTimeout >= 0) {
-					errorChannel.send(new ErrorMessage(t), this.sendTimeout);
+					sent = errorChannel.send(new ErrorMessage(t), this.sendTimeout);
 				}
 				else {
-					errorChannel.send(new ErrorMessage(t));
+					sent = errorChannel.send(new ErrorMessage(t));
 				}
 			}
 			catch (Throwable ignore) { // message will be logged only
 			}
 		}
+		if (!sent && logger.isErrorEnabled()) {
+			if (failedMessage != null) {
+				logger.error("failure occurred in messaging task with message: " + failedMessage, t);
+			}
+			else {
+				logger.error("failure occurred in messaging task", t);
+			}
+		}
+	}
+
+	private MessageChannel resolveErrorChannel(Message<?> failedMessage) {
+		if (failedMessage == null || failedMessage.getHeaders().getErrorChannel() == null) {
+			return this.defaultErrorChannel;
+		}
+		Object errorChannelHeader = failedMessage.getHeaders().getErrorChannel();
+		if (errorChannelHeader instanceof MessageChannel) {
+			return (MessageChannel) errorChannelHeader;
+		}
+		Assert.isInstanceOf(String.class, errorChannelHeader,
+				"Unsupported error channel header type. Expected MessageChannel or String, but actual type is [" +
+				errorChannelHeader.getClass() + "]");
+		return this.channelResolver.resolveChannelName((String) errorChannelHeader);
 	}
 
 }

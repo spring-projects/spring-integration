@@ -239,12 +239,15 @@ public class MessageChannelTemplate implements InitializingBean {
 	}
 
 	private Message<?> doSendAndReceive(Message<?> request, MessageChannel channel) {
-		TemporaryReturnAddress returnAddress = new TemporaryReturnAddress(this.receiveTimeout);
-		request = MessageBuilder.fromMessage(request).setReplyChannel(returnAddress).build();
+		TemporaryReturnAddress replyChannel = new TemporaryReturnAddress(this.receiveTimeout);
+		request = MessageBuilder.fromMessage(request)
+				.setReplyChannel(replyChannel)
+				.setErrorChannel(replyChannel)
+				.build();
 		if (!this.doSend(request, channel)) {
 			return null;
 		}
-		return this.doReceive(returnAddress);
+		return this.doReceive(replyChannel);
 	}
 
 	private MessageChannel getRequiredDefaultChannel() {
