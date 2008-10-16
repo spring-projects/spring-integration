@@ -77,4 +77,8 @@ public class ServiceActivatingConsumer extends AbstractReplyProducingMessageCons
 		}
 	}
 
+	public String toString() {
+		return "ServiceActivator for [" + this.invoker + "]";
+	}
+
 }

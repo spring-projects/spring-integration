@@ -194,4 +194,8 @@ public class MessageMappingMethodInvoker implements MethodInvoker, InitializingB
 		return new Object[] { message.getPayload() };
 	}
 
+	public String toString() {
+		return "invoker:" + this.object + "." + this.methodName;
+	}
+
 }
