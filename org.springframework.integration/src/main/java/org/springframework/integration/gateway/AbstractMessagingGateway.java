@@ -23,12 +23,14 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.MessagingGateway;
 import org.springframework.integration.endpoint.PollingConsumerEndpoint;
 import org.springframework.integration.endpoint.ReplyMessageHolder;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
+import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.util.Assert;
@@ -48,6 +50,8 @@ public abstract class AbstractMessagingGateway implements MessagingGateway, Mess
 	private volatile MessageChannel replyChannel;
 
 	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
+
+	private volatile boolean shouldThrowErrors = true;
 
 	private volatile MessageEndpoint replyMessageCorrelator;
 
@@ -93,6 +97,16 @@ public abstract class AbstractMessagingGateway implements MessagingGateway, Mess
 	 */
 	public void setReplyTimeout(long replyTimeout) {
 		this.channelTemplate.setReceiveTimeout(replyTimeout);
+	}
+
+	/**
+	 * Specify whether the Throwable payload of a received {@link ErrorMessage}
+	 * should be extracted and thrown from a send-and-receive operation.
+	 * Otherwise, the ErrorMessage would be returned just like any other
+	 * reply Message. The default is <code>true</code>.
+	 */
+	public void setShouldThrowErrors(boolean shouldThrowErrors) {
+		this.shouldThrowErrors = shouldThrowErrors;
 	}
 
 	public void setMessageBus(MessageBus messageBus) {
@@ -142,7 +156,15 @@ public abstract class AbstractMessagingGateway implements MessagingGateway, Mess
 		if (this.replyChannel != null && this.replyMessageCorrelator == null) {
 			this.registerReplyMessageCorrelator();
 		}
-		return this.channelTemplate.sendAndReceive(message, this.requestChannel);
+		Message<?> reply = this.channelTemplate.sendAndReceive(message, this.requestChannel);
+		if (reply != null && this.shouldThrowErrors && reply instanceof ErrorMessage) {
+			Throwable error = ((ErrorMessage) reply).getPayload();
+			if (error instanceof RuntimeException) {
+				throw (RuntimeException) error;
+			}
+			throw new MessagingException("gateway received checked Exception", error);
+		}
+		return reply;
 	}
 
 	private void registerReplyMessageCorrelator() {
