@@ -19,10 +19,12 @@ package org.springframework.integration.channel;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.util.ErrorHandler;
+import org.springframework.util.Assert;
 
 /**
  * {@link ErrorHandler} implementation that sends an {@link ErrorMessage} to a
@@ -34,40 +36,60 @@ public class MessagePublishingErrorHandler implements ErrorHandler {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private volatile MessageChannel errorChannel;
+	private final ChannelResolver channelResolver;
 
-	private final long sendTimeout = 1000;
+	private volatile MessageChannel defaultErrorChannel;
+
+	private volatile long sendTimeout = 1000;
 
 
-	public MessagePublishingErrorHandler() {
+	public MessagePublishingErrorHandler(ChannelResolver channelResolver) {
+		Assert.notNull(channelResolver, "channelResolver must not be null");
+		this.channelResolver = channelResolver;
 	}
 
-	public MessagePublishingErrorHandler(MessageChannel errorChannel) {
-		this.errorChannel = errorChannel;
+
+	public void setDefaultErrorChannel(MessageChannel defaultErrorChannel) {
+		this.defaultErrorChannel = defaultErrorChannel;
 	}
 
-
-	public void setErrorChannel(MessageChannel errorChannel) {
-		this.errorChannel = errorChannel;
+	public void setSendTimeout(long sendTimeout) {
+		this.sendTimeout = sendTimeout;
 	}
 
 	public final void handle(Throwable t) {
+		Message<?> failedMessage = null;
 		if (logger.isWarnEnabled()) {
 			if (t instanceof MessagingException) {
-				logger.warn("failure occurred in messaging task with message: "
-						+ ((MessagingException) t).getFailedMessage(), t);
+				failedMessage = ((MessagingException) t).getFailedMessage();
+				logger.warn("failure occurred in messaging task with message: " + failedMessage, t);
 			}
 			else {
 				logger.warn("failure occurred in messaging task", t);
 			}
 		}
-		if (this.errorChannel != null) {
+		MessageChannel errorChannel = null;
+		if (failedMessage != null) {
+			Object errorChannelHeader = failedMessage.getHeaders().getErrorChannel();
+			if (errorChannelHeader != null) {
+				if (errorChannelHeader instanceof MessageChannel) {
+					errorChannel = (MessageChannel) errorChannelHeader;
+				}
+				else if (errorChannelHeader instanceof String) {
+					errorChannel = this.channelResolver.resolveChannelName((String) errorChannelHeader); 
+				}
+			}
+		}
+		if (errorChannel == null) {
+			errorChannel = this.defaultErrorChannel;
+		}
+		if (errorChannel != null) {
 			try {
 				if (this.sendTimeout >= 0) {
-					this.errorChannel.send(new ErrorMessage(t), this.sendTimeout);
+					errorChannel.send(new ErrorMessage(t), this.sendTimeout);
 				}
 				else {
-					this.errorChannel.send(new ErrorMessage(t));
+					errorChannel.send(new ErrorMessage(t));
 				}
 			}
 			catch (Throwable ignore) { // message will be logged only

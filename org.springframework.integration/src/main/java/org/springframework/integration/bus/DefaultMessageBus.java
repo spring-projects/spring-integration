@@ -34,6 +34,8 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.integration.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.MessageEndpoint;
@@ -197,8 +199,10 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 		synchronized (this.lifecycleMonitor) {
 			this.activateEndpoints();
 			if (this.taskScheduler instanceof SimpleTaskScheduler) {
-				((SimpleTaskScheduler) this.taskScheduler).setErrorHandler(
-						new MessagePublishingErrorHandler(this.lookupChannel(ERROR_CHANNEL_BEAN_NAME)));
+				ChannelResolver channelResolver = new BeanFactoryChannelResolver(this.applicationContext);
+				MessagePublishingErrorHandler errorHandler = new MessagePublishingErrorHandler(channelResolver);
+				errorHandler.setDefaultErrorChannel(this.lookupChannel(ERROR_CHANNEL_BEAN_NAME));
+				((SimpleTaskScheduler) this.taskScheduler).setErrorHandler(errorHandler);
 			}
 			this.taskScheduler.start();
 		}
