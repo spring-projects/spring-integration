@@ -252,7 +252,7 @@ public class SimpleTaskScheduler implements TaskScheduler, DisposableBean {
 	/**
 	 * Wrapper that catches any Throwable thrown by a target task and
 	 * delegates to the {@link ErrorHandler} if available. If no error handler
-	 * has been configured, the error will be logged at warn-level.
+	 * has been configured, the error will be logged at error-level.
 	 */
 	private class ErrorHandlingRunnableWrapper implements Runnable {
 
@@ -269,12 +269,11 @@ public class SimpleTaskScheduler implements TaskScheduler, DisposableBean {
 				this.target.run();
 			}
 			catch (Throwable t) {
-				logger.error(t);
 				if (SimpleTaskScheduler.this.errorHandler != null) {
 					SimpleTaskScheduler.this.errorHandler.handle(t);
 				}
-				else if (logger.isWarnEnabled()) {
-					SimpleTaskScheduler.this.logger.warn("Error occurred in task but no 'errorHandler' is available.", t);
+				else if (logger.isErrorEnabled()) {
+					logger.error("Error occurred in task but no 'errorHandler' is available.", t);
 				}
 			}
 		}
