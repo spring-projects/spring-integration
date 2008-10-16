@@ -24,7 +24,7 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  */
-public class SubscribingConsumerEndpoint implements MessageEndpoint, Lifecycle {
+public class SubscribingConsumerEndpoint extends AbstractEndpoint implements Lifecycle {
 
 	private final MessageConsumer consumer;
 
