@@ -111,7 +111,14 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 		}
 		else {
 			taskExecutor = this.createTaskExecutor(100, "message-bus-");
-			builder.addPropertyValue("taskScheduler", new SimpleTaskScheduler(taskExecutor));
+			BeanDefinitionBuilder schedulerBuilder = BeanDefinitionBuilder.genericBeanDefinition(SimpleTaskScheduler.class);
+			schedulerBuilder.addConstructorArgValue(taskExecutor);
+			// TODO: define bean name as a constant elsewhere
+			String TASK_SCHEDULER_BEAN_NAME = "taskScheduler";
+			BeanDefinitionHolder schedulerHolder = new BeanDefinitionHolder(
+					schedulerBuilder.getBeanDefinition(), TASK_SCHEDULER_BEAN_NAME);
+			BeanDefinitionReaderUtils.registerBeanDefinition(schedulerHolder, parserContext.getRegistry());
+			builder.addPropertyReference("taskScheduler", TASK_SCHEDULER_BEAN_NAME);
 		}
 		if ("true".equals(element.getAttribute(ASYNC_EVENT_MULTICASTER_ATTRIBUTE).toLowerCase())) {
 			if (taskExecutor == null) {
