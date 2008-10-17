@@ -40,7 +40,7 @@
 	<xsd:element name="inbound-gateway">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a JMS-based gateway adapter.
+	Defines an inbound JMS-based Messaging Gateway.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -59,6 +59,23 @@
 					<xsd:attribute name="idle-task-execution-limit" type="xsd:string"/>
 				</xsd:extension>
 			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:element name="outbound-gateway">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines an outbound JMS-based Messaging Gateway.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:attribute name="id" type="xsd:ID"/>
+			<xsd:attribute name="request-channel" type="xsd:string" use="required"/>
+			<xsd:attribute name="reply-channel" type="xsd:string"/>
+			<xsd:attribute name="request-timeout" type="xsd:long"/>
+			<xsd:attribute name="reply-timeout" type="xsd:long"/>
+			<xsd:attribute name="jms-queue" type="xsd:string" use="required"/>
+			<xsd:attribute name="connection-factory" type="xsd:string" default="connectionFactory"/>
 		</xsd:complexType>
 	</xsd:element>
 

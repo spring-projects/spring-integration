@@ -18,19 +18,23 @@ package org.springframework.integration.jms;
 
 import java.io.Serializable;
 
+import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import javax.jms.Queue;
 import javax.jms.QueueRequestor;
 import javax.jms.QueueSession;
 import javax.jms.Session;
 
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
 import org.springframework.integration.endpoint.ReplyMessageHolder;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.SessionCallback;
 import org.springframework.jms.support.converter.MessageConverter;
+import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.util.Assert;
 
 /**
@@ -38,22 +42,31 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class JmsOutboundGateway extends AbstractReplyProducingMessageConsumer {
+public class JmsOutboundGateway extends AbstractReplyProducingMessageConsumer implements InitializingBean {
 
 	private volatile Queue jmsQueue;
 
-	private volatile JmsTemplate jmsTemplate;
-
 	private volatile MessageConverter messageConverter;
+
+	private final JmsTemplate jmsTemplate = new JmsTemplate();
 
 
 	public void setJmsQueue(Queue jmsQueue) {
 		this.jmsQueue = jmsQueue;
 	}
 
-	public void setJmsTemplate(JmsTemplate jmsTemplate) {
-		this.jmsTemplate = jmsTemplate;
-		this.messageConverter = new HeaderMappingMessageConverter(jmsTemplate.getMessageConverter());
+	public void setConnectionFactory(ConnectionFactory connectionFactory) {
+		this.jmsTemplate.setConnectionFactory(connectionFactory);
+	}
+
+	public void setReplyChannel(MessageChannel replyChannel) {
+		this.setOutputChannel(replyChannel);
+	}
+
+	public void afterPropertiesSet() {
+		this.jmsTemplate.afterPropertiesSet();
+		Assert.notNull(this.jmsQueue, "jmsQueue must not be null");
+		this.messageConverter = new HeaderMappingMessageConverter(new SimpleMessageConverter());
 	}
 
 	@Override
@@ -63,7 +76,6 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageConsumer {
 			public Object doInJms(Session session) throws JMSException {
 				Assert.state(session instanceof QueueSession,
 						"QueueSession is required for the outbound JMS Gateway");
-				Assert.state(jmsQueue != null, "Queue is required");
 				javax.jms.Message jmsRequest = (messageConverter != null)
 						? messageConverter.toMessage(requestMessage, session)
 						: session.createObjectMessage((Serializable) requestMessage);
