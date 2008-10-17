@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<chapter id="resources">
+  <title>HttpInvoker</title>
+
+  <section id="http-intro">
+    <title>Introduction</title>
+    <para>
+    </para>
+  </section>
+
+  <section id="http-outbound">
+    <title>Outbound HttpInvoker</title>
+    <para>
+	</para>
+	<para>
+		To configure the outbound gateway write a bean definition like this:
+		<programlisting language="xml"><![CDATA[]]>
+	</programlisting>
+    </para>
+  </section>
+
+  <section id="http-inbound">
+    <title>Inbound HttpInvoker</title>
+    <para>
+		To receive messages over http you need to use a <classname>TODO</classname>. This gateway can be configured like this
+		<programlisting language="xml"><![CDATA[]]>
+		</programlisting>
+    </para>
+  </section>
+
+  <section id="http-namespace">
+    <title>HttpInvoker namespace support</title>
+    <para>
+		To configure the inbound gateway you can choose to use the namespace support for it. The following code snippet shows the different configuration options that are supported.
+		<programlisting language="xml"><![CDATA[]]></programlisting>
+    </para>
+    <para>
+		To configure the outbound gateway you can use the namespace support as well. The following code snippet shows the different configuration for an outbound HttpInvoker gateway.
+		<programlisting language="xml"><![CDATA[]]></programlisting>
+    </para>
+  </section>
+</chapter>

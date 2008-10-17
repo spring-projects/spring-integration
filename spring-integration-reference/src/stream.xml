@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<chapter id="stream">
+  <title>Streams</title>
+
+  <section id="stream-intro">
+    <title>Introduction</title>
+    <para>
+		In many cases application data is obtained from a stream. It is <emphasize>not</emphasize> recommended to send a reference to a Stream as a message payload to a consumer. Instead messages are created from data that is read from an input stream and message payloads are written to an output stream one by one.
+    </para>
+  </section>
+
+<section id="stream-reading">
+	<title>Reading from streams</title>
+  <para>
+    Spring Integration provides two adapters for streams. Both <classname>ByteStreamSource</classname> and
+    <classname>CharacterStreamSource</classname> implement <interfacename>PollableSource</interfacename>. 
+	By configuring one of these within a channel-adapter element, the polling period can be configured,
+    and the Message Bus can automatically detect and schedule them. The byte stream version requires an
+    <classname>InputStream</classname>, and the character stream version requires a <classname>Reader</classname> as
+    the single constructor argument. The <classname>ByteStreamSource</classname> also accepts the 'bytesPerMessage'
+    property to determine how many bytes it will attempt to read into each <interfacename>Message</interfacename>. The 
+	default value is 1024
+		<programlisting language="xml"><![CDATA[<bean class="org.springframework.integration.stream.ByteStreamSource">
+	<constructor-arg value="someInputStream"/>
+	<property name="bytesPerMessage" value="2048"/>
+</bean>
+
+<bean class="org.springframework.integration.stream.CharacterStreamSource">
+	<constructor-arg ref="someReader"/>
+</bean>]]>
+		</programlisting>
+  </para>
+</section>
+
+  <section id="stream-writing">
+    <title>Writing to streams</title>
+	<para>
+		For target streams, there are also two implementations: <classname>ByteStreamWritingMessageConsumer</classname> and
+	    <classname>CharacterStreamWritingMessageConsumer</classname>. Each requires a single constructor argument -
+	    <classname>OutputStream</classname> for byte streams or <classname>Writer</classname> for character streams,
+	    and each provides a second constructor that adds the optional 'bufferSize' property. Since both of these
+	    ultimately implement the <interfacename>MessageConsumer</interfacename> interface, they can be referenced from a
+	    <emphasis>channel-adapter</emphasis> configuration as will be described in more detail in
+	    <xref linkend="namespace-endpoint"/>.
+		<programlisting language="xml"><![CDATA[]]>
+	</programlisting>
+    </para>
+  </section>
+
+
+
+  <section id="stream-namespace">
+    <title>HttpInvoker namespace support</title>
+    <para>
+		To configure the inbound gateway you can choose to use the namespace support for it. The following code snippet shows the different configuration options that are supported.
+		<programlisting language="xml"><![CDATA[]]></programlisting>
+    </para>
+    <para>
+		To configure the outbound gateway you can use the namespace support as well. The following code snippet shows the different configuration for an outbound HttpInvoker gateway.
+		<programlisting language="xml"><![CDATA[]]></programlisting>
+    </para>
+  </section>
+</chapter>
