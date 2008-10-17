@@ -29,7 +29,7 @@ import org.springframework.integration.jms.JmsGateway;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for the &lt;jms-gateway&gt; element.
+ * Parser for the &lt;inbound-gateway&gt; element of the 'jms' integration namespace.
  * 
  * @author Mark Fisher
  */
@@ -87,29 +87,14 @@ public class JmsGatewayParser extends AbstractSingleBeanDefinitionParser {
 				builder.addPropertyValue("sessionAcknowledgeMode", acknowledgeMode);
 			}
 		}
-		String transactionManager = element.getAttribute("transaction-manager");
-		if (StringUtils.hasText(transactionManager)) {
-			builder.addPropertyReference("transactionManager", transactionManager);
+		if ("true".equals(element.getAttribute("extract-payload-for-reply"))) {
+			builder.addPropertyValue("extractPayloadForReply", Boolean.TRUE);
 		}
-		String requestChannel = element.getAttribute("request-channel");
-		if (StringUtils.hasText(requestChannel)) {
-			builder.addPropertyReference("requestChannel", requestChannel);
-		}
-		String requestTimeout = element.getAttribute("request-timeout");
-		if (StringUtils.hasText(requestTimeout)) {
-			builder.addPropertyValue("requestTimeout", Long.parseLong(requestTimeout));
-		}
-		String replyChannel = element.getAttribute("reply-channel");
-		if (StringUtils.hasText(replyChannel)) {
-			builder.addPropertyReference("replyChannel", replyChannel);
-		}
-		String replyTimeout = element.getAttribute("reply-timeout");
-		if (StringUtils.hasText(replyTimeout)) {
-			builder.addPropertyValue("replyTimeout", Long.parseLong(replyTimeout));
-		}
-		if ("true".equals(element.getAttribute("expect-reply"))) {
-			builder.addPropertyValue("expectReply", Boolean.TRUE);
-		}
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "transaction-manager");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-channel");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-timeout");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "concurrent-consumers");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-concurrent-consumers");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "max-messages-per-task");

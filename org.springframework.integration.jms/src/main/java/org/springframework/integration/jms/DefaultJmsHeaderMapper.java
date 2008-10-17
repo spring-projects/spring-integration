@@ -28,16 +28,15 @@ import javax.jms.Destination;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.springframework.integration.adapter.MessageHeaderMapper;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.util.StringUtils;
 
 /**
- * A {@link HeaderMapper} implementation for JMS {@link javax.jms.Message Messages}. 
+ * Default implementation of {@link JmsHeaderMapper}. 
  * 
  * @author Mark Fisher
  */
-public class DefaultJmsHeaderMapper implements MessageHeaderMapper<javax.jms.Message> {
+public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 
 	private static List<Class<?>> SUPPORTED_PROPERTY_TYPES = Arrays.asList(new Class<?>[] {
 			Boolean.class, Byte.class, Double.class, Float.class, Integer.class, Long.class, Short.class, String.class });
@@ -46,7 +45,7 @@ public class DefaultJmsHeaderMapper implements MessageHeaderMapper<javax.jms.Mes
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 
-	public void mapFromMessageHeaders(MessageHeaders headers, javax.jms.Message jmsMessage) {
+	public void fromHeaders(MessageHeaders headers, javax.jms.Message jmsMessage) {
 		try {
 			Object jmsCorrelationId = headers.get(JmsHeaders.CORRELATION_ID);
 			if (jmsCorrelationId != null && (jmsCorrelationId instanceof String)) {
@@ -88,7 +87,7 @@ public class DefaultJmsHeaderMapper implements MessageHeaderMapper<javax.jms.Mes
 		}
 	}
 
-	public Map<String, Object> mapToMessageHeaders(javax.jms.Message jmsMessage) {
+	public Map<String, Object> toHeaders(javax.jms.Message jmsMessage) {
 		Map<String, Object> headers = new HashMap<String, Object>();
 		try {
 			String correlationId = jmsMessage.getJMSCorrelationID();

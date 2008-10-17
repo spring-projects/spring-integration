@@ -21,18 +21,18 @@ import java.util.Map;
 
 import javax.jms.Message;
 
-import org.springframework.integration.adapter.MessageHeaderMapper;
 import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.jms.JmsHeaderMapper;
 
 /**
  * @author Mark Fisher
  */
-public class TestMessageHeaderMapper implements MessageHeaderMapper<Message> {
+public class TestJmsHeaderMapper implements JmsHeaderMapper {
 
-	public void mapFromMessageHeaders(MessageHeaders headers, Message target) {
+	public void fromHeaders(MessageHeaders headers, Message target) {
 	}
 
-	public Map<String, Object> mapToMessageHeaders(Message source) {
+	public Map<String, Object> toHeaders(Message source) {
 		Map<String, Object> headerMap = new HashMap<String, Object>();
 		headerMap.put("testProperty", "foo");
 		headerMap.put("testAttribute", new Integer(123));

@@ -25,8 +25,8 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.adapter.MessageHeaderMapper;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
+import org.springframework.integration.jms.JmsHeaderMapper;
 
 /**
  * @author Mark Fisher
@@ -64,17 +64,15 @@ public class JmsOutboundChannelAdapterParserTests {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
 	public void adapterWithHeaderMapper() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsOutboundWithHeaderMapper.xml", this.getClass());
 		SubscribingConsumerEndpoint endpoint = (SubscribingConsumerEndpoint) context.getBean("adapter");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
 				new DirectFieldAccessor(endpoint).getPropertyValue("consumer"));
-		MessageHeaderMapper headerMapper = (MessageHeaderMapper)
-				accessor.getPropertyValue("headerMapper");
+		JmsHeaderMapper headerMapper = (JmsHeaderMapper) accessor.getPropertyValue("headerMapper");
 		assertNotNull(headerMapper);
-		assertEquals(TestMessageHeaderMapper.class, headerMapper.getClass());
+		assertEquals(TestJmsHeaderMapper.class, headerMapper.getClass());
 	}
 
 	@Test(expected = BeanDefinitionStoreException.class)

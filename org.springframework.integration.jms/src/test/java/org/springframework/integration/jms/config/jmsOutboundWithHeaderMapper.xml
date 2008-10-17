@@ -17,7 +17,7 @@
 			destination="testDestination"
 			header-mapper="mapper"/>
 
-	<bean id="mapper" class="org.springframework.integration.jms.config.TestMessageHeaderMapper"/>
+	<bean id="mapper" class="org.springframework.integration.jms.config.TestJmsHeaderMapper"/>
 
 	<bean id="connectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
 		<constructor-arg>

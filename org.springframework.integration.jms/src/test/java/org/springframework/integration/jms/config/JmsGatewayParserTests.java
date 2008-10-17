@@ -80,30 +80,30 @@ public class JmsGatewayParserTests {
 	}
 
 	@Test
-	public void testGatewayWithDefaultExpectReply() {
+	public void testGatewayWithDefaultExtractPayload() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"jmsGatewaysWithExpectReplyAttributes.xml", this.getClass());
+				"jmsGatewaysWithExtractPayloadAttributes.xml", this.getClass());
 		JmsGateway gateway = (JmsGateway) context.getBean("defaultGateway");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
-		assertEquals(Boolean.FALSE, accessor.getPropertyValue("expectReply"));
+		assertEquals(Boolean.FALSE, accessor.getPropertyValue("extractPayloadForReply"));
 	}
 
 	@Test
-	public void testGatewayExpectingReply() {
+	public void testGatewayWithExtractPayloadTrue() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"jmsGatewaysWithExpectReplyAttributes.xml", this.getClass());
+				"jmsGatewaysWithExtractPayloadAttributes.xml", this.getClass());
 		JmsGateway gateway = (JmsGateway) context.getBean("gatewayExpectingReply");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
-		assertEquals(Boolean.TRUE, accessor.getPropertyValue("expectReply"));
+		assertEquals(Boolean.TRUE, accessor.getPropertyValue("extractPayloadForReply"));
 	}
 
 	@Test
-	public void testGatewayNotExpectingReply() {
+	public void testGatewayWithExtractPayloadFalse() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"jmsGatewaysWithExpectReplyAttributes.xml", this.getClass());
+				"jmsGatewaysWithExtractPayloadAttributes.xml", this.getClass());
 		JmsGateway gateway = (JmsGateway) context.getBean("gatewayNotExpectingReply");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
-		assertEquals(Boolean.FALSE, accessor.getPropertyValue("expectReply"));
+		assertEquals(Boolean.FALSE, accessor.getPropertyValue("extractPayloadForReply"));
 	}
 
 	@Test(expected=BeanDefinitionStoreException.class)

@@ -18,7 +18,7 @@
 		<integration:queue capacity="1"/>
 	</integration:channel>
 
-	<bean id="mapper" class="org.springframework.integration.jms.config.TestMessageHeaderMapper"/>
+	<bean id="mapper" class="org.springframework.integration.jms.config.TestJmsHeaderMapper"/>
 
 	<bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
 		<property name="connectionFactory" ref="connectionFactory"/>

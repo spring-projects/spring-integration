@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.adapter;
+package org.springframework.integration.jms;
 
 import java.util.Map;
 
 import org.springframework.integration.core.MessageHeaders;
 
 /**
- * Strategy interface for mapping between a source or target object and an
- * integration {@link MessageHeader}.
+ * Strategy interface for mapping integration Message headers to an outbound
+ * JMS Message (e.g. to configure JMS properties) or extracting integration
+ * header values from an inbound JMS Message.
  * 
  * @author Mark Fisher
  */
-public interface MessageHeaderMapper<T> {
+public interface JmsHeaderMapper {
 
-	void mapFromMessageHeaders(MessageHeaders headers, T target);
+	void fromHeaders(MessageHeaders headers, javax.jms.Message jmsMessage);
 
-	Map<String, Object> mapToMessageHeaders(T source);
+	Map<String, Object> toHeaders(javax.jms.Message jmsMessage);
 
 }

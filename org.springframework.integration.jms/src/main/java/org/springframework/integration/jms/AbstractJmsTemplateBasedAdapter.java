@@ -20,7 +20,6 @@ import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.adapter.MessageHeaderMapper;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.util.Assert;
@@ -40,7 +39,7 @@ public abstract class AbstractJmsTemplateBasedAdapter implements InitializingBea
 
 	private volatile JmsTemplate jmsTemplate;
 
-	private volatile MessageHeaderMapper<javax.jms.Message> headerMapper;
+	private volatile JmsHeaderMapper headerMapper;
 
 	private volatile boolean initialized;
 
@@ -87,7 +86,7 @@ public abstract class AbstractJmsTemplateBasedAdapter implements InitializingBea
 		this.jmsTemplate = jmsTemplate;
 	}
 
-	public void setHeaderMapper(MessageHeaderMapper<javax.jms.Message> headerMapper) {
+	public void setHeaderMapper(JmsHeaderMapper headerMapper) {
 		this.headerMapper = headerMapper;
 	}
 

@@ -18,14 +18,18 @@ package org.springframework.integration.jms;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
+import javax.jms.JMSException;
+import javax.jms.MessageProducer;
 import javax.jms.Session;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.gateway.SimpleMessagingGateway;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
+import org.springframework.jms.listener.SessionAwareMessageListener;
 import org.springframework.jms.listener.adapter.MessageListenerAdapter;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
@@ -65,7 +69,7 @@ public class JmsGateway extends SimpleMessagingGateway implements Lifecycle, Dis
 
 	private volatile int idleTaskExecutionLimit = 1;
 
-	private boolean expectReply = false;
+	private volatile boolean extractPayloadForReply = false;
 
 
 	public void setContainer(AbstractMessageListenerContainer container) {
@@ -105,10 +109,6 @@ public class JmsGateway extends SimpleMessagingGateway implements Lifecycle, Dis
 		this.sessionAcknowledgeMode = sessionAcknowledgeMode;
 	}
 
-	public void setExpectReply(boolean expectReply) {
-		this.expectReply = expectReply;
-	}
-
 	public void setConcurrentConsumers(int concurrentConsumers) {
 		this.concurrentConsumers = concurrentConsumers;
 	}
@@ -125,19 +125,35 @@ public class JmsGateway extends SimpleMessagingGateway implements Lifecycle, Dis
 		this.idleTaskExecutionLimit = idleTaskExecutionLimit;
 	}
 
+	public void setExtractPayloadForReply(boolean extractPayloadForReply) {
+		this.extractPayloadForReply = extractPayloadForReply;
+	}
+
+
 	private void initialize() {
 		if (this.container == null) {
 			this.container = createDefaultContainer();
 		}
-		MessageListenerAdapter listener = new MessageListenerAdapter();
-		listener.setDelegate(this);
-		listener.setDefaultListenerMethod(this.expectReply ? "sendAndReceive" : "send");
 		if (this.messageConverter == null) {
 			this.messageConverter = new SimpleMessageConverter();
 		}
 		if (!(this.messageConverter instanceof HeaderMappingMessageConverter)) {
-			this.messageConverter = new HeaderMappingMessageConverter(this.messageConverter);
+			HeaderMappingMessageConverter hmmc = new HeaderMappingMessageConverter(this.messageConverter);
+			hmmc.setExtractPayload(this.extractPayloadForReply);
+			this.messageConverter = hmmc;
 		}
+		MessageListenerAdapter listener = new MessageListenerAdapter();
+		listener.setDelegate(new SessionAwareMessageListener() {
+			public void onMessage(javax.jms.Message jmsMessage, Session session) throws JMSException {
+				Object object = messageConverter.fromMessage(jmsMessage);
+				Message<?> replyMessage = JmsGateway.this.sendAndReceiveMessage(object);
+				if (replyMessage != null) {
+					javax.jms.Message jmsReply = messageConverter.toMessage(replyMessage, session);
+					MessageProducer producer = session.createProducer(jmsMessage.getJMSReplyTo());
+					producer.send(jmsMessage.getJMSReplyTo(), jmsReply);
+				}
+			}
+		});
 		listener.setMessageConverter(this.messageConverter);
 		this.container.setMessageListener(listener);
 		if (!this.container.isActive()) {
@@ -172,6 +188,8 @@ public class JmsGateway extends SimpleMessagingGateway implements Lifecycle, Dis
 		return dmlc;
 	}
 
+	// Lifecycle implementation
+
 	public boolean isRunning() {
 		return (this.container != null && this.container.isRunning());
 	}
@@ -186,6 +204,8 @@ public class JmsGateway extends SimpleMessagingGateway implements Lifecycle, Dis
 			this.container.stop();
 		}
 	}
+
+	// DisposableBean implementation
 
 	public void destroy() {
 		if (this.container != null) {
