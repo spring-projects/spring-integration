@@ -41,7 +41,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class JmsGateway extends SimpleMessagingGateway implements Lifecycle, DisposableBean {
+public class JmsInboundGateway extends SimpleMessagingGateway implements Lifecycle, DisposableBean {
 
 	private volatile AbstractMessageListenerContainer container;
 
@@ -146,7 +146,7 @@ public class JmsGateway extends SimpleMessagingGateway implements Lifecycle, Dis
 		listener.setDelegate(new SessionAwareMessageListener() {
 			public void onMessage(javax.jms.Message jmsMessage, Session session) throws JMSException {
 				Object object = messageConverter.fromMessage(jmsMessage);
-				Message<?> replyMessage = JmsGateway.this.sendAndReceiveMessage(object);
+				Message<?> replyMessage = JmsInboundGateway.this.sendAndReceiveMessage(object);
 				if (replyMessage != null) {
 					javax.jms.Message jmsReply = messageConverter.toMessage(replyMessage, session);
 					MessageProducer producer = session.createProducer(jmsMessage.getJMSReplyTo());

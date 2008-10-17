@@ -27,22 +27,22 @@ import org.springframework.jms.core.JmsTemplate;
 /**
  * A source for receiving JMS Messages with a polling listener. This source is
  * only recommended for very low message volume. Otherwise, the
- * {@link JmsGateway} that uses Spring's MessageListener
- * container support is highly recommended.
+ * {@link JmsInboundGateway} that uses Spring's MessageListener container
+ * support is a better option.
  * 
  * @author Mark Fisher
  */
-public class JmsSource extends AbstractJmsTemplateBasedAdapter implements MessageSource<Object> {
+public class JmsDestinationPollingSource extends AbstractJmsTemplateBasedAdapter implements MessageSource<Object> {
 
-	public JmsSource(JmsTemplate jmsTemplate) {
+	public JmsDestinationPollingSource(JmsTemplate jmsTemplate) {
 		super(jmsTemplate);
 	}
 
-	public JmsSource(ConnectionFactory connectionFactory, Destination destination) {
+	public JmsDestinationPollingSource(ConnectionFactory connectionFactory, Destination destination) {
 		super(connectionFactory, destination);
 	}
 
-	public JmsSource(ConnectionFactory connectionFactory, String destinationName) {
+	public JmsDestinationPollingSource(ConnectionFactory connectionFactory, String destinationName) {
 		super(connectionFactory, destinationName);
 	}
 

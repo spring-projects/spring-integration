@@ -25,7 +25,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.jms.JmsGateway;
+import org.springframework.integration.jms.JmsInboundGateway;
 import org.springframework.util.StringUtils;
 
 /**
@@ -33,11 +33,11 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class JmsGatewayParser extends AbstractSingleBeanDefinitionParser {
+public class JmsInboundGatewayParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
-		return JmsGateway.class;
+		return JmsInboundGateway.class;
 	}
 
 	@Override
@@ -56,7 +56,7 @@ public class JmsGatewayParser extends AbstractSingleBeanDefinitionParser {
 		String destinationName = element.getAttribute(JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE);
 		String messageConverter = element.getAttribute(JmsAdapterParserUtils.MESSAGE_CONVERTER_ATTRIBUTE);
 		if (StringUtils.hasText(element.getAttribute(JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE))) {
-			throw new BeanCreationException(JmsGateway.class.getSimpleName() +
+			throw new BeanCreationException(JmsInboundGateway.class.getSimpleName() +
 					" does not accept a '" + JmsAdapterParserUtils.JMS_TEMPLATE_ATTRIBUTE +
 					"' reference. One of '" + JmsAdapterParserUtils.DESTINATION_ATTRIBUTE + "' or '" +
 					JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE + "' must be provided.");
