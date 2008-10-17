@@ -16,22 +16,18 @@
 
 package org.springframework.integration.samples.jms;
 
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.annotation.MessageEndpoint;
+import org.springframework.integration.annotation.ServiceActivator;
 
 /**
- * Bootstrap for starting the JMS Channel Adapters.
- * 
  * @author Mark Fisher
  */
-public class ChannelAdaptersDemo {
+@MessageEndpoint
+public class DemoBean {
 
-	private final static String[] configFiles = {
-		"common.xml", "inboundChannelAdapter.xml", "outboundChannelAdapter.xml"
-	};
-
-
-	public static void main(String[] args) {
-		new ClassPathXmlApplicationContext(configFiles, ChannelAdaptersDemo.class);
+	@ServiceActivator
+	public String upperCase(String input) {
+		return input.toUpperCase();
 	}
 
 }
