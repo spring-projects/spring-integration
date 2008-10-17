@@ -27,6 +27,7 @@ import javax.jms.Session;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
 import org.springframework.integration.endpoint.ReplyMessageHolder;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.SessionCallback;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -56,7 +57,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageConsumer {
 	}
 
 	@Override
-	protected void onMessage(final Message<?> requestMessage, final ReplyMessageHolder replyMessageHolder) {
+	protected void onMessage(final Message<?> message, final ReplyMessageHolder replyMessageHolder) {
+		final Message<?> requestMessage = MessageBuilder.fromMessage(message).build();
 		this.jmsTemplate.execute(new SessionCallback() {
 			public Object doInJms(Session session) throws JMSException {
 				Assert.state(session instanceof QueueSession,
