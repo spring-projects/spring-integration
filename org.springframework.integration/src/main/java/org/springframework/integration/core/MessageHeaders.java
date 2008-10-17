@@ -16,13 +16,21 @@
 
 package org.springframework.integration.core;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * The headers for a {@link Message}.
@@ -31,6 +39,8 @@ import java.util.UUID;
  * @author Mark Fisher
  */
 public final class MessageHeaders implements Map<String, Object>, Serializable {
+
+	private static final Log logger = LogFactory.getLog(MessageHeaders.class);
 
 	private static final String PREFIX = "spring.integration.";
 
@@ -110,10 +120,8 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 			return null;
 		}
 		if (!type.isAssignableFrom(value.getClass())) {
-			throw new IllegalArgumentException(
-					"Incorrect type specified for header '" + key
-							+ "'. Expected [" + type + "] but actual type is ["
-							+ value.getClass() + "]");
+			throw new IllegalArgumentException("Incorrect type specified for header '" + key
+					+ "'. Expected [" + type + "] but actual type is [" + value.getClass() + "]");
 		}
 		return (T) value;
 	}
@@ -191,6 +199,30 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	public void clear() {
 		throw new UnsupportedOperationException("MessageHeaders is immutable.");
+	}
+
+	/*
+	 * Serialization methods
+	 */
+
+	private void writeObject(ObjectOutputStream out) throws IOException {
+		List<String> keysToRemove = new ArrayList<String>();
+		for (Map.Entry<String, Object> entry : this.headers.entrySet()) {
+			if (!(entry.getValue() instanceof Serializable)) {
+				keysToRemove.add(entry.getKey());
+			}
+		}
+		for (String key : keysToRemove) {
+			if (logger.isWarnEnabled()) {
+				logger.warn("removing non-serializable header: " + key);
+			}
+			this.headers.remove(key);
+		}
+		out.defaultWriteObject();
+	}
+
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+		in.defaultReadObject();
 	}
 
 }

@@ -21,6 +21,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -90,6 +94,42 @@ public class MessageHeadersTests {
 		Set<String> keys = headers.keySet();
 		assertTrue(keys.contains("key1"));
 		assertTrue(keys.contains("key2"));
+	}
+
+	@Test
+	public void serializeWithAllSerializableHeaders() throws Exception {
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("name", "joe");
+		map.put("age", 42);
+		MessageHeaders input = new MessageHeaders(map);
+		MessageHeaders output = (MessageHeaders) serializeAndDeserialize(input);
+		assertEquals("joe", output.get("name"));
+		assertEquals(42, output.get("age"));
+	}
+
+	@Test
+	public void serializeWithNonSerializableHeader() throws Exception {
+		Object address = new Object();
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("name", "joe");
+		map.put("address", address);
+		MessageHeaders input = new MessageHeaders(map);
+		MessageHeaders output = (MessageHeaders) serializeAndDeserialize(input);
+		assertEquals("joe", output.get("name"));
+		assertNull(output.get("address"));
+	}
+
+
+	private static Object serializeAndDeserialize(Object object) throws Exception {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ObjectOutputStream out = new ObjectOutputStream(baos);
+		out.writeObject(object);
+		out.close();
+		ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+		ObjectInputStream in = new ObjectInputStream(bais);
+		Object result = in.readObject();
+		in.close();
+		return result;
 	}
 
 }

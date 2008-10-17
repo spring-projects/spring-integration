@@ -51,7 +51,7 @@ public final class MessageBuilder<T> {
 		this.payload = payload;
 		this.originalMessage = originalMessage;
 		if (originalMessage != null) {
-			this.headers.putAll(originalMessage.getHeaders());
+			this.copyHeaders(originalMessage.getHeaders());
 		}
 	}
 
