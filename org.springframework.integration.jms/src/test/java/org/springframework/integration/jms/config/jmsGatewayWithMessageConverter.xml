@@ -14,11 +14,11 @@
 
 	<si:channel id="requestChannel"/>
 
-	<jms:jms-gateway id="jmsGateway"
-	                 connection-factory="testConnectionFactory"
-	                 destination="testDestination"
-	                 message-converter="converter"
-	                 request-channel="requestChannel"/>
+	<jms:inbound-gateway id="jmsGateway"
+	                 	 connection-factory="testConnectionFactory"
+	                 	 destination="testDestination"
+	                 	 message-converter="converter"
+	                 	 request-channel="requestChannel"/>
 
 	<bean id="converter" class="org.springframework.integration.jms.config.TestMessageConverter"/>
 

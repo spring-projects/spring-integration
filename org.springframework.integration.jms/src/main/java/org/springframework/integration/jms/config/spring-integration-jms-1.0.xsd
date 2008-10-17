@@ -37,7 +37,7 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="jms-gateway">
+	<xsd:element name="inbound-gateway">
 		<xsd:annotation>
 			<xsd:documentation>
 	Defines a JMS-based gateway adapter.

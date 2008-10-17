@@ -12,9 +12,9 @@
 
 	<si:channel id="requestChannel"/>
 
-	<jms:jms-gateway id="jmsGateway"
-					 connection-factory=""
-					 destination-name="testDestinationName"
-					 request-channel="requestChannel"/>
+	<jms:inbound-gateway id="jmsGateway"
+					 	 connection-factory=""
+						 destination-name="testDestinationName"
+					 	 request-channel="requestChannel"/>
 
 </beans>

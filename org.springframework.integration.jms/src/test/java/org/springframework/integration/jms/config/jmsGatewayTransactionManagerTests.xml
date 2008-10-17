@@ -12,16 +12,16 @@
 
 	<si:channel id="requestChannel"/>
 
-	<jms:jms-gateway id="gatewayWithoutTransactionManager"
-	                 connection-factory="testConnectionFactory"
-	                 destination="testDestination"
-	                 request-channel="requestChannel"/>
+	<jms:inbound-gateway id="gatewayWithoutTransactionManager"
+	                     connection-factory="testConnectionFactory"
+	                     destination="testDestination"
+	                     request-channel="requestChannel"/>
 
-	<jms:jms-gateway id="gatewayWithTransactionManager"
-	                 connection-factory="testConnectionFactory"
-	                 destination="testDestination"
-	                 request-channel="requestChannel"
-	                 transaction-manager="txManager"/>
+	<jms:inbound-gateway id="gatewayWithTransactionManager"
+	                     connection-factory="testConnectionFactory"
+	                     destination="testDestination"
+	                     request-channel="requestChannel"
+	                     transaction-manager="txManager"/>
 
 	<bean id="txManager" class="org.springframework.jms.connection.JmsTransactionManager">
 		<property name="connectionFactory" ref="testConnectionFactory"/>

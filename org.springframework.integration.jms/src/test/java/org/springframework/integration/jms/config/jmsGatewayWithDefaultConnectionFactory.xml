@@ -14,9 +14,9 @@
 
 	<si:channel id="requestChannel"/>
 
-	<jms:jms-gateway id="jmsGateway"
-					 destination-name="testDestinationName"
-					 request-channel="requestChannel"/>
+	<jms:inbound-gateway id="jmsGateway"
+					 	 destination-name="testDestinationName"
+					 	 request-channel="requestChannel"/>
 
 	<bean id="connectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
 		<constructor-arg>
