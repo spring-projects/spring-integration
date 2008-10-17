@@ -41,6 +41,7 @@
   <xi:include href="./adapters.xml"/>
   <xi:include href="./file.xml"/> 
   <xi:include href="./rmi.xml"/> 
+  <xi:include href="./aggregator-resequencer.xml"/>
   <xi:include href="./configuration.xml"/>
   <xi:include href="./samples.xml"/>
   <xi:include href="./resources.xml"/>

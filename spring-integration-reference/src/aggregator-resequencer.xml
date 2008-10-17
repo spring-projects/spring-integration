@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<chapter>
+  <title>Aggregation and Resequencing</title>
+
+  <section>
+    <title>Introduction</title>
+
+    <para>Basically a mirror-image of the Splitter, the Aggregator is a type
+    of Message Consumer that receives multiple Messages and combines them into
+    a single Message. In fact, Aggregators are often downstream consumers in a
+    pipeline that includes a Splitter.</para>
+
+    <para>Technically, the Aggregator is more complex than a Splitter, because
+    it is required to maintain state (the Messages to-be-aggregated), to
+    decide when the complete group of Messages is available, and to timeout if
+    necessary. Furthermore, in case of a timeout, the Aggregator needs to know
+    whether to send the partial results or to discard them to a separate
+    channel.</para>
+
+    <para>Related to the Aggregator, albeit different from a functional
+    standpoint, is the Resequencer. In this chapter, we will treat them
+    together because of their similar functionalities.</para>
+  </section>
+
+  <section>
+    <title>Functionality</title>
+
+    <section>
+      <title>Aggregation</title>
+
+      <para>The Aggregator combines a group of related messages, by storing
+      and grouping them, until the group is deemed complete. At that point,
+      the Aggregator will create a single message by processing the whole
+      group, and will send the result message further.</para>
+
+      <para>As messages might arrive with a certain delay (or certain messages
+      from the group might not arrive at all), the Aggregator can specify a
+      timeout (counted from the moment when the first message in the group has
+      arrived), and whether, in the case of a timeout, the group should be
+      discarded, or the Aggregator should merely attempt to create a single
+      message out of what has arrived so far. An important aspect of
+      implementing an Aggregator is providing the logic that has to be
+      executed when the aggregation (creation of a single message out of many)
+      takes place.</para>
+
+      <para>In Spring Integration, the grouping of the messages for
+      Aggregation is done based on their CORRELATION_ID message header (i.e.
+      the messages with the same CORRELATION_ID will be grouped
+      together).</para>
+
+      <para>An important concern with respect to the timeout is, what happens
+      if late messages arrive after the aggregation has taken place? In this
+      case, a configuration option allows the user to decide whether they
+      should be discarded or not.</para>
+    </section>
+
+    <section>
+      <title>Resequencing</title>
+
+      <para>The Resequencer works in a similar way to the Aggregator, in the
+      sense that it uses the CORRELATION_ID to store messages in groups, the
+      difference being that all what the Resequencer does, is to release them
+      in the order of their SEQUENCE_NUMBER. </para>
+
+      <para>With respect to that, the user might opt to release all messages
+      at once (after the whole sequence, according to the SEQUENCE_SIZE, has
+      been released), or as soon as a valid sequence is available. Another
+      option is to set a timeout, deciding whether to drop the whole sequence
+      if the timeout has expired, and not all messages have arrived, or to
+      release the messages accumulated so far, in the appropriate
+      order.</para>
+    </section>
+  </section>
+
+  <section>
+    <title>The API</title>
+
+    <para></para>
+
+    <section>
+      <title>Programming with Aggregator</title>
+
+      <para>The Aggregation API consists of a number of classes:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>The base class <code>AbstractMessageAggregator </code>and its
+          subclass <code>MethodInvokingMessageAggregator</code></para>
+        </listitem>
+      </itemizedlist>
+
+      <itemizedlist>
+        <listitem>
+          <para>The <code>CompletionStrategy</code> interface and its default
+          implementation <code>SequenceSizeCompletionStrategy</code></para>
+        </listitem>
+      </itemizedlist>
+
+      <para>The <code>AbstractMessageAggregator</code> is a
+      <code>MessageConsumer</code> implementation, encapsulating the common
+      functionalities of an Aggregator, which are: storing messages until the
+      message sequence to aggregate is complete (and grouping them according
+      to their CORRELATION_ID), and implementing the timeout functionality.
+      The responsibility of deciding whether the message sequence is complete
+      is delegated to a <code>CompletionStrategy</code> instance. </para>
+
+      <para>A brief highlight of the base
+      <code>AbstractMessageAggregator</code> (the responsibility of
+      implementing the aggregateMessages method is left to the
+      developer):</para>
+
+      <programlisting>public abstract class AbstractMessageAggregator extends AbstractMessageBarrierConsumer {
+
+  private volatile CompletionStrategy completionStrategy
+                            = new SequenceSizeCompletionStrategy();
+  ....
+
+  protected abstract Message&lt;?&gt; aggregateMessages(List&lt;Message&lt;?&gt;&gt; messages);
+
+}</programlisting>
+
+      <para>For implementing a specific aggregator object for an application,
+      a developer can extend <code>AbstractMessageAggregator </code>and
+      implement the <code>aggregateMessages</code> method. However, there are
+      better suited (which reads, less coupled to the API) solutions for
+      implementing the aggregation logic, which can be configured easily
+      either through XML or through annotations. </para>
+
+      <para><note>
+          <para>In the interest of code simplicity, and promoting good
+          practices such as low coupling, testability, etc., the preferred way
+          of implementing the aggregation logic by implementing a POJO, and
+          using the XML or annotation support for setting it up in the
+          application.</para>
+        </note>The <code>CompletionStrategy</code> interface is defined as
+      follows:</para>
+
+      <programlisting>public interface CompletionStrategy {
+
+  boolean isComplete(List&lt;Message&lt;?&gt;&gt; messages);
+
+}</programlisting>
+
+      <para>Spring Integration provides an out-of-the box implementation for
+      <code>CompletionStrategy</code>, the
+      <code>SequenceSizeCompletionStrategy</code><code>.</code> This
+      implementation uses the SEQUENCE_NUMBER and SEQUENCE_SIZE of the
+      arriving messages for deciding when a message group is complete and
+      ready to be aggregated.<code></code></para>
+    </section>
+  </section>
+
+  <section>
+    <title>Configuration using XML</title>
+
+    <para></para>
+  </section>
+
+  <section>
+    <title>Configuration using annotations</title>
+
+    <para></para>
+  </section>
+</chapter>
