@@ -12,7 +12,12 @@
 
 	<si:message-bus/>
 
-	<si:channel id="input"/>
+	<si:channel id="input" />
+	
+	<si:channel id="pollableInput" >
+		<si:queue capacity="1"/>
+	</si:channel>
+	
 
 	<si:channel id="output">
 		<si:queue capacity="1"/>
@@ -22,6 +27,16 @@
 			input-channel="input"
 			output-channel="output"
 			unmarshaller="unmarshaller"/>
+			
+			
+	<si-xml:unmarshalling-transformer id="unmrshallerWithPoller"
+			input-channel="pollableInput"
+			output-channel="output"
+			unmarshaller="unmarshaller">
+		<si:poller>
+			<si:interval-trigger interval="500" />
+		</si:poller>		
+	</si-xml:unmarshalling-transformer>		
 
 	<bean id="unmarshaller" class="org.springframework.integration.xml.config.StubUnmarshaller"/>
 

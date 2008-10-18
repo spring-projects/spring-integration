@@ -93,6 +93,7 @@
 			</xsd:annotation>
 			<xsd:sequence>
 				<xsd:element ref="xpath-expression" maxOccurs="1" minOccurs="0" />
+				<xsd:element ref="si-core:poller" minOccurs="0" maxOccurs="1"/>
 			</xsd:sequence>
 			<xsd:attribute name="input-channel" type="xsd:string" use="required" />
 			<xsd:attribute name="id" type="xsd:string" use="required" />
@@ -170,6 +171,9 @@
 	
 	
 	<xsd:complexType name="inputOutputEndpoint">
+		<xsd:sequence>
+			<xsd:element ref="si-core:poller" minOccurs="0" maxOccurs="1"/>
+		</xsd:sequence>
 		<xsd:attribute name="id" type="xsd:string" use="optional" />
 		<xsd:attribute name="input-channel" type="xsd:string" use="required" />
 		<xsd:attribute name="output-channel" type="xsd:string" use="required" />

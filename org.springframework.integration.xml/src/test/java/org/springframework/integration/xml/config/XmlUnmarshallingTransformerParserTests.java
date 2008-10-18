@@ -88,6 +88,21 @@ public class XmlUnmarshallingTransformerParserTests {
 		assertEquals("Wrong payload after unmarshalling", "unmarshalled", result.getPayload());
 		assertTrue("Wrong source passed to unmarshaller", unmarshaller.sourcesPassed.poll() instanceof DOMSource);
 	}
+	
+	@Test
+	public void testPollingUnmarshall() throws Exception {
+		MessageChannel input = (MessageChannel) appContext.getBean("pollableInput");
+		PollableChannel output = (PollableChannel) appContext.getBean("output");
+		GenericMessage<Object> message = new GenericMessage<Object>(new StringSource(
+				"<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><order><orderItem>test</orderItem></order>"));
+		input.send(message);
+		Message<?> result = output.receive(5000);
+		assertEquals("Wrong payload after unmarshalling", "unmarshalled", result.getPayload());
+		assertTrue("Wrong source passed to unmarshaller", unmarshaller.sourcesPassed.poll() instanceof StringSource);
+	}
+	
+	
+	
 
 	@Test(expected = MessagingException.class)
 	public void testUnmarshallUnsupported() throws Exception {

@@ -68,7 +68,7 @@ public class XPathRouterParserTests {
 	public void testSimpleStringExpression() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<name>outputOne</name>");
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
-		SubscribingConsumerEndpoint sce = buildContext("<si-xml:xpath-router id='router' input-channel='test-input'><si-xml:xpath-expression expression='/name'/></si-xml:xpath-router>");
+		buildContext("<si-xml:xpath-router id='router' input-channel='test-input'><si-xml:xpath-expression expression='/name'/></si-xml:xpath-router>");
 		inputChannel.send(docMessage);
 		assertEquals("Wrong number of messages", 1, outputChannel.getMesssageCount());
 	
@@ -78,7 +78,7 @@ public class XPathRouterParserTests {
 	public void testNamespacedStringExpression() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<ns1:name xmlns:ns1='www.example.org'>outputOne</ns1:name>");
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
-		SubscribingConsumerEndpoint sce = buildContext("<si-xml:xpath-router id='router' input-channel='test-input'><si-xml:xpath-expression expression='/ns2:name' ns-prefix='ns2' ns-uri='www.example.org' /></si-xml:xpath-router>");
+		buildContext("<si-xml:xpath-router id='router' input-channel='test-input'><si-xml:xpath-expression expression='/ns2:name' ns-prefix='ns2' ns-uri='www.example.org' /></si-xml:xpath-router>");
 		inputChannel.send(docMessage);
 		assertEquals("Wrong number of messages", 1, outputChannel.getMesssageCount());
 	
@@ -93,7 +93,7 @@ public class XPathRouterParserTests {
 				"<si-xml:xpath-router id='router' input-channel='test-input'><si-xml:xpath-expression expression='/ns1:name/ns2:type'> ");
 		buffer.append("<map><entry key='ns1' value='www.example.org' /> <entry key='ns2' value='www.example.org2'/></map>");
 		buffer.append("</si-xml:xpath-expression></si-xml:xpath-router>");
-		SubscribingConsumerEndpoint sce = buildContext(buffer.toString());
+		buildContext(buffer.toString());
 		inputChannel.send(docMessage);
 		assertEquals("Wrong number of messages", 1, outputChannel.getMesssageCount());
 	
@@ -109,7 +109,7 @@ public class XPathRouterParserTests {
 		buffer.append("</si-xml:xpath-router>");
 		buffer.append("<util:map id='nsMap'><entry key='ns1' value='www.example.org' /><entry key='ns2' value='www.example.org2' /></util:map>");
 		
-		SubscribingConsumerEndpoint sce = buildContext(buffer.toString());
+		buildContext(buffer.toString());
 		inputChannel.send(docMessage);
 		assertEquals("Wrong number of messages", 1, outputChannel.getMesssageCount());
 	}
