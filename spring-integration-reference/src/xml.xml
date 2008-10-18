@@ -8,27 +8,39 @@
 		<para>
 			Spring Integration XML extends the Spring Integration Core with 
 			implementations of splitter, transformer, selector and routers designed 
-			to make working with XML in Spring Integration simple.  The provided messaging 
-			components are designed to work with XML represented in a range of formats including 
+			to make working with xml messages in Spring Integration simple.  The provided messaging 
+			components are designed to work with xml represented in a range of formats including 
 			instances of 
 			<classname>java.lang.String</classname>, <interfacename>org.w3c.dom.Document</interfacename>  
-			and <interfacename>javax.xml.transform.Source</interfacename>
-		
+			and <interfacename>javax.xml.transform.Source</interfacename>.  It should be noted however that 
+			where a <interfacename>Document</interfacename> or <interfacename>Node</interfacename> is required 
+			for example in order to evaluate an XPath expression the <classname>String</classname> payload will 
+			be converted into the required type and then converted back again which may incur significant 
+			computational cost.  Components that require an instance of 
+			<interfacename>DocumentBuilder</interfacename> will create a namespace aware instance if one is not 
+			provided.  Where greater control of the document being created is required an appropriately configured 
+			instance of <interfacename>DocumentBuilder</interfacename> should be provided. 
     	</para>
 	</section>
 	<section id="xml-transformation">
-		<title>Transforming XML payloads</title>
+		<title>Transforming xml payloads</title>
 		<para>
 			This section will explain the workings of
 			<classname>XmlPayloadUnmarshallingTransformer</classname>,
 			<classname>XmlPayloadMarshallingTransformer</classname>
 			<classname>XsltPayloadTransformer</classname>
 			and how to configure them as
-			<emphasis>beans</emphasis>.  
-			Also how to customise which implementation of 
-			<interfacename>javax.xml.transfrom.Source</interfacename> 
-			and <interfacename>javax.xml.Result</interfacename>
-			Finally the namespace support will be discussed.
+			<emphasis>beans</emphasis>.  All of the provided xml transformers extend 
+			<classname>AbstractPayloadTransformer</classname> and therefore implement 
+			<interfacename>Transformer</interfacename>.  When configuring xml transformers as beans in 
+			Spring Integration you would normally configure the transformer in conjunction with either 
+			a <classname>MessageTransformingChannelInterceptor</classname> or a 
+			<classname>MessageTransformingConsumer</classname> in order to connect the transformer instance to 
+			a channel.
+			Finally the namespace support will be discussed which allows simple configuration of the transformers as consumers.
+		</para>
+		<para>
+			
 		</para>
 		<para>
 			<classname>XmlPayloadUnmarshallingTransformer</classname> allows an XML Source 
@@ -53,12 +65,12 @@
 		</para>	
 		<para>
 			The <classname>XmlPayloadMarshallingTransformer</classname> allows an Object graph to be 
-			converted into XML using a Spring OXM <interfacename>Marshaller</interfacename>.
+			converted into xml using a Spring OXM <interfacename>Marshaller</interfacename>.
 			By default the <classname>XmlPayloadMarshallingTransformer</classname> will return
 			a <classname>DomResult</classname>.  However this can be controlled by configuring an 
 			alternative <interfacename>ResultFactory</interfacename> such as 
 			<classname>StringResultFactory</classname>.  In many cases it will be more convenient to transform
-			the payload into an alternative XML format.  To achieve this configure a 
+			the payload into an alternative xml format.  To achieve this configure a 
 			<interfacename>ResultTransformer</interfacename> two implementations are provided one which 
 			converts to <classname>String</classname> and another which converts to <interfacename>Document</interfacename>  
 			<programlisting language="xml"><![CDATA[<bean id="marshallingTransfomer" class="org.springframework.integration.xml.transformer.XmlPayloadMarshallingTransformer">
@@ -73,7 +85,7 @@
 </bean>]]></programlisting>			
 		</para>
 		<para>
-			<classname>XsltPayloadTransformer</classname> transforms XML payloads using XSL.
+			<classname>XsltPayloadTransformer</classname> transforms xml payloads using XSL.
 			The transformer requires an instance of either <interfacename>Resource</interfacename> or 
 			<interfacename>Templates</interfacename>.  Passing in a <interfacename>Templates</interfacename> 
 			allows for greater configuration of the <interfacename>Transformer</interfacename> used to create
@@ -81,8 +93,7 @@
 			<classname>XmlPayloadMarshallingTransformer</classname> by default <classname>XsltPayloadTransformer</classname>
 			will create a message with a <interfacename>Result</interfacename> payload.  This can be customised by 
 			providing a <interfacename>ResultFactory</interfacename> and or a <interfacename>ResultTransformer</interfacename>.
-			<programlisting language="xml">
-			<![CDATA[<bean id="xsltPayloadTransformer" class="org.springframework.integration.xml.transformer.XsltPayloadTransformer">
+			<programlisting language="xml"><![CDATA[<bean id="xsltPayloadTransformer" class="org.springframework.integration.xml.transformer.XsltPayloadTransformer">
     <constructor-arg value="classpath:org/example/xsl/transform.xsl" />
     <constructor-arg>
         <bean class="org.springframework.integration.xml.transformer.ResultToDocumentTransformer" />
@@ -90,54 +101,167 @@
 </bean>]]></programlisting>			
 		</para>
 		<para>
-			Namespace support for all these transformers is provided in the Sprint Integration XML namespace 
-			a template for which is below.  The namespace support creates an instance of either <classname>SubscribingConsumerEndpoint</classname> 
-			or <classname>PollingConsumerEndpoint</classname> according to the type of the provided input channel.  The namespace support is designed 
-			to reduce the amount of xml configuration by allowing the creation of an endpoint and transformer using one element.
+			Namespace support for all these transformers is provided in the Sprint Integration xml namespace 
+			a template for which can be seen below.  The namespace support creates an instance of either 
+			<classname>SubscribingConsumerEndpoint</classname> or <classname>PollingConsumerEndpoint</classname> 
+			according to the type of the provided input channel.  The namespace support is designed 
+			to reduce the amount of xml configuration by allowing the creation of an endpoint and transformer 
+			using one element.
 						<programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:integration="http://www.springframework.org/schema/integration"
-	xmlns:si-xml="http://www.springframework.org/schema/integration/xml"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
-			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
-			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
-			http://www.springframework.org/schema/integration/xml
-			http://www.springframework.org/schema/integration/xml/spring-integration-xml-1.0.xsd">
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:integration="http://www.springframework.org/schema/integration"
+       xmlns:si-xml="http://www.springframework.org/schema/integration/xml"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+           http://www.springframework.org/schema/integration
+           http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
+           http://www.springframework.org/schema/integration/xml
+           http://www.springframework.org/schema/integration/xml/spring-integration-xml-1.0.xsd">
 </beans>]]></programlisting>
 		So for example an <classname>XmlPayloadMarshallingTransformer</classname> can be configured as below.
 		<programlisting language="xml"><![CDATA[<si-xml:unmarshalling-transformer id="defaultUnmarshaller"
-			input-channel="input"
-			output-channel="output"
-			unmarshaller="unmarshaller"/>]]></programlisting>
+    input-channel="input"
+    output-channel="output"
+    unmarshaller="unmarshaller"/>]]></programlisting>
+    
+    
+    <para>The namespace support for the marshalling transformer allows creation of an endpoint 
 		<programlisting language="xml"><![CDATA[<si-xml:marshalling-transformer
-		input-channel="marshallingTransformerStringResultFactory"
-		output-channel="output"
-		marshaller="marshaller"
-		result-type="StringResult" />]]></programlisting>
+     input-channel="marshallingTransformerStringResultFactory"
+     output-channel="output"
+     marshaller="marshaller"
+     result-type="StringResult" />
+     
+<si-xml:marshalling-transformer
+    input-channel="marshallingTransformerWithResultTransformer"
+    output-channel="output"
+    marshaller="marshaller"
+    result-transformer="resultTransformer" />
+     
+<bean id="resultTransformer" class="org.springframework.integration.xml.transformer.ResultToStringTransformer"/>]]></programlisting>
+</para>	
+	
+	
+	
+	<programlisting language="xml"><![CDATA[<si-xml:xslt-transformer id="xsltTransformerWithResource"
+    input-channel="withResourceIn"
+    output-channel="output"
+    xsl-resource="org/springframework/integration/xml/config/test.xsl"/>]]></programlisting>				
+		</para>
+	</section>
+
+	<section id="xpath-splitting">
+		<title>Splitting xml messages</title>
+		<para>
+			<classname>XPathMessageSplitter</classname> support messages with either 
+			<classname>String</classname> or <interfacename>Document</interfacename> payloads. 
+			The splitter uses the provided XPath expression to split the payload into a number of 
+			nodes.  By default this will result in each <interfacename>Node</interfacename> instance
+			becoming the payload of a new message.  Where it is preferred that each message be a Document
+			the createDocuments flag can be set.  Where a <classname>String</classname> payload is passed 
+			in the payload will be converted then split before being converted back to a number of String 
+			messages.  The XPath splitter implements <interfacename>MessageConsumer</interfacename> and should 
+			therefore be configured in conjunction with an appropriate endpoint.
+			<programlisting language="xml"><![CDATA[<bean id="splittingEndpoint" class="org.springframework.integration.endpoint.SubscribingConsumerEndpoint">
+    <constructor-arg>
+        <bean class="org.springframework.integration.xml.splitter.XPathMessageSplitter">
+            <constructor-arg value="/order/items" />
+            <property name="documentBuilder" ref="customisedDocumentBuilder" />
+            <property name="outputChannel" ref="orderItemsChannel" />
+        </bean>
+    </constructor-arg>
+	<constructor-arg ref="orderChannel" />
+</bean>]]></programlisting>	     
 				
 		</para>
 	</section>
-
-	<section id="xpath-routing">
-		<title>Routing XML payloads using XPath</title>
-		<para>
-		</para>
-
-	</section>
 	
-	<section id="xpath-splitting">
-		<title>Splitting XML payloads using XPath</title>
+	<section id="xpath-routing">
+		<title>Routing xml messages using XPath</title>
 		<para>
+			Two Router implementations based on XPath are provided XPathSingleChannelRouter and 
+			XPathMultiChannelRouter.  The implementations differ in respect of how many channels 
+			any given message may be routed to, exactly one in the case of the single channel version 
+			or zero or more in the case of the multichannel router.  Both evaluate an XPath 
+			expression against the xml payload of the message, supported payload types by default 
+			are <interfacename>Node</interfacename>, <interfacename>Document</interfacename> and
+			<interfacename>String</interfacename>.  For other payload types a custom implementation 
+			of <interfacename>XmlPayloadConverter</interfacename> can be provided.  The router 
+			implementations use <interfacename>ChannelNameResolver</interfacename> to convert the 
+			result(s) of the XPath expression to a channel name.  By default a 
+			<classname>BeanFactoryChannelName</classname> meaning that the string returned by the XPath 
+			evaluation should correspond directly to the name of a channel.  Where this is not the case
+			an alternative implementation of <interfacename>ChannelNameResolver</interfacename> can 
+			be used, where there is a simple mapping from Xpath result to channel name
+			the provided <classname>MapBasedChannelName</classname> can be used.
+			<programlisting language="xml"><![CDATA[<!-- Expects a channel for each value of order type to exist  -->
+<bean id="singleChannelRoutingEndpoint" class="org.springframework.integration.endpoint.SubscribingConsumerEndpoint">
+    <constructor-arg>
+        <bean class="org.springframework.integration.xml.router.XPathSingleChannelRouter">
+            <constructor-arg value="/order/@type" />
+        </bean>
+    </constructor-arg>
+	<constructor-arg ref="orderChannel" />
+</bean>
+	
+	
+<!-- Multi channel router which uses a map channel resolver to resolve the channel name based on the XPath evaluation result
+     Since the router is multi channel it may deliver message to one or both of the configured channels -->
+<bean id="multiChannelRoutingEndpoint" class="org.springframework.integration.endpoint.SubscribingConsumerEndpoint">
+    <constructor-arg>
+        <bean class="org.springframework.integration.xml.router.XPathMultiChannelRouter">
+            <constructor-arg value="/order/recipient" />
+            <property name="channelResolver">
+                <bean class="org.springframework.integration.channel.MapBasedChannelResolver">
+                    <constructor-arg>
+                        <map>
+                            <entry key="accounts" value-ref="accountConfirmationChannel" />
+                            <entry key="humanResources" value-ref="humanResourcesConfirmationChannel" />
+                        </map>
+                     </constructor-arg>
+	             </bean>
+            </property>
+        </bean>
+    </constructor-arg>
+    <constructor-arg ref="orderChannel" />
+</bean>]]></programlisting>	
 		</para>
-
 	</section>
 	
 	<section id="xpath-selector">
-		<title>Splitting XML payloads using XPath</title>
+		<title>Selecting xml messages use XPath</title>
 		<para>
+			Two <interfacename>MessageSelector</interfacename> implementations are provided 
+			<classname>BooleanTestXPathMessageSelector</classname> and 
+			<classname>StringValueTestXPathMessageSelector</classname>.  
+			<classname>BooleanTestXPathMessageSelector</classname> requires an XPathExpression which 
+			evaluates to a boolean, for example <emphasis>boolean(/one/two)</emphasis> which will only 
+			select messages which have an element named two which is a child of a root element named one.  
+			<classname>StringValueTestXPathMessageSelector</classname> evaluates any XPath expression as 
+			a <classname>String</classname>and compares the result with the provided 
+			<classname>String</classname> value. 
 		</para>
+		
+		
+			<programlisting language="xml"><![CDATA[<!-- Interceptor which rejects messages that do not have a root element order  -->
+<bean id="orderSelectingInterceptor" class="org.springframework.integration.channel.interceptor.MessageSelectingInterceptor">
+    <constructor-arg>
+        <bean class="org.springframework.integration.xml.selector.BooleanTestXPathMessageSelector">
+            <constructor-arg value="boolean(/order)" />
+        </bean>
+    </constructor-arg>
+</bean>
+	
+<!--  Interceptor which rejects messages that are not version one orders --> 
+<bean id="versionOneOrderSelectingInterceptor" class="org.springframework.integration.channel.interceptor.MessageSelectingInterceptor">
+    <constructor-arg>
+        <bean class="org.springframework.integration.xml.selector.StringValueTestXPathMessageSelector">
+            <constructor-arg value="/order/@version" index="0"/>
+            <constructor-arg value="1" index="1"/>
+        </bean>
+    </constructor-arg>
+</bean>]]></programlisting>
 	</section>
 	
 	
