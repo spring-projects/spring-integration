@@ -23,11 +23,14 @@ import java.util.Collection;
 import java.util.List;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.integration.annotation.Router;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageMappingMethodInvoker;
+import org.springframework.integration.util.DefaultMethodResolver;
+import org.springframework.integration.util.MethodResolver;
 import org.springframework.util.Assert;
 
 /**
@@ -41,6 +44,8 @@ import org.springframework.util.Assert;
  */
 public class MethodInvokingRouter extends AbstractMessageRouter implements InitializingBean {
 
+	private final MethodResolver methodResolver = new DefaultMethodResolver(Router.class);
+
 	private final MessageMappingMethodInvoker invoker;
 
 	private volatile ChannelResolver channelResolver;
@@ -52,6 +57,14 @@ public class MethodInvokingRouter extends AbstractMessageRouter implements Initi
 
 	public MethodInvokingRouter(Object object, String methodName) {
 		this.invoker = new MessageMappingMethodInvoker(object, methodName);
+	}
+
+	public MethodInvokingRouter(Object object) {
+		Assert.notNull(object, "object must not be null");
+		Method method = this.methodResolver.findMethod(object); 
+		Assert.notNull(method, "unable to resolve Router method on target class ["
+				+ object.getClass() + "]");
+		this.invoker = new MessageMappingMethodInvoker(object, method);
 	}
 
 

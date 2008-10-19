@@ -17,15 +17,21 @@
 package org.springframework.integration.router.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+
+import java.util.Collection;
+import java.util.Collections;
 
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.annotation.Router;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.router.AbstractMessageRouter;
 
 /**
  * @author Mark Fisher
@@ -64,6 +70,62 @@ public class RouterParserTests {
 		assertNull(output2.receive(0));
 		Message<?> result = defaultOutput.receive(0);
 		assertEquals("99", result.getPayload());
+	}
+
+	@Test
+	public void refOnlyForAbstractMessageRouterImplementation() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"routerParserTests.xml", this.getClass());
+		context.start();
+		MessageChannel input = (MessageChannel) context.getBean("inputForAbstractMessageRouterImplementation");
+		PollableChannel output = (PollableChannel) context.getBean("output3");
+		input.send(new StringMessage("test-implementation"));
+		Message<?> result = output.receive(0);
+		assertNotNull(result);
+		assertEquals("test-implementation", result.getPayload());		
+	}
+
+	@Test
+	public void refOnlyForAnnotatedObject() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"routerParserTests.xml", this.getClass());
+		context.start();
+		MessageChannel input = (MessageChannel) context.getBean("inputForAnnotatedRouter");
+		PollableChannel output = (PollableChannel) context.getBean("output4");
+		input.send(new StringMessage("test-annotation"));
+		Message<?> result = output.receive(0);
+		assertNotNull(result);
+		assertEquals("test-annotation", result.getPayload());	
+	}
+
+
+	public static class TestRouterImplementation extends AbstractMessageRouter {
+
+		private final MessageChannel channel;
+
+		public TestRouterImplementation(MessageChannel channel) {
+			this.channel = channel;
+		}
+
+		@Override
+		protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
+			return Collections.singletonList(this.channel);
+		}
+	}
+
+
+	public static class AnnotatedTestRouterBean {
+
+		private final MessageChannel channel;
+
+		public AnnotatedTestRouterBean(MessageChannel channel) {
+			this.channel = channel;
+		}
+
+		@Router
+		public MessageChannel test(String payload) {
+			return this.channel;
+		}
 	}
 
 }

@@ -22,7 +22,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.router.MethodInvokingRouter;
+import org.springframework.integration.config.RouterFactoryBean;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -37,11 +37,11 @@ public class RouterParser extends AbstractConsumerEndpointParser {
 	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
 		String ref = element.getAttribute(REF_ATTRIBUTE);
 		Assert.hasText(ref, "The '" + REF_ATTRIBUTE + "' attribute is required.");
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingRouter.class);
-		builder.addConstructorArgReference(ref);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RouterFactoryBean.class);
+		builder.addPropertyReference("targetObject", ref);
 		if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
 			String method = element.getAttribute(METHOD_ATTRIBUTE);
-			builder.addConstructorArgValue(method);
+			builder.addPropertyValue("targetMethodName", method);
 		}
 		BeanDefinitionBuilder resolverBuilder = BeanDefinitionBuilder.genericBeanDefinition(BeanFactoryChannelResolver.class);
 		String resolverBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(

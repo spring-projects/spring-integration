@@ -33,4 +33,28 @@
 
 	<beans:bean id="pojo" class="org.springframework.integration.router.config.TestRouter"/>
 
+	<channel id="output3">
+		<queue capacity="1"/>
+	</channel>
+
+	<channel id="inputForAbstractMessageRouterImplementation"/>
+
+	<router input-channel="inputForAbstractMessageRouterImplementation" ref="implementation"/>
+
+	<beans:bean id="implementation" class="org.springframework.integration.router.config.RouterParserTests$TestRouterImplementation">
+		<beans:constructor-arg ref="output3"/>
+	</beans:bean>
+
+	<channel id="output4">
+		<queue capacity="1"/>
+	</channel>
+
+	<channel id="inputForAnnotatedRouter"/>
+
+	<router input-channel="inputForAnnotatedRouter" ref="annotated"/>
+
+	<beans:bean id="annotated" class="org.springframework.integration.router.config.RouterParserTests$AnnotatedTestRouterBean">
+		<beans:constructor-arg ref="output4"/>
+	</beans:bean>
+
 </beans:beans>
