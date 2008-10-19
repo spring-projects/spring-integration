@@ -62,7 +62,7 @@
       <para>The Resequencer works in a similar way to the Aggregator, in the
       sense that it uses the CORRELATION_ID to store messages in groups, the
       difference being that all what the Resequencer does, is to release them
-      in the order of their SEQUENCE_NUMBER. </para>
+      in the order of their SEQUENCE_NUMBER.</para>
 
       <para>With respect to that, the user might opt to release all messages
       at once (after the whole sequence, according to the SEQUENCE_SIZE, has
@@ -104,14 +104,14 @@
       message sequence to aggregate is complete (and grouping them according
       to their CORRELATION_ID), and implementing the timeout functionality.
       The responsibility of deciding whether the message sequence is complete
-      is delegated to a <code>CompletionStrategy</code> instance. </para>
+      is delegated to a <code>CompletionStrategy</code> instance.</para>
 
       <para>A brief highlight of the base
       <code>AbstractMessageAggregator</code> (the responsibility of
       implementing the aggregateMessages method is left to the
       developer):</para>
 
-      <programlisting>public abstract class AbstractMessageAggregator extends AbstractMessageBarrierConsumer {
+      <programlisting language="java">public abstract class AbstractMessageAggregator extends AbstractMessageBarrierConsumer {
 
   private volatile CompletionStrategy completionStrategy
                             = new SequenceSizeCompletionStrategy();
@@ -126,18 +126,18 @@
       implement the <code>aggregateMessages</code> method. However, there are
       better suited (which reads, less coupled to the API) solutions for
       implementing the aggregation logic, which can be configured easily
-      either through XML or through annotations. </para>
+      either through XML or through annotations.</para>
 
       <para><note>
-          <para>In the interest of code simplicity, and promoting good
+          <para>In the interest of code simplicity, and promoting best
           practices such as low coupling, testability, etc., the preferred way
-          of implementing the aggregation logic by implementing a POJO, and
+          of implementing the aggregation logic is by implementing a POJO, and
           using the XML or annotation support for setting it up in the
           application.</para>
         </note>The <code>CompletionStrategy</code> interface is defined as
       follows:</para>
 
-      <programlisting>public interface CompletionStrategy {
+      <programlisting language="java">public interface CompletionStrategy {
 
   boolean isComplete(List&lt;Message&lt;?&gt;&gt; messages);
 
@@ -145,17 +145,125 @@
 
       <para>Spring Integration provides an out-of-the box implementation for
       <code>CompletionStrategy</code>, the
-      <code>SequenceSizeCompletionStrategy</code><code>.</code> This
-      implementation uses the SEQUENCE_NUMBER and SEQUENCE_SIZE of the
-      arriving messages for deciding when a message group is complete and
-      ready to be aggregated.<code></code></para>
+      <code>SequenceSizeCompletionStrategy</code> This implementation uses the
+      SEQUENCE_NUMBER and SEQUENCE_SIZE of the arriving messages for deciding
+      when a message group is complete and ready to be
+      aggregated.<code></code></para>
     </section>
   </section>
 
   <section>
     <title>Configuration using XML</title>
 
-    <para></para>
+    <section>
+      <title>Configuring an aggregator through XML</title>
+
+      <para>Spring Integration supports the configuration of an aggregator via
+      XML through the &lt;aggregator/&gt; element. A completely defined sample
+      on how to define such an element is presented below, as well as
+      it:</para>
+
+      <programlisting>&lt;aggregator id="completelyDefinedAggregator" <co
+          id="???" />
+    input-channel="completelyDefinedAggregatorInput" <co id="???" />
+    output-channel="outputChannel"  <co id="???" />
+    discard-channel="discardChannel"  <co id="???" />
+    ref="aggregatorBean" <co id="???" />
+    method="add" <co id="???" />
+    completion-strategy="completionStrategy"  <co id="???" />
+    completion-strategy-method="checkCompleteness" <co id="???" />
+    timeout="42" <co id="???" />
+    send-partial-result-on-timeout="true" <co id="???" />
+    reaper-interval="135" <co id="???" />
+    tracked-correlation-id-capacity="99" <co id="???" />
+    send-timeout="86420000" /&gt; <co id="???" /></programlisting>
+
+      <calloutlist>
+        <callout arearefs="???">
+          <para>The id of the aggregator is
+          <emphasis>optional</emphasis>.</para>
+        </callout>
+
+        <callout arearefs="???">
+          <para>The input channel of the aggregator.
+          <emphasis>Required</emphasis>.</para>
+        </callout>
+
+        <callout arearefs="???">
+          <para>The channel where the aggregator will send the aggregation
+          results. <emphasis>Required</emphasis>.</para>
+        </callout>
+
+        <callout arearefs="???">
+          <para>The channel where the aggregator will send the messages that
+          timed out (if <code>send-partial-results-on-timeout</code> is
+          <emphasis>true</emphasis>. <emphasis>Optional</emphasis>.</para>
+        </callout>
+
+        <callout arearefs="???">
+          <para>A reference to a bean defined in the application context. The
+          bean must either extend <code>AbstractMessageAggregator</code> or be
+          a POJO. In the latter case the <code>method</code> attribute must be
+          defined as well. <emphasis>Required</emphasis>.</para>
+        </callout>
+
+        <callout arearefs="???">
+          <para>A method defined on the bean referenced by <code>ref</code>,
+          <emphasis><emphasis>that implements the message aggregation
+          algorithm.</emphasis> Optional, with restrictions (see
+          above).</emphasis></para>
+        </callout>
+
+        <callout arearefs="???">
+          <para>A reference to a bean that implements the decision algorithm
+          as to whether a given message group is complete. The bean can be an
+          implementation of the CompletionStrategy interface or a POJO. In the
+          latter case the completion-strategy-mTethod attribute must be
+          defined as well. Optional.</para>
+        </callout>
+
+        <callout arearefs="???">
+          <para>A method defined on the bean referenced by
+          <code>completion-strategy</code>, <emphasis><emphasis>that
+          implements the completion decision algorithm.</emphasis> Optional,
+          with restrictions (see above).</emphasis> Optional.</para>
+        </callout>
+
+        <callout arearefs="???">
+          <para>The timeout for aggregating messages (counted from the arrival
+          of the first message). Optional.</para>
+        </callout>
+
+        <callout arearefs="???">
+          <para>Whether upon the expiration of the timeout, the aggregator
+          shall try to aggregate the already arrived messages.
+          <emphasis>Optional (false by default)</emphasis>.</para>
+        </callout>
+
+        <callout arearefs="???">
+          <para>The interval (in milliseconds) at which a reaper task is
+          executed, checking if there are any timed out groups.
+          Optional.</para>
+        </callout>
+
+        <callout arearefs="???">
+          <para>The capacity of the correlation id tracker. Remembers the
+          already processed correlation ids, preventing the formation of new
+          groups for messages that arrive after their group has been already
+          processed (aggregated or discarded). Optional.</para>
+        </callout>
+
+        <callout arearefs="???">
+          <para>The timeout for sending out messages. Optional.</para>
+        </callout>
+      </calloutlist>
+    </section>
+
+    <section>
+      <title>Configuring a resequencer by using XML</title>
+
+      <para></para>
+    </section>
   </section>
 
   <section>
