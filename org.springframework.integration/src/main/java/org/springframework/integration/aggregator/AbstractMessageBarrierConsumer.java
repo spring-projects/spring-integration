@@ -44,29 +44,29 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
- * Base class for {@link MessageBarrier}-based Message Consumers.
- * A {@link MessageConsumer} implementation that waits for a group of
- * {@link Message Messages} to arrive and processes them together.
- * Uses a {@link MessageBarrier} to store messages and to decide how
- * the messages should be released.
+ * Base class for {@link MessageBarrier}-based Message Consumers. A
+ * {@link MessageConsumer} implementation that waits for a group of
+ * {@link Message Messages} to arrive and processes them together. Uses a
+ * {@link MessageBarrier} to store messages and to decide how the messages
+ * should be released.
  * <p>
- * Each {@link Message} that is received by this consumer will be associated with
- * a group based upon the '<code>correlationId</code>' property of its
+ * Each {@link Message} that is received by this consumer will be associated
+ * with a group based upon the '<code>correlationId</code>' property of its
  * header. If no such property is available, a {@link MessageHandlingException}
  * will be thrown.
  * <p>
- * The '<code>timeout</code>' value determines how long to wait for the
- * complete group after the arrival of the first {@link Message} of the group.
- * The default value is 1 minute. If the timeout elapses prior to completion,
- * then Messages with that timed-out 'correlationId' will be sent to the
+ * The '<code>timeout</code>' value determines how long to wait for the complete
+ * group after the arrival of the first {@link Message} of the group. The
+ * default value is 1 minute. If the timeout elapses prior to completion, then
+ * Messages with that timed-out 'correlationId' will be sent to the
  * 'discardChannel' if provided unless 'sendPartialResultsOnTimeout' is set to
  * true in which case the incomplete group will be sent to the output channel.
  * 
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public abstract class AbstractMessageBarrierConsumer extends AbstractMessageConsumer
-		implements MessageProducer, TaskSchedulerAware, InitializingBean {
+public abstract class AbstractMessageBarrierConsumer extends AbstractMessageConsumer implements MessageProducer,
+		TaskSchedulerAware, InitializingBean {
 
 	public final static long DEFAULT_SEND_TIMEOUT = 1000;
 
@@ -76,7 +76,6 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractMessageCons
 
 	public final static int DEFAULT_TRACKED_CORRRELATION_ID_CAPACITY = 1000;
 
-
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
 	private MessageChannel outputChannel;
@@ -85,8 +84,7 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractMessageCons
 
 	private volatile MessageChannel discardChannel;
 
-	protected final ConcurrentMap<Object, MessageBarrier> barriers =
-			new ConcurrentHashMap<Object, MessageBarrier>();
+	protected final ConcurrentMap<Object, MessageBarrier> barriers = new ConcurrentHashMap<Object, MessageBarrier>();
 
 	private volatile long timeout = DEFAULT_TIMEOUT;
 
@@ -104,19 +102,17 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractMessageCons
 
 	private ScheduledFuture<?> reaperFutureTask;
 
-
 	public AbstractMessageBarrierConsumer() {
 		this.channelTemplate.setSendTimeout(DEFAULT_SEND_TIMEOUT);
 	}
-
 
 	public void setOutputChannel(MessageChannel outputChannel) {
 		this.outputChannel = outputChannel;
 	}
 
 	/**
-	 * Specify a channel for sending Messages that arrive after their aggregation
-	 * group has either completed or timed-out.
+	 * Specify a channel for sending Messages that arrive after their
+	 * aggregation group has either completed or timed-out.
 	 */
 	public void setDiscardChannel(MessageChannel discardChannel) {
 		this.discardChannel = discardChannel;
@@ -177,8 +173,8 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractMessageCons
 			return;
 		}
 		Assert.state(this.taskScheduler != null, "TaskScheduler must not be null");
-		this.reaperFutureTask = this.taskScheduler.schedule(
-				new ReaperTask(), new IntervalTrigger(this.reaperInterval, TimeUnit.MILLISECONDS));
+		this.reaperFutureTask = this.taskScheduler.schedule(new ReaperTask(), new IntervalTrigger(this.reaperInterval,
+				TimeUnit.MILLISECONDS));
 	}
 
 	public void stop() {
@@ -194,8 +190,8 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractMessageCons
 		}
 		Object correlationId = message.getHeaders().getCorrelationId();
 		if (correlationId == null) {
-			throw new MessageHandlingException(message,
-					this.getClass().getSimpleName() + " requires the 'correlationId' property");
+			throw new MessageHandlingException(message, this.getClass().getSimpleName()
+					+ " requires the 'correlationId' property");
 		}
 		if (this.trackedCorrelationIds.contains(correlationId)) {
 			this.discardMessage(message, correlationId);
@@ -207,8 +203,8 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractMessageCons
 
 	private void discardMessage(Message<?> message, Object correlationId) {
 		if (logger.isDebugEnabled()) {
-			logger.debug("Handling of Message group with correlationId '"
-					+ correlationId + "' has already completed or timed out.");
+			logger.debug("Handling of Message group with correlationId '" + correlationId
+					+ "' has already completed or timed out.");
 		}
 		if (this.discardChannel != null) {
 			boolean sent = this.channelTemplate.send(message, this.discardChannel);
@@ -228,15 +224,15 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractMessageCons
 			if (isBarrierRemovable(correlationId, releasedMessages)) {
 				this.removeBarrier(correlationId);
 			}
-			Message<?>[] processedMessages = this.processReleasedMessages(correlationId, releasedMessages);
-			if (!ObjectUtils.isEmpty(processedMessages)) {
-				this.afterRelease(correlationId, releasedMessages);
-			}
+			this.afterRelease(correlationId, releasedMessages);
 		}
 	}
 
 	private void afterRelease(Object correlationId, List<Message<?>> releasedMessages) {
 		Message<?>[] processedMessages = this.processReleasedMessages(correlationId, releasedMessages);
+		if (ObjectUtils.isEmpty(processedMessages)) {
+			return;
+		}
 		for (Message<?> result : processedMessages) {
 			MessageChannel replyChannel = this.outputChannel;
 			if (replyChannel == null) {
@@ -279,7 +275,6 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractMessageCons
 		}
 	}
 
-
 	private class ReaperTask implements Runnable {
 
 		public void run() {
@@ -309,8 +304,8 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractMessageCons
 
 	/**
 	 * Implements the logic for deciding whether, based on what the
-	 * MessageBarrier has released so far, work for the correlationId
-	 * can be considered complete and the barrier can be released.
+	 * MessageBarrier has released so far, work for the correlationId can be
+	 * considered complete and the barrier can be released.
 	 */
 	protected abstract boolean isBarrierRemovable(Object correlationId, List<Message<?>> releasedMessages);
 
