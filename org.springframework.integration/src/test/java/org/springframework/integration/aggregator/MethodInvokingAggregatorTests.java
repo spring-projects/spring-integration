@@ -21,145 +21,143 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.GenericMessage;
 
+import static org.easymock.EasyMock.*;
+
 /**
  * @author Marius Bogoevici
  * @author Mark Fisher
  */
+@SuppressWarnings("unchecked")
 public class MethodInvokingAggregatorTests {
 
-	private SimpleAggregator simpleAggregator;
+	private TestAggregator mockAggregator = createMock(TestAggregator.class);
 
-
-	@Before
-	public void setUp() {
-		simpleAggregator = new SimpleAggregator();
-	}
-
+	private List<Message<?>> messages = new ArrayList<Message<?>>();
 
 	@Test
 	public void adapterWithNonParameterizedMessageListBasedMethod() {
-		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(
-				simpleAggregator, "doAggregationOnNonParameterizedListOfMessages");
-		List<Message<?>> messages = createListOfMessages();	
-		Message<?> returnedMessge = aggregator.aggregateMessages(messages);
-		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
-		Assert.assertEquals("123456789", returnedMessge.getPayload());
+		expect(mockAggregator.doAggregationOnNonParameterizedListOfMessages(isA(List.class))).andStubReturn(
+				new GenericMessage<String>(""));
+		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(mockAggregator,
+				"doAggregationOnNonParameterizedListOfMessages");
+		replay(mockAggregator);
+		aggregator.aggregateMessages(messages);
+		verify(mockAggregator);
 	}
 
 	@Test
 	public void adapterWithWildcardParameterizedMessageBasedMethod() {
-		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(
-				simpleAggregator, "doAggregationOnListOfMessagesParametrizedWithWildcard");
-		List<Message<?>> messages = createListOfMessages();	
-		Message<?> returnedMessge = aggregator.aggregateMessages(messages);
-		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
-		Assert.assertEquals("123456789", returnedMessge.getPayload());
+		expect(mockAggregator.doAggregationOnListOfMessagesParametrizedWithWildcard(isA(List.class))).andStubReturn(
+				new GenericMessage<String>(""));
+		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(mockAggregator,
+				"doAggregationOnListOfMessagesParametrizedWithWildcard");
+		replay(mockAggregator);
+		aggregator.aggregateMessages(messages);
+		verify(mockAggregator);
 	}
 
 	@Test
 	public void adapterWithTypeParameterizedMessageBasedMethod() {
-		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(
-				simpleAggregator, "doAggregationOnListOfMessagesParametrizedWithString");
-		List<Message<?>> messages = createListOfMessages();	
-		Message<?> returnedMessge = aggregator.aggregateMessages(messages);
-		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
-		Assert.assertEquals("123456789", returnedMessge.getPayload());
+		expect(mockAggregator.doAggregationOnListOfMessagesParametrizedWithString(isA(List.class))).andStubReturn(
+				new GenericMessage<String>(""));
+		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(mockAggregator,
+				"doAggregationOnListOfMessagesParametrizedWithString");
+		replay(mockAggregator);
+		aggregator.aggregateMessages(messages);
+		verify(mockAggregator);
 	}
 
 	@Test
 	public void adapterWithPojoBasedMethod() {
-		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(
-				simpleAggregator, "doAggregationOnListOfStrings");
-		List<Message<?>> messages = createListOfMessages();	
-		Message<?> returnedMessge = aggregator.aggregateMessages(messages);
-		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
-		Assert.assertEquals("123456789", returnedMessge.getPayload());
+		expect(mockAggregator.doAggregationOnListOfStrings(isA(List.class))).andStubReturn(
+				new GenericMessage<String>(""));
+		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(mockAggregator,
+				"doAggregationOnListOfStrings");
+		replay(mockAggregator);
+		aggregator.aggregateMessages(messages);
+		verify(mockAggregator);
 	}
 
 	@Test
 	public void adapterWithPojoBasedMethodReturningObject() {
-		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(
-				simpleAggregator, "doAggregationOnListOfStringsReturningLong");
-		List<Message<?>> messages = createListOfMessages();	
-		Message<?> returnedMessge = aggregator.aggregateMessages(messages);
-		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
-		Assert.assertEquals(123456789l, returnedMessge.getPayload());
+		expect(mockAggregator.doAggregationOnListOfStringsReturningLong(isA(List.class))).andStubReturn(6l);
+		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(mockAggregator,
+				"doAggregationOnListOfStringsReturningLong");
+		replay(mockAggregator);
+		aggregator.aggregateMessages(messages);
+		verify(mockAggregator);
 	}
 
 	@Test
 	public void adapterWithVoidReturnType() {
-		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(
-				simpleAggregator, "doAggregationWithNoReturn");
-		List<Message<?>> messages = createListOfMessages();	
-		Message<?> returnedMessage = aggregator.aggregateMessages(messages);
-		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
-		Assert.assertNull(returnedMessage);
+		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(mockAggregator, "doAggregationWithNoReturn");
+		replay(mockAggregator);
+		aggregator.aggregateMessages(messages);
+		verify(mockAggregator);
 	}
-	
+
 	@Test
 	public void adapterWithNullReturn() {
-		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(
-				simpleAggregator, "doAggregationWithNullReturn");
-		List<Message<?>> messages = createListOfMessages();	
-		Message<?> returnedMessage = aggregator.aggregateMessages(messages);
-		Assert.assertTrue(simpleAggregator.isAggregationPerformed());
-		Assert.assertNull(returnedMessage);
+		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(mockAggregator,
+				"doAggregationOnListOfStrings");
+		replay(mockAggregator);
+		aggregator.aggregateMessages(messages);
+		verify(mockAggregator);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void adapterWithWrongMethodName() {
-		new MethodInvokingAggregator(simpleAggregator, "methodThatDoesNotExist");
+		new MethodInvokingAggregator(mockAggregator, "methodThatDoesNotExist");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void invalidParameterTypeUsingMethodName() {
-		new MethodInvokingAggregator(simpleAggregator, "invalidParameterType");
+		new MethodInvokingAggregator(mockAggregator, "invalidParameterType");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void tooManyParametersUsingMethodName() {
-		new MethodInvokingAggregator(simpleAggregator, "tooManyParameters");
+		new MethodInvokingAggregator(mockAggregator, "tooManyParameters");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void notEnoughParametersUsingMethodName() {
-		new MethodInvokingAggregator(simpleAggregator, "notEnoughParameters");
+		new MethodInvokingAggregator(mockAggregator, "notEnoughParameters");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void listSubclassParameterUsingMethodName() {
-		new MethodInvokingAggregator(simpleAggregator, "ListSubclassParameter");
+		new MethodInvokingAggregator(mockAggregator, "ListSubclassParameter");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void invalidParameterTypeUsingMethodObject() throws SecurityException, NoSuchMethodException {
-		new MethodInvokingAggregator(simpleAggregator, simpleAggregator.getClass().getMethod(
-				"invalidParameterType", String.class));
+		new MethodInvokingAggregator(mockAggregator, mockAggregator.getClass().getMethod("invalidParameterType",
+				String.class));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void tooManyParametersUsingMethodObject() throws SecurityException, NoSuchMethodException {
-		new MethodInvokingAggregator(simpleAggregator, simpleAggregator.getClass().getMethod(
-				"tooManyParameters", List.class, List.class));
+		new MethodInvokingAggregator(mockAggregator, mockAggregator.getClass().getMethod("tooManyParameters",
+				List.class, List.class));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void notEnoughParametersUsingMethodObject() throws SecurityException, NoSuchMethodException {
-		new MethodInvokingAggregator(simpleAggregator, simpleAggregator.getClass().getMethod(
-				"notEnoughParameters", new Class[] {} ));
+		new MethodInvokingAggregator(mockAggregator, mockAggregator.getClass().getMethod("notEnoughParameters",
+				new Class[] {}));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void listSubclassParameterUsingMethodObject() throws SecurityException, NoSuchMethodException {
-		new MethodInvokingAggregator(simpleAggregator, simpleAggregator.getClass().getMethod(
-				"listSubclassParameter", new Class[] {LinkedList.class} ));
+		new MethodInvokingAggregator(mockAggregator, mockAggregator.getClass().getMethod("listSubclassParameter",
+				new Class[] { LinkedList.class }));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -170,108 +168,35 @@ public class MethodInvokingAggregatorTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void nullMethodName() {
 		String methodName = null;
-		new MethodInvokingAggregator(simpleAggregator, methodName);
+		new MethodInvokingAggregator(mockAggregator, methodName);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void nullMethodObject() {
 		Method method = null;
-		new MethodInvokingAggregator(simpleAggregator, method);
+		new MethodInvokingAggregator(mockAggregator, method);
 	}
 
+	private interface TestAggregator {
+		public Message<?> doAggregationOnNonParameterizedListOfMessages(List<Message> messages);
 
-	private static List<Message<?>> createListOfMessages() {
-		List<Message<?>> messages =  new ArrayList<Message<?>>();
-		messages.add(new GenericMessage<String>("123"));
-		messages.add(new GenericMessage<String>("456"));  
-		messages.add(new GenericMessage<String>("789"));
-		return messages;
-	}
+		public Message<?> doAggregationOnListOfMessagesParametrizedWithWildcard(List<Message<?>> messages);
 
+		public Message<?> doAggregationOnListOfMessagesParametrizedWithString(List<Message<String>> messages);
 
-	private class SimpleAggregator {
+		public Message<?> doAggregationOnListOfStrings(List<String> messages);
 
-		private volatile boolean aggregationPerformed;
+		public Long doAggregationOnListOfStringsReturningLong(List<String> messages);
 
+		public void doAggregationWithNoReturn(List<String> message);
 
-		public SimpleAggregator() {
-			this.aggregationPerformed = false;
-		}
+		public Message<?> invalidParameterType(String invalid);
 
-		public boolean isAggregationPerformed() {
-			return this.aggregationPerformed;
-		}
+		public Message<?> tooManyParameters(List<?> c1, List<?> c2);
 
-		@SuppressWarnings("unchecked")
-		public Message<?> doAggregationOnNonParameterizedListOfMessages(List<Message> messages) {
-			this.aggregationPerformed = true;
-			StringBuffer buffer = new StringBuffer();
-			for (Message<?> message : messages) {
-				buffer.append(message.getPayload());
-			}
-			return new GenericMessage<String>(buffer.toString());
-		}
+		public Message<?> notEnoughParameters();
 
-		public Message<?> doAggregationOnListOfMessagesParametrizedWithWildcard(List<Message<?>> messages) {
-			this.aggregationPerformed = true;
-			StringBuffer buffer = new StringBuffer();
-			for (Message<?> message : messages) {
-				buffer.append(message.getPayload());
-			}
-			return new GenericMessage<String>(buffer.toString());
-		}
-
-		public Message<?> doAggregationOnListOfMessagesParametrizedWithString(List<Message<String>> messages) {
-			this.aggregationPerformed = true;
-			StringBuffer buffer = new StringBuffer();
-			for (Message<String> message : messages) {
-				buffer.append(message.getPayload());
-			}
-			return new GenericMessage<String>(buffer.toString());
-		}
-
-		public Message<?> doAggregationOnListOfStrings(List<String> messages) {
-			this.aggregationPerformed = true;
-			StringBuffer buffer = new StringBuffer();
-			for (String payload : messages) {
-				buffer.append(payload);
-			}
-			return new GenericMessage<String>(buffer.toString());
-		}
-
-		public Long doAggregationOnListOfStringsReturningLong(List<String> messages) {
-			this.aggregationPerformed = true;
-			StringBuffer buffer = new StringBuffer();
-			for (String payload : messages) {
-				buffer.append(payload);
-			}
-			return Long.parseLong(buffer.toString());
-		}
-		
-		public void doAggregationWithNoReturn(List<String> message) {
-			this.aggregationPerformed = true;
-		}
-		
-		public Message<?> doAggregationWithNullReturn(List<String> message) {
-			this.aggregationPerformed = true;
-			return null;
-		}
-
-		public Message<?> invalidParameterType(String invalid) {
-			return null;
-		}
-
-		public Message<?> tooManyParameters(List<?> c1, List<?> c2) {
-			return null;
-		}
-
-		public Message<?> notEnoughParameters() {
-			return null;
-		}
-
-		public Message<?> listSubclassParameter(LinkedList<?> l1){
-			return null;
-		}
+		public Message<?> listSubclassParameter(LinkedList<?> l1);
 	}
 
 }
