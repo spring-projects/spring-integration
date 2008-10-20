@@ -40,7 +40,6 @@ import org.springframework.integration.bus.MessageBusAwareBeanPostProcessor;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
-import org.springframework.integration.config.annotation.PublisherAnnotationPostProcessor;
 import org.springframework.integration.scheduling.SimpleTaskScheduler;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -59,9 +58,6 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 
 	public static final String MESSAGE_BUS_AWARE_POST_PROCESSOR_BEAN_NAME =
 			"internal.MessageBusAwareBeanPostProcessor";
-
-	private static final String PUBLISHER_ANNOTATION_POST_PROCESSOR_BEAN_NAME =
-			"internal.PublisherAnnotationPostProcessor";
 
 	private static final String MESSAGING_ANNOTATION_POST_PROCESSOR_BEAN_NAME =
 			"internal.MessagingAnnotationPostProcessor";
@@ -154,7 +150,6 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 	private void addPostProcessors(Element element, ParserContext parserContext) {
 		this.registerMessageBusAwarePostProcessor(parserContext);
 		if ("true".equals(element.getAttribute("enable-annotations").toLowerCase())) {
-			this.registerPublisherPostProcessor(parserContext);
 			this.registerMessagingAnnotationPostProcessor(parserContext);
 		}
 	}
@@ -164,12 +159,6 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 		builder.addConstructorArgReference(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		builder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 		parserContext.getRegistry().registerBeanDefinition(MESSAGE_BUS_AWARE_POST_PROCESSOR_BEAN_NAME, builder.getBeanDefinition());
-	}
-
-	private void registerPublisherPostProcessor(ParserContext parserContext) {
-		BeanDefinition bd = new RootBeanDefinition(PublisherAnnotationPostProcessor.class);
-		BeanComponentDefinition bcd = new BeanComponentDefinition(bd, PUBLISHER_ANNOTATION_POST_PROCESSOR_BEAN_NAME);
-		parserContext.registerBeanComponent(bcd);
 	}
 
 	private void registerMessagingAnnotationPostProcessor(ParserContext parserContext) {
