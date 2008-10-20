@@ -111,7 +111,8 @@
       implementing the aggregateMessages method is left to the
       developer):</para>
 
-      <programlisting language="java">public abstract class AbstractMessageAggregator extends AbstractMessageBarrierConsumer {
+      <programlisting language="java">public abstract class AbstractMessageAggregator 
+              extends AbstractMessageBarrierConsumer {
 
   private volatile CompletionStrategy completionStrategy
                             = new SequenceSizeCompletionStrategy();
@@ -138,8 +139,8 @@
         <listitem>
           <para>if the argument is a parametrized java.util.List, and the
           parameter type is assignable to Message, then the whole list of
-          messages accumulated for aggregation will be sent to the aggregator
-          </para>
+          messages accumulated for aggregation will be sent to the
+          aggregator</para>
         </listitem>
 
         <listitem>
@@ -216,7 +217,7 @@
       on how to define such an element is presented below, as well as
       it:</para>
 
-      <programlisting>&lt;channel id="inputChannel"/&gt;
+      <programlisting lang="xml">&lt;channel id="inputChannel"/&gt;
 
 &lt;aggregator id="completelyDefinedAggregator" <co id="aggxml1" />
     input-channel="inputChannel" <co id="aggxml2" />
@@ -341,7 +342,7 @@
       <para>An implementation of the completion strategy bean for the example
       above may be as follows:</para>
 
-      <para><programlisting>public class PojoCompletionStrategy {
+      <para><programlisting language="java">public class PojoCompletionStrategy {
 ...
   public boolean checkCompleteness(List&lt;Long&gt; numbers) {
     int sum = 0;
@@ -362,7 +363,7 @@
 
       <para>A sample resequencer configuration is shown below.</para>
 
-      <programlisting>&lt;channel id="inputChannel"/&gt;
+      <programlisting language="xml">&lt;channel id="inputChannel"/&gt;
 
 &lt;channel id="outputChannel"/&gt;
 
@@ -449,20 +450,43 @@
     <para>An aggregator configured using annotations can look like
     this.</para>
 
-    <programlisting>public class Waiter {
+    <programlisting language="java">public class Waiter {
   ... 
 
-  @Aggregator <co id="aggann1" /> 
+  @Aggregator <co id="aggann" /> 
   public Delivery aggregatingMethod(List&lt;OrderItem&gt; items) {
     ...
   }
 
-  @CompletionStrategy <co id="aggann2" />
+  @CompletionStrategy <co id="agganncs" />
   public boolean completionChecker(List&lt;Message&lt;?&gt;&gt; messages) {
     ...
   }
 
-}
-</programlisting>
+}</programlisting>
+
+    <calloutlist>
+      <callout arearefs="aggann">
+        <para>An annotation indicating that this method shall be used as an
+        aggregator. Must be specified if this class will be used as an
+        aggregator.</para>
+      </callout>
+
+      <callout arearefs="agganncs">
+        <para id="aggann2">An annotation indicating that this method shall be
+        used as the completion strategy of an aggregator. If not present of
+        the method, the aggregator will use the
+        SequenceSizeCompletionStrategy. </para>
+
+        <para></para>
+      </callout>
+    </calloutlist>
+
+    <para>All the configuration options provided by xml element are available
+    for the @Aggregator annotation.</para>
+
+    <para>The aggregator can be either referenced explicitely from XML or, if
+    the @MessageEndpoint is defined on the class, detected automatically
+    through classpath scanning.</para>
   </section>
 </chapter>
