@@ -37,6 +37,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.bus.ApplicationContextMessageBus;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.bus.MessageBusAwareBeanPostProcessor;
+import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
 import org.springframework.integration.config.annotation.PublisherAnnotationPostProcessor;
@@ -109,6 +110,11 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 			taskExecutor = this.createTaskExecutor(100, "message-bus-");
 			BeanDefinitionBuilder schedulerBuilder = BeanDefinitionBuilder.genericBeanDefinition(SimpleTaskScheduler.class);
 			schedulerBuilder.addConstructorArgValue(taskExecutor);
+			BeanDefinitionBuilder errorHandlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(MessagePublishingErrorHandler.class);
+			errorHandlerBuilder.addPropertyReference("defaultErrorChannel", ApplicationContextMessageBus.ERROR_CHANNEL_BEAN_NAME);
+			String errorHandlerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
+					errorHandlerBuilder.getBeanDefinition(), parserContext.getRegistry());
+			schedulerBuilder.addPropertyReference("errorHandler", errorHandlerBeanName);
 			// TODO: define bean name as a constant elsewhere
 			String TASK_SCHEDULER_BEAN_NAME = "taskScheduler";
 			BeanDefinitionHolder schedulerHolder = new BeanDefinitionHolder(

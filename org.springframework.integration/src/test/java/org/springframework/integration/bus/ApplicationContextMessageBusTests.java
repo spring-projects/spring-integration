@@ -30,6 +30,10 @@ import org.junit.Test;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.integration.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.channel.ChannelResolutionException;
+import org.springframework.integration.channel.ChannelResolver;
+import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -47,6 +51,7 @@ import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.scheduling.IntervalTrigger;
+import org.springframework.integration.scheduling.SimpleTaskScheduler;
 import org.springframework.integration.util.TestUtils;
 
 /**
@@ -222,7 +227,12 @@ public class ApplicationContextMessageBusTests {
 		channelAdapter.setBeanName("testChannel");
 		context.getBeanFactory().registerSingleton("testChannel", channelAdapter);
 		ApplicationContextMessageBus bus = new ApplicationContextMessageBus();
-		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
+		SimpleTaskScheduler taskScheduler = (SimpleTaskScheduler) TestUtils.createTaskScheduler(10);
+		ChannelResolver channelResolver = new BeanFactoryChannelResolver(context);
+		MessagePublishingErrorHandler errorHandler = new MessagePublishingErrorHandler(channelResolver);
+		errorHandler.setDefaultErrorChannel(errorChannel);
+		taskScheduler.setErrorHandler(errorHandler);
+		bus.setTaskScheduler(taskScheduler);
 		bus.setApplicationContext(context);
 		context.refresh();
 		bus.start();
@@ -274,18 +284,17 @@ public class ApplicationContextMessageBusTests {
 		context.getBeanFactory().registerSingleton("testChannel", testChannel);
 		ApplicationContextMessageBus messageBus = new ApplicationContextMessageBus();
 		messageBus.setApplicationContext(context);
-		MessageChannel lookedUpChannel = messageBus.lookupChannel("testChannel");
+		MessageChannel lookedUpChannel = messageBus.resolveChannelName("testChannel");
 		assertNotNull(testChannel);
 		assertSame(testChannel, lookedUpChannel);
 	}
 
-	@Test
+	@Test(expected = ChannelResolutionException.class)
 	public void lookupNonRegisteredChannel() {
 		GenericApplicationContext context = new GenericApplicationContext();
 		ApplicationContextMessageBus messageBus = new ApplicationContextMessageBus();
 		messageBus.setApplicationContext(context);
-		MessageChannel noSuchChannel = messageBus.lookupChannel("noSuchChannel");
-		assertNull(noSuchChannel);
+		messageBus.resolveChannelName("noSuchChannel");
 	}
 
 	@Test

@@ -34,10 +34,8 @@ import org.springframework.context.Lifecycle;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolver;
-import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.MessageEndpoint;
-import org.springframework.integration.scheduling.SimpleTaskScheduler;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.integration.scheduling.TaskSchedulerAware;
 import org.springframework.util.Assert;
@@ -52,7 +50,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class ApplicationContextMessageBus implements MessageBus, ApplicationContextAware, ApplicationListener, DisposableBean {
+public class ApplicationContextMessageBus implements MessageBus, ChannelResolver, ApplicationContextAware, ApplicationListener, DisposableBean {
 
 	public static final String ERROR_CHANNEL_BEAN_NAME = "errorChannel";
 
@@ -64,6 +62,8 @@ public class ApplicationContextMessageBus implements MessageBus, ApplicationCont
 	private volatile TaskScheduler taskScheduler;
 
 	private volatile ApplicationContext applicationContext;
+
+	private volatile ChannelResolver channelResolver;
 
 	private volatile boolean autoStartup = true;
 
@@ -77,6 +77,7 @@ public class ApplicationContextMessageBus implements MessageBus, ApplicationCont
 		Assert.state(!(applicationContext.getBeanNamesForType(this.getClass()).length > 1),
 				"Only one instance of '" + this.getClass().getSimpleName() + "' is allowed per ApplicationContext.");
 		this.applicationContext = applicationContext;
+		this.channelResolver = new BeanFactoryChannelResolver(applicationContext);
 	}
 
 	/**
@@ -95,15 +96,8 @@ public class ApplicationContextMessageBus implements MessageBus, ApplicationCont
 		this.autoStartup = autoStartup;
 	}
 
-	public MessageChannel lookupChannel(String channelName) {
-		Assert.notNull(this.applicationContext, "ApplicationContext must not be null");
-		if (this.applicationContext.containsBean(channelName)) {
-			Object bean = this.applicationContext.getBean(channelName);
-			if (bean instanceof MessageChannel) {
-				return (MessageChannel) bean;
-			}
-		}
-		return null;
+	public MessageChannel resolveChannelName(String channelName) {
+		return this.channelResolver.resolveChannelName(channelName);
 	}
 
 	public MessageEndpoint lookupEndpoint(String endpointName) {
@@ -190,12 +184,6 @@ public class ApplicationContextMessageBus implements MessageBus, ApplicationCont
 		Assert.notNull(this.taskScheduler, "TaskScheduler must not be null");
 		synchronized (this.lifecycleMonitor) {
 			this.activateEndpoints();
-			if (this.taskScheduler instanceof SimpleTaskScheduler) {
-				ChannelResolver channelResolver = new BeanFactoryChannelResolver(this.applicationContext);
-				MessagePublishingErrorHandler errorHandler = new MessagePublishingErrorHandler(channelResolver);
-				errorHandler.setDefaultErrorChannel(this.lookupChannel(ERROR_CHANNEL_BEAN_NAME));
-				((SimpleTaskScheduler) this.taskScheduler).setErrorHandler(errorHandler);
-			}
 			this.taskScheduler.start();
 		}
 		this.running = true;
