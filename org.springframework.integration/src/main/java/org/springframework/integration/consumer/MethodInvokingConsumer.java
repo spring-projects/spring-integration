@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration.consumer;
 
 import java.lang.reflect.Method;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageMappingMethodInvoker;
 import org.springframework.util.Assert;
 
 /**

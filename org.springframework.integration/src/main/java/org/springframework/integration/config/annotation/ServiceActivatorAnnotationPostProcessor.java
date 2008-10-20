@@ -20,7 +20,7 @@ import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.integration.endpoint.ServiceActivatingConsumer;
+import org.springframework.integration.consumer.ServiceActivatingConsumer;
 import org.springframework.integration.message.MessageConsumer;
 
 /**

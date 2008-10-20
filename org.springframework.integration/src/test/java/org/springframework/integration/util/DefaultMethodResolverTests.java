@@ -32,7 +32,7 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.endpoint.ServiceActivatingConsumer;
+import org.springframework.integration.consumer.ServiceActivatingConsumer;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.message.StringMessage;
 

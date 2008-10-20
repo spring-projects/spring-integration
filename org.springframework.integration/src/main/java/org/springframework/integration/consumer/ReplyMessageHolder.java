@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint;
+package org.springframework.integration.consumer;
 
 import java.util.ArrayList;
 import java.util.Collections;

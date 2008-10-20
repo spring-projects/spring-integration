@@ -20,7 +20,7 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.endpoint.ServiceActivatingConsumer;
+import org.springframework.integration.consumer.ServiceActivatingConsumer;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
