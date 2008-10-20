@@ -19,6 +19,8 @@ package org.springframework.integration.channel;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
@@ -32,16 +34,19 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class MessagePublishingErrorHandler implements ErrorHandler {
+public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryAware {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private final ChannelResolver channelResolver;
+	private volatile ChannelResolver channelResolver;
 
 	private volatile MessageChannel defaultErrorChannel;
 
 	private volatile long sendTimeout = 1000;
 
+
+	public MessagePublishingErrorHandler() {
+	}
 
 	public MessagePublishingErrorHandler(ChannelResolver channelResolver) {
 		Assert.notNull(channelResolver, "channelResolver must not be null");
@@ -55,6 +60,13 @@ public class MessagePublishingErrorHandler implements ErrorHandler {
 
 	public void setSendTimeout(long sendTimeout) {
 		this.sendTimeout = sendTimeout;
+	}
+
+	public void setBeanFactory(BeanFactory beanFactory) {
+		Assert.notNull(beanFactory, "beanFactory must not be null");
+		if (this.channelResolver == null) {
+			this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
+		}
 	}
 
 	public final void handle(Throwable t) {
