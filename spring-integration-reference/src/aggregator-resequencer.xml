@@ -128,6 +128,33 @@
       implementing the aggregation logic, which can be configured easily
       either through XML or through annotations.</para>
 
+      <para>In general, any ordinary Java class (i.e. POJO) can implement the
+      aggregation algorithm. For doing so, it must provide a method that
+      accepts as an argument a single java.util.List (parametrized lists are
+      supported as well). This method will be invoked for aggregating
+      messages, as follows:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>if the argument is a parametrized java.util.List, and the
+          parameter type is assignable to Message, then the whole list of
+          messages accumulated for aggregation will be sent to the aggregator
+          </para>
+        </listitem>
+
+        <listitem>
+          <para>if the argument is a non-parametrized java.util.List or the
+          parameter type is not assignable to Message, then the method will
+          receive the payloads of the accumulated messages</para>
+        </listitem>
+
+        <listitem>
+          <para>if the return type is not assignable to Message, then it will
+          be treated as the payload for a Message that will be created
+          automatically by the framework.</para>
+        </listitem>
+      </itemizedlist>
+
       <para><note>
           <para>In the interest of code simplicity, and promoting best
           practices such as low coupling, testability, etc., the preferred way
@@ -142,6 +169,32 @@
   boolean isComplete(List&lt;Message&lt;?&gt;&gt; messages);
 
 }</programlisting>
+
+      <para>In general, any ordinary Java class (i.e. POJO) can implement the
+      completion decision mechanism. For doing so, it must provide a method
+      that accepts as an argument a single java.util.List (parametrized lists
+      are supported as well), and returns a boolean value. This method will be
+      invoked after the arrival of a new message, to decide whether the group
+      is complete or not, as follows:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>if the argument is a parametrized java.util.List, and the
+          parameter type is assignable to Message, then the whole list of
+          messages accumulated in the group will be sent to the method</para>
+        </listitem>
+
+        <listitem>
+          <para>if the argument is a non-parametrized java.util.List or the
+          parameter type is not assignable to Message, then the method will
+          receive the payloads of the accumulated messages</para>
+        </listitem>
+
+        <listitem>
+          <para>the method must return true if the message group is complete
+          and ready for aggregation, and false otherwise.</para>
+        </listitem>
+      </itemizedlist>
 
       <para>Spring Integration provides an out-of-the box implementation for
       <code>CompletionStrategy</code>, the
@@ -163,20 +216,27 @@
       on how to define such an element is presented below, as well as
       it:</para>
 
-      <programlisting>&lt;aggregator id="completelyDefinedAggregator" <co
-          id="aggxml1" />
-    input-channel="completelyDefinedAggregatorInput" <co id="aggxml2" />
+      <programlisting>&lt;channel id="inputChannel"/&gt;
+
+&lt;aggregator id="completelyDefinedAggregator" <co id="aggxml1" />
+    input-channel="inputChannel" <co id="aggxml2" />
     output-channel="outputChannel"  <co id="aggxml3" />
     discard-channel="discardChannel"  <co id="aggxml4" />
     ref="aggregatorBean" <co id="aggxml5" />
     method="add" <co id="aggxml6" />
-    completion-strategy="completionStrategy"  <co id="aggxml7" />
+    completion-strategy="completionStrategyBean"  <co id="aggxml7" />
     completion-strategy-method="checkCompleteness" <co id="aggxml8" />
     timeout="42" <co id="aggxml9" />
     send-partial-result-on-timeout="true" <co id="aggxml10" />
     reaper-interval="135" <co id="aggxml11" />
     tracked-correlation-id-capacity="99" <co id="aggxml12" />
-    send-timeout="86420000" /&gt; <co id="aggxml13" /></programlisting>
+    send-timeout="86420000" <co id="aggxml13" /> /&gt; 
+
+&lt;channel id="outputChannel"/&gt;
+
+&lt;bean id="aggregatorBean" class="sample.PojoAggregator"/&gt;
+
+&lt;bean id="completionStrategyBean" class="sample.PojoCompletionStrategy"/&gt;</programlisting>
 
       <calloutlist>
         <callout arearefs="aggxml1">
@@ -191,13 +251,14 @@
 
         <callout arearefs="aggxml3">
           <para>The channel where the aggregator will send the aggregation
-          results. <emphasis>Required</emphasis>.</para>
+          results. <emphasis>Optional (not required, because the aggregator
+          will honor </emphasis>.</para>
         </callout>
 
         <callout arearefs="aggxml4">
           <para>The channel where the aggregator will send the messages that
           timed out (if <code>send-partial-results-on-timeout</code> is
-          <emphasis>true</emphasis>. <emphasis>Optional</emphasis>.</para>
+          <emphasis>false)</emphasis>. <emphasis>Optional</emphasis>.</para>
         </callout>
 
         <callout arearefs="aggxml5">
@@ -219,19 +280,21 @@
           as to whether a given message group is complete. The bean can be an
           implementation of the CompletionStrategy interface or a POJO. In the
           latter case the completion-strategy-mTethod attribute must be
-          defined as well. Optional.</para>
+          defined as well. <emphasis>Optional (by default, the aggregator
+          </emphasis>.</para>
         </callout>
 
         <callout arearefs="aggxml8">
           <para>A method defined on the bean referenced by
           <code>completion-strategy</code>, <emphasis><emphasis>that
           implements the completion decision algorithm.</emphasis> Optional,
-          with restrictions (see above).</emphasis> Optional.</para>
+          with restrictions (requires <code>completion-strategy</code> to be
+          present).</emphasis></para>
         </callout>
 
         <callout arearefs="aggxml9">
           <para>The timeout for aggregating messages (counted from the arrival
-          of the first message). Optional.</para>
+          of the first message). <emphasis>Optional</emphasis>.</para>
         </callout>
 
         <callout arch="" arearefs="aggxml10">
@@ -243,32 +306,163 @@
         <callout arearefs="aggxml11" condition="">
           <para>The interval (in milliseconds) at which a reaper task is
           executed, checking if there are any timed out groups.
-          Optional.</para>
+          <emphasis>Optional</emphasis>.</para>
         </callout>
 
         <callout arearefs="aggxml12">
           <para>The capacity of the correlation id tracker. Remembers the
           already processed correlation ids, preventing the formation of new
           groups for messages that arrive after their group has been already
-          processed (aggregated or discarded). Optional.</para>
+          processed (aggregated or discarded).
+          <emphasis>Optional</emphasis>.</para>
         </callout>
 
         <callout arearefs="aggxml13">
-          <para>The timeout for sending out messages. Optional.</para>
+          <para>The timeout for sending out messages.
+          <emphasis>Optional</emphasis>.</para>
         </callout>
       </calloutlist>
+
+      <para>An implementation of the aggregator bean, for example, looks as
+      follows:</para>
+
+      <programlisting language="java">public class PojoAggregator {
+
+  public Long add(List&lt;Long&gt; results) {
+    long total = 0l;
+    for (long partialResult: results) {
+      total += partialResult;
+    }
+    return total;
+  }
+
+}</programlisting>
+
+      <para>An implementation of the completion strategy bean for the example
+      above may be as follows:</para>
+
+      <para><programlisting>public class PojoCompletionStrategy {
+...
+  public boolean checkCompleteness(List&lt;Long&gt; numbers) {
+    int sum = 0;
+    for (long number: numbers) {
+      sum += number;
+    }
+    return sum &gt;= maxValue;
+  }
+}</programlisting>Wherever it makes sense, the completion strategy method and
+      the aggregator method can be combined in a single bean.</para>
     </section>
 
     <section>
       <title>Configuring a resequencer by using XML</title>
 
-      <para></para>
+      <para>Configuring a resequencer requires only including the appropriate
+      element in XML.</para>
+
+      <para>A sample resequencer configuration is shown below.</para>
+
+      <programlisting>&lt;channel id="inputChannel"/&gt;
+
+&lt;channel id="outputChannel"/&gt;
+
+&lt;resequencer id="completelyDefinedResequencer" <co id="resxml1" />
+  input-channel="inputChannel" <co id="resxml2" />
+  output-channel="outputChannel" <co id="resxml3" />
+  discard-channel="discardChannel" <co id="resxml4" />
+  release-partial-sequences="true" <co id="resxml5" />
+  timeout="42" <co id="resxml6" />
+  send-partial-result-on-timeout="true" <co id="resxml7" />
+  reaper-interval="135" <co id="resxml8" />
+  tracked-correlation-id-capacity="99" <co id="resxml9" />
+  send-timeout="86420000" <co id="resxml10" /> /&gt; </programlisting>
+
+      <para><calloutlist>
+          <callout arearefs="resxml1">
+            <para>The id of the resequencer is
+            <emphasis>optional</emphasis>.</para>
+          </callout>
+
+          <callout arearefs="resxml2">
+            <para>The input channel of the resequencer.
+            <emphasis>Required</emphasis>.</para>
+          </callout>
+
+          <callout arearefs="resxml3">
+            <para>The channel where the resequencer will send the reordered
+            messages. <emphasis>Optional</emphasis>.</para>
+          </callout>
+
+          <callout arearefs="resxml4">
+            <para>The channel where the resequencer will send the messages
+            that timed out (if <code>send-partial-result-on-timeout</code> is
+            <emphasis>false)</emphasis>. <emphasis>Optional</emphasis>.</para>
+          </callout>
+
+          <callout arearefs="resxml5">
+            <para>Whether to send out ordered sequences as soon as they are
+            available, or only after the whole message group arrives.
+            <emphasis>Optional (true by default)</emphasis>.</para>
+          </callout>
+
+          <callout arearefs="resxml6">
+            <para>The timeout for reordering message sequences (counted from
+            the arrival of the first message).
+            <emphasis>Optional</emphasis>.</para>
+          </callout>
+
+          <callout arearefs="resxml7">
+            <para>Whether, upon the expiration of the timeout, the ordered
+            group shall be sent out (even if some of the messages are
+            missing). <emphasis>Optional (false by default)</emphasis>.</para>
+          </callout>
+
+          <callout arearefs="resxml8">
+            <para>The interval (in milliseconds) at which a reaper task is
+            executed, checking if there are any timed out groups.
+            <emphasis>Optional</emphasis>.</para>
+          </callout>
+
+          <callout arearefs="resxml9">
+            <para>The capacity of the correlation id tracker. Remembers the
+            already processed correlation ids, preventing the formation of new
+            groups for messages that arrive after their group has been already
+            processed (reordered or discarded).
+            <emphasis>Optional</emphasis>.</para>
+          </callout>
+
+          <callout arch="" arearefs="resxml10">
+            <para>The timeout for sending out messages.
+            <emphasis>Optional</emphasis>.</para>
+          </callout>
+        </calloutlist></para>
     </section>
   </section>
 
   <section>
     <title>Configuration using annotations</title>
 
-    <para></para>
+    <para>This section will cover only the configuration for aggregators.
+    Since there is no custom behaviour to be implemented in Java classes for
+    resequencers, there is no annotation support for it.</para>
+
+    <para>An aggregator configured using annotations can look like
+    this.</para>
+
+    <programlisting>public class Waiter {
+  ... 
+
+  @Aggregator <co id="aggann1" /> 
+  public Delivery aggregatingMethod(List&lt;OrderItem&gt; items) {
+    ...
+  }
+
+  @CompletionStrategy <co id="aggann2" />
+  public boolean completionChecker(List&lt;Message&lt;?&gt;&gt; messages) {
+    ...
+  }
+
+}
+</programlisting>
   </section>
 </chapter>
