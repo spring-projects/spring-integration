@@ -72,6 +72,7 @@ public class DirectChannelSubscriptionTests {
 		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(serviceActivator, sourceChannel);
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
 		bus.setApplicationContext(context);
+		context.refresh();
 		bus.start();
 		this.sourceChannel.send(new StringMessage("foo"));
 		Message<?> response = this.targetChannel.receive();
@@ -86,6 +87,7 @@ public class DirectChannelSubscriptionTests {
 		postProcessor.afterPropertiesSet();
 		TestEndpoint endpoint = new TestEndpoint();
 		postProcessor.postProcessAfterInitialization(endpoint, "testEndpoint");
+		context.refresh();
 		bus.start();
 		this.sourceChannel.send(new StringMessage("foo"));
 		Message<?> response = this.targetChannel.receive();
@@ -103,6 +105,7 @@ public class DirectChannelSubscriptionTests {
 		consumer.setOutputChannel(targetChannel);
 		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(consumer, sourceChannel);
 		bus.registerEndpoint(endpoint);
+		context.refresh();
 		bus.start();
 		this.sourceChannel.send(new StringMessage("foo"));
 	}
@@ -118,6 +121,7 @@ public class DirectChannelSubscriptionTests {
 		postProcessor.afterPropertiesSet();
 		FailingTestEndpoint endpoint = new FailingTestEndpoint();
 		postProcessor.postProcessAfterInitialization(endpoint, "testEndpoint");
+		context.refresh();
 		bus.start();
 		this.sourceChannel.send(new StringMessage("foo"));
 	}

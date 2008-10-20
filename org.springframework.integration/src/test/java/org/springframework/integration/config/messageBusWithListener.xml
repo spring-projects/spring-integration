@@ -7,13 +7,8 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<message-bus auto-startup="false">
-		 <interceptor ref="startInterceptor"/>
-		 <interceptor ref="stopInterceptor"/>
-	</message-bus>
+	<message-bus auto-startup="false"/>
 
-	<beans:bean id="startInterceptor" class="org.springframework.integration.bus.TestMessageBusStartInterceptor"/>
-
-	<beans:bean id="stopInterceptor" class="org.springframework.integration.bus.TestMessageBusStopInterceptor"/>
+	<beans:bean id="listener" class="org.springframework.integration.bus.MessageBusEventTests$TestMessageBusListener"/>
 
 </beans:beans>

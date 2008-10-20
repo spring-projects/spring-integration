@@ -66,6 +66,7 @@ public class RouterAnnotationPostProcessorTests {
 		postProcessor.afterPropertiesSet();
 		TestRouter testRouter = new TestRouter();
 		postProcessor.postProcessAfterInitialization(testRouter, "test");
+		context.refresh();
 		messageBus.start();
 		inputChannel.send(new StringMessage("foo"));
 		Message<?> replyMessage = outputChannel.receive(0);

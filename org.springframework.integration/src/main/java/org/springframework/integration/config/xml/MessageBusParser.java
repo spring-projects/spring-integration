@@ -20,18 +20,14 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
-import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -132,7 +128,6 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 					AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME);
 			BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
 		}
-		this.processChildElements(builder, element);
 		this.addPostProcessors(element, parserContext);
 	}
 
@@ -145,23 +140,6 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 		executor.setRejectedExecutionHandler(new CallerRunsPolicy());
 		executor.afterPropertiesSet();
 		return executor;
-	}
-
-	@SuppressWarnings("unchecked")
-	private void processChildElements(BeanDefinitionBuilder builder, Element element) {
-		NodeList childNodes = element.getChildNodes();
-		ManagedList interceptors = new ManagedList();
-		for (int i = 0; i < childNodes.getLength(); i++) {
-			Node child = childNodes.item(i);
-			if (child.getNodeType() == Node.ELEMENT_NODE) {
-				if ("interceptor".equals(child.getLocalName())) {
-					interceptors.add(new RuntimeBeanReference(((Element)child).getAttribute("ref")));
-				}
-			}
-		}
-		if (interceptors.size() > 0) {
-			builder.addPropertyValue("interceptors", interceptors);
-		}
 	}
 
 	/**

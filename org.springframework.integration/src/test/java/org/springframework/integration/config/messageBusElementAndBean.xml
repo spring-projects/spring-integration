@@ -9,6 +9,6 @@
 
 	<integration:message-bus/>
 
-	<bean id="bus" class="org.springframework.integration.bus.DefaultMessageBus"/>
+	<bean id="bus" class="org.springframework.integration.bus.ApplicationContextMessageBus"/>
 
 </beans>

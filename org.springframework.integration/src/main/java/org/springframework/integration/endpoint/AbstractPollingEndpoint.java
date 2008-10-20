@@ -43,8 +43,8 @@ import org.springframework.util.ClassUtils;
 /**
  * @author Mark Fisher
  */
-public abstract class AbstractPollingEndpoint implements MessageEndpoint,
-		TaskSchedulerAware, Lifecycle, InitializingBean, BeanClassLoaderAware {
+public abstract class AbstractPollingEndpoint extends AbstractEndpoint
+		implements TaskSchedulerAware, Lifecycle, InitializingBean, BeanClassLoaderAware {
 
 	public static final int MAX_MESSAGES_UNBOUNDED = -1;
 

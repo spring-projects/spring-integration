@@ -89,6 +89,7 @@ public class MethodInvokingConsumerTests {
 		ApplicationContextMessageBus bus = new ApplicationContextMessageBus();
 		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		bus.setApplicationContext(context);
+		context.refresh();
 		bus.start();
 		String result = queue.poll(1000, TimeUnit.MILLISECONDS);
 		assertNotNull(result);

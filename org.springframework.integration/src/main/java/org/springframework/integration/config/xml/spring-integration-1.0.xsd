@@ -23,13 +23,6 @@
 	Defines the Message Bus for this Application Context.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:sequence>
-				<xsd:element name="interceptor" minOccurs="0" maxOccurs="unbounded">
-					<xsd:complexType>
-						<xsd:attribute name="ref" type="xsd:string" use="required"/>
-					</xsd:complexType>
-				</xsd:element>
-			</xsd:sequence>
 			<xsd:attribute name="enable-annotations" type="xsd:boolean"/>
 			<xsd:attribute name="task-scheduler" type="xsd:string"/>
 			<xsd:attribute name="auto-startup" type="xsd:boolean"/>

@@ -68,6 +68,7 @@ public class SplitterAnnotationPostProcessorTests {
 		postProcessor.afterPropertiesSet();
 		TestSplitter splitter = new TestSplitter();
 		postProcessor.postProcessAfterInitialization(splitter, "testSplitter");
+		context.refresh();
 		messageBus.start();
 		inputChannel.send(new StringMessage("this.is.a.test"));
 		Message<?> message1 = outputChannel.receive(500);

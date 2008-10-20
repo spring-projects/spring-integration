@@ -16,21 +16,22 @@
 
 package org.springframework.integration.bus;
 
+import org.springframework.context.ApplicationEvent;
 
 /**
- * Interface for interceptors that are able be notified of the
- * lifecycle of the {@link MessageBus Message Bus}.
- *
- * @author Marius Bogoevici
+ * Event raised when a <code>MessageBus</code> is started.
+ * 
+ * @author Mark Fisher
  */
-public interface MessageBusInterceptor {
+public class MessageBusStartedEvent extends ApplicationEvent {
 
-    void preStart(MessageBus bus);
-
-    void postStart(MessageBus bus);
-
-    void preStop(MessageBus bus);
-
-    void postStop(MessageBus bus);
+	/**
+	 * Create a new MessageBusStartedEvent
+	 * @param source the <code>MessageBus</code> that has been started
+	 * (must not be <code>null</code>)
+	 */
+	public MessageBusStartedEvent(MessageBus source) {
+		super(source);
+	}
 
 }

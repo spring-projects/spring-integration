@@ -16,25 +16,22 @@
 
 package org.springframework.integration.bus;
 
+import org.springframework.context.ApplicationEvent;
 
 /**
- * No-op implementation of a {@link MessageBusInterceptor}. Subclasses shall
- * override only the methods for which they intend to provide behaviour.
+ * Event raised when a <code>MessageBus</code> is stopped.
  * 
- * @author Marius Bogoevici
+ * @author Mark Fisher
  */
-public class MessageBusInterceptorAdapter implements MessageBusInterceptor {
+public class MessageBusStoppedEvent extends ApplicationEvent {
 
-	public void preStart(MessageBus bus) {
+	/**
+	 * Create a new MessageBusStoppedEvent
+	 * @param source the <code>MessageBus</code> that has been stopped
+	 * (must not be <code>null</code>)
+	 */
+	public MessageBusStoppedEvent(MessageBus source) {
+		super(source);
 	}
-	
-	public void postStart(MessageBus bus) {
-	}
-	
-	public void preStop(MessageBus bus) {
-	}
-	
-	public void postStop(MessageBus bus) {
-	}
-	
+
 }

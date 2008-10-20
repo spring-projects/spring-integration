@@ -99,6 +99,7 @@ public class DefaultMessageBusTests {
 		QueueChannel targetChannel = new QueueChannel();
 		targetChannel.setBeanName("targetChannel");
 		context.getBeanFactory().registerSingleton("targetChannel", targetChannel);
+		context.refresh();
 		bus.start();
 		Message<?> result = targetChannel.receive(100);
 		assertNull(result);
@@ -151,6 +152,7 @@ public class DefaultMessageBusTests {
 		ApplicationContextMessageBus bus = new ApplicationContextMessageBus();
 		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		bus.setApplicationContext(context);
+		context.refresh();
 		bus.start();
 		inputChannel.send(new StringMessage("testing"));
 		Message<?> message1 = outputChannel1.receive(500);
@@ -193,6 +195,7 @@ public class DefaultMessageBusTests {
 		ApplicationContextMessageBus bus = new ApplicationContextMessageBus();
 		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		bus.setApplicationContext(context);
+		context.refresh();
 		bus.start();
 		inputChannel.send(new StringMessage("testing"));
 		latch.await(500, TimeUnit.MILLISECONDS);
@@ -221,6 +224,7 @@ public class DefaultMessageBusTests {
 		ApplicationContextMessageBus bus = new ApplicationContextMessageBus();
 		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		bus.setApplicationContext(context);
+		context.refresh();
 		bus.start();
 		latch.await(2000, TimeUnit.MILLISECONDS);
 		Message<?> message = errorChannel.receive(5000);
@@ -255,6 +259,7 @@ public class DefaultMessageBusTests {
 		ApplicationContextMessageBus bus = new ApplicationContextMessageBus();
 		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		bus.setApplicationContext(context);
+		context.refresh();
 		bus.start();
 		errorChannel.send(new ErrorMessage(new RuntimeException("test-exception")));
 		latch.await(1000, TimeUnit.MILLISECONDS);

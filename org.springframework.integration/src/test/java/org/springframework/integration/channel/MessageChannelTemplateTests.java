@@ -65,6 +65,7 @@ public class MessageChannelTemplateTests {
 		ApplicationContextMessageBus bus = new ApplicationContextMessageBus();
 		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		bus.setApplicationContext(context);
+		context.refresh();
 		bus.start();
 	}
 

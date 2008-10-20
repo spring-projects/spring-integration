@@ -17,9 +17,7 @@
 package org.springframework.integration.bus;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.apache.commons.logging.Log;
@@ -63,15 +61,11 @@ public class ApplicationContextMessageBus implements MessageBus, ApplicationCont
 
 	private final Set<MessageEndpoint> endpoints = new CopyOnWriteArraySet<MessageEndpoint>();
 
-	private final MessageBusInterceptorsList interceptors = new MessageBusInterceptorsList();
-
 	private volatile TaskScheduler taskScheduler;
 
 	private volatile ApplicationContext applicationContext;
 
 	private volatile boolean autoStartup = true;
-
-	private volatile boolean initialized;
 
 	private volatile boolean running;
 
@@ -189,13 +183,11 @@ public class ApplicationContextMessageBus implements MessageBus, ApplicationCont
 	}
 
 	public void start() {
-		if (!this.initialized) {
-			this.initialize();
-		}
 		if (this.running) {
 			return;
 		}
-		this.interceptors.preStart();
+		Assert.notNull(this.applicationContext, "ApplicationContext must not be null");
+		Assert.notNull(this.taskScheduler, "TaskScheduler must not be null");
 		synchronized (this.lifecycleMonitor) {
 			this.activateEndpoints();
 			if (this.taskScheduler instanceof SimpleTaskScheduler) {
@@ -207,7 +199,7 @@ public class ApplicationContextMessageBus implements MessageBus, ApplicationCont
 			this.taskScheduler.start();
 		}
 		this.running = true;
-		this.interceptors.postStart();
+		this.applicationContext.publishEvent(new MessageBusStartedEvent(this));
 		if (logger.isInfoEnabled()) {
 			logger.info("message bus started");
 		}
@@ -217,17 +209,18 @@ public class ApplicationContextMessageBus implements MessageBus, ApplicationCont
 		if (!this.isRunning()) {
 			return;
 		}
-		this.interceptors.preStop();
 		synchronized (this.lifecycleMonitor) {
 			this.deactivateEndpoints();
 			this.running = false;
 			this.taskScheduler.stop();
 		}
-		this.interceptors.postStop();
+		this.applicationContext.publishEvent(new MessageBusStoppedEvent(this));
 		if (logger.isInfoEnabled()) {
 			logger.info("message bus stopped");
 		}
 	}
+
+	// ApplicationListener implementation
 
 	public void onApplicationEvent(ApplicationEvent event) {
 		if (event instanceof ContextRefreshedEvent && this.autoStartup) {
@@ -235,78 +228,12 @@ public class ApplicationContextMessageBus implements MessageBus, ApplicationCont
 		}
 	}
 
-	private void initialize() {
-		synchronized (this.lifecycleMonitor) {
-			if (this.initialized) {
-				return;
-			}
-			Assert.notNull(this.applicationContext, "ApplicationContext must not be null");
-			Assert.notNull(this.taskScheduler, "TaskScheduler must not be null");
-			this.initialized = true;
-		}
-	}
+	// DisposableBean implementation
 
 	public void destroy() throws Exception {
 		this.stop();
 		if (this.taskScheduler instanceof DisposableBean) {
 			((DisposableBean) this.taskScheduler).destroy();
-		}
-	}
-
-	public void addInterceptor(MessageBusInterceptor interceptor) {
-		this.interceptors.add(interceptor);
-	}
-
-	public void removeInterceptor(MessageBusInterceptor interceptor) {
-		this.interceptors.remove(interceptor);
-	}
-
-	public void setInterceptors(List<MessageBusInterceptor> interceptor) {
-		this.interceptors.set(interceptor);
-	}
-
-	/*
-	 * Wrapper class for the interceptor list
-	 */
-	private class MessageBusInterceptorsList {
-
-		private CopyOnWriteArrayList<MessageBusInterceptor> messageBusInterceptors = new CopyOnWriteArrayList<MessageBusInterceptor>();
-
-		public void set(List<MessageBusInterceptor> interceptors) {
-			this.messageBusInterceptors.clear();
-			this.messageBusInterceptors.addAll(interceptors);
-		}
-
-		public void add(MessageBusInterceptor interceptor) {
-			this.messageBusInterceptors.add(interceptor);
-		}
-
-		public void remove(MessageBusInterceptor interceptor) {
-			this.messageBusInterceptors.remove(interceptor);
-		}
-
-		public void preStart() {
-			for (MessageBusInterceptor messageBusInterceptor : messageBusInterceptors) {
-				messageBusInterceptor.preStart(ApplicationContextMessageBus.this);
-			}
-		}
-
-		public void postStart() {
-			for (MessageBusInterceptor messageBusInterceptor : messageBusInterceptors) {
-				messageBusInterceptor.postStart(ApplicationContextMessageBus.this);
-			}
-		}
-
-		public void preStop() {
-			for (MessageBusInterceptor messageBusInterceptor : messageBusInterceptors) {
-				messageBusInterceptor.preStop(ApplicationContextMessageBus.this);
-			}
-		}
-
-		public void postStop() {
-			for (MessageBusInterceptor messageBusInterceptor : messageBusInterceptors) {
-				messageBusInterceptor.postStop(ApplicationContextMessageBus.this);
-			}
 		}
 	}
 

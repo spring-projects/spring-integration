@@ -143,6 +143,7 @@ public class MessagingAnnotationPostProcessorTests {
 		CountDownLatch latch = new CountDownLatch(1);
 		OutboundChannelAdapterTestBean testBean = new OutboundChannelAdapterTestBean(latch);
 		postProcessor.postProcessAfterInitialization(testBean, "testBean");
+		context.refresh();
 		messageBus.start();
 		ChannelResolver channelResolver = new BeanFactoryChannelResolver(context);
 		MessageChannel testChannel = channelResolver.resolveChannelName("testChannel");
@@ -186,6 +187,7 @@ public class MessagingAnnotationPostProcessorTests {
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(context.getBeanFactory());
 		postProcessor.afterPropertiesSet();
+		context.refresh();
 		messageBus.start();
 		ServiceActivatorAnnotatedBean bean = new ServiceActivatorAnnotatedBean();
 		postProcessor.postProcessAfterInitialization(bean, "testBean");
@@ -216,6 +218,7 @@ public class MessagingAnnotationPostProcessorTests {
 		ProxyFactory proxyFactory = new ProxyFactory(new AnnotatedTestService());
 		Object proxy = proxyFactory.getProxy();
 		postProcessor.postProcessAfterInitialization(proxy, "proxy");
+		context.refresh();
 		messageBus.start();
 		inputChannel.send(new StringMessage("world"));
 		Message<?> message = outputChannel.receive(1000);
@@ -241,6 +244,7 @@ public class MessagingAnnotationPostProcessorTests {
 		postProcessor.setBeanFactory(context.getBeanFactory());
 		postProcessor.afterPropertiesSet();
 		postProcessor.postProcessAfterInitialization(new SimpleAnnotatedEndpointSubclass(), "subclass");
+		context.refresh();
 		messageBus.start();
 		inputChannel.send(new StringMessage("world"));
 		Message<?> message = outputChannel.receive(1000);
@@ -268,6 +272,7 @@ public class MessagingAnnotationPostProcessorTests {
 		ProxyFactory proxyFactory = new ProxyFactory(new SimpleAnnotatedEndpointSubclass());
 		Object proxy = proxyFactory.getProxy();
 		postProcessor.postProcessAfterInitialization(proxy, "proxy");
+		context.refresh();
 		messageBus.start();
 		inputChannel.send(new StringMessage("world"));
 		Message<?> message = outputChannel.receive(1000);
@@ -293,6 +298,7 @@ public class MessagingAnnotationPostProcessorTests {
 		postProcessor.setBeanFactory(context.getBeanFactory());
 		postProcessor.afterPropertiesSet();
 		postProcessor.postProcessAfterInitialization(new SimpleAnnotatedEndpointImplementation(), "impl");
+		context.refresh();
 		messageBus.start();
 		inputChannel.send(new StringMessage("ABC"));
 		Message<?> message = outputChannel.receive(1000);
@@ -318,6 +324,7 @@ public class MessagingAnnotationPostProcessorTests {
 		postProcessor.setBeanFactory(context.getBeanFactory());
 		postProcessor.afterPropertiesSet();
 		postProcessor.postProcessAfterInitialization(new SimpleAnnotatedEndpointImplementation(), "impl");
+		context.refresh();
 		messageBus.start();
 		inputChannel.send(new StringMessage("ABC"));
 		Message<?> message = outputChannel.receive(1000);
@@ -345,6 +352,7 @@ public class MessagingAnnotationPostProcessorTests {
 		ProxyFactory proxyFactory = new ProxyFactory(new SimpleAnnotatedEndpointImplementation());
 		Object proxy = proxyFactory.getProxy();
 		postProcessor.postProcessAfterInitialization(proxy, "proxy");
+		context.refresh();
 		messageBus.start();
 		inputChannel.send(new StringMessage("ABC"));
 		Message<?> message = outputChannel.receive(1000);
@@ -390,6 +398,7 @@ public class MessagingAnnotationPostProcessorTests {
 		postProcessor.afterPropertiesSet();
 		ChannelAdapterAnnotationTestBean testBean = new ChannelAdapterAnnotationTestBean();
 		postProcessor.postProcessAfterInitialization(testBean, "testBean");
+		context.refresh();
 		messageBus.start();
 		ChannelResolver channelResolver = new BeanFactoryChannelResolver(context);
 		DirectChannel testChannel = (DirectChannel) channelResolver.resolveChannelName("testChannel");
