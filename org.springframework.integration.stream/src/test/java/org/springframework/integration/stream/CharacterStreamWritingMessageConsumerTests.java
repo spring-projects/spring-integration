@@ -19,138 +19,163 @@ package org.springframework.integration.stream;
 import static org.junit.Assert.assertEquals;
 
 import java.io.StringWriter;
+import java.util.Date;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.endpoint.ChannelPoller;
+import org.springframework.integration.endpoint.PollingConsumerEndpoint;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.scheduling.IntervalTrigger;
+import org.springframework.integration.scheduling.SimpleTaskScheduler;
+import org.springframework.integration.scheduling.Trigger;
 
 /**
  * @author Mark Fisher
  */
 public class CharacterStreamWritingMessageConsumerTests {
 
+	private StringWriter writer;
+
+	private CharacterStreamWritingMessageConsumer consumer;
+
 	private QueueChannel channel;
 
-	private ChannelPoller poller;
+	private PollingConsumerEndpoint endpoint;
+
+	private TestTrigger trigger = new TestTrigger();
+
+	private SimpleTaskScheduler scheduler;
 
 
 	@Before
 	public void initialize() {
+		writer = new StringWriter();
+		consumer = new CharacterStreamWritingMessageConsumer(writer);
 		this.channel = new QueueChannel(10);
-		this.poller = new ChannelPoller(channel, new IntervalTrigger(0));
+		trigger.reset();
+		this.endpoint = new PollingConsumerEndpoint(consumer, channel);
+		scheduler = new SimpleTaskScheduler(new SimpleAsyncTaskExecutor());
+		this.endpoint.setTaskScheduler(scheduler);
+		scheduler.start();
+		trigger.reset();
+		endpoint.setTrigger(trigger);
+	}
+
+	@After
+	public void stop() throws Exception {
+		scheduler.destroy();
 	}
 
 
 	@Test
 	public void singleString() {
-		StringWriter writer = new StringWriter();
-		CharacterStreamWritingMessageConsumer consumer = new CharacterStreamWritingMessageConsumer(writer);
 		consumer.onMessage(new StringMessage("foo"));
 		assertEquals("foo", writer.toString());
 	}
 
 	@Test
 	public void twoStringsAndNoNewLinesByDefault() {
-		StringWriter writer = new StringWriter();
-		CharacterStreamWritingMessageConsumer consumer = new CharacterStreamWritingMessageConsumer(writer);
-		poller.setConsumer(consumer);
-		poller.setMaxMessagesPerPoll(1);
+		endpoint.setMaxMessagesPerPoll(1);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
-		poller.run();
+		endpoint.start();
+		trigger.await();
+		endpoint.stop();
 		assertEquals("foo", writer.toString());
-		poller.run();
+		trigger.reset();
+		endpoint.start();
+		trigger.await();
+		endpoint.stop();
 		assertEquals("foobar", writer.toString());
 	}
 
 	@Test
 	public void twoStringsWithNewLines() {
-		StringWriter writer = new StringWriter();
-		CharacterStreamWritingMessageConsumer consumer = new CharacterStreamWritingMessageConsumer(writer);
 		consumer.setShouldAppendNewLine(true);
-		poller.setConsumer(consumer);
-		poller.setMaxMessagesPerPoll(1);
+		endpoint.setMaxMessagesPerPoll(1);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
-		poller.run();
+		endpoint.start();
+		trigger.await();
+		endpoint.stop();
 		String newLine = System.getProperty("line.separator");
 		assertEquals("foo" + newLine, writer.toString());
-		poller.run();
+		trigger.reset();
+		endpoint.start();
+		trigger.await();
+		endpoint.stop();
 		assertEquals("foo" + newLine + "bar" + newLine, writer.toString());
 	}
 
 	@Test
 	public void maxMessagesPerTaskSameAsMessageCount() {
-		StringWriter writer = new StringWriter();
-		CharacterStreamWritingMessageConsumer consumer = new CharacterStreamWritingMessageConsumer(writer);
-		poller.setMaxMessagesPerPoll(2);
-		poller.setConsumer(consumer);
+		endpoint.setMaxMessagesPerPoll(2);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
-		poller.run();
+		endpoint.start();
+		trigger.await();
+		endpoint.stop();
 		assertEquals("foobar", writer.toString());
 	}
 
 	@Test
 	public void maxMessagesPerTaskExceedsMessageCountWithAppendedNewLines() {
-		StringWriter writer = new StringWriter();
-		CharacterStreamWritingMessageConsumer consumer = new CharacterStreamWritingMessageConsumer(writer);
-		poller.setMaxMessagesPerPoll(10);
-		poller.setReceiveTimeout(0);
-		poller.setConsumer(consumer);		
+		endpoint.setMaxMessagesPerPoll(10);
+		endpoint.setReceiveTimeout(0);
 		consumer.setShouldAppendNewLine(true);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
-		poller.run();
+		endpoint.start();
+		trigger.await();
+		endpoint.stop();
 		String newLine = System.getProperty("line.separator");
 		assertEquals("foo" + newLine + "bar" + newLine, writer.toString());
 	}
 
 	@Test
 	public void singleNonStringObject() {
-		StringWriter writer = new StringWriter();
-		CharacterStreamWritingMessageConsumer consumer = new CharacterStreamWritingMessageConsumer(writer);
-		poller.setConsumer(consumer);
-		poller.setMaxMessagesPerPoll(1);
+		endpoint.setMaxMessagesPerPoll(1);
 		TestObject testObject = new TestObject("foo");
 		channel.send(new GenericMessage<TestObject>(testObject));
-		poller.run();
+		endpoint.start();
+		trigger.await();
+		endpoint.stop();
 		assertEquals("foo", writer.toString());
 	}
 
 	@Test
 	public void twoNonStringObjectWithOutNewLines() {
-		StringWriter writer = new StringWriter();
-		CharacterStreamWritingMessageConsumer consumer = new CharacterStreamWritingMessageConsumer(writer);
-		poller.setReceiveTimeout(0);
-		poller.setMaxMessagesPerPoll(2);
-		poller.setConsumer(consumer);
+		endpoint.setReceiveTimeout(0);
+		endpoint.setMaxMessagesPerPoll(2);
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
 		channel.send(new GenericMessage<TestObject>(testObject1), 0);
 		channel.send(new GenericMessage<TestObject>(testObject2), 0);
-		poller.run();
+		endpoint.start();
+		trigger.await();
+		endpoint.stop();
 		assertEquals("foobar", writer.toString());
 	}
 
 	@Test
 	public void twoNonStringObjectWithNewLines() {
-		StringWriter writer = new StringWriter();
-		CharacterStreamWritingMessageConsumer consumer = new CharacterStreamWritingMessageConsumer(writer);
 		consumer.setShouldAppendNewLine(true);
-		poller.setReceiveTimeout(0);
-		poller.setMaxMessagesPerPoll(2);
-		poller.setConsumer(consumer);
+		endpoint.setReceiveTimeout(0);
+		endpoint.setMaxMessagesPerPoll(2);
 		TestObject testObject1 = new TestObject("foo");
 		TestObject testObject2 = new TestObject("bar");
 		channel.send(new GenericMessage<TestObject>(testObject1), 0);
 		channel.send(new GenericMessage<TestObject>(testObject2), 0);
-		poller.run();
+		endpoint.start();
+		trigger.await();
+		endpoint.stop();
 		String newLine = System.getProperty("line.separator");
 		assertEquals("foo" + newLine + "bar" + newLine, writer.toString());
 	}
@@ -166,6 +191,40 @@ public class CharacterStreamWritingMessageConsumerTests {
 
 		public String toString() {
 			return this.text;
+		}
+	}
+
+
+	private static class TestTrigger implements Trigger {
+
+		private final AtomicBoolean hasRun = new AtomicBoolean();
+
+		private volatile CountDownLatch latch = new CountDownLatch(1);
+
+
+		public Date getNextRunTime(Date lastScheduledRunTime, Date lastCompleteTime) {
+			if (!hasRun.getAndSet(true)) {
+				return new Date();
+			}
+			this.latch.countDown();
+			return null;
+		}
+
+		public void reset() {
+			this.latch = new CountDownLatch(1);
+			this.hasRun.set(false);
+		}
+
+		public void await() {
+			try {
+				this.latch.await(1000, TimeUnit.MILLISECONDS);
+				if (latch.getCount() != 0) {
+					throw new RuntimeException("test timeout");
+				}
+			}
+			catch (InterruptedException e) {
+				throw new RuntimeException("test latch.await() interrupted");
+			}
 		}
 	}
 
