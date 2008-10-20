@@ -137,7 +137,7 @@
         consumer can only receive the Messages from such a channel if a <emphasis>poller</emphasis> is configured. On
         the other hand, a consumer connected to a <emphasis>Subscribable Channel</emphasis> is simply Message-driven.
         The variety of channel implementations available in Spring Integration will be discussed in detail in
-        <xref linkend="api-messagechannel"/>.
+        <xref linkend="channel-implementations"/>.
       </para>
     </section>
 
