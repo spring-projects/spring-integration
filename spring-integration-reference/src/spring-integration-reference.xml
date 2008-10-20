@@ -41,7 +41,8 @@
   <toc></toc>
 
   <xi:include href="./overview.xml"/>
-  <xi:include href="./core-api.xml"/>
+  <xi:include href="./message.xml"/>
+  <xi:include href="./channel.xml"/>
   <xi:include href="./transformation.xml"/>
   <xi:include href="./routing.xml"/>
   <xi:include href="./splitting.xml"/>
