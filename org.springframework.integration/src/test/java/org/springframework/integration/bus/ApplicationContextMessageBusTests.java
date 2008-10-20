@@ -52,7 +52,7 @@ import org.springframework.integration.util.TestUtils;
 /**
  * @author Mark Fisher
  */
-public class DefaultMessageBusTests {
+public class ApplicationContextMessageBusTests {
 
 	@Test
 	public void endpointRegistrationWithInputChannelReference() {
