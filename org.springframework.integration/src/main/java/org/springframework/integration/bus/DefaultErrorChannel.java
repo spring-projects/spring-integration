@@ -36,7 +36,7 @@ public class DefaultErrorChannel extends RendezvousChannel {
 
 	public DefaultErrorChannel() {
 		this.addInterceptor(new ErrorLoggingInterceptor());
-		this.setBeanName(DefaultMessageBus.ERROR_CHANNEL_BEAN_NAME);
+		this.setBeanName(ApplicationContextMessageBus.ERROR_CHANNEL_BEAN_NAME);
 	}
 
 

@@ -30,7 +30,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.integration.bus.DefaultMessageBus;
+import org.springframework.integration.bus.ApplicationContextMessageBus;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractReplyProducingMessageConsumer;
@@ -62,7 +62,7 @@ public class MessageChannelTemplateTests {
 		GenericApplicationContext context = new GenericApplicationContext();
 		context.getBeanFactory().registerSingleton("requestChannel", requestChannel);
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
-		DefaultMessageBus bus = new DefaultMessageBus();
+		ApplicationContextMessageBus bus = new ApplicationContextMessageBus();
 		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		bus.setApplicationContext(context);
 		bus.start();

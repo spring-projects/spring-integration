@@ -54,7 +54,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class DefaultMessageBus implements MessageBus, ApplicationContextAware, ApplicationListener, DisposableBean {
+public class ApplicationContextMessageBus implements MessageBus, ApplicationContextAware, ApplicationListener, DisposableBean {
 
 	public static final String ERROR_CHANNEL_BEAN_NAME = "errorChannel";
 
@@ -287,25 +287,25 @@ public class DefaultMessageBus implements MessageBus, ApplicationContextAware, A
 
 		public void preStart() {
 			for (MessageBusInterceptor messageBusInterceptor : messageBusInterceptors) {
-				messageBusInterceptor.preStart(DefaultMessageBus.this);
+				messageBusInterceptor.preStart(ApplicationContextMessageBus.this);
 			}
 		}
 
 		public void postStart() {
 			for (MessageBusInterceptor messageBusInterceptor : messageBusInterceptors) {
-				messageBusInterceptor.postStart(DefaultMessageBus.this);
+				messageBusInterceptor.postStart(ApplicationContextMessageBus.this);
 			}
 		}
 
 		public void preStop() {
 			for (MessageBusInterceptor messageBusInterceptor : messageBusInterceptors) {
-				messageBusInterceptor.preStop(DefaultMessageBus.this);
+				messageBusInterceptor.preStop(ApplicationContextMessageBus.this);
 			}
 		}
 
 		public void postStop() {
 			for (MessageBusInterceptor messageBusInterceptor : messageBusInterceptors) {
-				messageBusInterceptor.postStop(DefaultMessageBus.this);
+				messageBusInterceptor.postStop(ApplicationContextMessageBus.this);
 			}
 		}
 	}

@@ -28,7 +28,7 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.integration.bus.DefaultMessageBus;
+import org.springframework.integration.bus.ApplicationContextMessageBus;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
 import org.springframework.integration.config.xml.MessageBusParser;
@@ -50,7 +50,7 @@ public class ServiceActivatorAnnotationPostProcessorTests {
 		beanDefinition.getConstructorArgumentValues().addGenericArgumentValue(latch);
 		context.registerBeanDefinition("testBean", beanDefinition);
 		String busBeanName = MessageBusParser.MESSAGE_BUS_BEAN_NAME;
-		RootBeanDefinition busBeanDefinition = new RootBeanDefinition(DefaultMessageBus.class);
+		RootBeanDefinition busBeanDefinition = new RootBeanDefinition(ApplicationContextMessageBus.class);
 		busBeanDefinition.getPropertyValues().addPropertyValue("taskScheduler", TestUtils.createTaskScheduler(10));
 		context.registerBeanDefinition(busBeanName, busBeanDefinition);
 		RootBeanDefinition postProcessorDef = new RootBeanDefinition(MessagingAnnotationPostProcessor.class);

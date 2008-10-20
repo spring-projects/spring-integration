@@ -24,7 +24,7 @@ import org.junit.Test;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Router;
-import org.springframework.integration.bus.DefaultMessageBus;
+import org.springframework.integration.bus.ApplicationContextMessageBus;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.xml.MessageBusParser;
@@ -39,7 +39,7 @@ public class RouterAnnotationPostProcessorTests {
 
 	private GenericApplicationContext context = new GenericApplicationContext();
 
-	private DefaultMessageBus messageBus = new DefaultMessageBus();
+	private ApplicationContextMessageBus messageBus = new ApplicationContextMessageBus();
 
 	private DirectChannel inputChannel = new DirectChannel();
 

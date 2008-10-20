@@ -45,7 +45,7 @@ public class DirectChannelSubscriptionTests {
 
 	private GenericApplicationContext context = new GenericApplicationContext();
 
-	private DefaultMessageBus bus = new DefaultMessageBus();
+	private ApplicationContextMessageBus bus = new ApplicationContextMessageBus();
 
 	private DirectChannel sourceChannel = new DirectChannel();
 
@@ -110,9 +110,9 @@ public class DirectChannelSubscriptionTests {
 	@Test(expected = MessagingException.class)
 	public void exceptionThrownFromAnnotatedEndpoint() {
 		QueueChannel errorChannel = new QueueChannel();
-		errorChannel.setBeanName(DefaultMessageBus.ERROR_CHANNEL_BEAN_NAME);
+		errorChannel.setBeanName(ApplicationContextMessageBus.ERROR_CHANNEL_BEAN_NAME);
 		context.getBeanFactory().registerSingleton(
-				DefaultMessageBus.ERROR_CHANNEL_BEAN_NAME, errorChannel);
+				ApplicationContextMessageBus.ERROR_CHANNEL_BEAN_NAME, errorChannel);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(context.getBeanFactory());
 		postProcessor.afterPropertiesSet();

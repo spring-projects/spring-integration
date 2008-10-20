@@ -38,7 +38,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.bus.DefaultMessageBus;
+import org.springframework.integration.bus.ApplicationContextMessageBus;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.bus.MessageBusAwareBeanPostProcessor;
 import org.springframework.integration.channel.QueueChannel;
@@ -84,7 +84,7 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
-		return DefaultMessageBus.class;
+		return ApplicationContextMessageBus.class;
 	}
 
 	@Override
@@ -100,10 +100,10 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 		super.doParse(element, parserContext, builder);
 		String taskSchedulerRef = element.getAttribute(TASK_SCHEDULER_ATTRIBUTE);
 		TaskExecutor taskExecutor= null;
-		if (!parserContext.getRegistry().containsBeanDefinition(DefaultMessageBus.ERROR_CHANNEL_BEAN_NAME)) {
+		if (!parserContext.getRegistry().containsBeanDefinition(ApplicationContextMessageBus.ERROR_CHANNEL_BEAN_NAME)) {
 			RootBeanDefinition errorChannelDef = new RootBeanDefinition(QueueChannel.class);
 			BeanDefinitionHolder errorChannelHolder = new BeanDefinitionHolder(
-					errorChannelDef, DefaultMessageBus.ERROR_CHANNEL_BEAN_NAME);
+					errorChannelDef, ApplicationContextMessageBus.ERROR_CHANNEL_BEAN_NAME);
 			BeanDefinitionReaderUtils.registerBeanDefinition(errorChannelHolder, parserContext.getRegistry());
 		}
 		if (StringUtils.hasText(taskSchedulerRef)) {

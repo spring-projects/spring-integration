@@ -37,7 +37,7 @@ import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Transformer;
-import org.springframework.integration.bus.DefaultMessageBus;
+import org.springframework.integration.bus.ApplicationContextMessageBus;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.DirectChannel;
@@ -65,7 +65,7 @@ public class MessagingAnnotationPostProcessorTests {
 		QueueChannel inputChannel = new QueueChannel();
 		inputChannel.setBeanName("inputChannel");
 		context.getBeanFactory().registerSingleton("inputChannel", inputChannel);
-		DefaultMessageBus messageBus = new DefaultMessageBus();
+		ApplicationContextMessageBus messageBus = new ApplicationContextMessageBus();
 		context.getBeanFactory().registerSingleton(
 				MessageBusParser.MESSAGE_BUS_BEAN_NAME, messageBus);
 		messageBus.setApplicationContext(context);
@@ -132,7 +132,7 @@ public class MessagingAnnotationPostProcessorTests {
 	@Test
 	public void targetAnnotation() throws InterruptedException {
 		GenericApplicationContext context = new GenericApplicationContext();
-		DefaultMessageBus messageBus = new DefaultMessageBus();
+		ApplicationContextMessageBus messageBus = new ApplicationContextMessageBus();
 		context.getBeanFactory().registerSingleton(
 				MessageBusParser.MESSAGE_BUS_BEAN_NAME, messageBus);
 		messageBus.setTaskScheduler(TestUtils.createTaskScheduler(10));
@@ -178,7 +178,7 @@ public class MessagingAnnotationPostProcessorTests {
 		outputChannel.setBeanName("outputChannel");
 		context.getBeanFactory().registerSingleton("inputChannel", inputChannel);
 		context.getBeanFactory().registerSingleton("outputChannel", outputChannel);
-		DefaultMessageBus messageBus = new DefaultMessageBus();
+		ApplicationContextMessageBus messageBus = new ApplicationContextMessageBus();
 		messageBus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		context.getBeanFactory().registerSingleton(
 				MessageBusParser.MESSAGE_BUS_BEAN_NAME, messageBus);
@@ -199,7 +199,7 @@ public class MessagingAnnotationPostProcessorTests {
 	@Test
 	public void testProxiedMessageEndpointAnnotation() {
 		GenericApplicationContext context = new GenericApplicationContext();
-		DefaultMessageBus messageBus = new DefaultMessageBus();
+		ApplicationContextMessageBus messageBus = new ApplicationContextMessageBus();
 		context.getBeanFactory().registerSingleton(
 				MessageBusParser.MESSAGE_BUS_BEAN_NAME, messageBus);
 		QueueChannel inputChannel = new QueueChannel();
@@ -226,7 +226,7 @@ public class MessagingAnnotationPostProcessorTests {
 	@Test
 	public void testMessageEndpointAnnotationInherited() {
 		GenericApplicationContext context = new GenericApplicationContext();
-		DefaultMessageBus messageBus = new DefaultMessageBus();
+		ApplicationContextMessageBus messageBus = new ApplicationContextMessageBus();
 		context.getBeanFactory().registerSingleton(
 				MessageBusParser.MESSAGE_BUS_BEAN_NAME, messageBus);
 		QueueChannel inputChannel = new QueueChannel();
@@ -251,7 +251,7 @@ public class MessagingAnnotationPostProcessorTests {
 	@Test
 	public void testMessageEndpointAnnotationInheritedWithProxy() {
 		GenericApplicationContext context = new GenericApplicationContext();
-		DefaultMessageBus messageBus = new DefaultMessageBus();
+		ApplicationContextMessageBus messageBus = new ApplicationContextMessageBus();
 		context.getBeanFactory().registerSingleton(
 				MessageBusParser.MESSAGE_BUS_BEAN_NAME, messageBus);
 		QueueChannel inputChannel = new QueueChannel();
@@ -278,7 +278,7 @@ public class MessagingAnnotationPostProcessorTests {
 	@Test
 	public void testMessageEndpointAnnotationInheritedFromInterface() {
 		GenericApplicationContext context = new GenericApplicationContext();
-		DefaultMessageBus messageBus = new DefaultMessageBus();
+		ApplicationContextMessageBus messageBus = new ApplicationContextMessageBus();
 		context.getBeanFactory().registerSingleton(
 				MessageBusParser.MESSAGE_BUS_BEAN_NAME, messageBus);
 		QueueChannel inputChannel = new QueueChannel();
@@ -303,7 +303,7 @@ public class MessagingAnnotationPostProcessorTests {
 	@Test
 	public void testMessageEndpointAnnotationInheritedFromInterfaceWithAutoCreatedChannels() {
 		GenericApplicationContext context = new GenericApplicationContext();
-		DefaultMessageBus messageBus = new DefaultMessageBus();
+		ApplicationContextMessageBus messageBus = new ApplicationContextMessageBus();
 		context.getBeanFactory().registerSingleton(
 				MessageBusParser.MESSAGE_BUS_BEAN_NAME, messageBus);
 		QueueChannel inputChannel = new QueueChannel();
@@ -328,7 +328,7 @@ public class MessagingAnnotationPostProcessorTests {
 	@Test
 	public void testMessageEndpointAnnotationInheritedFromInterfaceWithProxy() {
 		GenericApplicationContext context = new GenericApplicationContext();
-		DefaultMessageBus messageBus = new DefaultMessageBus();
+		ApplicationContextMessageBus messageBus = new ApplicationContextMessageBus();
 		context.getBeanFactory().registerSingleton(
 				MessageBusParser.MESSAGE_BUS_BEAN_NAME, messageBus);
 		QueueChannel inputChannel = new QueueChannel();
@@ -355,7 +355,7 @@ public class MessagingAnnotationPostProcessorTests {
 	@Test
 	public void testEndpointWithPollerAnnotation() {
 		GenericApplicationContext context = new GenericApplicationContext();
-		DefaultMessageBus messageBus = new DefaultMessageBus();
+		ApplicationContextMessageBus messageBus = new ApplicationContextMessageBus();
 		context.getBeanFactory().registerSingleton(
 				MessageBusParser.MESSAGE_BUS_BEAN_NAME, messageBus);
 		QueueChannel testChannel = new QueueChannel();
@@ -380,7 +380,7 @@ public class MessagingAnnotationPostProcessorTests {
 	@Test
 	public void testChannelAdapterAnnotation() throws InterruptedException {
 		GenericApplicationContext context = new GenericApplicationContext();
-		DefaultMessageBus messageBus = new DefaultMessageBus();
+		ApplicationContextMessageBus messageBus = new ApplicationContextMessageBus();
 		context.getBeanFactory().registerSingleton(
 				MessageBusParser.MESSAGE_BUS_BEAN_NAME, messageBus);
 		messageBus.setTaskScheduler(TestUtils.createTaskScheduler(10));
@@ -417,7 +417,7 @@ public class MessagingAnnotationPostProcessorTests {
 		QueueChannel outputChannel = new QueueChannel();
 		outputChannel.setBeanName("outputChannel");
 		context.getBeanFactory().registerSingleton("outputChannel", outputChannel);
-		DefaultMessageBus messageBus = new DefaultMessageBus();
+		ApplicationContextMessageBus messageBus = new ApplicationContextMessageBus();
 		context.getBeanFactory().registerSingleton(MessageBusParser.MESSAGE_BUS_BEAN_NAME, messageBus);
 		messageBus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		messageBus.setApplicationContext(context);

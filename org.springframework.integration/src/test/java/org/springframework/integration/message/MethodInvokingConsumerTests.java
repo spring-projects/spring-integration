@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.integration.bus.DefaultMessageBus;
+import org.springframework.integration.bus.ApplicationContextMessageBus;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
@@ -86,7 +86,7 @@ public class MethodInvokingConsumerTests {
 		MethodInvokingConsumer consumer = new MethodInvokingConsumer(testBean, "foo");
 		PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(consumer, channel);
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
-		DefaultMessageBus bus = new DefaultMessageBus();
+		ApplicationContextMessageBus bus = new ApplicationContextMessageBus();
 		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		bus.setApplicationContext(context);
 		bus.start();

@@ -76,7 +76,7 @@ public class DefaultMessageBusTests {
 		endpoint.afterPropertiesSet();
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
 		context.refresh();
-		DefaultMessageBus bus = new DefaultMessageBus();
+		ApplicationContextMessageBus bus = new ApplicationContextMessageBus();
 		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		context.getBeanFactory().registerSingleton(MessageBusParser.MESSAGE_BUS_BEAN_NAME, bus);
 		bus.setApplicationContext(context);
@@ -89,7 +89,7 @@ public class DefaultMessageBusTests {
 	@Test
 	public void channelsWithoutHandlers() {
 		GenericApplicationContext context = new GenericApplicationContext();
-		DefaultMessageBus bus = new DefaultMessageBus();
+		ApplicationContextMessageBus bus = new ApplicationContextMessageBus();
 		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		bus.setApplicationContext(context);
 		QueueChannel sourceChannel = new QueueChannel();
@@ -148,7 +148,7 @@ public class DefaultMessageBusTests {
 		endpoint2.afterPropertiesSet();
 		context.getBeanFactory().registerSingleton("testEndpoint1", endpoint1);
 		context.getBeanFactory().registerSingleton("testEndpoint2", endpoint2);
-		DefaultMessageBus bus = new DefaultMessageBus();
+		ApplicationContextMessageBus bus = new ApplicationContextMessageBus();
 		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		bus.setApplicationContext(context);
 		bus.start();
@@ -190,7 +190,7 @@ public class DefaultMessageBusTests {
 		SubscribingConsumerEndpoint endpoint2 = new SubscribingConsumerEndpoint(consumer2, inputChannel);
 		context.getBeanFactory().registerSingleton("testEndpoint1", endpoint1);
 		context.getBeanFactory().registerSingleton("testEndpoint2", endpoint2);
-		DefaultMessageBus bus = new DefaultMessageBus();
+		ApplicationContextMessageBus bus = new ApplicationContextMessageBus();
 		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		bus.setApplicationContext(context);
 		bus.start();
@@ -218,7 +218,7 @@ public class DefaultMessageBusTests {
 		channelAdapter.setOutputChannel(outputChannel);
 		channelAdapter.setBeanName("testChannel");
 		context.getBeanFactory().registerSingleton("testChannel", channelAdapter);
-		DefaultMessageBus bus = new DefaultMessageBus();
+		ApplicationContextMessageBus bus = new ApplicationContextMessageBus();
 		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		bus.setApplicationContext(context);
 		bus.start();
@@ -241,8 +241,8 @@ public class DefaultMessageBusTests {
 	public void consumerSubscribedToErrorChannel() throws InterruptedException {
 		GenericApplicationContext context = new GenericApplicationContext();
 		QueueChannel errorChannel = new QueueChannel();
-		errorChannel.setBeanName(DefaultMessageBus.ERROR_CHANNEL_BEAN_NAME);
-		context.getBeanFactory().registerSingleton(DefaultMessageBus.ERROR_CHANNEL_BEAN_NAME, errorChannel);
+		errorChannel.setBeanName(ApplicationContextMessageBus.ERROR_CHANNEL_BEAN_NAME);
+		context.getBeanFactory().registerSingleton(ApplicationContextMessageBus.ERROR_CHANNEL_BEAN_NAME, errorChannel);
 		final CountDownLatch latch = new CountDownLatch(1);
 		AbstractReplyProducingMessageConsumer consumer = new AbstractReplyProducingMessageConsumer() {
 			public void onMessage(Message<?> message, ReplyMessageHolder replyHolder) {
@@ -252,7 +252,7 @@ public class DefaultMessageBusTests {
 		PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(consumer, errorChannel);
 		endpoint.afterPropertiesSet();
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
-		DefaultMessageBus bus = new DefaultMessageBus();
+		ApplicationContextMessageBus bus = new ApplicationContextMessageBus();
 		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		bus.setApplicationContext(context);
 		bus.start();
@@ -267,7 +267,7 @@ public class DefaultMessageBusTests {
 		QueueChannel testChannel = new QueueChannel();
 		testChannel.setBeanName("testChannel");
 		context.getBeanFactory().registerSingleton("testChannel", testChannel);
-		DefaultMessageBus messageBus = new DefaultMessageBus();
+		ApplicationContextMessageBus messageBus = new ApplicationContextMessageBus();
 		messageBus.setApplicationContext(context);
 		MessageChannel lookedUpChannel = messageBus.lookupChannel("testChannel");
 		assertNotNull(testChannel);
@@ -277,7 +277,7 @@ public class DefaultMessageBusTests {
 	@Test
 	public void lookupNonRegisteredChannel() {
 		GenericApplicationContext context = new GenericApplicationContext();
-		DefaultMessageBus messageBus = new DefaultMessageBus();
+		ApplicationContextMessageBus messageBus = new ApplicationContextMessageBus();
 		messageBus.setApplicationContext(context);
 		MessageChannel noSuchChannel = messageBus.lookupChannel("noSuchChannel");
 		assertNull(noSuchChannel);

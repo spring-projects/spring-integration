@@ -22,7 +22,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.integration.bus.DefaultMessageBus;
+import org.springframework.integration.bus.ApplicationContextMessageBus;
 import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.util.TestUtils;
 
@@ -33,7 +33,7 @@ public class MessageBusInterceptorTests {
 
 	@Test
 	public void testStart() {
-		DefaultMessageBus messageBus = new DefaultMessageBus();
+		ApplicationContextMessageBus messageBus = new ApplicationContextMessageBus();
 		messageBus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		messageBus.setApplicationContext(new GenericApplicationContext());
 		TestMessageBusStartInterceptor startInterceptor = new TestMessageBusStartInterceptor();

@@ -4,7 +4,7 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="bus" class="org.springframework.integration.bus.DefaultMessageBus">
+	<bean id="bus" class="org.springframework.integration.bus.ApplicationContextMessageBus">
 		<property name="taskScheduler">
 			<bean class="org.springframework.integration.util.TestUtils"
 				  factory-method="createTaskScheduler">
