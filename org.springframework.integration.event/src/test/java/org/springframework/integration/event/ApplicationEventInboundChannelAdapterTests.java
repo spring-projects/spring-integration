@@ -30,6 +30,8 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.ContextStartedEvent;
 import org.springframework.context.event.ContextStoppedEvent;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.bus.MessageBusStartedEvent;
+import org.springframework.integration.bus.MessageBusStoppedEvent;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
@@ -40,7 +42,7 @@ import org.springframework.integration.core.Message;
 public class ApplicationEventInboundChannelAdapterTests {
 
 	@Test
-	public void testAnyApplicationEventSentByDefault() {
+	public void anyApplicationEventSentByDefault() {
 		QueueChannel channel = new QueueChannel();
 		ApplicationEventInboundChannelAdapter adapter = new ApplicationEventInboundChannelAdapter();
 		adapter.setOutputChannel(channel);
@@ -57,7 +59,7 @@ public class ApplicationEventInboundChannelAdapterTests {
 	}
 
 	@Test
-	public void testOnlyConfiguredEventTypesAreSent() {
+	public void onlyConfiguredEventTypesAreSent() {
 		QueueChannel channel = new QueueChannel();
 		ApplicationEventInboundChannelAdapter adapter = new ApplicationEventInboundChannelAdapter();
 		adapter.setOutputChannel(channel);
@@ -74,21 +76,27 @@ public class ApplicationEventInboundChannelAdapterTests {
 	}
 
 	@Test
-	public void testApplicationContextEvents() {
+	public void messageBusAndApplicationContextEvents() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"applicationEventInboundChannelAdapterTests.xml", this.getClass());
 		PollableChannel channel = (PollableChannel) context.getBean("channel");
-		Message<?> refreshedEventMessage = channel.receive(0);
-		assertNotNull(refreshedEventMessage);
-		assertEquals(ContextRefreshedEvent.class, refreshedEventMessage.getPayload().getClass());
+		Message<?> busStartedEventMessage = channel.receive(0);
+		Message<?> contextRefreshedEventMessage = channel.receive(0);
+		assertNotNull(busStartedEventMessage);
+		assertNotNull(contextRefreshedEventMessage);
+		assertEquals(MessageBusStartedEvent.class, busStartedEventMessage.getPayload().getClass());
+		assertEquals(ContextRefreshedEvent.class, contextRefreshedEventMessage.getPayload().getClass());
 		context.start();
 		Message<?> startedEventMessage = channel.receive(0);
 		assertNotNull(startedEventMessage);
 		assertEquals(ContextStartedEvent.class, startedEventMessage.getPayload().getClass());
 		context.stop();
-		Message<?> stoppedEventMessage = channel.receive(0);
-		assertNotNull(stoppedEventMessage);
-		assertEquals(ContextStoppedEvent.class, stoppedEventMessage.getPayload().getClass());		
+		Message<?> busStoppedEventMessage = channel.receive(0);
+		Message<?> contextStoppedEventMessage = channel.receive(0);
+		assertNotNull(busStoppedEventMessage);
+		assertNotNull(contextStoppedEventMessage);
+		assertEquals(MessageBusStoppedEvent.class, busStoppedEventMessage.getPayload().getClass());	
+		assertEquals(ContextStoppedEvent.class, contextStoppedEventMessage.getPayload().getClass());
 		context.close();
 		Message<?> closedEventMessage = channel.receive(0);
 		assertNotNull(closedEventMessage);
