@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<chapter id="resequencer">
+  <title>Resequencer</title>
+
+  <section>
+    <title>Introduction</title>
+
+    <para>Related to the Aggregator, albeit different from a functional
+    standpoint, is the Resequencer. In this chapter, we will treat them
+    together because of their similar functionalities.</para>
+  </section>
+
+  <section id="resequencer-functionality">
+    <title>Functionality</title>
+
+      <para>The Resequencer works in a similar way to the Aggregator, in the
+      sense that it uses the CORRELATION_ID to store messages in groups, the
+      difference being that all what the Resequencer does, is to release them
+      in the order of their SEQUENCE_NUMBER.</para>
+
+      <para>With respect to that, the user might opt to release all messages
+      at once (after the whole sequence, according to the SEQUENCE_SIZE, has
+      been released), or as soon as a valid sequence is available. Another
+      option is to set a timeout, deciding whether to drop the whole sequence
+      if the timeout has expired, and not all messages have arrived, or to
+      release the messages accumulated so far, in the appropriate
+      order.</para>
+  </section>
+
+  <section>
+      <title>Configuring a Resequencer with XML</title>
+
+      <para>Configuring a resequencer requires only including the appropriate
+      element in XML.</para>
+
+      <para>A sample resequencer configuration is shown below.</para>
+
+      <programlisting language="xml">&lt;channel id="inputChannel"/&gt;
+
+&lt;channel id="outputChannel"/&gt;
+
+&lt;resequencer id="completelyDefinedResequencer" <co id="resxml1" />
+  input-channel="inputChannel" <co id="resxml2" />
+  output-channel="outputChannel" <co id="resxml3" />
+  discard-channel="discardChannel" <co id="resxml4" />
+  release-partial-sequences="true" <co id="resxml5" />
+  timeout="42" <co id="resxml6" />
+  send-partial-result-on-timeout="true" <co id="resxml7" />
+  reaper-interval="135" <co id="resxml8" />
+  tracked-correlation-id-capacity="99" <co id="resxml9" />
+  send-timeout="86420000" <co id="resxml10" /> /&gt; </programlisting>
+
+      <para><calloutlist>
+          <callout arearefs="resxml1">
+            <para>The id of the resequencer is
+            <emphasis>optional</emphasis>.</para>
+          </callout>
+
+          <callout arearefs="resxml2">
+            <para>The input channel of the resequencer.
+            <emphasis>Required</emphasis>.</para>
+          </callout>
+
+          <callout arearefs="resxml3">
+            <para>The channel where the resequencer will send the reordered
+            messages. <emphasis>Optional</emphasis>.</para>
+          </callout>
+
+          <callout arearefs="resxml4">
+            <para>The channel where the resequencer will send the messages
+            that timed out (if <code>send-partial-result-on-timeout</code> is
+            <emphasis>false)</emphasis>. <emphasis>Optional</emphasis>.</para>
+          </callout>
+
+          <callout arearefs="resxml5">
+            <para>Whether to send out ordered sequences as soon as they are
+            available, or only after the whole message group arrives.
+            <emphasis>Optional (true by default)</emphasis>.</para>
+          </callout>
+
+          <callout arearefs="resxml6">
+            <para>The timeout for reordering message sequences (counted from
+            the arrival of the first message).
+            <emphasis>Optional</emphasis>.</para>
+          </callout>
+
+          <callout arearefs="resxml7">
+            <para>Whether, upon the expiration of the timeout, the ordered
+            group shall be sent out (even if some of the messages are
+            missing). <emphasis>Optional (false by default)</emphasis>.</para>
+          </callout>
+
+          <callout arearefs="resxml8">
+            <para>The interval (in milliseconds) at which a reaper task is
+            executed, checking if there are any timed out groups.
+            <emphasis>Optional</emphasis>.</para>
+          </callout>
+
+          <callout arearefs="resxml9">
+            <para>The capacity of the correlation id tracker. Remembers the
+            already processed correlation ids, preventing the formation of new
+            groups for messages that arrive after their group has been already
+            processed (reordered or discarded).
+            <emphasis>Optional</emphasis>.</para>
+          </callout>
+
+          <callout arch="" arearefs="resxml10">
+            <para>The timeout for sending out messages.
+            <emphasis>Optional</emphasis>.</para>
+          </callout>
+        </calloutlist></para>
+    
+        <note>
+          Since there is no custom behaviour to be implemented in Java classes for
+          resequencers, there is no annotation support for it.
+        </note>
+  </section>
+</chapter>
