@@ -12,9 +12,8 @@
       XSD-based namespace for the majority of configuration combined with a handful of objects that are configured with
       annotations. As much as possible, the two provide consistent naming. XML elements defined by the XSD schema will
       match the names of annotations, and the attributes of those XML elements will match the names of annotation
-      properties. Direct usage of the API is yet another option and is described in detail in <xref linkend="api"/>.
-      We expect that most users will choose one of the higher-level options, such as the namespace-based or
-      annotation-driven configuration.
+      properties. Direct usage of the API is of course always an option, but we expect that most users will choose one
+      of the higher-level options, or a combination of the namespace-based and annotation-driven configuration.
     </para>
   </section>
 
@@ -88,7 +87,7 @@
 	  </para>
 	  <para>
 	    It is also possible to use more specific elements for the various channel types (as described in
-	    <xref linkend="api-messagechannel"/>). Depending on the channel, these may provide additional configuration
+	    <xref linkend="channel-implementations"/>). Depending on the channel, these may provide additional configuration
 	    options. Examples of each are shown below.
 	  </para>
 	  <section id="namespace-channel-queuechannel">
@@ -147,7 +146,7 @@
         </para>
       </section>
       <para>
-        Message channels may also have interceptors as described in <xref linkend="api-channelinterceptor"/>. One or
+        Message channels may also have interceptors as described in <xref linkend="channel-interceptors"/>. One or
         more &lt;interceptor&gt; elements can be added as sub-elements of &lt;channel&gt; (or the more specific element
         types). Provide the "ref" attribute to reference any Spring-managed object that implements the
         <interfacename>ChannelInterceptor</interfacename> interface:
@@ -209,9 +208,9 @@
           <programlisting language="xml">&lt;service-activator input-channel="exampleChannel" ref="exampleHandler"/&gt;</programlisting>
         </para>
         <para>
-          The configuration above assumes that "exampleHandler" is an actual implementation of the
-          <interfacename>MessageHandler</interfacename> interface as described in <xref linkend="api-messagehandler"/>.
-          To delegate to an arbitrary method of any object, simply add the "method" attribute.
+          The configuration above assumes that "exampleHandler" either contains a single method annotated with the
+          @ServiceActivator annotation or that it contains a single public method period. To delegate to an explicitlye
+          defined method of any object, simply add the "method" attribute.
           <programlisting language="xml">&lt;service-activator input-channel="exampleChannel" ref="somePojo" method="someMethod"/&gt;</programlisting>
         </para>
         <para>
@@ -229,10 +228,9 @@
         </para>
       </section>
       <para>
-        Message Endpoints also support <interfacename>MessageSelectors</interfacename> as described in
-        <xref linkend="api-messageselector"/>. To configure a selector with namespace support, simply add the
-        "selector" attribute to the endpoint definition and reference an implementation of the
-        <interfacename>MessageSelector</interfacename> interface.
+        Message Endpoints also support <interfacename>MessageSelectors</interfacename>. To configure a selector with
+        namespace support, simply add the "selector" attribute to the endpoint definition and reference an
+        implementation of the <interfacename>MessageSelector</interfacename> interface.
         <programlisting language="xml"><![CDATA[<service-activator id="endpoint" input-channel="channel" ref="handler"
                    selector="exampleSelector"/>]]></programlisting>
       </para>
@@ -308,11 +306,10 @@
     <section id="namespace-messagebus">
       <title>Configuring the Message Bus</title>
       <para>
-        As described in <xref linkend="api-messagebus"/>, the <classname>MessageBus</classname> plays a central role.
-        Nevertheless, its configuration is quite simple since it is primarily concerned with managing internal details
-        based on the configuration of channels and endpoints. The bus is aware of its host application context, and
-        therefore is also capable of auto-detecting the channels and endpoints. Typically, the
-        <classname>MessageBus</classname> can be configured with a single empty element:
+        The Message Bus plays a central role, but its configuration is quite simple since it is primarily concerned
+        with managing internal details based on the configuration of channels and endpoints. The bus is aware of its
+        host application context, and therefore is also capable of auto-detecting the channels and endpoints.
+        The Message Bus can be configured with a single empty element:
         <programlisting language="xml">&lt;message-bus/&gt;</programlisting>
       </para>
       <para>
@@ -346,16 +343,6 @@
         is provided to an endpoint's poller, then it will be invoked in the dispatcher's thread (with the exception of
         subscribable channels).
       </para>
-	  <para>
-		Finally, the type of channel that gets created automatically by the bus can be customized by defining a bean
-		that implements the ChannelFactory interface and whose name is "channelFactory".
-		<programlisting language="xml"><![CDATA[<message-bus/>
-
-<beans:bean id="channelFactory" 
-    class="org.springframework.integration.channel.factory.PriorityChannelFactory"/>]]></programlisting> 
-		With this definition, all the channels created automatically will be <classname>PriorityChannel</classname> instances.
-		Without a "channelFactory" bean, the Message Bus will assume a default <classname>QueueChannelFactory</classname>.
-	  </para>
     </section>
 
     <section id="namespace-adapters">
@@ -368,17 +355,6 @@
 
 <!-- using the default "connectionFactory" reference --> 
 <jms-target id="jmsTarget" destination="outQueue"/>
-
-<file-source id="fileSource" directory="/tmp/in"/>
-
-<file-target id="fileTarget" directory="/tmp/out"/>
-
-<rmi-gateway id="rmiSource" request-channel="rmiSourceInput"/>
-
-<rmi-handler id="rmiTarget"
-             local-channel="rmiTargetOutput"
-             remote-channel="someRemoteChannel"
-             host="somehost"/>
 
 <httpinvoker-gateway id="httpSource" name="/some/path" request-channel="httpInvokerInput"/>
 
