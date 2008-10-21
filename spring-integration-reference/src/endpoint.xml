@@ -80,7 +80,19 @@ PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(consumer, channel
 PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(consumer, channel);
 
 endpoint.setTrigger(new IntervalTrigger(30, TimeUnit.SECONDS));</programlisting>
-      Likewise, other polling-related configuration properties may be specified:
+      Spring Integration currently provides two implementations of the <interfacename>Trigger</interfacename>
+      interface: <classname>IntervalTrigger</classname> and <classname>CronTrigger</classname>. The
+      <classname>IntervalTrigger</classname> is typically defined with a simple interval (in milliseconds), but
+      also supports an 'initialDelay' property and a boolean 'fixedRate' property (the default is false - i.e.
+      fixed delay):
+      <programlisting language="java">IntervalTrigger trigger = new IntervalTrigger(1000);
+trigger.setInitialDelay(5000);
+trigger.setFixedRate(true);</programlisting>
+      The <classname>CronTrigger</classname> simply requires the cron expression (see the Javadoc for details):
+      <programlisting language="java">CronTrigger trigger = new CronTrigger("*/10 * * * * MON-FRI");</programlisting>
+    </para>
+    <para>
+      In addition to the trigger, several other polling-related configuration properties may be specified:
       <programlisting language="java">
 PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(consumer, channel);
 

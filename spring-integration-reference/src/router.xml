@@ -4,6 +4,69 @@
 <chapter id="router">
   <title>Message Routing</title>
 
+  <section id="router-implementations">
+    <title>Router Implementations</title>
+    <para>
+      Since content-based routing often requires some domain-specific logic, most use-cases will require
+      Spring Integration's options for delegating to POJOs using the XML namespace support and/or Annotations.
+      Both of these are discussed below, but first we present a couple implementations that are available
+      out-of-the-box since they fulfill generic, but common, requirements.
+    </para>
+    <section id="router-implementations-payloadtyperouter">
+      <title>PayloadTypeRouter</title>
+      <para>
+        A <classname>PayloadTypeRouter</classname> will send Messages to the channel as defined by payload-type
+        mappings.
+        <programlisting language="xml"><![CDATA[<bean id="payloadTypeRouter" class="org.springframework.integration.router.PayloadTypeRouter">
+    <property name="payloadTypeChannelMap">
+        <map>
+            <entry key="java.lang.String" value-ref="stringChannel"/>
+            <entry key="java.lang.Integer" value-ref="integerChannel"/>
+        </map>
+    </property>
+</bean>]]></programlisting>
+      </para>
+    </section>
+    <section id="router-implementations-recipientlistrouter">
+      <title>RecipientListRouter</title>
+      <para>
+        A <classname>RecipientListRouter</classname> will send each received Message to a statically-defined
+        list of Message Channels:
+        <programlisting language="xml"><![CDATA[<bean id="recipientListRouter" class="org.springframework.integration.router.RecipientListRouter">
+    <property name="channels">
+        <list>
+            <ref bean="channel1"/>
+            <ref bean="channel2"/>
+            <ref bean="channel3"/>
+        </list>
+    </property>
+</bean>]]></programlisting>
+      </para>
+    </section>
+    <note>
+      The router implementations share some common properties, such as "defaultOutputChannel" and "resolutionRequired".
+      If "resolutionRequired" is set to "true", and the router is unable to determine a target channel (e.g. there is
+      no matching payload for a PayloadTypeRouter and no "defaultOutputChannel" has been specified), then an Exception
+      will be thrown.
+    </note>
+  </section>
+
+  <section id="router-namespace">
+    <title>The &lt;router&gt; element</title>
+    <para>
+	  The "router" element provides a simple way to connect a router to an input channel, and also accepts the
+      optional default output channel. The "ref" may provide the bean name to one of the implementations described
+      above:
+      <programlisting language="xml"><![CDATA[<router ref="payloadTypeRouter" input-channel="input1" default-output-channel="defaultOutput1"/>
+
+<router ref="recipientListRouter" input-channel="input2" default-output-channel="defaultOutput2"/>]]></programlisting>
+      Alternatively, the "ref" may point to a simple Object that contains the @Router annotation (see below), or the
+      "ref" may be combined with an explicit "method" name. When specifying a "method", the same behavior applies as
+      described in the @Router annotation section below.
+      <programlisting language="xml"><![CDATA[<router input-channel="input" ref="somePojo" method="someMethod"/>]]></programlisting>
+	</para>
+  </section>
+
   <section id="router-annotation">
     <title>The @Router Annotation</title>
     <para>
@@ -33,5 +96,8 @@ public List&lt;String&gt; route(Foo payload) {...}</programlisting>
 public List&lt;String&gt; route(@Header("orderStatus") OrderStatus status)</programlisting>
     </para>
   </section>
+  <note>
+    For routing of XML-based Messages, including XPath support, see <xref linkend="xml"/>.
+  </note>
 
 </chapter>

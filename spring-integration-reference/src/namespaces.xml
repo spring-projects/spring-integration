@@ -217,12 +217,7 @@
         The most convenient way to configure Source and Target adapters is by using the namespace support. The
         following examples demonstrate the namespace-based configuration of several source, target, gateway,
         and handler adapters:
-        <programlisting language="xml"><![CDATA[<jms-source id="jmsSource" connection-factory="connFactory" destination="inQueue"/>
-
-<!-- using the default "connectionFactory" reference --> 
-<jms-target id="jmsTarget" destination="outQueue"/>
-
-<httpinvoker-gateway id="httpSource" name="/some/path" request-channel="httpInvokerInput"/>
+        <programlisting language="xml"><![CDATA[<httpinvoker-gateway id="httpSource" name="/some/path" request-channel="httpInvokerInput"/>
 
 <httpinvoker-handler id="httpTarget" channel="httpInvokerOutput" url="http://somehost/test"/>
 
