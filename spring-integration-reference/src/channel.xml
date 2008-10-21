@@ -22,11 +22,14 @@
       When sending a message, the return value will be <emphasis>true</emphasis> if the message is sent successfully.
       If the send call times out or is interrupted, then it will return <emphasis>false</emphasis>.
     </para>
-    <para>
-      Since Message Channels may or may not buffer Messages (as discussed in the overview), there are two
-      sub-interfaces defining the buffering (pollable) and non-buffering (subscribable) channel behavior. Here is the
-      definition of <interfacename>PollableChannel</interfacename>.
-      <programlisting language="java">public interface PollableChannel extends MessageChannel {
+
+    <section id="channel-interfaces-pollablechannel">
+      <title>PollableChannel</title>
+      <para>
+        Since Message Channels may or may not buffer Messages (as discussed in the overview), there are two
+        sub-interfaces defining the buffering (pollable) and non-buffering (subscribable) channel behavior. Here is the
+        definition of <interfacename>PollableChannel</interfacename>.
+        <programlisting language="java">public interface PollableChannel extends MessageChannel {
 
     Message&lt;?&gt; receive();
 
@@ -37,21 +40,26 @@
     List&lt;Message&lt;?&gt;&gt; purge(MessageSelector selector);
 
 }</programlisting>
-      Similar to the send methods, when receiving a message, the return value will be <emphasis>null</emphasis> in the
-      case of a timeout or interrupt.
-    </para>
-    <para>
-      The <interfacename>SubscribableChannel</interfacename> base interface is implemented by channels that send
-      Messages directly to their subscribed consumers. Therefore, they do not provide receive methods for polling, but
-      instead define methods for handling those subscribers:
-      <programlisting language="java">public interface SubscribableChannel extends MessageChannel {
+        Similar to the send methods, when receiving a message, the return value will be <emphasis>null</emphasis> in the
+        case of a timeout or interrupt.
+      </para>
+    </section>
+
+    <section id="channel-interfaces-subscribablechannel">
+      <title>SubscribableChannel</title>
+      <para>
+        The <interfacename>SubscribableChannel</interfacename> base interface is implemented by channels that send
+        Messages directly to their subscribed consumers. Therefore, they do not provide receive methods for polling, but
+        instead define methods for handling those subscribers:
+        <programlisting language="java">public interface SubscribableChannel extends MessageChannel {
 
     boolean subscribe(MessageConsumer consumer);
 
     boolean unsubscribe(MessageConsumer consumer);
 
 }</programlisting>
-    </para>
+      </para>
+    </section>
   </section>
 
   <section id="channel-implementations">

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<chapter id="endpoint">
+  <title>Message Endpoints</title>
+  <para>
+    As mentioned in the overview, Message Endpoints are responsible for connecting the various messaging components to
+    channels. Over the next several chapters, you will see a number of different components that consume Messages. Some
+    of these are also capable of sending reply Messages. Sending Messages is quite straightforward. As shown above in
+    <xref linkend="channel"/>, it's easy to <emphasis>send</emphasis> a Message to a Message Channel. However,
+    receiving is a bit more complicated. The main reason is that there are two types of consumers:
+    <ulink url="http://www.eaipatterns.com/PollingConsumer.html">Polling Consumers</ulink> and
+    <ulink url="http://www.eaipatterns.com/EventDrivenConsumer.html">Event-Driven Consumers</ulink>.
+  </para>
+  <para>
+    Of the two, Event-Driven Consumers are much simpler. Without any need to manage and schedule a separate poller
+    thread, they are essentially just listeners with a callback method. When connecting to one of Spring Integration's
+    subscribable Message Channels, this simple option works great. However, when connecting to a buffering, pollable
+    Message Channel, some component has to schedule and manage the polling thread(s). Spring Integration provides
+    two different endpoint implementations to accommodate these two types of consumers. Therefore, the consumers
+    themselves can simply implement the callback interface. When polling is required, the endpoint acts as a
+    "container" for the consumer instance. The benefit is similar to that of using a container for hosting
+    Message-Driven Beans, but since these consumers are simply Spring-managed Objects running within an 
+    ApplicationContext, it more closely resembles Spring's own MessageListener containers.
+  </para>
+
+  <section id="endpoint-consumer">
+    <title>Message Consumer</title>
+    <para>
+      Spring Integration's <interfacename>MessageConsumer</interfacename> interface is defined as follows:
+      <programlisting language="java">public interface MessageConsumer {
+
+    void onMessage(Message&lt;?&gt; message);
+
+}</programlisting>
+      Despite its simplicity, this provides the foundation for most of the components that will be covered in the
+      following chapters (Routers, Transformers, Splitters, Aggregators, Service Activators, etc). Those components
+      each perform very different functionality with the Messages they receive, but the requirements for actually
+      receiving a Message are the same, and the choice between polling and event-driven behavior is also the same.
+      Spring Integration provides two endpoint implementations that "host" these callback-based consumers and allow
+      them to be connected to Message Channels.
+    </para>
+  </section>
+
+  <section id="endpoint-eventdrivenconsumer">
+    <title>Event-Driven Consumer</title>
+    <para>
+      Because it is the simpler of the two, we will cover the Event-Driven Consumer endpoint first. You may recall that
+      the <interfacename>SubscribableChannel</interfacename> interface provides a <methodname>subscribe()</methodname>
+      method and that the method accepts a <interfacename>MessageConsumer</interfacename> parameter (as shown in
+      <xref linkend="channel-interfaces-subscribablechannel"/>):
+      <programlisting language="java">
+subscribableChannel.subscribe(messageConsumer);
+</programlisting>
+      Since a consumer that is subscribed to a channel does not have to actively poll that channel, this is an
+      Event-Driven Consumer, and the corresponding endpoint "container" class provided by Spring Integration accepts a
+      <interfacename>MessageConsumer</interfacename> and a <interfacename>SubscribableChannel</interfacename>:
+      <programlisting language="java">MessageConsumer consumer = new ExampleConsumer();
+
+SubscribableChannel channel = (SubscribableChannel) context.getBean("exampleSubscribableChannel");
+
+SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(consumer, channel);</programlisting>
+    </para>
+  </section>
+
+  <section id="endpoint-pollingconsumer">
+    <title>Polling Consumer</title>
+    <para>
+      Spring Integration also provides a <classname>PollingConsumerEndpoint</classname>, and it can be instantiated in
+      the same way except that the channel must implement <interfacename>PollableChannel</interfacename>:
+      <programlisting language="java">MessageConsumer consumer = new ExampleConsumer();
+
+PollableChannel channel = (PollableChannel) context.getBean("examplePollableChannel");
+
+PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(consumer, channel);</programlisting>
+    </para>
+    <para>
+      There are many other configuration options for the polling endpoint. For example, the trigger can be provided:
+      <programlisting language="java">
+PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(consumer, channel);
+
+endpoint.setTrigger(new IntervalTrigger(30, TimeUnit.SECONDS));</programlisting>
+      Likewise, other polling-related configuration properties may be specified:
+      <programlisting language="java">
+PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(consumer, channel);
+
+endpoint.setMaxMessagesPerPoll(10);
+
+endpoint.setReceiveTimeout(5000);</programlisting>
+      A polling consumer may even delegate to a Spring <interfacename>TaskExecutor</interfacename> and
+      participate in Spring-managed transactions. The following example shows the configuration of both:
+      <programlisting language="java">
+PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(consumer, channel);
+
+TaskExecutor taskExecutor = (TaskExecutor) context.getBean("exampleExecutor");
+endpoint.setTaskExecutor(taskExecutor);
+
+PlatformTransactionManager txManager = (PlatformTransationManager) context.getBean("exampleTxManager");
+endpoint.setTransactionManager(txManager);</programlisting>
+      The examples above show dependency lookups, but keep in mind that these endpoints will most often be configured
+      as Spring <emphasis>bean definitions</emphasis>. In fact, Spring Integration also provides a
+      <interfacename>FactoryBean</interfacename> that creates the appropriate endpoint type based on the type of
+      channel, and there is full XML namespace support to even further hide those details. The namespace-based
+      configuration will be featured as each component type is introduced.
+      <note>
+		Interestingly, many of the <interfacename>MessageConsumer</interfacename> implementations are also capable of
+        generating reply Messages. As mentioned above, sending Messages is trivial when compared to the Message
+        reception. Nevertheless, <emphasis>when</emphasis> and <emphasis>how many</emphasis> reply Messages are sent
+        depends on the consumer type. For example, an <emphasis>Aggregator</emphasis> waits for a number of Messages to
+        arrive and is often a downstream consumer for a <emphasis>Splitter</emphasis> which may generate multiple
+        replies for each Message it consumes. When using the namespace configuration, you do not strictly need to know
+        all of the details, but it still might be worth knowing that several of these components share a common base
+        class, the <classname>AbstractReplyProducingMessageConsumer</classname>, and it provides a
+        <methodname>setOutputChannel(..)</methodname> method.
+      </note>
+    </para>
+  </section>
+
+</chapter>
