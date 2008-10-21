@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<chapter id="router">
+  <title>Message Routing</title>
+
+  <section id="router-annotation">
+    <title>The @Router Annotation</title>
+    <para>
+      When using the <interfacename>@Router</interfacename> annotation, the annotated method can return either the
+      <interfacename>MessageChannel</interfacename> or <classname>String</classname> type. In the case of the latter,
+      the endpoint will resolve the channel name as it does for the default output. Additionally, the method can return
+      either a single value or a collection. When a collection is returned, the reply message will be sent to multiple
+      channels. To summarize, the following method signatures are all valid.
+      <programlisting language="java">@Router
+public MessageChannel route(Message message) {...}
+
+@Router
+public List&lt;MessageChannel&gt; route(Message message) {...}
+
+@Router
+public String route(Foo payload) {...}
+
+@Router
+public List&lt;String&gt; route(Foo payload) {...}</programlisting>
+    </para>
+    <para>
+      In addition to payload-based routing, a common requirement is to route based on metadata available within the
+      message header as either a property or attribute. Rather than requiring use of the
+      <interfacename>Message</interfacename> type as the method parameter, the <interfacename>@Router</interfacename>
+      annotation may also use the same @Header parameter annotation that was introduced above.
+      <programlisting language="java">@Router
+public List&lt;String&gt; route(@Header("orderStatus") OrderStatus status)</programlisting>
+    </para>
+  </section>
+
+</chapter>

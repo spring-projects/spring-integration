@@ -247,4 +247,109 @@ public Message<?> sendAndReceive(final Message<?> request, final MessageChannel 
 public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programlisting>
     </para>
   </section>
+
+  <section id="channel-configuration">
+    <title>Configuring Message Channels</title>
+    <para>
+      To create a Message Channel instance, you can use the 'channel' element:
+      <programlisting language="xml">&lt;channel id="exampleChannel"/&gt;</programlisting>
+    </para>
+    <para>
+      The default channel type is <emphasis>Point to Point</emphasis>. To create a
+      <emphasis>Publish Subscribe</emphasis> channel, use the "publish-subscribe-channel" element:
+      <programlisting language="xml">&lt;publish-subscribe-channel id="exampleChannel"/&gt;</programlisting>
+    </para>
+    <para>
+      To create a <ulink url="http://www.eaipatterns.com/DatatypeChannel.html">Datatype Channel</ulink> that only
+      accepts messages containing a certain payload type, provide the fully-qualified class name in the
+      channel element's <literal>datatype</literal> attribute:
+      <programlisting language="xml"><![CDATA[<channel id="numberChannel" datatype="java.lang.Number"/>]]></programlisting>
+      Note that the type check passes for any type that is <emphasis>assignable</emphasis> to the channel's
+      datatype. In other words, the "numberChannel" above would accept messages whose payload is
+      <classname>java.lang.Integer</classname> or <classname>java.lang.Double</classname>. Multiple types can be
+      provided as a comma-delimited list:
+      <programlisting language="xml"><![CDATA[<channel id="stringOrNumberChannel" datatype="java.lang.String,java.lang.Number"/>]]></programlisting> 
+    </para>
+    <para>
+      When using the "channel" element without any sub-elements, it will create a <classname>DirectChannel</classname>
+      instance (a <interfacename>SubscribableChannel</interfacename>).
+    </para>
+    <para>
+      However, you can also provide a variety of "queue" sub-elements to create the channel types (as described in
+      <xref linkend="channel-implementations"/>). Examples of each are shown below.
+    </para>
+    <section id="channel-configuration-directchannel">
+      <title>DirectChannel Configuration</title>
+      <para>
+        As mentioned above,  <classname>DirectChannel</classname> is the default type.
+        <programlisting language="xml"><![CDATA[<channel id="exampleChannel"/>]]></programlisting>
+      </para>
+    </section>
+    <section id="channel-configuration-queuechannel">
+      <title>QueueChannel Configuration</title>
+      <para>
+        To create a <classname>QueueChannel</classname>, use the "queue" sub-element.
+        You must specify the channel's capacity: 
+        <programlisting language="xml">&lt;channel id="exampleChannel"&gt;
+    &lt;queue capacity="25"/&gt;
+&lt;/channel&gt;</programlisting>
+      </para>
+    </section>
+    <section id="channel-configuration-pubsubchannel">
+      <title>PublishSubscribeChannel Configuration</title>
+      <para>
+        To create a <classname>PublishSubscribeChannel</classname>, use the "publish-subscribe-channel" element.
+        When using this element, you can also specify the "task-executor" used for publishing
+        Messages (if none is specified it simply publishes in the sender's thread): 
+        <programlisting language="xml">&lt;publish-subscribe-channel id="exampleChannel" task-executor="someTaskExecutor"/&gt;</programlisting>
+      </para>
+    </section>
+    <section id="channel-configuration-prioritychannel">
+      <title>PriorityChannel Configuration</title>
+      <para>
+        To create a <classname>PriorityChannel</classname>, use the "priority-queue" sub-element:
+        <programlisting language="xml"><![CDATA[<channel id="exampleChannel">
+    <priority-queue capacity="20"/>
+</channel>]]></programlisting>
+        By default, the channel will consult the <classname>MessagePriority</classname> header of the 
+        message. However, a custom <interfacename>Comparator</interfacename> reference may be
+        provided instead. Also, note that the <classname>PriorityChannel</classname> (like the other types)
+        does support the "datatype" attribute. As with the QueueChannel, it also supports a "capacity" attribute.
+        The following example demonstrates all of these:
+        <programlisting language="xml"><![CDATA[<channel id="exampleChannel" datatype="example.Widget">
+    <priority-queue comparator="widgetComparator"
+                    capacity="10"/>
+</channel>
+]]></programlisting>
+      </para>
+    </section>
+    <section id="channel-configuration-rendezvouschannel">
+      <title>RendezvousChannel Configuration</title>
+      <para>
+        The <classname>RendezvousChannel</classname> does not provide any additional configuration options.
+        <programlisting language="xml"><![CDATA[<channel id="exampleChannel"/>
+    <rendezvous-queue/>
+</channel>
+]]></programlisting>
+      </para>
+    </section>
+    <section id="channel-configuration-threadlocalchannel">
+      <title>ThreadLocalChannel Configuration</title>
+      <para>
+        The <classname>ThreadLocalChannel</classname> does not provide any additional configuration options.
+        <programlisting language="xml"><![CDATA[<thread-local-channel id="exampleChannel"/>]]></programlisting>
+      </para>
+    </section>
+    <para>
+      Message channels may also have interceptors as described in <xref linkend="channel-interceptors"/>. One or
+      more &lt;interceptor&gt; elements can be added as sub-elements of &lt;channel&gt; (or the more specific element
+      types). Provide the "ref" attribute to reference any Spring-managed object that implements the
+      <interfacename>ChannelInterceptor</interfacename> interface:
+      <programlisting language="xml"><![CDATA[<channel id="exampleChannel">
+    ]]><emphasis><![CDATA[<interceptor ref="trafficMonitoringInterceptor"/>]]></emphasis><![CDATA[
+</channel>]]></programlisting>
+      In general, it is a good idea to define the interceptor implementations in a separate location since they
+      usually provide common behavior that can be reused across multiple channels.
+    </para>
+  </section>
 </chapter>

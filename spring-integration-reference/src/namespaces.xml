@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
-<appendix id="config">
-  <title>Configuration</title>
-
-  <section id="config-intro">
-    <title>Introduction</title>
-    <para>
+<appendix id="namespaces">
+  <title>Namespace Support</title>
+  <para>
       Spring Integration offers a number of configuration options. Which option you choose depends upon your particular
       needs and at what level you prefer to work. As with the Spring framework in general, it is also possible to mix
       and match the various techniques according to the particular problem at hand. For example, you may choose the
@@ -14,17 +11,13 @@
       match the names of annotations, and the attributes of those XML elements will match the names of annotation
       properties. Direct usage of the API is of course always an option, but we expect that most users will choose one
       of the higher-level options, or a combination of the namespace-based and annotation-driven configuration.
-    </para>
-  </section>
-
-  <section id="namespace">
-    <title>Namespace Support</title>
-    <para>
+  </para> 
+  <para>
       Spring Integration components can be configured with XML elements that map directly to the terminology and
       concepts of enterprise integration. In many cases, the element names match those of the
       <ulink url="http://www.eaipatterns.com">Enterprise Integration Patterns</ulink>.
-    </para>
-    <para>
+  </para>
+  <para>
       To enable Spring Integration's namespace support within your Spring configuration files, add the following
       namespace reference and schema mapping in your top-level 'beans' element:
       <programlisting language="xml"><![CDATA[<beans xmlns="http://www.springframework.org/schema/beans"
@@ -34,8 +27,8 @@
            http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
            ]]><emphasis>http://www.springframework.org/schema/integration
            http://www.springframework.org/schema/integration/spring-integration-1.0.xsd"</emphasis>&gt;</programlisting>
-    </para>
-    <para>
+  </para>
+  <para>
 	  You can choose any name after "xmlns:"; <emphasis>integration</emphasis> is used here for clarity, but you might
       prefer a shorter abbreviation. Of course if you are using an XML-editor or IDE support, then the availability of
       auto-completion may convince you to keep the longer name for clarity. Alternatively, you can create configuration
@@ -47,8 +40,8 @@
            http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
            http://www.springframework.org/schema/integration
            http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">]]></programlisting>
-    </para>
-    <para>
+  </para>
+  <para>
       When using this alternative, no prefix is necessary for the Spring Integration elements. On the other hand, if
       you want to define a generic Spring "bean" within the same configuration file, then a prefix would be required
       for the bean element (&lt;beans:bean ... /&gt;). Since it is generally a good idea to modularize the
@@ -56,109 +49,9 @@
       use the latter approach in the integration-focused configuration files, since generic beans are seldom necessary
       within those same files. For purposes of this documentation, we will assume the "integration" namespace is
       primary.
-    </para>
+  </para>
 
-    <section id="namespace-channel">
-      <title>Configuring Message Channels</title>
-      <para>
-        To create a Message Channel instance, you can use the generic 'channel' element:
-        <programlisting language="xml">&lt;channel id="exampleChannel"/&gt;</programlisting>
-      </para>
-      <para>
-        The default channel type is <emphasis>Point to Point</emphasis>. To create a
-        <emphasis>Publish Subscribe</emphasis> channel, use the "publish-subscribe-channel" element:
-        <programlisting language="xml">&lt;publish-subscribe-channel id="exampleChannel"/&gt;</programlisting>
-      </para>
-      <para>
-        To create a <ulink url="http://www.eaipatterns.com/DatatypeChannel.html">Datatype Channel</ulink> that only
-        accepts messages containing a certain payload type, provide the fully-qualified class name in the
-        channel element's <literal>datatype</literal> attribute:
-        <programlisting language="xml"><![CDATA[<channel id="numberChannel" datatype="java.lang.Number"/>]]></programlisting>
-        Note that the type check passes for any type that is <emphasis>assignable</emphasis> to the channel's
-        datatype. In other words, the "numberChannel" above would accept messages whose payload is
-        <classname>java.lang.Integer</classname> or <classname>java.lang.Double</classname>. Multiple types can be
-        provided as a comma-delimited list:
-        <programlisting language="xml"><![CDATA[<channel id="stringOrNumberChannel" datatype="java.lang.String,java.lang.Number"/>]]></programlisting> 
-      </para>
-      <para>
-		When using the "channel" element, the creation of the channel instances will be deferred to the <classname>ChannelFactory</classname>
-		bean whose name is "channelFactory" if defined within the ApplicationContext. If no such bean is defined, the default factory will
-		be used. The default implementation is <classname>QueueChannelFactory</classname>. 
-	  </para>
-	  <para>
-	    It is also possible to use more specific elements for the various channel types (as described in
-	    <xref linkend="channel-implementations"/>). Depending on the channel, these may provide additional configuration
-	    options. Examples of each are shown below.
-	  </para>
-	  <section id="namespace-channel-queuechannel">
-	    <title>The &lt;queue-channel/&gt; element</title>
-	    <para>
-	 	  To create a <classname>QueueChannel</classname>, use the "queue-channel" element.
-		  By using this element, you can also specify the channel's capacity: 
-		  <programlisting language="xml">&lt;queue-channel id="exampleChannel" capacity="25"/&gt;</programlisting>
-        </para>
-      </section>
-      <section id="namespace-channel-pubsubchannel">
-	    <title>The &lt;publish-subscribe-channel/&gt; element</title>
-	    <para>
-	 	  To create a <classname>PublishSubscribeChannel</classname>, use the "publish-subscribe-channel" element.
-		  When using this element, you can also specify the "task-executor" used for publishing
-		  Messages (if none is specified it simply publishes in the sender's thread): 
-		  <programlisting language="xml">&lt;publish-subscribe-channel id="exampleChannel" task-executor="someTaskExecutor"/&gt;</programlisting>
-        </para>
-      </section>
-      <section id="namespace-channel-prioritychannel">
-        <title>The &lt;priority-channel/&gt; element</title>
-        <para>
-          To create a <classname>PriorityChannel</classname>, use the "priority-channel" element:
-          <programlisting language="xml"><![CDATA[<priority-channel id="exampleChannel"/>]]></programlisting>
-          By default, the channel will consult the <classname>MessagePriority</classname> header of the 
-          message. However, a custom <interfacename>Comparator</interfacename> reference may be
-          provided instead. Also, note that the <classname>PriorityChannel</classname> (like the other types)
-          does support the "datatype" attribute. As with the "queue-channel", it also supports a "capacity" attribute.
-          The following example demonstrates all of these:
-          <programlisting language="xml"><![CDATA[<priority-channel id="exampleChannel"
-                  datatype="example.Widget"
-                  comparator="widgetComparator"
-                  capacity="10"/>
-]]></programlisting>
-        </para>
-      </section>
-      <section id="namespace-channel-rendezvouschannel">
-        <title>The &lt;rendezvous-channel/&gt; element</title>
-        <para>
-          The <classname>RendezvousChannel</classname> does not provide any additional configuration options.
-          <programlisting language="xml"><![CDATA[<rendezvous-channel id="exampleChannel"/>]]></programlisting>
-        </para>
-      </section>
-      <section id="namespace-channel-directchannel">
-        <title>The &lt;direct-channel/&gt; element</title>
-        <para>
-          The <classname>DirectChannel</classname> does not provide any additional configuration options.
-          <programlisting language="xml"><![CDATA[<direct-channel id="exampleChannel"/>]]></programlisting>
-        </para>
-      </section>
-      <section id="namespace-channel-threadlocalchannel">
-        <title>The &lt;thread-local-channel/&gt; element</title>
-        <para>
-          The <classname>ThreadLocalChannel</classname> does not provide any additional configuration options.
-          <programlisting language="xml"><![CDATA[<thread-local-channel id="exampleChannel"/>]]></programlisting>
-        </para>
-      </section>
-      <para>
-        Message channels may also have interceptors as described in <xref linkend="channel-interceptors"/>. One or
-        more &lt;interceptor&gt; elements can be added as sub-elements of &lt;channel&gt; (or the more specific element
-        types). Provide the "ref" attribute to reference any Spring-managed object that implements the
-        <interfacename>ChannelInterceptor</interfacename> interface:
-        <programlisting language="xml"><![CDATA[<channel id="exampleChannel">
-    ]]><emphasis><![CDATA[<interceptor ref="trafficMonitoringInterceptor"/>]]></emphasis><![CDATA[
-</channel>]]></programlisting>
-        In general, it is a good idea to define the interceptor implementations in a separate location since they
-        usually provide common behavior that can be reused across multiple channels.
-      </para>
-    </section>
-
-    <section id="namespace-endpoint">
+  <section id="namespace-endpoint">
       <title>Configuring Message Endpoints</title>
       <para>
         Each of the endpoint types (channel-adapter, service-activator, etc) has its own element in the namespace.
@@ -235,33 +128,6 @@
                    selector="exampleSelector"/>]]></programlisting>
       </para>
       <para>
-        Another important configuration option for message endpoints is the inclusion of
-        <classname>EndpointInterceptors</classname>. The interface is defined as follows:
-        <programlisting language="java"><![CDATA[public interface EndpointInterceptor {
-
-    Message<?> preHandle(Message<?> requestMessage);
-
-    Message<?> aroundHandle(Message<?> requestMessage, MessageHandler handler);
-
-    Message<?> postHandle(Message<?> replyMessage);
-
-}]]></programlisting>
-        There is also an EndpointInterceptorAdapter that provides no-op methods for convenience
-        when subclassing. Within an endpoint configuration, interceptors can be added within
-        the &lt;interceptors&gt; sub-element. It accepts either "ref" elements or inner "beans":
-        <programlisting language="xml"><![CDATA[<service-activator id="exampleEndpoint"
-                   input-channel="requestChannel"
-                   ref="someObject"
-                   method="someMethod"
-                   output-channel="replyChannel">
-    <poller period="1000"/>
-    <interceptors>
-        <ref bean="someInterceptor"/>
-        <beans:bean class="example.AnotherInterceptor"/>
-    </interceptors>
-</service-activator>]]></programlisting>
-      </para>
-      <para>
         Spring Integration also provides transaction support for the pollers so that each receive-and-forward
         operation can be performed as an atomic unit-of-work. To configure transactions for a poller, simply
         add the &lt;transactional/&gt; sub-element. The attributes for this element should be familiar to anyone
@@ -303,7 +169,7 @@
       </para>
     </section>
 
-    <section id="namespace-messagebus">
+  <section id="namespace-messagebus">
       <title>Configuring the Message Bus</title>
       <para>
         The Message Bus plays a central role, but its configuration is quite simple since it is primarily concerned
@@ -345,7 +211,7 @@
       </para>
     </section>
 
-    <section id="namespace-adapters">
+  <section id="namespace-adapters">
       <title>Configuring Adapters</title>
       <para>
         The most convenient way to configure Source and Target adapters is by using the namespace support. The
@@ -400,7 +266,7 @@
       </para>
     </section>
 
-    <section id="namespace-annotationdriven">
+  <section id="namespace-annotationdriven">
       <title>Enabling Annotation-Driven Configuration</title>
       <para>
         The next section will describe Spring Integration's support for annotation-driven configuration. To enable
@@ -408,7 +274,7 @@
         <programlisting language="xml">&lt;annotation-driven/&gt;</programlisting>
       </para>
     </section>
-  </section>
+
 
   <section id="annotations">
     <title>Annotations</title>
@@ -499,43 +365,6 @@ public class FooService {
       <programlisting language="java">someMethod(String payload, @Header("x") int valueX, @Header("y") int valueY);</programlisting>
     </para>
     <para>
-      When using the <interfacename>@Router</interfacename> annotation, the annotated method can return either the
-      <interfacename>MessageChannel</interfacename> or <classname>String</classname> type. In the case of the latter,
-      the endpoint will resolve the channel name as it does for the default output. Additionally, the method can return
-      either a single value or a collection. When a collection is returned, the reply message will be sent to multiple
-      channels. To summarize, the following method signatures are all valid.
-      <programlisting language="java">@Router
-public MessageChannel route(Message message) {...}
-
-@Router
-public List&lt;MessageChannel&gt; route(Message message) {...}
-
-@Router
-public String route(Foo payload) {...}
-
-@Router
-public List&lt;String&gt; route(Foo payload) {...}</programlisting>
-    </para>
-    <para>
-      In addition to payload-based routing, a common requirement is to route based on metadata available within the
-      message header as either a property or attribute. Rather than requiring use of the
-      <interfacename>Message</interfacename> type as the method parameter, the <interfacename>@Router</interfacename>
-      annotation may also use the same @Header parameter annotation that was introduced above.
-      <programlisting language="java">@Router
-public List&lt;String&gt; route(@Header("orderStatus") OrderStatus status)</programlisting>
-    </para>
-    <para>
-      The <interfacename>@Splitter</interfacename> annotation is also applicable to methods that expect either the
-      <interfacename>Message</interfacename> type or the message payload type, and the return values of the method
-      should be a collection of any type. If the returned values are not actual <interfacename>Message</interfacename>
-      objects, then each of them will be sent as the payload of a message. Those messages will be sent to the output
-      channel as designated for the endpoint on which the <interfacename>@Splitter</interfacename> is defined.
-      <programlisting language="java">@Splitter
-List&lt;LineItem&gt; extractItems(Order order) {
-    return order.getItems()
-}</programlisting>
-    </para>
-    <para>
       The <interfacename>@Aggregator</interfacename> annotation may be used on a method that accepts a collection
       of Messages or Message payload types and whose return value is a single Message or single Object that will
       be used as the payload of a Message.
@@ -565,4 +394,5 @@ public void publishException() {
 }</programlisting>
     </para>
   </section>
+
 </appendix>

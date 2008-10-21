@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<chapter id="splitter">
+  <title>Message Splitter</title>
+
+  <section id="splitter-annotation">
+    <title>The @Splitter Annotation</title>
+    <para>
+      The <interfacename>@Splitter</interfacename> annotation is also applicable to methods that expect either the
+      <interfacename>Message</interfacename> type or the message payload type, and the return values of the method
+      should be a collection of any type. If the returned values are not actual <interfacename>Message</interfacename>
+      objects, then each of them will be sent as the payload of a message. Those messages will be sent to the output
+      channel as designated for the endpoint on which the <interfacename>@Splitter</interfacename> is defined.
+      <programlisting language="java">@Splitter
+List&lt;LineItem&gt; extractItems(Order order) {
+    return order.getItems()
+}</programlisting>
+    </para>
+  </section>
+
+</chapter>
