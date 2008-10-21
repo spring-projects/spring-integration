@@ -66,6 +66,8 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 
 	private static final String ASYNC_EVENT_MULTICASTER_ATTRIBUTE = "configure-async-event-multicaster";
 
+	private static final String TASK_SCHEDULER_BEAN_NAME = "taskScheduler";
+
 
 	@Override
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
@@ -111,8 +113,6 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 			String errorHandlerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
 					errorHandlerBuilder.getBeanDefinition(), parserContext.getRegistry());
 			schedulerBuilder.addPropertyReference("errorHandler", errorHandlerBeanName);
-			// TODO: define bean name as a constant elsewhere
-			String TASK_SCHEDULER_BEAN_NAME = "taskScheduler";
 			BeanDefinitionHolder schedulerHolder = new BeanDefinitionHolder(
 					schedulerBuilder.getBeanDefinition(), TASK_SCHEDULER_BEAN_NAME);
 			BeanDefinitionReaderUtils.registerBeanDefinition(schedulerHolder, parserContext.getRegistry());
