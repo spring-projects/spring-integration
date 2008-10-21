@@ -40,48 +40,6 @@
     </para>
   </section>
 
-  <section id="adapters-jms">
-    <title>JMS Adapters</title>
-    <para>
-      Spring Integration provides two adapters for accepting JMS messages (as mentioned above):
-      <classname>JmsSource</classname> and <classname>JmsGateway</classname>. The former uses Spring's
-      <classname>JmsTemplate</classname> to receive based on a polling period. The latter configures and delegates to
-      an instance of Spring's <classname>DefaultMessageListenerContainer</classname>.
-    </para>
-    <para>
-      The <classname>JmsSource</classname> requires a reference to either a single <classname>JmsTemplate</classname>
-      instance or both <interfacename>ConnectionFactory</interfacename> and <interfacename>Destination</interfacename>
-      (a 'destinationName' can be provided in place of the 'destination' reference). The <classname>JmsSource</classname>
-      can then be referenced from a "channel-adapter" element that connects the source to  a
-      <interfacename>MessageChannel</interfacename> instance. The following example defines a JMS source with
-      a <classname>JmsTemplate</classname> as a constructor-argument.
-      <programlisting language="xml"><![CDATA[<bean id="jmsSource" class="org.springframework.integration.adapter.jms.JmsSource">
-    <constructor-arg ref="jmsTemplate"/>
-</bean>]]></programlisting>
-    </para>
-    <para>
-      In most cases, Spring Integration's message-driven <classname>JmsGateway</classname> is more appropriate since it
-      delegates to a <interfacename>MessageListener</interfacename> container, supports dynamically adjusting
-      concurrent consumers, and can also handle replies. The <classname>JmsGateway</classname> requires references to
-      a <interfacename>ConnectionFactory</interfacename>, and a <interfacename>Destination</interfacename> (or
-      'destinationName'). The following example defines a <classname>JmsGateway</classname> that receives from the JMS
-      queue called "exampleQueue". Note that the 'expectReply' property has been set to 'true' (it is 'false' by
-      default):
-      <programlisting language="xml"><![CDATA[<bean class="org.springframework.integration.adapter.jms.JmsGateway">
-    <property name="connectionFactory" ref="connectionFactory"/>
-    <property name="destinationName" value="exampleQueue"/>
-    <property name="expectReply" value="true"/>
-</bean>]]></programlisting>
-    </para>
-    <para>
-      The <classname>JmsTarget</classname> implements the <interfacename>MessageTarget</interfacename> interface
-      and is capable of mapping Spring Integration <interfacename>Messages</interfacename> to JMS messages and then
-      sending to a JMS destination. It requires either a 'jmsTemplate' reference or both 'connectionFactory' and
-      'destination' references (again, the 'destinationName' may be provided in place of the 'destination). In
-      <xref linkend="namespace-adapters"/>, you will see how to configure a JMS target adapter with Spring
-      Integration's namespace support.
-    </para>
-  </section>
   <section id="adapters-email">
     <title>Mail Adapters</title>
     <para>

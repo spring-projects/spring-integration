@@ -1,14 +1,94 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
 "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
-<chapter>
+<chapter id="jms">
   <title>JMS Support</title>
+  <para>
+    Spring Integration provides Channel Adapters for receiving and sending JMS messages. The inbound Channel Adapter
+    uses Spring's <classname>JmsTemplate</classname> to receive based on a polling period, and the outbound Channel
+    Adapter uses the <classname>JmsTemplate</classname> to convert and send a JMS Message on demand.
+  </para>
+  <para>
+    Spring Integration also provides inbound and outbound JMS Gateways. The inbound gateway relies on Spring's
+    <classname>DefaultMessageListenerContainer</classname> for Message-driven reception that is also capable of sending
+    a return value to the "reply-to" Destination as provided by the received Message. The outbound Gateway uses a JMS
+    <classname>QueueRequestor</classname> for request/reply operations. In other words, while the inbound and outbound
+    Channel Adapters are for unidirectional Messaging, the Gateways are intended for handling request/reply operations.
+  </para>
 
-  <section>
-    <title></title>
+  <section id="jms-inbound-channel-adapter">
+    <title>Inbound Channel Adapter</title>
     <para>
-	</para>
+      The inbound Channel Adapter requires a reference to either a single <classname>JmsTemplate</classname>
+      instance or both <interfacename>ConnectionFactory</interfacename> and <interfacename>Destination</interfacename>
+      (a 'destinationName' can be provided in place of the 'destination' reference). The following example defines an
+      inbound Channel Adapter with a <classname>Destination</classname> reference.
+      <programlisting language="xml"><![CDATA[<jms:inbound-channel-adapter id="jmsIn" destination="inQueue" channel="exampleChannel"/>]]></programlisting>
+    </para>
+  </section>
 
+  <section id="jms-outbound-channel-adapter">
+    <title>Outbound Channel Adapter</title>
+    <para>
+      The <classname>JmsSendingMessageConsumer</classname> implements the <interfacename>MessageConsumer</interfacename>
+      interface and is capable of converting Spring Integration <interfacename>Messages</interfacename> to JMS messages
+      and then sending to a JMS destination. It requires either a 'jmsTemplate' reference or both 'connectionFactory' and
+      'destination' references (again, the 'destinationName' may be provided in place of the 'destination). As with the
+      inbound Channel Adapter, the easiest way to configure this adapter is with the namespace support. The following
+      configuration will produce an adapter that receives Spring Integration Messages from the "exampleChannel" and then
+      converts those into JMS Messages and sends them to the JMS Destination reference whose bean name is "outQueue".
+      <programlisting language="xml"><![CDATA[<jms:outbound-channel-adapter id="jmsOut" destination="outQueue" channel="exampleChannel"/>]]></programlisting>
+    </para>
+  </section>
+
+  <section id="jms-inbound-gateway">
+    <title>Inbound Gateway</title>
+    <para>
+      Spring Integration's message-driven <classname>JmsInboundGateway</classname> delegates to a
+      <interfacename>MessageListener</interfacename> container, supports dynamically adjusting concurrent consumers, and
+      can also handle replies. The <classname>JmsInboundGateway</classname> requires references to a
+      <interfacename>ConnectionFactory</interfacename>, and a <interfacename>Destination</interfacename> (or
+      'destinationName'). The following example defines a <classname>JmsInboundGateway</classname> that receives from the JMS
+      queue called "exampleQueue" and sends to the Spring Integration channel named "exampleChannel".
+      <programlisting language="xml"><![CDATA[<jms:inbound-gateway id="jmsInGateway" destination="inQueue" request-channel="exampleChannel"/>]]></programlisting>
+    </para>
+    <note>
+      The default behavior for an outbound gateway is to reply with the Spring Integration Message as the JMS Message
+      body. This works well when you are connecting two systems that are both running Spring Integration-based
+      applications. However, if you prefer to just send the Spring Integration Message's payload as the JMS reply
+      Message's body, then set the "extract-payload-for-reply" attribute to "true".
+    </note>
+  </section>
+
+  <section id="jms-outbound-gateway">
+    <title>Outbound Gateway</title>
+    <para>
+      The outbound Gateway uses a <classname>QueueRequestor</classname> so that reply Messages will be automatically
+      correlated. Notice that the "reply-channel" is also provided.
+      <programlisting language="xml"><![CDATA[<jms:outbound-gateway id="jmsOutGateway"
+                      jms-queue="outQueue"
+                      request-channel="outboundJmsRequests"
+                      reply-channel="jmsReplies"/>]]></programlisting>
+    </para>
+    <note>
+      For all of these JMS adapters, you can also specify your own "message-converter" reference. Simply provide the
+      bean name of an instance of <interfacename>MessageConverter</interfacename> that is available within the same
+      ApplicationContext.
+    </note>
+  </section>
+
+  <section id="jms-samples">
+    <title>JMS Samples</title>
+    <para>
+      To experiment with these JMS adapters, check out the samples available within the "jms" package of the
+      "org.springramework.integration.samples" module (in the distribution). There are two samples included. One
+      provides inbound and outbound Channel Adapters, and the other provided inbound and outbound Gateways. They are
+      configured to run with an embedded ActiveMQ process, but the "common.xml" can easily be modified to support
+      either a different JMS provider or a standalone ActiveMQ process. In other words, you can split the configuration
+      so that the inbound and outbound adapters are running in separate JVMs. If you have ActiveMQ installed, simply
+      modify the "brokerURL" property within the configuration to use "tcp://localhost:61616" for example (instead of
+      "vm://localhost").
+    </para>
   </section>
 
 </chapter>
