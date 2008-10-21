@@ -52,10 +52,10 @@
   <xi:include href="./file.xml"/> 
   <xi:include href="./rmi.xml"/>
   <xi:include href="./stream.xml"/> 
-  <xi:include href="./configuration.xml"/>
   <xi:include href="./xml.xml"/>
   <xi:include href="./security.xml"/>
   <xi:include href="./samples.xml"/>
+  <xi:include href="./namespaces.xml"/>
   <xi:include href="./resources.xml"/>
 
 </book>
