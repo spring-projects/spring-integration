@@ -29,7 +29,8 @@ import org.springframework.util.StringUtils;
  * client to specify a pattern that the sequence matches. The pattern is a list
  * of 6 single space separated fields representing (second, minute, hour, day,
  * month, weekday). Month and weekday names can be given as the first three
- * letters of the English names.<br/><br/>
+ * letters of the English names.<br/>
+ * <br/>
  * 
  * Example patterns
  * <ul>
@@ -59,7 +60,6 @@ public class CronSequenceGenerator {
 
 	private final String pattern;
 
-
 	/**
 	 * Construct a {@link CronSequenceGenerator} from the pattern provided.
 	 * 
@@ -71,7 +71,6 @@ public class CronSequenceGenerator {
 		this.pattern = pattern;
 		parse(pattern);
 	}
-
 
 	/**
 	 * Get the next {@link Date} in the sequence matching the Cron pattern and
@@ -146,17 +145,17 @@ public class CronSequenceGenerator {
 	 * @return the value of the calendar field that is next in the sequence
 	 */
 	private int findNext(BitSet bits, int value, int max, Calendar calendar, int field, int... lowerOrders) {
-		// TODO: more efficient to use BitSet.nextSet(int)
-		int count = 0;
-		while (!bits.get(value) && count++ < max) {
-			calendar.add(field, 1);
-			value = calendar.get(field);
+		int nextValue = bits.nextSetBit(value);
+		//roll over if needed
+		if (nextValue == -1) {
+			calendar.add(field, max - value);
+			nextValue = bits.nextSetBit(0);
+		}
+		if (nextValue != value) {
+			calendar.set(field, nextValue);
 			reset(calendar, lowerOrders);
 		}
-		if (count > max) {
-			throw new IllegalStateException(String.format("Overflow in field=%d for expression=%s", field, pattern));
-		}
-		return value;
+		return nextValue;
 	}
 
 	/**
@@ -177,9 +176,8 @@ public class CronSequenceGenerator {
 	private void parse(String expression) throws IllegalArgumentException {
 		String[] fields = StringUtils.tokenizeToStringArray(expression, " ");
 		if (fields.length != 6) {
-			throw new IllegalArgumentException(String.format("" +
-					"cron expression must consist of 6 fields (found %d in %s)",
-					fields.length, expression));
+			throw new IllegalArgumentException(String.format(""
+					+ "cron expression must consist of 6 fields (found %d in %s)", fields.length, expression));
 		}
 		setNumberHits(seconds, fields[0], 60);
 		setNumberHits(minutes, fields[1], 60);
