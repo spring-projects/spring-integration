@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<chapter id="mail">
+  <title>Mail Support</title>
+
+  <section id="mail-outbound">
+    <title>Mail-Sending Channel Adapter</title>
+    <para>
+      Spring Integration provides support for outbound email with the
+      <classname>MailSendingMessageConsumer</classname>. It delegates to a configured instance of Spring's
+      <interfacename>JavaMailSender</interfacename>:
+      <programlisting language="java"> JavaMailSender mailSender = (JavaMailSender) context.getBean("mailSender");
+
+ MailSendingMessageConsumer mailSendingConsumer = new MailSendingMessageConsumer(mailSender);</programlisting>
+      <classname>MailSendingMessageConsumer</classname> various mapping strategies use Spring's
+      <interfacename>MailMessage</interfacename> abstraction. If the received Message's payload is already
+      a MailMessage instance, it will be sent directly. Therefore, it is generally recommended to precede this
+      consumer with a Transformer for non-trivial MailMessage construction requirements. However, a few simple
+      Message mapping strategies are supported out-of-the-box. For example, if the message payload is a byte array,
+      then that will be mapped to an attachment. If the payload is neither a MailMessage or byte array, then a
+      MailMessage will be created with text content corresponding to the value returned from the Spring Integration
+      Message payload's <methodname>toString()</methodname> method. For simple text-based emails, simply provide a
+      String-based Message payload.
+    </para>
+    <para>
+      The outbound MailMessage may also be configured with certain values from the
+      <classname>MessageHeaders</classname>. If available, values will be mapped to the outbound mail's
+      properties, such as the recipients (TO, CC, and BCC), the from/reply-to, and the subject. The header names are
+      defined by the following constants:
+      <programlisting language="java"> MailHeaders.SUBJECT
+ MailHeaders.TO
+ MailHeaders.CC
+ MailHeaders.BCC
+ MailHeaders.FROM
+ MailHeaders.REPLY_TO</programlisting>
+    </para>
+  </section>
+
+  <section id="mail-namespace">
+    <title>Mail Namespace Support</title>
+    <para>
+      Spring Integration provides a namespace for mail-related configuration. To use it, configure the following schema
+      locations.<programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:mail="http://www.springframework.org/schema/integration/mail"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+            http://www.springframework.org/schema/integration/mail
+            http://www.springframework.org/schema/integration/mail/spring-integration-mail-1.0.xsd">]]></programlisting>
+    </para>
+    <para>
+      To configure an outbound Channel Adapter, provide the channel to receive from, and the MailSender:
+      <programlisting language="xml"><![CDATA[<mail:outbound-channel-adapter channel="outboundMail"
+                              mail-sender="mailSender"/>]]></programlisting>
+      Alternatively, provide the host, username, and password:
+      <programlisting language="xml"><![CDATA[<mail:outbound-channel-adapter channel="outboundMail"
+                              host="somehost" username="someuser" password="somepassword"/>]]></programlisting>
+      <note>
+        Keep in mind, as with any outbound Channel Adapter, if the referenced channel is a PollableChannel, a
+        &lt;poller&gt; sub-element should be provided with either an interval-trigger or cron-trigger.
+      </note>
+    </para>
+    <para>
+      When using the namespace support, a <emphasis>header-enricher</emphasis> Message Transformer is also available.
+      This simplifies the application of the headers mentioned above to any Message prior to sending to the
+      Mail-sending Channel Adapter. Also, note that a boolean value c
+      <programlisting language="xml"><![CDATA[<mail:header-enricher subject="Example Mail"
+                     to="to@example.org"
+                     cc="cc@example.org"
+                     bcc="bcc@example.org"
+                     from="from@example.org"
+                     reply-to="replyTo@example.org"
+                     overwrite="false"/>]]></programlisting>
+    </para>
+  </section>
+
+</chapter>

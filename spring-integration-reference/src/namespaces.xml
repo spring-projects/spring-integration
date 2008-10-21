@@ -73,13 +73,6 @@
     <poller cron="30 * * * * ?"/>
 </channel-adapter>]]></programlisting>
         </para>
-        <note>
-          <para>
-            Cron support does require the Quartz JAR and its transitive dependencies. Also, keep in mind that pollers only
-            apply for <interfacename>PollableChannel</interfacename> implementations. On the other hand, subscribable channels
-            (PublishSubscribeChannel and DirectChannel) will send Messages to their subscribed targets directly.
-          </para>
-        </note>
       </section>
       <section id="namespace-endpoint-outboundchanneladapter">
         <title>The outbound &lt;channel-adapter/&gt; with a MessageTarget</title>
@@ -217,20 +210,9 @@
         The most convenient way to configure Source and Target adapters is by using the namespace support. The
         following examples demonstrate the namespace-based configuration of several source, target, gateway,
         and handler adapters:
-        <programlisting language="xml"><![CDATA[<httpinvoker-gateway id="httpSource" name="/some/path" request-channel="httpInvokerInput"/>
-
-<httpinvoker-handler id="httpTarget" channel="httpInvokerOutput" url="http://somehost/test"/>
-
-<mail-target id="mailTarget" host="somehost" username="someuser" password="somepassword"/>
+        <programlisting language="xml"><![CDATA[<mail-target id="mailTarget" host="somehost" username="someuser" password="somepassword"/>
 
 <ws-handler id="wsTarget" uri="http://example.org" channel="wsOutput"/>
-
-<ftp-source id="ftpSource"
-            host="example.org"
-            username="someuser"
-            password="somepassword"
-            local-working-directory="/some/path"
-            remote-working-directory="/some/path"/>
 ]]></programlisting>
       </para>
       <para>
