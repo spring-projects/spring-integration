@@ -1,15 +1,69 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
 "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
-<chapter>
-  <title>Message Transformation</title>
+<chapter id="transformer">
+  <title>Transformer</title>
 
-  <section>
+  <section id="transformer-introduction">
     <title>Introduction</title>
-
     <para>
-	</para>
+      Message Transformers play a very important role in enabling the loose-coupling of Message Producers and Message
+      Consumers. Rather than requiring every Message-producing component to know what type is expected by the next
+      consumer, Transformers can be added between those components. Generic transformers, such as one that converts a
+      String to an XML Document, are also highly reusable.
+    </para>
+    <para>
+      For some systems, it may be best to provide a
+      <ulink url="http://www.eaipatterns.com/CanonicalDataModel.html">Canonical Data Model</ulink>, but Spring
+      Integration's general philosophy is not to require any particular format. Rather, for maximum flexibility, Spring
+      Integration aims to provide the simplest possible model for extension. As with the other endpoint types, the use
+      of declarative configuration in XML and/or Annotations enables simple POJOs to be adapted for the role of Message
+      Transformers. These configuration options will be described below.
+      <note>
+        For the same reason of maximizing flexibility, Spring does not require XML-based Message payloads.
+        Nevertheless, the framework does provide some convenient Transformers for dealing with XML-based payloads if
+        that is indeed the right choice for your application. For more information on those transformers, see
+        <xref linkend="xml"/>.
+      </note>
+    </para>
+  </section>
 
+  <section id="transformer-namespace">
+    <title>The &lt;transformer&gt; Element</title>
+    <para>
+	  The &lt;transformer&gt; element is used to create a Message-transforming endpoint. In addition to "input-channel"
+      and "output-channel" attributes, it requires a "ref". The "ref" may either point to an Object that contains the
+      @Transformer annotation on a single method (see below) or it may be combined with an explicit method name value
+      provided via the "method" attribute.
+    </para>
+    <para>
+      The method that is used for transformation may expect either the <interfacename>Message</interfacename> type or
+      the payload type of inbound Messages. The return value of the method can be any type. If the return value is
+      itself a <interfacename>Message</interfacename>, that will be passed along to the transformer's output channel.
+      If the return value is <emphasis>null</emphasis>, then no reply Message will be sent (effectively the same
+      behavior as a Message Filter). Otherwise, the return value will be sent as the payload of a Message.
+    </para>
+  </section>
+
+  <section id="transformer-annotation">
+    <title>The @Transformer Annotation</title>
+    <para>
+      The <interfacename>@Transformer</interfacename> annotation can also be added to methods that expect either the
+      <interfacename>Message</interfacename> type or the message payload type. The return value will be handled in the
+      exact same way as described above in the section describing the &lt;transformer&gt; element.
+      <programlisting language="java">@Transformer
+Order generateOrder(String productId) {
+    return new Order(productId);
+}</programlisting>
+    </para>
+    <para>
+      Transformer methods may also accept the @Header and @Headers annotations. For example, one of those annotations
+      may complement the payload Object as an additional parameter:
+	      <programlisting language="java">@Transformer
+Order generateOrder(String productId, @Header("customerName") String customer) {
+    return new Order(productId, customer);
+}</programlisting>
+    </para>
   </section>
 
 </chapter>
