@@ -26,6 +26,11 @@
 		<dependency org="org.springframework" name="org.springframework.context" rev="2.5.5.A" conf="compile->runtime"/>
 		<dependency org="org.springframework.ws" name="org.springframework.oxm" rev="1.5.4.A" conf="compile->runtime"/>
 		<dependency org="org.springframework.integration" name="org.springframework.integration" rev="latest.integration" conf="compile->compile"/>
+		<dependency org="javax.xml.bind" name="com.springsource.javax.xml.bind" rev="2.1.7" conf="test->runtime" />
+		<dependency org="com.sun.xml" name="com.springsource.com.sun.xml.bind" rev="2.1.7" conf="test->runtime" />
+		<dependency org="org.springframework.ws" name="org.springframework.oxm.java5" rev="1.5.4.A" conf="test->runtime" />
+		<dependency org="javax.activation" name="com.springsource.javax.activation" rev="1.1.1" conf="test->runtime"/>
+		<dependency org="javax.xml.stream" name="com.springsource.javax.xml.stream" rev="1.0.1" conf="test->runtime"/>
 	</dependencies>
 
 </ivy-module>

@@ -48,7 +48,8 @@
 		input-channel="marshallingTransformerWithResultTransformer"
 		output-channel="output"
 		marshaller="marshaller"
-		result-transformer="resultTransformer" />
+		result-transformer="resultTransformer">
+	</si-xml:marshalling-transformer>
 
 	<bean id="marshaller" class="org.springframework.integration.xml.config.StubMarshaller" />
 
