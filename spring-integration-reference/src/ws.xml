@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<chapter id="ws">
+  <title>Web Services Support</title>
+
+  <section id="webservices-outbound">
+    <title>Outbound Web Service Gateways</title>
+    <para>
+      To invoke a Web Service upon sending a message to a channel, there are two options - both of which build
+      upon the <ulink url="http://static.springframework.org/spring-ws/sites/1.5/">Spring Web Services</ulink>
+      project: <classname>SimpleWebServiceOutboundGateway</classname> and
+      <classname>MarshallingWebServiceOutboundGateway</classname>. The former will accept either a
+      <classname>String</classname> or <interfacename>javax.xml.transform.Source</interfacename> as the message
+      payload. The latter provides support for any implementation of the <interfacename>Marshaller</interfacename>
+      and <interfacename>Unmarshaller</interfacename> interfaces. Both require the URI of the Web Service to be
+      called.<programlisting language="java"> simpleGateway = new SimpleWebServiceOutboundGateway(uri);
+
+ marshallingGateway = new MarshallingWebServiceOutboundGateway(uri, marshaller);
+</programlisting>
+    </para>
+    <para>
+      For more detail on the inner workings, see the Spring Web Services reference guide's chapter covering 
+      <ulink url="http://static.springframework.org/spring-ws/site/reference/html/client.html">client access</ulink>
+      as well as the chapter covering 
+      <ulink url="http://static.springframework.org/spring-ws/site/reference/html/oxm.html">Object/XML mapping</ulink>.
+    </para>
+  </section>
+
+  <section id="webservices-namespace">
+    <title>Web Service Namespace Support</title>
+    <para>
+      To configure an outbound Web Service Gateway, use the "outbound-gateway" element from the "ws" namespace:
+      <programlisting language="xml"><![CDATA[<ws:outbound-gateway id="simpleGateway"
+                    request-channel="inputChannel"
+                    uri="http://example.org"/>]]></programlisting>
+      To use Spring OXM Marshallers and/or Unmarshallers, provide bean references:
+      <programlisting language="xml"><![CDATA[<ws:outbound-gateway id="marshallingGateway"
+                    request-channel="requestChannel"
+                    uri="http://example.org"
+                    marshaller="someMarshaller"
+                    unmarshaller="someUnmarshaller"/>]]></programlisting>
+      <note>
+        Most <interfacename>Marshaller</interfacename> implementations also implement the
+        <interfacename>Unmarshaller</interfacename> interface. When using such a Marshaller, only the "marshaller"
+        attribute is necessary. Even when using a Marshaller, you may also provide a reference for the
+        "request-callback".
+      </note>
+    </para>
+    <para>
+      For either gateway type, the "message-factory" attribute can also be configured with a reference to any
+      Spring Web Services <interfacename>WebServiceMessageFactory</interfacename> implementation.
+    </para>
+  </section>
+
+</chapter>
