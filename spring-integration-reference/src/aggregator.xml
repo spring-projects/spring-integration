@@ -23,65 +23,63 @@
   <section id="aggregator-functionality">
     <title>Functionality</title>
 
-      <para>The Aggregator combines a group of related messages, by storing
-      and grouping them, until the group is deemed complete. At that point,
-      the Aggregator will create a single message by processing the whole
-      group, and will send the result message further.</para>
+    <para>The Aggregator combines a group of related messages, by storing and
+    grouping them, until the group is deemed complete. At that point, the
+    Aggregator will create a single message by processing the whole group, and
+    will send the result message further.</para>
 
-      <para>As messages might arrive with a certain delay (or certain messages
-      from the group might not arrive at all), the Aggregator can specify a
-      timeout (counted from the moment when the first message in the group has
-      arrived), and whether, in the case of a timeout, the group should be
-      discarded, or the Aggregator should merely attempt to create a single
-      message out of what has arrived so far. An important aspect of
-      implementing an Aggregator is providing the logic that has to be
-      executed when the aggregation (creation of a single message out of many)
-      takes place.</para>
+    <para>As messages might arrive with a certain delay (or certain messages
+    from the group might not arrive at all), the Aggregator can specify a
+    timeout (counted from the moment when the first message in the group has
+    arrived), and whether, in the case of a timeout, the group should be
+    discarded, or the Aggregator should merely attempt to create a single
+    message out of what has arrived so far. An important aspect of
+    implementing an Aggregator is providing the logic that has to be executed
+    when the aggregation (creation of a single message out of many) takes
+    place.</para>
 
-      <para>In Spring Integration, the grouping of the messages for
-      Aggregation is done based on their CORRELATION_ID message header (i.e.
-      the messages with the same CORRELATION_ID will be grouped
-      together).</para>
+    <para>In Spring Integration, the grouping of the messages for Aggregation
+    is done based on their CORRELATION_ID message header (i.e. the messages
+    with the same CORRELATION_ID will be grouped together).</para>
 
-      <para>An important concern with respect to the timeout is, what happens
-      if late messages arrive after the aggregation has taken place? In this
-      case, a configuration option allows the user to decide whether they
-      should be discarded or not.</para>
+    <para>An important concern with respect to the timeout is, what happens if
+    late messages arrive after the aggregation has taken place? In this case,
+    a configuration option allows the user to decide whether they should be
+    discarded or not.</para>
   </section>
 
   <section id="aggregator-api">
-    <title>The Aggregator API</title>
+    <title>Programming model</title>
 
-      <para>The Aggregation API consists of a number of classes:</para>
+    <para>The Aggregation API consists of a number of classes:</para>
 
-      <itemizedlist>
-        <listitem>
-          <para>The base class <code>AbstractMessageAggregator </code>and its
-          subclass <code>MethodInvokingMessageAggregator</code></para>
-        </listitem>
-      </itemizedlist>
+    <itemizedlist>
+      <listitem>
+        <para>The base class <code>AbstractMessageAggregator </code>and its
+        subclass <code>MethodInvokingMessageAggregator</code></para>
+      </listitem>
+    </itemizedlist>
 
-      <itemizedlist>
-        <listitem>
-          <para>The <code>CompletionStrategy</code> interface and its default
-          implementation <code>SequenceSizeCompletionStrategy</code></para>
-        </listitem>
-      </itemizedlist>
+    <itemizedlist>
+      <listitem>
+        <para>The <code>CompletionStrategy</code> interface and its default
+        implementation <code>SequenceSizeCompletionStrategy</code></para>
+      </listitem>
+    </itemizedlist>
 
-      <para>The <code>AbstractMessageAggregator</code> is a
-      <code>MessageConsumer</code> implementation, encapsulating the common
-      functionalities of an Aggregator, which are: storing messages until the
-      message sequence to aggregate is complete (and grouping them according
-      to their CORRELATION_ID), and implementing the timeout functionality.
-      The responsibility of deciding whether the message sequence is complete
-      is delegated to a <code>CompletionStrategy</code> instance.</para>
+    <para>The <code>AbstractMessageAggregator</code> is a
+    <code>MessageConsumer</code> implementation, encapsulating the common
+    functionalities of an Aggregator, which are: storing messages until the
+    message sequence to aggregate is complete (and grouping them according to
+    their CORRELATION_ID), and implementing the timeout functionality. The
+    responsibility of deciding whether the message sequence is complete is
+    delegated to a <code>CompletionStrategy</code> instance.</para>
 
-      <para>A brief highlight of the base
-      <code>AbstractMessageAggregator</code> (the responsibility of
-      implementing the aggregateMessages method is left to the
-      developer):</para>
+    <para>A brief highlight of the base <code>AbstractMessageAggregator</code>
+    (the responsibility of implementing the aggregateMessages method is left
+    to the developer):</para>
 
-      <programlisting language="java">public abstract class AbstractMessageAggregator 
+    <programlisting language="java">public abstract class AbstractMessageAggregator 
               extends AbstractMessageBarrierConsumer {
 
   private volatile CompletionStrategy completionStrategy
@@ -92,98 +90,96 @@
 
 }</programlisting>
 
-      <para>For implementing a specific aggregator object for an application,
-      a developer can extend <code>AbstractMessageAggregator </code>and
-      implement the <code>aggregateMessages</code> method. However, there are
-      better suited (which reads, less coupled to the API) solutions for
-      implementing the aggregation logic, which can be configured easily
-      either through XML or through annotations.</para>
+    <para>For implementing a specific aggregator object for an application, a
+    developer can extend <code>AbstractMessageAggregator </code>and implement
+    the <code>aggregateMessages</code> method. However, there are better
+    suited (which reads, less coupled to the API) solutions for implementing
+    the aggregation logic, which can be configured easily either through XML
+    or through annotations.</para>
 
-      <para>In general, any ordinary Java class (i.e. POJO) can implement the
-      aggregation algorithm. For doing so, it must provide a method that
-      accepts as an argument a single java.util.List (parametrized lists are
-      supported as well). This method will be invoked for aggregating
-      messages, as follows:</para>
+    <para>In general, any ordinary Java class (i.e. POJO) can implement the
+    aggregation algorithm. For doing so, it must provide a method that accepts
+    as an argument a single java.util.List (parametrized lists are supported
+    as well). This method will be invoked for aggregating messages, as
+    follows:</para>
 
-      <itemizedlist>
-        <listitem>
-          <para>if the argument is a parametrized java.util.List, and the
-          parameter type is assignable to Message, then the whole list of
-          messages accumulated for aggregation will be sent to the
-          aggregator</para>
-        </listitem>
+    <itemizedlist>
+      <listitem>
+        <para>if the argument is a parametrized java.util.List, and the
+        parameter type is assignable to Message, then the whole list of
+        messages accumulated for aggregation will be sent to the
+        aggregator</para>
+      </listitem>
 
-        <listitem>
-          <para>if the argument is a non-parametrized java.util.List or the
-          parameter type is not assignable to Message, then the method will
-          receive the payloads of the accumulated messages</para>
-        </listitem>
+      <listitem>
+        <para>if the argument is a non-parametrized java.util.List or the
+        parameter type is not assignable to Message, then the method will
+        receive the payloads of the accumulated messages</para>
+      </listitem>
 
-        <listitem>
-          <para>if the return type is not assignable to Message, then it will
-          be treated as the payload for a Message that will be created
-          automatically by the framework.</para>
-        </listitem>
-      </itemizedlist>
+      <listitem>
+        <para>if the return type is not assignable to Message, then it will be
+        treated as the payload for a Message that will be created
+        automatically by the framework.</para>
+      </listitem>
+    </itemizedlist>
 
-      <para><note>
-          <para>In the interest of code simplicity, and promoting best
-          practices such as low coupling, testability, etc., the preferred way
-          of implementing the aggregation logic is by implementing a POJO, and
-          using the XML or annotation support for setting it up in the
-          application.</para>
-        </note>The <code>CompletionStrategy</code> interface is defined as
-      follows:</para>
+    <para><note>
+        <para>In the interest of code simplicity, and promoting best practices
+        such as low coupling, testability, etc., the preferred way of
+        implementing the aggregation logic is through a POJO, and using the
+        XML or annotation support for setting it up in the application.</para>
+      </note>The <code>CompletionStrategy</code> interface is defined as
+    follows:</para>
 
-      <programlisting language="java">public interface CompletionStrategy {
+    <programlisting language="java">public interface CompletionStrategy {
 
   boolean isComplete(List&lt;Message&lt;?&gt;&gt; messages);
 
 }</programlisting>
 
-      <para>In general, any ordinary Java class (i.e. POJO) can implement the
-      completion decision mechanism. For doing so, it must provide a method
-      that accepts as an argument a single java.util.List (parametrized lists
-      are supported as well), and returns a boolean value. This method will be
-      invoked after the arrival of a new message, to decide whether the group
-      is complete or not, as follows:</para>
+    <para>In general, any ordinary Java class (i.e. POJO) can implement the
+    completion decision mechanism. For doing so, it must provide a method that
+    accepts as an argument a single java.util.List (parametrized lists are
+    supported as well), and returns a boolean value. This method will be
+    invoked after the arrival of a new message, to decide whether the group is
+    complete or not, as follows:</para>
 
-      <itemizedlist>
-        <listitem>
-          <para>if the argument is a parametrized java.util.List, and the
-          parameter type is assignable to Message, then the whole list of
-          messages accumulated in the group will be sent to the method</para>
-        </listitem>
+    <itemizedlist>
+      <listitem>
+        <para>if the argument is a parametrized java.util.List, and the
+        parameter type is assignable to Message, then the whole list of
+        messages accumulated in the group will be sent to the method</para>
+      </listitem>
 
-        <listitem>
-          <para>if the argument is a non-parametrized java.util.List or the
-          parameter type is not assignable to Message, then the method will
-          receive the payloads of the accumulated messages</para>
-        </listitem>
+      <listitem>
+        <para>if the argument is a non-parametrized java.util.List or the
+        parameter type is not assignable to Message, then the method will
+        receive the payloads of the accumulated messages</para>
+      </listitem>
 
-        <listitem>
-          <para>the method must return true if the message group is complete
-          and ready for aggregation, and false otherwise.</para>
-        </listitem>
-      </itemizedlist>
+      <listitem>
+        <para>the method must return true if the message group is complete and
+        ready for aggregation, and false otherwise.</para>
+      </listitem>
+    </itemizedlist>
 
-      <para>Spring Integration provides an out-of-the box implementation for
-      <code>CompletionStrategy</code>, the
-      <code>SequenceSizeCompletionStrategy</code> This implementation uses the
-      SEQUENCE_NUMBER and SEQUENCE_SIZE of the arriving messages for deciding
-      when a message group is complete and ready to be
-      aggregated.<code></code></para>
+    <para>Spring Integration provides an out-of-the box implementation for
+    <code>CompletionStrategy</code>, the
+    <code>SequenceSizeCompletionStrategy</code> This implementation uses the
+    SEQUENCE_NUMBER and SEQUENCE_SIZE of the arriving messages for deciding
+    when a message group is complete and ready to be
+    aggregated.<code></code></para>
   </section>
 
   <section id="aggregator-xml">
     <title>Configuring an Aggregator with XML</title>
 
-      <para>Spring Integration supports the configuration of an aggregator via
-      XML through the &lt;aggregator/&gt; element. A completely defined sample
-      on how to define such an element is presented below, as well as
-      it:</para>
+    <para>Spring Integration supports the configuration of an aggregator via
+    XML through the &lt;aggregator/&gt; element. A completely defined sample
+    on how to define such an element is presented below, as well as it:</para>
 
-      <programlisting lang="xml">&lt;channel id="inputChannel"/&gt;
+    <programlisting lang="xml">&lt;channel id="inputChannel"/&gt;
 
 &lt;aggregator id="completelyDefinedAggregator" <co id="aggxml1" />
     input-channel="inputChannel" <co id="aggxml2" />
@@ -205,95 +201,94 @@
 
 &lt;bean id="completionStrategyBean" class="sample.PojoCompletionStrategy"/&gt;</programlisting>
 
-      <calloutlist>
-        <callout arearefs="aggxml1">
-          <para>The id of the aggregator is
-          <emphasis>optional</emphasis>.</para>
-        </callout>
+    <calloutlist>
+      <callout arearefs="aggxml1">
+        <para>The id of the aggregator is
+        <emphasis>optional</emphasis>.</para>
+      </callout>
 
-        <callout arearefs="aggxml2">
-          <para>The input channel of the aggregator.
-          <emphasis>Required</emphasis>.</para>
-        </callout>
+      <callout arearefs="aggxml2">
+        <para>The input channel of the aggregator.
+        <emphasis>Required</emphasis>.</para>
+      </callout>
 
-        <callout arearefs="aggxml3">
-          <para>The channel where the aggregator will send the aggregation
-          results. <emphasis>Optional (not required, because the aggregator
-          will honor </emphasis>.</para>
-        </callout>
+      <callout arearefs="aggxml3">
+        <para>The channel where the aggregator will send the aggregation
+        results. <emphasis>Optional (because incoming messages can specify a
+        reply channel themselves)</emphasis>.</para>
+      </callout>
 
-        <callout arearefs="aggxml4">
-          <para>The channel where the aggregator will send the messages that
-          timed out (if <code>send-partial-results-on-timeout</code> is
-          <emphasis>false)</emphasis>. <emphasis>Optional</emphasis>.</para>
-        </callout>
+      <callout arearefs="aggxml4">
+        <para>The channel where the aggregator will send the messages that
+        timed out (if <code>send-partial-results-on-timeout</code> is
+        <emphasis>false)</emphasis>. <emphasis>Optional</emphasis>.</para>
+      </callout>
 
-        <callout arearefs="aggxml5">
-          <para>A reference to a bean defined in the application context. The
-          bean must either extend <code>AbstractMessageAggregator</code> or be
-          a POJO. In the latter case the <code>method</code> attribute must be
-          defined as well. <emphasis>Required</emphasis>.</para>
-        </callout>
+      <callout arearefs="aggxml5">
+        <para>A reference to a bean defined in the application context. The
+        bean must implement the aggregation logic as described above.
+        <emphasis>Required</emphasis>.</para>
+      </callout>
 
-        <callout arearefs="aggxml6">
-          <para>A method defined on the bean referenced by <code>ref</code>,
-          <emphasis><emphasis>that implements the message aggregation
-          algorithm.</emphasis> Optional, with restrictions (see
-          above).</emphasis></para>
-        </callout>
+      <callout arearefs="aggxml6">
+        <para>A method defined on the bean referenced by <code>ref</code>,
+        <emphasis><emphasis>that implements the message aggregation
+        algorithm.</emphasis> Optional, with restrictions (see
+        above).</emphasis></para>
+      </callout>
 
-        <callout arearefs="aggxml7">
-          <para>A reference to a bean that implements the decision algorithm
-          as to whether a given message group is complete. The bean can be an
-          implementation of the CompletionStrategy interface or a POJO. In the
-          latter case the completion-strategy-mTethod attribute must be
-          defined as well. <emphasis>Optional (by default, the aggregator
-          </emphasis>.</para>
-        </callout>
+      <callout arearefs="aggxml7">
+        <para>A reference to a bean that implements the decision algorithm as
+        to whether a given message group is complete. The bean can be an
+        implementation of the CompletionStrategy interface or a POJO. In the
+        latter case the completion-strategy-method attribute must be defined
+        as well. <emphasis>Optional (by default, the aggregator
+        </emphasis>.</para>
+      </callout>
 
-        <callout arearefs="aggxml8">
-          <para>A method defined on the bean referenced by
-          <code>completion-strategy</code>, <emphasis><emphasis>that
-          implements the completion decision algorithm.</emphasis> Optional,
-          with restrictions (requires <code>completion-strategy</code> to be
-          present).</emphasis></para>
-        </callout>
+      <callout arearefs="aggxml8">
+        <para>A method defined on the bean referenced by
+        <code>completion-strategy</code>, <emphasis><emphasis>that implements
+        the completion decision algorithm.</emphasis> Optional, with
+        restrictions (requires <code>completion-strategy</code> to be
+        present).</emphasis></para>
+      </callout>
 
-        <callout arearefs="aggxml9">
-          <para>The timeout for aggregating messages (counted from the arrival
-          of the first message). <emphasis>Optional</emphasis>.</para>
-        </callout>
+      <callout arearefs="aggxml9">
+        <para>The timeout for aggregating messages (counted from the arrival
+        of the first message). <emphasis>Optional</emphasis>.</para>
+      </callout>
 
-        <callout arch="" arearefs="aggxml10">
-          <para>Whether upon the expiration of the timeout, the aggregator
-          shall try to aggregate the already arrived messages.
-          <emphasis>Optional (false by default)</emphasis>.</para>
-        </callout>
+      <callout arch="" arearefs="aggxml10">
+        <para>Whether upon the expiration of the timeout, the aggregator shall
+        try to aggregate the already arrived messages. <emphasis>Optional
+        (false by default)</emphasis>.</para>
+      </callout>
 
-        <callout arearefs="aggxml11" condition="">
-          <para>The interval (in milliseconds) at which a reaper task is
-          executed, checking if there are any timed out groups.
-          <emphasis>Optional</emphasis>.</para>
-        </callout>
+      <callout arearefs="aggxml11" condition="">
+        <para>The interval (in milliseconds) at which a reaper task is
+        executed, checking if there are any timed out groups.
+        <emphasis>Optional</emphasis>.</para>
+      </callout>
 
-        <callout arearefs="aggxml12">
-          <para>The capacity of the correlation id tracker. Remembers the
-          already processed correlation ids, preventing the formation of new
-          groups for messages that arrive after their group has been already
-          processed (aggregated or discarded).
-          <emphasis>Optional</emphasis>.</para>
-        </callout>
+      <callout arearefs="aggxml12">
+        <para>The capacity of the correlation id tracker. Remembers the
+        already processed correlation ids, preventing the formation of new
+        groups for messages that arrive after their group has been already
+        processed (aggregated or discarded).
+        <emphasis>Optional</emphasis>.</para>
+      </callout>
 
-        <callout arearefs="aggxml13">
-          <para>The timeout for sending out messages.
-          <emphasis>Optional</emphasis>.</para>
-        </callout>
-      </calloutlist>
+      <callout arearefs="aggxml13">
+        <para>The timeout for sending out messages.
+        <emphasis>Optional</emphasis>.</para>
+      </callout>
+    </calloutlist>
 
-      <para>An implementation of the aggregator bean, for example, looks as
-      follows:</para>
+    <para>An implementation of the aggregator bean, for example, looks as
+    follows:</para>
 
-      <programlisting language="java">public class PojoAggregator {
+    <programlisting language="java">public class PojoAggregator {
 
   public Long add(List&lt;Long&gt; results) {
     long total = 0l;
@@ -305,10 +300,10 @@
 
 }</programlisting>
 
-      <para>An implementation of the completion strategy bean for the example
-      above may be as follows:</para>
+    <para>An implementation of the completion strategy bean for the example
+    above may be as follows:</para>
 
-      <para><programlisting language="java">public class PojoCompletionStrategy {
+    <para><programlisting language="java">public class PojoCompletionStrategy {
 ...
   public boolean checkCompleteness(List&lt;Long&gt; numbers) {
     int sum = 0;
@@ -318,11 +313,11 @@
     return sum &gt;= maxValue;
   }
 }</programlisting>Wherever it makes sense, the completion strategy method and
-      the aggregator method can be combined in a single bean.</para>
+    the aggregator method can be combined in a single bean.</para>
   </section>
 
   <section id="aggregator-annotations">
-    <title>Configuration an Aggregator with Annotations</title>
+    <title>Configuring an Aggregator with Annotations</title>
 
     <para>An aggregator configured using annotations can look like
     this.</para>
@@ -353,7 +348,7 @@
         <para id="aggann2">An annotation indicating that this method shall be
         used as the completion strategy of an aggregator. If not present of
         the method, the aggregator will use the
-        SequenceSizeCompletionStrategy. </para>
+        SequenceSizeCompletionStrategy.</para>
 
         <para></para>
       </callout>
