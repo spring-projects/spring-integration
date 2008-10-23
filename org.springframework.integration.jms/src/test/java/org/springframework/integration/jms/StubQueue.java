@@ -20,7 +20,6 @@ import javax.jms.Queue;
 
 public class StubQueue implements Queue{
 
-	@Override
 	public String getQueueName() throws JMSException {
 		// TODO Auto-generated method stub
 		return null;

@@ -20,7 +20,6 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.endpoint.PollingConsumerEndpoint;
 import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.integration.jms.StubMessageConverter;
@@ -32,7 +31,6 @@ public class JmsOutboundGatewayParserTests {
 	public void testDefault(){
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsOutboundGatewayWithConverter.xml", this.getClass());
-		QueueChannel channel = new QueueChannel(1);
 		PollingConsumerEndpoint  endpoint = (PollingConsumerEndpoint) context.getBean("jmsGateway");
 
 		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
