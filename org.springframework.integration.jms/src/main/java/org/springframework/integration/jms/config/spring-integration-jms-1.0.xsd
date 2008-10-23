@@ -76,6 +76,7 @@
 			<xsd:attribute name="reply-timeout" type="xsd:long"/>
 			<xsd:attribute name="jms-queue" type="xsd:string" use="required"/>
 			<xsd:attribute name="connection-factory" type="xsd:string" default="connectionFactory"/>
+			<xsd:attribute name="message-converter" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
 

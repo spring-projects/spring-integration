@@ -23,6 +23,7 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jms.JmsOutboundGateway;
+import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;outbound-gateway&gt; element of the integration 'jms' namespace.
@@ -42,6 +43,7 @@ public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		builder.addPropertyReference("connectionFactory", element.getAttribute("connection-factory"));
 		builder.addPropertyReference("jmsQueue", element.getAttribute("jms-queue"));
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
 		return builder;
 	}
 

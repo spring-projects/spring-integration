@@ -46,7 +46,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageConsumer im
 
 	private volatile Queue jmsQueue;
 
-	private volatile MessageConverter messageConverter;
+	private volatile MessageConverter messageConverter = new HeaderMappingMessageConverter(new SimpleMessageConverter());
 
 	private final JmsTemplate jmsTemplate = new JmsTemplate();
 
@@ -63,10 +63,14 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageConsumer im
 		this.setOutputChannel(replyChannel);
 	}
 
+	public void setMessageConverter(MessageConverter messageConverter) {
+		Assert.notNull(messageConverter, "'messageConverter' must not be null");
+		this.messageConverter = messageConverter;
+	}
+	
 	public void afterPropertiesSet() {
 		this.jmsTemplate.afterPropertiesSet();
 		Assert.notNull(this.jmsQueue, "jmsQueue must not be null");
-		this.messageConverter = new HeaderMappingMessageConverter(new SimpleMessageConverter());
 	}
 
 	@Override
