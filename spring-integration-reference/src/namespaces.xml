@@ -18,7 +18,7 @@
       <ulink url="http://www.eaipatterns.com">Enterprise Integration Patterns</ulink>.
   </para>
   <para>
-      To enable Spring Integration's namespace support within your Spring configuration files, add the following
+      To enable Spring Integration's core namespace support within your Spring configuration files, add the following
       namespace reference and schema mapping in your top-level 'beans' element:
       <programlisting language="xml"><![CDATA[<beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -49,6 +49,39 @@
       use the latter approach in the integration-focused configuration files, since generic beans are seldom necessary
       within those same files. For purposes of this documentation, we will assume the "integration" namespace is
       primary.
+  </para>
+  <para>
+    Many other namespaces are provided within the Spring Integration distribution. In fact, each adapter type (JMS,
+    File, etc.) that provides namespace support defines its elements within a separate schema. In order to use these
+    elements, simply add the necessary namespaces with an "xmlns" entry and the corresponding "schemaLocation" mapping.
+    For example, the following root element shows several of these namespace declarations:
+    <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:integration="http://www.springframework.org/schema/integration"
+    xmlns:file="http://www.springframework.org/schema/integration/file"
+    xmlns:jms="http://www.springframework.org/schema/integration/jms"
+    xmlns:mail="http://www.springframework.org/schema/integration/mail"
+    xmlns:rmi="http://www.springframework.org/schema/integration/rmi"
+    xmlns:ws="http://www.springframework.org/schema/integration/ws"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+            http://www.springframework.org/schema/integration
+            http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
+            http://www.springframework.org/schema/integration/file
+            http://www.springframework.org/schema/integration/file/spring-integration-file-1.0.xsd
+            http://www.springframework.org/schema/integration/jms
+            http://www.springframework.org/schema/integration/jms/spring-integration-jms-1.0.xsd
+            http://www.springframework.org/schema/integration/mail
+            http://www.springframework.org/schema/integration/mail/spring-integration-mail-1.0.xsd
+            http://www.springframework.org/schema/integration/rmi
+            http://www.springframework.org/schema/integration/rmi/spring-integration-rmi-1.0.xsd
+            http://www.springframework.org/schema/integration/ws
+            http://www.springframework.org/schema/integration/ws/spring-integration-ws-1.0.xsd">
+ ...
+</beans>]]></programlisting>
+    The reference manual provides specific examples of the various elements in their corresponding chapters. Here, the
+    main thing to recognize is the consistency of the naming for each namespace URI and schema location.
   </para>
 
   <section id="namespace-endpoint">
@@ -227,15 +260,11 @@
 
 <file-source id="fileSource" directory="/tmp/in"/>
 ]]></programlisting>
-        Likewise, here is an example of a JMS target that is registered within a 'channel-adapter' and whose Messages
-        will be received from the "exampleChannel" that is polled every 500 milliseconds.
-        <programlisting language="xml"><![CDATA[<channel-adapter channel="exampleChannel" target="jmsTarget">
-    <poller period="500"/>
-</channel-adapter>
+    </para>
 
-<jms-target id="jmsTarget" destination="targetDestination"/>
-]]></programlisting>
-      </para>
+
+
+
       <para>
         Any Channel Adapter can be created without a "channel" reference in which case it will implicitly create an
         instance of <classname>DirectChannel</classname>. The created channel's name will match the "id" attribute
@@ -243,40 +272,39 @@
       </para>
     </section>
 
-  <section id="namespace-annotationdriven">
-      <title>Enabling Annotation-Driven Configuration</title>
-      <para>
-        The next section will describe Spring Integration's support for annotation-driven configuration. To enable
-        those features, add this single element to the XML-based configuration:
-        <programlisting language="xml">&lt;annotation-driven/&gt;</programlisting>
-      </para>
-    </section>
+
+
 
 
   <section id="annotations">
     <title>Annotations</title>
     <para>
       In addition to the XML namespace support for configuring Message Endpoints, it is also possible to use
-      annotations. The class-level <interfacename>@MessageEndpoint</interfacename> annotation indicates that the
-      annotated class is capable of being registered as an endpoint, and the method-level
-      <interfacename>@Handler</interfacename> annotation indicates that the annotated method is capable of handling
-      a message.
-      <programlisting language="java">@MessageEndpoint(input="fooChannel")
+      annotations. First, Spring Integration provides the class-level <interfacename>@MessageEndpoint</interfacename>
+      as a <emphasis>stereotype</emphasis> annotation meaning that is itself annotated with Spring's @Component
+      annotation and therefore is recognized automatically as a bean definition when using Spring component-scanning.
+    </para>
+    <para>
+      Even more importantly are the various Method-level annotations that indicate the annotated method is capable of
+      handling a message. The following example demonstrates both:
+      <programlisting language="java">@MessageEndpoint
 public class FooService {
 
-    @Handler
+    @ServiceActivator
     public void processMessage(Message message) {
         ...
     }
 }</programlisting>
     </para>
     <para>
-      The @MessageEndpoint is not required. If you want to configure a POJO reference from the "ref" attribute
-      of a &lt;service-activator/&gt; element, it is sufficient to provide the @Handler method annotation. As long
-      as the "annotation-driven" support is enabled, a Spring-managed object with that method annotation (or the
-      others which are described below) will be post-processed such that it can be used as a reference from an
-      XML-configured endpoint.
+      Exactly what it means for the method to "handle" the Message depends on the particular annotation. The following
+      are available with Spring Integration, and the behavior of each is described in its own chapter or section within
+      this reference: @Transformer, @Router, @Splitter, @Aggregator, @ServiceActivator, and @ChannelAdapter.
     </para>
+    <note>
+      The @MessageEndpoint is not required. If you want to configure a POJO reference from the "ref" attribute
+      of a &lt;service-activator/&gt; element, it is sufficient to provide the method-level annotations.
+    </note>
     <para>
       In most cases, the annotated handler method should not require the <classname>Message</classname> type as its
       parameter. Instead, the method parameter type can match the message's payload type.
@@ -291,85 +319,34 @@ public class FooService {
     </para>
     <para>
       When the method parameter should be mapped from a value in the <classname>MessageHeader</classname>, another
-      option is to use the parameter-level <interfacename>@Header</interfacename> annotation.
-      <programlisting language="java">@MessageEndpoint(input="fooChannel")
-public class FooService {
-
-    @Handler
-    public void bar(<emphasis>@Header("foo") Foo foo</emphasis>) {
-        ...
-    }
-
-}</programlisting>
-    </para>
-    <para>
-      As described in the previous section, when the handler method returns a non-null value, the endpoint will
-      attempt to send a reply. This is consistent across both configuration options (namespace and annotations) in that
-      the the endpoint's output channel will be used if available, and the message header's RETURN_ADDRESS value will be 
-      the fallback. To configure the output channel for an annotation-driven endpoint, provide the 'output'
-      attribute on the <interfacename>@MessageEndpoint</interfacename>.
-      <programlisting language="java">@MessageEndpoint(input="exampleChannel", output="replyChannel")</programlisting>
-    </para>
-    <para>
-      Just as the 'poller' sub-element and its 'period' attribute can be provided for a namespace-based
-      endpoint, the <interfacename>@Poller</interfacename> annotation can be provided with the
-      <interfacename>@MessageEndpoint</interfacename> annotation.
-      <programlisting language="java">@MessageEndpoint(input="exampleChannel")
-@Poller(period=3000)
-public class FooService {
-    ...
-}</programlisting>
-      Likewise, <interfacename>@Concurrency</interfacename> provides an annotation-based equivalent of the
-      &lt;pool-executor/&gt; element:
-      <programlisting language="java">@MessageEndpoint(input="fooChannel")
-@Concurrency(coreSize=5, maxSize=20)
-public class FooService {
-
-    @Handler
-    public void bar(Foo foo) {
-        ...
-    }
-
-}</programlisting>
-    </para>
-    <para>
-      Several additional annotations are supported, and three of these act as a special form of handler method:
-      <interfacename>@Router</interfacename>, <interfacename>@Splitter</interfacename> and
-      <interfacename>@Aggregator</interfacename>. As with the <interfacename>@Handler</interfacename> annotation,
-      methods annotated with these annotations can either accept the <classname>Message</classname> itself, the
+      option is to use the parameter-level <interfacename>@Header</interfacename> annotation. In general, methods
+      annotated with the Spring Integration annotations can either accept the <classname>Message</classname> itself, the
       message payload, or a header value (with @Header) as the parameter. In fact, the method can accept a combination,
       such as:
-      <programlisting language="java">someMethod(String payload, @Header("x") int valueX, @Header("y") int valueY);</programlisting>
-    </para>
-    <para>
-      The <interfacename>@Aggregator</interfacename> annotation may be used on a method that accepts a collection
-      of Messages or Message payload types and whose return value is a single Message or single Object that will
-      be used as the payload of a Message.
-      <programlisting language="java"><![CDATA[@Aggregator
-public Message<?> aggregateMessages(List<Message<?>> messages) { ... }
+      <programlisting language="java">public class FooService {
 
-@Aggregator
-public Order aggregateOrder(List<LineItem> items) { ... }]]></programlisting>
-    </para>
-    <para>
-      Finally, the <interfacename>@Publisher</interfacename> is an annotation that triggers the creation of a Spring
-      AOP Proxy such that the return value, exception, or method invcation arguments can be sent to a Message Channel.
-      For example, each time the following method is invoked, its return value will be sent to the "fooChannel":
-      <programlisting language="java"><![CDATA[@Publisher(channel="fooChannel")
-public String foo() {
-    return "bar";
-}]]></programlisting>
-      The return value is published by default, but you can also configure the payload type:
-      <programlisting>@Publisher(channel="testChannel", payloadType=MessagePublishingInterceptor.PayloadType.ARGUMENTS)
-public void publishArguments(String s, Integer n) {
-    ...
-}
+    @ServiceActivator
+    public void bar(String payload, @Header("x") int valueX, @Header("y") int valueY) {
+        ...
+    }
 
-@Publisher(channel="testChannel", payloadType=MessagePublishingInterceptor.PayloadType.EXCEPTION)
-public void publishException() {
-    throw new RuntimeException("oops!");
+}</programlisting>
+      There is also a @Headers annotation that provides all of the Message headers as a Map:
+      <programlisting language="java">public class FooService {
+
+    @ServiceActivator
+    public void bar(String payload, @Headers Map&lt;String, Object&gt; headerMap) {
+        ...
+    }
+
 }</programlisting>
     </para>
+    <para>
+      For several of these annotations, when a Message-handling method returns a non-null value, the endpoint will
+      attempt to send a reply. This is consistent across both configuration options (namespace and annotations) in that
+      the such an endpoint's output channel will be used if available, and the message header's REPLY_CHANNEL value
+      will be the fallback.
+	</para>
   </section>
 
 </appendix>
