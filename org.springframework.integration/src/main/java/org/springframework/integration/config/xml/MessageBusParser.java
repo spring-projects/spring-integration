@@ -105,7 +105,7 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 			builder.addPropertyReference("taskScheduler", taskSchedulerRef);
 		}
 		else {
-			taskExecutor = this.createTaskExecutor(100, "message-bus-");
+			taskExecutor = this.createTaskExecutor(2, 100, 0, "message-bus-");
 			BeanDefinitionBuilder schedulerBuilder = BeanDefinitionBuilder.genericBeanDefinition(SimpleTaskScheduler.class);
 			schedulerBuilder.addConstructorArgValue(taskExecutor);
 			BeanDefinitionBuilder errorHandlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(MessagePublishingErrorHandler.class);
@@ -120,7 +120,7 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 		}
 		if ("true".equals(element.getAttribute(ASYNC_EVENT_MULTICASTER_ATTRIBUTE).toLowerCase())) {
 			if (taskExecutor == null) {
-				taskExecutor = this.createTaskExecutor(10, "event-multicaster-");
+				taskExecutor = this.createTaskExecutor(1, 10, 0, "event-multicaster-");
 			}
 			BeanDefinitionBuilder eventMulticasterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 					SimpleApplicationEventMulticaster.class);
@@ -133,9 +133,11 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 		this.addPostProcessors(element, parserContext);
 	}
 
-	private TaskExecutor createTaskExecutor(int corePoolSize, String threadPrefix) {
+	private TaskExecutor createTaskExecutor(int coreSize, int maxSize, int queueCapacity, String threadPrefix) {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		executor.setCorePoolSize(corePoolSize);
+		executor.setCorePoolSize(coreSize);
+		executor.setMaxPoolSize(maxSize);
+		executor.setQueueCapacity(queueCapacity);
 		if (StringUtils.hasText(threadPrefix)) {
 			executor.setThreadFactory(new CustomizableThreadFactory(threadPrefix));
 		}
