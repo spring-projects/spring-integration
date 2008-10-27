@@ -128,4 +128,64 @@ endpoint.setTransactionManager(txManager);</programlisting>
     </para>
   </section>
 
+  <section id="endpoint-namespace">
+    <title>Namespace Support</title>
+    <para>
+      Throughout the reference manual, you will see specific configuration examples for endpoint elements, such as
+      router, transformer, service-activator, and so on. Most of these will support an "input-channel" attribute and
+      many will support an "output-channel" attribute. After being parsed, these endpoint elements produce an instance
+      of either the <classname>PollingConsumerEndpoint</classname> or the
+      <classname>SubscribingConsumerEndpoint</classname> depending on the type of the "input-channel" that is
+      referenced: <interfacename>PollableChannel</interfacename> or <interfacename>SubscribableChannel</interfacename>
+      respectively. When the channel is pollable, then the polling behavior is determined based on the endpoint
+      element's "poller" sub-element. For example, a simple interval-based poller with a 1-second interval would be
+      configured like this: <programlisting language="xml"><![CDATA[<poller>
+    <interval-trigger interval="1000"/>
+</poller>]]></programlisting>
+      For a poller based on a Cron expression, use the "cron-trigger" child element instead:
+      <programlisting language="xml"><![CDATA[<poller>
+    <cron-trigger expression="*/10 * * * * MON-FRI"/>
+</poller>]]></programlisting>
+    </para>
+    <para>
+      Spring Integration also provides transaction support for the pollers so that each receive-and-forward
+      operation can be performed as an atomic unit-of-work. To configure transactions for a poller, simply add the
+      &lt;transactional/&gt; sub-element. The attributes for this element should be familiar to anyone who has
+      experience with Spring's Transaction management:
+      <programlisting language="xml"><![CDATA[<poller>
+    <interval-trigger interval="1000"/>
+    <transactional transaction-manager="txManager"
+                   propagation="REQUIRES_NEW"
+                   isolation="REPEATABLE_READ"
+                   timeout="10000"
+                   read-only="false"/>
+</poller>]]></programlisting> 
+    </para>
+    <para>
+      The polling threads may be executed by any instance of Spring's <interfacename>TaskExceutor</interfacename>
+      abstraction. This enables concurrency for an endpoint or group of endpoints. As a convenience, there is also
+      namespace support for creating a simple thread pool executor. The &lt;thread-pool-task-executor/&gt; element
+      defines attributes for common concurrency settings such as core-size, max-size, and queue-capacity. Configuring
+      a thread-pooling executor can make a substantial difference in how the endpoint performs under load. These
+      settings are available per-endpoint since the performance of an endpoint is one of the major factors to consider
+      (the other major factor being the expected volume on the channel to which the endpoint subscribes). To enable
+      concurrency for a polling endpoint that is configured with the XML namespace support, provide the 'task-executor'
+      reference on its &lt;poller/&gt; element and then provide one or more of the properties shown below:
+      <programlisting language="xml"><![CDATA[<poller task-executor="pool"/>
+    <interval-trigger interval="5" time-unit="SECONDS"/>
+    <thread-pool-task-executor id="pool"
+                               core-size="5"
+                               max-size="25"
+                               queue-capacity="20"
+                               keep-alive-seconds="120"/>
+</poller>]]></programlisting>
+      If no 'task-executor' is provided, the endpoint's consumer will be invoked in the caller's thread. Note that the
+      "caller" is usually the MessageBus' task scheduler. Also, keep in mind that the 'task-executor' attribute can
+      provide a reference to any implementation of Spring's <interfacename>TaskExecutor</interfacename> interface by
+      specifying the bean name. The thread pool elements is simply provided for convenience.
+    </para>
+    <para>
+      The poller accepts a few other configuration attributes...
+    </para>
+  </section>
 </chapter>
