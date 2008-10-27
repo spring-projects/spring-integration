@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
-<chapter id="samples">
+<appendix id="samples">
   <title>Spring Integration Samples</title>
 
   <section id="samples-cafe">
@@ -21,76 +21,89 @@
       </mediaobject>
     </para>
     <para>
-      The <classname>DrinkOrder</classname> object may contain multiple <classname>Drinks</classname>. Once the order
+      The <classname>Order</classname> object may contain multiple <classname>OrderItems</classname>. Once the order
       is placed, a <emphasis>Splitter</emphasis> will break the composite order message into a single message per
       drink. Each of these is then processed by a <emphasis>Router</emphasis> that determines whether the drink is hot
-      or cold (checking the <classname>Drink</classname> object's 'isIced' property). Finally the
+      or cold (checking the <classname>OrderItem</classname> object's 'isIced' property). Finally the
       <classname>Barista</classname> prepares each drink, but hot and cold drink preparation are handled by two
-      distinct methods: 'prepareHotDrink' and 'prepareColdDrink'.
+      distinct methods: 'prepareHotDrink' and 'prepareColdDrink'. The prepared drinks are then sent to the Waiter where
+      they are aggregated into a <classname>Delivery</classname> object.
     </para>
     <para>
       Here is the XML configuration:
-      <programlisting language="xml"><![CDATA[<beans:beans xmlns="http://www.springframework.org/schema/integration"
+      <programlisting language="xml"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/integration"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:beans="http://www.springframework.org/schema/beans"
-    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:stream="http://www.springframework.org/schema/integration/stream"
     xsi:schemaLocation="http://www.springframework.org/schema/beans
             http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
             http://www.springframework.org/schema/integration
             http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
-            http://www.springframework.org/schema/context
-            http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+            http://www.springframework.org/schema/integration/stream
+            http://www.springframework.org/schema/integration/stream/spring-integration-stream-1.0.xsd">
 
     <message-bus/>
-    <annotation-driven/>
 
-    <context:component-scan base-package="org.springframework.integration.samples.cafe"/>
+    <gateway id="cafe" service-interface="org.springframework.integration.samples.cafe.Cafe"/>
 
     <channel id="orders"/>
+    <splitter input-channel="orders" ref="orderSplitter" method="split" output-channel="drinks"/>
+
     <channel id="drinks"/>
-    <channel id="coldDrinks"/>
-    <channel id="hotDrinks"/>
+    <router input-channel="drinks" ref="drinkRouter" method="resolveOrderItemChannel"/>
 
-    <service-activator input-channel="coldDrinks" ref="barista" method="prepareColdDrink"/>
+    <channel id="coldDrinks">
+        <queue capacity="10"/>
+    </channel>
+    <service-activator input-channel="coldDrinks" ref="barista" method="prepareColdDrink" output-channel="preparedDrinks"/>
 
-    <service-activator input-channel="hotDrinks" ref="barista" method="prepareHotDrink"/>
+    <channel id="hotDrinks">
+        <queue capacity="10"/>
+    </channel>
+    <service-activator input-channel="hotDrinks" ref="barista" method="prepareHotDrink" output-channel="preparedDrinks"/>
 
-    <beans:bean id="cafe" class="org.springframework.integration.samples.cafe.Cafe">
-        <beans:property name="orderChannel" ref="orders"/>
-    </beans:bean>
+    <channel id="preparedDrinks"/>
+    <aggregator input-channel="preparedDrinks" ref="waiter" method="prepareDelivery" output-channel="deliveries"/>
+
+    <stream:stdout-channel-adapter id="deliveries"/>
+
+    <beans:bean id="orderSplitter" class="org.springframework.integration.samples.cafe.xml.OrderSplitter"/>
+
+    <beans:bean id="drinkRouter" class="org.springframework.integration.samples.cafe.xml.DrinkRouter"/>
+
+    <beans:bean id="barista" class="org.springframework.integration.samples.cafe.xml.Barista"/>
+
+    <beans:bean id="waiter" class="org.springframework.integration.samples.cafe.xml.Waiter"/>
 
 </beans:beans>]]></programlisting>
-      Notice that the Message Bus is defined. It will automatically detect and register all channels and endpoints.
-      The 'annotation-driven' element will enable the detection of the splitter and router - both of which carry
-      the <interfacename>@MessageEndpoint</interfacename> annotation. That annotation extends Spring's
-      "stereotype" annotations (by relying on the @Component meta-annotation), and so all classes carrying the
-      endpoint annotation are capable of being detected by the component-scanner.
-      <programlisting language="java"><![CDATA[@MessageEndpoint(input="orders", output="drinks")
-public class OrderSplitter {
+      Notice that the Message Bus is defined. It will automatically detect and register all channels and endpoints,
+      and it will manage the Lifecycle for each endpoint. Notice that the objects are simple POJOs with strongly
+      typed method arguments. For example, here is the Splitter.
+      <programlisting language="java"><![CDATA[public class OrderSplitter {
 
-    @Splitter
-    public List<Drink> split(DrinkOrder order) {
-        return order.getDrinks();
+    public List<OrderItem> split(Order order) {
+        return order.getItems();
     }
 }]]></programlisting>
-      <programlisting language="java"><![CDATA[@MessageEndpoint(input="drinks")
-public class DrinkRouter {
+    In the case of the Router, the return value does not have to be a <interfacename>MessageChannel</interfacename>
+    instance (although it can be). As you see in this example, a String-value representing the channel name is
+    returned instead.
+    <programlisting language="java"><![CDATA[public class DrinkRouter {
 
-    @Router
-    public String resolveDrinkChannel(Drink drink) {
-        return (drink.isIced()) ? "coldDrinks" : "hotDrinks";
+    public String resolveOrderItemChannel(OrderItem orderItem) {
+        return (orderItem.isIced()) ? "coldDrinks" : "hotDrinks";
     }
 }]]></programlisting>
     </para>
     <para>
       Now turning back to the XML, you see that there are two &lt;service-activator&gt; elements. Each of these
-      is delegating to the same <classname>Barista</classname> instance but different methods. The 'barista' could
-      have been defined in the XML, but instead the <interfacename>@Component</interfacename> annotation is applied:
-      <programlisting language="java"><![CDATA[@Component
-public class Barista {
+      is delegating to the same <classname>Barista</classname> instance but different methods: 'prepareHotDrink'
+      or 'prepareColdDrink' corresponding to the two channels where order items have been routed.
+      <programlisting language="java"><![CDATA[public class Barista {
 
     private long hotDrinkDelay = 5000;
-    private long coldDrinkDelay = 1000; 
+    private long coldDrinkDelay = 1000;
 
     private AtomicInteger hotDrinkCounter = new AtomicInteger();
     private AtomicInteger coldDrinkCounter = new AtomicInteger();
@@ -103,48 +116,66 @@ public class Barista {
         this.coldDrinkDelay = coldDrinkDelay;
     }
 
-    public void prepareHotDrink(Drink drink) {
+    public Drink prepareHotDrink(OrderItem orderItem) {
         try {
             Thread.sleep(this.hotDrinkDelay);
             System.out.println(Thread.currentThread().getName()
-                + " prepared hot drink #" + hotDrinkCounter.incrementAndGet() + ": " + drink);
-        } catch (InterruptedException e) {
+                    + " prepared hot drink #" + hotDrinkCounter.incrementAndGet() + " for order #"
+                    + orderItem.getOrder().getNumber() + ": " + orderItem);
+            return new Drink(orderItem.getOrder().getNumber(), orderItem.getDrinkType(), orderItem.isIced(),
+                    orderItem.getShots());
+        }
+        catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            return null;
         }
     }
 
-    public void prepareColdDrink(Drink drink) {
+    public Drink prepareColdDrink(OrderItem orderItem) {
         try {
             Thread.sleep(this.coldDrinkDelay);
             System.out.println(Thread.currentThread().getName()
-                + " prepared cold drink #" + coldDrinkCounter.incrementAndGet() + ": " + drink);
-        } catch (InterruptedException e) {
+                    + " prepared cold drink #" + coldDrinkCounter.incrementAndGet() + " for order #"
+                    + orderItem.getOrder().getNumber() + ": " + orderItem);
+            return new Drink(orderItem.getOrder().getNumber(), orderItem.getDrinkType(), orderItem.isIced(),
+                    orderItem.getShots());
+        }
+        catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            return null;
         }
     }
+
 }]]></programlisting>
     </para>
     <para>
-      As you can see from the code excerpt above, the barista methods have different delays (the hot
-      drinks take 5 times as long to prepare). This simulates work being completed at different rates.
-      When the <classname>CafeDemo</classname> 'main' method runs, it will loop 100
-      times sending a single hot drink and a single cold drink each time.
+      As you can see from the code excerpt above, the barista methods have different delays (the hot drinks take 5
+      times as long to prepare). This simulates work being completed at different rates. When the
+      <classname>CafeDemo</classname> 'main' method runs, it will loop 100 times sending a single hot drink and a
+      single cold drink each time. It actually sends the messages by invoking the 'placeOrder' method on the Cafe
+      interface. Above, you will see that the &lt;gateway&gt; element is specified in the configuration file. This
+      triggers the creation of a proxy that implements the given 'service-interface' and connects it to a channel.
+      The channel name is provided on the @Gateway annotation of the <interfacename>Cafe</interfacename> interface.
+      <programlisting language="java">public interface Cafe {
+
+    @Gateway(requestChannel="orders")
+    void placeOrder(Order order);
+
+}</programlisting>
+      Finally, have a look at the <methodname>main()</methodname> method of the <classname>CafeDemo</classname> itself.
       <programlisting language="java"><![CDATA[public static void main(String[] args) {
     AbstractApplicationContext context = null;
-    if(args.length > 0) {
+    if (args.length > 0) {
         context = new FileSystemXmlApplicationContext(args);
     }
     else {
         context = new ClassPathXmlApplicationContext("cafeDemo.xml", CafeDemo.class);
     }
-    context.start();
     Cafe cafe = (Cafe) context.getBean("cafe");
-    DrinkOrder order = new DrinkOrder();
-    Drink hotDoubleLatte = new Drink(DrinkType.LATTE, 2, false);
-    Drink icedTripleMocha = new Drink(DrinkType.MOCHA, 3, true);
-    order.addDrink(hotDoubleLatte);
-    order.addDrink(icedTripleMocha);
-    for (int i = 0; i < 100; i++) {
+    for (int i = 1; i <= 100; i++) {
+        Order order = new Order(i);
+        order.addItem(DrinkType.LATTE, 2, false);
+        order.addItem(DrinkType.MOCHA, 3, true);
         cafe.placeOrder(order);
     }
 }]]></programlisting>
@@ -160,25 +191,38 @@ public class Barista {
       original file so that you can make as many changes as you want and still refer back to the original to compare.
     </para>
     <para>
-      When you run cafeDemo, you will see that all 100 cold drinks are prepared in roughly the same amount of time as
-      only 20 of the hot drinks. This is to be expected based on their respective delays of 1000 and 5000 milliseconds.
-      However, by configuring a poller with a concurrent task executor, you can dramatically change the results. For
-      example, you could use a thread pool executor with 5 workers for the hot drink barista:
-      <programlisting language="xml"><![CDATA[<service-activator input-channel="coldDrinks" ref="barista" method="prepareColdDrink"/>
+      When you run cafeDemo, you will see that the cold drinks are initially prepared more quickly than the hot drinks.
+      Because there is an aggregator, the cold drinks are effectively limited by the rate of the hot drink preparation.
+      This is to be expected based on their respective delays of 1000 and 5000 milliseconds. However, by configuring a
+      poller with a concurrent task executor, you can dramatically change the results. For example, you could use a
+      thread pool executor with 5 workers for the hot drink barista while keeping the cold drink barista as it is:
+      <programlisting language="xml"><![CDATA[<service-activator input-channel="hotDrinks"
+                   ref="barista"
+                   method="prepareHotDrink"
+                   output-channel="preparedDrinks"/>
 
-<service-activator input-channel="hotDrinks" ref="barista" method="prepareHotDrink">
-    ]]><emphasis><![CDATA[<poller period="1000" task-executor="pool"/>]]></emphasis><![CDATA[
+<service-activator input-channel="hotDrinks"
+                   ref="barista"
+                   method="prepareHotDrink"
+                   output-channel="preparedDrinks">
+    ]]><emphasis><![CDATA[<poller task-executor="pool">
+        <interval-trigger interval="1000"/>
+    </poller>]]></emphasis><![CDATA[
 </service-activator>
 
-]]><emphasis><![CDATA[<pool-executor id="pool" core-size="5"/>]]></emphasis></programlisting>
+]]><emphasis><![CDATA[<thread-pool-task-executor id="pool" core-size="5"/>]]></emphasis></programlisting>
     </para>
     <para>
-      Also, notice that the worker thread name is displayed with each invocation. You should see that most of
-      the hot drinks are prepared by the task-executor threads, but that occasionally it throttles the input by
-      forcing the message-bus (the caller) to invoke the operation. In addition to experimenting with the 'concurrency'
-      settings, you can also add the 'transactional' sub-element as described in <xref linkend="namespace-endpoint"/>.
-      If you want to explore the sample in more detail, the source JAR is available in the "src" directory:
-      'org.springframework.integration.samples-sources-1.0.0.M6.jar'.
+      Also, notice that the worker thread name is displayed with each invocation. You will see that the hot drinks are
+      prepared by the task-executor threads. If you provide a much shorter poller interval (such as 100 milliseconds),
+      then you will notice that occasionally it throttles the input by forcing the message-bus (the caller) to invoke
+      the operation.
+    </para>
+    <para>
+      In addition to experimenting with the poller's concurrency settings, you can also add the 'transactional'
+      sub-element as described in <xref linkend="namespace-endpoint"/>. If you want to explore the sample in more
+      detail, the source JAR is available in the "src" directory:
+      'org.springframework.integration.samples-sources-1.0.0.RC1.jar'.
     </para>
   </section>
-</chapter>
+</appendix>
