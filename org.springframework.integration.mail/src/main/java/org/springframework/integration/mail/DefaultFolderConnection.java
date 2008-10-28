@@ -81,7 +81,9 @@ public class DefaultFolderConnection implements Lifecycle, DisposableBean, Folde
 
 	public synchronized Message[] receive() {
 		try {
-			this.openFolder();
+			if (!this.isRunning()) {
+				this.start();
+			}
 			if (!this.polling) {
 				((AsyncMonitoringStrategy) this.monitoringStrategy).waitForNewMessages(this.folder);
 			}
