@@ -24,6 +24,7 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="channel" type="xsd:string"/>
 			<xsd:attribute name="mail-sender" type="xsd:string"/>
 			<xsd:attribute name="host" type="xsd:string"/>
 			<xsd:attribute name="port" type="xsd:string"/>
