@@ -33,9 +33,6 @@ import org.springframework.util.StringUtils;
  */
 public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 
-	private ResultFactoryResultTypeHelper resultFactoryHelper = new ResultFactoryResultTypeHelper();
-
-
 	@Override
 	protected Class<? extends Transformer> getTransformerClass() {
 		return XsltPayloadTransformer.class;
@@ -56,8 +53,7 @@ public class XsltPayloadTransformerParser extends AbstractTransformerParser {
 		else if (StringUtils.hasText(xslTemplates)) {
 			builder.addConstructorArgReference(xslTemplates);
 		}
-		resultFactoryHelper.assertResultFactoryAndTypeValid(resultFactory, resultType);
-		resultFactoryHelper.addResultFactory(builder, resultType, resultFactory);
+		XmlNamespaceUtils.configureResultFactory(builder, resultType, resultFactory);
 		if (StringUtils.hasText(resultTransformer)) {
 			builder.addConstructorArgReference(resultTransformer);
 		}

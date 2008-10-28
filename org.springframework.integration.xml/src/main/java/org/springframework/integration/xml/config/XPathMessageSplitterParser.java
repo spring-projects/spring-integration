@@ -16,6 +16,9 @@
 
 package org.springframework.integration.xml.config;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -23,17 +26,15 @@ import org.springframework.integration.config.xml.AbstractConsumerEndpointParser
 import org.springframework.integration.xml.splitter.XPathMessageSplitter;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 /**
  * @author Jonas Partner
  */
 public class XPathMessageSplitterParser extends AbstractConsumerEndpointParser {
 
+	private final XPathExpressionParser xpathParser = new XPathExpressionParser();
 
-	private XPathExpressionParser xpathParser = new XPathExpressionParser();
-	
+
 	@Override
 	protected boolean shouldGenerateId() {
 		return false;
@@ -44,30 +45,23 @@ public class XPathMessageSplitterParser extends AbstractConsumerEndpointParser {
 		return true;
 	}
 
-
 	@Override
 	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(XPathMessageSplitter.class);
 		String xPathExpressionRef = element.getAttribute("xpath-expression-ref");
-
 		NodeList xPathExpressionNodes = element.getElementsByTagNameNS(element.getNamespaceURI(), "xpath-expression");
-		Assert.isTrue(xPathExpressionNodes.getLength() < 2, "Only one xpath-expression child can be specified");
-		boolean xPathExpressionChildPresent = xPathExpressionNodes.getLength() == 1;
-		boolean xPathReferencePresent = StringUtils.hasText(xPathExpressionRef);
-
-		boolean exactlyOneSpecified = !(xPathExpressionChildPresent && xPathReferencePresent) && (!xPathExpressionChildPresent ^ !xPathReferencePresent);
-		
-		Assert.isTrue( exactlyOneSpecified,"Exactly one of 'xpath-expression' or 'xpath-expression-ref' is required.");
-
-		if (xPathExpressionChildPresent) {
-			BeanDefinition beanDefinition = xpathParser.parse((Element) xPathExpressionNodes.item(0), parserContext);
+		Assert.isTrue(xPathExpressionNodes.getLength() <= 1, "only one xpath-expression child can be specified");
+		boolean hasChild = xPathExpressionNodes.getLength() == 1;
+		boolean hasReference = StringUtils.hasText(xPathExpressionRef);
+		Assert.isTrue(hasChild ^ hasReference, "Exactly one of 'xpath-expression' or 'xpath-expression-ref' is required.");
+		if (hasChild) {
+			BeanDefinition beanDefinition = this.xpathParser.parse((Element) xPathExpressionNodes.item(0), parserContext);
 			builder.addConstructorArgValue(beanDefinition);
-		} else { 
+		}
+		else {
 			builder.addConstructorArgReference(xPathExpressionRef);
 		}
 		return builder;
 	}
-
-	
 
 }

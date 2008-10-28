@@ -32,9 +32,6 @@ import org.springframework.util.StringUtils;
  */
 public class XmlMarshallingTransformerParser extends AbstractTransformerParser {
 
-	private ResultFactoryResultTypeHelper resultFactoryHelper = new ResultFactoryResultTypeHelper();
-
-
 	@Override
 	protected Class<? extends Transformer> getTransformerClass() {
 		return XmlPayloadMarshallingTransformer.class;
@@ -51,8 +48,7 @@ public class XmlMarshallingTransformerParser extends AbstractTransformerParser {
 		if (StringUtils.hasText(resultTransformer)) {
 			builder.addConstructorArgReference(resultTransformer);
 		}
-		resultFactoryHelper.assertResultFactoryAndTypeValid(resultFactory, resultType);
-		resultFactoryHelper.addResultFactory(builder, resultType, resultFactory);
+		XmlNamespaceUtils.configureResultFactory(builder, resultType, resultFactory);
 	}
 
 }

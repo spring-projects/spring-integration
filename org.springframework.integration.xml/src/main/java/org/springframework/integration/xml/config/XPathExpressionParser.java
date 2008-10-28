@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xml.config;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -26,17 +31,14 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xml.xpath.XPathExpressionFactory;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
+ * Parser for the &lt;xpath-expression&gt; element.
  * 
  * @author Jonas Partner
- *
  */
 public class XPathExpressionParser extends AbstractSingleBeanDefinitionParser {
-	
+
 	@Override
 	protected boolean shouldGenerateId() {
 		return false;
@@ -46,44 +48,41 @@ public class XPathExpressionParser extends AbstractSingleBeanDefinitionParser {
 	protected boolean shouldGenerateIdAsFallback() {
 		return true;
 	}
-	
-	
-	@SuppressWarnings("unchecked")
+
 	@Override
-	protected Class getBeanClass(Element element) {
+	protected Class<?> getBeanClass(Element element) {
 		return XPathExpressionFactory.class;
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		String strXpathExpression = element.getAttribute("expression");
-		String strXpathExpressionPrefix = element.getAttribute("ns-prefix");
-		String strXpathExpressionNamespace = element.getAttribute("ns-uri");
-		String nameSpaceMapRef = element.getAttribute("namespace-map");
+		String expression = element.getAttribute("expression");
+		Assert.hasText(expression, "The 'expression' attribute is required.");
 
-		Assert.hasText(strXpathExpression, "xpath-expression attribute is required");
+		String nsPrefix = element.getAttribute("ns-prefix");
+		String nsUri = element.getAttribute("ns-uri");
+		String namespaceMapRef = element.getAttribute("namespace-map");
 
-		boolean prefixProvided = StringUtils.hasText(strXpathExpressionPrefix);
-		boolean namespaceProvided = StringUtils.hasText(strXpathExpressionNamespace);
-		boolean namespaceMapProvided = StringUtils.hasText(nameSpaceMapRef);
+		boolean prefixProvided = StringUtils.hasText(nsPrefix);
+		boolean namespaceProvided = StringUtils.hasText(nsUri);
+		boolean namespaceMapProvided = StringUtils.hasText(namespaceMapRef);
 
 		if (prefixProvided || namespaceProvided) {
 			Assert.isTrue(prefixProvided && namespaceProvided,
-					"Both xpath-prefix and xpath-namespace must be specified if one is specified");
-			Assert.isTrue(!namespaceMapProvided, "It is not valid to sepcify both xpath-namespace and namespace-map");
+					"Both 'ns-prefix' and 'ns-uri' must be specified if one is specified.");
+			Assert.isTrue(!namespaceMapProvided, "It is not valid to specify both namespace and namespace-map.");
 		}
 
 		builder.setFactoryMethod("createXPathExpression");
-		builder.addConstructorArgValue(strXpathExpression);
+		builder.addConstructorArgValue(expression);
 
 		if (prefixProvided) {
 			Map<String, String> namespaceMap = new HashMap<String, String>();
-			namespaceMap.put(strXpathExpressionPrefix, strXpathExpressionNamespace);
+			namespaceMap.put(nsPrefix, nsUri);
 			builder.addConstructorArgValue(namespaceMap);
 		}
-		else if (StringUtils.hasText(nameSpaceMapRef)) {
-			builder.addConstructorArgReference(nameSpaceMapRef);
+		else if (StringUtils.hasText(namespaceMapRef)) {
+			builder.addConstructorArgReference(namespaceMapRef);
 		}
 		else if (element.getChildNodes().getLength() > 0) {
 			NodeList nodeList = element.getChildNodes();
@@ -96,16 +95,13 @@ public class XPathExpressionParser extends AbstractSingleBeanDefinitionParser {
 					elementCount++;
 				}
 			}
-			Assert.isTrue(elementCount == 1, "Only one namespace map child allowed");
+			Assert.isTrue(elementCount == 1, "only one namespace map child allowed");
 			if (mapElement != null) {
-				Map namespaceMap = parseNamespaceMapElement(mapElement, parserContext, builder.getBeanDefinition());
-				builder.getBeanDefinition().getConstructorArgumentValues().addGenericArgumentValue(namespaceMap);
+				builder.addConstructorArgValue(this.parseNamespaceMapElement(
+						mapElement, parserContext, builder.getBeanDefinition()));
 			}
 		}
-
 	}
-
-
 
 	@SuppressWarnings("unchecked")
 	protected Map parseNamespaceMapElement(Element element, ParserContext parserContext, BeanDefinition parentDefinition) {
