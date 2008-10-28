@@ -27,7 +27,7 @@ import org.springframework.integration.samples.cafe.OrderItem;
 public class OrderSplitter {
 
 	public List<OrderItem> split(Order order) {
-		return order.getDrinks();
+		return order.getItems();
 	}
 
 }

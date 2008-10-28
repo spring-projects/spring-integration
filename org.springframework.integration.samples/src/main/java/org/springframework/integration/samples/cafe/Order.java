@@ -41,7 +41,7 @@ public class Order {
 		return number;
 	}
 
-	public List<OrderItem> getDrinks() {
+	public List<OrderItem> getItems() {
 		return this.orderItems;
 	}
 
