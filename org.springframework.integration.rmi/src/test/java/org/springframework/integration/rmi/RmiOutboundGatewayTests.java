@@ -86,11 +86,14 @@ public class RmiOutboundGatewayTests {
 		gateway.onMessage(requestMessage);
 	}
 
-	@Test(expected = MessageHandlingException.class)
+	@Test
 	public void nonSerializableAttribute() throws RemoteException {
 		Message<String> requestMessage = MessageBuilder.withPayload("test")
 				.setHeader("testAttribute", new NonSerializableTestObject()).build();
 		gateway.onMessage(requestMessage);
+		Message<?> reply = output.receive(0);
+		assertNotNull(requestMessage.getHeaders().get("testAttribute"));
+		assertNotNull(reply.getHeaders().get("testAttribute"));
 	}
 
 	@Test

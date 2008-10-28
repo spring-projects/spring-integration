@@ -22,6 +22,7 @@ import org.springframework.integration.consumer.AbstractReplyProducingMessageCon
 import org.springframework.integration.consumer.ReplyMessageHolder;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.remoting.RemoteAccessException;
 
@@ -52,32 +53,20 @@ public abstract class AbstractRemotingOutboundGateway extends AbstractReplyProdu
 
 	@Override
 	public final void onMessage(Message<?> message, ReplyMessageHolder replyHolder) {
-		this.verifySerializability(message);
+		if (!(message.getPayload() instanceof Serializable)) {
+			throw new MessageHandlingException(message,
+					this.getClass().getName() + " expects a Serializable payload type " +
+					"but encountered [" + message.getPayload().getClass().getName() + "]");
+		}
+		Message<?> requestMessage = MessageBuilder.fromMessage(message).build();
 		try {
-			Message<?> reply = this.handlerProxy.handle(message);
+			Message<?> reply = this.handlerProxy.handle(requestMessage);
 			if (reply != null) {
 				replyHolder.set(reply);
 			}
 		}
 		catch (RemoteAccessException e) {
 			throw new MessageHandlingException(message, "unable to handle message remotely", e);
-		}
-	}
-
-	private void verifySerializability(Message<?> message) {
-		if (!(message.getPayload() instanceof Serializable)) {
-			throw new MessageHandlingException(message,
-					this.getClass().getName() + " expects a Serializable payload type " +
-					"but encountered '" + message.getPayload().getClass().getName() + "'");
-		}
-		for (String headerName : message.getHeaders().keySet()) {
-			Object attribute = message.getHeaders().get(headerName);
-			if (!(attribute instanceof Serializable)) {
-				throw new MessageHandlingException(message,
-						this.getClass().getName() + " expects Serializable attribute types " +
-						"but encountered '" + attribute.getClass().getName() + "' for the attribute '" +
-						headerName + "'");				
-			}
 		}
 	}
 
