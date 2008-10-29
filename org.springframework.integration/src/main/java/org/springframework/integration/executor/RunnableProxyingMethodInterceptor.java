@@ -18,7 +18,6 @@ package org.springframework.integration.executor;
 
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.util.ErrorHandler;
 
@@ -40,28 +39,28 @@ public class RunnableProxyingMethodInterceptor implements MethodInterceptor {
 
 	public Object invoke(MethodInvocation invocation) throws Throwable {
 		Runnable runnable = (Runnable) invocation.getArguments()[0];
-		ProxyFactory factory = new ProxyFactory(runnable);
-		factory.addAdvice(new ErrorHandlingAdvice(errorHandler));
-		invocation.getArguments()[0] = factory.getProxy();
+		invocation.getArguments()[0] = new ErrorHandlingRunnabelWrapper(runnable, errorHandler);
 		return invocation.proceed();
 	}
 
-	private static class ErrorHandlingAdvice implements MethodInterceptor {
+	private static class ErrorHandlingRunnabelWrapper implements Runnable {
 
 		private final ErrorHandler errorHandler;
 
-		public ErrorHandlingAdvice(ErrorHandler errorHandler) {
+		private final Runnable runnableTarget;
+
+		public ErrorHandlingRunnabelWrapper(Runnable runnableTarget, ErrorHandler errorHandler) {
+			this.runnableTarget = runnableTarget;
 			this.errorHandler = errorHandler;
 		}
 
-		public Object invoke(MethodInvocation invocation) throws Throwable {
+		public void run() {
 			try {
-				invocation.proceed();
+				runnableTarget.run();
 			}
 			catch (Throwable t) {
 				errorHandler.handle(t);
 			}
-			return null;
 		}
 
 	}
