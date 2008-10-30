@@ -17,15 +17,19 @@ package org.springframework.integration.executor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 import org.springframework.integration.util.ErrorHandler;
 
 public class StubErrorHandler implements ErrorHandler {
 
-	volatile List<Throwable> throwables = new ArrayList<Throwable>();
+	CountDownLatch latch;
+	
+	List<Throwable> throwables = new ArrayList<Throwable>();
 	
 	public void handle(Throwable t) {
 		throwables.add(t);
+		latch.countDown();
 	}
 	
 

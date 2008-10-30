@@ -15,13 +15,16 @@
  */
 package org.springframework.integration.executor;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.task.TaskExecutor;
@@ -29,48 +32,42 @@ import org.springframework.core.task.TaskExecutor;
 /**
  * 
  * @author Jonas Partner
- *
+ * 
  */
 public class ErrorHandlingExecutorBeanPostProcessorTests {
 
 	StubErrorHandler errorHandler;
-	
+
 	ApplicationContext applicationContext;
-	
+
 	@Before
-	public void setUp(){
-		applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName()+"-context.xml", getClass());
-		errorHandler = (StubErrorHandler)applicationContext.getBean("stubErrorHandler");
+	public void setUp() {
+		applicationContext = new ClassPathXmlApplicationContext(getClass().getSimpleName() + "-context.xml", getClass());
+		errorHandler = (StubErrorHandler) applicationContext.getBean("stubErrorHandler");
 	}
-	
+
 	@Test
-	public void testProxiedTaskExecutor() throws Exception{
-		TaskExecutor taskExecutor = (TaskExecutor)applicationContext.getBean("proxiedTaskExecutor");
-		ErrorThrowingRunnable runnable  = new ErrorThrowingRunnable();
+	public void testProxiedTaskExecutor() throws Exception {
+		errorHandler.latch = new CountDownLatch(1);
+		TaskExecutor taskExecutor = (TaskExecutor) applicationContext.getBean("proxiedTaskExecutor");
+		assertTrue("Task executor was not proxied ", AopUtils.isAopProxy(taskExecutor));
+		ErrorThrowingRunnable runnable = new ErrorThrowingRunnable();
 		taskExecutor.execute(runnable);
-		assertTrue("Runnable faield to run",runnable.latch.await(5, TimeUnit.SECONDS));
-		Thread.sleep(500);
+		assertTrue("Runnable faield to run", errorHandler.latch.await(5, TimeUnit.SECONDS));
 		assertEquals("Incorrect count of exceptions", 1, errorHandler.throwables.size());
 	}
-	
-	@Test
-	public void testExcludedFromProxyingTaskExecutor() throws Exception{
-		TaskExecutor taskExecutor = (TaskExecutor)applicationContext.getBean("excludeFromProxyingTaskExecutor");
-		ErrorThrowingRunnable runnable  = new ErrorThrowingRunnable();
-		taskExecutor.execute(runnable);
-		assertTrue("Runnable faield to run",runnable.latch.await(5, TimeUnit.SECONDS));
-		Thread.sleep(500);
-		assertEquals("Incorrect count of exceptions", 0, errorHandler.throwables.size());
-	}
-	
-	private static class ErrorThrowingRunnable implements Runnable{
 
-		CountDownLatch latch = new CountDownLatch(1);
-		
+	@Test
+	public void testExcludedFromProxyingTaskExecutor() throws Exception {
+		TaskExecutor taskExecutor = (TaskExecutor) applicationContext.getBean("excludeFromProxyingTaskExecutor");
+		assertFalse("Excluded task executor was proxied ", AopUtils.isAopProxy(taskExecutor));
+	}
+
+	private static class ErrorThrowingRunnable implements Runnable {
+
 		public void run() {
-			latch.countDown();
 			throw new RuntimeException();
 		}
-		
+
 	}
 }

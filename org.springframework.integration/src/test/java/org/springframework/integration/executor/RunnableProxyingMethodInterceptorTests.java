@@ -34,7 +34,7 @@ import org.springframework.integration.util.ErrorHandler;
 /**
  * 
  * @author Jonas Partner
- *
+ * 
  */
 public class RunnableProxyingMethodInterceptorTests {
 
@@ -52,28 +52,28 @@ public class RunnableProxyingMethodInterceptorTests {
 
 	@Test
 	public void testRuntimeThrown() throws Exception {
+		errorHandler.latch = new CountDownLatch(1);
 		TestRunnable runnable = new TestRunnable();
-
 		proxiedExecutor.execute(runnable);
-		assertTrue("Runnable did not run", runnable.countDown.await(5, TimeUnit.SECONDS));
-		Thread.sleep(500);
+		assertTrue("Runnable did not run", errorHandler.latch.await(5, TimeUnit.SECONDS));
 		assertEquals("Wrong count of exceptions in ErrorHandler", 1, errorHandler.throwables.size());
 	}
 
 	public static class StubErrorHandler implements ErrorHandler {
 
+		CountDownLatch latch;
+
 		List<Throwable> throwables = new ArrayList<Throwable>();
 
 		public void handle(Throwable t) {
+			latch.countDown();
 			throwables.add(t);
 		}
 	}
 
 	public static class TestRunnable implements Runnable {
-		CountDownLatch countDown = new CountDownLatch(1);
 
 		public void run() {
-			countDown.countDown();
 			throw new RuntimeException();
 		}
 	}
