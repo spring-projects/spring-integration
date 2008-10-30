@@ -48,7 +48,7 @@ public class ErrorHandlingExecutorBeanPostProcessorTests {
 		TaskExecutor taskExecutor = (TaskExecutor)applicationContext.getBean("proxiedTaskExecutor");
 		ErrorThrowingRunnable runnable  = new ErrorThrowingRunnable();
 		taskExecutor.execute(runnable);
-		assertTrue("Runnable faield to run",runnable.latch.await(2, TimeUnit.SECONDS));
+		assertTrue("Runnable faield to run",runnable.latch.await(5, TimeUnit.SECONDS));
 		assertEquals("Incorrect count of exceptions", 1, errorHandler.throwables.size());
 	}
 	
@@ -58,7 +58,7 @@ public class ErrorHandlingExecutorBeanPostProcessorTests {
 		ErrorThrowingRunnable runnable  = new ErrorThrowingRunnable();
 		taskExecutor.execute(runnable);
 		runnable.latch.await(2, TimeUnit.SECONDS);
-		assertTrue("Runnable faield to run",runnable.latch.await(2, TimeUnit.SECONDS));
+		assertTrue("Runnable faield to run",runnable.latch.await(5, TimeUnit.SECONDS));
 		assertEquals("Incorrect count of exceptions", 0, errorHandler.throwables.size());
 	}
 	

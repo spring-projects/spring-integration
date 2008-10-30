@@ -55,7 +55,7 @@ public class RunnableProxyingMethodInterceptorTests {
 		TestRunnable runnable = new TestRunnable();
 
 		proxiedExecutor.execute(runnable);
-		assertTrue("Runnable did not run", runnable.countDown.await(2, TimeUnit.SECONDS));
+		assertTrue("Runnable did not run", runnable.countDown.await(5, TimeUnit.SECONDS));
 		assertEquals("Wrong count of exceptions in ErrorHandler", 1, errorHandler.throwables.size());
 	}
 
