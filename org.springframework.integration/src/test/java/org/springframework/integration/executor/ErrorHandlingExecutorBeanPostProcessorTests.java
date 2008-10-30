@@ -49,7 +49,7 @@ public class ErrorHandlingExecutorBeanPostProcessorTests {
 		ErrorThrowingRunnable runnable  = new ErrorThrowingRunnable();
 		taskExecutor.execute(runnable);
 		assertTrue("Runnable faield to run",runnable.latch.await(5, TimeUnit.SECONDS));
-		Thread.sleep(100);
+		Thread.sleep(500);
 		assertEquals("Incorrect count of exceptions", 1, errorHandler.throwables.size());
 	}
 	
@@ -59,7 +59,7 @@ public class ErrorHandlingExecutorBeanPostProcessorTests {
 		ErrorThrowingRunnable runnable  = new ErrorThrowingRunnable();
 		taskExecutor.execute(runnable);
 		assertTrue("Runnable faield to run",runnable.latch.await(5, TimeUnit.SECONDS));
-		Thread.sleep(100);
+		Thread.sleep(500);
 		assertEquals("Incorrect count of exceptions", 0, errorHandler.throwables.size());
 	}
 	
