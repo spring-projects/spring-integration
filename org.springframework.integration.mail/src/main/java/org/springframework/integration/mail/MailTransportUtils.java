@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.mail.monitor;
-
-import java.net.URI;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+package org.springframework.integration.mail;
 
 import javax.mail.Folder;
 import javax.mail.MessagingException;
@@ -26,13 +22,11 @@ import javax.mail.Service;
 import javax.mail.Store;
 import javax.mail.Transport;
 import javax.mail.URLName;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.util.StringUtils;
 
+import org.springframework.util.StringUtils;
 
 /**
  * Collection of utility methods to work with Mail transports.
@@ -41,40 +35,8 @@ import org.springframework.util.StringUtils;
  */
 public abstract class MailTransportUtils {
 
-    private static final Pattern TO_PATTERN = Pattern.compile("^([^\\?]+)");
-
-    private static final Pattern SUBJECT_PATTERN = Pattern.compile("subject=([^\\&]+)");
-
     private static final Log logger = LogFactory.getLog(MailTransportUtils.class);
 
-    private MailTransportUtils() {
-    }
-
-    public static InternetAddress getTo(URI uri) {
-        Matcher matcher = TO_PATTERN.matcher(uri.getSchemeSpecificPart());
-        if (matcher.find()) {
-            for (int i = 1; i <= matcher.groupCount(); i++) {
-                String group = matcher.group(i);
-                if (group != null) {
-                    try {
-                        return new InternetAddress(group);
-                    }
-                    catch (AddressException e) {
-                        // try next group
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    public static String getSubject(URI uri) {
-        Matcher matcher = SUBJECT_PATTERN.matcher(uri.getSchemeSpecificPart());
-        if (matcher.find()) {
-            return matcher.group(1);
-        }
-        return null;
-    }
 
     /**
      * Close the given JavaMail Service and ignore any thrown exception. This is useful for typical <code>finally</code>
@@ -96,8 +58,8 @@ public abstract class MailTransportUtils {
     }
 
     /**
-     * Close the given JavaMail Folder and ignore any thrown exception. This is useful for typical <code>finally</code>
-     * blocks in manual JavaMail code.
+     * Close the given JavaMail Folder and ignore any thrown exception. This is
+     * useful for typical <code>finally</code> blocks in manual JavaMail code.
      *
      * @param folder the JavaMail Folder to close (may be <code>null</code>)
      */
@@ -107,8 +69,8 @@ public abstract class MailTransportUtils {
     }
 
     /**
-     * Close the given JavaMail Folder and ignore any thrown exception. This is useful for typical <code>finally</code>
-     * blocks in manual JavaMail code.
+     * Close the given JavaMail Folder and ignore any thrown exception. This is
+     * useful for typical <code>finally</code> blocks in manual JavaMail code.
      *
      * @param folder  the JavaMail Folder to close (may be <code>null</code>)
      * @param expunge whether all deleted messages should be expunged from the folder
@@ -124,7 +86,10 @@ public abstract class MailTransportUtils {
         }
     }
 
-    /** Returns a string representation of the given {@link URLName}, where the password has been protected. */
+    /**
+     * Returns a string representation of the given {@link URLName}, where the
+     * password has been protected.
+     */
     public static String toPasswordProtectedString(URLName name) {
         String protocol = name.getProtocol();
         String username = name.getUsername();
@@ -137,7 +102,6 @@ public abstract class MailTransportUtils {
         if (protocol != null) {
             tempURL.append(protocol).append(':');
         }
-
         if (StringUtils.hasLength(username) || StringUtils.hasLength(host)) {
             tempURL.append("//");
             if (StringUtils.hasLength(username)) {

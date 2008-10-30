@@ -21,7 +21,6 @@ import javax.mail.MessagingException;
 import javax.mail.URLName;
 import javax.mail.internet.MimeMessage;
 
-import org.springframework.integration.mail.monitor.MailTransportUtils;
 import org.springframework.util.Assert;
 
 /**

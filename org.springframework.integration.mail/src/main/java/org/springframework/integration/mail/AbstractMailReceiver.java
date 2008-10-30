@@ -32,7 +32,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.integration.mail.monitor.MailTransportUtils;
 import org.springframework.util.Assert;
 
 /**
