@@ -22,7 +22,7 @@ import org.springframework.integration.util.ErrorHandler;
 
 public class StubErrorHandler implements ErrorHandler {
 
-	List<Throwable> throwables = new ArrayList<Throwable>();
+	volatile List<Throwable> throwables = new ArrayList<Throwable>();
 	
 	public void handle(Throwable t) {
 		throwables.add(t);
