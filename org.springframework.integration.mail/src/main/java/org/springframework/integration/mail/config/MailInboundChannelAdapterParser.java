@@ -28,6 +28,7 @@ import org.springframework.integration.mail.MailReceivingMessageSource;
 import org.springframework.integration.mail.Pop3MailReceiver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.util.xml.DomUtils;
 
 /**
  * Parser for the &lt;inbound-channel-adapter&gt; element of Spring
@@ -58,6 +59,18 @@ public class MailInboundChannelAdapterParser extends AbstractPollingInboundChann
 		String propertiesRef = element.getAttribute("java-mail-properties");
 		if (StringUtils.hasText(propertiesRef)) {
 			receiverBuilder.addPropertyReference("javaMailProperties", propertiesRef);
+		}
+		boolean configuredFetchSize = false;
+		Element pollerElement = DomUtils.getChildElementByTagName(element, "poller");
+		if (pollerElement != null) {
+			String mmpp = pollerElement.getAttribute("max-messages-per-poll");
+			if (StringUtils.hasText(mmpp)) {
+				receiverBuilder.addPropertyValue("maxFetchSize", mmpp);
+				configuredFetchSize = true;
+			}
+		}
+		if (!configuredFetchSize) {
+			receiverBuilder.addPropertyValue("maxFetchSize", 1);
 		}
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(
 				receiverBuilder.getBeanDefinition(), parserContext.getRegistry());
