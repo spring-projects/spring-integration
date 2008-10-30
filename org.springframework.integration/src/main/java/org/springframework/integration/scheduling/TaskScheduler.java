@@ -21,13 +21,20 @@ import java.util.concurrent.ScheduledFuture;
 import org.springframework.context.Lifecycle;
 
 /**
- * Base interface for scheduling messaging tasks.
+ * Base interface for scheduling tasks.
  * 
  * @author Mark Fisher
  * @author Marius Bogoevici
+ * @author Iwein Fuld
  */
 public interface TaskScheduler extends Lifecycle {
 
+	/**
+	 * Schedules a task for multiple executions according to a Trigger.
+	 * 
+	 * @param task Task to be run multiple times
+	 * @param trigger Trigger that determines at which times the task should be run
+	 */
 	ScheduledFuture<?> schedule(Runnable task, Trigger trigger);
 
 }
