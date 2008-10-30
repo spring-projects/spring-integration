@@ -27,12 +27,18 @@ import javax.mail.search.AndTerm;
 import javax.mail.search.FlagTerm;
 import javax.mail.search.SearchTerm;
 
-import org.springframework.integration.mail.monitor.MailTransportUtils;
 import org.springframework.util.Assert;
 
 import com.sun.mail.imap.IMAPFolder;
 
 /**
+ * A {@link MailReceiver} implementation for receiving mail messages from a
+ * mail server that supports the IMAP protocol. In addition to the pollable
+ * {@link #receive()} method, the {@link #waitForNewMessages()} method provides
+ * the option of blocking until new messages are available prior to calling
+ * {@link #receive()}. That option is only available if the server supports
+ * the {@link IMAPFolder#idle() idle} command.
+ * 
  * @author Arjen Poutsma
  * @author Mark Fisher
  */
@@ -120,11 +126,7 @@ public class ImapMailReceiver extends AbstractMailReceiver {
 				}
 			}
 		}
-		Message[] results = searchTerm != null ? this.getFolder().search(searchTerm) : this.getFolder().getMessages();
-		if (results == null || results.length == 0) {
-			MailTransportUtils.closeFolder(this.getFolder());
-		}
-		return results;
+		return searchTerm != null ? this.getFolder().search(searchTerm) : this.getFolder().getMessages();
 	}
 
 
