@@ -51,19 +51,6 @@ public class MailReceivingMessageSource implements MessageSource<javax.mail.Mess
 		this.mailReceiver = mailReceiver;
 	}
 
-	public MailReceivingMessageSource(String url) {
-		if (url.startsWith("imap")) {
-			this.mailReceiver = new Pop3MailReceiver(url);
-		}
-		else if (url.startsWith("pop3")) {
-			this.mailReceiver = new ImapMailReceiver(url);
-		}
-		else {
-			throw new UnsupportedOperationException("unsupported mail protocol '"
-					+ url.substring(0, url.indexOf(':')) + "'");
-		}
-	}
-
 
 	public Message<javax.mail.Message> receive() {
 		try {

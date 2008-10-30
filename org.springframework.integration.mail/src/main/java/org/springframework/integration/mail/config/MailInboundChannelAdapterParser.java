@@ -27,6 +27,7 @@ import org.springframework.integration.mail.MailReceiver;
 import org.springframework.integration.mail.MailReceivingMessageSource;
 import org.springframework.integration.mail.Pop3MailReceiver;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;inbound-channel-adapter&gt; element of Spring
@@ -39,23 +40,27 @@ public class MailInboundChannelAdapterParser extends AbstractPollingInboundChann
 
 	@Override
 	protected String parseSource(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MailReceivingMessageSource.class);
+		builder.addConstructorArgReference(this.parseMailReceiver(element, parserContext));
+		return BeanDefinitionReaderUtils.registerWithGeneratedName(
+				builder.getBeanDefinition(), parserContext.getRegistry());
+	}
+
+	private String parseMailReceiver(Element element, ParserContext parserContext) {
 		String uri = element.getAttribute("store-uri");
-		//String propertiesRef = element.getAttribute("javaMailProperties");
 		Assert.hasText(uri, "the 'store-uri' attribute is required");
 		boolean isPop3 = uri.toLowerCase().startsWith("pop3");
 		boolean isImap = uri.toLowerCase().startsWith("imap");
 		Assert.isTrue(isPop3 || isImap, "the 'store-uri' must begin with 'pop3' or 'imap'");
-		MailReceiver mailReceiver = isPop3 ? new Pop3MailReceiver(uri) : new ImapMailReceiver(uri);
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MailReceivingMessageSource.class);
-		/*
+		Class<? extends MailReceiver> receiverClass = isPop3 ? Pop3MailReceiver.class : ImapMailReceiver.class;
+		BeanDefinitionBuilder receiverBuilder = BeanDefinitionBuilder.genericBeanDefinition(receiverClass);
+		receiverBuilder.addConstructorArgValue(uri);
+		String propertiesRef = element.getAttribute("java-mail-properties");
 		if (StringUtils.hasText(propertiesRef)) {
-			folderConnectionBuilder.addPropertyReference("javaMailProperties",
-					propertiesRef);
+			receiverBuilder.addPropertyReference("javaMailProperties", propertiesRef);
 		}
-		*/
-		builder.addConstructorArgValue(mailReceiver);
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(
-				builder.getBeanDefinition(), parserContext.getRegistry());
+				receiverBuilder.getBeanDefinition(), parserContext.getRegistry());
 	}
 
 }

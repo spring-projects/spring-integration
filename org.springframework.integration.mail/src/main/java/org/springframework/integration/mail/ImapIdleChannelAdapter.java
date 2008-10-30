@@ -16,8 +16,6 @@
 
 package org.springframework.integration.mail;
 
-import java.util.Properties;
-
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
@@ -57,22 +55,9 @@ public class ImapIdleChannelAdapter extends AbstractMessageProducingEndpoint imp
 		this.mailReceiver = mailReceiver;
 	}
 
-	public ImapIdleChannelAdapter(String url) {
-		Assert.isTrue(url.startsWith("imap"), "url must start with 'imap'");
-		this.mailReceiver = new ImapMailReceiver(url);
-	}
-
 
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
 		this.taskExecutor = taskExecutor;
-	}
-
-	public void setJavaMailProperties(Properties javaMailProperties) {
-		this.mailReceiver.setJavaMailProperties(javaMailProperties);
-	}
-
-	public void setShouldDeleteMessages(boolean shouldDeleteMessages) {
-		this.mailReceiver.setShouldDeleteMessages(shouldDeleteMessages);
 	}
 
 	protected void handleMailMessagingException(MessagingException e) {

@@ -19,9 +19,11 @@ package org.springframework.integration.mail.config;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.mail.ImapIdleChannelAdapter;
+import org.springframework.integration.mail.ImapMailReceiver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -47,23 +49,30 @@ public class ImapIdleChannelAdapterParser extends AbstractSingleBeanDefinitionPa
 
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		String channel = element.getAttribute("channel");
-		String uri = element.getAttribute("store-uri");
-		String taskExecutorRef = element.getAttribute("task-executor");
-		String propertiesRef = element.getAttribute("java-mail-properties");
 		Assert.hasText(channel, "the 'channel' attribute is required");
+		builder.addConstructorArgReference(this.parseImapMailReceiver(element, parserContext));
+		builder.addPropertyReference("outputChannel", channel);
+		String taskExecutorRef = element.getAttribute("task-executor");
+		if (StringUtils.hasText(taskExecutorRef)) {
+			builder.addPropertyReference("taskExecutor", taskExecutorRef);
+		}
+	}
+
+	private String parseImapMailReceiver(Element element, ParserContext parserContext) {
+		String uri = element.getAttribute("store-uri");
 		Assert.hasText(uri, "the 'store-uri' attribute is required");
 		Assert.isTrue(uri.toLowerCase().startsWith("imap"),
 				"store-uri must start with 'imap' for the imap idle channel adapter");
-		builder.addConstructorArgValue(uri);
+		BeanDefinitionBuilder receiverBuilder = BeanDefinitionBuilder.genericBeanDefinition(ImapMailReceiver.class);
+		receiverBuilder.addConstructorArgValue(uri);
+		String propertiesRef = element.getAttribute("java-mail-properties");
 		if (StringUtils.hasText(propertiesRef)) {
-			builder.addPropertyReference("javaMailProperties", propertiesRef);
+			receiverBuilder.addPropertyReference("javaMailProperties", propertiesRef);
 		}
-		if (StringUtils.hasLength(taskExecutorRef)) {
-			builder.addPropertyReference("taskExecutor", taskExecutorRef);
-		}
-		builder.addPropertyValue("shouldDeleteMessages",
+		receiverBuilder.addPropertyValue("shouldDeleteMessages",
 				!"false".equals(element.getAttribute("should-delete-messages")));
-		builder.addPropertyReference("outputChannel", channel);
+		return BeanDefinitionReaderUtils.registerWithGeneratedName(
+				receiverBuilder.getBeanDefinition(), parserContext.getRegistry());
 	}
 
 }
