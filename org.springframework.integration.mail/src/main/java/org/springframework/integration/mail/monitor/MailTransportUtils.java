@@ -17,7 +17,6 @@
 package org.springframework.integration.mail.monitor;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -166,22 +165,5 @@ public abstract class MailTransportUtils {
         }
         return tempURL.toString();
     }
-
-    /**
-     * Converts the given internet address into a <code>mailto</code> URI.
-     *
-     * @param to      the To: address
-     * @param subject the subject, may be <code>null</code>
-     * @return a mailto URI
-     */
-    public static URI toUri(InternetAddress to, String subject) throws URISyntaxException {
-        if (StringUtils.hasLength(subject)) {
-            return new URI(MailTransportConstants.MAIL_URI_SCHEME, to.getAddress() + "?subject=" + subject, null);
-        }
-        else {
-            return new URI(MailTransportConstants.MAIL_URI_SCHEME, to.getAddress(), null);
-        }
-    }
-
 
 }

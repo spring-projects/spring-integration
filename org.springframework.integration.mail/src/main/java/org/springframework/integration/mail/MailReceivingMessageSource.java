@@ -16,6 +16,7 @@
 
 package org.springframework.integration.mail;
 
+import java.util.Arrays;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -24,50 +25,59 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.mail.monitor.MonitoringStrategy;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.util.Assert;
 
 /**
  * {@link MessageSource} implementation that delegates to a
- * {@link MonitoringStrategy} to poll a mailbox. Each poll of the mailbox may
+ * {@link MailReceiver} to poll a mailbox. Each poll of the mailbox may
  * return more than one message which will then be stored in a queue.
  * 
- * @author Jonas Partner
+ * @author Jonas Partner 
  * @author Mark Fisher
  */
-public class PollingMailSource implements MessageSource<javax.mail.Message> {
+public class MailReceivingMessageSource implements MessageSource<javax.mail.Message> {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
-	private final FolderConnection folderConnection;
+	private final MailReceiver mailReceiver;
 
 	private final Queue<javax.mail.Message> mailQueue = new ConcurrentLinkedQueue<javax.mail.Message>();
 
 
-	public PollingMailSource(FolderConnection folderConnection) {
-		Assert.notNull(folderConnection, "folderConnection must not be null");
-		this.folderConnection = folderConnection;
+	public MailReceivingMessageSource(MailReceiver mailReceiver) {
+		Assert.notNull(mailReceiver, "mailReceiver must not be null");
+		this.mailReceiver = mailReceiver;
+	}
+
+	public MailReceivingMessageSource(String url) {
+		if (url.startsWith("imap")) {
+			this.mailReceiver = new Pop3MailReceiver(url);
+		}
+		else if (url.startsWith("pop3")) {
+			this.mailReceiver = new ImapMailReceiver(url);
+		}
+		else {
+			throw new UnsupportedOperationException("unsupported mail protocol '"
+					+ url.substring(0, url.indexOf(':')) + "'");
+		}
 	}
 
 
-	@SuppressWarnings("unchecked")
 	public Message<javax.mail.Message> receive() {
 		try {
 			javax.mail.Message mailMessage = this.mailQueue.poll();
 			if (mailMessage == null) {
-				javax.mail.Message[] messages = this.folderConnection.receive();
+				javax.mail.Message[] messages = this.mailReceiver.receive();
 				if (messages != null) {
-					for (javax.mail.Message message : messages) {
-						this.mailQueue.add(message);
-					}
+					this.mailQueue.addAll(Arrays.asList(messages));
 				}
 				mailMessage = this.mailQueue.poll();
 			}
 			if (mailMessage != null) {
 				if (logger.isDebugEnabled()) {
-					logger.debug("Received mail message [" + mailMessage + "]");
+					logger.debug("received mail message [" + mailMessage + "]");
 				}
 				return MessageBuilder.withPayload(mailMessage).build();
 			}

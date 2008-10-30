@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.mail.config;
 
 import org.junit.Test;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.mail.PollingMailSource;
 
+/**
+ * @author Jonas Partner
+ */
 public class PollingMailSourceParserTests {
-	
+
 	@Test
 	public void testPop3(){
 		ApplicationContext context = new ClassPathXmlApplicationContext("pollingMailSourceParserTests.xml", PollingMailSourceParserTests.class);
-		PollingMailSource mailSource = (PollingMailSource)context.getBean("pollingPop3");
+		context.getBean("pollingPop3");
 	}
 
 }

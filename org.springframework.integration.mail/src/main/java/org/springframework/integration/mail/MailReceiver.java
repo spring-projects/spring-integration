@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.integration.mail.monitor;
 
-import javax.mail.Folder;
-import javax.mail.MessagingException;
+package org.springframework.integration.mail;
 
-public interface AsyncMonitoringStrategy {
+/**
+ * Strategy interface for receiving mail {@link javax.mail.Message Messages}.
+ * 
+ * @author Mark Fisher
+ */
+public interface MailReceiver {
 
-	public abstract void waitForNewMessages(Folder folder)
-			throws MessagingException, InterruptedException;
+	javax.mail.Message[] receive() throws javax.mail.MessagingException;
 
 }

@@ -21,22 +21,20 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.mail.DefaultFolderConnection;
-import org.springframework.integration.mail.ListeningMailSource;
-import org.springframework.integration.mail.monitor.ImapIdleMonitoringStrategy;
+import org.springframework.integration.mail.ImapIdleChannelAdapter;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for the &lt;imap-idle-mail-source&gt; element in the 'mail' namespace.
+ * Parser for the &lt;imap-idle-channel-adapter&gt; element in the 'mail' namespace.
  * 
  * @author Jonas Partner
  * @author Mark Fisher
  */
-public class SubscribableImapIdleMailSourceParser extends AbstractSingleBeanDefinitionParser {
+public class ImapIdleChannelAdapterParser extends AbstractSingleBeanDefinitionParser {
 
 	protected Class<?> getBeanClass(Element element) {
-		return ListeningMailSource.class;
+		return ImapIdleChannelAdapter.class;
 	}
 
 	protected boolean shouldGenerateId() {
@@ -51,24 +49,20 @@ public class SubscribableImapIdleMailSourceParser extends AbstractSingleBeanDefi
 		String channel = element.getAttribute("channel");
 		String uri = element.getAttribute("store-uri");
 		String taskExecutorRef = element.getAttribute("task-executor");
-		String propertiesRef = element.getAttribute("javaMailProperties");
+		String propertiesRef = element.getAttribute("java-mail-properties");
 		Assert.hasText(channel, "the 'channel' attribute is required");
 		Assert.hasText(uri, "the 'store-uri' attribute is required");
-		BeanDefinitionBuilder folderConnectionBuilder =
-				BeanDefinitionBuilder.genericBeanDefinition(DefaultFolderConnection.class);
 		Assert.isTrue(uri.toLowerCase().startsWith("imap"),
-				"store-uri must start with 'imap' for the imap idle source");
-		folderConnectionBuilder.addConstructorArgValue(uri);
-		folderConnectionBuilder.addConstructorArgValue(new ImapIdleMonitoringStrategy());
-		// set polling false
-		folderConnectionBuilder.addConstructorArgValue(false);
+				"store-uri must start with 'imap' for the imap idle channel adapter");
+		builder.addConstructorArgValue(uri);
 		if (StringUtils.hasText(propertiesRef)) {
-			folderConnectionBuilder.addPropertyReference("javaMailProperties", propertiesRef);
+			builder.addPropertyReference("javaMailProperties", propertiesRef);
 		}
-		builder.addConstructorArgValue(folderConnectionBuilder.getBeanDefinition());
 		if (StringUtils.hasLength(taskExecutorRef)) {
 			builder.addPropertyReference("taskExecutor", taskExecutorRef);
 		}
+		builder.addPropertyValue("shouldDeleteMessages",
+				!"false".equals(element.getAttribute("should-delete-messages")));
 		builder.addPropertyReference("outputChannel", channel);
 	}
 

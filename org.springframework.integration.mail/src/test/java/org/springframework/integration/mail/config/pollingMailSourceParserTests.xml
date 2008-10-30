@@ -2,11 +2,14 @@
 <beans:beans xmlns="http://www.springframework.org/schema/integration/mail"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:integration="http://www.springframework.org/schema/integration"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd
 			http://www.springframework.org/schema/integration/mail
 			http://www.springframework.org/schema/integration/mail/spring-integration-mail-1.0.xsd">
 
-	<polling-mail-source id="pollingPop3" store-uri="pop3://mailtest:mailtest@ubuntuservervm/INBOX" />
+	<inbound-channel-adapter id="pollingPop3" store-uri="pop3://mailtest:mailtest@ubuntuservervm/INBOX" />
 
 </beans:beans>

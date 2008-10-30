@@ -28,31 +28,32 @@ import org.junit.Test;
 
 /**
  * @author Jonas Partner
+ * @author Mark Fisher
  */
-public class PollingMessageSourceTests {
+public class MailReceivingMessageSourceTests {
 
 	@Test
 	public void testPolling() {
-		StubFolderConnection folderConnection = new StubFolderConnection();
+		StubMailReceiver mailReceiver = new StubMailReceiver();
 		MimeMessage message1 = EasyMock.createMock(MimeMessage.class);
 		MimeMessage message2 = EasyMock.createMock(MimeMessage.class);
 		MimeMessage message3 = EasyMock.createMock(MimeMessage.class);
 		MimeMessage message4 = EasyMock.createMock(MimeMessage.class);
 
-		folderConnection.messages.add(new javax.mail.Message[] { message1 });
-		folderConnection.messages.add(new javax.mail.Message[] { message2, message3 });
-		folderConnection.messages.add(new javax.mail.Message[] { message4 });
+		mailReceiver.messages.add(new javax.mail.Message[] { message1 });
+		mailReceiver.messages.add(new javax.mail.Message[] { message2, message3 });
+		mailReceiver.messages.add(new javax.mail.Message[] { message4 });
 
-		PollingMailSource pollingMailSource = new PollingMailSource(folderConnection);
-		assertEquals("Wrong message for number 1", message1, pollingMailSource.receive().getPayload());
-		assertEquals("Wrong message for number 2", message2, pollingMailSource.receive().getPayload());
-		assertEquals("Wrong message for number 3", message3, pollingMailSource.receive().getPayload());
-		assertEquals("Wrong message for number 4", message4, pollingMailSource.receive().getPayload());
-		assertNull("Expected null after exhausting all messages", pollingMailSource.receive());
+		MailReceivingMessageSource source = new MailReceivingMessageSource(mailReceiver);
+		assertEquals("Wrong message for number 1", message1, source.receive().getPayload());
+		assertEquals("Wrong message for number 2", message2, source.receive().getPayload());
+		assertEquals("Wrong message for number 3", message3, source.receive().getPayload());
+		assertEquals("Wrong message for number 4", message4, source.receive().getPayload());
+		assertNull("Expected null after exhausting all messages", source.receive());
 	}
 
 
-	private static class StubFolderConnection implements FolderConnection {
+	private static class StubMailReceiver implements MailReceiver {
 
 		private final ConcurrentLinkedQueue<javax.mail.Message[]> messages = new ConcurrentLinkedQueue<javax.mail.Message[]>();
 

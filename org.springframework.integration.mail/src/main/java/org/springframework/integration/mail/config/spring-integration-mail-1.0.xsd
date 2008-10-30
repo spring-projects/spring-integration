@@ -3,12 +3,14 @@
 		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 		xmlns:beans="http://www.springframework.org/schema/beans"
 		xmlns:tool="http://www.springframework.org/schema/tool"
+		xmlns:integration="http://www.springframework.org/schema/integration"
 		targetNamespace="http://www.springframework.org/schema/integration/mail"
 		elementFormDefault="qualified"
 		attributeFormDefault="unqualified">
 
 	<xsd:import namespace="http://www.springframework.org/schema/beans"/>
 	<xsd:import namespace="http://www.springframework.org/schema/tool"/>
+	<xsd:import namespace="http://www.springframework.org/schema/integration"/>
 
 	<xsd:annotation>
 		<xsd:documentation><![CDATA[
@@ -34,29 +36,35 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="polling-mail-source">
+	<xsd:element name="inbound-channel-adapter">
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a polling mail source.
+	Defines an inbound Channel Adapter that polls a mailbox for mail messages.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:attribute name="id" type="xsd:string" use="required"/>
+			<xsd:sequence>
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+			</xsd:sequence>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="channel" type="xsd:string"/>
 			<xsd:attribute name="store-uri" type="xsd:string" use="required"/>
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="imap-idle-mail-source">
+	<xsd:element name="imap-idle-channel-adapter">
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines an IMAP mail source.
+	Defines an IMAP IDLE channel adapter.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:attribute name="id" type="xsd:string" use="required"/>
-			<xsd:attribute name="channel" type="xsd:string"/>
+			<xsd:attribute name="id" type="xsd:string"/>
+			<xsd:attribute name="channel" type="xsd:string" use="required"/>
 			<xsd:attribute name="store-uri" type="xsd:string" use="required"/>
-			<xsd:attribute name="task-executor" type="xsd:string" use="optional"/>
+			<xsd:attribute name="java-mail-properties" type="xsd:string"/>
+			<xsd:attribute name="task-executor" type="xsd:string"/>
+			<xsd:attribute name="should-delete-messages" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
 
