@@ -56,6 +56,8 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 
 	public static final String MESSAGE_BUS_BEAN_NAME = "internal.MessageBus";
 
+	public static final String TASK_SCHEDULER_BEAN_NAME = "taskScheduler";
+
 	public static final String MESSAGE_BUS_AWARE_POST_PROCESSOR_BEAN_NAME =
 			"internal.MessageBusAwareBeanPostProcessor";
 
@@ -65,8 +67,6 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 	private static final String TASK_SCHEDULER_ATTRIBUTE = "task-scheduler";
 
 	private static final String ASYNC_EVENT_MULTICASTER_ATTRIBUTE = "configure-async-event-multicaster";
-
-	private static final String TASK_SCHEDULER_BEAN_NAME = "taskScheduler";
 
 
 	@Override
