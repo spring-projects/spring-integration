@@ -31,7 +31,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -52,8 +51,6 @@ public class SimpleMessagingGatewayTests {
 
 	private Message messageMock = createMock(Message.class);
 
-	private MessageBus messageBusMock = createMock(MessageBus.class);
-
 	private Object[] allmocks = new Object[] { requestChannel, replyChannel, messageMock };
 
 
@@ -62,7 +59,6 @@ public class SimpleMessagingGatewayTests {
 		this.simpleMessagingGateway = new SimpleMessagingGateway();
 		this.simpleMessagingGateway.setRequestChannel(requestChannel);
 		this.simpleMessagingGateway.setReplyChannel(replyChannel);
-		this.simpleMessagingGateway.setMessageBus(messageBusMock);
 		reset(allmocks);
 	}
 
@@ -159,7 +155,6 @@ public class SimpleMessagingGatewayTests {
 		// setup local mocks
 		MessageHeaders messageHeadersMock = createMock(MessageHeaders.class);	
 		//set expectations
-		//messageHeaderMock.setReturnAddress(replyChannel);
 		expect(replyChannel.getName()).andReturn("replyChannel").anyTimes();
 		expect(messageMock.getHeaders()).andReturn(messageHeadersMock);
 		expect(requestChannel.send(messageMock)).andReturn(true);
