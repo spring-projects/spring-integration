@@ -32,6 +32,7 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.context.Lifecycle;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.ChannelAdapter;
@@ -39,7 +40,6 @@ import org.springframework.integration.annotation.Router;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.annotation.Transformer;
-import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.stereotype.Component;
@@ -57,7 +57,7 @@ import org.springframework.util.StringUtils;
  */
 public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware, InitializingBean {
 
-	private volatile MessageBus messageBus;
+	private volatile Lifecycle messageBus;
 
 	private volatile ConfigurableListableBeanFactory beanFactory;
 
@@ -74,7 +74,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 	public void afterPropertiesSet() {
 		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
-		this.messageBus = (MessageBus) this.beanFactory.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
+		this.messageBus = (Lifecycle) this.beanFactory.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		postProcessors.put(Aggregator.class, new AggregatorAnnotationPostProcessor(this.beanFactory));
 		postProcessors.put(ChannelAdapter.class, new ChannelAdapterAnnotationPostProcessor(this.beanFactory));
 		postProcessors.put(Router.class, new RouterAnnotationPostProcessor(this.beanFactory));
@@ -108,7 +108,9 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 								((BeanNameAware) result).setBeanName(endpointBeanName);
 							}
 							beanFactory.registerSingleton(endpointBeanName, result);
-							messageBus.registerEndpoint((MessageEndpoint) result);
+							if (messageBus.isRunning() && result instanceof Lifecycle) {
+								((Lifecycle) result).start();
+							}
 						}
 					}
 				}
