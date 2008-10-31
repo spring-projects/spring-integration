@@ -297,13 +297,6 @@ public class ApplicationContextMessageBusTests {
 		messageBus.resolveChannelName("noSuchChannel");
 	}
 
-	@Test
-	public void messageBusAware() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("messageBusTests.xml", this.getClass());
-		TestMessageBusAwareImpl messageBusAwareBean = (TestMessageBusAwareImpl) context.getBean("messageBusAwareBean");
-		assertTrue(messageBusAwareBean.getMessageBus() == context.getBean("bus"));
-	}
-
 
 	private static class FailingSource implements MessageSource<Object> {
 

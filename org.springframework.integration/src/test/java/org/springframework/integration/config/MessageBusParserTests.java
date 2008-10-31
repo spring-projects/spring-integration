@@ -33,7 +33,6 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.integration.bus.ApplicationContextMessageBus;
 import org.springframework.integration.bus.MessageBus;
-import org.springframework.integration.bus.TestMessageBusAwareImpl;
 import org.springframework.integration.bus.MessageBusEventTests.TestMessageBusListener;
 import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.core.MessageChannel;
@@ -85,12 +84,8 @@ public class MessageBusParserTests {
 		}
 		catch (BeanCreationException e) {
 			exceptionThrown = true;
-			// an exception is thrown when creating the post-processor, which
-			// tries to get a reference to the message bus
-			assertEquals(BeanCreationException.class, e.getCause().getClass());
-			assertEquals(e.getBeanName(), MessageBusParser.MESSAGE_BUS_AWARE_POST_PROCESSOR_BEAN_NAME);
-			assertEquals(IllegalStateException.class, (e.getCause()).getCause().getClass());
-			assertEquals(((BeanCreationException) e.getCause()).getBeanName(), MessageBusParser.MESSAGE_BUS_BEAN_NAME);
+			assertEquals(IllegalStateException.class, e.getCause().getClass());
+			assertEquals(e.getBeanName(), MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		}
 		assertTrue(exceptionThrown);
 	}
@@ -102,14 +97,6 @@ public class MessageBusParserTests {
 		MessageBus bus = (MessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		assertTrue(bus.isRunning());
 		bus.stop();
-	}
-
-	@Test
-	public void testMessageBusAwareAutomaticallyAddedByNamespace() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"messageBusWithMessageBusAware.xml", this.getClass());
-		TestMessageBusAwareImpl messageBusAware = (TestMessageBusAwareImpl) context.getBean("messageBusAwareBean");
-		assertTrue(messageBusAware.getMessageBus() == context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME));
 	}
 
 	@Test

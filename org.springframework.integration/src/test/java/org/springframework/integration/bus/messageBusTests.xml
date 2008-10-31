@@ -29,10 +29,4 @@
 
 	<bean id="handler" class="org.springframework.integration.message.TestHandlers" factory-method="echoHandler"/>
 
-	<bean class="org.springframework.integration.bus.MessageBusAwareBeanPostProcessor">
-		<constructor-arg ref="bus"/>
-	</bean>
-
-	<bean id= "messageBusAwareBean" class="org.springframework.integration.bus.TestMessageBusAwareImpl"/>
-
 </beans>

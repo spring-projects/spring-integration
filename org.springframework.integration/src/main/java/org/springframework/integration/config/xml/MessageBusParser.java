@@ -24,7 +24,6 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
-import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
@@ -36,7 +35,6 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.bus.ApplicationContextMessageBus;
 import org.springframework.integration.bus.MessageBus;
-import org.springframework.integration.bus.MessageBusAwareBeanPostProcessor;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
@@ -57,9 +55,6 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 	public static final String MESSAGE_BUS_BEAN_NAME = "internal.MessageBus";
 
 	public static final String TASK_SCHEDULER_BEAN_NAME = "taskScheduler";
-
-	public static final String MESSAGE_BUS_AWARE_POST_PROCESSOR_BEAN_NAME =
-			"internal.MessageBusAwareBeanPostProcessor";
 
 	private static final String MESSAGING_ANNOTATION_POST_PROCESSOR_BEAN_NAME =
 			"internal.MessagingAnnotationPostProcessor";
@@ -150,24 +145,16 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 	 * Adds extra post-processors to the context, to inject the objects configured by the MessageBus
 	 */
 	private void addPostProcessors(Element element, ParserContext parserContext) {
-		this.registerMessageBusAwarePostProcessor(parserContext);
 		if ("true".equals(element.getAttribute("enable-annotations").toLowerCase())) {
 			this.registerMessagingAnnotationPostProcessor(parserContext);
 		}
 	}
 
-	private void registerMessageBusAwarePostProcessor(ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MessageBusAwareBeanPostProcessor.class);
-		builder.addConstructorArgReference(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
-		builder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
-		parserContext.getRegistry().registerBeanDefinition(MESSAGE_BUS_AWARE_POST_PROCESSOR_BEAN_NAME, builder.getBeanDefinition());
-	}
-
 	private void registerMessagingAnnotationPostProcessor(ParserContext parserContext) {
-		BeanDefinition bd = new RootBeanDefinition(MessagingAnnotationPostProcessor.class);
-		BeanComponentDefinition bcd = new BeanComponentDefinition(
-				bd, MESSAGING_ANNOTATION_POST_PROCESSOR_BEAN_NAME);
-		parserContext.registerBeanComponent(bcd);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MessagingAnnotationPostProcessor.class);
+		builder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+		parserContext.getRegistry().registerBeanDefinition(
+				MESSAGING_ANNOTATION_POST_PROCESSOR_BEAN_NAME, builder.getBeanDefinition());
 	}
 
 }
