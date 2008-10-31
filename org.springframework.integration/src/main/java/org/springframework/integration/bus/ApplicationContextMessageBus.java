@@ -100,16 +100,6 @@ public class ApplicationContextMessageBus implements MessageBus, ChannelResolver
 		return this.channelResolver.resolveChannelName(channelName);
 	}
 
-	public MessageEndpoint lookupEndpoint(String endpointName) {
-		if (this.applicationContext.containsBean(endpointName)) {
-			Object bean = this.applicationContext.getBean(endpointName);
-			if (bean instanceof MessageEndpoint) {
-				return (MessageEndpoint) bean;
-			}
-		}
-		return null;
-	}
-
 	public void registerEndpoint(MessageEndpoint endpoint) {
 		Assert.notNull(endpoint, "'endpoint' must not be null");
 		if (!this.endpoints.contains(endpoint)) {
