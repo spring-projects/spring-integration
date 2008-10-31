@@ -22,34 +22,37 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.util.ErrorHandler;
 
 /**
- * Used tby {@link ErrorHandlingExecutorBeanPostProcessor} to Proxy
+ * Used by {@link ErrorHandlingExecutorBeanPostProcessor} to Proxy
  * {@link TaskExecutor} instances. This allow the wrapping of {@link Runnable}
- * instances in order to handle catch errors thrown and delegate handling to an
- * instance of {@link ErrorHandler}
- * @author Jonas Partner
+ * instances in order to catch any errors thrown and delegate handling to an
+ * instance of {@link ErrorHandler}.
  * 
+ * @author Jonas Partner
  */
 public class RunnableProxyingMethodInterceptor implements MethodInterceptor {
 
 	private final ErrorHandler errorHandler;
 
+
 	public RunnableProxyingMethodInterceptor(ErrorHandler errorHandler) {
 		this.errorHandler = errorHandler;
 	}
 
+
 	public Object invoke(MethodInvocation invocation) throws Throwable {
 		Runnable runnable = (Runnable) invocation.getArguments()[0];
-		invocation.getArguments()[0] = new ErrorHandlingRunnabelWrapper(runnable, errorHandler);
+		invocation.getArguments()[0] = new ErrorHandlingRunnableWrapper(runnable, errorHandler);
 		return invocation.proceed();
 	}
 
-	private static class ErrorHandlingRunnabelWrapper implements Runnable {
+
+	private static class ErrorHandlingRunnableWrapper implements Runnable {
 
 		private final ErrorHandler errorHandler;
 
 		private final Runnable runnableTarget;
 
-		public ErrorHandlingRunnabelWrapper(Runnable runnableTarget, ErrorHandler errorHandler) {
+		public ErrorHandlingRunnableWrapper(Runnable runnableTarget, ErrorHandler errorHandler) {
 			this.runnableTarget = runnableTarget;
 			this.errorHandler = errorHandler;
 		}
