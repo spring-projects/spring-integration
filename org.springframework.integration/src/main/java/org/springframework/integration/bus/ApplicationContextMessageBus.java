@@ -158,7 +158,7 @@ public class ApplicationContextMessageBus implements MessageBus, ChannelResolver
 		}
 	}
 
-	public void deactivateEndpoint(MessageEndpoint endpoint) {
+	private void deactivateEndpoint(MessageEndpoint endpoint) {
 		Assert.notNull(endpoint, "'endpoint' must not be null");
 		if (endpoint instanceof Lifecycle) {
 			((Lifecycle) endpoint).stop();
