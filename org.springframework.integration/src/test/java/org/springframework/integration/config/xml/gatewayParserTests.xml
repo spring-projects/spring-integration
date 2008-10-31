@@ -29,6 +29,7 @@
 	<gateway id="requestReply"
 	         service-interface="org.springframework.integration.gateway.TestService"
 	         default-request-channel="requestChannel"
-	         default-reply-channel="replyChannel"/>
+	         default-reply-channel="replyChannel"
+	         default-reply-timeout="5000"/>
 
 </beans:beans>

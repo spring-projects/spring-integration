@@ -24,6 +24,7 @@
 		<beans:property name="serviceInterface" value="org.springframework.integration.gateway.TestService"/>
 		<beans:property name="defaultRequestChannel" ref="requestChannel"/>
 		<beans:property name="defaultReplyChannel" ref="replyChannel"/>
+		<beans:property name="defaultReplyTimeout" value="5000"/>
 	</beans:bean>
 
 	<beans:bean id="handler" class="org.springframework.integration.gateway.TestHandler"/>
