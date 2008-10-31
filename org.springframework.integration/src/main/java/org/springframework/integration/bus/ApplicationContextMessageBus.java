@@ -50,7 +50,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class ApplicationContextMessageBus implements MessageBus, ChannelResolver, ApplicationContextAware, ApplicationListener, DisposableBean {
+public class ApplicationContextMessageBus implements Lifecycle, ChannelResolver, ApplicationContextAware, ApplicationListener, DisposableBean {
 
 	public static final String ERROR_CHANNEL_BEAN_NAME = "errorChannel";
 

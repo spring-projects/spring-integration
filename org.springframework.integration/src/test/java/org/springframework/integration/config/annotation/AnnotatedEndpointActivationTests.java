@@ -28,7 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.integration.bus.MessageBus;
+import org.springframework.integration.bus.ApplicationContextMessageBus;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -55,7 +55,7 @@ public class AnnotatedEndpointActivationTests {
 	private PollableChannel output;
 
 	@Autowired
-	private MessageBus messageBus;
+	private ApplicationContextMessageBus messageBus;
 
 	// This has to be static because the MessageBus registers the handler
 	// more than once (every time a test instance is created), but only one of

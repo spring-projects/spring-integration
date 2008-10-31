@@ -27,12 +27,12 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.Lifecycle;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.integration.bus.ApplicationContextMessageBus;
-import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.bus.MessageBusEventTests.TestMessageBusListener;
 import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.core.MessageChannel;
@@ -94,7 +94,7 @@ public class MessageBusParserTests {
 	public void testAutoStartup() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageBusWithAutoStartup.xml", this.getClass());
-		MessageBus bus = (MessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
+		Lifecycle bus = (Lifecycle) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		assertTrue(bus.isRunning());
 		bus.stop();
 	}
@@ -138,7 +138,7 @@ public class MessageBusParserTests {
 	public void testMessageBusEventListenerReceivesStartedEvent() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageBusWithListener.xml", this.getClass());
-		MessageBus messageBus = (MessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
+		Lifecycle messageBus = (Lifecycle) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		TestMessageBusListener listener = (TestMessageBusListener) context.getBean("listener");
 		assertNull(listener.getStartedBus());
 		assertNull(listener.getStoppedBus());
@@ -152,7 +152,7 @@ public class MessageBusParserTests {
 	public void testMessageBusEventListenerReceivesStoppedEvent() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageBusWithListener.xml", this.getClass());
-		MessageBus messageBus = (MessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
+		Lifecycle messageBus = (Lifecycle) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		TestMessageBusListener listener = (TestMessageBusListener) context.getBean("listener");
 		assertNull(listener.getStoppedBus());
 		messageBus.start();
@@ -165,7 +165,7 @@ public class MessageBusParserTests {
 	public void testMessageBusWithTaskScheduler() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageBusWithTaskScheduler.xml", this.getClass());
-		MessageBus messageBus = (MessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
+		Object messageBus = context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		StubTaskScheduler schedulerBean = (StubTaskScheduler) context.getBean("testScheduler");
 		TaskScheduler busScheduler = (TaskScheduler) new DirectFieldAccessor(messageBus).getPropertyValue("taskScheduler");
 		assertNotNull(busScheduler);

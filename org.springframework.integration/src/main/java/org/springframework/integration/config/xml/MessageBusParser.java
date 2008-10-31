@@ -34,7 +34,6 @@ import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.bus.ApplicationContextMessageBus;
-import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
@@ -68,7 +67,7 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
 			throws BeanDefinitionStoreException {
 		Assert.state(!parserContext.getRegistry().containsBeanDefinition(MESSAGE_BUS_BEAN_NAME),
-				"Only one instance of '" + MessageBus.class.getSimpleName() + "' is allowed per ApplicationContext.");
+				"Only one Message Bus is allowed per ApplicationContext.");
 		return MESSAGE_BUS_BEAN_NAME;
 	}
 

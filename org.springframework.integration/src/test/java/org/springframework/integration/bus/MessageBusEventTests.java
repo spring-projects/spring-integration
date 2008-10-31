@@ -74,25 +74,25 @@ public class MessageBusEventTests {
 
 	public static class TestMessageBusListener implements ApplicationListener {
 
-		private volatile MessageBus startedBus;
+		private volatile ApplicationContextMessageBus startedBus;
 
-		private volatile MessageBus stoppedBus;
+		private volatile ApplicationContextMessageBus stoppedBus;
 
 
-		public MessageBus getStartedBus() {
+		public ApplicationContextMessageBus getStartedBus() {
 			return this.startedBus;
 		}
 
-		public MessageBus getStoppedBus() {
+		public ApplicationContextMessageBus getStoppedBus() {
 			return this.stoppedBus;
 		}
 
 		public void onApplicationEvent(ApplicationEvent event) {
 			if (event instanceof MessageBusStartedEvent) {
-				this.startedBus = (MessageBus) event.getSource();
+				this.startedBus = (ApplicationContextMessageBus) event.getSource();
 			}
 			if (event instanceof MessageBusStoppedEvent) {
-				this.stoppedBus = (MessageBus) event.getSource();
+				this.stoppedBus = (ApplicationContextMessageBus) event.getSource();
 			}
 		}
 	}

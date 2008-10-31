@@ -4,8 +4,8 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
 
-	<bean id="bus1" class="org.springframework.integration.bus.MessageBus"/>
+	<bean id="bus1" class="org.springframework.integration.bus.ApplicationContextMessageBus"/>
 
-	<bean id="bus2" class="org.springframework.integration.bus.MessageBus"/>
+	<bean id="bus2" class="org.springframework.integration.bus.ApplicationContextMessageBus"/>
 
 </beans>

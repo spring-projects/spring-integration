@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.context.Lifecycle;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
@@ -118,7 +119,7 @@ public class ApplicationContextMessageBusTests {
 		PollableChannel sourceChannel = (PollableChannel) context.getBean("sourceChannel");
 		sourceChannel.send(new GenericMessage<String>("test"));		
 		PollableChannel targetChannel = (PollableChannel) context.getBean("targetChannel");
-		MessageBus bus = (MessageBus) context.getBean("bus");
+		Lifecycle bus = (Lifecycle) context.getBean("bus");
 		bus.start();
 		Message<?> result = targetChannel.receive(1000);
 		assertEquals("test", result.getPayload());
