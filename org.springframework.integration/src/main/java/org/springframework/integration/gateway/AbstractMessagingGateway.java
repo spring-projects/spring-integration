@@ -16,8 +16,7 @@
 
 package org.springframework.integration.gateway;
 
-import org.springframework.integration.bus.MessageBus;
-import org.springframework.integration.bus.MessageBusAware;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
@@ -33,6 +32,8 @@ import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.scheduling.TaskScheduler;
+import org.springframework.integration.scheduling.TaskSchedulerAware;
 import org.springframework.util.Assert;
 
 /**
@@ -43,7 +44,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractMessagingGateway implements MessagingGateway, MessageEndpoint, MessageBusAware {
+public abstract class AbstractMessagingGateway implements MessagingGateway, MessageEndpoint, TaskSchedulerAware, Lifecycle {
 
 	private volatile MessageChannel requestChannel;
 
@@ -53,11 +54,15 @@ public abstract class AbstractMessagingGateway implements MessagingGateway, Mess
 
 	private volatile boolean shouldThrowErrors = true;
 
+	private volatile TaskScheduler taskScheduler;
+
 	private volatile MessageEndpoint replyMessageCorrelator;
 
-	private volatile MessageBus messageBus;
-
 	private final Object replyMessageCorrelatorMonitor = new Object();
+
+	private volatile boolean running;
+
+	private final Object lifecycleMonitor = new Object();
 
 
 	/**
@@ -109,8 +114,8 @@ public abstract class AbstractMessagingGateway implements MessagingGateway, Mess
 		this.shouldThrowErrors = shouldThrowErrors;
 	}
 
-	public void setMessageBus(MessageBus messageBus) {
-		this.messageBus = messageBus;
+	public void setTaskScheduler(TaskScheduler taskScheduler) {
+		this.taskScheduler = taskScheduler;
 	}
 
 	public void send(Object object) {
@@ -172,7 +177,6 @@ public abstract class AbstractMessagingGateway implements MessagingGateway, Mess
 			if (this.replyMessageCorrelator != null) {
 				return;
 			}
-			Assert.state(this.messageBus != null, "No MessageBus available. Cannot register reply correlator.");
 			MessageEndpoint correlator = null;
 			MessageConsumer consumer = new AbstractReplyProducingMessageConsumer() {
 				@Override
@@ -188,10 +192,35 @@ public abstract class AbstractMessagingGateway implements MessagingGateway, Mess
 				PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(
 						consumer, (PollableChannel) this.replyChannel);
 				endpoint.afterPropertiesSet();
+				endpoint.setTaskScheduler(this.taskScheduler);
 				correlator = endpoint;
 			}
-			this.messageBus.registerEndpoint(correlator);
+			if (this.isRunning() && correlator instanceof Lifecycle) {
+				((Lifecycle) correlator).start();
+			}
 			this.replyMessageCorrelator = correlator;
+		}
+	}
+
+	public boolean isRunning() {
+		return this.running;
+	}
+
+	public void start() {
+		synchronized (this.lifecycleMonitor) {
+			if (this.replyMessageCorrelator != null && this.replyMessageCorrelator instanceof Lifecycle) {
+				((Lifecycle) this.replyMessageCorrelator).start();
+			}
+			this.running = true;
+		}
+	}
+
+	public void stop() {
+		synchronized (this.lifecycleMonitor) {
+			if (this.replyMessageCorrelator != null && this.replyMessageCorrelator instanceof Lifecycle) {
+				((Lifecycle) this.replyMessageCorrelator).stop();
+			}
+			this.running = false;
 		}
 	}
 
