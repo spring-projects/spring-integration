@@ -100,19 +100,6 @@ public class ApplicationContextMessageBus implements MessageBus, ChannelResolver
 		return this.channelResolver.resolveChannelName(channelName);
 	}
 
-	public void registerEndpoint(MessageEndpoint endpoint) {
-		Assert.notNull(endpoint, "'endpoint' must not be null");
-		if (!this.endpoints.contains(endpoint)) {
-			this.endpoints.add(endpoint);
-		}
-		if (this.isRunning()) {
-			this.activateEndpoint(endpoint);
-		}
-		if (logger.isInfoEnabled()) {
-			logger.info("registered endpoint '" + endpoint + "'");
-		}
-	}
-
 	private Collection<MessageEndpoint> getEndpoints() {
 		GenericBeanFactoryAccessor accessor = new GenericBeanFactoryAccessor(this.applicationContext);
 		this.endpoints.addAll(accessor.getBeansOfType(MessageEndpoint.class).values());

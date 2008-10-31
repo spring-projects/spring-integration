@@ -30,7 +30,7 @@ public class MessageBusStoppedEvent extends ApplicationEvent {
 	 * @param source the <code>MessageBus</code> that has been stopped
 	 * (must not be <code>null</code>)
 	 */
-	public MessageBusStoppedEvent(MessageBus source) {
+	public MessageBusStoppedEvent(Object source) {
 		super(source);
 	}
 

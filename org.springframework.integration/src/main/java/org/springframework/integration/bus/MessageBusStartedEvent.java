@@ -30,7 +30,7 @@ public class MessageBusStartedEvent extends ApplicationEvent {
 	 * @param source the <code>MessageBus</code> that has been started
 	 * (must not be <code>null</code>)
 	 */
-	public MessageBusStartedEvent(MessageBus source) {
+	public MessageBusStartedEvent(Object source) {
 		super(source);
 	}
 
