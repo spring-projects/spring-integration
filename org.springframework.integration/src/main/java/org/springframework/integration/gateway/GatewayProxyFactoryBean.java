@@ -32,8 +32,8 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.annotation.Gateway;
-import org.springframework.integration.bus.MessageBus;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.PollableChannel;
@@ -42,6 +42,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.MessagingGateway;
 import org.springframework.integration.message.MethodParameterMessageMapper;
+import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -52,7 +53,8 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class GatewayProxyFactoryBean implements FactoryBean, MethodInterceptor, InitializingBean, BeanClassLoaderAware, BeanFactoryAware {
+public class GatewayProxyFactoryBean implements FactoryBean, MethodInterceptor, BeanClassLoaderAware, BeanFactoryAware,
+		InitializingBean, Lifecycle {
 
 	private volatile Class<?> serviceInterface;
 
@@ -72,13 +74,17 @@ public class GatewayProxyFactoryBean implements FactoryBean, MethodInterceptor, 
 
 	private final Map<Method, MessagingGateway> gatewayMap = new HashMap<Method, MessagingGateway>();
 
-	private volatile MessageBus messageBus;
+	private volatile TaskScheduler taskScheduler;
 
-	private ChannelResolver channelResolver;
+	private volatile ChannelResolver channelResolver;
 
 	private volatile boolean initialized;
 
+	private volatile boolean running;
+
 	private final Object initializationMonitor = new Object();
+
+	private final Object lifecycleMonitor = new Object();
 
 
 	public void setServiceInterface(Class<?> serviceInterface) {
@@ -140,7 +146,7 @@ public class GatewayProxyFactoryBean implements FactoryBean, MethodInterceptor, 
 	}
 
 	public void setBeanFactory(BeanFactory beanFactory) {
-		this.messageBus = (MessageBus) beanFactory.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
+		this.taskScheduler = (TaskScheduler) beanFactory.getBean(MessageBusParser.TASK_SCHEDULER_BEAN_NAME);
 		this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 	}
 
@@ -158,6 +164,7 @@ public class GatewayProxyFactoryBean implements FactoryBean, MethodInterceptor, 
 				this.gatewayMap.put(method, gateway);
 			}
 			this.serviceProxy = new ProxyFactory(this.serviceInterface, this).getProxy(this.beanClassLoader);
+			this.start();
 			this.initialized = true;
 		}
 	}
@@ -220,14 +227,14 @@ public class GatewayProxyFactoryBean implements FactoryBean, MethodInterceptor, 
 	private MessagingGateway createGatewayForMethod(Method method) throws Exception {
 		SimpleMessagingGateway gateway = new SimpleMessagingGateway(
 				new MethodParameterMessageMapper(method), new SimpleMessageMapper());
-		gateway.setMessageBus(this.messageBus);
+		gateway.setTaskScheduler(this.taskScheduler);
 		Gateway gatewayAnnotation = method.getAnnotation(Gateway.class);
 		MessageChannel requestChannel = this.defaultRequestChannel;
 		MessageChannel replyChannel = this.defaultReplyChannel;
 		long requestTimeout = this.defaultRequestTimeout;
 		long replyTimeout = this.defaultReplyTimeout;
 		if (gatewayAnnotation != null) {
-			Assert.state(this.messageBus != null, "MessageBus is required for channel resolution");
+			Assert.state(this.channelResolver != null, "ChannelResolver is required");
 			String requestChannelName = gatewayAnnotation.requestChannel();
 			if (StringUtils.hasText(requestChannelName)) {
 				requestChannel = this.channelResolver.resolveChannelName(requestChannelName);
@@ -246,6 +253,38 @@ public class GatewayProxyFactoryBean implements FactoryBean, MethodInterceptor, 
 		gateway.setRequestTimeout(requestTimeout);
 		gateway.setReplyTimeout(replyTimeout);
 		return gateway;
+	}
+
+	// Lifecycle implementation
+
+	public boolean isRunning() {
+		return this.running;
+	}
+
+	public void start() {
+		synchronized (this.lifecycleMonitor) {
+			if (!this.running) {
+				for (MessagingGateway gateway : this.gatewayMap.values()) {
+					if (gateway instanceof Lifecycle) {
+						((Lifecycle) gateway).start();
+					}
+				}
+				this.running = true;
+			}
+		}
+	}
+
+	public void stop() {
+		synchronized (this.lifecycleMonitor) {
+			if (this.running) {
+				for (MessagingGateway gateway : this.gatewayMap.values()) {
+					if (gateway instanceof Lifecycle) {
+						((Lifecycle) gateway).stop();
+					}
+				}
+				this.running = false;
+			}
+		}
 	}
 
 }
