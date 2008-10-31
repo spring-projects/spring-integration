@@ -104,7 +104,8 @@ public class DirectChannelSubscriptionTests {
 		};
 		consumer.setOutputChannel(targetChannel);
 		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(consumer, sourceChannel);
-		bus.registerEndpoint(endpoint);
+		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
+		bus.setApplicationContext(context);
 		context.refresh();
 		bus.start();
 		this.sourceChannel.send(new StringMessage("foo"));
