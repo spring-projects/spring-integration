@@ -267,7 +267,7 @@ public class CronSequenceGenerator {
 		int[] result = new int[2];
 		if (field.contains("*")) {
 			result[0] = 0;
-			result[1] = max - 1;
+			result[1] = max;
 			return result;
 		}
 		if (!field.contains("-")) {
