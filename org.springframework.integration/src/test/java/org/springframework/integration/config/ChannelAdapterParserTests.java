@@ -23,7 +23,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import org.springframework.integration.bus.MessageBus;
+import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolutionException;
 import org.springframework.integration.channel.DirectChannel;
@@ -48,7 +48,7 @@ public class ChannelAdapterParserTests extends AbstractJUnit4SpringContextTests 
 		String beanName = "outboundWithImplicitChannel";
 		Object channel = this.applicationContext.getBean(beanName);
 		assertTrue(channel instanceof DirectChannel);
-		MessageBus bus = (MessageBus) this.applicationContext.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
+		Lifecycle bus = (Lifecycle) this.applicationContext.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		bus.start();
 		BeanFactoryChannelResolver channelResolver = new BeanFactoryChannelResolver(this.applicationContext);
 		assertNotNull(channelResolver.resolveChannelName(beanName));
@@ -69,7 +69,7 @@ public class ChannelAdapterParserTests extends AbstractJUnit4SpringContextTests 
 		String beanName = "methodInvokingConsumer";
 		Object channel = this.applicationContext.getBean(beanName);
 		assertTrue(channel instanceof DirectChannel);
-		MessageBus bus = (MessageBus) this.applicationContext.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
+		Lifecycle bus = (Lifecycle) this.applicationContext.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		bus.start();
 		BeanFactoryChannelResolver channelResolver = new BeanFactoryChannelResolver(this.applicationContext);
 		assertNotNull(channelResolver.resolveChannelName(beanName));
@@ -89,7 +89,7 @@ public class ChannelAdapterParserTests extends AbstractJUnit4SpringContextTests 
 	public void methodInvokingSource() {
 		String beanName = "methodInvokingSource";
 		PollableChannel channel =  (PollableChannel) this.applicationContext.getBean("queueChannel");
-		MessageBus bus = (MessageBus) this.applicationContext.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
+		Lifecycle bus = (Lifecycle) this.applicationContext.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		bus.start();
 		Object adapter = this.applicationContext.getBean(beanName);
 		assertNotNull(adapter);
