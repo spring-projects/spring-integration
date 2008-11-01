@@ -22,6 +22,7 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.splitter.MethodInvokingSplitter;
+import org.springframework.util.StringUtils;
 
 /**
  * Post-processor for Methods annotated with {@link Splitter @Splitter}.
@@ -37,7 +38,12 @@ public class SplitterAnnotationPostProcessor extends AbstractMethodAnnotationPos
 
 	@Override
 	protected MessageConsumer createConsumer(Object bean, Method method, Splitter annotation) {
-		return new MethodInvokingSplitter(bean, method);
+		MethodInvokingSplitter splitter = new MethodInvokingSplitter(bean, method);
+		String outputChannelName = annotation.outputChannel();
+		if (StringUtils.hasText(outputChannelName)) {
+			splitter.setOutputChannel(this.channelResolver.resolveChannelName(outputChannelName));
+		}
+		return splitter;
 	}
 
 }

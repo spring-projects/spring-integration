@@ -22,6 +22,7 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.consumer.ServiceActivatingConsumer;
 import org.springframework.integration.message.MessageConsumer;
+import org.springframework.util.StringUtils;
 
 /**
  * Post-processor for Methods annotated with {@link ServiceActivator @ServiceActivator}.
@@ -37,7 +38,12 @@ public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnot
 
 	@Override
 	protected MessageConsumer createConsumer(Object bean, Method method, ServiceActivator annotation) {
-		return new ServiceActivatingConsumer(bean, method);
+		ServiceActivatingConsumer serviceActivator = new ServiceActivatingConsumer(bean, method);
+		String outputChannelName = annotation.outputChannel();
+		if (StringUtils.hasText(outputChannelName)) {
+			serviceActivator.setOutputChannel(this.channelResolver.resolveChannelName(outputChannelName));
+		}
+		return serviceActivator;
 	}
 
 }

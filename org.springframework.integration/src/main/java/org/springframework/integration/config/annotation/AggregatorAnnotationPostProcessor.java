@@ -54,6 +54,10 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 			Assert.notNull(discardChannel, "failed to resolve discardChannel '" + discardChannelName + "'");
 			aggregator.setDiscardChannel(discardChannel);
 		}
+		String outputChannelName = annotation.outputChannel();
+		if (StringUtils.hasText(outputChannelName)) {
+			aggregator.setOutputChannel(this.channelResolver.resolveChannelName(outputChannelName));
+		}
 		aggregator.setSendTimeout(annotation.sendTimeout());
 		aggregator.setSendPartialResultOnTimeout(annotation.sendPartialResultsOnTimeout());
 		aggregator.setReaperInterval(annotation.reaperInterval());

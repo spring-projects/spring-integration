@@ -23,6 +23,7 @@ import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.transformer.MethodInvokingTransformer;
 import org.springframework.integration.transformer.MessageTransformingConsumer;
+import org.springframework.util.StringUtils;
 
 /**
  * Post-processor for Methods annotated with {@link Transformer @Transformer}.
@@ -39,7 +40,12 @@ public class TransformerAnnotationPostProcessor extends AbstractMethodAnnotation
 	@Override
 	protected MessageConsumer createConsumer(Object bean, Method method, Transformer annotation) {
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(bean, method);
-		return new MessageTransformingConsumer(transformer);
+		MessageTransformingConsumer consumer = new MessageTransformingConsumer(transformer);
+		String outputChannelName = annotation.outputChannel();
+		if (StringUtils.hasText(outputChannelName)) {
+			consumer.setOutputChannel(this.channelResolver.resolveChannelName(outputChannelName));
+		}
+		return consumer;
 	}
 
 }

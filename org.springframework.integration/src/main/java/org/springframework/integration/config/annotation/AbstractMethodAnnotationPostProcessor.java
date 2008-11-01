@@ -34,7 +34,6 @@ import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.PollingConsumerEndpoint;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.message.MessageConsumer;
-import org.springframework.integration.message.MessageProducer;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -46,8 +45,6 @@ import org.springframework.util.StringUtils;
 public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation> implements MethodAnnotationPostProcessor<T> {
 
 	private static final String INPUT_CHANNEL_ATTRIBUTE = "inputChannel";
-
-	private static final String OUTPUT_CHANNEL_ATTRIBUTE = "outputChannel";
 
 
 	protected final GenericBeanFactoryAccessor beanFactoryAccessor;
@@ -107,14 +104,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			}
 			else {
 				throw new IllegalArgumentException("unsupported channel type: [" + inputChannel.getClass() + "]");
-			}
-			if (consumer instanceof MessageProducer) {
-				String outputChannelName = (String) AnnotationUtils.getValue(annotation, OUTPUT_CHANNEL_ATTRIBUTE);
-				if (StringUtils.hasText(outputChannelName)) {
-					MessageChannel outputChannel = this.channelResolver.resolveChannelName(outputChannelName);
-					Assert.notNull(outputChannel, "unable to resolve outputChannel '" + outputChannelName + "'");
-					((MessageProducer) consumer).setOutputChannel(outputChannel);
-				}
 			}
 			if (consumer instanceof BeanFactoryAware) {
 				((BeanFactoryAware) consumer).setBeanFactory(this.beanFactoryAccessor.getBeanFactory());
