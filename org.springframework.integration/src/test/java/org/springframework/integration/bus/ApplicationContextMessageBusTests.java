@@ -19,7 +19,6 @@ package org.springframework.integration.bus;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
@@ -32,7 +31,6 @@ import org.springframework.context.Lifecycle;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.channel.ChannelResolutionException;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.channel.PollableChannel;
@@ -42,7 +40,6 @@ import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.consumer.AbstractReplyProducingMessageConsumer;
 import org.springframework.integration.consumer.ReplyMessageHolder;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.PollingConsumerEndpoint;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
@@ -275,27 +272,6 @@ public class ApplicationContextMessageBusTests {
 		errorChannel.send(new ErrorMessage(new RuntimeException("test-exception")));
 		latch.await(1000, TimeUnit.MILLISECONDS);
 		assertEquals("handler should have received error message", 0, latch.getCount());
-	}
-
-	@Test
-	public void lookupRegisteredChannel() {
-		GenericApplicationContext context = new GenericApplicationContext();
-		QueueChannel testChannel = new QueueChannel();
-		testChannel.setBeanName("testChannel");
-		context.getBeanFactory().registerSingleton("testChannel", testChannel);
-		ApplicationContextMessageBus messageBus = new ApplicationContextMessageBus();
-		messageBus.setApplicationContext(context);
-		MessageChannel lookedUpChannel = messageBus.resolveChannelName("testChannel");
-		assertNotNull(testChannel);
-		assertSame(testChannel, lookedUpChannel);
-	}
-
-	@Test(expected = ChannelResolutionException.class)
-	public void lookupNonRegisteredChannel() {
-		GenericApplicationContext context = new GenericApplicationContext();
-		ApplicationContextMessageBus messageBus = new ApplicationContextMessageBus();
-		messageBus.setApplicationContext(context);
-		messageBus.resolveChannelName("noSuchChannel");
 	}
 
 

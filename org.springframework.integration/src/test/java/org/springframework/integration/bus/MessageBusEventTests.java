@@ -38,12 +38,12 @@ public class MessageBusEventTests {
 	@Test
 	public void messageBusStartedEvent() {
 		GenericApplicationContext context = new GenericApplicationContext();
-		context.registerBeanDefinition("listener", new RootBeanDefinition(TestMessageBusListener.class));
+		context.registerBeanDefinition("listener", new RootBeanDefinition(TestMessageBusEventListener.class));
 		ApplicationContextMessageBus messageBus = new ApplicationContextMessageBus();
 		messageBus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		messageBus.setApplicationContext(context);
 		context.getBeanFactory().registerSingleton(MessageBusParser.MESSAGE_BUS_BEAN_NAME, messageBus);
-		TestMessageBusListener listener = (TestMessageBusListener) context.getBean("listener");
+		TestMessageBusEventListener listener = (TestMessageBusEventListener) context.getBean("listener");
 		assertNull(listener.startedBus);
 		assertNull(listener.stoppedBus);
 		context.refresh(); // bus will start
@@ -55,12 +55,12 @@ public class MessageBusEventTests {
 	@Test
 	public void messageBusStoppedEvent() {
 		GenericApplicationContext context = new GenericApplicationContext();
-		context.registerBeanDefinition("listener", new RootBeanDefinition(TestMessageBusListener.class));
+		context.registerBeanDefinition("listener", new RootBeanDefinition(TestMessageBusEventListener.class));
 		ApplicationContextMessageBus messageBus = new ApplicationContextMessageBus();
 		messageBus.setTaskScheduler(TestUtils.createTaskScheduler(10));
 		messageBus.setApplicationContext(context);
 		context.getBeanFactory().registerSingleton(MessageBusParser.MESSAGE_BUS_BEAN_NAME, messageBus);
-		TestMessageBusListener listener = (TestMessageBusListener) context.getBean("listener");
+		TestMessageBusEventListener listener = (TestMessageBusEventListener) context.getBean("listener");
 		assertNull(listener.startedBus);
 		assertNull(listener.stoppedBus);
 		context.refresh();
@@ -72,7 +72,7 @@ public class MessageBusEventTests {
 	}
 
 
-	public static class TestMessageBusListener implements ApplicationListener {
+	public static class TestMessageBusEventListener implements ApplicationListener {
 
 		private volatile ApplicationContextMessageBus startedBus;
 

@@ -32,9 +32,6 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.integration.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.channel.ChannelResolver;
-import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.integration.scheduling.TaskSchedulerAware;
@@ -50,7 +47,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class ApplicationContextMessageBus implements Lifecycle, ChannelResolver, ApplicationContextAware, ApplicationListener, DisposableBean {
+public class ApplicationContextMessageBus implements ApplicationContextAware, ApplicationListener, Lifecycle, DisposableBean {
 
 	public static final String ERROR_CHANNEL_BEAN_NAME = "errorChannel";
 
@@ -62,8 +59,6 @@ public class ApplicationContextMessageBus implements Lifecycle, ChannelResolver,
 	private volatile TaskScheduler taskScheduler;
 
 	private volatile ApplicationContext applicationContext;
-
-	private volatile ChannelResolver channelResolver;
 
 	private volatile boolean autoStartup = true;
 
@@ -77,7 +72,6 @@ public class ApplicationContextMessageBus implements Lifecycle, ChannelResolver,
 		Assert.state(!(applicationContext.getBeanNamesForType(this.getClass()).length > 1),
 				"Only one instance of '" + this.getClass().getSimpleName() + "' is allowed per ApplicationContext.");
 		this.applicationContext = applicationContext;
-		this.channelResolver = new BeanFactoryChannelResolver(applicationContext);
 	}
 
 	/**
@@ -94,10 +88,6 @@ public class ApplicationContextMessageBus implements Lifecycle, ChannelResolver,
 	 */
 	public void setAutoStartup(boolean autoStartup) {
 		this.autoStartup = autoStartup;
-	}
-
-	public MessageChannel resolveChannelName(String channelName) {
-		return this.channelResolver.resolveChannelName(channelName);
 	}
 
 	private Collection<MessageEndpoint> getEndpoints() {

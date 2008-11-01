@@ -32,10 +32,9 @@ import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.task.SyncTaskExecutor;
-import org.springframework.integration.bus.ApplicationContextMessageBus;
-import org.springframework.integration.bus.MessageBusEventTests.TestMessageBusListener;
+import org.springframework.integration.bus.MessageBusEventTests.TestMessageBusEventListener;
+import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.config.xml.MessageBusParser;
-import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -49,18 +48,16 @@ public class MessageBusParserTests {
 	public void testErrorChannelReference() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageBusWithErrorChannel.xml", this.getClass());
-		ApplicationContextMessageBus bus = (ApplicationContextMessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
-		MessageChannel channel = bus.resolveChannelName(ApplicationContextMessageBus.ERROR_CHANNEL_BEAN_NAME);
-		assertEquals(context.getBean("errorChannel"), channel);
+		BeanFactoryChannelResolver resolver = new BeanFactoryChannelResolver(context);
+		assertEquals(context.getBean("errorChannel"), resolver.resolveChannelName("errorChannel"));
 	}
 
 	@Test
 	public void testDefaultErrorChannel() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageBusWithDefaults.xml", this.getClass());
-		ApplicationContextMessageBus bus = (ApplicationContextMessageBus) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
-		assertNotNull("parser should have created a default error channel",
-				bus.resolveChannelName(ApplicationContextMessageBus.ERROR_CHANNEL_BEAN_NAME));
+		BeanFactoryChannelResolver resolver = new BeanFactoryChannelResolver(context);
+		assertEquals(context.getBean("errorChannel"), resolver.resolveChannelName("errorChannel"));
 	}
 
 	@Test
@@ -139,7 +136,7 @@ public class MessageBusParserTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageBusWithListener.xml", this.getClass());
 		Lifecycle messageBus = (Lifecycle) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
-		TestMessageBusListener listener = (TestMessageBusListener) context.getBean("listener");
+		TestMessageBusEventListener listener = (TestMessageBusEventListener) context.getBean("listener");
 		assertNull(listener.getStartedBus());
 		assertNull(listener.getStoppedBus());
 		messageBus.start();
@@ -153,7 +150,7 @@ public class MessageBusParserTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"messageBusWithListener.xml", this.getClass());
 		Lifecycle messageBus = (Lifecycle) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
-		TestMessageBusListener listener = (TestMessageBusListener) context.getBean("listener");
+		TestMessageBusEventListener listener = (TestMessageBusEventListener) context.getBean("listener");
 		assertNull(listener.getStoppedBus());
 		messageBus.start();
 		messageBus.stop();

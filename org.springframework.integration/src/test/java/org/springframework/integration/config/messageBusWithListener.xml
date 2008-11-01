@@ -9,6 +9,6 @@
 
 	<message-bus auto-startup="false"/>
 
-	<beans:bean id="listener" class="org.springframework.integration.bus.MessageBusEventTests$TestMessageBusListener"/>
+	<beans:bean id="listener" class="org.springframework.integration.bus.MessageBusEventTests$TestMessageBusEventListener"/>
 
 </beans:beans>
