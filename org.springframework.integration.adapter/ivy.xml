@@ -21,7 +21,7 @@
 
 	<dependencies>
 		<dependency org="org.junit" name="com.springsource.org.junit" rev="4.4.0" conf="test->runtime"/>
-		<dependency org="org.springframework" name="org.springframework.context.support" rev="2.5.5.A" conf="compile->runtime"/>
+		<dependency org="org.springframework" name="org.springframework.context.support" rev="2.5.6" conf="compile->runtime"/>
 		<dependency org="org.springframework.integration" name="org.springframework.integration" rev="latest.integration" conf="compile->compile"/>
 	</dependencies>
 
