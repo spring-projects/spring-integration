@@ -66,8 +66,8 @@ public class RunnableProxyingMethodInterceptorTests {
 		List<Throwable> throwables = new ArrayList<Throwable>();
 
 		public void handle(Throwable t) {
-			latch.countDown();
 			throwables.add(t);
+			latch.countDown();
 		}
 	}
 
