@@ -191,8 +191,8 @@ public abstract class AbstractMessagingGateway implements MessagingGateway, Mess
 			else if (this.replyChannel instanceof PollableChannel) {
 				PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(
 						consumer, (PollableChannel) this.replyChannel);
-				endpoint.afterPropertiesSet();
 				endpoint.setTaskScheduler(this.taskScheduler);
+				endpoint.afterPropertiesSet();
 				correlator = endpoint;
 			}
 			if (this.isRunning() && correlator instanceof Lifecycle) {
