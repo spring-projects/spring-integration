@@ -82,7 +82,7 @@
     <para>
       To experiment with these JMS adapters, check out the samples available within the "jms" package of the
       "org.springramework.integration.samples" module (in the distribution). There are two samples included. One
-      provides inbound and outbound Channel Adapters, and the other provided inbound and outbound Gateways. They are
+      provides inbound and outbound Channel Adapters, and the other provides inbound and outbound Gateways. They are
       configured to run with an embedded ActiveMQ process, but the "common.xml" can easily be modified to support
       either a different JMS provider or a standalone ActiveMQ process. In other words, you can split the configuration
       so that the inbound and outbound adapters are running in separate JVMs. If you have ActiveMQ installed, simply
