@@ -17,8 +17,6 @@
 package org.springframework.integration.bus;
 
 import java.util.Collection;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -53,8 +51,6 @@ public class ApplicationContextMessageBus implements ApplicationContextAware, Ap
 
 
 	private final Log logger = LogFactory.getLog(this.getClass());
-
-	private final Set<MessageEndpoint> endpoints = new CopyOnWriteArraySet<MessageEndpoint>();
 
 	private volatile TaskScheduler taskScheduler;
 
@@ -92,8 +88,7 @@ public class ApplicationContextMessageBus implements ApplicationContextAware, Ap
 
 	private Collection<MessageEndpoint> getEndpoints() {
 		GenericBeanFactoryAccessor accessor = new GenericBeanFactoryAccessor(this.applicationContext);
-		this.endpoints.addAll(accessor.getBeansOfType(MessageEndpoint.class).values());
-		return this.endpoints;
+		return accessor.getBeansOfType(MessageEndpoint.class).values();
 	}
 
 	private void activateEndpoints() {
