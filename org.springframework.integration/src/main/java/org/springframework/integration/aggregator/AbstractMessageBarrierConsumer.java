@@ -35,7 +35,6 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageConsumer;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.message.MessageProducer;
 import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.integration.scheduling.TaskSchedulerAware;
@@ -65,8 +64,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public abstract class AbstractMessageBarrierConsumer extends AbstractMessageConsumer implements MessageProducer,
-		TaskSchedulerAware, InitializingBean {
+public abstract class AbstractMessageBarrierConsumer extends AbstractMessageConsumer implements TaskSchedulerAware, InitializingBean {
 
 	public final static long DEFAULT_SEND_TIMEOUT = 1000;
 
@@ -102,6 +100,7 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractMessageCons
 
 	private ScheduledFuture<?> reaperFutureTask;
 
+
 	public AbstractMessageBarrierConsumer() {
 		this.channelTemplate.setSendTimeout(DEFAULT_SEND_TIMEOUT);
 	}
@@ -109,6 +108,7 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractMessageCons
 	public void setOutputChannel(MessageChannel outputChannel) {
 		this.outputChannel = outputChannel;
 	}
+
 
 	/**
 	 * Specify a channel for sending Messages that arrive after their

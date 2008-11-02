@@ -27,7 +27,6 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.message.MessageProducer;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.selector.MessageSelector;
 import org.springframework.util.Assert;
@@ -37,8 +36,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractReplyProducingMessageConsumer extends AbstractMessageConsumer
-		implements MessageProducer, BeanFactoryAware {
+public abstract class AbstractReplyProducingMessageConsumer extends AbstractMessageConsumer implements BeanFactoryAware {
 
 	public static final long DEFAULT_SEND_TIMEOUT = 1000;
 
