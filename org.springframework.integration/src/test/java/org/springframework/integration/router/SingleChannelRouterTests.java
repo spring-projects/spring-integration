@@ -42,7 +42,7 @@ public class SingleChannelRouterTests {
 			}
 		};
 		Message<String> message = new StringMessage("test");
-		router.onMessage(message);
+		router.handleMessage(message);
 		Message<?> result = channel.receive(25);
 		assertNotNull(result);
 		assertEquals("test", result.getPayload());
@@ -61,7 +61,7 @@ public class SingleChannelRouterTests {
 		channelResolver.addChannel(channel);
 		router.setChannelResolver(channelResolver);
 		Message<String> message = new StringMessage("test");
-		router.onMessage(message);
+		router.handleMessage(message);
 		Message<?> result = channel.receive(25);
 		assertNotNull(result);
 		assertEquals("test", result.getPayload());
@@ -75,7 +75,7 @@ public class SingleChannelRouterTests {
 			}
 		};
 		Message<String> message = new StringMessage("test");
-		router.onMessage(message);
+		router.handleMessage(message);
 	}
 
 	@Test(expected = MessagingException.class)
@@ -88,7 +88,7 @@ public class SingleChannelRouterTests {
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		router.setChannelResolver(channelResolver);
 		Message<String> message = new StringMessage("test");
-		router.onMessage(message);
+		router.handleMessage(message);
 	}
 
 }

@@ -57,9 +57,9 @@ public class ResequencerTests {
 		Message<?> message1 = createMessage("123", "ABC", 3, 3, replyChannel);
 		Message<?> message2 = createMessage("456", "ABC", 3, 1, replyChannel);
 		Message<?> message3 = createMessage("789", "ABC", 3, 2, replyChannel);
-		this.resequencer.onMessage(message1);
-		this.resequencer.onMessage(message3);
-		this.resequencer.onMessage(message2);
+		this.resequencer.handleMessage(message1);
+		this.resequencer.handleMessage(message3);
+		this.resequencer.handleMessage(message2);
 		Message<?> reply1 = replyChannel.receive(0);
 		Message<?> reply2 = replyChannel.receive(0);
 		Message<?> reply3 = replyChannel.receive(0);
@@ -79,9 +79,9 @@ public class ResequencerTests {
 		Message<?> message2 = createMessage("456", "ABC", 4, 1, replyChannel);
 		Message<?> message3 = createMessage("789", "ABC", 4, 4, replyChannel);
 		Message<?> message4 = createMessage("XYZ", "ABC", 4, 3, replyChannel);
-		this.resequencer.onMessage(message1);
-		this.resequencer.onMessage(message2);
-		this.resequencer.onMessage(message3);
+		this.resequencer.handleMessage(message1);
+		this.resequencer.handleMessage(message2);
+		this.resequencer.handleMessage(message3);
 		Message<?> reply1 = replyChannel.receive(0);
 		Message<?> reply2 = replyChannel.receive(0);
 		Message<?> reply3 = replyChannel.receive(0);
@@ -92,7 +92,7 @@ public class ResequencerTests {
 		assertEquals(new Integer(2), reply2.getHeaders().getSequenceNumber());
 		assertNull(reply3);
 		// when sending the last message, the whole sequence must have been sent
-		this.resequencer.onMessage(message4);
+		this.resequencer.handleMessage(message4);
 		reply3 = replyChannel.receive(0);
 		Message<?> reply4 = replyChannel.receive(0);
 		assertNotNull(reply3);
@@ -110,9 +110,9 @@ public class ResequencerTests {
 		Message<?> message2 = createMessage("456", "ABC", 4, 1, replyChannel);
 		Message<?> message3 = createMessage("789", "ABC", 4, 4, replyChannel);
 		Message<?> message4 = createMessage("XYZ", "ABC", 4, 3, replyChannel);
-		this.resequencer.onMessage(message1);
-		this.resequencer.onMessage(message2);
-		this.resequencer.onMessage(message3);
+		this.resequencer.handleMessage(message1);
+		this.resequencer.handleMessage(message2);
+		this.resequencer.handleMessage(message3);
 		Message<?> reply1 = replyChannel.receive(0);
 		Message<?> reply2 = replyChannel.receive(0);
 		Message<?> reply3 = replyChannel.receive(0);
@@ -121,7 +121,7 @@ public class ResequencerTests {
 		assertNull(reply2);
 		assertNull(reply3);
 		// after sending the last message, the whole sequence should have been sent
-		this.resequencer.onMessage(message4);
+		this.resequencer.handleMessage(message4);
 		reply1 = replyChannel.receive(0);
 		reply2 = replyChannel.receive(0);
 		reply3 = replyChannel.receive(0);

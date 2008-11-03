@@ -15,7 +15,7 @@
 		</constructor-arg>
 	</bean>
 
-	<bean id="mailSendingMessageConsumer" class="org.springframework.integration.mail.MailSendingMessageConsumer">
+	<bean id="mailSendingMessageConsumer" class="org.springframework.integration.mail.MailSendingMessageHandler">
 		<constructor-arg ref="javaMailSender"/>
 	</bean>
 

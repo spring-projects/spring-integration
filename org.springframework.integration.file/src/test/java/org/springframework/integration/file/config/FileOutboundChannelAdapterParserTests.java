@@ -29,7 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.file.DefaultFileNameGenerator;
-import org.springframework.integration.file.FileWritingMessageConsumer;
+import org.springframework.integration.file.FileWritingMessageHandler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -53,23 +53,23 @@ public class FileOutboundChannelAdapterParserTests {
 	@Test
 	public void simpleAdapter() {
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(simpleAdapter);
-		FileWritingMessageConsumer consumer = (FileWritingMessageConsumer)
-				adapterAccessor.getPropertyValue("consumer");
-		DirectFieldAccessor consumerAccessor = new DirectFieldAccessor(consumer);
+		FileWritingMessageHandler handler = (FileWritingMessageHandler)
+				adapterAccessor.getPropertyValue("handler");
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		assertEquals(System.getProperty("java.io.tmpdir"),
-				((File) consumerAccessor.getPropertyValue("parentDirectory")).getAbsolutePath());
-		assertTrue(consumerAccessor.getPropertyValue("fileNameGenerator") instanceof DefaultFileNameGenerator);
+				((File) handlerAccessor.getPropertyValue("parentDirectory")).getAbsolutePath());
+		assertTrue(handlerAccessor.getPropertyValue("fileNameGenerator") instanceof DefaultFileNameGenerator);
 	}
 
 	@Test
 	public void adapterWithCustomFileNameGenerator() {
 		DirectFieldAccessor adapterAccessor = new DirectFieldAccessor(adapterWithCustomNameGenerator);
-		FileWritingMessageConsumer consumer = (FileWritingMessageConsumer)
-				adapterAccessor.getPropertyValue("consumer");
-		DirectFieldAccessor consumerAccessor = new DirectFieldAccessor(consumer);
+		FileWritingMessageHandler handler = (FileWritingMessageHandler)
+				adapterAccessor.getPropertyValue("handler");
+		DirectFieldAccessor handlerAccessor = new DirectFieldAccessor(handler);
 		assertEquals(System.getProperty("java.io.tmpdir"),
-				((File) consumerAccessor.getPropertyValue("parentDirectory")).getAbsolutePath());
-		assertTrue(consumerAccessor.getPropertyValue("fileNameGenerator") instanceof CustomFileNameGenerator);
+				((File) handlerAccessor.getPropertyValue("parentDirectory")).getAbsolutePath());
+		assertTrue(handlerAccessor.getPropertyValue("fileNameGenerator") instanceof CustomFileNameGenerator);
 	}
 
 }

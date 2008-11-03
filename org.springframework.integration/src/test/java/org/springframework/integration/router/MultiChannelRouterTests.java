@@ -48,7 +48,7 @@ public class MultiChannelRouterTests {
 		channelResolver.addChannel(channel2);
 		router.setChannelResolver(channelResolver);
 		Message<String> message = new StringMessage("test");
-		router.onMessage(message);
+		router.handleMessage(message);
 		Message<?> result1 = channel1.receive(25);
 		assertNotNull(result1);
 		assertEquals("test", result1.getPayload());
@@ -67,7 +67,7 @@ public class MultiChannelRouterTests {
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		router.setChannelResolver(channelResolver);
 		Message<String> message = new StringMessage("test");
-		router.onMessage(message);
+		router.handleMessage(message);
 	}
 
 	@Test(expected = MessagingException.class)
@@ -78,7 +78,7 @@ public class MultiChannelRouterTests {
 			}
 		};
 		Message<String> message = new StringMessage("test");
-		router.onMessage(message);
+		router.handleMessage(message);
 	}
 
 }

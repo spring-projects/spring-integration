@@ -40,11 +40,11 @@ import org.springframework.integration.scheduling.Trigger;
 /**
  * @author Mark Fisher
  */
-public class ByteStreamWritingMessageConsumerTests {
+public class ByteStreamWritingMessageHandlerTests {
 
 	private ByteArrayOutputStream stream;
 
-	private ByteStreamWritingMessageConsumer consumer;
+	private ByteStreamWritingMessageHandler handler;
 
 	private QueueChannel channel;
 
@@ -58,9 +58,9 @@ public class ByteStreamWritingMessageConsumerTests {
 	@Before
 	public void initialize() {
 		stream = new ByteArrayOutputStream();
-		consumer = new ByteStreamWritingMessageConsumer(stream);
+		handler = new ByteStreamWritingMessageHandler(stream);
 		this.channel = new QueueChannel(10);
-		this.endpoint = new PollingConsumerEndpoint(consumer, channel);
+		this.endpoint = new PollingConsumerEndpoint(channel, handler);
 		scheduler = new SimpleTaskScheduler(new SimpleAsyncTaskExecutor());
 		this.endpoint.setTaskScheduler(scheduler);
 		scheduler.start();
@@ -76,7 +76,7 @@ public class ByteStreamWritingMessageConsumerTests {
 
 	@Test
 	public void singleByteArray() {
-		consumer.onMessage(new GenericMessage<byte[]>(new byte[] {1,2,3}));
+		handler.handleMessage(new GenericMessage<byte[]>(new byte[] {1,2,3}));
 		byte[] result = stream.toByteArray();
 		assertEquals(3, result.length);
 		assertEquals(1, result[0]);
@@ -86,7 +86,7 @@ public class ByteStreamWritingMessageConsumerTests {
 
 	@Test
 	public void singleString() {
-		consumer.onMessage(new StringMessage("foo"));
+		handler.handleMessage(new StringMessage("foo"));
 		byte[] result = stream.toByteArray();
 		assertEquals(3, result.length);
 		assertEquals("foo", new String(result));

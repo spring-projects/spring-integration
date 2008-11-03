@@ -18,19 +18,19 @@ package org.springframework.integration.splitter;
 
 import java.util.Collection;
 
-import org.springframework.integration.consumer.AbstractReplyProducingMessageConsumer;
+import org.springframework.integration.consumer.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.consumer.ReplyMessageHolder;
 import org.springframework.integration.core.Message;
 
 /**
- * Base class for Message-splitting consumers.
+ * Base class for Message-splitting handlers.
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractMessageSplitter extends AbstractReplyProducingMessageConsumer {
+public abstract class AbstractMessageSplitter extends AbstractReplyProducingMessageHandler {
 
 	@Override
-	protected final void onMessage(Message<?> message, ReplyMessageHolder replyHolder) {
+	protected final void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
 		Object result = this.splitMessage(message);
 		if (result == null) {
 			return;

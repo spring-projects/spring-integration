@@ -32,11 +32,11 @@ import org.springframework.integration.selector.MessageSelector;
 import org.springframework.util.Assert;
 
 /**
- * Base class for MessageConsumers that are capable of producing replies.
+ * Base class for MessageHandlers that are capable of producing replies.
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractReplyProducingMessageConsumer extends AbstractMessageConsumer implements BeanFactoryAware {
+public abstract class AbstractReplyProducingMessageHandler extends AbstractMessageHandler implements BeanFactoryAware {
 
 	public static final long DEFAULT_SEND_TIMEOUT = 1000;
 
@@ -52,7 +52,7 @@ public abstract class AbstractReplyProducingMessageConsumer extends AbstractMess
 	private final MessageChannelTemplate channelTemplate;
 
 
-	public AbstractReplyProducingMessageConsumer() {
+	public AbstractReplyProducingMessageHandler() {
 		this.channelTemplate = new MessageChannelTemplate();
 		this.channelTemplate.setSendTimeout(DEFAULT_SEND_TIMEOUT);
 	}
@@ -93,15 +93,15 @@ public abstract class AbstractReplyProducingMessageConsumer extends AbstractMess
 	}
 
 	@Override
-	protected final void onMessageInternal(Message<?> message) {
+	protected final void handleMessageInternal(Message<?> message) {
 		if (!this.supports(message)) {
 			throw new MessageRejectedException(message, "unsupported message");
 		}
 		ReplyMessageHolder replyMessageHolder = new ReplyMessageHolder();
-		this.onMessage(message, replyMessageHolder);
+		this.handleRequestMessage(message, replyMessageHolder);
 		if (replyMessageHolder.isEmpty()) {
 			if (this.requiresReply) {
-				throw new MessageHandlingException(message, "consumer '" + this
+				throw new MessageHandlingException(message, "handler '" + this
 						+ "' requires a reply, but no reply was received");
 			}
 			return;
@@ -121,12 +121,12 @@ public abstract class AbstractReplyProducingMessageConsumer extends AbstractMess
 		}
 	}
 
-	protected abstract void onMessage(Message<?> requestMessage, ReplyMessageHolder replyMessageHolder);
+	protected abstract void handleRequestMessage(Message<?> requestMessage, ReplyMessageHolder replyMessageHolder);
 
 	protected boolean supports(Message<?> message) {
 		if (this.selector != null && !this.selector.accept(message)) {
 			if (logger.isDebugEnabled()) {
-				logger.debug("selector for consumer '" + this + "' rejected message: " + message);
+				logger.debug("selector for handler '" + this + "' rejected message: " + message);
 			}
 			return false;
 		}

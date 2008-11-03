@@ -16,20 +16,20 @@
 
 package org.springframework.integration.filter;
 
-import org.springframework.integration.consumer.AbstractReplyProducingMessageConsumer;
+import org.springframework.integration.consumer.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.consumer.ReplyMessageHolder;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.selector.MessageSelector;
 import org.springframework.util.Assert;
 
 /**
- * Message Consumer that delegates to a {@link MessageSelector}. If and only if
+ * Message Handler that delegates to a {@link MessageSelector}. If and only if
  * the selector {@link MessageSelector#accept(Message) accepts} the Message, it
  * will be passed to this filter's output channel.
  * 
  * @author Mark Fisher
  */
-public class MessageFilter extends AbstractReplyProducingMessageConsumer {
+public class MessageFilter extends AbstractReplyProducingMessageHandler {
 
 	private MessageSelector selector;
 
@@ -41,7 +41,7 @@ public class MessageFilter extends AbstractReplyProducingMessageConsumer {
 
 
 	@Override
-	protected void onMessage(Message<?> message, ReplyMessageHolder replyHolder) {
+	protected void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
 		if (this.selector.accept(message)) {
 			replyHolder.set(message);
 		}

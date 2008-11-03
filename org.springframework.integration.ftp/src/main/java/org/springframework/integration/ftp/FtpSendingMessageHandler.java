@@ -24,28 +24,28 @@ import java.io.IOException;
 import org.apache.commons.net.ftp.FTPClient;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.util.Assert;
 
 /**
- * A {@link MessageConsumer} implementation that sends files to an FTP server.
+ * A {@link MessageHandler} implementation that sends files to an FTP server.
  * 
  * @author Iwein Fuld
  * @author Mark Fisher
  */
-public class FtpSendingMessageConsumer implements MessageConsumer {
+public class FtpSendingMessageHandler implements MessageHandler {
 
 	private final FTPClientPool ftpClientPool;
 
 
-	public FtpSendingMessageConsumer(FTPClientPool ftpClientPool) {
+	public FtpSendingMessageHandler(FTPClientPool ftpClientPool) {
 		Assert.notNull(ftpClientPool, "ftpClientPool must not be null");
 		this.ftpClientPool = ftpClientPool;
 	}
 
 
-	public void onMessage(Message<?> message) {
+	public void handleMessage(Message<?> message) {
 		Assert.notNull(message, "message must not be null");
 		Object payload = message.getPayload();
 		Assert.notNull(payload, "message payload must not be null");

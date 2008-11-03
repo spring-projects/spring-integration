@@ -30,10 +30,10 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.channel.MessageChannelTemplate;
-import org.springframework.integration.consumer.AbstractMessageConsumer;
+import org.springframework.integration.consumer.AbstractMessageHandler;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.scheduling.TaskScheduler;
@@ -43,13 +43,13 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
- * Base class for {@link MessageBarrier}-based Message Consumers. A
- * {@link MessageConsumer} implementation that waits for a group of
+ * Base class for {@link MessageBarrier}-based Message Handlers. A
+ * {@link MessageHandler} implementation that waits for a group of
  * {@link Message Messages} to arrive and processes them together. Uses a
  * {@link MessageBarrier} to store messages and to decide how the messages
  * should be released.
  * <p>
- * Each {@link Message} that is received by this consumer will be associated
+ * Each {@link Message} that is received by this handler will be associated
  * with a group based upon the '<code>correlationId</code>' property of its
  * header. If no such property is available, a {@link MessageHandlingException}
  * will be thrown.
@@ -64,7 +64,7 @@ import org.springframework.util.ObjectUtils;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public abstract class AbstractMessageBarrierConsumer extends AbstractMessageConsumer implements TaskSchedulerAware, InitializingBean {
+public abstract class AbstractMessageBarrierHandler extends AbstractMessageHandler implements TaskSchedulerAware, InitializingBean {
 
 	public final static long DEFAULT_SEND_TIMEOUT = 1000;
 
@@ -101,7 +101,7 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractMessageCons
 	private ScheduledFuture<?> reaperFutureTask;
 
 
-	public AbstractMessageBarrierConsumer() {
+	public AbstractMessageBarrierHandler() {
 		this.channelTemplate.setSendTimeout(DEFAULT_SEND_TIMEOUT);
 	}
 
@@ -184,7 +184,7 @@ public abstract class AbstractMessageBarrierConsumer extends AbstractMessageCons
 	}
 
 	@Override
-	protected final void onMessageInternal(Message<?> message) {
+	protected final void handleMessageInternal(Message<?> message) {
 		if (!this.initialized) {
 			this.afterPropertiesSet();
 		}

@@ -20,7 +20,7 @@ import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
-import org.springframework.integration.consumer.AbstractReplyProducingMessageConsumer;
+import org.springframework.integration.consumer.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.consumer.ReplyMessageHolder;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -30,7 +30,7 @@ import org.springframework.integration.endpoint.MessagingGateway;
 import org.springframework.integration.endpoint.PollingConsumerEndpoint;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.message.ErrorMessage;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.integration.scheduling.TaskSchedulerAware;
@@ -178,19 +178,19 @@ public abstract class AbstractMessagingGateway implements MessagingGateway, Mess
 				return;
 			}
 			MessageEndpoint correlator = null;
-			MessageConsumer consumer = new AbstractReplyProducingMessageConsumer() {
+			MessageHandler handler = new AbstractReplyProducingMessageHandler() {
 				@Override
-				protected void onMessage(Message<?> message, ReplyMessageHolder replyHolder) {
+				protected void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
 					replyHolder.set(message);
 				}
 			};
 			if (this.replyChannel instanceof SubscribableChannel) {
 				correlator = new SubscribingConsumerEndpoint(
-						consumer, (SubscribableChannel) this.replyChannel);
+						(SubscribableChannel) this.replyChannel, handler);
 			}
 			else if (this.replyChannel instanceof PollableChannel) {
 				PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(
-						consumer, (PollableChannel) this.replyChannel);
+						(PollableChannel) this.replyChannel, handler);
 				endpoint.setTaskScheduler(this.taskScheduler);
 				endpoint.afterPropertiesSet();
 				correlator = endpoint;

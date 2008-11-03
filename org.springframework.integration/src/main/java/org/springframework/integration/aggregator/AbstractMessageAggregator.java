@@ -24,7 +24,7 @@ import org.springframework.util.Assert;
 
 /**
  * A base class for aggregating a group of Messages into a single Message. 
- * Extends {@link AbstractMessageBarrierConsumer} and waits for a
+ * Extends {@link AbstractMessageBarrierHandler} and waits for a
  * <em>complete</em> group of {@link Message Messages} to arrive. Subclasses
  * must provide the implementation of the {@link #aggregateMessages(List)}
  * method to combine the group of Messages into a single {@link Message}.
@@ -34,13 +34,13 @@ import org.springframework.util.Assert;
  * custom implementation of the {@link CompletionStrategy} may be provided.
  * 
  * <p>All considerations regarding <code>timeout</code> and grouping by
- * <code>correlationId</code> from {@link AbstractMessageBarrierConsumer}
+ * <code>correlationId</code> from {@link AbstractMessageBarrierHandler}
  * apply here as well.
  * 
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public abstract class AbstractMessageAggregator extends AbstractMessageBarrierConsumer {
+public abstract class AbstractMessageAggregator extends AbstractMessageBarrierHandler {
 
 	private volatile CompletionStrategy completionStrategy = new SequenceSizeCompletionStrategy();
 

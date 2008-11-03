@@ -37,9 +37,9 @@ import org.springframework.mail.SimpleMailMessage;
 /**
  * @author Marius Bogoevici
  */
-public class MailSendingMessageConsumerTests {
+public class MailSendingMessageHandlerTests {
 
-	private MailSendingMessageConsumer consumer;
+	private MailSendingMessageHandler handler;
 
 	private StubJavaMailSender mailSender;
 
@@ -47,7 +47,7 @@ public class MailSendingMessageConsumerTests {
 	@Before
 	public void setUp() throws Exception {
 		this.mailSender = new StubJavaMailSender(new MimeMessage((Session) null));
-		this.consumer = new MailSendingMessageConsumer(this.mailSender);
+		this.handler = new MailSendingMessageHandler(this.mailSender);
 	}
 
 	@After
@@ -58,7 +58,7 @@ public class MailSendingMessageConsumerTests {
 
 	@Test
 	public void textMessage() {
-		this.consumer.onMessage(MailTestsHelper.createIntegrationMessage());
+		this.handler.handleMessage(MailTestsHelper.createIntegrationMessage());
 		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
 		assertEquals("no mime message should have been sent",
 				0, mailSender.getSentMimeMessages().size());
@@ -76,7 +76,7 @@ public class MailSendingMessageConsumerTests {
 				.setHeader(MailHeaders.ATTACHMENT_FILENAME, "attachment.txt")
 				.setHeader(MailHeaders.TO, MailTestsHelper.TO)
 				.build();
-		this.consumer.onMessage(message);
+		this.handler.handleMessage(message);
 		byte[] buffer = new byte[1024];
 		MimeMessage mimeMessage = this.mailSender.getSentMimeMessages().get(0);
 		assertTrue("message must be multipart", mimeMessage.getContent() instanceof Multipart);
@@ -90,7 +90,7 @@ public class MailSendingMessageConsumerTests {
 
 	@Test
 	public void mailHeaders() {
-		this.consumer.onMessage(MailTestsHelper.createIntegrationMessage());
+		this.handler.handleMessage(MailTestsHelper.createIntegrationMessage());
 		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
 		assertEquals("no mime message should have been sent",
 				0, mailSender.getSentMimeMessages().size());

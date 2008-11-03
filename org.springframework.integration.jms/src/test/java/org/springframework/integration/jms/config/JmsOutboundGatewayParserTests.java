@@ -34,7 +34,7 @@ public class JmsOutboundGatewayParserTests {
 		PollingConsumerEndpoint  endpoint = (PollingConsumerEndpoint) context.getBean("jmsGateway");
 
 		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
-		JmsOutboundGateway gateway = (JmsOutboundGateway) accessor.getPropertyValue("consumer");
+		JmsOutboundGateway gateway = (JmsOutboundGateway) accessor.getPropertyValue("handler");
 		accessor = new DirectFieldAccessor(gateway);
 		MessageConverter converter = (MessageConverter)accessor.getPropertyValue("messageConverter");
 		assertTrue("Wrong mesage converter", converter instanceof StubMessageConverter);

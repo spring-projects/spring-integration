@@ -16,7 +16,7 @@
 
 package org.springframework.integration.config;
 
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.splitter.AbstractMessageSplitter;
 import org.springframework.integration.splitter.DefaultMessageSplitter;
 import org.springframework.integration.splitter.MethodInvokingSplitter;
@@ -31,7 +31,7 @@ import org.springframework.util.StringUtils;
 public class SplitterFactoryBean extends AbstractConsumerFactoryBean {
 
 	@Override
-	protected MessageConsumer createConsumer(Object targetObject, String targetMethodName) {
+	protected MessageHandler createConsumer(Object targetObject, String targetMethodName) {
 		if (targetObject == null) {
 			Assert.isTrue(!StringUtils.hasText(targetMethodName),
 					"'method' should only be provided when 'ref' is also provided");

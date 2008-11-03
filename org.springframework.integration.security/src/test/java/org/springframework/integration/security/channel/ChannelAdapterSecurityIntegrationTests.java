@@ -49,7 +49,7 @@ public class ChannelAdapterSecurityIntegrationTests extends AbstractJUnit4Spring
 	MessageChannel unsecuredChannelAdapter;
 
 	@Autowired
-	TestConsumer testConsumer;
+	TestHandler testConsumer;
 
 
 	@After

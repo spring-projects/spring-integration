@@ -45,7 +45,7 @@ public class RouterTests {
 			}
 		};
 		Message<String> message = new StringMessage("test");
-		router.onMessage(message);
+		router.handleMessage(message);
 	}
 
 	@Test(expected = MessageDeliveryException.class)
@@ -57,7 +57,7 @@ public class RouterTests {
 		};
 		router.setResolutionRequired(true);
 		Message<String> message = new StringMessage("test");
-		router.onMessage(message);
+		router.handleMessage(message);
 	}
 
 	@Test
@@ -68,7 +68,7 @@ public class RouterTests {
 			}
 		};
 		Message<String> message = new StringMessage("test");
-		router.onMessage(message);
+		router.handleMessage(message);
 	}
 
 	@Test(expected = MessageDeliveryException.class)
@@ -80,7 +80,7 @@ public class RouterTests {
 		};
 		router.setResolutionRequired(true);
 		Message<String> message = new StringMessage("test");
-		router.onMessage(message);
+		router.handleMessage(message);
 	}
 
 	@Test
@@ -93,7 +93,7 @@ public class RouterTests {
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		router.setChannelResolver(channelResolver);
 		Message<String> message = new StringMessage("test");
-		router.onMessage(message);
+		router.handleMessage(message);
 	}
 
 	@Test(expected = MessageDeliveryException.class)
@@ -107,7 +107,7 @@ public class RouterTests {
 		router.setChannelResolver(channelResolver);
 		router.setResolutionRequired(true);
 		Message<String> message = new StringMessage("test");
-		router.onMessage(message);
+		router.handleMessage(message);
 	}
 
 
@@ -121,7 +121,7 @@ public class RouterTests {
 		TestChannelResolver channelResolver = new TestChannelResolver();
 		router.setChannelResolver(channelResolver);
 		Message<String> message = new StringMessage("test");
-		router.onMessage(message);
+		router.handleMessage(message);
 	}
 
 	@Test(expected = MessageDeliveryException.class)
@@ -135,7 +135,7 @@ public class RouterTests {
 		router.setChannelResolver(channelResolver);
 		router.setResolutionRequired(true);
 		Message<String> message = new StringMessage("test");
-		router.onMessage(message);
+		router.handleMessage(message);
 	}
 
 	@Test(expected = MessagingException.class)
@@ -145,7 +145,7 @@ public class RouterTests {
 				return "notImportant";
 			}
 		};
-		router.onMessage(new StringMessage("this should fail"));
+		router.handleMessage(new StringMessage("this should fail"));
 	}
 
 	@Test(expected = MessagingException.class)
@@ -155,7 +155,7 @@ public class RouterTests {
 				return new String[] { "notImportant" };
 			}
 		};
-		router.onMessage(new StringMessage("this should fail"));
+		router.handleMessage(new StringMessage("this should fail"));
 	}
 
 	@Test
@@ -169,7 +169,7 @@ public class RouterTests {
 		GenericApplicationContext context = new GenericApplicationContext();
 		context.getBeanFactory().registerSingleton("testChannel", testChannel);
 		router.setBeanFactory(context);
-		router.onMessage(new StringMessage("test"));
+		router.handleMessage(new StringMessage("test"));
 		Message<?> reply = testChannel.receive(0);
 		assertEquals("test", reply.getPayload());
 	}
@@ -185,7 +185,7 @@ public class RouterTests {
 		GenericApplicationContext context = new GenericApplicationContext();
 		context.getBeanFactory().registerSingleton("testChannel", testChannel);
 		router.setBeanFactory(context);
-		router.onMessage(new StringMessage("test"));
+		router.handleMessage(new StringMessage("test"));
 		Message<?> reply = testChannel.receive(0);
 		assertEquals("test", reply.getPayload());
 	}

@@ -66,7 +66,7 @@ public class RecipientListRouterTests {
 		router.setChannels(channels);
 		router.afterPropertiesSet();
 		Message<String> message = new StringMessage("test");
-		router.onMessage(message);
+		router.handleMessage(message);
 		Message<?> result1 = channel1.receive(25);
 		assertNotNull(result1);
 		assertEquals("test", result1.getPayload());
@@ -82,7 +82,7 @@ public class RecipientListRouterTests {
 		RecipientListRouter router = new RecipientListRouter();
 		router.setChannels(Collections.singletonList((MessageChannel) channel));
 		Message<String> message = new StringMessage("test");
-		router.onMessage(message);
+		router.handleMessage(message);
 		Message<?> result1 = channel.receive(25);
 		assertNotNull(result1);
 		assertEquals("test", result1.getPayload());

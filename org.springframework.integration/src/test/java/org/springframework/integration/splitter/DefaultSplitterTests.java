@@ -43,7 +43,7 @@ public class DefaultSplitterTests {
 		QueueChannel replyChannel = new QueueChannel();
 		DefaultMessageSplitter splitter = new DefaultMessageSplitter();
 		splitter.setOutputChannel(replyChannel);
-		splitter.onMessage(message);
+		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		assertEquals(3, replies.size());
 		Message<?> reply1 = replies.get(0);
@@ -64,7 +64,7 @@ public class DefaultSplitterTests {
 		QueueChannel replyChannel = new QueueChannel();
 		DefaultMessageSplitter splitter = new DefaultMessageSplitter();
 		splitter.setOutputChannel(replyChannel);
-		splitter.onMessage(message);
+		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		assertEquals(3, replies.size());
 		Message<?> reply1 = replies.get(0);
@@ -85,7 +85,7 @@ public class DefaultSplitterTests {
 		QueueChannel outputChannel = new QueueChannel(1);
 		DefaultMessageSplitter splitter = new DefaultMessageSplitter();
 		splitter.setOutputChannel(outputChannel);
-		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(splitter, inputChannel);
+		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(inputChannel, splitter);
 		endpoint.start();
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);

@@ -22,20 +22,20 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
 /**
- * A {@link MessageConsumer} implementation that writes the Message payload to a
+ * A {@link MessageHandler} implementation that writes the Message payload to a
  * file. If the payload is a File object, it will copy the File to this
  * consumer's directory. If the payload is a byte array or String, it will
  * write it directly. Otherwise, it will invoke toString on the payload Object.
  * 
  * @author Mark Fisher
  */
-public class FileWritingMessageConsumer implements MessageConsumer {
+public class FileWritingMessageHandler implements MessageHandler {
 
 	private volatile FileNameGenerator fileNameGenerator = new DefaultFileNameGenerator();
 
@@ -44,11 +44,11 @@ public class FileWritingMessageConsumer implements MessageConsumer {
 	private volatile Charset charset = Charset.defaultCharset(); 
 
 
-	public FileWritingMessageConsumer(String parentDirectoryPath) {
+	public FileWritingMessageHandler(String parentDirectoryPath) {
 		this(new File(parentDirectoryPath));
 	}
 
-	public FileWritingMessageConsumer(File parentDirectory) {
+	public FileWritingMessageHandler(File parentDirectory) {
 		this.parentDirectory = parentDirectory;
 	}
 
@@ -67,7 +67,7 @@ public class FileWritingMessageConsumer implements MessageConsumer {
 		this.charset = Charset.forName(charset);
 	}
 
-	public void onMessage(Message<?> message) {
+	public void handleMessage(Message<?> message) {
 		Assert.notNull(message, "message must not be null");
 		Object payload = message.getPayload();
 		Assert.notNull(payload, "message payload must not be null");

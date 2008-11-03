@@ -19,7 +19,7 @@ package org.springframework.integration.router;
 import java.util.Collection;
 
 import org.springframework.integration.channel.MessageChannelTemplate;
-import org.springframework.integration.consumer.AbstractMessageConsumer;
+import org.springframework.integration.consumer.AbstractMessageHandler;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageDeliveryException;
@@ -29,7 +29,7 @@ import org.springframework.integration.message.MessageDeliveryException;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractMessageRouter extends AbstractMessageConsumer {
+public abstract class AbstractMessageRouter extends AbstractMessageHandler {
 
 	private volatile MessageChannel defaultOutputChannel;
 
@@ -67,7 +67,7 @@ public abstract class AbstractMessageRouter extends AbstractMessageConsumer {
 	}
 
 	@Override
-	protected void onMessageInternal(Message<?> message) {
+	protected void handleMessageInternal(Message<?> message) {
 		boolean sent = false;
 		Collection<MessageChannel> results = this.determineTargetChannels(message);
 		if (results != null) {

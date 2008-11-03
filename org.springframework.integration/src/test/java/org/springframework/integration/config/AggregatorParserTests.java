@@ -78,7 +78,7 @@ public class AggregatorParserTests {
 		CompletionStrategy completionStrategy = (CompletionStrategy) context.getBean("completionStrategy");
 		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
 		MessageChannel discardChannel = (MessageChannel) context.getBean("discardChannel");
-		Object consumer = new DirectFieldAccessor(endpoint).getPropertyValue("consumer");
+		Object consumer = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		Assert.assertEquals(MethodInvokingAggregator.class, consumer.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
 		Method expectedMethod = TestAggregatorBean.class.getMethod("createSingleMessageFromGroup", List.class);
@@ -138,7 +138,7 @@ public class AggregatorParserTests {
 		SubscribingConsumerEndpoint endpoint =
 				(SubscribingConsumerEndpoint) context.getBean("aggregatorWithPojoCompletionStrategy");
 		CompletionStrategy completionStrategy = (CompletionStrategy) new DirectFieldAccessor(
-				new DirectFieldAccessor(endpoint).getPropertyValue("consumer")).getPropertyValue("completionStrategy");
+				new DirectFieldAccessor(endpoint).getPropertyValue("handler")).getPropertyValue("completionStrategy");
 		Assert.assertTrue(completionStrategy instanceof CompletionStrategyAdapter);
 		DirectFieldAccessor completionStrategyAccessor = new DirectFieldAccessor(completionStrategy);
 		MethodInvoker invoker = (MethodInvoker) completionStrategyAccessor.getPropertyValue("invoker");

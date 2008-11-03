@@ -17,9 +17,9 @@
 package org.springframework.integration.config;
 
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.integration.consumer.AbstractReplyProducingMessageConsumer;
+import org.springframework.integration.consumer.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.Assert;
 
 /**
@@ -29,7 +29,7 @@ import org.springframework.util.Assert;
  */
 public abstract class AbstractConsumerFactoryBean implements FactoryBean {
 
-	private volatile MessageConsumer consumer;
+	private volatile MessageHandler consumer;
 
 	private volatile Object targetObject;
 
@@ -59,8 +59,8 @@ public abstract class AbstractConsumerFactoryBean implements FactoryBean {
 			this.initializeConsumer();
 			Assert.notNull(this.consumer, "failed to create MessageConsumer");
 			if (this.outputChannel != null
-					&& this.consumer instanceof AbstractReplyProducingMessageConsumer) {
-				((AbstractReplyProducingMessageConsumer) this.consumer).setOutputChannel(this.outputChannel);
+					&& this.consumer instanceof AbstractReplyProducingMessageHandler) {
+				((AbstractReplyProducingMessageHandler) this.consumer).setOutputChannel(this.outputChannel);
 			}
 		}
 		return this.consumer;
@@ -70,7 +70,7 @@ public abstract class AbstractConsumerFactoryBean implements FactoryBean {
 		if (this.consumer != null) {
 			return this.consumer.getClass();
 		}
-		return MessageConsumer.class;
+		return MessageHandler.class;
 	}
 
 	public boolean isSingleton() {
@@ -90,6 +90,6 @@ public abstract class AbstractConsumerFactoryBean implements FactoryBean {
 	/**
 	 * Subclasses must implement this method to create the MessageConsumer.
 	 */
-	protected abstract MessageConsumer createConsumer(Object targetObject, String targetMethodName);
+	protected abstract MessageHandler createConsumer(Object targetObject, String targetMethodName);
 
 }

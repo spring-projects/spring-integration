@@ -22,7 +22,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.transformer.Transformer;
-import org.springframework.integration.transformer.MessageTransformingConsumer;
+import org.springframework.integration.transformer.MessageTransformingHandler;
 
 /**
  * @author Mark Fisher
@@ -31,7 +31,7 @@ public abstract class AbstractTransformerParser extends AbstractConsumerEndpoint
 
 	@Override
 	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MessageTransformingConsumer.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MessageTransformingHandler.class);
 		BeanDefinitionBuilder transformerBuilder =
 				BeanDefinitionBuilder.genericBeanDefinition(this.getTransformerClass());
 		this.parseTransformer(element, parserContext, transformerBuilder);

@@ -64,7 +64,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		exceptionTypeChannelMap.put(MessageHandlingException.class, messageHandlingExceptionChannel);
 		router.setExceptionTypeChannelMap(exceptionTypeChannelMap);
 		router.setDefaultOutputChannel(defaultChannel);
-		router.onMessage(message);
+		router.handleMessage(message);
 		assertNotNull(illegalArgumentChannel.receive(1000));
 		assertNull(defaultChannel.receive(0));
 		assertNull(runtimeExceptionChannel.receive(0));
@@ -85,7 +85,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		exceptionTypeChannelMap.put(MessageHandlingException.class, messageHandlingExceptionChannel);
 		router.setExceptionTypeChannelMap(exceptionTypeChannelMap);
 		router.setDefaultOutputChannel(defaultChannel);
-		router.onMessage(message);
+		router.handleMessage(message);
 		assertNotNull(runtimeExceptionChannel.receive(1000));
 		assertNull(illegalArgumentChannel.receive(0));
 		assertNull(defaultChannel.receive(0));
@@ -105,7 +105,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		exceptionTypeChannelMap.put(MessageHandlingException.class, messageHandlingExceptionChannel);
 		router.setExceptionTypeChannelMap(exceptionTypeChannelMap);
 		router.setDefaultOutputChannel(defaultChannel);
-		router.onMessage(message);
+		router.handleMessage(message);
 		assertNotNull(messageHandlingExceptionChannel.receive(1000));
 		assertNull(runtimeExceptionChannel.receive(0));
 		assertNull(illegalArgumentChannel.receive(0));
@@ -121,7 +121,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		ErrorMessage message = new ErrorMessage(error);
 		ErrorMessageExceptionTypeRouter router = new ErrorMessageExceptionTypeRouter();
 		router.setDefaultOutputChannel(defaultChannel);
-		router.onMessage(message);
+		router.handleMessage(message);
 		assertNotNull(defaultChannel.receive(1000));
 		assertNull(runtimeExceptionChannel.receive(0));
 		assertNull(illegalArgumentChannel.receive(0));
@@ -141,7 +141,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		exceptionTypeChannelMap.put(MessageDeliveryException.class, messageDeliveryExceptionChannel);
 		router.setExceptionTypeChannelMap(exceptionTypeChannelMap);
 		router.setResolutionRequired(true);
-		router.onMessage(message);
+		router.handleMessage(message);
 	}
 
 	@Test
@@ -159,7 +159,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		exceptionTypeChannelMap.put(MessageHandlingException.class, messageHandlingExceptionChannel);
 		router.setExceptionTypeChannelMap(exceptionTypeChannelMap);
 		router.setDefaultOutputChannel(defaultChannel);
-		router.onMessage(message);
+		router.handleMessage(message);
 		assertNotNull(illegalArgumentChannel.receive(1000));
 		assertNull(defaultChannel.receive(0));
 		assertNull(runtimeExceptionChannel.receive(0));
@@ -180,7 +180,7 @@ public class ErrorMessageExceptionTypeRouterTests {
 		exceptionTypeChannelMap.put(MessageHandlingException.class, messageHandlingExceptionChannel);
 		router.setExceptionTypeChannelMap(exceptionTypeChannelMap);
 		router.setDefaultOutputChannel(defaultChannel);
-		router.onMessage(message);
+		router.handleMessage(message);
 		assertNotNull(illegalArgumentChannel.receive(1000));
 		assertNull(defaultChannel.receive(0));
 		assertNull(runtimeExceptionChannel.receive(0));

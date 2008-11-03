@@ -29,7 +29,7 @@ import org.junit.Test;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.bus.ApplicationContextMessageBus;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.consumer.MethodInvokingConsumer;
+import org.springframework.integration.consumer.MethodInvokingMessageHandler;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.endpoint.PollingConsumerEndpoint;
@@ -38,28 +38,28 @@ import org.springframework.integration.util.TestUtils;
 /**
  * @author Mark Fisher
  */
-public class MethodInvokingConsumerTests {
+public class MethodInvokingMessageHandlerTests {
 
 	@Test
 	public void validMethod() {
-		MethodInvokingConsumer consumer = new MethodInvokingConsumer(new TestSink(), "validMethod");
-		consumer.afterPropertiesSet();
-		consumer.onMessage(new GenericMessage<String>("test"));
+		MethodInvokingMessageHandler handler = new MethodInvokingMessageHandler(new TestSink(), "validMethod");
+		handler.afterPropertiesSet();
+		handler.handleMessage(new GenericMessage<String>("test"));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void invalidMethodWithNoArgs() {
-		MethodInvokingConsumer consumer = new MethodInvokingConsumer(new TestSink(), "invalidMethodWithNoArgs");
-		consumer.afterPropertiesSet();
+		MethodInvokingMessageHandler handler = new MethodInvokingMessageHandler(new TestSink(), "invalidMethodWithNoArgs");
+		handler.afterPropertiesSet();
 	}
 
 	@Test(expected = MessagingException.class)
 	public void methodWithReturnValue() {
 		Message<?> message = new StringMessage("test");
 		try {
-			MethodInvokingConsumer consumer = new MethodInvokingConsumer(new TestSink(), "methodWithReturnValue");
-			consumer.afterPropertiesSet();
-			consumer.onMessage(message);
+			MethodInvokingMessageHandler handler = new MethodInvokingMessageHandler(new TestSink(), "methodWithReturnValue");
+			handler.afterPropertiesSet();
+			handler.handleMessage(message);
 		}
 		catch (MessagingException e) {
 			assertEquals(e.getFailedMessage(), message);
@@ -69,8 +69,8 @@ public class MethodInvokingConsumerTests {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void noMatchingMethodName() {
-		MethodInvokingConsumer consumer = new MethodInvokingConsumer(new TestSink(), "noSuchMethod");
-		consumer.afterPropertiesSet();
+		MethodInvokingMessageHandler handler = new MethodInvokingMessageHandler(new TestSink(), "noSuchMethod");
+		handler.afterPropertiesSet();
 	}
 
 	@Test
@@ -84,8 +84,8 @@ public class MethodInvokingConsumerTests {
 		Message<String> message = new GenericMessage<String>("testing");
 		channel.send(message);
 		assertNull(queue.poll());
-		MethodInvokingConsumer consumer = new MethodInvokingConsumer(testBean, "foo");
-		PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(consumer, channel);
+		MethodInvokingMessageHandler handler = new MethodInvokingMessageHandler(testBean, "foo");
+		PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(channel, handler);
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
 		ApplicationContextMessageBus bus = new ApplicationContextMessageBus();
 		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));

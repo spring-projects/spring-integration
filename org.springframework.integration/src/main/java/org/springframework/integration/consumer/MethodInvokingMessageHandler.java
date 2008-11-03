@@ -20,33 +20,33 @@ import java.lang.reflect.Method;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageMappingMethodInvoker;
 import org.springframework.util.Assert;
 
 /**
- * A {@link MessageConsumer} that invokes the specified method on the provided object.
+ * A {@link MessageHandler} that invokes the specified method on the provided object.
  * 
  * @author Mark Fisher
  */
-public class MethodInvokingConsumer extends MessageMappingMethodInvoker implements MessageConsumer {
+public class MethodInvokingMessageHandler extends MessageMappingMethodInvoker implements MessageHandler {
 
-	public MethodInvokingConsumer(Object object, Method method) {
+	public MethodInvokingMessageHandler(Object object, Method method) {
 		super(object, method);
 		Assert.isTrue(method.getReturnType().equals(void.class),
-				"MethodInvokingConsumer requires a void-returning method");
+				"MethodInvokingMessageHandler requires a void-returning method");
 	}
 
-	public MethodInvokingConsumer(Object object, String methodName) {
+	public MethodInvokingMessageHandler(Object object, String methodName) {
 		super(object, methodName);
 	}
 
 
-	public void onMessage(Message<?> message) {
+	public void handleMessage(Message<?> message) {
 		Object result = this.invokeMethod(message);
 		if (result != null) {
-			throw new MessagingException(message, "the MethodInvokingConsumer method must have a void return, "
-					+ "but '" + this + "' received a value: [" + result + "]");			
+			throw new MessagingException(message, "the MethodInvokingMessageHandler method must "
+					+ "have a void return, but '" + this + "' received a value: [" + result + "]");			
 		}
 	}
 

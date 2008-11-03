@@ -23,7 +23,7 @@ import org.junit.Test;
 
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.consumer.ServiceActivatingConsumer;
+import org.springframework.integration.consumer.ServiceActivatingHandler;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
@@ -42,9 +42,9 @@ public class CorrelationIdTests {
 				.setCorrelationId(correlationId).build();
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel(1);
-		ServiceActivatingConsumer serviceActivator = new ServiceActivatingConsumer(new TestBean(), "upperCase");
+		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(new TestBean(), "upperCase");
 		serviceActivator.setOutputChannel(outputChannel);
-		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(serviceActivator, inputChannel);
+		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(inputChannel, serviceActivator);
 		endpoint.start();
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);
@@ -57,9 +57,9 @@ public class CorrelationIdTests {
 				.setCorrelationId("correlationId").build();
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel(1);
-		ServiceActivatingConsumer serviceActivator = new ServiceActivatingConsumer(new TestBean(), "upperCase");
+		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(new TestBean(), "upperCase");
 		serviceActivator.setOutputChannel(outputChannel);
-		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(serviceActivator, inputChannel);
+		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(inputChannel, serviceActivator);
 		endpoint.start();
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);
@@ -74,9 +74,9 @@ public class CorrelationIdTests {
 				.setCorrelationId(correlationId).build();
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel(1);
-		ServiceActivatingConsumer serviceActivator = new ServiceActivatingConsumer(new TestBean(), "createMessage");
+		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(new TestBean(), "createMessage");
 		serviceActivator.setOutputChannel(outputChannel);
-		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(serviceActivator, inputChannel);
+		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(inputChannel, serviceActivator);
 		endpoint.start();
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);
@@ -88,9 +88,9 @@ public class CorrelationIdTests {
 		Message<?> message = new StringMessage("test");
 		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel(1);
-		ServiceActivatingConsumer serviceActivator = new ServiceActivatingConsumer(new TestBean(), "createMessage");
+		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(new TestBean(), "createMessage");
 		serviceActivator.setOutputChannel(outputChannel);
-		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(serviceActivator, inputChannel);
+		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(inputChannel, serviceActivator);
 		endpoint.start();
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);
@@ -105,7 +105,7 @@ public class CorrelationIdTests {
 				new TestBean(), TestBean.class.getMethod("split", String.class));
 		splitter.setOutputChannel(testChannel);
 		splitter.afterPropertiesSet();
-		splitter.onMessage(message);
+		splitter.handleMessage(message);
 		Message<?> reply1 = testChannel.receive(100);
 		Message<?> reply2 = testChannel.receive(100);
 		assertEquals(message.getHeaders().getId(), reply1.getHeaders().getCorrelationId());

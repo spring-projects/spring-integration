@@ -19,7 +19,7 @@ package org.springframework.integration.ws;
 import java.io.IOException;
 import java.net.URI;
 
-import org.springframework.integration.consumer.AbstractReplyProducingMessageConsumer;
+import org.springframework.integration.consumer.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.consumer.ReplyMessageHolder;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -38,7 +38,7 @@ import org.springframework.ws.transport.WebServiceMessageSender;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyProducingMessageConsumer {
+public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	public static final String SOAP_ACTION_PROPERTY_KEY = "spring.integration.ws.soapAction";
 
@@ -85,7 +85,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 	}
 
 	@Override
-	public final void onMessage(Message<?> message, ReplyMessageHolder replyHolder) {
+	public final void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
 		Object responsePayload = this.doHandle(message.getPayload(), this.getRequestCallback(message));
 		if (responsePayload != null) {
 			replyHolder.set(responsePayload);

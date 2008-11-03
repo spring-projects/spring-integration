@@ -42,11 +42,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Marius Bogoevici
  */
 @RunWith(value = SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:/org/springframework/integration/mail/mailSendingMessageConsumerContextTests.xml"})
-public class MailSendingMessageConsumerContextTests {
+@ContextConfiguration(locations = {"classpath:/org/springframework/integration/mail/mailSendingMessageHandlerContextTests.xml"})
+public class MailSendingMessageHandlerContextTests {
 
 	@Autowired
-	private MailSendingMessageConsumer consumer;
+	private MailSendingMessageHandler handler;
 
 	@Autowired
 	private StubJavaMailSender mailSender;
@@ -59,7 +59,7 @@ public class MailSendingMessageConsumerContextTests {
 
 	@Test
 	public void stringMesssagesWithConfiguration() {
-		this.consumer.onMessage(MailTestsHelper.createIntegrationMessage());
+		this.handler.handleMessage(MailTestsHelper.createIntegrationMessage());
 		SimpleMailMessage mailMessage = MailTestsHelper.createSimpleMailMessage();
 		assertEquals("no mime message should have been sent",
 				0, this.mailSender.getSentMimeMessages().size());
@@ -77,7 +77,7 @@ public class MailSendingMessageConsumerContextTests {
 				.setHeader(MailHeaders.ATTACHMENT_FILENAME, "attachment.txt")
 				.setHeader(MailHeaders.TO, MailTestsHelper.TO)
 				.build();
-		this.consumer.onMessage(message);
+		this.handler.handleMessage(message);
 		assertEquals("no mime message should have been sent",
 				1, this.mailSender.getSentMimeMessages().size());
 		assertEquals("only one simple message must be sent",
@@ -96,7 +96,7 @@ public class MailSendingMessageConsumerContextTests {
 	@Test(expected = MessageMappingException.class)
 	public void byteArrayMessageWithoutAttachmentFileName() throws Exception {
 		byte[] payload = {1, 2, 3};
-		this.consumer.onMessage(new GenericMessage<byte[]>(payload));
+		this.handler.handleMessage(new GenericMessage<byte[]>(payload));
 	}
 
 }

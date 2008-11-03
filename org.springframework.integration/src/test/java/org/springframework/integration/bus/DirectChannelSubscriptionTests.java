@@ -29,9 +29,9 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.ThreadLocalChannel;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
 import org.springframework.integration.config.xml.MessageBusParser;
-import org.springframework.integration.consumer.AbstractReplyProducingMessageConsumer;
+import org.springframework.integration.consumer.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.consumer.ReplyMessageHolder;
-import org.springframework.integration.consumer.ServiceActivatingConsumer;
+import org.springframework.integration.consumer.ServiceActivatingHandler;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
@@ -67,9 +67,9 @@ public class DirectChannelSubscriptionTests {
 	@Test
 	public void sendAndReceiveForRegisteredEndpoint() {
 		GenericApplicationContext context = new GenericApplicationContext();
-		ServiceActivatingConsumer serviceActivator = new ServiceActivatingConsumer(new TestBean(), "handle");
+		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(new TestBean(), "handle");
 		serviceActivator.setOutputChannel(targetChannel);
-		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(serviceActivator, sourceChannel);
+		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(sourceChannel, serviceActivator);
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
 		bus.setApplicationContext(context);
 		context.refresh();
@@ -97,13 +97,14 @@ public class DirectChannelSubscriptionTests {
 
 	@Test(expected = MessagingException.class)
 	public void exceptionThrownFromRegisteredEndpoint() {
-		AbstractReplyProducingMessageConsumer consumer = new AbstractReplyProducingMessageConsumer() {
-			public void onMessage(Message<?> message, ReplyMessageHolder replyHolder) {
+		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+			@Override
+			public void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
 				throw new RuntimeException("intentional test failure");
 			}
 		};
-		consumer.setOutputChannel(targetChannel);
-		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(consumer, sourceChannel);
+		handler.setOutputChannel(targetChannel);
+		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(sourceChannel, handler);
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
 		bus.setApplicationContext(context);
 		context.refresh();

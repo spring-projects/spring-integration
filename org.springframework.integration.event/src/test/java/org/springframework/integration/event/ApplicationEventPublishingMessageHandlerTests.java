@@ -29,17 +29,17 @@ import org.springframework.integration.message.StringMessage;
 /**
  * @author Mark Fisher
  */
-public class ApplicationEventPublishingMessageConsumerTests {
+public class ApplicationEventPublishingMessageHandlerTests {
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testSendingEvent() throws InterruptedException {
 		TestApplicationEventPublisher publisher = new TestApplicationEventPublisher();
-		ApplicationEventPublishingMessageConsumer consumer = new ApplicationEventPublishingMessageConsumer();
-		consumer.setApplicationEventPublisher(publisher);
+		ApplicationEventPublishingMessageHandler handler = new ApplicationEventPublishingMessageHandler();
+		handler.setApplicationEventPublisher(publisher);
 		assertNull(publisher.getLastEvent());
 		Message<?> message = new StringMessage("testing");
-		consumer.onMessage(message);
+		handler.handleMessage(message);
 		ApplicationEvent event = publisher.getLastEvent();
 		assertEquals(MessagingEvent.class, event.getClass());
 		assertEquals(message, ((MessagingEvent) event).getMessage());

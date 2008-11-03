@@ -46,7 +46,7 @@ public class MessageFilterTests {
 		Message<?> message = new StringMessage("test");
 		QueueChannel output = new QueueChannel();
 		filter.setOutputChannel(output);
-		filter.onMessage(message);
+		filter.handleMessage(message);
 		assertEquals(message, output.receive(0));
 	}
 
@@ -59,7 +59,7 @@ public class MessageFilterTests {
 		});
 		QueueChannel output = new QueueChannel();
 		filter.setOutputChannel(output);
-		filter.onMessage(new StringMessage("test"));
+		filter.handleMessage(new StringMessage("test"));
 		assertNull(output.receive(0));
 	}
 
@@ -73,7 +73,7 @@ public class MessageFilterTests {
 			}
 		});
 		filter.setOutputChannel(outputChannel);
-		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(filter, inputChannel);
+		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(inputChannel, filter);
 		endpoint.start();
 		Message<?> message = new StringMessage("test");
 		assertTrue(inputChannel.send(message));
@@ -92,7 +92,7 @@ public class MessageFilterTests {
 			}
 		});
 		filter.setOutputChannel(outputChannel);
-		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(filter, inputChannel);
+		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(inputChannel, filter);
 		endpoint.start();
 		Message<?> message = new StringMessage("test");
 		assertTrue(inputChannel.send(message));

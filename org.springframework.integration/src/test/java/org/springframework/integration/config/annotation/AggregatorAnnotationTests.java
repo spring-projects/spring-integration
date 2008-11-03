@@ -101,11 +101,10 @@ public class AggregatorAnnotationTests {
 	}
 
 
-	@SuppressWarnings("unchecked")
 	private AbstractMessageAggregator getAggregator(ApplicationContext context, final String endpointName) {
 		SubscribingConsumerEndpoint endpoint = (SubscribingConsumerEndpoint) context.getBean(
 				endpointName + ".aggregatingMethod.aggregator");
-		return (AbstractMessageAggregator) new DirectFieldAccessor(endpoint).getPropertyValue("consumer");
+		return (AbstractMessageAggregator) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 	}
 
 }

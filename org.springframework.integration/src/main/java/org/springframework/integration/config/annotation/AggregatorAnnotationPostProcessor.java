@@ -27,7 +27,7 @@ import org.springframework.integration.aggregator.MethodInvokingAggregator;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.CompletionStrategy;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
@@ -45,7 +45,7 @@ public class AggregatorAnnotationPostProcessor extends AbstractMethodAnnotationP
 
 
 	@Override
-	protected MessageConsumer createConsumer(Object bean, Method method, Aggregator annotation) {
+	protected MessageHandler createHandler(Object bean, Method method, Aggregator annotation) {
 		MethodInvokingAggregator aggregator = new MethodInvokingAggregator(bean, method);
 		this.configureCompletionStrategy(bean, aggregator);
 		String discardChannelName = annotation.discardChannel();

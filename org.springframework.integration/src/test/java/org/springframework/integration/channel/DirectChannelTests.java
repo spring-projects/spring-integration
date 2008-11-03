@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -60,7 +60,7 @@ public class DirectChannelTests {
 	}
 
 
-	private static class ThreadNameExtractingTestTarget implements MessageConsumer {
+	private static class ThreadNameExtractingTestTarget implements MessageHandler {
 
 		private String threadName;
 
@@ -75,7 +75,7 @@ public class DirectChannelTests {
 			this.latch = latch;
 		}
 
-		public void onMessage(Message<?> message) {
+		public void handleMessage(Message<?> message) {
 			this.threadName = Thread.currentThread().getName();
 			if (this.latch != null) {
 				this.latch.countDown();

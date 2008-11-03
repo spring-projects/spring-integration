@@ -35,7 +35,7 @@ import org.junit.Test;
 
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -50,11 +50,11 @@ public class BroadcastingDispatcherTests {
 
 	private Message<?> messageMock = createMock(Message.class);
 
-	private MessageConsumer targetMock1 = createMock(MessageConsumer.class);
+	private MessageHandler targetMock1 = createMock(MessageHandler.class);
 
-	private MessageConsumer targetMock2 = createMock(MessageConsumer.class);
+	private MessageHandler targetMock2 = createMock(MessageHandler.class);
 
-	private MessageConsumer targetMock3 = createMock(MessageConsumer.class);
+	private MessageHandler targetMock3 = createMock(MessageHandler.class);
 
 	private Object[] globalMocks = new Object[] {
 			messageMock, taskExecutorMock, targetMock1, targetMock2, targetMock3 };
@@ -72,8 +72,8 @@ public class BroadcastingDispatcherTests {
 	@Test
 	public void singleTargetWithoutTaskExecutor() throws Exception {
 		dispatcher.setTaskExecutor(null);
-		dispatcher.addConsumer(targetMock1);
-		targetMock1.onMessage(messageMock);
+		dispatcher.addHandler(targetMock1);
+		targetMock1.handleMessage(messageMock);
 		expectLastCall();
 		replay(globalMocks);
 		dispatcher.dispatch(messageMock);
@@ -82,8 +82,8 @@ public class BroadcastingDispatcherTests {
 
 	@Test
 	public void singleTargetWithTaskExecutor() throws Exception {
-		dispatcher.addConsumer(targetMock1);
-		targetMock1.onMessage(messageMock);
+		dispatcher.addHandler(targetMock1);
+		targetMock1.handleMessage(messageMock);
 		expectLastCall();
 		replay(globalMocks);
 		dispatcher.dispatch(messageMock);
@@ -93,14 +93,14 @@ public class BroadcastingDispatcherTests {
 	@Test
 	public void multipleTargetsWithoutTaskExecutor() {
 		dispatcher.setTaskExecutor(null);
-		dispatcher.addConsumer(targetMock1);
-		dispatcher.addConsumer(targetMock2);
-		dispatcher.addConsumer(targetMock3);
-		targetMock1.onMessage(messageMock);
+		dispatcher.addHandler(targetMock1);
+		dispatcher.addHandler(targetMock2);
+		dispatcher.addHandler(targetMock3);
+		targetMock1.handleMessage(messageMock);
 		expectLastCall();
-		targetMock2.onMessage(messageMock);
+		targetMock2.handleMessage(messageMock);
 		expectLastCall();
-		targetMock3.onMessage(messageMock);
+		targetMock3.handleMessage(messageMock);
 		expectLastCall();
 		replay(globalMocks);
 		dispatcher.dispatch(messageMock);
@@ -109,14 +109,14 @@ public class BroadcastingDispatcherTests {
 
 	@Test
 	public void multipleTargetsWithTaskExecutor() {
-		dispatcher.addConsumer(targetMock1);
-		dispatcher.addConsumer(targetMock2);
-		dispatcher.addConsumer(targetMock3);
-		targetMock1.onMessage(messageMock);
+		dispatcher.addHandler(targetMock1);
+		dispatcher.addHandler(targetMock2);
+		dispatcher.addHandler(targetMock3);
+		targetMock1.handleMessage(messageMock);
 		expectLastCall();
-		targetMock2.onMessage(messageMock);
+		targetMock2.handleMessage(messageMock);
 		expectLastCall();
-		targetMock3.onMessage(messageMock);
+		targetMock3.handleMessage(messageMock);
 		expectLastCall();
 		replay(globalMocks);
 		dispatcher.dispatch(messageMock);
@@ -126,13 +126,13 @@ public class BroadcastingDispatcherTests {
 	@Test
 	public void multipleTargetsPartialFailureFirst() {
 		reset(taskExecutorMock);
-		dispatcher.addConsumer(targetMock1);
-		dispatcher.addConsumer(targetMock2);
-		dispatcher.addConsumer(targetMock3);
+		dispatcher.addHandler(targetMock1);
+		dispatcher.addHandler(targetMock2);
+		dispatcher.addHandler(targetMock3);
 		partialFailingExecutorMock(false, true, true);
-		targetMock2.onMessage(messageMock);
+		targetMock2.handleMessage(messageMock);
 		expectLastCall();
-		targetMock3.onMessage(messageMock);
+		targetMock3.handleMessage(messageMock);
 		expectLastCall();
 		replay(globalMocks);
 		dispatcher.dispatch(messageMock);
@@ -142,13 +142,13 @@ public class BroadcastingDispatcherTests {
 	@Test
 	public void multipleTargetsPartialFailureMiddle() {
 		reset(taskExecutorMock);
-		dispatcher.addConsumer(targetMock1);
-		dispatcher.addConsumer(targetMock2);
-		dispatcher.addConsumer(targetMock3);
+		dispatcher.addHandler(targetMock1);
+		dispatcher.addHandler(targetMock2);
+		dispatcher.addHandler(targetMock3);
 		partialFailingExecutorMock(true, false, true);
-		targetMock1.onMessage(messageMock);
+		targetMock1.handleMessage(messageMock);
 		expectLastCall();
-		targetMock3.onMessage(messageMock);
+		targetMock3.handleMessage(messageMock);
 		expectLastCall();
 		replay(globalMocks);
 		dispatcher.dispatch(messageMock);
@@ -158,13 +158,13 @@ public class BroadcastingDispatcherTests {
 	@Test
 	public void multipleTargetsPartialFailureLast() {
 		reset(taskExecutorMock);
-		dispatcher.addConsumer(targetMock1);
-		dispatcher.addConsumer(targetMock2);
-		dispatcher.addConsumer(targetMock3);
+		dispatcher.addHandler(targetMock1);
+		dispatcher.addHandler(targetMock2);
+		dispatcher.addHandler(targetMock3);
 		partialFailingExecutorMock(true, true, false);
-		targetMock1.onMessage(messageMock);
+		targetMock1.handleMessage(messageMock);
 		expectLastCall();
-		targetMock2.onMessage(messageMock);
+		targetMock2.handleMessage(messageMock);
 		expectLastCall();
 		replay(globalMocks);
 		dispatcher.dispatch(messageMock);
@@ -174,9 +174,9 @@ public class BroadcastingDispatcherTests {
 	@Test
 	public void multipleTargetsAllFail() {
 		reset(taskExecutorMock);
-		dispatcher.addConsumer(targetMock1);
-		dispatcher.addConsumer(targetMock2);
-		dispatcher.addConsumer(targetMock3);
+		dispatcher.addHandler(targetMock1);
+		dispatcher.addHandler(targetMock2);
+		dispatcher.addHandler(targetMock3);
 		partialFailingExecutorMock(false, false, false);
 		replay(globalMocks);
 		dispatcher.dispatch(messageMock);
@@ -185,10 +185,10 @@ public class BroadcastingDispatcherTests {
 
 	@Test
 	public void noDuplicateSubscription() {
-		dispatcher.addConsumer(targetMock1);
-		dispatcher.addConsumer(targetMock1);
-		dispatcher.addConsumer(targetMock1);
-		targetMock1.onMessage(messageMock);
+		dispatcher.addHandler(targetMock1);
+		dispatcher.addHandler(targetMock1);
+		dispatcher.addHandler(targetMock1);
+		targetMock1.handleMessage(messageMock);
 		expectLastCall();
 		replay(globalMocks);
 		dispatcher.dispatch(messageMock);
@@ -197,13 +197,13 @@ public class BroadcastingDispatcherTests {
 
 	@Test
 	public void removeConsumerBeforeSend() {
-		dispatcher.addConsumer(targetMock1);
-		dispatcher.addConsumer(targetMock2);
-		dispatcher.addConsumer(targetMock3);
-		dispatcher.removeConsumer(targetMock2);
-		targetMock1.onMessage(messageMock);
+		dispatcher.addHandler(targetMock1);
+		dispatcher.addHandler(targetMock2);
+		dispatcher.addHandler(targetMock3);
+		dispatcher.removeHandler(targetMock2);
+		targetMock1.handleMessage(messageMock);
 		expectLastCall();
-		targetMock3.onMessage(messageMock);
+		targetMock3.handleMessage(messageMock);
 		expectLastCall();
 		replay(globalMocks);
 		dispatcher.dispatch(messageMock);
@@ -212,18 +212,18 @@ public class BroadcastingDispatcherTests {
 
 	@Test
 	public void removeConsumerBetweenSends() {
-		dispatcher.addConsumer(targetMock1);
-		dispatcher.addConsumer(targetMock2);
-		dispatcher.addConsumer(targetMock3);
-		targetMock1.onMessage(messageMock);
+		dispatcher.addHandler(targetMock1);
+		dispatcher.addHandler(targetMock2);
+		dispatcher.addHandler(targetMock3);
+		targetMock1.handleMessage(messageMock);
 		expectLastCall().times(2);
-		targetMock2.onMessage(messageMock);
+		targetMock2.handleMessage(messageMock);
 		expectLastCall();
-		targetMock3.onMessage(messageMock);
+		targetMock3.handleMessage(messageMock);
 		expectLastCall().times(2);
 		replay(globalMocks);
 		dispatcher.dispatch(messageMock);
-		dispatcher.removeConsumer(targetMock2);
+		dispatcher.removeHandler(targetMock2);
 		dispatcher.dispatch(messageMock);
 		verify(globalMocks);
 	}
@@ -232,10 +232,10 @@ public class BroadcastingDispatcherTests {
 	public void applySequenceDisabledByDefault() {
 		BroadcastingDispatcher dispatcher = new BroadcastingDispatcher();
 		final List<Message<?>> messages = Collections.synchronizedList(new ArrayList<Message<?>>());
-		MessageConsumer target1 = new MessageStoringTestEndpoint(messages);
-		MessageConsumer target2 = new MessageStoringTestEndpoint(messages);
-		dispatcher.addConsumer(target1);
-		dispatcher.addConsumer(target2);
+		MessageHandler target1 = new MessageStoringTestEndpoint(messages);
+		MessageHandler target2 = new MessageStoringTestEndpoint(messages);
+		dispatcher.addHandler(target1);
+		dispatcher.addHandler(target2);
 		dispatcher.dispatch(new StringMessage("test"));
 		assertEquals(2, messages.size());
 		assertEquals(0, (int) messages.get(0).getHeaders().getSequenceNumber());
@@ -249,12 +249,12 @@ public class BroadcastingDispatcherTests {
 		BroadcastingDispatcher dispatcher = new BroadcastingDispatcher();
 		dispatcher.setApplySequence(true);
 		final List<Message<?>> messages = Collections.synchronizedList(new ArrayList<Message<?>>());
-		MessageConsumer target1 = new MessageStoringTestEndpoint(messages);
-		MessageConsumer target2 = new MessageStoringTestEndpoint(messages);
-		MessageConsumer target3 = new MessageStoringTestEndpoint(messages);
-		dispatcher.addConsumer(target1);
-		dispatcher.addConsumer(target2);
-		dispatcher.addConsumer(target3);
+		MessageHandler target1 = new MessageStoringTestEndpoint(messages);
+		MessageHandler target2 = new MessageStoringTestEndpoint(messages);
+		MessageHandler target3 = new MessageStoringTestEndpoint(messages);
+		dispatcher.addHandler(target1);
+		dispatcher.addHandler(target2);
+		dispatcher.addHandler(target3);
 		dispatcher.dispatch(new StringMessage("test"));
 		assertEquals(3, messages.size());
 		assertEquals(1, (int) messages.get(0).getHeaders().getSequenceNumber());
@@ -294,7 +294,7 @@ public class BroadcastingDispatcherTests {
 	}
 
 
-	private static class MessageStoringTestEndpoint implements MessageConsumer {
+	private static class MessageStoringTestEndpoint implements MessageHandler {
 
 		private final List<Message<?>> messageList;
 
@@ -302,7 +302,7 @@ public class BroadcastingDispatcherTests {
 			this.messageList = messageList;
 		}
 
-		public void onMessage(Message<?> message) {
+		public void handleMessage(Message<?> message) {
 			this.messageList.add(message);
 		}
 	};

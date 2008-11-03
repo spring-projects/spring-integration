@@ -18,7 +18,7 @@ package org.springframework.integration.endpoint;
 
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.Assert;
 
 /**
@@ -26,18 +26,18 @@ import org.springframework.util.Assert;
  */
 public class PollingConsumerEndpoint extends AbstractPollingEndpoint {
 
-	private final MessageConsumer consumer;
-
 	private final PollableChannel inputChannel;
+
+	private final MessageHandler handler;
 
 	private volatile long receiveTimeout = 1000;
 
 
-	public PollingConsumerEndpoint(MessageConsumer consumer, PollableChannel inputChannel) {
-		Assert.notNull(consumer, "consumer must not be null");
+	public PollingConsumerEndpoint(PollableChannel inputChannel, MessageHandler handler) {
 		Assert.notNull(inputChannel, "inputChannel must not be null");
-		this.consumer = consumer;
+		Assert.notNull(handler, "handler must not be null");
 		this.inputChannel = inputChannel;
+		this.handler = handler;
 	}
 
 
@@ -53,7 +53,7 @@ public class PollingConsumerEndpoint extends AbstractPollingEndpoint {
 		if (message == null) {
 			return false;
 		}
-		this.consumer.onMessage(message);
+		this.handler.handleMessage(message);
 		return true;
 	}
 

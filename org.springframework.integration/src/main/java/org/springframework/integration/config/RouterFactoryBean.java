@@ -18,7 +18,7 @@ package org.springframework.integration.config;
 
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.router.AbstractMessageRouter;
 import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.util.Assert;
@@ -45,7 +45,7 @@ public class RouterFactoryBean extends AbstractConsumerFactoryBean {
 	}
 
 	@Override
-	protected MessageConsumer createConsumer(Object targetObject, String targetMethodName) {
+	protected MessageHandler createConsumer(Object targetObject, String targetMethodName) {
 		Assert.notNull(targetObject, "target object must not be null");
 		AbstractMessageRouter router = this.createRouter(targetObject, targetMethodName);
 		if (this.defaultOutputChannel != null) {

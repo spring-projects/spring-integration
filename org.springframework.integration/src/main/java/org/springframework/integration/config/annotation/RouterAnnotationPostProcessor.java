@@ -21,7 +21,7 @@ import java.lang.reflect.Method;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.router.MethodInvokingRouter;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -39,7 +39,7 @@ public class RouterAnnotationPostProcessor extends AbstractMethodAnnotationPostP
 
 
 	@Override
-	protected MessageConsumer createConsumer(Object bean, Method method, Router annotation) {
+	protected MessageHandler createHandler(Object bean, Method method, Router annotation) {
 		MethodInvokingRouter router = new MethodInvokingRouter(bean, method);
 		router.setChannelResolver(this.channelResolver);
 		String defaultOutputChannelName = annotation.defaultOutputChannel();

@@ -28,7 +28,7 @@ import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
-import org.springframework.integration.consumer.MethodInvokingConsumer;
+import org.springframework.integration.consumer.MethodInvokingMessageHandler;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.PollingConsumerEndpoint;
@@ -71,8 +71,8 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 			endpoint = this.createInboundChannelAdapter(source, channel, pollerAnnotation);
 		}
 		else if (method.getParameterTypes().length > 0 && !hasReturnValue(method)) {
-			MethodInvokingConsumer consumer = new MethodInvokingConsumer(bean, method);
-			endpoint = this.createOutboundChannelAdapter(consumer, channel, pollerAnnotation);
+			MethodInvokingMessageHandler handler = new MethodInvokingMessageHandler(bean, method);
+			endpoint = this.createOutboundChannelAdapter(channel, handler, pollerAnnotation);
 		}
 		else {
 			throw new IllegalArgumentException("The @ChannelAdapter can only be applied to methods"
@@ -110,17 +110,17 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 		return adapter;
 	}
 
-	private MessageEndpoint createOutboundChannelAdapter(MethodInvokingConsumer consumer, MessageChannel channel, Poller pollerAnnotation) {
+	private MessageEndpoint createOutboundChannelAdapter(MessageChannel channel, MethodInvokingMessageHandler handler, Poller pollerAnnotation) {
 		if (channel instanceof PollableChannel) {
 			Trigger trigger = (pollerAnnotation != null)
 					? AnnotationConfigUtils.parseTriggerFromPollerAnnotation(pollerAnnotation)
 					: new IntervalTrigger(0);
-			PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(consumer, (PollableChannel) channel);
+			PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint((PollableChannel) channel, handler);
 			endpoint.setTrigger(trigger);
 			return endpoint;
 		}
 		if (channel instanceof SubscribableChannel) {
-			return new SubscribingConsumerEndpoint(consumer, (SubscribableChannel) channel);
+			return new SubscribingConsumerEndpoint((SubscribableChannel) channel, handler);
 		}
 		return null;
 	}

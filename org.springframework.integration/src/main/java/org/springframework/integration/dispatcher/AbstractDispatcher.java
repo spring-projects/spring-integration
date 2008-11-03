@@ -24,7 +24,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageRejectedException;
 
 /**
@@ -36,21 +36,21 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	protected final Set<MessageConsumer> consumers = new CopyOnWriteArraySet<MessageConsumer>();
+	protected final Set<MessageHandler> handlers = new CopyOnWriteArraySet<MessageHandler>();
 
 	private volatile TaskExecutor taskExecutor;
 
 
-	public boolean addConsumer(MessageConsumer consumer) {
-		return this.consumers.add(consumer);
+	public boolean addHandler(MessageHandler handler) {
+		return this.handlers.add(handler);
 	}
 
-	public boolean removeConsumer(MessageConsumer consumer) {
-		return this.consumers.remove(consumer);
+	public boolean removeHandler(MessageHandler handler) {
+		return this.handlers.remove(handler);
 	}
 
 	/**
-	 * Specify a {@link TaskExecutor} for invoking the consumers.
+	 * Specify a {@link TaskExecutor} for invoking the handlers.
 	 * If none is provided, the invocation will occur in the thread
 	 * that runs this polling dispatcher.
 	 */
@@ -63,21 +63,21 @@ public abstract class AbstractDispatcher implements MessageDispatcher {
 	}
 
 	public String toString() {
-		return this.getClass().getSimpleName() + " with consumers: " + this.consumers;
+		return this.getClass().getSimpleName() + " with handlers: " + this.handlers;
 	}
 
 	/**
 	 * Convenience method available for subclasses. Returns 'true' unless a
 	 * "Selective Consumer" throws a {@link MessageRejectedException}.
 	 */
-	protected boolean sendMessageToConsumer(Message<?> message, MessageConsumer consumer) {
+	protected boolean sendMessageToHandler(Message<?> message, MessageHandler handler) {
 		try {
-			consumer.onMessage(message);
+			handler.handleMessage(message);
 			return true;
 		}
 		catch (MessageRejectedException e) {
 			if (logger.isDebugEnabled()) {
-				logger.debug("Consumer '" + consumer + "' rejected Message, continuing with other consumers if available.", e);
+				logger.debug("Handler '" + handler + "' rejected Message, continuing with other handlers if available.", e);
 			}
 			return false;
 		}

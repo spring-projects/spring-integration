@@ -47,7 +47,7 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = this.getSplitter("stringToStringArray");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.onMessage(message);
+		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
@@ -63,7 +63,7 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = this.getSplitter("stringToStringList");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.onMessage(message);
+		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
@@ -79,7 +79,7 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = this.getSplitter("messageToStringArray");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.onMessage(message);
+		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
@@ -95,7 +95,7 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = this.getSplitter("messageToStringList");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.onMessage(message);
+		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
@@ -111,7 +111,7 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = this.getSplitter("messageToMessageArray");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.onMessage(message);
+		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
@@ -127,7 +127,7 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = this.getSplitter("messageToMessageList");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.onMessage(message);
+		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
@@ -143,7 +143,7 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = this.getSplitter("stringToMessageArray");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.onMessage(message);
+		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
@@ -159,7 +159,7 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = this.getSplitter("stringToMessageList");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.onMessage(message);
+		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
@@ -175,7 +175,7 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "stringToStringArray");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.onMessage(message);
+		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
@@ -191,7 +191,7 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "stringToStringList");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.onMessage(message);
+		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
@@ -207,7 +207,7 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "messageToStringArray");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.onMessage(message);
+		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
@@ -223,7 +223,7 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "messageToStringList");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.onMessage(message);
+		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
@@ -239,7 +239,7 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "messageToMessageArray");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.onMessage(message);
+		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
@@ -255,7 +255,7 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "messageToMessageList");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.onMessage(message);
+		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
@@ -271,7 +271,7 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "stringToMessageArray");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.onMessage(message);
+		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
@@ -287,7 +287,7 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, "stringToMessageList");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.onMessage(message);
+		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
@@ -303,7 +303,7 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = this.getSplitter("stringToStringArray");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.onMessage(message);
+		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
@@ -323,7 +323,7 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = this.getSplitter("messageToMessageList");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.onMessage(message);
+		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
@@ -344,7 +344,7 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = this.getSplitter("splitHeader");
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.onMessage(message);
+		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
@@ -362,7 +362,7 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean, splittingMethod);
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.onMessage(message);
+		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
@@ -385,7 +385,7 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(annotatedBean);
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.onMessage(message);
+		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);
@@ -407,7 +407,7 @@ public class MethodInvokingSplitterTests {
 		MethodInvokingSplitter splitter = new MethodInvokingSplitter(testBean);
 		QueueChannel replyChannel = new QueueChannel();
 		splitter.setOutputChannel(replyChannel);
-		splitter.onMessage(message);
+		splitter.handleMessage(message);
 		List<Message<?>> replies = replyChannel.clear();
 		Message<?> reply1 = replies.get(0);
 		assertNotNull(reply1);

@@ -17,17 +17,17 @@
 package org.springframework.integration.dispatcher;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageRejectedException;
 
 /**
  * Basic implementation of {@link MessageDispatcher} that will attempt
- * to send a {@link Message} to one of its consumers. As soon as <em>one</em>
- * of the consumers accepts the Message, the dispatcher will return 'true'.
+ * to send a {@link Message} to one of its handlers. As soon as <em>one</em>
+ * of the handlers accepts the Message, the dispatcher will return 'true'.
  * <p>
- * If the dispatcher has no consumers, a {@link MessageDeliveryException}
- * will be thrown. If all consumers reject the Message, the dispatcher will
+ * If the dispatcher has no handlers, a {@link MessageDeliveryException}
+ * will be thrown. If all handlers reject the Message, the dispatcher will
  * throw a MessageRejectedException.
  * 
  * @author Mark Fisher
@@ -35,14 +35,14 @@ import org.springframework.integration.message.MessageRejectedException;
 public class SimpleDispatcher extends AbstractDispatcher {
 
 	public boolean dispatch(Message<?> message) {
-		if (this.consumers.size() == 0) {
+		if (this.handlers.size() == 0) {
 			throw new MessageDeliveryException(message, "Dispatcher has no subscribers.");
 		}
 		int count = 0;
 		int rejectedExceptionCount = 0;
-		for (MessageConsumer consumer : this.consumers) {
+		for (MessageHandler handler : this.handlers) {
 			count++;
-			if (this.sendMessageToConsumer(message, consumer)) {
+			if (this.sendMessageToHandler(message, handler)) {
 				return true;
 			}
 			rejectedExceptionCount++;

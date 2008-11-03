@@ -37,7 +37,7 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.xml.MessageBusParser;
-import org.springframework.integration.consumer.AbstractReplyProducingMessageConsumer;
+import org.springframework.integration.consumer.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.consumer.ReplyMessageHolder;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.endpoint.PollingConsumerEndpoint;
@@ -69,13 +69,13 @@ public class ApplicationContextMessageBusTests {
 		Message<String> message = MessageBuilder.withPayload("test")
 				.setReplyChannelName("targetChannel").build();
 		sourceChannel.send(message);
-		AbstractReplyProducingMessageConsumer consumer = new AbstractReplyProducingMessageConsumer() {
-			public void onMessage(Message<?> message, ReplyMessageHolder replyHolder) {
+		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+			public void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
 				replyHolder.set(message);
 			}
 		};
-		consumer.setBeanFactory(context);
-		PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(consumer, sourceChannel);
+		handler.setBeanFactory(context);
+		PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(sourceChannel, handler);
 		endpoint.afterPropertiesSet();
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
 		context.refresh();
@@ -128,13 +128,15 @@ public class ApplicationContextMessageBusTests {
 		QueueChannel inputChannel = new QueueChannel();
 		QueueChannel outputChannel1 = new QueueChannel();
 		QueueChannel outputChannel2 = new QueueChannel();
-		AbstractReplyProducingMessageConsumer consumer1 = new AbstractReplyProducingMessageConsumer() {
-			public void onMessage(Message<?> message, ReplyMessageHolder replyHolder) {
+		AbstractReplyProducingMessageHandler handler1 = new AbstractReplyProducingMessageHandler() {
+			@Override
+			public void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
 				replyHolder.set(message);
 			}
 		};
-		AbstractReplyProducingMessageConsumer consumer2 = new AbstractReplyProducingMessageConsumer() {
-			public void onMessage(Message<?> message, ReplyMessageHolder replyHolder) {
+		AbstractReplyProducingMessageHandler handler2 = new AbstractReplyProducingMessageHandler() {
+			@Override
+			public void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
 				replyHolder.set(message);
 			}
 		};
@@ -144,11 +146,11 @@ public class ApplicationContextMessageBusTests {
 		context.getBeanFactory().registerSingleton("input", inputChannel);
 		context.getBeanFactory().registerSingleton("output1", outputChannel1);
 		context.getBeanFactory().registerSingleton("output2", outputChannel2);
-		consumer1.setOutputChannel(outputChannel1);
-		consumer2.setOutputChannel(outputChannel2);
-		PollingConsumerEndpoint endpoint1 = new PollingConsumerEndpoint(consumer1, inputChannel);
+		handler1.setOutputChannel(outputChannel1);
+		handler2.setOutputChannel(outputChannel2);
+		PollingConsumerEndpoint endpoint1 = new PollingConsumerEndpoint(inputChannel, handler1);
 		endpoint1.afterPropertiesSet();
-		PollingConsumerEndpoint endpoint2 = new PollingConsumerEndpoint(consumer2, inputChannel);
+		PollingConsumerEndpoint endpoint2 = new PollingConsumerEndpoint(inputChannel, handler2);
 		endpoint2.afterPropertiesSet();
 		context.getBeanFactory().registerSingleton("testEndpoint1", endpoint1);
 		context.getBeanFactory().registerSingleton("testEndpoint2", endpoint2);
@@ -171,14 +173,16 @@ public class ApplicationContextMessageBusTests {
 		QueueChannel outputChannel1 = new QueueChannel();
 		QueueChannel outputChannel2 = new QueueChannel();
 		final CountDownLatch latch = new CountDownLatch(2);
-		AbstractReplyProducingMessageConsumer consumer1 = new AbstractReplyProducingMessageConsumer() {
-			public void onMessage(Message<?> message, ReplyMessageHolder replyHolder) {
+		AbstractReplyProducingMessageHandler handler1 = new AbstractReplyProducingMessageHandler() {
+			@Override
+			public void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
 				replyHolder.set(message);
 				latch.countDown();
 			}
 		};
-		AbstractReplyProducingMessageConsumer consumer2 = new AbstractReplyProducingMessageConsumer() {
-			public void onMessage(Message<?> message, ReplyMessageHolder replyHolder) {
+		AbstractReplyProducingMessageHandler handler2 = new AbstractReplyProducingMessageHandler() {
+			@Override
+			public void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
 				replyHolder.set(message);
 				latch.countDown();
 			}
@@ -189,10 +193,10 @@ public class ApplicationContextMessageBusTests {
 		context.getBeanFactory().registerSingleton("input", inputChannel);
 		context.getBeanFactory().registerSingleton("output1", outputChannel1);
 		context.getBeanFactory().registerSingleton("output2", outputChannel2);
-		consumer1.setOutputChannel(outputChannel1);
-		consumer2.setOutputChannel(outputChannel2);
-		SubscribingConsumerEndpoint endpoint1 = new SubscribingConsumerEndpoint(consumer1, inputChannel);
-		SubscribingConsumerEndpoint endpoint2 = new SubscribingConsumerEndpoint(consumer2, inputChannel);
+		handler1.setOutputChannel(outputChannel1);
+		handler2.setOutputChannel(outputChannel2);
+		SubscribingConsumerEndpoint endpoint1 = new SubscribingConsumerEndpoint(inputChannel, handler1);
+		SubscribingConsumerEndpoint endpoint2 = new SubscribingConsumerEndpoint(inputChannel, handler2);
 		context.getBeanFactory().registerSingleton("testEndpoint1", endpoint1);
 		context.getBeanFactory().registerSingleton("testEndpoint2", endpoint2);
 		ApplicationContextMessageBus bus = new ApplicationContextMessageBus();
@@ -256,12 +260,13 @@ public class ApplicationContextMessageBusTests {
 		errorChannel.setBeanName(ApplicationContextMessageBus.ERROR_CHANNEL_BEAN_NAME);
 		context.getBeanFactory().registerSingleton(ApplicationContextMessageBus.ERROR_CHANNEL_BEAN_NAME, errorChannel);
 		final CountDownLatch latch = new CountDownLatch(1);
-		AbstractReplyProducingMessageConsumer consumer = new AbstractReplyProducingMessageConsumer() {
-			public void onMessage(Message<?> message, ReplyMessageHolder replyHolder) {
+		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
+			@Override
+			public void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
 				latch.countDown();
 			}
 		};
-		PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(consumer, errorChannel);
+		PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(errorChannel, handler);
 		endpoint.afterPropertiesSet();
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
 		ApplicationContextMessageBus bus = new ApplicationContextMessageBus();

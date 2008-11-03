@@ -20,7 +20,7 @@ import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.consumer.ServiceActivatingConsumer;
+import org.springframework.integration.consumer.ServiceActivatingHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -33,7 +33,7 @@ public class ServiceActivatorParser extends AbstractConsumerEndpointParser {
 
 	@Override
 	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ServiceActivatingConsumer.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ServiceActivatingHandler.class);
 		String ref = element.getAttribute(REF_ATTRIBUTE);
 		Assert.hasText(ref, "The '" + REF_ATTRIBUTE + "' attribute is required.");
 		builder.addConstructorArgReference(ref);

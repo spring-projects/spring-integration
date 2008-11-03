@@ -23,7 +23,7 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.mail.MailSendingMessageConsumer;
+import org.springframework.integration.mail.MailSendingMessageHandler;
 import org.springframework.mail.MailSender;
 
 /**
@@ -36,9 +36,9 @@ public class MailOutboundChannelAdapterParserTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"mailOutboundChannelAdapterParserTests.xml", this.getClass());
 		Object adapter = context.getBean("adapterWithMailSenderReference.adapter");
-		MailSendingMessageConsumer consumer = (MailSendingMessageConsumer)
-				new DirectFieldAccessor(adapter).getPropertyValue("consumer");
-		DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(consumer);
+		MailSendingMessageHandler handler = (MailSendingMessageHandler)
+				new DirectFieldAccessor(adapter).getPropertyValue("handler");
+		DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(handler);
 		MailSender mailSender = (MailSender) fieldAccessor.getPropertyValue("mailSender");
 		assertNotNull(mailSender);
 	}
@@ -48,9 +48,9 @@ public class MailOutboundChannelAdapterParserTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"mailOutboundChannelAdapterParserTests.xml", this.getClass());
 		Object adapter = context.getBean("adapterWithHostProperty.adapter");
-		MailSendingMessageConsumer consumer = (MailSendingMessageConsumer)
-				new DirectFieldAccessor(adapter).getPropertyValue("consumer");
-		DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(consumer);
+		MailSendingMessageHandler handler = (MailSendingMessageHandler)
+				new DirectFieldAccessor(adapter).getPropertyValue("handler");
+		DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(handler);
 		MailSender mailSender = (MailSender) fieldAccessor.getPropertyValue("mailSender");
 		assertNotNull(mailSender);
 	}

@@ -17,18 +17,18 @@
 package org.springframework.integration.dispatcher;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 
 /**
- * Strategy interface for dispatching messages to consumers.
+ * Strategy interface for dispatching messages to handlers.
  * 
  * @author Mark Fisher
  */
 public interface MessageDispatcher {
 
-	boolean addConsumer(MessageConsumer consumer);
+	boolean addHandler(MessageHandler handler);
 
-	boolean removeConsumer(MessageConsumer consumer);
+	boolean removeHandler(MessageHandler handler);
 
 	boolean dispatch(Message<?> message);
 

@@ -76,7 +76,7 @@ public class ResequencerParserTests {
 	@Test
 	public void testDefaultResequencerProperties() {
 		SubscribingConsumerEndpoint endpoint = (SubscribingConsumerEndpoint) context.getBean("defaultResequencer");
-		Resequencer resequencer = (Resequencer) new DirectFieldAccessor(endpoint).getPropertyValue("consumer");
+		Resequencer resequencer = (Resequencer) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertNull(getPropertyValue(resequencer, "outputChannel"));
 		assertNull(getPropertyValue(resequencer, "discardChannel"));
 		assertEquals("The ResequencerEndpoint is not set with the appropriate timeout value",
@@ -98,7 +98,7 @@ public class ResequencerParserTests {
 		SubscribingConsumerEndpoint endpoint = (SubscribingConsumerEndpoint) context.getBean("completelyDefinedResequencer");
 		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
 		MessageChannel discardChannel = (MessageChannel) context.getBean("discardChannel");
-		Resequencer resequencer = (Resequencer) new DirectFieldAccessor(endpoint).getPropertyValue("consumer");
+		Resequencer resequencer = (Resequencer) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals("The ResequencerEndpoint is not injected with the appropriate output channel",
 				outputChannel, getPropertyValue(resequencer, "outputChannel"));
 		assertEquals("The ResequencerEndpoint is not injected with the appropriate discard channel",

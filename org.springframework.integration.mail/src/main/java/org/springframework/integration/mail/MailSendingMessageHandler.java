@@ -23,7 +23,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.integration.adapter.MessageMappingException;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageHeaders;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.mail.MailMessage;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -33,7 +33,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * A {@link MessageConsumer} implementation for sending mail.
+ * A {@link MessageHandler} implementation for sending mail.
  * 
  * <p>If the Message is an instance of {@link MailMessage}, it will be passed
  * as-is. If the Message payload is a byte array, it will be passed as an
@@ -47,7 +47,7 @@ import org.springframework.util.StringUtils;
  * @author Marius Bogoevici
  * @author Mark Fisher
  */
-public class MailSendingMessageConsumer implements MessageConsumer {
+public class MailSendingMessageHandler implements MessageHandler {
 
 	private final JavaMailSender mailSender;
 
@@ -58,13 +58,13 @@ public class MailSendingMessageConsumer implements MessageConsumer {
 	 * @param mailSender the {@link JavaMailSender} instance to which this
 	 * adapter will delegate.
 	 */
-	public MailSendingMessageConsumer(JavaMailSender mailSender) {
+	public MailSendingMessageHandler(JavaMailSender mailSender) {
 		Assert.notNull(mailSender, "'mailSender' must not be null");
 		this.mailSender = mailSender;
 	}
 
 
-	public final void onMessage(Message<?> message) {
+	public final void handleMessage(Message<?> message) {
 		MailMessage mailMessage = this.convertMessageToMailMessage(message);
 		if (mailMessage instanceof SimpleMailMessage) {
 			this.mailSender.send((SimpleMailMessage) mailMessage);

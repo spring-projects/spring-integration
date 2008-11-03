@@ -19,12 +19,12 @@ package org.springframework.integration.channel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.dispatcher.MessageDispatcher;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.Assert;
 
 /**
  * Base implementation of {@link MessageChannel} that invokes the subscribed
- * {@link MessageConsumer consumer(s)} by delegating to a {@link MessageDispatcher}.
+ * {@link MessageHandler handler(s)} by delegating to a {@link MessageDispatcher}.
  * 
  * @author Mark Fisher
  */
@@ -43,12 +43,12 @@ public class AbstractSubscribableChannel<T extends MessageDispatcher> extends Ab
 		return this.dispatcher;
 	}
 
-	public boolean subscribe(MessageConsumer consumer) {
-		return this.dispatcher.addConsumer(consumer);
+	public boolean subscribe(MessageHandler handler) {
+		return this.dispatcher.addHandler(handler);
 	}
 
-	public boolean unsubscribe(MessageConsumer consumer) {
-		return this.dispatcher.removeConsumer(consumer);
+	public boolean unsubscribe(MessageHandler handle) {
+		return this.dispatcher.removeHandler(handle);
 	}
 
 	@Override

@@ -48,7 +48,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.PollingConsumerEndpoint;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.scheduling.Trigger;
@@ -403,8 +403,8 @@ public class MessagingAnnotationPostProcessorTests {
 		DirectChannel testChannel = (DirectChannel) channelResolver.resolveChannelName("testChannel");
 		final CountDownLatch latch = new CountDownLatch(1);
 		final AtomicReference<Message<?>> receivedMessage = new AtomicReference<Message<?>>();
-		testChannel.subscribe(new MessageConsumer() {
-			public void onMessage(Message<?> message) {
+		testChannel.subscribe(new MessageHandler() {
+			public void handleMessage(Message<?> message) {
 				receivedMessage.set(message);
 				latch.countDown();
 			}

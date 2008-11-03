@@ -22,7 +22,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
-import org.springframework.integration.file.FileWritingMessageConsumer;
+import org.springframework.integration.file.FileWritingMessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -37,7 +37,7 @@ public class FileOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
 		String directory = element.getAttribute("directory");
 		Assert.hasText(directory, "directory is required");
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(FileWritingMessageConsumer.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(FileWritingMessageHandler.class);
 		builder.addConstructorArgValue(directory);
 		String fileNameGenerator = element.getAttribute("filename-generator");
 		if (StringUtils.hasText(fileNameGenerator)) {

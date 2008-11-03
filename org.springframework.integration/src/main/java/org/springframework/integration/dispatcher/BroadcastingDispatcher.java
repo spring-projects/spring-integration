@@ -19,13 +19,13 @@ package org.springframework.integration.dispatcher;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 
 /**
  * A broadcasting dispatcher implementation. It makes a best effort to
- * send the message to each of its consumers. If it fails to send to any
- * one consumer, it will log a warn-level message but continue to send
- * to the other consumers.
+ * send the message to each of its handlers. If it fails to send to any
+ * one handler, it will log a warn-level message but continue to send
+ * to the other handlers.
  * 
  * @author Mark Fisher
  */
@@ -36,7 +36,7 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 
 	/**
 	 * Specify whether to apply sequence numbers to the messages
-	 * prior to sending to the endpoints. By default, sequence
+	 * prior to sending to the handlers. By default, sequence
 	 * numbers will <em>not</em> be applied
 	 */
 	public void setApplySequence(boolean applySequence) {
@@ -45,8 +45,8 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 
 	public boolean dispatch(Message<?> message) {
 		int sequenceNumber = 1;
-		int sequenceSize = this.consumers.size();
-		for (final MessageConsumer consumer : this.consumers) {
+		int sequenceSize = this.handlers.size();
+		for (final MessageHandler handler : this.handlers) {
 			final Message<?> messageToSend = (!this.applySequence) ? message
 				: MessageBuilder.fromMessage(message)
 						.setSequenceNumber(sequenceNumber++)
@@ -56,12 +56,12 @@ public class BroadcastingDispatcher extends AbstractDispatcher {
 			if (executor != null) {
 				executor.execute(new Runnable() {
 					public void run() {
-						BroadcastingDispatcher.this.sendMessageToConsumer(messageToSend, consumer);
+						BroadcastingDispatcher.this.sendMessageToHandler(messageToSend, handler);
 					}
 				});
 			}
 			else {
-				this.sendMessageToConsumer(messageToSend, consumer);
+				this.sendMessageToHandler(messageToSend, handler);
 			}
 		}
 		return true;

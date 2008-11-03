@@ -37,7 +37,7 @@ import org.junit.Test;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.scheduling.SimpleTaskScheduler;
@@ -72,7 +72,7 @@ public class PollingConsumerEndpointTests {
 	public void init() throws InterruptedException {
 		consumer.counter.set(0);
 		trigger.reset();
-		endpoint = new PollingConsumerEndpoint(consumer, channelMock);
+		endpoint = new PollingConsumerEndpoint(channelMock, consumer);
 		endpoint.setTaskScheduler(taskScheduler);
 		taskScheduler.setErrorHandler(errorHandler);
 		taskScheduler.start();
@@ -178,11 +178,11 @@ public class PollingConsumerEndpointTests {
 	}
 
 
-	private static class TestConsumer implements MessageConsumer {
+	private static class TestConsumer implements MessageHandler {
 
 		private volatile AtomicInteger counter = new AtomicInteger();
 
-		public void onMessage(Message<?> message) {
+		public void handleMessage(Message<?> message) {
 			this.counter.incrementAndGet();
 			if ("bad".equals(message.getPayload().toString())) {
 				throw new MessageRejectedException(message, "intentional test failure");

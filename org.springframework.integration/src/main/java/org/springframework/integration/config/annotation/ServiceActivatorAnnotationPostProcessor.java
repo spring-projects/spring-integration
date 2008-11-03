@@ -20,8 +20,8 @@ import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.integration.consumer.ServiceActivatingConsumer;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.consumer.ServiceActivatingHandler;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.StringUtils;
 
 /**
@@ -37,8 +37,8 @@ public class ServiceActivatorAnnotationPostProcessor extends AbstractMethodAnnot
 
 
 	@Override
-	protected MessageConsumer createConsumer(Object bean, Method method, ServiceActivator annotation) {
-		ServiceActivatingConsumer serviceActivator = new ServiceActivatingConsumer(bean, method);
+	protected MessageHandler createHandler(Object bean, Method method, ServiceActivator annotation) {
+		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(bean, method);
 		String outputChannelName = annotation.outputChannel();
 		if (StringUtils.hasText(outputChannelName)) {
 			serviceActivator.setOutputChannel(this.channelResolver.resolveChannelName(outputChannelName));

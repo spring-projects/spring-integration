@@ -25,7 +25,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import org.springframework.integration.ftp.FtpSendingMessageConsumer;
+import org.springframework.integration.ftp.FtpSendingMessageHandler;
 import org.springframework.integration.ftp.QueuedFTPClientPool;
 import org.springframework.integration.message.GenericMessage;
 
@@ -35,7 +35,7 @@ import org.springframework.integration.message.GenericMessage;
 @Ignore
 public class FtpSendingMessageConsumerIntegrationTests {
 
-	private FtpSendingMessageConsumer consumer;
+	private FtpSendingMessageHandler handler;
 
 	@Before
 	public void initFtpTarget() {
@@ -44,13 +44,13 @@ public class FtpSendingMessageConsumerIntegrationTests {
 		clientPool.setUsername("ftp-user");
 		clientPool.setPassword("kaas");
 		clientPool.setRemoteWorkingDirectory("ftp-test");
-		consumer = new FtpSendingMessageConsumer(clientPool);
+		handler = new FtpSendingMessageHandler(clientPool);
 	}
 
 	@Test
 	public void send() throws Exception {
 		File file = File.createTempFile("test", "");
-		consumer.onMessage(new GenericMessage<File>(file));
+		handler.handleMessage(new GenericMessage<File>(file));
 	}
 
 	@AfterClass

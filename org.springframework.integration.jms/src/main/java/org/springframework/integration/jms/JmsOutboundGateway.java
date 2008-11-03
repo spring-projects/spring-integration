@@ -26,7 +26,7 @@ import javax.jms.QueueSession;
 import javax.jms.Session;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.consumer.AbstractReplyProducingMessageConsumer;
+import org.springframework.integration.consumer.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.consumer.ReplyMessageHolder;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -42,7 +42,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class JmsOutboundGateway extends AbstractReplyProducingMessageConsumer implements InitializingBean {
+public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler implements InitializingBean {
 
 	private volatile Queue jmsQueue;
 
@@ -74,7 +74,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageConsumer im
 	}
 
 	@Override
-	protected void onMessage(final Message<?> message, final ReplyMessageHolder replyMessageHolder) {
+	protected void handleRequestMessage(final Message<?> message, final ReplyMessageHolder replyMessageHolder) {
 		final Message<?> requestMessage = MessageBuilder.fromMessage(message).build();
 		this.jmsTemplate.execute(new SessionCallback() {
 			public Object doInJms(Session session) throws JMSException {

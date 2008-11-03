@@ -22,7 +22,7 @@
 		<constructor-arg ref="sourceChannel"/>
 	</bean>
 
-	<bean id="serviceActivator" class="org.springframework.integration.consumer.ServiceActivatingConsumer">
+	<bean id="serviceActivator" class="org.springframework.integration.consumer.ServiceActivatingHandler">
 		<constructor-arg ref="handler"/>
 		<property name="outputChannel" ref="targetChannel"/>
 	</bean>

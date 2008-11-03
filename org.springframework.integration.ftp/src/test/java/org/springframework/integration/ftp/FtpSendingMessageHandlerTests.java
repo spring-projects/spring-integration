@@ -38,10 +38,9 @@ import org.springframework.integration.message.MessageDeliveryException;
  * @author Iwein Fuld
  * @author Mark Fisher
  */
-@SuppressWarnings("unchecked")
-public class FtpSendingMessageConsumerTests {
+public class FtpSendingMessageHandlerTests {
 
-	private FtpSendingMessageConsumer consumer;
+	private FtpSendingMessageHandler handler;
 
 	private FTPClient ftpClient = createMock(FTPClient.class);
 
@@ -66,7 +65,7 @@ public class FtpSendingMessageConsumerTests {
 
 	@Before
 	public void intitializeSubject() {
-		this.consumer = new FtpSendingMessageConsumer(ftpClientPool);
+		this.handler = new FtpSendingMessageHandler(ftpClientPool);
 	}
 
 
@@ -77,7 +76,7 @@ public class FtpSendingMessageConsumerTests {
 		Message<?> message = new GenericMessage<File>(File.createTempFile("test", ".tmp"));
 		expect(ftpClient.storeFile(isA(String.class), isA(FileInputStream.class))).andReturn(true);
 		replay(allMocks);
-		consumer.onMessage(message);
+		handler.handleMessage(message);
 		verify(allMocks);
 	}
 
@@ -86,7 +85,7 @@ public class FtpSendingMessageConsumerTests {
 		Message<?> message = new GenericMessage<File>(File.createTempFile("test", ".tmp"));
 		expect(ftpClient.storeFile(isA(String.class), isA(FileInputStream.class))).andReturn(false);
 		replay(allMocks);
-		consumer.onMessage(message);
+		handler.handleMessage(message);
 		verify(allMocks);
 	}
 

@@ -39,7 +39,7 @@ public class JmsOutboundChannelAdapterParserTests {
 				"jmsOutboundWithConnectionFactoryAndDestination.xml", this.getClass());
 		SubscribingConsumerEndpoint endpoint = (SubscribingConsumerEndpoint) context.getBean("adapter");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
-				new DirectFieldAccessor(endpoint).getPropertyValue("consumer"));
+				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
 		assertNotNull(accessor.getPropertyValue("jmsTemplate"));
 	}
 
@@ -49,7 +49,7 @@ public class JmsOutboundChannelAdapterParserTests {
 				"jmsOutboundWithConnectionFactoryAndDestinationName.xml", this.getClass());
 		SubscribingConsumerEndpoint endpoint = (SubscribingConsumerEndpoint) context.getBean("adapter");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
-				new DirectFieldAccessor(endpoint).getPropertyValue("consumer"));
+				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
 		assertNotNull(accessor.getPropertyValue("jmsTemplate"));
 	}
 
@@ -59,7 +59,7 @@ public class JmsOutboundChannelAdapterParserTests {
 				"jmsOutboundWithDefaultConnectionFactory.xml", this.getClass());
 		SubscribingConsumerEndpoint endpoint = (SubscribingConsumerEndpoint) context.getBean("adapter");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
-				new DirectFieldAccessor(endpoint).getPropertyValue("consumer"));
+				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
 		assertNotNull(accessor.getPropertyValue("jmsTemplate"));
 	}
 
@@ -69,7 +69,7 @@ public class JmsOutboundChannelAdapterParserTests {
 				"jmsOutboundWithHeaderMapper.xml", this.getClass());
 		SubscribingConsumerEndpoint endpoint = (SubscribingConsumerEndpoint) context.getBean("adapter");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
-				new DirectFieldAccessor(endpoint).getPropertyValue("consumer"));
+				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
 		JmsHeaderMapper headerMapper = (JmsHeaderMapper) accessor.getPropertyValue("headerMapper");
 		assertNotNull(headerMapper);
 		assertEquals(TestJmsHeaderMapper.class, headerMapper.getClass());

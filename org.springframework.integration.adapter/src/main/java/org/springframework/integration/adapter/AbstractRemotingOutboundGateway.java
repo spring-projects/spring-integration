@@ -18,7 +18,7 @@ package org.springframework.integration.adapter;
 
 import java.io.Serializable;
 
-import org.springframework.integration.consumer.AbstractReplyProducingMessageConsumer;
+import org.springframework.integration.consumer.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.consumer.ReplyMessageHolder;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -31,7 +31,7 @@ import org.springframework.remoting.RemoteAccessException;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractRemotingOutboundGateway extends AbstractReplyProducingMessageConsumer {
+public abstract class AbstractRemotingOutboundGateway extends AbstractReplyProducingMessageHandler {
 
 	private final MessageHandler handlerProxy;
 
@@ -52,7 +52,7 @@ public abstract class AbstractRemotingOutboundGateway extends AbstractReplyProdu
 
 
 	@Override
-	public final void onMessage(Message<?> message, ReplyMessageHolder replyHolder) {
+	public final void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
 		if (!(message.getPayload() instanceof Serializable)) {
 			throw new MessageHandlingException(message,
 					this.getClass().getName() + " expects a Serializable payload type " +

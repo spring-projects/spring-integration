@@ -22,7 +22,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.consumer.MethodInvokingConsumer;
+import org.springframework.integration.consumer.MethodInvokingMessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -46,7 +46,7 @@ public class MethodInvokingOutboundChannelAdapterParser extends AbstractOutbound
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder invokerBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingConsumer.class);
+		BeanDefinitionBuilder invokerBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingMessageHandler.class);
 		invokerBuilder.addConstructorArgReference(element.getAttribute("ref"));
 		invokerBuilder.addConstructorArgValue(element.getAttribute("method"));
 		return invokerBuilder.getBeanDefinition();

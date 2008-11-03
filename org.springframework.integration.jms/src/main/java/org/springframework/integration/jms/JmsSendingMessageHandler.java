@@ -14,17 +14,24 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration.jms;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.message.MessageHandler;
 
 /**
- * Base interface for any component that consumes Messages.
+ * A MessageConsumer that sends the converted Message payload within
+ * a JMS Message.
  * 
  * @author Mark Fisher
  */
-public interface MessageConsumer {
+public class JmsSendingMessageHandler extends AbstractJmsTemplateBasedAdapter implements MessageHandler {
 
-	void onMessage(Message<?> message);
+	public final void handleMessage(final Message<?> message) {
+		if (message == null) {
+			throw new IllegalArgumentException("message must not be null");
+		}
+		this.getJmsTemplate().convertAndSend(message);
+	}
 
 }

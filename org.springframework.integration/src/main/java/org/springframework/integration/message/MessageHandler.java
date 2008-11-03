@@ -14,23 +14,17 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.security.channel;
-
-import java.util.ArrayList;
-import java.util.List;
+package org.springframework.integration.message;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageConsumer;
 
 /**
+ * Base interface for any component that handles Messages.
+ * 
  * @author Mark Fisher
  */
-public class TestConsumer implements MessageConsumer {
+public interface MessageHandler {
 
-	public List<Message<?>> sentMessages = new ArrayList<Message<?>>();
-
-	public void onMessage(Message<?> message) {
-		sentMessages.add(message);
-	}
+	void handleMessage(Message<?> message);
 
 }

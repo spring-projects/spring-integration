@@ -37,7 +37,7 @@ public class HttpInvokerOutboundGatewayParserTests {
 				"httpInvokerOutboundGatewayParserTests.xml", this.getClass());
 		Object endpoint = context.getBean("gateway");
 		assertEquals(SubscribingConsumerEndpoint.class, endpoint.getClass());
-		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("consumer");
+		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(HttpInvokerOutboundGateway.class, gateway.getClass());
 	}
 

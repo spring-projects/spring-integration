@@ -25,25 +25,25 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 
 /**
- * A {@link MessageConsumer} that writes a byte array to an {@link OutputStream}.
+ * A {@link MessageHandler} that writes a byte array to an {@link OutputStream}.
  * 
  * @author Mark Fisher
  */
-public class ByteStreamWritingMessageConsumer implements MessageConsumer {
+public class ByteStreamWritingMessageHandler implements MessageHandler {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final BufferedOutputStream stream;
 
 
-	public ByteStreamWritingMessageConsumer(OutputStream stream) {
+	public ByteStreamWritingMessageHandler(OutputStream stream) {
 		this(stream, -1);
 	}
 
-	public ByteStreamWritingMessageConsumer(OutputStream stream, int bufferSize) {
+	public ByteStreamWritingMessageHandler(OutputStream stream, int bufferSize) {
 		if (bufferSize > 0) {
 			this.stream = new BufferedOutputStream(stream, bufferSize);
 		}
@@ -53,7 +53,7 @@ public class ByteStreamWritingMessageConsumer implements MessageConsumer {
 	}
 
 
-	public void onMessage(Message<?> message) {
+	public void handleMessage(Message<?> message) {
 		Object payload = message.getPayload();
 		if (payload == null) {
 			if (logger.isWarnEnabled()) {

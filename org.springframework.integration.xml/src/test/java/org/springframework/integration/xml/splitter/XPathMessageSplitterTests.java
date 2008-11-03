@@ -55,7 +55,7 @@ public class XPathMessageSplitterTests {
 	@Test
 	public void splitDocument() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<orders><order>one</order><order>two</order><order>three</order></orders>");
-		splitter.onMessage(new GenericMessage<Document>(doc));
+		splitter.handleMessage(new GenericMessage<Document>(doc));
 		List<Message<?>> docMessages = this.replyChannel.clear();
 		assertEquals("Wrong number of messages", 3, docMessages.size());
 		for (Message<?> message : docMessages) {
@@ -67,14 +67,14 @@ public class XPathMessageSplitterTests {
 	@Test(expected = MessagingException.class)
 	public void splitDocumentThatDoesNotMatch() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<wrongDocument/>");
-		splitter.onMessage(new GenericMessage<Document>(doc));
+		splitter.handleMessage(new GenericMessage<Document>(doc));
 	}
 
 	@Test
 	public void splitDocumentWithCreateDocumentsTrue() throws Exception {
 		splitter.setCreateDocuments(true);
 		Document doc = XmlTestUtil.getDocumentForString("<orders><order>one</order><order>two</order><order>three</order></orders>");
-		splitter.onMessage(new GenericMessage<Document>(doc));
+		splitter.handleMessage(new GenericMessage<Document>(doc));
 		List<Message<?>> docMessages = this.replyChannel.clear();
 		assertEquals("Wrong number of messages", 3, docMessages.size());
 		for (Message<?> message : docMessages) {
@@ -85,7 +85,7 @@ public class XPathMessageSplitterTests {
 	@Test
 	public void splitStringXml() throws Exception {
 		String payload = "<orders><order>one</order><order>two</order><order>three</order></orders>";
-		splitter.onMessage(new GenericMessage<String>(payload));
+		splitter.handleMessage(new GenericMessage<String>(payload));
 		List<Message<?>> docMessages = this.replyChannel.clear();
 		assertEquals("Wrong number of messages", 3, docMessages.size());
 		for (Message<?> message : docMessages) {

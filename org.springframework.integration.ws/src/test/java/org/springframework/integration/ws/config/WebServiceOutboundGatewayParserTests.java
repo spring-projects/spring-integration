@@ -48,7 +48,7 @@ public class WebServiceOutboundGatewayParserTests {
 				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithDefaultSourceExtractor");
 		assertEquals(SubscribingConsumerEndpoint.class, endpoint.getClass());
-		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("consumer");
+		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals("DefaultSourceExtractor", accessor.getPropertyValue("sourceExtractor").getClass().getSimpleName());
@@ -60,7 +60,7 @@ public class WebServiceOutboundGatewayParserTests {
 				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithCustomSourceExtractor");
 		assertEquals(SubscribingConsumerEndpoint.class, endpoint.getClass());
-		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("consumer");
+		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		SourceExtractor sourceExtractor = (SourceExtractor) context.getBean("sourceExtractor");
@@ -73,7 +73,7 @@ public class WebServiceOutboundGatewayParserTests {
 				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithCustomRequestCallback");
 		assertEquals(SubscribingConsumerEndpoint.class, endpoint.getClass());
-		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("consumer");
+		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		WebServiceMessageCallback callback = (WebServiceMessageCallback) context.getBean("requestCallback");
@@ -86,7 +86,7 @@ public class WebServiceOutboundGatewayParserTests {
 				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithCustomMessageFactory");
 		assertEquals(SubscribingConsumerEndpoint.class, endpoint.getClass());
-		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("consumer");
+		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("webServiceTemplate"));
@@ -101,7 +101,7 @@ public class WebServiceOutboundGatewayParserTests {
 		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithCustomSourceExtractorAndMessageFactory");
 		SourceExtractor sourceExtractor = (SourceExtractor) context.getBean("sourceExtractor");
 		assertEquals(SubscribingConsumerEndpoint.class, endpoint.getClass());
-		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("consumer");
+		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		assertEquals(sourceExtractor, accessor.getPropertyValue("sourceExtractor"));
@@ -116,7 +116,7 @@ public class WebServiceOutboundGatewayParserTests {
 				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithCustomFaultMessageResolver");
 		assertEquals(SubscribingConsumerEndpoint.class, endpoint.getClass());
-		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("consumer");
+		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("webServiceTemplate"));
@@ -131,7 +131,7 @@ public class WebServiceOutboundGatewayParserTests {
 				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithCustomMessageSender");
 		assertEquals(SubscribingConsumerEndpoint.class, endpoint.getClass());
-		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("consumer");
+		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);		
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("webServiceTemplate"));
@@ -144,7 +144,7 @@ public class WebServiceOutboundGatewayParserTests {
 				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithCustomMessageSenderList");
 		assertEquals(SubscribingConsumerEndpoint.class, endpoint.getClass());
-		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("consumer");
+		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("webServiceTemplate"));
@@ -175,7 +175,7 @@ public class WebServiceOutboundGatewayParserTests {
 				"marshallingWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithAllInOneMarshaller");
 		assertEquals(SubscribingConsumerEndpoint.class, endpoint.getClass());
-		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("consumer");
+		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(MarshallingWebServiceOutboundGateway.class, gateway.getClass());
 		DirectFieldAccessor gatewayAccessor = new DirectFieldAccessor(gateway);
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(
@@ -191,7 +191,7 @@ public class WebServiceOutboundGatewayParserTests {
 				"marshallingWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithSeparateMarshallerAndUnmarshaller");
 		assertEquals(SubscribingConsumerEndpoint.class, endpoint.getClass());
-		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("consumer");
+		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(MarshallingWebServiceOutboundGateway.class, gateway.getClass());
 		DirectFieldAccessor gatewayAccessor = new DirectFieldAccessor(gateway);
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(
@@ -208,7 +208,7 @@ public class WebServiceOutboundGatewayParserTests {
 				"marshallingWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithCustomRequestCallback");
 		assertEquals(SubscribingConsumerEndpoint.class, endpoint.getClass());
-		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("consumer");
+		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(MarshallingWebServiceOutboundGateway.class, gateway.getClass());
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
 		WebServiceMessageCallback callback = (WebServiceMessageCallback) context.getBean("requestCallback");
@@ -221,7 +221,7 @@ public class WebServiceOutboundGatewayParserTests {
 				"marshallingWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithAllInOneMarshallerAndMessageFactory");
 		assertEquals(SubscribingConsumerEndpoint.class, endpoint.getClass());
-		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("consumer");
+		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(MarshallingWebServiceOutboundGateway.class, gateway.getClass());
 		DirectFieldAccessor gatewayAccessor = new DirectFieldAccessor(gateway);
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(
@@ -239,7 +239,7 @@ public class WebServiceOutboundGatewayParserTests {
 				"marshallingWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithSeparateMarshallerAndUnmarshallerAndMessageFactory");
 		assertEquals(SubscribingConsumerEndpoint.class, endpoint.getClass());
-		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("consumer");
+		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(MarshallingWebServiceOutboundGateway.class, gateway.getClass());
 		DirectFieldAccessor gatewayAccessor = new DirectFieldAccessor(gateway);
 		DirectFieldAccessor templateAccessor = new DirectFieldAccessor(

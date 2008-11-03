@@ -65,8 +65,8 @@ public class PayloadTypeRouterTests {
 		router.setPayloadTypeChannelMap(payloadTypeChannelMap);
 		Message<String> message1 = new StringMessage("test");
 		Message<Integer> message2 = new GenericMessage<Integer>(123);
-		router.onMessage(message1);
-		router.onMessage(message2);
+		router.handleMessage(message1);
+		router.handleMessage(message2);
 		Message<?> reply1 = stringChannel.receive(0);
 		Message<?> reply2 = integerChannel.receive(0);
 		assertEquals("test", reply1.getPayload());
@@ -86,8 +86,8 @@ public class PayloadTypeRouterTests {
 		router.setDefaultOutputChannel(defaultChannel);
 		Message<String> message1 = new StringMessage("test");
 		Message<Integer> message2 = new GenericMessage<Integer>(123);
-		router.onMessage(message1);
-		router.onMessage(message2);
+		router.handleMessage(message1);
+		router.handleMessage(message2);
 		Message<?> result1 = stringChannel.receive(25);
 		assertNotNull(result1);
 		assertEquals("test", result1.getPayload());

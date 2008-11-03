@@ -22,7 +22,7 @@ import org.junit.Test;
 
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.consumer.ServiceActivatingConsumer;
+import org.springframework.integration.consumer.ServiceActivatingHandler;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.StringMessage;
 
@@ -34,10 +34,10 @@ public class ServiceActivatorMethodResolutionTests {
 	@Test
 	public void singleAnnotationMatches() {
 		SingleAnnotationTestBean testBean = new SingleAnnotationTestBean();
-		ServiceActivatingConsumer serviceActivator = new ServiceActivatingConsumer(testBean);
+		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(testBean);
 		QueueChannel outputChannel = new QueueChannel();
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.onMessage(new StringMessage("foo"));
+		serviceActivator.handleMessage(new StringMessage("foo"));
 		Message<?> result = outputChannel.receive(0);
 		assertEquals("FOO", result.getPayload());
 	}
@@ -45,16 +45,16 @@ public class ServiceActivatorMethodResolutionTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void multipleAnnotationFails() {
 		MultipleAnnotationTestBean testBean = new MultipleAnnotationTestBean();
-		new ServiceActivatingConsumer(testBean);
+		new ServiceActivatingHandler(testBean);
 	}
 
 	@Test
 	public void singlePublicMethodMatches() {
 		SinglePublicMethodTestBean testBean = new SinglePublicMethodTestBean();
-		ServiceActivatingConsumer serviceActivator = new ServiceActivatingConsumer(testBean);
+		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(testBean);
 		QueueChannel outputChannel = new QueueChannel();
 		serviceActivator.setOutputChannel(outputChannel);
-		serviceActivator.onMessage(new StringMessage("foo"));
+		serviceActivator.handleMessage(new StringMessage("foo"));
 		Message<?> result = outputChannel.receive(0);
 		assertEquals("FOO", result.getPayload());
 	}
@@ -62,7 +62,7 @@ public class ServiceActivatorMethodResolutionTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void multiplePublicMethodFails() {
 		MultiplePublicMethodTestBean testBean = new MultiplePublicMethodTestBean();
-		new ServiceActivatingConsumer(testBean);
+		new ServiceActivatingHandler(testBean);
 	}
 
 

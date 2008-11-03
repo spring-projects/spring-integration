@@ -39,11 +39,11 @@ import org.springframework.integration.scheduling.Trigger;
 /**
  * @author Mark Fisher
  */
-public class CharacterStreamWritingMessageConsumerTests {
+public class CharacterStreamWritingMessageHandlerTests {
 
 	private StringWriter writer;
 
-	private CharacterStreamWritingMessageConsumer consumer;
+	private CharacterStreamWritingMessageHandler handler;
 
 	private QueueChannel channel;
 
@@ -57,10 +57,10 @@ public class CharacterStreamWritingMessageConsumerTests {
 	@Before
 	public void initialize() {
 		writer = new StringWriter();
-		consumer = new CharacterStreamWritingMessageConsumer(writer);
+		handler = new CharacterStreamWritingMessageHandler(writer);
 		this.channel = new QueueChannel(10);
 		trigger.reset();
-		this.endpoint = new PollingConsumerEndpoint(consumer, channel);
+		this.endpoint = new PollingConsumerEndpoint(channel, handler);
 		scheduler = new SimpleTaskScheduler(new SimpleAsyncTaskExecutor());
 		this.endpoint.setTaskScheduler(scheduler);
 		scheduler.start();
@@ -76,7 +76,7 @@ public class CharacterStreamWritingMessageConsumerTests {
 
 	@Test
 	public void singleString() {
-		consumer.onMessage(new StringMessage("foo"));
+		handler.handleMessage(new StringMessage("foo"));
 		assertEquals("foo", writer.toString());
 	}
 
@@ -98,7 +98,7 @@ public class CharacterStreamWritingMessageConsumerTests {
 
 	@Test
 	public void twoStringsWithNewLines() {
-		consumer.setShouldAppendNewLine(true);
+		handler.setShouldAppendNewLine(true);
 		endpoint.setMaxMessagesPerPoll(1);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
@@ -129,7 +129,7 @@ public class CharacterStreamWritingMessageConsumerTests {
 	public void maxMessagesPerTaskExceedsMessageCountWithAppendedNewLines() {
 		endpoint.setMaxMessagesPerPoll(10);
 		endpoint.setReceiveTimeout(0);
-		consumer.setShouldAppendNewLine(true);
+		handler.setShouldAppendNewLine(true);
 		channel.send(new StringMessage("foo"), 0);
 		channel.send(new StringMessage("bar"), 0);
 		endpoint.start();
@@ -166,7 +166,7 @@ public class CharacterStreamWritingMessageConsumerTests {
 
 	@Test
 	public void twoNonStringObjectWithNewLines() {
-		consumer.setShouldAppendNewLine(true);
+		handler.setShouldAppendNewLine(true);
 		endpoint.setReceiveTimeout(0);
 		endpoint.setMaxMessagesPerPoll(2);
 		TestObject testObject1 = new TestObject("foo");

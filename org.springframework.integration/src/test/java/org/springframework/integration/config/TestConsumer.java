@@ -17,12 +17,12 @@
 package org.springframework.integration.config;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 
 /**
  * @author Mark Fisher
  */
-public class TestConsumer implements MessageConsumer {
+public class TestConsumer implements MessageHandler {
 
 	private volatile Message<?> lastMessage;
 
@@ -31,7 +31,7 @@ public class TestConsumer implements MessageConsumer {
 		return this.lastMessage;
 	}
 
-	public void onMessage(Message<?> message) {
+	public void handleMessage(Message<?> message) {
 		this.lastMessage = message;
 	}
 

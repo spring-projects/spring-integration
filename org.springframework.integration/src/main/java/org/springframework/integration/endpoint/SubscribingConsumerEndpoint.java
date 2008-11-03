@@ -18,7 +18,7 @@ package org.springframework.integration.endpoint;
 
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.SubscribableChannel;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.Assert;
 
 /**
@@ -26,20 +26,20 @@ import org.springframework.util.Assert;
  */
 public class SubscribingConsumerEndpoint extends AbstractEndpoint implements Lifecycle {
 
-	private final MessageConsumer consumer;
-
 	private final SubscribableChannel inputChannel;
+
+	private final MessageHandler handler;
 
 	private volatile boolean running;
 
 	private final Object lifecycleMonitor = new Object();
 
 
-	public SubscribingConsumerEndpoint(MessageConsumer consumer, SubscribableChannel inputChannel) {
-		Assert.notNull(consumer, "consumer must not be null");
+	public SubscribingConsumerEndpoint(SubscribableChannel inputChannel, MessageHandler handler) {
 		Assert.notNull(inputChannel, "inputChannel must not be null");
-		this.consumer = consumer;
+		Assert.notNull(handler, "handler must not be null");
 		this.inputChannel = inputChannel;
+		this.handler = handler;
 	}
 
 
@@ -52,7 +52,7 @@ public class SubscribingConsumerEndpoint extends AbstractEndpoint implements Lif
 	public void start() {
 		synchronized (this.lifecycleMonitor) {
 			if (!this.running) {
-				this.inputChannel.subscribe(this.consumer);
+				this.inputChannel.subscribe(this.handler);
 				this.running = true;
 			}
 		}
@@ -61,7 +61,7 @@ public class SubscribingConsumerEndpoint extends AbstractEndpoint implements Lif
 	public void stop() {
 		synchronized (this.lifecycleMonitor) {
 			if (this.running) {
-				this.inputChannel.unsubscribe(this.consumer);
+				this.inputChannel.unsubscribe(this.handler);
 				this.running = false;
 			}
 		}

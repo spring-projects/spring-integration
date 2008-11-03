@@ -24,7 +24,7 @@ import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
-import org.springframework.integration.mail.MailSendingMessageConsumer;
+import org.springframework.integration.mail.MailSendingMessageHandler;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -38,7 +38,7 @@ public class MailOutboundChannelAdapterParser extends AbstractOutboundChannelAda
 
 	@Override
 	protected AbstractBeanDefinition parseConsumer(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MailSendingMessageConsumer.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MailSendingMessageHandler.class);
 		String mailSenderRef = element.getAttribute("mail-sender");
 		String host = element.getAttribute("host");
 		String port = element.getAttribute("port");

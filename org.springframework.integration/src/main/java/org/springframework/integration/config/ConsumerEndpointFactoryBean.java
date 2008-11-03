@@ -29,7 +29,7 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.PollingConsumerEndpoint;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.scheduling.Trigger;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -41,7 +41,7 @@ import org.springframework.util.Assert;
  */
 public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAware, BeanNameAware, InitializingBean {
 
-	private final MessageConsumer consumer;
+	private final MessageHandler handler;
 
 	private volatile String beanName;
 
@@ -68,9 +68,9 @@ public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAwar
 	private final Object initializationMonitor = new Object();
 
 
-	public ConsumerEndpointFactoryBean(MessageConsumer consumer) {
-		Assert.notNull(consumer, "consumer must not be null");
-		this.consumer = consumer;
+	public ConsumerEndpointFactoryBean(MessageHandler handler) {
+		Assert.notNull(handler, "handler must not be null");
+		this.handler = handler;
 	}
 
 
@@ -146,15 +146,14 @@ public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAwar
 			if (channel instanceof SubscribableChannel) {
 				Assert.isNull(trigger, "A trigger should not be specified for endpoint '" + this.beanName
 						+ "', since '" + this.inputChannelName + "' is a SubscribableChannel (not pollable).");
-				this.endpoint = new SubscribingConsumerEndpoint(
-						this.consumer, (SubscribableChannel) channel);
+				this.endpoint = new SubscribingConsumerEndpoint((SubscribableChannel) channel, this.handler);
 			}
 			else if (channel instanceof PollableChannel) {
 				if (this.trigger == null) {
 					this.trigger = new IntervalTrigger(0);
 				}
 				PollingConsumerEndpoint pollingEndpoint = new PollingConsumerEndpoint(
-						this.consumer, (PollableChannel) channel);
+						(PollableChannel) channel, this.handler);
 				pollingEndpoint.setTrigger(this.trigger);
 				pollingEndpoint.setMaxMessagesPerPoll(this.maxMessagesPerPoll);
 				pollingEndpoint.setReceiveTimeout(this.receiveTimeout);

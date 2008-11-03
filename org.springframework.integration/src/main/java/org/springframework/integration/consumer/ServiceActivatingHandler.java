@@ -31,14 +31,14 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  */
-public class ServiceActivatingConsumer extends AbstractReplyProducingMessageConsumer implements InitializingBean {
+public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandler implements InitializingBean {
 
 	private final MethodResolver methodResolver = new DefaultMethodResolver(ServiceActivator.class);
 
 	private final MethodInvoker invoker;
 
 
-	public ServiceActivatingConsumer(final Object object) {
+	public ServiceActivatingHandler(final Object object) {
 		Assert.notNull(object, "object must not be null");
 		Method method = this.methodResolver.findMethod(object); 
 		Assert.notNull(method, "unable to resolve ServiceActivator method on target class ["
@@ -46,11 +46,11 @@ public class ServiceActivatingConsumer extends AbstractReplyProducingMessageCons
 		this.invoker = new MessageMappingMethodInvoker(object, method);
 	}
 
-	public ServiceActivatingConsumer(Object object, Method method) {
+	public ServiceActivatingHandler(Object object, Method method) {
 		this.invoker = new MessageMappingMethodInvoker(object, method);
 	}
 
-	public ServiceActivatingConsumer(Object object, String methodName) {
+	public ServiceActivatingHandler(Object object, String methodName) {
 		this.invoker = new MessageMappingMethodInvoker(object, methodName);
 	}
 
@@ -62,7 +62,7 @@ public class ServiceActivatingConsumer extends AbstractReplyProducingMessageCons
 	}
 
 	@Override
-	protected void onMessage(Message<?> message, ReplyMessageHolder replyHolder) {
+	protected void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
 		try {
 			Object result = this.invoker.invokeMethod(message);
 			if (result != null) {

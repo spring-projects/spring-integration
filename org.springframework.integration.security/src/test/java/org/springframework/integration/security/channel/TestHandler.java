@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.jms;
+package org.springframework.integration.security.channel;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 
 /**
- * A MessageConsumer that sends the converted Message payload within
- * a JMS Message.
- * 
  * @author Mark Fisher
  */
-public class JmsSendingMessageConsumer extends AbstractJmsTemplateBasedAdapter implements MessageConsumer {
+public class TestHandler implements MessageHandler {
 
-	public final void onMessage(final Message<?> message) {
-		if (message == null) {
-			throw new IllegalArgumentException("message must not be null");
-		}
-		this.getJmsTemplate().convertAndSend(message);
+	public List<Message<?>> sentMessages = new ArrayList<Message<?>>();
+
+	public void handleMessage(Message<?> message) {
+		sentMessages.add(message);
 	}
 
 }

@@ -20,9 +20,9 @@ import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.integration.annotation.Transformer;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.transformer.MethodInvokingTransformer;
-import org.springframework.integration.transformer.MessageTransformingConsumer;
+import org.springframework.integration.transformer.MessageTransformingHandler;
 import org.springframework.util.StringUtils;
 
 /**
@@ -38,14 +38,14 @@ public class TransformerAnnotationPostProcessor extends AbstractMethodAnnotation
 
 
 	@Override
-	protected MessageConsumer createConsumer(Object bean, Method method, Transformer annotation) {
+	protected MessageHandler createHandler(Object bean, Method method, Transformer annotation) {
 		MethodInvokingTransformer transformer = new MethodInvokingTransformer(bean, method);
-		MessageTransformingConsumer consumer = new MessageTransformingConsumer(transformer);
+		MessageTransformingHandler handler = new MessageTransformingHandler(transformer);
 		String outputChannelName = annotation.outputChannel();
 		if (StringUtils.hasText(outputChannelName)) {
-			consumer.setOutputChannel(this.channelResolver.resolveChannelName(outputChannelName));
+			handler.setOutputChannel(this.channelResolver.resolveChannelName(outputChannelName));
 		}
-		return consumer;
+		return handler;
 	}
 
 }

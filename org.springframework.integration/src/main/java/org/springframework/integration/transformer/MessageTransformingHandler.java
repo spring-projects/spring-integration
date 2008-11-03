@@ -16,35 +16,35 @@
 
 package org.springframework.integration.transformer;
 
-import org.springframework.integration.consumer.AbstractReplyProducingMessageConsumer;
+import org.springframework.integration.consumer.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.consumer.ReplyMessageHolder;
 import org.springframework.integration.core.Message;
 import org.springframework.util.Assert;
 
 /**
- * A reply-producing {@link org.springframework.integration.message.MessageConsumer}
- * that delegates to a {@link Transformer} instance to modify the received
- * {@link Message} and send the result to its output channel.
+ * A reply-producing {@link MessageHandler} that delegates to a
+ * {@link Transformer} instance to modify the received {@link Message}
+ * and sends the result to its output channel.
  * 
  * @author Mark Fisher
  */
-public class MessageTransformingConsumer extends AbstractReplyProducingMessageConsumer {
+public class MessageTransformingHandler extends AbstractReplyProducingMessageHandler {
 
 	private final Transformer transformer;
 
 
 	/**
-	 * Create a {@link MessageTransformingConsumer} instance that delegates to
+	 * Create a {@link MessageTransformingHandler} instance that delegates to
 	 * the provided {@link Transformer}.
 	 */
-	public MessageTransformingConsumer(Transformer transformer) {
+	public MessageTransformingHandler(Transformer transformer) {
 		Assert.notNull(transformer, "transformer must not be null");
 		this.transformer = transformer;
 	}
 
 
 	@Override
-	protected void onMessage(Message<?> message, ReplyMessageHolder replyHolder) {
+	protected void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
 		try {
 			Message<?> result = transformer.transform(message);
 			if (result != null) {

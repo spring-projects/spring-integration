@@ -28,11 +28,11 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.message.MessageConsumer;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.Assert;
 
 /**
- * A {@link MessageConsumer} that writes characters to a {@link Writer}.
+ * A {@link MessageHandler} that writes characters to a {@link Writer}.
  * String, character array, and byte array payloads will be written directly,
  * but for other payload types, the result of the object's {@link #toString()}
  * method will be written. To append a new-line after each write, set the
@@ -40,7 +40,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class CharacterStreamWritingMessageConsumer implements MessageConsumer {
+public class CharacterStreamWritingMessageHandler implements MessageHandler {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -49,11 +49,11 @@ public class CharacterStreamWritingMessageConsumer implements MessageConsumer {
 	private volatile boolean shouldAppendNewLine = false;
 
 
-	public CharacterStreamWritingMessageConsumer(Writer writer) {
+	public CharacterStreamWritingMessageHandler(Writer writer) {
 		this(writer, -1);
 	}
 
-	public CharacterStreamWritingMessageConsumer(Writer writer, int bufferSize) {
+	public CharacterStreamWritingMessageHandler(Writer writer, int bufferSize) {
 		Assert.notNull(writer, "writer must not be null");
 		if (writer instanceof BufferedWriter) {
 			this.writer = (BufferedWriter) writer;
@@ -71,7 +71,7 @@ public class CharacterStreamWritingMessageConsumer implements MessageConsumer {
 	 * Factory method that creates a target for stdout (System.out) with the
 	 * default charset encoding.
 	 */
-	public static CharacterStreamWritingMessageConsumer stdout() {
+	public static CharacterStreamWritingMessageHandler stdout() {
 		return stdout(null);
 	}
 
@@ -79,7 +79,7 @@ public class CharacterStreamWritingMessageConsumer implements MessageConsumer {
 	 * Factory method that creates a target for stdout (System.out) with the
 	 * specified charset encoding.
 	 */
-	public static CharacterStreamWritingMessageConsumer stdout(String charsetName) {
+	public static CharacterStreamWritingMessageHandler stdout(String charsetName) {
 		return createTargetForStream(System.out, charsetName);
 	}
 
@@ -87,7 +87,7 @@ public class CharacterStreamWritingMessageConsumer implements MessageConsumer {
 	 * Factory method that creates a target for stderr (System.err) with the
 	 * default charset encoding.
 	 */
-	public static CharacterStreamWritingMessageConsumer stderr() {
+	public static CharacterStreamWritingMessageHandler stderr() {
 		return stderr(null);
 	}
 
@@ -95,16 +95,16 @@ public class CharacterStreamWritingMessageConsumer implements MessageConsumer {
 	 * Factory method that creates a target for stderr (System.err) with the
 	 * specified charset encoding.
 	 */	
-	public static CharacterStreamWritingMessageConsumer stderr(String charsetName) {
+	public static CharacterStreamWritingMessageHandler stderr(String charsetName) {
 		return createTargetForStream(System.err, charsetName);
 	}
 
-	private static CharacterStreamWritingMessageConsumer createTargetForStream(OutputStream stream, String charsetName) {
+	private static CharacterStreamWritingMessageHandler createTargetForStream(OutputStream stream, String charsetName) {
 		if (charsetName == null) {
-			return new CharacterStreamWritingMessageConsumer(new OutputStreamWriter(stream));
+			return new CharacterStreamWritingMessageHandler(new OutputStreamWriter(stream));
 		}
 		try {
-			return new CharacterStreamWritingMessageConsumer(new OutputStreamWriter(stream, charsetName));
+			return new CharacterStreamWritingMessageHandler(new OutputStreamWriter(stream, charsetName));
 		}
 		catch (UnsupportedEncodingException e) {
 			throw new IllegalArgumentException("unsupported encoding: " + charsetName, e);
@@ -116,7 +116,7 @@ public class CharacterStreamWritingMessageConsumer implements MessageConsumer {
 		this.shouldAppendNewLine = shouldAppendNewLine;
 	}
 
-	public void onMessage(Message<?> message) {
+	public void handleMessage(Message<?> message) {
 		Object payload = message.getPayload();
 		if (payload == null) {
 			if (logger.isWarnEnabled()) {
