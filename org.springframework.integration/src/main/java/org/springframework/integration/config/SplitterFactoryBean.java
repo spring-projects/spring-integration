@@ -28,10 +28,10 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class SplitterFactoryBean extends AbstractConsumerFactoryBean {
+public class SplitterFactoryBean extends AbstractMessageHandlerFactoryBean {
 
 	@Override
-	protected MessageHandler createConsumer(Object targetObject, String targetMethodName) {
+	protected MessageHandler createHandler(Object targetObject, String targetMethodName) {
 		if (targetObject == null) {
 			Assert.isTrue(!StringUtils.hasText(targetMethodName),
 					"'method' should only be provided when 'ref' is also provided");

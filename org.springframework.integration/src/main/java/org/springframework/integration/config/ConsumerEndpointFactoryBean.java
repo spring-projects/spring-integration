@@ -152,15 +152,15 @@ public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAwar
 				if (this.trigger == null) {
 					this.trigger = new IntervalTrigger(0);
 				}
-				PollingConsumer pollingEndpoint = new PollingConsumer(
+				PollingConsumer pollingConsumer = new PollingConsumer(
 						(PollableChannel) channel, this.handler);
-				pollingEndpoint.setTrigger(this.trigger);
-				pollingEndpoint.setMaxMessagesPerPoll(this.maxMessagesPerPoll);
-				pollingEndpoint.setReceiveTimeout(this.receiveTimeout);
-				pollingEndpoint.setTaskExecutor(this.taskExecutor);
-				pollingEndpoint.setTransactionManager(this.transactionManager);
-				pollingEndpoint.setTransactionDefinition(this.transactionDefinition);
-				this.endpoint = pollingEndpoint;
+				pollingConsumer.setTrigger(this.trigger);
+				pollingConsumer.setMaxMessagesPerPoll(this.maxMessagesPerPoll);
+				pollingConsumer.setReceiveTimeout(this.receiveTimeout);
+				pollingConsumer.setTaskExecutor(this.taskExecutor);
+				pollingConsumer.setTransactionManager(this.transactionManager);
+				pollingConsumer.setTransactionDefinition(this.transactionDefinition);
+				this.endpoint = pollingConsumer;
 			}
 			else {
 				throw new IllegalArgumentException(

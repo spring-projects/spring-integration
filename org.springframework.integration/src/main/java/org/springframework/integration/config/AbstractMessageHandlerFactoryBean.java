@@ -23,13 +23,13 @@ import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.Assert;
 
 /**
- * Base class for FactoryBeans that create MessageConsumer instances.
+ * Base class for FactoryBeans that create MessageHandler instances.
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractConsumerFactoryBean implements FactoryBean {
+public abstract class AbstractMessageHandlerFactoryBean implements FactoryBean {
 
-	private volatile MessageHandler consumer;
+	private volatile MessageHandler handler;
 
 	private volatile Object targetObject;
 
@@ -55,20 +55,20 @@ public abstract class AbstractConsumerFactoryBean implements FactoryBean {
 	}
 
 	public Object getObject() throws Exception {
-		if (this.consumer == null) {
-			this.initializeConsumer();
-			Assert.notNull(this.consumer, "failed to create MessageConsumer");
+		if (this.handler == null) {
+			this.initializeHandler();
+			Assert.notNull(this.handler, "failed to create MessageHandler");
 			if (this.outputChannel != null
-					&& this.consumer instanceof AbstractReplyProducingMessageHandler) {
-				((AbstractReplyProducingMessageHandler) this.consumer).setOutputChannel(this.outputChannel);
+					&& this.handler instanceof AbstractReplyProducingMessageHandler) {
+				((AbstractReplyProducingMessageHandler) this.handler).setOutputChannel(this.outputChannel);
 			}
 		}
-		return this.consumer;
+		return this.handler;
 	}
 
 	public Class<?> getObjectType() {
-		if (this.consumer != null) {
-			return this.consumer.getClass();
+		if (this.handler != null) {
+			return this.handler.getClass();
 		}
 		return MessageHandler.class;
 	}
@@ -77,19 +77,19 @@ public abstract class AbstractConsumerFactoryBean implements FactoryBean {
 		return true;
 	}
 
-	private void initializeConsumer() {
+	private void initializeHandler() {
 		synchronized (this.initializationMonitor) {
 			if (this.initialized) {
 				return;
 			}
-			this.consumer = this.createConsumer(this.targetObject, this.targetMethodName);
+			this.handler = this.createHandler(this.targetObject, this.targetMethodName);
 			this.initialized = true;
 		}
 	}
 
 	/**
-	 * Subclasses must implement this method to create the MessageConsumer.
+	 * Subclasses must implement this method to create the MessageHandler.
 	 */
-	protected abstract MessageHandler createConsumer(Object targetObject, String targetMethodName);
+	protected abstract MessageHandler createHandler(Object targetObject, String targetMethodName);
 
 }

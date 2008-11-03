@@ -29,7 +29,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class RouterFactoryBean extends AbstractConsumerFactoryBean {
+public class RouterFactoryBean extends AbstractMessageHandlerFactoryBean {
 
 	private volatile ChannelResolver channelResolver;
 
@@ -45,7 +45,7 @@ public class RouterFactoryBean extends AbstractConsumerFactoryBean {
 	}
 
 	@Override
-	protected MessageHandler createConsumer(Object targetObject, String targetMethodName) {
+	protected MessageHandler createHandler(Object targetObject, String targetMethodName) {
 		Assert.notNull(targetObject, "target object must not be null");
 		AbstractMessageRouter router = this.createRouter(targetObject, targetMethodName);
 		if (this.defaultOutputChannel != null) {
