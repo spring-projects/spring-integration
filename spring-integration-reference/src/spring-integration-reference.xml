@@ -47,7 +47,7 @@
   <xi:include href="./service-activator.xml"/>
   <xi:include href="./channel-adapter.xml"/>
   <xi:include href="./router.xml"/>
-  <xi:include href="./transformation.xml"/>
+  <xi:include href="./transformer.xml"/>
   <xi:include href="./splitter.xml"/>
   <xi:include href="./aggregator.xml"/>
   <xi:include href="./resequencer.xml"/>
