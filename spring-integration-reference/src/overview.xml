@@ -162,22 +162,6 @@
         non-invasive way to use each of these.
       </para>
     </section>
-
-    <section id="overview-components-bus">
-      <title>Message Bus</title>
-      <para>
-        The Message Bus is the primary example of inversion of control within Spring Integration. Essentially, it    
-        forms a logical extension of the Spring application context into the messaging domain. For example, it will
-        automatically detect Message Channels and Message Endpoints from within the application context. It handles the
-        scheduling of pollers, and the lifecycle management of all messaging components that can be initialized,
-        started, and stopped.
-        <mediaobject>
-          <imageobject>
-            <imagedata align="center" fileref="images/message-bus.png" format="PNG"/>
-          </imageobject>
-        </mediaobject>
-      </para>
-    </section>
   </section>
 
   <section id="overview-endpoints">
