@@ -44,7 +44,7 @@ public class CorrelationIdTests {
 		QueueChannel outputChannel = new QueueChannel(1);
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(new TestBean(), "upperCase");
 		serviceActivator.setOutputChannel(outputChannel);
-		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(inputChannel, serviceActivator);
+		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, serviceActivator);
 		endpoint.start();
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);
@@ -59,7 +59,7 @@ public class CorrelationIdTests {
 		QueueChannel outputChannel = new QueueChannel(1);
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(new TestBean(), "upperCase");
 		serviceActivator.setOutputChannel(outputChannel);
-		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(inputChannel, serviceActivator);
+		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, serviceActivator);
 		endpoint.start();
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);
@@ -76,7 +76,7 @@ public class CorrelationIdTests {
 		QueueChannel outputChannel = new QueueChannel(1);
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(new TestBean(), "createMessage");
 		serviceActivator.setOutputChannel(outputChannel);
-		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(inputChannel, serviceActivator);
+		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, serviceActivator);
 		endpoint.start();
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);
@@ -90,7 +90,7 @@ public class CorrelationIdTests {
 		QueueChannel outputChannel = new QueueChannel(1);
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(new TestBean(), "createMessage");
 		serviceActivator.setOutputChannel(outputChannel);
-		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(inputChannel, serviceActivator);
+		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, serviceActivator);
 		endpoint.start();
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);

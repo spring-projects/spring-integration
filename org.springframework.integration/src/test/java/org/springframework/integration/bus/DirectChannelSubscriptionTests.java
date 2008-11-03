@@ -34,7 +34,7 @@ import org.springframework.integration.consumer.ReplyMessageHolder;
 import org.springframework.integration.consumer.ServiceActivatingHandler;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.util.TestUtils;
 
@@ -69,7 +69,7 @@ public class DirectChannelSubscriptionTests {
 		GenericApplicationContext context = new GenericApplicationContext();
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(new TestBean(), "handle");
 		serviceActivator.setOutputChannel(targetChannel);
-		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(sourceChannel, serviceActivator);
+		EventDrivenConsumer endpoint = new EventDrivenConsumer(sourceChannel, serviceActivator);
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
 		bus.setApplicationContext(context);
 		context.refresh();
@@ -104,7 +104,7 @@ public class DirectChannelSubscriptionTests {
 			}
 		};
 		handler.setOutputChannel(targetChannel);
-		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(sourceChannel, handler);
+		EventDrivenConsumer endpoint = new EventDrivenConsumer(sourceChannel, handler);
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
 		bus.setApplicationContext(context);
 		context.refresh();

@@ -28,7 +28,7 @@ import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.PollingConsumer;
-import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.scheduling.Trigger;
@@ -146,7 +146,7 @@ public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAwar
 			if (channel instanceof SubscribableChannel) {
 				Assert.isNull(trigger, "A trigger should not be specified for endpoint '" + this.beanName
 						+ "', since '" + this.inputChannelName + "' is a SubscribableChannel (not pollable).");
-				this.endpoint = new SubscribingConsumerEndpoint((SubscribableChannel) channel, this.handler);
+				this.endpoint = new EventDrivenConsumer((SubscribableChannel) channel, this.handler);
 			}
 			else if (channel instanceof PollableChannel) {
 				if (this.trigger == null) {

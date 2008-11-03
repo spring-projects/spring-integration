@@ -32,7 +32,7 @@ import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
-import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
@@ -54,7 +54,7 @@ public class ChannelAdapterParserTests extends AbstractJUnit4SpringContextTests 
 		assertNotNull(channelResolver.resolveChannelName(beanName));
 		Object adapter = this.applicationContext.getBean(beanName + ".adapter");
 		assertNotNull(adapter);
-		assertTrue(adapter instanceof SubscribingConsumerEndpoint);
+		assertTrue(adapter instanceof EventDrivenConsumer);
 		TestConsumer consumer = (TestConsumer) this.applicationContext.getBean("consumer");
 		assertNull(consumer.getLastMessage());
 		Message<?> message = new StringMessage("test");
@@ -75,7 +75,7 @@ public class ChannelAdapterParserTests extends AbstractJUnit4SpringContextTests 
 		assertNotNull(channelResolver.resolveChannelName(beanName));
 		Object adapter = this.applicationContext.getBean(beanName + ".adapter");
 		assertNotNull(adapter);
-		assertTrue(adapter instanceof SubscribingConsumerEndpoint);
+		assertTrue(adapter instanceof EventDrivenConsumer);
 		TestBean testBean = (TestBean) this.applicationContext.getBean("testBean");
 		assertNull(testBean.getMessage());
 		Message<?> message = new StringMessage("consumer test");

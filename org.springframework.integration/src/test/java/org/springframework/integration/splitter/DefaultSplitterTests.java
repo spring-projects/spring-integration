@@ -28,7 +28,7 @@ import org.junit.Test;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.MessageBuilder;
 
 /**
@@ -85,7 +85,7 @@ public class DefaultSplitterTests {
 		QueueChannel outputChannel = new QueueChannel(1);
 		DefaultMessageSplitter splitter = new DefaultMessageSplitter();
 		splitter.setOutputChannel(outputChannel);
-		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(inputChannel, splitter);
+		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, splitter);
 		endpoint.start();
 		assertTrue(inputChannel.send(message));
 		Message<?> reply = outputChannel.receive(0);

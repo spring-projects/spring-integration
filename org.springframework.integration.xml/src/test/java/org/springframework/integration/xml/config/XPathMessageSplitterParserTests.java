@@ -26,7 +26,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.test.context.ContextConfiguration;
@@ -51,8 +51,8 @@ public class XPathMessageSplitterParserTests {
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper.getTestAppContext(
 				channelDefinitions + "<si-xml:xpath-splitter id='splitter' input-channel='test-input' output-channel='test-output'><si-xml:xpath-expression expression='//name'/></si-xml:xpath-splitter>");
-		SubscribingConsumerEndpoint sce = (SubscribingConsumerEndpoint)ctx.getBean("splitter");
-		sce.start();
+		EventDrivenConsumer consumer = (EventDrivenConsumer)ctx.getBean("splitter");
+		consumer.start();
 		ctx.getAutowireCapableBeanFactory().autowireBeanProperties(this, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE, false);
 		inputChannel.send(docMessage);
 		assertEquals("Wrong number of split messages ", 2, outputChannel.getMesssageCount());

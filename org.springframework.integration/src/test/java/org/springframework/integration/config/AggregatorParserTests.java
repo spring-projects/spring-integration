@@ -34,7 +34,7 @@ import org.springframework.integration.aggregator.MethodInvokingAggregator;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.util.MethodInvoker;
 import org.springframework.integration.util.TestUtils;
@@ -73,8 +73,8 @@ public class AggregatorParserTests {
 
 	@Test
 	public void testPropertyAssignment() throws Exception {
-		SubscribingConsumerEndpoint endpoint =
-				(SubscribingConsumerEndpoint) context.getBean("completelyDefinedAggregator");
+		EventDrivenConsumer endpoint =
+				(EventDrivenConsumer) context.getBean("completelyDefinedAggregator");
 		CompletionStrategy completionStrategy = (CompletionStrategy) context.getBean("completionStrategy");
 		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
 		MessageChannel discardChannel = (MessageChannel) context.getBean("discardChannel");
@@ -135,8 +135,8 @@ public class AggregatorParserTests {
 	@Test
 	public void testAggregatorWithPojoCompletionStrategy() {
 		MessageChannel input = (MessageChannel) context.getBean("aggregatorWithPojoCompletionStrategyInput");
-		SubscribingConsumerEndpoint endpoint =
-				(SubscribingConsumerEndpoint) context.getBean("aggregatorWithPojoCompletionStrategy");
+		EventDrivenConsumer endpoint =
+				(EventDrivenConsumer) context.getBean("aggregatorWithPojoCompletionStrategy");
 		CompletionStrategy completionStrategy = (CompletionStrategy) new DirectFieldAccessor(
 				new DirectFieldAccessor(endpoint).getPropertyValue("handler")).getPropertyValue("completionStrategy");
 		Assert.assertTrue(completionStrategy instanceof CompletionStrategyAdapter);

@@ -33,7 +33,7 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.consumer.ServiceActivatingHandler;
-import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.StringMessage;
 
 /**
@@ -84,7 +84,7 @@ public class DefaultMethodResolverTests {
 		testBean = (GreetingService) proxyFactory.getProxy();
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(testBean);
 		handler.setOutputChannel(output);
-		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(input, handler);
+		EventDrivenConsumer endpoint = new EventDrivenConsumer(input, handler);
 		endpoint.start();
 		input.send(new StringMessage("proxy"));
 		assertEquals("hello proxy", output.receive(0).getPayload());;
@@ -100,7 +100,7 @@ public class DefaultMethodResolverTests {
 		testBean = (GreetingService) proxyFactory.getProxy();
 		ServiceActivatingHandler handler = new ServiceActivatingHandler(testBean);
 		handler.setOutputChannel(output);
-		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(input, handler);
+		EventDrivenConsumer endpoint = new EventDrivenConsumer(input, handler);
 		endpoint.start();
 		input.send(new StringMessage("proxy"));
 		assertEquals("hello proxy", output.receive(0).getPayload());;

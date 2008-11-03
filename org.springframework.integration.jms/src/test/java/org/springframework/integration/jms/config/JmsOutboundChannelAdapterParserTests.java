@@ -25,7 +25,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.jms.JmsHeaderMapper;
 
 /**
@@ -37,7 +37,7 @@ public class JmsOutboundChannelAdapterParserTests {
 	public void adapterWithConnectionFactoryAndDestination() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsOutboundWithConnectionFactoryAndDestination.xml", this.getClass());
-		SubscribingConsumerEndpoint endpoint = (SubscribingConsumerEndpoint) context.getBean("adapter");
+		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("adapter");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
 				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
 		assertNotNull(accessor.getPropertyValue("jmsTemplate"));
@@ -47,7 +47,7 @@ public class JmsOutboundChannelAdapterParserTests {
 	public void adapterWithConnectionFactoryAndDestinationName() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsOutboundWithConnectionFactoryAndDestinationName.xml", this.getClass());
-		SubscribingConsumerEndpoint endpoint = (SubscribingConsumerEndpoint) context.getBean("adapter");
+		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("adapter");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
 				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
 		assertNotNull(accessor.getPropertyValue("jmsTemplate"));
@@ -57,7 +57,7 @@ public class JmsOutboundChannelAdapterParserTests {
 	public void adapterWithDefaultConnectionFactory() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsOutboundWithDefaultConnectionFactory.xml", this.getClass());
-		SubscribingConsumerEndpoint endpoint = (SubscribingConsumerEndpoint) context.getBean("adapter");
+		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("adapter");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
 				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
 		assertNotNull(accessor.getPropertyValue("jmsTemplate"));
@@ -67,7 +67,7 @@ public class JmsOutboundChannelAdapterParserTests {
 	public void adapterWithHeaderMapper() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsOutboundWithHeaderMapper.xml", this.getClass());
-		SubscribingConsumerEndpoint endpoint = (SubscribingConsumerEndpoint) context.getBean("adapter");
+		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("adapter");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(
 				new DirectFieldAccessor(endpoint).getPropertyValue("handler"));
 		JmsHeaderMapper headerMapper = (JmsHeaderMapper) accessor.getPropertyValue("headerMapper");

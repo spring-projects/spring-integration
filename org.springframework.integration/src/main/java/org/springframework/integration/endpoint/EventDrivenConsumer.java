@@ -22,9 +22,12 @@ import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.Assert;
 
 /**
+ * Message Endpoint that connects any {@link MessageHandler} implementation
+ * to a {@link SubscribableChannel}.
+ * 
  * @author Mark Fisher
  */
-public class SubscribingConsumerEndpoint extends AbstractEndpoint implements Lifecycle {
+public class EventDrivenConsumer extends AbstractEndpoint implements Lifecycle {
 
 	private final SubscribableChannel inputChannel;
 
@@ -35,7 +38,7 @@ public class SubscribingConsumerEndpoint extends AbstractEndpoint implements Lif
 	private final Object lifecycleMonitor = new Object();
 
 
-	public SubscribingConsumerEndpoint(SubscribableChannel inputChannel, MessageHandler handler) {
+	public EventDrivenConsumer(SubscribableChannel inputChannel, MessageHandler handler) {
 		Assert.notNull(inputChannel, "inputChannel must not be null");
 		Assert.notNull(handler, "handler must not be null");
 		this.inputChannel = inputChannel;

@@ -27,7 +27,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.file.DefaultFileNameGenerator;
 import org.springframework.integration.file.FileWritingMessageHandler;
 import org.springframework.test.context.ContextConfiguration;
@@ -43,11 +43,11 @@ public class FileOutboundChannelAdapterParserTests {
 
 	@Autowired
 	@Qualifier("simpleAdapter")
-	SubscribingConsumerEndpoint simpleAdapter;
+	EventDrivenConsumer simpleAdapter;
 
 	@Autowired
 	@Qualifier("adapterWithCustomNameGenerator")
-	SubscribingConsumerEndpoint adapterWithCustomNameGenerator;
+	EventDrivenConsumer adapterWithCustomNameGenerator;
 
 
 	@Test

@@ -26,7 +26,7 @@ import org.junit.Test;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.filter.MessageFilter;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.selector.MessageSelector;
@@ -73,7 +73,7 @@ public class MessageFilterTests {
 			}
 		});
 		filter.setOutputChannel(outputChannel);
-		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(inputChannel, filter);
+		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, filter);
 		endpoint.start();
 		Message<?> message = new StringMessage("test");
 		assertTrue(inputChannel.send(message));
@@ -92,7 +92,7 @@ public class MessageFilterTests {
 			}
 		});
 		filter.setOutputChannel(outputChannel);
-		SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(inputChannel, filter);
+		EventDrivenConsumer endpoint = new EventDrivenConsumer(inputChannel, filter);
 		endpoint.start();
 		Message<?> message = new StringMessage("test");
 		assertTrue(inputChannel.send(message));

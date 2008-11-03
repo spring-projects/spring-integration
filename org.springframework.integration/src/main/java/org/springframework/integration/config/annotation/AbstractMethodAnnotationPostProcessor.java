@@ -32,7 +32,7 @@ import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.PollingConsumer;
-import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -100,7 +100,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			else if (inputChannel instanceof SubscribableChannel) {
 				Assert.isTrue(pollerAnnotation == null,
 						"The @Poller annotation should only be provided for a PollableChannel");
-				endpoint = new SubscribingConsumerEndpoint((SubscribableChannel) inputChannel, handler);
+				endpoint = new EventDrivenConsumer((SubscribableChannel) inputChannel, handler);
 			}
 			else {
 				throw new IllegalArgumentException("unsupported channel type: [" + inputChannel.getClass() + "]");

@@ -34,7 +34,7 @@ import org.springframework.integration.aggregator.Resequencer;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.MessageBuilder;
 
 /**
@@ -75,7 +75,7 @@ public class ResequencerParserTests {
 
 	@Test
 	public void testDefaultResequencerProperties() {
-		SubscribingConsumerEndpoint endpoint = (SubscribingConsumerEndpoint) context.getBean("defaultResequencer");
+		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("defaultResequencer");
 		Resequencer resequencer = (Resequencer) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertNull(getPropertyValue(resequencer, "outputChannel"));
 		assertNull(getPropertyValue(resequencer, "discardChannel"));
@@ -95,7 +95,7 @@ public class ResequencerParserTests {
 
 	@Test
 	public void testPropertyAssignment() throws Exception {
-		SubscribingConsumerEndpoint endpoint = (SubscribingConsumerEndpoint) context.getBean("completelyDefinedResequencer");
+		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean("completelyDefinedResequencer");
 		MessageChannel outputChannel = (MessageChannel) context.getBean("outputChannel");
 		MessageChannel discardChannel = (MessageChannel) context.getBean("discardChannel");
 		Resequencer resequencer = (Resequencer) new DirectFieldAccessor(endpoint).getPropertyValue("handler");

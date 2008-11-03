@@ -23,7 +23,7 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.httpinvoker.HttpInvokerOutboundGateway;
 
 /**
@@ -36,7 +36,7 @@ public class HttpInvokerOutboundGatewayParserTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"httpInvokerOutboundGatewayParserTests.xml", this.getClass());
 		Object endpoint = context.getBean("gateway");
-		assertEquals(SubscribingConsumerEndpoint.class, endpoint.getClass());
+		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(HttpInvokerOutboundGateway.class, gateway.getClass());
 	}

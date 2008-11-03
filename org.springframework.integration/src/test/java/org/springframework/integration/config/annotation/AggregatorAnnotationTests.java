@@ -36,7 +36,7 @@ import org.springframework.integration.aggregator.CompletionStrategyAdapter;
 import org.springframework.integration.aggregator.SequenceSizeCompletionStrategy;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolver;
-import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 
 /**
  * @author Marius Bogoevici
@@ -102,7 +102,7 @@ public class AggregatorAnnotationTests {
 
 
 	private AbstractMessageAggregator getAggregator(ApplicationContext context, final String endpointName) {
-		SubscribingConsumerEndpoint endpoint = (SubscribingConsumerEndpoint) context.getBean(
+		EventDrivenConsumer endpoint = (EventDrivenConsumer) context.getBean(
 				endpointName + ".aggregatingMethod.aggregator");
 		return (AbstractMessageAggregator) new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 	}

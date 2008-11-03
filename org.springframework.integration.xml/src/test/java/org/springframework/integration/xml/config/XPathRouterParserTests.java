@@ -18,19 +18,20 @@ package org.springframework.integration.xml.config;
 
 import static org.junit.Assert.assertEquals;
 
+import org.w3c.dom.Document;
 import org.junit.After;
 import org.junit.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.test.context.ContextConfiguration;
-import org.w3c.dom.Document;
 
 /**
  * @author Jonas Partner
@@ -48,12 +49,12 @@ public class XPathRouterParserTests {
 	
 	ConfigurableApplicationContext appContext;
 	
-	public SubscribingConsumerEndpoint buildContext(String routerDef){
+	public EventDrivenConsumer buildContext(String routerDef){
 		appContext = TestXmlApplicationContextHelper.getTestAppContext( channelConfig + routerDef);
 		appContext.getAutowireCapableBeanFactory().autowireBeanProperties(this, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE, false);
-		SubscribingConsumerEndpoint sce = (SubscribingConsumerEndpoint)appContext.getBean("router");
-		sce.start();
-		return sce;
+		EventDrivenConsumer consumer = (EventDrivenConsumer) appContext.getBean("router");
+		consumer.start();
+		return consumer;
 	}
 	
 	

@@ -33,7 +33,7 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
-import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.MethodInvokingSource;
 import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.scheduling.Trigger;
@@ -120,7 +120,7 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 			return endpoint;
 		}
 		if (channel instanceof SubscribableChannel) {
-			return new SubscribingConsumerEndpoint((SubscribableChannel) channel, handler);
+			return new EventDrivenConsumer((SubscribableChannel) channel, handler);
 		}
 		return null;
 	}
