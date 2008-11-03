@@ -1,6 +1,72 @@
 SPRING INTEGRATION CHANGELOG
 ============================
 
+Changes in version 1.0.0.RC1 (Nov 03, 2008)
+-------------------------------------------
+
+For full changelog, see: http://jira.springframework.org/secure/IssueNavigator.jspa?reset=true&pid=10121&fixfor=11101
+
+*** GENERAL ***
+
+Upgraded Spring Framework dependency to 2.5.6
+Upgraded Spring Security dependency to 2.0.4
+Broke 'adapter' module into individual JARs
+Added JMS samples
+
+*** CORE API ***
+
+Added Message Filter
+Added error handling strategy so that ErrorMessage can be routed to an error channel
+Added support for a 'defaultChannel' property on MessageChannelTemplate
+Added @Gateway annotation for per-method configuration of request and/or reply channels
+Simplified GatewayProxyFactoryBean reply Message correlation
+GatewayProxyFactoryBean now supports non-pollable replyChannel 
+DefaultMethodResolver now correctly resolves annotated method on Proxy
+Fixed CronTrigger end of month rollover issue
+Added <interval-trigger/> and <cron-trigger/> elements for pollers
+Added transaction support for annotation-based polling
+AbstractPollingEndpoint now supports an Advice chain
+Fixed endless loop issue in Router (INT-358)
+MethodInvokingRouter now accepts a target object only (no method name required)
+MethodInvokingRouter will check for @Router method-level annotation
+Added 'default-output-channel' attribute to the <router/> element
+The 'splitter' element does not require a "ref" (for a DefaultSplitter instance)
+The 'resequencer' element accepts an "input-channel" attribute
+AbstractMessageBarrierHandler no longer calls processMessages twice
+The <pool-executor/> element was renamed to <thread-pool-task-executor/>
+Default TaskExecutor created for MessageBus sets max-size for pool instead of core
+Endpoints registered after ApplicationContext refresh are still activated
+MessageBus started/stopped events are fired
+Removed the MessageBusInterceptor
+Stopping/destroying context/MessageBus properly stops all Threads
+MessageHeaders no longer supports clear
+MessageHeaders constructor copies the original map for immutability
+
+*** ADAPTERS ***
+
+Added JMS header enricher
+Added JmsOutboundGateway and refactored JmsGateway to JmsInboundGateway
+JMS gateways recognize a payload that is already a Spring Integration Message
+Added namespace support for JmsOutboundGateway
+MessageHeader values are propagated when using JMS gateways
+Enabled configuration of MessageConverter for JmsOutboundGateway
+FileToStringTransformer is encoding-aware
+Added inbound Mail Channel Adapters (POP3, IMAP, and IMAP IDLE)
+Mail outbound-channel-adapter accepts the "channel" attribute
+Added mail header enricher namespace support
+Enabled configuration of a WebServiceMessageSender instance for WS outbound gateways
+WebService gateway supports a Document payload in addition to Source and String
+RMI and HttpInvoker outbound gateways remove but copy non-serializable Message headers
+
+*** OTHER ***
+
+Channel security provides a ChannelInvocation instance
+Channel security interceptor now extends AbstractSecurityInterceptor
+XML Document Builders are now Namespace-aware
+Added XPath Message Selector
+Added XPath Message Splitter
+
+
 Changes in version 1.0.0.M6 (Aug 20, 2008)
 ------------------------------------------
 
