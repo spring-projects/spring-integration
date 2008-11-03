@@ -30,9 +30,9 @@ import org.junit.Test;
 
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.TestChannelResolver;
-import org.springframework.integration.consumer.ServiceActivatingHandler;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
+import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageRejectedException;

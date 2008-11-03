@@ -17,8 +17,8 @@
 package org.springframework.integration.config;
 
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.integration.consumer.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.Assert;
 

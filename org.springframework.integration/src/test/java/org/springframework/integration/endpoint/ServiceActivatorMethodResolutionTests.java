@@ -22,8 +22,8 @@ import org.junit.Test;
 
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.consumer.ServiceActivatingHandler;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.message.StringMessage;
 
 /**

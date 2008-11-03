@@ -32,8 +32,8 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.consumer.ServiceActivatingHandler;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.message.StringMessage;
 
 /**

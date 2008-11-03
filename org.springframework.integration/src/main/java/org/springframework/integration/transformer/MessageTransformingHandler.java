@@ -16,9 +16,9 @@
 
 package org.springframework.integration.transformer;
 
-import org.springframework.integration.consumer.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.consumer.ReplyMessageHolder;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.ReplyMessageHolder;
 import org.springframework.util.Assert;
 
 /**

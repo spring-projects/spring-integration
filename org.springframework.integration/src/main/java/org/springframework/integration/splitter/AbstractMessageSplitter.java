@@ -18,9 +18,9 @@ package org.springframework.integration.splitter;
 
 import java.util.Collection;
 
-import org.springframework.integration.consumer.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.consumer.ReplyMessageHolder;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.ReplyMessageHolder;
 
 /**
  * Base class for Message-splitting handlers.

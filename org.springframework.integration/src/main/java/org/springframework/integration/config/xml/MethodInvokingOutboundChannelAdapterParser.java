@@ -22,7 +22,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.consumer.MethodInvokingMessageHandler;
+import org.springframework.integration.handler.MethodInvokingMessageHandler;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 

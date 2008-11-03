@@ -29,12 +29,12 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.ThreadLocalChannel;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
 import org.springframework.integration.config.xml.MessageBusParser;
-import org.springframework.integration.consumer.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.consumer.ReplyMessageHolder;
-import org.springframework.integration.consumer.ServiceActivatingHandler;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.ReplyMessageHolder;
+import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.util.TestUtils;
 

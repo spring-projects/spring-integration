@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.consumer;
+package org.springframework.integration.handler;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;

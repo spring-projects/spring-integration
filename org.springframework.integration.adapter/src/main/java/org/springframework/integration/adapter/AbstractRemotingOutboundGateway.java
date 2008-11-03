@@ -18,10 +18,10 @@ package org.springframework.integration.adapter;
 
 import java.io.Serializable;
 
-import org.springframework.integration.consumer.AbstractReplyProducingMessageHandler;
-import org.springframework.integration.consumer.ReplyMessageHolder;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
+import org.springframework.integration.handler.ReplyMessageHolder;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.remoting.RemoteAccessException;

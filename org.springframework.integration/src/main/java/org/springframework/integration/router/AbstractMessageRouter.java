@@ -19,9 +19,9 @@ package org.springframework.integration.router;
 import java.util.Collection;
 
 import org.springframework.integration.channel.MessageChannelTemplate;
-import org.springframework.integration.consumer.AbstractMessageHandler;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.handler.AbstractMessageHandler;
 import org.springframework.integration.message.MessageDeliveryException;
 
 /**
