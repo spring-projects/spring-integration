@@ -23,7 +23,7 @@ import javax.mail.internet.MimeMessage;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.endpoint.AbstractMessageProducingEndpoint;
+import org.springframework.integration.endpoint.MessageProducerSupport;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.util.Assert;
 
@@ -37,7 +37,7 @@ import org.springframework.util.Assert;
  * @author Arjen Poutsma
  * @author Mark Fisher
  */
-public class ImapIdleChannelAdapter extends AbstractMessageProducingEndpoint implements Lifecycle {
+public class ImapIdleChannelAdapter extends MessageProducerSupport implements Lifecycle {
 
 	private final IdleTask idleTask = new IdleTask();
 

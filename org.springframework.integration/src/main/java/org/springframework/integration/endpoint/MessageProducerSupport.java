@@ -28,7 +28,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractMessageProducingEndpoint extends AbstractEndpoint implements InitializingBean {
+public abstract class MessageProducerSupport extends AbstractEndpoint implements InitializingBean {
 
 	private volatile MessageChannel outputChannel;
 
@@ -37,6 +37,10 @@ public abstract class AbstractMessageProducingEndpoint extends AbstractEndpoint 
 
 	public void setOutputChannel(MessageChannel outputChannel) {
 		this.outputChannel = outputChannel;
+	}
+
+	public void setSendTimeout(long sendTimeout) {
+		this.channelTemplate.setSendTimeout(sendTimeout);
 	}
 
 	public void afterPropertiesSet() {
