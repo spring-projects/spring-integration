@@ -50,7 +50,8 @@
 	<interfacename>AuthenticationManager</interfacename> and a bean named <emphasis>accessDecisionManager</emphasis> which implements
 	<interfacename>AccessDecisionManager</interfacename>.  Where this is not the case references to the appropriate beans can be configured 
 	as attributes of the <emphasis>secured-channels</emphasis> element as below.
-	<programlisting language="xml"><![CDATA[<si-security:secured-channels access-decision-manager="customAccessDecisionManager" authentication-manager="customAuthenticationManager">
+	<programlisting language="xml"><![CDATA[<si-security:secured-channels access-decision-manager="customAccessDecisionManager"
+                              authentication-manager="customAuthenticationManager">
     <si-security:access-policy pattern="admin.*" send-access="ROLE_ADMIN"/>
     <si-security:access-policy pattern="user.*" receive-access="ROLE_USER"/>
 </si-security:secured-channels>]]>
