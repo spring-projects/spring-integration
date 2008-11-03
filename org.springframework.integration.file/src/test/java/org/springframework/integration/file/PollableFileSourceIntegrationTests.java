@@ -46,7 +46,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 public class PollableFileSourceIntegrationTests {
 
 	@Autowired
-	PollableFileSource pollableFileSource;
+	FileReadingMessageSource pollableFileSource;
 
 	private static File inputDir;
 

@@ -33,7 +33,7 @@ import org.springframework.integration.core.Message;
 @SuppressWarnings("unchecked")
 public class PollableFileSourceTests {
 
-	private PollableFileSource pollableFileSource;
+	private FileReadingMessageSource pollableFileSource;
 
 	private File inputDirectoryMock = createMock(File.class);
 
@@ -53,7 +53,7 @@ public class PollableFileSourceTests {
 	@Before
 	public void initialize() throws Exception {
 		prepResource();
-		this.pollableFileSource = new PollableFileSource();
+		this.pollableFileSource = new FileReadingMessageSource();
 		pollableFileSource.setInputDirectory(inputDirectoryResourceMock);
 		reset(allMocks);
 	}

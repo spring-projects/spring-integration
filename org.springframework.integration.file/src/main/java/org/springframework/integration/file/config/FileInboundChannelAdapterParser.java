@@ -27,7 +27,7 @@ import org.springframework.integration.config.xml.AbstractPollingInboundChannelA
 import org.springframework.integration.file.AcceptOnceFileListFilter;
 import org.springframework.integration.file.CompositeFileListFilter;
 import org.springframework.integration.file.PatternMatchingFileListFilter;
-import org.springframework.integration.file.PollableFileSource;
+import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -41,7 +41,7 @@ public class FileInboundChannelAdapterParser extends AbstractPollingInboundChann
 
 	@Override
 	protected String parseSource(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(PollableFileSource.class);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(FileReadingMessageSource.class);
 		String directory = element.getAttribute("directory");
 		if (StringUtils.hasText(directory)) {
 			builder.addPropertyValue("inputDirectory", directory);

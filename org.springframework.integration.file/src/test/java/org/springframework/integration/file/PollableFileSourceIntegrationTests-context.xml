@@ -6,7 +6,7 @@
 			http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<!-- under test -->
-	<bean id="pollableFileSource" class="org.springframework.integration.file.PollableFileSource"
+	<bean id="pollableFileSource" class="org.springframework.integration.file.FileReadingMessageSource"
 		p:inputDirectory="file:${java.io.tmpdir}/PollableFileSourceIntegrationTests"
 		p:filter-ref="compositeFilter"/>
 

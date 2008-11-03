@@ -23,7 +23,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * {@link FileListFilter} that passes files only one time. This can
  * conveniently be used to prevent duplication of files, as is done in
- * {@link PollableFileSource}.
+ * {@link FileReadingMessageSource}.
  * 
  * @author Iwein Fuld
  */

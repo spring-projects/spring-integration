@@ -52,9 +52,9 @@ import org.springframework.util.Assert;
  * 
  * @author Iwein Fuld
  */
-public class PollableFileSource implements MessageSource<File>, MessageDeliveryAware<File> {
+public class FileReadingMessageSource implements MessageSource<File>, MessageDeliveryAware<File> {
 
-	private static final Log logger = LogFactory.getLog(PollableFileSource.class);
+	private static final Log logger = LogFactory.getLog(FileReadingMessageSource.class);
 
 	private volatile File inputDirectory;
 
