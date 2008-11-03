@@ -30,7 +30,8 @@
     <para>
 		To receive messages over http you need to use an <classname>HttpInvokerInboundGateway</classname>. Here is an
 		example bean definition:
-		<programlisting language="xml"><![CDATA[<bean id="inboundGateway" class="org.springframework.integration.httpinvoker.HttpInvokerInboundGateway">
+		<programlisting language="xml"><![CDATA[<bean id="inboundGateway"
+      class="org.springframework.integration.httpinvoker.HttpInvokerInboundGateway">
     <property name="requestChannel" ref="requestChannel"/>
     <property name="replyChannel" ref="replyChannel"/>
     <property name="requestTimeout" value="30000"/>
@@ -57,7 +58,8 @@
 	</para>
 	<para>
 		To configure the <classname>HttpInvokerOutboundGateway</classname> write a bean definition like this:
-		<programlisting language="xml"><![CDATA[<bean id="outboundGateway" class="org.springframework.integration.httpinvoker.HttpInvokerOutboundGateway">
+		<programlisting language="xml"><![CDATA[<bean id="outboundGateway"
+      class="org.springframework.integration.httpinvoker.HttpInvokerOutboundGateway">
     <property name="replyChannel" ref="replyChannel"/>
 </bean>]]></programlisting>
 		The outbound gateway is a <interfacename>MessageConsumer</interfacename> and can therefore be registered with
