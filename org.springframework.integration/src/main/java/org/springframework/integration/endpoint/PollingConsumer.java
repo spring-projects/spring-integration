@@ -22,9 +22,12 @@ import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.Assert;
 
 /**
+ * Message Endpoint that connects any {@link MessageHandler} implementation
+ * to a {@link PollableChannel}.
+ * 
  * @author Mark Fisher
  */
-public class PollingConsumerEndpoint extends AbstractPollingEndpoint {
+public class PollingConsumer extends AbstractPollingEndpoint {
 
 	private final PollableChannel inputChannel;
 
@@ -33,7 +36,7 @@ public class PollingConsumerEndpoint extends AbstractPollingEndpoint {
 	private volatile long receiveTimeout = 1000;
 
 
-	public PollingConsumerEndpoint(PollableChannel inputChannel, MessageHandler handler) {
+	public PollingConsumer(PollableChannel inputChannel, MessageHandler handler) {
 		Assert.notNull(inputChannel, "inputChannel must not be null");
 		Assert.notNull(handler, "handler must not be null");
 		this.inputChannel = inputChannel;

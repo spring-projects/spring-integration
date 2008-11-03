@@ -27,7 +27,7 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.MessageEndpoint;
-import org.springframework.integration.endpoint.PollingConsumerEndpoint;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.scheduling.IntervalTrigger;
@@ -152,7 +152,7 @@ public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAwar
 				if (this.trigger == null) {
 					this.trigger = new IntervalTrigger(0);
 				}
-				PollingConsumerEndpoint pollingEndpoint = new PollingConsumerEndpoint(
+				PollingConsumer pollingEndpoint = new PollingConsumer(
 						(PollableChannel) channel, this.handler);
 				pollingEndpoint.setTrigger(this.trigger);
 				pollingEndpoint.setMaxMessagesPerPoll(this.maxMessagesPerPoll);

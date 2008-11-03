@@ -27,7 +27,7 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.MessagingGateway;
-import org.springframework.integration.endpoint.PollingConsumerEndpoint;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.message.ErrorMessage;
 import org.springframework.integration.message.MessageHandler;
@@ -189,7 +189,7 @@ public abstract class AbstractMessagingGateway implements MessagingGateway, Mess
 						(SubscribableChannel) this.replyChannel, handler);
 			}
 			else if (this.replyChannel instanceof PollableChannel) {
-				PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(
+				PollingConsumer endpoint = new PollingConsumer(
 						(PollableChannel) this.replyChannel, handler);
 				endpoint.setTaskScheduler(this.taskScheduler);
 				endpoint.afterPropertiesSet();

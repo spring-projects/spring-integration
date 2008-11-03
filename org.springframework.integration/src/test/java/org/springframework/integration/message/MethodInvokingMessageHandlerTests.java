@@ -32,7 +32,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.consumer.MethodInvokingMessageHandler;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.endpoint.PollingConsumerEndpoint;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.util.TestUtils;
 
 /**
@@ -85,7 +85,7 @@ public class MethodInvokingMessageHandlerTests {
 		channel.send(message);
 		assertNull(queue.poll());
 		MethodInvokingMessageHandler handler = new MethodInvokingMessageHandler(testBean, "foo");
-		PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(channel, handler);
+		PollingConsumer endpoint = new PollingConsumer(channel, handler);
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
 		ApplicationContextMessageBus bus = new ApplicationContextMessageBus();
 		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));

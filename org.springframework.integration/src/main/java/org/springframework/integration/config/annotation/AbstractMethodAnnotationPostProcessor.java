@@ -31,7 +31,7 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.MessageEndpoint;
-import org.springframework.integration.endpoint.PollingConsumerEndpoint;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.Assert;
@@ -89,7 +89,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 			MessageChannel inputChannel = this.channelResolver.resolveChannelName(inputChannelName);
 			Assert.notNull(inputChannel, "failed to resolve inputChannel '" + inputChannelName + "'");
 			if (inputChannel instanceof PollableChannel) {
-				PollingConsumerEndpoint pollingEndpoint = new PollingConsumerEndpoint(
+				PollingConsumer pollingEndpoint = new PollingConsumer(
 						(PollableChannel) inputChannel, handler);
 				if (pollerAnnotation != null) {
 					AnnotationConfigUtils.configurePollingEndpointWithPollerAnnotation(

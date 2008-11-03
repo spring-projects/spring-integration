@@ -40,7 +40,7 @@ import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.consumer.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.consumer.ReplyMessageHolder;
 import org.springframework.integration.core.Message;
-import org.springframework.integration.endpoint.PollingConsumerEndpoint;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.message.ErrorMessage;
@@ -75,7 +75,7 @@ public class ApplicationContextMessageBusTests {
 			}
 		};
 		handler.setBeanFactory(context);
-		PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(sourceChannel, handler);
+		PollingConsumer endpoint = new PollingConsumer(sourceChannel, handler);
 		endpoint.afterPropertiesSet();
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
 		context.refresh();
@@ -148,9 +148,9 @@ public class ApplicationContextMessageBusTests {
 		context.getBeanFactory().registerSingleton("output2", outputChannel2);
 		handler1.setOutputChannel(outputChannel1);
 		handler2.setOutputChannel(outputChannel2);
-		PollingConsumerEndpoint endpoint1 = new PollingConsumerEndpoint(inputChannel, handler1);
+		PollingConsumer endpoint1 = new PollingConsumer(inputChannel, handler1);
 		endpoint1.afterPropertiesSet();
-		PollingConsumerEndpoint endpoint2 = new PollingConsumerEndpoint(inputChannel, handler2);
+		PollingConsumer endpoint2 = new PollingConsumer(inputChannel, handler2);
 		endpoint2.afterPropertiesSet();
 		context.getBeanFactory().registerSingleton("testEndpoint1", endpoint1);
 		context.getBeanFactory().registerSingleton("testEndpoint2", endpoint2);
@@ -266,7 +266,7 @@ public class ApplicationContextMessageBusTests {
 				latch.countDown();
 			}
 		};
-		PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(errorChannel, handler);
+		PollingConsumer endpoint = new PollingConsumer(errorChannel, handler);
 		endpoint.afterPropertiesSet();
 		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
 		ApplicationContextMessageBus bus = new ApplicationContextMessageBus();

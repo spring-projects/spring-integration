@@ -31,7 +31,7 @@ import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.consumer.MethodInvokingMessageHandler;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.MessageEndpoint;
-import org.springframework.integration.endpoint.PollingConsumerEndpoint;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.message.MethodInvokingSource;
@@ -115,7 +115,7 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 			Trigger trigger = (pollerAnnotation != null)
 					? AnnotationConfigUtils.parseTriggerFromPollerAnnotation(pollerAnnotation)
 					: new IntervalTrigger(0);
-			PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint((PollableChannel) channel, handler);
+			PollingConsumer endpoint = new PollingConsumer((PollableChannel) channel, handler);
 			endpoint.setTrigger(trigger);
 			return endpoint;
 		}

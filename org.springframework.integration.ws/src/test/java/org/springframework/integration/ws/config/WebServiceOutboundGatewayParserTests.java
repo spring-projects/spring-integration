@@ -24,7 +24,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.endpoint.MessageEndpoint;
-import org.springframework.integration.endpoint.PollingConsumerEndpoint;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.SubscribingConsumerEndpoint;
 import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.ws.MarshallingWebServiceOutboundGateway;
@@ -159,7 +159,7 @@ public class WebServiceOutboundGatewayParserTests {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
 		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithPoller");
-		assertEquals(PollingConsumerEndpoint.class, endpoint.getClass());
+		assertEquals(PollingConsumer.class, endpoint.getClass());
 		Object obj = new DirectFieldAccessor(endpoint).getPropertyValue("trigger");
 		assertEquals(IntervalTrigger.class, obj.getClass());
 		IntervalTrigger trigger = (IntervalTrigger) obj;

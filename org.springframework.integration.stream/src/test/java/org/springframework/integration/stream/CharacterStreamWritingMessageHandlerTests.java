@@ -30,7 +30,7 @@ import org.junit.Test;
 
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.endpoint.PollingConsumerEndpoint;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.scheduling.SimpleTaskScheduler;
@@ -47,7 +47,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 
 	private QueueChannel channel;
 
-	private PollingConsumerEndpoint endpoint;
+	private PollingConsumer endpoint;
 
 	private TestTrigger trigger = new TestTrigger();
 
@@ -60,7 +60,7 @@ public class CharacterStreamWritingMessageHandlerTests {
 		handler = new CharacterStreamWritingMessageHandler(writer);
 		this.channel = new QueueChannel(10);
 		trigger.reset();
-		this.endpoint = new PollingConsumerEndpoint(channel, handler);
+		this.endpoint = new PollingConsumer(channel, handler);
 		scheduler = new SimpleTaskScheduler(new SimpleAsyncTaskExecutor());
 		this.endpoint.setTaskScheduler(scheduler);
 		scheduler.start();

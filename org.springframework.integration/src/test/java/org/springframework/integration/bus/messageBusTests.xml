@@ -17,9 +17,9 @@
 
 	<bean id="targetChannel" class="org.springframework.integration.channel.QueueChannel"/>
 
-	<bean id="endpoint" class="org.springframework.integration.endpoint.PollingConsumerEndpoint">
-		<constructor-arg ref="serviceActivator"/>
+	<bean id="endpoint" class="org.springframework.integration.endpoint.PollingConsumer">
 		<constructor-arg ref="sourceChannel"/>
+		<constructor-arg ref="serviceActivator"/>
 	</bean>
 
 	<bean id="serviceActivator" class="org.springframework.integration.consumer.ServiceActivatingHandler">

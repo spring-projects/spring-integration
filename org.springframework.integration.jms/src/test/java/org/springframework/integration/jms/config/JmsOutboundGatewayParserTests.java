@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,25 +20,26 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.endpoint.PollingConsumerEndpoint;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.jms.JmsOutboundGateway;
 import org.springframework.integration.jms.StubMessageConverter;
 import org.springframework.jms.support.converter.MessageConverter;
 
+/**
+ * @author Jonas Partner
+ */
 public class JmsOutboundGatewayParserTests {
 
 	@Test
 	public void testDefault(){
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsOutboundGatewayWithConverter.xml", this.getClass());
-		PollingConsumerEndpoint  endpoint = (PollingConsumerEndpoint) context.getBean("jmsGateway");
-
+		PollingConsumer endpoint = (PollingConsumer) context.getBean("jmsGateway");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(endpoint);
 		JmsOutboundGateway gateway = (JmsOutboundGateway) accessor.getPropertyValue("handler");
 		accessor = new DirectFieldAccessor(gateway);
 		MessageConverter converter = (MessageConverter)accessor.getPropertyValue("messageConverter");
-		assertTrue("Wrong mesage converter", converter instanceof StubMessageConverter);
-		
+		assertTrue("Wrong message converter", converter instanceof StubMessageConverter);
 	}
-	
+
 }

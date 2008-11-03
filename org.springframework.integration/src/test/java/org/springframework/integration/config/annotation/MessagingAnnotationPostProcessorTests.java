@@ -46,7 +46,7 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.endpoint.PollingConsumerEndpoint;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.StringMessage;
@@ -374,8 +374,7 @@ public class MessagingAnnotationPostProcessorTests {
 		postProcessor.afterPropertiesSet();
 		AnnotatedEndpointWithPolledAnnotation bean = new AnnotatedEndpointWithPolledAnnotation();
 		postProcessor.postProcessAfterInitialization(bean, "testBean");
-		PollingConsumerEndpoint endpoint =
-				(PollingConsumerEndpoint) context.getBean("testBean.prependFoo.serviceActivator");
+		PollingConsumer endpoint = (PollingConsumer) context.getBean("testBean.prependFoo.serviceActivator");
 		Trigger trigger = (Trigger) new DirectFieldAccessor(endpoint).getPropertyValue("trigger");
 		assertEquals(IntervalTrigger.class, trigger.getClass());
 		DirectFieldAccessor triggerAccessor = new DirectFieldAccessor(trigger);

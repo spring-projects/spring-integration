@@ -51,7 +51,7 @@ import org.springframework.integration.util.ErrorHandler;
 @SuppressWarnings("unchecked")
 public class PollingConsumerEndpointTests {
 
-	private PollingConsumerEndpoint endpoint;
+	private PollingConsumer endpoint;
 
 	private TestTrigger trigger = new TestTrigger();
 
@@ -72,7 +72,7 @@ public class PollingConsumerEndpointTests {
 	public void init() throws InterruptedException {
 		consumer.counter.set(0);
 		trigger.reset();
-		endpoint = new PollingConsumerEndpoint(channelMock, consumer);
+		endpoint = new PollingConsumer(channelMock, consumer);
 		endpoint.setTaskScheduler(taskScheduler);
 		taskScheduler.setErrorHandler(errorHandler);
 		taskScheduler.start();
