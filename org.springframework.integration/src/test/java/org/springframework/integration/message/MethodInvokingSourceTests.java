@@ -23,7 +23,7 @@ import org.junit.Test;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.message.MethodInvokingSource;
+import org.springframework.integration.message.MethodInvokingMessageSource;
 
 /**
  * @author Mark Fisher
@@ -32,7 +32,7 @@ public class MethodInvokingSourceTests {
 
 	@Test
 	public void testValidMethod() {
-		MethodInvokingSource source = new MethodInvokingSource();
+		MethodInvokingMessageSource source = new MethodInvokingMessageSource();
 		source.setObject(new TestBean());
 		source.setMethodName("validMethod");
 		Message<?> result = source.receive();
@@ -43,7 +43,7 @@ public class MethodInvokingSourceTests {
 
 	@Test(expected=MessagingException.class)
 	public void testNoMatchingMethodName() {
-		MethodInvokingSource source = new MethodInvokingSource();
+		MethodInvokingMessageSource source = new MethodInvokingMessageSource();
 		source.setObject(new TestBean());
 		source.setMethodName("noMatchingMethod");
 		source.receive();
@@ -51,7 +51,7 @@ public class MethodInvokingSourceTests {
 
 	@Test(expected=MessagingException.class)
 	public void testInvalidMethodWithArg() {
-		MethodInvokingSource source = new MethodInvokingSource();
+		MethodInvokingMessageSource source = new MethodInvokingMessageSource();
 		source.setObject(new TestBean());
 		source.setMethodName("invalidMethodWithArg");
 		source.receive();
@@ -59,7 +59,7 @@ public class MethodInvokingSourceTests {
 
 	@Test(expected=MessagingException.class)
 	public void testInvalidMethodWithNoReturnValue() {
-		MethodInvokingSource source = new MethodInvokingSource();
+		MethodInvokingMessageSource source = new MethodInvokingMessageSource();
 		source.setObject(new TestBean());
 		source.setMethodName("invalidMethodWithNoReturnValue");
 		source.receive();

@@ -29,12 +29,12 @@ import org.springframework.integration.util.NameResolvingMethodInvoker;
 import org.springframework.util.Assert;
 
 /**
- * A pollable source that invokes a no-argument method so that its return value
- * may be sent to a channel.
+ * A {@link MessageSource} implementation that invokes a no-argument method so
+ * that its return value may be sent to a channel.
  * 
  * @author Mark Fisher
  */
-public class MethodInvokingSource implements MessageSource<Object>, InitializingBean {
+public class MethodInvokingMessageSource implements MessageSource<Object>, InitializingBean {
 
 	private volatile Object object;
 

@@ -34,7 +34,7 @@ import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.MethodInvokingMessageHandler;
-import org.springframework.integration.message.MethodInvokingSource;
+import org.springframework.integration.message.MethodInvokingMessageSource;
 import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.scheduling.Trigger;
 import org.springframework.util.Assert;
@@ -65,7 +65,7 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 		MessageChannel channel = this.resolveOrCreateChannel(annotation.value());
 		Poller pollerAnnotation = AnnotationUtils.findAnnotation(method, Poller.class);
 		if (method.getParameterTypes().length == 0 && hasReturnValue(method)) {
-			MethodInvokingSource source = new MethodInvokingSource();
+			MethodInvokingMessageSource source = new MethodInvokingMessageSource();
 			source.setObject(bean);
 			source.setMethod(method);
 			endpoint = this.createInboundChannelAdapter(source, channel, pollerAnnotation);
@@ -99,7 +99,7 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 		}
 	}
 
-	private SourcePollingChannelAdapter createInboundChannelAdapter(MethodInvokingSource source, MessageChannel channel, Poller pollerAnnotation) {
+	private SourcePollingChannelAdapter createInboundChannelAdapter(MethodInvokingMessageSource source, MessageChannel channel, Poller pollerAnnotation) {
 		Assert.notNull(pollerAnnotation, "The @Poller annotation is required (at method-level) "
 					+ "when using the @ChannelAdapter annotation with a no-arg method.");
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();

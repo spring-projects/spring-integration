@@ -21,7 +21,7 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.message.MethodInvokingSource;
+import org.springframework.integration.message.MethodInvokingMessageSource;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -38,7 +38,7 @@ public class MethodInvokingInboundChannelAdapterParser extends AbstractPollingIn
 		Assert.hasText(sourceRef, "The 'ref' attribute is required.");
 		String methodName = element.getAttribute("method");
 		if (StringUtils.hasText(methodName)) {
-			BeanDefinitionBuilder invokerBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingSource.class);
+			BeanDefinitionBuilder invokerBuilder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingMessageSource.class);
 			invokerBuilder.addPropertyReference("object", sourceRef);
 			invokerBuilder.addPropertyValue("methodName", methodName);
 			sourceRef = BeanDefinitionReaderUtils.registerWithGeneratedName(
