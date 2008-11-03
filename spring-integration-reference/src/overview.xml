@@ -180,7 +180,7 @@
 	</para>
 
     <section id="overview-endpoints-transformer">
-      <title>Message Transformer</title>
+      <title>Transformer</title>
       <para>
         A Message Transformer is responsible for converting a Message's content or structure and returning the modified
         Message. Probably the most common type of transformer is one that converts the payload of the Message from one
@@ -190,7 +190,7 @@
     </section>
 
     <section id="overview-endpoints-filter">
-      <title>Message Filter</title>
+      <title>Filter</title>
       <para>
         A Message Filter determines whether a Message should be passed to an output channel at all. This simply
         requires a boolean test method that may check for a particular payload content type, a property value, the
@@ -208,7 +208,7 @@
     </section>
 
     <section id="overview-endpoints-router">
-      <title>Message Router</title>
+      <title>Router</title>
       <para>
         A Message Router is responsible for deciding what channel or channels should receive the Message next (if any).
         Typically the decision is based upon the Message's content and/or metadata available in the Message Headers.
@@ -224,7 +224,7 @@
     </section>
 
     <section id="overview-endpoints-splitter">
-      <title>Message Splitter</title>
+      <title>Splitter</title>
       <para>
         A Splitter is another type of Message Endpoint whose responsibility is to accept a Message from its input
         channel, split that Message into multiple Messages, and then send each of those to its output channel. This
@@ -234,7 +234,7 @@
     </section>
 
     <section id="overview-endpoints-aggregator">
-      <title>Message Aggregator</title>
+      <title>Aggregator</title>
       <para>
         Basically a mirror-image of the Splitter, the Aggregator is a type of Message Endpoint that receives multiple
         Messages and combines them into a single Message. In fact, Aggregators are often downstream consumers in a

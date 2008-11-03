@@ -24,20 +24,24 @@
     ApplicationContext, it more closely resembles Spring's own MessageListener containers.
   </para>
 
-  <section id="endpoint-consumer">
-    <title>Message Consumer</title>
+  <section id="endpoint-handler">
+    <title>Message Handler</title>
     <para>
-      Spring Integration's <interfacename>MessageConsumer</interfacename> interface is defined as follows:
-      <programlisting language="java">public interface MessageConsumer {
+      Spring Integration's <interfacename>MessageHandler</interfacename> interface is implemented by many of the
+      components within the framework. In other words, this is not part of the public API, and a developer would not
+      typically implement <interfacename>MessageHandler</interfacename> directly. Nevertheless, it is used by a Message
+      Consumer for actually handling the consumed Messages, and so being aware of this strategy interface does help in
+      terms of understanding the overall role of a consumer. The interface is defined as follows:
+      <programlisting language="java">public interface MessageHandler {
 
-    void onMessage(Message&lt;?&gt; message);
+    void handleMessage(Message&lt;?&gt; message);
 
 }</programlisting>
       Despite its simplicity, this provides the foundation for most of the components that will be covered in the
       following chapters (Routers, Transformers, Splitters, Aggregators, Service Activators, etc). Those components
-      each perform very different functionality with the Messages they receive, but the requirements for actually
+      each perform very different functionality with the Messages they handle, but the requirements for actually
       receiving a Message are the same, and the choice between polling and event-driven behavior is also the same.
-      Spring Integration provides two endpoint implementations that "host" these callback-based consumers and allow
+      Spring Integration provides two endpoint implementations that "host" these callback-based handlers and allow
       them to be connected to Message Channels.
     </para>
   </section>
@@ -47,39 +51,35 @@
     <para>
       Because it is the simpler of the two, we will cover the Event-Driven Consumer endpoint first. You may recall that
       the <interfacename>SubscribableChannel</interfacename> interface provides a <methodname>subscribe()</methodname>
-      method and that the method accepts a <interfacename>MessageConsumer</interfacename> parameter (as shown in
+      method and that the method accepts a <interfacename>MessageHandler</interfacename> parameter (as shown in
       <xref linkend="channel-interfaces-subscribablechannel"/>):
       <programlisting language="java">
-subscribableChannel.subscribe(messageConsumer);
+subscribableChannel.subscribe(messageHandler);
 </programlisting>
-      Since a consumer that is subscribed to a channel does not have to actively poll that channel, this is an
-      Event-Driven Consumer, and the corresponding endpoint "container" class provided by Spring Integration accepts a
-      <interfacename>MessageConsumer</interfacename> and a <interfacename>SubscribableChannel</interfacename>:
-      <programlisting language="java">MessageConsumer consumer = new ExampleConsumer();
+      Since a handler that is subscribed to a channel does not have to actively poll that channel, this is an
+      Event-Driven Consumer, and the implementation provided by Spring Integration accepts a
+      a <interfacename>SubscribableChannel</interfacename> and a <interfacename>MessageHandler</interfacename>:
+      <programlisting language="java">SubscribableChannel channel = (SubscribableChannel) context.getBean("exampleSubscribableChannel");
 
-SubscribableChannel channel = (SubscribableChannel) context.getBean("exampleSubscribableChannel");
-
-SubscribingConsumerEndpoint endpoint = new SubscribingConsumerEndpoint(consumer, channel);</programlisting>
+EventDrivenConsumer consumer = new EventDrivenConsumer(channel, exampleHandler);</programlisting>
     </para>
   </section>
 
   <section id="endpoint-pollingconsumer">
     <title>Polling Consumer</title>
     <para>
-      Spring Integration also provides a <classname>PollingConsumerEndpoint</classname>, and it can be instantiated in
+      Spring Integration also provides a <classname>PollingConsumer</classname>, and it can be instantiated in
       the same way except that the channel must implement <interfacename>PollableChannel</interfacename>:
-      <programlisting language="java">MessageConsumer consumer = new ExampleConsumer();
+      <programlisting language="java">PollableChannel channel = (PollableChannel) context.getBean("examplePollableChannel");
 
-PollableChannel channel = (PollableChannel) context.getBean("examplePollableChannel");
-
-PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(consumer, channel);</programlisting>
+PollingConsumer consumer = new PollingConsumer(channel, exampleHandler);</programlisting>
     </para>
     <para>
-      There are many other configuration options for the polling endpoint. For example, the trigger can be provided:
+      There are many other configuration options for the Polling Consumer. For example, the trigger can be provided:
       <programlisting language="java">
-PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(consumer, channel);
+PollingConsumer consumer = new PollingConsumer(channel, handler);
 
-endpoint.setTrigger(new IntervalTrigger(30, TimeUnit.SECONDS));</programlisting>
+consumer.setTrigger(new IntervalTrigger(30, TimeUnit.SECONDS));</programlisting>
       Spring Integration currently provides two implementations of the <interfacename>Trigger</interfacename>
       interface: <classname>IntervalTrigger</classname> and <classname>CronTrigger</classname>. The
       <classname>IntervalTrigger</classname> is typically defined with a simple interval (in milliseconds), but
@@ -94,35 +94,35 @@ trigger.setFixedRate(true);</programlisting>
     <para>
       In addition to the trigger, several other polling-related configuration properties may be specified:
       <programlisting language="java">
-PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(consumer, channel);
+PollingConsumer consumer = new PollingConsumer(channel, handler);
 
-endpoint.setMaxMessagesPerPoll(10);
+consumer.setMaxMessagesPerPoll(10);
 
-endpoint.setReceiveTimeout(5000);</programlisting>
-      A polling consumer may even delegate to a Spring <interfacename>TaskExecutor</interfacename> and
+consumer.setReceiveTimeout(5000);</programlisting>
+      A Polling Consumer may even delegate to a Spring <interfacename>TaskExecutor</interfacename> and
       participate in Spring-managed transactions. The following example shows the configuration of both:
       <programlisting language="java">
-PollingConsumerEndpoint endpoint = new PollingConsumerEndpoint(consumer, channel);
+PollingConsumer consumer = new PollingConsumer(channel, handler);
 
 TaskExecutor taskExecutor = (TaskExecutor) context.getBean("exampleExecutor");
-endpoint.setTaskExecutor(taskExecutor);
+consumer.setTaskExecutor(taskExecutor);
 
 PlatformTransactionManager txManager = (PlatformTransationManager) context.getBean("exampleTxManager");
-endpoint.setTransactionManager(txManager);</programlisting>
-      The examples above show dependency lookups, but keep in mind that these endpoints will most often be configured
+consumer.setTransactionManager(txManager);</programlisting>
+      The examples above show dependency lookups, but keep in mind that these consumers will most often be configured
       as Spring <emphasis>bean definitions</emphasis>. In fact, Spring Integration also provides a
-      <interfacename>FactoryBean</interfacename> that creates the appropriate endpoint type based on the type of
+      <interfacename>FactoryBean</interfacename> that creates the appropriate consumer type based on the type of
       channel, and there is full XML namespace support to even further hide those details. The namespace-based
       configuration will be featured as each component type is introduced.
       <note>
-		Interestingly, many of the <interfacename>MessageConsumer</interfacename> implementations are also capable of
-        generating reply Messages. As mentioned above, sending Messages is trivial when compared to the Message
-        reception. Nevertheless, <emphasis>when</emphasis> and <emphasis>how many</emphasis> reply Messages are sent
-        depends on the consumer type. For example, an <emphasis>Aggregator</emphasis> waits for a number of Messages to
-        arrive and is often a downstream consumer for a <emphasis>Splitter</emphasis> which may generate multiple
-        replies for each Message it consumes. When using the namespace configuration, you do not strictly need to know
+		Many of the <interfacename>MessageHandler</interfacename> implementations are also capable of generating reply
+        Messages. As mentioned above, sending Messages is trivial when compared to the Message reception. Nevertheless,
+        <emphasis>when</emphasis> and <emphasis>how many</emphasis> reply Messages are sent depends on the handler
+        type. For example, an <emphasis>Aggregator</emphasis> waits for a number of Messages to arrive and is often
+        configured as a downstream consumer for a <emphasis>Splitter</emphasis> which may generate multiple
+        replies for each Message it handles. When using the namespace configuration, you do not strictly need to know
         all of the details, but it still might be worth knowing that several of these components share a common base
-        class, the <classname>AbstractReplyProducingMessageConsumer</classname>, and it provides a
+        class, the <classname>AbstractReplyProducingMessageHandler</classname>, and it provides a
         <methodname>setOutputChannel(..)</methodname> method.
       </note>
     </para>
@@ -134,8 +134,8 @@ endpoint.setTransactionManager(txManager);</programlisting>
       Throughout the reference manual, you will see specific configuration examples for endpoint elements, such as
       router, transformer, service-activator, and so on. Most of these will support an "input-channel" attribute and
       many will support an "output-channel" attribute. After being parsed, these endpoint elements produce an instance
-      of either the <classname>PollingConsumerEndpoint</classname> or the
-      <classname>SubscribingConsumerEndpoint</classname> depending on the type of the "input-channel" that is
+      of either the <classname>PollingConsumer</classname> or the
+      <classname>EventDrivenConsumer</classname> depending on the type of the "input-channel" that is
       referenced: <interfacename>PollableChannel</interfacename> or <interfacename>SubscribableChannel</interfacename>
       respectively. When the channel is pollable, then the polling behavior is determined based on the endpoint
       element's "poller" sub-element. For example, a simple interval-based poller with a 1-second interval would be
@@ -162,7 +162,7 @@ endpoint.setTransactionManager(txManager);</programlisting>
 </poller>]]></programlisting> 
     </para>
     <para>
-      The polling threads may be executed by any instance of Spring's <interfacename>TaskExceutor</interfacename>
+      The polling threads may be executed by any instance of Spring's <interfacename>TaskExecutor</interfacename>
       abstraction. This enables concurrency for an endpoint or group of endpoints. As a convenience, there is also
       namespace support for creating a simple thread pool executor. The &lt;thread-pool-task-executor/&gt; element
       defines attributes for common concurrency settings such as core-size, max-size, and queue-capacity. Configuring
@@ -179,13 +179,10 @@ endpoint.setTransactionManager(txManager);</programlisting>
                                queue-capacity="20"
                                keep-alive-seconds="120"/>
 </poller>]]></programlisting>
-      If no 'task-executor' is provided, the endpoint's consumer will be invoked in the caller's thread. Note that the
+      If no 'task-executor' is provided, the consumer's handler will be invoked in the caller's thread. Note that the
       "caller" is usually the MessageBus' task scheduler. Also, keep in mind that the 'task-executor' attribute can
       provide a reference to any implementation of Spring's <interfacename>TaskExecutor</interfacename> interface by
       specifying the bean name. The thread pool elements is simply provided for convenience.
-    </para>
-    <para>
-      The poller accepts a few other configuration attributes...
     </para>
   </section>
 </chapter>
