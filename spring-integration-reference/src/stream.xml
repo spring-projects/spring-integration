@@ -13,20 +13,20 @@
 <section id="stream-reading">
 	<title>Reading from streams</title>
   <para>
-    Spring Integration provides two adapters for streams. Both <classname>ByteStreamSource</classname> and
-    <classname>CharacterStreamSource</classname> implement <interfacename>PollableSource</interfacename>. 
+    Spring Integration provides two adapters for streams. Both <classname>ByteStreamReadingMessageSource</classname> and
+    <classname>CharacterStreamReadingMessageSource</classname> implement <interfacename>MessageSource</interfacename>. 
 	By configuring one of these within a channel-adapter element, the polling period can be configured,
     and the Message Bus can automatically detect and schedule them. The byte stream version requires an
     <classname>InputStream</classname>, and the character stream version requires a <classname>Reader</classname> as
-    the single constructor argument. The <classname>ByteStreamSource</classname> also accepts the 'bytesPerMessage'
+    the single constructor argument. The <classname>ByteStreamReadingMessageSource</classname> also accepts the 'bytesPerMessage'
     property to determine how many bytes it will attempt to read into each <interfacename>Message</interfacename>. The 
 	default value is 1024
-		<programlisting language="xml"><![CDATA[<bean class="org.springframework.integration.stream.ByteStreamSource">
+		<programlisting language="xml"><![CDATA[<bean class="org.springframework.integration.stream.ByteStreamReadingMessageSource">
 	<constructor-arg ref="someInputStream"/>
 	<property name="bytesPerMessage" value="2048"/>
 </bean>
 
-<bean class="org.springframework.integration.stream.CharacterStreamSource">
+<bean class="org.springframework.integration.stream.CharacterStreamReadingMessageSource">
 	<constructor-arg ref="someReader"/>
 </bean>]]>
 		</programlisting>
