@@ -2,7 +2,7 @@
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
 "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
 <chapter id="aggregator">
-  <title>Message Aggregation</title>
+  <title>Aggregator</title>
 
   <section id="aggregator-introduction">
     <title>Introduction</title>

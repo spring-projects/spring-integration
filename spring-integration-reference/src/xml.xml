@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
 <chapter id="xml">
-	<title>Dealing with xml payloads</title>
+	<title>Dealing with XML Payloads</title>
 
 	<section id="xml-intro">
 		<title>Introduction</title>
 		<para>
-			Spring Integration xml extends the Spring Integration Core with 
+			Spring Integration's XML support extends the Spring Integration Core with 
 			implementations of splitter, transformer, selector and router designed 
 			to make working with xml messages in Spring Integration simple.  The provided messaging 
 			components are designed to work with xml represented in a range of formats including 

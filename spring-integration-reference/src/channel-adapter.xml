@@ -2,9 +2,9 @@
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
 "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
 <chapter id="channel-adapter">
-  <title>Channel Adapters</title>
+  <title>Channel Adapter</title>
   <para>
-    Channel Adapters are Message Endpoints that enable connecting a single sender or receiver to a Message Channel.
+    A Channel Adapter is a Message Endpoint that enables connecting a single sender or receiver to a Message Channel.
     Spring Integration provides a number of adapters out of the box to support various transports, such as JMS, File,
     etc. Those will be discussed in upcoming chapters of this reference guide. However, this chapter focuses on the
     simple but flexible Method-invoking Channel Adapter support. There is an inbound and outbound adapter, and each
