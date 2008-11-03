@@ -30,7 +30,7 @@
   <section id="jms-outbound-channel-adapter">
     <title>Outbound Channel Adapter</title>
     <para>
-      The <classname>JmsSendingMessageConsumer</classname> implements the <interfacename>MessageConsumer</interfacename>
+      The <classname>JmsSendingMessageHandler</classname> implements the <interfacename>MessageHandler</interfacename>
       interface and is capable of converting Spring Integration <interfacename>Messages</interfacename> to JMS messages
       and then sending to a JMS destination. It requires either a 'jmsTemplate' reference or both 'connectionFactory' and
       'destination' references (again, the 'destinationName' may be provided in place of the 'destination). As with the

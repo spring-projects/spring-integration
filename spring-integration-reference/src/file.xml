@@ -15,14 +15,14 @@
 			transform files into strings or byte arrays. 
     	</para>
 		<para>
-			This section will explain the workings of <classname>PollableFileSource</classname>, <classname>FileWritingMessageConsumer</classname> and how to configure them as	<emphasis>beans</emphasis>. Also the support for dealing with files through file specific implementations of <interfacename>Transformer</interfacename> will be discussed. Finally the file specific namespace will be explained.
+			This section will explain the workings of <classname>PollableFileSource</classname>, <classname>FileWritingMessageHandler</classname> and how to configure them as	<emphasis>beans</emphasis>. Also the support for dealing with files through file specific implementations of <interfacename>Transformer</interfacename> will be discussed. Finally the file specific namespace will be explained.
 		</para>
 	</section>
 
 	<section id="file-reading">
 		<title>Reading Files</title>
 		<para>
-			A <classname>PollableFileSource</classname> can be used to consume files from the filesystem. This is an implementation of <interfacename>PollableSource</interfacename> that creates messages from a file system directory.
+			A <classname>PollableFileSource</classname> can be used to consume files from the filesystem. This is an implementation of <interfacename>MessageSource</interfacename> that creates messages from a file system directory.
 			<programlisting language="xml"><![CDATA[<bean id="pollableFileSource" class="org.springframework.integration.file.PollableFileSource"
 		p:inputDirectory="file:${input.directory.property}"/>]]></programlisting>
 		</para>
@@ -79,7 +79,7 @@
 			http://www.springframework.org/schema/integration/file/spring-integration-file-1.0.xsd">
 </beans>]]></programlisting>
 			Within this namespace you can reduce the PollableFileSource and wrap
-			it in a InboundChannelAdapter like this:
+			it in an InboundChannelAdapter like this:
 			<programlisting language="xml"><![CDATA[<file:inbound-channel-adapter id="filesIn"
        directory="file:${input.directory.property}"/> 					(1)
 <file:inbound-channel-adapter id="filesIn"
@@ -101,12 +101,12 @@
 		<title>Writing files</title>
 		<para>
 			To write messages to the file system you can use a
-			<classname>FileWritingMessageConsumer
+			<classname>FileWritingMessageHandler
 			</classname>
 			. This class can deal with File or byte[] payloads and otherwise
-			invokes the toString() method on the payload to estabish the contents
+			invokes the toString() method on the payload to establish the contents
 			of the File. In its simplest form the
-			<classname>FileWritingMessageConsumer
+			<classname>FileWritingMessageHandler
 			</classname>
 			just needs a parent directory for the files.
 		</para>
@@ -119,13 +119,13 @@
 		</para>
 		<para>
 			To make things easier you can configure the
-			FileWritingMessageConsumer as part of an outbound channel adapter
+			FileWritingMessageHandler as part of an outbound channel adapter
 			using the namespace.
 			<programlisting language="xml"><![CDATA[	<file:outbound-channel-adapter id="filesOut" directory="file:${input.directory.property}"/>]]></programlisting>
 		</para>
 		<para>
 			If you have more elaborate requirements to the payload to file
-			conversion you could extend the FileWritingMessageConsumer, but a
+			conversion you could extend the FileWritingMessageHandler, but a
 			much better option is to rely on a
 			<classname>Transformer</classname>
 		</para>
@@ -138,7 +138,7 @@
 			way around you need to do some work. Contrary to
 			<classname>PollableFileSource</classname>
 			and to a lesser extent
-			<classname>FileWritingMessageConsumer
+			<classname>FileWritingMessageHandler
 			</classname>
 			it is very likely that you will need your own mechanism to get the
 			job done. For this you can implement the

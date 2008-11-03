@@ -7,12 +7,12 @@
     <title>Mail-Sending Channel Adapter</title>
     <para>
       Spring Integration provides support for outbound email with the
-      <classname>MailSendingMessageConsumer</classname>. It delegates to a configured instance of Spring's
+      <classname>MailSendingMessageHandler</classname>. It delegates to a configured instance of Spring's
       <interfacename>JavaMailSender</interfacename>:
       <programlisting language="java"> JavaMailSender mailSender = (JavaMailSender) context.getBean("mailSender");
 
- MailSendingMessageConsumer mailSendingConsumer = new MailSendingMessageConsumer(mailSender);</programlisting>
-      <classname>MailSendingMessageConsumer</classname> various mapping strategies use Spring's
+ MailSendingMessageHandler mailSendingHandler = new MailSendingMessageHandler(mailSender);</programlisting>
+      <classname>MailSendingMessageHandler</classname> various mapping strategies use Spring's
       <interfacename>MailMessage</interfacename> abstraction. If the received Message's payload is already
       a MailMessage instance, it will be sent directly. Therefore, it is generally recommended to precede this
       consumer with a Transformer for non-trivial MailMessage construction requirements. However, a few simple

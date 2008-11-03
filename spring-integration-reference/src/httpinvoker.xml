@@ -62,8 +62,8 @@
       class="org.springframework.integration.httpinvoker.HttpInvokerOutboundGateway">
     <property name="replyChannel" ref="replyChannel"/>
 </bean>]]></programlisting>
-		The outbound gateway is a <interfacename>MessageConsumer</interfacename> and can therefore be registered with
-		either a <classname>PollingConsumerEndpoint</classname> or <classname>SubscribingConsumerEndpoint</classname>.
+		The outbound gateway is a <interfacename>MessageHandler</interfacename> and can therefore be registered with
+		either a <classname>PollingConsumer</classname> or <classname>EventDrivenConsumer</classname>.
 		The URL must match that defined by an inbound HttpInvoker Gateway as described in the previous section.
     </para>
   </section>

@@ -36,19 +36,19 @@
   <section id="stream-writing">
     <title>Writing to streams</title>
 	<para>
-		For target streams, there are also two implementations: <classname>ByteStreamWritingMessageConsumer</classname> and
-	    <classname>CharacterStreamWritingMessageConsumer</classname>. Each requires a single constructor argument -
+		For target streams, there are also two implementations: <classname>ByteStreamWritingMessageHandler</classname> and
+	    <classname>CharacterStreamWritingMessageHandler</classname>. Each requires a single constructor argument -
 	    <classname>OutputStream</classname> for byte streams or <classname>Writer</classname> for character streams,
 	    and each provides a second constructor that adds the optional 'bufferSize'. Since both of these
-	    ultimately implement the <interfacename>MessageConsumer</interfacename> interface, they can be referenced from a
+	    ultimately implement the <interfacename>MessageHandler</interfacename> interface, they can be referenced from a
 	    <emphasis>channel-adapter</emphasis> configuration as will be described in more detail in
 	    <xref linkend="namespace-endpoint"/>.
-		<programlisting language="xml"><![CDATA[<bean class="org.springframework.integration.stream.ByteStreamWritingMessageConsumer">
+		<programlisting language="xml"><![CDATA[<bean class="org.springframework.integration.stream.ByteStreamWritingMessageHandler">
 	<constructor-arg ref="someOutputStream"/>
 	<constructor-arg value="1024"/>
 </bean>
 
-<bean class="org.springframework.integration.stream.CharacterStreamWritingMessageConsumer">
+<bean class="org.springframework.integration.stream.CharacterStreamWritingMessageHandler">
 	<constructor-arg ref="someWriter"/>
 </bean>]]>
 	</programlisting>
