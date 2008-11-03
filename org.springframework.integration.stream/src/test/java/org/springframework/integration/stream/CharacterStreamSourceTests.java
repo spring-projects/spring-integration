@@ -33,7 +33,7 @@ public class CharacterStreamSourceTests {
 	@Test
 	public void testEndOfStream() {
 		StringReader reader = new StringReader("test");
-		CharacterStreamSource source = new CharacterStreamSource(reader);
+		CharacterStreamReadingMessageSource source = new CharacterStreamReadingMessageSource(reader);
 		Message<?> message1 = source.receive();
 		assertEquals("test", message1.getPayload());
 		Message<?> message2 = source.receive();

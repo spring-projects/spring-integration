@@ -34,7 +34,7 @@ public class ByteStreamSourceTests {
 	public void testEndOfStream() {
 		byte[] bytes = new byte[] {1,2,3};
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
-		ByteStreamSource source = new ByteStreamSource(stream);
+		ByteStreamReadingMessageSource source = new ByteStreamReadingMessageSource(stream);
 		Message<?> message1 = source.receive();
 		byte[] payload = (byte[]) message1.getPayload();
 		assertEquals(3, payload.length);
@@ -49,7 +49,7 @@ public class ByteStreamSourceTests {
 	public void testByteArrayIsTruncated() {
 		byte[] bytes = new byte[] {0,1,2,3,4,5};
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
-		ByteStreamSource source = new ByteStreamSource(stream);
+		ByteStreamReadingMessageSource source = new ByteStreamReadingMessageSource(stream);
 		source.setBytesPerMessage(4);
 		Message<?> message1 = source.receive();
 		assertEquals(4, ((byte[]) message1.getPayload()).length);
@@ -63,7 +63,7 @@ public class ByteStreamSourceTests {
 	public void testByteArrayIsNotTruncated() {
 		byte[] bytes = new byte[] {0,1,2,3,4,5};
 		ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
-		ByteStreamSource source = new ByteStreamSource(stream);
+		ByteStreamReadingMessageSource source = new ByteStreamReadingMessageSource(stream);
 		source.setBytesPerMessage(4);
 		source.setShouldTruncate(false);
 		Message<?> message1 = source.receive();

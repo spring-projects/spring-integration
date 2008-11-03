@@ -30,7 +30,7 @@ import org.springframework.integration.message.MessageSource;
  * 
  * @author Mark Fisher
  */
-public class ByteStreamSource implements MessageSource<byte[]> {
+public class ByteStreamReadingMessageSource implements MessageSource<byte[]> {
 
 	private BufferedInputStream stream;
 
@@ -41,11 +41,11 @@ public class ByteStreamSource implements MessageSource<byte[]> {
 	private boolean shouldTruncate = true;
 
 
-	public ByteStreamSource(InputStream stream) {
+	public ByteStreamReadingMessageSource(InputStream stream) {
 		this(stream, -1);
 	}
 
-	public ByteStreamSource(InputStream stream, int bufferSize) {
+	public ByteStreamReadingMessageSource(InputStream stream, int bufferSize) {
 		this.streamMonitor = stream;
 		if (stream instanceof BufferedInputStream) {
 			this.stream = (BufferedInputStream) stream;

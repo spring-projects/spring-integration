@@ -32,18 +32,18 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class CharacterStreamSource implements MessageSource<String> {
+public class CharacterStreamReadingMessageSource implements MessageSource<String> {
 
 	private final BufferedReader reader;
 
 	private final Object monitor;
 
 
-	public CharacterStreamSource(Reader reader) {
+	public CharacterStreamReadingMessageSource(Reader reader) {
 		this(reader, -1);
 	}
 
-	public CharacterStreamSource(Reader reader, int bufferSize) {
+	public CharacterStreamReadingMessageSource(Reader reader, int bufferSize) {
 		Assert.notNull(reader, "reader must not be null");
 		this.monitor = reader;
 		if (reader instanceof BufferedReader) {
@@ -74,13 +74,13 @@ public class CharacterStreamSource implements MessageSource<String> {
 	}
 
 
-	public static final CharacterStreamSource stdin() {
-		return new CharacterStreamSource(new InputStreamReader(System.in));
+	public static final CharacterStreamReadingMessageSource stdin() {
+		return new CharacterStreamReadingMessageSource(new InputStreamReader(System.in));
 	}
 
-	public static final CharacterStreamSource stdin(String charsetName) {
+	public static final CharacterStreamReadingMessageSource stdin(String charsetName) {
 		try {
-			return new CharacterStreamSource(new InputStreamReader(System.in, charsetName));
+			return new CharacterStreamReadingMessageSource(new InputStreamReader(System.in, charsetName));
 		}
 		catch (UnsupportedEncodingException e) {
 			throw new IllegalArgumentException("unsupported encoding: " + charsetName, e);
