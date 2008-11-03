@@ -225,9 +225,8 @@
     </para>
     <para>
       In addition to experimenting with the poller's concurrency settings, you can also add the 'transactional'
-      sub-element as described in <xref linkend="namespace-endpoint"/>. If you want to explore the sample in more
-      detail, the source JAR is available in the "src" directory:
-      'org.springframework.integration.samples-sources-1.0.0.RC1.jar'.
+      sub-element. If you want to explore the sample in more detail, the source JAR is available in the "src"
+      directory: 'org.springframework.integration.samples-sources-1.0.0.RC1.jar'.
     </para>
   </section>
 </appendix>
