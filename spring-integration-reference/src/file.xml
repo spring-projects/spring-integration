@@ -15,16 +15,17 @@
 			transform files into strings or byte arrays. 
     	</para>
 		<para>
-			This section will explain the workings of <classname>PollableFileSource</classname>, <classname>FileWritingMessageHandler</classname> and how to configure them as	<emphasis>beans</emphasis>. Also the support for dealing with files through file specific implementations of <interfacename>Transformer</interfacename> will be discussed. Finally the file specific namespace will be explained.
+			This section will explain the workings of <classname>FileReadingMessageSource</classname>, <classname>FileWritingMessageHandler</classname> and how to configure them as	<emphasis>beans</emphasis>. Also the support for dealing with files through file specific implementations of <interfacename>Transformer</interfacename> will be discussed. Finally the file specific namespace will be explained.
 		</para>
 	</section>
 
 	<section id="file-reading">
 		<title>Reading Files</title>
 		<para>
-			A <classname>PollableFileSource</classname> can be used to consume files from the filesystem. This is an implementation of <interfacename>MessageSource</interfacename> that creates messages from a file system directory.
-			<programlisting language="xml"><![CDATA[<bean id="pollableFileSource" class="org.springframework.integration.file.PollableFileSource"
-		p:inputDirectory="file:${input.directory.property}"/>]]></programlisting>
+			A <classname>FileReadingMessageSource</classname> can be used to consume files from the filesystem. This is an implementation of <interfacename>MessageSource</interfacename> that creates messages from a file system directory.
+			<programlisting language="xml"><![CDATA[<bean id="pollableFileSource"
+      class="org.springframework.integration.file.FileReadingMessageSource"
+        p:inputDirectory="file:${input.directory.property}"/>]]></programlisting>
 		</para>
 		<para>
 			To prevent creating messages for certain files, you may supply a
@@ -32,9 +33,10 @@
 			<classname>AcceptOnceFileListFilter</classname>
 			is used. This filter ensures files are picked up only once from the
 			directory.
-			<programlisting language="xml"><![CDATA[<bean id="pollableFileSource" class="org.springframework.integration.file.PollableFileSource"
-		p:inputDirectory="file:${input.directory.property}"
-		p:filter-ref="customFilterBean"/>]]></programlisting>
+			<programlisting language="xml"><![CDATA[<bean id="pollableFileSource"
+      class="org.springframework.integration.file.FileReadingMessageSource"
+        p:inputDirectory="file:${input.directory.property}"
+        p:filter-ref="customFilterBean"/>]]></programlisting>
 		</para>
 		<para>
 			A common problem with reading files is that a file may be detected
@@ -49,19 +51,20 @@
 			<classname>AcceptOnceFileListFilter
 			</classname>
 			allows for this.
-			<programlisting language="xml"><![CDATA[	<bean id="pollableFileSource" class="org.springframework.integration.file.PollableFileSource"
-		p:inputDirectory="file:${input.directory.property}"
-		p:filter-ref="compositeFilter"/>
-	<bean id="compositeFilter" class="org.springframework.integration.file.CompositeFileListFilter">
-		<constructor-arg>
-			<list>
-				<bean class="org.springframework.integration.file.AcceptOnceFileListFilter" />
-				<bean class="org.springframework.integration.file.PatternMatchingFileListFilter">
-					<constructor-arg value="^test.*$"/>
-				</bean>
-			</list>
-		</constructor-arg>
-	</bean>]]></programlisting>
+			<programlisting language="xml"><![CDATA[<bean id="pollableFileSource"
+      class="org.springframework.integration.file.FileReadingMessageSource"
+        p:inputDirectory="file:${input.directory.property}"
+        p:filter-ref="compositeFilter"/>
+<bean id="compositeFilter" class="org.springframework.integration.file.CompositeFileListFilter">
+    <constructor-arg>
+        <list>
+            <bean class="org.springframework.integration.file.AcceptOnceFileListFilter" />
+            <bean class="org.springframework.integration.file.PatternMatchingFileListFilter">
+                <constructor-arg value="^test.*$"/>
+            </bean>
+        </list>
+    </constructor-arg>
+</bean>]]></programlisting>
 		</para>
 		<para>
 			The configuration can be simplified using the file specific
@@ -78,7 +81,7 @@
 			http://www.springframework.org/schema/integration/file
 			http://www.springframework.org/schema/integration/file/spring-integration-file-1.0.xsd">
 </beans>]]></programlisting>
-			Within this namespace you can reduce the PollableFileSource and wrap
+			Within this namespace you can reduce the FileReadingMessageSource and wrap
 			it in an InboundChannelAdapter like this:
 			<programlisting language="xml"><![CDATA[<file:inbound-channel-adapter id="filesIn"
        directory="file:${input.directory.property}"/> 					(1)
@@ -94,7 +97,7 @@
 			attribute to add a
 			<classname>Pattern</classname>
 			based filter to the
-			<classname>PollableFileSource</classname>
+			<classname>FileReadingMessageSource</classname>
 		</para>
 	</section>
 	<section id="file-writing">
@@ -136,7 +139,7 @@
 			<!-- Introduction -->
 			To transform data read from the file system to objects and the other
 			way around you need to do some work. Contrary to
-			<classname>PollableFileSource</classname>
+			<classname>FileReadingMessageSource</classname>
 			and to a lesser extent
 			<classname>FileWritingMessageHandler
 			</classname>
