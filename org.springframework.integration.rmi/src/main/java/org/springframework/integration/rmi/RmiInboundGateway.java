@@ -20,7 +20,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.adapter.MessageHandler;
+import org.springframework.integration.adapter.RemoteMessageHandler;
 import org.springframework.integration.adapter.RemotingInboundGatewaySupport;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.remoting.rmi.RmiServiceExporter;
@@ -82,7 +82,7 @@ public class RmiInboundGateway extends RemotingInboundGatewaySupport implements 
 			exporter.setRemoteInvocationExecutor(this.remoteInvocationExecutor);
 		}
 		exporter.setService(this);
-		exporter.setServiceInterface(MessageHandler.class);
+		exporter.setServiceInterface(RemoteMessageHandler.class);
 		exporter.setServiceName(SERVICE_NAME_PREFIX + this.requestChannelName);
 		exporter.afterPropertiesSet();
 	}

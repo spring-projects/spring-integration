@@ -24,7 +24,7 @@ import org.springframework.integration.gateway.SimpleMessagingGateway;
  * 
  * @author Mark Fisher
  */
-public abstract class RemotingInboundGatewaySupport extends SimpleMessagingGateway implements MessageHandler {
+public abstract class RemotingInboundGatewaySupport extends SimpleMessagingGateway implements RemoteMessageHandler {
 
 	private volatile boolean expectReply = true;
 

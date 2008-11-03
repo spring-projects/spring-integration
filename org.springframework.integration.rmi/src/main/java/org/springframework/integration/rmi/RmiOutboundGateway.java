@@ -17,7 +17,7 @@
 package org.springframework.integration.rmi;
 
 import org.springframework.integration.adapter.AbstractRemotingOutboundGateway;
-import org.springframework.integration.adapter.MessageHandler;
+import org.springframework.integration.adapter.RemoteMessageHandler;
 import org.springframework.remoting.rmi.RmiProxyFactoryBean;
 
 /**
@@ -33,14 +33,14 @@ public class RmiOutboundGateway extends AbstractRemotingOutboundGateway {
 
 
 	@Override
-	public MessageHandler createHandlerProxy(String url) {
+	public RemoteMessageHandler createHandlerProxy(String url) {
 		RmiProxyFactoryBean proxyFactory = new RmiProxyFactoryBean();
-		proxyFactory.setServiceInterface(MessageHandler.class);
+		proxyFactory.setServiceInterface(RemoteMessageHandler.class);
 		proxyFactory.setServiceUrl(url);
 		proxyFactory.setLookupStubOnStartup(false);
 		proxyFactory.setRefreshStubOnConnectFailure(true);
 		proxyFactory.afterPropertiesSet();
-		return (MessageHandler) proxyFactory.getObject();
+		return (RemoteMessageHandler) proxyFactory.getObject();
 	}
 
 }

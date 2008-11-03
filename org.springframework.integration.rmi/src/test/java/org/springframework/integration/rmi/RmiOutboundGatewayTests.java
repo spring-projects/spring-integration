@@ -25,7 +25,7 @@ import java.rmi.RemoteException;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.integration.adapter.MessageHandler;
+import org.springframework.integration.adapter.RemoteMessageHandler;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.GenericMessage;
@@ -55,7 +55,7 @@ public class RmiOutboundGatewayTests {
 	public void createExporter() throws RemoteException {
 		RmiServiceExporter exporter = new RmiServiceExporter();
 		exporter.setService(new TestHandler());
-		exporter.setServiceInterface(MessageHandler.class);
+		exporter.setServiceInterface(RemoteMessageHandler.class);
 		exporter.setServiceName("testRemoteHandler");
 		exporter.afterPropertiesSet();
 	}
@@ -139,7 +139,7 @@ public class RmiOutboundGatewayTests {
 	}
 
 
-	private static class TestHandler implements MessageHandler {
+	private static class TestHandler implements RemoteMessageHandler {
 
 		public Message<?> handle(Message<?> message) {
 			return new GenericMessage<String>(message.getPayload().toString().toUpperCase(), message.getHeaders());

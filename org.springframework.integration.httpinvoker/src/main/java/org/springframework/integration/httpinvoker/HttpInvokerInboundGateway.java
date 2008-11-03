@@ -23,7 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.integration.adapter.MessageHandler;
+import org.springframework.integration.adapter.RemoteMessageHandler;
 import org.springframework.integration.adapter.RemotingInboundGatewaySupport;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter;
@@ -67,7 +67,7 @@ public class HttpInvokerInboundGateway extends RemotingInboundGatewaySupport imp
 	public void afterPropertiesSet() {
 		HttpInvokerServiceExporter exporter = new HttpInvokerServiceExporter();
 		exporter.setService(this);
-		exporter.setServiceInterface(MessageHandler.class);
+		exporter.setServiceInterface(RemoteMessageHandler.class);
 		exporter.afterPropertiesSet();
 		this.exporter = exporter;
 	}

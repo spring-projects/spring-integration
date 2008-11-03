@@ -33,7 +33,7 @@ import org.springframework.remoting.RemoteAccessException;
  */
 public abstract class AbstractRemotingOutboundGateway extends AbstractReplyProducingMessageHandler {
 
-	private final MessageHandler handlerProxy;
+	private final RemoteMessageHandler handlerProxy;
 
 
 	public AbstractRemotingOutboundGateway(String url) {
@@ -48,7 +48,7 @@ public abstract class AbstractRemotingOutboundGateway extends AbstractReplyProdu
 	/**
 	 * Subclasses must implement this method. It will be invoked from the constructor.
 	 */
-	protected abstract MessageHandler createHandlerProxy(String url);
+	protected abstract RemoteMessageHandler createHandlerProxy(String url);
 
 
 	@Override

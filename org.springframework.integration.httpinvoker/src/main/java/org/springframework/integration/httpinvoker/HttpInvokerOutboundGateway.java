@@ -17,7 +17,7 @@
 package org.springframework.integration.httpinvoker;
 
 import org.springframework.integration.adapter.AbstractRemotingOutboundGateway;
-import org.springframework.integration.adapter.MessageHandler;
+import org.springframework.integration.adapter.RemoteMessageHandler;
 import org.springframework.remoting.httpinvoker.HttpInvokerProxyFactoryBean;
 
 /**
@@ -33,12 +33,12 @@ public class HttpInvokerOutboundGateway extends AbstractRemotingOutboundGateway 
 
 
 	@Override
-	protected MessageHandler createHandlerProxy(String url) {
+	protected RemoteMessageHandler createHandlerProxy(String url) {
 		HttpInvokerProxyFactoryBean proxyFactory = new HttpInvokerProxyFactoryBean();
-		proxyFactory.setServiceInterface(MessageHandler.class);
+		proxyFactory.setServiceInterface(RemoteMessageHandler.class);
 		proxyFactory.setServiceUrl(url);
 		proxyFactory.afterPropertiesSet();
-		return (MessageHandler) proxyFactory.getObject();
+		return (RemoteMessageHandler) proxyFactory.getObject();
 	}
 
 }

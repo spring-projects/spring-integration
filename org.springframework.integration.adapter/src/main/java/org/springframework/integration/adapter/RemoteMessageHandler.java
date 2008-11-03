@@ -24,7 +24,7 @@ import org.springframework.integration.core.Message;
  * 
  * @author Mark Fisher
  */
-public interface MessageHandler {
+public interface RemoteMessageHandler {
 
 	Message<?> handle(Message<?> message);
 
