@@ -8,7 +8,6 @@
 		<pathelement location="${basedir}/../org.springframework.integration.xml"/>
 		<pathelement location="${basedir}/../org.springframework.integration.event"/>
 		<pathelement location="${basedir}/../org.springframework.integration.file"/>
-		<pathelement location="${basedir}/../org.springframework.integration.ftp"/>
 		<pathelement location="${basedir}/../org.springframework.integration.httpinvoker"/>
 		<pathelement location="${basedir}/../org.springframework.integration.jms"/>
 		<pathelement location="${basedir}/../org.springframework.integration.mail"/>
