@@ -13,7 +13,7 @@
 			instances of 
 			<classname>java.lang.String</classname>, <interfacename>org.w3c.dom.Document</interfacename>  
 			and <interfacename>javax.xml.transform.Source</interfacename>.  It should be noted however that 
-			where a dom representation is required, for example in order to evaluate an XPath expression, 
+			where a DOM representation is required, for example in order to evaluate an XPath expression, 
 			the <classname>String</classname> payload will be converted into the required type and then 
 			converted back again to <classname>String</classname>.  Components that require an instance of 
 			<interfacename>DocumentBuilder</interfacename> will create a namespace aware instance if one is 
@@ -49,7 +49,8 @@
 			and <interfacename>org.w3c.dom.Document</interfacename> payloads are supported.  Custom conversion to a 
 			<interfacename>Source</interfacename> is also supported by injecting an implementation of 
 			<interfacename>SourceFactory</interfacename>.
-			<programlisting language="xml"><![CDATA[<bean id="unmarshallingTransfomer" class="org.springframework.integration.xml.transformer.XmlPayloadUnmarshallingTransformer">
+			<programlisting language="xml"><![CDATA[<bean id="unmarshallingTransformer"
+      class="org.springframework.integration.xml.transformer.XmlPayloadUnmarshallingTransformer">
     <constructor-arg>
         <bean class="org.springframework.oxm.jaxb.Jaxb1Marshaller">
 		    <property name="contextPath" value="org.example" />
@@ -66,7 +67,8 @@
 			the payload into an alternative xml format.  To achieve this configure a 
 			<interfacename>ResultTransformer</interfacename>.  Two implementations are provided, one which converts to 
 			<classname>String</classname> and another which converts to <interfacename>Document</interfacename>.
-			<programlisting language="xml"><![CDATA[<bean id="marshallingTransfomer" class="org.springframework.integration.xml.transformer.XmlPayloadMarshallingTransformer">
+			<programlisting language="xml"><![CDATA[<bean id="marshallingTransformer"
+      class="org.springframework.integration.xml.transformer.XmlPayloadMarshallingTransformer">
     <constructor-arg>
         <bean class="org.springframework.oxm.jaxb.Jaxb1Marshaller">
             <property name="contextPath" value="org.example" />
@@ -86,7 +88,8 @@
 			by default <classname>XsltPayloadTransformer</classname> will create a message with a 
 			<interfacename>Result</interfacename> payload.  This can be customised by providing a 
 			<interfacename>ResultFactory</interfacename> and/or a <interfacename>ResultTransformer</interfacename>.
-			<programlisting language="xml"><![CDATA[<bean id="xsltPayloadTransformer" class="org.springframework.integration.xml.transformer.XsltPayloadTransformer">
+			<programlisting language="xml"><![CDATA[<bean id="xsltPayloadTransformer"
+      class="org.springframework.integration.xml.transformer.XsltPayloadTransformer">
     <constructor-arg value="classpath:org/example/xsl/transform.xsl" />
     <constructor-arg>
         <bean class="org.springframework.integration.xml.transformer.ResultToDocumentTransformer" />
@@ -154,7 +157,8 @@
     marshaller="marshaller"
     result-transformer="resultTransformer" />
      
-<bean id="resultTransformer" class="org.springframework.integration.xml.transformer.ResultToStringTransformer"/>]]></programlisting>
+<bean id="resultTransformer"
+      class="org.springframework.integration.xml.transformer.ResultToStringTransformer"/>]]></programlisting>
 </para>	
 	
 	<para>
@@ -188,7 +192,8 @@
 			in the payload will be converted then split before being converted back to a number of String 
 			messages.  The XPath splitter implements <interfacename>MessageConsumer</interfacename> and should 
 			therefore be configured in conjunction with an appropriate endpoint.
-			<programlisting language="xml"><![CDATA[<bean id="splittingEndpoint" class="org.springframework.integration.endpoint.SubscribingConsumerEndpoint">
+			<programlisting language="xml"><![CDATA[<bean id="splittingEndpoint"
+      class="org.springframework.integration.endpoint.SubscribingConsumerEndpoint">
     <constructor-arg>
         <bean class="org.springframework.integration.xml.splitter.XPathMessageSplitter">
             <constructor-arg value="/order/items" />
@@ -221,7 +226,8 @@
 			be used.  Where there is a simple mapping from Xpath result to channel name
 			the provided <classname>MapBasedChannelName</classname> can be used.
 			<programlisting language="xml"><![CDATA[<!-- Expects a channel for each value of order type to exist  -->
-<bean id="singleChannelRoutingEndpoint" class="org.springframework.integration.endpoint.SubscribingConsumerEndpoint">
+<bean id="singleChannelRoutingEndpoint"
+      class="org.springframework.integration.endpoint.SubscribingConsumerEndpoint">
     <constructor-arg>
         <bean class="org.springframework.integration.xml.router.XPathSingleChannelRouter">
             <constructor-arg value="/order/@type" />
@@ -231,9 +237,11 @@
 </bean>
 	
 	
-<!-- Multi channel router which uses a map channel resolver to resolve the channel name based on the XPath evaluation result
-     Since the router is multi channel it may deliver message to one or both of the configured channels -->
-<bean id="multiChannelRoutingEndpoint" class="org.springframework.integration.endpoint.SubscribingConsumerEndpoint">
+<!-- Multi channel router which uses a map channel resolver to resolve the channel name
+     based on the XPath evaluation result Since the router is multi channel it may deliver
+     message to one or both of the configured channels -->
+<bean id="multiChannelRoutingEndpoint"
+      class="org.springframework.integration.endpoint.SubscribingConsumerEndpoint">
     <constructor-arg>
         <bean class="org.springframework.integration.xml.router.XPathMultiChannelRouter">
             <constructor-arg value="/order/recipient" />
@@ -241,8 +249,10 @@
                 <bean class="org.springframework.integration.channel.MapBasedChannelResolver">
                     <constructor-arg>
                         <map>
-                            <entry key="accounts" value-ref="accountConfirmationChannel" />
-                            <entry key="humanResources" value-ref="humanResourcesConfirmationChannel" />
+                            <entry key="accounts"
+                                   value-ref="accountConfirmationChannel" />
+                            <entry key="humanResources"
+                                   value-ref="humanResourcesConfirmationChannel" />
                         </map>
                      </constructor-arg>
 	             </bean>
@@ -267,7 +277,8 @@
 		
 		
 			<programlisting language="xml"><![CDATA[<!-- Interceptor which rejects messages that do not have a root element order  -->
-<bean id="orderSelectingInterceptor" class="org.springframework.integration.channel.interceptor.MessageSelectingInterceptor">
+<bean id="orderSelectingInterceptor"
+      class="org.springframework.integration.channel.interceptor.MessageSelectingInterceptor">
     <constructor-arg>
         <bean class="org.springframework.integration.xml.selector.BooleanTestXPathMessageSelector">
             <constructor-arg value="boolean(/order)" />
@@ -276,7 +287,8 @@
 </bean>
 	
 <!--  Interceptor which rejects messages that are not version one orders --> 
-<bean id="versionOneOrderSelectingInterceptor" class="org.springframework.integration.channel.interceptor.MessageSelectingInterceptor">
+<bean id="versionOneOrderSelectingInterceptor"
+      class="org.springframework.integration.channel.interceptor.MessageSelectingInterceptor">
     <constructor-arg>
         <bean class="org.springframework.integration.xml.selector.StringValueTestXPathMessageSelector">
             <constructor-arg value="/order/@version" index="0"/>
@@ -295,14 +307,17 @@
 		xpath-expression element.  So the following configurations of an xpath-selector are all valid and represent the general 
 		form of XPath namespace support.  All forms of XPath expression result in the creation of an 
 		<interfacename>XPathExpression</interfacename> using the Spring <classname>XPathExpressionFactory</classname>
-		<programlisting language="xml"><![CDATA[<si-xml:xpath-selector id="xpathRefSelector" xpath-expression="refToXpathExpression" evaluation-result-type="boolean" />
+		<programlisting language="xml"><![CDATA[<si-xml:xpath-selector id="xpathRefSelector"
+                       xpath-expression="refToXpathExpression"
+                       evaluation-result-type="boolean" />
 
 <si-xml:xpath-selector id="selectorWithNoNS" evaluation-result-type="boolean" >
     <si-xml:xpath-expression expression="/name"/>
 </si-xml:xpath-selector>	
 	
 <si-xml:xpath-selector id="selectorWithOneNS" evaluation-result-type="boolean" >
-    <si-xml:xpath-expression expression="/ns1:name" ns-prefix="ns1" ns-uri="www.example.org" />
+    <si-xml:xpath-expression expression="/ns1:name"
+                             ns-prefix="ns1" ns-uri="www.example.org" />
 </si-xml:xpath-selector>
 	
 <si-xml:xpath-selector id="selectorWithTwoNS" evaluation-result-type="boolean" >
@@ -315,7 +330,8 @@
 </si-xml:xpath-selector>
 	
 <si-xml:xpath-selector id="selectorWithNamespaceMapRef" evaluation-result-type="boolean" >
-    <si-xml:xpath-expression expression="/ns1:name/ns2:type" namespace-map="defaultNamespaces"/>
+    <si-xml:xpath-expression expression="/ns1:name/ns2:type"
+                             namespace-map="defaultNamespaces"/>
 </si-xml:xpath-selector>
 	
 <util:map id="defaultNamespaces">
@@ -326,12 +342,17 @@
 		<para>
 			XPath splitter namespace support allows the creation of a MessageEndpoint with an input channel and output channel.
 			<programlisting language="xml"><![CDATA[<!-- Split the order into items creating a new message for each item node -->
-<si-xml:xpath-splitter id="orderItemSplitter" input-channel="orderChannel" output-channel="orderItemsChannel">
+<si-xml:xpath-splitter id="orderItemSplitter"
+                       input-channel="orderChannel"
+                       output-channel="orderItemsChannel">
     <si-xml:xpath-expression expression="/order/items"/>
 </si-xml:xpath-selector>
 
 <!-- Split the order into items creating a new document for each item-->
-<si-xml:xpath-splitter id="orderItemDocumentSplitter" input-channel="orderChannel" output-channel="orderItemsChannel" create-documents="true">
+<si-xml:xpath-splitter id="orderItemDocumentSplitter"
+                       input-channel="orderChannel" 
+                       output-channel="orderItemsChannel"
+                       create-documents="true">
     <si-xml:xpath-expression expression="/order/items"/>
     <si:poller>
         <si:interval-trigger interval="2000"/>
