@@ -20,7 +20,7 @@
 	</publications>
 
 	<dependencies>
-		<dependency org="javax.activation" name="com.springsource.javax.activation" rev="1.1.0" conf="provided->runtime"/>
+		<dependency org="javax.activation" name="com.springsource.javax.activation" rev="1.1.1" conf="provided->runtime"/>
 		<dependency org="javax.mail" name="com.springsource.javax.mail" rev="1.4.1" conf="provided->runtime"/>
 		<dependency org="net.sourceforge.cglib" name="com.springsource.net.sf.cglib" rev="2.1.3" conf="test->runtime"/>
 		<dependency org="org.easymock" name="com.springsource.org.easymock" rev="2.3.0" conf="test->runtime"/>
