@@ -90,19 +90,21 @@ public class CronSequenceGenerator {
 		calendar.set(Calendar.MILLISECOND, 0);
 
 		int second = calendar.get(Calendar.SECOND);
+		second = findNext(seconds, second, 60, calendar, Calendar.SECOND);
+
 		int minute = calendar.get(Calendar.MINUTE);
+		minute = findNext(minutes, minute, 60, calendar, Calendar.MINUTE, Calendar.SECOND);
+
 		int hour = calendar.get(Calendar.HOUR_OF_DAY);
+		hour = findNext(hours, hour, 24, calendar, Calendar.HOUR_OF_DAY, Calendar.MINUTE, Calendar.SECOND);
 
 		int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
 		int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
-		int month = calendar.get(Calendar.MONTH);
+		dayOfMonth = findNextDay(calendar, daysOfMonth, dayOfMonth, daysOfWeek, dayOfWeek, 366);
 
+		int month = calendar.get(Calendar.MONTH);
 		month = findNext(months, month, 12, calendar, Calendar.MONTH, Calendar.DAY_OF_MONTH, Calendar.HOUR_OF_DAY,
 				Calendar.MINUTE, Calendar.SECOND);
-		dayOfMonth = findNextDay(calendar, daysOfMonth, dayOfMonth, daysOfWeek, dayOfWeek, 366);
-		hour = findNext(hours, hour, 24, calendar, Calendar.HOUR_OF_DAY, Calendar.MINUTE, Calendar.SECOND);
-		minute = findNext(minutes, minute, 60, calendar, Calendar.MINUTE, Calendar.SECOND);
-		second = findNext(seconds, second, 60, calendar, Calendar.SECOND);
 
 		return calendar.getTime();
 
@@ -117,7 +119,7 @@ public class CronSequenceGenerator {
 		int count = 0;
 		// the DAY_OF_WEEK values in java.util.Calendar start with 1 (Sunday),
 		// but in the cron pattern, they start with 0, so we subtract 1 here
-		while ((!daysOfMonth.get(dayOfMonth) || !daysOfWeek.get(dayOfWeek - 1)) && count++ < max) {
+		while ((!daysOfMonth.get(dayOfMonth) || !daysOfWeek.get(dayOfWeek-1)) && count++ < max) {
 			calendar.add(Calendar.DAY_OF_MONTH, 1);
 			dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
 			dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
@@ -182,7 +184,7 @@ public class CronSequenceGenerator {
 		setNumberHits(seconds, fields[0], 60);
 		setNumberHits(minutes, fields[1], 60);
 		setNumberHits(hours, fields[2], 24);
-		setDays(daysOfMonth, fields[3], 31);
+		setDaysOfMonth(daysOfMonth, fields[3], 31);
 		setNumberHits(months, replaceOrdinals(fields[4], "JAN,FEB,MAR,APR,MAY,JUN,JUL,AUG,SEP,OCT,NOV,DEC"), 12);
 		setDays(daysOfWeek, replaceOrdinals(fields[5], "SUN,MON,TUE,WED,THU,FRI,SAT"), 8);
 		if (daysOfWeek.get(7)) {
@@ -207,6 +209,18 @@ public class CronSequenceGenerator {
 			value = StringUtils.replace(value.toUpperCase(), item, "" + i);
 		}
 		return value;
+	}
+
+	/**
+	 * @param bits
+	 * @param field
+	 * @param max
+	 */
+	private void setDaysOfMonth(BitSet bits, String field, int max) {
+		// Days of month start with 1 (in Cron and Calendar) so add one
+		setDays(bits, field, max+1);
+		// ... and remove it from the front
+		bits.clear(0);
 	}
 
 	/**
@@ -267,7 +281,7 @@ public class CronSequenceGenerator {
 		int[] result = new int[2];
 		if (field.contains("*")) {
 			result[0] = 0;
-			result[1] = max;
+			result[1] = max-1;
 			return result;
 		}
 		if (!field.contains("-")) {
@@ -304,6 +318,11 @@ public class CronSequenceGenerator {
 	public int hashCode() {
 		return 37 + 17 * months.hashCode() + 29 * daysOfMonth.hashCode() + 37 * daysOfWeek.hashCode() + 41
 				* hours.hashCode() + 53 * minutes.hashCode() + 61 * seconds.hashCode();
+	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + ": " + pattern;
 	}
 
 }

@@ -102,7 +102,7 @@ public class CronTriggerTests {
 
 	@Test
 	public void testIncrementMinuteByOne() throws Exception {
-		CronTrigger trigger = new CronTrigger("* 11 * * * *");
+		CronTrigger trigger = new CronTrigger("0 11 * * * *");
 		calendar.set(Calendar.MINUTE, 10);
 		Date date = calendar.getTime();
 		calendar.add(Calendar.MINUTE, 1);
@@ -111,13 +111,57 @@ public class CronTriggerTests {
 	}
 
 	@Test
+	public void testIncrementMinute() throws Exception {
+		CronTrigger trigger = new CronTrigger("0 * * * * *");
+		calendar.set(Calendar.MINUTE, 10);
+		Date date = calendar.getTime();
+		calendar.add(Calendar.MINUTE, 1);
+		calendar.set(Calendar.SECOND, 0);
+		assertEquals(calendar.getTime(), date=trigger.getNextRunTime(null, date));
+		calendar.add(Calendar.MINUTE, 1);
+		assertEquals(calendar.getTime(), date=trigger.getNextRunTime(null, date));
+	}
+
+	@Test
 	public void testIncrementMinuteAndRollover() throws Exception {
-		CronTrigger trigger = new CronTrigger("* 10 * * * *");
+		CronTrigger trigger = new CronTrigger("0 10 * * * *");
 		calendar.set(Calendar.MINUTE, 11);
+		calendar.set(Calendar.SECOND, 0);
 		Date date = calendar.getTime();
 		calendar.add(Calendar.MINUTE, 59);
-		calendar.set(Calendar.SECOND, 0);
 		assertEquals(calendar.getTime(), trigger.getNextRunTime(null, date));
+	}
+
+	@Test
+	public void testIncrementHour() throws Exception {
+		CronTrigger trigger = new CronTrigger("0 0 * * * *");
+		calendar.set(Calendar.MONTH, 9);
+		calendar.set(Calendar.DAY_OF_MONTH, 30);
+		calendar.set(Calendar.HOUR_OF_DAY, 11);
+		calendar.set(Calendar.MINUTE, 1);
+		calendar.set(Calendar.SECOND, 0);
+		Date date = calendar.getTime();
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.HOUR_OF_DAY, 12);
+		assertEquals(calendar.getTime(), date=trigger.getNextRunTime(null, date));
+		calendar.set(Calendar.HOUR_OF_DAY, 13);
+		assertEquals(calendar.getTime(), trigger.getNextRunTime(null, date));
+	}
+
+	@Test
+	public void testIncrementDayOfMonth() throws Exception {
+		CronTrigger trigger = new CronTrigger("0 0 0 * * *");
+		calendar.set(Calendar.DAY_OF_MONTH, 1);
+		Date date = calendar.getTime();
+		calendar.add(Calendar.DAY_OF_MONTH, 1);
+		calendar.set(Calendar.HOUR_OF_DAY, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.SECOND, 0);
+		assertEquals(calendar.getTime(), date=trigger.getNextRunTime(null, date));
+		assertEquals(2, calendar.get(Calendar.DAY_OF_MONTH));
+		calendar.add(Calendar.DAY_OF_MONTH, 1);
+		assertEquals(calendar.getTime(), date=trigger.getNextRunTime(null, date));
+		assertEquals(3, calendar.get(Calendar.DAY_OF_MONTH));
 	}
 
 	@Test
@@ -146,6 +190,81 @@ public class CronTriggerTests {
 	}
 
 	@Test
+	public void testDailyTriggerInShortMonth() throws Exception {
+		CronTrigger trigger = new CronTrigger("0 0 0 * * *");
+		calendar.set(Calendar.MONTH, 8); // September: 30 days
+		calendar.set(Calendar.DAY_OF_MONTH, 30);
+		Date date = calendar.getTime();
+		calendar.set(Calendar.MONTH, 9); // October
+		calendar.set(Calendar.HOUR_OF_DAY, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.SECOND, 0);
+		calendar.set(Calendar.DAY_OF_MONTH, 1);
+		assertEquals(calendar.getTime(), date=trigger.getNextRunTime(null, date));
+		calendar.set(Calendar.DAY_OF_MONTH, 2);
+		assertEquals(calendar.getTime(), trigger.getNextRunTime(null, date));
+	}
+
+	@Test
+	public void testDailyTriggerInLongMonth() throws Exception {
+		CronTrigger trigger = new CronTrigger("0 0 0 * * *");
+		calendar.set(Calendar.MONTH, 9); // October: 31 days
+		calendar.set(Calendar.DAY_OF_MONTH, 30);
+		Date date = calendar.getTime();
+		calendar.set(Calendar.HOUR_OF_DAY, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.SECOND, 0);
+		calendar.set(Calendar.DAY_OF_MONTH, 31);
+		assertEquals(calendar.getTime(), date=trigger.getNextRunTime(null, date));
+		calendar.set(Calendar.MONTH, 10); // November
+		calendar.set(Calendar.DAY_OF_MONTH, 1);
+		assertEquals(calendar.getTime(), trigger.getNextRunTime(null, date));
+	}
+
+	@Test
+	public void testIncrementMonth() throws Exception {
+		CronTrigger trigger = new CronTrigger("0 0 0 1 * *");
+		calendar.set(Calendar.MONTH, 9);
+		calendar.set(Calendar.DAY_OF_MONTH, 30);
+		Date date = calendar.getTime();
+		calendar.set(Calendar.DAY_OF_MONTH, 1);
+		calendar.set(Calendar.HOUR_OF_DAY, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.SECOND, 0);
+		calendar.set(Calendar.MONTH, 10);
+		assertEquals(calendar.getTime(), date=trigger.getNextRunTime(null, date));
+		calendar.set(Calendar.MONTH, 11);
+		assertEquals(calendar.getTime(), trigger.getNextRunTime(null, date));
+	}
+
+	@Test
+	public void testMonthlyTriggerInLongMonth() throws Exception {
+		CronTrigger trigger = new CronTrigger("0 0 0 31 * *");
+		calendar.set(Calendar.MONTH, 9);
+		calendar.set(Calendar.DAY_OF_MONTH, 30);
+		Date date = calendar.getTime();
+		calendar.set(Calendar.DAY_OF_MONTH, 31);
+		calendar.set(Calendar.HOUR_OF_DAY, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.SECOND, 0);
+		assertEquals(calendar.getTime(), trigger.getNextRunTime(null, date));
+	}
+
+	@Test
+	public void testMonthlyTriggerInShortMonth() throws Exception {
+		CronTrigger trigger = new CronTrigger("0 0 0 1 * *");
+		calendar.set(Calendar.MONTH, 9);
+		calendar.set(Calendar.DAY_OF_MONTH, 30);
+		Date date = calendar.getTime();
+		calendar.set(Calendar.MONTH, 10);
+		calendar.set(Calendar.DAY_OF_MONTH, 1);
+		calendar.set(Calendar.HOUR_OF_DAY, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.SECOND, 0);
+		assertEquals(calendar.getTime(), trigger.getNextRunTime(null, date));
+	}
+
+	@Test
 	public void testIncrementDayOfWeekByOne() throws Exception {
 		CronTrigger trigger = new CronTrigger("* * * * * 2");
 		calendar.set(Calendar.DAY_OF_WEEK, 2);
@@ -155,6 +274,7 @@ public class CronTriggerTests {
 		calendar.set(Calendar.MINUTE, 0);
 		calendar.set(Calendar.SECOND, 0);
 		assertEquals(calendar.getTime(), trigger.getNextRunTime(null, date));
+		assertEquals(Calendar.TUESDAY, calendar.get(Calendar.DAY_OF_WEEK));
 	}
 
 	@Test
@@ -167,6 +287,7 @@ public class CronTriggerTests {
 		calendar.set(Calendar.MINUTE, 0);
 		calendar.set(Calendar.SECOND, 0);
 		assertEquals(calendar.getTime(), trigger.getNextRunTime(null, date));
+		assertEquals(Calendar.TUESDAY, calendar.get(Calendar.DAY_OF_WEEK));
 	}
 
 	@Test
@@ -205,6 +326,13 @@ public class CronTriggerTests {
 	}
 
 	@Test
+	public void testSundayIsZero() throws Exception {
+		CronTrigger trigger1 = new CronTrigger("* * * * * 0");
+		CronTrigger trigger2 = new CronTrigger("* * * * * SUN");
+		assertEquals(trigger1, trigger2);
+	}
+
+	@Test
 	public void testSundaySynonym() throws Exception {
 		CronTrigger trigger1 = new CronTrigger("* * * * * 0");
 		CronTrigger trigger2 = new CronTrigger("* * * * * 7");
@@ -222,6 +350,13 @@ public class CronTriggerTests {
 	public void testMonthNamesMixedCase() throws Exception {
 		CronTrigger trigger1 = new CronTrigger("* * * * 1 *");
 		CronTrigger trigger2 = new CronTrigger("* * * * Feb *");
+		assertEquals(trigger1, trigger2);
+	}
+
+	@Test
+	public void testWhitespace() throws Exception {
+		CronTrigger trigger1 = new CronTrigger("*  *  * *  1 *");
+		CronTrigger trigger2 = new CronTrigger("* * * * 1 *");
 		assertEquals(trigger1, trigger2);
 	}
 
