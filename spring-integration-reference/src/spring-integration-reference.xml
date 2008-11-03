@@ -44,6 +44,8 @@
   <xi:include href="./message.xml"/>
   <xi:include href="./channel.xml"/>
   <xi:include href="./endpoint.xml"/>
+  <xi:include href="./service-activator.xml"/>
+  <xi:include href="./channel-adapter.xml"/>
   <xi:include href="./router.xml"/>
   <xi:include href="./transformation.xml"/>
   <xi:include href="./splitter.xml"/>

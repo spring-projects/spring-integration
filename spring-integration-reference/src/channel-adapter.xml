@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<chapter id="channel-adapter">
+  <title>Channel Adapters</title>
+  <para>
+    Channel Adapters are Message Endpoints that enable connecting a single sender or receiver to a Message Channel.
+    Spring Integration provides a number of adapters out of the box to support various transports, such as JMS, File,
+    etc. Those will be discussed in upcoming chapters of this reference guide. However, this chapter focuses on the
+    simple but flexible Method-invoking Channel Adapter support. There is an inbound and outbound adapter, and each
+    may be configured with XML elements provided in the core namespace.
+  </para>
+
+  <section id="channel-adapter-namespace-inbound">
+    <title>The &lt;inbound-channel-adapter&gt; element</title>
+    <para>
+      An "inbound-channel-adapter" element can invoke any method on a Spring-managed Object and send a non-null return
+      value to a <interfacename>MessageChannel</interfacename> after converting it to a <classname>Message</classname>.
+      When the adapter's subscription is activated, a poller will attempt to receive messages from the source. The
+      poller will be scheduled with the <interfacename>TaskScheduler</interfacename> according to the provided
+      configuration. To configure the polling 'interval' or 'cronExpression' for an individual channel-adapter's
+      schedule, provide a 'poller' element with either an 'interval-trigger' (in milliseconds) or 'cron-trigger'
+      sub-element:
+      <programlisting language="xml"><![CDATA[<inbound-channel-adapter ref="source1" method="method1" channel="channel1">
+    <poller>
+        <interval-trigger interval="5000"/>
+    </poller>
+</inbound-channel-adapter>
+
+<inbound-channel-adapter ref="source2" method="method2" channel="channel2">
+    <poller>
+        <cron-trigger expression="30 * * * * MON-FRI"/>
+    </poller>
+</channel-adapter>]]></programlisting>
+    </para>
+  </section>
+
+  <section id="channel-adapter-namespace-outbound">
+    <title>The &lt;outbound-channel-adapter/&gt; element</title>
+    <para>
+      An "outbound-channel-adapter" element can also connect a <interfacename>MessageChannel</interfacename> to any
+      method that should be invoked with the payload of any Message sent to that channel.
+      <programlisting language="xml"><![CDATA[<outbound-channel-adapter channel="channel1" ref="target1" method="method1"/>]]></programlisting>
+      If the channel being adapted is a <interfacename>PollableChannel</interfacename>, provide a poller sub-element:
+        <programlisting language="xml"><![CDATA[<outbound-channel-adapter channel="channel2" ref="target2" method="method2">
+    ]]><emphasis><![CDATA[<poller>
+        <interval-trigger interval="3000"/>
+    </poller>]]></emphasis><![CDATA[
+</outbound-channel-adapter>]]></programlisting>
+    </para>
+    <para>
+      Any Channel Adapter can be created without a "channel" reference in which case it will implicitly create an
+      instance of <classname>DirectChannel</classname>. The created channel's name will match the "id" attribute
+      of the &lt;inbound-channel-adapter/&gt; or &lt;outbound-channel-adapter&gtl; element. Therefore, if the "channel"
+      is not provided, the "id" is required.
+    </para>
+  </section>
+
+</chapter>

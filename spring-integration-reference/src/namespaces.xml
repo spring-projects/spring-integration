@@ -84,197 +84,47 @@
     main thing to recognize is the consistency of the naming for each namespace URI and schema location.
   </para>
 
-  <section id="namespace-endpoint">
-      <title>Configuring Message Endpoints</title>
-      <para>
-        Each of the endpoint types (channel-adapter, service-activator, etc) has its own element in the namespace.
-      </para>
-      <section id="namespace-endpoint-inboundchanneladapter">
-        <title>The inbound &lt;channel-adapter/&gt; element with a MessageSource</title>
-        <para>
-          A "channel-adapter" element can connect any implementation of the <interfacename>MessageSource</interfacename>
-          interface to a <interfacename>MessageChannel</interfacename>. When the <interfacename>MessageBus</interfacename>
-          registers the endpoint, it will activate the subscription and if necessary create a poller for the endpoint.
-          The Message Bus delegates to a <interfacename>TaskScheduler</interfacename> for scheduling the poller based
-          on its schedule. To configure the polling 'period' or 'cronExpression' for an individual channel-adapter's
-          schedule, provide a 'poller' sub-element with the 'period' (in milliseconds) or 'cron' attribute:
-          <programlisting language="xml"><![CDATA[<channel-adapter source="source1" channel="channel1">
-    <poller period="5000"/>
-</channel-adapter>
-
-<channel-adapter source="source2" channel="channel2">
-    <poller cron="30 * * * * ?"/>
-</channel-adapter>]]></programlisting>
-        </para>
-      </section>
-      <section id="namespace-endpoint-outboundchanneladapter">
-        <title>The outbound &lt;channel-adapter/&gt; with a MessageTarget</title>
-        <para>
-          A "channel-adapter" element can also connect a <interfacename>MessageChannel</interfacename> to any implementation
-          of the <interfacename>MessageTarget</interfacename> interface.
-          <programlisting language="xml"><![CDATA[<channel-adapter channel="exampleChannel" target="exampleTarget"/>]]></programlisting>
-          Again, it is possible to provide a poller:
-          <programlisting language="xml"><![CDATA[<channel-adapter channel="exampleChannel" target="exampleTarget">
-    ]]><emphasis><![CDATA[<poller period="3000"/>]]></emphasis><![CDATA[
-</channel-adapter>]]></programlisting>
-        </para>
-      </section>
-      <section id="namespace-service-activator">
-        <title>The &lt;service-activator/&gt; element</title>
-        <para>
-          To create a Service Activator, use the 'service-activator' element with the 'input-channel' and
-          'ref' attributes:
-          <programlisting language="xml">&lt;service-activator input-channel="exampleChannel" ref="exampleHandler"/&gt;</programlisting>
-        </para>
-        <para>
-          The configuration above assumes that "exampleHandler" either contains a single method annotated with the
-          @ServiceActivator annotation or that it contains a single public method period. To delegate to an explicitlye
-          defined method of any object, simply add the "method" attribute.
-          <programlisting language="xml">&lt;service-activator input-channel="exampleChannel" ref="somePojo" method="someMethod"/&gt;</programlisting>
-        </para>
-        <para>
-          In either case (<interfacename>MessageHandler</interfacename> or arbitrary object/method), when the handling
-          method returns a non-null value, the endpoint will attempt to send the reply message to an appropriate reply
-          channel. To determine the reply channel, it will first check if the <literal>NEXT_TARGET</literal> header contains
-          a non-null value, next it will check if an "output-channel" was provided in the endpoint configuration:
-          <programlisting language="xml">&lt;service-activator input-channel="exampleChannel" output-channel="replyChannel"
-                   ref="somePojo" method="someMethod"/&gt;</programlisting>
-          If no "output-channel" is available, it will finally check the message header's <literal>RETURN_ADDRESS</literal>
-          property. If that value is available, it will then check its type. If it is a <classname>MessageTarget</classname>,
-          the reply message will be sent to that target. If it is a <classname>String</classname>, then the endpoint will
-          attempt to resolve the channel by performing a lookup in the <interfacename>ChannelRegistry</interfacename>.
-          If the target cannot be resolved, then a <classname>MessageHandlingException</classname> will be thrown.
-        </para>
-      </section>
-      <para>
-        Message Endpoints also support <interfacename>MessageSelectors</interfacename>. To configure a selector with
-        namespace support, simply add the "selector" attribute to the endpoint definition and reference an
-        implementation of the <interfacename>MessageSelector</interfacename> interface.
-        <programlisting language="xml"><![CDATA[<service-activator id="endpoint" input-channel="channel" ref="handler"
-                   selector="exampleSelector"/>]]></programlisting>
-      </para>
-      <para>
-        Spring Integration also provides transaction support for the pollers so that each receive-and-forward
-        operation can be performed as an atomic unit-of-work. To configure transactions for a poller, simply
-        add the &lt;transactional/&gt; sub-element. The attributes for this element should be familiar to anyone
-        who has experience with Spring's Transaction management:
-        <programlisting language="xml"><![CDATA[<service-activator id="exampleEndpoint"
-                   input-channel="requestChannel"
-                   ref="someObject"
-                   method="someMethod"
-                   output-channel="replyChannel">
-    <poller period="1000">
-        <transactional transaction-manager="txManager"
-                       propagation="REQUIRES_NEW"
-                       isolation="REPEATABLE_READ"
-                       timeout="10000"
-                       read-only="false"/>
-    </poller>
-</service-activator>]]></programlisting> 
-      </para>
-      <para>
-        Spring Integration also provides support for executing the pollers with a
-        <interfacename>TaskExceutor</interfacename>. This enables concurrency for an endpoint or group of
-        endpoints. As a convenience, there is also namespace support for creating a simple thread pool executor.
-        The &lt;pool-executor/&gt; element defines attributes for common concurrency settings such as core-size,
-        max-size, and queue-capacity. Configuring a thread-pooling executor can make a substantial difference in
-        how the endpoint performs under load. These settings are available per-endpoint since the performance
-        characteristics of an endpoint's handler or is one of the major factors to consider (the other major factor
-        being the expected volume on the channel to which the endpoint subscribes). To enable concurrency for an
-        endpoint that is configured with the XML namespace support, provide the 'task-executor' reference on its
-        &lt;poller/&gt; element and then provide one or more of the properties shown below:
-        <programlisting language="xml"><![CDATA[<service-activator input-channel="exampleChannel" ref="exampleHandler">
-    <poller period="5000" task-executor="pool"/>
-</service-activator>
-
-<pool-executor id="pool" core-size="5" max-size="25" queue-capacity="20" keep-alive-seconds="120"/>]]></programlisting>
-        If no 'task-executor' is provided, the endpoint's handler or target will be invoked in the caller's thread.
-        Note that the "caller" is usually the MessageBus' task scheduler except in the case of a subscribable channel.
-        Also, keep in mind that you the 'task-executor' attribute can provide a reference to any implementation of
-        Spring's <interfacename>TaskExecutor</interfacename> interface.
-      </para>
-    </section>
-
   <section id="namespace-messagebus">
-      <title>Configuring the Message Bus</title>
-      <para>
-        The Message Bus plays a central role, but its configuration is quite simple since it is primarily concerned
-        with managing internal details based on the configuration of channels and endpoints. The bus is aware of its
-        host application context, and therefore is also capable of auto-detecting the channels and endpoints.
-        The Message Bus can be configured with a single empty element:
-        <programlisting language="xml">&lt;message-bus/&gt;</programlisting>
-      </para>
-      <para>
-        The Message Bus provides default error handling for its components in the form of a configurable error channel,
-        and it will first check for a channel bean named 'errorChannel' within the context:
-        <programlisting language="xml"><![CDATA[<message-bus/>
+    <title>Configuring the Message Bus</title>
+    <para>
+      The Message Bus plays a central role, but its configuration is quite simple since it is primarily concerned
+      with managing internal details based on the configuration of channels and endpoints. The bus is aware of its
+      host application context, and therefore is also capable of auto-detecting the channels and endpoints.
+      The Message Bus can be configured with a single empty element:
+      <programlisting language="xml">&lt;message-bus/&gt;</programlisting>
+    </para>
+    <para>
+      The Message Bus provides default error handling for its components in the form of a configurable error channel,
+      and it will first check for a channel bean named 'errorChannel' within the context:
+      <programlisting language="xml"><![CDATA[<message-bus/>
 
 <channel id="errorChannel" capacity="500"/>]]></programlisting>
-        When exceptions occur in a scheduled poller task's execution, those exceptions will be wrapped in
-        <classname>ErrorMessages</classname> and sent to the 'errorChannel' by default. To enable global error
-        handling, simply register a handler on that channel. For example, you can configure Spring Integration's
-        <classname>RootCauseErrorMessageRouter</classname> as the handler of an endpoint that is subscribed to the
-        'errorChannel'. That router can then spread the error messages across multiple channels based on
-        <classname>Exception</classname> type. However, since most of the errors will already have been wrapped in
-        <classname>MessageDeliveryException</classname> or <classname>MessageHandlingException</classname>,
-        the <classname>RootCauseErrorMessageRouter</classname> is typically a better option.
-	  </para>
-      <para>
-        The 'message-bus' element accepts several more optional attributes. First, you can control whether the
-        <classname>MessageBus</classname> will be started automatically (the default) or will require explicit startup
-        by invoking its <methodname>start()</methodname> method (<classname>MessageBus</classname> implements
-        Spring's <interfacename>Lifecycle</interfacename> interface):
-        <programlisting language="xml"><![CDATA[<message-bus auto-startup="false"/>]]></programlisting>
-      </para>
-      <para>
-        Another configurable property is the size of the default dispatcher thread pool. The dispatcher threads are
-        responsible for polling channels and then passing the messages to handlers.
-        <programlisting language="xml"><![CDATA[<message-bus dispatcher-pool-size="25"/>]]></programlisting>
-        When the endpoints are concurrency-enabled as described in the previous section, the invocation of the handling
-        methods will happen within the handler thread pool and not the dispatcher pool. However, when no task-executor
-        is provided to an endpoint's poller, then it will be invoked in the dispatcher's thread (with the exception of
-        subscribable channels).
-      </para>
-    </section>
-
-  <section id="namespace-adapters">
-      <title>Configuring Adapters</title>
-      <para>
-        The most convenient way to configure Source and Target adapters is by using the namespace support. The
-        following examples demonstrate the namespace-based configuration of several source, target, gateway,
-        and handler adapters:
-        <programlisting language="xml"><![CDATA[<mail-target id="mailTarget" host="somehost" username="someuser" password="somepassword"/>
-
-<ws-handler id="wsTarget" uri="http://example.org" channel="wsOutput"/>
-]]></programlisting>
-      </para>
-      <para>
-        In the examples above, notice that simple implementations of the <interfacename>MessageSource</interfacename>
-        and <interfacename>MessageTarget</interfacename> interfaces do not accept any 'channel' references. To
-        connect such sources and targets to a channel, register them within a 'channel-adapter'. For example, here
-        is a File source with an endpoint whose polling will be scheduled to execute every 30 seconds by the
-        <classname>MessageBus</classname>.
-        <programlisting language="xml"><![CDATA[<channel-adapter source="fileSource" channel="exampleChannel">
-    <poller period="30000"/>
-</channel-adapter>
-
-<file-source id="fileSource" directory="/tmp/in"/>
-]]></programlisting>
+      When exceptions occur in a scheduled poller task's execution, those exceptions will be wrapped in
+      <classname>ErrorMessages</classname> and sent to the 'errorChannel' by default. To enable global error
+      handling, simply register a handler on that channel. For example, you can configure Spring Integration's
+      <classname>ErrorMessageExceptionTypeRouter</classname> as the handler of an endpoint that is subscribed to the
+      'errorChannel'. That router can then spread the error messages across multiple channels based on
+      <classname>Exception</classname> type. However, since most of the errors will already have been wrapped in
+      <classname>MessageDeliveryException</classname> or <classname>MessageHandlingException</classname>,
+      the <classname>ErrorMessageExceptionTypeRouter</classname> is typically a better option.
     </para>
-
-
-
-
-      <para>
-        Any Channel Adapter can be created without a "channel" reference in which case it will implicitly create an
-        instance of <classname>DirectChannel</classname>. The created channel's name will match the "id" attribute
-        of the &lt;channel-adapter/&gt; element. Therefore, if the "channel" is not provided, the "id" is required.
-      </para>
-    </section>
-
-
-
-
+    <para>
+      The 'message-bus' element accepts several more optional attributes. First, you can control whether the
+      <classname>MessageBus</classname> will be started automatically (the default) or will require explicit startup
+      by invoking its <methodname>start()</methodname> method (<classname>MessageBus</classname> implements
+      Spring's <interfacename>Lifecycle</interfacename> interface):
+      <programlisting language="xml"><![CDATA[<message-bus auto-startup="false"/>]]></programlisting>
+    </para>
+    <para>
+      Another configurable property is the reference to a <interfacename>TaskScheduler</interfacename> implementation.
+      If not provided, a default will be created. The scheduler is responsible for managing the pollers.
+      <programlisting language="xml"><![CDATA[<message-bus task-scheduler="someScheduler"/>]]></programlisting>
+      When the endpoints are concurrency-enabled with their own 'taskExecutor' reference, the invocation of the handling
+      methods will happen within that executor's thread pool and not the main scheduler pool. However, when no
+      task-executor is provided for an endpoint's poller, then it will be invoked in the dispatcher's thread
+      (with the exception of subscribable channels where the subscribers may be invoked directly).
+    </para>
+  </section>
 
   <section id="annotations">
     <title>Annotations</title>
