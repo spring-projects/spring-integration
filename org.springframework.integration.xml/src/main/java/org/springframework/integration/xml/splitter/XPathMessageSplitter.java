@@ -147,7 +147,7 @@ public class XPathMessageSplitter extends AbstractMessageSplitter {
 		List<Node> docList = new ArrayList<Node>(nodeList.size());
 		for (Node node : nodeList) {
 			Document doc = documentBuilder.newDocument();
-			doc.importNode(node, true);
+			doc.appendChild(doc.importNode(node, true));
 			docList.add(doc);
 		}
 		return docList;

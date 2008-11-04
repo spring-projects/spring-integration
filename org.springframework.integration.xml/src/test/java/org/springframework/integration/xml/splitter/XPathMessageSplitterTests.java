@@ -79,6 +79,8 @@ public class XPathMessageSplitterTests {
 		assertEquals("Wrong number of messages", 3, docMessages.size());
 		for (Message<?> message : docMessages) {
 			assertTrue("unexpected payload type" + message.getPayload().getClass().getName(), message.getPayload() instanceof Document);
+			Document docPayload = (Document)message.getPayload();
+			assertEquals("Wrong root element name" ,"order", docPayload.getDocumentElement().getLocalName());
 		}
 	}
 
