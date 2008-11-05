@@ -31,9 +31,9 @@ import org.springframework.integration.core.Message;
  * @author Iwein Fuld
  */
 @SuppressWarnings("unchecked")
-public class PollableFileSourceTests {
+public class FileReadingMessageSourceTests {
 
-	private FileReadingMessageSource pollableFileSource;
+	private FileReadingMessageSource source;
 
 	private File inputDirectoryMock = createMock(File.class);
 
@@ -53,8 +53,8 @@ public class PollableFileSourceTests {
 	@Before
 	public void initialize() throws Exception {
 		prepResource();
-		this.pollableFileSource = new FileReadingMessageSource();
-		pollableFileSource.setInputDirectory(inputDirectoryResourceMock);
+		this.source = new FileReadingMessageSource();
+		source.setInputDirectory(inputDirectoryResourceMock);
 		reset(allMocks);
 	}
 
@@ -62,7 +62,7 @@ public class PollableFileSourceTests {
 	public void straightProcess() throws Exception {
 		expect(inputDirectoryMock.listFiles()).andReturn(new File[] { fileMock });
 		replay(allMocks);
-		pollableFileSource.onSend(pollableFileSource.receive());
+		source.onSend(source.receive());
 		verify(allMocks);
 	}
 
@@ -71,10 +71,10 @@ public class PollableFileSourceTests {
 		expect(inputDirectoryMock.listFiles()).andReturn(new File[] { fileMock });
 		expect(inputDirectoryMock.listFiles()).andReturn(new File[] {});
 		replay(allMocks);
-		Message received = pollableFileSource.receive();
+		Message received = source.receive();
 		assertNotNull(received);
-		pollableFileSource.onFailure(received, new RuntimeException("failed"));
-		assertEquals(received.getPayload(), pollableFileSource.receive().getPayload());
+		source.onFailure(received, new RuntimeException("failed"));
+		assertEquals(received.getPayload(), source.receive().getPayload());
 		verify(allMocks);
 	}
 
@@ -83,10 +83,10 @@ public class PollableFileSourceTests {
 		expect(inputDirectoryMock.listFiles()).andReturn(new File[] { fileMock });
 		expect(inputDirectoryMock.listFiles()).andReturn(new File[] {});
 		replay(allMocks);
-		Message<File> received = pollableFileSource.receive();
+		Message<File> received = source.receive();
 		assertNotNull(received);
 		assertEquals(fileMock, received.getPayload());
-		assertNull(pollableFileSource.receive());
+		assertNull(source.receive());
 		verify(allMocks);
 	}
 }

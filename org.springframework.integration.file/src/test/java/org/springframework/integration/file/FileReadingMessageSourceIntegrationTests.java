@@ -43,7 +43,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration
-public class PollableFileSourceIntegrationTests {
+public class FileReadingMessageSourceIntegrationTests {
 
 	@Autowired
 	FileReadingMessageSource pollableFileSource;
@@ -54,7 +54,7 @@ public class PollableFileSourceIntegrationTests {
 	@BeforeClass
 	public static void setupInputDir() {
 		inputDir = new File(System.getProperty("java.io.tmpdir") + "/"
-				+ PollableFileSourceIntegrationTests.class.getSimpleName());
+				+ FileReadingMessageSourceIntegrationTests.class.getSimpleName());
 		inputDir.mkdir();
 	}
 
@@ -111,8 +111,8 @@ public class PollableFileSourceIntegrationTests {
 		assertNotSame(received2 + " == " + received3, received2, received3);
 	}
 
-	@Test(timeout = 3000)
-	@Repeat(15)
+	@Test(timeout = 6000)
+	@Repeat(10)
 	public void concurrentProcessing() throws Exception {
 		CountDownLatch go = new CountDownLatch(1);
 		Runnable succesfulConsumer = new Runnable() {

@@ -7,7 +7,7 @@
 
 	<!-- under test -->
 	<bean id="pollableFileSource" class="org.springframework.integration.file.FileReadingMessageSource"
-		p:inputDirectory="file:${java.io.tmpdir}/PollableFileSourceIntegrationTests"
+		p:inputDirectory="file:${java.io.tmpdir}/FileReadingMessageSourceIntegrationTests"
 		p:filter-ref="compositeFilter"/>
 
 	<!-- customized filter -->
