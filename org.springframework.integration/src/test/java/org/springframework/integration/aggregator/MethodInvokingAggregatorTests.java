@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.integration.core.Message;
@@ -32,6 +31,7 @@ import static org.easymock.EasyMock.*;
 /**
  * @author Marius Bogoevici
  * @author Mark Fisher
+ * @author Iwein Fuld
  */
 @SuppressWarnings("unchecked")
 public class MethodInvokingAggregatorTests {
