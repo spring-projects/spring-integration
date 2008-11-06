@@ -40,9 +40,6 @@ import org.springframework.ws.transport.WebServiceMessageSender;
  */
 public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyProducingMessageHandler {
 
-	public static final String SOAP_ACTION_PROPERTY_KEY = "spring.integration.ws.soapAction";
-
-
 	private final WebServiceTemplate webServiceTemplate;
 
 	private volatile WebServiceMessageCallback requestCallback;
@@ -98,7 +95,7 @@ public abstract class AbstractWebServiceOutboundGateway extends AbstractReplyPro
 		if (this.requestCallback != null) {
 			return this.requestCallback;
 		}
-		String soapAction = requestMessage.getHeaders().get(SOAP_ACTION_PROPERTY_KEY, String.class);
+		String soapAction = requestMessage.getHeaders().get(WebServiceHeaders.SOAP_ACTION, String.class);
 		return (soapAction != null) ? new TypeCheckingSoapActionCallback(soapAction) : null;
 	}
 
