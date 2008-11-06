@@ -25,10 +25,10 @@
 		<dependency org="javax.xml.stream" name="com.springsource.javax.xml.stream" rev="1.0.1" conf="provided->runtime"/>
 		<dependency org="org.junit" name="com.springsource.org.junit" rev="4.4.0" conf="test->runtime"/>
 		<dependency org="org.springframework.integration" name="org.springframework.integration.adapter" rev="latest.integration" conf="compile->compile"/>
-		<dependency org="org.springframework.ws" name="org.springframework.oxm" rev="1.5.4.A" conf="compile->runtime">
+		<dependency org="org.springframework.ws" name="org.springframework.oxm" rev="1.5.5.A" conf="compile->runtime">
 			<exclude org="org.springframework"/>
 		</dependency>
-		<dependency org="org.springframework.ws" name="org.springframework.ws" rev="1.5.4.A" conf="compile->runtime">
+		<dependency org="org.springframework.ws" name="org.springframework.ws" rev="1.5.5.A" conf="compile->runtime">
 			<exclude org="org.springframework"/>
 		</dependency>
 	</dependencies>
