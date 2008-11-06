@@ -140,8 +140,8 @@
 			<xsd:attribute name="service-interface" type="xsd:string" use="required"/>
 			<xsd:attribute name="default-request-channel" type="xsd:string"/>
 			<xsd:attribute name="default-reply-channel" type="xsd:string"/>
-			<xsd:attribute name="default-request-timeout" type="xsd:long"/>
-			<xsd:attribute name="default-reply-timeout" type="xsd:long"/>
+			<xsd:attribute name="default-request-timeout" type="xsd:string"/>
+			<xsd:attribute name="default-reply-timeout" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -176,8 +176,9 @@
 			<xsd:documentation>
 	Defines an endpoint for exposing any bean reference as a service that receives
 	request Messages from an 'input-channel' and may send reply Messages to an
-	'output-channel'. The 'method' attribute is also required unless the 'ref'
-	points to a bean that is itself an implementation of MessageHandler.
+	'output-channel'. The 'ref' may point to an instance that has either a single
+	public method or a method with the @ServiceActivator annotation. Otherwise, the
+	'method' attribute should be provided along with 'ref'.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
@@ -229,9 +230,9 @@
 				</xsd:choice>
 				<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1"/>
 			</xsd:sequence>
-			<xsd:attribute name="receive-timeout" type="xsd:long"/>
-			<xsd:attribute name="send-timeout" type="xsd:long"/>
-			<xsd:attribute name="max-messages-per-poll" type="xsd:long"/>
+			<xsd:attribute name="receive-timeout" type="xsd:string"/>
+			<xsd:attribute name="send-timeout" type="xsd:string"/>
+			<xsd:attribute name="max-messages-per-poll" type="xsd:string"/>
 			<xsd:attribute name="task-executor" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
@@ -324,10 +325,10 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:attribute name="id" type="xsd:ID" use="required"/>
-			<xsd:attribute name="core-size" type="xsd:int" use="optional" default="1"/>
-			<xsd:attribute name="max-size" type="xsd:int" use="optional" default="10"/>
-			<xsd:attribute name="queue-capacity" type="xsd:int" use="optional" default="0"/>
-			<xsd:attribute name="keep-alive-seconds" type="xsd:int" use="optional" default="60"/>
+			<xsd:attribute name="core-size" type="xsd:string" default="1"/>
+			<xsd:attribute name="max-size" type="xsd:string" default="10"/>
+			<xsd:attribute name="queue-capacity" type="xsd:string" default="0"/>
+			<xsd:attribute name="keep-alive-seconds" type="xsd:string" default="60"/>
 			<xsd:attribute name="rejection-policy" default="CALLER_RUNS">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
@@ -397,11 +398,11 @@
 					<xsd:attribute name="completion-strategy" type="xsd:string" use="optional"/>
 					<xsd:attribute name="completion-strategy-method" type="xsd:string" use="optional"/>
 					<xsd:attribute name="discard-channel" type="xsd:string" use="optional"/>
-					<xsd:attribute name="send-timeout" type="xsd:long" use="optional"/>
+					<xsd:attribute name="send-timeout" type="xsd:string" use="optional"/>
 					<xsd:attribute name="send-partial-result-on-timeout"  type="xsd:boolean" use="optional"/>
-					<xsd:attribute name="tracked-correlation-id-capacity" type="xsd:int" use="optional"/>
-					<xsd:attribute name="reaper-interval" type="xsd:long" use="optional"/>
-					<xsd:attribute name="timeout" type="xsd:long" use="optional"/>
+					<xsd:attribute name="tracked-correlation-id-capacity" type="xsd:string" use="optional"/>
+					<xsd:attribute name="reaper-interval" type="xsd:string" use="optional"/>
+					<xsd:attribute name="timeout" type="xsd:string" use="optional"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -417,12 +418,12 @@
 			<xsd:complexContent>
 				<xsd:extension base="inputOutputEndpointType">
 					<xsd:attribute name="discard-channel" type="xsd:string" use="optional"/>
-					<xsd:attribute name="send-timeout" type="xsd:long" use="optional"/>
+					<xsd:attribute name="send-timeout" type="xsd:string" use="optional"/>
 					<xsd:attribute name="release-partial-sequences" type="xsd:boolean" use="optional"/>
 					<xsd:attribute name="send-partial-result-on-timeout"  type="xsd:boolean" use="optional"/>
-					<xsd:attribute name="tracked-correlation-id-capacity" type="xsd:int" use="optional"/>
-					<xsd:attribute name="reaper-interval" type="xsd:long" use="optional"/>
-					<xsd:attribute name="timeout" type="xsd:long" use="optional"/>
+					<xsd:attribute name="tracked-correlation-id-capacity" type="xsd:string" use="optional"/>
+					<xsd:attribute name="reaper-interval" type="xsd:string" use="optional"/>
+					<xsd:attribute name="timeout" type="xsd:string" use="optional"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -467,7 +468,7 @@
 		</xsd:annotation>
 		<xsd:attribute name="channel" type="xsd:string" use="required"/>
 		<xsd:attribute name="selector" type="xsd:string" use="optional"/>
-		<xsd:attribute name="timeout" type="xsd:long" use="optional"/>
+		<xsd:attribute name="timeout" type="xsd:string" use="optional"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="transactionalType">
@@ -512,7 +513,7 @@
 				</xsd:restriction>
 			</xsd:simpleType>
 		</xsd:attribute>
-		<xsd:attribute name="timeout" type="xsd:integer" default="-1">
+		<xsd:attribute name="timeout" type="xsd:string" default="-1">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
 	The transaction timeout value (in seconds).
