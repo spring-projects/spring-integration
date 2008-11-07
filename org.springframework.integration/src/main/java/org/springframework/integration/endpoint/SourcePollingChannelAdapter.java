@@ -16,7 +16,6 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -25,14 +24,11 @@ import org.springframework.util.Assert;
 
 /**
  * A Channel Adapter implementation for connecting a
- * {@link org.springframework.integration.message.MessageSource}
- * to a {@link MessageChannel}.
+ * {@link MessageSource} to a {@link MessageChannel}.
  * 
  * @author Mark Fisher
  */
-public class SourcePollingChannelAdapter extends AbstractPollingEndpoint implements BeanNameAware {
-
-	private volatile String name;
+public class SourcePollingChannelAdapter extends AbstractPollingEndpoint {
 
 	private volatile MessageSource<?> source;
 
@@ -41,18 +37,24 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
 
-	public void setBeanName(String beanName) {
-		this.name = beanName;
-	}
-
+	/**
+	 * Specify the source to be polled for Messages.
+	 */
 	public void setSource(MessageSource<?> source) {
 		this.source = source;
 	}
 
+	/**
+	 * Specify the {@link MessageChannel} where Messages should be sent.
+	 */
 	public void setOutputChannel(MessageChannel outputChannel) {
 		this.outputChannel = outputChannel;
 	}
 
+	/**
+	 * Specify the maximum time to wait for a Message to be sent to the
+	 * output channel.
+	 */
 	public void setSendTimeout(long sendTimeout) {
 		this.channelTemplate.setSendTimeout(sendTimeout);
 	}
@@ -75,10 +77,6 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint impleme
 			return this.channelTemplate.send(message, this.outputChannel);
 		}
 		return false;
-	}
-
-	public String toString() {
-		return this.name;
 	}
 
 }
