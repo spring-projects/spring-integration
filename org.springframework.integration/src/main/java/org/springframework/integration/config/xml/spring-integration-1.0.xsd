@@ -35,6 +35,9 @@
 			<xsd:documentation>
 	Defines a Point-to-Point MessageChannel.
 			</xsd:documentation>
+			<xsd:appinfo>
+				<tool:exports type="org.springframework.integration.core.MessageChannel"/>
+			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
@@ -99,12 +102,15 @@
 	</xsd:element>
 
 	<xsd:element name="publish-subscribe-channel">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
+		<xsd:annotation>
+			<xsd:documentation>
 	Defines a Publish-Subscribe channel that broadcasts messages to its subscribers.
-				</xsd:documentation>
-			</xsd:annotation>
+			</xsd:documentation>
+			<xsd:appinfo>
+				<tool:exports type="org.springframework.integration.core.MessageChannel"/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="channelType">
 					<xsd:sequence>
@@ -192,7 +198,15 @@
 		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="inputEndpointType">
-				<xsd:attribute name="output-channel" type="xsd:string"/>
+				<xsd:attribute name="output-channel" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+							</tool:annotation>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:attribute>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
@@ -208,7 +222,15 @@
 				<xsd:all>
 					<xsd:element ref="poller" minOccurs="0" maxOccurs="1"/>
 				</xsd:all>
-				<xsd:attribute name="input-channel" type="xsd:string"/>
+				<xsd:attribute name="input-channel" type="xsd:string">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<tool:annotation kind="ref">
+								<tool:expected-type type="org.springframework.integration.core.MessageChannel"/>
+							</tool:annotation>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:attribute>
 				<xsd:attribute name="ref" type="xsd:string"/>
 				<xsd:attribute name="method" type="xsd:string"/>
 				<xsd:attribute name="selector" type="xsd:string"/>
