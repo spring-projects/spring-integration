@@ -16,17 +16,17 @@
 
 package org.springframework.integration.xml.config;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.integration.xml.selector.BooleanTestXPathMessageSelector;
 import org.springframework.integration.xml.selector.StringValueTestXPathMessageSelector;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * @author Jonas Partner
@@ -57,6 +57,13 @@ public class XPathSelectorParser extends AbstractSingleBeanDefinitionParser {
 		boolean xPathReferencePresent = StringUtils.hasText(xPathExpressionRef);
 		Assert.isTrue(xPathExpressionChildPresent ^ xPathReferencePresent,
 				"Exactly one of 'xpath-expression' or 'xpath-expression-ref' is required.");
+		if (xPathExpressionChildPresent) {
+			BeanDefinition beanDefinition = xpathParser.parse((Element) xPathExpressionNodes.item(0), parserContext);
+			builder.addConstructorArgValue(beanDefinition);
+		}
+		else {
+			builder.addConstructorArgReference(xPathExpressionRef);
+		}
 		if (evaluationType.equals("boolean")) {
 			builder.getBeanDefinition().setBeanClass(BooleanTestXPathMessageSelector.class);
 			Assert.state(!StringUtils.hasText(stringTestValue),
@@ -71,13 +78,6 @@ public class XPathSelectorParser extends AbstractSingleBeanDefinitionParser {
 		else {
 			throw new IllegalArgumentException("Unsupported value [" + evaluationType
 					+ "] for 'evaluation-result-type', expected boolean or string.");
-		}
-		if (xPathExpressionChildPresent) {
-			BeanDefinition beanDefinition = xpathParser.parse((Element) xPathExpressionNodes.item(0), parserContext);
-			builder.addConstructorArgValue(beanDefinition);
-		}
-		else {
-			builder.addConstructorArgReference(xPathExpressionRef);
 		}
 	}
 
