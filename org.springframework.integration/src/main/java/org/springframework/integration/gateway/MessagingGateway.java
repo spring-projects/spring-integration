@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.endpoint;
+package org.springframework.integration.gateway;
 
 import org.springframework.integration.core.Message;
 

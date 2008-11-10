@@ -40,7 +40,6 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.endpoint.MessagingGateway;
 import org.springframework.integration.message.MethodParameterMessageMapper;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
