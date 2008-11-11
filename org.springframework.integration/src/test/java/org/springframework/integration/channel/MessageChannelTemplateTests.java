@@ -26,11 +26,10 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.integration.bus.ApplicationContextMessageBus;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.PollingConsumer;
@@ -39,11 +38,14 @@ import org.springframework.integration.handler.ReplyMessageHolder;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.util.TestUtils;
+import org.springframework.integration.util.TestUtils.TestApplicationContext;
 
 /**
  * @author Mark Fisher
  */
 public class MessageChannelTemplateTests {
+
+	private TestApplicationContext context = TestUtils.createTestApplicationContext();
 
 	private QueueChannel requestChannel;
 
@@ -51,7 +53,7 @@ public class MessageChannelTemplateTests {
 	@Before
 	public void setUp() {
 		this.requestChannel = new QueueChannel();
-		this.requestChannel.setBeanName("requestChannel");
+		context.registerChannel("requestChannel", requestChannel);
 		AbstractReplyProducingMessageHandler handler = new AbstractReplyProducingMessageHandler() {
 			@Override
 			public void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
@@ -59,17 +61,14 @@ public class MessageChannelTemplateTests {
 			}
 		};
 		PollingConsumer endpoint = new PollingConsumer(requestChannel, handler);
-		endpoint.afterPropertiesSet();
-		GenericApplicationContext context = new GenericApplicationContext();
-		context.getBeanFactory().registerSingleton("requestChannel", requestChannel);
-		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
-		ApplicationContextMessageBus bus = new ApplicationContextMessageBus();
-		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
-		bus.setApplicationContext(context);
+		context.registerEndpoint("testEndpoint", endpoint);
 		context.refresh();
-		bus.start();
 	}
 
+	@After
+	public void tearDown() {
+		context.stop();
+	}
 
 	@Test
 	public void send() {

@@ -19,6 +19,16 @@ package org.springframework.integration.util;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
 import org.springframework.beans.DirectFieldAccessor;
+import org.springframework.beans.FatalBeanException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.context.support.GenericApplicationContext;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.scheduling.SimpleTaskScheduler;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -56,12 +66,70 @@ public abstract class TestUtils {
 		return (T) value; 
 	}
 
+	public static TestApplicationContext createTestApplicationContext() {
+		TestApplicationContext context = new TestApplicationContext();
+		registerBean(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, createTaskScheduler(10), context);
+		return context;
+	}
+
 	public static TaskScheduler createTaskScheduler(int poolSize) {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 		executor.setCorePoolSize(poolSize);
 		executor.setRejectedExecutionHandler(new CallerRunsPolicy());
 		executor.afterPropertiesSet();
 		return new SimpleTaskScheduler(executor);
+	}
+
+	private static void registerBean(String beanName, Object bean, BeanFactory beanFactory) {
+		Assert.notNull(beanName, "bean name must not be null");
+		ConfigurableListableBeanFactory configurableListableBeanFactory = null;
+		if (beanFactory instanceof ConfigurableListableBeanFactory) {
+			configurableListableBeanFactory = (ConfigurableListableBeanFactory) beanFactory;
+		}
+		else if (beanFactory instanceof GenericApplicationContext) {
+			configurableListableBeanFactory = ((GenericApplicationContext) beanFactory).getBeanFactory();
+		}
+		if (bean instanceof BeanNameAware) {
+			((BeanNameAware) bean).setBeanName(beanName);
+		}
+		if (bean instanceof BeanFactoryAware) {
+			((BeanFactoryAware) bean).setBeanFactory(beanFactory);
+		}
+		if (bean instanceof InitializingBean) {
+			try {
+				((InitializingBean) bean).afterPropertiesSet();
+			}
+			catch (Exception e) {
+				throw new FatalBeanException("failed to register bean with test context", e);
+			}
+		}
+		configurableListableBeanFactory.registerSingleton(beanName, bean);
+	}
+
+
+	public static class TestApplicationContext extends GenericApplicationContext {
+
+		private TestApplicationContext() {
+			super();
+		}
+
+		public void registerChannel(String channelName, MessageChannel channel) {
+			if (channel.getName() != null) {
+				if (channelName == null) {
+					Assert.notNull(channel.getName(), "channel name must not be null");
+					channelName = channel.getName();
+				}
+				else {
+					Assert.isTrue(channel.getName().equals(channelName),
+							"channel name has already been set with a conflicting value");
+				}
+			}
+			registerBean(channelName, channel, this);
+		}
+
+		public void registerEndpoint(String endpointName, AbstractEndpoint endpoint) {
+			registerBean(endpointName, endpoint, this);
+		}
 	}
 
 }

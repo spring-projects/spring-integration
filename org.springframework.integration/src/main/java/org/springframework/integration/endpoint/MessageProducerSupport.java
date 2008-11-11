@@ -16,7 +16,6 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.channel.MessageChannelTemplate;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -28,7 +27,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public abstract class MessageProducerSupport extends AbstractEndpoint implements InitializingBean {
+public abstract class MessageProducerSupport extends AbstractEndpoint {
 
 	private volatile MessageChannel outputChannel;
 
@@ -43,7 +42,8 @@ public abstract class MessageProducerSupport extends AbstractEndpoint implements
 		this.channelTemplate.setSendTimeout(sendTimeout);
 	}
 
-	public void afterPropertiesSet() {
+	@Override
+	protected void onInit() {
 		Assert.notNull(this.outputChannel, "outputChannel is required");
 	}
 

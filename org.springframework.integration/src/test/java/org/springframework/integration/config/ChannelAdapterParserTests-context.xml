@@ -7,7 +7,7 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<message-bus auto-startup="false"/>
+	<message-bus/>
 
 	<channel id="queueChannel">
 		<queue capacity="10"/>
@@ -17,7 +17,7 @@
 
 	<outbound-channel-adapter id="methodInvokingConsumer" ref="testBean" method="store"/>
 
-	<inbound-channel-adapter id="methodInvokingSource" ref="testBean" method="getMessage" channel="queueChannel">
+	<inbound-channel-adapter id="methodInvokingSource" ref="testBean" method="getMessage" channel="queueChannel" auto-startup="false">
 		<poller max-messages-per-poll="1">
 			<interval-trigger interval="10000"/>
 		</poller>

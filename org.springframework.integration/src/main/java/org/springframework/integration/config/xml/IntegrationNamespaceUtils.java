@@ -23,11 +23,19 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.integration.channel.MessagePublishingErrorHandler;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.scheduling.CronTrigger;
 import org.springframework.integration.scheduling.IntervalTrigger;
+import org.springframework.integration.scheduling.SimpleTaskScheduler;
 import org.springframework.integration.scheduling.Trigger;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.Assert;
@@ -193,6 +201,34 @@ public abstract class IntegrationNamespaceUtils {
 		txDefinition.setTimeout(Integer.valueOf(txElement.getAttribute("timeout")));
 		txDefinition.setReadOnly(txElement.getAttribute("read-only").equalsIgnoreCase("true"));
 		targetBuilder.addPropertyValue("transactionDefinition", txDefinition);
+	}
+
+	/**
+	 * Register a TaskScheduler in the given BeanDefinitionRegistry if not yet present.
+	 * The bean name for which this is checking is defined by the constant
+	 * {@link IntegrationContextUtils#TASK_SCHEDULER_BEAN_NAME}.
+	 */
+	public static synchronized void registerTaskSchedulerIfNecessary(BeanDefinitionRegistry registry) {
+		if (!registry.containsBeanDefinition(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME)) {
+			RootBeanDefinition errorChannelDef = new RootBeanDefinition(QueueChannel.class);
+			BeanDefinitionHolder errorChannelHolder = new BeanDefinitionHolder(
+					errorChannelDef, IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
+			BeanDefinitionReaderUtils.registerBeanDefinition(errorChannelHolder, registry);
+		}
+		TaskExecutor taskExecutor = null;
+		if (!registry.containsBeanDefinition(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)) {
+			taskExecutor = IntegrationContextUtils.createTaskExecutor(2, 100, 0, "integration-main-");
+			BeanDefinitionBuilder schedulerBuilder = BeanDefinitionBuilder.genericBeanDefinition(SimpleTaskScheduler.class);
+			schedulerBuilder.addConstructorArgValue(taskExecutor);
+			BeanDefinitionBuilder errorHandlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(MessagePublishingErrorHandler.class);
+			errorHandlerBuilder.addPropertyReference("defaultErrorChannel", IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
+			String errorHandlerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
+					errorHandlerBuilder.getBeanDefinition(), registry);
+			schedulerBuilder.addPropertyReference("errorHandler", errorHandlerBeanName);
+			BeanDefinitionHolder schedulerHolder = new BeanDefinitionHolder(
+					schedulerBuilder.getBeanDefinition(), IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME);
+			BeanDefinitionReaderUtils.registerBeanDefinition(schedulerHolder, registry);
+		}
 	}
 
 }

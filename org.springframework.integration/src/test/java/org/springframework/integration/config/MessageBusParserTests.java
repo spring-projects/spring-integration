@@ -17,25 +17,16 @@
 package org.springframework.integration.config;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
 import org.springframework.beans.DirectFieldAccessor;
-import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.Lifecycle;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.task.SyncTaskExecutor;
-import org.springframework.integration.bus.MessageBusEventTests.TestMessageBusEventListener;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.config.xml.MessageBusParser;
-import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
@@ -58,42 +49,6 @@ public class MessageBusParserTests {
 				"messageBusWithDefaults.xml", this.getClass());
 		BeanFactoryChannelResolver resolver = new BeanFactoryChannelResolver(context);
 		assertEquals(context.getBean("errorChannel"), resolver.resolveChannelName("errorChannel"));
-	}
-
-	@Test
-	public void testMultipleMessageBusElements() {
-		boolean exceptionThrown = false;
-		try {
-			new ClassPathXmlApplicationContext("multipleMessageBusElements.xml", this.getClass());
-		}
-		catch (BeanDefinitionStoreException e) {
-			exceptionThrown = true;
-			assertEquals(IllegalStateException.class, e.getCause().getClass());
-		}
-		assertTrue(exceptionThrown);
-	}
-
-	@Test
-	public void testMessageBusElementAndBean() {
-		boolean exceptionThrown = false;
-		try {
-			new ClassPathXmlApplicationContext("messageBusElementAndBean.xml", this.getClass());
-		}
-		catch (BeanCreationException e) {
-			exceptionThrown = true;
-			assertEquals(IllegalStateException.class, e.getCause().getClass());
-			assertEquals(e.getBeanName(), MessageBusParser.MESSAGE_BUS_BEAN_NAME);
-		}
-		assertTrue(exceptionThrown);
-	}
-
-	@Test
-	public void testAutoStartup() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"messageBusWithAutoStartup.xml", this.getClass());
-		Lifecycle bus = (Lifecycle) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
-		assertTrue(bus.isRunning());
-		bus.stop();
 	}
 
 	@Test
@@ -129,44 +84,6 @@ public class MessageBusParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(multicaster);
 		Object taskExecutor = accessor.getPropertyValue("taskExecutor");
 		assertEquals(ThreadPoolTaskExecutor.class, taskExecutor.getClass());
-	}
-
-	@Test
-	public void testMessageBusEventListenerReceivesStartedEvent() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"messageBusWithListener.xml", this.getClass());
-		Lifecycle messageBus = (Lifecycle) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
-		TestMessageBusEventListener listener = (TestMessageBusEventListener) context.getBean("listener");
-		assertNull(listener.getStartedBus());
-		assertNull(listener.getStoppedBus());
-		messageBus.start();
-		assertNotNull(listener.getStartedBus());
-		assertEquals(messageBus, listener.getStartedBus());
-		assertNull(listener.getStoppedBus());
-	}
-
-	@Test
-	public void testMessageBusEventListenerReceivesStoppedEvent() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"messageBusWithListener.xml", this.getClass());
-		Lifecycle messageBus = (Lifecycle) context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
-		TestMessageBusEventListener listener = (TestMessageBusEventListener) context.getBean("listener");
-		assertNull(listener.getStoppedBus());
-		messageBus.start();
-		messageBus.stop();
-		assertNotNull(listener.getStoppedBus());
-		assertEquals(messageBus, listener.getStoppedBus());
-	}
-
-	@Test
-	public void testMessageBusWithTaskScheduler() {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-				"messageBusWithTaskScheduler.xml", this.getClass());
-		Object messageBus = context.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
-		StubTaskScheduler schedulerBean = (StubTaskScheduler) context.getBean("testScheduler");
-		TaskScheduler busScheduler = (TaskScheduler) new DirectFieldAccessor(messageBus).getPropertyValue("taskScheduler");
-		assertNotNull(busScheduler);
-		assertEquals(schedulerBean, busScheduler);
 	}
 
 }

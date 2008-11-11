@@ -10,8 +10,8 @@
 			http://www.springframework.org/schema/integration/stream
 			http://www.springframework.org/schema/integration/stream/spring-integration-stream-1.0.xsd">
 
-	<stdin-channel-adapter id="adapterWithDefaultCharset"/>
+	<stdin-channel-adapter id="adapterWithDefaultCharset" auto-startup="false"/>
 
-	<stdin-channel-adapter id="adapterWithProvidedCharset" charset="UTF-8"/>
+	<stdin-channel-adapter id="adapterWithProvidedCharset" charset="UTF-8" auto-startup="false"/>
 
 </beans:beans>

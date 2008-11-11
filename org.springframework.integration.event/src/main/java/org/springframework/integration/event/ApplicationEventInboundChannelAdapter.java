@@ -50,7 +50,8 @@ public class ApplicationEventInboundChannelAdapter extends MessageProducerSuppor
 		}
 	}
 
-	public void onApplicationEvent(ApplicationEvent event) {
+	@Override
+	protected void onEvent(ApplicationEvent event) {
 		if (CollectionUtils.isEmpty(this.eventTypes)) {
 			this.sendEventAsMessage(event);
 			return;
@@ -65,6 +66,14 @@ public class ApplicationEventInboundChannelAdapter extends MessageProducerSuppor
 
 	private boolean sendEventAsMessage(ApplicationEvent event) {
 		return this.sendMessage(MessageBuilder.withPayload(event).build());
+	}
+
+	@Override
+	protected void doStart() {
+	}
+
+	@Override
+	protected void doStop() {
 	}
 
 }

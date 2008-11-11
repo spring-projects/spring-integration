@@ -20,7 +20,6 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
-import org.springframework.context.Lifecycle;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.endpoint.MessageProducerSupport;
@@ -37,15 +36,11 @@ import org.springframework.util.Assert;
  * @author Arjen Poutsma
  * @author Mark Fisher
  */
-public class ImapIdleChannelAdapter extends MessageProducerSupport implements Lifecycle {
+public class ImapIdleChannelAdapter extends MessageProducerSupport {
 
 	private final IdleTask idleTask = new IdleTask();
 
 	private volatile TaskExecutor taskExecutor;
-
-	private volatile boolean running;
-
-	private final Object lifecycleMonitor = new Object();
 
 	private final ImapMailReceiver mailReceiver;
 
@@ -70,33 +65,21 @@ public class ImapIdleChannelAdapter extends MessageProducerSupport implements Li
 	 * Lifecycle implementation
 	 */
 
-	public boolean isRunning() {
-		return this.running;
+	@Override // guarded by super#lifecycleLock
+	protected void doStart() {
+		if (this.taskExecutor == null) {
+			if (logger.isInfoEnabled()) {
+				logger.info("No TaskExecutor has been provided, will use a ["
+						+ SimpleAsyncTaskExecutor.class + "] as the default.");
+			}
+			this.taskExecutor = new SimpleAsyncTaskExecutor();
+		}
+		this.taskExecutor.execute(this.idleTask);
 	}
 
-	public void start() {
-		synchronized (this.lifecycleMonitor) {
-			if (!this.running) {
-				if (this.taskExecutor == null) {
-					if (logger.isInfoEnabled()) {
-						logger.info("No TaskExecutor has been provided, will use a ["
-								+ SimpleAsyncTaskExecutor.class + "] as the default.");
-					}
-					this.taskExecutor = new SimpleAsyncTaskExecutor();
-				}
-				this.taskExecutor.execute(this.idleTask);
-			}
-			this.running = true;
-		}
-	}
-
-	public void stop() {
-		synchronized (this.lifecycleMonitor) {
-			if (this.running) {
-				this.idleTask.interrupt();
-			}
-			this.running = false;
-		}
+	@Override // guarded by super#lifecycleLock
+	protected void doStop() {
+		this.idleTask.interrupt();
 	}
 
 

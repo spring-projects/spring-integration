@@ -18,6 +18,9 @@ package org.springframework.integration.config.annotation;
 
 import java.lang.reflect.Method;
 
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.BeanInitializationException;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.ChannelAdapter;
@@ -83,6 +86,18 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 			String annotationName = ClassUtils.getShortNameAsProperty(annotation.annotationType());
 			String endpointName = beanName + "." + method.getName() + "." + annotationName;
 			this.beanFactory.registerSingleton(endpointName, endpoint);
+			// TODO: move this to IntegrationContextUtils?... common with MAPP
+			if (endpoint instanceof BeanFactoryAware) {
+				((BeanFactoryAware) endpoint).setBeanFactory(beanFactory);
+			}
+			if (endpoint instanceof InitializingBean) {
+				try {
+					((InitializingBean) endpoint).afterPropertiesSet();
+				}
+				catch (Exception e) {
+					throw new BeanInitializationException("failed to initialize annotated channel adapter", e);
+				}
+			}
 		}
 		return bean;
 	}

@@ -21,18 +21,19 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.context.Lifecycle;
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolutionException;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PollableChannel;
-import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
@@ -43,13 +44,22 @@ import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 @ContextConfiguration
 public class ChannelAdapterParserTests extends AbstractJUnit4SpringContextTests {
 
+	@Before
+	public void startContext() {
+		((AbstractApplicationContext) this.applicationContext).start();
+	}
+
+	@After
+	public void stopContext() {
+		((AbstractApplicationContext) this.applicationContext).stop();
+	}
+
+
 	@Test
 	public void targetOnly() {
 		String beanName = "outboundWithImplicitChannel";
 		Object channel = this.applicationContext.getBean(beanName);
 		assertTrue(channel instanceof DirectChannel);
-		Lifecycle bus = (Lifecycle) this.applicationContext.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
-		bus.start();
 		BeanFactoryChannelResolver channelResolver = new BeanFactoryChannelResolver(this.applicationContext);
 		assertNotNull(channelResolver.resolveChannelName(beanName));
 		Object adapter = this.applicationContext.getBean(beanName + ".adapter");
@@ -61,7 +71,6 @@ public class ChannelAdapterParserTests extends AbstractJUnit4SpringContextTests 
 		assertTrue(((MessageChannel) channel).send(message));
 		assertNotNull(consumer.getLastMessage());
 		assertEquals(message, consumer.getLastMessage());
-		bus.stop();
 	}
 
 	@Test
@@ -69,8 +78,6 @@ public class ChannelAdapterParserTests extends AbstractJUnit4SpringContextTests 
 		String beanName = "methodInvokingConsumer";
 		Object channel = this.applicationContext.getBean(beanName);
 		assertTrue(channel instanceof DirectChannel);
-		Lifecycle bus = (Lifecycle) this.applicationContext.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
-		bus.start();
 		BeanFactoryChannelResolver channelResolver = new BeanFactoryChannelResolver(this.applicationContext);
 		assertNotNull(channelResolver.resolveChannelName(beanName));
 		Object adapter = this.applicationContext.getBean(beanName + ".adapter");
@@ -82,24 +89,20 @@ public class ChannelAdapterParserTests extends AbstractJUnit4SpringContextTests 
 		assertTrue(((MessageChannel) channel).send(message));
 		assertNotNull(testBean.getMessage());
 		assertEquals("consumer test", testBean.getMessage());
-		bus.stop();
 	}
 
 	@Test
 	public void methodInvokingSource() {
 		String beanName = "methodInvokingSource";
 		PollableChannel channel =  (PollableChannel) this.applicationContext.getBean("queueChannel");
-		Lifecycle bus = (Lifecycle) this.applicationContext.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
-		bus.start();
+		TestBean testBean = (TestBean) this.applicationContext.getBean("testBean");
+		testBean.store("source test");
 		Object adapter = this.applicationContext.getBean(beanName);
 		assertNotNull(adapter);
 		assertTrue(adapter instanceof SourcePollingChannelAdapter);
-		TestBean testBean = (TestBean) this.applicationContext.getBean("testBean");
-		testBean.store("source test");
 		Message<?> message = channel.receive(1000);
 		assertNotNull(message);
 		assertEquals("source test", testBean.getMessage());
-		bus.stop();
 	}
 
 	@Test(expected = ChannelResolutionException.class)

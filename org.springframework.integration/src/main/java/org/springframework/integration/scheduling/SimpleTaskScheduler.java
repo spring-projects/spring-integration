@@ -26,14 +26,18 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.integration.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.util.ErrorHandler;
+import org.springframework.integration.util.LifecycleSupport;
 import org.springframework.scheduling.SchedulingException;
 import org.springframework.util.Assert;
 
@@ -43,7 +47,7 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class SimpleTaskScheduler implements TaskScheduler, DisposableBean {
+public class SimpleTaskScheduler extends LifecycleSupport implements TaskScheduler, BeanFactoryAware, DisposableBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
@@ -57,14 +61,11 @@ public class SimpleTaskScheduler implements TaskScheduler, DisposableBean {
 
 	private final Set<TriggeredTask<?>> executingTasks = Collections.synchronizedSet(new TreeSet<TriggeredTask<?>>());
 
-	private volatile boolean running;
-
-	private final ReentrantLock lifecycleLock = new ReentrantLock();
-
 
 	public SimpleTaskScheduler(TaskExecutor executor) {
 		Assert.notNull(executor, "executor must not be null");
 		this.executor = executor;
+		this.setAutoStartMode(AutoStartMode.ON_CONTEXT_REFRESH);
 	}
 
 
@@ -72,7 +73,14 @@ public class SimpleTaskScheduler implements TaskScheduler, DisposableBean {
 		this.errorHandler = errorHandler;
 	}
 
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		if (this.errorHandler == null) {
+			this.errorHandler = new MessagePublishingErrorHandler(new BeanFactoryChannelResolver(beanFactory));
+		}
+	}
+
 	public final ScheduledFuture<?> schedule(Runnable task, Trigger trigger) {
+		Assert.notNull(task, "task must not be null");
 		TriggeredTask<Void> triggeredTask = new TriggeredTask<Void>(task, trigger);
 		return this.schedule(triggeredTask, null, null);
 	}
@@ -87,56 +95,28 @@ public class SimpleTaskScheduler implements TaskScheduler, DisposableBean {
 	}
 
 
-	// Lifecycle implementation
+	// LifecycleSupport implementation
 
-	public boolean isRunning() {
-		this.lifecycleLock.lock();
-		try {
-			return this.running;
-		}
-		finally {
-			this.lifecycleLock.unlock();
-		}
+	@Override // guarded by super#lifecycleLock
+	protected void doStart() {
+		this.executor.execute(this.schedulerTask = new SchedulerTask());
 	}
 
-	public void start() {
-		this.lifecycleLock.lock();
-		try {
-			if (this.running) {
-				return;
-			}
-			this.running = true;
-			this.executor.execute(this.schedulerTask = new SchedulerTask());
+	@Override // guarded by super#lifecycleLock
+	protected void doStop() {
+		this.schedulerTask.deactivate();
+		Thread executingThread = this.schedulerTask.executingThread.get();
+		if (executingThread != null) {
+			executingThread.interrupt();
 		}
-		finally {
-			this.lifecycleLock.unlock();
-		}
-	}
-
-	public void stop() {
-		this.lifecycleLock.lock();
-		try {
-			if (!this.running) {
-				return;
+		this.scheduledTasks.clear();			
+		synchronized (this.executingTasks) {
+			for (TriggeredTask<?> task : this.executingTasks) {
+				task.cancel(true);
 			}
-			this.running = false;
-			this.schedulerTask.deactivate();
-			Thread executingThread = this.schedulerTask.executingThread.get();
-			if (executingThread != null) {
-				executingThread.interrupt();
-			}
-			this.scheduledTasks.clear();			
-			synchronized (this.executingTasks) {
-				for (TriggeredTask<?> task : this.executingTasks) {
-					task.cancel(true);
-				}
-				this.executingTasks.clear();
-			}
-			this.schedulerTask = null;
+			this.executingTasks.clear();
 		}
-		finally {
-			this.lifecycleLock.unlock();
-		}
+		this.schedulerTask = null;
 	}
 
 	public void destroy() throws Exception {
@@ -236,7 +216,7 @@ public class SimpleTaskScheduler implements TaskScheduler, DisposableBean {
 
 		public long getDelay(TimeUnit unit) {
 			long now = new Date().getTime();
-			long scheduled = this.scheduledTime.getTime();
+			long scheduled = (this.scheduledTime != null) ? this.scheduledTime.getTime() : now;
 			return (scheduled > now) ? unit.convert(scheduled - now, TimeUnit.MILLISECONDS) : 0;
 		}
 

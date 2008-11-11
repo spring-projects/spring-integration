@@ -72,7 +72,8 @@ public class RmiInboundGateway extends RemotingInboundGatewaySupport implements 
 		this.remoteInvocationExecutor = remoteInvocationExecutor;
 	}
 
-	public void afterPropertiesSet() throws RemoteException {
+	@Override
+	protected void onInit() throws RemoteException {
 		RmiServiceExporter exporter = new RmiServiceExporter();
 		if (this.registryHost != null) {
 			exporter.setRegistryHost(this.registryHost);

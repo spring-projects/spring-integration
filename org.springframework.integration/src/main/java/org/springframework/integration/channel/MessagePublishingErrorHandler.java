@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
@@ -97,6 +98,10 @@ public class MessagePublishingErrorHandler implements ErrorHandler, BeanFactoryA
 	}
 
 	private MessageChannel resolveErrorChannel(Message<?> failedMessage) {
+		if (this.defaultErrorChannel == null && this.channelResolver != null) {
+			this.defaultErrorChannel = this.channelResolver.resolveChannelName(
+					IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME);
+		}
 		if (failedMessage == null || failedMessage.getHeaders().getErrorChannel() == null) {
 			return this.defaultErrorChannel;
 		}

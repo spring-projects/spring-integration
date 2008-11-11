@@ -25,16 +25,14 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import org.springframework.beans.factory.support.RootBeanDefinition;
-import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.integration.bus.ApplicationContextMessageBus;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
-import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.util.TestUtils;
+import org.springframework.integration.util.TestUtils.TestApplicationContext;
 
 /**
  * @author Mark Fisher
@@ -44,19 +42,14 @@ public class ServiceActivatorAnnotationPostProcessorTests {
 	@Test
 	public void testAnnotatedMethod() throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
-		GenericApplicationContext context = new GenericApplicationContext();
+		TestApplicationContext context = TestUtils.createTestApplicationContext();
+		RootBeanDefinition postProcessorDef = new RootBeanDefinition(MessagingAnnotationPostProcessor.class);
+		context.registerBeanDefinition("postProcessor", postProcessorDef);
 		context.registerBeanDefinition("testChannel", new RootBeanDefinition(QueueChannel.class));
 		RootBeanDefinition beanDefinition = new RootBeanDefinition(SimpleServiceActivatorAnnotationTestBean.class);
 		beanDefinition.getConstructorArgumentValues().addGenericArgumentValue(latch);
 		context.registerBeanDefinition("testBean", beanDefinition);
-		String busBeanName = MessageBusParser.MESSAGE_BUS_BEAN_NAME;
-		RootBeanDefinition busBeanDefinition = new RootBeanDefinition(ApplicationContextMessageBus.class);
-		busBeanDefinition.getPropertyValues().addPropertyValue("taskScheduler", TestUtils.createTaskScheduler(10));
-		context.registerBeanDefinition(busBeanName, busBeanDefinition);
-		RootBeanDefinition postProcessorDef = new RootBeanDefinition(MessagingAnnotationPostProcessor.class);
-		context.registerBeanDefinition("postProcessor", postProcessorDef);
 		context.refresh();
-		context.start();
 		SimpleServiceActivatorAnnotationTestBean testBean = (SimpleServiceActivatorAnnotationTestBean) context.getBean("testBean");
 		assertEquals(1, latch.getCount());
 		assertNull(testBean.getMessageText());

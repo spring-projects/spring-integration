@@ -10,6 +10,6 @@
 			http://www.springframework.org/schema/integration/mail
 			http://www.springframework.org/schema/integration/mail/spring-integration-mail-1.0.xsd">
 
-	<inbound-channel-adapter id="pollingPop3" store-uri="pop3://mailtest:mailtest@ubuntuservervm/INBOX" />
+	<inbound-channel-adapter id="pollingPop3" store-uri="pop3://mailtest:mailtest@ubuntuservervm/INBOX" auto-startup="false"/>
 
 </beans:beans>

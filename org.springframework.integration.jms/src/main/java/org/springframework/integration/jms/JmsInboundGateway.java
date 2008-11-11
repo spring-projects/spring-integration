@@ -23,7 +23,6 @@ import javax.jms.MessageProducer;
 import javax.jms.Session;
 
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.context.Lifecycle;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.gateway.SimpleMessagingGateway;
@@ -41,7 +40,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class JmsInboundGateway extends SimpleMessagingGateway implements Lifecycle, DisposableBean {
+public class JmsInboundGateway extends SimpleMessagingGateway implements DisposableBean {
 
 	private volatile AbstractMessageListenerContainer container;
 
@@ -190,19 +189,19 @@ public class JmsInboundGateway extends SimpleMessagingGateway implements Lifecyc
 
 	// Lifecycle implementation
 
-	public boolean isRunning() {
-		return (this.container != null && this.container.isRunning());
-	}
-
-	public void start() {
+	@Override
+	protected void doStart() {
 		this.initialize();
 		this.container.start();
+		super.doStart();
 	}
 
-	public void stop() {
+	@Override
+	protected void doStop() {
 		if (this.container != null) {
 			this.container.stop();
 		}
+		super.doStop();
 	}
 
 	// DisposableBean implementation

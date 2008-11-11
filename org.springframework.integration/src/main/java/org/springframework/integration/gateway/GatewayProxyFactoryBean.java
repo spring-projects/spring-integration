@@ -37,11 +37,10 @@ import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.PollableChannel;
-import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.message.MethodParameterMessageMapper;
-import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -52,8 +51,8 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class GatewayProxyFactoryBean implements FactoryBean, MethodInterceptor, BeanClassLoaderAware, BeanFactoryAware,
-		InitializingBean, Lifecycle {
+public class GatewayProxyFactoryBean extends AbstractEndpoint implements FactoryBean, MethodInterceptor, BeanClassLoaderAware, BeanFactoryAware,
+		InitializingBean {
 
 	private volatile Class<?> serviceInterface;
 
@@ -73,17 +72,11 @@ public class GatewayProxyFactoryBean implements FactoryBean, MethodInterceptor, 
 
 	private final Map<Method, MessagingGateway> gatewayMap = new HashMap<Method, MessagingGateway>();
 
-	private volatile TaskScheduler taskScheduler;
-
 	private volatile ChannelResolver channelResolver;
 
 	private volatile boolean initialized;
 
-	private volatile boolean running;
-
 	private final Object initializationMonitor = new Object();
-
-	private final Object lifecycleMonitor = new Object();
 
 
 	public void setServiceInterface(Class<?> serviceInterface) {
@@ -144,12 +137,14 @@ public class GatewayProxyFactoryBean implements FactoryBean, MethodInterceptor, 
 		this.beanClassLoader = beanClassLoader;
 	}
 
+	@Override // TODO: remove this and move channelResolver to parent class
 	public void setBeanFactory(BeanFactory beanFactory) {
-		this.taskScheduler = (TaskScheduler) beanFactory.getBean(MessageBusParser.TASK_SCHEDULER_BEAN_NAME);
+		super.setBeanFactory(beanFactory);
 		this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 	}
 
-	public void afterPropertiesSet() throws Exception {
+	@Override
+	protected void onInit() throws Exception {
 		synchronized (this.initializationMonitor) {
 			if (this.initialized) {
 				return;
@@ -226,7 +221,9 @@ public class GatewayProxyFactoryBean implements FactoryBean, MethodInterceptor, 
 	private MessagingGateway createGatewayForMethod(Method method) throws Exception {
 		SimpleMessagingGateway gateway = new SimpleMessagingGateway(
 				new MethodParameterMessageMapper(method), new SimpleMessageMapper());
-		gateway.setTaskScheduler(this.taskScheduler);
+		if (this.getTaskScheduler() != null) {
+			gateway.setTaskScheduler(this.getTaskScheduler());
+		}
 		Gateway gatewayAnnotation = method.getAnnotation(Gateway.class);
 		MessageChannel requestChannel = this.defaultRequestChannel;
 		MessageChannel replyChannel = this.defaultReplyChannel;
@@ -251,37 +248,28 @@ public class GatewayProxyFactoryBean implements FactoryBean, MethodInterceptor, 
 		gateway.setReplyChannel(replyChannel);
 		gateway.setRequestTimeout(requestTimeout);
 		gateway.setReplyTimeout(replyTimeout);
+		if (this.getBeanFactory() != null) {
+			gateway.setBeanFactory(this.getBeanFactory());
+		}
 		return gateway;
 	}
 
 	// Lifecycle implementation
 
-	public boolean isRunning() {
-		return this.running;
-	}
-
-	public void start() {
-		synchronized (this.lifecycleMonitor) {
-			if (!this.running) {
-				for (MessagingGateway gateway : this.gatewayMap.values()) {
-					if (gateway instanceof Lifecycle) {
-						((Lifecycle) gateway).start();
-					}
-				}
-				this.running = true;
+	@Override // guarded by super#lifecycleLock
+	protected void doStart() {
+		for (MessagingGateway gateway : this.gatewayMap.values()) {
+			if (gateway instanceof Lifecycle) {
+				((Lifecycle) gateway).start();
 			}
 		}
 	}
 
-	public void stop() {
-		synchronized (this.lifecycleMonitor) {
-			if (this.running) {
-				for (MessagingGateway gateway : this.gatewayMap.values()) {
-					if (gateway instanceof Lifecycle) {
-						((Lifecycle) gateway).stop();
-					}
-				}
-				this.running = false;
+	@Override // guarded by super#lifecycleLock
+	protected void doStop() {
+		for (MessagingGateway gateway : this.gatewayMap.values()) {
+			if (gateway instanceof Lifecycle) {
+				((Lifecycle) gateway).stop();
 			}
 		}
 	}

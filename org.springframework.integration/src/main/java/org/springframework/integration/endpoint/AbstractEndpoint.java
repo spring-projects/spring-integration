@@ -16,29 +16,58 @@
 
 package org.springframework.integration.endpoint;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.scheduling.TaskScheduler;
+import org.springframework.integration.util.LifecycleSupport;
+import org.springframework.util.Assert;
 
 /**
  * The base class for Message Endpoint implementations.
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractEndpoint implements MessageEndpoint, BeanNameAware {
+public abstract class AbstractEndpoint extends LifecycleSupport implements MessageEndpoint, BeanNameAware, BeanFactoryAware {
 
-	protected final Log logger = LogFactory.getLog(this.getClass());
+	private volatile String beanName;
 
-	private volatile String name;
+	private volatile BeanFactory beanFactory;
+
+	private volatile TaskScheduler taskScheduler;
 
 
-	public void setBeanName(String name) {
-		this.name = name;
+	public void setBeanName(String beanName) {
+		this.beanName = beanName;
 	}
 
+	// TODO: make this final (see TODO in GatewayProxyFactoryBean)
+	public void setBeanFactory(BeanFactory beanFactory) {
+		Assert.notNull(beanFactory, "beanFactory must not be null");
+		this.beanFactory = beanFactory;
+		TaskScheduler taskScheduler = IntegrationContextUtils.getTaskScheduler(beanFactory);
+		if (taskScheduler != null) {
+			this.setTaskScheduler(taskScheduler);
+		}
+	}
+
+	protected BeanFactory getBeanFactory() {
+		return this.beanFactory;
+	}
+
+	public void setTaskScheduler(TaskScheduler taskScheduler) {
+		Assert.notNull(taskScheduler, "taskScheduler must not be null");
+		this.taskScheduler = taskScheduler;
+	}
+
+	protected TaskScheduler getTaskScheduler() {
+		return this.taskScheduler;
+	}
+
+	@Override
 	public String toString() {
-		return (this.name != null) ? this.name : super.toString();
+		return (this.beanName != null) ? this.beanName : super.toString();
 	}
 
 }

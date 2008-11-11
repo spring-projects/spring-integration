@@ -21,14 +21,13 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.ThreadLocalChannel;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
-import org.springframework.integration.config.xml.MessageBusParser;
+import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
@@ -37,15 +36,14 @@ import org.springframework.integration.handler.ReplyMessageHolder;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.util.TestUtils;
+import org.springframework.integration.util.TestUtils.TestApplicationContext;
 
 /**
  * @author Mark Fisher
  */
 public class DirectChannelSubscriptionTests {
 
-	private GenericApplicationContext context = new GenericApplicationContext();
-
-	private ApplicationContextMessageBus bus = new ApplicationContextMessageBus();
+	private TestApplicationContext context = TestUtils.createTestApplicationContext();
 
 	private DirectChannel sourceChannel = new DirectChannel();
 
@@ -54,30 +52,23 @@ public class DirectChannelSubscriptionTests {
 
 	@Before
 	public void setupChannels() {
-		sourceChannel.setBeanName("sourceChannel");
-		targetChannel.setBeanName("targetChannel");
-		context.getBeanFactory().registerSingleton("sourceChannel", sourceChannel);
-		context.getBeanFactory().registerSingleton("targetChannel", targetChannel);
-		context.getBeanFactory().registerSingleton(MessageBusParser.MESSAGE_BUS_BEAN_NAME, bus);
-		bus.setApplicationContext(context);
-		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
+		context.registerChannel("sourceChannel", sourceChannel);
+		context.registerChannel("targetChannel", targetChannel);
 	}
 
 
 	@Test
 	public void sendAndReceiveForRegisteredEndpoint() {
-		GenericApplicationContext context = new GenericApplicationContext();
+		TestApplicationContext context = TestUtils.createTestApplicationContext();
 		ServiceActivatingHandler serviceActivator = new ServiceActivatingHandler(new TestBean(), "handle");
 		serviceActivator.setOutputChannel(targetChannel);
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(sourceChannel, serviceActivator);
-		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
-		bus.setApplicationContext(context);
+		context.registerEndpoint("testEndpoint", endpoint);
 		context.refresh();
-		bus.start();
 		this.sourceChannel.send(new StringMessage("foo"));
 		Message<?> response = this.targetChannel.receive();
 		assertEquals("foo!", response.getPayload());
-		bus.stop();
+		context.stop();
 	}
 
 	@Test
@@ -88,11 +79,10 @@ public class DirectChannelSubscriptionTests {
 		TestEndpoint endpoint = new TestEndpoint();
 		postProcessor.postProcessAfterInitialization(endpoint, "testEndpoint");
 		context.refresh();
-		bus.start();
 		this.sourceChannel.send(new StringMessage("foo"));
 		Message<?> response = this.targetChannel.receive();
 		assertEquals("foo-from-annotated-endpoint", response.getPayload());
-		bus.stop();
+		context.stop();
 	}
 
 	@Test(expected = MessagingException.class)
@@ -105,27 +95,32 @@ public class DirectChannelSubscriptionTests {
 		};
 		handler.setOutputChannel(targetChannel);
 		EventDrivenConsumer endpoint = new EventDrivenConsumer(sourceChannel, handler);
-		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
-		bus.setApplicationContext(context);
+		context.registerEndpoint("testEndpoint", endpoint);
 		context.refresh();
-		bus.start();
-		this.sourceChannel.send(new StringMessage("foo"));
+		try {
+			this.sourceChannel.send(new StringMessage("foo"));
+		}
+		finally {
+			context.stop();
+		}
 	}
 
 	@Test(expected = MessagingException.class)
 	public void exceptionThrownFromAnnotatedEndpoint() {
 		QueueChannel errorChannel = new QueueChannel();
-		errorChannel.setBeanName(ApplicationContextMessageBus.ERROR_CHANNEL_BEAN_NAME);
-		context.getBeanFactory().registerSingleton(
-				ApplicationContextMessageBus.ERROR_CHANNEL_BEAN_NAME, errorChannel);
+		context.registerChannel(IntegrationContextUtils.ERROR_CHANNEL_BEAN_NAME, errorChannel);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(context.getBeanFactory());
 		postProcessor.afterPropertiesSet();
 		FailingTestEndpoint endpoint = new FailingTestEndpoint();
 		postProcessor.postProcessAfterInitialization(endpoint, "testEndpoint");
 		context.refresh();
-		bus.start();
-		this.sourceChannel.send(new StringMessage("foo"));
+		try {
+			this.sourceChannel.send(new StringMessage("foo"));
+		}
+		finally {
+			context.stop();
+		}
 	}
 
 

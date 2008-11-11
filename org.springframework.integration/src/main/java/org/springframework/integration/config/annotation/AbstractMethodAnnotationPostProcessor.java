@@ -20,7 +20,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.generic.GenericBeanFactoryAccessor;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -64,15 +63,6 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		Poller pollerAnnotation = AnnotationUtils.findAnnotation(method, Poller.class);
 		MessageEndpoint endpoint = this.createEndpoint(handler, annotation, pollerAnnotation);
 		if (endpoint != null) {
-			if (endpoint instanceof InitializingBean) {
-				try {
-					((InitializingBean) endpoint).afterPropertiesSet();
-				}
-				catch (Exception e) {
-					throw new IllegalStateException(
-							"failed to initialize annotation-based consumer", e);
-				}
-			}
 			return endpoint;
 		}
 		return handler;

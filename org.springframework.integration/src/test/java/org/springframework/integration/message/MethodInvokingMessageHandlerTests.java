@@ -26,14 +26,13 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
-import org.springframework.context.support.GenericApplicationContext;
-import org.springframework.integration.bus.ApplicationContextMessageBus;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.handler.MethodInvokingMessageHandler;
 import org.springframework.integration.util.TestUtils;
+import org.springframework.integration.util.TestUtils.TestApplicationContext;
 
 /**
  * @author Mark Fisher
@@ -75,27 +74,22 @@ public class MethodInvokingMessageHandlerTests {
 
 	@Test
 	public void subscription() throws Exception {
-		GenericApplicationContext context = new GenericApplicationContext();
+		TestApplicationContext context = TestUtils.createTestApplicationContext();
 		SynchronousQueue<String> queue = new SynchronousQueue<String>();
 		TestBean testBean = new TestBean(queue);
 		QueueChannel channel = new QueueChannel();
-		channel.setBeanName("channel");
-		context.getBeanFactory().registerSingleton("channel", channel);
+		context.registerChannel("channel", channel);
 		Message<String> message = new GenericMessage<String>("testing");
 		channel.send(message);
 		assertNull(queue.poll());
 		MethodInvokingMessageHandler handler = new MethodInvokingMessageHandler(testBean, "foo");
 		PollingConsumer endpoint = new PollingConsumer(channel, handler);
-		context.getBeanFactory().registerSingleton("testEndpoint", endpoint);
-		ApplicationContextMessageBus bus = new ApplicationContextMessageBus();
-		bus.setTaskScheduler(TestUtils.createTaskScheduler(10));
-		bus.setApplicationContext(context);
+		context.registerEndpoint("testEndpoint", endpoint);
 		context.refresh();
-		bus.start();
 		String result = queue.poll(1000, TimeUnit.MILLISECONDS);
 		assertNotNull(result);
 		assertEquals("testing", result);
-		bus.stop();
+		context.stop();
 	}
 
 

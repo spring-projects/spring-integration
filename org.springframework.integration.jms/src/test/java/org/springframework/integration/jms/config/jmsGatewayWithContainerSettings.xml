@@ -10,8 +10,6 @@
 			http://www.springframework.org/schema/integration/jms
 			http://www.springframework.org/schema/integration/jms/spring-integration-jms-1.0.xsd">
 
-	<si:message-bus auto-startup="false"/>
-
 	<si:channel id="requestChannel">
 		<si:queue capacity="10"/>
 	</si:channel>

@@ -36,6 +36,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageDeliveryException;
+import org.springframework.integration.util.TestUtils;
 
 /**
  * @author Iwein Fuld
@@ -59,6 +60,7 @@ public class SimpleMessagingGatewayTests {
 		this.simpleMessagingGateway = new SimpleMessagingGateway();
 		this.simpleMessagingGateway.setRequestChannel(requestChannel);
 		this.simpleMessagingGateway.setReplyChannel(replyChannel);
+		this.simpleMessagingGateway.setBeanFactory(TestUtils.createTestApplicationContext());
 		reset(allmocks);
 	}
 

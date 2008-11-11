@@ -23,25 +23,21 @@ import static org.junit.Assert.assertNull;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Splitter;
-import org.springframework.integration.bus.ApplicationContextMessageBus;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.util.TestUtils;
+import org.springframework.integration.util.TestUtils.TestApplicationContext;
 
 /**
  * @author Mark Fisher
  */
 public class SplitterAnnotationPostProcessorTests {
 
-	private GenericApplicationContext context = new GenericApplicationContext();
-
-	private ApplicationContextMessageBus messageBus = new ApplicationContextMessageBus();
+	private TestApplicationContext context = TestUtils.createTestApplicationContext();
 
 	private DirectChannel inputChannel = new DirectChannel();
 
@@ -50,14 +46,8 @@ public class SplitterAnnotationPostProcessorTests {
 
 	@Before
 	public void init() {
-		inputChannel.setBeanName("input");
-		outputChannel.setBeanName("output");
-		context.getBeanFactory().registerSingleton("input", inputChannel);
-		context.getBeanFactory().registerSingleton("output", outputChannel);
-		context.getBeanFactory().registerSingleton(
-				MessageBusParser.MESSAGE_BUS_BEAN_NAME, messageBus);
-		messageBus.setTaskScheduler(TestUtils.createTaskScheduler(10));
-		messageBus.setApplicationContext(context);
+		context.registerChannel("input", inputChannel);
+		context.registerChannel("output", outputChannel);
 	}
 
 
@@ -69,7 +59,6 @@ public class SplitterAnnotationPostProcessorTests {
 		TestSplitter splitter = new TestSplitter();
 		postProcessor.postProcessAfterInitialization(splitter, "testSplitter");
 		context.refresh();
-		messageBus.start();
 		inputChannel.send(new StringMessage("this.is.a.test"));
 		Message<?> message1 = outputChannel.receive(500);
 		assertNotNull(message1);
@@ -84,7 +73,7 @@ public class SplitterAnnotationPostProcessorTests {
 		assertNotNull(message4);
 		assertEquals("test", message4.getPayload());
 		assertNull(outputChannel.receive(0));
-		messageBus.stop();
+		context.stop();
 	}
 
 

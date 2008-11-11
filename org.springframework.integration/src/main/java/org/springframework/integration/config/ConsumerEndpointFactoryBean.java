@@ -22,11 +22,13 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.endpoint.MessageEndpoint;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.MessageHandler;
@@ -39,7 +41,7 @@ import org.springframework.util.Assert;
 /**
  * @author Mark Fisher
  */
-public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAware, BeanNameAware, InitializingBean {
+public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAware, BeanNameAware, InitializingBean, ApplicationListener {
 
 	private final MessageHandler handler;
 
@@ -61,7 +63,7 @@ public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAwar
 
 	private volatile ConfigurableBeanFactory beanFactory;
 
-	private volatile MessageEndpoint endpoint;
+	private volatile AbstractEndpoint endpoint;
 
 	private volatile boolean initialized;
 
@@ -73,10 +75,6 @@ public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAwar
 		this.handler = handler;
 	}
 
-
-	public void setBeanName(String beanName) {
-		this.beanName = beanName;
-	}
 
 	public void setInputChannelName(String inputChannelName) {
 		this.inputChannelName = inputChannelName;
@@ -106,14 +104,22 @@ public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAwar
 		this.transactionDefinition = transactionDefinition;
 	}
 
+	public void setBeanName(String beanName) {
+		this.beanName = beanName;
+	}
+
 	public void setBeanFactory(BeanFactory beanFactory) {
 		Assert.isInstanceOf(ConfigurableBeanFactory.class, beanFactory,
 				"a ConfigurableBeanFactory is required");
 		this.beanFactory = (ConfigurableBeanFactory) beanFactory;
 	}
 
-	public void afterPropertiesSet() {
-		Assert.hasText(this.inputChannelName, "inputChannelName is required");
+	public void afterPropertiesSet() throws Exception {
+		this.initializeEndpoint();
+	}
+
+	public boolean isSingleton() {
+		return true;
 	}
 
 	public Object getObject() throws Exception {
@@ -125,20 +131,17 @@ public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAwar
 
 	public Class<?> getObjectType() {
 		if (this.endpoint == null) {
-			return MessageEndpoint.class;
+			return AbstractEndpoint.class;
 		}
-		return endpoint.getClass();
+		return this.endpoint.getClass();
 	}
 
-	public boolean isSingleton() {
-		return true;
-	}
-
-	private void initializeEndpoint() {
+	private void initializeEndpoint() throws Exception {
 		synchronized (this.initializationMonitor) {
 			if (this.initialized) {
 				return;
 			}
+			Assert.hasText(this.inputChannelName, "inputChannelName is required");
 			Assert.isTrue(this.beanFactory.containsBean(this.inputChannelName),
 					"no such input channel '" + this.inputChannelName + "' for endpoint '" + this.beanName + "'");
 			MessageChannel channel = (MessageChannel)
@@ -166,8 +169,17 @@ public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAwar
 				throw new IllegalArgumentException(
 						"unsupported channel type: [" + channel.getClass() + "]");
 			}
+			this.endpoint.setBeanName(this.beanName);
+			this.endpoint.setBeanFactory(this.beanFactory);
+			if (this.endpoint instanceof InitializingBean) {
+				((InitializingBean) this.endpoint).afterPropertiesSet();
+			}
 			this.initialized = true;
 		}
+	}
+
+	public void onApplicationEvent(ApplicationEvent event) {
+		this.endpoint.onApplicationEvent(event);
 	}
 
 }

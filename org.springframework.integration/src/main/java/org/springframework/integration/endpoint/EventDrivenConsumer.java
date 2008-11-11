@@ -16,7 +16,6 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.context.Lifecycle;
 import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.Assert;
@@ -27,15 +26,11 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class EventDrivenConsumer extends AbstractEndpoint implements Lifecycle {
+public class EventDrivenConsumer extends AbstractEndpoint {
 
 	private final SubscribableChannel inputChannel;
 
 	private final MessageHandler handler;
-
-	private volatile boolean running;
-
-	private final Object lifecycleMonitor = new Object();
 
 
 	public EventDrivenConsumer(SubscribableChannel inputChannel, MessageHandler handler) {
@@ -46,28 +41,14 @@ public class EventDrivenConsumer extends AbstractEndpoint implements Lifecycle {
 	}
 
 
-	public boolean isRunning() {
-		synchronized (this.lifecycleMonitor) {
-			return this.running;
-		}
+	@Override // guarded by super#lifecycleLock
+	protected void doStart() {
+		this.inputChannel.subscribe(this.handler);
 	}
 
-	public void start() {
-		synchronized (this.lifecycleMonitor) {
-			if (!this.running) {
-				this.inputChannel.subscribe(this.handler);
-				this.running = true;
-			}
-		}
-	}
-
-	public void stop() {
-		synchronized (this.lifecycleMonitor) {
-			if (this.running) {
-				this.inputChannel.unsubscribe(this.handler);
-				this.running = false;
-			}
-		}
+	@Override // guarded by super#lifecycleLock
+	protected void doStop() {
+		this.inputChannel.unsubscribe(this.handler);
 	}
 
 }

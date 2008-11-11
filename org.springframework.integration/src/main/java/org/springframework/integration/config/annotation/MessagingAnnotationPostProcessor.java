@@ -21,18 +21,22 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.context.Lifecycle;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.Aggregator;
 import org.springframework.integration.annotation.ChannelAdapter;
@@ -40,7 +44,6 @@ import org.springframework.integration.annotation.Router;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.annotation.Transformer;
-import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -55,15 +58,15 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware, InitializingBean {
-
-	private volatile Lifecycle messageBus;
+public class MessagingAnnotationPostProcessor implements BeanPostProcessor, BeanFactoryAware, InitializingBean, ApplicationListener {
 
 	private volatile ConfigurableListableBeanFactory beanFactory;
 
 
 	private final Map<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>> postProcessors =
 			new HashMap<Class<? extends Annotation>, MethodAnnotationPostProcessor<?>>();
+
+	private Set<ApplicationListener> listeners = new HashSet<ApplicationListener>();
 
 
 	public void setBeanFactory(BeanFactory beanFactory) {
@@ -74,7 +77,6 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 
 	public void afterPropertiesSet() {
 		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
-		this.messageBus = (Lifecycle) this.beanFactory.getBean(MessageBusParser.MESSAGE_BUS_BEAN_NAME);
 		postProcessors.put(Aggregator.class, new AggregatorAnnotationPostProcessor(this.beanFactory));
 		postProcessors.put(ChannelAdapter.class, new ChannelAdapterAnnotationPostProcessor(this.beanFactory));
 		postProcessors.put(Router.class, new RouterAnnotationPostProcessor(this.beanFactory));
@@ -108,8 +110,19 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 								((BeanNameAware) result).setBeanName(endpointBeanName);
 							}
 							beanFactory.registerSingleton(endpointBeanName, result);
-							if (messageBus.isRunning() && result instanceof Lifecycle) {
-								((Lifecycle) result).start();
+							if (result instanceof BeanFactoryAware) {
+								((BeanFactoryAware) result).setBeanFactory(beanFactory);
+							}
+							if (result instanceof InitializingBean) {
+								try {
+									((InitializingBean) result).afterPropertiesSet();
+								}
+								catch (Exception e) {
+									throw new BeanInitializationException("failed to initialize annotated component", e);
+								}
+							}
+							if (result instanceof ApplicationListener) {
+								listeners.add((ApplicationListener) result);
 							}
 						}
 					}
@@ -156,6 +169,12 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 			name = baseName + "#" + (++count);
 		}
 		return name;
+	}
+
+	public void onApplicationEvent(ApplicationEvent event) {
+		for (ApplicationListener listener : listeners) {
+			listener.onApplicationEvent(event);
+		}
 	}
 
 }

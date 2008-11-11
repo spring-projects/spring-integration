@@ -17,7 +17,6 @@
 package org.springframework.integration.config.xml;
 
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
 import org.w3c.dom.Element;
 
@@ -27,21 +26,14 @@ import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
-import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.bus.ApplicationContextMessageBus;
-import org.springframework.integration.channel.MessagePublishingErrorHandler;
-import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
-import org.springframework.integration.scheduling.SimpleTaskScheduler;
-import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
+import org.springframework.integration.context.IntegrationContextUtils;
 
 /**
  * Parser for the &lt;message-bus&gt; element of the integration namespace.
@@ -51,25 +43,11 @@ import org.springframework.util.StringUtils;
  */
 public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 
-	public static final String MESSAGE_BUS_BEAN_NAME = "internal.MessageBus";
-
-	public static final String TASK_SCHEDULER_BEAN_NAME = "taskScheduler";
-
 	private static final String MESSAGING_ANNOTATION_POST_PROCESSOR_BEAN_NAME =
 			"internal.MessagingAnnotationPostProcessor";
 
-	private static final String TASK_SCHEDULER_ATTRIBUTE = "task-scheduler";
-
 	private static final String ASYNC_EVENT_MULTICASTER_ATTRIBUTE = "configure-async-event-multicaster";
 
-
-	@Override
-	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
-			throws BeanDefinitionStoreException {
-		Assert.state(!parserContext.getRegistry().containsBeanDefinition(MESSAGE_BUS_BEAN_NAME),
-				"Only one Message Bus is allowed per ApplicationContext.");
-		return MESSAGE_BUS_BEAN_NAME;
-	}
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {
@@ -77,9 +55,15 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 	}
 
 	@Override
+	protected String resolveId(Element element, AbstractBeanDefinition definition, ParserContext parserContext)
+			throws BeanDefinitionStoreException {
+		return "messageBus";
+	}
+
+
+	@Override
 	protected boolean isEligibleAttribute(String attributeName) {
-		return !TASK_SCHEDULER_ATTRIBUTE.equals(attributeName) &&
-				!ASYNC_EVENT_MULTICASTER_ATTRIBUTE.equals(attributeName) &&
+		return !ASYNC_EVENT_MULTICASTER_ATTRIBUTE.equals(attributeName) &&
 				!"enable-annotations".equals(attributeName) &&
 				super.isEligibleAttribute(attributeName);
 	}
@@ -87,35 +71,9 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 	@Override
 	protected void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		super.doParse(element, parserContext, builder);
-		String taskSchedulerRef = element.getAttribute(TASK_SCHEDULER_ATTRIBUTE);
-		TaskExecutor taskExecutor= null;
-		if (!parserContext.getRegistry().containsBeanDefinition(ApplicationContextMessageBus.ERROR_CHANNEL_BEAN_NAME)) {
-			RootBeanDefinition errorChannelDef = new RootBeanDefinition(QueueChannel.class);
-			BeanDefinitionHolder errorChannelHolder = new BeanDefinitionHolder(
-					errorChannelDef, ApplicationContextMessageBus.ERROR_CHANNEL_BEAN_NAME);
-			BeanDefinitionReaderUtils.registerBeanDefinition(errorChannelHolder, parserContext.getRegistry());
-		}
-		if (StringUtils.hasText(taskSchedulerRef)) {
-			builder.addPropertyReference("taskScheduler", taskSchedulerRef);
-		}
-		else {
-			taskExecutor = this.createTaskExecutor(2, 100, 0, "message-bus-");
-			BeanDefinitionBuilder schedulerBuilder = BeanDefinitionBuilder.genericBeanDefinition(SimpleTaskScheduler.class);
-			schedulerBuilder.addConstructorArgValue(taskExecutor);
-			BeanDefinitionBuilder errorHandlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(MessagePublishingErrorHandler.class);
-			errorHandlerBuilder.addPropertyReference("defaultErrorChannel", ApplicationContextMessageBus.ERROR_CHANNEL_BEAN_NAME);
-			String errorHandlerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
-					errorHandlerBuilder.getBeanDefinition(), parserContext.getRegistry());
-			schedulerBuilder.addPropertyReference("errorHandler", errorHandlerBeanName);
-			BeanDefinitionHolder schedulerHolder = new BeanDefinitionHolder(
-					schedulerBuilder.getBeanDefinition(), TASK_SCHEDULER_BEAN_NAME);
-			BeanDefinitionReaderUtils.registerBeanDefinition(schedulerHolder, parserContext.getRegistry());
-			builder.addPropertyReference("taskScheduler", TASK_SCHEDULER_BEAN_NAME);
-		}
+		IntegrationNamespaceUtils.registerTaskSchedulerIfNecessary(parserContext.getRegistry());
 		if ("true".equals(element.getAttribute(ASYNC_EVENT_MULTICASTER_ATTRIBUTE).toLowerCase())) {
-			if (taskExecutor == null) {
-				taskExecutor = this.createTaskExecutor(1, 10, 0, "event-multicaster-");
-			}
+			TaskExecutor taskExecutor = IntegrationContextUtils.createTaskExecutor(1, 10, 0, "event-multicaster-");
 			BeanDefinitionBuilder eventMulticasterBuilder = BeanDefinitionBuilder.genericBeanDefinition(
 					SimpleApplicationEventMulticaster.class);
 			eventMulticasterBuilder.addPropertyValue("taskExecutor", taskExecutor);
@@ -125,19 +83,6 @@ public class MessageBusParser extends AbstractSimpleBeanDefinitionParser {
 			BeanDefinitionReaderUtils.registerBeanDefinition(holder, parserContext.getRegistry());
 		}
 		this.addPostProcessors(element, parserContext);
-	}
-
-	private TaskExecutor createTaskExecutor(int coreSize, int maxSize, int queueCapacity, String threadPrefix) {
-		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-		executor.setCorePoolSize(coreSize);
-		executor.setMaxPoolSize(maxSize);
-		executor.setQueueCapacity(queueCapacity);
-		if (StringUtils.hasText(threadPrefix)) {
-			executor.setThreadFactory(new CustomizableThreadFactory(threadPrefix));
-		}
-		executor.setRejectedExecutionHandler(new CallerRunsPolicy());
-		executor.afterPropertiesSet();
-		return executor;
 	}
 
 	/**

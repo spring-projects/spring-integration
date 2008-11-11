@@ -81,8 +81,9 @@ public class JmsInboundChannelAdapterParserTests {
 		try {
 			new ClassPathXmlApplicationContext("jmsInboundWithDestinationOnly.xml", this.getClass());
 		}
-		catch (RuntimeException e) {
-			assertEquals(NoSuchBeanDefinitionException.class, e.getCause().getClass());
+		catch (BeanCreationException e) {
+			Throwable rootCause = e.getRootCause();
+			assertEquals(NoSuchBeanDefinitionException.class, rootCause.getClass());
 			throw e;
 		}
 	}

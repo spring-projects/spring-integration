@@ -24,8 +24,6 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:attribute name="enable-annotations" type="xsd:boolean"/>
-			<xsd:attribute name="task-scheduler" type="xsd:string"/>
-			<xsd:attribute name="auto-startup" type="xsd:boolean"/>
 			<xsd:attribute name="configure-async-event-multicaster" type="xsd:boolean"/>
 		</xsd:complexType>
 	</xsd:element>
@@ -175,6 +173,7 @@
 		<xsd:attribute name="channel" type="xsd:string"/>
 		<xsd:attribute name="ref" type="xsd:string" use="required"/>
 		<xsd:attribute name="method" type="xsd:string"/>
+		<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 	</xsd:complexType>
 
 	<xsd:element name="service-activator" type="inputOutputEndpointType">

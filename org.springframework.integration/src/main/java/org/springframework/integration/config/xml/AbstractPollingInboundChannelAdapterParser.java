@@ -23,6 +23,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.scheduling.IntervalTrigger;
+import org.springframework.integration.util.LifecycleSupport.AutoStartMode;
 import org.springframework.util.Assert;
 import org.springframework.util.xml.DomUtils;
 
@@ -51,6 +52,10 @@ public abstract class AbstractPollingInboundChannelAdapterParser extends Abstrac
 		}
 		else {
 			adapterBuilder.addPropertyValue("trigger", new IntervalTrigger(this.getDefaultPollInterval()));
+		}
+		String autoStart = element.getAttribute("auto-startup");
+		if ("false".equals(autoStart)) {
+			adapterBuilder.addPropertyValue("autoStartMode", AutoStartMode.NONE);
 		}
 		return adapterBuilder.getBeanDefinition();
 	}

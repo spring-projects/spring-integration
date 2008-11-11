@@ -59,15 +59,16 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint {
 		this.channelTemplate.setSendTimeout(sendTimeout);
 	}
 
-	public void afterPropertiesSet() {
+	@Override
+	protected void onInit() {
 		Assert.notNull(this.source, "source must not be null");
 		Assert.notNull(this.outputChannel, "outputChannel must not be null");
-		super.afterPropertiesSet();
 		if (this.maxMessagesPerPoll < 0) {
 			// the default is 1 since a source might return
 			// a non-null value every time it is invoked
 			this.setMaxMessagesPerPoll(1);
 		}
+		super.onInit();
 	}
 
 	@Override

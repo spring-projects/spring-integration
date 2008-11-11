@@ -25,11 +25,8 @@ import org.aopalliance.aop.Advice;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.Lifecycle;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.scheduling.IntervalTrigger;
-import org.springframework.integration.scheduling.TaskScheduler;
-import org.springframework.integration.scheduling.TaskSchedulerAware;
 import org.springframework.integration.scheduling.Trigger;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -43,8 +40,7 @@ import org.springframework.util.ClassUtils;
 /**
  * @author Mark Fisher
  */
-public abstract class AbstractPollingEndpoint extends AbstractEndpoint
-		implements TaskSchedulerAware, Lifecycle, InitializingBean, BeanClassLoaderAware {
+public abstract class AbstractPollingEndpoint extends AbstractEndpoint implements InitializingBean, BeanClassLoaderAware {
 
 	public static final int MAX_MESSAGES_UNBOUNDED = -1;
 
@@ -65,15 +61,13 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint
 
 	private volatile ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
 
-	private volatile TaskScheduler taskScheduler;
-
 	private volatile ScheduledFuture<?> runningTask;
 
 	private volatile Runnable poller;
 
 	private volatile boolean initialized;
 
-	private final Object lifecycleMonitor = new Object();
+	private final Object initializationMonitor = new Object();
 
 
 	public void setTrigger(Trigger trigger) {
@@ -91,10 +85,6 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint
 	 */
 	public void setMaxMessagesPerPoll(int maxMessagesPerPoll) {
 		this.maxMessagesPerPoll = maxMessagesPerPoll;
-	}
-
-	public void setTaskScheduler(TaskScheduler taskScheduler) {
-		this.taskScheduler = taskScheduler;
 	}
 
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
@@ -126,13 +116,14 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint
 
 	private TransactionTemplate getTransactionTemplate() {
 		if (!this.initialized) {
-			this.afterPropertiesSet();
+			this.onInit();
 		}
 		return this.transactionTemplate;
 	}
 
-	public void afterPropertiesSet() {
-		synchronized (this.lifecycleMonitor) {
+	@Override
+	protected void onInit() {
+		synchronized (this.initializationMonitor) {
 			if (this.initialized) {
 				return;
 			}
@@ -163,35 +154,24 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint
 	}
 
 
-	// Lifecycle implementation
+	// LifecycleSupport implementation
 
-	public boolean isRunning() {
-		synchronized (this.lifecycleMonitor) {
-			return this.runningTask != null;
+	@Override // guarded by super#lifecycleLock
+	protected void doStart() {
+		if (!this.initialized) {
+			this.onInit();
 		}
+		Assert.state(this.getTaskScheduler() != null,
+				"unable to start polling, no taskScheduler available");
+		this.runningTask = this.getTaskScheduler().schedule(this.poller, this.trigger);
 	}
 
-	public void start() {
-		synchronized (this.lifecycleMonitor) {
-			if (!this.initialized) {
-				this.afterPropertiesSet();
-			}
-			if (this.isRunning()) {
-				return;
-			}
-			Assert.state(this.taskScheduler != null,
-					"unable to start polling, no taskScheduler available");
-			this.runningTask = this.taskScheduler.schedule(this.poller, this.trigger);
+	@Override // guarded by super#lifecycleLock
+	protected void doStop() {
+		if (this.runningTask != null) {
+			this.runningTask.cancel(true);
 		}
-	}
-
-	public void stop() {
-		synchronized (this.lifecycleMonitor) {
-			if (this.runningTask != null) {
-				this.runningTask.cancel(true);
-			}
-			this.runningTask = null;
-		}
+		this.runningTask = null;
 	}
 
 

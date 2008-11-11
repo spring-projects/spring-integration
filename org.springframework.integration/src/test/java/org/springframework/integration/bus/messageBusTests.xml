@@ -4,13 +4,9 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="bus" class="org.springframework.integration.bus.ApplicationContextMessageBus">
-		<property name="taskScheduler">
-			<bean class="org.springframework.integration.util.TestUtils"
-				  factory-method="createTaskScheduler">
-				<constructor-arg value="10"/>
-			</bean>
-		</property>
+	<bean id="taskScheduler" class="org.springframework.integration.util.TestUtils"
+		  factory-method="createTaskScheduler">
+		<constructor-arg value="10"/>
 	</bean>
 
 	<bean id="sourceChannel" class="org.springframework.integration.channel.QueueChannel"/>

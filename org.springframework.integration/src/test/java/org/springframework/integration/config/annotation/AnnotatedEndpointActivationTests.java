@@ -26,9 +26,9 @@ import org.junit.runner.RunWith;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.integration.bus.ApplicationContextMessageBus;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -55,7 +55,7 @@ public class AnnotatedEndpointActivationTests {
 	private PollableChannel output;
 
 	@Autowired
-	private ApplicationContextMessageBus messageBus;
+	private AbstractApplicationContext applicationContext;
 
 	// This has to be static because the MessageBus registers the handler
 	// more than once (every time a test instance is created), but only one of
@@ -90,15 +90,15 @@ public class AnnotatedEndpointActivationTests {
 	}
 
 	@Test(expected = MessageDeliveryException.class)
-	public void stopMessageBus() {
-		messageBus.stop();
+	public void stopContext() {
+		applicationContext.stop();
 		this.input.send(new GenericMessage<String>("foo"));
 	}
 
 	@Test
-	public void stopAndRestartMessageBus() {
-		messageBus.stop();
-		messageBus.start();
+	public void stopAndRestartContext() {
+		applicationContext.stop();
+		applicationContext.start();
 		this.input.send(new GenericMessage<String>("foo"));
 		Message<?> message = this.output.receive(100);
 		assertNotNull(message);

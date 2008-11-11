@@ -21,25 +21,21 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.Router;
-import org.springframework.integration.bus.ApplicationContextMessageBus;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.config.xml.MessageBusParser;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.util.TestUtils;
+import org.springframework.integration.util.TestUtils.TestApplicationContext;
 
 /**
  * @author Mark Fisher
  */
 public class RouterAnnotationPostProcessorTests {
 
-	private GenericApplicationContext context = new GenericApplicationContext();
-
-	private ApplicationContextMessageBus messageBus = new ApplicationContextMessageBus();
+	private TestApplicationContext context = TestUtils.createTestApplicationContext();
 
 	private DirectChannel inputChannel = new DirectChannel();
 
@@ -48,14 +44,8 @@ public class RouterAnnotationPostProcessorTests {
 
 	@Before
 	public void init() {
-		messageBus.setApplicationContext(context);
-		messageBus.setTaskScheduler(TestUtils.createTaskScheduler(10));
-		inputChannel.setBeanName("input");
-		outputChannel.setBeanName("output");
-		context.getBeanFactory().registerSingleton("input", inputChannel);
-		context.getBeanFactory().registerSingleton("output", outputChannel);
-		context.getBeanFactory().registerSingleton(
-				MessageBusParser.MESSAGE_BUS_BEAN_NAME, messageBus);
+		context.registerChannel("input", inputChannel);
+		context.registerChannel("output", outputChannel);
 	}
 
 
@@ -67,10 +57,10 @@ public class RouterAnnotationPostProcessorTests {
 		TestRouter testRouter = new TestRouter();
 		postProcessor.postProcessAfterInitialization(testRouter, "test");
 		context.refresh();
-		messageBus.start();
 		inputChannel.send(new StringMessage("foo"));
 		Message<?> replyMessage = outputChannel.receive(0);
 		assertEquals("foo", replyMessage.getPayload());
+		context.stop();
 	}
 
 

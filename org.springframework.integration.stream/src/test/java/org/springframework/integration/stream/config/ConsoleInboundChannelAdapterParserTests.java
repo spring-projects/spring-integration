@@ -97,9 +97,7 @@ public class ConsoleInboundChannelAdapterParserTests {
 		catch (BeanCreationException e) {
 			beanCreationException = e;
 		}
-		Throwable parentCause = beanCreationException.getCause().getCause();
-		assertEquals(IllegalArgumentException.class, parentCause.getClass());
-		Throwable rootCause = ((IllegalArgumentException) parentCause).getCause();
+		Throwable rootCause = beanCreationException.getRootCause();
 		assertEquals(UnsupportedEncodingException.class, rootCause.getClass());
 	}
 
