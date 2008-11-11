@@ -10,8 +10,6 @@
 			http://www.springframework.org/schema/integration/stream
 			http://www.springframework.org/schema/integration/stream/spring-integration-stream-1.0.xsd">
 
-	<message-bus/>
-
 	<gateway id="cafe" service-interface="org.springframework.integration.samples.cafe.Cafe"/>
 
 	<channel id="orders"/>

@@ -27,6 +27,8 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 /**
@@ -84,6 +86,22 @@ public class MessageBusParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(multicaster);
 		Object taskExecutor = accessor.getPropertyValue("taskExecutor");
 		assertEquals(ThreadPoolTaskExecutor.class, taskExecutor.getClass());
+	}
+
+	@Test
+	public void testExplicitlyDefinedTaskSchedulerHasCorrectType() {
+		AbstractApplicationContext context = new ClassPathXmlApplicationContext(
+				"messageBusWithTaskScheduler.xml", this.getClass());
+		TaskScheduler scheduler = (TaskScheduler) context.getBean("taskScheduler");
+		assertEquals(StubTaskScheduler.class, scheduler.getClass());
+	}
+
+	@Test
+	public void testExplicitlyDefinedTaskSchedulerMatchesUtilLookup() {
+		AbstractApplicationContext context = new ClassPathXmlApplicationContext(
+				"messageBusWithTaskScheduler.xml", this.getClass());
+		TaskScheduler scheduler = (TaskScheduler) context.getBean("taskScheduler");
+		assertEquals(scheduler, IntegrationContextUtils.getTaskScheduler(context));
 	}
 
 }

@@ -7,8 +7,8 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<message-bus task-scheduler="testScheduler"/>
+	<channel id="test"/>
 
-	<beans:bean id="testScheduler" class="org.springframework.integration.config.StubTaskScheduler"/>
+	<beans:bean id="taskScheduler" class="org.springframework.integration.config.StubTaskScheduler"/>
 
 </beans:beans>
