@@ -10,8 +10,6 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<si:message-bus/>
-
 	<si:channel id="input" />
 	
 	<si:channel id="pollableInput" >

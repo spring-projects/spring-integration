@@ -7,8 +7,6 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<message-bus/>
-
 	<channel id="inputChannel"/>
 
 	<channel id="outputChannel">

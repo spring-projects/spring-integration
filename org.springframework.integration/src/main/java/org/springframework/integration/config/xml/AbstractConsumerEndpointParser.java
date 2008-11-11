@@ -87,7 +87,6 @@ public abstract class AbstractConsumerEndpointParser extends AbstractSingleBeanD
 
 	@Override
 	protected final void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		IntegrationNamespaceUtils.registerTaskSchedulerIfNecessary(parserContext.getRegistry());
 		BeanDefinitionBuilder consumerBuilder = this.parseConsumer(element, parserContext);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(consumerBuilder, element, OUTPUT_CHANNEL_ATTRIBUTE);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(consumerBuilder, element, SELECTOR_ATTRIBUTE);

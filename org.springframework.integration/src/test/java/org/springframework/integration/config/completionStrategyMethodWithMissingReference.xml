@@ -7,8 +7,6 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 				
-	<message-bus/>
-	
 	<aggregator id="aggregator" ref="adderBean" method="add" completion-strategy="testCompletionStrategy"
 		input-channel="input-channel" output-channel="replyChannel">
 	</aggregator>

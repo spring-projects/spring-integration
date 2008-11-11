@@ -7,7 +7,7 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<message-bus enable-annotations="true"/>
+	<enable-annotations/>
 
 	<channel id="inputChannel"/>
 

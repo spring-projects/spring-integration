@@ -13,8 +13,6 @@
 			http://www.springframework.org/schema/integration/ws
 			http://www.springframework.org/schema/integration/ws/spring-integration-ws-1.0.xsd">
 
-	<message-bus/>
-
 	<channel id="fahrenheitChannel"/>
 
 	<!-- The Web Service outbound Messaging Gateway receives from the

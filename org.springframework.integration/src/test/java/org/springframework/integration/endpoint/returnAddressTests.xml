@@ -7,8 +7,6 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<si:message-bus/>
-
 	<si:channel id="channel1"/>
 	<si:channel id="channel2">
 		<si:queue capacity="5"/>

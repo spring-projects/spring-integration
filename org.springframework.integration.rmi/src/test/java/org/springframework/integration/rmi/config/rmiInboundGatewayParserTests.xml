@@ -10,8 +10,6 @@
 			http://www.springframework.org/schema/integration/rmi
 			http://www.springframework.org/schema/integration/rmi/spring-integration-rmi-1.0.xsd">
 
-	<message-bus/>
-
 	<channel id="testChannel"/>
 
 	<rmi:inbound-gateway id="gatewayWithDefaults" request-channel="testChannel"/>

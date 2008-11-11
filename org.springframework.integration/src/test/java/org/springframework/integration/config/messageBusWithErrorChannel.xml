@@ -9,6 +9,4 @@
 
 	<channel id="errorChannel"/>
 
-	<message-bus/>
-
 </beans:beans>

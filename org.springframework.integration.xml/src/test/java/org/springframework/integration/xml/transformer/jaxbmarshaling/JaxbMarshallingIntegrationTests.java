@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.xml.transformer.jaxbmarshaling;
 
 import static org.junit.Assert.assertEquals;
@@ -24,6 +25,8 @@ import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMResult;
 
 import org.junit.Test;
+import org.w3c.dom.Document;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.PollableChannel;
@@ -32,11 +35,12 @@ import org.springframework.integration.message.GenericMessage;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 import org.springframework.xml.transform.StringSource;
-import org.w3c.dom.Document;
 
+/**
+ * @author Jonas Partner
+ */
 @ContextConfiguration
 public class JaxbMarshallingIntegrationTests extends AbstractJUnit4SpringContextTests {
-
 	
 	@Autowired @Qualifier("marshallIn")
 	MessageChannel marshallIn;

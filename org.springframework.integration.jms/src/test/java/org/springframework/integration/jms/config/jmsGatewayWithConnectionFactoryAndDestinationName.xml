@@ -10,8 +10,6 @@
 			http://www.springframework.org/schema/integration/jms
 			http://www.springframework.org/schema/integration/jms/spring-integration-jms-1.0.xsd">
 
-	<si:message-bus/>
-
 	<si:channel id="requestChannel"/>
 
 	<jms:inbound-gateway id="jmsGateway"

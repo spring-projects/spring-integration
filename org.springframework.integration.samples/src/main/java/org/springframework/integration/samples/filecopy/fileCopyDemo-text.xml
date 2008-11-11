@@ -12,8 +12,6 @@
 
 	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
 
-	<integration:message-bus/>
-
 	<file:inbound-channel-adapter id="filesIn"
 	                              directory="file:${java.io.tmpdir}/spring-integration-samples/input"
 	                              filename-pattern="[a-z]+.txt"/>

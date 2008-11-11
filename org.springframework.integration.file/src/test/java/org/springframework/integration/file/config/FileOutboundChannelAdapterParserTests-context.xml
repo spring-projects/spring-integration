@@ -13,8 +13,6 @@
 			http://www.springframework.org/schema/integration/file
 			http://www.springframework.org/schema/integration/file/spring-integration-file-1.0.xsd">
 
-	<si:message-bus/>
-
 	<si:channel id="testChannel"/>
 
 	<file:outbound-channel-adapter id="simpleAdapter"

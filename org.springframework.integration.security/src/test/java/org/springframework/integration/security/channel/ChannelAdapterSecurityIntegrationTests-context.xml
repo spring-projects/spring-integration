@@ -18,8 +18,6 @@
 
 	<beans:import resource="classpath:org/springframework/integration/security/config/commonSecurityConfiguration.xml"/>
 
-	<message-bus/>
-
 	<si-security:secured-channels>
 		<si-security:access-policy pattern="secured.*" send-access="ROLE_ADMIN"/>
 	</si-security:secured-channels>

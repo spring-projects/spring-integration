@@ -10,8 +10,6 @@
 			http://www.springframework.org/schema/integration/jms
 			http://www.springframework.org/schema/integration/jms/spring-integration-jms-1.0.xsd">
 
-	<integration:message-bus/>
-
 	<jms:inbound-channel-adapter jms-template="jmsTemplate" channel="output"/>
 
 	<integration:channel id="output">

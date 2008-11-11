@@ -10,8 +10,6 @@
 			http://www.springframework.org/schema/integration/rmi
 			http://www.springframework.org/schema/integration/rmi/spring-integration-rmi-1.0.xsd">
 
-	<message-bus/>
-
 	<channel id="localChannel"/>
 
 	<rmi:outbound-gateway id="gateway" request-channel="localChannel" remote-channel="testChannel" host="localhost"/>
