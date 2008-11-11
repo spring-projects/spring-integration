@@ -33,6 +33,7 @@
 			<xsd:attribute name="directory" type="xsd:string" use="required"/>
 			<xsd:attribute name="filter" type="xsd:string"/>
 			<xsd:attribute name="filename-pattern" type="xsd:string"/>
+			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 		</xsd:complexType>
 	</xsd:element>
 
