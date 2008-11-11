@@ -9,7 +9,7 @@
 			http://www.springframework.org/schema/context
 			http://www.springframework.org/schema/context/spring-context-2.5.xsd">
 
-	<enable-annotations/>
+	<annotation-config/>
 
 	<channel id="inputChannel"/>
 

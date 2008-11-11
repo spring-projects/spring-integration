@@ -16,7 +16,7 @@
 		]]></xsd:documentation>
 	</xsd:annotation>
 
-	<xsd:element name="enable-annotations">
+	<xsd:element name="annotation-config">
 		<xsd:annotation>
 			<xsd:documentation>
 	Enables annotation support for Message Endpoints.

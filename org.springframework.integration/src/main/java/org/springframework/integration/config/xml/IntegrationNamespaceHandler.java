@@ -109,7 +109,7 @@ public class IntegrationNamespaceHandler implements NamespaceHandler {
 			registerBeanDefinitionParser("outbound-channel-adapter", new MethodInvokingOutboundChannelAdapterParser());
 			registerBeanDefinitionParser("gateway", new GatewayParser());
 			registerBeanDefinitionParser("selector-chain", new SelectorChainParser());
-			registerBeanDefinitionParser("enable-annotations", new EnableAnnotationsParser());
+			registerBeanDefinitionParser("annotation-config", new AnnotationConfigParser());
 			registerBeanDefinitionParser("application-event-multicaster", new ApplicationEventMulticasterParser());
 			registerBeanDefinitionParser("thread-pool-task-executor", new PoolExecutorParser());
 		}

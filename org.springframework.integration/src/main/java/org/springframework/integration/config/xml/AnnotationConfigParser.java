@@ -27,12 +27,12 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
 
 /**
- * Parser for the &lt;enable-annotations&gt; element of the integration namespace.
+ * Parser for the &lt;annotation-config&gt; element of the integration namespace.
  * Adds a {@link MessagingAnnotationPostProcessor} to the application context.
  * 
  * @author Mark Fisher
  */
-public class EnableAnnotationsParser extends AbstractSingleBeanDefinitionParser {
+public class AnnotationConfigParser extends AbstractSingleBeanDefinitionParser {
 
 	@Override
 	protected Class<?> getBeanClass(Element element) {

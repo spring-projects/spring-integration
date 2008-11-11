@@ -7,7 +7,7 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
-	<integration:enable-annotations/>
+	<integration:annotation-config/>
 
 	<integration:channel id="inputChannel"/>
 
