@@ -31,6 +31,7 @@
 			<xsd:attribute name="id" type="xsd:string"/>
 			<xsd:attribute name="channel" type="xsd:string"/>
 			<xsd:attribute name="charset" type="xsd:string"/>
+			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 		</xsd:complexType>
 	</xsd:element>
 

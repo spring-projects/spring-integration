@@ -50,6 +50,7 @@
 			<xsd:attribute name="channel" type="xsd:string"/>
 			<xsd:attribute name="store-uri" type="xsd:string" use="required"/>
 			<xsd:attribute name="java-mail-properties" type="xsd:string"/>
+			<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 		</xsd:complexType>
 	</xsd:element>
 
