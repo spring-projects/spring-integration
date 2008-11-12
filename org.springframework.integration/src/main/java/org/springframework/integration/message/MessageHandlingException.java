@@ -35,6 +35,10 @@ public class MessageHandlingException extends MessagingException {
 		super(failedMessage, description);
 	}
 
+	public MessageHandlingException(Message<?> failedMessage, Throwable cause) {
+		super(failedMessage, cause);
+	}
+
 	public MessageHandlingException(Message<?> failedMessage, String description, Throwable cause) {
 		super(failedMessage, description, cause);
 	}
