@@ -33,7 +33,7 @@
 	ThreadPoolTaskExecutor will be created by default.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:attribute name="task-executor"/>
+			<xsd:attribute name="task-executor" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -66,23 +66,10 @@
 		<xsd:complexType>
 			<xsd:annotation>
 				<xsd:documentation>
-	Defines a bounded queue for messages.
+	Defines a queue for messages. If 'capacity' is specified, it will be a bounded queue.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:attribute name="capacity" use="required">
-				<xsd:simpleType>
-					<xsd:union>
-						<xsd:simpleType>
-							<xsd:restriction base="xsd:integer"/>
-						</xsd:simpleType>
-						<xsd:simpleType>
-							<xsd:restriction base="xsd:string">
-								<xsd:enumeration value="UNBOUNDED"/>
-							</xsd:restriction>
-						</xsd:simpleType>
-					</xsd:union>
-				</xsd:simpleType>
-			</xsd:attribute>
+			<xsd:attribute name="capacity" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -93,7 +80,7 @@
 	Defines a queue with priority-ordering for message reception.
 				</xsd:documentation>
 			</xsd:annotation>
-			<xsd:attribute name="capacity" type="xsd:integer" use="required"/>
+			<xsd:attribute name="capacity" type="xsd:string"/>
 			<xsd:attribute name="comparator" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
@@ -276,7 +263,7 @@
 			</xsd:annotation>
 			<xsd:attribute name="interval" type="xsd:string"/>
 			<xsd:attribute name="initial-delay" type="xsd:string"/>
-			<xsd:attribute name="fixed-rate" type="xsd:boolean"/>
+			<xsd:attribute name="fixed-rate" type="xsd:string" default="false"/>
 			<xsd:attribute name="time-unit" default="MILLISECONDS">
 				<xsd:annotation>
 					<xsd:documentation><![CDATA[
@@ -425,19 +412,19 @@
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="inputOutputEndpointType">
-					<xsd:attribute name="completion-strategy" type="xsd:string" use="optional"/>
-					<xsd:attribute name="completion-strategy-method" type="xsd:string" use="optional"/>
-					<xsd:attribute name="discard-channel" type="xsd:string" use="optional"/>
-					<xsd:attribute name="send-timeout" type="xsd:string" use="optional"/>
-					<xsd:attribute name="send-partial-result-on-timeout"  type="xsd:boolean" use="optional"/>
-					<xsd:attribute name="tracked-correlation-id-capacity" type="xsd:string" use="optional"/>
-					<xsd:attribute name="reaper-interval" type="xsd:string" use="optional"/>
-					<xsd:attribute name="timeout" type="xsd:string" use="optional"/>
+					<xsd:attribute name="completion-strategy" type="xsd:string"/>
+					<xsd:attribute name="completion-strategy-method" type="xsd:string"/>
+					<xsd:attribute name="discard-channel" type="xsd:string"/>
+					<xsd:attribute name="send-timeout" type="xsd:string"/>
+					<xsd:attribute name="send-partial-result-on-timeout" type="xsd:string"/>
+					<xsd:attribute name="tracked-correlation-id-capacity" type="xsd:string"/>
+					<xsd:attribute name="reaper-interval" type="xsd:string"/>
+					<xsd:attribute name="timeout" type="xsd:string"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
-	
+
 	<xsd:element name="resequencer">
 		<xsd:complexType>
 			<xsd:annotation>
@@ -447,13 +434,13 @@
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="inputOutputEndpointType">
-					<xsd:attribute name="discard-channel" type="xsd:string" use="optional"/>
-					<xsd:attribute name="send-timeout" type="xsd:string" use="optional"/>
-					<xsd:attribute name="release-partial-sequences" type="xsd:boolean" use="optional"/>
-					<xsd:attribute name="send-partial-result-on-timeout"  type="xsd:boolean" use="optional"/>
-					<xsd:attribute name="tracked-correlation-id-capacity" type="xsd:string" use="optional"/>
-					<xsd:attribute name="reaper-interval" type="xsd:string" use="optional"/>
-					<xsd:attribute name="timeout" type="xsd:string" use="optional"/>
+					<xsd:attribute name="discard-channel" type="xsd:string"/>
+					<xsd:attribute name="send-timeout" type="xsd:string"/>
+					<xsd:attribute name="release-partial-sequences" type="xsd:string"/>
+					<xsd:attribute name="send-partial-result-on-timeout"  type="xsd:string"/>
+					<xsd:attribute name="tracked-correlation-id-capacity" type="xsd:string"/>
+					<xsd:attribute name="reaper-interval" type="xsd:string"/>
+					<xsd:attribute name="timeout" type="xsd:string"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
@@ -467,7 +454,7 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:attribute name="ref" type="xsd:string" use="required"/>
-			<xsd:attribute name="method" type="xsd:string" use="optional"/>
+			<xsd:attribute name="method" type="xsd:string"/>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -497,8 +484,8 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:attribute name="channel" type="xsd:string" use="required"/>
-		<xsd:attribute name="selector" type="xsd:string" use="optional"/>
-		<xsd:attribute name="timeout" type="xsd:string" use="optional"/>
+		<xsd:attribute name="selector" type="xsd:string"/>
+		<xsd:attribute name="timeout" type="xsd:string"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="transactionalType">
@@ -550,7 +537,7 @@
 				]]></xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="read-only" type="xsd:boolean" default="false">
+		<xsd:attribute name="read-only" type="xsd:string" default="false">
 			<xsd:annotation>
 				<xsd:documentation><![CDATA[
 	Is this transaction read-only?
