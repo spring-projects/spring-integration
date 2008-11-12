@@ -49,9 +49,9 @@
 					<xsd:attribute name="message-converter" type="xsd:string"/>
 					<xsd:attribute name="request-channel" type="xsd:string" use="required"/>
 					<xsd:attribute name="reply-channel" type="xsd:string"/>
-					<xsd:attribute name="request-timeout" type="xsd:long"/>
-					<xsd:attribute name="reply-timeout" type="xsd:long"/>
-					<xsd:attribute name="extract-payload-for-reply" type="xsd:boolean" default="false"/>
+					<xsd:attribute name="request-timeout" type="xsd:string"/>
+					<xsd:attribute name="reply-timeout" type="xsd:string"/>
+					<xsd:attribute name="extract-payload-for-reply" type="xsd:string" default="false"/>
 					<xsd:attribute name="transaction-manager" type="xsd:string"/>
 					<xsd:attribute name="concurrent-consumers" type="xsd:string"/>
 					<xsd:attribute name="max-concurrent-consumers" type="xsd:string"/>
@@ -72,8 +72,8 @@
 			<xsd:attribute name="id" type="xsd:ID"/>
 			<xsd:attribute name="request-channel" type="xsd:string" use="required"/>
 			<xsd:attribute name="reply-channel" type="xsd:string"/>
-			<xsd:attribute name="request-timeout" type="xsd:long"/>
-			<xsd:attribute name="reply-timeout" type="xsd:long"/>
+			<xsd:attribute name="request-timeout" type="xsd:string"/>
+			<xsd:attribute name="reply-timeout" type="xsd:string"/>
 			<xsd:attribute name="jms-queue" type="xsd:string" use="required"/>
 			<xsd:attribute name="connection-factory" type="xsd:string" default="connectionFactory"/>
 			<xsd:attribute name="message-converter" type="xsd:string"/>
@@ -138,7 +138,7 @@
 				<xsd:extension base="transformerType">
 					<xsd:attribute name="correlation-id" type="xsd:string"/>
 					<xsd:attribute name="reply-to" type="xsd:string"/>
-					<xsd:attribute name="overwrite" type="xsd:boolean"/>
+					<xsd:attribute name="overwrite" type="xsd:string"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
