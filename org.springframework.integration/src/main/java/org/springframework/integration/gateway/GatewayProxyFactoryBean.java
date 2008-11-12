@@ -28,14 +28,9 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.SimpleTypeConverter;
 import org.springframework.beans.TypeConverter;
 import org.springframework.beans.factory.BeanClassLoaderAware;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.annotation.Gateway;
-import org.springframework.integration.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
@@ -51,8 +46,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class GatewayProxyFactoryBean extends AbstractEndpoint implements FactoryBean, MethodInterceptor, BeanClassLoaderAware, BeanFactoryAware,
-		InitializingBean {
+public class GatewayProxyFactoryBean extends AbstractEndpoint implements FactoryBean, MethodInterceptor, BeanClassLoaderAware {
 
 	private volatile Class<?> serviceInterface;
 
@@ -71,8 +65,6 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 	private volatile Object serviceProxy;
 
 	private final Map<Method, MessagingGateway> gatewayMap = new HashMap<Method, MessagingGateway>();
-
-	private volatile ChannelResolver channelResolver;
 
 	private volatile boolean initialized;
 
@@ -135,12 +127,6 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 
 	public void setBeanClassLoader(ClassLoader beanClassLoader) {
 		this.beanClassLoader = beanClassLoader;
-	}
-
-	@Override // TODO: remove this and move channelResolver to parent class
-	public void setBeanFactory(BeanFactory beanFactory) {
-		super.setBeanFactory(beanFactory);
-		this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 	}
 
 	@Override
@@ -230,15 +216,15 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 		long requestTimeout = this.defaultRequestTimeout;
 		long replyTimeout = this.defaultReplyTimeout;
 		if (gatewayAnnotation != null) {
-			Assert.state(this.channelResolver != null, "ChannelResolver is required");
+			Assert.state(this.getChannelResolver() != null, "ChannelResolver is required");
 			String requestChannelName = gatewayAnnotation.requestChannel();
 			if (StringUtils.hasText(requestChannelName)) {
-				requestChannel = this.channelResolver.resolveChannelName(requestChannelName);
+				requestChannel = this.getChannelResolver().resolveChannelName(requestChannelName);
 				Assert.notNull(requestChannel, "failed to resolve request channel '" + requestChannelName + "'");
 			}
 			String replyChannelName = gatewayAnnotation.replyChannel();
 			if (StringUtils.hasText(replyChannelName)) {
-				replyChannel = this.channelResolver.resolveChannelName(replyChannelName);
+				replyChannel = this.getChannelResolver().resolveChannelName(replyChannelName);
 				Assert.notNull(replyChannel, "failed to resolve reply channel '" + replyChannelName + "'");
 			}
 			requestTimeout = gatewayAnnotation.requestTimeout();

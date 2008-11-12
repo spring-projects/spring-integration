@@ -19,6 +19,8 @@ package org.springframework.integration.endpoint;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.integration.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.context.IntegrationContextUtils;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.integration.util.LifecycleSupport;
@@ -35,6 +37,8 @@ public abstract class AbstractEndpoint extends LifecycleSupport implements Messa
 
 	private volatile BeanFactory beanFactory;
 
+	private volatile ChannelResolver channelResolver;
+
 	private volatile TaskScheduler taskScheduler;
 
 
@@ -42,10 +46,10 @@ public abstract class AbstractEndpoint extends LifecycleSupport implements Messa
 		this.beanName = beanName;
 	}
 
-	// TODO: make this final (see TODO in GatewayProxyFactoryBean)
-	public void setBeanFactory(BeanFactory beanFactory) {
+	public final void setBeanFactory(BeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "beanFactory must not be null");
 		this.beanFactory = beanFactory;
+		this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
 		TaskScheduler taskScheduler = IntegrationContextUtils.getTaskScheduler(beanFactory);
 		if (taskScheduler != null) {
 			this.setTaskScheduler(taskScheduler);
@@ -63,6 +67,10 @@ public abstract class AbstractEndpoint extends LifecycleSupport implements Messa
 
 	protected TaskScheduler getTaskScheduler() {
 		return this.taskScheduler;
+	}
+
+	protected ChannelResolver getChannelResolver() {
+		return this.channelResolver;
 	}
 
 	@Override
