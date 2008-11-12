@@ -65,9 +65,7 @@ public class PointToPointChannelParser extends AbstractChannelParser {
 	private void parseQueueCapacity(BeanDefinitionBuilder builder, Element queueElement) {
 		String capacity = queueElement.getAttribute(CAPACITY_ATTRIBUTE);
 		if (StringUtils.hasText(capacity)) {
-			if (!capacity.equals("UNBOUNDED")) {
-				builder.addConstructorArgValue(Integer.valueOf(capacity));
-			}
+			builder.addConstructorArgValue(Integer.valueOf(capacity));
 		}
 	}
 
