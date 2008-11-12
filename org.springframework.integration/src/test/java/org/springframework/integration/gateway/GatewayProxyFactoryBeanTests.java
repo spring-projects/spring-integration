@@ -19,6 +19,7 @@ package org.springframework.integration.gateway;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.lang.reflect.Method;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
@@ -33,7 +34,10 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * @author Mark Fisher
@@ -215,6 +219,25 @@ public class GatewayProxyFactoryBeanTests {
 		assertEquals(expected, proxy.toString().substring(0, expected.length()));
 	}
 
+	@Test(expected = TestException.class)
+	public void testCheckedExceptionRethrownAsIs() throws Exception {
+		GatewayProxyFactoryBean proxyFactory = new GatewayProxyFactoryBean();
+		DirectChannel channel = new DirectChannel();
+		EventDrivenConsumer consumer = new EventDrivenConsumer(channel, new MessageHandler() {
+			public void handleMessage(Message<?> message) {
+				Method method = ReflectionUtils.findMethod(
+						GatewayProxyFactoryBeanTests.class, "throwTestException");
+				ReflectionUtils.invokeMethod(method, null);
+			}
+		});
+		consumer.start();
+		proxyFactory.setDefaultRequestChannel(channel);
+		proxyFactory.setServiceInterface(TestExceptionThrowingInterface.class);
+		proxyFactory.afterPropertiesSet();
+		TestExceptionThrowingInterface proxy = (TestExceptionThrowingInterface) proxyFactory.getObject();
+		proxy.throwCheckedException("test");
+	}
+
 
 	private static void startResponder(final PollableChannel requestChannel) {
 		new Thread(new Runnable() {
@@ -224,6 +247,22 @@ public class GatewayProxyFactoryBeanTests {
 				((MessageChannel) input.getHeaders().getReplyChannel()).send(reply);
 			}
 		}).start();
+	}
+
+
+	public static void throwTestException() throws TestException {
+		throw new TestException();
+	}
+
+
+	static interface TestExceptionThrowingInterface {
+
+		String throwCheckedException(String s) throws TestException;
+	}
+
+
+	@SuppressWarnings("serial")
+	static class TestException extends Exception {
 	}
 
 }

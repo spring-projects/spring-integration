@@ -17,7 +17,9 @@
 package org.springframework.integration.gateway;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.aopalliance.intercept.MethodInterceptor;
@@ -167,7 +169,12 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 			return "gateway proxy for service interface [" + this.serviceInterface + "]";
 		}
 		if (method.getDeclaringClass().equals(this.serviceInterface)) {
-			return this.invokeGatewayMethod(invocation);
+			try {
+				return this.invokeGatewayMethod(invocation);
+			}
+			catch (Exception e) {
+				rethrowExceptionInThrowsClauseIfPossible(e, invocation.getMethod());
+			}
 		}
 		return invocation.proceed();
 	}
@@ -202,6 +209,18 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 			}
 		}
 		return (response != null) ? this.typeConverter.convertIfNecessary(response, returnType) : null;
+	}
+
+	private void rethrowExceptionInThrowsClauseIfPossible(Throwable originalException, Method method) throws Throwable {
+		List<Class<?>> exceptionTypes = Arrays.asList(method.getExceptionTypes());
+		Throwable t = originalException;
+		while (t != null) {
+			if (exceptionTypes.contains(t.getClass())) {
+				throw t;
+			}
+			t = t.getCause();
+		}
+		throw originalException;
 	}
 
 	private MessagingGateway createGatewayForMethod(Method method) throws Exception {
