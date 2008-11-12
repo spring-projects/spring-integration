@@ -25,9 +25,9 @@
 			</xsd:annotation>
 			<xsd:complexContent>
 				<xsd:extension base="gatewayType">
-					<xsd:attribute name="expect-reply" type="xsd:boolean" default="true"/>
+					<xsd:attribute name="expect-reply" type="xsd:string" default="true"/>
 					<xsd:attribute name="registry-host" type="xsd:string"/>
-					<xsd:attribute name="registry-port" type="xsd:integer"/>
+					<xsd:attribute name="registry-port" type="xsd:string"/>
 					<xsd:attribute name="remote-invocation-executor" type="xsd:string"/>
 				</xsd:extension>
 			</xsd:complexContent>
@@ -44,7 +44,7 @@
 			<xsd:complexContent>
 				<xsd:extension base="gatewayType">
 					<xsd:attribute name="host" type="xsd:string" use="required"/>
-					<xsd:attribute name="port" type="xsd:integer"/>
+					<xsd:attribute name="port" type="xsd:string"/>
 					<xsd:attribute name="remote-channel" type="xsd:string" use="required"/>
 				</xsd:extension>
 			</xsd:complexContent>
@@ -61,8 +61,8 @@
 		<xsd:attribute name="name" type="xsd:string"/>
 		<xsd:attribute name="request-channel" type="xsd:string" use="required"/>
 		<xsd:attribute name="reply-channel" type="xsd:string"/>
-		<xsd:attribute name="request-timeout" type="xsd:long"/>
-		<xsd:attribute name="reply-timeout" type="xsd:long"/>
+		<xsd:attribute name="request-timeout" type="xsd:string"/>
+		<xsd:attribute name="reply-timeout" type="xsd:string"/>
 	</xsd:complexType>
 
 </xsd:schema>

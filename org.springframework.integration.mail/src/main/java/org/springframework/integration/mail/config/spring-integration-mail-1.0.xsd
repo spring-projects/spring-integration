@@ -100,7 +100,7 @@
 					<xsd:attribute name="bcc" type="xsd:string"/>
 					<xsd:attribute name="from" type="xsd:string"/>
 					<xsd:attribute name="reply-to" type="xsd:string"/>
-					<xsd:attribute name="overwrite" type="xsd:boolean"/>
+					<xsd:attribute name="overwrite" type="xsd:string"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>

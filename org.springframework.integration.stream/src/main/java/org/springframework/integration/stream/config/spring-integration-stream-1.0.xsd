@@ -49,7 +49,7 @@
 		<xsd:attribute name="id" type="xsd:string"/>
 		<xsd:attribute name="channel" type="xsd:string"/>
 		<xsd:attribute name="charset" type="xsd:string"/>
-		<xsd:attribute name="append-newline" type="xsd:boolean" default="false"/>
+		<xsd:attribute name="append-newline" type="xsd:string" default="false"/>
 	</xsd:complexType>
 
 </xsd:schema>
