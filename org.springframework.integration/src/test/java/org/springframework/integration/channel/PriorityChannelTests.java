@@ -99,6 +99,20 @@ public class PriorityChannelTests {
 		assertEquals("test-LOW", channel.receive(0).getPayload());
 	}
 
+	@Test
+	public void testUnboundedCapacity() {
+		PriorityChannel channel = new PriorityChannel();
+		Message<?> highPriority = createPriorityMessage(MessagePriority.HIGH);
+		Message<?> lowPriority = createPriorityMessage(MessagePriority.LOW);
+		Message<?> nullPriority = new StringMessage("test-NULL");
+		channel.send(lowPriority);
+		channel.send(highPriority);
+		channel.send(nullPriority);
+		assertEquals("test-HIGH", channel.receive(0).getPayload());
+		assertEquals("test-NULL", channel.receive(0).getPayload());
+		assertEquals("test-LOW", channel.receive(0).getPayload());
+	}
+
 
 	private static Message<String> createPriorityMessage(MessagePriority priority) {
 		return MessageBuilder.withPayload("test-" + priority).setPriority(priority).build(); 

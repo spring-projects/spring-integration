@@ -32,55 +32,52 @@ import org.springframework.integration.core.MessagePriority;
  */
 public class PriorityChannel extends QueueChannel {
 
-	private static final int DEFAULT_MAX_CAPACITY = Integer.MAX_VALUE;
-
-
 	private final Semaphore semaphore;
 
 
 	/**
-	 * Create a channel with the specified queue capacity.
-	 * Priority will be determined by the provided {@link Comparator}.
+	 * Create a channel with the specified queue capacity. If the capacity
+	 * is a non-positive value, the queue will be unbounded. Message priority
+	 * will be determined by the provided {@link Comparator}. If the comparator
+	 * is <code>null</code>, the priority will be based upon the value of
+	 * {@link MessageHeader#getPriority()}.
 	 */
 	public PriorityChannel(int capacity, Comparator<Message<?>> comparator) {
-		super(new PriorityBlockingQueue<Message<?>>(11, comparator));
-		this.semaphore = new Semaphore(capacity, true);
+		super(new PriorityBlockingQueue<Message<?>>(11,
+				(comparator != null) ? comparator : new MessagePriorityComparator()));
+		this.semaphore =  (capacity > 0) ? new Semaphore(capacity, true) : null;
 	}
 
 	/**
-	 * Create a channel with the specified queue capacity.
-	 * Priority will be based upon the value of {@link MessageHeader#getPriority()}.
+	 * Create a channel with the specified queue capacity. Message priority
+	 * will be based upon the value of {@link MessageHeader#getPriority()}.
 	 */
 	public PriorityChannel(int capacity) {
-		this(capacity, new MessagePriorityComparator());
+		this(capacity, null);
 	}
 
 	/**
-	 * Create a channel with the default queue capacity of {@link Integer#MAX_VALUE}.
-	 * Priority will be determined by the provided {@link Comparator}.
+	 * Create a channel with an unbounded queue. Message priority will be
+	 * determined by the provided {@link Comparator}. If the comparator
+	 * is <code>null</code>, the priority will be based upon the value of
+	 * {@link MessageHeader#getPriority()}.
 	 */
 	public PriorityChannel(Comparator<Message<?>> comparator) {
-		this(DEFAULT_MAX_CAPACITY, comparator);
+		this(0, comparator);
 	}
 
 	/**
-	 * Create a channel with the default queue capacity of {@link Integer#MAX_VALUE}.
-	 * Priority will be based on the value of {@link MessageHeader#getPriority()}.
+	 * Create a channel with an unbounded queue. Message priority will be
+	 * based on the value of {@link MessageHeader#getPriority()}.
 	 */
 	public PriorityChannel() {
-		this(DEFAULT_MAX_CAPACITY, new MessagePriorityComparator());
+		this(0, null);
 	}
 
 
 	@Override
 	protected boolean doSend(Message<?> message, long timeout) {
-		try {
-			if (!this.semaphore.tryAcquire(timeout, TimeUnit.MILLISECONDS)) {
-				return false;
-			}
-		}
-		catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
+		if (!acquirePermitIfNecessary(timeout)) {
 			return false;
 		}
 		return super.doSend(message, 0);
@@ -90,10 +87,29 @@ public class PriorityChannel extends QueueChannel {
 	protected Message<?> doReceive(long timeout) {
 		Message<?> message = super.doReceive(timeout);
 		if (message != null) {
-			this.semaphore.release();
+			this.releasePermitIfNecessary();
 			return message;
 		}
 		return null;
+	}
+
+	private boolean acquirePermitIfNecessary(long timeoutInMilliseconds) {
+		if (this.semaphore != null) {
+			try {
+				return this.semaphore.tryAcquire(timeoutInMilliseconds, TimeUnit.MILLISECONDS);
+			}
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private void releasePermitIfNecessary() {
+		if (this.semaphore != null) {
+			this.semaphore.release();
+		}
 	}
 
 
