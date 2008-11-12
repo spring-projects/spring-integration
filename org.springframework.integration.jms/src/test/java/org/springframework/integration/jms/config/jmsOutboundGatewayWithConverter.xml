@@ -15,9 +15,9 @@
 	</si:channel>
 
 	<jms:outbound-gateway id="jmsGateway"
-	                     jms-queue="testQueue"
-	                     request-channel="requestChannel"
-	                     message-converter="converter"/>
+	                      request-destination="requestQueue"
+	                      request-channel="requestChannel"
+	                      message-converter="converter"/>
 
 
 
@@ -29,7 +29,7 @@
 		</constructor-arg>
 	</bean>
 
-	<bean id="testQueue" class="org.springframework.integration.jms.StubQueue"/>
+	<bean id="requestQueue" class="org.springframework.integration.jms.StubQueue"/>
 	
 	<bean id="converter" class="org.springframework.integration.jms.StubMessageConverter" />
 

@@ -18,12 +18,17 @@ package org.springframework.integration.jms;
 
 import java.io.Serializable;
 
+import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
+import javax.jms.Destination;
 import javax.jms.JMSException;
-import javax.jms.Queue;
-import javax.jms.QueueRequestor;
-import javax.jms.QueueSession;
+import javax.jms.MessageConsumer;
+import javax.jms.MessageProducer;
+import javax.jms.QueueConnection;
+import javax.jms.QueueConnectionFactory;
 import javax.jms.Session;
+import javax.jms.TemporaryQueue;
+import javax.jms.TemporaryTopic;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.core.Message;
@@ -31,8 +36,9 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ReplyMessageHolder;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.core.SessionCallback;
+import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.jms.connection.ConnectionFactoryUtils;
+import org.springframework.jms.support.JmsUtils;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.util.Assert;
@@ -41,56 +47,172 @@ import org.springframework.util.Assert;
  * An outbound Messaging Gateway for request/reply JMS.
  * 
  * @author Mark Fisher
+ * @author Arjen Poutsma
+ * @author Juergen Hoeller
  */
 public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler implements InitializingBean {
 
-	private volatile Queue jmsQueue;
+	private volatile Destination requestDestination;
+
+	private volatile Destination replyDestination;
+
+	private volatile long receiveTimeout = 5000;
+
+	private volatile int deliveryMode = javax.jms.Message.DEFAULT_DELIVERY_MODE;
+
+	private volatile long timeToLive = javax.jms.Message.DEFAULT_TIME_TO_LIVE;
+
+	private volatile int priority = javax.jms.Message.DEFAULT_PRIORITY;
+
+	private ConnectionFactory connectionFactory;
 
 	private volatile MessageConverter messageConverter = new HeaderMappingMessageConverter(new SimpleMessageConverter());
 
-	private final JmsTemplate jmsTemplate = new JmsTemplate();
 
+	public void setRequestDestination(Destination requestDestination) {
+		this.requestDestination = requestDestination;
+	}
 
-	public void setJmsQueue(Queue jmsQueue) {
-		this.jmsQueue = jmsQueue;
+	public void setReplyDestination(Destination replyDestination) {
+		this.replyDestination = replyDestination;
 	}
 
 	public void setConnectionFactory(ConnectionFactory connectionFactory) {
-		this.jmsTemplate.setConnectionFactory(connectionFactory);
+		this.connectionFactory = connectionFactory;
 	}
 
-	public void setReplyChannel(MessageChannel replyChannel) {
-		this.setOutputChannel(replyChannel);
+	public void setDeliveryMode(int deliveryMode) {
+		this.deliveryMode = deliveryMode;
+	}
+
+	public void setPriority(int priority) {
+		this.priority = priority;
+	}
+
+	public void setTimeToLive(long timeToLive) {
+		this.timeToLive = timeToLive;
 	}
 
 	public void setMessageConverter(MessageConverter messageConverter) {
 		Assert.notNull(messageConverter, "'messageConverter' must not be null");
 		this.messageConverter = messageConverter;
 	}
-	
+
+	public void setReplyChannel(MessageChannel replyChannel) {
+		this.setOutputChannel(replyChannel);
+	}
+
 	public void afterPropertiesSet() {
-		this.jmsTemplate.afterPropertiesSet();
-		Assert.notNull(this.jmsQueue, "jmsQueue must not be null");
+		Assert.notNull(this.connectionFactory, "connectionFactory must not be null");
+		Assert.notNull(this.requestDestination, "requestDestination must not be null");
 	}
 
 	@Override
 	protected void handleRequestMessage(final Message<?> message, final ReplyMessageHolder replyMessageHolder) {
 		final Message<?> requestMessage = MessageBuilder.fromMessage(message).build();
-		this.jmsTemplate.execute(new SessionCallback() {
-			public Object doInJms(Session session) throws JMSException {
-				Assert.state(session instanceof QueueSession,
-						"QueueSession is required for the outbound JMS Gateway");
-				javax.jms.Message jmsRequest = (messageConverter != null)
-						? messageConverter.toMessage(requestMessage, session)
-						: session.createObjectMessage((Serializable) requestMessage);
-				QueueRequestor requestor = new QueueRequestor((QueueSession) session, jmsQueue);
-				javax.jms.Message jmsReply = requestor.request(jmsRequest);
-				Object result = (messageConverter != null)
-						? messageConverter.fromMessage(jmsReply) : jmsReply;
-				replyMessageHolder.set(result);
-				return null;
+		try {
+			javax.jms.Message jmsReply = JmsOutboundGateway.this.sendAndReceive(requestMessage);
+			Object result = (messageConverter != null) ? messageConverter.fromMessage(jmsReply) : jmsReply;
+			replyMessageHolder.set(result);
+		}
+		catch (JMSException e) {
+			throw new MessageHandlingException(requestMessage, e);
+		}
+	}
+
+	private javax.jms.Message sendAndReceive(Message<?> requestMessage) throws JMSException {
+		Connection connection = createConnection();
+		Session session = null;
+		MessageProducer messageProducer = null;
+		MessageConsumer messageConsumer = null;
+		Destination replyTo = null;
+		try {
+			session = createSession(connection);
+			javax.jms.Message jmsRequest = (messageConverter != null)
+					? messageConverter.toMessage(requestMessage, session)
+					: session.createObjectMessage((Serializable) requestMessage);
+			messageProducer = session.createProducer(this.requestDestination);
+			messageProducer.setDeliveryMode(this.deliveryMode);
+			messageProducer.setPriority(this.priority);
+			messageProducer.setTimeToLive(this.timeToLive);
+			replyTo = (this.replyDestination != null)
+					? this.replyDestination : session.createTemporaryQueue();
+			jmsRequest.setJMSReplyTo(replyTo);
+			connection.start();
+			messageProducer.send(jmsRequest);
+			if (replyTo instanceof TemporaryQueue || replyTo instanceof TemporaryTopic) {
+				messageConsumer = session.createConsumer(replyTo);
 			}
-		}, true);
+			else {
+				String messageId = jmsRequest.getJMSMessageID().replaceAll("'", "''");
+				String messageSelector = "JMSCorrelationID = '" + messageId + "'";
+				messageConsumer = session.createConsumer(replyTo, messageSelector);
+			}
+			return (this.receiveTimeout >= 0) ? messageConsumer.receive(receiveTimeout) : messageConsumer.receive();
+		}
+		finally {
+			JmsUtils.closeMessageProducer(messageProducer);
+			JmsUtils.closeMessageConsumer(messageConsumer);
+			JmsUtils.closeSession(session);
+			this.deleteDestinationIfTemporary(replyTo);
+			ConnectionFactoryUtils.releaseConnection(connection, this.connectionFactory, true);
+		}
+	}
+
+	/**
+	 * Deletes either a {@link TemporaryQueue} or {@link TemporaryTopic}.
+	 * Ignores any other {@link Destination} type and also ignores any
+	 * {@link JMSException}s that may be thrown when attempting to delete.
+	 */
+	private void deleteDestinationIfTemporary(Destination destination) {
+		try {
+			if (destination instanceof TemporaryQueue) { 
+				((TemporaryQueue) destination).delete();
+			}
+			else if (destination instanceof TemporaryTopic) {
+				((TemporaryTopic) destination).delete();
+			}
+		}
+		catch (JMSException e) {
+			// ignore
+		}
+	}
+
+	/**
+	 * Create a new JMS Connection for this JMS gateway, ideally a
+	 * <code>javax.jms.QueueConnection</code>.
+	 * <p>The default implementation uses the
+	 * <code>javax.jms.QueueConnectionFactory</code> API if available,
+	 * falling back to a standard JMS 1.1 ConnectionFactory otherwise.
+	 * This is necessary for working with generic JMS 1.1 connection pools
+	 * (such as ActiveMQ's <code>org.apache.activemq.pool.PooledConnectionFactory</code>).
+	 */
+	protected Connection createConnection() throws JMSException {
+		ConnectionFactory cf = this.connectionFactory;
+		if (cf instanceof QueueConnectionFactory) {
+			return ((QueueConnectionFactory) cf).createQueueConnection();
+		}
+		else {
+			return cf.createConnection();
+		}
+	}
+
+	/**
+	 * Create a new JMS Session for this JMS gateway, ideally a
+	 * <code>javax.jms.QueueSession</code>.
+	 * <p>The default implementation uses the
+	 * <code>javax.jms.QueueConnection</code> API if available,
+	 * falling back to a standard JMS 1.1 Connection otherwise.
+	 * This is necessary for working with generic JMS 1.1 connection pools
+	 * (such as ActiveMQ's <code>org.apache.activemq.pool.PooledConnectionFactory</code>).
+	 */
+	protected Session createSession(Connection connection) throws JMSException {
+		if (connection instanceof QueueConnection) {
+			return ((QueueConnection) connection).createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
+		}
+		else {
+			return connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+		}
 	}
 
 }

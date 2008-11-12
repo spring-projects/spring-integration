@@ -148,6 +148,9 @@ public class JmsInboundGateway extends SimpleMessagingGateway implements Disposa
 				Message<?> replyMessage = JmsInboundGateway.this.sendAndReceiveMessage(object);
 				if (replyMessage != null) {
 					javax.jms.Message jmsReply = messageConverter.toMessage(replyMessage, session);
+					if (jmsReply.getJMSCorrelationID() == null) {
+						jmsReply.setJMSCorrelationID(jmsMessage.getJMSMessageID());
+					}
 					MessageProducer producer = session.createProducer(jmsMessage.getJMSReplyTo());
 					producer.send(jmsMessage.getJMSReplyTo(), jmsReply);
 				}
