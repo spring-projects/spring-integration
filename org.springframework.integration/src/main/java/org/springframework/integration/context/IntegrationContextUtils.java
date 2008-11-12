@@ -19,7 +19,6 @@ package org.springframework.integration.context;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
@@ -62,7 +61,7 @@ public abstract class IntegrationContextUtils {
 		return (T) bean;
 	}
 
-	public static TaskExecutor createTaskExecutor(int coreSize, int maxSize, int queueCapacity, String threadPrefix) {
+	public static ThreadPoolTaskExecutor createThreadPoolTaskExecutor(int coreSize, int maxSize, int queueCapacity, String threadPrefix) {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 		executor.setCorePoolSize(coreSize);
 		executor.setMaxPoolSize(maxSize);

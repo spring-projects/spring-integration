@@ -57,7 +57,7 @@ public class ApplicationEventMulticasterParser extends AbstractSingleBeanDefinit
 			builder.addPropertyReference("taskExecutor", taskExecutorRef);
 		}
 		else {
-			TaskExecutor taskExecutor = IntegrationContextUtils.createTaskExecutor(1, 10, 0, "event-multicaster-");
+			TaskExecutor taskExecutor = IntegrationContextUtils.createThreadPoolTaskExecutor(1, 10, 0, "event-multicaster-");
 			builder.addPropertyValue("taskExecutor", taskExecutor);
 		}
 		builder.addPropertyValue("collectionClass", CopyOnWriteArraySet.class);

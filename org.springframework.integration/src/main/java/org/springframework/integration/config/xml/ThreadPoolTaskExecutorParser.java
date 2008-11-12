@@ -28,7 +28,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 /**
  * @author Mark Fisher
  */
-public class PoolExecutorParser extends AbstractSimpleBeanDefinitionParser {
+public class ThreadPoolTaskExecutorParser extends AbstractSimpleBeanDefinitionParser {
 
 	private static final String REJECTION_POLICY_ATTRIBUTE = "rejection-policy";
 

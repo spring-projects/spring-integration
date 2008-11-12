@@ -77,7 +77,7 @@ public class IntegrationNamespaceHandler implements NamespaceHandler {
 		}
 		TaskExecutor taskExecutor = null;
 		if (!registry.containsBeanDefinition(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME)) {
-			taskExecutor = IntegrationContextUtils.createTaskExecutor(2, 100, 0, "task-scheduler-");
+			taskExecutor = IntegrationContextUtils.createThreadPoolTaskExecutor(2, 100, 0, "task-scheduler-");
 			BeanDefinitionBuilder schedulerBuilder = BeanDefinitionBuilder.genericBeanDefinition(SimpleTaskScheduler.class);
 			schedulerBuilder.addConstructorArgValue(taskExecutor);
 			BeanDefinitionBuilder errorHandlerBuilder = BeanDefinitionBuilder.genericBeanDefinition(MessagePublishingErrorHandler.class);
@@ -111,7 +111,7 @@ public class IntegrationNamespaceHandler implements NamespaceHandler {
 			registerBeanDefinitionParser("selector-chain", new SelectorChainParser());
 			registerBeanDefinitionParser("annotation-config", new AnnotationConfigParser());
 			registerBeanDefinitionParser("application-event-multicaster", new ApplicationEventMulticasterParser());
-			registerBeanDefinitionParser("thread-pool-task-executor", new PoolExecutorParser());
+			registerBeanDefinitionParser("thread-pool-task-executor", new ThreadPoolTaskExecutorParser());
 		}
 	}
 
