@@ -213,8 +213,8 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 			}
 		}
 		for (String key : keysToRemove) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("removing non-serializable header: " + key);
+			if (logger.isInfoEnabled()) {
+				logger.info("removing non-serializable header: " + key);
 			}
 			this.headers.remove(key);
 		}
