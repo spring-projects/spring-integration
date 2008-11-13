@@ -85,25 +85,43 @@ public class JmsInboundGatewayParserTests {
 				"jmsGatewaysWithExtractPayloadAttributes.xml", this.getClass());
 		JmsInboundGateway gateway = (JmsInboundGateway) context.getBean("defaultGateway");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
-		assertEquals(Boolean.FALSE, accessor.getPropertyValue("extractPayloadForReply"));
+		assertEquals(Boolean.TRUE, accessor.getPropertyValue("extractReplyPayload"));
 	}
 
 	@Test
-	public void testGatewayWithExtractPayloadTrue() {
+	public void testGatewayWithExtractReplyPayloadTrue() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsGatewaysWithExtractPayloadAttributes.xml", this.getClass());
-		JmsInboundGateway gateway = (JmsInboundGateway) context.getBean("gatewayExpectingReply");
+		JmsInboundGateway gateway = (JmsInboundGateway) context.getBean("extractReplyPayloadTrue");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
-		assertEquals(Boolean.TRUE, accessor.getPropertyValue("extractPayloadForReply"));
+		assertEquals(Boolean.TRUE, accessor.getPropertyValue("extractReplyPayload"));
 	}
 
 	@Test
-	public void testGatewayWithExtractPayloadFalse() {
+	public void testGatewayWithExtractReplyPayloadFalse() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsGatewaysWithExtractPayloadAttributes.xml", this.getClass());
-		JmsInboundGateway gateway = (JmsInboundGateway) context.getBean("gatewayNotExpectingReply");
+		JmsInboundGateway gateway = (JmsInboundGateway) context.getBean("extractReplyPayloadFalse");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
-		assertEquals(Boolean.FALSE, accessor.getPropertyValue("extractPayloadForReply"));
+		assertEquals(Boolean.FALSE, accessor.getPropertyValue("extractReplyPayload"));
+	}
+
+	@Test
+	public void testGatewayWithExtractRequestPayloadTrue() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsGatewaysWithExtractPayloadAttributes.xml", this.getClass());
+		JmsInboundGateway gateway = (JmsInboundGateway) context.getBean("extractRequestPayloadTrue");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
+		assertEquals(Boolean.TRUE, accessor.getPropertyValue("extractRequestPayload"));
+	}
+
+	@Test
+	public void testGatewayWithExtractRequestPayloadFalse() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"jmsGatewaysWithExtractPayloadAttributes.xml", this.getClass());
+		JmsInboundGateway gateway = (JmsInboundGateway) context.getBean("extractRequestPayloadFalse");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
+		assertEquals(Boolean.FALSE, accessor.getPropertyValue("extractRequestPayload"));
 	}
 
 	@Test(expected=BeanDefinitionStoreException.class)

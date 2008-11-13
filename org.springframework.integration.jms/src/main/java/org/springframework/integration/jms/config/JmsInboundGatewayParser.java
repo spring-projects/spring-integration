@@ -87,9 +87,10 @@ public class JmsInboundGatewayParser extends AbstractSingleBeanDefinitionParser 
 				builder.addPropertyValue("sessionAcknowledgeMode", acknowledgeMode);
 			}
 		}
-		if ("true".equals(element.getAttribute("extract-payload-for-reply"))) {
-			builder.addPropertyValue("extractPayloadForReply", Boolean.TRUE);
-		}
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "header-mapper");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-request-payload");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-reply-payload");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "transaction-manager");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-channel");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-timeout");

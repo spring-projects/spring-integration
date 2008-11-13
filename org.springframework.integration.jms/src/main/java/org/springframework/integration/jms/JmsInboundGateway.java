@@ -31,7 +31,6 @@ import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.listener.SessionAwareMessageListener;
 import org.springframework.jms.listener.adapter.MessageListenerAdapter;
 import org.springframework.jms.support.converter.MessageConverter;
-import org.springframework.jms.support.converter.SimpleMessageConverter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.Assert;
 
@@ -52,6 +51,12 @@ public class JmsInboundGateway extends SimpleMessagingGateway implements Disposa
 
 	private volatile MessageConverter messageConverter;
 
+	private volatile JmsHeaderMapper headerMapper;
+
+	private volatile boolean extractRequestPayload = true;
+
+	private volatile boolean extractReplyPayload = true;
+
 	private volatile TaskExecutor taskExecutor;
 
 	private volatile PlatformTransactionManager transactionManager;
@@ -67,8 +72,6 @@ public class JmsInboundGateway extends SimpleMessagingGateway implements Disposa
 	private volatile int maxMessagesPerTask = Integer.MIN_VALUE;
 
 	private volatile int idleTaskExecutionLimit = 1;
-
-	private volatile boolean extractPayloadForReply = false;
 
 
 	public void setContainer(AbstractMessageListenerContainer container) {
@@ -87,9 +90,38 @@ public class JmsInboundGateway extends SimpleMessagingGateway implements Disposa
 		this.destinationName = destinationName;
 	}
 
+	/**
+	 * Provide a {@link MessageConverter} implementation to use when
+	 * converting between JMS Messages and Spring Integration Messages.
+	 * If none is provided, a {@link HeaderMappingMessageConverter} will
+	 * be used and the {@link JmsHeaderMapper} instance provided to the
+	 * {@link #setHeaderMapper(JmsHeaderMapper)} method will be included
+	 * in the conversion process.
+	 */
 	public void setMessageConverter(MessageConverter messageConverter) {
-		Assert.notNull(messageConverter, "'messageConverter' must not be null");
 		this.messageConverter = messageConverter;
+	}
+
+	/**
+	 * Provide a {@link JmsHeaderMapper} implementation to use when
+	 * converting between JMS Messages and Spring Integration Messages.
+	 * If none is provided, a {@link DefaultJmsHeaderMapper} will be used.
+	 * 
+	 * <p>This property will be ignored if a {@link MessageConverter} is
+	 * provided to the {@link #setMessageConverter(MessageConverter)} method.
+	 * However, you may provide your own implementation of the delegating
+	 * {@link HeaderMappingMessageConverter} implementation.
+	 */
+	public void setHeaderMapper(JmsHeaderMapper headerMapper) {
+		this.headerMapper = headerMapper;
+	}
+
+	public void setExtractRequestPayload(boolean extractRequestPayload) {
+		this.extractRequestPayload = extractRequestPayload;
+	}
+
+	public void setExtractReplyPayload(boolean extractReplyPayload) {
+		this.extractReplyPayload = extractReplyPayload;
 	}
 
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
@@ -124,21 +156,15 @@ public class JmsInboundGateway extends SimpleMessagingGateway implements Disposa
 		this.idleTaskExecutionLimit = idleTaskExecutionLimit;
 	}
 
-	public void setExtractPayloadForReply(boolean extractPayloadForReply) {
-		this.extractPayloadForReply = extractPayloadForReply;
-	}
-
 
 	private void initialize() {
 		if (this.container == null) {
 			this.container = createDefaultContainer();
 		}
 		if (this.messageConverter == null) {
-			this.messageConverter = new SimpleMessageConverter();
-		}
-		if (!(this.messageConverter instanceof HeaderMappingMessageConverter)) {
-			HeaderMappingMessageConverter hmmc = new HeaderMappingMessageConverter(this.messageConverter);
-			hmmc.setExtractPayload(this.extractPayloadForReply);
+			HeaderMappingMessageConverter hmmc = new HeaderMappingMessageConverter(null, this.headerMapper);
+			hmmc.setExtractRequestPayload(this.extractRequestPayload);
+			hmmc.setExtractReplyPayload(this.extractReplyPayload);
 			this.messageConverter = hmmc;
 		}
 		MessageListenerAdapter listener = new MessageListenerAdapter();

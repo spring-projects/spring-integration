@@ -16,11 +16,9 @@
 
 package org.springframework.integration.jms;
 
-import java.io.Serializable;
 import java.util.Map;
 
 import javax.jms.JMSException;
-import javax.jms.ObjectMessage;
 import javax.jms.Session;
 
 import org.apache.commons.logging.Log;
@@ -31,7 +29,7 @@ import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.jms.support.converter.MessageConversionException;
 import org.springframework.jms.support.converter.MessageConverter;
-import org.springframework.util.Assert;
+import org.springframework.jms.support.converter.SimpleMessageConverter;
 
 /**
  * A {@link MessageConverter} implementation that is capable of delegating to
@@ -57,13 +55,14 @@ public class HeaderMappingMessageConverter implements MessageConverter {
 
 	private final JmsHeaderMapper headerMapper;
 
-	private volatile boolean extractPayload;
+	private volatile boolean extractRequestPayload = true;
+
+	private volatile boolean extractReplyPayload = true;
 
 
 	/**
-	 * Create a HeaderMappingMessageConverter instance that will <em>not</em>
-	 * delegate to another {@link MessageConverter} and will use the default
-	 * implementation of the {@link JmsHeaderMapper} strategy.
+	 * Create a HeaderMappingMessageConverter instance that will rely on the
+	 * default {@link SimpleMessageConverter} and {@link DefaultJmsHeaderMapper}.
 	 */
 	public HeaderMappingMessageConverter() {
 		this(null, null);
@@ -80,34 +79,52 @@ public class HeaderMappingMessageConverter implements MessageConverter {
 
 	/**
 	 * Create a HeaderMappingMessageConverter instance that will delegate to
+	 * the provided {@link JmsHeaderMapper} instance and will use the default
+	 * {@link SimpleMessageConverter} implementation.
+	 */
+	public HeaderMappingMessageConverter(JmsHeaderMapper headerMapper) {
+		this(null, headerMapper);
+	}
+
+	/**
+	 * Create a HeaderMappingMessageConverter instance that will delegate to
 	 * the provided {@link MessageConverter} and {@link JmsHeaderMapper}.
 	 */
 	public HeaderMappingMessageConverter(MessageConverter converter, JmsHeaderMapper headerMapper) {
-		this.converter = converter;
+		this.converter = (converter != null ?  converter : new SimpleMessageConverter());
 		this.headerMapper = (headerMapper != null ? headerMapper : new DefaultJmsHeaderMapper());
 	}
 
+	/**
+	 * Specify whether the inbound JMS Message's payload should be extracted
+	 * during the conversion process. Otherwise, the raw JMS Message itself
+	 * will be the payload of the created Spring Integration Message. The
+	 * HeaderMapper will be applied to the Message regardless of this value.
+	 * 
+	 * <p>The default value is <code>true</code>.
+	 */
+	public void setExtractRequestPayload(boolean extractRequestPayload) {
+		this.extractRequestPayload = extractRequestPayload;
+	}
 
 	/**
-	 * Specify whether the integration Message's payload should be extracted
-	 * prior to conversion. Otherwise, the integration Message itself will be
-	 * passed to the converter.
-	 * 
-	 * <p>If no {@link MessageConverter} is available (the default), the
-	 * integration Message will be sent within a JMS {@link ObjectMessage}.
+	 * Specify whether the outbound integration Message's payload should be
+	 * extracted prior to conversion into a JMS Message. Otherwise, the
+	 * integration Message itself will be passed to the converter.
 	 * 
 	 * <p>Typically, this setting should be determined by the expectations of
 	 * the target system. If the target system is not capable of understanding
-	 * a Spring  Integration Message, then set this to <code>true</code>.
+	 * a Spring Integration Message, then set this to <code>true</code>.
 	 * On the other hand, if the system is not only capable of understanding a
-	 * Spring Integration Message but actually expected to rely upon header
-	 * values, then this must be set to <code>false</code> so that the actual
-	 * Message along with its headers will be passed.
+	 * Spring Integration Message but actually expected to rely upon Spring
+	 * Integration Message Header values, then this must be set to
+	 * <code>false</code> to ensure that the actual Message will be passed
+	 * along with its Serializable headers.
 	 * 
-	 * <p>The default value is <code>false</code>.
+	 * <p>The default value is <code>true</code>.
 	 */
-	public void setExtractPayload(boolean extractPayload) {
-		this.extractPayload = extractPayload;
+	public void setExtractReplyPayload(boolean extractReplyPayload) {
+		this.extractReplyPayload = extractReplyPayload;
 	}
 
 	/**
@@ -115,10 +132,7 @@ public class HeaderMappingMessageConverter implements MessageConverter {
 	 */
 	public Object fromMessage(javax.jms.Message jmsMessage) throws JMSException, MessageConversionException {
 		MessageBuilder<?> builder = null;
-		if (this.converter == null) {
-			builder = MessageBuilder.withPayload(jmsMessage);
-		}
-		else {
+		if (this.extractRequestPayload) {
 			Object conversionResult = this.converter.fromMessage(jmsMessage);
 			if (conversionResult == null) {
 				return null;
@@ -129,6 +143,9 @@ public class HeaderMappingMessageConverter implements MessageConverter {
 			else {
 				builder = MessageBuilder.withPayload(conversionResult);
 			}
+		}
+		else {
+			builder = MessageBuilder.withPayload(jmsMessage);
 		}
 		Map<String, Object> headers = this.headerMapper.toHeaders(jmsMessage);
 		Message<?> message = builder.copyHeadersIfAbsent(headers).build();
@@ -146,17 +163,11 @@ public class HeaderMappingMessageConverter implements MessageConverter {
 		javax.jms.Message jmsMessage = null;
 		if (object instanceof Message) {
 			headers = ((Message<?>) object).getHeaders();
-			if (this.extractPayload) {
+			if (this.extractReplyPayload) {
 				object = ((Message<?>) object).getPayload();
 			}
 		}
-		if (this.converter == null) {
-			Assert.isInstanceOf(Serializable.class, object, "Object must implement Serializable");
-			jmsMessage = session.createObjectMessage((Serializable) object);
-		}
-		else {
-			jmsMessage = this.converter.toMessage(object, session);
-		}
+		jmsMessage = this.converter.toMessage(object, session);
 		if (headers != null) {
 			this.headerMapper.fromHeaders(headers, jmsMessage);
 		}

@@ -18,15 +18,26 @@
 	                     destination="testDestination"
 	                     request-channel="requestChannel"/>
 
-	<jms:inbound-gateway id="gatewayNotExpectingReply"
+	<jms:inbound-gateway id="extractReplyPayloadTrue"
 	                     destination="testDestination"
 	                     request-channel="requestChannel"
-	                     extract-payload-for-reply="false"/>
+	                     extract-reply-payload="true"/>
 
-	<jms:inbound-gateway id="gatewayExpectingReply"
+	<jms:inbound-gateway id="extractReplyPayloadFalse"
 	                     destination="testDestination"
 	                     request-channel="requestChannel"
-	                     extract-payload-for-reply="true"/>
+	                     extract-reply-payload="false"/>
+
+
+	<jms:inbound-gateway id="extractRequestPayloadTrue"
+	                     destination="testDestination"
+	                     request-channel="requestChannel"
+	                     extract-request-payload="true"/>
+
+	<jms:inbound-gateway id="extractRequestPayloadFalse"
+	                     destination="testDestination"
+	                     request-channel="requestChannel"
+	                     extract-request-payload="false"/>
 
 	<bean id="connectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
 		<constructor-arg>
