@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.ws;
+package org.springframework.integration.file;
 
 /**
  * Pre-defined header names to be used when storing or retrieving
- * Web Service properties to/from integration Message Headers.
+ * File-related values to/from integration Message Headers.
  * 
  * @author Mark Fisher
  */
-public abstract class WebServiceHeaders {
+public abstract class FileHeaders {
 
-	public static final String PREFIX = "spring.integration.ws.";
+	public static final String PREFIX = "spring.integration.file.";
 
-	public static final String SOAP_ACTION = PREFIX + "soap-action";
+	public static final String FILENAME = PREFIX + "name";
 
 }

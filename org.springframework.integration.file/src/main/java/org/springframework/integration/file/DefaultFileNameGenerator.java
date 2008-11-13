@@ -32,7 +32,7 @@ import org.springframework.util.StringUtils;
 public class DefaultFileNameGenerator implements FileNameGenerator {
 
 	public String generateFileName(Message<?> message) {
-		String filenameProperty = message.getHeaders().get(FILENAME_PROPERTY_KEY, String.class);
+		String filenameProperty = message.getHeaders().get(FileHeaders.FILENAME, String.class);
 		if (StringUtils.hasText(filenameProperty)) {
 			return filenameProperty;
 		}

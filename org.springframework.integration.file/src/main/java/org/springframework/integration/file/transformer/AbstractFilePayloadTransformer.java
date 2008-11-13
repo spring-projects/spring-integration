@@ -23,7 +23,7 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
-import org.springframework.integration.file.FileNameGenerator;
+import org.springframework.integration.file.FileHeaders;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.transformer.Transformer;
 import org.springframework.util.Assert;
@@ -58,7 +58,7 @@ public abstract class AbstractFilePayloadTransformer<T> implements Transformer {
 	        T result = this.transformFile(file);
 	        Message<?> transformedMessage = MessageBuilder.withPayload(result)
 	        		.copyHeaders(message.getHeaders())
-	        		.setHeaderIfAbsent(FileNameGenerator.FILENAME_PROPERTY_KEY, file.getName())
+	        		.setHeaderIfAbsent(FileHeaders.FILENAME, file.getName())
 	        		.build();
 			if (this.deleteFiles) {
 				if (!file.delete() && this.logger.isWarnEnabled()) {

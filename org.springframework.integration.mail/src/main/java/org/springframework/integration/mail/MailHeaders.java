@@ -22,7 +22,7 @@ package org.springframework.integration.mail;
  * 
  * @author Mark Fisher
  */
-public class MailHeaders {
+public abstract class MailHeaders {
 
 	public static final String PREFIX = "spring.integration.mail.";
 
