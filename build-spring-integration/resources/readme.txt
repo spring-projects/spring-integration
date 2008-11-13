@@ -1,9 +1,9 @@
-SPRING INTEGRATION 1.0.0.RC1 (Nov 03, 2008)
+SPRING INTEGRATION 1.0.0.RC2 (Nov 14, 2008)
 -------------------------------------------
 
-This is the first release candidate for Spring Integration 1.0
+This is the second release candidate for Spring Integration 1.0
 
-To find out what has changed since Milestone 6, see 'changelog.txt'
+To find out what has changed since RC1, see 'changelog.txt'
 
 Please consult the documentation located within the 'docs/reference' directory of this
 release  and also visit the official Spring Integration home at:
