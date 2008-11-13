@@ -44,7 +44,7 @@ import org.springframework.integration.annotation.Router;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.annotation.Transformer;
-import org.springframework.integration.endpoint.MessageEndpoint;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -104,7 +104,7 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 					MethodAnnotationPostProcessor postProcessor = postProcessors.get(annotation.annotationType());
 					if (postProcessor != null && shouldCreateEndpoint(annotation)) {
 						Object result = postProcessor.postProcess(bean, beanName, method, annotation);
-						if (result != null && result instanceof MessageEndpoint) {
+						if (result != null && result instanceof AbstractEndpoint) {
 							String endpointBeanName = generateBeanName(beanName, method, annotation.annotationType());
 							if (result instanceof BeanNameAware) {
 								((BeanNameAware) result).setBeanName(endpointBeanName);

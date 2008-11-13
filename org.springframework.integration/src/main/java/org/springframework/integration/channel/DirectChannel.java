@@ -17,11 +17,10 @@
 package org.springframework.integration.channel;
 
 import org.springframework.integration.dispatcher.SimpleDispatcher;
-import org.springframework.integration.endpoint.MessageEndpoint;
 
 /**
- * A channel that invokes the subscribed {@link MessageEndpoint endpoint(s)}
- * in the sender's thread (returning after at most one accepts the message).
+ * A channel that invokes a single subscriber for each sent Message.
+ * The invocation will occur in the sender's thread.
  * 
  * @author Dave Syer
  * @author Mark Fisher

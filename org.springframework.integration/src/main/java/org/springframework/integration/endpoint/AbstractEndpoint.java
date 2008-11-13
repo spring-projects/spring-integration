@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractEndpoint extends LifecycleSupport implements MessageEndpoint, BeanNameAware, BeanFactoryAware {
+public abstract class AbstractEndpoint extends LifecycleSupport implements BeanNameAware, BeanFactoryAware {
 
 	private volatile String beanName;
 

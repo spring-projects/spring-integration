@@ -32,10 +32,10 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.endpoint.MessageEndpoint;
+import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
-import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.MethodInvokingMessageHandler;
 import org.springframework.integration.message.MethodInvokingMessageSource;
 import org.springframework.integration.scheduling.IntervalTrigger;
@@ -64,7 +64,7 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 
 	public Object postProcess(Object bean, String beanName, Method method, ChannelAdapter annotation) {
 		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
-		MessageEndpoint endpoint = null;
+		AbstractEndpoint endpoint = null;
 		MessageChannel channel = this.resolveOrCreateChannel(annotation.value());
 		Poller pollerAnnotation = AnnotationUtils.findAnnotation(method, Poller.class);
 		if (method.getParameterTypes().length == 0 && hasReturnValue(method)) {
@@ -125,7 +125,7 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 		return adapter;
 	}
 
-	private MessageEndpoint createOutboundChannelAdapter(MessageChannel channel, MethodInvokingMessageHandler handler, Poller pollerAnnotation) {
+	private AbstractEndpoint createOutboundChannelAdapter(MessageChannel channel, MethodInvokingMessageHandler handler, Poller pollerAnnotation) {
 		if (channel instanceof PollableChannel) {
 			Trigger trigger = (pollerAnnotation != null)
 					? AnnotationConfigUtils.parseTriggerFromPollerAnnotation(pollerAnnotation)

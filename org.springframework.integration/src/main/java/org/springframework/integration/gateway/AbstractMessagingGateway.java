@@ -24,7 +24,6 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.endpoint.MessageEndpoint;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
@@ -52,7 +51,7 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint implemen
 
 	private volatile boolean shouldThrowErrors = true;
 
-	private volatile MessageEndpoint replyMessageCorrelator;
+	private volatile AbstractEndpoint replyMessageCorrelator;
 
 	private final Object replyMessageCorrelatorMonitor = new Object();
 
@@ -165,7 +164,7 @@ public abstract class AbstractMessagingGateway extends AbstractEndpoint implemen
 			if (this.replyMessageCorrelator != null) {
 				return;
 			}
-			MessageEndpoint correlator = null;
+			AbstractEndpoint correlator = null;
 			MessageHandler handler = new AbstractReplyProducingMessageHandler() {
 				@Override
 				protected void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {

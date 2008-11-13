@@ -42,6 +42,7 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandler;
@@ -68,7 +69,7 @@ public class MessagingAnnotationPostProcessorTests {
 		postProcessor.postProcessAfterInitialization(bean, "testBean");
 		assertTrue(context.containsBean("testBean.test.serviceActivator"));
 		Object endpoint = context.getBean("testBean.test.serviceActivator");
-		assertTrue(endpoint instanceof org.springframework.integration.endpoint.MessageEndpoint);
+		assertTrue(endpoint instanceof AbstractEndpoint);
 	}
 
 	@Test

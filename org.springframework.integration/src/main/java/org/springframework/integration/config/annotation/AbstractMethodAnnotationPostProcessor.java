@@ -29,7 +29,7 @@ import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.core.MessageChannel;
-import org.springframework.integration.endpoint.MessageEndpoint;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.MessageHandler;
@@ -61,7 +61,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 	public Object postProcess(Object bean, String beanName, Method method, T annotation) {
 		MessageHandler handler = this.createHandler(bean, method, annotation);
 		Poller pollerAnnotation = AnnotationUtils.findAnnotation(method, Poller.class);
-		MessageEndpoint endpoint = this.createEndpoint(handler, annotation, pollerAnnotation);
+		AbstractEndpoint endpoint = this.createEndpoint(handler, annotation, pollerAnnotation);
 		if (endpoint != null) {
 			return endpoint;
 		}
@@ -72,8 +72,8 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return (StringUtils.hasText((String) AnnotationUtils.getValue(annotation, INPUT_CHANNEL_ATTRIBUTE)));
 	}
 
-	private MessageEndpoint createEndpoint(MessageHandler handler, T annotation, Poller pollerAnnotation) {
-		MessageEndpoint endpoint = null;
+	private AbstractEndpoint createEndpoint(MessageHandler handler, T annotation, Poller pollerAnnotation) {
+		AbstractEndpoint endpoint = null;
 		String inputChannelName = (String) AnnotationUtils.getValue(annotation, INPUT_CHANNEL_ATTRIBUTE);
 		if (StringUtils.hasText(inputChannelName)) {
 			MessageChannel inputChannel = this.channelResolver.resolveChannelName(inputChannelName);
