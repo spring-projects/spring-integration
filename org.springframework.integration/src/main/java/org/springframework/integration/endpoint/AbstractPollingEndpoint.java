@@ -26,8 +26,12 @@ import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.integration.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.channel.MessagePublishingErrorHandler;
+import org.springframework.integration.executor.ErrorHandlingTaskExecutor;
 import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.scheduling.Trigger;
+import org.springframework.integration.util.ErrorHandler;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
@@ -66,6 +70,8 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	private volatile Runnable poller;
 
 	private volatile boolean initialized;
+	
+	private volatile ErrorHandler errorHandler;
 
 	private final Object initializationMonitor = new Object();
 
@@ -89,6 +95,10 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
 		this.taskExecutor = taskExecutor;
+	}
+	
+	public void setErrorHandler(ErrorHandler errorHandler){
+		this.errorHandler = errorHandler;
 	}
 
 	/**
@@ -138,6 +148,14 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 						this.transactionManager, this.transactionDefinition);
 			}
 			this.poller = this.createPoller();
+			if(this.taskExecutor != null){
+				if(this.errorHandler == null){
+					taskExecutor = new ErrorHandlingTaskExecutor(
+							new MessagePublishingErrorHandler(new BeanFactoryChannelResolver(getBeanFactory())),taskExecutor);
+				} else {
+					taskExecutor = new ErrorHandlingTaskExecutor(errorHandler, taskExecutor);
+				}
+			}
 			this.initialized = true;
 		}
 	}
