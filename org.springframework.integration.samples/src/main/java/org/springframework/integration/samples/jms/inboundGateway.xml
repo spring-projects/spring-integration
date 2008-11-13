@@ -17,7 +17,7 @@
 
 	<context:component-scan base-package="org.springframework.integration.samples.jms"/>
 
-	<jms:inbound-gateway id="jmsin" destination="demoQueue" request-channel="demoChannel"/>
+	<jms:inbound-gateway id="jmsin" destination="requestQueue" request-channel="demoChannel"/>
 
 	<channel id="demoChannel"/>
 

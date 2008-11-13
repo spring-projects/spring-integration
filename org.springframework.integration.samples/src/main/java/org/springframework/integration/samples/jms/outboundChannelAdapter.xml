@@ -17,6 +17,6 @@
 
 	<channel id="stdinToJmsoutChannel"/>
 
-	<jms:outbound-channel-adapter id="jmsout" channel="stdinToJmsoutChannel" destination="demoQueue"/>
+	<jms:outbound-channel-adapter id="jmsout" channel="stdinToJmsoutChannel" destination="requestQueue"/>
 
 </beans:beans>

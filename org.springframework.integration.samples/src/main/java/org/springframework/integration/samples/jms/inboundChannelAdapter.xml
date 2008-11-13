@@ -13,7 +13,7 @@
 			http://www.springframework.org/schema/integration/stream
 			http://www.springframework.org/schema/integration/stream/spring-integration-stream-1.0.xsd">
 
-	<jms:inbound-channel-adapter id="jmsin" destination="demoQueue" channel="jmsinToStdoutChannel"/>
+	<jms:inbound-channel-adapter id="jmsin" destination="requestQueue" channel="jmsinToStdoutChannel"/>
 
 	<channel id="jmsinToStdoutChannel"/>
 

@@ -19,7 +19,9 @@
 
 	<channel id="stdinToJmsoutChannel"/>
 
-	<jms:outbound-gateway request-channel="stdinToJmsoutChannel" jms-queue="demoQueue" reply-channel="jmsReplyToStdoutChannel"/>
+	<jms:outbound-gateway request-channel="stdinToJmsoutChannel"
+						  request-destination="requestQueue"
+						  reply-channel="jmsReplyToStdoutChannel"/>
 
 	<channel id="jmsReplyToStdoutChannel"/>
 
