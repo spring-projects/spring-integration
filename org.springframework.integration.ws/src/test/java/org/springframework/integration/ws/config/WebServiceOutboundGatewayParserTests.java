@@ -23,9 +23,9 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.endpoint.MessageEndpoint;
-import org.springframework.integration.endpoint.PollingConsumer;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.ws.MarshallingWebServiceOutboundGateway;
 import org.springframework.integration.ws.SimpleWebServiceOutboundGateway;
@@ -46,7 +46,7 @@ public class WebServiceOutboundGatewayParserTests {
 	public void simpleGatewayWithDefaultSourceExtractor() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
-		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithDefaultSourceExtractor");
+		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithDefaultSourceExtractor");
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
@@ -58,7 +58,7 @@ public class WebServiceOutboundGatewayParserTests {
 	public void simpleGatewayWithCustomSourceExtractor() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
-		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithCustomSourceExtractor");
+		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithCustomSourceExtractor");
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
@@ -71,7 +71,7 @@ public class WebServiceOutboundGatewayParserTests {
 	public void simpleGatewayWithCustomRequestCallback() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
-		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithCustomRequestCallback");
+		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithCustomRequestCallback");
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
@@ -84,7 +84,7 @@ public class WebServiceOutboundGatewayParserTests {
 	public void simpleGatewayWithCustomMessageFactory() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
-		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithCustomMessageFactory");
+		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithCustomMessageFactory");
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
@@ -98,7 +98,7 @@ public class WebServiceOutboundGatewayParserTests {
 	public void simpleGatewayWithCustomSourceExtractorAndMessageFactory() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
-		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithCustomSourceExtractorAndMessageFactory");
+		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithCustomSourceExtractorAndMessageFactory");
 		SourceExtractor sourceExtractor = (SourceExtractor) context.getBean("sourceExtractor");
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
@@ -114,7 +114,7 @@ public class WebServiceOutboundGatewayParserTests {
 	public void simpleGatewayWithCustomFaultMessageResolver() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
-		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithCustomFaultMessageResolver");
+		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithCustomFaultMessageResolver");
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
@@ -129,7 +129,7 @@ public class WebServiceOutboundGatewayParserTests {
 	public void simpleGatewayWithCustomMessageSender() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
-		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithCustomMessageSender");
+		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithCustomMessageSender");
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
@@ -142,7 +142,7 @@ public class WebServiceOutboundGatewayParserTests {
 	public void simpleGatewayWithCustomMessageSenderList() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
-		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithCustomMessageSenderList");
+		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithCustomMessageSenderList");
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(SimpleWebServiceOutboundGateway.class, gateway.getClass());
@@ -158,7 +158,7 @@ public class WebServiceOutboundGatewayParserTests {
 	public void simpleGatewayWithPoller() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"simpleWebServiceOutboundGatewayParserTests.xml", this.getClass());
-		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithPoller");
+		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithPoller");
 		assertEquals(PollingConsumer.class, endpoint.getClass());
 		Object obj = new DirectFieldAccessor(endpoint).getPropertyValue("trigger");
 		assertEquals(IntervalTrigger.class, obj.getClass());
@@ -173,7 +173,7 @@ public class WebServiceOutboundGatewayParserTests {
 	public void marshallingGatewayWithAllInOneMarshaller() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"marshallingWebServiceOutboundGatewayParserTests.xml", this.getClass());
-		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithAllInOneMarshaller");
+		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithAllInOneMarshaller");
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(MarshallingWebServiceOutboundGateway.class, gateway.getClass());
@@ -189,7 +189,7 @@ public class WebServiceOutboundGatewayParserTests {
 	public void marshallingGatewayWithSeparateMarshallerAndUnmarshaller() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"marshallingWebServiceOutboundGatewayParserTests.xml", this.getClass());
-		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithSeparateMarshallerAndUnmarshaller");
+		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithSeparateMarshallerAndUnmarshaller");
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(MarshallingWebServiceOutboundGateway.class, gateway.getClass());
@@ -206,7 +206,7 @@ public class WebServiceOutboundGatewayParserTests {
 	public void marshallingGatewayWithCustomRequestCallback() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"marshallingWebServiceOutboundGatewayParserTests.xml", this.getClass());
-		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithCustomRequestCallback");
+		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithCustomRequestCallback");
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(MarshallingWebServiceOutboundGateway.class, gateway.getClass());
@@ -219,7 +219,7 @@ public class WebServiceOutboundGatewayParserTests {
 	public void marshallingGatewayWithAllInOneMarshallerAndMessageFactory() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"marshallingWebServiceOutboundGatewayParserTests.xml", this.getClass());
-		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithAllInOneMarshallerAndMessageFactory");
+		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithAllInOneMarshallerAndMessageFactory");
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(MarshallingWebServiceOutboundGateway.class, gateway.getClass());
@@ -237,7 +237,7 @@ public class WebServiceOutboundGatewayParserTests {
 	public void marshallingGatewayWithSeparateMarshallerAndUnmarshallerAndMessageFactory() {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
 				"marshallingWebServiceOutboundGatewayParserTests.xml", this.getClass());
-		MessageEndpoint endpoint = (MessageEndpoint) context.getBean("gatewayWithSeparateMarshallerAndUnmarshallerAndMessageFactory");
+		AbstractEndpoint endpoint = (AbstractEndpoint) context.getBean("gatewayWithSeparateMarshallerAndUnmarshallerAndMessageFactory");
 		assertEquals(EventDrivenConsumer.class, endpoint.getClass());
 		Object gateway = new DirectFieldAccessor(endpoint).getPropertyValue("handler");
 		assertEquals(MarshallingWebServiceOutboundGateway.class, gateway.getClass());
