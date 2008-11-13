@@ -112,6 +112,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractSingleBeanD
 			}
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, pollerElement, "task-executor");
 		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		this.postProcess(element, parserContext, builder);
 	}
 

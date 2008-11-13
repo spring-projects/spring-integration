@@ -34,6 +34,7 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.scheduling.Trigger;
+import org.springframework.integration.util.LifecycleSupport.AutoStartMode;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.util.Assert;
@@ -54,6 +55,8 @@ public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAwar
 	private volatile int maxMessagesPerPoll;
 
 	private volatile long receiveTimeout = 1000;
+
+	private volatile boolean autoStartup = true;
 
 	private volatile TaskExecutor taskExecutor;
 
@@ -90,6 +93,10 @@ public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAwar
 
 	public void setReceiveTimeout(long receiveTimeout) {
 		this.receiveTimeout = receiveTimeout;
+	}
+
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
 	}
 
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
@@ -168,6 +175,9 @@ public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAwar
 			else {
 				throw new IllegalArgumentException(
 						"unsupported channel type: [" + channel.getClass() + "]");
+			}
+			if (!this.autoStartup) {
+				this.endpoint.setAutoStartMode(AutoStartMode.NONE);
 			}
 			this.endpoint.setBeanName(this.beanName);
 			this.endpoint.setBeanFactory(this.beanFactory);
