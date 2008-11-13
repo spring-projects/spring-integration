@@ -29,7 +29,6 @@ import org.springframework.integration.gateway.SimpleMessagingGateway;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.listener.SessionAwareMessageListener;
-import org.springframework.jms.listener.adapter.MessageListenerAdapter;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.Assert;
@@ -167,23 +166,7 @@ public class JmsInboundGateway extends SimpleMessagingGateway implements Disposa
 			hmmc.setExtractReplyPayload(this.extractReplyPayload);
 			this.messageConverter = hmmc;
 		}
-		MessageListenerAdapter listener = new MessageListenerAdapter();
-		listener.setDelegate(new SessionAwareMessageListener() {
-			public void onMessage(javax.jms.Message jmsMessage, Session session) throws JMSException {
-				Object object = messageConverter.fromMessage(jmsMessage);
-				Message<?> replyMessage = JmsInboundGateway.this.sendAndReceiveMessage(object);
-				if (replyMessage != null) {
-					javax.jms.Message jmsReply = messageConverter.toMessage(replyMessage, session);
-					if (jmsReply.getJMSCorrelationID() == null) {
-						jmsReply.setJMSCorrelationID(jmsMessage.getJMSMessageID());
-					}
-					MessageProducer producer = session.createProducer(jmsMessage.getJMSReplyTo());
-					producer.send(jmsMessage.getJMSReplyTo(), jmsReply);
-				}
-			}
-		});
-		listener.setMessageConverter(this.messageConverter);
-		this.container.setMessageListener(listener);
+		this.container.setMessageListener(new GatewayInvokingMessageListener());
 		if (!this.container.isActive()) {
 			this.container.afterPropertiesSet();
 		}
@@ -238,6 +221,23 @@ public class JmsInboundGateway extends SimpleMessagingGateway implements Disposa
 	public void destroy() {
 		if (this.container != null) {
 			this.container.destroy();
+		}
+	}
+
+
+	private class GatewayInvokingMessageListener implements SessionAwareMessageListener {
+
+		public void onMessage(javax.jms.Message jmsMessage, Session session) throws JMSException {
+			Object object = messageConverter.fromMessage(jmsMessage);
+			Message<?> replyMessage = JmsInboundGateway.this.sendAndReceiveMessage(object);
+			if (replyMessage != null) {
+				javax.jms.Message jmsReply = messageConverter.toMessage(replyMessage, session);
+				if (jmsReply.getJMSCorrelationID() == null) {
+					jmsReply.setJMSCorrelationID(jmsMessage.getJMSMessageID());
+				}
+				MessageProducer producer = session.createProducer(jmsMessage.getJMSReplyTo());
+				producer.send(jmsMessage.getJMSReplyTo(), jmsReply);
+			}
 		}
 	}
 
