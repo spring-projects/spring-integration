@@ -162,8 +162,8 @@ public class JmsInboundGateway extends SimpleMessagingGateway implements Disposa
 		}
 		if (this.messageConverter == null) {
 			HeaderMappingMessageConverter hmmc = new HeaderMappingMessageConverter(null, this.headerMapper);
-			hmmc.setExtractRequestPayload(this.extractRequestPayload);
-			hmmc.setExtractReplyPayload(this.extractReplyPayload);
+			hmmc.setExtractJmsMessageBody(this.extractRequestPayload);
+			hmmc.setExtractIntegrationMessagePayload(this.extractReplyPayload);
 			this.messageConverter = hmmc;
 		}
 		this.container.setMessageListener(new GatewayInvokingMessageListener());

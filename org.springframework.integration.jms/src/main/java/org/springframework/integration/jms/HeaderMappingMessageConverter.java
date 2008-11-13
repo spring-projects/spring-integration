@@ -34,16 +34,21 @@ import org.springframework.jms.support.converter.SimpleMessageConverter;
 /**
  * A {@link MessageConverter} implementation that is capable of delegating to
  * an existing converter instance and an existing {@link JmsHeaderMapper}. The
- * default header mapper implementation is {@link DefaultJmsHeaderMapper}.
- * No MessageConverter will be created by default. Unless a converter is
- * provided, each inbound JMS Message will become the payload of an integration
- * Message, and each outbound integration Message will become the body of a JMS
- * Message.
+ * default MessageConverter implementation is {@link SimpleMessageConverter},
+ * and the default header mapper implementation is {@link DefaultJmsHeaderMapper}.
  * 
- * <p>Even without specifying a converter, it is possible to have the
- * integration Message payload Object passed instead. Simply set the
- * {@link #setExtractPayload(boolean) extractPayload} property to
- * <code>true</code>.
+ * <p>If 'extractJmsMessageBody' is <code>true</code> (the default), the body
+ * of each received JMS Message will become the payload of a Spring Integration
+ * Message. Otherwise, the JMS Message itself will be the payload of the Spring
+ * Integration Message.
+ * 
+ * <p>If 'extractIntegrationMessagePayload' is <code>true</code> (the default),
+ * the payload of each outbound Spring Integration Message will be passed to
+ * the MessageConverter to produce the body of the JMS Message. Otherwise, the
+ * Spring Integration Message itself will become the body of the JMS Message.
+ * 
+ * <p>The {@link JmsHeaderMapper} will be applied regardless of the values
+ * specified for Message extraction.
  * 
  * @author Mark Fisher
  */
@@ -55,9 +60,9 @@ public class HeaderMappingMessageConverter implements MessageConverter {
 
 	private final JmsHeaderMapper headerMapper;
 
-	private volatile boolean extractRequestPayload = true;
+	private volatile boolean extractJmsMessageBody = true;
 
-	private volatile boolean extractReplyPayload = true;
+	private volatile boolean extractIntegrationMessagePayload = true;
 
 
 	/**
@@ -96,15 +101,15 @@ public class HeaderMappingMessageConverter implements MessageConverter {
 	}
 
 	/**
-	 * Specify whether the inbound JMS Message's payload should be extracted
+	 * Specify whether the inbound JMS Message's body should be extracted
 	 * during the conversion process. Otherwise, the raw JMS Message itself
 	 * will be the payload of the created Spring Integration Message. The
 	 * HeaderMapper will be applied to the Message regardless of this value.
 	 * 
 	 * <p>The default value is <code>true</code>.
 	 */
-	public void setExtractRequestPayload(boolean extractRequestPayload) {
-		this.extractRequestPayload = extractRequestPayload;
+	public void setExtractJmsMessageBody(boolean extractJmsMessageBody) {
+		this.extractJmsMessageBody = extractJmsMessageBody;
 	}
 
 	/**
@@ -123,8 +128,8 @@ public class HeaderMappingMessageConverter implements MessageConverter {
 	 * 
 	 * <p>The default value is <code>true</code>.
 	 */
-	public void setExtractReplyPayload(boolean extractReplyPayload) {
-		this.extractReplyPayload = extractReplyPayload;
+	public void setExtractIntegrationMessagePayload(boolean extractIntegrationMessagePayload) {
+		this.extractIntegrationMessagePayload = extractIntegrationMessagePayload;
 	}
 
 	/**
@@ -132,7 +137,7 @@ public class HeaderMappingMessageConverter implements MessageConverter {
 	 */
 	public Object fromMessage(javax.jms.Message jmsMessage) throws JMSException, MessageConversionException {
 		MessageBuilder<?> builder = null;
-		if (this.extractRequestPayload) {
+		if (this.extractJmsMessageBody) {
 			Object conversionResult = this.converter.fromMessage(jmsMessage);
 			if (conversionResult == null) {
 				return null;
@@ -163,7 +168,7 @@ public class HeaderMappingMessageConverter implements MessageConverter {
 		javax.jms.Message jmsMessage = null;
 		if (object instanceof Message) {
 			headers = ((Message<?>) object).getHeaders();
-			if (this.extractReplyPayload) {
+			if (this.extractIntegrationMessagePayload) {
 				object = ((Message<?>) object).getPayload();
 			}
 		}

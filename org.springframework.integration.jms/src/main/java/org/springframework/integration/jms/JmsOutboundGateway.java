@@ -16,8 +16,6 @@
 
 package org.springframework.integration.jms;
 
-import java.io.Serializable;
-
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
@@ -66,7 +64,17 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 	private ConnectionFactory connectionFactory;
 
-	private volatile MessageConverter messageConverter = new HeaderMappingMessageConverter(new SimpleMessageConverter());
+	private volatile MessageConverter messageConverter;
+
+	private volatile JmsHeaderMapper headerMapper;
+
+	private volatile boolean extractRequestPayload = true;
+
+	private volatile boolean extractReplyPayload = true;
+
+	private volatile boolean initialized;
+
+	private final Object initializationMonitor = new Object();
 
 
 	/**
@@ -138,6 +146,27 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	/**
+	 * Provide a {@link JmsHeaderMapper} implementation for mapping the
+	 * Spring Integration Message Headers to/from JMS Message properties.
+	 * 
+	 * <p>This property will be ignored if a {@link MessageConverter} is
+	 * provided to the {@link #setMessageConverter(MessageConverter)} method.
+	 * However, you may provide your own implementation of the delegating
+	 * {@link HeaderMappingMessageConverter} implementation.
+	 */
+	public void setHeaderMapper(JmsHeaderMapper headerMapper) {
+		this.headerMapper = headerMapper;
+	}
+
+	public void setExtractRequestPayload(boolean extractRequestPayload) {
+		this.extractRequestPayload = extractRequestPayload;
+	}
+
+	public void setExtractReplyPayload(boolean extractReplyPayload) {
+		this.extractReplyPayload = extractReplyPayload;
+	}
+
+	/**
 	 * Specify the Spring Integration reply channel. If this property is not
 	 * set the gateway will check for a 'replyChannel' header on the request.
 	 */
@@ -146,16 +175,31 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	public void afterPropertiesSet() {
-		Assert.notNull(this.connectionFactory, "connectionFactory must not be null");
-		Assert.notNull(this.requestDestination, "requestDestination must not be null");
+		synchronized (this.initializationMonitor) {
+			if (this.initialized) {
+				return;
+			}
+			Assert.notNull(this.connectionFactory, "connectionFactory must not be null");
+			Assert.notNull(this.requestDestination, "requestDestination must not be null");
+			if (this.messageConverter == null) {
+				HeaderMappingMessageConverter hmmc = new HeaderMappingMessageConverter(null, this.headerMapper);
+				hmmc.setExtractIntegrationMessagePayload(this.extractRequestPayload);
+				hmmc.setExtractJmsMessageBody(this.extractReplyPayload);
+				this.messageConverter = hmmc;
+			}
+			this.initialized = true;
+		}
 	}
 
 	@Override
 	protected void handleRequestMessage(final Message<?> message, final ReplyMessageHolder replyMessageHolder) {
+		if (!this.initialized) {
+			this.afterPropertiesSet();
+		}
 		final Message<?> requestMessage = MessageBuilder.fromMessage(message).build();
 		try {
 			javax.jms.Message jmsReply = JmsOutboundGateway.this.sendAndReceive(requestMessage);
-			Object result = (messageConverter != null) ? messageConverter.fromMessage(jmsReply) : jmsReply;
+			Object result = this.messageConverter.fromMessage(jmsReply);
 			replyMessageHolder.set(result);
 		}
 		catch (JMSException e) {
@@ -171,9 +215,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		Destination replyTo = null;
 		try {
 			session = createSession(connection);
-			javax.jms.Message jmsRequest = (messageConverter != null)
-					? messageConverter.toMessage(requestMessage, session)
-					: session.createObjectMessage((Serializable) requestMessage);
+			javax.jms.Message jmsRequest = this.messageConverter.toMessage(requestMessage, session);
 			messageProducer = session.createProducer(this.requestDestination);
 			messageProducer.setDeliveryMode(this.deliveryMode);
 			messageProducer.setPriority(this.priority);

@@ -81,6 +81,9 @@
 			<xsd:attribute name="reply-destination" type="xsd:string"/>
 			<xsd:attribute name="connection-factory" type="xsd:string" default="connectionFactory"/>
 			<xsd:attribute name="message-converter" type="xsd:string"/>
+			<xsd:attribute name="header-mapper" type="xsd:string"/>
+			<xsd:attribute name="extract-request-payload" type="xsd:string" default="true"/>
+			<xsd:attribute name="extract-reply-payload" type="xsd:string" default="true"/>
 			<xsd:attribute name="receive-timeout" type="xsd:string"/>
 			<xsd:attribute name="delivery-mode" type="xsd:string"/>
 			<xsd:attribute name="time-to-live" type="xsd:string"/>
