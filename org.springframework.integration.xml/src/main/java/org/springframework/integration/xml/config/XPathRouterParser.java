@@ -52,12 +52,16 @@ public class XPathRouterParser extends AbstractConsumerEndpointParser {
 
 		boolean multiChannel = Boolean.parseBoolean(element.getAttribute("multi-channel"));
 		String xPathExpressionRef = element.getAttribute("xpath-expression-ref");
+		String channelResolver = element.getAttribute("channel-resolver");
+		String resolutionRequired = element.getAttribute("resolution-required");
+		
 		NodeList xPathExpressionNodes = element.getElementsByTagNameNS(
 				element.getNamespaceURI(), "xpath-expression");
 		Assert.isTrue(xPathExpressionNodes.getLength() < 2,
 				"Only one xpath-expression child can be specified.");
 		boolean xPathExpressionChildPresent = (xPathExpressionNodes.getLength() == 1);
 		boolean xPathReferencePresent = StringUtils.hasText(xPathExpressionRef);
+		
 		Assert.isTrue(xPathExpressionChildPresent ^ xPathReferencePresent,
 				"Exactly one of 'xpath-expression' or 'xpath-expression-ref' is required.");
 		if (multiChannel) {
@@ -74,6 +78,16 @@ public class XPathRouterParser extends AbstractConsumerEndpointParser {
 		else { 
 			builder.addConstructorArgReference(xPathExpressionRef);
 		}
+		
+		if(StringUtils.hasText(resolutionRequired)){
+			builder.addPropertyValue("resolutionRequired", Boolean.parseBoolean(resolutionRequired));
+		}
+		
+		if(StringUtils.hasText(channelResolver)){
+			builder.addPropertyReference("channelResolver", channelResolver);
+		}
+		
+		
 		return builder;
 	}
 

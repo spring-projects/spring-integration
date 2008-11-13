@@ -18,10 +18,9 @@ package org.springframework.integration.xml.config;
 
 import static org.junit.Assert.assertEquals;
 
-import org.w3c.dom.Document;
 import org.junit.After;
 import org.junit.Test;
-
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -32,6 +31,7 @@ import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.test.context.ContextConfiguration;
+import org.w3c.dom.Document;
 
 /**
  * @author Jonas Partner
@@ -114,5 +114,50 @@ public class XPathRouterParserTests {
 		inputChannel.send(docMessage);
 		assertEquals("Wrong number of messages", 1, outputChannel.getMesssageCount());
 	}
-
+	
+	@Test
+	public void testSetChannelResolver() throws Exception {
+		Document doc = XmlTestUtil.getDocumentForString("<name>outputOne</name>");
+		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
+		StringBuffer contextBuffer = new StringBuffer("<si-xml:xpath-router id='router' channel-resolver='stubResolver' input-channel='test-input'><si-xml:xpath-expression expression='/name'/></si-xml:xpath-router>");
+		contextBuffer.append("<bean id='stubResolver' class='").append(StubChannelResolver.class.getName()).append("'/>");
+		EventDrivenConsumer consumer = buildContext(contextBuffer.toString());
+		
+		DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
+		Object handler = accessor.getPropertyValue("handler");
+		accessor = new DirectFieldAccessor(handler);
+		Object resolver = accessor.getPropertyValue("channelResolver");
+		assertEquals("Wrong channel resolver ",StubChannelResolver.class, resolver.getClass());
+		
+	}
+	
+	@Test
+	public void testSetResolutionRequiredFalse() throws Exception {
+		Document doc = XmlTestUtil.getDocumentForString("<name>outputOne</name>");
+		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
+		StringBuffer contextBuffer = new StringBuffer("<si-xml:xpath-router id='router' resolution-required='false' input-channel='test-input'><si-xml:xpath-expression expression='/name'/></si-xml:xpath-router>");
+		EventDrivenConsumer consumer = buildContext(contextBuffer.toString());
+		
+		DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
+		Object handler = accessor.getPropertyValue("handler");
+		accessor = new DirectFieldAccessor(handler);
+		Object resolutionRequired = accessor.getPropertyValue("resolutionRequired");
+		assertEquals("Resolution required not set to false ", false, resolutionRequired);
+		
+	}
+	
+	@Test
+	public void testSetResolutionRequiredTrue() throws Exception {
+		Document doc = XmlTestUtil.getDocumentForString("<name>outputOne</name>");
+		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
+		StringBuffer contextBuffer = new StringBuffer("<si-xml:xpath-router id='router' resolution-required='true' input-channel='test-input'><si-xml:xpath-expression expression='/name'/></si-xml:xpath-router>");
+		EventDrivenConsumer consumer = buildContext(contextBuffer.toString());
+		
+		DirectFieldAccessor accessor = new DirectFieldAccessor(consumer);
+		Object handler = accessor.getPropertyValue("handler");
+		accessor = new DirectFieldAccessor(handler);
+		Object resolutionRequired = accessor.getPropertyValue("resolutionRequired");
+		assertEquals("Resolution required not set to true ", true, resolutionRequired);
+	}
+	
 }

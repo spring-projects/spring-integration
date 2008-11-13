@@ -99,6 +99,8 @@
 			<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
 			<xsd:attribute name="xpath-expression-ref" type="xsd:string" use="optional"/>
 			<xsd:attribute name="multi-channel" type="xsd:string" default="false"/>
+			<xsd:attribute name="channel-resolver" type="xsd:string" use="optional"/>
+			<xsd:attribute name="resolution-required" type="xsd:boolean" use="optional" />
 		</xsd:complexType>
 	</xsd:element>
 

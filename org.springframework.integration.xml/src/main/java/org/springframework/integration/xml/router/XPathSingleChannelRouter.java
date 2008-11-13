@@ -76,12 +76,10 @@ public class XPathSingleChannelRouter extends AbstractXPathRouter  {
 	public String[] determineTargetChannelNames(Message<?> message) {
 		Node node = getConverter().convertToNode(message.getPayload());
 		String result = getXPathExpression().evaluateAsString(node);
-		if ("".equals(result)) {
-			throw new MessagingException(message,"XPath expression must not be empty");
-		}
-		if (result == null) {
+		if (result == null || "".equals(result)) {
 			return null;
 		}
+		
 		return new String[] { result };
 	}
 

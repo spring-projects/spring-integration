@@ -19,15 +19,14 @@ package org.springframework.integration.xml.router;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.xml.xpath.XPathExpression;
 import org.springframework.xml.xpath.XPathExpressionFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 
 /**
  * @author Jonas Partner
@@ -62,16 +61,18 @@ public class XPathSingleChannelRouterTests {
 	public void testNodePayload() throws Exception {
 		XPathSingleChannelRouter router = new XPathSingleChannelRouter("./three/text()");
 		Document testDocument = XmlTestUtil.getDocumentForString("<one><two><three>bob</three></two></one>");
-		String[] channelNames = router.determineTargetChannelNames(new GenericMessage<Node>(
-				testDocument.getElementsByTagName("two").item(0)));
+		String[] channelNames = router.determineTargetChannelNames(new GenericMessage<Node>(testDocument
+				.getElementsByTagName("two").item(0)));
 		assertEquals("bob", channelNames[0]);
 	}
 
-	@Test(expected=MessagingException.class)
+	@Test
 	public void testEvaluationReturnsEmptyString() throws Exception {
-		XPathSingleChannelRouter router = new XPathSingleChannelRouter("/yellow");
-		Document testDocument = XmlTestUtil.getDocumentForString("<one><two><three>bob</three></two></one>");
-		router.determineTargetChannelNames(new GenericMessage<Node>(testDocument));
+		Document doc = XmlTestUtil.getDocumentForString("<doc type='one' />");
+		XPathExpression expression = XPathExpressionFactory.createXPathExpression("/somethingelse/@type");
+		XPathSingleChannelRouter router = new XPathSingleChannelRouter(expression);
+		Object channelNames = router.determineTargetChannelNames(new GenericMessage<Document>(doc));
+		assertEquals("Wrong channel name", null, channelNames);
 	}
 
 }
