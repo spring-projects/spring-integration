@@ -18,6 +18,11 @@ package org.springframework.integration.executor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.util.ErrorHandler;
 
+/**
+ * 
+ * @author Jonas Partner
+ *
+ */
 public class ErrorHandlingTaskExecutor implements TaskExecutor {
 
 
