@@ -23,6 +23,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractPollingInboundChannelAdapterParser;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jms.JmsDestinationPollingSource;
 import org.springframework.util.StringUtils;
 
@@ -77,6 +78,7 @@ public class JmsInboundChannelAdapterParser extends AbstractPollingInboundChanne
 		if (StringUtils.hasText(headerMapper)) {
 			builder.addPropertyReference(JmsAdapterParserUtils.HEADER_MAPPER_PROPERTY, headerMapper);
 		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
 	}
 

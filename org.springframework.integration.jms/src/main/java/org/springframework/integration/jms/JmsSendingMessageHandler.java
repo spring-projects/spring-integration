@@ -18,6 +18,8 @@ package org.springframework.integration.jms;
 
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandler;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.support.converter.MessageConverter;
 
 /**
  * A MessageConsumer that sends the converted Message payload within
@@ -27,11 +29,36 @@ import org.springframework.integration.message.MessageHandler;
  */
 public class JmsSendingMessageHandler extends AbstractJmsTemplateBasedAdapter implements MessageHandler {
 
+	private volatile boolean extractPayload = true;
+
+
+	/**
+	 * Specify whether the payload should be extracted from each Spring
+	 * Integration Message to be converted to the body of a JMS Message.
+	 * 
+	 * <p>The default value is <code>true</code>. To force creation of JMS
+	 * Messages whose body is the actual Spring Integration Message instance,
+	 * set this to <code>false</code>.
+	 */
+	public void setExtractPayload(boolean extractPayload) {
+		this.extractPayload = extractPayload;
+	}
+
 	public final void handleMessage(final Message<?> message) {
 		if (message == null) {
 			throw new IllegalArgumentException("message must not be null");
 		}
 		this.getJmsTemplate().convertAndSend(message);
+	}
+
+	@Override
+	protected void configureMessageConverter(JmsTemplate jmsTemplate, JmsHeaderMapper headerMapper) {
+		MessageConverter converter = jmsTemplate.getMessageConverter();
+		if (converter == null || !(converter instanceof HeaderMappingMessageConverter)) {
+			HeaderMappingMessageConverter hmmc = new HeaderMappingMessageConverter(converter, headerMapper);
+			hmmc.setExtractIntegrationMessagePayload(this.extractPayload);
+			jmsTemplate.setMessageConverter(hmmc);
+		}
 	}
 
 }

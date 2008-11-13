@@ -23,6 +23,7 @@ import org.springframework.integration.core.Message;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageSource;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.support.converter.MessageConverter;
 
 /**
  * A source for receiving JMS Messages with a polling listener. This source is
@@ -33,6 +34,9 @@ import org.springframework.jms.core.JmsTemplate;
  * @author Mark Fisher
  */
 public class JmsDestinationPollingSource extends AbstractJmsTemplateBasedAdapter implements MessageSource<Object> {
+
+	private volatile boolean extractPayload = true;
+
 
 	public JmsDestinationPollingSource(JmsTemplate jmsTemplate) {
 		super(jmsTemplate);
@@ -47,6 +51,18 @@ public class JmsDestinationPollingSource extends AbstractJmsTemplateBasedAdapter
 	}
 
 
+	/**
+	 * Specify whether the payload should be extracted from each received JMS
+	 * Message to be used as the Spring Integration Message payload.
+	 * 
+	 * <p>The default value is <code>true</code>. To force creation of Spring
+	 * Integration Messages whose payload is the actual JMS Message, set this
+	 * to <code>false</code>.
+	 */
+	public void setExtractPayload(boolean extractPayload) {
+		this.extractPayload = extractPayload;
+	}
+
 	public Message<Object> receive() {
 		Object receivedObject = this.getJmsTemplate().receiveAndConvert();
 		if (receivedObject == null) {
@@ -56,6 +72,16 @@ public class JmsDestinationPollingSource extends AbstractJmsTemplateBasedAdapter
 			return (Message<Object>) receivedObject;
 		}
 		return new GenericMessage<Object>(receivedObject);
+	}
+
+	@Override
+	protected void configureMessageConverter(JmsTemplate jmsTemplate, JmsHeaderMapper headerMapper) {
+		MessageConverter converter = jmsTemplate.getMessageConverter();
+		if (converter == null || !(converter instanceof HeaderMappingMessageConverter)) {
+			HeaderMappingMessageConverter hmmc = new HeaderMappingMessageConverter(converter, headerMapper);
+			hmmc.setExtractJmsMessageBody(this.extractPayload);
+			jmsTemplate.setMessageConverter(hmmc);
+		}
 	}
 
 }

@@ -21,7 +21,6 @@ import javax.jms.Destination;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.util.Assert;
 
 /**
@@ -109,10 +108,7 @@ public abstract class AbstractJmsTemplateBasedAdapter implements InitializingBea
 						+ " 'destination' (or 'destination-name') are required.");
 				this.jmsTemplate = this.createDefaultJmsTemplate();
 			}
-			MessageConverter converter = this.jmsTemplate.getMessageConverter();
-			converter = (converter != null && converter instanceof HeaderMappingMessageConverter) ?
-					converter : new HeaderMappingMessageConverter(converter, this.headerMapper);
-			this.jmsTemplate.setMessageConverter(converter);
+			this.configureMessageConverter(this.jmsTemplate, this.headerMapper);
 			this.initialized = true;
 		}
 	}
@@ -128,5 +124,7 @@ public abstract class AbstractJmsTemplateBasedAdapter implements InitializingBea
 		}
 		return jmsTemplate;
 	}
+
+	protected abstract void configureMessageConverter(JmsTemplate jmsTemplate, JmsHeaderMapper headerMapper);
 
 }

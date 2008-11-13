@@ -23,6 +23,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractOutboundChannelAdapterParser;
+import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jms.JmsSendingMessageHandler;
 import org.springframework.util.StringUtils;
 
@@ -66,6 +67,7 @@ public class JmsOutboundChannelAdapterParser extends AbstractOutboundChannelAdap
 		if (StringUtils.hasText(headerMapper)) {
 			builder.addPropertyReference(JmsAdapterParserUtils.HEADER_MAPPER_PROPERTY, headerMapper);
 		}
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
 		return builder.getBeanDefinition();
 	}
 
