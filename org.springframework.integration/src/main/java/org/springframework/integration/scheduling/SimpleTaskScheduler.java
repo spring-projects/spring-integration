@@ -26,6 +26,7 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -33,25 +34,37 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.MessagePublishingErrorHandler;
 import org.springframework.integration.util.ErrorHandler;
-import org.springframework.integration.util.LifecycleSupport;
 import org.springframework.scheduling.SchedulingException;
 import org.springframework.util.Assert;
 
 /**
- * An implementation of {@link TaskScheduler} that delegates to a {@link TaskExecutor}.
- *
+ * An implementation of {@link TaskScheduler} that delegates to any instance
+ * of {@link TaskExecutor}.
+ * 
+ * <p>This class implements Lifecycle and provides an {@link #autoStartup}
+ * property. If <code>true</code>, the scheduler will start automatically upon
+ * receiving the {@link ContextRefreshedEvent}. Otherwise, it will require an
+ * explicit invocation of its {@link #start()} method. The default value is
+ * <code>true</code>. To require explicit startup, provide a value of
+ * <code>false</code> to the {@link #setAutoStartup(boolean)} method.
+ * 
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public class SimpleTaskScheduler extends LifecycleSupport implements TaskScheduler, BeanFactoryAware, DisposableBean {
+public class SimpleTaskScheduler implements TaskScheduler, BeanFactoryAware, ApplicationListener, DisposableBean {
 
 	private final Log logger = LogFactory.getLog(this.getClass());
 
 	private final TaskExecutor executor;
+
+	private volatile boolean autoStartup = true;
 
 	private volatile ErrorHandler errorHandler;
 
@@ -61,13 +74,20 @@ public class SimpleTaskScheduler extends LifecycleSupport implements TaskSchedul
 
 	private final Set<TriggeredTask<?>> executingTasks = Collections.synchronizedSet(new TreeSet<TriggeredTask<?>>());
 
+	private volatile boolean running;
+
+	private final ReentrantLock lifecycleLock = new ReentrantLock();
+
 
 	public SimpleTaskScheduler(TaskExecutor executor) {
 		Assert.notNull(executor, "executor must not be null");
 		this.executor = executor;
-		this.setAutoStartMode(AutoStartMode.ON_CONTEXT_REFRESH);
 	}
 
+
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
+	}
 
 	public void setErrorHandler(ErrorHandler errorHandler) {
 		this.errorHandler = errorHandler;
@@ -95,28 +115,66 @@ public class SimpleTaskScheduler extends LifecycleSupport implements TaskSchedul
 	}
 
 
-	// LifecycleSupport implementation
+	// Lifecycle implementation
 
-	@Override // guarded by super#lifecycleLock
-	protected void doStart() {
-		this.executor.execute(this.schedulerTask = new SchedulerTask());
+	public final boolean isRunning() {
+		this.lifecycleLock.lock();
+		try {
+			return this.running;
+		}
+		finally {
+			this.lifecycleLock.unlock();
+		}
 	}
 
-	@Override // guarded by super#lifecycleLock
-	protected void doStop() {
-		this.schedulerTask.deactivate();
-		Thread executingThread = this.schedulerTask.executingThread.get();
-		if (executingThread != null) {
-			executingThread.interrupt();
-		}
-		this.scheduledTasks.clear();			
-		synchronized (this.executingTasks) {
-			for (TriggeredTask<?> task : this.executingTasks) {
-				task.cancel(true);
+	public final void start() {
+		this.lifecycleLock.lock();
+		try {
+			if (!this.running) {
+				this.executor.execute(this.schedulerTask = new SchedulerTask());
+				this.running = true;
+				if (logger.isInfoEnabled()) {
+					logger.info("started " + this);
+				}
 			}
-			this.executingTasks.clear();
 		}
-		this.schedulerTask = null;
+		finally {
+			this.lifecycleLock.unlock();
+		}
+	}
+
+	public final void stop() {
+		this.lifecycleLock.lock();
+		try {
+			if (this.running) {
+				this.schedulerTask.deactivate();
+				Thread executingThread = this.schedulerTask.executingThread.get();
+				if (executingThread != null) {
+					executingThread.interrupt();
+				}
+				this.scheduledTasks.clear();
+				synchronized (this.executingTasks) {
+					for (TriggeredTask<?> task : this.executingTasks) {
+						task.cancel(true);
+					}
+					this.executingTasks.clear();
+				}
+				this.schedulerTask = null;
+				this.running = false;
+				if (logger.isInfoEnabled()) {
+					logger.info("stopped " + this);
+				}
+			}
+		}
+		finally {
+			this.lifecycleLock.unlock();
+		}
+	}
+
+	public final void onApplicationEvent(ApplicationEvent event) {
+		if (event instanceof ContextRefreshedEvent && this.autoStartup) {
+			this.start();
+		}
 	}
 
 	public void destroy() throws Exception {

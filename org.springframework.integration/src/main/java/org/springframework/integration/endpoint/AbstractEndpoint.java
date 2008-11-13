@@ -16,66 +16,112 @@
 
 package org.springframework.integration.endpoint;
 
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.integration.channel.BeanFactoryChannelResolver;
-import org.springframework.integration.channel.ChannelResolver;
-import org.springframework.integration.context.IntegrationContextUtils;
+import java.util.concurrent.locks.ReentrantLock;
+
+import org.springframework.beans.factory.BeanInitializationException;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.Lifecycle;
+import org.springframework.integration.context.IntegrationObjectSupport;
 import org.springframework.integration.scheduling.TaskScheduler;
-import org.springframework.integration.util.LifecycleSupport;
-import org.springframework.util.Assert;
 
 /**
  * The base class for Message Endpoint implementations.
  * 
+ * <p>This class implements Lifecycle and provides an {@link #autoStartup}
+ * property. If <code>true</code>, the endpoint will start automatically upon
+ * initialization. Otherwise, it will require an explicit invocation of its
+ * {@link #start()} method. The default value is <code>true</code>.
+ * To require explicit startup, provide a value of <code>false</code>
+ * to the {@link #setAutoStartup(boolean)} method.
+ * 
  * @author Mark Fisher
  */
-public abstract class AbstractEndpoint extends LifecycleSupport implements BeanNameAware, BeanFactoryAware {
+public abstract class AbstractEndpoint extends IntegrationObjectSupport implements Lifecycle, InitializingBean {
 
-	private volatile String beanName;
+	private volatile boolean autoStartup = true;
 
-	private volatile BeanFactory beanFactory;
+	private volatile boolean running;
 
-	private volatile ChannelResolver channelResolver;
-
-	private volatile TaskScheduler taskScheduler;
+	private final ReentrantLock lifecycleLock = new ReentrantLock();
 
 
-	public void setBeanName(String beanName) {
-		this.beanName = beanName;
-	}
-
-	public final void setBeanFactory(BeanFactory beanFactory) {
-		Assert.notNull(beanFactory, "beanFactory must not be null");
-		this.beanFactory = beanFactory;
-		this.channelResolver = new BeanFactoryChannelResolver(beanFactory);
-		TaskScheduler taskScheduler = IntegrationContextUtils.getTaskScheduler(beanFactory);
-		if (taskScheduler != null) {
-			this.setTaskScheduler(taskScheduler);
-		}
-	}
-
-	protected BeanFactory getBeanFactory() {
-		return this.beanFactory;
+	public void setAutoStartup(boolean autoStartup) {
+		this.autoStartup = autoStartup;
 	}
 
 	public void setTaskScheduler(TaskScheduler taskScheduler) {
-		Assert.notNull(taskScheduler, "taskScheduler must not be null");
-		this.taskScheduler = taskScheduler;
+		super.setTaskScheduler(taskScheduler);
 	}
 
-	protected TaskScheduler getTaskScheduler() {
-		return this.taskScheduler;
+	public final void afterPropertiesSet() {
+		try {
+			this.onInit();
+			if (this.autoStartup) {
+				this.start();
+			}
+		}
+		catch (Exception e) {
+			throw new BeanInitializationException("failed to initialize", e);
+		}
 	}
 
-	protected ChannelResolver getChannelResolver() {
-		return this.channelResolver;
+	// Lifecycle implementation
+
+	public final boolean isRunning() {
+		this.lifecycleLock.lock();
+		try {
+			return this.running;
+		}
+		finally {
+			this.lifecycleLock.unlock();
+		}
 	}
 
-	@Override
-	public String toString() {
-		return (this.beanName != null) ? this.beanName : super.toString();
+	public final void start() {
+		this.lifecycleLock.lock();
+		try {
+			if (!this.running) {
+				this.doStart();
+				this.running = true;
+				if (logger.isInfoEnabled()) {
+					logger.info("started " + this);
+				}
+			}
+		}
+		finally {
+			this.lifecycleLock.unlock();
+		}
 	}
+
+	public final void stop() {
+		this.lifecycleLock.lock();
+		try {
+			if (this.running) {
+				this.doStop();
+				this.running = false;
+				if (logger.isInfoEnabled()) {
+					logger.info("stopped " + this);
+				}
+			}
+		}
+		finally {
+			this.lifecycleLock.unlock();
+		}
+	}
+
+	protected void onInit() throws Exception {
+	}
+
+	/**
+	 * Subclasses must implement this method with the start behavior.
+	 * This method will be invoked while holding the {@link #lifecycleLock}.
+	 */
+	protected abstract void doStart();
+
+	/**
+	 * Subclasses must implement this method with the stop behavior.
+	 * This method will be invoked while holding the {@link #lifecycleLock}.
+	 */
+	protected abstract void doStop();
 
 }

@@ -29,12 +29,11 @@ import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
+import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.scheduling.Trigger;
-import org.springframework.integration.util.LifecycleSupport.AutoStartMode;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.util.Assert;
@@ -176,9 +175,7 @@ public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAwar
 				throw new IllegalArgumentException(
 						"unsupported channel type: [" + channel.getClass() + "]");
 			}
-			if (!this.autoStartup) {
-				this.endpoint.setAutoStartMode(AutoStartMode.NONE);
-			}
+			this.endpoint.setAutoStartup(this.autoStartup);
 			this.endpoint.setBeanName(this.beanName);
 			this.endpoint.setBeanFactory(this.beanFactory);
 			if (this.endpoint instanceof InitializingBean) {
@@ -189,7 +186,9 @@ public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAwar
 	}
 
 	public void onApplicationEvent(ApplicationEvent event) {
-		this.endpoint.onApplicationEvent(event);
+		if (this.endpoint instanceof ApplicationListener) {
+			((ApplicationListener) this.endpoint).onApplicationEvent(event);
+		}
 	}
 
 }
