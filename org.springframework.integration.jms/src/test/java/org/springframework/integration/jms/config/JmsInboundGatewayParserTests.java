@@ -26,7 +26,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.jms.JmsInboundGateway;
 import org.springframework.jms.connection.JmsTransactionManager;
@@ -41,9 +41,9 @@ public class JmsInboundGatewayParserTests {
 	public void testGatewayWithConnectionFactoryAndDestination() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsGatewayWithConnectionFactoryAndDestination.xml", this.getClass());
-		QueueChannel channel = new QueueChannel(1);
+		PollableChannel channel = (PollableChannel) context.getBean("requestChannel");
 		JmsInboundGateway gateway = (JmsInboundGateway) context.getBean("jmsGateway");
-		gateway.setRequestChannel(channel);
+		assertEquals(JmsInboundGateway.class, gateway.getClass());
 		context.start();
 		Message<?> message = channel.receive(3000);
 		assertNotNull("message should not be null", message);
@@ -55,9 +55,9 @@ public class JmsInboundGatewayParserTests {
 	public void testGatewayWithConnectionFactoryAndDestinationName() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsGatewayWithConnectionFactoryAndDestinationName.xml", this.getClass());
-		QueueChannel channel = new QueueChannel(1);
+		PollableChannel channel = (PollableChannel) context.getBean("requestChannel");
 		JmsInboundGateway gateway = (JmsInboundGateway) context.getBean("jmsGateway");
-		gateway.setRequestChannel(channel);
+		assertEquals(JmsInboundGateway.class, gateway.getClass());
 		context.start();
 		Message<?> message = channel.receive(3000);
 		assertNotNull("message should not be null", message);
@@ -69,9 +69,9 @@ public class JmsInboundGatewayParserTests {
 	public void testGatewayWithMessageConverter() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsGatewayWithMessageConverter.xml", this.getClass());
-		QueueChannel channel = new QueueChannel(1);
+		PollableChannel channel = (PollableChannel) context.getBean("requestChannel");
 		JmsInboundGateway gateway = (JmsInboundGateway) context.getBean("jmsGateway");
-		gateway.setRequestChannel(channel);
+		assertEquals(JmsInboundGateway.class, gateway.getClass());
 		context.start();
 		Message<?> message = channel.receive(3000);
 		assertNotNull("message should not be null", message);
@@ -132,9 +132,9 @@ public class JmsInboundGatewayParserTests {
 	public void testGatewayWithDefaultConnectionFactory() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"jmsGatewayWithDefaultConnectionFactory.xml", this.getClass());
-		QueueChannel channel = new QueueChannel(1);
+		PollableChannel channel = (PollableChannel) context.getBean("requestChannel");
 		JmsInboundGateway gateway = (JmsInboundGateway) context.getBean("jmsGateway");
-		gateway.setRequestChannel(channel);
+		assertEquals(JmsInboundGateway.class, gateway.getClass());
 		context.start();
 		Message<?> message = channel.receive(3000);
 		assertNotNull("message should not be null", message);

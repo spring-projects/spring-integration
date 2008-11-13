@@ -10,7 +10,9 @@
 			http://www.springframework.org/schema/integration/jms
 			http://www.springframework.org/schema/integration/jms/spring-integration-jms-1.0.xsd">
 
-	<si:channel id="requestChannel"/>
+	<si:channel id="requestChannel">
+		<si:queue/>
+	</si:channel>
 
 	<jms:inbound-gateway id="jmsGateway"
 	                 	 connection-factory="testConnectionFactory"

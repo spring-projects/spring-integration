@@ -57,6 +57,7 @@
 					<xsd:attribute name="max-concurrent-consumers" type="xsd:string"/>
 					<xsd:attribute name="max-messages-per-task" type="xsd:string"/>
 					<xsd:attribute name="idle-task-execution-limit" type="xsd:string"/>
+					<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
