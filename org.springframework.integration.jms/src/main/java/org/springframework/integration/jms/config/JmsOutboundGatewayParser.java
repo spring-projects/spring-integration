@@ -44,6 +44,7 @@ public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-destination");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "receive-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "delivery-mode");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "time-to-live");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "priority");

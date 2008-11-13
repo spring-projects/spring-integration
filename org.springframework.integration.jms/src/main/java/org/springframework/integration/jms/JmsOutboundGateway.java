@@ -69,35 +69,78 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	private volatile MessageConverter messageConverter = new HeaderMappingMessageConverter(new SimpleMessageConverter());
 
 
-	public void setRequestDestination(Destination requestDestination) {
-		this.requestDestination = requestDestination;
-	}
-
-	public void setReplyDestination(Destination replyDestination) {
-		this.replyDestination = replyDestination;
-	}
-
+	/**
+	 * Set the JMS ConnectionFactory that this gateway should use.
+	 * This is a <em>required</em> property.
+	 */
 	public void setConnectionFactory(ConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
 	}
 
+	/**
+	 * Set the JMS Destination to which request Messages should be sent.
+	 * This is a <em>required</em> property.
+	 */
+	public void setRequestDestination(Destination requestDestination) {
+		this.requestDestination = requestDestination;
+	}
+
+	/**
+	 * Set the JMS Destination from which reply Messages should be received.
+	 * If none is provided, this gateway will create a {@link TemporaryQueue} per invocation.
+	 */
+	public void setReplyDestination(Destination replyDestination) {
+		this.replyDestination = replyDestination;
+	}
+
+	/**
+	 * Set the max timeout value for the MessageConsumer's receive call when
+	 * waiting for a reply. The default value is 5 seconds.
+	 */
+	public void setReceiveTimeout(long receiveTimeout) {
+		this.receiveTimeout = receiveTimeout;
+	}
+
+	/**
+	 * Specify the JMS DeliveryMode to use when sending request Messages.
+	 */
 	public void setDeliveryMode(int deliveryMode) {
 		this.deliveryMode = deliveryMode;
 	}
 
+	/**
+	 * Specify the JMS priority to use when sending request Messages.
+	 * The value should be within the range of 0-9.
+	 */
 	public void setPriority(int priority) {
 		this.priority = priority;
 	}
 
+	/**
+	 * Specify the timeToLive for each sent Message.
+	 * The default value indicates no expiration.
+	 */
 	public void setTimeToLive(long timeToLive) {
 		this.timeToLive = timeToLive;
 	}
 
+	/**
+	 * Provide a {@link MessageConverter} strategy to use for converting the
+	 * Spring Integration request Message into a JMS Message and for converting
+	 * the JMS reply Messages back into Spring Integration Messages.
+	 * <p>
+	 * The default is a {@link HeaderMappingMessageConverter} that delegates to
+	 * a {@link SimpleMessageConverter}.
+	 */
 	public void setMessageConverter(MessageConverter messageConverter) {
 		Assert.notNull(messageConverter, "'messageConverter' must not be null");
 		this.messageConverter = messageConverter;
 	}
 
+	/**
+	 * Specify the Spring Integration reply channel. If this property is not
+	 * set the gateway will check for a 'replyChannel' header on the request.
+	 */
 	public void setReplyChannel(MessageChannel replyChannel) {
 		this.setOutputChannel(replyChannel);
 	}
