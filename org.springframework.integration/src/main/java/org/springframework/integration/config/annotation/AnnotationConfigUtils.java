@@ -28,11 +28,8 @@ import org.springframework.integration.endpoint.AbstractPollingEndpoint;
 import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.scheduling.Trigger;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.SpringTransactionAnnotationParser;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.NoRollbackRuleAttribute;
-import org.springframework.transaction.interceptor.RollbackRuleAttribute;
-import org.springframework.transaction.interceptor.RuleBasedTransactionAttribute;
-import org.springframework.transaction.interceptor.TransactionAttribute;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -56,7 +53,8 @@ public abstract class AnnotationConfigUtils {
 					beanFactory.getBean(txManagerRef, PlatformTransactionManager.class);
 			endpoint.setTransactionManager(txManager);
 			Transactional txAnnotation = pollerAnnotation.transactionAttributes();
-			endpoint.setTransactionDefinition(parseTransactionAnnotation(txAnnotation));
+			SpringTransactionAnnotationParser txParser = new SpringTransactionAnnotationParser();
+			endpoint.setTransactionDefinition(txParser.parseTransactionAnnotation(txAnnotation));
 		}
 		if (StringUtils.hasText(pollerAnnotation.taskExecutor())) {
 			String taskExecutorRef = pollerAnnotation.taskExecutor();
@@ -84,41 +82,6 @@ public abstract class AnnotationConfigUtils {
 		trigger.setInitialDelay(pollerAnnotation.initialDelay(), pollerAnnotation.timeUnit());
 		trigger.setFixedRate(pollerAnnotation.fixedRate());
 		return trigger;
-	}
-
-	@SuppressWarnings("unchecked")
-	public static TransactionAttribute parseTransactionAnnotation(Transactional annotation) {
-		if (annotation == null) {
-			return null;
-		}
-		RuleBasedTransactionAttribute rbta = new RuleBasedTransactionAttribute();
-		rbta.setPropagationBehavior(annotation.propagation().value());
-		rbta.setIsolationLevel(annotation.isolation().value());
-		rbta.setTimeout(annotation.timeout());
-		rbta.setReadOnly(annotation.readOnly());
-		ArrayList<RollbackRuleAttribute> rollBackRules = new ArrayList<RollbackRuleAttribute>();
-		Class<?>[] rbf = annotation.rollbackFor();
-		for (int i = 0; i < rbf.length; ++i) {
-			RollbackRuleAttribute rule = new RollbackRuleAttribute(rbf[i]);
-			rollBackRules.add(rule);
-		}
-		String[] rbfc = annotation.rollbackForClassName();
-		for (int i = 0; i < rbfc.length; ++i) {
-			RollbackRuleAttribute rule = new RollbackRuleAttribute(rbfc[i]);
-			rollBackRules.add(rule);
-		}
-		Class<?>[] nrbf = annotation.noRollbackFor();
-		for (int i = 0; i < nrbf.length; ++i) {
-			NoRollbackRuleAttribute rule = new NoRollbackRuleAttribute(nrbf[i]);
-			rollBackRules.add(rule);
-		}
-		String[] nrbfc = annotation.noRollbackForClassName();
-		for (int i = 0; i < nrbfc.length; ++i) {
-			NoRollbackRuleAttribute rule = new NoRollbackRuleAttribute(nrbfc[i]);
-			rollBackRules.add(rule);
-		}
-		rbta.getRollbackRules().addAll(rollBackRules);
-		return rbta;
 	}
 
 }
