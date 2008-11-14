@@ -171,14 +171,15 @@ consumer.setTransactionManager(txManager);</programlisting>
       (the other major factor being the expected volume on the channel to which the endpoint subscribes). To enable
       concurrency for a polling endpoint that is configured with the XML namespace support, provide the 'task-executor'
       reference on its &lt;poller/&gt; element and then provide one or more of the properties shown below:
-      <programlisting language="xml"><![CDATA[<poller task-executor="pool"/>
-    <interval-trigger interval="5" time-unit="SECONDS"/>
-    <thread-pool-task-executor id="pool"
-                               core-size="5"
-                               max-size="25"
-                               queue-capacity="20"
-                               keep-alive-seconds="120"/>
-</poller>]]></programlisting>
+      <programlisting language="xml"><![CDATA[ <poller task-executor="pool"/>
+     <interval-trigger interval="5" time-unit="SECONDS"/>
+ </poller>
+
+ <thread-pool-task-executor id="pool"
+                            core-size="5"
+                            max-size="25"
+                            queue-capacity="20"
+                            keep-alive-seconds="120"/>]]></programlisting>
       If no 'task-executor' is provided, the consumer's handler will be invoked in the caller's thread. Note that the
       "caller" is usually the MessageBus' task scheduler. Also, keep in mind that the 'task-executor' attribute can
       provide a reference to any implementation of Spring's <interfacename>TaskExecutor</interfacename> interface by
