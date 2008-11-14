@@ -43,8 +43,6 @@
             http://www.springframework.org/schema/integration/stream
             http://www.springframework.org/schema/integration/stream/spring-integration-stream-1.0.xsd">
 
-    <message-bus/>
-
     <gateway id="cafe" service-interface="org.springframework.integration.samples.cafe.Cafe"/>
 
     <channel id="orders"/>
@@ -82,9 +80,10 @@
     <beans:bean id="waiter" class="org.springframework.integration.samples.cafe.xml.Waiter"/>
 
 </beans:beans>]]></programlisting>
-      Notice that the Message Bus is defined. It will automatically detect and register all channels and endpoints,
-      and it will manage the Lifecycle for each endpoint. Notice that the objects are simple POJOs with strongly
-      typed method arguments. For example, here is the Splitter.
+      As you can see, each Message Endpoint is connected to input and/or output channels. Each endpoint will manage
+      its own Lifecycle (by default endpoints start automatically upon initialization - to prevent that add the
+      "auto-startup" attribute with a value of "false"). Most importantly, notice that the objects are simple POJOs
+      with strongly typed method arguments. For example, here is the Splitter:
       <programlisting language="java"><![CDATA[public class OrderSplitter {
 
     public List<OrderItem> split(Order order) {
@@ -226,7 +225,7 @@
     <para>
       In addition to experimenting with the poller's concurrency settings, you can also add the 'transactional'
       sub-element. If you want to explore the sample in more detail, the source JAR is available in the "src"
-      directory: 'org.springframework.integration.samples-sources-1.0.0.RC1.jar'.
+      directory: 'org.springframework.integration.samples-sources-1.0.0.RC2.jar'.
     </para>
   </section>
 </appendix>
