@@ -94,18 +94,26 @@
   <section id="namespace-messagebus">
     <title>Configuring the Message Bus</title>
     <para>
-      The Message Bus plays a central role, but its configuration is quite simple since it is primarily concerned
-      with managing internal details based on the configuration of channels and endpoints. The bus is aware of its
-      host application context, and therefore is also capable of auto-detecting the channels and endpoints.
-      The Message Bus can be configured with a single empty element:
-      <programlisting language="xml">&lt;message-bus/&gt;</programlisting>
+      In Spring Integration, the ApplicationContext plays the central role of a Message Bus, and there are only a
+      couple configuration options to be aware of. First, you may want to control the central TaskScheduler instance.
+      You can do so by providing a single bean with the name "taskScheduler". This is also defined as a constant:
+      <programlisting><![CDATA[ IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME ]]></programlisting>
+      By default Spring Integration uses the <classname>SimpleTaskScheduler</classname> implementation. That in turn
+      just delegates to any instance of Spring's <interfacename>TaskExecutor</interfacename> abstraction. Therefore,
+      it's rather trivial to supply your own configuration. The "taskScheduler" bean is then responsible for managing
+      all pollers. The TaskScheduler will startup automatically by default. If you provide your own instance of
+      SimpleTaskScheduler however, you can set the 'autoStartup' property to <emphasis>false</emphasis> instead.
     </para>
     <para>
-      The Message Bus provides default error handling for its components in the form of a configurable error channel,
-      and it will first check for a channel bean named 'errorChannel' within the context:
-      <programlisting language="xml"><![CDATA[<message-bus/>
-
-<channel id="errorChannel" capacity="500"/>]]></programlisting>
+      When the endpoints are concurrency-enabled with their own 'taskExecutor' reference, the invocation of the
+      handling methods will happen within that executor's thread pool and not the main scheduler pool. However,
+      when no task-executor is provided for an endpoint's poller, it will be invoked in the dispatcher's thread
+      (with the exception of subscribable channels where the subscribers will be invoked directly).
+    </para>
+    <para>
+      The Message Bus supports error handling for its components in the form of a configurable error channel,
+      and it will first check for a channel bean named "errorChannel" within the context:
+      <programlisting language="xml"><![CDATA[ <channel id="errorChannel" capacity="500"/>]]></programlisting>
       When exceptions occur in a scheduled poller task's execution, those exceptions will be wrapped in
       <classname>ErrorMessages</classname> and sent to the 'errorChannel' by default. To enable global error
       handling, simply register a handler on that channel. For example, you can configure Spring Integration's
@@ -114,22 +122,6 @@
       <classname>Exception</classname> type. However, since most of the errors will already have been wrapped in
       <classname>MessageDeliveryException</classname> or <classname>MessageHandlingException</classname>,
       the <classname>ErrorMessageExceptionTypeRouter</classname> is typically a better option.
-    </para>
-    <para>
-      The 'message-bus' element accepts several more optional attributes. First, you can control whether the
-      <classname>MessageBus</classname> will be started automatically (the default) or will require explicit startup
-      by invoking its <methodname>start()</methodname> method (<classname>MessageBus</classname> implements
-      Spring's <interfacename>Lifecycle</interfacename> interface):
-      <programlisting language="xml"><![CDATA[<message-bus auto-startup="false"/>]]></programlisting>
-    </para>
-    <para>
-      Another configurable property is the reference to a <interfacename>TaskScheduler</interfacename> implementation.
-      If not provided, a default will be created. The scheduler is responsible for managing the pollers.
-      <programlisting language="xml"><![CDATA[<message-bus task-scheduler="someScheduler"/>]]></programlisting>
-      When the endpoints are concurrency-enabled with their own 'taskExecutor' reference, the invocation of the handling
-      methods will happen within that executor's thread pool and not the main scheduler pool. However, when no
-      task-executor is provided for an endpoint's poller, then it will be invoked in the dispatcher's thread
-      (with the exception of subscribable channels where the subscribers may be invoked directly).
     </para>
   </section>
 
@@ -204,6 +196,22 @@ public class FooService {
       the such an endpoint's output channel will be used if available, and the message header's REPLY_CHANNEL value
       will be the fallback.
 	</para>
+    <para>
+      In addition to the examples shown here, these annotations also support inputChannel and outputChannel properties.
+      <programlisting language="java">public class FooService {
+
+    @ServiceActivator(inputChannel="input", outputChannel="output")
+    public void bar(String payload, @Headers Map&lt;String, Object&gt; headerMap) {
+        ...
+    }
+
+}</programlisting>
+      That provides a pure annotation-driven alternative to the XML configuration. However, it is generally recommended
+      to use XML for the endpoints, since it is easier to keep track of the overall configuration in a single, external
+      location (and besides the XML configuration is not very verbose). If you do prefer to provide channels with the
+      annotations however, you just need to enable a BeanPostProcessor. The following element should be added:
+      <programlisting language="xml"><![CDATA[ <annotation-config/> ]]></programlisting>
+    </para>
   </section>
 
 </appendix>
