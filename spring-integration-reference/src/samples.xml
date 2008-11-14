@@ -219,7 +219,7 @@
     <para>
       Also, notice that the worker thread name is displayed with each invocation. You will see that the hot drinks are
       prepared by the task-executor threads. If you provide a much shorter poller interval (such as 100 milliseconds),
-      then you will notice that occasionally it throttles the input by forcing the message-bus (the caller) to invoke
+      then you will notice that occasionally it throttles the input by forcing the task-scheduler (the caller) to invoke
       the operation.
     </para>
     <para>
