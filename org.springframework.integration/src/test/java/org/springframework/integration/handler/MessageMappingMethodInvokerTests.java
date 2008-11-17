@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration.handler;
 
 import static org.junit.Assert.assertEquals;
 
@@ -28,7 +28,6 @@ import org.springframework.integration.annotation.Header;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessageMappingMethodInvoker;
 import org.springframework.integration.message.StringMessage;
 
 /**

@@ -21,9 +21,9 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.springframework.integration.core.Message;
+import org.springframework.integration.handler.MessageMappingMethodInvoker;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.message.MessageMappingMethodInvoker;
 
 /**
  * @author Mark Fisher

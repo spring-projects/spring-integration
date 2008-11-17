@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.message;
+package org.springframework.integration.handler;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -27,6 +27,9 @@ import org.apache.commons.logging.LogFactory;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.core.Message;
+import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.message.MethodParameterMessageMapper;
+import org.springframework.integration.message.OutboundMessageMapper;
 import org.springframework.integration.util.DefaultMethodInvoker;
 import org.springframework.integration.util.DefaultMethodResolver;
 import org.springframework.integration.util.MethodInvoker;

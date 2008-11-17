@@ -21,7 +21,6 @@ import java.lang.reflect.Method;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.message.MessageHandler;
-import org.springframework.integration.message.MessageMappingMethodInvoker;
 import org.springframework.util.Assert;
 
 /**
