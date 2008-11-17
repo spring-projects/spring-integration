@@ -55,6 +55,7 @@ public class JaxbMarshallingIntegrationTests extends AbstractJUnit4SpringContext
 	PollableChannel unmarshallOut;
 	
 	
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testMarshalling() throws Exception{
 		JaxbAnnotatedPerson person = new JaxbAnnotatedPerson();
@@ -68,6 +69,7 @@ public class JaxbMarshallingIntegrationTests extends AbstractJUnit4SpringContext
 	}
 
 	
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testUnmarshalling() throws Exception{
 		StringSource source = new StringSource("<person><firstname>bob</firstname></person>");

@@ -117,8 +117,6 @@ public class XPathRouterParserTests {
 	
 	@Test
 	public void testSetChannelResolver() throws Exception {
-		Document doc = XmlTestUtil.getDocumentForString("<name>outputOne</name>");
-		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		StringBuffer contextBuffer = new StringBuffer("<si-xml:xpath-router id='router' channel-resolver='stubResolver' input-channel='test-input'><si-xml:xpath-expression expression='/name'/></si-xml:xpath-router>");
 		contextBuffer.append("<bean id='stubResolver' class='").append(StubChannelResolver.class.getName()).append("'/>");
 		EventDrivenConsumer consumer = buildContext(contextBuffer.toString());
@@ -133,8 +131,6 @@ public class XPathRouterParserTests {
 	
 	@Test
 	public void testSetResolutionRequiredFalse() throws Exception {
-		Document doc = XmlTestUtil.getDocumentForString("<name>outputOne</name>");
-		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		StringBuffer contextBuffer = new StringBuffer("<si-xml:xpath-router id='router' resolution-required='false' input-channel='test-input'><si-xml:xpath-expression expression='/name'/></si-xml:xpath-router>");
 		EventDrivenConsumer consumer = buildContext(contextBuffer.toString());
 		
@@ -148,8 +144,6 @@ public class XPathRouterParserTests {
 	
 	@Test
 	public void testSetResolutionRequiredTrue() throws Exception {
-		Document doc = XmlTestUtil.getDocumentForString("<name>outputOne</name>");
-		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
 		StringBuffer contextBuffer = new StringBuffer("<si-xml:xpath-router id='router' resolution-required='true' input-channel='test-input'><si-xml:xpath-expression expression='/name'/></si-xml:xpath-router>");
 		EventDrivenConsumer consumer = buildContext(contextBuffer.toString());
 		
