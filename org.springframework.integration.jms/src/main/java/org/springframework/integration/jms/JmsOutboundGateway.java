@@ -35,6 +35,7 @@ import org.springframework.integration.handler.AbstractReplyProducingMessageHand
 import org.springframework.integration.handler.ReplyMessageHolder;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.message.MessageTimeoutException;
 import org.springframework.jms.connection.ConnectionFactoryUtils;
 import org.springframework.jms.support.JmsUtils;
 import org.springframework.jms.support.converter.MessageConverter;
@@ -199,6 +200,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		final Message<?> requestMessage = MessageBuilder.fromMessage(message).build();
 		try {
 			javax.jms.Message jmsReply = JmsOutboundGateway.this.sendAndReceive(requestMessage);
+			if (jmsReply == null) {
+				throw new MessageTimeoutException(message, "failed to receive JMS response within timeout of: " + this.receiveTimeout + "ms");
+			}
 			Object result = this.messageConverter.fromMessage(jmsReply);
 			replyMessageHolder.set(result);
 		}

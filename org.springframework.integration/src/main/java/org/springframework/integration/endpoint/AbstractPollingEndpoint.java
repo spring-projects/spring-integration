@@ -55,6 +55,8 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 
 	private volatile TaskExecutor taskExecutor;
 
+	private volatile ErrorHandler errorHandler;
+
 	private volatile PlatformTransactionManager transactionManager;
 
 	private volatile TransactionDefinition transactionDefinition;
@@ -70,8 +72,6 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	private volatile Runnable poller;
 
 	private volatile boolean initialized;
-	
-	private volatile ErrorHandler errorHandler;
 
 	private final Object initializationMonitor = new Object();
 
@@ -96,7 +96,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
 		this.taskExecutor = taskExecutor;
 	}
-	
+
 	public void setErrorHandler(ErrorHandler errorHandler){
 		this.errorHandler = errorHandler;
 	}
@@ -148,13 +148,11 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 						this.transactionManager, this.transactionDefinition);
 			}
 			this.poller = this.createPoller();
-			if(this.taskExecutor != null){
-				if(this.errorHandler == null){
-					taskExecutor = new ErrorHandlingTaskExecutor(
-							new MessagePublishingErrorHandler(new BeanFactoryChannelResolver(getBeanFactory())),taskExecutor);
-				} else {
-					taskExecutor = new ErrorHandlingTaskExecutor(errorHandler, taskExecutor);
+			if (this.taskExecutor != null) {
+				if (this.errorHandler == null) {
+					this.errorHandler = new MessagePublishingErrorHandler(new BeanFactoryChannelResolver(getBeanFactory()));
 				}
+				this.taskExecutor = new ErrorHandlingTaskExecutor(this.errorHandler, this.taskExecutor);
 			}
 			this.initialized = true;
 		}
