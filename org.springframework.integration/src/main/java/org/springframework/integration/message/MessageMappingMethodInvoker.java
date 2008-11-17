@@ -16,6 +16,7 @@
 
 package org.springframework.integration.message;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -27,7 +28,9 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.util.DefaultMethodInvoker;
+import org.springframework.integration.util.DefaultMethodResolver;
 import org.springframework.integration.util.MethodInvoker;
+import org.springframework.integration.util.MethodResolver;
 import org.springframework.integration.util.NameResolvingMethodInvoker;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
@@ -69,6 +72,16 @@ public class MessageMappingMethodInvoker implements MethodInvoker, InitializingB
 		this.object = object;
 		this.method = method;
 		this.methodName = method.getName();		
+	}
+
+	public MessageMappingMethodInvoker(Object object, Class<? extends Annotation> annotationType) {
+		Assert.notNull(object, "object must not be null");
+		Assert.notNull(annotationType, "annotation type must not be null");
+		this.object = object;
+		MethodResolver methodResolver = new DefaultMethodResolver(annotationType);
+		this.method = methodResolver.findMethod(object);
+		Assert.notNull(method, "unable to resolve method for annotation [" + annotationType.getSimpleName()
+				+ "] on target class [" + object.getClass() + "]");
 	}
 
 	public MessageMappingMethodInvoker(Object object, String methodName) {

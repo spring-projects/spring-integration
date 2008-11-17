@@ -23,27 +23,18 @@ import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.message.MessageMappingMethodInvoker;
-import org.springframework.integration.util.DefaultMethodResolver;
 import org.springframework.integration.util.MethodInvoker;
-import org.springframework.integration.util.MethodResolver;
-import org.springframework.util.Assert;
 
 /**
  * @author Mark Fisher
  */
 public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandler implements InitializingBean {
 
-	private final MethodResolver methodResolver = new DefaultMethodResolver(ServiceActivator.class);
-
 	private final MethodInvoker invoker;
 
 
 	public ServiceActivatingHandler(final Object object) {
-		Assert.notNull(object, "object must not be null");
-		Method method = this.methodResolver.findMethod(object); 
-		Assert.notNull(method, "unable to resolve ServiceActivator method on target class ["
-				+ object.getClass() + "]");
-		this.invoker = new MessageMappingMethodInvoker(object, method);
+		this.invoker = new MessageMappingMethodInvoker(object, ServiceActivator.class);
 	}
 
 	public ServiceActivatingHandler(Object object, Method method) {

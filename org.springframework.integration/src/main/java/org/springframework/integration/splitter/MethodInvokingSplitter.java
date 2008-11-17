@@ -22,9 +22,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageMappingMethodInvoker;
-import org.springframework.integration.util.DefaultMethodResolver;
-import org.springframework.integration.util.MethodResolver;
-import org.springframework.util.Assert;
 
 /**
  * A Message Splitter implementation that invokes the specified method
@@ -36,8 +33,6 @@ import org.springframework.util.Assert;
  * @author Mark Fisher
  */
 public class MethodInvokingSplitter extends AbstractMessageSplitter implements InitializingBean {
-
-	private final MethodResolver methodResolver = new DefaultMethodResolver(Splitter.class);
 
 	private final MessageMappingMethodInvoker invoker;
 
@@ -51,11 +46,7 @@ public class MethodInvokingSplitter extends AbstractMessageSplitter implements I
 	}
 
 	public MethodInvokingSplitter(Object object) {
-		Assert.notNull(object, "object must not be null");
-		Method method = this.methodResolver.findMethod(object); 
-		Assert.notNull(method, "unable to resolve Splitter method on target class ["
-				+ object.getClass() + "]");
-		this.invoker = new MessageMappingMethodInvoker(object, method);
+		this.invoker = new MessageMappingMethodInvoker(object, Splitter.class);
 	}
 
 
