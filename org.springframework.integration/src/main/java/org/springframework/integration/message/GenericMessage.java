@@ -31,7 +31,7 @@ import org.springframework.util.Assert;
  */
 public class GenericMessage<T> implements Message<T>, Serializable {
 
-	private volatile T payload;
+	private final T payload;
 
 	private final MessageHeaders headers;
 
