@@ -42,7 +42,7 @@ public abstract class AbstractPollingInboundChannelAdapterParser extends Abstrac
 		adapterBuilder.addPropertyReference("source", source);
 		adapterBuilder.addPropertyReference("outputChannel", channelName);
 		if (pollerElement != null) {
-			IntegrationNamespaceUtils.configureTrigger(pollerElement, adapterBuilder);
+			IntegrationNamespaceUtils.configureTrigger(pollerElement, adapterBuilder, parserContext);
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, pollerElement, "max-messages-per-poll");
 			Element txElement = DomUtils.getChildElementByTagName(pollerElement, "transactional");
 			if (txElement != null) {

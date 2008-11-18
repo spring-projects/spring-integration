@@ -35,6 +35,8 @@ public class IntervalTrigger implements Trigger {
 
 	private final long interval;
 
+	private final TimeUnit timeUnit;
+
 	private volatile long initialDelay = 0;
 
 	private volatile boolean fixedRate = false;
@@ -44,15 +46,16 @@ public class IntervalTrigger implements Trigger {
 	 * Create a trigger with the given interval in milliseconds.
 	 */
 	public IntervalTrigger(long interval) {
-		Assert.isTrue(interval >= 0, "interval must not be negative");
-		this.interval = interval;
+		this(interval, null);
 	}
 
 	/**
 	 * Create a trigger with the given interval and time unit.
 	 */
-	public IntervalTrigger(long interval, TimeUnit unit) {
-		this(unit.toMillis(interval));
+	public IntervalTrigger(long interval, TimeUnit timeUnit) {
+		Assert.isTrue(interval >= 0, "interval must not be negative");
+		this.timeUnit = (timeUnit != null) ? timeUnit : TimeUnit.MILLISECONDS;
+		this.interval = this.timeUnit.toMillis(interval);
 	}
 
 
@@ -60,14 +63,7 @@ public class IntervalTrigger implements Trigger {
 	 * Specify the delay for the initial execution.
 	 */
 	public void setInitialDelay(long initialDelay) {
-		this.initialDelay = initialDelay;
-	}
-
-	/**
-	 * Specify the delay for the initial execution using the given time unit.
-	 */
-	public void setInitialDelay(long initialDelay, TimeUnit unit) {
-		this.initialDelay = unit.toMillis(initialDelay);
+		this.initialDelay = this.timeUnit.toMillis(initialDelay);
 	}
 
 	/**

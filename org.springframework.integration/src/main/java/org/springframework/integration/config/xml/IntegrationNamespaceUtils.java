@@ -23,12 +23,12 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
 import org.springframework.integration.scheduling.CronTrigger;
 import org.springframework.integration.scheduling.IntervalTrigger;
-import org.springframework.integration.scheduling.Trigger;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -142,38 +142,39 @@ public abstract class IntegrationNamespaceUtils {
 	 * @param pollerElement the "poller" element to parse
 	 * @param targetBuilder the builder that expects the "trigger" property
 	 */
-	public static void configureTrigger(Element pollerElement, BeanDefinitionBuilder targetBuilder) {
-		Trigger trigger = null;
+	public static void configureTrigger(Element pollerElement, BeanDefinitionBuilder targetBuilder, ParserContext parserContext) {
+		String triggerBeanName = null;
 		Element intervalElement = DomUtils.getChildElementByTagName(pollerElement, "interval-trigger");
 		if (intervalElement != null) {
-			trigger = createIntervalTrigger(intervalElement);
+			triggerBeanName = parseIntervalTrigger(intervalElement, parserContext);
 		}
 		else {
 			Element cronElement = DomUtils.getChildElementByTagName(pollerElement, "cron-trigger");
 			Assert.notNull(cronElement,
 					"A <poller> element must include either an <interval-trigger/> or <cron-trigger/> child element.");
-			trigger = createCronTrigger(cronElement);
+			triggerBeanName = parseCronTrigger(cronElement, parserContext);
 		}
-		targetBuilder.addPropertyValue("trigger", trigger);
+		targetBuilder.addPropertyReference("trigger", triggerBeanName);
 	}
 
-	private static Trigger createIntervalTrigger(Element element) {
+	private static String parseIntervalTrigger(Element element, ParserContext parserContext) {
 		String interval = element.getAttribute("interval");
 		Assert.hasText(interval, "the 'interval' attribute is required for an <interval-trigger/>");
 		TimeUnit timeUnit = TimeUnit.valueOf(element.getAttribute("time-unit"));
-		IntervalTrigger trigger = new IntervalTrigger(Long.valueOf(interval), timeUnit);
-		String initialDelay = element.getAttribute("initial-delay");
-		if (StringUtils.hasText(initialDelay)) {
-			trigger.setInitialDelay(Long.valueOf(initialDelay), timeUnit);
-		}
-		trigger.setFixedRate("true".equals(element.getAttribute("fixed-rate").toLowerCase()));
-		return trigger;
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(IntervalTrigger.class);
+		builder.addConstructorArgValue(interval);
+		builder.addConstructorArgValue(timeUnit);
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "initial-delay");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "fixed-rate");
+		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
 	}
 
-	private static Trigger createCronTrigger(Element element) {
+	private static String parseCronTrigger(Element element, ParserContext parserContext) {
 		String cronExpression = element.getAttribute("expression");
 		Assert.hasText(cronExpression, "the 'expression' attribute is required for a <cron-trigger/>");
-		return new CronTrigger(cronExpression);
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(CronTrigger.class);
+		builder.addConstructorArgValue(cronExpression);
+		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
 	}
 
 	/**

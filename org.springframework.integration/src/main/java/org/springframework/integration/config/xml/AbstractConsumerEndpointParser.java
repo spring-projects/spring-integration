@@ -104,7 +104,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractSingleBeanD
 		builder.addPropertyValue("inputChannelName", inputChannelName);
 		Element pollerElement = DomUtils.getChildElementByTagName(element, POLLER_ELEMENT);
 		if (pollerElement != null) {
-			IntegrationNamespaceUtils.configureTrigger(pollerElement, builder);
+			IntegrationNamespaceUtils.configureTrigger(pollerElement, builder, parserContext);
 			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, pollerElement, "max-messages-per-poll");
 			Element txElement = DomUtils.getChildElementByTagName(pollerElement, "transactional");
 			if (txElement != null) {

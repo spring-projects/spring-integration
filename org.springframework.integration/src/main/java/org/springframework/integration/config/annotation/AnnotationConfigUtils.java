@@ -79,7 +79,7 @@ public abstract class AnnotationConfigUtils {
 	public static Trigger parseTriggerFromPollerAnnotation(Poller pollerAnnotation) {
 		IntervalTrigger trigger = new IntervalTrigger(
 				pollerAnnotation.interval(), pollerAnnotation.timeUnit());
-		trigger.setInitialDelay(pollerAnnotation.initialDelay(), pollerAnnotation.timeUnit());
+		trigger.setInitialDelay(pollerAnnotation.initialDelay());
 		trigger.setFixedRate(pollerAnnotation.fixedRate());
 		return trigger;
 	}
