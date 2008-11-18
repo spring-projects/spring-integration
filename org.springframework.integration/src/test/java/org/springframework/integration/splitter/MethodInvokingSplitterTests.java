@@ -396,8 +396,8 @@ public class MethodInvokingSplitterTests {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void multipleAnnotations() {
-		new MethodInvokingSplitter(new MultipleAnnotationTestBean());
+	public void ambiguousTypeMatch() {
+		new MethodInvokingSplitter(new AmbiguousTypeMatchTestBean());
 	}
 
 	@Test
@@ -515,7 +515,7 @@ public class MethodInvokingSplitterTests {
 	}
 
 
-	public static class MultipleAnnotationTestBean {
+	public static class AmbiguousTypeMatchTestBean {
 
 		@Splitter
 		public String[] method1(String input) {

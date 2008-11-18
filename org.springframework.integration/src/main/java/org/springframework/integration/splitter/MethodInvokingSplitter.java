@@ -18,7 +18,6 @@ package org.springframework.integration.splitter;
 
 import java.lang.reflect.Method;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.annotation.Splitter;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.handler.MessageMappingMethodInvoker;
@@ -32,7 +31,7 @@ import org.springframework.integration.handler.MessageMappingMethodInvoker;
  * 
  * @author Mark Fisher
  */
-public class MethodInvokingSplitter extends AbstractMessageSplitter implements InitializingBean {
+public class MethodInvokingSplitter extends AbstractMessageSplitter {
 
 	private final MessageMappingMethodInvoker invoker;
 
@@ -49,10 +48,6 @@ public class MethodInvokingSplitter extends AbstractMessageSplitter implements I
 		this.invoker = new MessageMappingMethodInvoker(object, Splitter.class);
 	}
 
-
-	public void afterPropertiesSet() throws Exception {
-		this.invoker.afterPropertiesSet();
-	}
 
 	@Override
 	protected Object splitMessage(Message<?> message) {

@@ -70,8 +70,7 @@ public class MethodInvokingSelectorTests {
 	public void noArgMethodWithMethodReference() throws Exception {
 		TestBean testBean = new TestBean();
 		Method method = testBean.getClass().getMethod("noArgs", new Class[] {});
-		MethodInvokingSelector selector = new MethodInvokingSelector(testBean, method);
-		selector.accept(new StringMessage("test"));
+		new MethodInvokingSelector(testBean, method);
 	}
 
 	@Test(expected = IllegalArgumentException.class)

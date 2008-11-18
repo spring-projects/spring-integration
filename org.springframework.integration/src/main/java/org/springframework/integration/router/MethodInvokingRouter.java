@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.core.Message;
@@ -40,7 +39,7 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class MethodInvokingRouter extends AbstractMessageRouter implements InitializingBean {
+public class MethodInvokingRouter extends AbstractMessageRouter {
 
 	private final MessageMappingMethodInvoker invoker;
 
@@ -66,10 +65,6 @@ public class MethodInvokingRouter extends AbstractMessageRouter implements Initi
 	 */
 	public void setChannelResolver(ChannelResolver channelResolver) {
 		this.channelResolver = channelResolver;
-	}
-
-	public void afterPropertiesSet() throws Exception {
-		this.invoker.afterPropertiesSet();
 	}
 
 	@Override

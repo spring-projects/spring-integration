@@ -42,14 +42,12 @@ public class MethodInvokingMessageHandlerTests {
 	@Test
 	public void validMethod() {
 		MethodInvokingMessageHandler handler = new MethodInvokingMessageHandler(new TestSink(), "validMethod");
-		handler.afterPropertiesSet();
 		handler.handleMessage(new GenericMessage<String>("test"));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void invalidMethodWithNoArgs() {
-		MethodInvokingMessageHandler handler = new MethodInvokingMessageHandler(new TestSink(), "invalidMethodWithNoArgs");
-		handler.afterPropertiesSet();
+		new MethodInvokingMessageHandler(new TestSink(), "invalidMethodWithNoArgs");
 	}
 
 	@Test(expected = MessagingException.class)
@@ -57,7 +55,6 @@ public class MethodInvokingMessageHandlerTests {
 		Message<?> message = new StringMessage("test");
 		try {
 			MethodInvokingMessageHandler handler = new MethodInvokingMessageHandler(new TestSink(), "methodWithReturnValue");
-			handler.afterPropertiesSet();
 			handler.handleMessage(message);
 		}
 		catch (MessagingException e) {
@@ -68,8 +65,7 @@ public class MethodInvokingMessageHandlerTests {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void noMatchingMethodName() {
-		MethodInvokingMessageHandler handler = new MethodInvokingMessageHandler(new TestSink(), "noSuchMethod");
-		handler.afterPropertiesSet();
+		new MethodInvokingMessageHandler(new TestSink(), "noSuchMethod");
 	}
 
 	@Test
