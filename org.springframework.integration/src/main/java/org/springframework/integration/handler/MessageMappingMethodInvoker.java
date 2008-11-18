@@ -48,7 +48,7 @@ import org.springframework.util.StringUtils;
  * 
  * @author Mark Fisher
  */
-public class MessageMappingMethodInvoker implements MethodInvoker {
+public class MessageMappingMethodInvoker {
 
 	protected static final Log logger = LogFactory.getLog(MessageMappingMethodInvoker.class);
 
@@ -86,11 +86,8 @@ public class MessageMappingMethodInvoker implements MethodInvoker {
 	}
 
 
-	public Object invokeMethod(Object... args) {
-		Assert.notEmpty(args, "argument array must not be empty");
-		Assert.isTrue(args.length == 1 && args[0] != null && (args[0] instanceof Message),
-				"Argument array must contain a single Message instance.");
-		Message<?> message = (Message<?>) args[0];
+	public Object invokeMethod(Message<?> message) {
+		Assert.notNull(message, "message must not be null");
 		if (message.getPayload() == null) {
 			if (logger.isDebugEnabled()) {
 				logger.debug("received null payload");
@@ -98,7 +95,7 @@ public class MessageMappingMethodInvoker implements MethodInvoker {
 			return null;
 		}
 		Method method = this.methodResolver.resolveHandlerMethod(message);
-		args = this.createArgumentArrayFromMessage(method, message);
+		Object[] args = this.createArgumentArrayFromMessage(method, message);
 		try {
 			return this.doInvokeMethod(method, args, message);
 		}

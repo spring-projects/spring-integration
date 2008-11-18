@@ -18,18 +18,16 @@ package org.springframework.integration.handler;
 
 import java.lang.reflect.Method;
 
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.util.MethodInvoker;
 
 /**
  * @author Mark Fisher
  */
-public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandler implements InitializingBean {
+public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandler {
 
-	private final MethodInvoker invoker;
+	private final MessageMappingMethodInvoker invoker;
 
 
 	public ServiceActivatingHandler(final Object object) {
@@ -44,12 +42,6 @@ public class ServiceActivatingHandler extends AbstractReplyProducingMessageHandl
 		this.invoker = new MessageMappingMethodInvoker(object, methodName);
 	}
 
-
-	public void afterPropertiesSet() throws Exception {
-		if (this.invoker instanceof InitializingBean) {
-			((InitializingBean) this.invoker).afterPropertiesSet();
-		}
-	}
 
 	@Override
 	protected void handleRequestMessage(Message<?> message, ReplyMessageHolder replyHolder) {
