@@ -345,7 +345,14 @@
 			</xsd:annotation>
 			<xsd:attribute name="id" type="xsd:ID" use="required"/>
 			<xsd:attribute name="core-size" type="xsd:string" default="1"/>
-			<xsd:attribute name="max-size" type="xsd:string" default="10"/>
+			<xsd:attribute name="max-size" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+	Specifies the maximum pool size in order to limit the number of concurrent tasks.
+	Otherwise, the default will be Integer.MAX_VALUE.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
 			<xsd:attribute name="queue-capacity" type="xsd:string" default="0"/>
 			<xsd:attribute name="keep-alive-seconds" type="xsd:string" default="60"/>
 			<xsd:attribute name="rejection-policy" default="CALLER_RUNS">

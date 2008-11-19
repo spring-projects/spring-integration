@@ -24,6 +24,7 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.AbstractSimpleBeanDefinitionParser;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Mark Fisher
@@ -55,7 +56,10 @@ public class ThreadPoolTaskExecutorParser extends AbstractSimpleBeanDefinitionPa
 		String policyName = element.getAttribute(REJECTION_POLICY_ATTRIBUTE);
 		builder.addPropertyValue("rejectedExecutionHandler", createRejectedExecutionHandler(policyName));
 		builder.addPropertyValue("corePoolSize", element.getAttribute(CORE_SIZE_ATTRIBUTE));
-		builder.addPropertyValue("maxPoolSize", element.getAttribute(MAX_SIZE_ATTRIBUTE));
+		String maxSize = element.getAttribute(MAX_SIZE_ATTRIBUTE);
+		if (StringUtils.hasText(maxSize)) {
+			builder.addPropertyValue("maxPoolSize", maxSize);
+		}
 	}
 
 	private RejectedExecutionHandler createRejectedExecutionHandler(String policyName) {
