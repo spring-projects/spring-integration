@@ -346,7 +346,9 @@ public Message<?> receive(final PollableChannel<?> channel) { ... }]]></programl
       types). Provide the "ref" attribute to reference any Spring-managed object that implements the
       <interfacename>ChannelInterceptor</interfacename> interface:
       <programlisting language="xml"><![CDATA[<channel id="exampleChannel">
-    ]]><emphasis><![CDATA[<interceptor ref="trafficMonitoringInterceptor"/>]]></emphasis><![CDATA[
+    ]]><emphasis><![CDATA[<interceptors>
+        <ref bean="trafficMonitoringInterceptor"/>
+    </interceptors>]]></emphasis><![CDATA[
 </channel>]]></programlisting>
       In general, it is a good idea to define the interceptor implementations in a separate location since they
       usually provide common behavior that can be reused across multiple channels.
