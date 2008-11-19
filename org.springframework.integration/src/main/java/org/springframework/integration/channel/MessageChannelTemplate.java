@@ -239,7 +239,7 @@ public class MessageChannelTemplate implements InitializingBean {
 	}
 
 	private Message<?> doSendAndReceive(Message<?> request, MessageChannel channel) {
-		TemporaryReturnAddress replyChannel = new TemporaryReturnAddress(this.receiveTimeout);
+		TemporaryReplyChannel replyChannel = new TemporaryReplyChannel(this.receiveTimeout);
 		request = MessageBuilder.fromMessage(request)
 				.setReplyChannel(replyChannel)
 				.setErrorChannel(replyChannel)
@@ -259,7 +259,7 @@ public class MessageChannelTemplate implements InitializingBean {
 
 
 	@SuppressWarnings("unchecked")
-	private static class TemporaryReturnAddress implements PollableChannel {
+	private static class TemporaryReplyChannel implements PollableChannel {
 
 		private volatile Message<?> message;
 
@@ -268,7 +268,7 @@ public class MessageChannelTemplate implements InitializingBean {
 		private final CountDownLatch latch = new CountDownLatch(1);
 
 
-		public TemporaryReturnAddress(long receiveTimeout) {
+		public TemporaryReplyChannel(long receiveTimeout) {
 			this.receiveTimeout = receiveTimeout;
 		}
 
