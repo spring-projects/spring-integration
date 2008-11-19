@@ -62,7 +62,7 @@ public class PollerAnnotationConsumerAdviceChainTests {
 	@Test
 	public void testAdviceChain() throws InterruptedException {
 		input.send(new StringMessage("test"));
-		Message<?> reply = output.receive(1000);
+		Message<?> reply = output.receive(3000);
 		assertEquals("TEST", reply.getPayload());
 		latch.await(1, TimeUnit.SECONDS);
 		assertEquals(0, latch.getCount());
