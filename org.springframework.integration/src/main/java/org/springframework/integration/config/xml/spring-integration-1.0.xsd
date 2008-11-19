@@ -111,6 +111,7 @@
 						<xsd:element name="interceptors" type="channelInterceptorsType" minOccurs="0" maxOccurs="1"/>
 					</xsd:sequence>
 					<xsd:attribute name="task-executor" type="xsd:string"/>
+					<xsd:attribute name="error-handler" type="xsd:string"/>
 					<xsd:attribute name="apply-sequence" type="xsd:string"/>
 				</xsd:extension>
 			</xsd:complexContent>

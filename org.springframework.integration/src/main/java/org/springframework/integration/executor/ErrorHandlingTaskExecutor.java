@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,57 +13,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.executor;
 
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.util.ErrorHandler;
+import org.springframework.util.Assert;
 
 /**
+ * A {@link TaskExecutor} implementation that wraps an existing TaskExecutor
+ * instance in order to catch any exceptions. If an exception is thrown, it
+ * will be handled by the provided {@link ErrorHandler}.
  * 
  * @author Jonas Partner
- *
+ * @author Mark Fisher
  */
 public class ErrorHandlingTaskExecutor implements TaskExecutor {
 
+	private final TaskExecutor taskExecutor;
 
 	private final ErrorHandler errorHandler;
-	
-	private final TaskExecutor taskExecutor;
-	
-	/**
-	 * @param errorChannel
-	 */
-	public ErrorHandlingTaskExecutor(ErrorHandler errorHandler, TaskExecutor taskExecutor) {
-		this.errorHandler = errorHandler;
+
+
+	public ErrorHandlingTaskExecutor(TaskExecutor taskExecutor, ErrorHandler errorHandler) {
+		Assert.notNull(taskExecutor, "taskExecutor must not be null");
+		Assert.notNull(errorHandler, "errorHandler must not be null");
 		this.taskExecutor = taskExecutor;
+		this.errorHandler = errorHandler;
 	}
-	
-	public void execute(Runnable task) {
-		taskExecutor.execute(new ErrorHandlingRunnableWrapper(task,errorHandler));
-	}
-	
-	private static class ErrorHandlingRunnableWrapper implements Runnable {
 
-		private final ErrorHandler errorHandler;
 
-		private final Runnable runnableTarget;
-
-		public ErrorHandlingRunnableWrapper(Runnable runnableTarget,ErrorHandler errorHandler) {
-			this.runnableTarget = runnableTarget;
-			this.errorHandler = errorHandler;
-		}
-
-		public void run() {
-			try {
-				runnableTarget.run();
+	public void execute(final Runnable task) {
+		this.taskExecutor.execute(new Runnable() {
+			public void run() {
+				try {
+					task.run();
+				}
+				catch (Throwable t) {
+					errorHandler.handle(t);
+				}
 			}
-			catch (Throwable t) {
-				errorHandler.handle(t);
-			}
-		}
-
+		});
 	}
-	
-	
-	
+
 }

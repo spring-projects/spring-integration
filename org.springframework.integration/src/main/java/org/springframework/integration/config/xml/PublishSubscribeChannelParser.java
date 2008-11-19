@@ -37,6 +37,7 @@ public class PublishSubscribeChannelParser extends AbstractChannelParser {
 		if (StringUtils.hasText(taskExecutorRef)) {
 			builder.addConstructorArgReference(taskExecutorRef);
 		}
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "error-handler");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "apply-sequence");
 		return builder;
 	}

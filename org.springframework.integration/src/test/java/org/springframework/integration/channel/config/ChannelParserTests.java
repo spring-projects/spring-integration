@@ -18,6 +18,7 @@ package org.springframework.integration.channel.config;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -26,6 +27,7 @@ import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.FatalBeanException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.PublishSubscribeChannel;
@@ -33,6 +35,7 @@ import org.springframework.integration.config.TestChannelInterceptor;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagePriority;
+import org.springframework.integration.executor.ErrorHandlingTaskExecutor;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryException;
@@ -85,8 +88,12 @@ public class ChannelParserTests {
 		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
 		accessor = new DirectFieldAccessor(accessor.getPropertyValue("dispatcher"));
 		Object taskExecutorProperty = accessor.getPropertyValue("taskExecutor");
+		assertNotNull(taskExecutorProperty);
+		assertEquals(ErrorHandlingTaskExecutor.class, taskExecutorProperty.getClass());		
+		DirectFieldAccessor executorAccessor = new DirectFieldAccessor(taskExecutorProperty);
+		TaskExecutor innerExecutor = (TaskExecutor) executorAccessor.getPropertyValue("taskExecutor");
 		Object taskExecutorBean = context.getBean("taskExecutor");
-		assertEquals(taskExecutorBean, taskExecutorProperty);
+		assertEquals(taskExecutorBean, innerExecutor);
 	}
 
 	@Test

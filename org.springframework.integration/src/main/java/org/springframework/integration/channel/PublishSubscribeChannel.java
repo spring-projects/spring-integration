@@ -16,15 +16,24 @@
 
 package org.springframework.integration.channel;
 
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
+import org.springframework.integration.executor.ErrorHandlingTaskExecutor;
+import org.springframework.integration.util.ErrorHandler;
 
 /**
  * A channel that sends Messages to each of its subscribers. 
  * 
  * @author Mark Fisher
  */
-public class PublishSubscribeChannel extends AbstractSubscribableChannel<BroadcastingDispatcher> {
+public class PublishSubscribeChannel extends AbstractSubscribableChannel<BroadcastingDispatcher> implements BeanFactoryAware {
+
+	private volatile TaskExecutor taskExecutor;
+
+	private volatile ErrorHandler errorHandler;
+
 
 	/**
 	 * Create a PublishSubscribeChannel that will use a {@link TaskExecutor}
@@ -32,9 +41,7 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel<Broadca
 	 */
 	public PublishSubscribeChannel(TaskExecutor taskExecutor) {
 		super(new BroadcastingDispatcher());
-		if (taskExecutor != null) {
-			this.getDispatcher().setTaskExecutor(taskExecutor);
-		}
+		this.taskExecutor = taskExecutor;
 	}
 
 	public PublishSubscribeChannel() {
@@ -42,8 +49,24 @@ public class PublishSubscribeChannel extends AbstractSubscribableChannel<Broadca
 	}
 
 
+	public void setErrorHandler(ErrorHandler errorHandler) {
+		this.errorHandler = errorHandler;
+	}
+
 	public void setApplySequence(boolean applySequence) {
 		this.getDispatcher().setApplySequence(applySequence);
+	}
+
+	public void setBeanFactory(BeanFactory beanFactory) {
+		if (this.taskExecutor != null) {
+			if (!(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
+				if (this.errorHandler == null) {
+					this.errorHandler = new MessagePublishingErrorHandler(new BeanFactoryChannelResolver(beanFactory));
+				}
+				this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, this.errorHandler);
+			}
+			this.getDispatcher().setTaskExecutor(this.taskExecutor);
+		}
 	}
 
 }

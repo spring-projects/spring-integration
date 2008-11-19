@@ -29,6 +29,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
+import org.springframework.integration.executor.ErrorHandlingTaskExecutor;
+import org.springframework.integration.util.ErrorHandler;
 
 /**
  * @author Mark Fisher
@@ -73,7 +75,22 @@ public class PublishSubscribeChannelParserTests {
 		DirectFieldAccessor dispatcherAccessor = new DirectFieldAccessor(dispatcher);
 		TaskExecutor executor = (TaskExecutor) dispatcherAccessor.getPropertyValue("taskExecutor");
 		assertNotNull(executor);
-		assertEquals(context.getBean("pool"), executor);
+		assertEquals(ErrorHandlingTaskExecutor.class, executor.getClass());
+		DirectFieldAccessor executorAccessor = new DirectFieldAccessor(executor);
+		TaskExecutor innerExecutor = (TaskExecutor) executorAccessor.getPropertyValue("taskExecutor");
+		assertEquals(context.getBean("pool"), innerExecutor);
+	}
+
+	@Test
+	public void channelWithErrorHandler() {
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
+				"publishSubscribeChannelParserTests.xml", this.getClass());
+		PublishSubscribeChannel channel = (PublishSubscribeChannel)
+				context.getBean("channelWithErrorHandler");
+		DirectFieldAccessor accessor = new DirectFieldAccessor(channel);
+		ErrorHandler errorHandler = (ErrorHandler) accessor.getPropertyValue("errorHandler");
+		assertNotNull(errorHandler);
+		assertEquals(context.getBean("testErrorHandler"), errorHandler);
 	}
 
 }
