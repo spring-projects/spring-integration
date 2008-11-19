@@ -56,6 +56,10 @@ public abstract class IntegrationObjectSupport implements BeanNameAware, BeanFac
 		this.beanName = beanName;
 	}
 
+	protected String getBeanName() {
+		return this.beanName;
+	}
+
 	public final void setBeanFactory(BeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "beanFactory must not be null");
 		this.beanFactory = beanFactory;
