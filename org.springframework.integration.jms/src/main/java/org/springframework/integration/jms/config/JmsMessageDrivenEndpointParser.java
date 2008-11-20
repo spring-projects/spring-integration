@@ -32,11 +32,12 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * Parser for the &lt;inbound-gateway&gt; element of the 'jms' integration namespace.
+ * Parser for the &lt;message-driven-channel-adapter&gt; element and the
+ * &lt;inbound-gateway&gt; element of the 'jms' namespace.
  * 
  * @author Mark Fisher
  */
-public class JmsInboundGatewayParser extends AbstractSingleBeanDefinitionParser {
+public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinitionParser {
 
 	private static String[] containerAttributes = new String[] {
 		JmsAdapterParserUtils.CONNECTION_FACTORY_PROPERTY,
@@ -46,6 +47,14 @@ public class JmsInboundGatewayParser extends AbstractSingleBeanDefinitionParser 
 		"concurrent-consumers", "max-concurrent-consumers",
 		"max-messages-per-task", "idle-task-execution-limit"
 	};
+
+
+	private final boolean expectReply;
+
+
+	public JmsMessageDrivenEndpointParser(boolean expectReply) {
+		this.expectReply = expectReply;
+	}
 
 
 	@Override
@@ -116,14 +125,21 @@ public class JmsInboundGatewayParser extends AbstractSingleBeanDefinitionParser 
 
 	private String parseMessageListener(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ChannelPublishingJmsMessageListener.class);
-		builder.addPropertyValue("expectReply", true);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-channel");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-timeout");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout");
+		builder.addPropertyValue("expectReply", this.expectReply);
+		if (this.expectReply) {
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "request-channel");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "request-timeout");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-timeout");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-request-payload");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-reply-payload");
+		}
+		else {
+			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "channel", "requestChannel");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "send-timeout", "requestTimeout");
+			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload", "extractRequestPayload");
+		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "header-mapper");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-request-payload");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-reply-payload");		
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
 	}
 

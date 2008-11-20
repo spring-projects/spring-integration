@@ -18,10 +18,35 @@
 		]]></xsd:documentation>
 	</xsd:annotation>
 
+	<xsd:element name="message-driven-channel-adapter">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a JMS Message-Driven inbound Channel Adapter.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="jmsInboundAdapterType">
+					<xsd:attribute name="channel" type="xsd:string"/>
+					<xsd:attribute name="message-converter" type="xsd:string"/>
+					<xsd:attribute name="header-mapper" type="xsd:string"/>
+					<xsd:attribute name="extract-payload" type="xsd:string" default="true"/>
+					<xsd:attribute name="send-timeout" type="xsd:string"/>
+					<xsd:attribute name="transaction-manager" type="xsd:string"/>
+					<xsd:attribute name="concurrent-consumers" type="xsd:string"/>
+					<xsd:attribute name="max-concurrent-consumers" type="xsd:string"/>
+					<xsd:attribute name="max-messages-per-task" type="xsd:string"/>
+					<xsd:attribute name="idle-task-execution-limit" type="xsd:string"/>
+					<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
 	<xsd:element name="inbound-channel-adapter">
 		<xsd:annotation>
 			<xsd:documentation>
-	Defines a JMS-based inbound Channel Adapter.
+	Defines an inbound Channel Adapter for polling a JMS Destination.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>

@@ -28,7 +28,8 @@ import org.springframework.integration.jms.JmsHeaders;
 public class JmsNamespaceHandler extends NamespaceHandlerSupport {
 
 	public void init() {
-		this.registerBeanDefinitionParser("inbound-gateway", new JmsInboundGatewayParser());
+		this.registerBeanDefinitionParser("inbound-gateway", new JmsMessageDrivenEndpointParser(true));
+		this.registerBeanDefinitionParser("message-driven-channel-adapter", new JmsMessageDrivenEndpointParser(false));
 		this.registerBeanDefinitionParser("inbound-channel-adapter", new JmsInboundChannelAdapterParser());
 		this.registerBeanDefinitionParser("outbound-gateway", new JmsOutboundGatewayParser());
 		this.registerBeanDefinitionParser("outbound-channel-adapter", new JmsOutboundChannelAdapterParser());
