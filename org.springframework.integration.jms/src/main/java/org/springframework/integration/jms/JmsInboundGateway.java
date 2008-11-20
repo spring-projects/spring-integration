@@ -155,10 +155,6 @@ public class JmsInboundGateway extends AbstractEndpoint implements DisposableBea
 				"If a 'container' reference is not provided, then 'connectionFactory'"
 				+ " and 'destination' (or 'destinationName') are required.");
 		DefaultMessageListenerContainer dmlc = new DefaultMessageListenerContainer();
-		dmlc.setConcurrentConsumers(this.concurrentConsumers);
-		dmlc.setMaxConcurrentConsumers(this.maxConcurrentConsumers);
-		dmlc.setMaxMessagesPerTask(this.maxMessagesPerTask);
-		dmlc.setIdleTaskExecutionLimit(this.idleTaskExecutionLimit);
 		dmlc.setConnectionFactory(this.connectionFactory);
 		if (this.destination != null) {
 			dmlc.setDestination(this.destination);
@@ -167,6 +163,10 @@ public class JmsInboundGateway extends AbstractEndpoint implements DisposableBea
 			dmlc.setDestinationName(this.destinationName);
 		}
 		dmlc.setPubSubDomain(this.pubSubDomain);
+		dmlc.setConcurrentConsumers(this.concurrentConsumers);
+		dmlc.setMaxConcurrentConsumers(this.maxConcurrentConsumers);
+		dmlc.setMaxMessagesPerTask(this.maxMessagesPerTask);
+		dmlc.setIdleTaskExecutionLimit(this.idleTaskExecutionLimit);
 		dmlc.setTransactionManager(this.transactionManager);
 		dmlc.setSessionTransacted(this.sessionTransacted);
 		dmlc.setSessionAcknowledgeMode(this.sessionAcknowledgeMode);
