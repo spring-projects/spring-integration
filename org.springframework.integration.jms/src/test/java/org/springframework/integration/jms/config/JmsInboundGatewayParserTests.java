@@ -85,6 +85,7 @@ public class JmsInboundGatewayParserTests {
 				"jmsGatewaysWithExtractPayloadAttributes.xml", this.getClass());
 		JmsInboundGateway gateway = (JmsInboundGateway) context.getBean("defaultGateway");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
+		accessor = new DirectFieldAccessor(accessor.getPropertyValue("listener"));
 		assertEquals(Boolean.TRUE, accessor.getPropertyValue("extractReplyPayload"));
 	}
 
@@ -94,6 +95,7 @@ public class JmsInboundGatewayParserTests {
 				"jmsGatewaysWithExtractPayloadAttributes.xml", this.getClass());
 		JmsInboundGateway gateway = (JmsInboundGateway) context.getBean("extractReplyPayloadTrue");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
+		accessor = new DirectFieldAccessor(accessor.getPropertyValue("listener"));
 		assertEquals(Boolean.TRUE, accessor.getPropertyValue("extractReplyPayload"));
 	}
 
@@ -103,6 +105,7 @@ public class JmsInboundGatewayParserTests {
 				"jmsGatewaysWithExtractPayloadAttributes.xml", this.getClass());
 		JmsInboundGateway gateway = (JmsInboundGateway) context.getBean("extractReplyPayloadFalse");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
+		accessor = new DirectFieldAccessor(accessor.getPropertyValue("listener"));
 		assertEquals(Boolean.FALSE, accessor.getPropertyValue("extractReplyPayload"));
 	}
 
@@ -112,6 +115,7 @@ public class JmsInboundGatewayParserTests {
 				"jmsGatewaysWithExtractPayloadAttributes.xml", this.getClass());
 		JmsInboundGateway gateway = (JmsInboundGateway) context.getBean("extractRequestPayloadTrue");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
+		accessor = new DirectFieldAccessor(accessor.getPropertyValue("listener"));
 		assertEquals(Boolean.TRUE, accessor.getPropertyValue("extractRequestPayload"));
 	}
 
@@ -121,6 +125,7 @@ public class JmsInboundGatewayParserTests {
 				"jmsGatewaysWithExtractPayloadAttributes.xml", this.getClass());
 		JmsInboundGateway gateway = (JmsInboundGateway) context.getBean("extractRequestPayloadFalse");
 		DirectFieldAccessor accessor = new DirectFieldAccessor(gateway);
+		accessor = new DirectFieldAccessor(accessor.getPropertyValue("listener"));
 		assertEquals(Boolean.FALSE, accessor.getPropertyValue("extractRequestPayload"));
 	}
 

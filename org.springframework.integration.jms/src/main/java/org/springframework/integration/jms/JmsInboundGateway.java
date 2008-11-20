@@ -18,19 +18,16 @@ package org.springframework.integration.jms;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.MessageProducer;
+import javax.jms.MessageListener;
 import javax.jms.Session;
 import javax.jms.Topic;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.core.Message;
-import org.springframework.integration.gateway.SimpleMessagingGateway;
+import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.jms.listener.SessionAwareMessageListener;
-import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.Assert;
 
@@ -39,7 +36,9 @@ import org.springframework.util.Assert;
  * 
  * @author Mark Fisher
  */
-public class JmsInboundGateway extends SimpleMessagingGateway implements DisposableBean {
+public class JmsInboundGateway extends AbstractEndpoint implements DisposableBean {
+
+	private final Object listener;
 
 	private volatile AbstractMessageListenerContainer container;
 
@@ -50,14 +49,6 @@ public class JmsInboundGateway extends SimpleMessagingGateway implements Disposa
 	private volatile String destinationName;
 
 	private volatile boolean pubSubDomain;
-
-	private volatile MessageConverter messageConverter;
-
-	private volatile JmsHeaderMapper headerMapper;
-
-	private volatile boolean extractRequestPayload = true;
-
-	private volatile boolean extractReplyPayload = true;
 
 	private volatile TaskExecutor taskExecutor;
 
@@ -74,6 +65,15 @@ public class JmsInboundGateway extends SimpleMessagingGateway implements Disposa
 	private volatile int maxMessagesPerTask = Integer.MIN_VALUE;
 
 	private volatile int idleTaskExecutionLimit = 1;
+
+
+	public JmsInboundGateway(Object listener) {
+		Assert.notNull(listener, "listener must not be null");
+		Assert.isTrue(listener instanceof MessageListener || listener instanceof SessionAwareMessageListener,
+				"listener must implement either [" + MessageListener.class.getName()
+				+ "] or [" + SessionAwareMessageListener.class.getName() + "]");
+		this.listener = listener;
+	}
 
 
 	public void setContainer(AbstractMessageListenerContainer container) {
@@ -104,40 +104,6 @@ public class JmsInboundGateway extends SimpleMessagingGateway implements Disposa
 	 */
 	public void setPubSubDomain(boolean pubSubDomain) {
 		this.pubSubDomain = pubSubDomain;
-	}
-
-	/**
-	 * Provide a {@link MessageConverter} implementation to use when
-	 * converting between JMS Messages and Spring Integration Messages.
-	 * If none is provided, a {@link HeaderMappingMessageConverter} will
-	 * be used and the {@link JmsHeaderMapper} instance provided to the
-	 * {@link #setHeaderMapper(JmsHeaderMapper)} method will be included
-	 * in the conversion process.
-	 */
-	public void setMessageConverter(MessageConverter messageConverter) {
-		this.messageConverter = messageConverter;
-	}
-
-	/**
-	 * Provide a {@link JmsHeaderMapper} implementation to use when
-	 * converting between JMS Messages and Spring Integration Messages.
-	 * If none is provided, a {@link DefaultJmsHeaderMapper} will be used.
-	 * 
-	 * <p>This property will be ignored if a {@link MessageConverter} is
-	 * provided to the {@link #setMessageConverter(MessageConverter)} method.
-	 * However, you may provide your own implementation of the delegating
-	 * {@link HeaderMappingMessageConverter} implementation.
-	 */
-	public void setHeaderMapper(JmsHeaderMapper headerMapper) {
-		this.headerMapper = headerMapper;
-	}
-
-	public void setExtractRequestPayload(boolean extractRequestPayload) {
-		this.extractRequestPayload = extractRequestPayload;
-	}
-
-	public void setExtractReplyPayload(boolean extractReplyPayload) {
-		this.extractReplyPayload = extractReplyPayload;
 	}
 
 	public void setTaskExecutor(TaskExecutor taskExecutor) {
@@ -177,13 +143,7 @@ public class JmsInboundGateway extends SimpleMessagingGateway implements Disposa
 		if (this.container == null) {
 			this.container = createDefaultContainer();
 		}
-		if (this.messageConverter == null) {
-			HeaderMappingMessageConverter hmmc = new HeaderMappingMessageConverter(null, this.headerMapper);
-			hmmc.setExtractJmsMessageBody(this.extractRequestPayload);
-			hmmc.setExtractIntegrationMessagePayload(this.extractReplyPayload);
-			this.messageConverter = hmmc;
-		}
-		this.container.setMessageListener(new GatewayInvokingMessageListener());
+		this.container.setMessageListener(this.listener);
 		if (!this.container.isActive()) {
 			this.container.afterPropertiesSet();
 		}
@@ -223,7 +183,6 @@ public class JmsInboundGateway extends SimpleMessagingGateway implements Disposa
 	protected void doStart() {
 		this.initialize();
 		this.container.start();
-		super.doStart();
 	}
 
 	@Override
@@ -231,7 +190,6 @@ public class JmsInboundGateway extends SimpleMessagingGateway implements Disposa
 		if (this.container != null) {
 			this.container.stop();
 		}
-		super.doStop();
 	}
 
 	// DisposableBean implementation
@@ -239,23 +197,6 @@ public class JmsInboundGateway extends SimpleMessagingGateway implements Disposa
 	public void destroy() {
 		if (this.container != null) {
 			this.container.destroy();
-		}
-	}
-
-
-	private class GatewayInvokingMessageListener implements SessionAwareMessageListener {
-
-		public void onMessage(javax.jms.Message jmsMessage, Session session) throws JMSException {
-			Object object = messageConverter.fromMessage(jmsMessage);
-			Message<?> replyMessage = JmsInboundGateway.this.sendAndReceiveMessage(object);
-			if (replyMessage != null) {
-				javax.jms.Message jmsReply = messageConverter.toMessage(replyMessage, session);
-				if (jmsReply.getJMSCorrelationID() == null) {
-					jmsReply.setJMSCorrelationID(jmsMessage.getJMSMessageID());
-				}
-				MessageProducer producer = session.createProducer(jmsMessage.getJMSReplyTo());
-				producer.send(jmsMessage.getJMSReplyTo(), jmsReply);
-			}
 		}
 	}
 
