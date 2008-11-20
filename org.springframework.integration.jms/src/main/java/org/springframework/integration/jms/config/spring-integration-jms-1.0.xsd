@@ -80,6 +80,7 @@
 			<xsd:attribute name="reply-timeout" type="xsd:string"/>
 			<xsd:attribute name="request-destination" type="xsd:string" use="required"/>
 			<xsd:attribute name="reply-destination" type="xsd:string"/>
+			<xsd:attribute name="pub-sub-domain" type="xsd:string"/>
 			<xsd:attribute name="connection-factory" type="xsd:string" default="connectionFactory"/>
 			<xsd:attribute name="message-converter" type="xsd:string"/>
 			<xsd:attribute name="header-mapper" type="xsd:string"/>
@@ -120,6 +121,7 @@
 		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="jmsAdapterType">
+				<xsd:attribute name="container" type="xsd:string"/>
 				<xsd:attribute name="acknowledge" default="auto">
 					<xsd:annotation>
 						<xsd:documentation><![CDATA[
@@ -168,6 +170,7 @@
 		<xsd:attribute name="connection-factory" type="xsd:string"/>
 		<xsd:attribute name="destination" type="xsd:string"/>
 		<xsd:attribute name="destination-name" type="xsd:string"/>
+		<xsd:attribute name="pub-sub-domain" type="xsd:string"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="transformerType">
