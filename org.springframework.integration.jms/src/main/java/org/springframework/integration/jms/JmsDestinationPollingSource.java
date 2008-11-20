@@ -28,7 +28,7 @@ import org.springframework.jms.support.converter.MessageConverter;
 /**
  * A source for receiving JMS Messages with a polling listener. This source is
  * only recommended for very low message volume. Otherwise, the
- * {@link JmsInboundGateway} that uses Spring's MessageListener container
+ * {@link JmsMessageDrivenEndpoint} that uses Spring's MessageListener container
  * support is a better option.
  * 
  * @author Mark Fisher
