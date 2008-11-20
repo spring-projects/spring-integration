@@ -27,6 +27,7 @@ import javax.jms.QueueConnectionFactory;
 import javax.jms.Session;
 import javax.jms.TemporaryQueue;
 import javax.jms.TemporaryTopic;
+import javax.jms.Topic;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.integration.core.Message;
@@ -54,6 +55,8 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	private volatile Destination requestDestination;
 
 	private volatile Destination replyDestination;
+
+	private volatile boolean pubSubDomain;
 
 	private volatile long receiveTimeout = 5000;
 
@@ -91,6 +94,9 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	 * This is a <em>required</em> property.
 	 */
 	public void setRequestDestination(Destination requestDestination) {
+		if (requestDestination instanceof Topic) {
+			this.pubSubDomain = true;
+		}
 		this.requestDestination = requestDestination;
 	}
 
@@ -100,6 +106,17 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	 */
 	public void setReplyDestination(Destination replyDestination) {
 		this.replyDestination = replyDestination;
+	}
+
+	/**
+	 * Specify whether the request destination is a Topic. This value is
+	 * necessary when providing a destination name for a Topic rather than
+	 * a destination reference.
+	 * 
+	 * @param pubSubDomain true if the request destination is a Topic
+	 */
+	public void setPubSubDomain(boolean pubSubDomain) {
+		this.pubSubDomain = pubSubDomain;
 	}
 
 	/**
@@ -278,12 +295,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	 */
 	protected Connection createConnection() throws JMSException {
 		ConnectionFactory cf = this.connectionFactory;
-		if (cf instanceof QueueConnectionFactory) {
+		if (!this.pubSubDomain && cf instanceof QueueConnectionFactory) {
 			return ((QueueConnectionFactory) cf).createQueueConnection();
 		}
-		else {
-			return cf.createConnection();
-		}
+		return cf.createConnection();
 	}
 
 	/**
@@ -296,12 +311,10 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	 * (such as ActiveMQ's <code>org.apache.activemq.pool.PooledConnectionFactory</code>).
 	 */
 	protected Session createSession(Connection connection) throws JMSException {
-		if (connection instanceof QueueConnection) {
+		if (!this.pubSubDomain && connection instanceof QueueConnection) {
 			return ((QueueConnection) connection).createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
 		}
-		else {
-			return connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-		}
+		return connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 	}
 
 }
