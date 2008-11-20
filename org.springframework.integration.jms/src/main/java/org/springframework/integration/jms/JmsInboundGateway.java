@@ -21,6 +21,7 @@ import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
+import javax.jms.Topic;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.task.TaskExecutor;
@@ -47,6 +48,8 @@ public class JmsInboundGateway extends SimpleMessagingGateway implements Disposa
 	private volatile Destination destination;
 
 	private volatile String destinationName;
+
+	private volatile boolean pubSubDomain;
 
 	private volatile MessageConverter messageConverter;
 
@@ -82,11 +85,25 @@ public class JmsInboundGateway extends SimpleMessagingGateway implements Disposa
 	}
 
 	public void setDestination(Destination destination) {
+		if (destination instanceof Topic) {
+			this.pubSubDomain = true;
+		}
 		this.destination = destination;
 	}
 
 	public void setDestinationName(String destinationName) {
 		this.destinationName = destinationName;
+	}
+
+	/**
+	 * Specify whether the request destination is a Topic. This value is
+	 * necessary when providing a destination name for a Topic rather than
+	 * a destination reference.
+	 * 
+	 * @param pubSubDomain true if the request destination is a Topic
+	 */
+	public void setPubSubDomain(boolean pubSubDomain) {
+		this.pubSubDomain = pubSubDomain;
 	}
 
 	/**
@@ -189,6 +206,7 @@ public class JmsInboundGateway extends SimpleMessagingGateway implements Disposa
 		if (this.destinationName != null) {
 			dmlc.setDestinationName(this.destinationName);
 		}
+		dmlc.setPubSubDomain(this.pubSubDomain);
 		dmlc.setTransactionManager(this.transactionManager);
 		dmlc.setSessionTransacted(this.sessionTransacted);
 		dmlc.setSessionAcknowledgeMode(this.sessionAcknowledgeMode);
