@@ -19,9 +19,12 @@ package org.springframework.integration.config.xml;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.integration.transformer.MethodInvokingTransformer;
 import org.springframework.integration.transformer.MessageTransformingHandler;
+import org.springframework.integration.transformer.MethodInvokingTransformer;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;transformer/&gt; element.
@@ -33,8 +36,22 @@ public class TransformerParser extends AbstractConsumerEndpointParser {
 	@Override
 	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MessageTransformingHandler.class);
-		builder.addConstructorArgReference(this.parseAdapter(element, parserContext, MethodInvokingTransformer.class));
+		builder.addConstructorArgReference(this.parseTransformer(element, parserContext));
 		return builder;
+	}
+
+	private String parseTransformer(Element element, ParserContext parserContext) {
+		String ref = element.getAttribute("ref");
+		Assert.hasText(ref, "The 'ref' attribute is required.");
+		String method = element.getAttribute("method");
+		if (!StringUtils.hasText(method)) {
+			return ref;
+		}
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MethodInvokingTransformer.class);
+		builder.addConstructorArgReference(ref);
+		builder.addConstructorArgValue(method);
+		return BeanDefinitionReaderUtils.registerWithGeneratedName(
+				builder.getBeanDefinition(), parserContext.getRegistry());
 	}
 
 }

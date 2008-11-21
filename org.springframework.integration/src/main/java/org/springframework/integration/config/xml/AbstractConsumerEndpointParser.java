@@ -26,7 +26,6 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 import org.springframework.util.xml.DomUtils;
 
 /**
@@ -69,20 +68,6 @@ public abstract class AbstractConsumerEndpointParser extends AbstractSingleBeanD
 
 	protected String getInputChannelAttributeName() {
 		return "input-channel";
-	}
-
-	protected String parseAdapter(Element element, ParserContext parserContext, Class<?> adapterClass) {
-		String ref = element.getAttribute(REF_ATTRIBUTE);
-		Assert.hasText(ref, "The '" + REF_ATTRIBUTE + "' attribute is required.");
-		if (StringUtils.hasText(element.getAttribute(METHOD_ATTRIBUTE))) {
-			BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(adapterClass);
-			String method = element.getAttribute(METHOD_ATTRIBUTE);
-			builder.addConstructorArgReference(ref);
-			builder.addConstructorArgValue(method);
-			return BeanDefinitionReaderUtils.registerWithGeneratedName(
-					builder.getBeanDefinition(), parserContext.getRegistry());
-		}
-		return ref;
 	}
 
 	@Override
