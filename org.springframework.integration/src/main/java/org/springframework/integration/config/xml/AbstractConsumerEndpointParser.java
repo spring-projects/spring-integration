@@ -44,8 +44,6 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 
 	private static final String POLLER_ELEMENT = "poller";
 
-	private static final String SELECTOR_ATTRIBUTE = "selector";
-
 
 	@Override
 	protected boolean shouldGenerateId() {
@@ -77,8 +75,6 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ConsumerEndpointFactoryBean.class);
 		String handlerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(handlerBeanDefinition, parserContext.getRegistry());
 		builder.addConstructorArgReference(handlerBeanName);
-		// TODO: remove the 'selector'
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(handlerBuilder, element, SELECTOR_ATTRIBUTE);
 		String inputChannelAttributeName = this.getInputChannelAttributeName();
 		String inputChannelName = element.getAttribute(inputChannelAttributeName);
 		Assert.hasText(inputChannelName, "the '" + inputChannelAttributeName + "' attribute is required");

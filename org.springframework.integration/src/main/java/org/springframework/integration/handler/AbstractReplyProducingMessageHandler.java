@@ -27,8 +27,6 @@ import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.message.MessageRejectedException;
-import org.springframework.integration.selector.MessageSelector;
 import org.springframework.util.Assert;
 
 /**
@@ -44,8 +42,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	private MessageChannel outputChannel;
 
 	private volatile ChannelResolver channelResolver;
-
-	private volatile MessageSelector selector;
 
 	private volatile boolean requiresReply = false;
 
@@ -78,10 +74,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 		this.channelResolver = channelResolver;
 	}
 
-	public void setSelector(MessageSelector selector) {
-		this.selector = selector;
-	}
-
 	public void setRequiresReply(boolean requiresReply) {
 		this.requiresReply = requiresReply;
 	}
@@ -94,9 +86,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 
 	@Override
 	protected final void handleMessageInternal(Message<?> message) {
-		if (!this.supports(message)) {
-			throw new MessageRejectedException(message, "unsupported message");
-		}
 		ReplyMessageHolder replyMessageHolder = new ReplyMessageHolder();
 		this.handleRequestMessage(message, replyMessageHolder);
 		if (replyMessageHolder.isEmpty()) {
@@ -122,16 +111,6 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	}
 
 	protected abstract void handleRequestMessage(Message<?> requestMessage, ReplyMessageHolder replyMessageHolder);
-
-	protected boolean supports(Message<?> message) {
-		if (this.selector != null && !this.selector.accept(message)) {
-			if (logger.isDebugEnabled()) {
-				logger.debug("selector for handler '" + this + "' rejected message: " + message);
-			}
-			return false;
-		}
-		return true;
-	}
 
 	protected boolean sendReplyMessage(Message<?> replyMessage, MessageChannel replyChannel) {
 		return this.channelTemplate.send(replyMessage, replyChannel);

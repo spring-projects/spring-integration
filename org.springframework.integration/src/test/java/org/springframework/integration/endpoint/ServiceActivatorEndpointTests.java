@@ -20,11 +20,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
@@ -35,11 +30,7 @@ import org.springframework.integration.core.MessagingException;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageHandlingException;
-import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.message.TestHandlers;
-import org.springframework.integration.selector.MessageSelector;
-import org.springframework.integration.selector.MessageSelectorChain;
 
 /**
  * @author Mark Fisher
@@ -172,118 +163,6 @@ public class ServiceActivatorEndpointTests {
 		endpoint.setOutputChannel(channel);
 		Message<?> message = MessageBuilder.withPayload("foo").build();
 		endpoint.handleMessage(message);
-	}
-
-	@Test(expected=MessageRejectedException.class)
-	public void endpointWithSelectorRejecting() {
-		ServiceActivatingHandler endpoint = new ServiceActivatingHandler(
-				TestHandlers.nullHandler(), "handle");
-		endpoint.setSelector(new MessageSelector() {
-			public boolean accept(Message<?> message) {
-				return false;
-			}
-		});
-		endpoint.handleMessage(new StringMessage("test"));
-	}
-
-	@Test
-	public void endpointWithSelectorAccepting() throws InterruptedException {
-		CountDownLatch latch = new CountDownLatch(1);
-		ServiceActivatingHandler endpoint = new ServiceActivatingHandler(
-				TestHandlers.countDownHandler(latch), "handle");
-		endpoint.setSelector(new MessageSelector() {
-			public boolean accept(Message<?> message) {
-				return true;
-			}
-		});
-		endpoint.handleMessage(new StringMessage("test"));
-		latch.await(100, TimeUnit.MILLISECONDS);
-		assertEquals("handler should have been invoked", 0, latch.getCount());
-	}
-
-	@Test
-	public void endpointWithMultipleSelectorsAndFirstRejects() {
-		final AtomicInteger counter = new AtomicInteger();
-		ServiceActivatingHandler endpoint = new ServiceActivatingHandler(
-				TestHandlers.countingHandler(counter), "handle");
-		MessageSelectorChain selectorChain = new MessageSelectorChain();
-		selectorChain.add(new MessageSelector() {
-			public boolean accept(Message<?> message) {
-				counter.incrementAndGet();
-				return false;
-			}
-		});
-		selectorChain.add(new MessageSelector() {
-			public boolean accept(Message<?> message) {
-				counter.incrementAndGet();
-				return true;
-			}
-		});
-		endpoint.setSelector(selectorChain);
-		boolean exceptionWasThrown = false;
-		try {
-			endpoint.handleMessage(new StringMessage("test"));
-		}
-		catch (MessageRejectedException e) {
-			exceptionWasThrown = true;
-		}
-		assertTrue(exceptionWasThrown);
-		assertEquals("only the first selector should have been invoked", 1, counter.get());
-	}
-
-	@Test
-	public void endpointWithMultipleSelectorsAndFirstAccepts() {
-		final AtomicInteger selectorCounter = new AtomicInteger();
-		AtomicInteger handlerCounter = new AtomicInteger();
-		ServiceActivatingHandler endpoint = new ServiceActivatingHandler(
-				TestHandlers.countingHandler(handlerCounter), "handle");
-		MessageSelectorChain selectorChain = new MessageSelectorChain();
-		selectorChain.add(new MessageSelector() {
-			public boolean accept(Message<?> message) {
-				selectorCounter.incrementAndGet();
-				return true;
-			}
-		});
-		selectorChain.add(new MessageSelector() {
-			public boolean accept(Message<?> message) {
-				selectorCounter.incrementAndGet();
-				return false;
-			}
-		});
-		endpoint.setSelector(selectorChain);
-		boolean exceptionWasThrown = false;
-		try {
-			endpoint.handleMessage(new StringMessage("test"));
-		}
-		catch (MessageRejectedException e) {
-			exceptionWasThrown = true;
-		}
-		assertTrue(exceptionWasThrown);
-		assertEquals("both selectors should have been invoked", 2, selectorCounter.get());
-		assertEquals("the handler should not have been invoked", 0, handlerCounter.get());
-	}
-
-	@Test
-	public void endpointWithMultipleSelectorsAndBothAccept() {
-		final AtomicInteger counter = new AtomicInteger();
-		ServiceActivatingHandler endpoint = new ServiceActivatingHandler(
-				TestHandlers.countingHandler(counter), "handle");
-		MessageSelectorChain selectorChain = new MessageSelectorChain();
-		selectorChain.add(new MessageSelector() {
-			public boolean accept(Message<?> message) {
-				counter.incrementAndGet();
-				return true;
-			}
-		});
-		selectorChain.add(new MessageSelector() {
-			public boolean accept(Message<?> message) {
-				counter.incrementAndGet();
-				return true;
-			}
-		});
-		endpoint.setSelector(selectorChain);
-		endpoint.handleMessage(new StringMessage("test"));
-		assertEquals("both selectors and handler should have been invoked", 3, counter.get());
 	}
 
 	@Test

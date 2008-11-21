@@ -17,7 +17,6 @@
 package org.springframework.integration.config;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.util.concurrent.TimeUnit;
@@ -25,12 +24,8 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.integration.channel.QueueChannel;
-import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.GenericMessage;
-import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessageRejectedException;
 
 /**
  * @author Mark Fisher
@@ -48,31 +43,6 @@ public class EndpointParserTests {
 		channel.send(new GenericMessage<String>("test"));
 		handler.getLatch().await(500, TimeUnit.MILLISECONDS);
 		assertEquals("test", handler.getMessageString());
-	}
-
-	@Test
-	public void testEndpointWithSelectorAccepts() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"endpointWithSelector.xml", this.getClass());		
-		MessageChannel inputChannel = (MessageChannel) context.getBean("testChannel");
-		QueueChannel replyChannel = new QueueChannel();
-		Message<?> message = MessageBuilder.withPayload("test")
-				.setReplyChannel(replyChannel).build();
-		inputChannel.send(message);
-		Message<?> reply = replyChannel.receive(500);
-		assertNotNull(reply);
-		assertEquals("foo", reply.getPayload());
-	}
-
-	@Test(expected=MessageRejectedException.class)
-	public void testEndpointWithSelectorRejects() {
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
-				"endpointWithSelector.xml", this.getClass());		
-		MessageChannel inputChannel = (MessageChannel) context.getBean("testChannel");
-		MessageChannel replyChannel = new QueueChannel();
-		Message<?> message = MessageBuilder.withPayload(123)
-				.setReplyChannel(replyChannel).build();
-		inputChannel.send(message);
 	}
 
 }

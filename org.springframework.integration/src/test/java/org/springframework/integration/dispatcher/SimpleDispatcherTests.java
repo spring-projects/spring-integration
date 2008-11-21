@@ -27,14 +27,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.handler.AbstractReplyProducingMessageHandler;
 import org.springframework.integration.handler.ServiceActivatingHandler;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.message.TestHandlers;
-import org.springframework.integration.selector.MessageSelector;
 
 /**
  * @author Mark Fisher
@@ -154,62 +152,6 @@ public class SimpleDispatcherTests {
 	}
 
 	@Test
-	public void handlersWithSelectorsAndOneAccepts() throws InterruptedException {
-		SimpleDispatcher dispatcher = new SimpleDispatcher();
-		final CountDownLatch latch = new CountDownLatch(1);
-		final AtomicInteger counter1 = new AtomicInteger();
-		final AtomicInteger counter2 = new AtomicInteger();
-		final AtomicInteger counter3 = new AtomicInteger();
-		final AtomicInteger selectorCounter = new AtomicInteger();
-		AbstractReplyProducingMessageHandler consumer1 = createConsumer(TestHandlers.countingCountDownHandler(counter1, latch));
-		AbstractReplyProducingMessageHandler consumer2 = createConsumer(TestHandlers.countingCountDownHandler(counter2, latch));
-		AbstractReplyProducingMessageHandler consumer3 = createConsumer(TestHandlers.countingCountDownHandler(counter3, latch));
-		consumer1.setSelector(new TestMessageSelector(selectorCounter, false));
-		consumer2.setSelector(new TestMessageSelector(selectorCounter, false));
-		consumer3.setSelector(new TestMessageSelector(selectorCounter, true));
-		dispatcher.addHandler(consumer1);
-		dispatcher.addHandler(consumer2);
-		dispatcher.addHandler(consumer3);
-		dispatcher.dispatch(new StringMessage("test"));
-		assertEquals(0, latch.getCount());
-		assertEquals("selectors should have been invoked one time each", 3, selectorCounter.get());
-		assertEquals("consumer with rejecting selector should not have received the message", 0, counter1.get());
-		assertEquals("consumer with rejecting selector should not have received the message", 0, counter2.get());
-		assertEquals("consumer with accepting selector should have received the message", 1, counter3.get());	
-	}
-
-	@Test
-	public void handlersWithSelectorsAndNoneAccept() throws InterruptedException {
-		SimpleDispatcher dispatcher = new SimpleDispatcher();
-		final CountDownLatch latch = new CountDownLatch(2);
-		final AtomicInteger counter1 = new AtomicInteger();
-		final AtomicInteger counter2 = new AtomicInteger();
-		final AtomicInteger counter3 = new AtomicInteger();
-		final AtomicInteger selectorCounter = new AtomicInteger();
-		AbstractReplyProducingMessageHandler consumer1 = createConsumer(TestHandlers.countingCountDownHandler(counter1, latch));
-		AbstractReplyProducingMessageHandler consumer2 = createConsumer(TestHandlers.countingCountDownHandler(counter2, latch));
-		AbstractReplyProducingMessageHandler consumer3 = createConsumer(TestHandlers.countingCountDownHandler(counter3, latch));
-		consumer1.setSelector(new TestMessageSelector(selectorCounter, false));
-		consumer2.setSelector(new TestMessageSelector(selectorCounter, false));
-		consumer3.setSelector(new TestMessageSelector(selectorCounter, false));
-		dispatcher.addHandler(consumer1);
-		dispatcher.addHandler(consumer2);
-		dispatcher.addHandler(consumer3);
-		boolean exceptionThrown = false;
-		try {
-			dispatcher.dispatch(new StringMessage("test"));
-		}
-		catch (MessageRejectedException e) {
-			exceptionThrown = true;
-		}
-		assertTrue(exceptionThrown);
-		assertEquals("selectors should have been invoked one time each", 3, selectorCounter.get());
-		assertEquals("consumer with rejecting selector should not have received the message", 0, counter1.get());
-		assertEquals("consumer with rejecting selector should not have received the message", 0, counter2.get());
-		assertEquals("consumer with rejecting selector should not have received the message", 0, counter3.get());
-	}
-
-	@Test
 	public void firstHandlerReturnsTrue() {
 		SimpleDispatcher dispatcher = new SimpleDispatcher();
 		final AtomicInteger counter = new AtomicInteger();
@@ -259,24 +201,6 @@ public class SimpleDispatcherTests {
 
 	private static ServiceActivatingHandler createConsumer(Object object) {
 		return new ServiceActivatingHandler(object);
-	}
-
-
-	private static class TestMessageSelector implements MessageSelector {
-
-		private final AtomicInteger counter;
-
-		private final boolean accept;
-
-		TestMessageSelector(AtomicInteger counter, boolean accept) {
-			this.counter = counter;
-			this.accept = accept;
-		}
-
-		public boolean accept(Message<?> message) {
-			this.counter.incrementAndGet();
-			return this.accept;
-		}
 	}
 
 
