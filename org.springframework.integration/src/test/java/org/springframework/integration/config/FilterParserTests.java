@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.message.MessageRejectedException;
 import org.springframework.integration.message.StringMessage;
 import org.springframework.integration.selector.MessageSelector;
 import org.springframework.test.context.ContextConfiguration;
@@ -52,6 +53,9 @@ public class FilterParserTests {
 
 	@Autowired @Qualifier("implementationOutput")
 	PollableChannel implementationOutput;
+
+	@Autowired @Qualifier("exceptionInput")
+	MessageChannel exceptionInput;
 
 
 	@Test
@@ -82,6 +86,18 @@ public class FilterParserTests {
 		implementationInput.send(new StringMessage(""));
 		Message<?> reply = implementationOutput.receive(0);
 		assertNull(reply);
+	}
+
+	@Test
+	public void exceptionThrowingFilterAccepts() {
+		exceptionInput.send(new StringMessage("test"));
+		Message<?> reply = implementationOutput.receive(0);
+		assertNotNull(reply);
+	}
+
+	@Test(expected = MessageRejectedException.class)
+	public void exceptionThrowingFilterRejects() {
+		exceptionInput.send(new StringMessage(""));
 	}
 
 

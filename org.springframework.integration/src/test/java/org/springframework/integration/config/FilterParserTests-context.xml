@@ -22,6 +22,8 @@
 
 	<filter ref="selectorImpl" input-channel="implementationInput" output-channel="implementationOutput"/>
 
+	<filter ref="selectorImpl" input-channel="exceptionInput" output-channel="implementationOutput" throw-exception-on-rejection="true"/>
+
 	<beans:bean id="selectorImpl"
 		class="org.springframework.integration.config.FilterParserTests$TestSelectorImpl"/>
 

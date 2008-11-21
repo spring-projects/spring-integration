@@ -257,7 +257,15 @@
 				<xsd:extension base="inputOutputEndpointType">
 					<xsd:sequence>
 						<xsd:choice minOccurs="1" maxOccurs="unbounded">
-							<xsd:element name="filter" type="handlerType"/>
+							<xsd:element name="filter">
+								<xsd:complexType>
+									<xsd:complexContent>
+										<xsd:extension base="handlerType">
+											<xsd:attribute name="throw-exception-on-rejection" type="xsd:string" default="false"/>
+										</xsd:extension>
+									</xsd:complexContent>
+								</xsd:complexType>
+							</xsd:element>
 							<xsd:element name="transformer" type="handlerType"/>
 							<xsd:element name="service-activator" type="handlerType"/>
 							<xsd:element name="splitter" type="handlerType"/>
@@ -424,12 +432,19 @@
 		</xsd:annotation>
 	</xsd:element>
 
-	<xsd:element name="filter" type="inputOutputEndpointType">
+	<xsd:element name="filter">
 		<xsd:annotation>
 			<xsd:documentation>
 	Defines a Filter.
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="inputOutputEndpointType">
+					<xsd:attribute name="throw-exception-on-rejection" type="xsd:string" default="false"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
 	</xsd:element>
 
 	<xsd:element name="router">
