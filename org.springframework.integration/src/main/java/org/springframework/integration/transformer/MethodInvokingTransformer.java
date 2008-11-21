@@ -44,6 +44,9 @@ public class MethodInvokingTransformer implements Transformer {
 
 	public Message<?> transform(Message<?> message) {
 		Object result = this.invoker.invokeMethod(message);
+		if (result instanceof Message) {
+			return (Message<?>) result;
+		}
 		if (result instanceof Properties && !(message.getPayload() instanceof Properties)) {
 			Properties propertiesToSet = (Properties) result;
 			MessageBuilder<?> builder = MessageBuilder.fromMessage(message);
@@ -53,7 +56,7 @@ public class MethodInvokingTransformer implements Transformer {
 			}
 			return builder.build();
 		}
-		else if (result instanceof Map && !(message.getPayload() instanceof Map)) {
+		if (result instanceof Map && !(message.getPayload() instanceof Map)) {
 			Map<?, ?> attributesToSet = (Map <?, ?>) result;
 			MessageBuilder<?> builder = MessageBuilder.fromMessage(message);
 			for (Object key : attributesToSet.keySet()) {
@@ -65,9 +68,7 @@ public class MethodInvokingTransformer implements Transformer {
 			}
 			return builder.build();
 		}
-		else {
-			return MessageBuilder.withPayload(result).copyHeaders(message.getHeaders()).build();
-		}
+		return MessageBuilder.withPayload(result).copyHeaders(message.getHeaders()).build();
 	}
 
 }

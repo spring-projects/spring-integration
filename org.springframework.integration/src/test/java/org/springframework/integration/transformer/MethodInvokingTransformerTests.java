@@ -174,6 +174,25 @@ public class MethodInvokingTransformerTests {
 	}
 
 	@Test
+	public void messageReturnValueConfiguredWithMethodReference() throws Exception {
+		TestBean testBean = new TestBean();
+		Method testMethod = testBean.getClass().getMethod("messageReturnValueTest", Message.class);
+		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, testMethod);
+		Message<String> message = MessageBuilder.withPayload("test").build();
+		Message<?> result = transformer.transform(message);
+		assertEquals("test", result.getPayload());
+	}
+
+	@Test
+	public void messageReturnValueConfiguredWithMethodName() throws Exception {
+		TestBean testBean = new TestBean();
+		MethodInvokingTransformer transformer = new MethodInvokingTransformer(testBean, "messageReturnValueTest");
+		Message<String> message = MessageBuilder.withPayload("test").build();
+		Message<?> result = transformer.transform(message);
+		assertEquals("test", result.getPayload());
+	}
+
+	@Test
 	@SuppressWarnings("unchecked")
 	public void propertiesPayloadConfiguredWithMethodReference() throws Exception {
 		TestBean testBean = new TestBean();
@@ -245,6 +264,10 @@ public class MethodInvokingTransformerTests {
 			properties.setProperty("prop1", "foo");
 			properties.setProperty("prop2", "bar");
 			return properties;
+		}
+
+		public Message<?> messageReturnValueTest(Message<?> message) {
+			return message;
 		}
 	}
 
