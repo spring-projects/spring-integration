@@ -19,9 +19,10 @@ package org.springframework.integration.config.xml;
 import org.w3c.dom.Element;
 
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
-import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
+import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.ConsumerEndpointFactoryBean;
@@ -33,7 +34,7 @@ import org.springframework.util.xml.DomUtils;
  * 
  * @author Mark Fisher
  */
-public abstract class AbstractConsumerEndpointParser extends AbstractSingleBeanDefinitionParser {
+public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinitionParser {
 
 	protected static final String REF_ATTRIBUTE = "ref";
 
@@ -47,11 +48,6 @@ public abstract class AbstractConsumerEndpointParser extends AbstractSingleBeanD
 
 
 	@Override
-	protected final Class<?> getBeanClass(Element element) {
-		return ConsumerEndpointFactoryBean.class;
-	}
-
-	@Override
 	protected boolean shouldGenerateId() {
 		return false;
 	}
@@ -62,7 +58,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractSingleBeanD
 	}
 
 	/**
-	 * Parse the MessageConsumer.
+	 * Parse the MessageHandler.
 	 */
 	protected abstract BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext);
 
@@ -71,13 +67,18 @@ public abstract class AbstractConsumerEndpointParser extends AbstractSingleBeanD
 	}
 
 	@Override
-	protected final void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		BeanDefinitionBuilder consumerBuilder = this.parseHandler(element, parserContext);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(consumerBuilder, element, OUTPUT_CHANNEL_ATTRIBUTE);
-		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(consumerBuilder, element, SELECTOR_ATTRIBUTE);
-		String consumerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(
-				consumerBuilder.getBeanDefinition(), parserContext.getRegistry());
-		builder.addConstructorArgReference(consumerBeanName);
+	protected final AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
+		BeanDefinitionBuilder handlerBuilder = this.parseHandler(element, parserContext);
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(handlerBuilder, element, OUTPUT_CHANNEL_ATTRIBUTE);
+		AbstractBeanDefinition handlerBeanDefinition = handlerBuilder.getBeanDefinition();
+		if (!element.hasAttribute(this.getInputChannelAttributeName())) {
+			return handlerBeanDefinition;
+		}
+		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ConsumerEndpointFactoryBean.class);
+		String handlerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(handlerBeanDefinition, parserContext.getRegistry());
+		builder.addConstructorArgReference(handlerBeanName);
+		// TODO: remove the 'selector'
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(handlerBuilder, element, SELECTOR_ATTRIBUTE);
 		String inputChannelAttributeName = this.getInputChannelAttributeName();
 		String inputChannelName = element.getAttribute(inputChannelAttributeName);
 		Assert.hasText(inputChannelName, "the '" + inputChannelAttributeName + "' attribute is required");
@@ -98,13 +99,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractSingleBeanD
 			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, pollerElement, "task-executor");
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
-		this.postProcess(element, parserContext, builder);
-	}
-
-	/**
-	 * Subclasses may implement this method to provide additional configuration.
-	 */
-	protected void postProcess(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+		return builder.getBeanDefinition();
 	}
 
 }

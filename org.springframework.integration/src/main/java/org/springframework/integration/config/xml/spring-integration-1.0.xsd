@@ -214,10 +214,10 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
-			<xsd:extension base="beans:identifiedType">
-				<xsd:all>
+			<xsd:extension base="handlerType">
+				<xsd:sequence>
 					<xsd:element ref="poller" minOccurs="0" maxOccurs="1"/>
-				</xsd:all>
+				</xsd:sequence>
 				<xsd:attribute name="input-channel" type="xsd:string">
 					<xsd:annotation>
 						<xsd:appinfo>
@@ -227,13 +227,57 @@
 						</xsd:appinfo>
 					</xsd:annotation>
 				</xsd:attribute>
-				<xsd:attribute name="ref" type="xsd:string"/>
-				<xsd:attribute name="method" type="xsd:string"/>
 				<xsd:attribute name="selector" type="xsd:string"/>
 				<xsd:attribute name="auto-startup" type="xsd:string"/>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
+
+	<xsd:complexType name="handlerType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Base type for Message Handlers.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="beans:identifiedType">
+				<xsd:attribute name="ref" type="xsd:string"/>
+				<xsd:attribute name="method" type="xsd:string"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:element name="chain">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines an endpoint composed of a chain of Message Handlers.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="inputOutputEndpointType">
+					<xsd:sequence>
+						<xsd:choice minOccurs="1" maxOccurs="unbounded">
+							<xsd:element name="filter" type="handlerType"/>
+							<xsd:element name="transformer" type="handlerType"/>
+							<xsd:element name="service-activator" type="handlerType"/>
+							<xsd:element name="splitter" type="handlerType"/>
+							<xsd:any namespace="##other" processContents="strict" minOccurs="0" maxOccurs="unbounded"/>
+						</xsd:choice>
+						<xsd:element name="router" minOccurs="0" maxOccurs="1">
+							<xsd:complexType>
+								<xsd:complexContent>
+									<xsd:extension base="handlerType">
+										<xsd:attribute name="default-output-channel" type="xsd:string"/>
+									</xsd:extension>
+								</xsd:complexContent>
+							</xsd:complexType>
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
 
 	<xsd:element name="poller">
 		<xsd:complexType>
