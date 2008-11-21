@@ -54,7 +54,7 @@ public abstract class AbstractRemotingOutboundGatewayParser extends AbstractCons
 	}
 
 	@Override
-	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
+	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(this.getGatewayClass(element));
 		String url = this.parseUrl(element);
 		builder.addConstructorArgValue(url);

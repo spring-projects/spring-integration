@@ -32,7 +32,7 @@ import org.springframework.util.StringUtils;
 public class ServiceActivatorParser extends AbstractConsumerEndpointParser {
 
 	@Override
-	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
+	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(ServiceActivatingHandler.class);
 		String ref = element.getAttribute(REF_ATTRIBUTE);
 		Assert.hasText(ref, "The '" + REF_ATTRIBUTE + "' attribute is required.");

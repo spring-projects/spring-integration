@@ -34,7 +34,7 @@ import org.springframework.util.StringUtils;
 public class TransformerParser extends AbstractConsumerEndpointParser {
 
 	@Override
-	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
+	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MessageTransformingHandler.class);
 		builder.addConstructorArgReference(this.parseTransformer(element, parserContext));
 		return builder;

@@ -34,7 +34,7 @@ import org.springframework.util.StringUtils;
 public class RouterParser extends AbstractConsumerEndpointParser {
 
 	@Override
-	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
+	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		String ref = element.getAttribute(REF_ATTRIBUTE);
 		Assert.hasText(ref, "The '" + REF_ATTRIBUTE + "' attribute is required.");
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RouterFactoryBean.class);

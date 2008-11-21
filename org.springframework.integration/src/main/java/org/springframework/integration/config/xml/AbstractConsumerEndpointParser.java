@@ -64,7 +64,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractSingleBeanD
 	/**
 	 * Parse the MessageConsumer.
 	 */
-	protected abstract BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext);
+	protected abstract BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext);
 
 	protected String getInputChannelAttributeName() {
 		return "input-channel";
@@ -72,7 +72,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractSingleBeanD
 
 	@Override
 	protected final void doParse(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		BeanDefinitionBuilder consumerBuilder = this.parseConsumer(element, parserContext);
+		BeanDefinitionBuilder consumerBuilder = this.parseHandler(element, parserContext);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(consumerBuilder, element, OUTPUT_CHANNEL_ATTRIBUTE);
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(consumerBuilder, element, SELECTOR_ATTRIBUTE);
 		String consumerBeanName = BeanDefinitionReaderUtils.registerWithGeneratedName(

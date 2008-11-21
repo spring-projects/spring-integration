@@ -34,7 +34,7 @@ import org.springframework.util.StringUtils;
 public class FilterParser extends AbstractConsumerEndpointParser {
 
 	@Override
-	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
+	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MessageFilter.class);
 		builder.addConstructorArgReference(this.parseSelector(element, parserContext));
 		return builder;

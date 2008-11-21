@@ -47,7 +47,7 @@ public class XPathRouterParser extends AbstractConsumerEndpointParser {
 	}
 
 	@Override
-	protected BeanDefinitionBuilder parseConsumer(Element element, ParserContext parserContext) {
+	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition();
 
 		boolean multiChannel = Boolean.parseBoolean(element.getAttribute("multi-channel"));
