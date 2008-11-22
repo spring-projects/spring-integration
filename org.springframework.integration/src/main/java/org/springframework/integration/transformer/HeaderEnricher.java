@@ -22,8 +22,8 @@ import org.springframework.util.Assert;
 
 /**
  * A Transformer that adds statically configured header values to a Message.
- * Accepts an optional 'prefix' String and a boolean that specifies whether
- * values should be overwritten. By default, any existing header values for
+ * Accepts the boolean 'overwrite' property that specifies whether values
+ * should be overwritten. By default, any existing header values for
  * a given key, will <em>not</em> be replaced.
  * 
  * @author Mark Fisher
@@ -33,8 +33,6 @@ public class HeaderEnricher extends AbstractHeaderTransformer {
 	private final Map<String, Object> headersToAdd;
 
 	private volatile boolean overwrite;
-
-	private volatile String prefix;
 
 
 	/**
@@ -50,17 +48,10 @@ public class HeaderEnricher extends AbstractHeaderTransformer {
 		this.overwrite = overwrite;
 	}
 
-	public void setPrefix(String prefix) {
-		this.prefix = prefix;
-	}
-
 	@Override
 	protected final void transformHeaders(Map<String, Object> headers) {
 		for (Map.Entry<String, Object> entry : this.headersToAdd.entrySet()) {
 			String key = entry.getKey();
-			if (this.prefix != null) {
-				key = this.prefix + key;
-			}
 			if (this.overwrite || headers.get(key) == null) {
 				headers.put(key, entry.getValue());
 			}

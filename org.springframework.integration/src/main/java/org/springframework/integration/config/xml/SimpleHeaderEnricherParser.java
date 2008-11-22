@@ -84,20 +84,18 @@ public class SimpleHeaderEnricherParser extends AbstractTransformerParser {
 			Node node = attributes.item(i);
 			String name = node.getNodeName();
 			if (this.isEligibleHeaderName(name)) {
-				if (this.referenceAttributes.contains(name)) {
-					headers.put(name, new RuntimeBeanReference(node.getNodeValue()));
+				Object value = (this.referenceAttributes.contains(name))
+						? new RuntimeBeanReference(node.getNodeValue())
+						: node.getNodeValue();
+				if (this.prefix != null) {
+					name = this.prefix + name;
 				}
-				else {
-					headers.put(name, node.getNodeValue());
-				}
+				headers.put(name, value);
 			}
 		}
 		this.postProcessHeaders(element, headers);
 		builder.addConstructorArgValue(headers);
 		builder.addPropertyValue("overwrite", this.shouldOverwrite(element));
-		if (this.prefix != null) {
-			builder.addPropertyValue("prefix", this.prefix);
-		}
 	}
 
 	/**

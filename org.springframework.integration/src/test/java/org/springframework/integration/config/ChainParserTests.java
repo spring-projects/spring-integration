@@ -38,19 +38,27 @@ import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 public class ChainParserTests extends AbstractJUnit4SpringContextTests {
 
 	@Autowired
-	@Qualifier("input")
-	private MessageChannel inputChannel;
+	@Qualifier("filterInput")
+	private MessageChannel filterInput;
+
+	@Autowired
+	@Qualifier("headerEnricherInput")
+	private MessageChannel headerEnricherInput;
 
 	@Autowired
 	@Qualifier("output")
-	private PollableChannel outputChannel;
+	private PollableChannel output;
+
+	@Autowired
+	@Qualifier("replyOutput")
+	private PollableChannel replyOutput;
 
 
 	@Test
-	public void testChainWithAcceptingFilter() {	
+	public void chainWithAcceptingFilter() {	
 		Message<?> message = MessageBuilder.withPayload("test").build();
-		this.inputChannel.send(message);
-		Message<?> reply = this.outputChannel.receive(0);
+		this.filterInput.send(message);
+		Message<?> reply = this.output.receive(0);
 		assertNotNull(reply);
 		assertEquals("foo", reply.getPayload());
 	}
@@ -58,9 +66,21 @@ public class ChainParserTests extends AbstractJUnit4SpringContextTests {
 	@Test
 	public void chainWithRejectingFilter() {
 		Message<?> message = MessageBuilder.withPayload(123).build();
-		this.inputChannel.send(message);
-		Message<?> reply = this.outputChannel.receive(0);
+		this.filterInput.send(message);
+		Message<?> reply = this.output.receive(0);
 		assertNull(reply);
+	}
+
+	@Test
+	public void chainWithHeaderEnricher() {
+		Message<?> message = MessageBuilder.withPayload(123).build();
+		this.headerEnricherInput.send(message);
+		Message<?> reply = this.replyOutput.receive(0);
+		assertNotNull(reply);
+		assertEquals("foo", reply.getPayload());
+		assertEquals("ABC", reply.getHeaders().getCorrelationId());
+		assertEquals("XYZ", reply.getHeaders().get("testValue"));
+		assertEquals(123, reply.getHeaders().get("testRef"));
 	}
 
 }

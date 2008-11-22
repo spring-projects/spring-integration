@@ -266,6 +266,14 @@
 									</xsd:complexContent>
 								</xsd:complexType>
 							</xsd:element>
+							<xsd:element name="header-enricher">
+								<xsd:complexType>
+									<xsd:sequence>
+										<xsd:element name="header" type="headerElementType" minOccurs="0" maxOccurs="unbounded"/>
+									</xsd:sequence>
+									<xsd:attributeGroup ref="headerEnricherAttributes"/>
+								</xsd:complexType>
+							</xsd:element>
 							<xsd:element name="transformer" type="handlerType"/>
 							<xsd:element name="service-activator" type="handlerType"/>
 							<xsd:element name="splitter" type="handlerType"/>
@@ -386,6 +394,48 @@
 			<xsd:attribute name="ref" type="xsd:string" use="required"/>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:element name="header-enricher">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a HeaderEnricher endpoint for values defined in the MessageHeaders.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:complexContent>
+				<xsd:extension base="inputOutputEndpointType">
+					<xsd:sequence>
+						<xsd:element name="header" type="headerElementType" minOccurs="0" maxOccurs="unbounded"/>
+					</xsd:sequence>
+					<xsd:attributeGroup ref="headerEnricherAttributes"/>
+				</xsd:extension>
+			</xsd:complexContent>
+		</xsd:complexType>
+	</xsd:element>
+
+	<xsd:complexType name="headerElementType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a Message Header value or ref.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="name" type="xsd:string" use="required"/>
+		<xsd:attribute name="ref" type="xsd:string"/>
+		<xsd:attribute name="value" type="xsd:string"/>
+	</xsd:complexType>
+
+	<xsd:attributeGroup name="headerEnricherAttributes">
+		<xsd:annotation>
+			<xsd:documentation>
+	Provides the names of the standard configurable MessageHeaders.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="reply-channel" type="xsd:string"/>
+		<xsd:attribute name="error-channel" type="xsd:string"/>
+		<xsd:attribute name="correlation-id" type="xsd:string"/>
+		<xsd:attribute name="expiration-date" type="xsd:string"/>
+		<xsd:attribute name="priority" type="xsd:string"/>
+	</xsd:attributeGroup>
 
 	<xsd:element name="thread-pool-task-executor">
 		<xsd:complexType>

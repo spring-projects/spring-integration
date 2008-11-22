@@ -105,6 +105,7 @@ public class IntegrationNamespaceHandler implements NamespaceHandler {
 			registerBeanDefinitionParser("splitter", new SplitterParser());
 			registerBeanDefinitionParser("aggregator", new AggregatorParser());
 			registerBeanDefinitionParser("resequencer", new ResequencerParser());
+			registerBeanDefinitionParser("header-enricher", new StandardHeaderEnricherParser());
 			registerBeanDefinitionParser("inbound-channel-adapter", new MethodInvokingInboundChannelAdapterParser());
 			registerBeanDefinitionParser("outbound-channel-adapter", new MethodInvokingOutboundChannelAdapterParser());
 			registerBeanDefinitionParser("gateway", new GatewayParser());
