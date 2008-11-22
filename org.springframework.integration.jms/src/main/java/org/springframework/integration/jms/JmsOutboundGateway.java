@@ -41,6 +41,8 @@ import org.springframework.jms.connection.ConnectionFactoryUtils;
 import org.springframework.jms.support.JmsUtils;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.SimpleMessageConverter;
+import org.springframework.jms.support.destination.DestinationResolver;
+import org.springframework.jms.support.destination.DynamicDestinationResolver;
 import org.springframework.util.Assert;
 
 /**
@@ -54,7 +56,13 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 	private volatile Destination requestDestination;
 
+	private volatile String requestDestinationName;
+
 	private volatile Destination replyDestination;
+
+	private volatile String replyDestinationName;
+
+	private volatile DestinationResolver destinationResolver = new DynamicDestinationResolver();
 
 	private volatile boolean pubSubDomain;
 
@@ -91,7 +99,7 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 
 	/**
 	 * Set the JMS Destination to which request Messages should be sent.
-	 * This is a <em>required</em> property.
+	 * Either this or the 'requestDestinationName' property is required.
 	 */
 	public void setRequestDestination(Destination requestDestination) {
 		if (requestDestination instanceof Topic) {
@@ -101,11 +109,36 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 	}
 
 	/**
+	 * Set the name of the JMS Destination to which request Messages should be
+	 * sent. Either this or the 'requestDestination' property is required.
+	 */
+	public void setRequestDestinationName(String requestDestinationName) {
+		this.requestDestinationName = requestDestinationName;
+	}
+
+	/**
 	 * Set the JMS Destination from which reply Messages should be received.
 	 * If none is provided, this gateway will create a {@link TemporaryQueue} per invocation.
 	 */
 	public void setReplyDestination(Destination replyDestination) {
 		this.replyDestination = replyDestination;
+	}
+
+	/**
+	 * Set the name of the JMS Destination from which reply Messages should be received.
+	 * If none is provided, this gateway will create a {@link TemporaryQueue} per invocation.
+	 */
+	public void setReplyDestinationName(String replyDestinationName) {
+		this.replyDestinationName = replyDestinationName;
+	}
+
+	/**
+	 * Provide the {@link DestinationResolver} to use when resolving either a
+	 * 'requestDestinationName' or 'replyDestinationName' value. The default
+	 * is an instance of {@link DynamicDestinationResolver}.
+	 */
+	public void setDestinationResolver(DestinationResolver destinationResolver) {
+		this.destinationResolver = destinationResolver;
 	}
 
 	/**
@@ -192,13 +225,37 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		this.setOutputChannel(replyChannel);
 	}
 
+	private Destination getRequestDestination(Session session) throws JMSException {
+		if (this.requestDestination != null) {
+			return this.requestDestination;
+		}
+		Assert.notNull(this.destinationResolver,
+				"DestinationResolver is required when relying upon the 'requestDestinationName' property.");
+		return this.destinationResolver.resolveDestinationName(
+				session, this.requestDestinationName, this.pubSubDomain);
+	}
+
+	private Destination getReplyDestination(Session session) throws JMSException {
+		if (this.replyDestination != null) {
+			return this.replyDestination;
+		}
+		if (this.replyDestinationName != null) {
+			Assert.notNull(this.destinationResolver,
+					"DestinationResolver is required when relying upon the 'replyDestinationName' property.");
+			return this.destinationResolver.resolveDestinationName(
+					session, this.replyDestinationName, this.pubSubDomain);
+		}
+		return session.createTemporaryQueue();
+	}
+
 	public void afterPropertiesSet() {
 		synchronized (this.initializationMonitor) {
 			if (this.initialized) {
 				return;
 			}
 			Assert.notNull(this.connectionFactory, "connectionFactory must not be null");
-			Assert.notNull(this.requestDestination, "requestDestination must not be null");
+			Assert.isTrue(this.requestDestination != null || this.requestDestinationName != null,
+					"Either a 'requestDestination' or 'requestDestinationName' is required.");
 			if (this.messageConverter == null) {
 				HeaderMappingMessageConverter hmmc = new HeaderMappingMessageConverter(null, this.headerMapper);
 				hmmc.setExtractIntegrationMessagePayload(this.extractRequestPayload);
@@ -237,12 +294,11 @@ public class JmsOutboundGateway extends AbstractReplyProducingMessageHandler imp
 		try {
 			session = createSession(connection);
 			javax.jms.Message jmsRequest = this.messageConverter.toMessage(requestMessage, session);
-			messageProducer = session.createProducer(this.requestDestination);
+			messageProducer = session.createProducer(this.getRequestDestination(session));
 			messageProducer.setDeliveryMode(this.deliveryMode);
 			messageProducer.setPriority(this.priority);
 			messageProducer.setTimeToLive(this.timeToLive);
-			replyTo = (this.replyDestination != null)
-					? this.replyDestination : session.createTemporaryQueue();
+			replyTo = this.getReplyDestination(session);
 			jmsRequest.setJMSReplyTo(replyTo);
 			connection.start();
 			messageProducer.send(jmsRequest);

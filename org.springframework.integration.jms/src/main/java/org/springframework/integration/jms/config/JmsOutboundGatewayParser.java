@@ -23,6 +23,8 @@ import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.integration.config.xml.AbstractConsumerEndpointParser;
 import org.springframework.integration.config.xml.IntegrationNamespaceUtils;
 import org.springframework.integration.jms.JmsOutboundGateway;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Parser for the &lt;outbound-gateway&gt; element of the integration 'jms' namespace.
@@ -40,8 +42,18 @@ public class JmsOutboundGatewayParser extends AbstractConsumerEndpointParser {
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(JmsOutboundGateway.class);
 		builder.addPropertyReference("connectionFactory", element.getAttribute("connection-factory"));
-		builder.addPropertyReference("requestDestination", element.getAttribute("request-destination"));
+		String requestDestination = element.getAttribute("request-destination");
+		String requestDestinationName = element.getAttribute("request-destination-name");
+		Assert.isTrue(StringUtils.hasText(requestDestination) ^ StringUtils.hasText(requestDestinationName),
+				"Exactly one of the 'request-destination' or 'request-destination-name' attributes is required.");
+		if (StringUtils.hasText(requestDestination)) {
+			builder.addPropertyReference("requestDestination", requestDestination);
+		}
+		else if (StringUtils.hasText(requestDestinationName)) {
+			builder.addPropertyValue("requestDestinationName", requestDestinationName);
+		}
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-destination");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "reply-destination-name");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "reply-channel");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "message-converter");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "header-mapper");

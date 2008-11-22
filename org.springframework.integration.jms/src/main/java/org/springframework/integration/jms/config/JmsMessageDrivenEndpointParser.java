@@ -43,7 +43,7 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		JmsAdapterParserUtils.CONNECTION_FACTORY_PROPERTY,
 		JmsAdapterParserUtils.DESTINATION_ATTRIBUTE,
 		JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE,
-		"transaction-manager", "pub-sub-domain",
+		"destination-resolver", "transaction-manager", "pub-sub-domain",
 		"concurrent-consumers", "max-concurrent-consumers",
 		"max-messages-per-task", "idle-task-execution-limit"
 	};
@@ -113,6 +113,7 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 				builder.addPropertyValue("sessionAcknowledgeMode", acknowledgeMode);
 			}
 		}
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "destination-resolver");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "transaction-manager");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "pub-sub-domain");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "concurrent-consumers");
