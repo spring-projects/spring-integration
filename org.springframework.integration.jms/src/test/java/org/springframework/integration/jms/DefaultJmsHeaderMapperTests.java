@@ -107,7 +107,7 @@ public class DefaultJmsHeaderMapperTests {
 	@Test
 	public void testUserDefinedPropertyMappedFromHeader() throws JMSException {
 		Message<String> message = MessageBuilder.withPayload("test")
-				.setHeader(JmsHeaders.USER_PREFIX + "foo", new Integer(123))
+				.setHeader("foo", new Integer(123))
 				.build();
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
 		javax.jms.Message jmsMessage = new StubTextMessage();
@@ -122,12 +122,12 @@ public class DefaultJmsHeaderMapperTests {
 	public void testUserDefinedPropertyWithUnsupportedType() throws JMSException {
 		Destination destination = new Destination() {};
 		Message<String> message = MessageBuilder.withPayload("test")
-				.setHeader(JmsHeaders.USER_PREFIX + "destination", destination)
+				.setHeader("destination", destination)
 				.build();
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
 		javax.jms.Message jmsMessage = new StubTextMessage();
 		mapper.fromHeaders(message.getHeaders(), jmsMessage);
-		Object value = jmsMessage.getObjectProperty("foo");
+		Object value = jmsMessage.getObjectProperty("destination");
 		assertNull(value);
 	}
 
@@ -173,18 +173,18 @@ public class DefaultJmsHeaderMapperTests {
 		jmsMessage.setIntProperty("foo", 123);
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
 		Map<String, Object> headers = mapper.toHeaders(jmsMessage);
-		Object attrib = headers.get(JmsHeaders.USER_PREFIX + "foo");
+		Object attrib = headers.get("foo");
 		assertNotNull(attrib);
 		assertEquals(Integer.class, attrib.getClass());
 		assertEquals(123, ((Integer) attrib).intValue());
 	}
 
 	@Test
-	public void testJMSExceptionIsNotFatal() throws JMSException {
+	public void testPropertyMappingExceptionIsNotFatal() throws JMSException {
 		Message<String> message = MessageBuilder.withPayload("test")
-				.setHeader(JmsHeaders.USER_PREFIX + "foo", new Integer(123))
-				.setHeader(JmsHeaders.USER_PREFIX + "bad", new Integer(456))
-				.setHeader(JmsHeaders.USER_PREFIX + "bar", new Integer(789))
+				.setHeader("foo", new Integer(123))
+				.setHeader("bad", new Integer(456))
+				.setHeader("bar", new Integer(789))
 				.build();
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
 		javax.jms.Message jmsMessage = new StubTextMessage() {
@@ -208,9 +208,9 @@ public class DefaultJmsHeaderMapperTests {
 	@Test
 	public void testIllegalArgumentExceptionIsNotFatal() throws JMSException {
 		Message<String> message = MessageBuilder.withPayload("test")
-				.setHeader(JmsHeaders.USER_PREFIX + "foo", new Integer(123))
-				.setHeader(JmsHeaders.USER_PREFIX + "bad", new Integer(456))
-				.setHeader(JmsHeaders.USER_PREFIX + "bar", new Integer(789))
+				.setHeader("foo", new Integer(123))
+				.setHeader("bad", new Integer(456))
+				.setHeader("bar", new Integer(789))
 				.build();
 		DefaultJmsHeaderMapper mapper = new DefaultJmsHeaderMapper();
 		javax.jms.Message jmsMessage = new StubTextMessage() {

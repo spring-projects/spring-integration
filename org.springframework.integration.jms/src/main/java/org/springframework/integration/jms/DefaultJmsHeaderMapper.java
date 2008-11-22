@@ -24,10 +24,12 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.jms.Destination;
+import javax.jms.JMSException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.integration.adapter.MessageMappingException;
 import org.springframework.integration.core.MessageHeaders;
 import org.springframework.util.StringUtils;
 
@@ -59,20 +61,19 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 			if (jmsType != null && (jmsType instanceof String)) {
 				jmsMessage.setJMSType((String) jmsType);
 			}
-			String prefix = JmsHeaders.USER_PREFIX;
 			Set<String> attributeNames = headers.keySet();
 			for (String attributeName : attributeNames) {
-				if (attributeName.startsWith(prefix)) {
-					String jmsAttributeName = attributeName.substring(prefix.length());
+				if (!attributeName.startsWith(JmsHeaders.PREFIX)) {
 					if (StringUtils.hasText(attributeName)) {
 						Object value = headers.get(attributeName);
 						if (value != null && SUPPORTED_PROPERTY_TYPES.contains(value.getClass())) {
 							try {
-								jmsMessage.setObjectProperty(jmsAttributeName, value);
+								jmsMessage.setObjectProperty(attributeName, value);
 							}
-							catch (Throwable t) {
+							catch (Exception e) {
 								if (logger.isWarnEnabled()) {
-									logger.warn("failed to map property '" + jmsAttributeName + "' from MessageHeader", t);
+									logger.warn("failed to map Message header '"
+											+ attributeName + "' to JMS property", e);
 								}
 							}
 						}
@@ -80,9 +81,9 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 				}
 			}
 		}
-		catch (Throwable t) {
+		catch (Exception e) {
 			if (logger.isWarnEnabled()) {
-				logger.warn("error occurred while mapping properties from MessageHeader", t);
+				logger.warn("error occurred while mapping properties from MessageHeaders", e);
 			}
 		}
 	}
@@ -107,15 +108,20 @@ public class DefaultJmsHeaderMapper implements JmsHeaderMapper {
 			if (jmsPropertyNames != null) {
 				while (jmsPropertyNames.hasMoreElements()) {
 					String propertyName = jmsPropertyNames.nextElement().toString();
-					headers.put(JmsHeaders.USER_PREFIX + propertyName,
-							jmsMessage.getObjectProperty(propertyName));
+					try {
+						headers.put(propertyName, jmsMessage.getObjectProperty(propertyName));
+					}
+					catch (Exception e) {
+						if (logger.isWarnEnabled()) {
+							logger.warn("error occurred while mapping JMS property '"
+									+ propertyName + "' to Message header", e);
+						}
+					}
 				}
 			}
 		}
-		catch (Throwable t) {
-			if (logger.isWarnEnabled()) {
-				logger.warn("error occurred while mapping properties to MessageHeader", t);
-			}
+		catch (JMSException e) {
+			throw new MessageMappingException("failure occurred while mapping JMS properties to MessageHeaders", e);
 		}
 		return headers;
 	}

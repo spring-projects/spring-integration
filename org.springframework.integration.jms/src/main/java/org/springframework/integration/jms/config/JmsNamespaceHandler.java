@@ -33,8 +33,8 @@ public class JmsNamespaceHandler extends NamespaceHandlerSupport {
 		this.registerBeanDefinitionParser("inbound-channel-adapter", new JmsInboundChannelAdapterParser());
 		this.registerBeanDefinitionParser("outbound-gateway", new JmsOutboundGatewayParser());
 		this.registerBeanDefinitionParser("outbound-channel-adapter", new JmsOutboundChannelAdapterParser());
-		this.registerBeanDefinitionParser("header-enricher", new SimpleHeaderEnricherParser(
-				JmsHeaders.TRANSPORT_PREFIX, new String[] { "reply-to" }));
+		this.registerBeanDefinitionParser("header-enricher",
+				new SimpleHeaderEnricherParser(JmsHeaders.PREFIX, new String[] { "reply-to" }));
 	}
 
 }
