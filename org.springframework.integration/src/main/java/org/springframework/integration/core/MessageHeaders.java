@@ -42,25 +42,25 @@ public final class MessageHeaders implements Map<String, Object>, Serializable {
 
 	private static final Log logger = LogFactory.getLog(MessageHeaders.class);
 
-	private static final String PREFIX = "spring.integration.";
+	public static final String PREFIX = "spring.integration.";
 
 	public static final String ID = PREFIX + "id";
 
 	public static final String TIMESTAMP = PREFIX + "timestamp";
 
-	public static final String CORRELATION_ID = PREFIX + "correlationId";
+	public static final String CORRELATION_ID = PREFIX + "correlation-id";
 
-	public static final String REPLY_CHANNEL = PREFIX + "replyChannel";
+	public static final String REPLY_CHANNEL = PREFIX + "reply-channel";
 
-	public static final String ERROR_CHANNEL = PREFIX + "errorChannel";
+	public static final String ERROR_CHANNEL = PREFIX + "error-channel";
 
-	public static final String EXPIRATION_DATE = PREFIX + "expirationDate";
+	public static final String EXPIRATION_DATE = PREFIX + "expiration-date";
 
 	public static final String PRIORITY = PREFIX + "priority";
 
-	public static final String SEQUENCE_NUMBER = PREFIX + "sequenceNumber";
+	public static final String SEQUENCE_NUMBER = PREFIX + "sequence-number";
 
-	public static final String SEQUENCE_SIZE = PREFIX + "sequenceSize";
+	public static final String SEQUENCE_SIZE = PREFIX + "sequence-size";
 
 
 	private final Map<String, Object> headers;
