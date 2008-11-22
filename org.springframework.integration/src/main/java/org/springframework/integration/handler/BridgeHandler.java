@@ -19,9 +19,14 @@ package org.springframework.integration.handler;
 import org.springframework.integration.core.Message;
 
 /**
+ * A simple MessageHandler implementation that passes the request Message
+ * directly to the output channel without modifying it. The main purpose of
+ * this handler is to bridge a PollableChannel to a SubscribableChannel or
+ * vice-versa.
+ * 
  * @author Mark Fisher
  */
-public class MessagingBridge extends AbstractReplyProducingMessageHandler {
+public class BridgeHandler extends AbstractReplyProducingMessageHandler {
 
 	@Override
 	protected void handleRequestMessage(Message<?> requestMessage, ReplyMessageHolder replyMessageHolder) {

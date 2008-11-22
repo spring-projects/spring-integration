@@ -173,7 +173,7 @@
 		<xsd:attribute name="auto-startup" type="xsd:string" default="true"/>
 	</xsd:complexType>
 
-	<xsd:element name="service-activator" type="inputOutputEndpointType">
+	<xsd:element name="service-activator" type="handlerEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
 	Defines an endpoint for exposing any bean reference as a service that receives
@@ -184,6 +184,20 @@
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
+
+	<xsd:complexType name="handlerEndpointType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Base type for Message-handling endpoints.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="inputOutputEndpointType">
+				<xsd:attribute name="ref" type="xsd:string"/>
+				<xsd:attribute name="method" type="xsd:string"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
 
 	<xsd:complexType name="inputOutputEndpointType">
 		<xsd:annotation>
@@ -214,7 +228,7 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
-			<xsd:extension base="handlerType">
+			<xsd:extension base="beans:identifiedType">
 				<xsd:sequence>
 					<xsd:element ref="poller" minOccurs="0" maxOccurs="1"/>
 				</xsd:sequence>
@@ -245,6 +259,14 @@
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
+
+	<xsd:element name="bridge" type="inputOutputEndpointType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines an endpoint that passes a Message to the output-channel without modifying it.
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
 
 	<xsd:element name="chain">
 		<xsd:annotation>
@@ -475,7 +497,7 @@
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="transformer" type="inputOutputEndpointType">
+	<xsd:element name="transformer" type="handlerEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
 	Defines a Transformer.
@@ -491,7 +513,7 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:complexContent>
-				<xsd:extension base="inputOutputEndpointType">
+				<xsd:extension base="handlerEndpointType">
 					<xsd:attribute name="throw-exception-on-rejection" type="xsd:string" default="false"/>
 				</xsd:extension>
 			</xsd:complexContent>
@@ -508,12 +530,14 @@
 			<xsd:complexContent>
 				<xsd:extension base="inputEndpointType">
 					<xsd:attribute name="default-output-channel" type="xsd:string"/>
+					<xsd:attribute name="ref" type="xsd:string"/>
+					<xsd:attribute name="method" type="xsd:string"/>
 				</xsd:extension>
 			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
 
-	<xsd:element name="splitter" type="inputOutputEndpointType">
+	<xsd:element name="splitter" type="handlerEndpointType">
 		<xsd:annotation>
 			<xsd:documentation>
 	Defines a Splitter.
@@ -529,7 +553,7 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
-				<xsd:extension base="inputOutputEndpointType">
+				<xsd:extension base="handlerEndpointType">
 					<xsd:attribute name="completion-strategy" type="xsd:string"/>
 					<xsd:attribute name="completion-strategy-method" type="xsd:string"/>
 					<xsd:attribute name="discard-channel" type="xsd:string"/>
@@ -551,7 +575,7 @@
 				</xsd:documentation>
 			</xsd:annotation>
 			<xsd:complexContent>
-				<xsd:extension base="inputOutputEndpointType">
+				<xsd:extension base="handlerEndpointType">
 					<xsd:attribute name="discard-channel" type="xsd:string"/>
 					<xsd:attribute name="send-timeout" type="xsd:string"/>
 					<xsd:attribute name="release-partial-sequences" type="xsd:string"/>
