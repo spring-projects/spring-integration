@@ -12,17 +12,12 @@
 			http://www.springframework.org/schema/util
 			http://www.springframework.org/schema/util/spring-util.xsd">
 
-
-
-	<si:annotation-config />
-
 	<si:channel id="ordersChannel" />
 	<si:channel id="stockCheckerChannel" />
 	<si:channel id="orderRoutingChannel" />
 	<si:channel id="warehouseDispatchChannel" />
 	<si:channel id="outOfStockChannel" />
 	<si:channel id="resupplyOrderChannel" />
-	
 
 	<!-- map of namespace prefix to URI -->
 	<util:map id="orderNamespaceMap">

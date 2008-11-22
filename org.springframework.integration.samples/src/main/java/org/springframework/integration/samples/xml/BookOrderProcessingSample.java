@@ -34,20 +34,12 @@ import org.w3c.dom.Document;
 public class BookOrderProcessingSample {
 
 	public static void main(String[] args) throws Exception {
-		try {
-			AbstractApplicationContext applicationContext = new ClassPathXmlApplicationContext(
-					"orderProcessingSample.xml", BookOrderProcessingSample.class);
-			MessageChannel messageChannel = (MessageChannel) applicationContext.getBean("ordersChannel");
-			GenericMessage<Document> orderMessage = createXmlMessageFromResource("org/springframework/integration/samples/xml/order.xml");
-			messageChannel.send(orderMessage);
-			applicationContext.close();
-		}
-		catch (Throwable t){
-			t.printStackTrace();
-		}
-		finally {
-			System.exit(0);
-		}
+		AbstractApplicationContext applicationContext = new ClassPathXmlApplicationContext("orderProcessingSample.xml",
+				BookOrderProcessingSample.class);
+		MessageChannel messageChannel = (MessageChannel) applicationContext.getBean("ordersChannel");
+		GenericMessage<Document> orderMessage = createXmlMessageFromResource("org/springframework/integration/samples/xml/order.xml");
+		messageChannel.send(orderMessage);
+		applicationContext.close();
 	}
 
 	private static GenericMessage<Document> createXmlMessageFromResource(String path) throws Exception {
