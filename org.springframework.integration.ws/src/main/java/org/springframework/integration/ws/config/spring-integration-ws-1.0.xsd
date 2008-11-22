@@ -29,7 +29,7 @@
 				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 			</xsd:all>
 			<xsd:attribute name="id" type="xsd:string"/>
-			<xsd:attribute name="request-channel" type="xsd:string" use="required"/>
+			<xsd:attribute name="request-channel" type="xsd:string"/>
 			<xsd:attribute name="reply-channel" type="xsd:string"/>
 			<xsd:attribute name="uri" type="xsd:string" use="required"/>
 			<xsd:attribute name="marshaller" type="xsd:string"/>

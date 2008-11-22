@@ -17,10 +17,11 @@
 package org.springframework.integration.samples.ws;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.integration.channel.BeanFactoryChannelResolver;
+import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.ws.WebServiceHeaders;
 
 /**
  * Demonstrating a web service invocation through a Web Service MessageHandler.
@@ -31,6 +32,7 @@ public class WebServiceDemo {
 
 	public static void main(String[] args) {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("temperatureConversion.xml", WebServiceDemo.class);
+		ChannelResolver channelResolver = new BeanFactoryChannelResolver(context);
 
 		// Compose the XML message according to the server's schema
 		String requestXml =
@@ -39,13 +41,11 @@ public class WebServiceDemo {
 				"</FahrenheitToCelsius>";
 
 		// Create the Message object
-		// In this case the service expects a SoapAction header
-		Message<String> message = MessageBuilder.withPayload(requestXml)
-				.setHeader(WebServiceHeaders.SOAP_ACTION, "http://tempuri.org/FahrenheitToCelsius")
-				.build();
+		Message<String> message = MessageBuilder.withPayload(requestXml).build();
 
 		// Send the Message to the handler's input channel
-		((MessageChannel) context.getBean("fahrenheitChannel")).send(message);
+		MessageChannel channel = channelResolver.resolveChannelName("fahrenheitChannel");
+		channel.send(message);
 	}
 
 }

@@ -13,15 +13,15 @@
 			http://www.springframework.org/schema/integration/ws
 			http://www.springframework.org/schema/integration/ws/spring-integration-ws-1.0.xsd">
 
-	<channel id="fahrenheitChannel"/>
-
-	<!-- The Web Service outbound Messaging Gateway receives from the
-	     'fahrenheitChannel', invokes the Web Service for the given URI,
-	     and sends the reply Message to the 'celsiusChannel'. -->
-	<ws:outbound-gateway id="temperatureConverter"
-				         request-channel="fahrenheitChannel" 
-				         reply-channel="celsiusChannel"
-				         uri="http://www.w3schools.com/webservices/tempconvert.asmx"/>
+	<!-- This chain receives from the 'fahrenheitChannel' and enriches the request Message by adding
+	     the "soap-action" header value. Then, the Web Service outbound Messaging Gateway invokes the
+	     Web Service for the given URI, and the reply Message is sent to the 'celsiusChannel'. -->
+	<chain input-channel="fahrenheitChannel" output-channel="celsiusChannel">
+		<header-enricher>
+			<header name="spring.integration.ws.soap-action" value="http://tempuri.org/FahrenheitToCelsius"/>
+		</header-enricher>
+		<ws:outbound-gateway uri="http://www.w3schools.com/webservices/tempconvert.asmx"/>
+	</chain>
 
 	<!-- The response from the service is logged to the console. -->
 	<stream:stdout-channel-adapter id="celsiusChannel"/>
