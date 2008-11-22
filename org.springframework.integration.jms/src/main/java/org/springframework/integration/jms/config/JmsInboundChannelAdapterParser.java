@@ -79,6 +79,7 @@ public class JmsInboundChannelAdapterParser extends AbstractPollingInboundChanne
 			builder.addPropertyReference(JmsAdapterParserUtils.HEADER_MAPPER_PROPERTY, headerMapper);
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "extract-payload");
+		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "destination-resolver");
 		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
 	}
 

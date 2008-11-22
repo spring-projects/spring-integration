@@ -21,6 +21,7 @@ import javax.jms.Destination;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.support.destination.DestinationResolver;
 import org.springframework.util.Assert;
 
 /**
@@ -35,6 +36,8 @@ public abstract class AbstractJmsTemplateBasedAdapter implements InitializingBea
 	private volatile Destination destination;
 
 	private volatile String destinationName;
+
+	private volatile DestinationResolver destinationResolver;
 
 	private volatile JmsTemplate jmsTemplate;
 
@@ -52,13 +55,11 @@ public abstract class AbstractJmsTemplateBasedAdapter implements InitializingBea
 	public AbstractJmsTemplateBasedAdapter(ConnectionFactory connectionFactory, Destination destination) {
 		this.connectionFactory = connectionFactory;
 		this.destination = destination;
-		this.jmsTemplate = createDefaultJmsTemplate();
 	}
 
 	public AbstractJmsTemplateBasedAdapter(ConnectionFactory connectionFactory, String destinationName) {
 		this.connectionFactory = connectionFactory;
 		this.destinationName = destinationName;
-		this.jmsTemplate = createDefaultJmsTemplate();
 	}
 
 	/**
@@ -79,6 +80,10 @@ public abstract class AbstractJmsTemplateBasedAdapter implements InitializingBea
 
 	public void setDestinationName(String destinationName) {
 		this.destinationName = destinationName;
+	}
+
+	public void setDestinationResolver(DestinationResolver destinationResolver) {
+		this.destinationResolver = destinationResolver;
 	}
 
 	public void setJmsTemplate(JmsTemplate jmsTemplate) {
@@ -121,6 +126,9 @@ public abstract class AbstractJmsTemplateBasedAdapter implements InitializingBea
 		}
 		else {
 			jmsTemplate.setDefaultDestinationName(this.destinationName);
+		}
+		if (this.destinationResolver != null) {
+			jmsTemplate.setDestinationResolver(this.destinationResolver);
 		}
 		return jmsTemplate;
 	}
