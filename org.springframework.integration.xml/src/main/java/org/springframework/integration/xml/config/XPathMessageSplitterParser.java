@@ -49,10 +49,14 @@ public class XPathMessageSplitterParser extends AbstractConsumerEndpointParser {
 	protected BeanDefinitionBuilder parseHandler(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(XPathMessageSplitter.class);
 		String xPathExpressionRef = element.getAttribute("xpath-expression-ref");
+		String documentBuilderFactoryRef = element.getAttribute("doc-builder-factory");
+		String createDocuments = element.getAttribute("create-documents");
+		
 		NodeList xPathExpressionNodes = element.getElementsByTagNameNS(element.getNamespaceURI(), "xpath-expression");
 		Assert.isTrue(xPathExpressionNodes.getLength() <= 1, "only one xpath-expression child can be specified");
 		boolean hasChild = xPathExpressionNodes.getLength() == 1;
 		boolean hasReference = StringUtils.hasText(xPathExpressionRef);
+		
 		Assert.isTrue(hasChild ^ hasReference, "Exactly one of 'xpath-expression' or 'xpath-expression-ref' is required.");
 		if (hasChild) {
 			BeanDefinition beanDefinition = this.xpathParser.parse((Element) xPathExpressionNodes.item(0), parserContext);
@@ -61,6 +65,14 @@ public class XPathMessageSplitterParser extends AbstractConsumerEndpointParser {
 		else {
 			builder.addConstructorArgReference(xPathExpressionRef);
 		}
+		
+		if(StringUtils.hasText(documentBuilderFactoryRef)){
+			builder.addPropertyReference("documentBuilder", documentBuilderFactoryRef);
+		}
+		if(StringUtils.hasText("create-documents")){
+			builder.addPropertyValue("createDocuments", Boolean.valueOf(createDocuments));
+		}
+		
 		return builder;
 	}
 

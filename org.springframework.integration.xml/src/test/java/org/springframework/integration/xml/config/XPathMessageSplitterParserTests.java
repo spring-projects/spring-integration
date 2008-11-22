@@ -17,19 +17,23 @@
 package org.springframework.integration.xml.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.junit.Test;
-import org.w3c.dom.Document;
-
+import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.xml.util.XmlTestUtil;
 import org.springframework.test.context.ContextConfiguration;
+import org.w3c.dom.Document;
 
 /**
  * @author Jonas Partner
@@ -39,23 +43,77 @@ public class XPathMessageSplitterParserTests {
 
 	String channelDefinitions = "<si:channel id='test-input' /><si:channel id='test-output'><si:queue capacity='10'/></si:channel>";
 
-	@Autowired @Qualifier("test-input")
+	@Autowired
+	@Qualifier("test-input")
 	MessageChannel inputChannel;
 
-	@Autowired @Qualifier("test-output")
+	@Autowired
+	@Qualifier("test-output")
 	QueueChannel outputChannel;
 
 	@Test
 	public void testSimpleStringExpression() throws Exception {
 		Document doc = XmlTestUtil.getDocumentForString("<names><name>Bob</name><name>John</name></names>");
 		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
-		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper.getTestAppContext(
-				channelDefinitions + "<si-xml:xpath-splitter id='splitter' input-channel='test-input' output-channel='test-output'><si-xml:xpath-expression expression='//name'/></si-xml:xpath-splitter>");
-		EventDrivenConsumer consumer = (EventDrivenConsumer)ctx.getBean("splitter");
+		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper
+				.getTestAppContext(channelDefinitions
+						+ "<si-xml:xpath-splitter id='splitter' input-channel='test-input' output-channel='test-output'><si-xml:xpath-expression expression='//name'/></si-xml:xpath-splitter>");
+		EventDrivenConsumer consumer = (EventDrivenConsumer) ctx.getBean("splitter");
 		consumer.start();
-		ctx.getAutowireCapableBeanFactory().autowireBeanProperties(this, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE, false);
+		ctx.getAutowireCapableBeanFactory().autowireBeanProperties(this, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE,
+				false);
 		inputChannel.send(docMessage);
 		assertEquals("Wrong number of split messages ", 2, outputChannel.getMesssageCount());
+	}
+
+	@Test
+	public void testSimpleStringExpressionWithCreateDocuments() throws Exception {
+		Document doc = XmlTestUtil.getDocumentForString("<names><name>Bob</name><name>John</name></names>");
+		GenericMessage<Document> docMessage = new GenericMessage<Document>(doc);
+		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper
+				.getTestAppContext(channelDefinitions
+						+ "<si-xml:xpath-splitter id='splitter' input-channel='test-input' output-channel='test-output' create-documents='true'><si-xml:xpath-expression expression='//name'/></si-xml:xpath-splitter>");
+		EventDrivenConsumer consumer = (EventDrivenConsumer) ctx.getBean("splitter");
+		consumer.start();
+		ctx.getAutowireCapableBeanFactory().autowireBeanProperties(this, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE,
+				false);
+		inputChannel.send(docMessage);
+		assertEquals("Wrong number of split messages ", 2, outputChannel.getMesssageCount());
+		assertTrue("Splitter failed to create documents ",
+				((Message) outputChannel.receive(1000)).getPayload() instanceof Document);
+		assertTrue("Splitter failed to create documents ",
+				((Message) outputChannel.receive(1000)).getPayload() instanceof Document);
+	}
+
+	@Test
+	public void testProvideDocumentBuilder() throws Exception {
+		Document doc = XmlTestUtil.getDocumentForString("<names><name>Bob</name><name>John</name></names>");
+		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper
+				.getTestAppContext("<bean id='docBuilderFactory' class='org.springframework.integration.xml.config.StubDocumentBuilderFactory' />"
+						+ channelDefinitions
+						+ "<si-xml:xpath-splitter id='splitter' input-channel='test-input' output-channel='test-output' doc-builder-factory='docBuilderFactory'><si-xml:xpath-expression expression='//name'/></si-xml:xpath-splitter>");
+		EventDrivenConsumer consumer = (EventDrivenConsumer) ctx.getBean("splitter");
+		DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(consumer);
+		Object handler = fieldAccessor.getPropertyValue("handler");
+		fieldAccessor = new DirectFieldAccessor(handler);
+		Object documnetBuilderFactory = fieldAccessor.getPropertyValue("documentBuilderFactory");
+		assertTrue("DocumnetBuilderFactory was not expected stub ", documnetBuilderFactory instanceof DocumentBuilderFactory);
+	}
+	
+	@Test
+	public void testXPathExpressionRef() throws Exception {
+		Document doc = XmlTestUtil.getDocumentForString("<names><name>Bob</name><name>John</name></names>");
+		TestXmlApplicationContext ctx = TestXmlApplicationContextHelper
+				.getTestAppContext(
+						 channelDefinitions +
+						 "<si-xml:xpath-expression id='xpathOne' expression='//name'/>" +
+						"<si-xml:xpath-splitter id='splitter' xpath-expression-ref='xpathOne' input-channel='test-input' output-channel='test-output' />");
+		EventDrivenConsumer consumer = (EventDrivenConsumer) ctx.getBean("splitter");
+		DirectFieldAccessor fieldAccessor = new DirectFieldAccessor(consumer);
+		Object handler = fieldAccessor.getPropertyValue("handler");
+		fieldAccessor = new DirectFieldAccessor(handler);
+		Object documnetBuilderFactory = fieldAccessor.getPropertyValue("documentBuilderFactory");
+		assertTrue("DocumnetBuilderFactory was not expected stub ", documnetBuilderFactory instanceof DocumentBuilderFactory);
 	}
 
 }
