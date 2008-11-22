@@ -93,6 +93,9 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 				throw new MessageHandlingException(message, "handler '" + this
 						+ "' requires a reply, but no reply was received");
 			}
+			if (logger.isDebugEnabled()) {
+				logger.debug("handler '" + this + "' produced no reply for request Message: " + message);
+			}
 			return;
 		}
 		Object targetChannelValue = replyMessageHolder.getTargetChannel();
@@ -113,6 +116,9 @@ public abstract class AbstractReplyProducingMessageHandler extends AbstractMessa
 	protected abstract void handleRequestMessage(Message<?> requestMessage, ReplyMessageHolder replyMessageHolder);
 
 	protected boolean sendReplyMessage(Message<?> replyMessage, MessageChannel replyChannel) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("handler '" + this + "' sending reply Message: " + replyMessage);
+		}
 		return this.channelTemplate.send(replyMessage, replyChannel);
 	}
 
