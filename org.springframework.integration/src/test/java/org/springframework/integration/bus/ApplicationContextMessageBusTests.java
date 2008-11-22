@@ -132,7 +132,7 @@ public class ApplicationContextMessageBusTests {
 		context.registerEndpoint("testEndpoint2", endpoint2);
 		context.refresh();
 		inputChannel.send(new StringMessage("testing"));
-		Message<?> message1 = outputChannel1.receive(500);
+		Message<?> message1 = outputChannel1.receive(3000);
 		Message<?> message2 = outputChannel2.receive(0);
 		context.stop();
 		assertTrue("exactly one message should be null", message1 == null ^ message2 == null);
