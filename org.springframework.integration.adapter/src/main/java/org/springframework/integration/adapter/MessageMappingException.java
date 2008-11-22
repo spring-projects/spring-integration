@@ -17,7 +17,7 @@
 package org.springframework.integration.adapter;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.message.MessageHandlingException;
+import org.springframework.integration.core.MessagingException;
 
 /**
  * Exception that indicates an error during message mapping.
@@ -25,7 +25,11 @@ import org.springframework.integration.message.MessageHandlingException;
  * @author Mark Fisher
  */
 @SuppressWarnings("serial")
-public class MessageMappingException extends MessageHandlingException {
+public class MessageMappingException extends MessagingException {
+
+	public MessageMappingException(String description, Throwable cause) {
+		super(description, cause);
+	}
 
 	public MessageMappingException(Message<?> failedMessage, String description) {
 		super(failedMessage, description);
