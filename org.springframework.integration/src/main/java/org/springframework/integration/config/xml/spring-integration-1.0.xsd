@@ -435,6 +435,7 @@
 		<xsd:attribute name="correlation-id" type="xsd:string"/>
 		<xsd:attribute name="expiration-date" type="xsd:string"/>
 		<xsd:attribute name="priority" type="xsd:string"/>
+		<xsd:attribute name="overwrite" type="xsd:string"/>
 	</xsd:attributeGroup>
 
 	<xsd:element name="thread-pool-task-executor">
