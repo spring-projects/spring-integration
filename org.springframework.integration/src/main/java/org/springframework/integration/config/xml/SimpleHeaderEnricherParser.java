@@ -78,25 +78,32 @@ public class SimpleHeaderEnricherParser extends AbstractTransformerParser {
 	@Override
 	@SuppressWarnings("unchecked")
 	protected void parseTransformer(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		ManagedMap headersToAdd = new ManagedMap();
-		NamedNodeMap nodeMap = element.getAttributes();
-		for (int i = 0; i < nodeMap.getLength(); i++) {
-			Node node = nodeMap.item(i);
+		ManagedMap headers = new ManagedMap();
+		NamedNodeMap attributes = element.getAttributes();
+		for (int i = 0; i < attributes.getLength(); i++) {
+			Node node = attributes.item(i);
 			String name = node.getNodeName();
 			if (this.isEligibleHeaderName(name)) {
 				if (this.referenceAttributes.contains(name)) {
-					headersToAdd.put(name, new RuntimeBeanReference(node.getNodeValue()));
+					headers.put(name, new RuntimeBeanReference(node.getNodeValue()));
 				}
 				else {
-					headersToAdd.put(name, node.getNodeValue());
+					headers.put(name, node.getNodeValue());
 				}
 			}
 		}
-		builder.addConstructorArgValue(headersToAdd);
+		this.postProcessHeaders(element, headers);
+		builder.addConstructorArgValue(headers);
 		builder.addPropertyValue("overwrite", this.shouldOverwrite(element));
 		if (this.prefix != null) {
 			builder.addPropertyValue("prefix", this.prefix);
 		}
+	}
+
+	/**
+	 * Subclasses may implement this method to provide additional headers.
+	 */
+	protected void postProcessHeaders(Element element, ManagedMap headers) {
 	}
 
 }
