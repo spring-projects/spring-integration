@@ -99,7 +99,7 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:attribute name="id" type="xsd:ID"/>
-			<xsd:attribute name="request-channel" type="xsd:string" use="required"/>
+			<xsd:attribute name="request-channel" type="xsd:string"/>
 			<xsd:attribute name="reply-channel" type="xsd:string"/>
 			<xsd:attribute name="request-timeout" type="xsd:string"/>
 			<xsd:attribute name="reply-timeout" type="xsd:string"/>
