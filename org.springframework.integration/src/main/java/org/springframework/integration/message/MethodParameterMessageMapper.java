@@ -240,9 +240,9 @@ public class MethodParameterMessageMapper implements InboundMessageMapper<Object
 				if (Headers.class.isInstance(o)) {
 					Assert.isAssignable(Map.class, this.getParameterType(),
 							"parameter with the @Headers annotation must be assignable to java.util.Map");
+					this._hasHeadersAnnotation = true;
+					return true;
 				}
-				this._hasHeadersAnnotation = true;
-				return true;
 			}
 			return false;
 		}
