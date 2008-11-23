@@ -32,7 +32,6 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.message.MessageHandler;
-import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.scheduling.Trigger;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -158,9 +157,6 @@ public class ConsumerEndpointFactoryBean implements FactoryBean, BeanFactoryAwar
 				this.endpoint = new EventDrivenConsumer((SubscribableChannel) channel, this.handler);
 			}
 			else if (channel instanceof PollableChannel) {
-				if (this.trigger == null) {
-					this.trigger = new IntervalTrigger(0);
-				}
 				PollingConsumer pollingConsumer = new PollingConsumer(
 						(PollableChannel) channel, this.handler);
 				pollingConsumer.setTrigger(this.trigger);

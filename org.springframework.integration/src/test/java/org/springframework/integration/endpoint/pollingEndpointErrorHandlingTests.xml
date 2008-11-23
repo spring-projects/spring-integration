@@ -12,9 +12,9 @@
 	</si:channel>
 
 	<bean id="testEndpoint" class="org.springframework.integration.endpoint.PollingEndpointStub">
-		<property name="taskExecutor" ref="taskExecutor" />
+		<property name="taskExecutor" ref="taskExecutor"/>
 	</bean>
 
-	<si:thread-pool-task-executor id="taskExecutor" core-size="1" max-size="5" rejection-policy="CALLER_RUNS"/>
+	<si:thread-pool-task-executor id="taskExecutor" core-size="1" max-size="1" rejection-policy="CALLER_RUNS"/>
 
 </beans>

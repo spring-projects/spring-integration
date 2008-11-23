@@ -138,7 +138,7 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 				return;
 			}
 			if (this.trigger == null) {
-				this.trigger = new IntervalTrigger(0);
+				this.trigger = new IntervalTrigger(10);
 			}
 			if (this.transactionManager != null) {
 				if (this.transactionDefinition == null) {
