@@ -75,7 +75,7 @@ public class Resequencer extends AbstractMessageBarrierHandler<SortedMap<Integer
 	private boolean hasReceivedAllMessages(SortedMap <Integer, Message<?>> messages) {
 		Message<?> firstMessage = messages.get(messages.firstKey());
 		Message<?> lastMessage = messages.get(messages.lastKey());
-		return (lastMessage.getHeaders().getSequenceNumber() == lastMessage.getHeaders().getSequenceSize()
+		return (lastMessage.getHeaders().getSequenceNumber().equals(lastMessage.getHeaders().getSequenceSize())
 				&& (lastMessage.getHeaders().getSequenceNumber() - firstMessage.getHeaders().getSequenceNumber() == messages.size() - 1));
 	}
 
