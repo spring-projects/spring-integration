@@ -16,11 +16,6 @@
 
 package org.springframework.integration.aggregator;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,9 +23,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.channel.QueueChannel;
@@ -44,6 +42,7 @@ import org.springframework.integration.scheduling.TaskScheduler;
 
 /**
  * @author Mark Fisher
+ * @author Marius Bogoevici
  */
 public class AggregatorEndpointTests {
 
@@ -75,6 +74,41 @@ public class AggregatorEndpointTests {
 		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message2, latch));
 		this.taskExecutor.execute(new AggregatorTestTask(this.aggregator, message3, latch));
 		latch.await(1000, TimeUnit.MILLISECONDS);
+		Message<?> reply = replyChannel.receive(500);
+		assertNotNull(reply);
+		assertEquals("123456789", reply.getPayload());
+	}
+
+	@Test
+	public void testCompleteGroupWithinTimeoutWithDuplicates() throws InterruptedException {
+		QueueChannel replyChannel = new QueueChannel();
+		Message<?> message1 = createMessage("123", "ABC", 3, 1, replyChannel);
+		Message<?> message2 = createMessage("456", "ABC", 3, 2, replyChannel);
+		Message<?> message3 = createMessage("789", "ABC", 3, 3, replyChannel);
+		CountDownLatch latch = new CountDownLatch(3);
+		//for testing the duplication scenario, the messages must be processed synchronously
+		new AggregatorTestTask(this.aggregator, message1, latch).run();
+		new AggregatorTestTask(this.aggregator, message2, latch).run();
+		new AggregatorTestTask(this.aggregator, message2, latch).run();
+		new AggregatorTestTask(this.aggregator, message3, latch).run();
+		Message<?> reply = replyChannel.receive(500);
+		assertNotNull(reply);
+		assertEquals("123456789", reply.getPayload());
+	}
+
+	@Test
+	public void testCompleteGroupWithinTimeoutWithInconsistentStructure() throws InterruptedException {
+		QueueChannel replyChannel = new QueueChannel();
+		Message<?> message1 = createMessage("123", "ABC", 3, 1, replyChannel);
+		Message<?> message2 = createMessage("456", "ABC", 3, 2, replyChannel);
+		Message<?> message4 = createMessage("xyz", "ABC", 4, 3, replyChannel);
+		Message<?> message3 = createMessage("789", "ABC", 3, 3, replyChannel);
+		CountDownLatch latch = new CountDownLatch(3);
+		//for testing the duplication scenario, the messages must be processed synchronously
+		new AggregatorTestTask(this.aggregator, message1, latch).run();
+		new AggregatorTestTask(this.aggregator, message2, latch).run();
+		new AggregatorTestTask(this.aggregator, message2, latch).run();
+		new AggregatorTestTask(this.aggregator, message3, latch).run();
 		Message<?> reply = replyChannel.receive(500);
 		assertNotNull(reply);
 		assertEquals("123456789", reply.getPayload());

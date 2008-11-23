@@ -16,45 +16,33 @@
 
 package org.springframework.integration.aggregator;
 
+import java.util.LinkedHashMap;
+
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-
-import java.util.List;
-
 import org.junit.Test;
 
-import org.springframework.integration.aggregator.AggregationBarrier;
-import org.springframework.integration.aggregator.CompletionStrategy;
-import org.springframework.integration.core.Message;
 import org.springframework.integration.message.StringMessage;
 
 /**
  * @author Mark Fisher
  */
-public class AggregationBarrierTests {
+public class MessageBarrierTests {
 
-	@Test
-	public void testBasicCompletionCheck() {
-		AggregationBarrier barrier = new AggregationBarrier(new TwoMessageCompletionStrategy());
-		assertNull(barrier.addAndRelease(new StringMessage("test1")));
-		assertNotNull(barrier.addAndRelease(new StringMessage("test2")));
-	}
 
 	@Test
 	public void testMessageRetrieval() {
-		AggregationBarrier barrier = new AggregationBarrier(new TwoMessageCompletionStrategy());
-		barrier.addAndRelease(new StringMessage("test1"));
+		MessageBarrier barrier = new MessageBarrier(new LinkedHashMap());
+		barrier.getMessages().put("1", new StringMessage("test1"));
 		assertEquals(1, barrier.getMessages().size());
-		barrier.addAndRelease(new StringMessage("test2"));
+		barrier.getMessages().put("2", new StringMessage("test2"));
 		assertEquals(2, barrier.getMessages().size());
 	}
 
 	@Test
 	public void testTimestamp() {
 		long before = System.currentTimeMillis();
-		AggregationBarrier barrier = new AggregationBarrier(new TwoMessageCompletionStrategy());
+		MessageBarrier barrier = new MessageBarrier(new LinkedHashMap());
 		long timestamp = barrier.getTimestamp();
 		assertTrue(before <= timestamp);
 		long after = System.currentTimeMillis();
@@ -63,16 +51,8 @@ public class AggregationBarrierTests {
 
 	@Test
 	public void testEmptyMessageList() {
-		AggregationBarrier barrier = new AggregationBarrier(new TwoMessageCompletionStrategy());
+		MessageBarrier barrier = new MessageBarrier(new LinkedHashMap());
 		assertEquals(0, barrier.getMessages().size());
-	}
-
-
-	private static class TwoMessageCompletionStrategy implements CompletionStrategy {
-
-		public boolean isComplete(List<Message<?>> messages) {
-			return (messages.size() == 2);
-		}
 	}
 
 }

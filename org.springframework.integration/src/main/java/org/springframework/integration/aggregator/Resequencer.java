@@ -16,10 +16,15 @@
 
 package org.springframework.integration.aggregator;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.springframework.integration.core.Message;
-import org.springframework.integration.core.MessageHeaders;
+import org.springframework.integration.message.MessageBuilder;
+import org.springframework.util.CollectionUtils;
 
 /**
  * An {@link AbstractMessageBarrierHandler} that waits for a group of
@@ -35,7 +40,7 @@ import org.springframework.integration.core.MessageHeaders;
  *
  * @author Marius Bogoevici
  */
-public class Resequencer extends AbstractMessageBarrierHandler {
+public class Resequencer extends AbstractMessageBarrierHandler<SortedMap<Integer, Message<?>>, Integer> {
 
 	private volatile boolean releasePartialSequences = true;
 
@@ -44,17 +49,93 @@ public class Resequencer extends AbstractMessageBarrierHandler {
 		this.releasePartialSequences = releasePartialSequences;
 	}
 
-	protected MessageBarrier createMessageBarrier() {
-		return new ResequencingMessageBarrier(this.releasePartialSequences);
+	@Override
+	protected MessageBarrier<SortedMap<Integer, Message<?>>, Integer> createMessageBarrier() {
+		MessageBarrier<SortedMap<Integer, Message<?>>, Integer> messageBarrier 
+			= new MessageBarrier<SortedMap<Integer, Message<?>>, Integer>(new TreeMap<Integer, Message<?>>());
+		messageBarrier.getMessages().put(0, createFlagMessage(0));
+		return messageBarrier;
+	}
+	
+	@Override
+	protected void processBarrier(MessageBarrier<SortedMap<Integer, Message<?>>, Integer> barrier) {
+		if (hasReceivedAllMessages(barrier.getMessages())) {
+			barrier.setComplete();
+		}
+		List<Message<?>> releasedMessages = releaseAvailableMessages(barrier);
+		if (!CollectionUtils.isEmpty(releasedMessages)) {
+			Message<?> lastMessage =  releasedMessages.get(releasedMessages.size()-1);
+			if (lastMessage.getHeaders().getSequenceNumber().equals(lastMessage.getHeaders().getSequenceSize() - 1)) {
+				this.removeBarrier(barrier.getCorrelationId());
+			}
+			this.sendReplies(releasedMessages, this.resolveReplyChannelFromMessage(releasedMessages.get(0)));
+		}
 	}
 
-	protected Message<?>[] processReleasedMessages(Object correlationId, List<Message<?>> messages) {
-		return messages.toArray(new Message<?>[messages.size()]);
+	private boolean hasReceivedAllMessages(SortedMap <Integer, Message<?>> messages) {
+		Message<?> firstMessage = messages.get(messages.firstKey());
+		Message<?> lastMessage = messages.get(messages.lastKey());
+		return (lastMessage.getHeaders().getSequenceNumber() == lastMessage.getHeaders().getSequenceSize()
+				&& (lastMessage.getHeaders().getSequenceNumber() - firstMessage.getHeaders().getSequenceNumber() == messages.size() - 1));
 	}
 
-	protected boolean isBarrierRemovable(Object correlationId, List<Message<?>> releasedMessages) {
-		MessageHeaders lastMessageHeaders = releasedMessages.get(releasedMessages.size() - 1).getHeaders(); 
-		return (lastMessageHeaders.getSequenceNumber() == lastMessageHeaders.getSequenceSize());
+	private List<Message<?>> releaseAvailableMessages(MessageBarrier<SortedMap<Integer, Message<?>>, Integer> barrier) {
+		if (this.releasePartialSequences || barrier.isComplete()) {
+			ArrayList<Message<?>> releasedMessages = new ArrayList<Message<?>>();
+			Iterator<Message<?>> it = barrier.getMessages().values().iterator();
+			//remove the initial flag from the list
+			Message<?> flag = it.next();
+			it.remove();
+			int lastReleasedSequenceNumber = flag.getHeaders().getSequenceNumber();
+			while (it.hasNext()) {
+				Message<?> currentMessage = it.next();
+				if (lastReleasedSequenceNumber == currentMessage.getHeaders().getSequenceNumber() - 1) {
+					releasedMessages.add(currentMessage);
+					lastReleasedSequenceNumber = currentMessage.getHeaders().getSequenceNumber();
+					it.remove();
+				}
+				else {
+					break;
+				}
+			}
+			//re-insert the flag so that we know where to start releasing next
+			barrier.getMessages().put(lastReleasedSequenceNumber, createFlagMessage(lastReleasedSequenceNumber));
+			return releasedMessages;
+		}
+		else {
+			return new ArrayList<Message<?>>();
+		}
+	}
+
+	@Override
+	protected boolean canAddMessage(Message<?> message,
+			MessageBarrier<SortedMap<Integer, Message<?>>, Integer> barrier) {
+		if (!super.canAddMessage(message, barrier)) {
+			return false;
+		}
+		Message<?> flagMessage = barrier.getMessages().get(barrier.getMessages().firstKey());
+		if (barrier.messages.containsKey(message.getHeaders().getSequenceNumber()) 
+				|| flagMessage.getHeaders().getSequenceNumber() >= message.getHeaders().getSequenceNumber()) {
+			logger.debug("A message with the same sequence number has been already received: " + message);
+			return false;
+		}
+		Message<?> lastMessage = barrier.getMessages().get(barrier.getMessages().lastKey());
+		if (lastMessage != flagMessage
+				&& lastMessage.getHeaders().getSequenceSize() < message.getHeaders().getSequenceNumber()) {
+			logger.debug("The message has a sequence number which is larger than the sequence size: "+ message);
+			return false;
+		}
+		return true;
+	}
+	
+	@Override
+	protected void doAddMessage(Message<?> message, MessageBarrier<SortedMap<Integer, Message<?>>, Integer> barrier) {
+		//add the message to the barrier, indexing it by its sequence number
+		barrier.getMessages().put(message.getHeaders().getSequenceNumber(), message);
+	}
+
+	private static Message<Integer> createFlagMessage(int sequenceNumber) {
+		return MessageBuilder.withPayload(sequenceNumber).setSequenceNumber(sequenceNumber).build();
 	}
 
 }

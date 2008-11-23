@@ -16,24 +16,70 @@
 
 package org.springframework.integration.aggregator;
 
-import java.util.List;
+import java.util.Map;
 
 import org.springframework.integration.core.Message;
 
 /**
- * Common interface for routing components that release a list of
- * {@link Message Messages} based upon a condition that is met when a
- * {@link Message} arrives.
+ * Utility class for AbstractMessageBarrierHandler and its subclasses for
+ * storing objects while in transit. It is a wrapper around a {@link Map},
+ * providing special properties for recording the complete status, the creation
+ * time (for determining if a group of messages has timed out), and the
+ * correlation id for a group of messages (available after the first message has
+ * been added to it). This is a parameterized type, allowing different different
+ * client classes to use different types of Maps and their respective features.
  * 
- * @author Mark Fisher
+ * This class is not thread-safe and will be synchronized by the calling code.
+ * 
  * @author Marius Bogoevici
  */
-public interface MessageBarrier {
+public class MessageBarrier<T extends Map<K, Message<?>>, K> {
 
-	List<Message<?>> addAndRelease(Message<?> message);
+	protected final T messages;
 
-	long getTimestamp();
+	private volatile boolean complete = false;
 
-	List<Message<?>> getMessages();
+	private final long timestamp = System.currentTimeMillis();
+
+	public MessageBarrier(T messages) {
+		this.messages = messages;
+	}
+
+	public Object getCorrelationId() {
+		if (!messages.isEmpty()) {
+			return messages.values().iterator().next().getHeaders()
+					.getCorrelationId();
+		}
+		return null;
+	}
+
+	/**
+	 * Returns the creation time of this barrier as the number of milliseconds
+	 * since January 1, 1970.
+	 * 
+	 * @see System#currentTimeMillis()
+	 */
+	public long getTimestamp() {
+		return this.timestamp;
+	}
+
+	/**
+	 * Marks the barrier as complete.
+	 */
+	public void setComplete() {
+		this.complete = true;
+	}
+
+	/**
+	 * True if the barrier has received all the messages and can proceed to
+	 * release them.
+	 */
+	public boolean isComplete() {
+		return this.complete;
+	}
+
+	public T getMessages() {
+		return this.messages;
+	}
 
 }

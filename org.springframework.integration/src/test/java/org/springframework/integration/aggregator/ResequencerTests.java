@@ -72,6 +72,30 @@ public class ResequencerTests {
 	}
 
 	@Test
+	public void testResequencingWithDuplicateMessages() {
+		this.resequencer.setReleasePartialSequences(false);
+		QueueChannel replyChannel = new QueueChannel();
+		Message<?> message1 = createMessage("123", "ABC", 3, 3, replyChannel);
+		Message<?> message2 = createMessage("456", "ABC", 3, 1, replyChannel);
+		Message<?> message3 = createMessage("789", "ABC", 3, 2, replyChannel);
+		this.resequencer.handleMessage(message1);
+		this.resequencer.handleMessage(message3);
+		this.resequencer.handleMessage(message3);
+		this.resequencer.handleMessage(message2);
+		Message<?> reply1 = replyChannel.receive(0);
+		Message<?> reply2 = replyChannel.receive(0);
+		Message<?> reply3 = replyChannel.receive(0);
+		assertNotNull(reply1);
+		assertEquals(new Integer(1), reply1.getHeaders().getSequenceNumber());
+		assertNotNull(reply2);
+		assertEquals(new Integer(2), reply2.getHeaders().getSequenceNumber());
+		assertNotNull(reply3);
+		assertEquals(new Integer(3), reply3.getHeaders().getSequenceNumber());
+	}
+
+
+
+	@Test
 	public void testResequencingWithIncompleteSequenceRelease() throws InterruptedException {
 		this.resequencer.setReleasePartialSequences(true);
 		QueueChannel replyChannel = new QueueChannel();

@@ -16,7 +16,7 @@
 
 package org.springframework.integration.aggregator;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -39,8 +39,6 @@ import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.integration.scheduling.TaskSchedulerAware;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.ObjectUtils;
 
 /**
  * Base class for {@link MessageBarrier}-based Message Handlers. A
@@ -60,11 +58,16 @@ import org.springframework.util.ObjectUtils;
  * Messages with that timed-out 'correlationId' will be sent to the
  * 'discardChannel' if provided unless 'sendPartialResultsOnTimeout' is set to
  * true in which case the incomplete group will be sent to the output channel.
+ * <p>
+ * Subclasses must decide what kind of a Map they want to use, what is the logic
+ * for adding messages to the barrier through the '<code>doAddMessage</code>'
+ * method.
  * 
  * @author Mark Fisher
  * @author Marius Bogoevici
  */
-public abstract class AbstractMessageBarrierHandler extends AbstractMessageHandler implements TaskSchedulerAware, InitializingBean {
+public abstract class AbstractMessageBarrierHandler<T extends Map<K, Message<?>>, K>
+		extends AbstractMessageHandler implements TaskSchedulerAware, InitializingBean {
 
 	public final static long DEFAULT_SEND_TIMEOUT = 1000;
 
@@ -76,13 +79,13 @@ public abstract class AbstractMessageBarrierHandler extends AbstractMessageHandl
 
 	protected final Log logger = LogFactory.getLog(this.getClass());
 
-	private MessageChannel outputChannel;
+	private volatile MessageChannel outputChannel;
 
 	private final MessageChannelTemplate channelTemplate = new MessageChannelTemplate();
 
 	private volatile MessageChannel discardChannel;
 
-	protected final ConcurrentMap<Object, MessageBarrier> barriers = new ConcurrentHashMap<Object, MessageBarrier>();
+	protected final ConcurrentMap<Object, MessageBarrier<T,K>> barriers = new ConcurrentHashMap<Object, MessageBarrier<T,K>>();
 
 	private volatile long timeout = DEFAULT_TIMEOUT;
 
@@ -96,9 +99,9 @@ public abstract class AbstractMessageBarrierHandler extends AbstractMessageHandl
 
 	private volatile boolean initialized;
 
-	private TaskScheduler taskScheduler;
+	private volatile TaskScheduler taskScheduler;
 
-	private ScheduledFuture<?> reaperFutureTask;
+	private volatile ScheduledFuture<?> reaperFutureTask;
 
 
 	public AbstractMessageBarrierHandler() {
@@ -173,7 +176,7 @@ public abstract class AbstractMessageBarrierHandler extends AbstractMessageHandl
 			return;
 		}
 		Assert.state(this.taskScheduler != null, "TaskScheduler must not be null");
-		this.reaperFutureTask = this.taskScheduler.schedule(new ReaperTask(), new IntervalTrigger(this.reaperInterval,
+		this.reaperFutureTask = this.taskScheduler.schedule(new PrunerTask(), new IntervalTrigger(this.reaperInterval,
 				TimeUnit.MILLISECONDS));
 	}
 
@@ -194,18 +197,18 @@ public abstract class AbstractMessageBarrierHandler extends AbstractMessageHandl
 					+ " requires the 'correlationId' property");
 		}
 		if (this.trackedCorrelationIds.contains(correlationId)) {
-			this.discardMessage(message, correlationId);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Handling of Message group with correlationId '" + correlationId
+						+ "' has already completed or timed out.");
+			}
+			this.discardMessage(message);
 		}
 		else {
 			this.processMessage(message, correlationId);
 		}
 	}
 
-	private void discardMessage(Message<?> message, Object correlationId) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("Handling of Message group with correlationId '" + correlationId
-					+ "' has already completed or timed out.");
-		}
+	private void discardMessage(Message<?> message) {
 		if (this.discardChannel != null) {
 			boolean sent = this.channelTemplate.send(message, this.discardChannel);
 			if (!sent && logger.isWarnEnabled()) {
@@ -215,42 +218,44 @@ public abstract class AbstractMessageBarrierHandler extends AbstractMessageHandl
 	}
 
 	private void processMessage(Message<?> message, Object correlationId) {
-		MessageBarrier barrier = barriers.putIfAbsent(correlationId, createMessageBarrier());
+		MessageBarrier<T,K> barrier = barriers.putIfAbsent(correlationId, createMessageBarrier());
 		if (barrier == null) {
-			barrier = barriers.get(correlationId);
+			barrier = barriers.get(message.getHeaders().getCorrelationId());
 		}
-		List<Message<?>> releasedMessages = barrier.addAndRelease(message);
-		if (!CollectionUtils.isEmpty(releasedMessages)) {
-			if (isBarrierRemovable(correlationId, releasedMessages)) {
-				this.removeBarrier(correlationId);
+		synchronized (barrier) {
+			if (canAddMessage(message, barrier)) {
+				doAddMessage(message, barrier);
 			}
-			this.afterRelease(correlationId, releasedMessages);
+			processBarrier(barrier);
 		}
 	}
 
-	private void afterRelease(Object correlationId, List<Message<?>> releasedMessages) {
-		Message<?>[] processedMessages = this.processReleasedMessages(correlationId, releasedMessages);
-		if (ObjectUtils.isEmpty(processedMessages)) {
+	protected final void sendReplies(Collection<Message<?>> messages, MessageChannel defaultReplyChannel) {
+		if (messages.isEmpty()) {
 			return;
 		}
-		for (Message<?> result : processedMessages) {
-			MessageChannel replyChannel = this.outputChannel;
-			if (replyChannel == null) {
-				replyChannel = this.resolveReplyChannelFromMessage(result);
-				if (replyChannel == null) {
-					replyChannel = this.resolveReplyChannelFromMessage(releasedMessages.get(0));
-				}
-			}
-			if (replyChannel != null) {
-				this.channelTemplate.send(result, replyChannel);
-			}
-			else if (logger.isWarnEnabled()) {
-				logger.warn("unable to determine reply target for aggregation result: " + result);
-			}
+		for (Message<?> result : messages) {
+			sendReply(result, defaultReplyChannel);
 		}
 	}
 
-	protected MessageChannel resolveReplyChannelFromMessage(Message<?> message) {
+	protected final void sendReply(Message<?> message, MessageChannel defaultReplyChannel) {
+		MessageChannel replyChannel = this.outputChannel;
+		if (replyChannel == null) {
+			replyChannel = this.resolveReplyChannelFromMessage(message);
+			if (replyChannel == null) {
+				replyChannel = defaultReplyChannel;
+			}
+		}
+		if (replyChannel != null) {
+			this.channelTemplate.send(message, replyChannel);
+		}
+		else if (logger.isWarnEnabled()) {
+			logger.warn("unable to determine reply target for aggregation result: " + message);
+		}
+	}
+
+	protected final MessageChannel resolveReplyChannelFromMessage(Message<?> message) {
 		Object replyChannel = message.getHeaders().getReplyChannel();
 		if (replyChannel != null) {
 			if (replyChannel instanceof MessageChannel) {
@@ -263,7 +268,7 @@ public abstract class AbstractMessageBarrierHandler extends AbstractMessageHandl
 		return null;
 	}
 
-	private void removeBarrier(Object correlationId) {
+	protected final void removeBarrier(Object correlationId) {
 		if (this.barriers.remove(correlationId) != null) {
 			synchronized (this.trackedCorrelationIds) {
 				boolean added = this.trackedCorrelationIds.offer(correlationId);
@@ -275,43 +280,71 @@ public abstract class AbstractMessageBarrierHandler extends AbstractMessageHandl
 		}
 	}
 
-	private class ReaperTask implements Runnable {
+	/**
+	 * Verifies that a message can be added to the barrier. To be overridden by subclasses, which may add 
+	 * their own verifications. Subclasses overriding this method must call the method from the superclass.
+	 */
+	protected boolean canAddMessage(Message<?> message, MessageBarrier<T, K> barrier) {
+		if (barrier.isComplete()) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Message received after aggregation has already completed: " + message);
+			}
+			return false;
+		}
+		return true;
+	}
+	
+
+	/**
+	 * Factory method for creating a MessageBarrier implementation.
+	 */
+	protected abstract MessageBarrier<T, K> createMessageBarrier();
+
+	/**
+	 * A method for processing the information in the message barrier after a message has been added or on pruning.
+	 * The decision as to whether the messages from the {@link MessageBarrier}
+	 * can be released normally belongs here, although calling code may forcibly set the MessageBarrier's 'complete'
+	 * flag to true before invoking the method.
+	 * @param barrier the {@link MessageBarrier} to be processed
+	 */
+	protected abstract void processBarrier(MessageBarrier<T, K> barrier);
+	
+	/**
+	 * A method implemented by subclasses to add the incoming message to the message barrier. This is deferred to subclasses,
+	 * as they should have full control over how the messages are indexed in the MessageBarrier.
+	 */
+	protected abstract void doAddMessage(Message<?> message, MessageBarrier<T, K> barrier);
+
+	/**
+	 * A task that runs periodically, pruning the timed-out message barriers.
+	 */
+	private class PrunerTask implements Runnable {
 
 		public void run() {
 			long currentTime = System.currentTimeMillis();
-			for (Map.Entry<Object, MessageBarrier> entry : barriers.entrySet()) {
+			for (Map.Entry<Object, MessageBarrier<T,K>> entry : barriers.entrySet()) {
 				if (currentTime - entry.getValue().getTimestamp() >= timeout) {
-					Object correlationId = entry.getKey();
-					List<Message<?>> messages = entry.getValue().getMessages();
-					removeBarrier(correlationId);
-					if (sendPartialResultOnTimeout) {
-						afterRelease(correlationId, messages);
-					}
-					else {
-						for (Message<?> message : messages) {
-							discardMessage(message, correlationId);
+					MessageBarrier<T,K> barrier = entry.getValue();
+					synchronized (barrier) {
+						removeBarrier(entry.getKey());
+						if (sendPartialResultOnTimeout) {
+							barrier.setComplete();
+							processBarrier(barrier);
+						}
+						else {
+							for (Object message : barrier.getMessages().values()) {
+								if (logger.isDebugEnabled()) {
+									logger.debug("Handling of Message group with correlationId '" + entry.getKey()
+											+ "' has timed out.");
+								}
+								discardMessage((Message<?>) message);
+							}
 						}
 					}
 				}
 			}
 		}
+
 	}
-
-	/**
-	 * Factory method for creating a suitable MessageBarrier implementation.
-	 */
-	protected abstract MessageBarrier createMessageBarrier();
-
-	/**
-	 * Implements the logic for deciding whether, based on what the
-	 * MessageBarrier has released so far, work for the correlationId can be
-	 * considered complete and the barrier can be released.
-	 */
-	protected abstract boolean isBarrierRemovable(Object correlationId, List<Message<?>> releasedMessages);
-
-	/**
-	 * Implements the logic for transforming the released Messages.
-	 */
-	protected abstract Message<?>[] processReleasedMessages(Object correlationId, List<Message<?>> messages);
 
 }
