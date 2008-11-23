@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,32 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.endpoint;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
+
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.message.ErrorMessage;
 
 /**
- * 
  * @author Jonas Partner
- *
  */
 public class PollingEndpointErrorHandlingTests {
-	
-	@SuppressWarnings("unchecked")
+
 	@Test
-	public void checkExcpetionPlacedOnErrorChannel() {
+	@SuppressWarnings("unchecked")
+	public void checkExceptionPlacedOnErrorChannel() {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(
 				"pollingEndpointErrorHandlingTests.xml", this.getClass());
 		PollableChannel errorChannel = (PollableChannel) context.getBean("errorChannel");
 		Message errorMessage = errorChannel.receive(5000);
 		assertNotNull("No error message received", errorMessage);
-		assertEquals("Message recevied was not an ErrorMessage" ,ErrorMessage.class,errorMessage.getClass());
+		assertEquals("Message received was not an ErrorMessage", ErrorMessage.class,errorMessage.getClass());
 	}
 
 }

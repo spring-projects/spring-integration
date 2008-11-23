@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2007 the original author or authors.
+ * Copyright 2002-2008 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.integration.endpoint;
 
+/**
+ * @author Jonas Partner
+ */
 public class PollingEndpointStub extends AbstractPollingEndpoint {
 
 	@Override
 	protected boolean doPoll() {
-		throw new RuntimeException("Poll failed");
+		throw new RuntimeException("intentional test failure");
 	}
 
 }

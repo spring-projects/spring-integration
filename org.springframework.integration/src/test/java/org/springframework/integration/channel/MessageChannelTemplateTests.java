@@ -67,7 +67,12 @@ public class MessageChannelTemplateTests {
 
 	@After
 	public void tearDown() {
-		context.stop();
+		try {
+			context.stop();
+		}
+		catch (Exception e) {
+			// ignore
+		}
 	}
 
 	@Test
