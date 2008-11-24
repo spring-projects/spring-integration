@@ -27,6 +27,8 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="jmsInboundAdapterType">
+					<xsd:attribute name="destination" type="xsd:string"/>
+					<xsd:attribute name="destination-name" type="xsd:string"/>
 					<xsd:attribute name="channel" type="xsd:string"/>
 					<xsd:attribute name="message-converter" type="xsd:string"/>
 					<xsd:attribute name="header-mapper" type="xsd:string"/>
@@ -55,6 +57,8 @@
 					<xsd:sequence>
 						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 					</xsd:sequence>
+					<xsd:attribute name="destination" type="xsd:string"/>
+					<xsd:attribute name="destination-name" type="xsd:string"/>
 					<xsd:attribute name="channel" type="xsd:string"/>
 					<xsd:attribute name="header-mapper" type="xsd:string"/>
 					<xsd:attribute name="extract-payload" type="xsd:string" default="true"/>
@@ -73,6 +77,8 @@
 		<xsd:complexType>
 			<xsd:complexContent>
 				<xsd:extension base="jmsInboundAdapterType">
+					<xsd:attribute name="request-destination" type="xsd:string"/>
+					<xsd:attribute name="request-destination-name" type="xsd:string"/>
 					<xsd:attribute name="message-converter" type="xsd:string"/>
 					<xsd:attribute name="header-mapper" type="xsd:string"/>
 					<xsd:attribute name="extract-request-payload" type="xsd:string" default="true"/>
@@ -136,6 +142,8 @@
 					<xsd:sequence>
 						<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
 					</xsd:sequence>
+					<xsd:attribute name="destination" type="xsd:string"/>
+					<xsd:attribute name="destination-name" type="xsd:string"/>
 					<xsd:attribute name="channel" type="xsd:string"/>
 					<xsd:attribute name="header-mapper" type="xsd:string"/>
 					<xsd:attribute name="extract-payload" type="xsd:string" default="true"/>
@@ -199,8 +207,6 @@
 		</xsd:annotation>
 		<xsd:attribute name="id" type="xsd:ID"/>
 		<xsd:attribute name="connection-factory" type="xsd:string"/>
-		<xsd:attribute name="destination" type="xsd:string"/>
-		<xsd:attribute name="destination-name" type="xsd:string"/>
 		<xsd:attribute name="destination-resolver" type="xsd:string"/>
 		<xsd:attribute name="pub-sub-domain" type="xsd:string"/>
 	</xsd:complexType>

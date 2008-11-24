@@ -91,18 +91,19 @@ public class JmsMessageDrivenEndpointParser extends AbstractSingleBeanDefinition
 		}
 		// otherwise, we build a DefaultMessageListenerContainer instance
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(DefaultMessageListenerContainer.class);
-		String destination = element.getAttribute(JmsAdapterParserUtils.DESTINATION_ATTRIBUTE);
-		String destinationName = element.getAttribute(JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE);
+		String destinationAttribute = this.expectReply ? "request-destination" : "destination";
+		String destinationNameAttribute = this.expectReply ? "request-destination-name" : "destination-name";
+		String destination = element.getAttribute(destinationAttribute);
+		String destinationName = element.getAttribute(destinationNameAttribute);
 		Assert.isTrue(StringUtils.hasText(destination) ^ StringUtils.hasText(destinationName),
-				"Exactly one of '" + JmsAdapterParserUtils.DESTINATION_ATTRIBUTE +
-					"' or '" + JmsAdapterParserUtils.DESTINATION_NAME_ATTRIBUTE + "' is required.");
+				"Exactly one of '" + destinationAttribute + "' or '" + destinationNameAttribute + "' is required.");
 		builder.addPropertyReference(JmsAdapterParserUtils.CONNECTION_FACTORY_PROPERTY,
 				JmsAdapterParserUtils.determineConnectionFactoryBeanName(element));
 		if (StringUtils.hasText(destination)) {
-			builder.addPropertyReference(JmsAdapterParserUtils.DESTINATION_PROPERTY, destination);
+			builder.addPropertyReference("destination", destination);
 		}
 		else {
-			builder.addPropertyValue(JmsAdapterParserUtils.DESTINATION_NAME_PROPERTY, destinationName);
+			builder.addPropertyValue("destinationName", destinationName);
 		}
 		Integer acknowledgeMode = JmsAdapterParserUtils.parseAcknowledgeMode(element);
 		if (acknowledgeMode != null) {

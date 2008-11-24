@@ -15,27 +15,27 @@
 	</si:channel>
 
 	<jms:inbound-gateway id="defaultGateway"
-	                     destination="testDestination"
+	                     request-destination="testDestination"
 	                     request-channel="requestChannel"/>
 
 	<jms:inbound-gateway id="extractReplyPayloadTrue"
-	                     destination="testDestination"
+	                     request-destination="testDestination"
 	                     request-channel="requestChannel"
 	                     extract-reply-payload="true"/>
 
 	<jms:inbound-gateway id="extractReplyPayloadFalse"
-	                     destination="testDestination"
+	                     request-destination="testDestination"
 	                     request-channel="requestChannel"
 	                     extract-reply-payload="false"/>
 
 
 	<jms:inbound-gateway id="extractRequestPayloadTrue"
-	                     destination="testDestination"
+	                     request-destination="testDestination"
 	                     request-channel="requestChannel"
 	                     extract-request-payload="true"/>
 
 	<jms:inbound-gateway id="extractRequestPayloadFalse"
-	                     destination="testDestination"
+	                     request-destination="testDestination"
 	                     request-channel="requestChannel"
 	                     extract-request-payload="false"/>
 

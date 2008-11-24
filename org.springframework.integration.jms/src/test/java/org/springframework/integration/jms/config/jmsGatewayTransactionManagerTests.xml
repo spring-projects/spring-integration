@@ -16,12 +16,12 @@
 
 	<jms:inbound-gateway id="gatewayWithoutTransactionManager"
 	                     connection-factory="testConnectionFactory"
-	                     destination="testDestination"
+	                     request-destination="testDestination"
 	                     request-channel="requestChannel"/>
 
 	<jms:inbound-gateway id="gatewayWithTransactionManager"
 	                     connection-factory="testConnectionFactory"
-	                     destination="testDestination"
+	                     request-destination="testDestination"
 	                     request-channel="requestChannel"
 	                     transaction-manager="txManager"/>
 
