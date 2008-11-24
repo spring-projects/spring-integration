@@ -79,6 +79,10 @@
 
     <beans:bean id="waiter" class="org.springframework.integration.samples.cafe.xml.Waiter"/>
 
+	<poller id="poller" default="true">
+		<interval-trigger interval="1000"/>
+	</poller>
+
 </beans:beans>]]></programlisting>
       As you can see, each Message Endpoint is connected to input and/or output channels. Each endpoint will manage
       its own Lifecycle (by default endpoints start automatically upon initialization - to prevent that add the
@@ -225,11 +229,9 @@
     <para>
       In addition to experimenting with the poller's concurrency settings, you can also add the 'transactional'
       sub-element. If you want to explore the sample in more detail, the source JAR is available in the "src"
-      directory: 'org.springframework.integration.samples-sources-1.0.0.RC2.jar'.
+      directory: 'org.springframework.integration.samples-sources-1.0.0.jar'.
     </para>
   </section>
-  
-  
 
   <section id="samples-xml-messaging">
     <title>The xml messaging sample</title>
