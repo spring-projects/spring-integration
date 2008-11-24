@@ -228,4 +228,54 @@
       directory: 'org.springframework.integration.samples-sources-1.0.0.RC2.jar'.
     </para>
   </section>
+  
+  
+
+  <section id="samples-xml-messaging">
+    <title>The xml messaging sample</title>
+    <para>
+    	The xml messaging sample in <package>org.springframework.integration.samples.xml</package> illustrates how to use 
+    	some of the provided components which deal with xml payloads.  The sample uses the idea of processing an order for books
+    	represented as xml.   
+    </para>
+    <para>
+    First the order is split into a number of messages, each one representing a single order item using
+    	the XPath splitter component.
+    	  <programlisting language="xml"><![CDATA[<si-xml:xpath-splitter id="orderItemSplitter" input-channel="ordersChannel" 
+            output-channel="stockCheckerChannel" create-documents="true">
+    <si-xml:xpath-expression expression="/orderNs:order/orderNs:orderItem" namespace-map="orderNamespaceMap" />
+</si-xml:xpath-splitter>
+]]></programlisting>
+    </para>
+    <para>
+    	A service activator is then used to pass the message into a stock checker POJO.  The order item document is enriched with information 
+    	from the stock checker about order item stock level.  This enriched order item message is then used to route the message.  In the 
+    	case where the order item is in stock the message is routed to the warehouse.  The XPath router makes use of a 
+    	<classname>MapBasedChannelResolver</classname> which maps the XPath evaluation result to a channel reference.
+    	<programlisting language="xml"><![CDATA[<si-xml:xpath-router id="instockRouter" channel-resolver="mapChannelResolver" 
+        input-channel="orderRoutingChannel" resolution-required="true">
+    <si-xml:xpath-expression expression="/orderNs:orderItem/@in-stock" namespace-map="orderNamespaceMap"  />
+</si-xml:xpath-router>
+	
+<bean id="mapChannelResolver"
+    class="org.springframework.integration.channel.MapBasedChannelResolver">
+    <property name="channelMap">
+        <map>
+            <entry key="true" value-ref="warehouseDispatchChannel" />
+            <entry key="false" value-ref="outOfStockChannel" />
+        </map>
+    </property>
+</bean>
+]]></programlisting>    	 
+    </para>
+    <para>
+    	Where the order item is not in stock the message is transformed using 
+    	xslt into a format suitable for sending to the supplier.
+    		<programlisting language="xml"><![CDATA[<si-xml:xslt-transformer input-channel="outOfStockChannel" output-channel="resupplyOrderChannel" 
+     xsl-resource="classpath:org/springframework/integration/samples/xml/bigBooksSupplierTransformer.xsl"/>
+]]></programlisting>    	 
+    </para>
+  </section>
+  
+  
 </appendix>
