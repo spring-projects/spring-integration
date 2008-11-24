@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<chapter id="chain">
+  <title>Message Handler Chain</title>
+
+  <section id="chain-introduction">
+    <title>Introduction</title>
+    <para>
+      The <classname>MessageHandlerChain</classname> is an implementation of
+      <interfacename>MessageHandler</interfacename> that can be configured as a single Message Endpoint while
+      actually delegating to a chain of other handlers, such as Filters, Transformers, Splitters, and so on.
+      This can lead to a much simpler configuration when several handlers need to be connected in a fixed, linear
+      progression. For example, it is fairly common to provide a Transformer before other components. Similarly, when
+      providing a <emphasis>Filter</emphasis> before some other component in a chain, you are essentially creating a
+      <ulink url="http://www.eaipatterns.com/MessageSelector.html">Selective Consumer</ulink>. In either case, the
+      chain only requires a single input-channel and a single output-channel as opposed to the configuration of
+      channels for each individual component.
+      <tip>
+        Spring Integration's <emphasis>Filter</emphasis> provides a boolean property 'throwExceptionOnRejection'. When
+        providing multiple Selective Consumers on the same point-to-point channel with different acceptance criteria,
+        this value should be set to 'true' (the default is false) so that the dispatcher will know that the Message was
+        rejected and as a result will attempt to pass the Message on to other subscribers. If the Exception were not
+        thrown, then it would appear to the dispatcher as if the Message had been passed on successfully even though
+        the Filter had <emphasis>dropped</emphasis> the Message to prevent further processing.
+      </tip>
+    </para>
+    <para>
+      The handler chain simplifies configuration while internally maintaining the same degree of loose coupling between
+      components, and it is trivial to modify the configuration if at some point a non-linear arrangement is required.
+    </para>
+  </section>
+
+  <section id="chain-namespace">
+    <title>The &lt;chain&gt; Element</title>
+    <para>
+      The &lt;chain&gt; element provides an 'input-channel' attribute, and if the last element in the chain is capable
+      of producing reply messages, it may optionally provide an 'output-channel' attribute. The sub-elements are then
+      filters, transformers, splitters, and service-activators. The last element may be a router.
+      <programlisting language="xml"><![CDATA[ <chain input-channel="input" output-channel="output">
+     <filter ref="someSelector" throw-exception-on-rejection="true"/>
+     <header-enricher error-channel="customErrorChannel">
+         <header name="foo" value="bar"/>
+     </header-enricher>
+     <service-activator ref="someService" method="someMethod"/>
+ </chain>]]></programlisting>
+    </para>
+  </section>
+
+</chapter>

@@ -52,6 +52,7 @@
   <xi:include href="./splitter.xml"/>
   <xi:include href="./aggregator.xml"/>
   <xi:include href="./resequencer.xml"/>
+  <xi:include href="./chain.xml"/>
   <xi:include href="./gateway.xml"/>
   <xi:include href="./bridge.xml"/>
   <xi:include href="./file.xml"/> 
