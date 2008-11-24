@@ -99,7 +99,7 @@ public class ApplicationContextMessageBusTests {
 		PollableChannel sourceChannel = (PollableChannel) context.getBean("sourceChannel");
 		sourceChannel.send(new GenericMessage<String>("test"));		
 		PollableChannel targetChannel = (PollableChannel) context.getBean("targetChannel");
-		Message<?> result = targetChannel.receive(1000);
+		Message<?> result = targetChannel.receive(3000);
 		assertEquals("test", result.getPayload());
 	}
 
