@@ -96,7 +96,7 @@
 				<xsd:element ref="si-core:poller" minOccurs="0" maxOccurs="1"/>
 			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:string" use="required"/>
-			<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
+			<xsd:attribute name="input-channel" type="xsd:string"/>
 			<xsd:attribute name="xpath-expression-ref" type="xsd:string" use="optional"/>
 			<xsd:attribute name="multi-channel" type="xsd:string" default="false"/>
 			<xsd:attribute name="channel-resolver" type="xsd:string" use="optional"/>
@@ -171,8 +171,8 @@
 			<xsd:element ref="si-core:poller" minOccurs="0" maxOccurs="1"/>
 		</xsd:sequence>
 		<xsd:attribute name="id" type="xsd:string" use="optional"/>
-		<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
-		<xsd:attribute name="output-channel" type="xsd:string" use="required"/>
+		<xsd:attribute name="input-channel" type="xsd:string"/>
+		<xsd:attribute name="output-channel" type="xsd:string"/>
 	</xsd:complexType>
 
 </xsd:schema>
