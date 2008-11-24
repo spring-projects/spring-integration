@@ -41,8 +41,8 @@
 	    <classname>OutputStream</classname> for byte streams or <classname>Writer</classname> for character streams,
 	    and each provides a second constructor that adds the optional 'bufferSize'. Since both of these
 	    ultimately implement the <interfacename>MessageHandler</interfacename> interface, they can be referenced from a
-	    <emphasis>channel-adapter</emphasis> configuration as will be described in more detail in
-	    <xref linkend="namespace-endpoint"/>.
+	    <emphasis>channel-adapter</emphasis> configuration as described in more detail in
+	    <xref linkend="channel-adapter"/>.
 		<programlisting language="xml"><![CDATA[<bean class="org.springframework.integration.stream.ByteStreamWritingMessageHandler">
 	<constructor-arg ref="someOutputStream"/>
 	<constructor-arg value="1024"/>
