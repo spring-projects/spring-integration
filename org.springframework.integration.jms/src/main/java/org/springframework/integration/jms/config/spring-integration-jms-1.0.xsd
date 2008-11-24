@@ -194,7 +194,7 @@
 	Common configuration for JMS-based adapters.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:attribute name="id" type="xsd:string"/>
+		<xsd:attribute name="id" type="xsd:ID"/>
 		<xsd:attribute name="connection-factory" type="xsd:string"/>
 		<xsd:attribute name="destination" type="xsd:string"/>
 		<xsd:attribute name="destination-name" type="xsd:string"/>
@@ -203,7 +203,7 @@
 	</xsd:complexType>
 
 	<xsd:complexType name="transformerType">
-		<xsd:attribute name="id" type="xsd:string"/>
+		<xsd:attribute name="id" type="xsd:ID"/>
 		<xsd:attribute name="input-channel" type="xsd:string" use="required"/>
 		<xsd:attribute name="output-channel" type="xsd:string" use="required"/>		
 	</xsd:complexType>
