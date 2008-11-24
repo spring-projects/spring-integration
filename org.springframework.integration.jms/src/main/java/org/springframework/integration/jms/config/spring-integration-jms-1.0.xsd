@@ -98,6 +98,9 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="integration:poller" minOccurs="0" maxOccurs="1"/>
+			</xsd:sequence>
 			<xsd:attribute name="id" type="xsd:ID"/>
 			<xsd:attribute name="request-channel" type="xsd:string"/>
 			<xsd:attribute name="reply-channel" type="xsd:string"/>
