@@ -35,11 +35,11 @@ import org.springframework.integration.config.TestChannelInterceptor;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.core.MessagePriority;
-import org.springframework.integration.executor.ErrorHandlingTaskExecutor;
 import org.springframework.integration.message.GenericMessage;
 import org.springframework.integration.message.MessageBuilder;
 import org.springframework.integration.message.MessageDeliveryException;
 import org.springframework.integration.message.StringMessage;
+import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 
 /**
  * @author Mark Fisher

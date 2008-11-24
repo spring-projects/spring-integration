@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.executor;
+package org.springframework.integration.util;
 
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.util.ErrorHandler;
 import org.springframework.util.Assert;
 
 /**

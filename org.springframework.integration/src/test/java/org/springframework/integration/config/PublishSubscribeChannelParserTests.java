@@ -29,8 +29,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.channel.PublishSubscribeChannel;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
-import org.springframework.integration.executor.ErrorHandlingTaskExecutor;
 import org.springframework.integration.util.ErrorHandler;
+import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 
 /**
  * @author Mark Fisher

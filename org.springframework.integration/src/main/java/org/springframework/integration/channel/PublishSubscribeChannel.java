@@ -20,8 +20,8 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.integration.dispatcher.BroadcastingDispatcher;
-import org.springframework.integration.executor.ErrorHandlingTaskExecutor;
 import org.springframework.integration.util.ErrorHandler;
+import org.springframework.integration.util.ErrorHandlingTaskExecutor;
 
 /**
  * A channel that sends Messages to each of its subscribers. 
