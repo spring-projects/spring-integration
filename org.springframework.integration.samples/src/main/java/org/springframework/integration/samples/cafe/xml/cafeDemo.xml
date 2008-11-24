@@ -41,4 +41,8 @@
 
 	<beans:bean id="waiter" class="org.springframework.integration.samples.cafe.xml.Waiter"/>
 
+	<poller id="poller" default="true">
+		<interval-trigger interval="1000"/>
+	</poller>
+
 </beans:beans>
