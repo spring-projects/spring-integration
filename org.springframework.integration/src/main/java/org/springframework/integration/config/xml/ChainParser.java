@@ -44,10 +44,12 @@ public class ChainParser extends AbstractConsumerEndpointParser {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MessageHandlerChain.class);
 		ManagedList handlerList = new ManagedList();
 		NodeList children = element.getChildNodes();
+		ParserContext childContext = new ParserContext(
+				parserContext.getReaderContext(), parserContext.getDelegate(), builder.getBeanDefinition());
 		for (int i = 0; i < children.getLength(); i++) {
 			Node child = children.item(i);
 			if (child.getNodeType() == Node.ELEMENT_NODE) {
-				String childBeanName = this.parseChild((Element) child, parserContext);
+				String childBeanName = this.parseChild((Element) child, childContext);
 				handlerList.add(new RuntimeBeanReference(childBeanName));
 			}
 		}
