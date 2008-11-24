@@ -40,11 +40,7 @@ public abstract class AbstractOutboundChannelAdapterParser extends AbstractChann
 		builder.addConstructorArgReference(this.parseAndRegisterConsumer(element, parserContext));
 		if (pollerElement != null) {
 			Assert.hasText(channelName, "outbound channel adapter with a 'poller' requires a 'channel' to poll");
-			IntegrationNamespaceUtils.configureTrigger(pollerElement, builder, parserContext);
-			Element txElement = DomUtils.getChildElementByTagName(pollerElement, "transactional");
-			if (txElement != null) {
-				IntegrationNamespaceUtils.configureTransactionAttributes(txElement, builder);
-			}
+			IntegrationNamespaceUtils.configurePollerMetadata(pollerElement, builder, parserContext);
 		}
 		builder.addPropertyValue("inputChannelName", channelName);
 		return builder.getBeanDefinition();

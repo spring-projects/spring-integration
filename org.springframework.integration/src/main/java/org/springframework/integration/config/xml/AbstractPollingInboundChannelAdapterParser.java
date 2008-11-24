@@ -21,6 +21,7 @@ import org.w3c.dom.Element;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.integration.config.PollerMetadata;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.util.Assert;
@@ -33,35 +34,33 @@ import org.springframework.util.xml.DomUtils;
  */
 public abstract class AbstractPollingInboundChannelAdapterParser extends AbstractChannelAdapterParser {
 
+	private volatile PollerMetadata defaultPollerMetadata;
+
+
 	@Override
 	protected AbstractBeanDefinition doParse(Element element, ParserContext parserContext, String channelName) {
 		String source = this.parseSource(element, parserContext);
 		Assert.hasText(source, "failed to parse source");
-		Element pollerElement = DomUtils.getChildElementByTagName(element, "poller");
 		BeanDefinitionBuilder adapterBuilder = BeanDefinitionBuilder.genericBeanDefinition(SourcePollingChannelAdapter.class);
 		adapterBuilder.addPropertyReference("source", source);
 		adapterBuilder.addPropertyReference("outputChannel", channelName);
+		Element pollerElement = DomUtils.getChildElementByTagName(element, "poller");
 		if (pollerElement != null) {
-			IntegrationNamespaceUtils.configureTrigger(pollerElement, adapterBuilder, parserContext);
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, pollerElement, "max-messages-per-poll");
-			Element txElement = DomUtils.getChildElementByTagName(pollerElement, "transactional");
-			if (txElement != null) {
-				IntegrationNamespaceUtils.configureTransactionAttributes(txElement, adapterBuilder);
-			}
+			IntegrationNamespaceUtils.configurePollerMetadata(pollerElement, adapterBuilder, parserContext);
 		}
 		else {
-			adapterBuilder.addPropertyValue("trigger", new IntervalTrigger(this.getDefaultPollInterval()));
+			adapterBuilder.addPropertyValue("pollerMetadata", this.getDefaultPollerMetadata());
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(adapterBuilder, element, "auto-startup");
 		return adapterBuilder.getBeanDefinition();
 	}
 
-	/**
-	 * Subclasses may override this to provide the default poll interval (when
-	 * no 'trigger' is configured). Otherwise, the value will be 1 second.
-	 */
-	protected int getDefaultPollInterval() {
-		return 1000;
+	private synchronized PollerMetadata getDefaultPollerMetadata() {
+		if (this.defaultPollerMetadata == null) {
+			this.defaultPollerMetadata = new PollerMetadata();
+			this.defaultPollerMetadata.setTrigger(new IntervalTrigger(1000));
+		}
+		return this.defaultPollerMetadata;
 	}
 
 	/**

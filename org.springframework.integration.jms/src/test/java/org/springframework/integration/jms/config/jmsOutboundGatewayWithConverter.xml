@@ -17,7 +17,11 @@
 	<jms:outbound-gateway id="jmsGateway"
 	                      request-destination="requestQueue"
 	                      request-channel="requestChannel"
-	                      message-converter="converter"/>
+	                      message-converter="converter">
+		<si:poller>
+			<si:interval-trigger interval="1000"/>
+		</si:poller>
+	</jms:outbound-gateway>
 
 
 

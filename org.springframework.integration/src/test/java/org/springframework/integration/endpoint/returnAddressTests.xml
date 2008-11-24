@@ -7,6 +7,10 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration-1.0.xsd">
 
+	<si:poller id="poller" default="true">
+		<si:interval-trigger interval="50"/>
+	</si:poller>
+
 	<si:channel id="channel1"/>
 	<si:channel id="channel2">
 		<si:queue capacity="5"/>

@@ -164,7 +164,7 @@
 
 	<xsd:complexType name="channelAdapterType">
 		<xsd:sequence>
-			<xsd:element ref="poller" minOccurs="0" maxOccurs="1"/>
+			<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1"/>
 		</xsd:sequence>
 		<xsd:attribute name="id" type="xsd:ID"/>
 		<xsd:attribute name="channel" type="xsd:string"/>
@@ -230,7 +230,7 @@
 		<xsd:complexContent>
 			<xsd:extension base="beans:identifiedType">
 				<xsd:sequence>
-					<xsd:element ref="poller" minOccurs="0" maxOccurs="1"/>
+					<xsd:element name="poller" type="innerPollerType" minOccurs="0" maxOccurs="1"/>
 				</xsd:sequence>
 				<xsd:attribute name="input-channel" type="xsd:string">
 					<xsd:annotation>
@@ -317,25 +317,47 @@
 	</xsd:element>
 
 	<xsd:element name="poller">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines a top-level poller.
+			</xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-	Defines a poller.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:sequence>
-				<xsd:choice minOccurs="1" maxOccurs="1">
-					<xsd:element ref="interval-trigger"/>
-					<xsd:element ref="cron-trigger"/>
-				</xsd:choice>
-				<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1"/>
-			</xsd:sequence>
-			<xsd:attribute name="receive-timeout" type="xsd:string"/>
-			<xsd:attribute name="send-timeout" type="xsd:string"/>
-			<xsd:attribute name="max-messages-per-poll" type="xsd:string"/>
-			<xsd:attribute name="task-executor" type="xsd:string"/>
+			<xsd:complexContent>
+				<xsd:extension base="basePollerType">
+					<xsd:attribute name="id" type="xsd:ID"/>
+					<xsd:attribute name="default" type="xsd:boolean" default="false"/>
+				</xsd:extension>
+			</xsd:complexContent>
 		</xsd:complexType>
 	</xsd:element>
+
+	<xsd:complexType name="innerPollerType">
+		<xsd:complexContent>
+			<xsd:extension base="basePollerType">
+				<xsd:attribute name="ref" type="xsd:string"/>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="basePollerType">
+		<xsd:annotation>
+			<xsd:documentation>
+	Defines the configuration metadata for a poller.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:choice minOccurs="0" maxOccurs="1">
+				<xsd:element ref="interval-trigger"/>
+				<xsd:element ref="cron-trigger"/>
+			</xsd:choice>
+			<xsd:element name="transactional" type="transactionalType" minOccurs="0" maxOccurs="1"/>
+		</xsd:sequence>
+		<xsd:attribute name="receive-timeout" type="xsd:string"/>
+		<xsd:attribute name="send-timeout" type="xsd:string"/>
+		<xsd:attribute name="max-messages-per-poll" type="xsd:string"/>
+		<xsd:attribute name="task-executor" type="xsd:string"/>
+	</xsd:complexType>
 
 	<xsd:element name="interval-trigger">
 		<xsd:complexType>

@@ -86,13 +86,7 @@ public abstract class AbstractConsumerEndpointParser extends AbstractBeanDefinit
 		builder.addPropertyValue("inputChannelName", inputChannelName);
 		Element pollerElement = DomUtils.getChildElementByTagName(element, POLLER_ELEMENT);
 		if (pollerElement != null) {
-			IntegrationNamespaceUtils.configureTrigger(pollerElement, builder, parserContext);
-			IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, pollerElement, "max-messages-per-poll");
-			Element txElement = DomUtils.getChildElementByTagName(pollerElement, "transactional");
-			if (txElement != null) {
-				IntegrationNamespaceUtils.configureTransactionAttributes(txElement, builder);
-			}
-			IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, pollerElement, "task-executor");
+			IntegrationNamespaceUtils.configurePollerMetadata(pollerElement, builder, parserContext);
 		}
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "auto-startup");
 		return builder.getBeanDefinition();

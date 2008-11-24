@@ -112,6 +112,7 @@ public class IntegrationNamespaceHandler implements NamespaceHandler {
 			registerBeanDefinitionParser("bridge", new BridgeParser());
 			registerBeanDefinitionParser("chain", new ChainParser());
 			registerBeanDefinitionParser("selector-chain", new SelectorChainParser());
+			registerBeanDefinitionParser("poller", new PollerParser());
 			registerBeanDefinitionParser("annotation-config", new AnnotationConfigParser());
 			registerBeanDefinitionParser("application-event-multicaster", new ApplicationEventMulticasterParser());
 			registerBeanDefinitionParser("thread-pool-task-executor", new ThreadPoolTaskExecutorParser());

@@ -147,13 +147,13 @@ public abstract class AbstractPollingEndpoint extends AbstractEndpoint implement
 				this.transactionTemplate = new TransactionTemplate(
 						this.transactionManager, this.transactionDefinition);
 			}
-			this.poller = this.createPoller();
 			if (this.taskExecutor != null && !(this.taskExecutor instanceof ErrorHandlingTaskExecutor)) {
 				if (this.errorHandler == null) {
 					this.errorHandler = new MessagePublishingErrorHandler(new BeanFactoryChannelResolver(getBeanFactory()));
 				}
 				this.taskExecutor = new ErrorHandlingTaskExecutor(this.taskExecutor, this.errorHandler);
 			}
+			this.poller = this.createPoller();
 			this.initialized = true;
 		}
 	}

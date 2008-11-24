@@ -16,23 +16,19 @@
 
 package org.springframework.integration.config.xml;
 
-import java.util.concurrent.TimeUnit;
-
 import org.w3c.dom.Element;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.parsing.BeanComponentDefinition;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.xml.BeanDefinitionParserDelegate;
 import org.springframework.beans.factory.xml.ParserContext;
 import org.springframework.core.Conventions;
-import org.springframework.integration.scheduling.CronTrigger;
-import org.springframework.integration.scheduling.IntervalTrigger;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
-import org.springframework.util.xml.DomUtils;
 
 /**
  * Shared utility methods for integration namespace parsers.
@@ -137,63 +133,30 @@ public abstract class IntegrationNamespaceUtils {
 	}
 
 	/**
-	 * Parse a "poller" element to create a Trigger and add it to the property values of the target builder.
+	 * Parse a "poller" element to provide a reference for the target
+	 * BeanDefinitionBuilder. If the poller element does not contain a "ref"
+	 * attribute, this will create and register a PollerMetadata instance and
+	 * then add it as a property reference of the target builder.
 	 * 
 	 * @param pollerElement the "poller" element to parse
 	 * @param targetBuilder the builder that expects the "trigger" property
+	 * @param parserContext the parserContext for the target builder
 	 */
-	public static void configureTrigger(Element pollerElement, BeanDefinitionBuilder targetBuilder, ParserContext parserContext) {
-		String triggerBeanName = null;
-		Element intervalElement = DomUtils.getChildElementByTagName(pollerElement, "interval-trigger");
-		if (intervalElement != null) {
-			triggerBeanName = parseIntervalTrigger(intervalElement, parserContext);
+	public static void configurePollerMetadata(Element pollerElement, BeanDefinitionBuilder targetBuilder, ParserContext parserContext) {
+		String pollerMetadataRef = null;
+		if (pollerElement.hasAttribute("ref")) {
+			pollerMetadataRef = pollerElement.getAttribute("ref");
 		}
 		else {
-			Element cronElement = DomUtils.getChildElementByTagName(pollerElement, "cron-trigger");
-			Assert.notNull(cronElement,
-					"A <poller> element must include either an <interval-trigger/> or <cron-trigger/> child element.");
-			triggerBeanName = parseCronTrigger(cronElement, parserContext);
+			ParserContext childContext = new ParserContext(
+					parserContext.getReaderContext(), parserContext.getDelegate(), targetBuilder.getBeanDefinition());
+			BeanDefinition beanDefinition = new PollerParser().parse(pollerElement, childContext);
+			Assert.notNull(beanDefinition, "BeanDefinition must not be null");
+			Assert.isInstanceOf(AbstractBeanDefinition.class, beanDefinition);
+			pollerMetadataRef = BeanDefinitionReaderUtils.registerWithGeneratedName(
+					(AbstractBeanDefinition) beanDefinition, parserContext.getRegistry());
 		}
-		targetBuilder.addPropertyReference("trigger", triggerBeanName);
-	}
-
-	private static String parseIntervalTrigger(Element element, ParserContext parserContext) {
-		String interval = element.getAttribute("interval");
-		Assert.hasText(interval, "the 'interval' attribute is required for an <interval-trigger/>");
-		TimeUnit timeUnit = TimeUnit.valueOf(element.getAttribute("time-unit"));
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(IntervalTrigger.class);
-		builder.addConstructorArgValue(interval);
-		builder.addConstructorArgValue(timeUnit);
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "initial-delay");
-		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "fixed-rate");
-		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
-	}
-
-	private static String parseCronTrigger(Element element, ParserContext parserContext) {
-		String cronExpression = element.getAttribute("expression");
-		Assert.hasText(cronExpression, "the 'expression' attribute is required for a <cron-trigger/>");
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(CronTrigger.class);
-		builder.addConstructorArgValue(cronExpression);
-		return BeanDefinitionReaderUtils.registerWithGeneratedName(builder.getBeanDefinition(), parserContext.getRegistry());
-	}
-
-	/**
-	 * Parse a "transactional" element and configure the "transactionManager" and "transactionDefinition"
-	 * properties for the target builder.
-	 * 
-	 * @param txElement the "transactional" element to parse
-	 * @param targetBuilder the builder that expects the "transactionManager" and "transactionDefinition" properties
-	 */
-	public static void configureTransactionAttributes(Element txElement, BeanDefinitionBuilder targetBuilder) {
-		targetBuilder.addPropertyReference("transactionManager", txElement.getAttribute("transaction-manager"));
-		DefaultTransactionDefinition txDefinition = new DefaultTransactionDefinition();
-		txDefinition.setPropagationBehaviorName(
-				DefaultTransactionDefinition.PREFIX_PROPAGATION + txElement.getAttribute("propagation"));
-		txDefinition.setIsolationLevelName(
-				DefaultTransactionDefinition.PREFIX_ISOLATION + txElement.getAttribute("isolation"));
-		txDefinition.setTimeout(Integer.valueOf(txElement.getAttribute("timeout")));
-		txDefinition.setReadOnly(txElement.getAttribute("read-only").equalsIgnoreCase("true"));
-		targetBuilder.addPropertyValue("transactionDefinition", txDefinition);
+		targetBuilder.addPropertyReference("pollerMetadata", pollerMetadataRef);
 	}
 
 }

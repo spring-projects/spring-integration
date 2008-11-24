@@ -19,6 +19,7 @@ package org.springframework.integration.context;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.integration.config.PollerMetadata;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
@@ -35,6 +36,8 @@ public abstract class IntegrationContextUtils {
 
 	public static final String ERROR_CHANNEL_BEAN_NAME = "errorChannel";
 
+	public static final String DEFAULT_POLLER_METADATA_BEAN_NAME = "org.springframework.integration.context.defaultPollerMetadata";
+
 
 	public static MessageChannel getErrorChannel(BeanFactory beanFactory) {
 		return getBeanOfType(beanFactory, ERROR_CHANNEL_BEAN_NAME, MessageChannel.class);
@@ -48,6 +51,10 @@ public abstract class IntegrationContextUtils {
 		TaskScheduler taskScheduler = getTaskScheduler(beanFactory);
 		Assert.state(taskScheduler != null, "No such bean '" + TASK_SCHEDULER_BEAN_NAME + "'");
 		return taskScheduler;
+	}
+
+	public static PollerMetadata getDefaultPollerMetadata(BeanFactory beanFactory) {
+		return getBeanOfType(beanFactory, DEFAULT_POLLER_METADATA_BEAN_NAME, PollerMetadata.class);
 	}
 
 	@SuppressWarnings("unchecked")
