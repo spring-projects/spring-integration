@@ -21,16 +21,23 @@
 
 	<channel id="orders"/>
 	<channel id="drinks"/>
-
-	<channel id="coldDrinks">
-		<queue capacity="10"/>
-	</channel>
-
-	<channel id="hotDrinks">
-		<queue capacity="10"/>
-	</channel>
-
+	<channel id="coldDrinks"><queue capacity="10"/></channel>
+	<channel id="hotDrinks"><queue capacity="10"/></channel>
+	<channel id="coldDrinkBarista"/>
+	<channel id="hotDrinkBarista"/>
     <channel id="preparedDrinks"/>
+
+	<bridge input-channel="coldDrinks" output-channel="coldDrinkBarista">
+		<poller>
+			<interval-trigger interval="1000"/>
+		</poller>
+	</bridge>
+
+	<bridge input-channel="hotDrinks" output-channel="hotDrinkBarista">
+		<poller>
+			<interval-trigger interval="1000"/>
+		</poller>
+	</bridge>
 
 	<stream:stdout-channel-adapter id="deliveries"/>
 	

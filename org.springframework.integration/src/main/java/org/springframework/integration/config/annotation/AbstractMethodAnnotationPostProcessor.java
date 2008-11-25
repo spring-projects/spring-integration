@@ -74,7 +74,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		if (StringUtils.hasText(inputChannelName)) {
 			MessageChannel inputChannel = this.channelResolver.resolveChannelName(inputChannelName);
 			Assert.notNull(inputChannel, "failed to resolve inputChannel '" + inputChannelName + "'");
-			Assert.isInstanceOf(SubscribableChannel.class, inputChannel,
+			Assert.isTrue(inputChannel instanceof SubscribableChannel,
 					"The input channel for an Annotation-based endpoint must be a SubscribableChannel.");
 			endpoint = new EventDrivenConsumer((SubscribableChannel) inputChannel, handler);
 			if (handler instanceof BeanFactoryAware) {
