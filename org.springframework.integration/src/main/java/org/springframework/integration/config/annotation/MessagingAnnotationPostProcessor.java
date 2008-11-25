@@ -39,7 +39,6 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.integration.annotation.Aggregator;
-import org.springframework.integration.annotation.ChannelAdapter;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Splitter;
@@ -78,7 +77,6 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	public void afterPropertiesSet() {
 		Assert.notNull(this.beanFactory, "BeanFactory must not be null");
 		postProcessors.put(Aggregator.class, new AggregatorAnnotationPostProcessor(this.beanFactory));
-		postProcessors.put(ChannelAdapter.class, new ChannelAdapterAnnotationPostProcessor(this.beanFactory));
 		postProcessors.put(Router.class, new RouterAnnotationPostProcessor(this.beanFactory));
 		postProcessors.put(ServiceActivator.class, new ServiceActivatorAnnotationPostProcessor(this.beanFactory));
 		postProcessors.put(Splitter.class, new SplitterAnnotationPostProcessor(this.beanFactory));
@@ -133,9 +131,6 @@ public class MessagingAnnotationPostProcessor implements BeanPostProcessor, Bean
 	}
 
 	private boolean shouldCreateEndpoint(Annotation annotation) {
-		if (annotation instanceof ChannelAdapter) {
-			return true;
-		}
 		Object inputChannel = AnnotationUtils.getValue(annotation, "inputChannel");
 		return (inputChannel != null && inputChannel instanceof String
 				&& StringUtils.hasText((String) inputChannel));
