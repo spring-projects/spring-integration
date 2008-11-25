@@ -14,7 +14,11 @@
 
 	<file:inbound-channel-adapter id="filesIn"
 	                              directory="file:${java.io.tmpdir}/spring-integration-samples/input"
-	                              filename-pattern="[a-z]+.txt"/>
+	                              filename-pattern="[a-z]+.txt">
+		<integration:poller>
+			<integration:interval-trigger interval="5000"/>
+		</integration:poller>
+	</file:inbound-channel-adapter>
 
 	<file:file-to-string-transformer input-channel="filesIn" output-channel="strings"/>
 
