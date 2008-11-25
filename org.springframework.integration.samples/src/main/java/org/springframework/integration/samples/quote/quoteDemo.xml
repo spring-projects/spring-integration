@@ -12,10 +12,18 @@
 
 	<annotation-config/>
 
-	<beans:bean class="org.springframework.integration.samples.quote.TickerStream"/>
+	<inbound-channel-adapter ref="tickerStream" method="nextTicker" channel="tickers">
+		<poller max-messages-per-poll="1">
+			<interval-trigger interval="300"/>
+		</poller>
+	</inbound-channel-adapter>
 
-	<beans:bean class="org.springframework.integration.samples.quote.QuoteService"/>
+	<channel id="tickers"/>
 
 	<stream:stdout-channel-adapter id="quotes" append-newline="true"/>
+
+	<beans:bean id="tickerStream" class="org.springframework.integration.samples.quote.TickerStream"/>
+
+	<beans:bean id="quoteService" class="org.springframework.integration.samples.quote.QuoteService"/>
 
 </beans:beans>
