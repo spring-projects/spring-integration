@@ -33,7 +33,6 @@ import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.Lifecycle;
 import org.springframework.integration.annotation.Gateway;
-import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
@@ -54,7 +53,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 
 	private volatile MessageChannel defaultRequestChannel;
 
-	private volatile PollableChannel defaultReplyChannel;
+	private volatile MessageChannel defaultReplyChannel;
 
 	private volatile long defaultRequestTimeout = -1;
 
@@ -98,7 +97,7 @@ public class GatewayProxyFactoryBean extends AbstractEndpoint implements Factory
 	 * @param replyChannel the channel from which reply messages will be
 	 * received if no reply channel has been configured with an annotation
 	 */
-	public void setDefaultReplyChannel(PollableChannel defaultReplyChannel) {
+	public void setDefaultReplyChannel(MessageChannel defaultReplyChannel) {
 		this.defaultReplyChannel = defaultReplyChannel;
 	}
 
