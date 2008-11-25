@@ -37,7 +37,6 @@ import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.MessageHandlingException;
 import org.springframework.integration.scheduling.IntervalTrigger;
 import org.springframework.integration.scheduling.TaskScheduler;
-import org.springframework.integration.scheduling.TaskSchedulerAware;
 import org.springframework.util.Assert;
 
 /**
@@ -67,7 +66,7 @@ import org.springframework.util.Assert;
  * @author Marius Bogoevici
  */
 public abstract class AbstractMessageBarrierHandler<T extends Map<K, Message<?>>, K>
-		extends AbstractMessageHandler implements TaskSchedulerAware, InitializingBean {
+		extends AbstractMessageHandler implements InitializingBean {
 
 	public final static long DEFAULT_SEND_TIMEOUT = 1000;
 
