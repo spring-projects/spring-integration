@@ -19,8 +19,8 @@ package org.springframework.integration.context;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.integration.config.PollerMetadata;
 import org.springframework.integration.core.MessageChannel;
+import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;

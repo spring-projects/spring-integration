@@ -32,6 +32,7 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.message.MessageHandler;
+import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.util.Assert;
 
 /**

@@ -154,7 +154,8 @@ public abstract class IntegrationNamespaceUtils {
 		else {
 			ParserContext childContext = new ParserContext(
 					parserContext.getReaderContext(), parserContext.getDelegate(), targetBuilder.getBeanDefinition());
-			BeanDefinition beanDefinition = new PollerParser().parse(pollerElement, childContext);
+			BeanDefinition beanDefinition = parserContext.getReaderContext().getNamespaceHandlerResolver().resolve(
+					pollerElement.getNamespaceURI()).parse(pollerElement, childContext);
 			Assert.notNull(beanDefinition, "BeanDefinition must not be null");
 			Assert.isInstanceOf(AbstractBeanDefinition.class, beanDefinition);
 			pollerMetadataRef = BeanDefinitionReaderUtils.registerWithGeneratedName(

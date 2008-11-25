@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.springframework.integration.config;
+package org.springframework.integration.scheduling;
 
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.integration.scheduling.Trigger;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 
