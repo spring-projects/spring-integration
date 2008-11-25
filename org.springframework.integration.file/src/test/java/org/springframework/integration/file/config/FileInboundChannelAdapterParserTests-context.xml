@@ -11,7 +11,8 @@
 			http://www.springframework.org/schema/integration/file/spring-integration-file-1.0.xsd">
 
 	<inbound-channel-adapter id="inputDirPoller"
-			directory="file:${java.io.tmpdir}" filter="filter"
+			directory="file:${java.io.tmpdir}"
+			filter="filter"
 			auto-startup="false">
 		<integration:poller>
 			<integration:interval-trigger interval="5000"/>
