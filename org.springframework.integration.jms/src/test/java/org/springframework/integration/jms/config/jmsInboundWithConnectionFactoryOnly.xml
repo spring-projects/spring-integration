@@ -2,6 +2,7 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:jms="http://www.springframework.org/schema/integration/jms"
+	xmlns:integration="http://www.springframework.org/schema/integration"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
 			http://www.springframework.org/schema/integration
@@ -18,5 +19,9 @@
 			</bean>
 		</constructor-arg>
 	</bean>
+
+	<integration:poller id="poller" default="true">
+		<integration:interval-trigger interval="3000"/>
+	</integration:poller>
 
 </beans>
