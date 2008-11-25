@@ -17,7 +17,6 @@
 package org.springframework.integration.endpoint;
 
 import org.springframework.integration.channel.MessageChannelTemplate;
-import org.springframework.integration.config.PollerMetadata;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.MessageSource;
@@ -58,14 +57,6 @@ public class SourcePollingChannelAdapter extends AbstractPollingEndpoint {
 	 */
 	public void setSendTimeout(long sendTimeout) {
 		this.channelTemplate.setSendTimeout(sendTimeout);
-	}
-
-	public void setPollerMetadata(PollerMetadata pollerMetadata) {
-		this.setTrigger(pollerMetadata.getTrigger());
-		this.setMaxMessagesPerPoll(pollerMetadata.getMaxMessagesPerPoll());
-		this.setTaskExecutor(pollerMetadata.getTaskExecutor());
-		this.setTransactionDefinition(pollerMetadata.getTransactionDefinition());
-		this.setTransactionManager(pollerMetadata.getTransactionManager());
 	}
 
 	@Override

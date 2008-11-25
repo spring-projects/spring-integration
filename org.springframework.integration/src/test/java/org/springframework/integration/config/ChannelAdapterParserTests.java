@@ -94,15 +94,17 @@ public class ChannelAdapterParserTests extends AbstractJUnit4SpringContextTests 
 	@Test
 	public void methodInvokingSource() {
 		String beanName = "methodInvokingSource";
-		PollableChannel channel =  (PollableChannel) this.applicationContext.getBean("queueChannel");
+		PollableChannel channel = (PollableChannel) this.applicationContext.getBean("queueChannel");
 		TestBean testBean = (TestBean) this.applicationContext.getBean("testBean");
 		testBean.store("source test");
 		Object adapter = this.applicationContext.getBean(beanName);
 		assertNotNull(adapter);
 		assertTrue(adapter instanceof SourcePollingChannelAdapter);
+		((SourcePollingChannelAdapter) adapter).start();
 		Message<?> message = channel.receive(1000);
 		assertNotNull(message);
 		assertEquals("source test", testBean.getMessage());
+		((SourcePollingChannelAdapter) adapter).stop();
 	}
 
 	@Test(expected = ChannelResolutionException.class)
