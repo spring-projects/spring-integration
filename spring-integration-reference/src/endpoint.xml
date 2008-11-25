@@ -75,7 +75,7 @@ EventDrivenConsumer consumer = new EventDrivenConsumer(channel, exampleHandler);
 PollingConsumer consumer = new PollingConsumer(channel, exampleHandler);</programlisting>
     </para>
     <para>
-      There are many other configuration options for the Polling Consumer. For example, the trigger can be provided:
+      There are many other configuration options for the Polling Consumer. For example, the trigger is a required property:
       <programlisting language="java">
 PollingConsumer consumer = new PollingConsumer(channel, handler);
 
@@ -139,13 +139,48 @@ consumer.setTransactionManager(txManager);</programlisting>
       referenced: <interfacename>PollableChannel</interfacename> or <interfacename>SubscribableChannel</interfacename>
       respectively. When the channel is pollable, then the polling behavior is determined based on the endpoint
       element's "poller" sub-element. For example, a simple interval-based poller with a 1-second interval would be
-      configured like this: <programlisting language="xml"><![CDATA[<poller>
-    <interval-trigger interval="1000"/>
-</poller>]]></programlisting>
+      configured like this: <programlisting language="xml"><![CDATA[ <transformer input-channel="pollable"
+              ref="transformer"
+              output-channel="output">
+     <poller>
+         <interval-trigger interval="1000"/>
+     </poller>
+</transformer>]]></programlisting>
       For a poller based on a Cron expression, use the "cron-trigger" child element instead:
-      <programlisting language="xml"><![CDATA[<poller>
-    <cron-trigger expression="*/10 * * * * MON-FRI"/>
-</poller>]]></programlisting>
+      <programlisting language="xml"><![CDATA[ <transformer input-channel="pollable"
+              ref="transformer"
+              output-channel="output">
+     <poller>
+         <cron-trigger expression="*/10 * * * * MON-FRI"/>
+     </poller>
+ </transformer>]]></programlisting>
+    </para>
+    <para>
+      If the input channel is a <interfacename>PollableChannel</interfacename>, then the poller configuration is
+      required. Specifically, as mentioned above, the 'trigger' is a required property of the PollingConsumer class.
+      Therefore, if you omit the "poller" sub-element for a Polling Consumer endpoint's configuration, an Exception
+      will be thrown. However, it is also possible to create top-level pollers in which case only a "ref" is required:
+      <programlisting language="xml"><![CDATA[ <poller id="weekdayPoller">
+     <cron-trigger expression="*/10 * * * * MON-FRI"/>
+ </poller>
+
+ <transformer input-channel="pollable"
+              ref="transformer"
+              output-channel="output">
+    <poller ref="weekdayPoller"/>
+ </transformer>]]></programlisting>
+      In fact, to simplify the configuration, you can define a global default poller. A single top-level poller within
+      an ApplicationContext may have the default attribute with a value of "true". In that case, any endpoint with a
+      PollableChannel for its input-channel that is defined within the same ApplicationContext and has no explicitly
+      configured 'poller' sub-element will use that default.
+      <programlisting language="xml"><![CDATA[ <poller id="defaultPoller" default="true" max-messages-per-poll="5">
+     <interval-trigger interval="3" time-unit="SECONDS"/>
+ </poller>
+
+ <!-- No <poller/> sub-element is necessary since there is a default -->
+ <transformer input-channel="pollable"
+              ref="transformer"
+              output-channel="output"/>]]></programlisting>
     </para>
     <para>
       Spring Integration also provides transaction support for the pollers so that each receive-and-forward
