@@ -29,17 +29,13 @@ import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolutionException;
 import org.springframework.integration.channel.ChannelResolver;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
-import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.SourcePollingChannelAdapter;
 import org.springframework.integration.handler.MethodInvokingMessageHandler;
 import org.springframework.integration.message.MethodInvokingMessageSource;
-import org.springframework.integration.scheduling.IntervalTrigger;
-import org.springframework.integration.scheduling.Trigger;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
@@ -120,24 +116,13 @@ public class ChannelAdapterAnnotationPostProcessor implements MethodAnnotationPo
 		SourcePollingChannelAdapter adapter = new SourcePollingChannelAdapter();
 		adapter.setSource(source);
 		adapter.setOutputChannel(channel);
-		AnnotationConfigUtils.configurePollingEndpointWithPollerAnnotation(
-				adapter, pollerAnnotation, this.beanFactory);
 		return adapter;
 	}
 
 	private AbstractEndpoint createOutboundChannelAdapter(MessageChannel channel, MethodInvokingMessageHandler handler, Poller pollerAnnotation) {
-		if (channel instanceof PollableChannel) {
-			Trigger trigger = (pollerAnnotation != null)
-					? AnnotationConfigUtils.parseTriggerFromPollerAnnotation(pollerAnnotation)
-					: new IntervalTrigger(0);
-			PollingConsumer endpoint = new PollingConsumer((PollableChannel) channel, handler);
-			endpoint.setTrigger(trigger);
-			return endpoint;
-		}
-		if (channel instanceof SubscribableChannel) {
-			return new EventDrivenConsumer((SubscribableChannel) channel, handler);
-		}
-		return null;
+		Assert.isInstanceOf(SubscribableChannel.class, channel,
+				"The input channel for an Annotation-based endpoint must be a SubscribableChannel.");
+		return new EventDrivenConsumer((SubscribableChannel) channel, handler);
 	}
 
 	private boolean hasReturnValue(Method method) {

@@ -27,7 +27,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.integration.annotation.MessageEndpoint;
 import org.springframework.integration.annotation.ServiceActivator;
-import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.annotation.MessagingAnnotationPostProcessor;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.message.StringMessage;
@@ -45,7 +45,7 @@ public class ServiceActivatorAnnotationPostProcessorTests {
 		TestApplicationContext context = TestUtils.createTestApplicationContext();
 		RootBeanDefinition postProcessorDef = new RootBeanDefinition(MessagingAnnotationPostProcessor.class);
 		context.registerBeanDefinition("postProcessor", postProcessorDef);
-		context.registerBeanDefinition("testChannel", new RootBeanDefinition(QueueChannel.class));
+		context.registerBeanDefinition("testChannel", new RootBeanDefinition(DirectChannel.class));
 		RootBeanDefinition beanDefinition = new RootBeanDefinition(SimpleServiceActivatorAnnotationTestBean.class);
 		beanDefinition.getConstructorArgumentValues().addGenericArgumentValue(latch);
 		context.registerBeanDefinition("testBean", beanDefinition);

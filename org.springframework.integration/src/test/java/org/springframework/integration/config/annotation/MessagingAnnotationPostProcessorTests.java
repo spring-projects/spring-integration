@@ -22,17 +22,14 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Test;
 
 import org.springframework.aop.framework.ProxyFactory;
-import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.integration.annotation.ChannelAdapter;
 import org.springframework.integration.annotation.MessageEndpoint;
-import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.annotation.Transformer;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
@@ -43,12 +40,8 @@ import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.core.Message;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.message.MessageBuilder;
-import org.springframework.integration.message.MessageHandler;
 import org.springframework.integration.message.StringMessage;
-import org.springframework.integration.scheduling.IntervalTrigger;
-import org.springframework.integration.scheduling.Trigger;
 import org.springframework.integration.util.TestUtils;
 import org.springframework.integration.util.TestUtils.TestApplicationContext;
 
@@ -60,7 +53,7 @@ public class MessagingAnnotationPostProcessorTests {
 	@Test
 	public void serviceActivatorAnnotation() {
 		TestApplicationContext context = TestUtils.createTestApplicationContext();
-		QueueChannel inputChannel = new QueueChannel();
+		DirectChannel inputChannel = new DirectChannel();
 		context.registerChannel("inputChannel", inputChannel);
 		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
 		postProcessor.setBeanFactory(context.getBeanFactory());
@@ -172,7 +165,7 @@ public class MessagingAnnotationPostProcessorTests {
 	@Test
 	public void testProxiedMessageEndpointAnnotation() {
 		TestApplicationContext context = TestUtils.createTestApplicationContext();
-		QueueChannel inputChannel = new QueueChannel();
+		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel();
 		context.registerChannel("inputChannel", inputChannel);
 		context.registerChannel("outputChannel", outputChannel);
@@ -192,7 +185,7 @@ public class MessagingAnnotationPostProcessorTests {
 	@Test
 	public void testMessageEndpointAnnotationInherited() {
 		TestApplicationContext context = TestUtils.createTestApplicationContext();
-		QueueChannel inputChannel = new QueueChannel();
+		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel();
 		context.registerChannel("inputChannel", inputChannel);
 		context.registerChannel("outputChannel", outputChannel);
@@ -210,7 +203,7 @@ public class MessagingAnnotationPostProcessorTests {
 	@Test
 	public void testMessageEndpointAnnotationInheritedWithProxy() {
 		TestApplicationContext context = TestUtils.createTestApplicationContext();
-		QueueChannel inputChannel = new QueueChannel();
+		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel();
 		context.registerChannel("inputChannel", inputChannel);
 		context.registerChannel("outputChannel", outputChannel);
@@ -230,7 +223,7 @@ public class MessagingAnnotationPostProcessorTests {
 	@Test
 	public void testMessageEndpointAnnotationInheritedFromInterface() {
 		TestApplicationContext context = TestUtils.createTestApplicationContext();
-		QueueChannel inputChannel = new QueueChannel();
+		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel();
 		context.registerChannel("inputChannel", inputChannel);
 		context.registerChannel("outputChannel", outputChannel);
@@ -248,7 +241,7 @@ public class MessagingAnnotationPostProcessorTests {
 	@Test
 	public void testMessageEndpointAnnotationInheritedFromInterfaceWithAutoCreatedChannels() {
 		TestApplicationContext context = TestUtils.createTestApplicationContext();
-		QueueChannel inputChannel = new QueueChannel();
+		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel();
 		context.registerChannel("inputChannel", inputChannel);
 		context.registerChannel("outputChannel", outputChannel);
@@ -266,7 +259,7 @@ public class MessagingAnnotationPostProcessorTests {
 	@Test
 	public void testMessageEndpointAnnotationInheritedFromInterfaceWithProxy() {
 		TestApplicationContext context = TestUtils.createTestApplicationContext();
-		QueueChannel inputChannel = new QueueChannel();
+		DirectChannel inputChannel = new DirectChannel();
 		QueueChannel outputChannel = new QueueChannel();
 		context.registerChannel("inputChannel", inputChannel);
 		context.registerChannel("outputChannel", outputChannel);
@@ -280,51 +273,6 @@ public class MessagingAnnotationPostProcessorTests {
 		inputChannel.send(new StringMessage("ABC"));
 		Message<?> message = outputChannel.receive(1000);
 		assertEquals("test-ABC", message.getPayload());
-		context.stop();
-	}
-
-	@Test
-	public void testEndpointWithPollerAnnotation() {
-		TestApplicationContext context = TestUtils.createTestApplicationContext();
-		QueueChannel testChannel = new QueueChannel();
-		context.registerChannel("testChannel", testChannel);
-		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
-		postProcessor.setBeanFactory(context.getBeanFactory());
-		postProcessor.afterPropertiesSet();
-		AnnotatedEndpointWithPolledAnnotation bean = new AnnotatedEndpointWithPolledAnnotation();
-		postProcessor.postProcessAfterInitialization(bean, "testBean");
-		PollingConsumer endpoint = (PollingConsumer) context.getBean("testBean.prependFoo.serviceActivator");
-		Trigger trigger = (Trigger) new DirectFieldAccessor(endpoint).getPropertyValue("trigger");
-		assertEquals(IntervalTrigger.class, trigger.getClass());
-		DirectFieldAccessor triggerAccessor = new DirectFieldAccessor(trigger);
-		assertEquals(new Long(123000), triggerAccessor.getPropertyValue("interval"));
-		assertEquals(new Long(456000), triggerAccessor.getPropertyValue("initialDelay"));
-		assertEquals(true, triggerAccessor.getPropertyValue("fixedRate"));
-	}
-
-	@Test
-	public void testChannelAdapterAnnotation() throws InterruptedException {
-		TestApplicationContext context = TestUtils.createTestApplicationContext();
-		MessagingAnnotationPostProcessor postProcessor = new MessagingAnnotationPostProcessor();
-		postProcessor.setBeanFactory(context.getBeanFactory());
-		postProcessor.afterPropertiesSet();
-		ChannelAdapterAnnotationTestBean testBean = new ChannelAdapterAnnotationTestBean();
-		postProcessor.postProcessAfterInitialization(testBean, "testBean");
-		ChannelResolver channelResolver = new BeanFactoryChannelResolver(context);
-		DirectChannel testChannel = (DirectChannel) channelResolver.resolveChannelName("testChannel");
-		final CountDownLatch latch = new CountDownLatch(1);
-		final AtomicReference<Message<?>> receivedMessage = new AtomicReference<Message<?>>();
-		testChannel.subscribe(new MessageHandler() {
-			public void handleMessage(Message<?> message) {
-				receivedMessage.set(message);
-				latch.countDown();
-			}
-		});
-		context.refresh();
-		latch.await(3, TimeUnit.SECONDS);
-		assertEquals(0, latch.getCount());
-		assertNotNull(receivedMessage.get());
-		assertEquals("test", receivedMessage.get().getPayload());
 		context.stop();
 	}
 
@@ -392,17 +340,6 @@ public class MessagingAnnotationPostProcessorTests {
 
 
 	@MessageEndpoint
-	private static class AnnotatedEndpointWithPolledAnnotation {
-
-		@ServiceActivator(inputChannel="testChannel")
-		@Poller(interval=123, initialDelay=456, fixedRate=true, timeUnit=TimeUnit.SECONDS)
-		public String prependFoo(String s) {
-			return "foo" + s;
-		}
-	}
-
-
-	@MessageEndpoint
 	private static class ServiceActivatorAnnotatedBean {
 
 		@ServiceActivator(inputChannel="inputChannel")
@@ -410,17 +347,6 @@ public class MessagingAnnotationPostProcessorTests {
 			return s + s;
 		}
 
-	}
-
-
-	@MessageEndpoint
-	private static class ChannelAdapterAnnotationTestBean {
-
-		@ChannelAdapter("testChannel")
-		@Poller(interval=1000, initialDelay=0, maxMessagesPerPoll=1)
-		public String test() {
-			return "test";
-		}
 	}
 
 

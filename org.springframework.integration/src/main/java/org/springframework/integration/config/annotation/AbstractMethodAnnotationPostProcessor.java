@@ -23,14 +23,11 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.generic.GenericBeanFactoryAccessor;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.integration.annotation.Poller;
 import org.springframework.integration.channel.BeanFactoryChannelResolver;
 import org.springframework.integration.channel.ChannelResolver;
-import org.springframework.integration.channel.PollableChannel;
 import org.springframework.integration.channel.SubscribableChannel;
 import org.springframework.integration.core.MessageChannel;
 import org.springframework.integration.endpoint.AbstractEndpoint;
-import org.springframework.integration.endpoint.PollingConsumer;
 import org.springframework.integration.endpoint.EventDrivenConsumer;
 import org.springframework.integration.message.MessageHandler;
 import org.springframework.util.Assert;
@@ -60,8 +57,7 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 
 	public Object postProcess(Object bean, String beanName, Method method, T annotation) {
 		MessageHandler handler = this.createHandler(bean, method, annotation);
-		Poller pollerAnnotation = AnnotationUtils.findAnnotation(method, Poller.class);
-		AbstractEndpoint endpoint = this.createEndpoint(handler, annotation, pollerAnnotation);
+		AbstractEndpoint endpoint = this.createEndpoint(handler, annotation);
 		if (endpoint != null) {
 			return endpoint;
 		}
@@ -72,29 +68,15 @@ public abstract class AbstractMethodAnnotationPostProcessor<T extends Annotation
 		return (StringUtils.hasText((String) AnnotationUtils.getValue(annotation, INPUT_CHANNEL_ATTRIBUTE)));
 	}
 
-	private AbstractEndpoint createEndpoint(MessageHandler handler, T annotation, Poller pollerAnnotation) {
+	private AbstractEndpoint createEndpoint(MessageHandler handler, T annotation) {
 		AbstractEndpoint endpoint = null;
 		String inputChannelName = (String) AnnotationUtils.getValue(annotation, INPUT_CHANNEL_ATTRIBUTE);
 		if (StringUtils.hasText(inputChannelName)) {
 			MessageChannel inputChannel = this.channelResolver.resolveChannelName(inputChannelName);
 			Assert.notNull(inputChannel, "failed to resolve inputChannel '" + inputChannelName + "'");
-			if (inputChannel instanceof PollableChannel) {
-				PollingConsumer pollingEndpoint = new PollingConsumer(
-						(PollableChannel) inputChannel, handler);
-				if (pollerAnnotation != null) {
-					AnnotationConfigUtils.configurePollingEndpointWithPollerAnnotation(
-							pollingEndpoint, pollerAnnotation, this.beanFactoryAccessor.getBeanFactory());
-				}
-				endpoint = pollingEndpoint;
-			}
-			else if (inputChannel instanceof SubscribableChannel) {
-				Assert.isTrue(pollerAnnotation == null,
-						"The @Poller annotation should only be provided for a PollableChannel");
-				endpoint = new EventDrivenConsumer((SubscribableChannel) inputChannel, handler);
-			}
-			else {
-				throw new IllegalArgumentException("unsupported channel type: [" + inputChannel.getClass() + "]");
-			}
+			Assert.isInstanceOf(SubscribableChannel.class, inputChannel,
+					"The input channel for an Annotation-based endpoint must be a SubscribableChannel.");
+			endpoint = new EventDrivenConsumer((SubscribableChannel) inputChannel, handler);
 			if (handler instanceof BeanFactoryAware) {
 				((BeanFactoryAware) handler).setBeanFactory(this.beanFactoryAccessor.getBeanFactory());
 			}

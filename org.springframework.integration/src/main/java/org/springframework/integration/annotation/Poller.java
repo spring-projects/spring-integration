@@ -22,9 +22,6 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.concurrent.TimeUnit;
-
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Annotation that can be specified at method-level alongside a Message Endpoint
@@ -38,23 +35,5 @@ import org.springframework.transaction.annotation.Transactional;
 @Inherited
 @Documented
 public @interface Poller {
-
-	int interval();
-
-	long initialDelay() default 0;
-
-	boolean fixedRate() default false;
-
-	TimeUnit timeUnit() default TimeUnit.MILLISECONDS;
-
-	int maxMessagesPerPoll() default -1;
-
-	String taskExecutor() default "";
-
-	Transactional transactionAttributes() default @Transactional;
-
-	String transactionManager() default "";
-
-	String[] adviceChain() default {};
 
 }
